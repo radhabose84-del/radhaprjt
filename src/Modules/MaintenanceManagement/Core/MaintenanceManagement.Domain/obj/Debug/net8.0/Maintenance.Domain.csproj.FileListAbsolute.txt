@@ -1,0 +1,12 @@
+F:\MyProjects\ArchitecturePOC\BSOFT\src\Modules\MaintenanceManagement\Core\Maintenance.Domain\bin\Debug\net8.0\Maintenance.Domain.deps.json
+F:\MyProjects\ArchitecturePOC\BSOFT\src\Modules\MaintenanceManagement\Core\Maintenance.Domain\bin\Debug\net8.0\Maintenance.Domain.dll
+F:\MyProjects\ArchitecturePOC\BSOFT\src\Modules\MaintenanceManagement\Core\Maintenance.Domain\bin\Debug\net8.0\Maintenance.Domain.pdb
+F:\MyProjects\ArchitecturePOC\BSOFT\src\Modules\MaintenanceManagement\Core\Maintenance.Domain\obj\Debug\net8.0\Maintenance.Domain.csproj.AssemblyReference.cache
+F:\MyProjects\ArchitecturePOC\BSOFT\src\Modules\MaintenanceManagement\Core\Maintenance.Domain\obj\Debug\net8.0\Maintenance.Domain.GeneratedMSBuildEditorConfig.editorconfig
+F:\MyProjects\ArchitecturePOC\BSOFT\src\Modules\MaintenanceManagement\Core\Maintenance.Domain\obj\Debug\net8.0\Maintenance.Domain.AssemblyInfoInputs.cache
+F:\MyProjects\ArchitecturePOC\BSOFT\src\Modules\MaintenanceManagement\Core\Maintenance.Domain\obj\Debug\net8.0\Maintenance.Domain.AssemblyInfo.cs
+F:\MyProjects\ArchitecturePOC\BSOFT\src\Modules\MaintenanceManagement\Core\Maintenance.Domain\obj\Debug\net8.0\Maintenance.Domain.csproj.CoreCompileInputs.cache
+F:\MyProjects\ArchitecturePOC\BSOFT\src\Modules\MaintenanceManagement\Core\Maintenance.Domain\obj\Debug\net8.0\Maintenance.Domain.dll
+F:\MyProjects\ArchitecturePOC\BSOFT\src\Modules\MaintenanceManagement\Core\Maintenance.Domain\obj\Debug\net8.0\refint\Maintenance.Domain.dll
+F:\MyProjects\ArchitecturePOC\BSOFT\src\Modules\MaintenanceManagement\Core\Maintenance.Domain\obj\Debug\net8.0\Maintenance.Domain.pdb
+F:\MyProjects\ArchitecturePOC\BSOFT\src\Modules\MaintenanceManagement\Core\Maintenance.Domain\obj\Debug\net8.0\ref\Maintenance.Domain.dll

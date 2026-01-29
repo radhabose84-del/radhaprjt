@@ -1,0 +1,17 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "BSOFT.Bootstrapper (Launch)",
+      "type": "coreclr",
+      "request": "launch",
+      "program": "${workspaceFolder}/src/BSOFT.Bootstrapper/bin/Debug/net8.0/BSOFT.Bootstrapper.dll",
+      "cwd": "${workspaceFolder}/src/BSOFT.Bootstrapper",
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "console": "integratedTerminal",
+      "justMyCode": true
+    }
+  ]
+}

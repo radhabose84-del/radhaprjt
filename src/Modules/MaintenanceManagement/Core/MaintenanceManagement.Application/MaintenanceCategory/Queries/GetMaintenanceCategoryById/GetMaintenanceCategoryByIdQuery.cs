@@ -1,0 +1,15 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using MaintenanceManagement.Application.Common.HttpResponse;
+using MaintenanceManagement.Application.MaintenanceCategory.Queries.GetMaintenanceCategory;
+using MediatR;
+
+namespace MaintenanceManagement.Application.MaintenanceCategory.Queries.GetMaintenanceCategoryById
+{
+    public class GetMaintenanceCategoryByIdQuery : IRequest<MaintenanceCategoryDto>
+    {
+        public int Id { get; set; }
+    }
+}

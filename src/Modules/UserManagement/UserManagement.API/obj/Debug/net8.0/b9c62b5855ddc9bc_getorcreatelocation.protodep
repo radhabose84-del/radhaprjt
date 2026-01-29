@@ -1,0 +1,2 @@
+obj\Debug\net8.0/Getorcreatelocation.cs \
+obj\Debug\net8.0/GetorcreatelocationGrpc.cs: ../../Shared/Contracts/Protos/getorcreatelocation.proto

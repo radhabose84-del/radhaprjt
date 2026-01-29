@@ -1,0 +1,2 @@
+obj\Debug\net8.0/DivisionUnit.cs \
+obj\Debug\net8.0/DivisionUnitGrpc.cs: ../../Shared/Contracts/Protos/division_unit.proto

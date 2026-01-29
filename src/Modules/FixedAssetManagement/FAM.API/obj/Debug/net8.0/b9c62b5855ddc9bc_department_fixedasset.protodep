@@ -1,0 +1,2 @@
+obj\Debug\net8.0/DepartmentFixedasset.cs \
+obj\Debug\net8.0/DepartmentFixedassetGrpc.cs: ../../Shared/Contracts/Protos/department_fixedasset.proto

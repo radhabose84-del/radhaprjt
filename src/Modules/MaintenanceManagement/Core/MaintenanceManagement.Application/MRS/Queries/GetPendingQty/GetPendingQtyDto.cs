@@ -1,0 +1,12 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace MaintenanceManagement.Application.MRS.Queries.GetPendingQty
+{
+    public class GetPendingQtyDto
+    {
+        public decimal PendingQty { get; set; }
+    }
+}

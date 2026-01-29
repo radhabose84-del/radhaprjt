@@ -1,0 +1,16 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace MaintenanceManagement.Application.ShiftMasters.Queries.GetShiftMaster
+{
+    public class ShiftMasterDTO
+    {
+        public int Id { get; set; }
+        public string ShiftCode { get; set; }
+        public string ShiftName { get; set; }
+        public DateOnly EffectiveDate { get; set; }
+        public DateTimeOffset CreatedDate { get; set; } // Use DateTimeOffset for accurate date
+    }
+}

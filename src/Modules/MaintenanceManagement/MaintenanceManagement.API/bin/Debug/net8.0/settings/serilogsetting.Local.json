@@ -1,0 +1,23 @@
+{
+    "Serilog": {
+        "Using": ["Serilog.Sinks.Console", "Serilog.Sinks.File", "Serilog.Sinks.MongoDB"],
+        "MinimumLevel": {
+        "Default": "Warning",
+          "Override": {
+            "Microsoft": "Warning",
+            "System": "Warning"
+          }
+        },
+        "WriteTo": [
+          {
+            "Name": "MongoDB",
+            "Args": {
+              "databaseUrl": "mongodb://192.168.1.126:27017/Maintenance",
+              "collectionName": "ApplicationLogs",
+              "restrictedToMinimumLevel": "Warning"
+            }
+          }
+        ],
+        "Enrich": ["FromLogContext"]
+      }
+  }  

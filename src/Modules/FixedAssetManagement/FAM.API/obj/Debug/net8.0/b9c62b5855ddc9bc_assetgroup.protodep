@@ -1,0 +1,2 @@
+obj\Debug\net8.0/Assetgroup.cs \
+obj\Debug\net8.0/AssetgroupGrpc.cs: ../../Shared/Contracts/Protos/assetgroup.proto

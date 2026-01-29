@@ -1,0 +1,12 @@
+F:\MyProjects\ArchitecturePOC\BSOFT\src\Modules\FixedAssetManagement\Core\FAM.Domain\bin\Debug\net8.0\FAM.Domain.deps.json
+F:\MyProjects\ArchitecturePOC\BSOFT\src\Modules\FixedAssetManagement\Core\FAM.Domain\bin\Debug\net8.0\FAM.Domain.dll
+F:\MyProjects\ArchitecturePOC\BSOFT\src\Modules\FixedAssetManagement\Core\FAM.Domain\bin\Debug\net8.0\FAM.Domain.pdb
+F:\MyProjects\ArchitecturePOC\BSOFT\src\Modules\FixedAssetManagement\Core\FAM.Domain\obj\Debug\net8.0\FAM.Domain.csproj.AssemblyReference.cache
+F:\MyProjects\ArchitecturePOC\BSOFT\src\Modules\FixedAssetManagement\Core\FAM.Domain\obj\Debug\net8.0\FAM.Domain.GeneratedMSBuildEditorConfig.editorconfig
+F:\MyProjects\ArchitecturePOC\BSOFT\src\Modules\FixedAssetManagement\Core\FAM.Domain\obj\Debug\net8.0\FAM.Domain.AssemblyInfoInputs.cache
+F:\MyProjects\ArchitecturePOC\BSOFT\src\Modules\FixedAssetManagement\Core\FAM.Domain\obj\Debug\net8.0\FAM.Domain.AssemblyInfo.cs
+F:\MyProjects\ArchitecturePOC\BSOFT\src\Modules\FixedAssetManagement\Core\FAM.Domain\obj\Debug\net8.0\FAM.Domain.csproj.CoreCompileInputs.cache
+F:\MyProjects\ArchitecturePOC\BSOFT\src\Modules\FixedAssetManagement\Core\FAM.Domain\obj\Debug\net8.0\FAM.Domain.dll
+F:\MyProjects\ArchitecturePOC\BSOFT\src\Modules\FixedAssetManagement\Core\FAM.Domain\obj\Debug\net8.0\refint\FAM.Domain.dll
+F:\MyProjects\ArchitecturePOC\BSOFT\src\Modules\FixedAssetManagement\Core\FAM.Domain\obj\Debug\net8.0\FAM.Domain.pdb
+F:\MyProjects\ArchitecturePOC\BSOFT\src\Modules\FixedAssetManagement\Core\FAM.Domain\obj\Debug\net8.0\ref\FAM.Domain.dll

@@ -1,0 +1,2 @@
+obj\Debug\net8.0/DepartmentMaintenance.cs \
+obj\Debug\net8.0/DepartmentMaintenanceGrpc.cs: ../../Shared/Contracts/Protos/department_maintenance.proto

@@ -1,0 +1,64 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <PreserveCompilationContext>true</PreserveCompilationContext>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+  <None Include="..\Shared\Shared.Validation\Common\validation-rules.json"
+        Link="Validation\Common\validation-rules.json">
+    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    <CopyToPublishDirectory>Always</CopyToPublishDirectory>
+  </None>
+</ItemGroup>
+
+
+  <ItemGroup>
+    <!-- Packages -->
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.22" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="7.2.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.22" />
+    <PackageReference Include="MediatR" Version="12.4.1" />
+    <PackageReference Include="FluentValidation" Version="11.11.0" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.11.0" />
+    <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
+    <PackageReference Include="Serilog.Settings.Configuration" Version="9.0.0" />
+    <PackageReference Include="Serilog.Formatting.Compact" Version="3.0.0" />
+    <PackageReference Include="Serilog.Exceptions" Version="8.1.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
+    <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
+    <PackageReference Include="Dapper" Version="2.1.44" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Project references -->
+    <ProjectReference Include="..\Modules\UserManagement\Core\Core.Application\Core.Application.csproj" />
+    <ProjectReference Include="..\Modules\UserManagement\UserManagement.Infrastructure\UserManagement.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\UserManagement\UserManagement.API\UserManagement.API.csproj" />
+    
+    <!-- ADD THIS LINE - Module project -->
+    <ProjectReference Include="..\Modules\UserManagement\UserManagement.Module\UserManagement.Module.csproj" />
+
+     <!-- ✅ Add Fixed Asset module -->
+    <ProjectReference Include="..\Modules\FixedAssetManagement\FixedAssetManagement.Module\FixedAssetManagement.Module.csproj" />
+    <ProjectReference Include="..\Modules\FixedAssetManagement\FAM.Infrastructure\FAM.Infrastructure.csproj" />
+
+        <!-- ✅ Add Maintenance module -->
+   <ProjectReference Include="..\Modules\MaintenanceManagement\MaintenanceManagement.Module\MaintenanceManagement.Module.csproj" />
+   <ProjectReference Include="..\Modules\MaintenanceManagement\MaintenanceManagement.Infrastructure\MaintenanceManagement.Infrastructure.csproj" />
+    
+    <ProjectReference Include="..\Shared\Contracts\Contracts.csproj" />
+    <ProjectReference Include="..\Shared\Shared.Infrastructure\Shared.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\Shared\Shared.Validation\Shared.Validation.csproj" />
+
+  </ItemGroup>
+
+</Project>
