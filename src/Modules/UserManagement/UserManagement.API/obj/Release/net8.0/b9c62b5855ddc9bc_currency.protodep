@@ -1,2 +1,0 @@
-obj\Release\net8.0/Currency.cs \
-obj\Release\net8.0/CurrencyGrpc.cs: ../../Shared/Contracts/Protos/currency.proto

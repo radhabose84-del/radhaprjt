@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "dJ8EwVldVVc=",
+  "dgSpecHash": "YEPebUCVjBk=",
   "success": true,
-  "projectFilePath": "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Shared\\Shared.Infrastructure\\Shared.Infrastructure.csproj",
+  "projectFilePath": "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Shared\\Shared.Infrastructure\\Shared.Infrastructure.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Administrator\\.nuget\\packages\\bcrypt.net-next\\4.0.3\\bcrypt.net-next.4.0.3.nupkg.sha512",
     "C:\\Users\\Administrator\\.nuget\\packages\\dnsclient\\1.6.1\\dnsclient.1.6.1.nupkg.sha512",

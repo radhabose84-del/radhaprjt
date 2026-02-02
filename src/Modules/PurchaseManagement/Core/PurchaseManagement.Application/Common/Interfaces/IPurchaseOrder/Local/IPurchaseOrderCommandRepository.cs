@@ -1,0 +1,17 @@
+using PurchaseLocalDetailDto.Application.PurchaseOrder.Dtos.Local;
+using PurchaseManagement.Domain.Entities.PurchaseOrder;
+
+namespace PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.Local;
+
+public interface IPurchaseOrderCommandRepository
+{
+        Task<int> CreateAsync(PurchaseOrderHeader aggregate, CancellationToken ct);        
+        // Task<int> UpdateAsync(PurchaseOrderHeader incoming, PurchaseOrderUpdateDto dto, CancellationToken ct);
+        Task<int> SoftDeleteAsync(int id, CancellationToken ct);
+        Task<string> GenerateNextCodeAsync(int POCategoryId,int? poMethodId, DateTimeOffset poDate, CancellationToken ct = default);        
+        Task<bool> UpdatePOApproveAsync(int id, int statusId, CancellationToken ct = default);
+        // Task<int> AmendAsync(PurchaseOrderHeader existing,  PurchaseOrderUpdateDto dto, CancellationToken ct);
+        Task<PurchaseOrderHeader?> GetAggregateAsync(int id, CancellationToken ct);        
+}
+
+

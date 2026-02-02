@@ -6,7 +6,7 @@
     <authors>BSoft</authors>
     <description>Contracts for DTOs, Interfaces, and Events in microservices</description>
     <tags>DTOs Interfaces Microservices CQRS</tags>
-    <repository type="git" url="https://github.com/BSoft/Shared.Contracts" />
+    <repository type="git" url="https://github.com/BSoft/Shared.Contracts" commit="4bfac0bdb2c1841c646ee7504ba9e008fea686f3" />
     <dependencies>
       <group targetFramework="net8.0">
         <dependency id="Grpc.Net.ClientFactory" version="2.71.0" exclude="Build,Analyzers" />
@@ -22,6 +22,6 @@
     </frameworkReferences>
   </metadata>
   <files>
-    <file src="F:\MyProjects\ArchitecturePOC\BSOFT\src\Shared\Contracts\bin\Debug\net8.0\Shared.Contracts.dll" target="lib\net8.0\Shared.Contracts.dll" />
+    <file src="F:\MyProjects\GitHubSource\BSOFT_POC\BSOFT\src\Shared\Contracts\bin\Debug\net8.0\Shared.Contracts.dll" target="lib\net8.0\Shared.Contracts.dll" />
   </files>
 </package>

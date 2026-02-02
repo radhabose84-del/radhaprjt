@@ -1,3 +1,0 @@
-obj\Release\net8.0/Company.cs \
-obj\Release\net8.0/CompanyGrpc.cs: C:/Users/Administrator/.nuget/packages/grpc.tools/2.72.0/build/native/include/google/protobuf/empty.proto\
- ../../Shared/Contracts/Protos/company.proto

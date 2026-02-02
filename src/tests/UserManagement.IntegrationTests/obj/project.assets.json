@@ -8272,11 +8272,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\tests\\UserManagement.IntegrationTests\\UserManagement.IntegrationTests.csproj",
+      "projectUniqueName": "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\tests\\UserManagement.IntegrationTests\\UserManagement.IntegrationTests.csproj",
       "projectName": "UserManagement.IntegrationTests",
-      "projectPath": "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\tests\\UserManagement.IntegrationTests\\UserManagement.IntegrationTests.csproj",
+      "projectPath": "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\tests\\UserManagement.IntegrationTests\\UserManagement.IntegrationTests.csproj",
       "packagesPath": "C:\\Users\\Administrator\\.nuget\\packages\\",
-      "outputPath": "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\tests\\UserManagement.IntegrationTests\\obj\\",
+      "outputPath": "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\tests\\UserManagement.IntegrationTests\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\Administrator\\AppData\\Roaming\\NuGet\\NuGet.Config"
@@ -8291,14 +8291,14 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Modules\\UserManagement\\Core\\Core.Application\\Core.Application.csproj": {
-              "projectPath": "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Modules\\UserManagement\\Core\\Core.Application\\Core.Application.csproj"
+            "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Modules\\UserManagement\\Core\\Core.Application\\Core.Application.csproj": {
+              "projectPath": "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Modules\\UserManagement\\Core\\Core.Application\\Core.Application.csproj"
             },
-            "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Modules\\UserManagement\\Core\\Core.Domain\\Core.Domain.csproj": {
-              "projectPath": "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Modules\\UserManagement\\Core\\Core.Domain\\Core.Domain.csproj"
+            "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Modules\\UserManagement\\Core\\Core.Domain\\Core.Domain.csproj": {
+              "projectPath": "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Modules\\UserManagement\\Core\\Core.Domain\\Core.Domain.csproj"
             },
-            "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Modules\\UserManagement\\UserManagement.Infrastructure\\UserManagement.Infrastructure.csproj": {
-              "projectPath": "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Modules\\UserManagement\\UserManagement.Infrastructure\\UserManagement.Infrastructure.csproj"
+            "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Modules\\UserManagement\\UserManagement.Infrastructure\\UserManagement.Infrastructure.csproj": {
+              "projectPath": "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Modules\\UserManagement\\UserManagement.Infrastructure\\UserManagement.Infrastructure.csproj"
             }
           }
         }

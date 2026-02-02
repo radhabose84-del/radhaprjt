@@ -25,8 +25,11 @@ namespace FAM.Application.Location.Queries.GetLocations
         }
         public async Task<ApiResponseDTO<List<LocationDto>>> Handle(GetLocationQuery request, CancellationToken cancellationToken)
         {
-            var (locations, totalCount) = await _locationQueryRepository.GetAllLocationAsync(request.PageNumber, request.PageSize, request.SearchTerm);
-            var locationList = _mapper.Map<List<LocationDto>>(locations);
+            var (list, totalCount) =
+                await _locationQueryRepository.GetAllLocationListAsync(request.PageNumber, request.PageSize, request.SearchTerm);
+
+            // var (locations, totalCount) = await _locationQueryRepository.GetAllLocationAsync(request.PageNumber, request.PageSize, request.SearchTerm);
+            // var locationList = _mapper.Map<List<LocationDto>>(locations);
 
             // 🔥 Fetch departments using gRPC
             // var departments = await _departmentAllGrpcClient.GetDepartmentAllAsync();
@@ -50,9 +53,9 @@ namespace FAM.Application.Location.Queries.GetLocations
             //Domain Event
             var domainEvent = new AuditLogsDomainEvent(
                 actionDetail: "GetLocations",
-                actionCode: "",
-                actionName: "",
-                details: $"Location details was fetched.",
+                actionCode: "Get",
+                actionName: list.Count.ToString(),
+                details: "Location details was fetched.",
                 module: "Location"
             );
             await _mediator.Publish(domainEvent, cancellationToken);
@@ -60,7 +63,7 @@ namespace FAM.Application.Location.Queries.GetLocations
             {
                 IsSuccess = true,
                 Message = "Success",
-                Data = locationList,
+                Data = list,
                 TotalCount = totalCount,
                 PageNumber = request.PageNumber,
                 PageSize = request.PageSize

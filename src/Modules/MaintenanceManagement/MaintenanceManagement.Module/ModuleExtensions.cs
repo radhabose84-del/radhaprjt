@@ -6,7 +6,8 @@ using Microsoft.Extensions.Hosting;
 
 using MaintenanceManagement.Infrastructure;
 using MaintenanceManagement.API.Validation.MachineGroup;
-using MaintenanceManagement.Application.Common.Mappings; // MachineGroupProfile lives in Application
+using MaintenanceManagement.Application.Common.Mappings;
+using MaintenanceManagement.API.Validation.Common; // MachineGroupProfile lives in Application
 
 namespace MaintenanceManagement.Module
 {
@@ -25,7 +26,7 @@ namespace MaintenanceManagement.Module
             var apiAssembly = typeof(CreateMachineGroupCommandValidator).Assembly;          // MaintenanceManagement.API
 
             // ✅ 3) MediatR handlers from Application
-            // services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(applicationAssembly));
+            services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(applicationAssembly));
 
             // ✅ 4) AutoMapper from Application
             services.AddAutoMapper(applicationAssembly);
@@ -33,10 +34,14 @@ namespace MaintenanceManagement.Module
             // ✅ 5) Validators from API
             services.AddValidatorsFromAssembly(apiAssembly);
 
-            // ✅ 6) Module validation helpers (your existing pattern)
-            services.AddScoped<MaintenanceManagement.API.Validation.Common.MaxLengthProvider>();
-            services.AddScoped<MaintenanceManagement.API.Validation.Common.IMaxLengthProvider>(
-                sp => sp.GetRequiredService<MaintenanceManagement.API.Validation.Common.MaxLengthProvider>());
+            // ✅ 5) Validation helpers (used by validators)
+            services.AddScoped<MaxLengthProvider>();
+            services.AddScoped<IMaxLengthProvider>(sp => sp.GetRequiredService<MaxLengthProvider>());
+
+            // // ✅ 6) Module validation helpers (your existing pattern)
+            // services.AddScoped<MaintenanceManagement.API.Validation.Common.MaxLengthProvider>();
+            // services.AddScoped<MaintenanceManagement.API.Validation.Common.IMaxLengthProvider>(
+            //     sp => sp.GetRequiredService<MaintenanceManagement.API.Validation.Common.MaxLengthProvider>());
 
             return services;
         }

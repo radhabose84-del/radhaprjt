@@ -1,0 +1,2 @@
+namespace PurchaseManagement.Application.Quotation.RfqEntry.DTOs;
+public record RfqItemDto(int ItemId, decimal Qty, int UomId,string UomName,string ItemName,decimal GstPercentage,int HsnId,int ItemCategoryId);

@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "+iSHGZw6NNk=",
+  "dgSpecHash": "ULBqNBbGVF8=",
   "success": true,
-  "projectFilePath": "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\BackgroundService\\BackgroundService.Domain\\BackgroundService.Domain.csproj",
+  "projectFilePath": "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\BackgroundService\\BackgroundService.Domain\\BackgroundService.Domain.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Administrator\\.nuget\\packages\\dnsclient\\1.6.1\\dnsclient.1.6.1.nupkg.sha512",
     "C:\\Users\\Administrator\\.nuget\\packages\\mediatr\\12.4.1\\mediatr.12.4.1.nupkg.sha512",

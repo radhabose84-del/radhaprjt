@@ -5457,11 +5457,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\BackgroundService\\BackgroundService.Application\\BackgroundService.Application.csproj",
+      "projectUniqueName": "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\BackgroundService\\BackgroundService.Application\\BackgroundService.Application.csproj",
       "projectName": "BackgroundService.Application",
-      "projectPath": "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\BackgroundService\\BackgroundService.Application\\BackgroundService.Application.csproj",
+      "projectPath": "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\BackgroundService\\BackgroundService.Application\\BackgroundService.Application.csproj",
       "packagesPath": "C:\\Users\\Administrator\\.nuget\\packages\\",
-      "outputPath": "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\BackgroundService\\BackgroundService.Application\\obj\\",
+      "outputPath": "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\BackgroundService\\BackgroundService.Application\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\Administrator\\AppData\\Roaming\\NuGet\\NuGet.Config"
@@ -5476,14 +5476,14 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\BackgroundService\\BackgroundService.Domain\\BackgroundService.Domain.csproj": {
-              "projectPath": "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\BackgroundService\\BackgroundService.Domain\\BackgroundService.Domain.csproj"
+            "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\BackgroundService\\BackgroundService.Domain\\BackgroundService.Domain.csproj": {
+              "projectPath": "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\BackgroundService\\BackgroundService.Domain\\BackgroundService.Domain.csproj"
             },
-            "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Shared\\Contracts\\Contracts.csproj": {
-              "projectPath": "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Shared\\Contracts\\Contracts.csproj"
+            "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Shared\\Contracts\\Contracts.csproj": {
+              "projectPath": "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Shared\\Contracts\\Contracts.csproj"
             },
-            "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Shared\\Shared.Infrastructure\\Shared.Infrastructure.csproj": {
-              "projectPath": "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Shared\\Shared.Infrastructure\\Shared.Infrastructure.csproj"
+            "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Shared\\Shared.Infrastructure\\Shared.Infrastructure.csproj": {
+              "projectPath": "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Shared\\Shared.Infrastructure\\Shared.Infrastructure.csproj"
             }
           }
         }

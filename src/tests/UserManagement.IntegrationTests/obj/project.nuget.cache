@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "NLDnsfIey80=",
+  "dgSpecHash": "Br3U5qvE+dw=",
   "success": true,
-  "projectFilePath": "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\tests\\UserManagement.IntegrationTests\\UserManagement.IntegrationTests.csproj",
+  "projectFilePath": "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\tests\\UserManagement.IntegrationTests\\UserManagement.IntegrationTests.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Administrator\\.nuget\\packages\\automapper\\12.0.0\\automapper.12.0.0.nupkg.sha512",
     "C:\\Users\\Administrator\\.nuget\\packages\\automapper.extensions.microsoft.dependencyinjection\\12.0.0\\automapper.extensions.microsoft.dependencyinjection.12.0.0.nupkg.sha512",

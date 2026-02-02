@@ -1,2 +1,0 @@
-obj\Debug\net8.0/BackgroundService.cs \
-obj\Debug\net8.0/BackgroundServiceGrpc.cs: ../../Shared/Contracts/Protos/background_service.proto

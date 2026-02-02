@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "o8TOS5YDtng=",
+  "dgSpecHash": "zcE8J14BXtI=",
   "success": true,
-  "projectFilePath": "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Modules\\MaintenanceManagement\\Core\\MaintenanceManagement.Domain\\MaintenanceManagement.Domain.csproj",
+  "projectFilePath": "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Modules\\MaintenanceManagement\\Core\\MaintenanceManagement.Domain\\MaintenanceManagement.Domain.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Administrator\\.nuget\\packages\\dnsclient\\1.6.1\\dnsclient.1.6.1.nupkg.sha512",
     "C:\\Users\\Administrator\\.nuget\\packages\\mediatr\\12.4.1\\mediatr.12.4.1.nupkg.sha512",

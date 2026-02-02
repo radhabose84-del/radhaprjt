@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using MaintenanceManagement.Application.Common.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces.ICostCenter;
 using Dapper;
+using MaintenanceManagement.Application.CostCenter.Queries.GetCostCenter;
 
 namespace MaintenanceManagement.Infrastructure.Repositories.CostCenter
 {
@@ -20,51 +21,51 @@ namespace MaintenanceManagement.Infrastructure.Repositories.CostCenter
             _ipAddressService = ipAddressService;
         }
 
-        public async Task<(List<MaintenanceManagement.Domain.Entities.CostCenter>, int)> GetAllCostCenterGroupAsync(int PageNumber, int PageSize, string? SearchTerm)
-        {
-            var UnitId = _ipAddressService.GetUnitId();
-            var query = $$"""
-             DECLARE @TotalCount INT;
-             SELECT @TotalCount = COUNT(*) 
-               FROM Maintenance.CostCenter
-              WHERE IsDeleted = 0 AND UnitId = @UnitId
-            {{(string.IsNullOrEmpty(SearchTerm) ? "" : "AND (CostCenterName LIKE @Search OR CostCenterCode LIKE @Search)")}};
+        // public async Task<(List<MaintenanceManagement.Domain.Entities.CostCenter>, int)> GetAllCostCenterGroupAsync(int PageNumber, int PageSize, string? SearchTerm)
+        // {
+        //     var UnitId = _ipAddressService.GetUnitId();
+        //     var query = $$"""
+        //      DECLARE @TotalCount INT;
+        //      SELECT @TotalCount = COUNT(*) 
+        //        FROM Maintenance.CostCenter
+        //       WHERE IsDeleted = 0 AND UnitId = @UnitId
+        //     {{(string.IsNullOrEmpty(SearchTerm) ? "" : "AND (CostCenterName LIKE @Search OR CostCenterCode LIKE @Search)")}};
 
-                SELECT 
-                Id, 
-                CostCenterCode,
-                CostCenterName,
-                UnitId,
-                DepartmentId,
-                EffectiveDate,
-                ResponsiblePerson,
-                BudgetAllocated,
-                Remarks,
-                IsActive
-            FROM Maintenance.CostCenter 
-            WHERE 
-            IsDeleted = 0 AND UnitId = @UnitId
-                {{(string.IsNullOrEmpty(SearchTerm) ? "" : "AND (CostCenterName LIKE @Search OR CostCenterCode LIKE @Search )")}}
-                ORDER BY Id desc
-                OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
+        //         SELECT 
+        //         Id, 
+        //         CostCenterCode,
+        //         CostCenterName,
+        //         UnitId,
+        //         DepartmentId,
+        //         EffectiveDate,
+        //         ResponsiblePerson,
+        //         BudgetAllocated,
+        //         Remarks,
+        //         IsActive
+        //     FROM Maintenance.CostCenter 
+        //     WHERE 
+        //     IsDeleted = 0 AND UnitId = @UnitId
+        //         {{(string.IsNullOrEmpty(SearchTerm) ? "" : "AND (CostCenterName LIKE @Search OR CostCenterCode LIKE @Search )")}}
+        //         ORDER BY Id desc
+        //         OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
 
-                SELECT @TotalCount AS TotalCount;
-            """;
+        //         SELECT @TotalCount AS TotalCount;
+        //     """;
 
 
-            var parameters = new
-            {
-                Search = $"%{SearchTerm}%",
-                Offset = (PageNumber - 1) * PageSize,
-                PageSize,
-                UnitId
-            };
+        //     var parameters = new
+        //     {
+        //         Search = $"%{SearchTerm}%",
+        //         Offset = (PageNumber - 1) * PageSize,
+        //         PageSize,
+        //         UnitId
+        //     };
 
-            var costCenter = await _dbConnection.QueryMultipleAsync(query, parameters);
-            var costCenterslist = (await costCenter.ReadAsync<MaintenanceManagement.Domain.Entities.CostCenter>()).ToList();
-            int totalCount = (await costCenter.ReadFirstAsync<int>());
-            return (costCenterslist, totalCount);
-        }
+        //     var costCenter = await _dbConnection.QueryMultipleAsync(query, parameters);
+        //     var costCenterslist = (await costCenter.ReadAsync<MaintenanceManagement.Domain.Entities.CostCenter>()).ToList();
+        //     int totalCount = (await costCenter.ReadFirstAsync<int>());
+        //     return (costCenterslist, totalCount);
+        // }
 
         public async Task<MaintenanceManagement.Domain.Entities.CostCenter?> GetByIdAsync(int Id)
         {
@@ -112,9 +113,9 @@ namespace MaintenanceManagement.Infrastructure.Repositories.CostCenter
 
             return costcentermasterDetailExists.HasValue;
         }
-      
 
-         public async Task<bool> DepartmentSoftDeleteValidation(int Id)
+
+        public async Task<bool> DepartmentSoftDeleteValidation(int Id)
         {
             const string query = @"                        
                               SELECT 1 
@@ -185,6 +186,60 @@ namespace MaintenanceManagement.Infrastructure.Repositories.CostCenter
             return exists.HasValue;
         }
 
+        public async Task<(List<CostCenterDto>, int)> GetAllCostCenterListGroupAsync(int PageNumber, int PageSize, string? SearchTerm)
+        {
+            var unitId = _ipAddressService.GetUnitId();
 
+            var query = $$"""
+    DECLARE @TotalCount INT;
+
+    SELECT @TotalCount = COUNT(*)
+    FROM Maintenance.CostCenter CC
+    WHERE CC.IsDeleted = 0
+      AND CC.UnitId = @UnitId
+      {{(string.IsNullOrEmpty(SearchTerm) ? "" : "AND (CC.CostCenterName LIKE @Search OR CC.CostCenterCode LIKE @Search)")}} ;
+
+    SELECT 
+        CC.Id,
+        CC.CostCenterCode,
+        CC.CostCenterName,
+        CC.UnitId,
+        U.UnitName AS UnitName,
+        CC.DepartmentId,
+        D.DeptName AS DepartmentName,
+        CC.EffectiveDate,
+        CC.ResponsiblePerson,
+        CC.BudgetAllocated,
+        CC.Remarks,
+        CC.IsActive
+    FROM Maintenance.CostCenter CC
+    LEFT JOIN AppData.Unit U
+        ON U.Id = CC.UnitId
+    LEFT JOIN AppData.Department D
+        ON D.Id = CC.DepartmentId
+    WHERE CC.IsDeleted = 0
+      AND CC.UnitId = @UnitId
+      {{(string.IsNullOrEmpty(SearchTerm) ? "" : "AND (CC.CostCenterName LIKE @Search OR CC.CostCenterCode LIKE @Search)")}}
+    ORDER BY CC.Id DESC
+    OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
+
+    SELECT @TotalCount AS TotalCount;
+    """;
+
+            var parameters = new
+            {
+                Search = $"%{SearchTerm}%",
+                Offset = (PageNumber - 1) * PageSize,
+                PageSize,
+                UnitId = unitId
+            };
+
+            using var multi = await _dbConnection.QueryMultipleAsync(query, parameters);
+
+            var list = (await multi.ReadAsync<CostCenterDto>()).ToList();
+            var total = await multi.ReadFirstAsync<int>();
+
+            return (list, total);
+        }
     }
 }

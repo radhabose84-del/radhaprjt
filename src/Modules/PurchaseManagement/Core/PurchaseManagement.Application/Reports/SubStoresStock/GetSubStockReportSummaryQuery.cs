@@ -1,0 +1,17 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using MediatR;
+
+namespace PurchaseManagement.Application.Reports.SubStoresStock
+{
+    public class GetSubStockReportSummaryQuery : IRequest<List<SubStockSummaryDto>>
+    {
+        public int? ItemId { get; set; }
+        public int? DepartmentId { get; set; }
+        public int? WarehouseId { get; set; }
+        public int? StorageTypeId { get; set; }
+        public int? TargetId { get; set; }
+    }
+}

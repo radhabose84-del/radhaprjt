@@ -156,11 +156,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Shared\\Shared.Validation\\Shared.Validation.csproj",
+      "projectUniqueName": "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Shared\\Shared.Validation\\Shared.Validation.csproj",
       "projectName": "Shared.Validation",
-      "projectPath": "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Shared\\Shared.Validation\\Shared.Validation.csproj",
+      "projectPath": "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Shared\\Shared.Validation\\Shared.Validation.csproj",
       "packagesPath": "C:\\Users\\Administrator\\.nuget\\packages\\",
-      "outputPath": "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Shared\\Shared.Validation\\obj\\",
+      "outputPath": "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Shared\\Shared.Validation\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\Administrator\\AppData\\Roaming\\NuGet\\NuGet.Config"

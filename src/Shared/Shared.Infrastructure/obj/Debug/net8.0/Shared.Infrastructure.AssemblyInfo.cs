@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyDescriptionAttribute("Reusable policies and infrastructure helpers like Polly, Serilog")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+4bfac0bdb2c1841c646ee7504ba9e008fea686f3")]
 [assembly: System.Reflection.AssemblyProductAttribute("Shared.Infrastructure")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Shared.Infrastructure")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

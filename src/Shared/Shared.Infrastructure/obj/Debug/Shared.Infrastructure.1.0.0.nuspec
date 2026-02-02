@@ -5,7 +5,7 @@
     <version>1.0.0</version>
     <authors>BSoft</authors>
     <description>Reusable policies and infrastructure helpers like Polly, Serilog</description>
-    <repository type="git" />
+    <repository type="git" commit="4bfac0bdb2c1841c646ee7504ba9e008fea686f3" />
     <dependencies>
       <group targetFramework="net8.0">
         <dependency id="Core.Domain" version="1.0.0" exclude="Build,Analyzers" />
@@ -33,6 +33,6 @@
     </dependencies>
   </metadata>
   <files>
-    <file src="F:\MyProjects\ArchitecturePOC\BSOFT\src\Shared\Shared.Infrastructure\bin\Debug\net8.0\Shared.Infrastructure.dll" target="lib\net8.0\Shared.Infrastructure.dll" />
+    <file src="F:\MyProjects\GitHubSource\BSOFT_POC\BSOFT\src\Shared\Shared.Infrastructure\bin\Debug\net8.0\Shared.Infrastructure.dll" target="lib\net8.0\Shared.Infrastructure.dll" />
   </files>
 </package>

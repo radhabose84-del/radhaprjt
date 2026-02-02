@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "rlsjxcQmtlg=",
+  "dgSpecHash": "YOLwhqv/RrQ=",
   "success": true,
-  "projectFilePath": "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Shared\\Shared.Validation\\Shared.Validation.csproj",
+  "projectFilePath": "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Shared\\Shared.Validation\\Shared.Validation.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Administrator\\.nuget\\packages\\microsoft.extensions.configuration.abstractions\\8.0.0\\microsoft.extensions.configuration.abstractions.8.0.0.nupkg.sha512",
     "C:\\Users\\Administrator\\.nuget\\packages\\microsoft.extensions.primitives\\8.0.0\\microsoft.extensions.primitives.8.0.0.nupkg.sha512",

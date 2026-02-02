@@ -1,3 +1,0 @@
-obj\Debug\net8.0/Unit.cs \
-obj\Debug\net8.0/UnitGrpc.cs: C:/Users/Administrator/.nuget/packages/grpc.tools/2.72.0/build/native/include/google/protobuf/empty.proto\
- ../../Shared/Contracts/Protos/unit.proto

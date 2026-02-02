@@ -7183,11 +7183,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Modules\\FixedAssetManagement\\FixedAssetManagement.Module\\FixedAssetManagement.Module.csproj",
+      "projectUniqueName": "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Modules\\FixedAssetManagement\\FixedAssetManagement.Module\\FixedAssetManagement.Module.csproj",
       "projectName": "FixedAssetManagement.Module",
-      "projectPath": "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Modules\\FixedAssetManagement\\FixedAssetManagement.Module\\FixedAssetManagement.Module.csproj",
+      "projectPath": "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Modules\\FixedAssetManagement\\FixedAssetManagement.Module\\FixedAssetManagement.Module.csproj",
       "packagesPath": "C:\\Users\\Administrator\\.nuget\\packages\\",
-      "outputPath": "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Modules\\FixedAssetManagement\\FixedAssetManagement.Module\\obj\\",
+      "outputPath": "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Modules\\FixedAssetManagement\\FixedAssetManagement.Module\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\Administrator\\AppData\\Roaming\\NuGet\\NuGet.Config"
@@ -7202,17 +7202,17 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Modules\\FixedAssetManagement\\Core\\FAM.Application\\FAM.Application.csproj": {
-              "projectPath": "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Modules\\FixedAssetManagement\\Core\\FAM.Application\\FAM.Application.csproj"
+            "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Modules\\FixedAssetManagement\\Core\\FAM.Application\\FAM.Application.csproj": {
+              "projectPath": "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Modules\\FixedAssetManagement\\Core\\FAM.Application\\FAM.Application.csproj"
             },
-            "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Modules\\FixedAssetManagement\\Core\\FAM.Domain\\FAM.Domain.csproj": {
-              "projectPath": "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Modules\\FixedAssetManagement\\Core\\FAM.Domain\\FAM.Domain.csproj"
+            "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Modules\\FixedAssetManagement\\Core\\FAM.Domain\\FAM.Domain.csproj": {
+              "projectPath": "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Modules\\FixedAssetManagement\\Core\\FAM.Domain\\FAM.Domain.csproj"
             },
-            "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Modules\\FixedAssetManagement\\FAM.API\\FAM.API.csproj": {
-              "projectPath": "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Modules\\FixedAssetManagement\\FAM.API\\FAM.API.csproj"
+            "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Modules\\FixedAssetManagement\\FAM.API\\FAM.API.csproj": {
+              "projectPath": "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Modules\\FixedAssetManagement\\FAM.API\\FAM.API.csproj"
             },
-            "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Modules\\FixedAssetManagement\\FAM.Infrastructure\\FAM.Infrastructure.csproj": {
-              "projectPath": "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Modules\\FixedAssetManagement\\FAM.Infrastructure\\FAM.Infrastructure.csproj"
+            "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Modules\\FixedAssetManagement\\FAM.Infrastructure\\FAM.Infrastructure.csproj": {
+              "projectPath": "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Modules\\FixedAssetManagement\\FAM.Infrastructure\\FAM.Infrastructure.csproj"
             }
           }
         }

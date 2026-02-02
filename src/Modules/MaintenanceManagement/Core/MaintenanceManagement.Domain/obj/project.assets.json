@@ -1533,11 +1533,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Modules\\MaintenanceManagement\\Core\\MaintenanceManagement.Domain\\MaintenanceManagement.Domain.csproj",
+      "projectUniqueName": "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Modules\\MaintenanceManagement\\Core\\MaintenanceManagement.Domain\\MaintenanceManagement.Domain.csproj",
       "projectName": "MaintenanceManagement.Domain",
-      "projectPath": "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Modules\\MaintenanceManagement\\Core\\MaintenanceManagement.Domain\\MaintenanceManagement.Domain.csproj",
+      "projectPath": "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Modules\\MaintenanceManagement\\Core\\MaintenanceManagement.Domain\\MaintenanceManagement.Domain.csproj",
       "packagesPath": "C:\\Users\\Administrator\\.nuget\\packages\\",
-      "outputPath": "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Modules\\MaintenanceManagement\\Core\\MaintenanceManagement.Domain\\obj\\",
+      "outputPath": "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Modules\\MaintenanceManagement\\Core\\MaintenanceManagement.Domain\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\Administrator\\AppData\\Roaming\\NuGet\\NuGet.Config"

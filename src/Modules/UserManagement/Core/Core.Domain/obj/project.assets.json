@@ -1578,11 +1578,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "f:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Modules\\UserManagement\\Core\\Core.Domain\\Core.Domain.csproj",
+      "projectUniqueName": "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Modules\\UserManagement\\Core\\Core.Domain\\Core.Domain.csproj",
       "projectName": "Core.Domain",
-      "projectPath": "f:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Modules\\UserManagement\\Core\\Core.Domain\\Core.Domain.csproj",
+      "projectPath": "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Modules\\UserManagement\\Core\\Core.Domain\\Core.Domain.csproj",
       "packagesPath": "C:\\Users\\Administrator\\.nuget\\packages\\",
-      "outputPath": "f:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Modules\\UserManagement\\Core\\Core.Domain\\obj\\",
+      "outputPath": "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Modules\\UserManagement\\Core\\Core.Domain\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\Administrator\\AppData\\Roaming\\NuGet\\NuGet.Config"

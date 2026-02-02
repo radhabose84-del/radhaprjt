@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Modules\\MaintenanceManagement\\MaintenanceManagement.API\\MaintenanceManagement.API.csproj": {}
+    "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Modules\\MaintenanceManagement\\MaintenanceManagement.API\\MaintenanceManagement.API.csproj": {}
   },
   "projects": {
-    "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Modules\\MaintenanceManagement\\Core\\MaintenanceManagement.Application\\MaintenanceManagement.Application.csproj": {
+    "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Modules\\MaintenanceManagement\\Core\\MaintenanceManagement.Application\\MaintenanceManagement.Application.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Modules\\MaintenanceManagement\\Core\\MaintenanceManagement.Application\\MaintenanceManagement.Application.csproj",
+        "projectUniqueName": "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Modules\\MaintenanceManagement\\Core\\MaintenanceManagement.Application\\MaintenanceManagement.Application.csproj",
         "projectName": "MaintenanceManagement.Application",
-        "projectPath": "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Modules\\MaintenanceManagement\\Core\\MaintenanceManagement.Application\\MaintenanceManagement.Application.csproj",
+        "projectPath": "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Modules\\MaintenanceManagement\\Core\\MaintenanceManagement.Application\\MaintenanceManagement.Application.csproj",
         "packagesPath": "C:\\Users\\Administrator\\.nuget\\packages\\",
-        "outputPath": "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Modules\\MaintenanceManagement\\Core\\MaintenanceManagement.Application\\obj\\",
+        "outputPath": "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Modules\\MaintenanceManagement\\Core\\MaintenanceManagement.Application\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\Administrator\\AppData\\Roaming\\NuGet\\NuGet.Config"
@@ -26,8 +26,8 @@
           "net8.0": {
             "targetAlias": "net8.0",
             "projectReferences": {
-              "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Modules\\MaintenanceManagement\\Core\\MaintenanceManagement.Domain\\MaintenanceManagement.Domain.csproj": {
-                "projectPath": "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Modules\\MaintenanceManagement\\Core\\MaintenanceManagement.Domain\\MaintenanceManagement.Domain.csproj"
+              "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Modules\\MaintenanceManagement\\Core\\MaintenanceManagement.Domain\\MaintenanceManagement.Domain.csproj": {
+                "projectPath": "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Modules\\MaintenanceManagement\\Core\\MaintenanceManagement.Domain\\MaintenanceManagement.Domain.csproj"
               }
             }
           }
@@ -136,14 +136,14 @@
         }
       }
     },
-    "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Modules\\MaintenanceManagement\\Core\\MaintenanceManagement.Domain\\MaintenanceManagement.Domain.csproj": {
+    "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Modules\\MaintenanceManagement\\Core\\MaintenanceManagement.Domain\\MaintenanceManagement.Domain.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Modules\\MaintenanceManagement\\Core\\MaintenanceManagement.Domain\\MaintenanceManagement.Domain.csproj",
+        "projectUniqueName": "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Modules\\MaintenanceManagement\\Core\\MaintenanceManagement.Domain\\MaintenanceManagement.Domain.csproj",
         "projectName": "MaintenanceManagement.Domain",
-        "projectPath": "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Modules\\MaintenanceManagement\\Core\\MaintenanceManagement.Domain\\MaintenanceManagement.Domain.csproj",
+        "projectPath": "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Modules\\MaintenanceManagement\\Core\\MaintenanceManagement.Domain\\MaintenanceManagement.Domain.csproj",
         "packagesPath": "C:\\Users\\Administrator\\.nuget\\packages\\",
-        "outputPath": "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Modules\\MaintenanceManagement\\Core\\MaintenanceManagement.Domain\\obj\\",
+        "outputPath": "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Modules\\MaintenanceManagement\\Core\\MaintenanceManagement.Domain\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\Administrator\\AppData\\Roaming\\NuGet\\NuGet.Config"
@@ -212,14 +212,14 @@
         }
       }
     },
-    "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Modules\\MaintenanceManagement\\MaintenanceManagement.API\\MaintenanceManagement.API.csproj": {
+    "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Modules\\MaintenanceManagement\\MaintenanceManagement.API\\MaintenanceManagement.API.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Modules\\MaintenanceManagement\\MaintenanceManagement.API\\MaintenanceManagement.API.csproj",
+        "projectUniqueName": "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Modules\\MaintenanceManagement\\MaintenanceManagement.API\\MaintenanceManagement.API.csproj",
         "projectName": "MaintenanceManagement.API",
-        "projectPath": "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Modules\\MaintenanceManagement\\MaintenanceManagement.API\\MaintenanceManagement.API.csproj",
+        "projectPath": "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Modules\\MaintenanceManagement\\MaintenanceManagement.API\\MaintenanceManagement.API.csproj",
         "packagesPath": "C:\\Users\\Administrator\\.nuget\\packages\\",
-        "outputPath": "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Modules\\MaintenanceManagement\\MaintenanceManagement.API\\obj\\",
+        "outputPath": "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Modules\\MaintenanceManagement\\MaintenanceManagement.API\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\Administrator\\AppData\\Roaming\\NuGet\\NuGet.Config"
@@ -234,14 +234,14 @@
           "net8.0": {
             "targetAlias": "net8.0",
             "projectReferences": {
-              "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Modules\\MaintenanceManagement\\Core\\MaintenanceManagement.Application\\MaintenanceManagement.Application.csproj": {
-                "projectPath": "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Modules\\MaintenanceManagement\\Core\\MaintenanceManagement.Application\\MaintenanceManagement.Application.csproj"
+              "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Modules\\MaintenanceManagement\\Core\\MaintenanceManagement.Application\\MaintenanceManagement.Application.csproj": {
+                "projectPath": "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Modules\\MaintenanceManagement\\Core\\MaintenanceManagement.Application\\MaintenanceManagement.Application.csproj"
               },
-              "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Modules\\MaintenanceManagement\\MaintenanceManagement.Infrastructure\\MaintenanceManagement.Infrastructure.csproj": {
-                "projectPath": "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Modules\\MaintenanceManagement\\MaintenanceManagement.Infrastructure\\MaintenanceManagement.Infrastructure.csproj"
+              "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Modules\\MaintenanceManagement\\MaintenanceManagement.Infrastructure\\MaintenanceManagement.Infrastructure.csproj": {
+                "projectPath": "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Modules\\MaintenanceManagement\\MaintenanceManagement.Infrastructure\\MaintenanceManagement.Infrastructure.csproj"
               },
-              "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Shared\\Shared.Validation\\Shared.Validation.csproj": {
-                "projectPath": "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Shared\\Shared.Validation\\Shared.Validation.csproj"
+              "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Shared\\Shared.Validation\\Shared.Validation.csproj": {
+                "projectPath": "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Shared\\Shared.Validation\\Shared.Validation.csproj"
               }
             }
           }
@@ -358,14 +358,14 @@
         }
       }
     },
-    "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Modules\\MaintenanceManagement\\MaintenanceManagement.Infrastructure\\MaintenanceManagement.Infrastructure.csproj": {
+    "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Modules\\MaintenanceManagement\\MaintenanceManagement.Infrastructure\\MaintenanceManagement.Infrastructure.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Modules\\MaintenanceManagement\\MaintenanceManagement.Infrastructure\\MaintenanceManagement.Infrastructure.csproj",
+        "projectUniqueName": "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Modules\\MaintenanceManagement\\MaintenanceManagement.Infrastructure\\MaintenanceManagement.Infrastructure.csproj",
         "projectName": "MaintenanceManagement.Infrastructure",
-        "projectPath": "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Modules\\MaintenanceManagement\\MaintenanceManagement.Infrastructure\\MaintenanceManagement.Infrastructure.csproj",
+        "projectPath": "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Modules\\MaintenanceManagement\\MaintenanceManagement.Infrastructure\\MaintenanceManagement.Infrastructure.csproj",
         "packagesPath": "C:\\Users\\Administrator\\.nuget\\packages\\",
-        "outputPath": "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Modules\\MaintenanceManagement\\MaintenanceManagement.Infrastructure\\obj\\",
+        "outputPath": "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Modules\\MaintenanceManagement\\MaintenanceManagement.Infrastructure\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\Administrator\\AppData\\Roaming\\NuGet\\NuGet.Config"
@@ -380,11 +380,11 @@
           "net8.0": {
             "targetAlias": "net8.0",
             "projectReferences": {
-              "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Modules\\MaintenanceManagement\\Core\\MaintenanceManagement.Application\\MaintenanceManagement.Application.csproj": {
-                "projectPath": "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Modules\\MaintenanceManagement\\Core\\MaintenanceManagement.Application\\MaintenanceManagement.Application.csproj"
+              "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Modules\\MaintenanceManagement\\Core\\MaintenanceManagement.Application\\MaintenanceManagement.Application.csproj": {
+                "projectPath": "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Modules\\MaintenanceManagement\\Core\\MaintenanceManagement.Application\\MaintenanceManagement.Application.csproj"
               },
-              "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Modules\\MaintenanceManagement\\Core\\MaintenanceManagement.Domain\\MaintenanceManagement.Domain.csproj": {
-                "projectPath": "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Modules\\MaintenanceManagement\\Core\\MaintenanceManagement.Domain\\MaintenanceManagement.Domain.csproj"
+              "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Modules\\MaintenanceManagement\\Core\\MaintenanceManagement.Domain\\MaintenanceManagement.Domain.csproj": {
+                "projectPath": "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Modules\\MaintenanceManagement\\Core\\MaintenanceManagement.Domain\\MaintenanceManagement.Domain.csproj"
               }
             }
           }
@@ -557,14 +557,14 @@
         }
       }
     },
-    "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Shared\\Shared.Validation\\Shared.Validation.csproj": {
+    "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Shared\\Shared.Validation\\Shared.Validation.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Shared\\Shared.Validation\\Shared.Validation.csproj",
+        "projectUniqueName": "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Shared\\Shared.Validation\\Shared.Validation.csproj",
         "projectName": "Shared.Validation",
-        "projectPath": "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Shared\\Shared.Validation\\Shared.Validation.csproj",
+        "projectPath": "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Shared\\Shared.Validation\\Shared.Validation.csproj",
         "packagesPath": "C:\\Users\\Administrator\\.nuget\\packages\\",
-        "outputPath": "F:\\MyProjects\\ArchitecturePOC\\BSOFT\\src\\Shared\\Shared.Validation\\obj\\",
+        "outputPath": "F:\\MyProjects\\GitHubSource\\BSOFT_POC\\BSOFT\\src\\Shared\\Shared.Validation\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\Administrator\\AppData\\Roaming\\NuGet\\NuGet.Config"
