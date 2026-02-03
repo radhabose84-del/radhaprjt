@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace FAM.API.Controllers.Reports
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/fam/[controller]")]
     public class ReportController : ApiControllerBase
     {
 

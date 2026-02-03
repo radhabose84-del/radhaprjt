@@ -13,7 +13,7 @@ using Microsoft.AspNetCore.Http;
 namespace PurchaseManagement.API.Controllers.Reports
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/purchase/[controller]")]
     public class ReportsController : ApiControllerBase
     {
 

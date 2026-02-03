@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace FAM.API.Controllers.Dashboard
 { 
     [ApiController]    
-    [Route("[controller]")]
+    [Route("api/fam/[controller]")]
     public class DashboardController : ControllerBase
     {
         private readonly IDashboardQueryRepository _dashboardQueryRepository;

@@ -17,7 +17,7 @@ using Microsoft.AspNetCore.Http;
 namespace MaintenanceManagement.API.Controllers.Reports
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/maintenance/[controller]")]
 
     public class ReportController : ApiControllerBase
     {
