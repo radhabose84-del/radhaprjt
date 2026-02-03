@@ -31,10 +31,10 @@ namespace FAM.Infrastructure.Repositories.AssetTransferIssueApproval
                 SELECT @TotalCount = COUNT(*) 
                 FROM FixedAsset.AssetTransferIssueHdr a
                 INNER JOIN FixedAsset.MiscMaster c ON a.TransferType = c.Id
-                INNER JOIN [Bannari].AppData.Unit d ON a.FromUnitId = d.Id
-                INNER JOIN [Bannari].AppData.Unit e ON a.ToUnitId = e.Id
-                INNER JOIN [Bannari].AppData.Department f ON a.FromDepartmentId = f.Id
-                INNER JOIN [Bannari].AppData.Department g ON a.ToDepartmentId = g.Id
+                INNER JOIN [BannariERP].AppData.Unit d ON a.FromUnitId = d.Id
+                INNER JOIN [BannariERP].AppData.Unit e ON a.ToUnitId = e.Id
+                INNER JOIN [BannariERP].AppData.Department f ON a.FromDepartmentId = f.Id
+                INNER JOIN [BannariERP].AppData.Department g ON a.ToDepartmentId = g.Id
                 WHERE a.Status = 'Pending' and a.FromUnitId = @UnitId
                 {{(string.IsNullOrEmpty(TransferType) ? "" : "AND a.TransferType LIKE @Search")}}
                 {{(FromDate.HasValue ? "AND CAST(a.DocDate AS DATE) >= CAST(@FromDate AS DATE)" : "")}}
@@ -58,10 +58,10 @@ namespace FAM.Infrastructure.Repositories.AssetTransferIssueApproval
                     a.Status
                     FROM FixedAsset.AssetTransferIssueHdr a
                 INNER JOIN FixedAsset.MiscMaster c ON a.TransferType = c.Id
-                INNER JOIN [Bannari].AppData.Unit d ON a.FromUnitId = d.Id
-                INNER JOIN [Bannari].AppData.Unit e ON a.ToUnitId = e.Id
-                INNER JOIN [Bannari].AppData.Department f ON a.FromDepartmentId = f.Id
-                INNER JOIN [Bannari].AppData.Department g ON a.ToDepartmentId = g.Id
+                INNER JOIN [BannariERP].AppData.Unit d ON a.FromUnitId = d.Id
+                INNER JOIN [BannariERP].AppData.Unit e ON a.ToUnitId = e.Id
+                INNER JOIN [BannariERP].AppData.Department f ON a.FromDepartmentId = f.Id
+                INNER JOIN [BannariERP].AppData.Department g ON a.ToDepartmentId = g.Id
                 WHERE a.Status = 'Pending' and a.FromUnitId = @UnitId
                 {{(string.IsNullOrEmpty(TransferType) ? "" : "AND a.TransferType LIKE @Search")}}
                 {{(FromDate.HasValue ? "AND CAST(a.DocDate AS DATE) >= CAST(@FromDate AS DATE)" : "")}}

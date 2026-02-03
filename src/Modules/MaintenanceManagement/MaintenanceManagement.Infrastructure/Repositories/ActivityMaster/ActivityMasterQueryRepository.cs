@@ -89,7 +89,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.ActivityMaster
                         B.DeptName AS Department, A.EstimatedDuration, A.ActivityType, 
                         C.Code AS ActivityTypeDescription, A.IsActive, A.IsDeleted
                     FROM [Maintenance].[ActivityMaster] A
-                    INNER JOIN [Bannari].[AppData].[Department] B ON A.DepartmentId = B.Id
+                    INNER JOIN [BannariERP].[AppData].[Department] B ON A.DepartmentId = B.Id
                     INNER JOIN [Maintenance].[MiscMaster] C ON A.ActivityType = C.Id
                     WHERE A.Id = @ActivityMasterId AND A.IsDeleted = 0 AND A.UnitId = @UnitId
                     FOR JSON PATH, INCLUDE_NULL_VALUES;

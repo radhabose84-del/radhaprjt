@@ -21,7 +21,7 @@ namespace FAM.Infrastructure.Repositories.ExcelImport
         public async Task<int?> GetAssetDeptIdByNameAsync(string deptName)
         {
             const string query = @"            
-             SELECT  Id from Bannari.appData.Department where DeptName like @deptName and IsDeleted=0";            
+             SELECT  Id from BannariERP.appData.Department where DeptName like @deptName and IsDeleted=0";            
             var result = await _dbConnection.QueryFirstOrDefaultAsync<int?>(query, new { deptName = $"%{deptName}%" });
             return result;
         }
@@ -30,7 +30,7 @@ namespace FAM.Infrastructure.Repositories.ExcelImport
         {
             const string query = @"            
                 SELECT Id 
-                FROM Bannari.appData.Unit 
+                FROM BannariERP.appData.Unit 
                 WHERE UnitName LIKE @unitName AND IsDeleted = 0";
             var result = await _dbConnection.QueryFirstOrDefaultAsync<int?>(query, new { unitName = $"%{unitName}%" });
             return result;
@@ -40,7 +40,7 @@ namespace FAM.Infrastructure.Repositories.ExcelImport
         public async Task<string?> GetCompanyByNameAsync(int companyId)
         {
             const string query = @"            
-             SELECT  CompanyName from Bannari.appData.Company where id =@companyId and IsDeleted=0";
+             SELECT  CompanyName from BannariERP.appData.Company where id =@companyId and IsDeleted=0";
             var result = await _dbConnection.QueryFirstOrDefaultAsync<string?>(query, new { companyId});
             return result;
         }
@@ -49,7 +49,7 @@ namespace FAM.Infrastructure.Repositories.ExcelImport
         {
             const string query = @"            
             SELECT shortname, OldUnitId 
-            FROM Bannari.appData.Unit 
+            FROM BannariERP.appData.Unit 
             WHERE id = @unitId AND IsDeleted = 0";
             var result = await _dbConnection.QueryFirstOrDefaultAsync<UnitDto>(query, new { unitId });
             return result;

@@ -86,8 +86,8 @@ namespace FAM.Infrastructure.Repositories.SubLocation
                 S.ModifiedByName,
                 S.ModifiedIP
             FROM FixedAsset.SubLocation S
-            JOIN Bannari.AppData.Department D ON D.Id = S.DepartmentId
-            JOIN Bannari.AppData.Unit U ON U.Id = S.UnitId
+            JOIN BannariERP.AppData.Department D ON D.Id = S.DepartmentId
+            JOIN BannariERP.AppData.Unit U ON U.Id = S.UnitId
 			JOIN FixedAsset.Location L on L.Id= S.LocationId
             WHERE S.SubLocationName = @SubLocationName AND S.IsDeleted = 0 AND S.DepartmentId = @DepartmentId AND S.LocationId=@LocationId AND S.UnitId = @UnitId
             

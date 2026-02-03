@@ -2,8 +2,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MaintenanceManagement.Domain\MaintenanceManagement.Domain.csproj" />
-    <ProjectReference Include="..\..\..\Shared\Contracts\Contracts.csproj" />
-    <ProjectReference Include="..\..\..\Shared\Shared.Infrastructure\Shared.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\..\Shared\Contracts\Contracts.csproj" />
+    <ProjectReference Include="..\..\..\..\Shared\Shared.Infrastructure\Shared.Infrastructure.csproj" />
   </ItemGroup>
 <ItemGroup>
     <PackageReference Include="AutoMapper" Version="12.0.0" />

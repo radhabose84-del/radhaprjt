@@ -83,6 +83,10 @@ using Core.Domain.Entities;
 using MongoDB.Driver.Linq;
 using Infrastructure.Data;
 using Microsoft.Extensions.Hosting;
+using Contracts.Interfaces.Lookups.Users;
+using UserManagement.Infrastructure.Repositories.Lookups.Users;
+using UserManagement.Infrastructure.Repositories.Lookups.Units;
+using UserManagement.Infrastructure.Repositories.Lookups.Country;
 
 namespace UserManagement.Infrastructure
 {
@@ -299,6 +303,8 @@ namespace UserManagement.Infrastructure
 
             services.AddScoped<IDepartmentCommandRepository, DepartmentCommandRepository>();
             services.AddScoped<IDepartmentQueryRepository, DepartmentQueryRepository>();
+             //Lookups
+            services.AddScoped<IDepartmentLookup, DepartmentLookupRepository>();
 
             services.AddScoped<IUserRoleCommandRepository, UserRoleCommandRepository>();
             services.AddScoped<IUserRoleQueryRepository, UserRoleQueryRepository>();
@@ -308,6 +314,7 @@ namespace UserManagement.Infrastructure
 
             services.AddScoped<IUnitCommandRepository, UnitCommandRepository>();
             services.AddScoped<IUnitQueryRepository, UnitQueryRepository>();
+            services.AddScoped<IUnitLookup, UnitLookupRepository>();
 
             services.AddScoped<IEntityCommandRepository, EntityCommandRepository>();
             services.AddScoped<IEntityQueryRepository, EntityQueryRepository>();
@@ -317,6 +324,7 @@ namespace UserManagement.Infrastructure
 
             services.AddScoped<ICountryCommandRepository, CountryCommandRepository>();
             services.AddScoped<ICountryQueryRepository, CountryQueryRepository>();
+            services.AddScoped<ICountryLookup, CountryLookupRepository>();
 
             services.AddScoped<IStateCommandRepository, StateCommandRepository>();
             services.AddScoped<IStateQueryRepository, StateQueryRepository>();

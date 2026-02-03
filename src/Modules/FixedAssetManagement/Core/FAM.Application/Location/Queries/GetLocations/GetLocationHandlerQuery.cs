@@ -1,5 +1,6 @@
 using AutoMapper;
 // using Contracts.Interfaces.External.IUser;
+using Contracts.Interfaces.Lookups.Users; // ✅ lookup contract
 using FAM.Application.Common.HttpResponse;
 using FAM.Application.Common.Interfaces.ILocation;
 using FAM.Domain.Events;
@@ -12,21 +13,52 @@ namespace FAM.Application.Location.Queries.GetLocations
         private readonly ILocationQueryRepository _locationQueryRepository;
         private readonly IMapper _mapper;
         private readonly IMediator _mediator;
+        private readonly IDepartmentLookup _departmentLookup;  // ✅ lookup dependency
         // private readonly IDepartmentAllGrpcClient _departmentAllGrpcClient;
 
         public GetLocationHandlerQuery(ILocationQueryRepository locationQueryRepository, IMediator mediator, IMapper mapper
         // , IDepartmentAllGrpcClient departmentService
+        , IDepartmentLookup departmentLookup // ✅ inject lookup
         )
         {
             _locationQueryRepository = locationQueryRepository;
             _mediator = mediator;
             _mapper = mapper;
+            _departmentLookup = departmentLookup;
             // _departmentAllGrpcClient = departmentService;
         }
         public async Task<ApiResponseDTO<List<LocationDto>>> Handle(GetLocationQuery request, CancellationToken cancellationToken)
         {
             var (list, totalCount) =
-                await _locationQueryRepository.GetAllLocationListAsync(request.PageNumber, request.PageSize, request.SearchTerm);
+                await _locationQueryRepository.GetAllLocationListAsync(
+                    request.PageNumber,
+                    request.PageSize,
+                    request.SearchTerm);
+
+            // ✅ Enrich DepartmentName using lookup interface (UserManagement owner)
+            var deptIds = list
+                .Select(x => x.DepartmentId)
+                .Where(x => x > 0)
+                .Distinct()
+                .ToArray();
+
+            if (deptIds.Length > 0)
+            {
+                var departments = await _departmentLookup.GetByIdsAsync(deptIds, cancellationToken);
+
+                // DepartmentLookupDto: DepartmentId, DeptName
+                var deptMap = departments
+                    .Where(d => d != null)
+                    .ToDictionary(d => d.DepartmentId, d => d.DeptName);
+
+                foreach (var item in list)
+                {
+                    if (deptMap.TryGetValue(item.DepartmentId, out var deptName))
+                    {
+                        item.DepartmentName = deptName;
+                    }
+                }
+            }
 
             // var (locations, totalCount) = await _locationQueryRepository.GetAllLocationAsync(request.PageNumber, request.PageSize, request.SearchTerm);
             // var locationList = _mapper.Map<List<LocationDto>>(locations);

@@ -204,19 +204,15 @@ namespace MaintenanceManagement.Infrastructure.Repositories.CostCenter
         CC.CostCenterCode,
         CC.CostCenterName,
         CC.UnitId,
-        U.UnitName AS UnitName,
+        CAST(NULL AS NVARCHAR(200)) AS UnitName,          -- filled by lookup
         CC.DepartmentId,
-        D.DeptName AS DepartmentName,
+        CAST(NULL AS NVARCHAR(200)) AS DepartmentName,    -- filled by lookup
         CC.EffectiveDate,
         CC.ResponsiblePerson,
         CC.BudgetAllocated,
         CC.Remarks,
         CC.IsActive
     FROM Maintenance.CostCenter CC
-    LEFT JOIN AppData.Unit U
-        ON U.Id = CC.UnitId
-    LEFT JOIN AppData.Department D
-        ON D.Id = CC.DepartmentId
     WHERE CC.IsDeleted = 0
       AND CC.UnitId = @UnitId
       {{(string.IsNullOrEmpty(SearchTerm) ? "" : "AND (CC.CostCenterName LIKE @Search OR CC.CostCenterCode LIKE @Search)")}}

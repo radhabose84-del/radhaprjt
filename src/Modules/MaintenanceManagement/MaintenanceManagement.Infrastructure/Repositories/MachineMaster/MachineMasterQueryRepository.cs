@@ -170,8 +170,8 @@ namespace MaintenanceManagement.Infrastructure.Repositories.MachineMaster
 
             const string query = @"
                     select A.GroupName,B.DeptName as DepartmentName,C.DepartmentGroupName from Maintenance.MachineGroup A 
-			        INNER JOIN Bannari.AppData.Department B On A.DepartmentId=B.Id 
-			        INNER JOIN Bannari.AppData.DepartmentGroup C on B.DepartmentGroupId=C.Id WHERE A.Id=@MachineGroupId and B.IsDeleted=0 and C.IsDeleted=0";
+			        INNER JOIN BannariERP.AppData.Department B On A.DepartmentId=B.Id 
+			        INNER JOIN BannariERP.AppData.DepartmentGroup C on B.DepartmentGroupId=C.Id WHERE A.Id=@MachineGroupId and B.IsDeleted=0 and C.IsDeleted=0";
 
             var machineMaster = await _dbConnection.QueryFirstOrDefaultAsync<MachineDepartmentGroupDto>(query, new { MachineGroupId });
             return machineMaster;

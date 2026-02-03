@@ -260,9 +260,9 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetPurchase
 
             const string query = @"
             SELECT C.OldUnitId, C.UnitName 
-            FROM Bannari.AppSecurity.Users A
-            INNER JOIN Bannari.AppSecurity.UserUnit B ON A.UserId = B.UserId
-            INNER JOIN Bannari.AppData.Unit C ON B.UnitId = C.Id
+            FROM BannariERP.AppSecurity.Users A
+            INNER JOIN BannariERP.AppSecurity.UserUnit B ON A.UserId = B.UserId
+            INNER JOIN BannariERP.AppData.Unit C ON B.UnitId = C.Id
             WHERE B.IsActive = 1 
             AND A.IsActive = 1 
             AND A.UserName = @UserName

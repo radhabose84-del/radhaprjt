@@ -1,72 +1,114 @@
-// using AutoMapper;
+using AutoMapper;
 // using Contracts.Interfaces.External.IUser;
-// using PurchaseManagement.Application.Common;
-// using PurchaseManagement.Application.Common.HttpResponse;
-// using PurchaseManagement.Application.Common.Interfaces.IPortMaster;
-// using PurchaseManagement.Application.Port.Dto;
-// using PurchaseManagement.Application.Port.Queries.GetAllPorts;
-// using PurchaseManagement.Domain.Events;
-// using MediatR;
+using PurchaseManagement.Application.Common;
+using PurchaseManagement.Application.Common.HttpResponse;
+using PurchaseManagement.Application.Common.Interfaces.IPortMaster;
+using PurchaseManagement.Application.Port.Dto;
+using PurchaseManagement.Application.Port.Queries.GetAllPorts;
+using PurchaseManagement.Domain.Events;
+using MediatR;
+using Contracts.Interfaces.Lookups.Users;
 
-// namespace PurchaseManagement.Application.Purchase.PortMaster.Handlers;
+namespace PurchaseManagement.Application.Purchase.PortMaster.Handlers;
 
-// public sealed class GetAllPortsQueryHandler : IRequestHandler<GetAllPortsQuery, PagedResult<PortMasterDto>>
-// {
-//     private readonly IPortMasterQueryRepository _repo;
-//     private readonly IMapper _mapper;
-//     private readonly IMediator _mediator;
-//     private readonly ICountryGrpcClient _countryGrpcClient;
-//     public GetAllPortsQueryHandler( IPortMasterQueryRepository repo,
-//             IMapper mapper,
-//             IMediator mediator,
-//             ICountryGrpcClient countryGrpcClient)
-//     {
-//         _repo = repo;
-//         _mapper = mapper;
-//         _mediator = mediator;
-//         _countryGrpcClient = countryGrpcClient;
-//     }       
+public sealed class GetAllPortsQueryHandler : IRequestHandler<GetAllPortsQuery, PagedResult<PortMasterDto>>
+{
+    private readonly IPortMasterQueryRepository _repo;
+    private readonly IMapper _mapper;
+    private readonly IMediator _mediator;
+    private readonly ICountryLookup _countryLookup; // ✅ lookup
+    // private readonly ICountryGrpcClient _countryGrpcClient;
+    public GetAllPortsQueryHandler(IPortMasterQueryRepository repo,
+            IMapper mapper,
+            IMediator mediator
+            , ICountryLookup countryLookup
+            // ,ICountryGrpcClient countryGrpcClient
+            )
+    {
+        _repo = repo;
+        _mapper = mapper;
+        _mediator = mediator;
+        _countryLookup = countryLookup;
+        // _countryGrpcClient = countryGrpcClient;
+    }
 
-//     public async Task<PagedResult<PortMasterDto>> Handle(GetAllPortsQuery request, CancellationToken ct)
-//     {
-//        var (rows, total) = await _repo.GetAllAsync(
-//                 page: request.PageNumber,
-//                 size: request.PageSize,
-//                 search: request.Search,
-//                 countryId: request.CountryId,                
-//                 portTypeId: request.PortTypeId,
-//                 ct
-//             );
+    public async Task<PagedResult<PortMasterDto>> Handle(GetAllPortsQuery request, CancellationToken ct)
+    {
+         // 1) get paged rows from Purchase DB
+        var (rows, total) = await _repo.GetAllAsync(
+            page: request.PageNumber,
+            size: request.PageSize,
+            search: request.Search,
+            countryId: request.CountryId,
+            portTypeId: request.PortTypeId,
+            ct);
 
-//             var ports = _mapper.Map<List<PortMasterDto>>(rows);            
-//             var countriesTask = _countryGrpcClient.GetAllCountryAsync();             
-//             await Task.WhenAll(countriesTask );
+        // 2) map to DTO
+        var ports = _mapper.Map<List<PortMasterDto>>(rows) ?? new List<PortMasterDto>();
 
-//             var countryDict = countriesTask.Result
-//                 .GroupBy(x => x.CountryId)
-//                 .ToDictionary(g => g.Key, g => g.First().CountryName);
+        // 3) enrich: Country name via lookup
+        if (ports.Count > 0)
+        {
+            var countryIds = ports
+                .Select(x => x.CountryId)
+                .Where(x => x > 0)
+                .Distinct()
+                .ToArray();
 
-   
-//             // 3) enrich results
-//             foreach (var p in ports)
-//             {
-//                 // Country name
-//                 if (countryDict.TryGetValue(p.CountryId, out var cname))
-//                     p.Country = cname;              
-//             }
+            if (countryIds.Length > 0)
+            {
+                var countries = await _countryLookup.GetByIdsAsync(countryIds, ct);
 
-//             // 4) audit
-//             var ev = new AuditLogsDomainEvent(
-//                 actionDetail: "GetPortsQuery",
-//                 actionCode: "Get",
-//                 actionName: ports.Count.ToString(),
-//                 details: "Port master list fetched.",
-//                 module: "PortMaster"
-//             );
-//             await _mediator.Publish(ev, ct);
+                var countryMap = countries
+                    .Where(c => c != null)
+                    .ToDictionary(c => c.CountryId, c => c.CountryName);
 
-//             // 5) response
-//            return new PagedResult<PortMasterDto> { Items = rows, Total = total };
-          
-//     }
-// }
+                foreach (var p in ports)
+                {
+                    if (countryMap.TryGetValue(p.CountryId, out var cname))
+                        p.Country = cname;
+                }
+            }
+        }
+        
+        //    var (rows, total) = await _repo.GetAllAsync(
+        //             page: request.PageNumber,
+        //             size: request.PageSize,
+        //             search: request.Search,
+        //             countryId: request.CountryId,                
+        //             portTypeId: request.PortTypeId,
+        //             ct
+        //         );
+
+        //         var ports = _mapper.Map<List<PortMasterDto>>(rows);            
+        //         var countriesTask = _countryGrpcClient.GetAllCountryAsync();             
+        //         await Task.WhenAll(countriesTask );
+
+        //         var countryDict = countriesTask.Result
+        //             .GroupBy(x => x.CountryId)
+        //             .ToDictionary(g => g.Key, g => g.First().CountryName);
+
+
+        //         // 3) enrich results
+        //         foreach (var p in ports)
+        //         {
+        //             // Country name
+        //             if (countryDict.TryGetValue(p.CountryId, out var cname))
+        //                 p.Country = cname;              
+        //         }
+
+        // 4) audit
+        var ev = new AuditLogsDomainEvent(
+            actionDetail: "GetPortsQuery",
+            actionCode: "Get",
+            actionName: ports.Count.ToString(),
+            details: "Port master list fetched.",
+            module: "PortMaster"
+        );
+        await _mediator.Publish(ev, ct);
+
+        // 5) response
+        return new PagedResult<PortMasterDto> { Items = rows, Total = total };
+
+    }
+}

@@ -34,10 +34,10 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetTransferIssue
                 DECLARE @TotalCount INT;
                 SELECT @TotalCount = COUNT(*) 
                 FROM FixedAsset.AssetTransferIssueHdr A
-                INNER JOIN Bannari.AppData.Unit FromUnit ON A.FromUnitId = FromUnit.Id
-                INNER JOIN Bannari.AppData.Unit ToUnit ON A.ToUnitId = ToUnit.Id
-                INNER JOIN Bannari.AppData.Department FromDept ON A.FromDepartmentId = FromDept.Id
-                INNER JOIN Bannari.AppData.Department ToDept ON A.ToDepartmentId = ToDept.Id
+                INNER JOIN BannariERP.AppData.Unit FromUnit ON A.FromUnitId = FromUnit.Id
+                INNER JOIN BannariERP.AppData.Unit ToUnit ON A.ToUnitId = ToUnit.Id
+                INNER JOIN BannariERP.AppData.Department FromDept ON A.FromDepartmentId = FromDept.Id
+                INNER JOIN BannariERP.AppData.Department ToDept ON A.ToDepartmentId = ToDept.Id
                 INNER JOIN FixedAsset.MiscMaster Misc ON A.TransferType = Misc.Id
                 WHERE 1 = 1 AND A.FromUnitId = @UnitId
                 {{(FromDate.HasValue ? "AND A.DocDate >= @FromDate" : "")}}
@@ -78,10 +78,10 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetTransferIssue
                     A.AuthorizedIP,
                     A.GatePassNo
                 FROM FixedAsset.AssetTransferIssueHdr A
-                INNER JOIN Bannari.AppData.Unit FromUnit ON A.FromUnitId = FromUnit.Id
-                INNER JOIN Bannari.AppData.Unit ToUnit ON A.ToUnitId = ToUnit.Id
-                INNER JOIN Bannari.AppData.Department FromDept ON A.FromDepartmentId = FromDept.Id
-                INNER JOIN Bannari.AppData.Department ToDept ON A.ToDepartmentId = ToDept.Id
+                INNER JOIN BannariERP.AppData.Unit FromUnit ON A.FromUnitId = FromUnit.Id
+                INNER JOIN BannariERP.AppData.Unit ToUnit ON A.ToUnitId = ToUnit.Id
+                INNER JOIN BannariERP.AppData.Department FromDept ON A.FromDepartmentId = FromDept.Id
+                INNER JOIN BannariERP.AppData.Department ToDept ON A.ToDepartmentId = ToDept.Id
                 INNER JOIN FixedAsset.MiscMaster Misc ON A.TransferType = Misc.Id
                 WHERE 1 = 1      AND A.FromUnitId = @UnitId    
                 {{(FromDate.HasValue ? "AND A.DocDate >= @FromDate" : "")}}
@@ -243,8 +243,8 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetTransferIssue
                     INNER JOIN FixedAsset.AssetLocation B ON A.ID = B.AssetId
                     INNER JOIN FixedAsset.Location C ON B.LocationId = C.Id
                     INNER JOIN FixedAsset.SubLocation D ON B.SubLocationId = D.Id
-                    INNER JOIN Bannari.AppData.Department F ON B.DepartmentId = F.Id
-                    INNER JOIN Bannari.AppData.Unit G ON A.UnitId = G.Id
+                    INNER JOIN BannariERP.AppData.Department F ON B.DepartmentId = F.Id
+                    INNER JOIN BannariERP.AppData.Unit G ON A.UnitId = G.Id
                     INNER JOIN FixedAsset.AssetCategories H ON A.AssetCategoryId = H.Id
                     WHERE A.Id = @AssetId   AND A.CompanyId = @CompanyId AND A.UnitId = @UnitId
                     FOR JSON PATH, INCLUDE_NULL_VALUES;
@@ -271,8 +271,8 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetTransferIssue
                     FROM FixedAsset.AssetLocation AL
                     JOIN FixedAsset.[Location]    L  ON L.Id  = AL.LocationId
                     JOIN FixedAsset.[SubLocation] SL ON SL.Id = AL.SubLocationId
-                    LEFT JOIN Bannari.AppData.[Unit]       U  ON U.Id  = AL.UnitId
-                    LEFT JOIN Bannari.AppData.[Department] D  ON D.Id  = AL.DepartmentId
+                    LEFT JOIN BannariERP.AppData.[Unit]       U  ON U.Id  = AL.UnitId
+                    LEFT JOIN BannariERP.AppData.[Department] D  ON D.Id  = AL.DepartmentId
                     OUTER APPLY (
                         SELECT TOP (1) d.AssetTransferId
                         FROM FixedAsset.AssetTransferIssueDtl d
@@ -280,15 +280,15 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetTransferIssue
                         ORDER BY d.AssetTransferId DESC
                     ) X
                     LEFT JOIN FixedAsset.AssetTransferIssueHdr H ON H.Id = X.AssetTransferId
-                    LEFT JOIN Bannari.AppData.[Unit] UF ON UF.Id = H.FromUnitId
-                    LEFT JOIN Bannari.AppData.[Unit] UT ON UT.Id = H.ToUnitId
+                    LEFT JOIN BannariERP.AppData.[Unit] UF ON UF.Id = H.FromUnitId
+                    LEFT JOIN BannariERP.AppData.[Unit] UT ON UT.Id = H.ToUnitId
                     WHERE AL.AssetId = @AssetId 
                 ";
   //      SELECT U.UnitName,D.DeptName,L.LocationName,SL.SubLocationName,U.OldUnitId,AL.CustodianId,AL.UserId as FromCustodianId ,AL.UserId as ToCustodianId  FROM [FixedAsset].[AssetLocation] AL
                 // INNER JOIN [FixedAsset].[Location] L ON L.Id=AL.LocationId
                 // INNER JOIN [FixedAsset].[SubLocation] SL ON SL.Id=AL.SubLocationId
-                // LEFT JOIN [Bannari].[AppData].[Unit] U ON AL.UnitId = U.Id
-                // LEFT JOIN [Bannari].[AppData].[Department] D ON AL.DepartmentId=D.Id                
+                // LEFT JOIN [BannariERP].[AppData].[Unit] U ON AL.UnitId = U.Id
+                // LEFT JOIN [BannariERP].[AppData].[Department] D ON AL.DepartmentId=D.Id                
                 // WHERE AL.AssetId =@AssetId   
             using var multiQuery = await _dbConnection.QueryMultipleAsync(query, new { AssetId = assetId, CompanyId, UnitId });
 
@@ -504,8 +504,8 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetTransferIssue
                 INNER JOIN FixedAsset.AssetLocation B ON A.ID = B.AssetId
                 INNER JOIN FixedAsset.Location C ON B.LocationId = C.Id
                 INNER JOIN FixedAsset.SubLocation D ON B.SubLocationId = D.Id
-                INNER JOIN Bannari.AppData.Department F ON B.DepartmentId = F.Id
-                INNER JOIN Bannari.AppData.Unit G ON A.UnitId = G.Id
+                INNER JOIN BannariERP.AppData.Department F ON B.DepartmentId = F.Id
+                INNER JOIN BannariERP.AppData.Unit G ON A.UnitId = G.Id
                 INNER JOIN FixedAsset.AssetCategories H ON A.AssetCategoryId = H.Id
                 WHERE A.Id IN (SELECT AssetId FROM @AssetIds);
 
@@ -531,8 +531,8 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetTransferIssue
             FROM FixedAsset.AssetLocation            AS AL
             JOIN FixedAsset.[Location]               AS L  ON L.Id  = AL.LocationId
             JOIN FixedAsset.[SubLocation]            AS SL ON SL.Id = AL.SubLocationId
-            LEFT JOIN Bannari.AppData.[Unit]         AS U  ON U.Id  = AL.UnitId
-            LEFT JOIN Bannari.AppData.[Department]   AS D  ON D.Id  = AL.DepartmentId
+            LEFT JOIN BannariERP.AppData.[Unit]         AS U  ON U.Id  = AL.UnitId
+            LEFT JOIN BannariERP.AppData.[Department]   AS D  ON D.Id  = AL.DepartmentId
             OUTER APPLY (
                 SELECT TOP (1) d.AssetTransferId
                 FROM FixedAsset.AssetTransferIssueDtl d
@@ -540,8 +540,8 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetTransferIssue
                 ORDER BY d.AssetTransferId DESC
             ) AS X
             LEFT JOIN FixedAsset.AssetTransferIssueHdr AS H  ON H.Id   = X.AssetTransferId
-            LEFT JOIN Bannari.AppData.[Unit]            AS UF ON UF.Id = H.FromUnitId
-            LEFT JOIN Bannari.AppData.[Unit]            AS UT ON UT.Id = H.ToUnitId
+            LEFT JOIN BannariERP.AppData.[Unit]            AS UF ON UF.Id = H.FromUnitId
+            LEFT JOIN BannariERP.AppData.[Unit]            AS UT ON UT.Id = H.ToUnitId
             WHERE AL.AssetId IN (SELECT AssetId FROM @AssetIds);
 
 
@@ -720,8 +720,8 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetTransferIssue
         //          INNER JOIN FixedAsset.AssetLocation B ON A.ID = B.AssetId
         //          INNER JOIN FixedAsset.Location C ON B.LocationId = C.Id
         //          INNER JOIN FixedAsset.SubLocation D ON B.SubLocationId = D.Id
-        //          INNER JOIN Bannari.AppData.Department F ON B.DepartmentId = F.Id
-        //          INNER JOIN Bannari.AppData.Unit G ON A.UnitId = G.Id
+        //          INNER JOIN BannariERP.AppData.Department F ON B.DepartmentId = F.Id
+        //          INNER JOIN BannariERP.AppData.Unit G ON A.UnitId = G.Id
         //          INNER JOIN FixedAsset.AssetCategories H ON A.AssetCategoryId = H.Id
         //          WHERE A.Id IN (SELECT AssetId FROM @AssetIds);
 
@@ -741,8 +741,8 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetTransferIssue
         //     FROM FixedAsset.AssetLocation AL
         //     INNER JOIN FixedAsset.Location L ON L.Id = AL.LocationId
         //     INNER JOIN FixedAsset.SubLocation SL ON SL.Id = AL.SubLocationId
-        //     LEFT JOIN Bannari.AppData.Unit U ON AL.UnitId = U.Id
-        //     LEFT JOIN Bannari.AppData.Department D ON AL.DepartmentId = D.Id                
+        //     LEFT JOIN BannariERP.AppData.Unit U ON AL.UnitId = U.Id
+        //     LEFT JOIN BannariERP.AppData.Department D ON AL.DepartmentId = D.Id                
         //     WHERE AL.AssetId IN (SELECT AssetId FROM @AssetIds);
         //      ";
 

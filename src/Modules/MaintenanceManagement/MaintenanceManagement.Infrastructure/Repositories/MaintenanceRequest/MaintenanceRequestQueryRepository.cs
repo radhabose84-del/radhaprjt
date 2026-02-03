@@ -49,8 +49,8 @@ namespace MaintenanceManagement.Infrastructure.Repositories.MaintenanceRequest
                 LEFT JOIN Maintenance.MiscMaster H ON A.ModeOfDispatchId = H.Id 
                 LEFT JOIN Maintenance.MiscMaster I ON A.SparesTypeId = I.Id 
                 LEFT JOIN Maintenance.MiscMaster J ON A.RequestStatusId = J.Id   
-                left join Bannari.AppData.Department D on A.MaintenanceDepartmentId = D.Id
-                left join Bannari.AppData.Department Dep on A.ProductionDepartmentId = Dep.Id
+                left join BannariERP.AppData.Department D on A.MaintenanceDepartmentId = D.Id
+                left join BannariERP.AppData.Department Dep on A.ProductionDepartmentId = Dep.Id
                 inner  join Maintenance.WorkOrder WO  on a.id=WO.RequestId 
                 LEFT JOIN Maintenance.MiscMaster k on WO.StatusId=k.Id                       
                 WHERE 
@@ -107,8 +107,8 @@ namespace MaintenanceManagement.Infrastructure.Repositories.MaintenanceRequest
                 LEFT JOIN Maintenance.MiscMaster H ON A.ModeOfDispatchId = H.Id 
                 LEFT JOIN Maintenance.MiscMaster I ON A.SparesTypeId = I.Id 
                 LEFT JOIN Maintenance.MiscMaster J ON A.RequestStatusId = J.Id   
-                left join Bannari.AppData.Department D on A.MaintenanceDepartmentId = D.Id
-                left join Bannari.AppData.Department Dep on A.ProductionDepartmentId = Dep.Id
+                left join BannariERP.AppData.Department D on A.MaintenanceDepartmentId = D.Id
+                left join BannariERP.AppData.Department Dep on A.ProductionDepartmentId = Dep.Id
                 inner  join Maintenance.WorkOrder WO  on a.id=WO.RequestId 
                 LEFT JOIN Maintenance.MiscMaster k on WO.StatusId=k.Id    
 
@@ -165,7 +165,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.MaintenanceRequest
                          LEFT JOIN Maintenance.MiscMaster I ON A.SparesTypeId = I.Id 
                          LEFT JOIN Maintenance.MiscMaster J ON A.RequestStatusId = J.Id 
                          LEFT JOIN Maintenance.WorkOrder K ON A.Id = K.RequestId
-                         left join Bannari.AppData.Department D on A.MaintenanceDepartmentId = D.Id   
+                         left join BannariERP.AppData.Department D on A.MaintenanceDepartmentId = D.Id   
 
                         WHERE   B.Code = @MiscCode  AND C.Code <> @MaintenanceStatusUpdate 
                         AND cast(A.createddate as date) >=@FromDate and cast(A.createddate as date) <= @ToDate
@@ -224,7 +224,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.MaintenanceRequest
                         LEFT JOIN Maintenance.MiscMaster I ON A.SparesTypeId = I.Id 
                         LEFT JOIN Maintenance.MiscMaster J ON A.RequestStatusId = J.Id 
                         LEFT JOIN Maintenance.WorkOrder K ON A.Id = K.RequestId
-                        Left join Bannari.AppData.Department D on A.MaintenanceDepartmentId = D.Id  
+                        Left join BannariERP.AppData.Department D on A.MaintenanceDepartmentId = D.Id  
                         inner  join Maintenance.WorkOrder WO  on a.id=WO.RequestId 
                         LEFT JOIN Maintenance.MiscMaster L on WO.StatusId=L.Id      
 

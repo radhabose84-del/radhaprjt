@@ -35,10 +35,10 @@ namespace FAM.Infrastructure.Repositories.AssetTransferReceipt
                 FROM FixedAsset.AssetTransferReceiptHdr A
                 INNER JOIN FixedAsset.AssetTransferIssueHdr B ON A.AssetTransferId = B.Id
                 INNER JOIN FixedAsset.MiscMaster C ON B.TransferType = C.Id
-                INNER JOIN [Bannari].AppData.Unit D ON B.FromUnitId = D.Id
-                INNER JOIN [Bannari].AppData.Unit E ON B.ToUnitId = E.Id
-                INNER JOIN [Bannari].AppData.Department F ON B.FromDepartmentId = F.Id
-                INNER JOIN [Bannari].AppData.Department G ON B.ToDepartmentId = G.Id
+                INNER JOIN [BannariERP].AppData.Unit D ON B.FromUnitId = D.Id
+                INNER JOIN [BannariERP].AppData.Unit E ON B.ToUnitId = E.Id
+                INNER JOIN [BannariERP].AppData.Department F ON B.FromDepartmentId = F.Id
+                INNER JOIN [BannariERP].AppData.Department G ON B.ToDepartmentId = G.Id
                 WHERE B.ToUnitId = @UnitId
                 {{(string.IsNullOrEmpty(Receiptno) ? "" : "AND A.Id LIKE @Search")}}
                 {{(FromDate.HasValue ? "AND A.DocDate >= @FromDate" : "")}}
@@ -65,10 +65,10 @@ namespace FAM.Infrastructure.Repositories.AssetTransferReceipt
                 FROM FixedAsset.AssetTransferReceiptHdr A
                 INNER JOIN FixedAsset.AssetTransferIssueHdr B ON A.AssetTransferId = B.Id
                 INNER JOIN FixedAsset.MiscMaster C ON B.TransferType = C.Id
-                INNER JOIN [Bannari].AppData.Unit D ON B.FromUnitId = D.Id
-                INNER JOIN [Bannari].AppData.Unit E ON B.ToUnitId = E.Id
-                INNER JOIN [Bannari].AppData.Department F ON B.FromDepartmentId = F.Id
-                INNER JOIN [Bannari].AppData.Department G ON B.ToDepartmentId = G.Id
+                INNER JOIN [BannariERP].AppData.Unit D ON B.FromUnitId = D.Id
+                INNER JOIN [BannariERP].AppData.Unit E ON B.ToUnitId = E.Id
+                INNER JOIN [BannariERP].AppData.Department F ON B.FromDepartmentId = F.Id
+                INNER JOIN [BannariERP].AppData.Department G ON B.ToDepartmentId = G.Id
                 WHERE B.ToUnitId = @UnitId
                 {{(string.IsNullOrEmpty(Receiptno) ? "" : "AND A.Id LIKE @Search")}}
                 {{(FromDate.HasValue ? "AND A.DocDate >= @FromDate" : "")}}
@@ -133,10 +133,10 @@ namespace FAM.Infrastructure.Repositories.AssetTransferReceipt
                 INNER JOIN FixedAsset.AssetTransferIssueDtl B ON A.Id = B.AssetTransferId
                 INNER JOIN FixedAsset.AssetMaster M ON B.AssetId = M.Id
                 INNER JOIN FixedAsset.MiscMaster C ON A.TransferType = C.Id
-                INNER JOIN [Bannari].AppData.Unit D ON A.FromUnitId = D.Id
-                INNER JOIN [Bannari].AppData.Unit E ON A.ToUnitId = E.Id
-                INNER JOIN [Bannari].AppData.Department F ON A.FromDepartmentId = F.Id
-                INNER JOIN [Bannari].AppData.Department G ON A.ToDepartmentId = G.Id
+                INNER JOIN [BannariERP].AppData.Unit D ON A.FromUnitId = D.Id
+                INNER JOIN [BannariERP].AppData.Unit E ON A.ToUnitId = E.Id
+                INNER JOIN [BannariERP].AppData.Department F ON A.FromDepartmentId = F.Id
+                INNER JOIN [BannariERP].AppData.Department G ON A.ToDepartmentId = G.Id
                 LEFT JOIN FixedAsset.AssetTransferReceiptHdr RH ON A.Id = RH.AssetTransferId
                 LEFT JOIN FixedAsset.AssetTransferReceiptDtl RD ON RH.Id = RD.AssetReceiptId AND B.AssetId = RD.AssetId
                 WHERE  A.ToUnitId = @UnitId 
@@ -165,10 +165,10 @@ namespace FAM.Infrastructure.Repositories.AssetTransferReceipt
                 INNER JOIN FixedAsset.AssetTransferIssueDtl B ON A.Id = B.AssetTransferId
                 INNER JOIN FixedAsset.AssetMaster M ON B.AssetId = M.Id
                 INNER JOIN FixedAsset.MiscMaster C ON A.TransferType = C.Id
-                INNER JOIN [Bannari].AppData.Unit D ON A.FromUnitId = D.Id
-                INNER JOIN [Bannari].AppData.Unit E ON A.ToUnitId = E.Id
-                INNER JOIN [Bannari].AppData.Department F ON A.FromDepartmentId = F.Id
-                INNER JOIN [Bannari].AppData.Department G ON A.ToDepartmentId = G.Id
+                INNER JOIN [BannariERP].AppData.Unit D ON A.FromUnitId = D.Id
+                INNER JOIN [BannariERP].AppData.Unit E ON A.ToUnitId = E.Id
+                INNER JOIN [BannariERP].AppData.Department F ON A.FromDepartmentId = F.Id
+                INNER JOIN [BannariERP].AppData.Department G ON A.ToDepartmentId = G.Id
                 LEFT JOIN FixedAsset.AssetTransferReceiptHdr RH ON A.Id = RH.AssetTransferId
                 LEFT JOIN FixedAsset.AssetTransferReceiptDtl RD ON RH.Id = RD.AssetReceiptId AND B.AssetId = RD.AssetId
                 WHERE  A.ToUnitId = @UnitId
@@ -280,10 +280,10 @@ namespace FAM.Infrastructure.Repositories.AssetTransferReceipt
                 INNER JOIN FixedAsset.AssetTransferIssueDtl B ON A.Id = B.AssetTransferId
                 INNER JOIN FixedAsset.AssetMaster M ON B.AssetId = M.Id
                 INNER JOIN FixedAsset.MiscMaster C ON A.TransferType = C.Id
-                INNER JOIN [Bannari].AppData.Unit D ON A.FromUnitId = D.Id
-                INNER JOIN [Bannari].AppData.Unit E ON A.ToUnitId = E.Id
-                INNER JOIN [Bannari].AppData.Department F ON A.FromDepartmentId = F.Id
-                INNER JOIN [Bannari].AppData.Department G ON A.ToDepartmentId = G.Id
+                INNER JOIN [BannariERP].AppData.Unit D ON A.FromUnitId = D.Id
+                INNER JOIN [BannariERP].AppData.Unit E ON A.ToUnitId = E.Id
+                INNER JOIN [BannariERP].AppData.Department F ON A.FromDepartmentId = F.Id
+                INNER JOIN [BannariERP].AppData.Department G ON A.ToDepartmentId = G.Id
                 LEFT JOIN FixedAsset.AssetTransferReceiptHdr RH ON A.Id = RH.AssetTransferId
                 LEFT JOIN FixedAsset.AssetTransferReceiptDtl RD ON RH.Id = RD.AssetReceiptId AND B.AssetId = RD.AssetId
                 WHERE A.Status = 'Approved' AND A.ToUnitId = @UnitId 
@@ -299,10 +299,10 @@ namespace FAM.Infrastructure.Repositories.AssetTransferReceipt
                 INNER JOIN FixedAsset.AssetTransferIssueDtl B ON A.Id = B.AssetTransferId
                 INNER JOIN FixedAsset.AssetMaster M ON B.AssetId = M.Id
                 INNER JOIN FixedAsset.MiscMaster C ON A.TransferType = C.Id
-                INNER JOIN [Bannari].AppData.Unit D ON A.FromUnitId = D.Id
-                INNER JOIN [Bannari].AppData.Unit E ON A.ToUnitId = E.Id
-                INNER JOIN [Bannari].AppData.Department F ON A.FromDepartmentId = F.Id
-                INNER JOIN [Bannari].AppData.Department G ON A.ToDepartmentId = G.Id
+                INNER JOIN [BannariERP].AppData.Unit D ON A.FromUnitId = D.Id
+                INNER JOIN [BannariERP].AppData.Unit E ON A.ToUnitId = E.Id
+                INNER JOIN [BannariERP].AppData.Department F ON A.FromDepartmentId = F.Id
+                INNER JOIN [BannariERP].AppData.Department G ON A.ToDepartmentId = G.Id
                 LEFT JOIN FixedAsset.AssetTransferReceiptHdr RH ON A.Id = RH.AssetTransferId
                 LEFT JOIN FixedAsset.AssetTransferReceiptDtl RD ON RH.Id = RD.AssetReceiptId AND B.AssetId = RD.AssetId
                 WHERE A.Status = 'Approved'  AND A.ToUnitId = @UnitId
@@ -352,10 +352,10 @@ namespace FAM.Infrastructure.Repositories.AssetTransferReceipt
                 // INNER JOIN FixedAsset.AssetTransferIssueDtl B ON A.Id = B.AssetTransferId
                 // INNER JOIN FixedAsset.AssetMaster M ON B.AssetId = M.Id
                 // INNER JOIN FixedAsset.MiscMaster C ON A.TransferType = C.Id
-                // INNER JOIN [Bannari].AppData.Unit D ON A.FromUnitId = D.Id
-                // INNER JOIN [Bannari].AppData.Unit E ON A.ToUnitId = E.Id
-                // INNER JOIN [Bannari].AppData.Department F ON A.FromDepartmentId = F.Id
-                // INNER JOIN [Bannari].AppData.Department G ON A.ToDepartmentId = G.Id
+                // INNER JOIN [BannariERP].AppData.Unit D ON A.FromUnitId = D.Id
+                // INNER JOIN [BannariERP].AppData.Unit E ON A.ToUnitId = E.Id
+                // INNER JOIN [BannariERP].AppData.Department F ON A.FromDepartmentId = F.Id
+                // INNER JOIN [BannariERP].AppData.Department G ON A.ToDepartmentId = G.Id
                 // LEFT JOIN FixedAsset.AssetTransferReceiptHdr RH ON A.Id = RH.AssetTransferId
                 // LEFT JOIN FixedAsset.AssetTransferReceiptDtl RD ON RH.Id = RD.AssetReceiptId AND B.AssetId = RD.AssetId
                 // WHERE A.Status = 'Approved' 

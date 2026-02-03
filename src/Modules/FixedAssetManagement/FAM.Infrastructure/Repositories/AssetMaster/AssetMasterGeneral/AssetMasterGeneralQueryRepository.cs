@@ -336,9 +336,9 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetMasterGeneral
                 FROM [FixedAsset].[AssetWarranty] AW
                 INNER JOIN [FixedAsset].[MiscMaster] MMWaranty ON MMWaranty.Id=AW.WarrantyType
                 LEFT JOIN [FixedAsset].[MiscMaster] MMClaim ON MMClaim.Id=AW.ServiceClaimStatus
-                INNER JOIN [Bannari].[AppData].[Country] C ON C.Id=AW.ServiceCountryId
-                INNER JOIN [Bannari].[AppData].[State] S ON S.Id=AW.ServiceStateId
-                INNER JOIN [Bannari].[AppData].[City] City ON City.Id=AW.ServiceCityId
+                INNER JOIN [BannariERP].[AppData].[Country] C ON C.Id=AW.ServiceCountryId
+                INNER JOIN [BannariERP].[AppData].[State] S ON S.Id=AW.ServiceStateId
+                INNER JOIN [BannariERP].[AppData].[City] City ON City.Id=AW.ServiceCityId
                 WHERE AW.AssetId=@AssetId  and AW.IsDeleted=0
 
                 SELECT AA.Id,CAST(AA.StartDate AS DATE) AS StartDate,CAST(AA.EndDate AS DATE) AS EndDate,AA.Period,AA.VendorCode,AA.VendorName,

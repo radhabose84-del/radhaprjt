@@ -68,36 +68,34 @@ namespace FAM.Infrastructure.Repositories.Locations
             var unitId = _ipAddressService.GetUnitId();
 
             var sql = $$"""
-            DECLARE @TotalCount INT;
+                DECLARE @TotalCount INT;
 
-            SELECT @TotalCount = COUNT(*)
-            FROM [FixedAsset].[Location] L
-            LEFT JOIN [AppData].[Department] D ON D.Id = L.DepartmentId
-            WHERE L.IsDeleted = 0
-              AND L.UnitId = @UnitId
-              {{(string.IsNullOrEmpty(SearchTerm) ? "" : "AND (L.Code LIKE @Search OR L.LocationName LIKE @Search OR D.DeptName LIKE @Search)")}} ;
+                SELECT @TotalCount = COUNT(*)
+                FROM [FixedAsset].[Location] L
+                WHERE L.IsDeleted = 0
+                  AND L.UnitId = @UnitId
+                  {{(string.IsNullOrEmpty(SearchTerm) ? "" : "AND (L.Code LIKE @Search OR L.LocationName LIKE @Search)")}} ;
 
-            SELECT
-                L.Id,
-                L.Code,
-                L.LocationName,
-                L.Description,
-                L.SortOrder,
-                L.UnitId,
-                L.DepartmentId,
-                D.DeptName AS DepartmentName,
-                L.IsActive,
-                L.CreatedDate,
-                L.CreatedByName
-            FROM [FixedAsset].[Location] L
-            LEFT JOIN [AppData].[Department] D ON D.Id = L.DepartmentId
-            WHERE L.IsDeleted = 0
-              AND L.UnitId = @UnitId
-              {{(string.IsNullOrEmpty(SearchTerm) ? "" : "AND (L.Code LIKE @Search OR L.LocationName LIKE @Search OR D.DeptName LIKE @Search)")}}
-            ORDER BY L.Id DESC
-            OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
+                SELECT
+                    L.Id,
+                    L.Code,
+                    L.LocationName,
+                    L.Description,
+                    L.SortOrder,
+                    L.UnitId,
+                    L.DepartmentId,
+                    CAST(NULL AS NVARCHAR(200)) AS DepartmentName,  -- ✅ will be filled by lookup in handler
+                    L.IsActive,
+                    L.CreatedDate,
+                    L.CreatedByName
+                FROM [FixedAsset].[Location] L
+                WHERE L.IsDeleted = 0
+                  AND L.UnitId = @UnitId
+                  {{(string.IsNullOrEmpty(SearchTerm) ? "" : "AND (L.Code LIKE @Search OR L.LocationName LIKE @Search)")}}
+                ORDER BY L.Id DESC
+                OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
 
-            SELECT @TotalCount AS TotalCount;
+                SELECT @TotalCount AS TotalCount;
             """;
 
             var parameters = new
@@ -144,8 +142,8 @@ namespace FAM.Infrastructure.Repositories.Locations
                 L.ModifiedByName,
                 L.ModifiedIP
             FROM FixedAsset.Location L
-            JOIN Bannari.AppData.Department D ON D.Id = L.DepartmentId
-            JOIN Bannari.AppData.Unit U ON U.Id = L.UnitId
+            JOIN BannariERP.AppData.Department D ON D.Id = L.DepartmentId
+            JOIN BannariERP.AppData.Unit U ON U.Id = L.UnitId
             WHERE L.LocationName = @LocationName AND L.IsDeleted = 0 AND L.DepartmentId = @DepartmentId AND L.UnitId = @UnitId
             
         ";

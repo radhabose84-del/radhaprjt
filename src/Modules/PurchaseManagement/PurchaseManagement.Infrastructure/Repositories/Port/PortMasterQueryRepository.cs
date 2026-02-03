@@ -26,38 +26,43 @@ public sealed class PortMasterQueryRepository : IPortMasterQueryRepository
     {
         page = page <= 0 ? 1 : page;
         size = size <= 0 ? 10 : size;
+
         var off = (page - 1) * size;
 
         const string sql = @"
+        DECLARE @SearchTerm NVARCHAR(200) = NULLIF(LTRIM(RTRIM(@search)), '');
+
         -- total
         SELECT COUNT(1)
-        FROM Purchase.PortMaster WITH (NOLOCK)
-        WHERE IsDeleted = 0
-        AND (@search IS NULL OR PortCode LIKE '%' + @search + '%' OR PortName LIKE '%' + @search + '%')
-        AND (@countryId IS NULL OR CountryId = @countryId)        
-        AND (@portTypeId IS NULL OR PortTypeId = @portTypeId);
+        FROM Purchase.PortMaster PM WITH (NOLOCK)
+        WHERE PM.IsDeleted = 0
+          AND (@SearchTerm IS NULL OR PM.PortCode LIKE '%' + @SearchTerm + '%' OR PM.PortName LIKE '%' + @SearchTerm + '%')
+          AND (@countryId IS NULL OR PM.CountryId = @countryId)
+          AND (@portTypeId IS NULL OR PM.PortTypeId = @portTypeId);
 
         -- page
-       SELECT PM.Id,
-            PortCode,
-            PortName,
-            CountryId,            
-            PortTypeId,
-            PM.IsActive,MM1.Code PortType
-        FROM Purchase.PortMaster PM WITH (NOLOCK)		
-		inner join Purchase.MiscMaster MM1 WITH (NOLOCK) on MM1.Id=PM.PortTypeId
+        SELECT 
+            PM.Id,
+            PM.PortCode,
+            PM.PortName,
+            PM.CountryId,
+            PM.PortTypeId,
+            PM.IsActive,
+            MM1.Code AS PortType
+        FROM Purchase.PortMaster PM WITH (NOLOCK)
+        INNER JOIN Purchase.MiscMaster MM1 WITH (NOLOCK) ON MM1.Id = PM.PortTypeId
         WHERE PM.IsDeleted = 0
-        AND (@search IS NULL OR PortCode LIKE '%' + @search + '%' OR PortName LIKE '%' + @search + '%')
-        AND (@countryId IS NULL OR CountryId = @countryId)        
-        AND (@portTypeId IS NULL OR PortTypeId = @portTypeId)
+          AND (@SearchTerm IS NULL OR PM.PortCode LIKE '%' + @SearchTerm + '%' OR PM.PortName LIKE '%' + @SearchTerm + '%')
+          AND (@countryId IS NULL OR PM.CountryId = @countryId)
+          AND (@portTypeId IS NULL OR PM.PortTypeId = @portTypeId)
         ORDER BY PM.Id DESC
         OFFSET @off ROWS FETCH NEXT @size ROWS ONLY;";
 
-        var args = new { search, countryId,  portTypeId, off, size };
+        var args = new { search, countryId, portTypeId, off, size };
 
         using var multi = await _db.QueryMultipleAsync(new CommandDefinition(sql, args, cancellationToken: ct));
         var total = await multi.ReadFirstAsync<int>();
-        var rows  = (await multi.ReadAsync<PortMasterDto>()).AsList();
+        var rows = (await multi.ReadAsync<PortMasterDto>()).AsList();
 
         return (rows, total);
     }

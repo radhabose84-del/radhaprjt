@@ -39,14 +39,14 @@ namespace MaintenanceManagement.Infrastructure.Repositories.MachineGroupUser
             DECLARE @TotalCount INT;
             SELECT @TotalCount = COUNT(*) FROM [Maintenance].[MachineGroupUser]  MT 
             INNER JOIN [Maintenance].[MachineGroup] MG ON MT.MachineGroupId = MG.Id            
-            INNER JOIN Bannari.AppSecurity.Users U ON U.UserId = MT.UserId
+            INNER JOIN BannariERP.AppSecurity.Users U ON U.UserId = MT.UserId
             WHERE MT.IsDeleted = 0
             {{(string.IsNullOrEmpty(SearchTerm) ? "" : "AND (GroupName LIKE @Search OR UserName LIKE @Search  OR UserName LIKE @Search)")}};
 
             SELECT MT.Id,MT.MachineGroupId,MT.DepartmentId,MT.UserId,MG.GroupName,'' DepartmentName,U.UserName,MT.IsActive,MT.CreatedBy,MT.CreatedDate,MT.CreatedByName,MT.CreatedIP,MT.ModifiedBy,MT.ModifiedDate,MT.ModifiedByName,MT.ModifiedIP
             FROM [Maintenance].[MachineGroupUser]  MT 
             INNER JOIN [Maintenance].[MachineGroup] MG ON MT.MachineGroupId = MG.Id            
-            INNER JOIN Bannari.AppSecurity.Users U ON U.UserId = MT.UserId
+            INNER JOIN BannariERP.AppSecurity.Users U ON U.UserId = MT.UserId
             WHERE MT.IsDeleted = 0            
             {{(string.IsNullOrEmpty(SearchTerm) ? "" : "AND (GroupName LIKE @Search OR UserName LIKE @Search )")}}
             ORDER BY Id desc
@@ -72,7 +72,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.MachineGroupUser
             const string query = @"SELECT MT.Id,MT.MachineGroupId,MT.DepartmentId,MT.UserId,MG.GroupName,'' DepartmentName,U.UserName,MT.IsActive,MT.CreatedBy,MT.CreatedDate,MT.CreatedByName,MT.CreatedIP,MT.ModifiedBy,MT.ModifiedDate,MT.ModifiedByName,MT.ModifiedIP,MT.IsDeleted
             FROM [Maintenance].[MachineGroupUser]  MT 
             INNER JOIN [Maintenance].[MachineGroup] MG ON MT.MachineGroupId = MG.Id            
-            INNER JOIN Bannari.AppSecurity.Users U ON U.UserId = MT.UserId
+            INNER JOIN BannariERP.AppSecurity.Users U ON U.UserId = MT.UserId
             WHERE  MT.Id = @Id AND MT.IsDeleted = 0";
             return await _dbConnection.QueryFirstOrDefaultAsync<MachineGroupUserDto>(query, new { id });
         }
@@ -83,7 +83,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.MachineGroupUser
             SELECT MT.Id, MT.MachineGroupId,GroupName,UserName,MT.DepartmentId,'' DepartmentName,MT.IsActive,MT.IsDeleted
             FROM [Maintenance].[MachineGroupUser]  MT 
             INNER JOIN [Maintenance].[MachineGroup] MG ON MT.MachineGroupId = MG.Id            
-            INNER JOIN Bannari.AppSecurity.Users U ON U.UserId = MT.UserId
+            INNER JOIN BannariERP.AppSecurity.Users U ON U.UserId = MT.UserId
             WHERE MT.IsDeleted = 0 AND GroupName LIKE @SearchPattern";
                 
             var shiftMasters = await _dbConnection.QueryAsync<MachineGroupUserAutoCompleteDto>(query, new { SearchPattern = $"%{searchPattern}%" });

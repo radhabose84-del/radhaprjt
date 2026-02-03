@@ -14,7 +14,7 @@ namespace UserManagement.Infrastructure.Logging
                 .Enrich.FromLogContext()
                 .WriteTo.Console()
                 // .WriteTo.File("Logs/log-.txt", rollingInterval: RollingInterval.Day)
-                .WriteTo.MongoDB("mongodb://localhost:27017/Bannari") // MongoDB connection string 
+                .WriteTo.MongoDB("mongodb://localhost:27017/BannariERP") // MongoDB connection string 
                 .CreateLogger();
 
             // Add Serilog to the .NET Core logging pipeline

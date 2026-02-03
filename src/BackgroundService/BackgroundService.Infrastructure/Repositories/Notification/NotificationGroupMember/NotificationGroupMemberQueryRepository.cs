@@ -34,7 +34,7 @@ namespace BackgroundService.Infrastructure.Repositories.Notification.Notificatio
                 FROM [AppNotification].[NotificationGroup] NG
                 LEFT JOIN [AppNotification].[NotificationGroupMembers] NGM 
                     ON NG.Id = NGM.GroupId AND NGM.IsDeleted = 0
-                LEFT JOIN Bannari.AppSecurity.Users U 
+                LEFT JOIN BannariERP.AppSecurity.Users U 
                     ON U.UserId = NGM.UserId
                 WHERE NG.Id = @GroupId 
                 AND NG.UnitId = @UnitId 
@@ -98,7 +98,7 @@ namespace BackgroundService.Infrastructure.Repositories.Notification.Notificatio
                     U.UserName,NG.IsActive
                 FROM [AppNotification].[NotificationGroupMembers] NGM
                 INNER JOIN [AppNotification].[NotificationGroup] NG ON NG.Id = NGM.GroupId
-                LEFT JOIN Bannari.AppSecurity.Users U ON U.UserId = NGM.UserId
+                LEFT JOIN BannariERP.AppSecurity.Users U ON U.UserId = NGM.UserId
                 WHERE NG.UnitId=@UnitId 
                 AND NGM.IsDeleted = 0              
                 AND (@Search IS NULL OR NG.GroupName LIKE @Search)
