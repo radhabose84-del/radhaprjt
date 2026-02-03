@@ -54,3 +54,7 @@
 /src/Modules/FixedAssetManagement/FAM.Infrastructure/obj
 /src/Modules/FixedAssetManagement/FixedAssetManagement.Module/obj
 /src/Modules/FixedAssetManagement/FixedAssetManagement.Module/bin
+/src/BackgroundService/BackgroundService.Infrastructure/bin
+/src/BackgroundService/BackgroundService.Domain/bin
+/src/BackgroundService/BackgroundService.Application/bin
+/src/BackgroundService/BackgroundService.API/bin
