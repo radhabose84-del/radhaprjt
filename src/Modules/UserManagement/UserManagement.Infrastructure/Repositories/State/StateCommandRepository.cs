@@ -1,8 +1,8 @@
-using Core.Domain.Entities;
+using UserManagement.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using UserManagement.Infrastructure.Data;
-using Core.Application.Common.Interfaces.IState;
-using Core.Domain.Enums.Common;
+using UserManagement.Application.Common.Interfaces.IState;
+using UserManagement.Domain.Enums.Common;
 
 namespace UserManagement.Infrastructure.Repositories.State
 {    

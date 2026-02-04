@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Core.Domain.Entities;
+using UserManagement.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using static Core.Domain.Enums.Common.Enums;
+using static UserManagement.Domain.Enums.Common.Enums;
 
 namespace UserManagement.Infrastructure.Data.Configurations
 {

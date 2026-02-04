@@ -11,7 +11,7 @@ using UserManagement.Infrastructure;
 using UserManagement.API.Validation.Common;
 
 // AutoMapper profiles
-using Core.Application.Common.Mappings;
+using UserManagement.Application.Common.Mappings;
 using Shared.Validation.Common;
 
 namespace UserManagement.Module;

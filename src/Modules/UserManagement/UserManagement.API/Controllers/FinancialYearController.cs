@@ -4,18 +4,18 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using UserManagement.Infrastructure.Data;
-using Core.Application.Common.Interfaces.IFinancialYear;
-using Core.Application.FinancialYear.Command.CreateFinancialYear;
-using Core.Application.FinancialYear.Command.DeleteFinancialYear;
-using Core.Application.FinancialYear.Command.UpdateFinancialYear;
-using Core.Application.FinancialYear.Queries.GetFinancialYear;
-using Core.Application.FinancialYear.Queries.GetFinancialYearGetById;
-using Core.Application.GetFinancialYearYear.Queries.GetFinancialYear;
+using UserManagement.Application.Common.Interfaces.IFinancialYear;
+using UserManagement.Application.FinancialYear.Command.CreateFinancialYear;
+using UserManagement.Application.FinancialYear.Command.DeleteFinancialYear;
+using UserManagement.Application.FinancialYear.Command.UpdateFinancialYear;
+using UserManagement.Application.FinancialYear.Queries.GetFinancialYear;
+using UserManagement.Application.FinancialYear.Queries.GetFinancialYearGetById;
+using UserManagement.Application.GetFinancialYearYear.Queries.GetFinancialYear;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Core.Application.FinancialYear.Queries.GetFinancialYearAutoComplete;
+using UserManagement.Application.FinancialYear.Queries.GetFinancialYearAutoComplete;
 
 namespace UserManagement.API.Controllers
 {

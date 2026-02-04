@@ -1,12 +1,12 @@
 using Microsoft.EntityFrameworkCore;
 using UserManagement.Infrastructure.Data;
-using Core.Domain.Entities;
+using UserManagement.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Core.Application.Common.Interfaces.IAdminSecuritySettings;
-using Core.Application.Common.Interfaces;
+using UserManagement.Application.Common.Interfaces.IAdminSecuritySettings;
+using UserManagement.Application.Common.Interfaces;
 
 namespace UserManagement.Infrastructure.Repositories.AdminSecuritySettings
 {
@@ -20,7 +20,7 @@ namespace UserManagement.Infrastructure.Repositories.AdminSecuritySettings
         _applicationDbContext=applicationDbContext;
         _ipAddressService=iPAddressService;
     } 
-     public async Task<Core.Domain.Entities.AdminSecuritySettings> CreateAsync(Core.Domain.Entities.AdminSecuritySettings adminSecuritySettings)
+     public async Task<UserManagement.Domain.Entities.AdminSecuritySettings> CreateAsync(UserManagement.Domain.Entities.AdminSecuritySettings adminSecuritySettings)
     {       
             var entityId = _ipAddressService.GetEntityId();
             adminSecuritySettings.EntityId = entityId;
@@ -28,7 +28,7 @@ namespace UserManagement.Infrastructure.Repositories.AdminSecuritySettings
             await _applicationDbContext.SaveChangesAsync();
             return adminSecuritySettings;
     }    
-     public async Task<int>UpdateAsync(int id, Core.Domain.Entities.AdminSecuritySettings adminSecuritySettings)
+     public async Task<int>UpdateAsync(int id, UserManagement.Domain.Entities.AdminSecuritySettings adminSecuritySettings)
     {
             var existingadminsettings = await _applicationDbContext.AdminSecuritySettings.FirstOrDefaultAsync(u => u.Id == id);
                     if (existingadminsettings == null)
@@ -58,7 +58,7 @@ namespace UserManagement.Infrastructure.Repositories.AdminSecuritySettings
             return 1; // No user found
     }
 
-        public async Task<int> DeleteAsync(int id ,Core.Domain.Entities.AdminSecuritySettings adminSecuritySettings )
+        public async Task<int> DeleteAsync(int id ,UserManagement.Domain.Entities.AdminSecuritySettings adminSecuritySettings )
     {
         
             var adminsettingsToDelete = await _applicationDbContext.AdminSecuritySettings.FirstOrDefaultAsync(u => u.Id == id);

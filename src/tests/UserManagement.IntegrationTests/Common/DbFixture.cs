@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using Core.Application.Common.Interfaces;
+using UserManagement.Application.Common.Interfaces;
 using Dapper;
 using Microsoft.EntityFrameworkCore;
 using Moq;

@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using UserManagement.Infrastructure.Data;
-using Core.Domain.Entities;
-using Core.Application.Common.Interfaces.IEntity;
-using static Core.Domain.Enums.Common.Enums;
+using UserManagement.Domain.Entities;
+using UserManagement.Application.Common.Interfaces.IEntity;
+using static UserManagement.Domain.Enums.Common.Enums;
 
 
 namespace UserManagement.Infrastructure.Repositories.Entities

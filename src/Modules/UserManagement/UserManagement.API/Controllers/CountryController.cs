@@ -1,9 +1,9 @@
-using Core.Application.Country.Commands.CreateCountry;
-using Core.Application.Country.Commands.DeleteCountry;
-using Core.Application.Country.Commands.UpdateCountry;
-using Core.Application.Country.Queries.GetCountries;
-using Core.Application.Country.Queries.GetCountryAutoComplete;
-using Core.Application.Country.Queries.GetCountryById;
+using UserManagement.Application.Country.Commands.CreateCountry;
+using UserManagement.Application.Country.Commands.DeleteCountry;
+using UserManagement.Application.Country.Commands.UpdateCountry;
+using UserManagement.Application.Country.Queries.GetCountries;
+using UserManagement.Application.Country.Queries.GetCountryAutoComplete;
+using UserManagement.Application.Country.Queries.GetCountryById;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;

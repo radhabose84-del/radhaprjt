@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Core.Application.DepartmentGroup.Command.CreateDepartmentGroup;
+using UserManagement.Application.DepartmentGroup.Command.CreateDepartmentGroup;
 using FluentValidation;
 using UserManagement.API.Validation.Common;
 using Serilog;
-using Core.Application.Common.Interfaces.IDepartmentGroup;
+using UserManagement.Application.Common.Interfaces.IDepartmentGroup;
 using Shared.Validation.Common;
 
 
@@ -20,8 +20,8 @@ namespace UserManagement.API.Validation.DepartmentGroup
 
         public CreateDepartmentGroupCommandValidator(MaxLengthProvider maxLengthProvider, IDepartmentGroupQueryRepository departmentGroupQueryRepository)
         {
-            var GroupCodeMaxLength = maxLengthProvider.GetMaxLength<Core.Domain.Entities.DepartmentGroup>("DepartmentGroupCode") ?? 15;
-            var GroupNameMaxLength = maxLengthProvider.GetMaxLength<Core.Domain.Entities.DepartmentGroup>("DepartmentGroupName") ?? 50;
+            var GroupCodeMaxLength = maxLengthProvider.GetMaxLength<UserManagement.Domain.Entities.DepartmentGroup>("DepartmentGroupCode") ?? 15;
+            var GroupNameMaxLength = maxLengthProvider.GetMaxLength<UserManagement.Domain.Entities.DepartmentGroup>("DepartmentGroupName") ?? 50;
            
            _departmentGroupQueryRepository = departmentGroupQueryRepository;
             _validationRules = ValidationRuleLoader.LoadValidationRules();

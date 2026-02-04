@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Core.Application.Common.Interfaces.IDepartmentGroup;
+using UserManagement.Application.Common.Interfaces.IDepartmentGroup;
 using Microsoft.EntityFrameworkCore;
 using UserManagement.Infrastructure.Data;
 
@@ -17,14 +17,14 @@ namespace UserManagement.Infrastructure.Repositories.DepartmentGroup
             _applicationDbContext = applicationDbContext;
         }
 
-        public async Task<int> CreateAsync(Core.Domain.Entities.DepartmentGroup departmentGroup)
+        public async Task<int> CreateAsync(UserManagement.Domain.Entities.DepartmentGroup departmentGroup)
         {
             await _applicationDbContext.DepartmentGroup.AddAsync(departmentGroup);
             await _applicationDbContext.SaveChangesAsync();
             return departmentGroup.Id;
         }
 
-        public async Task<bool> UpdateAsync(int id, Core.Domain.Entities.DepartmentGroup departmentGroup)
+        public async Task<bool> UpdateAsync(int id, UserManagement.Domain.Entities.DepartmentGroup departmentGroup)
         {
             var existingDepartmentGroup = await _applicationDbContext.DepartmentGroup
                 .FirstOrDefaultAsync(d => d.Id == id);
@@ -44,7 +44,7 @@ namespace UserManagement.Infrastructure.Repositories.DepartmentGroup
         }
         
 
-        public async Task<bool> DeleteAsync(int id, Core.Domain.Entities.DepartmentGroup departmentGroup)
+        public async Task<bool> DeleteAsync(int id, UserManagement.Domain.Entities.DepartmentGroup departmentGroup)
         {
             var existingDepartmentGroup = await _applicationDbContext.DepartmentGroup.FirstOrDefaultAsync(u => u.Id == id);
             if (existingDepartmentGroup != null)

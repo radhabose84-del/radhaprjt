@@ -4,18 +4,18 @@ using UserManagement.Infrastructure.Data;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Core.Application.RoleEntitlements.Commands.CreateRoleEntitlement;
-using Core.Application.RoleEntitlements.Commands.UpdateRoleRntitlement;
-using Core.Application.RoleEntitlements.Queries.GetRoleEntitlements;
+using UserManagement.Application.RoleEntitlements.Commands.CreateRoleEntitlement;
+using UserManagement.Application.RoleEntitlements.Commands.UpdateRoleRntitlement;
+using UserManagement.Application.RoleEntitlements.Queries.GetRoleEntitlements;
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
-using Core.Application.RoleEntitlements.Commands.DeleteRoleEntitlement;
-using Core.Application.RoleEntitlements.Queries.GetRoleEntitlementById;
-using Core.Application.RoleEntitlements.Queries.GetRolePrivileges;
+using UserManagement.Application.RoleEntitlements.Commands.DeleteRoleEntitlement;
+using UserManagement.Application.RoleEntitlements.Queries.GetRoleEntitlementById;
+using UserManagement.Application.RoleEntitlements.Queries.GetRolePrivileges;
 
 namespace UserManagement.API.Controllers
 {

@@ -1,10 +1,10 @@
 
 using UserManagement.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using Core.Domain.Entities;
-using Core.Application.Common.Interfaces.IUserSession;
+using UserManagement.Domain.Entities;
+using UserManagement.Application.Common.Interfaces.IUserSession;
 using Infrastructure;
-using Core.Application.Common.Interfaces;
+using UserManagement.Application.Common.Interfaces;
 using System.Data;
 using Dapper;
 

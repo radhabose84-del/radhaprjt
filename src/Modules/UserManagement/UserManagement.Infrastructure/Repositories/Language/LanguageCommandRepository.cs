@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using UserManagement.Infrastructure.Data;
-using Core.Application.Common.Interfaces.ILanguage;
-using Core.Domain.Entities;
+using UserManagement.Application.Common.Interfaces.ILanguage;
+using UserManagement.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace UserManagement.Infrastructure.Repositories.Language
@@ -16,14 +16,14 @@ namespace UserManagement.Infrastructure.Repositories.Language
         {
             _context = context;
         }
-        public async Task<Core.Domain.Entities.Language> CreateAsync(Core.Domain.Entities.Language language)
+        public async Task<UserManagement.Domain.Entities.Language> CreateAsync(UserManagement.Domain.Entities.Language language)
         {
              await _context.Languages.AddAsync(language);
             await _context.SaveChangesAsync();
             return language;
         }
 
-        public async Task<bool> DeleteAsync(int id, Core.Domain.Entities.Language language)
+        public async Task<bool> DeleteAsync(int id, UserManagement.Domain.Entities.Language language)
         {
              var existingLanguage = await _context.Languages.FirstOrDefaultAsync(u => u.Id == id && u.IsDeleted==0);
             if (existingLanguage != null)
@@ -34,7 +34,7 @@ namespace UserManagement.Infrastructure.Repositories.Language
             return false; 
         }
 
-        public async Task<bool> UpdateAsync(Core.Domain.Entities.Language language)
+        public async Task<bool> UpdateAsync(UserManagement.Domain.Entities.Language language)
         {
              var Languages = await _context.Languages.FirstOrDefaultAsync(u => u.Id == language.Id && u.IsDeleted==0);
             if (Languages != null)

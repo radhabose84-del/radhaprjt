@@ -1,7 +1,7 @@
-using Core.Domain.Entities;
+using UserManagement.Domain.Entities;
 using System.Data;
 using Dapper;
-using Core.Application.Common.Interfaces.ICountry;
+using UserManagement.Application.Common.Interfaces.ICountry;
 
 namespace UserManagement.Infrastructure.Repositories.Country
 {    

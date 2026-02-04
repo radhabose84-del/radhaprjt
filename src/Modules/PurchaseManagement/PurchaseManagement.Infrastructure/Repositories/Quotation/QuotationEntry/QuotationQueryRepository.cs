@@ -85,7 +85,7 @@ public class QuotationQueryRepository(
                             .Select(r => new { r.Id, r.RfqCode })
                             .ToDictionaryAsync(k => k.Id, v => v.RfqCode ?? string.Empty);
 
-        var miscMap = await db.Set<Core.Domain.Entities.MiscMaster>()
+        var miscMap = await db.Set<PurchaseManagement.Domain.Entities.MiscMaster>()
                             .AsNoTracking()
                             .Where(m => miscIds.Contains(m.Id))
                             .Select(m => new { m.Id, m.Code })
@@ -189,7 +189,7 @@ public class QuotationQueryRepository(
         var miscIds = new[] { h.FreightModeId, h.PaymentTermsId, h.IncotermsId }
                     .Where(x => x != 0).Distinct().ToList();
 
-        var miscMap = await db.Set<Core.Domain.Entities.MiscMaster>()
+        var miscMap = await db.Set<PurchaseManagement.Domain.Entities.MiscMaster>()
                             .AsNoTracking()
                             .Where(m => miscIds.Contains(m.Id))
                             .Select(m => new { m.Id, m.Code })

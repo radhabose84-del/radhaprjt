@@ -5,7 +5,7 @@ using System.Text;
 using System.Text.Json;
 using InventoryManagement.Application.Common.Interfaces;
 using InventoryManagement.Domain.Common;
-using Core.Domain.Entities;
+using InventoryManagement.Domain.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;

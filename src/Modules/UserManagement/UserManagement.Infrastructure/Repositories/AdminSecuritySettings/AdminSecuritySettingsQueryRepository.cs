@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Core.Domain.Entities;
+using UserManagement.Domain.Entities;
 using System.Data;
 using Dapper;
-using Core.Application.Common.Interfaces.IAdminSecuritySettings;
+using UserManagement.Application.Common.Interfaces.IAdminSecuritySettings;
 using System.Security.Permissions;
-using Core.Application.Common.Interfaces;
+using UserManagement.Application.Common.Interfaces;
 
 
 namespace UserManagement.Infrastructure.Repositories.AdminSecuritySettings
@@ -23,7 +23,7 @@ namespace UserManagement.Infrastructure.Repositories.AdminSecuritySettings
          _ipAddressService = iPAddressService;
     }
    
-            public async Task<(List<Core.Domain.Entities.AdminSecuritySettings>, int)> GetAllAdminSecuritySettingsAsync(int PageNumber, int PageSize, string? SearchTerm)
+            public async Task<(List<UserManagement.Domain.Entities.AdminSecuritySettings>, int)> GetAllAdminSecuritySettingsAsync(int PageNumber, int PageSize, string? SearchTerm)
         {
             var entityId = _ipAddressService.GetEntityId();
             var query = $$"""
@@ -73,18 +73,18 @@ namespace UserManagement.Infrastructure.Repositories.AdminSecuritySettings
             };
 
             var securitySettings = await _dbConnection.QueryMultipleAsync(query, parameters);
-            var settingsList = (await securitySettings.ReadAsync<Core.Domain.Entities.AdminSecuritySettings>()).ToList();
+            var settingsList = (await securitySettings.ReadAsync<UserManagement.Domain.Entities.AdminSecuritySettings>()).ToList();
             int totalCount = (await securitySettings.ReadFirstAsync<int>());
 
             return (settingsList, totalCount);
         }
 
 
-        public async Task<Core.Domain.Entities.AdminSecuritySettings> GetAdminSecuritySettingsByIdAsync(int id)
+        public async Task<UserManagement.Domain.Entities.AdminSecuritySettings> GetAdminSecuritySettingsByIdAsync(int id)
         {
             var entityId = _ipAddressService.GetEntityId();
             const string query = @"SELECT * FROM AppSecurity.AdminSecuritySettings WHERE Id = @Id AND IsDeleted = 0 AND EntityId=@EntityId ORDER BY ID DESC";
-                var adminsettings = await _dbConnection.QueryFirstOrDefaultAsync<Core.Domain.Entities.AdminSecuritySettings>(query, new { Id=id,EntityId=entityId });
+                var adminsettings = await _dbConnection.QueryFirstOrDefaultAsync<UserManagement.Domain.Entities.AdminSecuritySettings>(query, new { Id=id,EntityId=entityId });
                 
                 if (adminsettings == null)
                 {

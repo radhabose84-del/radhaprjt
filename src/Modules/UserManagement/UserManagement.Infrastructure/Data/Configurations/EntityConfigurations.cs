@@ -1,12 +1,12 @@
-using Core.Domain.Entities;
+using UserManagement.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using static Core.Domain.Enums.Common.Enums;
+using static UserManagement.Domain.Enums.Common.Enums;
 
 namespace UserManagement.Infrastructure.Data.Configurations
 {
-    public class EntityConfigurations : IEntityTypeConfiguration<Core.Domain.Entities.Entity>
+    public class EntityConfigurations : IEntityTypeConfiguration<UserManagement.Domain.Entities.Entity>
     {
         public void Configure(EntityTypeBuilder<Entity> builder)
         {

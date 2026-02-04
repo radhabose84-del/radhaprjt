@@ -4,19 +4,19 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using UserManagement.Infrastructure.Data;
-using Core.Application.Common.Interfaces;
-using Core.Application.AuditLog.Queries;
+using UserManagement.Application.Common.Interfaces;
+using UserManagement.Application.AuditLog.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using FluentValidation;
-using Core.Application.AdminSecuritySettings.Queries.GetAdminSecuritySettings;
-using Core.Application.AdminSecuritySettings.Commands.CreateAdminSecuritySettings;
-using Core.Application.AdminSecuritySettings.Commands.UpdateAdminSecuritySettings;
-using Core.Application.AdminSecuritySettings.Commands.DeleteAdminSecuritySettings;
+using UserManagement.Application.AdminSecuritySettings.Queries.GetAdminSecuritySettings;
+using UserManagement.Application.AdminSecuritySettings.Commands.CreateAdminSecuritySettings;
+using UserManagement.Application.AdminSecuritySettings.Commands.UpdateAdminSecuritySettings;
+using UserManagement.Application.AdminSecuritySettings.Commands.DeleteAdminSecuritySettings;
 using AutoMapper;
-using Core.Domain.Entities;
-using Core.Application.AdminSecuritySettings.Queries.GetAdminSecuritySettingsById;
+using UserManagement.Domain.Entities;
+using UserManagement.Application.AdminSecuritySettings.Queries.GetAdminSecuritySettingsById;
 
 
 

@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
-using Core.Application.Common.Interfaces;
-using Core.Application.Common.Interfaces.IMenu;
+using UserManagement.Application.Common.Interfaces;
+using UserManagement.Application.Common.Interfaces.IMenu;
 using Dapper;
 
 namespace UserManagement.Infrastructure.Repositories.Menu
@@ -19,7 +19,7 @@ namespace UserManagement.Infrastructure.Repositories.Menu
             _ipAddressService = ipAddressService;
         }
 
-        public async Task<List<Core.Domain.Entities.Menu>> GetChildMenus(List<int> parentId)
+        public async Task<List<UserManagement.Domain.Entities.Menu>> GetChildMenus(List<int> parentId)
         {
             // var companyId = _ipAddressService.GetCompanyId();
             string parentIdList = string.Join(",", parentId);
@@ -35,11 +35,11 @@ namespace UserManagement.Infrastructure.Repositories.Menu
               )
               SELECT * FROM RecursiveMenu;";
 
-            var childMenus = await _dbConnection.QueryAsync<Core.Domain.Entities.Menu>(query);
+            var childMenus = await _dbConnection.QueryAsync<UserManagement.Domain.Entities.Menu>(query);
             return childMenus.ToList();
         }
 
-        public async Task<List<Core.Domain.Entities.Menu>> GetParentMenus(List<int> moduleId)
+        public async Task<List<UserManagement.Domain.Entities.Menu>> GetParentMenus(List<int> moduleId)
         {
             // var companyId = _ipAddressService.GetCompanyId();
 
@@ -50,7 +50,7 @@ namespace UserManagement.Infrastructure.Repositories.Menu
                                   WHERE IsDeleted = 0 AND ModuleId IN ({moduleIdList}) AND ParentId = 0 
                                   ";
 
-            var parentMenus = await _dbConnection.QueryAsync<Core.Domain.Entities.Menu>(query);
+            var parentMenus = await _dbConnection.QueryAsync<UserManagement.Domain.Entities.Menu>(query);
             return parentMenus.ToList();
         }
         public async Task<bool> FKColumnExistValidation(int Id)
@@ -110,7 +110,7 @@ namespace UserManagement.Infrastructure.Repositories.Menu
 
             return (MenuMasterList, TotalCount);
         }
-        public async Task<Core.Domain.Entities.Menu> GetMenuByNameAsync(string MenuName)
+        public async Task<UserManagement.Domain.Entities.Menu> GetMenuByNameAsync(string MenuName)
         {
             var query = $@"
                SELECT Id, MenuName 
@@ -118,10 +118,10 @@ namespace UserManagement.Infrastructure.Repositories.Menu
                WHERE IsDeleted = 0 
                AND MenuName = @MenuName";
 
-            var Menus = await _dbConnection.QueryAsync<Core.Domain.Entities.Menu>(query, new { MenuName });
+            var Menus = await _dbConnection.QueryAsync<UserManagement.Domain.Entities.Menu>(query, new { MenuName });
             return Menus.FirstOrDefault();
         }
-        public async Task<List<Core.Domain.Entities.Menu>> GetParentMenuAutoComplete(string searchPattern)
+        public async Task<List<UserManagement.Domain.Entities.Menu>> GetParentMenuAutoComplete(string searchPattern)
         {
 
 
@@ -137,11 +137,11 @@ namespace UserManagement.Infrastructure.Repositories.Menu
                 SearchPattern = $"%{searchPattern ?? string.Empty}%"
             };
 
-            var modules = await _dbConnection.QueryAsync<Core.Domain.Entities.Menu>(query, parameters);
+            var modules = await _dbConnection.QueryAsync<UserManagement.Domain.Entities.Menu>(query, parameters);
             return modules.ToList();
         }
         
-         public async Task<List<Core.Domain.Entities.Menu>> GetMenusByIds(IEnumerable<int> ids, CancellationToken ct = default)
+         public async Task<List<UserManagement.Domain.Entities.Menu>> GetMenusByIds(IEnumerable<int> ids, CancellationToken ct = default)
         {
                 var list = ids?.Distinct().ToList() ?? new();
 
@@ -157,7 +157,7 @@ namespace UserManagement.Infrastructure.Repositories.Menu
                       Ids = list
                   };
         
-                  var menus = await _dbConnection.QueryAsync<Core.Domain.Entities.Menu>(query, parameters);
+                  var menus = await _dbConnection.QueryAsync<UserManagement.Domain.Entities.Menu>(query, parameters);
                   return menus.ToList();
         }
     }

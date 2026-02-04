@@ -7,8 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Core\Core.Domain\Core.Domain.csproj" />
-    <ProjectReference Include="..\Core\Core.Application\Core.Application.csproj" />
+    <ProjectReference Include="..\Core\UserManagement.Domain\UserManagement.Domain.csproj" />
+    <ProjectReference Include="..\Core\UserManagement.Application\UserManagement.Application.csproj" />
 
     <ProjectReference Include="..\..\..\Shared\Contracts\Contracts.csproj" />
     <ProjectReference Include="..\..\..\Shared\Shared.Infrastructure\Shared.Infrastructure.csproj" />

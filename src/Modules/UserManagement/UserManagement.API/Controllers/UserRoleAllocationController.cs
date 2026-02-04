@@ -1,7 +1,7 @@
-using Core.Application.DeleteUserRoleAllocation.Commands.DeleteUserRoleAllocation;
-using Core.Application.UserRoleAllocation.Commands.CreateUserRoleAllocation;
-using Core.Application.UserRoleAllocation.Queries.GetUserRoleAllocation;
-using Core.Application.UserRoleAllocation.Queries.GetUserRoleAllocationById;
+using UserManagement.Application.DeleteUserRoleAllocation.Commands.DeleteUserRoleAllocation;
+using UserManagement.Application.UserRoleAllocation.Commands.CreateUserRoleAllocation;
+using UserManagement.Application.UserRoleAllocation.Queries.GetUserRoleAllocation;
+using UserManagement.Application.UserRoleAllocation.Queries.GetUserRoleAllocationById;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

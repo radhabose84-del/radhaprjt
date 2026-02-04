@@ -1,8 +1,8 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Core.Application.Common.Interfaces;
-using Core.Application.Users.Commands.UpdateFirstTimeUserPassword;
+using UserManagement.Application.Common.Interfaces;
+using UserManagement.Application.Users.Commands.UpdateFirstTimeUserPassword;
 using FluentValidation.TestHelper;
 using Microsoft.EntityFrameworkCore;
 using Moq;

@@ -1,8 +1,8 @@
-using Core.Domain.Entities;
+using UserManagement.Domain.Entities;
 using System.Data;
 using Dapper;
-using Core.Application.Common;
-using Core.Application.Common.Interfaces.IState;
+using UserManagement.Application.Common;
+using UserManagement.Application.Common.Interfaces.IState;
 
 namespace UserManagement.Infrastructure.Repositories
 {    
@@ -102,7 +102,7 @@ namespace UserManagement.Infrastructure.Repositories
                     SELECT * 
                     FROM [AppData].[City] 
                     WHERE StateId = @Id AND IsDeleted = 1";
-                    var cities = await _dbConnection.QueryFirstOrDefaultAsync<Core.Domain.Entities.Cities>(query, new { Id });
+                    var cities = await _dbConnection.QueryFirstOrDefaultAsync<UserManagement.Domain.Entities.Cities>(query, new { Id });
 
             if (cities != null)
             {

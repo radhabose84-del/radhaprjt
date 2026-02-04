@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Core.Application.Common.Interfaces.IUser;
+using UserManagement.Application.Common.Interfaces.IUser;
 
 namespace UserManagement.Infrastructure.Repositories.Users
 {

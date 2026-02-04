@@ -1,16 +1,16 @@
 using System.Data;
-using Core.Domain.Entities;
+using UserManagement.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using UserManagement.Infrastructure.Data;
 using UserManagement.Infrastructure.Repositories;
-using Core.Application.Common.Interfaces;
+using UserManagement.Application.Common.Interfaces;
 using Xunit;
 using FluentAssertions;
 using UserManagement.Infrastructure.Services; // ITimeZoneService
 
 // Alias your enums to keep code readable
-using Enums = Core.Domain.Enums.Common.Enums;
+using Enums = UserManagement.Domain.Enums.Common.Enums;
 
 namespace UserManagement.IntegrationTests.Repositories.Users;
 
@@ -92,7 +92,7 @@ public sealed class UserCommandRepositoryTests
 
             // Collections
             UserCompanies = new List<UserCompany>(),
-            UserRoleAllocations = new List<Core.Domain.Entities.UserRoleAllocation>(),
+            UserRoleAllocations = new List<UserManagement.Domain.Entities.UserRoleAllocation>(),
             UserUnits = new List<UserUnit>(),
             UserDivisions = new List<UserDivision>(),
             UserDepartments = new List<UserDepartment>()
@@ -219,7 +219,7 @@ public sealed class UserCommandRepositoryTests
         {
             new() { UnitId = 102 }   // switch from 101 to 102
         };
-        payload.UserRoleAllocations = new List<Core.Domain.Entities.UserRoleAllocation>();
+        payload.UserRoleAllocations = new List<UserManagement.Domain.Entities.UserRoleAllocation>();
         payload.UserDivisions = new List<UserDivision>();
         payload.UserDepartments = new List<UserDepartment>();
 

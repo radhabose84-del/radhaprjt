@@ -1,7 +1,7 @@
 using FluentValidation;
-using Core.Application.Units.Commands.CreateUnit;
+using UserManagement.Application.Units.Commands.CreateUnit;
 using System.Text.RegularExpressions;
-using Core.Application.Units.Queries.GetUnits;
+using UserManagement.Application.Units.Queries.GetUnits;
 using UserManagement.API.Validation.Common;
 using Serilog;
 using Shared.Validation.Common;

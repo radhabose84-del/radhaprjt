@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using FluentValidation;
-using Core.Application.Departments.Commands;
-using Core.Application.Departments.Commands.CreateDepartment;
-using Core.Domain.Entities;
+using UserManagement.Application.Departments.Commands;
+using UserManagement.Application.Departments.Commands.CreateDepartment;
+using UserManagement.Domain.Entities;
 using UserManagement.API.Validation.Common;
 using Serilog;
 using Shared.Validation.Common;
@@ -18,8 +18,8 @@ namespace UserManagement.API.Validation.Department
 
            public CreateDepartmentCommandValidator(MaxLengthProvider maxLengthProvider)
            {
-                    var DepartmentShortNameMaxLength = maxLengthProvider.GetMaxLength<Core.Domain.Entities.Department>("ShortName") ?? 6;
-                   var DepartmentDeptNameMaxLength = maxLengthProvider.GetMaxLength<Core.Domain.Entities.Department>("DeptName") ?? 50;            
+                    var DepartmentShortNameMaxLength = maxLengthProvider.GetMaxLength<UserManagement.Domain.Entities.Department>("ShortName") ?? 6;
+                   var DepartmentDeptNameMaxLength = maxLengthProvider.GetMaxLength<UserManagement.Domain.Entities.Department>("DeptName") ?? 50;            
 
                    _validationRules = ValidationRuleLoader.LoadValidationRules();
                    if (_validationRules == null || !_validationRules.Any())

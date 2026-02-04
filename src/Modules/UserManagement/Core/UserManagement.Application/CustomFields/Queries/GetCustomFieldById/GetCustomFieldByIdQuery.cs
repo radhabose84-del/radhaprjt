@@ -1,0 +1,14 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using UserManagement.Application.Common.HttpResponse;
+using MediatR;
+
+namespace UserManagement.Application.CustomFields.Queries.GetCustomFieldById
+{
+    public class GetCustomFieldByIdQuery : IRequest<CustomFieldByIdDTO>
+    {
+        public int Id { get; set; }
+    }
+}

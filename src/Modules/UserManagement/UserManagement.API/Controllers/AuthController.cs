@@ -1,19 +1,19 @@
-using Core.Application.UserLogin.Commands.UserLogin;
+using UserManagement.Application.UserLogin.Commands.UserLogin;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using AutoMapper;
 using FluentValidation;
-using Core.Application.Common.Interfaces.IUserSession;
+using UserManagement.Application.Common.Interfaces.IUserSession;
 using Microsoft.AspNetCore.Authorization;
 using UserManagement.Infrastructure.Services;
 using System.Collections.Concurrent;
 using Hangfire;
-using Core.Application.AdminSecuritySettings.Queries.GetAdminSecuritySettingsById;
-using Core.Application.Common.Interfaces.IUser;
+using UserManagement.Application.AdminSecuritySettings.Queries.GetAdminSecuritySettingsById;
+using UserManagement.Application.Common.Interfaces.IUser;
 using Infrastructure;
-using Core.Application.Common.Interfaces;
-using Core.Application.UserLogin.Commands.DeactivateUserSession;
-using Core.Application.UserLogin.Commands.UnlockUser;
+using UserManagement.Application.Common.Interfaces;
+using UserManagement.Application.UserLogin.Commands.DeactivateUserSession;
+using UserManagement.Application.UserLogin.Commands.UnlockUser;
 
 namespace UserManagement.API.Controllers
 {

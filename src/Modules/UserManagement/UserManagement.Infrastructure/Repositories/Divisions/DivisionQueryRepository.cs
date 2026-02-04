@@ -1,14 +1,14 @@
 using Microsoft.EntityFrameworkCore;
 using UserManagement.Infrastructure.Data;
-using Core.Domain.Entities;
+using UserManagement.Domain.Entities;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Core.Application.Common.Interfaces.IDivision;
-using Core.Application.Divisions.Queries.GetDivisions;
-using Core.Application.Common;
+using UserManagement.Application.Common.Interfaces.IDivision;
+using UserManagement.Application.Divisions.Queries.GetDivisions;
+using UserManagement.Application.Common;
 using System.Data;
 using Dapper;
-using Core.Application.Common.Interfaces;
+using UserManagement.Application.Common.Interfaces;
 
 namespace UserManagement.Infrastructure.Repositories.Divisions
 {

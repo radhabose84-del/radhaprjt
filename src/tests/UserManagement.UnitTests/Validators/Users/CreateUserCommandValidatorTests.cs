@@ -1,14 +1,14 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Core.Application.Common.Interfaces;
-using Core.Application.Common.Interfaces.ICompany;
-using Core.Application.Common.Interfaces.IDepartment;
-using Core.Application.Common.Interfaces.IDivision;
-using Core.Application.Common.Interfaces.IUnit;
-using Core.Application.Common.Interfaces.IUser;
-using Core.Application.Common.Interfaces.IUserRole;
-using Core.Application.Users.Commands.CreateUser;
-using Core.Domain.Entities;
+using UserManagement.Application.Common.Interfaces;
+using UserManagement.Application.Common.Interfaces.ICompany;
+using UserManagement.Application.Common.Interfaces.IDepartment;
+using UserManagement.Application.Common.Interfaces.IDivision;
+using UserManagement.Application.Common.Interfaces.IUnit;
+using UserManagement.Application.Common.Interfaces.IUser;
+using UserManagement.Application.Common.Interfaces.IUserRole;
+using UserManagement.Application.Users.Commands.CreateUser;
+using UserManagement.Domain.Entities;
 using FluentAssertions;
 using FluentValidation.TestHelper;
 using Moq;
@@ -18,11 +18,11 @@ using Microsoft.EntityFrameworkCore;
 using UserManagement.Infrastructure.Data;
 
 // Use the real DTO types your validator expects
-using UserCompanyDTO = Core.Application.Users.Queries.GetUsers.UserCompanyDTO;
-using UserUnitDTO = Core.Application.Users.Queries.GetUsers.UserUnitDTO;
-using UserDivisionDTO = Core.Application.Users.Commands.CreateUser.UserDivisionDTO;
-using UserDepartmentDTO = Core.Application.Users.Queries.GetUsers.UserDepartmentDTO;
-using UserRoleAllocationDTO = Core.Application.Users.Queries.GetUsers.UserRoleAllocationDTO;
+using UserCompanyDTO = UserManagement.Application.Users.Queries.GetUsers.UserCompanyDTO;
+using UserUnitDTO = UserManagement.Application.Users.Queries.GetUsers.UserUnitDTO;
+using UserDivisionDTO = UserManagement.Application.Users.Commands.CreateUser.UserDivisionDTO;
+using UserDepartmentDTO = UserManagement.Application.Users.Queries.GetUsers.UserDepartmentDTO;
+using UserRoleAllocationDTO = UserManagement.Application.Users.Queries.GetUsers.UserRoleAllocationDTO;
 using UserManagement.API.Validation.Users;
 using UserManagement.API.Validation.Common;
 

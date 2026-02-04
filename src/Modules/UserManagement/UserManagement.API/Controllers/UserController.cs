@@ -4,21 +4,21 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Core.Application.Users.Queries.GetUsers;
-using Core.Application.Users.Queries.GetUserById;
-using Core.Application.Users.Commands.CreateUser;
-using Core.Application.Users.Commands.UpdateUser;
-using Core.Application.Users.Commands.DeleteUser;
-using Core.Application.Users.Queries.GetUserAutoComplete;
-using Core.Application.Users.Commands.UpdateFirstTimeUserPassword;
-using Core.Application.Users.Commands.ChangeUserPassword;
+using UserManagement.Application.Users.Queries.GetUsers;
+using UserManagement.Application.Users.Queries.GetUserById;
+using UserManagement.Application.Users.Commands.CreateUser;
+using UserManagement.Application.Users.Commands.UpdateUser;
+using UserManagement.Application.Users.Commands.DeleteUser;
+using UserManagement.Application.Users.Queries.GetUserAutoComplete;
+using UserManagement.Application.Users.Commands.UpdateFirstTimeUserPassword;
+using UserManagement.Application.Users.Commands.ChangeUserPassword;
 using Microsoft.AspNetCore.Authorization;
-using Core.Application.Users.Commands.ForgotUserPassword;
+using UserManagement.Application.Users.Commands.ForgotUserPassword;
 using UserManagement.Infrastructure.Services;
-using Core.Application.Users.Commands.ResetUserPassword;
+using UserManagement.Application.Users.Commands.ResetUserPassword;
 using Contracts.Events;
 using MassTransit;
-using Core.Application.Users.Commands.RemoveVerificationCode;
+using UserManagement.Application.Users.Commands.RemoveVerificationCode;
 
 namespace UserManagement.API.Controllers
 {

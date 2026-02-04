@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Core.Application.Common.Interfaces.IMiscMaster;
-using Core.Application.MiscMaster.Command.CreateMiscMaster;
+using UserManagement.Application.Common.Interfaces.IMiscMaster;
+using UserManagement.Application.MiscMaster.Command.CreateMiscMaster;
 using FluentValidation;
 using Shared.Validation.Common;
 using UserManagement.API.Validation.Common;
@@ -20,8 +20,8 @@ namespace UserManagement.API.Validation.MiscMaster
 
            
 
-            var MiscCodeMaxLength = maxLengthProvider.GetMaxLength<Core.Domain.Entities.MiscMaster>("Code") ?? 50;
-            var DescriptionMaxLength = maxLengthProvider.GetMaxLength<Core.Domain.Entities.MiscMaster>("Description")?? 250;
+            var MiscCodeMaxLength = maxLengthProvider.GetMaxLength<UserManagement.Domain.Entities.MiscMaster>("Code") ?? 50;
+            var DescriptionMaxLength = maxLengthProvider.GetMaxLength<UserManagement.Domain.Entities.MiscMaster>("Description")?? 250;
 
             _validationRules = ValidationRuleLoader.LoadValidationRules();
              _miscMasterQuery = miscMasterQuery;

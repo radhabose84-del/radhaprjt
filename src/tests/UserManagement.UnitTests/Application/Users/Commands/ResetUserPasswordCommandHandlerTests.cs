@@ -2,18 +2,18 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
-using Core.Application.Common.HttpResponse;
-using Core.Application.Common.Interfaces;
-using Core.Application.Common.Interfaces.IUser;
-using Core.Application.Common.Utilities; // ForgotPasswordCache, VerificationCodeDetails
-using Core.Application.Users.Commands.ResetUserPassword;
-using Core.Domain.Entities;
+using UserManagement.Application.Common.HttpResponse;
+using UserManagement.Application.Common.Interfaces;
+using UserManagement.Application.Common.Interfaces.IUser;
+using UserManagement.Application.Common.Utilities; // ForgotPasswordCache, VerificationCodeDetails
+using UserManagement.Application.Users.Commands.ResetUserPassword;
+using UserManagement.Domain.Entities;
 using FluentAssertions;
 using Moq;
 using Xunit;
 
 // alias for the DTO the handler uses
-using PwdLogDtoQ = Core.Application.Users.Queries.GetUsers.PasswordLogDTO;
+using PwdLogDtoQ = UserManagement.Application.Users.Queries.GetUsers.PasswordLogDTO;
 
 namespace UserManagement.UnitTests.Application.Users.Commands
 {

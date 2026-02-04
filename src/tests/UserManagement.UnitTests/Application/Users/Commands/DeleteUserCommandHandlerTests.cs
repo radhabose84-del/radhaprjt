@@ -1,11 +1,11 @@
 using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
-using Core.Application.Common.HttpResponse;
-using Core.Application.Common.Interfaces.IUser;
-using Core.Application.Users.Commands.DeleteUser;
-using Core.Domain.Entities;
-using Core.Domain.Events;
+using UserManagement.Application.Common.HttpResponse;
+using UserManagement.Application.Common.Interfaces.IUser;
+using UserManagement.Application.Users.Commands.DeleteUser;
+using UserManagement.Domain.Entities;
+using UserManagement.Domain.Events;
 using FluentAssertions;
 using MediatR;
 using Microsoft.Extensions.Logging;

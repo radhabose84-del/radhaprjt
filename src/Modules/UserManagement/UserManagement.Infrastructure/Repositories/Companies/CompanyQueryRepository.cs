@@ -4,11 +4,11 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AutoMapper;
 using Azure;
-using Core.Application.Common.Interfaces.ICompany;
-using Core.Application.Common.Interfaces;
+using UserManagement.Application.Common.Interfaces.ICompany;
+using UserManagement.Application.Common.Interfaces;
 using System.Data;
 using Dapper;
-using Core.Domain.Entities;
+using UserManagement.Domain.Entities;
 
 namespace UserManagement.Infrastructure.Repositories.Companies
 {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using FluentValidation;
-using Core.Application.UserRole.Commands.UpdateRole;
+using UserManagement.Application.UserRole.Commands.UpdateRole;
 using UserManagement.API.Validation.Common;
 using Shared.Validation.Common;
 
@@ -16,8 +16,8 @@ namespace UserManagement.API.Validation.UserRole
         public UpdateRoleCommandValidator (MaxLengthProvider maxLengthProvider)
            {
 
-                    var DepartmentShortNameMaxLength = maxLengthProvider.GetMaxLength<Core.Domain.Entities.UserRole>("RoleName") ?? 50;
-                   var DepartmentDeptNameMaxLength = maxLengthProvider.GetMaxLength<Core.Domain.Entities.UserRole>("Description") ?? 250;            
+                    var DepartmentShortNameMaxLength = maxLengthProvider.GetMaxLength<UserManagement.Domain.Entities.UserRole>("RoleName") ?? 50;
+                   var DepartmentDeptNameMaxLength = maxLengthProvider.GetMaxLength<UserManagement.Domain.Entities.UserRole>("Description") ?? 250;            
              _validationRules = ValidationRuleLoader.LoadValidationRules();
              if (_validationRules == null || !_validationRules.Any())
              {

@@ -1,0 +1,51 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using UserManagement.Application.Common.Interfaces;
+using UserManagement.Domain.Entities;
+using MediatR;
+using AutoMapper;
+using UserManagement.Application.Common.Interfaces.IDivision;
+using UserManagement.Application.Common.HttpResponse;
+using UserManagement.Domain.Events;
+using UserManagement.Application.Divisions.Queries.GetDivisions;
+
+namespace UserManagement.Application.Divisions.Commands.DeleteDivision
+{
+    public class DeleteDivisionCommandHandler : IRequestHandler<DeleteDivisionCommand, bool>
+    {
+        private readonly IDivisionCommandRepository _divisionRepository;
+        private readonly IMapper _imapper;
+        private readonly IMediator _mediator;
+        public DeleteDivisionCommandHandler(IDivisionCommandRepository divisionRepository, IMapper imapper , IMediator mediator)
+        {
+            _divisionRepository = divisionRepository;
+            _imapper = imapper;
+            _mediator = mediator;
+        }
+         public async Task<bool> Handle(DeleteDivisionCommand request, CancellationToken cancellationToken)
+        {
+            var division  = _imapper.Map<Division>(request);
+            var divisionresult = await _divisionRepository.DeleteAsync(request.Id, division);
+
+
+                  //Domain Event  
+                    var domainEvent = new AuditLogsDomainEvent(
+                        actionDetail: "Delete",
+                        actionCode: division.Id.ToString(),
+                        actionName: division.Id.ToString(),
+                        details: $"Division '{division.Id}' was deleted.",
+                        module:"Division"
+                    );               
+                    await _mediator.Publish(domainEvent, cancellationToken);  
+
+                 if(divisionresult)
+                {
+                    return divisionresult;
+                }
+            throw new Exception("Division not deleted.");
+                
+        }
+    }
+}

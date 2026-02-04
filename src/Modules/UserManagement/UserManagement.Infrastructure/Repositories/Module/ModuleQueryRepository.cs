@@ -1,5 +1,5 @@
-using Core.Domain.Entities;
-using Core.Application.Common.Interfaces.IModule;
+using UserManagement.Domain.Entities;
+using UserManagement.Application.Common.Interfaces.IModule;
 using System.Data;
 using Dapper;
 

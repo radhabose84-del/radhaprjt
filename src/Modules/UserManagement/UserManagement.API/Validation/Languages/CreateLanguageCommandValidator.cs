@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Core.Application.Language.Commands.CreateLanguage;
+using UserManagement.Application.Language.Commands.CreateLanguage;
 using FluentValidation;
 using UserManagement.API.Validation.Common;
-using Core.Domain.Entities;
+using UserManagement.Domain.Entities;
 using Shared.Validation.Common;
 
 namespace UserManagement.API.Validation.Languages

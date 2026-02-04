@@ -1,7 +1,7 @@
-using Core.Domain.Entities;
+using UserManagement.Domain.Entities;
 using System.Data;
 using Dapper;
-using Core.Application.Common.Interfaces.ICity;
+using UserManagement.Application.Common.Interfaces.ICity;
 
 namespace UserManagement.Infrastructure.Repositories.City
 {

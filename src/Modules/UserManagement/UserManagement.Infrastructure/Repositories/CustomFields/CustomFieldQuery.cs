@@ -4,8 +4,8 @@ using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using BSOFT.Infrastructure.Migrations;
-using Core.Application.Common.Interfaces.ICustomField;
-using Core.Domain.Entities;
+using UserManagement.Application.Common.Interfaces.ICustomField;
+using UserManagement.Domain.Entities;
 using Dapper;
 
 namespace UserManagement.Infrastructure.Repositories.CustomFields
@@ -73,16 +73,16 @@ namespace UserManagement.Infrastructure.Repositories.CustomFields
 
             using var multi = await _dbConnection.QueryMultipleAsync(query, parameters);
 
-            var customFieldList = multi.Read<CustomField, Core.Domain.Entities.MiscMaster, Core.Domain.Entities.MiscMaster, CustomField>(
+            var customFieldList = multi.Read<CustomField, UserManagement.Domain.Entities.MiscMaster, UserManagement.Domain.Entities.MiscMaster, CustomField>(
                 (customField, labelType, dataType) =>
                 {
-                    customField.LabelType = new Core.Domain.Entities.MiscMaster
+                    customField.LabelType = new UserManagement.Domain.Entities.MiscMaster
                     {
                         Id = labelType.Id,
                         Code = labelType.Code
                     };
 
-                    customField.DataType = new Core.Domain.Entities.MiscMaster
+                    customField.DataType = new UserManagement.Domain.Entities.MiscMaster
                     {
                         Id = dataType.Id,
                         Code = dataType.Code

@@ -1,11 +1,11 @@
-using Core.Application.Users.Commands.ChangeUserPassword;
-using Core.Application.Users.Commands.CreateUser;
-using Core.Application.Users.Commands.DeleteUser;
-using Core.Application.Users.Commands.ForgotUserPassword;
-using Core.Application.Users.Commands.ResetUserPassword;
-using Core.Application.Users.Commands.UpdateFirstTimeUserPassword;
-using Core.Application.Users.Commands.UpdateUser;
-using Core.Application.Users.Queries.GetUserById;
+using UserManagement.Application.Users.Commands.ChangeUserPassword;
+using UserManagement.Application.Users.Commands.CreateUser;
+using UserManagement.Application.Users.Commands.DeleteUser;
+using UserManagement.Application.Users.Commands.ForgotUserPassword;
+using UserManagement.Application.Users.Commands.ResetUserPassword;
+using UserManagement.Application.Users.Commands.UpdateFirstTimeUserPassword;
+using UserManagement.Application.Users.Commands.UpdateUser;
+using UserManagement.Application.Users.Queries.GetUserById;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -17,7 +17,7 @@ using MassTransit;
 using FValidationResult = FluentValidation.Results.ValidationResult;
 using FValidationFailure = FluentValidation.Results.ValidationFailure;
 using Moq;
-using Core.Application.Users.Queries.GetUsers;
+using UserManagement.Application.Users.Queries.GetUsers;
 using UserManagement.API.Controllers;
 
 namespace UserManagement.UnitTests.Presentation.Users;

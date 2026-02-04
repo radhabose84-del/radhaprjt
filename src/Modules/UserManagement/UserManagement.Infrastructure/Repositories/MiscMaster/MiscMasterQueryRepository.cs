@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
-using Core.Application.Common.Interfaces.IMiscMaster;
+using UserManagement.Application.Common.Interfaces.IMiscMaster;
 using Dapper;
 
 namespace UserManagement.Infrastructure.Repositories.MiscMaster
@@ -18,7 +18,7 @@ namespace UserManagement.Infrastructure.Repositories.MiscMaster
 
         }
 
-        public async Task<(List<Core.Domain.Entities.MiscMaster>,int)> GetAllMiscMasterAsync(int PageNumber, int PageSize, string? SearchTerm)
+        public async Task<(List<UserManagement.Domain.Entities.MiscMaster>,int)> GetAllMiscMasterAsync(int PageNumber, int PageSize, string? SearchTerm)
         {
                 var query = $$"""
                 DECLARE @TotalCount INT;
@@ -49,7 +49,7 @@ namespace UserManagement.Infrastructure.Repositories.MiscMaster
             var result = await _dbConnection.QueryMultipleAsync(query, parameters);
             
             // Read the data for MiscMaster and convert to list
-            var miscMasterList = (await result.ReadAsync<Core.Domain.Entities.MiscMaster>()).ToList();
+            var miscMasterList = (await result.ReadAsync<UserManagement.Domain.Entities.MiscMaster>()).ToList();
             
             // Read the total count
             int totalCount = await result.ReadFirstAsync<int>();
@@ -59,15 +59,15 @@ namespace UserManagement.Infrastructure.Repositories.MiscMaster
             }
 
             
-            public async Task<Core.Domain.Entities.MiscMaster> GetByIdAsync(int id)
+            public async Task<UserManagement.Domain.Entities.MiscMaster> GetByIdAsync(int id)
         {            
            const string query = @" SELECT Id,MiscTypeId,Code,Description,SortOrder,IsActive  FROM AppData.MiscMaster          
              WHERE Id = @id AND IsDeleted = 0 ";                          
-            return await _dbConnection.QueryFirstOrDefaultAsync<Core.Domain.Entities.MiscMaster>(query, new { id });
+            return await _dbConnection.QueryFirstOrDefaultAsync<UserManagement.Domain.Entities.MiscMaster>(query, new { id });
         } 
 
 
-        public async Task<List<Core.Domain.Entities.MiscMaster>>  GetMiscMaster(string searchPattern,string miscTypeCode)
+        public async Task<List<UserManagement.Domain.Entities.MiscMaster>>  GetMiscMaster(string searchPattern,string miscTypeCode)
         {
             
 
@@ -83,11 +83,11 @@ namespace UserManagement.Infrastructure.Repositories.MiscMaster
              
               };
 
-            var miscmaster = await _dbConnection.QueryAsync<Core.Domain.Entities.MiscMaster>(query, parameters);
+            var miscmaster = await _dbConnection.QueryAsync<UserManagement.Domain.Entities.MiscMaster>(query, parameters);
             return miscmaster.ToList();
         }
 
-        public async Task<Core.Domain.Entities.MiscMaster?> GetByMiscMasterCodeAsync(string name, int? id = null)
+        public async Task<UserManagement.Domain.Entities.MiscMaster?> GetByMiscMasterCodeAsync(string name, int? id = null)
         {
               var query = """
                  SELECT * FROM AppData.MiscMaster
@@ -102,7 +102,7 @@ namespace UserManagement.Infrastructure.Repositories.MiscMaster
                  parameters.Add("Id", id);
              }
 
-            return await _dbConnection.QueryFirstOrDefaultAsync<Core.Domain.Entities.MiscMaster>(query, parameters);
+            return await _dbConnection.QueryFirstOrDefaultAsync<UserManagement.Domain.Entities.MiscMaster>(query, parameters);
         } 
 
                public async Task<int> GetMaxSortOrderAsync()
@@ -152,7 +152,7 @@ namespace UserManagement.Infrastructure.Repositories.MiscMaster
                 var count = await _dbConnection.ExecuteScalarAsync<int>(query, new { Id = MiscMasterId });
                 return count > 0;
         }
-          public async Task<Core.Domain.Entities.MiscMaster>  GetMiscMasterByName(string miscTypeCode,string miscTypeName)
+          public async Task<UserManagement.Domain.Entities.MiscMaster>  GetMiscMasterByName(string miscTypeCode,string miscTypeName)
         {
             
 
@@ -169,7 +169,7 @@ namespace UserManagement.Infrastructure.Repositories.MiscMaster
              
               };
 
-            var miscmaster = await _dbConnection.QueryFirstOrDefaultAsync<Core.Domain.Entities.MiscMaster>(query, parameters);
+            var miscmaster = await _dbConnection.QueryFirstOrDefaultAsync<UserManagement.Domain.Entities.MiscMaster>(query, parameters);
             return miscmaster;
         }      
 

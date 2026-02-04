@@ -1,6 +1,6 @@
 using UserManagement.API.Validation.Common;
-using Core.Application.Divisions.Commands.UpdateDivision;
-using Core.Domain.Entities;
+using UserManagement.Application.Divisions.Commands.UpdateDivision;
+using UserManagement.Domain.Entities;
 using FluentValidation;
 using Shared.Validation.Common;
 

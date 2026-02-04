@@ -1,12 +1,12 @@
 using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
-using Core.Application.Common.HttpResponse;
-using Core.Application.Common.Interfaces;
-using Core.Application.Common.Interfaces.IUser;
-using Core.Application.Users.Commands.ChangeUserPassword;
-using Core.Application.Users.Commands.CreateFirstTimeUserPassword; // for PasswordLog if it's here; adjust if needed
-using Core.Domain.Entities;
+using UserManagement.Application.Common.HttpResponse;
+using UserManagement.Application.Common.Interfaces;
+using UserManagement.Application.Common.Interfaces.IUser;
+using UserManagement.Application.Users.Commands.ChangeUserPassword;
+using UserManagement.Application.Users.Commands.CreateFirstTimeUserPassword; // for PasswordLog if it's here; adjust if needed
+using UserManagement.Domain.Entities;
 using FluentAssertions;
 using Moq;
 using Xunit;

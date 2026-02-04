@@ -1,14 +1,14 @@
 using UserManagement.Infrastructure.Data;
-using Core.Application.State.Commands.CreateState;
-using Core.Application.State.Commands.DeleteState;
-using Core.Application.State.Commands.UpdateState;
-using Core.Application.State.Queries.GetStates;
-using Core.Application.State.Queries.GetStateAutoComplete;
-using Core.Application.State.Queries.GetStateById;
+using UserManagement.Application.State.Commands.CreateState;
+using UserManagement.Application.State.Commands.DeleteState;
+using UserManagement.Application.State.Commands.UpdateState;
+using UserManagement.Application.State.Queries.GetStates;
+using UserManagement.Application.State.Queries.GetStateAutoComplete;
+using UserManagement.Application.State.Queries.GetStateById;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Core.Application.State.Queries.GetStateByCountryId;
+using UserManagement.Application.State.Queries.GetStateByCountryId;
 
 namespace UserManagement.API.Controllers
 {

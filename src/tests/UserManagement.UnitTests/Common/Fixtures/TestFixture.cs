@@ -1,5 +1,5 @@
 using AutoMapper;
-using Core.Application.Users.Queries.GetUserById;
+using UserManagement.Application.Users.Queries.GetUserById;
 using Microsoft.Extensions.Logging;
 
 namespace UserManagement.UnitTests.Common.Fixtures

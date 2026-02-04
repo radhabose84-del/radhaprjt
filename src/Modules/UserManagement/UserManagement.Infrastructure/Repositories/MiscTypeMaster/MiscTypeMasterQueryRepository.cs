@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
-using Core.Application.Common.Interfaces.IMiscTypeMaster;
+using UserManagement.Application.Common.Interfaces.IMiscTypeMaster;
 using Dapper;
 
 namespace UserManagement.Infrastructure.Repositories.MiscTypeMaster
@@ -20,7 +20,7 @@ namespace UserManagement.Infrastructure.Repositories.MiscTypeMaster
 
 
 
-          public async Task<(List<Core.Domain.Entities.MiscTypeMaster>,int)> GetAllMiscTypeMasterAsync(int PageNumber, int PageSize, string? SearchTerm)
+          public async Task<(List<UserManagement.Domain.Entities.MiscTypeMaster>,int)> GetAllMiscTypeMasterAsync(int PageNumber, int PageSize, string? SearchTerm)
         {
                  var query = $$"""
                     DECLARE @TotalCount INT;
@@ -47,11 +47,11 @@ namespace UserManagement.Infrastructure.Repositories.MiscTypeMaster
                            PageSize
                        };
               var misctype = await _dbConnection.QueryMultipleAsync(query, parameters);
-             var misctypemaster = (await misctype.ReadAsync<Core.Domain.Entities.MiscTypeMaster>()).ToList();
+             var misctypemaster = (await misctype.ReadAsync<UserManagement.Domain.Entities.MiscTypeMaster>()).ToList();
              int totalCount = (await misctype.ReadFirstAsync<int>());
             return (misctypemaster, totalCount);
         }
-          public async Task<Core.Domain.Entities.MiscTypeMaster?> GetByMiscTypeMasterCodeAsync(string name, int? id = null)
+          public async Task<UserManagement.Domain.Entities.MiscTypeMaster?> GetByMiscTypeMasterCodeAsync(string name, int? id = null)
         {
               var query = """
                  SELECT * FROM AppData.MiscTypeMaster
@@ -66,16 +66,16 @@ namespace UserManagement.Infrastructure.Repositories.MiscTypeMaster
                  parameters.Add("Id", id);
              }
 
-            return await _dbConnection.QueryFirstOrDefaultAsync<Core.Domain.Entities.MiscTypeMaster>(query, parameters);
+            return await _dbConnection.QueryFirstOrDefaultAsync<UserManagement.Domain.Entities.MiscTypeMaster>(query, parameters);
         } 
 
-            public async Task<Core.Domain.Entities.MiscTypeMaster> GetByIdAsync(int id)
+            public async Task<UserManagement.Domain.Entities.MiscTypeMaster> GetByIdAsync(int id)
         {            
            const string query = @" SELECT Id,MiscTypeCode,Description,IsActive  FROM AppData.MiscTypeMaster          
              WHERE Id = @id AND IsDeleted = 0";                          
-            return await _dbConnection.QueryFirstOrDefaultAsync<Core.Domain.Entities.MiscTypeMaster>(query, new { id });
+            return await _dbConnection.QueryFirstOrDefaultAsync<UserManagement.Domain.Entities.MiscTypeMaster>(query, new { id });
         }
-          public async Task<List<Core.Domain.Entities.MiscTypeMaster>>  GetMiscTypeMaster(string searchPattern)
+          public async Task<List<UserManagement.Domain.Entities.MiscTypeMaster>>  GetMiscTypeMaster(string searchPattern)
         {
             
 
@@ -89,7 +89,7 @@ namespace UserManagement.Infrastructure.Repositories.MiscTypeMaster
                 //   CompanyId = CompanyId 
               };
 
-            var misctypemaster = await _dbConnection.QueryAsync<Core.Domain.Entities.MiscTypeMaster>(query, parameters);
+            var misctypemaster = await _dbConnection.QueryAsync<UserManagement.Domain.Entities.MiscTypeMaster>(query, parameters);
             return misctypemaster.ToList();
         }
           public async Task<bool> AlreadyExistsAsync(string miscTypeCode, int? id = null)

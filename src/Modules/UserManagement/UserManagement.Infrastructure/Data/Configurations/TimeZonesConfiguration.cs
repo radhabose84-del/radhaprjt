@@ -1,9 +1,9 @@
-using Core.Domain.Entities;
-using Core.Domain.Enums;
+using UserManagement.Domain.Entities;
+using UserManagement.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using static Core.Domain.Enums.Common.Enums;
+using static UserManagement.Domain.Enums.Common.Enums;
 namespace UserManagement.Infrastructure.Data.Configurations
 {
     public class TimeZonesConfiguration : IEntityTypeConfiguration<TimeZones>

@@ -1,4 +1,3 @@
-using Core.Application.Common.Behaviors;
 using FluentValidation;
 using MediatR;
 
@@ -12,6 +11,7 @@ using FixedAssetManagement.Module;
 using MaintenanceManagement.Module;
 using PurchaseManagement.Module;
 using InventoryManagement.Module;
+using UserManagement.Application.Common.Behaviors;
 
 var builder = WebApplication.CreateBuilder(args);
 

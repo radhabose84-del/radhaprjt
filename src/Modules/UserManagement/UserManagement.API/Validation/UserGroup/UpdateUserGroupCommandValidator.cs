@@ -1,4 +1,4 @@
-using Core.Application.UserGroup.Commands.UpdateUesrGroup;
+using UserManagement.Application.UserGroup.Commands.UpdateUesrGroup;
 using FluentValidation;
 using Shared.Validation.Common;
 using UserManagement.API.Validation.Common;
@@ -12,8 +12,8 @@ namespace UserManagement.API.Validation.UserGroup
         public UpdateUserGroupCommandValidator(MaxLengthProvider maxLengthProvider)
         {
             // Get max lengths dynamically using MaxLengthProvider
-            var groupCodeMaxLength = maxLengthProvider.GetMaxLength<Core.Domain.Entities.UserGroup>("GroupCode") ?? 5;
-            var groupNameMaxLength = maxLengthProvider.GetMaxLength<Core.Domain.Entities.UserGroup>("GroupName") ?? 50;
+            var groupCodeMaxLength = maxLengthProvider.GetMaxLength<UserManagement.Domain.Entities.UserGroup>("GroupCode") ?? 5;
+            var groupNameMaxLength = maxLengthProvider.GetMaxLength<UserManagement.Domain.Entities.UserGroup>("GroupName") ?? 50;
 
             // Load validation rules from JSON or another source
             _validationRules = ValidationRuleLoader.LoadValidationRules();

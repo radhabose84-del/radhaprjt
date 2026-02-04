@@ -1,14 +1,14 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Core.Application.Companies.Queries.GetCompanies;
-using Core.Application.Companies.Commands.CreateCompany;
-using Core.Application.Companies.Queries.GetCompanyById;
-using Core.Application.Companies.Commands.UpdateCompany;
-using Core.Application.Companies.Commands.DeleteCompany;
-using Core.Application.Companies.Queries.GetCompanyAutoComplete;
+using UserManagement.Application.Companies.Queries.GetCompanies;
+using UserManagement.Application.Companies.Commands.CreateCompany;
+using UserManagement.Application.Companies.Queries.GetCompanyById;
+using UserManagement.Application.Companies.Commands.UpdateCompany;
+using UserManagement.Application.Companies.Commands.DeleteCompany;
+using UserManagement.Application.Companies.Queries.GetCompanyAutoComplete;
 using FluentValidation;
-using Core.Application.Companies.Commands.UploadFileCompany;
-using Core.Application.Companies.Commands.DeleteFileCompany;
+using UserManagement.Application.Companies.Commands.UploadFileCompany;
+using UserManagement.Application.Companies.Commands.DeleteFileCompany;
 using Microsoft.AspNetCore.Authorization;
 
 namespace UserManagement.API.Controllers

@@ -3,9 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Core.Application.PwdComplexityRule.Commands.CreatePasswordComplexityRule;
+using UserManagement.Application.PwdComplexityRule.Commands.CreatePasswordComplexityRule;
 using UserManagement.API.Validation.Common;
-using Core.Domain.Entities;
+using UserManagement.Domain.Entities;
 using Serilog;
 using Shared.Validation.Common;
 
@@ -17,7 +17,7 @@ namespace UserManagement.API.Validation.PasswordComplexityrule
           private readonly List<ValidationRule> _validationRules;
         public CreatePasswordComplexityRuleCommandValidator(MaxLengthProvider maxLengthProvider)
         {
-                var PwdComplexityRuleMaxLength = maxLengthProvider.GetMaxLength<Core.Domain.Entities.PasswordComplexityRule>("PwdComplexityRule") ?? 150;
+                var PwdComplexityRuleMaxLength = maxLengthProvider.GetMaxLength<UserManagement.Domain.Entities.PasswordComplexityRule>("PwdComplexityRule") ?? 150;
             
             _validationRules = ValidationRuleLoader.LoadValidationRules();
 

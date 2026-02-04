@@ -1,6 +1,6 @@
 using System.Net;
 using System.Security.Claims;
-using Core.Application.Common.Interfaces;
+using UserManagement.Application.Common.Interfaces;
 using Microsoft.AspNetCore.Http;
 
 namespace UserManagement.Infrastructure.Repositories

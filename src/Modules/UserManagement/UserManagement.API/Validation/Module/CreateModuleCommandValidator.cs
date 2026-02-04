@@ -1,6 +1,6 @@
 using FluentValidation;
-using Core.Domain.Entities;
-using Core.Application.Modules.Commands.CreateModule;
+using UserManagement.Domain.Entities;
+using UserManagement.Application.Modules.Commands.CreateModule;
 using UserManagement.API.Validation.Common;
 using Serilog;
 using Shared.Validation.Common;

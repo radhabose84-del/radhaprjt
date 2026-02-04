@@ -1,6 +1,6 @@
 using FluentValidation;
-using Core.Domain.Entities;
-using Core.Application.RoleEntitlements.Commands.UpdateRoleRntitlement;
+using UserManagement.Domain.Entities;
+using UserManagement.Application.RoleEntitlements.Commands.UpdateRoleRntitlement;
 using UserManagement.API.Validation.Common;
 using Serilog;
 using Shared.Validation.Common;

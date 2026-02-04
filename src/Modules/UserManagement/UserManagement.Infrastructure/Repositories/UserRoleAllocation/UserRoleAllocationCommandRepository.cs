@@ -1,10 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using UserManagement.Infrastructure.Data;
-using Core.Domain.Entities;
+using UserManagement.Domain.Entities;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UserManagement.Infrastructure.Repositories.UserRoleAllocation;
-using Core.Application.Common.Interfaces.IUserRoleAllocation;
+using UserManagement.Application.Common.Interfaces.IUserRoleAllocation;
 
 namespace UserManagement.Infrastructure.Repositories.UserRoleAllocation.UserRoleAllocationCommandRepository
 {
@@ -19,19 +19,19 @@ namespace UserManagement.Infrastructure.Repositories.UserRoleAllocation.UserRole
             _applicationDbContext=applicationDbContext;
             _userRoleAllocationQueryRepository = userRoleAllocationQueryRepository;
         } 
-        public async Task CreateAsync(Core.Domain.Entities.UserRoleAllocation userRoleAllocation)
+        public async Task CreateAsync(UserManagement.Domain.Entities.UserRoleAllocation userRoleAllocation)
         {
             await _applicationDbContext.UserRoleAllocations.AddAsync(userRoleAllocation);
             await _applicationDbContext.SaveChangesAsync();
         }
 
-    public async Task AddRangeAsync(List<Core.Domain.Entities.UserRoleAllocation> userRoleAllocations)
+    public async Task AddRangeAsync(List<UserManagement.Domain.Entities.UserRoleAllocation> userRoleAllocations)
         {
             await _applicationDbContext.UserRoleAllocations.AddRangeAsync(userRoleAllocations);
             await _applicationDbContext.SaveChangesAsync();
         }
 
-        public async Task UpdateAsync(Core.Domain.Entities.UserRoleAllocation userRoleAllocation)
+        public async Task UpdateAsync(UserManagement.Domain.Entities.UserRoleAllocation userRoleAllocation)
         {
             _applicationDbContext.UserRoleAllocations.Update(userRoleAllocation);
             await _applicationDbContext.SaveChangesAsync();

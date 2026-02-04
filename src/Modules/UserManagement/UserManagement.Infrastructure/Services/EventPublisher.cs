@@ -1,5 +1,5 @@
 using System.Text.Json;
-using Core.Application.Common.Interfaces;
+using UserManagement.Application.Common.Interfaces;
 using MassTransit;
 using MongoDB.Driver;
 using Serilog;

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using UserManagement.Infrastructure.Data;
-using Core.Application.Common.Interfaces.ICompanySettings;
+using UserManagement.Application.Common.Interfaces.ICompanySettings;
 
 namespace UserManagement.Infrastructure.Repositories.CompanySettings
 {
@@ -15,7 +15,7 @@ namespace UserManagement.Infrastructure.Repositories.CompanySettings
         {
             _context = context;
         }
-        public async Task<int> CreateAsync(Core.Domain.Entities.CompanySettings companySettings)
+        public async Task<int> CreateAsync(UserManagement.Domain.Entities.CompanySettings companySettings)
         {
              await _context.CompanySettings.AddAsync(companySettings);
              await _context.SaveChangesAsync();
@@ -27,7 +27,7 @@ namespace UserManagement.Infrastructure.Repositories.CompanySettings
             throw new NotImplementedException();
         }
 
-        public async Task<bool> UpdateAsync(int id, Core.Domain.Entities.CompanySettings companySettings)
+        public async Task<bool> UpdateAsync(int id, UserManagement.Domain.Entities.CompanySettings companySettings)
         {
             var companySettingsToUpdate = _context.CompanySettings.FirstOrDefault(p => p.Id == id);
             if (companySettingsToUpdate != null)

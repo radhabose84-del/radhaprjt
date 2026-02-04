@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using UserManagement.Infrastructure.Data;
-using Core.Application.Common.Interfaces.ICurrency;
-using Core.Domain.Enums;
+using UserManagement.Application.Common.Interfaces.ICurrency;
+using UserManagement.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
-using static Core.Domain.Enums.Common.Enums;
+using static UserManagement.Domain.Enums.Common.Enums;
 
 namespace UserManagement.Infrastructure.Repositories.Currency
 {
@@ -19,7 +19,7 @@ namespace UserManagement.Infrastructure.Repositories.Currency
             _applicationDbContext = applicationDbContext;
         }
 
-        public async Task<int> CreateAsync(Core.Domain.Entities.Currency currency)
+        public async Task<int> CreateAsync(UserManagement.Domain.Entities.Currency currency)
         {
         // Add the Currency to the DbContext
         await _applicationDbContext.Currency.AddAsync(currency);
@@ -30,7 +30,7 @@ namespace UserManagement.Infrastructure.Repositories.Currency
         // Return the ID of the created currency
         return currency.Id;
         }
-    public async Task<int> UpdateAsync(int id, Core.Domain.Entities.Currency currency)
+    public async Task<int> UpdateAsync(int id, UserManagement.Domain.Entities.Currency currency)
 {
     var existingCurrency = await _applicationDbContext.Currency.FirstOrDefaultAsync(u => u.Id == id);
 
@@ -58,7 +58,7 @@ namespace UserManagement.Infrastructure.Repositories.Currency
         return await _applicationDbContext.Currency.AnyAsync(c => c.Code == code);
     }
 
-    public async Task<int> DeletecurrencyAsync(int Id, Core.Domain.Entities.Currency currency)
+    public async Task<int> DeletecurrencyAsync(int Id, UserManagement.Domain.Entities.Currency currency)
     {
             var existingcurrencydelete = await _applicationDbContext.Currency.FirstOrDefaultAsync(u => u.Id == Id);
              // If the currency does not exist, throw a CustomException

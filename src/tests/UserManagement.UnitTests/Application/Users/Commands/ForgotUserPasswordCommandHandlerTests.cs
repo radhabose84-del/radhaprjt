@@ -2,14 +2,14 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
-using Core.Application.Common.HttpResponse;
-using Core.Application.Common.Interfaces;
-using Core.Application.Common.Interfaces.INotifications;
-using Core.Application.Common.Interfaces.IUser;
-using Core.Application.Users.Commands.ForgotUserPassword;
-using Core.Application.Users.Queries.GetUsers;
-using Core.Domain.Entities;
-using Core.Domain.Events;
+using UserManagement.Application.Common.HttpResponse;
+using UserManagement.Application.Common.Interfaces;
+using UserManagement.Application.Common.Interfaces.INotifications;
+using UserManagement.Application.Common.Interfaces.IUser;
+using UserManagement.Application.Users.Commands.ForgotUserPassword;
+using UserManagement.Application.Users.Queries.GetUsers;
+using UserManagement.Domain.Entities;
+using UserManagement.Domain.Events;
 using FluentAssertions;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -32,13 +32,13 @@ namespace UserManagement.UnitTests.Application.Users.Commands
         public ForgotUserPasswordCommandHandlerTests()
         {
             // prevent cross-test pollution
-            Core.Application.Common.Utilities.ForgotPasswordCache.CodeStorage.Clear();
+            UserManagement.Application.Common.Utilities.ForgotPasswordCache.CodeStorage.Clear();
         }
 
         public void Dispose()
         {
             // prevent cross-test pollution
-            Core.Application.Common.Utilities.ForgotPasswordCache.CodeStorage.Clear();
+            UserManagement.Application.Common.Utilities.ForgotPasswordCache.CodeStorage.Clear();
         }
 
         private ForgotUserPasswordCommandHandler CreateSut() =>

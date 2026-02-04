@@ -1,15 +1,15 @@
 using Dapper;
 using System.Data;
 using UserManagement.Infrastructure.Data;
-using Core.Domain.Entities;
-using Core.Application.Common.Interfaces.IUser;
+using UserManagement.Domain.Entities;
+using UserManagement.Application.Common.Interfaces.IUser;
 
 using Polly;
 using Polly.Timeout;
 using Serilog;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
-using Core.Domain.Common;
-using Core.Application.Common.Interfaces;
+using UserManagement.Domain.Common;
+using UserManagement.Application.Common.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace UserManagement.Infrastructure.Repositories.Users
@@ -150,14 +150,14 @@ namespace UserManagement.Infrastructure.Repositories.Users
 
     var userDictionary = new Dictionary<int, User>();
 
-    var userResponse = await _dbConnection.QueryAsync<User,Core.Domain.Entities.UserRoleAllocation, UserCompany, UserUnit, UserDivision, UserDepartment,int?, User>(
+    var userResponse = await _dbConnection.QueryAsync<User,UserManagement.Domain.Entities.UserRoleAllocation, UserCompany, UserUnit, UserDivision, UserDepartment,int?, User>(
         query,
         (user, userRole, userCompany, userUnit, userDivision, userDepartment,userGroupId) =>
         {
             if (!userDictionary.TryGetValue(user.UserId, out var existingUser))
             {
                 existingUser = user;
-                existingUser.UserRoleAllocations = new List<Core.Domain.Entities.UserRoleAllocation>();
+                existingUser.UserRoleAllocations = new List<UserManagement.Domain.Entities.UserRoleAllocation>();
                 existingUser.UserCompanies = new List<UserCompany>();
                 existingUser.UserUnits = new List<UserUnit>();
                 existingUser.UserDivisions = new List<UserDivision>();
@@ -371,7 +371,7 @@ namespace UserManagement.Infrastructure.Repositories.Users
                  """;
 
 
-                           var user = await _dbConnection.QueryAsync<User, Core.Domain.Entities.UserGroup, User>(
+                           var user = await _dbConnection.QueryAsync<User, UserManagement.Domain.Entities.UserGroup, User>(
                       query,
                       (user, userGroup) =>
                       {

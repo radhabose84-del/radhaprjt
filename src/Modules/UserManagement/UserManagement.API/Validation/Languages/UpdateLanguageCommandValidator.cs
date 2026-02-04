@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using UserManagement.API.Validation.Common;
-using Core.Application.Language.Commands.UpdateLanguage;
-using Core.Domain.Entities;
+using UserManagement.Application.Language.Commands.UpdateLanguage;
+using UserManagement.Domain.Entities;
 using FluentValidation;
 using Shared.Validation.Common;
 

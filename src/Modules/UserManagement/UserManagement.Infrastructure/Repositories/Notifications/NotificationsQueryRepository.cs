@@ -5,8 +5,8 @@ using System.Threading.Tasks;
 using Dapper;
 using UserManagement.Infrastructure.Data;
 using System.Data;
-using Core.Application.Common.Interfaces.INotifications;
-using Core.Application.Common.Interfaces;
+using UserManagement.Application.Common.Interfaces.INotifications;
+using UserManagement.Application.Common.Interfaces;
 
 namespace UserManagement.Infrastructure.Repositories.Notifications
 {

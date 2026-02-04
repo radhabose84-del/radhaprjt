@@ -68,3 +68,7 @@
 /src/Modules/InventoryManagement/InventoryManagement.Infrastructure/bin
 /src/Modules/InventoryManagement/InventoryManagement.Module/obj
 /src/Modules/InventoryManagement/InventoryManagement.Module/bin
+/src/Modules/UserManagement/Core/UserManagement.Application/bin
+/src/Modules/UserManagement/Core/UserManagement.Application/obj
+/src/Modules/UserManagement/Core/UserManagement.Domain/obj
+/src/Modules/UserManagement/Core/UserManagement.Domain/bin
