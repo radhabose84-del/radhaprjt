@@ -17,7 +17,7 @@ namespace PurchaseManagement.API.Controllers.Issue
 {
 
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/purchase/[controller]")]
     public class IssueController : ApiControllerBase
     {
         private readonly IMediator _mediator;

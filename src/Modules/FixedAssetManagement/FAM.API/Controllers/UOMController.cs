@@ -13,7 +13,7 @@ using Microsoft.AspNetCore.Http;
 namespace FAM.API.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/fam/[controller]")]
     
     public class UOMController : ApiControllerBase
     {

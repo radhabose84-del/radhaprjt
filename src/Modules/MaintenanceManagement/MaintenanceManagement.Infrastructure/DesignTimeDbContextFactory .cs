@@ -18,7 +18,7 @@ namespace MaintenanceManagement.Infrastructure
             var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";                        
             // Build configuration 
              IConfigurationRoot configuration = new ConfigurationBuilder()
-                .SetBasePath(Path.Combine(Directory.GetCurrentDirectory(), "../MaintenanceManagement.Api"))
+                .SetBasePath(Path.Combine(Directory.GetCurrentDirectory(), "../BSOFT.Bootstrapper"))
                 .AddJsonFile($"appsettings.{environment}.json", optional: false, reloadOnChange: true)
                 .Build();
 

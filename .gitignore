@@ -58,3 +58,13 @@
 /src/BackgroundService/BackgroundService.Domain/bin
 /src/BackgroundService/BackgroundService.Application/bin
 /src/BackgroundService/BackgroundService.API/bin
+/src/Modules/InventoryManagement/Core/InventoryManagement.Application/bin
+/src/Modules/InventoryManagement/Core/InventoryManagement.Application/obj
+/src/Modules/InventoryManagement/Core/InventoryManagement.Domain/bin
+/src/Modules/InventoryManagement/Core/InventoryManagement.Domain/obj
+/src/Modules/InventoryManagement/InventoryManagement.API/obj
+/src/Modules/InventoryManagement/InventoryManagement.API/bin
+/src/Modules/InventoryManagement/InventoryManagement.Infrastructure/obj
+/src/Modules/InventoryManagement/InventoryManagement.Infrastructure/bin
+/src/Modules/InventoryManagement/InventoryManagement.Module/obj
+/src/Modules/InventoryManagement/InventoryManagement.Module/bin
