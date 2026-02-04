@@ -161,7 +161,7 @@ namespace InventoryManagement.Infrastructure
             services.AddScoped<ITemplateQueryRepository, TemplateQueryRepository>();
             services.AddScoped<ITemplateCommandRepository, TemplateCommandRepository>();
             services.AddScoped<IPutAwayRuleCommandRepository, PutAwayRuleCommandRepository>();
-            // services.AddScoped<IPutAwayRuleQueryRepository, PutAwayRuleQueryRepository>();
+            services.AddScoped<IPutAwayRuleQueryRepository, PutAwayRuleQueryRepository>();
             services.AddScoped<IItemVariantAttributeCommandRepository, ItemVariantAttributeCommandRepository>();
             services.AddScoped<IItemLogQueryRepository, ItemLogQueryRepository>();
             services.AddScoped<IStockLedgerRepository, StockLedgerRepository>();
