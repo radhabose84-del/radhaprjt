@@ -1,0 +1,31 @@
+syntax = "proto3";
+package contracts.inventory;
+option csharp_namespace = "Contracts.Grpc.Inventory";
+
+message GetItemPurchaseToleranceRequest {
+  int32 item_id = 1;
+}
+
+message ItemPurchaseToleranceReply {
+  int32  item_id         = 1;
+  string lower_tolerance = 2; // decimal as string
+  string upper_tolerance = 3; // decimal as string
+  int32  purchase_uom_id = 4;
+  string uom_name        = 5;
+  bool   found           = 6;
+  string item_code       = 7;
+  string item_name       = 8;
+}
+
+/* 🔹 Batch support */
+message GetItemPurchaseToleranceBatchRequest {
+  repeated int32 item_ids = 1;
+}
+message ItemPurchaseToleranceBatchReply {
+  repeated ItemPurchaseToleranceReply items = 1;
+}
+
+service InventoryQueryService {
+  rpc GetItemPurchaseTolerance      (GetItemPurchaseToleranceRequest)      returns (ItemPurchaseToleranceReply);
+  rpc GetItemPurchaseToleranceBatch (GetItemPurchaseToleranceBatchRequest) returns (ItemPurchaseToleranceBatchReply);
+}

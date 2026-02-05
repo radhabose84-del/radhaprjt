@@ -1,5 +1,5 @@
 using AutoMapper;
-// using Contracts.Interfaces.External.IUser;
+using Contracts.Interfaces.Lookups.Users; // ✅ lookup contract
 using FAM.Application.AssetMaster.AssetWarranty.Queries.GetAssetWarranty;
 using FAM.Application.Common.HttpResponse;
 using FAM.Application.Common.Interfaces;
@@ -26,17 +26,17 @@ namespace FAM.Application.AssetMaster.AssetWarranty.Commands.UploadAssetWarranty
         private readonly ILogger<UploadFileAssetWarrantyCommandHandler> _logger;
         private readonly IAssetMasterGeneralQueryRepository _assetMasterGeneralQueryRepository;
         private readonly IIPAddressService _ipAddressService;
-        // private readonly IUnitGrpcClient _unitGrpcClient;
-        // private readonly ICompanyGrpcClient _companyGrpcClient;
+        private readonly ICompanyLookup _companyLookup;  // ✅ lookup dependency
+        private readonly IUnitLookup _unitLookup;        // ✅ lookup dependency
 
         public UploadFileAssetWarrantyCommandHandler(
             IFileUploadService fileUploadService,
             IMediator mediator,
             IMapper mapper,
             IAssetWarrantyCommandRepository assetWarrantyRepository,
-            ILogger<UploadFileAssetWarrantyCommandHandler> logger, IAssetWarrantyQueryRepository assetWarrantyQueryRepository, IIPAddressService ipAddressService, IAssetMasterGeneralQueryRepository assetMasterGeneralQueryRepository
-            // , IUnitGrpcClient unitGrpcClient, ICompanyGrpcClient companyGrpcClient
-            )
+            ILogger<UploadFileAssetWarrantyCommandHandler> logger, IAssetWarrantyQueryRepository assetWarrantyQueryRepository, IIPAddressService ipAddressService, IAssetMasterGeneralQueryRepository assetMasterGeneralQueryRepository,
+            ICompanyLookup companyLookup,  // ✅ inject lookup
+            IUnitLookup unitLookup)        // ✅ inject lookup
         {
             _fileUploadService = fileUploadService;
             _mediator = mediator;
@@ -46,8 +46,8 @@ namespace FAM.Application.AssetMaster.AssetWarranty.Commands.UploadAssetWarranty
             _assetWarrantyQueryRepository=assetWarrantyQueryRepository;
             _ipAddressService = ipAddressService;
             _assetMasterGeneralQueryRepository = assetMasterGeneralQueryRepository;
-            // _unitGrpcClient = unitGrpcClient;
-            // _companyGrpcClient = companyGrpcClient;
+            _companyLookup = companyLookup;
+            _unitLookup = unitLookup;
         }
 
         public async Task<AssetWarrantyDTO> Handle(UploadFileAssetWarrantyCommand request, CancellationToken cancellationToken)
@@ -78,21 +78,19 @@ namespace FAM.Application.AssetMaster.AssetWarranty.Commands.UploadAssetWarranty
                 string baseDirectory = await _assetWarrantyQueryRepository.GetBaseDirectoryAsync();                
                 EnsureDirectoryExists(baseDirectory);
 
-                // var companyId =_ipAddressService.GetCompanyId();
-                // var unitId = _ipAddressService.GetUnitId();
-                
-                // var companies = await _companyGrpcClient.GetAllCompanyAsync();
-                // var units = await _unitGrpcClient.GetAllUnitAsync();
+                var companyId = _ipAddressService.GetCompanyId();
+                var unitId = _ipAddressService.GetUnitId();
 
-                // var companyLookup = companies.ToDictionary(c => c.CompanyId, c => c.CompanyName);
-                // var unitLookup = units.ToDictionary(u => u.UnitId, u => u.UnitName);
+                // ✅ Get company and unit names using lookup interfaces
+                var companies = await _companyLookup.GetAllCompanyAsync();
+                var units = await _unitLookup.GetAllUnitAsync();
+                var companyMap = companies.ToDictionary(c => c.CompanyId, c => c.CompanyName);
+                var unitMap = units.ToDictionary(u => u.UnitId, u => u.UnitName);
 
-                // var companyName = companyLookup.TryGetValue(companyId, out var cname) ? cname : string.Empty;
-                // var unitName = unitLookup.TryGetValue(unitId, out var uname) ? uname : string.Empty;   
-                
-                string uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "Resources", baseDirectory
-                // , companyName, unitName
-                );                
+                var companyName = companyMap.TryGetValue(companyId, out var cname) ? cname : string.Empty;
+                var unitName = unitMap.TryGetValue(unitId, out var uname) ? uname : string.Empty;
+
+                string uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "Resources", baseDirectory, companyName, unitName);                
                 EnsureDirectoryExists(uploadPath);
 
                 string fileExtension = Path.GetExtension(request.File.FileName);

@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+option csharp_namespace = "GrpcServices.UserManagement.DivisionUnit";
+
+// -------------------------
+// REQUEST
+// -------------------------
+message DivisionUnitRequest {
+  int32 companyId = 1;
+  int32 divisionId = 2;
+}
+
+// -------------------------
+// DTO ROW (MATCHES DivisionUnitDto)
+// -------------------------
+message DivisionUnitDto {
+  int32 unitId = 1;
+  string unitName = 2;
+  int32 divisionId = 3;
+  string divisionName = 4;
+  int32 companyId = 5;
+  string companyName = 6;
+}
+
+// -------------------------
+// RESPONSE
+// -------------------------
+message DivisionUnitResponse {
+  repeated DivisionUnitDto units = 1;
+}
+
+// -------------------------
+// SERVICE
+// -------------------------
+service DivisionUnitService {
+  rpc GetUnitsByDivision (DivisionUnitRequest)
+      returns (DivisionUnitResponse);
+}

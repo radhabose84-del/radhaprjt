@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+option csharp_namespace = "GrpcServices.Background";
+
+package background;
+
+// gRPC service exposed by BackgroundService
+service MaintenanceJobService {
+  rpc ScheduleWorkOrder (ScheduleWorkOrderRequest) returns (ScheduleWorkOrderResponse);
+}
+
+// Request message sent from MaintenanceManagement to BackgroundService
+message ScheduleWorkOrderRequest {
+  int32 preventiveScheduleId = 1;
+  int32 delayInMinutes = 2;
+}
+
+// Response message returned by BackgroundService to MaintenanceManagement
+message ScheduleWorkOrderResponse {
+  string jobId = 1;
+}

@@ -78,7 +78,7 @@ namespace MaintenanceManagement.Application.CostCenter.Queries.GetCostCenter
                     var depts = await _departmentLookup.GetByIdsAsync(deptIds, cancellationToken);
                     var deptMap = depts
                         .Where(d => d != null)
-                        .ToDictionary(d => d.DepartmentId, d => d.DeptName);
+                        .ToDictionary(d => d.DepartmentId, d => d.DepartmentName);
 
                     foreach (var row in list)
                     {

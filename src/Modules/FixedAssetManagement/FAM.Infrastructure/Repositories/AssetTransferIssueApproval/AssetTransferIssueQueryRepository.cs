@@ -28,40 +28,34 @@ namespace FAM.Infrastructure.Repositories.AssetTransferIssueApproval
             var UnitId = _ipAddressService.GetUnitId();
             var query = $$"""
                 DECLARE @TotalCount INT;
-                SELECT @TotalCount = COUNT(*) 
+                SELECT @TotalCount = COUNT(*)
                 FROM FixedAsset.AssetTransferIssueHdr a
                 INNER JOIN FixedAsset.MiscMaster c ON a.TransferType = c.Id
-                INNER JOIN [BannariERP].AppData.Unit d ON a.FromUnitId = d.Id
-                INNER JOIN [BannariERP].AppData.Unit e ON a.ToUnitId = e.Id
-                INNER JOIN [BannariERP].AppData.Department f ON a.FromDepartmentId = f.Id
-                INNER JOIN [BannariERP].AppData.Department g ON a.ToDepartmentId = g.Id
                 WHERE a.Status = 'Pending' and a.FromUnitId = @UnitId
                 {{(string.IsNullOrEmpty(TransferType) ? "" : "AND a.TransferType LIKE @Search")}}
                 {{(FromDate.HasValue ? "AND CAST(a.DocDate AS DATE) >= CAST(@FromDate AS DATE)" : "")}}
                 {{(ToDate.HasValue ? "AND CAST(a.DocDate AS DATE) <= CAST(@ToDate AS DATE)" : "")}};
 
-                SELECT 
-                    a.Id, 
-                    a.DocDate, 
-                    c.Description AS TransferType, 
-                    d.UnitName AS FromUnitName, 
-                    e.UnitName AS ToUnitName, 
-                    a.FromDepartmentId As FromDepartmentId,
-                    f.DeptName AS FromDepartment, 
-                    a.ToDepartmentId As ToDepartmentId,
-                    g.DeptName AS ToDepartment, 
-                    a.FromCustodianId, 
-                    a.FromCustodianName, 
+                SELECT
+                    a.Id,
+                    a.DocDate,
+                    c.Description AS TransferType,
+                    a.FromUnitId,
+                    CAST(NULL AS NVARCHAR(200)) AS FromUnitname,
+                    a.ToUnitId,
+                    CAST(NULL AS NVARCHAR(200)) AS ToUnitname,
+                    a.FromDepartmentId,
+                    CAST(NULL AS NVARCHAR(200)) AS FromDepartment,
+                    a.ToDepartmentId,
+                    CAST(NULL AS NVARCHAR(200)) AS ToDepartment,
+                    a.FromCustodianId,
+                    a.FromCustodianName,
                     a.ToCustodianId,
-                    a.ToCustodianName, 
+                    a.ToCustodianName,
                     a.GatePassNo,
                     a.Status
-                    FROM FixedAsset.AssetTransferIssueHdr a
+                FROM FixedAsset.AssetTransferIssueHdr a
                 INNER JOIN FixedAsset.MiscMaster c ON a.TransferType = c.Id
-                INNER JOIN [BannariERP].AppData.Unit d ON a.FromUnitId = d.Id
-                INNER JOIN [BannariERP].AppData.Unit e ON a.ToUnitId = e.Id
-                INNER JOIN [BannariERP].AppData.Department f ON a.FromDepartmentId = f.Id
-                INNER JOIN [BannariERP].AppData.Department g ON a.ToDepartmentId = g.Id
                 WHERE a.Status = 'Pending' and a.FromUnitId = @UnitId
                 {{(string.IsNullOrEmpty(TransferType) ? "" : "AND a.TransferType LIKE @Search")}}
                 {{(FromDate.HasValue ? "AND CAST(a.DocDate AS DATE) >= CAST(@FromDate AS DATE)" : "")}}

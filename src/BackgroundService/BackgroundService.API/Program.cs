@@ -29,7 +29,7 @@ builder.Services.AddSwaggerDocumentation();
 builder.Services.AddJwtAuthentication(builder.Configuration);
 builder.Services.AddCorsPolicy();
 builder.Services.AddApplicationServices();
-builder.Services.AddHttpClients(builder.Configuration);
+//builder.Services.AddHttpClients(builder.Configuration);
 builder.Services.AddInfrastructureServices(builder.Configuration, builder.Services);
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddProblemDetails();

@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+option csharp_namespace = "GrpcServices.UserManagement";
+
+service MenuService {
+    rpc GetMenuByIds (MenuRequest) returns (MenuListResponse);
+    rpc GetMenuByName (MenuRequestByName) returns (MenuResponse);
+}
+message MenuRequest {
+   repeated int32 Ids = 1;
+}
+message MenuRequestByName {
+    string MenuName = 1;
+}
+
+message MenuDto {
+    int32 Id = 1;
+    string MenuName = 2;
+}
+
+message MenuListResponse {
+    repeated MenuDto menus = 1;
+}
+
+message MenuResponse {
+     int32 Id = 1;
+}

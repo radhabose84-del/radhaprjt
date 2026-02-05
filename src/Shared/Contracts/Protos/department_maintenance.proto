@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+option csharp_namespace = "GrpcServices.Maintenance";
+
+service DepartmentValidationService {
+    rpc IsDepartmentUsedInCostCenter (DepartmentUsageRequest) returns (DepartmentUsageResponse);
+}
+
+message DepartmentUsageRequest {
+    int32 departmentId = 1;
+}
+
+message DepartmentUsageResponse {
+    bool isUsed = 1;
+}

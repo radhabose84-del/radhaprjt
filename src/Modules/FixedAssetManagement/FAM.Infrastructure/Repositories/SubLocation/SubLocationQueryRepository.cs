@@ -17,7 +17,7 @@ namespace FAM.Infrastructure.Repositories.SubLocation
         {
             var query = $$"""
              DECLARE @TotalCount INT;
-             SELECT @TotalCount = COUNT(*) 
+             SELECT @TotalCount = COUNT(*)
                FROM FixedAsset.SubLocation 
               WHERE IsDeleted = 0
             {{(string.IsNullOrEmpty(SearchTerm) ? "" : "AND (Code LIKE @Search OR SubLocationName LIKE @Search)")}};
@@ -67,14 +67,14 @@ namespace FAM.Infrastructure.Repositories.SubLocation
         public async Task<FAM.Domain.Entities.SubLocation?> GetBySubLocationNameAsync(string name, int DepartmentId, int LocationId, int UnitId, int? id = null)
         {
             var query = @"
-            SELECT 
+            SELECT
                 S.Id,
                 S.Code,
                 S.SubLocationName,
                 S.Description,
                 S.UnitId,
                 S.DepartmentId,
-				S.LocationId,
+                S.LocationId,
                 S.IsActive,
                 S.IsDeleted,
                 S.CreatedBy,
@@ -86,28 +86,15 @@ namespace FAM.Infrastructure.Repositories.SubLocation
                 S.ModifiedByName,
                 S.ModifiedIP
             FROM FixedAsset.SubLocation S
-            JOIN BannariERP.AppData.Department D ON D.Id = S.DepartmentId
-            JOIN BannariERP.AppData.Unit U ON U.Id = S.UnitId
-			JOIN FixedAsset.Location L on L.Id= S.LocationId
-            WHERE S.SubLocationName = @SubLocationName AND S.IsDeleted = 0 AND S.DepartmentId = @DepartmentId AND S.LocationId=@LocationId AND S.UnitId = @UnitId
-            
+            JOIN FixedAsset.Location L ON L.Id = S.LocationId
+            WHERE S.SubLocationName = @SubLocationName
+              AND S.IsDeleted = 0
+              AND S.DepartmentId = @DepartmentId
+              AND S.LocationId = @LocationId
+              AND S.UnitId = @UnitId
         ";
 
-            return await _dbConnection.QueryFirstOrDefaultAsync<FAM.Domain.Entities.SubLocation>(query, new { SubLocationName = name, DepartmentId = DepartmentId, LocationId = LocationId, UnitId = UnitId });
-            // var query = """
-            //      SELECT * FROM FixedAsset.SubLocation
-            //      WHERE SubLocationName = @SubLocationName AND IsDeleted = 0
-            //      """;
-
-            // var parameters = new DynamicParameters(new { SubLocationName = name });
-
-            // if (id is not null)
-            // {
-            //     query += " AND Id != @Id";
-            //     parameters.Add("Id", id);
-            // }
-
-            // return await _dbConnection.QueryFirstOrDefaultAsync<Core.Domain.Entities.SubLocation>(query, parameters);
+            return await _dbConnection.QueryFirstOrDefaultAsync<FAM.Domain.Entities.SubLocation>(query, new { SubLocationName = name, DepartmentId = DepartmentId, LocationId = LocationId, UnitId = UnitId });           
         }
 
         public async Task<List<FAM.Domain.Entities.SubLocation>> GetSubLocation(string searchPattern)

@@ -1,6 +1,5 @@
-
 using AutoMapper;
-// using Contracts.Interfaces.External.IUser;
+using Contracts.Interfaces.Lookups.Users; // ✅ lookup contract
 using FAM.Application.AssetMaster.AssetMasterGeneral.Queries.GetAssetMasterGeneral;
 using FAM.Application.Common.HttpResponse;
 using FAM.Application.Common.Interfaces.IAssetMaster.IAssetMasterGeneral;
@@ -18,20 +17,20 @@ namespace FAM.Application.AssetMaster.AssetMasterGeneral.Commands.UpdateAssetMas
         private readonly IAssetMasterGeneralCommandRepository _assetMasterGeneralRepository;
         private readonly IAssetMasterGeneralQueryRepository _assetMasterGeneralQueryRepository;
         private readonly IMapper _mapper;
-        private readonly IMediator _mediator; 
-        // private readonly IUnitGrpcClient _unitGrpcClient;
-        // private readonly ICompanyGrpcClient _companyGrpcClient;
+        private readonly IMediator _mediator;
+        private readonly ICompanyLookup _companyLookup;  // ✅ lookup dependency
+        private readonly IUnitLookup _unitLookup;        // ✅ lookup dependency
 
-        public UpdateAssetMasterGeneralCommandHandler(IAssetMasterGeneralCommandRepository assetMasterGeneralRepository, IMapper mapper, IAssetMasterGeneralQueryRepository assetMasterGeneralQueryRepository, IMediator mediator
-        // , IUnitGrpcClient unitGrpcClient, ICompanyGrpcClient companyGrpcClient
-        )
+        public UpdateAssetMasterGeneralCommandHandler(IAssetMasterGeneralCommandRepository assetMasterGeneralRepository, IMapper mapper, IAssetMasterGeneralQueryRepository assetMasterGeneralQueryRepository, IMediator mediator,
+            ICompanyLookup companyLookup,  // ✅ inject lookup
+            IUnitLookup unitLookup)        // ✅ inject lookup
         {
             _assetMasterGeneralRepository = assetMasterGeneralRepository;
             _mapper = mapper;
             _assetMasterGeneralQueryRepository = assetMasterGeneralQueryRepository;
             _mediator = mediator;
-            // _unitGrpcClient = unitGrpcClient;
-            // _companyGrpcClient = companyGrpcClient;
+            _companyLookup = companyLookup;
+            _unitLookup = unitLookup;
         }
 
         public async Task<bool> Handle(UpdateAssetMasterGeneralCommand request, CancellationToken cancellationToken)
@@ -61,22 +60,20 @@ namespace FAM.Application.AssetMaster.AssetMasterGeneral.Commands.UpdateAssetMas
                 string tempFilePath = request.AssetMaster.AssetImage;
                 string tempDocumentPath = request.AssetMaster.AssetDocument;
 
-                // var companies = await _companyGrpcClient.GetAllCompanyAsync();
-                // var units = await _unitGrpcClient.GetAllUnitAsync();
+                // ✅ Get company and unit names using lookup interfaces
+                var companies = await _companyLookup.GetAllCompanyAsync();
+                var units = await _unitLookup.GetAllUnitAsync();
+                var companyMap = companies.ToDictionary(c => c.CompanyId, c => c.CompanyName);
+                var unitMap = units.ToDictionary(u => u.UnitId, u => u.UnitName);
 
-                // var companyLookup = companies.ToDictionary(c => c.CompanyId, c => c.CompanyName);
-                // var unitLookup = units.ToDictionary(u => u.UnitId, u => u.UnitName);
-
-                // var companyName = companyLookup.TryGetValue(request.AssetMaster.CompanyId, out var cname) ? cname : string.Empty;
-                // var unitName = unitLookup.TryGetValue(request.AssetMaster.UnitId, out var uname) ? uname : string.Empty;   
+                var companyName = companyMap.TryGetValue(request.AssetMaster.CompanyId, out var cname) ? cname : string.Empty;
+                var unitName = unitMap.TryGetValue(request.AssetMaster.UnitId, out var uname) ? uname : string.Empty;
 
                 if (tempFilePath != null){
-                    
+
                     string baseDirectory = await _assetMasterGeneralQueryRepository.GetBaseDirectoryAsync();
-                    
-                    string uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "Resources", baseDirectory
-                    // , companyName, unitName
-                    );     
+
+                    string uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "Resources", baseDirectory, companyName, unitName);     
                     string filePath = Path.Combine(uploadPath, tempFilePath);  
                     EnsureDirectoryExists(Path.GetDirectoryName(filePath));           
 
@@ -100,10 +97,8 @@ namespace FAM.Application.AssetMaster.AssetMasterGeneral.Commands.UpdateAssetMas
                 }  
                 //Document
                 if (tempDocumentPath != null){
-                    string baseDirectory = await _assetMasterGeneralQueryRepository.GetDocumentDirectoryAsync();                    
-                    string uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "Resources", baseDirectory
-                    // , companyName, unitName
-                    );     
+                    string baseDirectory = await _assetMasterGeneralQueryRepository.GetDocumentDirectoryAsync();
+                    string uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "Resources", baseDirectory, companyName, unitName);     
                     string filePath = Path.Combine(uploadPath, tempFilePath);  
                     EnsureDirectoryExists(Path.GetDirectoryName(filePath));           
 

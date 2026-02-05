@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+option csharp_namespace = "GrpcServices.FixedAsset";
+
+service FixedAssetDepartmentValidationService  {
+    rpc IsDepartmentUsed (DepartmentUsageRequest) returns (DepartmentUsageResponse);
+}
+
+message DepartmentUsageRequest {
+    int32 departmentId = 1;
+}
+
+message DepartmentUsageResponse {
+    bool isUsed = 1;
+}

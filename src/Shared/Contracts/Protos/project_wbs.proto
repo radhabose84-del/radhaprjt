@@ -1,0 +1,59 @@
+syntax = "proto3";
+
+option csharp_namespace = "Contracts.Grpc.Project";
+
+package project;
+
+import "google/protobuf/timestamp.proto";
+
+service ProjectWbsGrpc {
+  rpc GetAll (GetAllProjectWbsRequest) returns (GetAllProjectWbsResponse);
+  rpc GetById (GetProjectWbsByIdRequest) returns (ProjectWbsDto);
+}
+
+message GetAllProjectWbsRequest {
+  int32 unitId = 1;        // optional filter
+  int32 projectId = 2;     // optional filter
+  bool includeInactive = 3;
+}
+
+message GetProjectWbsByIdRequest {
+  int32 id = 1;
+}
+
+message GetAllProjectWbsResponse {
+  repeated ProjectWbsDto items = 1;
+}
+
+message ProjectWbsDto {
+  int32 id = 1;
+  int32 projectId = 2;
+  int32 parentWorkBreakdownStructureId = 3; // 0 = null
+
+  string workBreakdownStructureName = 4;
+  string workBreakdownStructureDescription = 5;
+
+  google.protobuf.Timestamp startDate = 6;  // null if not set
+  google.protobuf.Timestamp endDate = 7;
+
+  int32 durationInDays = 8;
+
+  int32 responsibleDepartmentId = 9;
+  string responsiblePerson = 10;
+
+  int32 costCenterId = 11;
+  double plannedBudgetAmount = 12;
+  int32 currencyId = 13;
+
+  bool isMilestone = 14;
+  google.protobuf.Timestamp milestoneDate = 15;
+
+  string remarks = 16;
+
+  int32 statusId = 17;
+  int32 level = 18;
+  int32 unitId = 19;
+  int32 budgetYearId = 20;
+
+  bool isActive = 21;
+}

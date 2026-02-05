@@ -1,5 +1,6 @@
 using System.Data;
 using System.Text.Json;
+using Contracts.Interfaces.Lookups.Users;
 using FAM.Application.AssetMaster.AssetTransferIssue.Queries.GetAllAssetTransfer;
 using FAM.Application.AssetMaster.AssetTransferIssue.Queries.GetAssertByCategory;
 using FAM.Application.AssetMaster.AssetTransferIssue.Queries.GetAssetCustodian;
@@ -19,11 +20,16 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetTransferIssue
     {
         private readonly IDbConnection _dbConnection;
         private readonly IIPAddressService _iPAddressService;
+        private readonly IUnitLookup _unitLookup;
+        private readonly IDepartmentLookup _departmentLookup;
 
-        public AssetTransferQueryRepository(IDbConnection dbConnection, IIPAddressService iPAddressService)
+        public AssetTransferQueryRepository(IDbConnection dbConnection, IIPAddressService iPAddressService,
+            IUnitLookup unitLookup, IDepartmentLookup departmentLookup)
         {
             _dbConnection = dbConnection;
             _iPAddressService = iPAddressService;
+            _unitLookup = unitLookup;
+            _departmentLookup = departmentLookup;
         }
 
         public async Task<(List<AssetTransferDto>, int)> GetAllAsync(int PageNumber, int PageSize, string? SearchTerm, DateTimeOffset? FromDate, DateTimeOffset? ToDate)
@@ -32,12 +38,8 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetTransferIssue
             var UnitId = _iPAddressService.GetUnitId();
             var query = $$"""
                 DECLARE @TotalCount INT;
-                SELECT @TotalCount = COUNT(*) 
+                SELECT @TotalCount = COUNT(*)
                 FROM FixedAsset.AssetTransferIssueHdr A
-                INNER JOIN BannariERP.AppData.Unit FromUnit ON A.FromUnitId = FromUnit.Id
-                INNER JOIN BannariERP.AppData.Unit ToUnit ON A.ToUnitId = ToUnit.Id
-                INNER JOIN BannariERP.AppData.Department FromDept ON A.FromDepartmentId = FromDept.Id
-                INNER JOIN BannariERP.AppData.Department ToDept ON A.ToDepartmentId = ToDept.Id
                 INNER JOIN FixedAsset.MiscMaster Misc ON A.TransferType = Misc.Id
                 WHERE 1 = 1 AND A.FromUnitId = @UnitId
                 {{(FromDate.HasValue ? "AND A.DocDate >= @FromDate" : "")}}
@@ -45,48 +47,44 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetTransferIssue
                 {{(string.IsNullOrEmpty(SearchTerm) ? "" : "AND (CAST(A.Id AS NVARCHAR) LIKE @Search)")}};
 
 
-                SELECT 
-                    A.Id, 
-                    A.DocDate, 
-                    A.TransferType, 
-                    Misc.code as TransferTypeName, 
-                    A.FromUnitId, 
-                    FromUnit.UnitName AS FromUnitName, 
-                    A.ToUnitId, 
-                    ToUnit.UnitName AS ToUnitName,
-                    A.FromDepartmentId, 
-                    FromDept.DeptName AS FromDepartmentName, 
-                    A.ToDepartmentId, 
-                    ToDept.DeptName AS ToDepartmentName, 
-                    A.FromCustodianId, 
-                    A.ToCustodianId, 
-                    A.Status,  
+                SELECT
+                    A.Id,
+                    A.DocDate,
+                    A.TransferType,
+                    Misc.code as TransferTypeName,
+                    A.FromUnitId,
+                    CAST(NULL AS NVARCHAR(200)) AS FromUnitName,
+                    A.ToUnitId,
+                    CAST(NULL AS NVARCHAR(200)) AS ToUnitName,
+                    A.FromDepartmentId,
+                    CAST(NULL AS NVARCHAR(200)) AS FromDepartmentName,
+                    A.ToDepartmentId,
+                    CAST(NULL AS NVARCHAR(200)) AS ToDepartmentName,
+                    A.FromCustodianId,
+                    A.ToCustodianId,
+                    A.Status,
                     A.FromCustodianName ,
-                    A.ToCustodianName, 
-                    A.AckStatus, 
-                    A.CreatedBy, 
-                    A.CreatedDate, 
-                    A.CreatedByName, 
-                    A.CreatedIP, 
-                    A.ModifiedBy, 
+                    A.ToCustodianName,
+                    A.AckStatus,
+                    A.CreatedBy,
+                    A.CreatedDate,
+                    A.CreatedByName,
+                    A.CreatedIP,
+                    A.ModifiedBy,
                     A.ModifiedDate,
                     A.ModifiedByName,
-                    A.ModifiedIP, 
-                    A.AuthorizedBy, 
-                    A.AuthorizedDate, 
-                    A.AuthorizedByName, 
+                    A.ModifiedIP,
+                    A.AuthorizedBy,
+                    A.AuthorizedDate,
+                    A.AuthorizedByName,
                     A.AuthorizedIP,
                     A.GatePassNo
                 FROM FixedAsset.AssetTransferIssueHdr A
-                INNER JOIN BannariERP.AppData.Unit FromUnit ON A.FromUnitId = FromUnit.Id
-                INNER JOIN BannariERP.AppData.Unit ToUnit ON A.ToUnitId = ToUnit.Id
-                INNER JOIN BannariERP.AppData.Department FromDept ON A.FromDepartmentId = FromDept.Id
-                INNER JOIN BannariERP.AppData.Department ToDept ON A.ToDepartmentId = ToDept.Id
                 INNER JOIN FixedAsset.MiscMaster Misc ON A.TransferType = Misc.Id
-                WHERE 1 = 1      AND A.FromUnitId = @UnitId    
+                WHERE 1 = 1      AND A.FromUnitId = @UnitId
                 {{(FromDate.HasValue ? "AND A.DocDate >= @FromDate" : "")}}
                 {{(ToDate.HasValue ? "AND A.DocDate < @ToDate" : "")}}
-                {{(string.IsNullOrEmpty(SearchTerm) ? "" : "AND (CAST(A.Id AS NVARCHAR) LIKE @Search)")}}        
+                {{(string.IsNullOrEmpty(SearchTerm) ? "" : "AND (CAST(A.Id AS NVARCHAR) LIKE @Search)")}}
                 ORDER BY A.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
                 SELECT @TotalCount AS TotalCount;
@@ -235,44 +233,38 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetTransferIssue
             var UnitId = _iPAddressService.GetUnitId();
             const string query = @"
                     -- Get Asset Master Details
-                    SELECT 
-                        A.Id AS AssetId, A.CreatedDate as DocDate,  H.CategoryName, A.AssetCode, A.AssetName, 
-                        A.UnitId, G.UnitName, B.LocationId, C.LocationName, B.SubLocationId, D.SubLocationName, 
-                        B.DepartmentId, F.DeptName AS DepartmentName
+                    SELECT
+                        A.Id AS AssetId, A.CreatedDate as DocDate, H.CategoryName, A.AssetCode, A.AssetName,
+                        A.UnitId, CAST(NULL AS NVARCHAR(200)) AS UnitName,
+                        B.LocationId, C.LocationName, B.SubLocationId, D.SubLocationName,
+                        B.DepartmentId, CAST(NULL AS NVARCHAR(200)) AS DepartmentName
                     FROM FixedAsset.AssetMaster A
                     INNER JOIN FixedAsset.AssetLocation B ON A.ID = B.AssetId
                     INNER JOIN FixedAsset.Location C ON B.LocationId = C.Id
                     INNER JOIN FixedAsset.SubLocation D ON B.SubLocationId = D.Id
-                    INNER JOIN BannariERP.AppData.Department F ON B.DepartmentId = F.Id
-                    INNER JOIN BannariERP.AppData.Unit G ON A.UnitId = G.Id
                     INNER JOIN FixedAsset.AssetCategories H ON A.AssetCategoryId = H.Id
-                    WHERE A.Id = @AssetId   AND A.CompanyId = @CompanyId AND A.UnitId = @UnitId
+                    WHERE A.Id = @AssetId AND A.CompanyId = @CompanyId AND A.UnitId = @UnitId
                     FOR JSON PATH, INCLUDE_NULL_VALUES;
 
                     -- Get Asset Transfer Issue Details
-                    SELECT AssetId ,GrnValue as AssetValue
-                    FROM FixedAsset.AssetPurchaseDetails 
+                    SELECT AssetId, GrnValue as AssetValue
+                    FROM FixedAsset.AssetPurchaseDetails
                     WHERE AssetId = @AssetId
-                    FOR JSON PATH, INCLUDE_NULL_VALUES;                
+                    FOR JSON PATH, INCLUDE_NULL_VALUES;
 
-                    SELECT 
-                    AL.AssetId, 
-                     U.UnitName,
-                    D.DeptName,
+                    SELECT
+                    AL.AssetId,
                     L.LocationName,
                     SL.SubLocationName,
-                    AL.UnitId ,  
-                    U.OldUnitId AS FromOldUnitId ,
-                    AL.CustodianId AS FromCustodianId,    
-                    X.AssetTransferId AS MaxAssetTransferId	,
-                    H.ToUnitId,			              
-                    UT.OldUnitId AS ToOldUnitId,                           
+                    AL.UnitId,
+                    AL.DepartmentId,
+                    AL.CustodianId AS FromCustodianId,
+                    X.AssetTransferId AS MaxAssetTransferId,
+                    H.ToUnitId,
                     H.ToCustodianId
                     FROM FixedAsset.AssetLocation AL
                     JOIN FixedAsset.[Location]    L  ON L.Id  = AL.LocationId
                     JOIN FixedAsset.[SubLocation] SL ON SL.Id = AL.SubLocationId
-                    LEFT JOIN BannariERP.AppData.[Unit]       U  ON U.Id  = AL.UnitId
-                    LEFT JOIN BannariERP.AppData.[Department] D  ON D.Id  = AL.DepartmentId
                     OUTER APPLY (
                         SELECT TOP (1) d.AssetTransferId
                         FROM FixedAsset.AssetTransferIssueDtl d
@@ -280,28 +272,19 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetTransferIssue
                         ORDER BY d.AssetTransferId DESC
                     ) X
                     LEFT JOIN FixedAsset.AssetTransferIssueHdr H ON H.Id = X.AssetTransferId
-                    LEFT JOIN BannariERP.AppData.[Unit] UF ON UF.Id = H.FromUnitId
-                    LEFT JOIN BannariERP.AppData.[Unit] UT ON UT.Id = H.ToUnitId
-                    WHERE AL.AssetId = @AssetId 
+                    WHERE AL.AssetId = @AssetId
                 ";
-  //      SELECT U.UnitName,D.DeptName,L.LocationName,SL.SubLocationName,U.OldUnitId,AL.CustodianId,AL.UserId as FromCustodianId ,AL.UserId as ToCustodianId  FROM [FixedAsset].[AssetLocation] AL
-                // INNER JOIN [FixedAsset].[Location] L ON L.Id=AL.LocationId
-                // INNER JOIN [FixedAsset].[SubLocation] SL ON SL.Id=AL.SubLocationId
-                // LEFT JOIN [BannariERP].[AppData].[Unit] U ON AL.UnitId = U.Id
-                // LEFT JOIN [BannariERP].[AppData].[Department] D ON AL.DepartmentId=D.Id                
-                // WHERE AL.AssetId =@AssetId   
+
             using var multiQuery = await _dbConnection.QueryMultipleAsync(query, new { AssetId = assetId, CompanyId, UnitId });
 
             string assetJson = await multiQuery.ReadFirstOrDefaultAsync<string>();
             string transferJson = await multiQuery.ReadFirstOrDefaultAsync<string>();
             var location = await multiQuery.ReadFirstOrDefaultAsync<dynamic>();
 
-
             if (string.IsNullOrWhiteSpace(assetJson))
             {
                 return null; // Asset not found
             }
-
 
             var assetDetails = JsonSerializer.Deserialize<List<GetAssetDetailsToTransferHdrDto>>(assetJson, new JsonSerializerOptions
             {
@@ -318,25 +301,48 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetTransferIssue
             {
                 assetDetails.GetAssetDetailToTransfer = transferDetails ?? new List<GetAssetDetailsToTransferDto>();
 
+                // Fetch unit and department lookups for enrichment
+                var allUnits = await _unitLookup.GetAllUnitAsync();
+                var unitMap = allUnits.ToDictionary(u => u.UnitId);
+
+                var allDepts = await _departmentLookup.GetAllDepartmentAsync();
+                var deptMap = allDepts.ToDictionary(d => d.DepartmentId);
+
                 if (location != null)
                 {
-                    assetDetails.UnitName = location.UnitName;
-                    assetDetails.DepartmentName = location.DeptName;
+                    // Map FixedAsset-owned fields from location
                     assetDetails.LocationName = location.LocationName;
                     assetDetails.SubLocationName = location.SubLocationName;
                     assetDetails.FromCustodianId = location.FromCustodianId;
                     assetDetails.UnitId = location.UnitId;
-                    assetDetails.FromOldUnitId = location.FromOldUnitId;
                     assetDetails.ToCustodianId = location.ToCustodianId;
-                    assetDetails.ToOldUnitId = location.ToOldUnitId;
 
-                    // Fetch Custodian Name if CustodianId is valid;
-                    // if (location.FromCustodianId > 0 && !string.IsNullOrEmpty(location.OldUnitId))
-                   if (location.FromCustodianId > 0)
+                    // Enrich Unit name and OldUnitId via lookup
+                    if (unitMap.TryGetValue((int)location.UnitId, out var fromUnit))
+                    {
+                        assetDetails.UnitName = fromUnit.UnitName;
+                        assetDetails.FromOldUnitId = fromUnit.OldUnitId;
+                    }
+
+                    int? toUnitId = location.ToUnitId;
+                    if (toUnitId.HasValue && toUnitId.Value > 0 && unitMap.TryGetValue(toUnitId.Value, out var toUnit))
+                    {
+                        assetDetails.ToOldUnitId = toUnit.OldUnitId;
+                    }
+
+                    // Enrich Department name via lookup
+                    int? deptId = location.DepartmentId;
+                    if (deptId.HasValue && deptId.Value > 0 && deptMap.TryGetValue(deptId.Value, out var dept))
+                    {
+                        assetDetails.DepartmentName = dept.DepartmentName;
+                    }
+
+                    // Fetch Custodian Name if CustodianId is valid
+                    if (location.FromCustodianId > 0)
                     {
                         var custodianParams = new
                         {
-                            DivCode = location.FromOldUnitId,
+                            DivCode = assetDetails.FromOldUnitId,
                             EmpNo = location.FromCustodianId
                         };
 
@@ -365,6 +371,18 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetTransferIssue
 
                         if (userEmployee != null)
                             assetDetails.ToCustodianName = userEmployee.Empname;
+                    }
+                }
+                else
+                {
+                    // No location data — enrich names from first result set IDs
+                    if (assetDetails.UnitId > 0 && unitMap.TryGetValue(assetDetails.UnitId, out var unit))
+                    {
+                        assetDetails.UnitName = unit.UnitName;
+                    }
+                    if (assetDetails.DepartmentId > 0 && deptMap.TryGetValue(assetDetails.DepartmentId, out var dept))
+                    {
+                        assetDetails.DepartmentName = dept.DepartmentName;
                     }
                 }
             }
@@ -483,70 +501,54 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetTransferIssue
                         AND (r.AckStatus = 0 OR r.AckStatus IS NULL)
                 );
 
-                SELECT  
-                    A.Id AS AssetId, 
-                    A.CreatedDate as DocDate,  
-                    H.CategoryName, 
-                    A.AssetCode, 
-                    A.AssetName, 
-                    A.UnitId, 
-                    G.UnitName, 
-                    B.LocationId, 
-                    C.LocationName, 
-                    B.SubLocationId, 
-                    D.SubLocationName, 
-                    B.DepartmentId, 
-                    F.DeptName AS DepartmentName,
-                    B.CustodianId AS FromCustodianId,        -- placeholder, will override from location data below
-                    NULL AS ToCustodianId,
-                    G.OldUnitId  AS OldUnitId
+                SELECT
+                    A.Id AS AssetId,
+                    A.CreatedDate as DocDate,
+                    H.CategoryName,
+                    A.AssetCode,
+                    A.AssetName,
+                    A.UnitId,
+                    B.LocationId,
+                    C.LocationName,
+                    B.SubLocationId,
+                    D.SubLocationName,
+                    B.DepartmentId,
+                    B.CustodianId AS FromCustodianId,
+                    NULL AS ToCustodianId
                 FROM FixedAsset.AssetMaster A
                 INNER JOIN FixedAsset.AssetLocation B ON A.ID = B.AssetId
                 INNER JOIN FixedAsset.Location C ON B.LocationId = C.Id
                 INNER JOIN FixedAsset.SubLocation D ON B.SubLocationId = D.Id
-                INNER JOIN BannariERP.AppData.Department F ON B.DepartmentId = F.Id
-                INNER JOIN BannariERP.AppData.Unit G ON A.UnitId = G.Id
                 INNER JOIN FixedAsset.AssetCategories H ON A.AssetCategoryId = H.Id
                 WHERE A.Id IN (SELECT AssetId FROM @AssetIds);
 
                 SELECT AssetId, GrnValue AS AssetValue
-                FROM FixedAsset.AssetPurchaseDetails 
+                FROM FixedAsset.AssetPurchaseDetails
                 WHERE AssetId IN (SELECT AssetId FROM @AssetIds);
 
-                              
-                              SELECT 
-                    AL.AssetID, 
-                     U.UnitName,
-                    D.DeptName,
+                SELECT
+                    AL.AssetID,
                     L.LocationName,
                     SL.SubLocationName,
-                    AL.UnitId ,  
-                    U.OldUnitId AS FromOldUnitId ,
-                    AL.CustodianId AS FromCustodianId,    
-                    X.AssetTransferId AS MaxAssetTransferId	,
-                    H.ToUnitId,			              
-                    UT.OldUnitId AS ToOldUnitId,                           
+                    AL.UnitId,
+                    AL.DepartmentId,
+                    AL.CustodianId AS FromCustodianId,
+                    X.AssetTransferId AS MaxAssetTransferId,
+                    H.ToUnitId,
                     H.ToCustodianId AS ToCustodianId
-              
-            FROM FixedAsset.AssetLocation            AS AL
-            JOIN FixedAsset.[Location]               AS L  ON L.Id  = AL.LocationId
-            JOIN FixedAsset.[SubLocation]            AS SL ON SL.Id = AL.SubLocationId
-            LEFT JOIN BannariERP.AppData.[Unit]         AS U  ON U.Id  = AL.UnitId
-            LEFT JOIN BannariERP.AppData.[Department]   AS D  ON D.Id  = AL.DepartmentId
-            OUTER APPLY (
-                SELECT TOP (1) d.AssetTransferId
-                FROM FixedAsset.AssetTransferIssueDtl d
-                WHERE d.AssetId = AL.AssetId
-                ORDER BY d.AssetTransferId DESC
-            ) AS X
-            LEFT JOIN FixedAsset.AssetTransferIssueHdr AS H  ON H.Id   = X.AssetTransferId
-            LEFT JOIN BannariERP.AppData.[Unit]            AS UF ON UF.Id = H.FromUnitId
-            LEFT JOIN BannariERP.AppData.[Unit]            AS UT ON UT.Id = H.ToUnitId
-            WHERE AL.AssetId IN (SELECT AssetId FROM @AssetIds);
-
-
+                FROM FixedAsset.AssetLocation            AS AL
+                JOIN FixedAsset.[Location]               AS L  ON L.Id  = AL.LocationId
+                JOIN FixedAsset.[SubLocation]            AS SL ON SL.Id = AL.SubLocationId
+                OUTER APPLY (
+                    SELECT TOP (1) d.AssetTransferId
+                    FROM FixedAsset.AssetTransferIssueDtl d
+                    WHERE d.AssetId = AL.AssetId
+                    ORDER BY d.AssetTransferId DESC
+                ) AS X
+                LEFT JOIN FixedAsset.AssetTransferIssueHdr AS H ON H.Id = X.AssetTransferId
+                WHERE AL.AssetId IN (SELECT AssetId FROM @AssetIds);
             ";
-           
+
             using var multi = await _dbConnection.QueryMultipleAsync(sql, new
             {
                 UnitId = unitId,
@@ -559,26 +561,42 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetTransferIssue
             var purchaseDynamics = (await multi.ReadAsync<dynamic>()).ToList();
             var locationDynamics = (await multi.ReadAsync<dynamic>()).ToList();
 
-            // Map assets
-            var assets = assetDynamics.Select(a => new GetAssetDetailsToTransferHdrDto
+            // Fetch unit and department lookups for enrichment
+            var allUnits = await _unitLookup.GetAllUnitAsync();
+            var unitMap = allUnits.ToDictionary(u => u.UnitId);
+
+            var allDepts = await _departmentLookup.GetAllDepartmentAsync();
+            var deptMap = allDepts.ToDictionary(d => d.DepartmentId);
+
+            // Map assets — enrich UnitName, DepartmentName, OldUnitId via lookups
+            var assets = assetDynamics.Select(a =>
             {
-                AssetID = a.AssetId,
-                DocDate = a.DocDate,
-                CategoryName = a.CategoryName,
-                AssetCode = a.AssetCode,
-                AssetName = a.AssetName,
-                UnitId = a.UnitId,
-                UnitName = a.UnitName,
-                LocationId = a.LocationId,
-                LocationName = a.LocationName,
-                SubLocationId = a.SubLocationId,
-                SubLocationName = a.SubLocationName,
-                DepartmentId = a.DepartmentId,
-                DepartmentName = a.DepartmentName,
-                FromCustodianId = a.FromCustodianId, // will assign below
-                ToCustodianId = a.ToCustodianId,
-                FromOldUnitId = a.OldUnitId,               
-                GetAssetDetailToTransfer = new List<GetAssetDetailsToTransferDto>()
+                int assetUnitId = (int)a.UnitId;
+                int assetDeptId = (int)a.DepartmentId;
+
+                unitMap.TryGetValue(assetUnitId, out var unitDto);
+                deptMap.TryGetValue(assetDeptId, out var deptDto);
+
+                return new GetAssetDetailsToTransferHdrDto
+                {
+                    AssetID = a.AssetId,
+                    DocDate = a.DocDate,
+                    CategoryName = a.CategoryName,
+                    AssetCode = a.AssetCode,
+                    AssetName = a.AssetName,
+                    UnitId = assetUnitId,
+                    UnitName = unitDto?.UnitName,
+                    LocationId = a.LocationId,
+                    LocationName = a.LocationName,
+                    SubLocationId = a.SubLocationId,
+                    SubLocationName = a.SubLocationName,
+                    DepartmentId = assetDeptId,
+                    DepartmentName = deptDto?.DepartmentName,
+                    FromCustodianId = a.FromCustodianId,
+                    ToCustodianId = a.ToCustodianId,
+                    FromOldUnitId = unitDto?.OldUnitId,
+                    GetAssetDetailToTransfer = new List<GetAssetDetailsToTransferDto>()
+                };
             }).ToList();
 
             // Map purchase details
@@ -592,8 +610,8 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetTransferIssue
                                             .ToDictionary(g => g.Key, g => g.ToList());
 
             // Map location details by AssetId
-          //  var locationDict = locationDynamics.ToDictionary(l => (int)l.AssetId);
-              var locationDict = locationDynamics.Where(l => l.AssetID != null).ToDictionary(l => (int)l.AssetID);
+            var locationDict = locationDynamics.Where(l => l.AssetID != null).ToDictionary(l => (int)l.AssetID);
+
             // Update assets with location and custodian info
             foreach (var asset in assets)
             {
@@ -603,19 +621,34 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetTransferIssue
                     asset.GetAssetDetailToTransfer = purchases;
                 }
 
-                // Assign location info if available
+                // Assign location info if available — enrich via lookups
                 if (locationDict.TryGetValue(asset.AssetID, out var location))
                 {
-                    asset.UnitName = location.UnitName;
-                    asset.DepartmentName = location.DeptName;
+                    int locUnitId = (int)location.UnitId;
+                    unitMap.TryGetValue(locUnitId, out var locUnit);
+
+                    asset.UnitName = locUnit?.UnitName;
                     asset.LocationName = location.LocationName;
-                    asset.SubLocationName = location.SubLocationName;                 
-                    asset.ToOldUnitId   = location.ToOldUnitId;              
+                    asset.SubLocationName = location.SubLocationName;
+
+                    int? locDeptId = location.DepartmentId;
+                    if (locDeptId.HasValue && locDeptId.Value > 0 && deptMap.TryGetValue(locDeptId.Value, out var locDept))
+                    {
+                        asset.DepartmentName = locDept.DepartmentName;
+                    }
+
+                    int? toUnitId = location.ToUnitId;
+                    if (toUnitId.HasValue && toUnitId.Value > 0 && unitMap.TryGetValue(toUnitId.Value, out var toUnit))
+                    {
+                        asset.ToOldUnitId = toUnit.OldUnitId;
+                    }
+
                     asset.ToCustodianId = location.ToCustodianId ?? 0;
                 }
             }
-           // Prepare TVP for custodian employee lookup
-              var custodianKeys = assets
+
+            // Prepare TVP for custodian employee lookup
+            var custodianKeys = assets
                 .SelectMany(a => new[]
                 {
                     (DivCode: a.FromOldUnitId, EmpNo: a.FromCustodianId),
@@ -625,25 +658,25 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetTransferIssue
                 .Distinct()
                 .ToList();
 
-                var tvp = new DataTable();
-                tvp.Columns.Add("DivCode", typeof(string));
-                tvp.Columns.Add("EmpNo", typeof(int));
+            var tvp = new DataTable();
+            tvp.Columns.Add("DivCode", typeof(string));
+            tvp.Columns.Add("EmpNo", typeof(int));
 
-                foreach (var key in custodianKeys)
-                {
-                    tvp.Rows.Add(key.DivCode, key.EmpNo);
-                }
+            foreach (var key in custodianKeys)
+            {
+                tvp.Rows.Add(key.DivCode, key.EmpNo);
+            }
 
-                // Get employee names in one call using TVP
-                var employeeList = (await _dbConnection.QueryAsync<Employee>(
-                    "dbo.GetEmployeeByDivision_TVP",
-                    new { EmployeeKeys = tvp.AsTableValuedParameter("dbo.EmployeeKeyType") },
-                    commandType: CommandType.StoredProcedure)).ToList();
+            // Get employee names in one call using TVP
+            var employeeList = (await _dbConnection.QueryAsync<Employee>(
+                "dbo.GetEmployeeByDivision_TVP",
+                new { EmployeeKeys = tvp.AsTableValuedParameter("dbo.EmployeeKeyType") },
+                commandType: CommandType.StoredProcedure)).ToList();
 
-                // Map employees for lookup
-                var employeeDict = employeeList.ToDictionary(
-                    e => e.Empcode,
-                    e => e.Empname);
+            // Map employees for lookup
+            var employeeDict = employeeList.ToDictionary(
+                e => e.Empcode,
+                e => e.Empname);
 
             // Assign custodian names back to assets
             foreach (var asset in assets)
@@ -653,14 +686,13 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetTransferIssue
                     employeeDict.TryGetValue(asset.FromCustodianId, out var fromName);
                     asset.FromCustodianName = fromName;
                 }
-               
-                        if (asset.ToCustodianId.HasValue && asset.ToCustodianId.Value > 0)
-                    {
-                        employeeDict.TryGetValue(asset.ToCustodianId.Value, out var toName);
-                        asset.ToCustodianName = toName;
-                    }
-                        
-                    }             
+
+                if (asset.ToCustodianId.HasValue && asset.ToCustodianId.Value > 0)
+                {
+                    employeeDict.TryGetValue(asset.ToCustodianId.Value, out var toName);
+                    asset.ToCustodianName = toName;
+                }
+            }
 
             return assets;
         }

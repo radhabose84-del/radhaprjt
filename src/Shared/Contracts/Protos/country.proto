@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+option csharp_namespace = "GrpcServices.UserManagement";
+
+service CountryService {
+    rpc GetAllCountry (google.protobuf.Empty) returns (CountryListResponse);
+}
+
+message CountryDto {
+    int32 CountryId = 1;
+    string CountryCode = 2;
+    string CountryName = 3;    
+}
+
+message CountryListResponse {
+    repeated CountryDto countries = 1;
+}

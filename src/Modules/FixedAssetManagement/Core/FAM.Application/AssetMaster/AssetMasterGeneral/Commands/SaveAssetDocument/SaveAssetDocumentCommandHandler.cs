@@ -1,6 +1,4 @@
-
-
-// using Contracts.Interfaces.External.IUser;
+using Contracts.Interfaces.Lookups.Users; // ✅ lookup contract
 using FAM.Application.AssetMaster.AssetMasterGeneral.Commands.UploadDocumentAssetMaster;
 using FAM.Application.Common.HttpResponse;
 using FAM.Application.Common.Interfaces;
@@ -18,21 +16,21 @@ namespace FAM.Application.AssetMaster.AssetMasterGeneral.Commands.SaveAssetDocum
         private readonly IAssetMasterGeneralCommandRepository _assetMasterGeneralRepository;
         private readonly ILogger<UploadDocumentAssetMasterGeneralCommandHandler> _logger;
         private readonly IIPAddressService _ipAddressService;
-        // private readonly IUnitGrpcClient _unitGrpcClient;
-        // private readonly ICompanyGrpcClient _companyGrpcClient;
+        private readonly ICompanyLookup _companyLookup;  // ✅ lookup dependency
+        private readonly IUnitLookup _unitLookup;        // ✅ lookup dependency
 
-          public SaveAssetDocumentCommandHandler(
+        public SaveAssetDocumentCommandHandler(
             IAssetMasterGeneralQueryRepository assetMasterGeneralQueryRepository,
-            ILogger<UploadDocumentAssetMasterGeneralCommandHandler> logger, IIPAddressService ipAddressService, IAssetMasterGeneralCommandRepository assetMasterGeneralRepository
-            // , IUnitGrpcClient unitGrpcClient, ICompanyGrpcClient companyGrpcClient
-            )
-        {          
+            ILogger<UploadDocumentAssetMasterGeneralCommandHandler> logger, IIPAddressService ipAddressService, IAssetMasterGeneralCommandRepository assetMasterGeneralRepository,
+            ICompanyLookup companyLookup,  // ✅ inject lookup
+            IUnitLookup unitLookup)        // ✅ inject lookup
+        {
             _assetMasterGeneralQueryRepository = assetMasterGeneralQueryRepository;
             _logger = logger;
             _ipAddressService = ipAddressService;
             _assetMasterGeneralRepository = assetMasterGeneralRepository;
-            // _unitGrpcClient = unitGrpcClient;
-            // _companyGrpcClient = companyGrpcClient;
+            _companyLookup = companyLookup;
+            _unitLookup = unitLookup;
         }
 
         public async Task<bool> Handle(SaveAssetDocumentCommand request, CancellationToken cancellationToken)
@@ -45,23 +43,20 @@ namespace FAM.Application.AssetMaster.AssetMasterGeneral.Commands.SaveAssetDocum
 
             string tempFilePath = request.assetPath;
             if (tempFilePath != null){
-                string baseDirectory = await _assetMasterGeneralQueryRepository.GetDocumentDirectoryAsync();                
-                // var companyId =_ipAddressService.GetCompanyId();
-                // var unitId = _ipAddressService.GetUnitId();
-                
-                // var companies = await _companyGrpcClient.GetAllCompanyAsync();
-                // var units = await _unitGrpcClient.GetAllUnitAsync();
+                string baseDirectory = await _assetMasterGeneralQueryRepository.GetDocumentDirectoryAsync();
+                var companyId = _ipAddressService.GetCompanyId();
+                var unitId = _ipAddressService.GetUnitId();
 
-                // var companyLookup = companies.ToDictionary(c => c.CompanyId, c => c.CompanyName);
-                // var unitLookup = units.ToDictionary(u => u.UnitId, u => u.UnitName);
+                // ✅ Get company and unit names using lookup interfaces
+                var companies = await _companyLookup.GetAllCompanyAsync();
+                var units = await _unitLookup.GetAllUnitAsync();
+                var companyMap = companies.ToDictionary(c => c.CompanyId, c => c.CompanyName);
+                var unitMap = units.ToDictionary(u => u.UnitId, u => u.UnitName);
 
-                // var companyName = companyLookup.TryGetValue(companyId, out var cname) ? cname : string.Empty;
-                // var unitName = unitLookup.TryGetValue(unitId, out var uname) ? uname : string.Empty;
+                var companyName = companyMap.TryGetValue(companyId, out var cname) ? cname : string.Empty;
+                var unitName = unitMap.TryGetValue(unitId, out var uname) ? uname : string.Empty;
 
-                //var (companyName, unitName) = await _assetMasterGeneralQueryRepository.GetCompanyUnitAsync(companyId, unitId);
-                string uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "Resources", baseDirectory
-                // , companyName, unitName
-                );    
+                string uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "Resources", baseDirectory, companyName, unitName);    
 
                 string filePath = Path.Combine(uploadPath, tempFilePath);  
                 EnsureDirectoryExists(Path.GetDirectoryName(filePath));           

@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+option csharp_namespace = "GrpcServices.UserManagement"; // 🔥 this is new
+
+service DepartmentService {
+    rpc GetAllDepartment (google.protobuf.Empty) returns (DepartmentListResponse);
+}
+
+message DepartmentDto {
+    int32 departmentId = 1;
+    string departmentName = 2;
+    string shortName = 3;
+}
+
+message DepartmentListResponse {
+    repeated DepartmentDto departments = 1;
+}
