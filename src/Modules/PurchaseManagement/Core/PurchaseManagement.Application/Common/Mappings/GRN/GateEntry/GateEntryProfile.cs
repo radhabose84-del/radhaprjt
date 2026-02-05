@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
-// using Core.Application.GRN.GateEntry.Commands.CreateGateEntry;
+// using PartyManagement.Application.GRN.GateEntry.Commands.CreateGateEntry;
 using PurchaseManagement.Application.GRN.GateEntry.Commands.CreateGateEntry;
 using PurchaseManagement.Domain.Entities.GRN.GateEntry;
 using static PurchaseManagement.Application.GRN.GateEntry.Commands.CreateGateEntry.CreateGateEntryDto;

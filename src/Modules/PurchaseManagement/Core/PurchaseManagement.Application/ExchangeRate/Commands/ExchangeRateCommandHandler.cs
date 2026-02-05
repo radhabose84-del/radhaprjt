@@ -1,4 +1,4 @@
-// Core.Application/ExchangeRate/ExchangeRateCommandHandler.cs
+// PurchaseManagement.Application/ExchangeRate/ExchangeRateCommandHandler.cs
 using AutoMapper;
 using PurchaseManagement.Application.ExchangeRate.Interfaces;
 using PurchaseManagement.Application.External;

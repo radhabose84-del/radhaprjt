@@ -9,7 +9,7 @@ namespace MaintenanceManagement.Application.Common.Interfaces.IMaintenanceReques
 
       Task<(IEnumerable<dynamic> MaintenanceRequestList, int)> GetAllMaintenanceRequestAsync(int PageNumber, int PageSize, string? SearchTerm, DateTimeOffset? FromDate, DateTimeOffset? ToDate);
       Task<(IEnumerable<dynamic> MaintenanceRequestList, int)> GetAllMaintenanceExternalRequestAsync(int PageNumber, int PageSize, string? SearchTerm, DateTimeOffset? FromDate, DateTimeOffset? ToDate);
-      // Task<Core.Domain.Entities.MaintenanceRequest?> GetByIdAsync(int Id);
+      // Task<MaintenanceManagement.Domain.Entities.MaintenanceRequest?> GetByIdAsync(int Id);
       Task<dynamic?> GetByIdAsync(int id);
       Task<List<GetExternalRequestByIdDto>> GetExternalRequestByIdAsync(List<int> ids);
       Task<List<MaintenanceManagement.Domain.Entities.ExistingVendorDetails>> GetVendorDetails(string OldUnitId, string? VendorCode);

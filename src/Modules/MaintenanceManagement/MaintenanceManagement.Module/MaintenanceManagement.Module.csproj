@@ -21,7 +21,7 @@
 
   <!-- Package References -->
   <ItemGroup>
-    <!-- You usually don't need MediatR here if Core.Application already references it,
+    <!-- You usually don't need MediatR here if MaintenanceManagement.Application already references it,
          but keeping it is ok if versions match solution-wide -->
     <PackageReference Include="MediatR" Version="12.4.1" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.2" />

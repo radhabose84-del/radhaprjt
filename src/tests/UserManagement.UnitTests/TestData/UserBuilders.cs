@@ -2,7 +2,7 @@
 using System;
 using UserManagement.Domain.Entities;
 // if you need to set Status.Active, uncomment the next line:
-// using static Core.Domain.Enums.Common.Enums;
+// using static UserManagement.Domain.Enums.Common.Enums;
 
 public class UserBuilder
 {

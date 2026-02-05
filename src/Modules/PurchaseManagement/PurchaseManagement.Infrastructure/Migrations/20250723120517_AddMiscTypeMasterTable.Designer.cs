@@ -25,7 +25,7 @@ namespace PurchaseManagement.Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Core.Domain.Entities.MiscTypeMaster", b =>
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.MiscTypeMaster", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()

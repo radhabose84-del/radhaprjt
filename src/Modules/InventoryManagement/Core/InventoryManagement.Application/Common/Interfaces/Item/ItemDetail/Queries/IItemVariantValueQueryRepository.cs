@@ -1,4 +1,4 @@
-// Core.Application/Common/Interfaces/Item/ItemDetail/Queries/IItemVariantValueQueryRepository.cs
+// InventoryManagement.Application/Common/Interfaces/Item/ItemDetail/Queries/IItemVariantValueQueryRepository.cs
 using InventoryManagement.Application.Item.ItemDetail.Queries.GetAllItems;
 
 namespace InventoryManagement.Application.Common.Interfaces.Item.ItemDetail.Queries

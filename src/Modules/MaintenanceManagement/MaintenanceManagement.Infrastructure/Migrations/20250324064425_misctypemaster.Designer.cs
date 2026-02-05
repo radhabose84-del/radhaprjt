@@ -25,7 +25,7 @@ namespace MaintenanceManagement.Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Core.Domain.Entities.MachineGroup", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.MachineGroup", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -80,7 +80,7 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     b.ToTable("MachineGroup", "Maintenance");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.MiscTypeMaster", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.MiscTypeMaster", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()

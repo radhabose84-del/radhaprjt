@@ -25,7 +25,7 @@ namespace InventoryManagement.Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Core.Domain.Entities.Item.ItemCategory", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemCategory", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -96,7 +96,7 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.ToTable("ItemCategory", "Inventory");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Item.ItemGroup", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemGroup", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -156,15 +156,15 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.ToTable("ItemGroup", "Inventory");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Item.ItemCategory", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemCategory", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.Item.ItemGroup", "ItemGroup")
+                    b.HasOne("InventoryManagement.Domain.Entities.Item.ItemGroup", "ItemGroup")
                         .WithMany("ItemCategory")
                         .HasForeignKey("ItemGroupId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Core.Domain.Entities.Item.ItemCategory", "ItemCategoryParent")
+                    b.HasOne("InventoryManagement.Domain.Entities.Item.ItemCategory", "ItemCategoryParent")
                         .WithMany("ChildCategories")
                         .HasForeignKey("ParentCategoryId")
                         .OnDelete(DeleteBehavior.Restrict);
@@ -174,12 +174,12 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.Navigation("ItemGroup");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Item.ItemCategory", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemCategory", b =>
                 {
                     b.Navigation("ChildCategories");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Item.ItemGroup", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemGroup", b =>
                 {
                     b.Navigation("ItemCategory");
                 });

@@ -6,7 +6,7 @@
 // using Contracts.Interfaces.External.IMaintenance;
 // using MaintenanceManagement.Application.Common;
 // using MaintenanceManagement.Application.Common.HttpResponse;
-// // using Core.Application.Common.Interfaces.IBackgroundService;
+// // using MaintenanceManagement.Application.Common.Interfaces.IBackgroundService;
 // using MaintenanceManagement.Application.Common.Interfaces.IMachineMaster;
 // using MaintenanceManagement.Application.Common.Interfaces.IMiscMaster;
 // using MaintenanceManagement.Application.Common.Interfaces.IPreventiveScheduler;
@@ -122,7 +122,7 @@
 
 //                     var detailsResponse = await _preventiveSchedulerCommand.CreateDetailAsync(detail);
 
-//                     // var workOrderRequest = _mapper.Map<Core.Domain.Entities.WorkOrderMaster.WorkOrder>(Scheduledetail, opt =>
+//                     // var workOrderRequest = _mapper.Map<MaintenanceManagement.Domain.Entities.WorkOrderMaster.WorkOrder>(Scheduledetail, opt =>
 //                     //  {
 //                     //      opt.Items["StatusId"] = miscdetail.Id;
 //                     //      opt.Items["PreventiveSchedulerDetailId"] = detailsResponse.Id;

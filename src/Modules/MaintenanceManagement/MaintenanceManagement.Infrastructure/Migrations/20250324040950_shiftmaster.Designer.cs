@@ -25,7 +25,7 @@ namespace MaintenanceManagement.Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Core.Domain.Entities.ShiftMaster", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.ShiftMaster", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -83,7 +83,7 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     b.ToTable("ShiftMaster", "Maintenance");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.ShiftMasterDetail", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.ShiftMasterDetail", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -157,9 +157,9 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     b.ToTable("ShiftMasterDetails", "Maintenance");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.ShiftMasterDetail", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.ShiftMasterDetail", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.ShiftMaster", "ShiftMaster")
+                    b.HasOne("MaintenanceManagement.Domain.Entities.ShiftMaster", "ShiftMaster")
                         .WithMany("ShiftMasterDetails")
                         .HasForeignKey("ShiftMasterId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -168,7 +168,7 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     b.Navigation("ShiftMaster");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.ShiftMaster", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.ShiftMaster", b =>
                 {
                     b.Navigation("ShiftMasterDetails");
                 });

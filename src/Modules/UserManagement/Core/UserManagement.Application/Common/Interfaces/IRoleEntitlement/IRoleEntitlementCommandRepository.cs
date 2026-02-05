@@ -15,7 +15,7 @@ namespace UserManagement.Application.Common.Interfaces.IRoleEntitlement
         // Task<List<RoleEntitlement>> GetExistingRoleEntitlementsAsync(List<int> userRoleIds, List<int> moduleIds, List<int> menuIds, CancellationToken cancellationToken);
         Task<bool> ModuleExistsAsync(int moduleId, CancellationToken cancellationToken);
         Task<bool> MenuExistsAsync(int menuId, CancellationToken cancellationToken);
-        // Task<Core.Domain.Entities.UserRole> GetRoleByNameAsync(string roleName, CancellationToken cancellationToken);
+        // Task<UserManagement.Domain.Entities.UserRole> GetRoleByNameAsync(string roleName, CancellationToken cancellationToken);
         // Task<List<RoleEntitlement>> GetRoleEntitlementsByRoleNameAsync(string roleName, CancellationToken cancellationToken);   
     }
 }

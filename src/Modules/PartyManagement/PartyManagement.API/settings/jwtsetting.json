@@ -1,0 +1,9 @@
+{
+    "JwtSettings": {
+        "SecretKey": "YourStrongRandomGeneratedSecretKeyAtLeast32BytesLong", 
+        "EncryptionKey": "LwddQEY16gHNdcMrCErtBYyf72mi1wcIR3hZQZ6rzZY=",
+        "Issuer": "http://localhost:5174",
+        "Audience": "http://localhost:5174/api",
+        "ExpiryMinutes": 1440
+      }   
+}

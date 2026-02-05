@@ -80,7 +80,7 @@
 //                 return TimeZoneInfo.ConvertTime(value.Value, tz);
 //             }
        
-//             var updatedEntity = _mapper.Map<Core.Domain.Entities.WorkOrderMaster.WorkOrder>(request.WorkOrder);
+//             var updatedEntity = _mapper.Map<MaintenanceManagement.Domain.Entities.WorkOrderMaster.WorkOrder>(request.WorkOrder);
 
 //             _logger.LogInformation("Work Order Status. updatedEntity: {@updatedEntity}",
 //                        updatedEntity);

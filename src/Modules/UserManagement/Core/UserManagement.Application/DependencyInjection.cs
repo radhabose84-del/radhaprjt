@@ -1,13 +1,13 @@
-// using Core.Application.UserLogin.Commands.UserLogin;
+// using UserManagement.Application.UserLogin.Commands.UserLogin;
 // using FluentValidation;
 // using MediatR;
 // using Microsoft.Extensions.DependencyInjection;
 // using System.Reflection;
 // using System;
-// using Core.Application.Common.Mappings;
+// using UserManagement.Application.Common.Mappings;
 
 
-// namespace Core.Application
+// namespace UserManagement.Application
 // {
 //     public static class DependencyInjection
 //     {

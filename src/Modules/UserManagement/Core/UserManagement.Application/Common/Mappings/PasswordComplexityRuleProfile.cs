@@ -35,7 +35,7 @@ namespace UserManagement.Application.Common.Mappings
              .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive ==1 ? Status.Active : Status.Inactive));     
 
             CreateMap <UserManagement.Domain.Entities.PasswordComplexityRule , PwdRuleDto>();   
-            // CreateMap<PwdRuleStatusDto, Core.Domain.Entities.PasswordComplexityRule>()  
+            // CreateMap<PwdRuleStatusDto, UserManagement.Domain.Entities.PasswordComplexityRule>()  
             // .ForMember(dest => dest.Id, opt => opt.Ignore())
             // .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive ));
 
@@ -48,7 +48,7 @@ namespace UserManagement.Application.Common.Mappings
 
             CreateMap<UserManagement.Domain.Entities.PasswordComplexityRule, PwdRuleDto>();
 
-       // CreateMap<GetPwdRuleDto,Core.Domain.Entities.PasswordComplexityRule >(); 
+       // CreateMap<GetPwdRuleDto,UserManagement.Domain.Entities.PasswordComplexityRule >(); 
 
              CreateMap<DeletePasswordComplexityRuleCommand, UserManagement.Domain.Entities.PasswordComplexityRule>()
                .ForMember(dest => dest.IsDeleted, opt => opt.MapFrom(src => IsDelete.Deleted));

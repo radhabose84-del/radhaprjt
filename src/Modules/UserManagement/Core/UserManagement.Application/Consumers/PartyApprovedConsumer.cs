@@ -3,18 +3,18 @@
 // using System.Linq;
 // using System.Threading.Tasks;
 // using Contracts.Events.Users;
-// using Core.Domain.Entities;
+// using UserManagement.Domain.Entities;
 // using MassTransit;
 // using Microsoft.EntityFrameworkCore;
 
 // // ---- Disambiguate entity types to avoid namespace conflicts ----
-// using UserEntity = Core.Domain.Entities.User;
-// using UserRoleAllocationEntity = Core.Domain.Entities.UserRoleAllocation;
-// using UserGroupEntity = Core.Domain.Entities.UserGroup;
-// using UserCompanyEntity = Core.Domain.Entities.UserCompany;
-// using UserUnitEntity = Core.Domain.Entities.UserUnit;
-// using CompanyEntity = Core.Domain.Entities.Company;   // maps AppData.Company
-// using UnitEntity = Core.Domain.Entities.Unit;
+// using UserEntity = UserManagement.Domain.Entities.User;
+// using UserRoleAllocationEntity = UserManagement.Domain.Entities.UserRoleAllocation;
+// using UserGroupEntity = UserManagement.Domain.Entities.UserGroup;
+// using UserCompanyEntity = UserManagement.Domain.Entities.UserCompany;
+// using UserUnitEntity = UserManagement.Domain.Entities.UserUnit;
+// using CompanyEntity = UserManagement.Domain.Entities.Company;   // maps AppData.Company
+// using UnitEntity = UserManagement.Domain.Entities.Unit;
 // using UserManagement.Application.Common.Interfaces;
 // using Microsoft.Extensions.Logging;         // maps AppData.Unit
 
@@ -84,19 +84,19 @@
 //                 FirstName = m.PartyName,
 //                 LastName = m.PartyLastName,
 //                 UserName = userName,
-//                 IsFirstTimeUser = Core.Domain.Enums.Common.Enums.FirstTimeUserStatus.Yes,
+//                 IsFirstTimeUser = UserManagement.Domain.Enums.Common.Enums.FirstTimeUserStatus.Yes,
 //                 Mobile = m.Mobile,
 //                 EmailId = m.Email,
 //                 IsLocked = 0,
 //                 PartyId = m.PartyId,
-//                 // UserType = Core.Domain.Enums.Common.MiscEnumEntity.UserType.External,
+//                 // UserType = UserManagement.Domain.Enums.Common.MiscEnumEntity.UserType.External,
 //                 // Base entity audit (if your BaseEntity fields are not auto-populated by interceptors)
 //                 CreatedBy = createdBy,
 //                 CreatedByName = createdByName,
 //                 CreatedIP = createdIp,
 //                 CreatedAt = createdAt,
-//                 IsActive = Core.Domain.Enums.Common.Enums.Status.Active,
-//                 IsDeleted = Core.Domain.Enums.Common.Enums.IsDelete.NotDeleted
+//                 IsActive = UserManagement.Domain.Enums.Common.Enums.Status.Active,
+//                 IsDeleted = UserManagement.Domain.Enums.Common.Enums.IsDelete.NotDeleted
 //             };
 
 //             // === MULTI COMPANIES & UNITS (FK-safe) ===
@@ -250,7 +250,7 @@
 //             // exact, case-insensitive
 //             var idByName = await _db.Set<UserGroupEntity>()
 //                 .AsNoTracking()
-//                 .Where(g => g.IsActive == Core.Domain.Enums.Common.Enums.Status.Active && g.GroupName != null)
+//                 .Where(g => g.IsActive == UserManagement.Domain.Enums.Common.Enums.Status.Active && g.GroupName != null)
 //                 .Where(g => g.GroupName!.Trim().ToLower() == desiredGroupName.Trim().ToLower())
 //                 .Select(g => (int?)g.Id)
 //                 .FirstOrDefaultAsync();
@@ -262,7 +262,7 @@
 //             var nameLower = desiredGroupName.Trim().ToLower();
 //             var idByHeuristic = await _db.Set<UserGroupEntity>()
 //                 .AsNoTracking()
-//                 .Where(g => g.IsActive == Core.Domain.Enums.Common.Enums.Status.Active && g.GroupCode == "USER" && g.GroupName != null)
+//                 .Where(g => g.IsActive == UserManagement.Domain.Enums.Common.Enums.Status.Active && g.GroupCode == "USER" && g.GroupName != null)
 //                 .Where(g =>
 //                     g.GroupName!.ToLower().Contains("super") &&
 //                     g.GroupName!.ToLower().Contains("admin") &&
@@ -295,7 +295,7 @@
 //             if (companyIds == null || companyIds.Count == 0 || roleNames == null || roleNames.Count == 0)
 //                 return roleIds;
 
-//             var existing = await _db.Set<Core.Domain.Entities.UserRole>()
+//             var existing = await _db.Set<UserManagement.Domain.Entities.UserRole>()
 //                 .AsNoTracking()
 //                 .Where(r => companyIds.Contains(r.CompanyId) && roleNames.Contains(r.RoleName))
 //                 .Select(r => new { r.Id, r.RoleName, r.CompanyId })
@@ -335,7 +335,7 @@
 //             const string code = Domain.Enums.Common.MiscEnumEntity.UserType.External;
 
 //             // 1) Find MiscTypeId for "UserType"
-//             var miscTypeId = await _db.Set<Core.Domain.Entities.MiscTypeMaster>()
+//             var miscTypeId = await _db.Set<UserManagement.Domain.Entities.MiscTypeMaster>()
 //                 .AsNoTracking()
 //                 .Where(t => t.MiscTypeCode == miscTypeCode)
 //                 .Select(t => (int?)t.Id)
@@ -345,7 +345,7 @@
 //                 return 1; // fallback
 
 //             // 2) Find the MiscMaster row for "Internal" within that type
-//             var id = await _db.Set<Core.Domain.Entities.MiscMaster>()
+//             var id = await _db.Set<UserManagement.Domain.Entities.MiscMaster>()
 //                 .AsNoTracking()
 //                 .Where(x => x.MiscTypeId == miscTypeId.Value
 //                         && x.Code == code

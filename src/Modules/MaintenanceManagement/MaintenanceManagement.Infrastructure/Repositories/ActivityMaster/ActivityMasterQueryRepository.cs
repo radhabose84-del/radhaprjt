@@ -164,7 +164,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.ActivityMaster
                 var rows = await _dbConnection.QueryAsync<MaintenanceManagement.Domain.Entities.ActivityMaster>(sql, parameters);
                 return rows.ToList();
         }
-        // public async Task<List<Core.Domain.Entities.ActivityMaster>> GetActivityMasterAutoComplete(string searchPattern)
+        // public async Task<List<MaintenanceManagement.Domain.Entities.ActivityMaster>> GetActivityMasterAutoComplete(string searchPattern)
         // {
 
         //     var UnitId = _ipAddressService.GetUnitId();
@@ -178,7 +178,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.ActivityMaster
         //         SearchPattern = $"%{searchPattern ?? string.Empty}%",
         //         UnitId
         //     };
-        //     var machineGroups = await _dbConnection.QueryAsync<Core.Domain.Entities.ActivityMaster>(query, parameters);
+        //     var machineGroups = await _dbConnection.QueryAsync<MaintenanceManagement.Domain.Entities.ActivityMaster>(query, parameters);
         //     return machineGroups.ToList();
         // }
 

@@ -25,7 +25,7 @@ namespace PurchaseManagement.Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Core.Domain.Entities.ActivityLog", b =>
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.ActivityLog", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -85,7 +85,7 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.ToTable("ActivityLog", "Purchase");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.IndentDetail", b =>
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.IndentDetail", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -186,7 +186,7 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.ToTable("IndentDetail", "Purchase");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.IndentHeader", b =>
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.IndentHeader", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -268,7 +268,7 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.ToTable("IndentHeader", "Purchase");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.IndentLog", b =>
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.IndentLog", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -322,7 +322,7 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.ToTable("IndentLog", "Purchase");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.MiscMaster", b =>
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.MiscMaster", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -391,7 +391,7 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.ToTable("MiscMaster", "Purchase");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.MiscTypeMaster", b =>
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.MiscTypeMaster", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -449,7 +449,7 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.ToTable("MiscTypeMaster", "Purchase");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.PaymentTermInstallment", b =>
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.PaymentTermInstallment", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -519,7 +519,7 @@ namespace PurchaseManagement.Infrastructure.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.PaymentTermMaster", b =>
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.PaymentTermMaster", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -621,7 +621,7 @@ namespace PurchaseManagement.Infrastructure.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.PriceMaster.PriceMasterDetail", b =>
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.PriceMaster.PriceMasterDetail", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -681,7 +681,7 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.ToTable("PriceMasterDetail", "Purchase");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.PriceMaster.PriceMasterHeader", b =>
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.PriceMaster.PriceMasterHeader", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -767,7 +767,7 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.ToTable("PriceMasterHeader", "Purchase");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Quotation.QuotationCompare.QuotationComparisonDetail", b =>
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.Quotation.QuotationCompare.QuotationComparisonDetail", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -816,7 +816,7 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.ToTable("QuotationComparisonDetail", "Purchase");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Quotation.QuotationCompare.QuotationComparisonHeader", b =>
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.Quotation.QuotationCompare.QuotationComparisonHeader", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -877,7 +877,7 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.ToTable("QuotationComparisonHeader", "Purchase");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Quotation.QuotationEntry.QuotationDetail", b =>
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.Quotation.QuotationEntry.QuotationDetail", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -982,7 +982,7 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.ToTable("QuotationDetail", "Purchase");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Quotation.QuotationEntry.QuotationHeader", b =>
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.Quotation.QuotationEntry.QuotationHeader", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1103,7 +1103,7 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.ToTable("QuotationHeader", "Purchase");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Quotation.RfqEntry.RfqItem", b =>
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.Quotation.RfqEntry.RfqItem", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1136,7 +1136,7 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.ToTable("RfqItem", "Purchase");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Quotation.RfqEntry.RfqMaster", b =>
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.Quotation.RfqEntry.RfqMaster", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1220,7 +1220,7 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.ToTable("RfqMaster", "Purchase");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Quotation.RfqEntry.RfqSupplier", b =>
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.Quotation.RfqEntry.RfqSupplier", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1259,7 +1259,7 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.ToTable("RfqSuppliers", "Purchase");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.TnCTemplateApplicability", b =>
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.TnCTemplateApplicability", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1319,7 +1319,7 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.ToTable("TnCTemplateApplicability", "Purchase");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.TnCTemplateMaster", b =>
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.TnCTemplateMaster", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1389,15 +1389,15 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.ToTable("TnCTemplateMaster", "Purchase");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.IndentDetail", b =>
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.IndentDetail", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.IndentHeader", "IndentHeader")
+                    b.HasOne("PurchaseManagement.Domain.Entities.IndentHeader", "IndentHeader")
                         .WithMany("IndentDetails")
                         .HasForeignKey("IndentHeaderId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("Core.Domain.Entities.MiscMaster", "Status")
+                    b.HasOne("PurchaseManagement.Domain.Entities.MiscMaster", "Status")
                         .WithMany("StatusDetail")
                         .HasForeignKey("StatusId")
                         .OnDelete(DeleteBehavior.NoAction)
@@ -1408,15 +1408,15 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.Navigation("Status");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.IndentHeader", b =>
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.IndentHeader", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.MiscMaster", "IndentType")
+                    b.HasOne("PurchaseManagement.Domain.Entities.MiscMaster", "IndentType")
                         .WithMany("IndentType")
                         .HasForeignKey("IndentTypeId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Core.Domain.Entities.MiscMaster", "Status")
+                    b.HasOne("PurchaseManagement.Domain.Entities.MiscMaster", "Status")
                         .WithMany("StatusHeader")
                         .HasForeignKey("StatusId")
                         .OnDelete(DeleteBehavior.NoAction)
@@ -1427,9 +1427,9 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.Navigation("Status");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.MiscMaster", b =>
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.MiscMaster", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.MiscTypeMaster", "MiscTypeMaster")
+                    b.HasOne("PurchaseManagement.Domain.Entities.MiscTypeMaster", "MiscTypeMaster")
                         .WithMany("MiscMaster")
                         .HasForeignKey("MiscTypeId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -1438,9 +1438,9 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.Navigation("MiscTypeMaster");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.PaymentTermInstallment", b =>
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.PaymentTermInstallment", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.PaymentTermMaster", "PaymentTerm")
+                    b.HasOne("PurchaseManagement.Domain.Entities.PaymentTermMaster", "PaymentTerm")
                         .WithMany("Installments")
                         .HasForeignKey("PaymentTermId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1449,9 +1449,9 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.Navigation("PaymentTerm");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.PaymentTermMaster", b =>
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.PaymentTermMaster", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.MiscMaster", "BaselineType")
+                    b.HasOne("PurchaseManagement.Domain.Entities.MiscMaster", "BaselineType")
                         .WithMany("PaymentTermsAsBaselineType")
                         .HasForeignKey("BaselineTypeId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -1460,9 +1460,9 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.Navigation("BaselineType");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.PriceMaster.PriceMasterDetail", b =>
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.PriceMaster.PriceMasterDetail", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.PriceMaster.PriceMasterHeader", "PriceMasterHeader")
+                    b.HasOne("PurchaseManagement.Domain.Entities.PriceMaster.PriceMasterHeader", "PriceMasterHeader")
                         .WithMany("Details")
                         .HasForeignKey("PriceMasterHeaderId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1471,19 +1471,19 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.Navigation("PriceMasterHeader");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.PriceMaster.PriceMasterHeader", b =>
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.PriceMaster.PriceMasterHeader", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.MiscMaster", null)
+                    b.HasOne("PurchaseManagement.Domain.Entities.MiscMaster", null)
                         .WithMany("PriceMasterSourceFrom")
                         .HasForeignKey("MiscMasterId");
 
-                    b.HasOne("Core.Domain.Entities.MiscMaster", "MiscSourceFrom")
+                    b.HasOne("PurchaseManagement.Domain.Entities.MiscMaster", "MiscSourceFrom")
                         .WithMany()
                         .HasForeignKey("SourceFromId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Core.Domain.Entities.MiscMaster", "MiscStatus")
+                    b.HasOne("PurchaseManagement.Domain.Entities.MiscMaster", "MiscStatus")
                         .WithMany("PriceMasterStatus")
                         .HasForeignKey("StatusId")
                         .OnDelete(DeleteBehavior.NoAction)
@@ -1494,21 +1494,21 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.Navigation("MiscStatus");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Quotation.QuotationCompare.QuotationComparisonDetail", b =>
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.Quotation.QuotationCompare.QuotationComparisonDetail", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.Quotation.QuotationCompare.QuotationComparisonHeader", "QuotationComparisonHeader")
+                    b.HasOne("PurchaseManagement.Domain.Entities.Quotation.QuotationCompare.QuotationComparisonHeader", "QuotationComparisonHeader")
                         .WithMany("QuotationConfirmedDetails")
                         .HasForeignKey("QuotationComparisonHeaderId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Core.Domain.Entities.Quotation.QuotationEntry.QuotationDetail", "QuotationCompareDetail")
+                    b.HasOne("PurchaseManagement.Domain.Entities.Quotation.QuotationEntry.QuotationDetail", "QuotationCompareDetail")
                         .WithMany("ConfirmedLinesDetails")
                         .HasForeignKey("QuotationDetailId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Core.Domain.Entities.Quotation.QuotationEntry.QuotationHeader", "QuotationHeader")
+                    b.HasOne("PurchaseManagement.Domain.Entities.Quotation.QuotationEntry.QuotationHeader", "QuotationHeader")
                         .WithMany("ConfirmedLines")
                         .HasForeignKey("QuotationHeaderId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -1521,15 +1521,15 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.Navigation("QuotationHeader");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Quotation.QuotationCompare.QuotationComparisonHeader", b =>
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.Quotation.QuotationCompare.QuotationComparisonHeader", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.Quotation.RfqEntry.RfqMaster", "Rfq")
+                    b.HasOne("PurchaseManagement.Domain.Entities.Quotation.RfqEntry.RfqMaster", "Rfq")
                         .WithMany("QuotationrfqConfirmed")
                         .HasForeignKey("RfqId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Core.Domain.Entities.MiscMaster", "StatusQuotation")
+                    b.HasOne("PurchaseManagement.Domain.Entities.MiscMaster", "StatusQuotation")
                         .WithMany("StatusWorkflow")
                         .HasForeignKey("StatusId")
                         .OnDelete(DeleteBehavior.NoAction)
@@ -1540,9 +1540,9 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.Navigation("StatusQuotation");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Quotation.QuotationEntry.QuotationDetail", b =>
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.Quotation.QuotationEntry.QuotationDetail", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.Quotation.QuotationEntry.QuotationHeader", "Header")
+                    b.HasOne("PurchaseManagement.Domain.Entities.Quotation.QuotationEntry.QuotationHeader", "Header")
                         .WithMany("Lines")
                         .HasForeignKey("QuotationHeaderId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1551,25 +1551,25 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.Navigation("Header");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Quotation.QuotationEntry.QuotationHeader", b =>
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.Quotation.QuotationEntry.QuotationHeader", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.MiscMaster", "MiscFreightMode")
+                    b.HasOne("PurchaseManagement.Domain.Entities.MiscMaster", "MiscFreightMode")
                         .WithMany("QuotationFreightMode")
                         .HasForeignKey("FreightModeId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("FK_QuotationHeader_FreightMode");
 
-                    b.HasOne("Core.Domain.Entities.MiscMaster", "MiscIncoterms")
+                    b.HasOne("PurchaseManagement.Domain.Entities.MiscMaster", "MiscIncoterms")
                         .WithMany("QuotationIncoterms")
                         .HasForeignKey("IncotermsId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("FK_QuotationHeader_Incoterms");
 
-                    b.HasOne("Core.Domain.Entities.MiscMaster", null)
+                    b.HasOne("PurchaseManagement.Domain.Entities.MiscMaster", null)
                         .WithMany("QuotationStatus")
                         .HasForeignKey("MiscMasterId");
 
-                    b.HasOne("Core.Domain.Entities.MiscMaster", "MiscPaymentTerms")
+                    b.HasOne("PurchaseManagement.Domain.Entities.MiscMaster", "MiscPaymentTerms")
                         .WithMany("QuotationPaymentTerms")
                         .HasForeignKey("PaymentTermsId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -1582,9 +1582,9 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.Navigation("MiscPaymentTerms");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Quotation.RfqEntry.RfqItem", b =>
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.Quotation.RfqEntry.RfqItem", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.Quotation.RfqEntry.RfqMaster", "Rfq")
+                    b.HasOne("PurchaseManagement.Domain.Entities.Quotation.RfqEntry.RfqMaster", "Rfq")
                         .WithMany("Items")
                         .HasForeignKey("RfqId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1593,14 +1593,14 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.Navigation("Rfq");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Quotation.RfqEntry.RfqMaster", b =>
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.Quotation.RfqEntry.RfqMaster", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.MiscMaster", "InitiationType")
+                    b.HasOne("PurchaseManagement.Domain.Entities.MiscMaster", "InitiationType")
                         .WithMany("RfqInitiationTypes")
                         .HasForeignKey("InitiationTypeId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("Core.Domain.Entities.MiscMaster", "RfqStatus")
+                    b.HasOne("PurchaseManagement.Domain.Entities.MiscMaster", "RfqStatus")
                         .WithMany("RfqStatuses")
                         .HasForeignKey("RfqStatusId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -1611,9 +1611,9 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.Navigation("RfqStatus");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Quotation.RfqEntry.RfqSupplier", b =>
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.Quotation.RfqEntry.RfqSupplier", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.Quotation.RfqEntry.RfqMaster", "Rfq")
+                    b.HasOne("PurchaseManagement.Domain.Entities.Quotation.RfqEntry.RfqMaster", "Rfq")
                         .WithMany("Suppliers")
                         .HasForeignKey("RfqId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1622,15 +1622,15 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.Navigation("Rfq");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.TnCTemplateApplicability", b =>
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.TnCTemplateApplicability", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.MiscMaster", "Applicability")
+                    b.HasOne("PurchaseManagement.Domain.Entities.MiscMaster", "Applicability")
                         .WithMany("TncApplicabilities")
                         .HasForeignKey("ApplicabilityId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Core.Domain.Entities.TnCTemplateMaster", "TnCTemplate")
+                    b.HasOne("PurchaseManagement.Domain.Entities.TnCTemplateMaster", "TnCTemplate")
                         .WithMany("Applicabilities")
                         .HasForeignKey("TnCTemplateMasterId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1641,9 +1641,9 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.Navigation("TnCTemplate");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.TnCTemplateMaster", b =>
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.TnCTemplateMaster", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.MiscMaster", "TemplateType")
+                    b.HasOne("PurchaseManagement.Domain.Entities.MiscMaster", "TemplateType")
                         .WithMany("TncTemplatesByType")
                         .HasForeignKey("TemplateTypeId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -1652,12 +1652,12 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.Navigation("TemplateType");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.IndentHeader", b =>
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.IndentHeader", b =>
                 {
                     b.Navigation("IndentDetails");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.MiscMaster", b =>
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.MiscMaster", b =>
                 {
                     b.Navigation("IndentType");
 
@@ -1690,39 +1690,39 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.Navigation("TncTemplatesByType");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.MiscTypeMaster", b =>
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.MiscTypeMaster", b =>
                 {
                     b.Navigation("MiscMaster");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.PaymentTermMaster", b =>
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.PaymentTermMaster", b =>
                 {
                     b.Navigation("Installments");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.PriceMaster.PriceMasterHeader", b =>
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.PriceMaster.PriceMasterHeader", b =>
                 {
                     b.Navigation("Details");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Quotation.QuotationCompare.QuotationComparisonHeader", b =>
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.Quotation.QuotationCompare.QuotationComparisonHeader", b =>
                 {
                     b.Navigation("QuotationConfirmedDetails");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Quotation.QuotationEntry.QuotationDetail", b =>
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.Quotation.QuotationEntry.QuotationDetail", b =>
                 {
                     b.Navigation("ConfirmedLinesDetails");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Quotation.QuotationEntry.QuotationHeader", b =>
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.Quotation.QuotationEntry.QuotationHeader", b =>
                 {
                     b.Navigation("ConfirmedLines");
 
                     b.Navigation("Lines");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Quotation.RfqEntry.RfqMaster", b =>
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.Quotation.RfqEntry.RfqMaster", b =>
                 {
                     b.Navigation("Items");
 
@@ -1731,7 +1731,7 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.Navigation("Suppliers");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.TnCTemplateMaster", b =>
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.TnCTemplateMaster", b =>
                 {
                     b.Navigation("Applicabilities");
                 });

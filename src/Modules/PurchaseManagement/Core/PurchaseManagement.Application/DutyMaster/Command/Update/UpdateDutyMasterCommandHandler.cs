@@ -5,7 +5,7 @@ using PurchaseManagement.Application.Purchase.DutyMaster.Command.Update;
 using PurchaseManagement.Domain.Events;
 using MediatR;
 
-namespace Core.Application.Purchase.DutyMaster.Update
+namespace PurchaseManagement.Application.Purchase.DutyMaster.Update
 {
     public class UpdateDutyMasterCommandHandler(
         IDutyMasterQueryRepository read,

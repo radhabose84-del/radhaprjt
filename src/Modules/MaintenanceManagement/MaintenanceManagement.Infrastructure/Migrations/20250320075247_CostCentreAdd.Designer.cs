@@ -25,7 +25,7 @@ namespace MaintenanceManagement.Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Core.Domain.Entities.CostCenter", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.CostCenter", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()

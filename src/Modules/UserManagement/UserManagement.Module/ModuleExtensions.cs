@@ -27,15 +27,15 @@ public static class ModuleExtensions
         services.AddUserManagementInfrastructure(configuration, environment);
 
 
-        // 1) MediatR (handlers are in Core.Application now)
-        // Use an assembly marker type from Core.Application
-        var applicationAssembly = typeof(UserProfile).Assembly; // Core.Application
+        // 1) MediatR (handlers are in UserManagement.Application now)
+        // Use an assembly marker type from UserManagement.Application
+        var applicationAssembly = typeof(UserProfile).Assembly; // UserManagement.Application
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(applicationAssembly));
 
         // services.AddMediatR(cfg =>
         // {
         //     cfg.RegisterServicesFromAssembly(
-        //         typeof(Core.Application.Users.Commands.CreateUser.CreateUserCommand).Assembly);
+        //         typeof(UserManagement.Application.Users.Commands.CreateUser.CreateUserCommand).Assembly);
         // });
 
         // ✅ 2) Validators (scan API validators assembly)

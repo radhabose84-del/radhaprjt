@@ -204,7 +204,7 @@ namespace UserManagement.Infrastructure.Repositories.RoleEntitlements
         //     LEFT JOIN AppData.Modules m ON mn.ModuleId = m.Id
         //     WHERE ur.RoleName = @RoleName AND re.IsDeleted = 0";
 
-        // var roleEntitlements = await _dbConnection.QueryAsync<RoleEntitlement, UserRole, Modules, Core.Domain.Entities.Menu, RoleEntitlement>(
+        // var roleEntitlements = await _dbConnection.QueryAsync<RoleEntitlement, UserRole, Modules, UserManagement.Domain.Entities.Menu, RoleEntitlement>(
         //     query,
         //     (re, ur, m, mn) =>
         //     {

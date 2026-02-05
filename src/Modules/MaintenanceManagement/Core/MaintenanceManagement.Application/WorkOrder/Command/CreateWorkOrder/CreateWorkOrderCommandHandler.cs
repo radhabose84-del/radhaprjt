@@ -36,7 +36,7 @@
 
 //         public async Task<ApiResponseDTO<WorkOrderCombineDto>> Handle(CreateWorkOrderCommand request, CancellationToken cancellationToken)
 //         {            
-//             var woEntity = _mapper.Map<Core.Domain.Entities.WorkOrderMaster.WorkOrder>(request.WorkOrderDto);               
+//             var woEntity = _mapper.Map<MaintenanceManagement.Domain.Entities.WorkOrderMaster.WorkOrder>(request.WorkOrderDto);               
 
 //             var companyId = _ipAddressService.GetCompanyId();
 //             var unitId = _ipAddressService.GetUnitId();

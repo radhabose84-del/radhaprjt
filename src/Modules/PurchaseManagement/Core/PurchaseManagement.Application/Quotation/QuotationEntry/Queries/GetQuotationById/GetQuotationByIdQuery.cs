@@ -1,4 +1,4 @@
-// Core.Application/Quotations/QuotationEntry/Queries/GetQuotationById/GetQuotationByIdQuery.cs
+// PurchaseManagement.Application/Quotations/QuotationEntry/Queries/GetQuotationById/GetQuotationByIdQuery.cs
 using PurchaseManagement.Application.Quotations.QuotationEntry.DTOs;
 using MediatR;
 

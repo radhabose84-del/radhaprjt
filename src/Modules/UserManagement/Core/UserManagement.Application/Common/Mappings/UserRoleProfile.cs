@@ -15,7 +15,7 @@ namespace UserManagement.Application.Common.Mappings
         public UserRoleProfile()
         {
             // Domain -> DTO Mapping
-          //  CreateMap<  Core.Domain.Entities.UserRole , GetPwdRuleDto >();
+          //  CreateMap<  UserManagement.Domain.Entities.UserRole , GetPwdRuleDto >();
                 CreateMap<UserManagement.Domain.Entities.UserRole, GetUserRoleDto>() ;
 
             // Command -> Domain Mapping
@@ -32,7 +32,7 @@ namespace UserManagement.Application.Common.Mappings
             .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description))
             .ForMember(dest => dest.CompanyId, opt => opt.MapFrom(src => src.CompanyId));
             
-            // CreateMap<UpdateRoleCommand, Core.Domain.Entities.UserRole>()
+            // CreateMap<UpdateRoleCommand, UserManagement.Domain.Entities.UserRole>()
             // .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id)) // Explicitly map Id in update scenarios
             // .ForMember(dest => dest.RoleName, opt => opt.MapFrom(src => src.RoleName))
             // .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive));
@@ -41,14 +41,14 @@ namespace UserManagement.Application.Common.Mappings
            .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive ==1 ? Status.Active : Status.Inactive));
 
 
-          //  CreateMap<DeleteRoleCommand, Core.Domain.Entities.UserRole>();
+          //  CreateMap<DeleteRoleCommand, UserManagement.Domain.Entities.UserRole>();
             CreateMap<DeleteRoleCommand, UserManagement.Domain.Entities.UserRole>()
            .ForMember(dest => dest.IsDeleted, opt => opt.MapFrom(src => IsDelete.Deleted));
 
 
             CreateMap<UserManagement.Domain.Entities.UserRole, GetUserRoleAutocompleteDto>();
-            //CreateMap<Core.Domain.Entities.UserRole, UserRoleDto>();
-            // CreateMap<UserRoleStatusDto, Core.Domain.Entities.UserRole>()
+            //CreateMap<UserManagement.Domain.Entities.UserRole, UserRoleDto>();
+            // CreateMap<UserRoleStatusDto, UserManagement.Domain.Entities.UserRole>()
             // .ForMember(dest => dest.Id, opt => opt.Ignore())
             // .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive));
          

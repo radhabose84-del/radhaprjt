@@ -1,4 +1,4 @@
-// Core.Application/Common/Text/NameSimilarity.cs
+// InventoryManagement.Application/Common/Text/NameSimilarity.cs
 using System.Text.RegularExpressions;
 
 namespace InventoryManagement.Application.Common.Text

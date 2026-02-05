@@ -1,4 +1,4 @@
-// Core.Application/PurchaseOrder/CombinePO/Queries/GetCombinePOById/GetCombinePOByIdQuery.cs
+// PurchaseManagement.Application/PurchaseOrder/CombinePO/Queries/GetCombinePOById/GetCombinePOByIdQuery.cs
 using MediatR;
 
 namespace PurchaseManagement.Application.PurchaseOrder.CombinePO.Queries.GetCombinePOById;

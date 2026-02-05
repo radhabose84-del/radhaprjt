@@ -69,7 +69,7 @@
 //             }
 
 //             // 🔹 Map request to domain entity
-//             var maintenanceRequest = _imapper.Map<Core.Domain.Entities.MaintenanceRequest>(request);
+//             var maintenanceRequest = _imapper.Map<MaintenanceManagement.Domain.Entities.MaintenanceRequest>(request);
 
 //             // 🔹 Override status and company/unit from IP address service
 //             maintenanceRequest.RequestStatusId = openStatus.Id;
@@ -108,7 +108,7 @@
 //             // 🔹 Create WorkOrder only for internal type
 //             if (internalTypeId.HasValue && maintenanceRequest.RequestTypeId == internalTypeId.Value)
 //             {
-//                 var workOrder = _imapper.Map<Core.Domain.Entities.WorkOrderMaster.WorkOrder>(maintenanceRequest);
+//                 var workOrder = _imapper.Map<MaintenanceManagement.Domain.Entities.WorkOrderMaster.WorkOrder>(maintenanceRequest);
 //                 workOrder.RequestId = result;
 //                 workOrder.CompanyId = _ipAddressService.GetCompanyId();
 //                 workOrder.UnitId = _ipAddressService.GetUnitId();

@@ -25,7 +25,7 @@ namespace InventoryManagement.Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Core.Domain.Entities.Budget.BudgetDetail", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Budget.BudgetDetail", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -75,7 +75,7 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.ToTable("BudgetDetail", "Inventory");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Budget.BudgetLog", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Budget.BudgetLog", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -134,7 +134,7 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.ToTable("BudgetLog", "Inventory");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Budget.BudgetMaster", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Budget.BudgetMaster", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -197,7 +197,7 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.ToTable("BudgetMaster", "Inventory");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.HSNMaster", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.HSNMaster", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -290,7 +290,7 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.ToTable("HSNMaster", "Inventory");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Item.ItemCategory", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemCategory", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -367,7 +367,7 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.ToTable("ItemCategory", "Inventory");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Item.ItemGroup", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemGroup", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -427,7 +427,7 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.ToTable("ItemGroup", "Inventory");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.MiscMaster", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.MiscMaster", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -496,7 +496,7 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.ToTable("MiscMaster", "Inventory");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.MiscTypeMaster", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.MiscTypeMaster", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -554,7 +554,7 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.ToTable("MiscTypeMaster", "Inventory");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.UOM", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.UOM", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -621,7 +621,7 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.ToTable("UOM", "Inventory");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.UOMConversion", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.UOMConversion", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -681,9 +681,9 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.ToTable("UOMConversion", "Inventory");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Budget.BudgetDetail", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Budget.BudgetDetail", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.Budget.BudgetMaster", "BudgetMaster")
+                    b.HasOne("InventoryManagement.Domain.Entities.Budget.BudgetMaster", "BudgetMaster")
                         .WithMany("BudgetDetail")
                         .HasForeignKey("BudgetId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -692,15 +692,15 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.Navigation("BudgetMaster");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Budget.BudgetLog", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Budget.BudgetLog", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.MiscMaster", "MiscAction")
+                    b.HasOne("InventoryManagement.Domain.Entities.MiscMaster", "MiscAction")
                         .WithMany("BudgetAction")
                         .HasForeignKey("ActionTypeId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Core.Domain.Entities.Budget.BudgetDetail", "BudgetDetail")
+                    b.HasOne("InventoryManagement.Domain.Entities.Budget.BudgetDetail", "BudgetDetail")
                         .WithMany("BudgetLog")
                         .HasForeignKey("BudgetDetailId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -711,15 +711,15 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.Navigation("MiscAction");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.HSNMaster", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.HSNMaster", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.MiscMaster", "GstCategory")
+                    b.HasOne("InventoryManagement.Domain.Entities.MiscMaster", "GstCategory")
                         .WithMany("HSNMasters")
                         .HasForeignKey("GSTCategoryId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Core.Domain.Entities.MiscMaster", "Type")
+                    b.HasOne("InventoryManagement.Domain.Entities.MiscMaster", "Type")
                         .WithMany("TypeHSNs")
                         .HasForeignKey("TypeId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -731,20 +731,20 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.Navigation("Type");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Item.ItemCategory", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemCategory", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.Item.ItemGroup", "ItemGroup")
+                    b.HasOne("InventoryManagement.Domain.Entities.Item.ItemGroup", "ItemGroup")
                         .WithMany("ItemCategory")
                         .HasForeignKey("ItemGroupId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Core.Domain.Entities.Item.ItemCategory", "ItemCategoryParent")
+                    b.HasOne("InventoryManagement.Domain.Entities.Item.ItemCategory", "ItemCategoryParent")
                         .WithMany("ChildCategories")
                         .HasForeignKey("ParentCategoryId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("Core.Domain.Entities.Item.ItemCategory", "RootCategory")
+                    b.HasOne("InventoryManagement.Domain.Entities.Item.ItemCategory", "RootCategory")
                         .WithMany()
                         .HasForeignKey("RootCategoryId");
 
@@ -755,9 +755,9 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.Navigation("RootCategory");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.MiscMaster", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.MiscMaster", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.MiscTypeMaster", "MiscTypeMaster")
+                    b.HasOne("InventoryManagement.Domain.Entities.MiscTypeMaster", "MiscTypeMaster")
                         .WithMany("MiscMaster")
                         .HasForeignKey("MiscTypeId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -766,9 +766,9 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.Navigation("MiscTypeMaster");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.UOM", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.UOM", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.MiscMaster", "UOMType")
+                    b.HasOne("InventoryManagement.Domain.Entities.MiscMaster", "UOMType")
                         .WithMany("UOMs")
                         .HasForeignKey("UOMTypeId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -777,15 +777,15 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.Navigation("UOMType");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.UOMConversion", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.UOMConversion", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.UOM", "FromUOM")
+                    b.HasOne("InventoryManagement.Domain.Entities.UOM", "FromUOM")
                         .WithMany("FromUOMConversions")
                         .HasForeignKey("FromUOMId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Core.Domain.Entities.UOM", "ToUOM")
+                    b.HasOne("InventoryManagement.Domain.Entities.UOM", "ToUOM")
                         .WithMany("ToUOMConversions")
                         .HasForeignKey("ToUOMId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -796,27 +796,27 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.Navigation("ToUOM");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Budget.BudgetDetail", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Budget.BudgetDetail", b =>
                 {
                     b.Navigation("BudgetLog");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Budget.BudgetMaster", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Budget.BudgetMaster", b =>
                 {
                     b.Navigation("BudgetDetail");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Item.ItemCategory", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemCategory", b =>
                 {
                     b.Navigation("ChildCategories");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Item.ItemGroup", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemGroup", b =>
                 {
                     b.Navigation("ItemCategory");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.MiscMaster", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.MiscMaster", b =>
                 {
                     b.Navigation("BudgetAction");
 
@@ -827,12 +827,12 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.Navigation("UOMs");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.MiscTypeMaster", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.MiscTypeMaster", b =>
                 {
                     b.Navigation("MiscMaster");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.UOM", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.UOM", b =>
                 {
                     b.Navigation("FromUOMConversions");
 

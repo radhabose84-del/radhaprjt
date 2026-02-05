@@ -57,16 +57,16 @@ namespace UserManagement.Application.Common.Mappings
 
             CreateMap<UserManagement.Domain.Entities.RoleMenuPrivileges, MenuPrivileageDTO>();
         
-        // CreateMap<Core.Domain.Entities.UserRole,RoleDto>();
+        // CreateMap<UserManagement.Domain.Entities.UserRole,RoleDto>();
         // CreateMap<RoleModule,GetByIdModuleDTO>()
         //  .ForMember(dest => dest.ModuleId, opt => opt.MapFrom(src => src.ModuleId));
         //  CreateMap<Domain.Entities.Menu,MenuDTO>()
         //     .ForMember(dest => dest.ChildMenu, opt => opt.MapFrom(src => src.ChildMenus));
 
-            // CreateMap<Core.Domain.Entities.UserRole,RoleDto>()
+            // CreateMap<UserManagement.Domain.Entities.UserRole,RoleDto>()
             // .ForMember(dest => dest.RoleId, opt => opt.MapFrom(src => src.Id));
 
-            // CreateMap<Core.Domain.Entities.RoleMenu,GetByIdPermissionDTO>();
+            // CreateMap<UserManagement.Domain.Entities.RoleMenu,GetByIdPermissionDTO>();
           
     
                

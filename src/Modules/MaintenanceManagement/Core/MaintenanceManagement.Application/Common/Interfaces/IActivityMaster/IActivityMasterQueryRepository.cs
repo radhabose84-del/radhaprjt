@@ -12,19 +12,19 @@ namespace MaintenanceManagement.Application.Common.Interfaces.IActivityMaster
     public interface IActivityMasterQueryRepository
     {
 
-        //Task<(List<Core.Domain.Entities.ActivityMaster>,int)> GetAllActivityMasterAsync(int PageNumber, int PageSize, string? SearchTerm);
+        //Task<(List<MaintenanceManagement.Domain.Entities.ActivityMaster>,int)> GetAllActivityMasterAsync(int PageNumber, int PageSize, string? SearchTerm);
 
         //  Task<(List<GetAllActivityMasterDto>, int)> GetAllActivityMasterAsync(int PageNumber, int PageSize ,string? SearchTerm );
 
         Task<(List<GetAllActivityMasterDto>, int)> GetAllActivityMasterAsync(int PageNumber, int PageSize, string? SearchTerm);
 
-        //  Task<Core.Domain.Entities.ActivityMaster> GetByIdAsync(int id);
+        //  Task<MaintenanceManagement.Domain.Entities.ActivityMaster> GetByIdAsync(int id);
 
         Task<GetActivityMasterByIdDto> GetByIdAsync(int id);
 
         Task<List<GetMachineGroupNameByIdDto>> GetMachineGroupById(int activityId);
 
-        // Task<List<Core.Domain.Entities.ActivityMaster>> GetActivityMasterAutoComplete(string searchPattern);
+        // Task<List<MaintenanceManagement.Domain.Entities.ActivityMaster>> GetActivityMasterAutoComplete(string searchPattern);
         Task<List<MaintenanceManagement.Domain.Entities.ActivityMaster>> GetActivityMasterAutoComplete(string searchPattern , string machineCode = null);
 
 

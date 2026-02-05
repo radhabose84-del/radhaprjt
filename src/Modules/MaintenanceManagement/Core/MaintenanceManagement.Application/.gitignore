@@ -483,10 +483,10 @@ $RECYCLE.BIN/
 # Vim temporary swap files
 *.swp
 
-/MaintenanceManagement/Core/Core.Application/obj
-/MaintenanceManagement/Core/Core.Application/bin
-/MaintenanceManagement/Core/Core.Domain/obj
-/MaintenanceManagement/Core/Core.Domain/bin
+/MaintenanceManagement/Core/MaintenanceManagement.Application/obj
+/MaintenanceManagement/Core/MaintenanceManagement.Application/bin
+/MaintenanceManagement/Core/MaintenanceManagement.Domain/obj
+/MaintenanceManagement/Core/MaintenanceManagement.Domain/bin
 /MaintenanceManagement/FAM.API/obj
 /MaintenanceManagement/FAM.API/bin
 /MaintenanceManagement/FAM.Infrastructure/obj

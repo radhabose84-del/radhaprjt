@@ -27,7 +27,7 @@ namespace UserManagement.Infrastructure.Migrations
 
            
 
-            modelBuilder.Entity("Core.Domain.Entities.Department", b =>
+            modelBuilder.Entity("UserManagement.Domain.Entities.Department", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()

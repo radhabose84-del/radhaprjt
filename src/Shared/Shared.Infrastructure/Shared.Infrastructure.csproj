@@ -38,7 +38,7 @@
 
     <ItemGroup>
     <ProjectReference Include="..\Contracts\Contracts.csproj" />
-    <ProjectReference Include="..\..\Modules\UserManagement\Core\Core.Domain\Core.Domain.csproj" />
+    <ProjectReference Include="..\..\Modules\UserManagement\Core\UserManagement.Domain\UserManagement.Domain.csproj" />
 
   </ItemGroup>
 </Project>

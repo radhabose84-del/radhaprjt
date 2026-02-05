@@ -25,7 +25,7 @@ namespace MaintenanceManagement.Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Core.Domain.Entities.ActivityMachineGroup", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.ActivityMachineGroup", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -48,7 +48,7 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     b.ToTable("ActivityMachineGroup");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.ActivityMaster", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.ActivityMaster", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -117,7 +117,7 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     b.ToTable("ActivityMaster", "Maintenance");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.CostCenter", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.CostCenter", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -199,7 +199,7 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     b.ToTable("CostCenter", "Maintenance");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.MachineGroup", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.MachineGroup", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -254,7 +254,7 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     b.ToTable("MachineGroup", "Maintenance");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.MaintenanceCategory", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.MaintenanceCategory", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -309,7 +309,7 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     b.ToTable("MaintenanceCategory", "Maintenance");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.MaintenanceType", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.MaintenanceType", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -360,7 +360,7 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     b.ToTable("MaintenanceType", "Maintenance");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.MiscMaster", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.MiscMaster", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -429,7 +429,7 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     b.ToTable("MiscMaster", "Maintenance");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.MiscTypeMaster", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.MiscTypeMaster", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -487,7 +487,7 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     b.ToTable("MiscTypeMaster", "Maintenance");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.ShiftMaster", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.ShiftMaster", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -545,7 +545,7 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     b.ToTable("ShiftMaster", "Maintenance");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.ShiftMasterDetail", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.ShiftMasterDetail", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -619,7 +619,7 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     b.ToTable("ShiftMasterDetails", "Maintenance");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.WorkCenter", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.WorkCenter", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -683,15 +683,15 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     b.ToTable("WorkCenter", "Maintenance");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.ActivityMachineGroup", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.ActivityMachineGroup", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.ActivityMaster", "ActivityMaster")
+                    b.HasOne("MaintenanceManagement.Domain.Entities.ActivityMaster", "ActivityMaster")
                         .WithMany("ActivityMachineGroups")
                         .HasForeignKey("ActivityMasterId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Core.Domain.Entities.MachineGroup", "MachineGroup")
+                    b.HasOne("MaintenanceManagement.Domain.Entities.MachineGroup", "MachineGroup")
                         .WithMany("ActivityMachineGroups")
                         .HasForeignKey("MachineGroupId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -702,9 +702,9 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     b.Navigation("MachineGroup");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.MiscMaster", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.MiscMaster", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.MiscTypeMaster", "MiscTypeMaster")
+                    b.HasOne("MaintenanceManagement.Domain.Entities.MiscTypeMaster", "MiscTypeMaster")
                         .WithMany("MiscMaster")
                         .HasForeignKey("MiscTypeId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -713,9 +713,9 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     b.Navigation("MiscTypeMaster");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.ShiftMasterDetail", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.ShiftMasterDetail", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.ShiftMaster", "ShiftMaster")
+                    b.HasOne("MaintenanceManagement.Domain.Entities.ShiftMaster", "ShiftMaster")
                         .WithMany("ShiftMasterDetails")
                         .HasForeignKey("ShiftMasterId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -724,22 +724,22 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     b.Navigation("ShiftMaster");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.ActivityMaster", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.ActivityMaster", b =>
                 {
                     b.Navigation("ActivityMachineGroups");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.MachineGroup", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.MachineGroup", b =>
                 {
                     b.Navigation("ActivityMachineGroups");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.MiscTypeMaster", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.MiscTypeMaster", b =>
                 {
                     b.Navigation("MiscMaster");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.ShiftMaster", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.ShiftMaster", b =>
                 {
                     b.Navigation("ShiftMasterDetails");
                 });

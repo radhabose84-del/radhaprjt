@@ -78,7 +78,7 @@
 //             CreateMap<PreventiveSchedulerItems, PreventiveSchedulerItemByIdDto>()
 //             .ForMember(dest => dest.OldItemId, opt => opt.MapFrom(src => src.OldItemId));
 
-//             CreateMap<Core.Domain.Entities.MachineMaster, PreventiveSchedulerDetail>()
+//             CreateMap<MaintenanceManagement.Domain.Entities.MachineMaster, PreventiveSchedulerDetail>()
 //             .ForMember(dest => dest.MachineId, opt => opt.MapFrom(src => src.Id))
 //             .ForMember(dest => dest.Id, opt => opt.Ignore())
 //             .ForMember(dest => dest.PreventiveSchedulerHeaderId, opt => opt.Ignore())
@@ -87,7 +87,7 @@
 //             .ForMember(dest => dest.MaterialReqStartDays, opt => opt.Ignore())
 //             .ForMember(dest => dest.RescheduleReason, opt => opt.Ignore());
 
-//             CreateMap<PreventiveSchedulerHeader, Core.Domain.Entities.WorkOrderMaster.WorkOrder>()
+//             CreateMap<PreventiveSchedulerHeader, MaintenanceManagement.Domain.Entities.WorkOrderMaster.WorkOrder>()
 //             .ForMember(dest => dest.Id, opt => opt.Ignore())
 //             .ForMember(dest => dest.PreventiveScheduleId, opt => opt.MapFrom((src, dest, destMember, ctx) =>
 //                 ctx.Items.ContainsKey("PreventiveSchedulerDetailId") ? (int)ctx.Items["PreventiveSchedulerDetailId"] : 0))
@@ -172,7 +172,7 @@
 
 //             CreateMap<RollbackActivityDto, PreventiveSchedulerActivity>();
 //             CreateMap<RollbackItemsDto, PreventiveSchedulerItems>();
-//             CreateMap<Core.Domain.Entities.MachineMaster, UnMappedMachineDto>();
+//             CreateMap<MaintenanceManagement.Domain.Entities.MachineMaster, UnMappedMachineDto>();
 
 //             CreateMap<PreventiveSchedulerDetail, ScheduleDetailUpdateDto>()
 //              .AfterMap((src, dest) =>

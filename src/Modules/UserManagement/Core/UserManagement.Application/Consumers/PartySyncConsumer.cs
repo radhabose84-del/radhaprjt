@@ -9,15 +9,15 @@
 
 
 // // Short aliases so we don't collide with namespaces
-// using UserEntity               = Core.Domain.Entities.User;
-// using UserCompanyEntity        = Core.Domain.Entities.UserCompany;
-// using UserUnitEntity           = Core.Domain.Entities.UserUnit;
-// using UserRoleEntity           = Core.Domain.Entities.UserRole;
-// using UserRoleAllocationEntity = Core.Domain.Entities.UserRoleAllocation;
-// using CompanyEntity            = Core.Domain.Entities.Company;
-// using UnitEntity               = Core.Domain.Entities.Unit;
+// using UserEntity               = UserManagement.Domain.Entities.User;
+// using UserCompanyEntity        = UserManagement.Domain.Entities.UserCompany;
+// using UserUnitEntity           = UserManagement.Domain.Entities.UserUnit;
+// using UserRoleEntity           = UserManagement.Domain.Entities.UserRole;
+// using UserRoleAllocationEntity = UserManagement.Domain.Entities.UserRoleAllocation;
+// using CompanyEntity            = UserManagement.Domain.Entities.Company;
+// using UnitEntity               = UserManagement.Domain.Entities.Unit;
 
-// namespace Core.Application.Consumers
+// namespace UserManagement.Application.Consumers
 // {
 //     /// <summary>
 //     /// Keeps AppSecurity.Users in sync with Party changes.
@@ -81,8 +81,8 @@
 
 //             // IsActive based on IsPortalAccessEnabled
 //             user.IsActive = m.IsPortalAccessEnabled
-//                 ? Core.Domain.Enums.Common.Enums.Status.Active
-//                 : Core.Domain.Enums.Common.Enums.Status.Inactive;
+//                 ? UserManagement.Domain.Enums.Common.Enums.Status.Active
+//                 : UserManagement.Domain.Enums.Common.Enums.Status.Inactive;
                 
 //             user.IsLocked = m.IsPortalAccessEnabled ? (byte)0 : (byte)1;    
 
@@ -142,13 +142,13 @@
 //                 Mobile = m.Mobile,
 //                 IsLocked =  m.IsPortalAccessEnabled ? (byte)0 : (byte)1,
 //                 PartyId = m.PartyId,
-//                 IsFirstTimeUser = Core.Domain.Enums.Common.Enums.FirstTimeUserStatus.Yes,
+//                 IsFirstTimeUser = UserManagement.Domain.Enums.Common.Enums.FirstTimeUserStatus.Yes,
 //                 CreatedBy = createdBy,
 //                 CreatedByName = createdByName,
 //                 CreatedIP = createdIp,
 //                 CreatedAt = DateTime.UtcNow,
-//                 IsActive = Core.Domain.Enums.Common.Enums.Status.Active,
-//                 IsDeleted = Core.Domain.Enums.Common.Enums.IsDelete.NotDeleted
+//                 IsActive = UserManagement.Domain.Enums.Common.Enums.Status.Active,
+//                 IsDeleted = UserManagement.Domain.Enums.Common.Enums.IsDelete.NotDeleted
 //             };
 
 //             // Companies
@@ -388,13 +388,13 @@
 //     //             Mobile           = m.Mobile,
 //     //             IsLocked         = 0,
 //     //             PartyId          = m.PartyId,
-//     //             IsFirstTimeUser  = Core.Domain.Enums.Common.Enums.FirstTimeUserStatus.Yes,
+//     //             IsFirstTimeUser  = UserManagement.Domain.Enums.Common.Enums.FirstTimeUserStatus.Yes,
 //     //             CreatedBy        = createdBy,
 //     //             CreatedByName    = createdByName,
 //     //             CreatedIP        = createdIp,
 //     //             CreatedAt        = DateTime.UtcNow,
-//     //             IsActive         = Core.Domain.Enums.Common.Enums.Status.Active,
-//     //             IsDeleted        = Core.Domain.Enums.Common.Enums.IsDelete.NotDeleted
+//     //             IsActive         = UserManagement.Domain.Enums.Common.Enums.Status.Active,
+//     //             IsDeleted        = UserManagement.Domain.Enums.Common.Enums.IsDelete.NotDeleted
 //     //         };
 
 //     //         // Companies

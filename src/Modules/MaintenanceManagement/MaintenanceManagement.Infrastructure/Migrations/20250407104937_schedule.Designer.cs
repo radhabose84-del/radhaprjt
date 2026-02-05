@@ -25,7 +25,7 @@ namespace MaintenanceManagement.Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Core.Domain.Entities.ActivityCheckListMaster", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.ActivityCheckListMaster", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -80,7 +80,7 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     b.ToTable("ActivityCheckListMaster", "Maintenance");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.ActivityMachineGroup", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.ActivityMachineGroup", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -106,7 +106,7 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     b.ToTable("ActivityMachineGroup", "Maintenance");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.ActivityMaster", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.ActivityMaster", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -172,7 +172,7 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     b.ToTable("ActivityMaster", "Maintenance");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.CostCenter", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.CostCenter", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -254,7 +254,7 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     b.ToTable("CostCenter", "Maintenance");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.MachineGroup", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.MachineGroup", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -309,7 +309,7 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     b.ToTable("MachineGroup", "Maintenance");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.MachineGroupUser", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.MachineGroupUser", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -367,7 +367,7 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     b.ToTable("MachineGroupUser", "Maintenance");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.MachineMaster", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.MachineMaster", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -469,7 +469,7 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     b.ToTable("MachineMaster", "Maintenance");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.MaintenanceCategory", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.MaintenanceCategory", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -524,7 +524,7 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     b.ToTable("MaintenanceCategory", "Maintenance");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.MaintenanceType", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.MaintenanceType", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -575,7 +575,7 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     b.ToTable("MaintenanceType", "Maintenance");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.MiscMaster", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.MiscMaster", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -644,7 +644,7 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     b.ToTable("MiscMaster", "Maintenance");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.MiscTypeMaster", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.MiscTypeMaster", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -702,7 +702,7 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     b.ToTable("MiscTypeMaster", "Maintenance");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.PreventiveSchedulerActivity", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.PreventiveSchedulerActivity", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -736,7 +736,7 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     b.ToTable("PreventiveSchedulerActivity", "Maintenance");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.PreventiveSchedulerDtl", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.PreventiveSchedulerDtl", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -769,7 +769,7 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     b.ToTable("PreventiveSchedulerDtl", "Maintenance");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.PreventiveSchedulerHdr", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.PreventiveSchedulerHdr", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -877,7 +877,7 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     b.ToTable("PreventiveSchedulerHdr", "Maintenance");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.PreventiveSchedulerItems", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.PreventiveSchedulerItems", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -909,7 +909,7 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     b.ToTable("PreventiveSchedulerItems", "Maintenance");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.ShiftMaster", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.ShiftMaster", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -967,7 +967,7 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     b.ToTable("ShiftMaster", "Maintenance");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.ShiftMasterDetail", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.ShiftMasterDetail", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1041,7 +1041,7 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     b.ToTable("ShiftMasterDetails", "Maintenance");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.WorkCenter", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.WorkCenter", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1105,7 +1105,7 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     b.ToTable("WorkCenter", "Maintenance");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.WorkOrderMaster.WorkOrder", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.WorkOrderMaster.WorkOrder", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1208,7 +1208,7 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     b.ToTable("WorkOrder", "Maintenance");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.WorkOrderMaster.WorkOrderActivity", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.WorkOrderMaster.WorkOrderActivity", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1268,7 +1268,7 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     b.ToTable("WorkOrderActivity", "Maintenance");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.WorkOrderMaster.WorkOrderItem", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.WorkOrderMaster.WorkOrderItem", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1348,7 +1348,7 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     b.ToTable("WorkOrderItem", "Maintenance");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.WorkOrderMaster.WorkOrderSchedule", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.WorkOrderMaster.WorkOrderSchedule", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1418,7 +1418,7 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     b.ToTable("WorkOrderSchedule", "Maintenance");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.WorkOrderMaster.WorkOrderTechnician", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.WorkOrderMaster.WorkOrderTechnician", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1485,9 +1485,9 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     b.ToTable("WorkOrderTechnician", "Maintenance");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.ActivityCheckListMaster", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.ActivityCheckListMaster", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.ActivityMaster", "ActivityMaster")
+                    b.HasOne("MaintenanceManagement.Domain.Entities.ActivityMaster", "ActivityMaster")
                         .WithMany("ActivityCheckLists")
                         .HasForeignKey("ActivityId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1496,15 +1496,15 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     b.Navigation("ActivityMaster");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.ActivityMachineGroup", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.ActivityMachineGroup", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.ActivityMaster", "ActivityMaster")
+                    b.HasOne("MaintenanceManagement.Domain.Entities.ActivityMaster", "ActivityMaster")
                         .WithMany("ActivityMachineGroups")
                         .HasForeignKey("ActivityMasterId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Core.Domain.Entities.MachineGroup", "MachineGroup")
+                    b.HasOne("MaintenanceManagement.Domain.Entities.MachineGroup", "MachineGroup")
                         .WithMany("ActivityMachineGroups")
                         .HasForeignKey("MachineGroupId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1515,9 +1515,9 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     b.Navigation("MachineGroup");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.MachineGroupUser", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.MachineGroupUser", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.MachineGroup", "MachineGroup")
+                    b.HasOne("MaintenanceManagement.Domain.Entities.MachineGroup", "MachineGroup")
                         .WithMany("MachineGroupUser")
                         .HasForeignKey("MachineGroupId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -1526,27 +1526,27 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     b.Navigation("MachineGroup");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.MachineMaster", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.MachineMaster", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.CostCenter", "CostCenter")
+                    b.HasOne("MaintenanceManagement.Domain.Entities.CostCenter", "CostCenter")
                         .WithMany("MachineMasters")
                         .HasForeignKey("CostCenterId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Core.Domain.Entities.MachineGroup", "MachineGroup")
+                    b.HasOne("MaintenanceManagement.Domain.Entities.MachineGroup", "MachineGroup")
                         .WithMany("MachineMasters")
                         .HasForeignKey("MachineGroupId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Core.Domain.Entities.ShiftMaster", "ShiftMaster")
+                    b.HasOne("MaintenanceManagement.Domain.Entities.ShiftMaster", "ShiftMaster")
                         .WithMany("MachineMasters")
                         .HasForeignKey("ShiftMasterId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Core.Domain.Entities.WorkCenter", "WorkCenter")
+                    b.HasOne("MaintenanceManagement.Domain.Entities.WorkCenter", "WorkCenter")
                         .WithMany("MachineMasters")
                         .HasForeignKey("WorkCenterId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -1561,9 +1561,9 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     b.Navigation("WorkCenter");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.MiscMaster", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.MiscMaster", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.MiscTypeMaster", "MiscTypeMaster")
+                    b.HasOne("MaintenanceManagement.Domain.Entities.MiscTypeMaster", "MiscTypeMaster")
                         .WithMany("MiscMaster")
                         .HasForeignKey("MiscTypeId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -1572,15 +1572,15 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     b.Navigation("MiscTypeMaster");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.PreventiveSchedulerActivity", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.PreventiveSchedulerActivity", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.ActivityMaster", "Activity")
+                    b.HasOne("MaintenanceManagement.Domain.Entities.ActivityMaster", "Activity")
                         .WithMany("PreventiveSchedulerActivities")
                         .HasForeignKey("ActivityId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Core.Domain.Entities.PreventiveSchedulerHdr", "PreventiveScheduler")
+                    b.HasOne("MaintenanceManagement.Domain.Entities.PreventiveSchedulerHdr", "PreventiveScheduler")
                         .WithMany("PreventiveSchedulerActivities")
                         .HasForeignKey("PreventiveSchedulerHdrId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -1591,15 +1591,15 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     b.Navigation("PreventiveScheduler");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.PreventiveSchedulerDtl", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.PreventiveSchedulerDtl", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.MachineMaster", "Machine")
+                    b.HasOne("MaintenanceManagement.Domain.Entities.MachineMaster", "Machine")
                         .WithMany("PreventiveSchedulerDtls")
                         .HasForeignKey("MachineId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Core.Domain.Entities.PreventiveSchedulerHdr", "PreventiveScheduler")
+                    b.HasOne("MaintenanceManagement.Domain.Entities.PreventiveSchedulerHdr", "PreventiveScheduler")
                         .WithMany("PreventiveSchedulerDtls")
                         .HasForeignKey("PreventiveSchedulerId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -1610,33 +1610,33 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     b.Navigation("PreventiveScheduler");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.PreventiveSchedulerHdr", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.PreventiveSchedulerHdr", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.MiscMaster", "MiscDueType")
+                    b.HasOne("MaintenanceManagement.Domain.Entities.MiscMaster", "MiscDueType")
                         .WithMany("DueType")
                         .HasForeignKey("DueTypeId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Core.Domain.Entities.MiscMaster", "MiscFrequency")
+                    b.HasOne("MaintenanceManagement.Domain.Entities.MiscMaster", "MiscFrequency")
                         .WithMany("Frequency")
                         .HasForeignKey("FrequencyId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Core.Domain.Entities.MachineGroup", "MachineGroup")
+                    b.HasOne("MaintenanceManagement.Domain.Entities.MachineGroup", "MachineGroup")
                         .WithMany("PreventiveSchedulerHdr")
                         .HasForeignKey("MachineGroupId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Core.Domain.Entities.MaintenanceCategory", "MaintenanceCategory")
+                    b.HasOne("MaintenanceManagement.Domain.Entities.MaintenanceCategory", "MaintenanceCategory")
                         .WithMany("PreventiveSchedulerHdr")
                         .HasForeignKey("MaintenanceCategoryId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Core.Domain.Entities.MiscMaster", "MiscSchedule")
+                    b.HasOne("MaintenanceManagement.Domain.Entities.MiscMaster", "MiscSchedule")
                         .WithMany("Schedule")
                         .HasForeignKey("ScheduleId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -1653,9 +1653,9 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     b.Navigation("MiscSchedule");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.PreventiveSchedulerItems", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.PreventiveSchedulerItems", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.PreventiveSchedulerHdr", "PreventiveScheduler")
+                    b.HasOne("MaintenanceManagement.Domain.Entities.PreventiveSchedulerHdr", "PreventiveScheduler")
                         .WithMany("PreventiveSchedulerItems")
                         .HasForeignKey("PreventiveSchedulerHdrId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -1664,9 +1664,9 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     b.Navigation("PreventiveScheduler");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.ShiftMasterDetail", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.ShiftMasterDetail", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.ShiftMaster", "ShiftMaster")
+                    b.HasOne("MaintenanceManagement.Domain.Entities.ShiftMaster", "ShiftMaster")
                         .WithMany("ShiftMasterDetails")
                         .HasForeignKey("ShiftMasterId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -1675,33 +1675,33 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     b.Navigation("ShiftMaster");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.WorkOrderMaster.WorkOrder", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.WorkOrderMaster.WorkOrder", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.MiscMaster", "MiscPriority")
+                    b.HasOne("MaintenanceManagement.Domain.Entities.MiscMaster", "MiscPriority")
                         .WithMany("WorkOrderPriority")
                         .HasForeignKey("PriorityId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Core.Domain.Entities.MiscMaster", "MiscRequestType")
+                    b.HasOne("MaintenanceManagement.Domain.Entities.MiscMaster", "MiscRequestType")
                         .WithMany("WorkOrderRequestType")
                         .HasForeignKey("RequestTypeId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Core.Domain.Entities.MiscMaster", "MiscRootCause")
+                    b.HasOne("MaintenanceManagement.Domain.Entities.MiscMaster", "MiscRootCause")
                         .WithMany("WorkOrderRootCause")
                         .HasForeignKey("RootCauseId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Core.Domain.Entities.MiscMaster", "MiscStatus")
+                    b.HasOne("MaintenanceManagement.Domain.Entities.MiscMaster", "MiscStatus")
                         .WithMany("WorkOrderStatus")
                         .HasForeignKey("StatusId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Core.Domain.Entities.MaintenanceCategory", "CategoryType")
+                    b.HasOne("MaintenanceManagement.Domain.Entities.MaintenanceCategory", "CategoryType")
                         .WithMany("WorkOrderType")
                         .HasForeignKey("WorkOrderTypeId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -1718,15 +1718,15 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     b.Navigation("MiscStatus");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.WorkOrderMaster.WorkOrderActivity", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.WorkOrderMaster.WorkOrderActivity", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.ActivityMaster", "ActivityMaster")
+                    b.HasOne("MaintenanceManagement.Domain.Entities.ActivityMaster", "ActivityMaster")
                         .WithMany("workOrderActivities")
                         .HasForeignKey("ActivityId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Core.Domain.Entities.WorkOrderMaster.WorkOrder", "WOActivity")
+                    b.HasOne("MaintenanceManagement.Domain.Entities.WorkOrderMaster.WorkOrder", "WOActivity")
                         .WithMany("Activity")
                         .HasForeignKey("WorkOrderId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1737,9 +1737,9 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     b.Navigation("WOActivity");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.WorkOrderMaster.WorkOrderItem", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.WorkOrderMaster.WorkOrderItem", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.WorkOrderMaster.WorkOrder", "WOItem")
+                    b.HasOne("MaintenanceManagement.Domain.Entities.WorkOrderMaster.WorkOrder", "WOItem")
                         .WithMany("Item")
                         .HasForeignKey("WorkOrderId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1748,9 +1748,9 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     b.Navigation("WOItem");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.WorkOrderMaster.WorkOrderSchedule", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.WorkOrderMaster.WorkOrderSchedule", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.WorkOrderMaster.WorkOrder", "WOSchedule")
+                    b.HasOne("MaintenanceManagement.Domain.Entities.WorkOrderMaster.WorkOrder", "WOSchedule")
                         .WithMany("Schedule")
                         .HasForeignKey("WorkOrderId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1759,9 +1759,9 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     b.Navigation("WOSchedule");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.WorkOrderMaster.WorkOrderTechnician", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.WorkOrderMaster.WorkOrderTechnician", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.WorkOrderMaster.WorkOrder", "WOTechnician")
+                    b.HasOne("MaintenanceManagement.Domain.Entities.WorkOrderMaster.WorkOrder", "WOTechnician")
                         .WithMany("Technicians")
                         .HasForeignKey("WorkOrderId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1770,7 +1770,7 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     b.Navigation("WOTechnician");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.ActivityMaster", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.ActivityMaster", b =>
                 {
                     b.Navigation("ActivityCheckLists");
 
@@ -1781,12 +1781,12 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     b.Navigation("workOrderActivities");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.CostCenter", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.CostCenter", b =>
                 {
                     b.Navigation("MachineMasters");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.MachineGroup", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.MachineGroup", b =>
                 {
                     b.Navigation("ActivityMachineGroups");
 
@@ -1797,19 +1797,19 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     b.Navigation("PreventiveSchedulerHdr");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.MachineMaster", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.MachineMaster", b =>
                 {
                     b.Navigation("PreventiveSchedulerDtls");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.MaintenanceCategory", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.MaintenanceCategory", b =>
                 {
                     b.Navigation("PreventiveSchedulerHdr");
 
                     b.Navigation("WorkOrderType");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.MiscMaster", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.MiscMaster", b =>
                 {
                     b.Navigation("DueType");
 
@@ -1826,12 +1826,12 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     b.Navigation("WorkOrderStatus");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.MiscTypeMaster", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.MiscTypeMaster", b =>
                 {
                     b.Navigation("MiscMaster");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.PreventiveSchedulerHdr", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.PreventiveSchedulerHdr", b =>
                 {
                     b.Navigation("PreventiveSchedulerActivities");
 
@@ -1840,19 +1840,19 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     b.Navigation("PreventiveSchedulerItems");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.ShiftMaster", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.ShiftMaster", b =>
                 {
                     b.Navigation("MachineMasters");
 
                     b.Navigation("ShiftMasterDetails");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.WorkCenter", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.WorkCenter", b =>
                 {
                     b.Navigation("MachineMasters");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.WorkOrderMaster.WorkOrder", b =>
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.WorkOrderMaster.WorkOrder", b =>
                 {
                     b.Navigation("Activity");
 

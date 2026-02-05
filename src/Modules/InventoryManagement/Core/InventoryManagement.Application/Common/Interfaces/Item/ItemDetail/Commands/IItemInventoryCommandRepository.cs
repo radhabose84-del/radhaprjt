@@ -1,4 +1,4 @@
-// Core.Application/Common/Interfaces/Item/ItemDetail/Inventory/IItemInventoryCommandRepository.cs
+// InventoryManagement.Application/Common/Interfaces/Item/ItemDetail/Inventory/IItemInventoryCommandRepository.cs
 
 using InventoryManagement.Domain.Entities.Item.ItemDetail;
 
