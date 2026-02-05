@@ -1,0 +1,69 @@
+using InventoryManagement.Domain.Entities.Item;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using static InventoryManagement.Domain.Common.BaseEntity;
+
+namespace InventoryManagement.Infrastructure.Data.Configurations.Item
+{
+    public class ItemGroupConfiguration : IEntityTypeConfiguration<ItemGroup>
+    {
+        public void Configure(EntityTypeBuilder<ItemGroup> builder)
+        {
+            var statusConverter = new ValueConverter<Status, bool>(
+                    v => v == Status.Active,                    
+                    v => v ? Status.Active : Status.Inactive    
+                );            
+                var isDeleteConverter = new ValueConverter<IsDelete, bool>(
+                    v => v == IsDelete.Deleted,                 
+                    v => v ? IsDelete.Deleted : IsDelete.NotDeleted
+                );
+            builder.ToTable("ItemGroup", "Inventory");
+                
+            builder.HasKey(b => b.Id);
+            builder.Property(b => b.Id)
+                .HasColumnName("Id")
+                .HasColumnType("int")
+                .IsRequired();                
+
+            builder.Property(ag => ag.UnitId)
+                .HasColumnName("UnitId")
+                .HasColumnType("int")
+                .IsRequired();                
+
+            builder.Property(ag => ag.ItemGroupCode)
+                .HasColumnName("ItemGroupCode")
+                .HasColumnType("varchar(10)")
+                .IsRequired();  
+
+            builder.Property(ag => ag.ItemGroupName)
+                .HasColumnName("ItemGroupName")
+                .HasColumnType("varchar(100)")
+                .IsRequired(); 
+
+            builder.Property(b => b.IsActive)                
+                .HasColumnType("bit")
+                .HasConversion(statusConverter)
+                .IsRequired();
+
+            builder.Property(b => b.IsDeleted)                
+                .HasColumnType("bit")
+                .HasConversion(isDeleteConverter)
+                .IsRequired();
+
+            builder.Property(b => b.CreatedByName)
+                .IsRequired()
+                .HasColumnType("varchar(50)");
+    
+            builder.Property(b => b.CreatedIP)
+                .IsRequired()
+                .HasColumnType("varchar(50)");
+
+            builder.Property(b => b.ModifiedByName)
+                .HasColumnType("varchar(50)");
+
+            builder.Property(b => b.ModifiedIP)
+                .HasColumnType("varchar(50)"); 
+        }
+    }
+}

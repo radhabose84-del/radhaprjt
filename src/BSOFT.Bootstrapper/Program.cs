@@ -11,6 +11,7 @@ using UserManagement.Module;
 using FixedAssetManagement.Module;
 using MaintenanceManagement.Module;
 using PurchaseManagement.Module;
+using InventoryManagement.Module;
 
 var builder = WebApplication.CreateBuilder(args);
 var environment = builder.Environment.EnvironmentName;
@@ -44,6 +45,8 @@ builder.Services.AddUserManagementModule(builder.Configuration, builder.Environm
 builder.Services.AddFixedAssetManagementModule(builder.Configuration, builder.Environment);
 builder.Services.AddMaintenanceManagementModule(builder.Configuration, builder.Environment);
 builder.Services.AddPurchaseManagementModule(builder.Configuration, builder.Environment);
+builder.Services.AddInventoryManagementModule(builder.Configuration, builder.Environment);
+
 
 
 // ✅ Controllers + API

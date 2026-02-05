@@ -18,7 +18,7 @@ using Microsoft.Extensions.Logging;
 
 namespace MaintenanceManagement.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/maintenance/[controller]")]
     public class MRSController : ApiControllerBase
     {
         

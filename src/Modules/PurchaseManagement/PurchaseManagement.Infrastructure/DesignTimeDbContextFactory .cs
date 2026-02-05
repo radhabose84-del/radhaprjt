@@ -18,7 +18,7 @@ namespace PurchaseManagement.Infrastructure
 
             // Build configuration
             IConfigurationRoot configuration = new ConfigurationBuilder()
-                .SetBasePath(Path.Combine(Directory.GetCurrentDirectory(), "../PurchaseManagement.Api"))
+                .SetBasePath(Path.Combine(Directory.GetCurrentDirectory(), "../BSOFT.Bootstrapper"))
                 .AddJsonFile($"appsettings.{environment}.json", optional: false, reloadOnChange: true)
                 .Build();
 

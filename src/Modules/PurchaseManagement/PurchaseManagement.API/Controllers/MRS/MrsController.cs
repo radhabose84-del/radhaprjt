@@ -18,7 +18,7 @@ using Microsoft.AspNetCore.Http;
 namespace PurchaseManagement.API.Controllers.MRS
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/purchase/[controller]")]
     public class MrsController : ApiControllerBase
     {
         private readonly IMediator _mediator;
