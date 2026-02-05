@@ -1,13 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Contracts.Interfaces.External.IWorkflow;
+// using Contracts.Interfaces.External.IWorkflow;
 using PartyManagement.Application.Common.Interfaces.IPartyMaster;
 using PartyManagement.Application.PartyMaster.Command.CreatePartyMaster;
 using PartyManagement.Domain.Common;
 using FluentValidation;
 using PartyManagement.API.Validation.Common;
+using Shared.Validation.Common;
 
 namespace PartyManagement.API.Validation.PartyMaster
 {
@@ -19,11 +16,13 @@ namespace PartyManagement.API.Validation.PartyMaster
 
 
 
-        private readonly IWorkflowGrpcClient _workflowGrpcClient;
-        public CreatePartyMasterCommandValidator(IPartyMasterCommandRepository iPartyMasterCommandRepository, MaxLengthProvider maxLengthProvider, IWorkflowGrpcClient workflowGrpcClient, IPartyMasterQueryRepository iPartyMasterQueryRepository)
+        // private readonly IWorkflowGrpcClient _workflowGrpcClient;
+        public CreatePartyMasterCommandValidator(IPartyMasterCommandRepository iPartyMasterCommandRepository, MaxLengthProvider maxLengthProvider
+        // , IWorkflowGrpcClient workflowGrpcClient
+        , IPartyMasterQueryRepository iPartyMasterQueryRepository)
         {
             _iPartyMasterCommandRepository = iPartyMasterCommandRepository;
-            _workflowGrpcClient = workflowGrpcClient;
+            // _workflowGrpcClient = workflowGrpcClient;
             _iPartyMasterQueryRepository = iPartyMasterQueryRepository;
             _validationRules = ValidationRuleLoader.LoadValidationRules();
             if (_validationRules == null || !_validationRules.Any())
@@ -35,15 +34,15 @@ namespace PartyManagement.API.Validation.PartyMaster
                 switch (rule.Rule)
                 {
 
-                   case "Workflow":
-                            RuleFor(x => x.PartyMaster.UnitId)
-                                .MustAsync(async (unitId, cancellation) =>
-                                    await _workflowGrpcClient.IsApproveWorkflowConfigure(
-                                        PartyManagement.Domain.Common.MiscEnumEntity.PartyDocumentImage.PartyMaster, // entity type
-                                        unitId,
-                                        0))                      // DepartmentId not required, pass null
-                                .WithMessage(rule.Error);
-                            break;
+                //    case "Workflow":
+                //             RuleFor(x => x.PartyMaster.UnitId)
+                //                 .MustAsync(async (unitId, cancellation) =>
+                //                     await _workflowGrpcClient.IsApproveWorkflowConfigure(
+                //                         PartyManagement.Domain.Common.MiscEnumEntity.PartyDocumentImage.PartyMaster, // entity type
+                //                         unitId,
+                //                         0))                      // DepartmentId not required, pass null
+                //                 .WithMessage(rule.Error);
+                //             break;
                     case "AlreadyExists":
                         RuleFor(x => new { x.PartyMaster.PartyName })
                         .MustAsync(async (input, cancellation) =>

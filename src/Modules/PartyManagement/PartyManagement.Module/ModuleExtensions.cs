@@ -1,23 +1,27 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using FluentValidation;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using PartyManagement.API.Validation.Common;
+using PartyManagement.API.Validation.PartyMaster;
+using PartyManagement.Application.Common.Mappings;
+using Shared.Validation.Common;
+using PartyManagement.Infrastructure;
+using Microsoft.Extensions.Hosting;
 
 namespace PartyManagement.Module
 {
-    public class ModuleExtensions
+    public static class ModuleExtensions
     {
         public static IServiceCollection AddPartyManagementModule(
             this IServiceCollection services,
-            IConfiguration configuration,
-            IHostEnvironment env)
+            IConfiguration configuration,IHostEnvironment env)
         {
             // ✅ 1) Register Infrastructure first (repos, db, services)
             services.AddPartyInfrastructure(configuration, env);
 
             // ✅ 2) Use compile-time assemblies (NO Assembly.Load)
-            var applicationAssembly = typeof(ItemGroupProfile).Assembly;              // InventoryManagement.Application
-            var apiAssembly = typeof(CreateItemGroupCommandValidator).Assembly;            // InventoryManagement.API
+            var applicationAssembly = typeof(PartyMasterProfile).Assembly;              
+            var apiAssembly = typeof(CreatePartyMasterCommandValidator).Assembly;           
 
             // ✅ 3) MediatR handlers from Application
             services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(applicationAssembly));

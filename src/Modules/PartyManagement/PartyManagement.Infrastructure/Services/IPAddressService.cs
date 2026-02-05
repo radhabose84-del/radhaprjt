@@ -1,7 +1,7 @@
 using System.Net;
 using System.Security.Claims;
 using PartyManagement.Application.Common.Interfaces;
-using Microsoft.AspNetPartyManagement.Http;
+using Microsoft.AspNetCore.Http;
 
 namespace InventoryManagement.Infrastructure.Services
 {  public class IPAddressService : IIPAddressService

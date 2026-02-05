@@ -1,12 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using PartyManagement.Application.Common.Interfaces.IPartyMaster;
 using PartyManagement.Application.PartyMaster.Command.UpdatePartyMaster;
 using PartyManagement.Domain.Common;
 using FluentValidation;
-using PartyManagement.API.Validation.Common;
+using Shared.Validation.Common;
 
 namespace PartyManagement.API.Validation.PartyMaster
 {

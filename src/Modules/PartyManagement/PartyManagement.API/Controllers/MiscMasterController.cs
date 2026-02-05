@@ -16,7 +16,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace PartyManagement.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/party/[controller]")]
     public class MiscMasterController : ApiControllerBase
     {
         public MiscMasterController(ISender mediator) : base(mediator)

@@ -27,12 +27,13 @@ using PartyManagement.Infrastructure.Repositories.PartyGroup;
 using PartyManagement.Infrastructure.Repositories.PartyMaster;
 using PartyManagement.Infrastructure.Services;
 using Serilog;
+using Microsoft.Extensions.Hosting;
 
 namespace PartyManagement.Infrastructure
 {
     public static class DependencyInjection
     {
-        public static IServiceCollection AddPartyInfrastructure(this IServiceCollection services, IConfiguration configuration, IServiceCollection builder)
+        public static IServiceCollection AddPartyInfrastructure(this IServiceCollection services, IConfiguration configuration,IHostEnvironment env)
         {
 
             var connectionString = configuration.GetConnectionString("DefaultConnection")

@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Http;
 namespace PartyManagement.API.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/party/[controller]")]
     
     public class AuditLogController : ApiControllerBase
     {       

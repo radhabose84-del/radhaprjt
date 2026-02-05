@@ -10,7 +10,7 @@ using Microsoft.Extensions.Logging;
 
 namespace PurchaseManagement.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/purchase/[controller]")]
     public class PartyMasterController : ApiControllerBase
     {
         private readonly IMediator _mediator;

@@ -1,11 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using PartyManagement.Application.Common.Interfaces.IMiscTypeMaster;
 using PartyManagement.Application.MiscTypeMaster.Command.UpdateMiscTypeMaster;
 using FluentValidation;
 using PartyManagement.API.Validation.Common;
+using Shared.Validation.Common;
 
 namespace PartyManagement.API.Validation.MiscTypeMaster
 {
