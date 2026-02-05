@@ -1,4 +1,4 @@
-// using Contracts.Interfaces.External.IUser;
+using Contracts.Interfaces.Lookups.Users; // ✅ lookup contract
 using FAM.Application.Common.HttpResponse;
 using FAM.Application.Common.Interfaces;
 using FAM.Application.Common.Interfaces.IAssetMaster.IAssetMasterGeneral;
@@ -17,47 +17,45 @@ namespace FAM.Application.AssetMaster.AssetWarranty.Commands.DeleteFileAssetWarr
         private readonly IIPAddressService _ipAddressService;
         private readonly IAssetMasterGeneralQueryRepository _assetMasterGeneralRepository;
         private readonly IAssetWarrantyQueryRepository _assetWarrantQueryRepository;
-        //  private readonly IUnitGrpcClient _unitGrpcClient;
-        // private readonly ICompanyGrpcClient _companyGrpcClient;
+        private readonly ICompanyLookup _companyLookup;  // ✅ lookup dependency
+        private readonly IUnitLookup _unitLookup;        // ✅ lookup dependency
 
         public DeleteFileAssetWarrantyCommandHandler(
             IFileUploadService fileUploadService,
             IAssetWarrantyCommandRepository assetWarrantyRepository,
-            ILogger<DeleteFileAssetWarrantyCommandHandler> logger, IIPAddressService ipAddressService, IAssetMasterGeneralQueryRepository assetMasterGeneralRepository, IAssetWarrantyQueryRepository assetWarrantQueryRepository
-            // , IUnitGrpcClient unitGrpcClient, ICompanyGrpcClient companyGrpcClient
-            )
+            ILogger<DeleteFileAssetWarrantyCommandHandler> logger, IIPAddressService ipAddressService, IAssetMasterGeneralQueryRepository assetMasterGeneralRepository, IAssetWarrantyQueryRepository assetWarrantQueryRepository,
+            ICompanyLookup companyLookup,  // ✅ inject lookup
+            IUnitLookup unitLookup)        // ✅ inject lookup
         {
             _fileUploadService = fileUploadService;
             _assetWarrantyRepository = assetWarrantyRepository;
             _logger = logger; _ipAddressService = ipAddressService;_assetMasterGeneralRepository=assetMasterGeneralRepository;_assetWarrantQueryRepository=assetWarrantQueryRepository;
-            // _unitGrpcClient = unitGrpcClient;
-            // _companyGrpcClient = companyGrpcClient;
+            _companyLookup = companyLookup;
+            _unitLookup = unitLookup;
         }
 
        public async Task<bool> Handle(DeleteFileAssetWarrantyCommand request, CancellationToken cancellationToken)
         {
-            // var companyId = _ipAddressService.GetCompanyId();
-            // var unitId = _ipAddressService.GetUnitId();
-            // var companies = await _companyGrpcClient.GetAllCompanyAsync();
-            // var units = await _unitGrpcClient.GetAllUnitAsync();
+            var companyId = _ipAddressService.GetCompanyId();
+            var unitId = _ipAddressService.GetUnitId();
 
-            // var companyLookup = companies.ToDictionary(c => c.CompanyId, c => c.CompanyName);
-            // var unitLookup = units.ToDictionary(u => u.UnitId, u => u.UnitName);
+            // ✅ Get company and unit names using lookup interfaces
+            var companies = await _companyLookup.GetAllCompanyAsync();
+            var units = await _unitLookup.GetAllUnitAsync();
+            var companyMap = companies.ToDictionary(c => c.CompanyId, c => c.CompanyName);
+            var unitMap = units.ToDictionary(u => u.UnitId, u => u.UnitName);
 
-            // var companyName = companyLookup.TryGetValue(companyId, out var cname) ? cname : string.Empty;
-            // var unitName = unitLookup.TryGetValue(unitId, out var uname) ? uname : string.Empty; 
-            
+            var companyName = companyMap.TryGetValue(companyId, out var cname) ? cname : string.Empty;
+            var unitName = unitMap.TryGetValue(unitId, out var uname) ? uname : string.Empty;
+
             string baseDirectory = await _assetWarrantQueryRepository.GetBaseDirectoryAsync();
             if (string.IsNullOrWhiteSpace(baseDirectory))
             {
                 _logger.LogError("Base directory path not found in database.");
                 throw new ValidationException("Base directory not configured.");
-                             
             }
-            
-            string uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "Resources", baseDirectory
-            // , companyName, unitName
-            );       
+
+            string uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "Resources", baseDirectory, companyName, unitName);       
 
             string filePath = Path.Combine(uploadPath, request.assetPath??string.Empty);
 

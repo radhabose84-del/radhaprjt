@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+option csharp_namespace = "GrpcServices.UserManagement";
+
+service StateService {
+    rpc GetAllStates (google.protobuf.Empty) returns (StatesListResponse);
+}
+
+message StatesDto {
+    int32 StateId = 1;
+    string StateCode = 2;
+    string StateName = 3;
+    int32 CountryId = 4;    
+}
+
+message StatesListResponse {
+    repeated StatesDto states = 1;
+}

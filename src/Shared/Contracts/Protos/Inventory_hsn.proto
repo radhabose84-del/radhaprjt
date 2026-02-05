@@ -1,0 +1,46 @@
+syntax = "proto3";
+option csharp_namespace = "Inventory.Grpc";
+package inventory.hsn;
+
+service InventoryHSNService {
+  rpc GetAllHSNs (GetAllHSNsRequest) returns (HSNListResponse);
+  rpc GetHSNById (GetHSNByIdRequest) returns (HSNResponse);
+}
+
+message GetAllHSNsRequest {
+  int32 pageNumber = 1;
+  int32 pageSize   = 2;
+  string search    = 3; // optional
+}
+
+message GetHSNByIdRequest {
+  int32 id = 1;
+}
+
+message HSNMaster {
+  int32  id              = 1;
+  int32  typeId          = 2;
+  string type            = 3;
+  string hsnCode         = 4;
+  string description     = 5;
+
+  int32  gSTCategoryId   = 6;
+  string gstCategoryName = 7;
+
+  double gSTPercentage   = 8;
+  double cGSTPercentage  = 9;
+  double sGSTPercentage  = 10;
+  double iGSTPercentage  = 11;
+
+  string validFrom       = 12; // ISO 8601 string, or switch to google.protobuf.Timestamp
+  bool   isActive        = 13;
+}
+
+message HSNResponse {
+  HSNMaster item = 1;
+}
+
+message HSNListResponse {
+  repeated HSNMaster items   = 1;
+  int32              totalCount = 2;
+}

@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+option csharp_namespace = "GrpcServices.HangfireDelete";
+
+package hangfiredelete;
+
+service MaintenanceHangfireDeleteService {
+  rpc HangfireRemove (HangfireRequest) returns (HangfireResponse);
+}
+
+message HangfireRequest {
+  string hangfireJobId = 1;
+}
+
+
+message HangfireResponse {
+  bool IsSuccess = 1;
+}

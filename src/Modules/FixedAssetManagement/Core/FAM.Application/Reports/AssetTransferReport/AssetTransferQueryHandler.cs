@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
-// using Contracts.Interfaces.External.IUser;
+using Contracts.Interfaces.Lookups.Users; // ✅ lookup contract
 using FAM.Application.Common.HttpResponse;
 using FAM.Application.Common.Interfaces.IReports;
 using FAM.Domain.Events;
@@ -15,17 +16,16 @@ namespace FAM.Application.Reports.AssetTransferReport
     {
         private readonly IReportRepository _repository;
         private readonly IMapper _mapper;
-        // private readonly IDepartmentGrpcClient _departmentGrpcClient;
         private readonly IMediator _mediator;
+        private readonly IDepartmentLookup _departmentLookup;  // ✅ lookup dependency
 
-        public AssetTransferQueryHandler(IReportRepository repository, IMapper mapper, IMediator mediator
-        // , IDepartmentGrpcClient departmentGrpcClient
-        )
+        public AssetTransferQueryHandler(IReportRepository repository, IMapper mapper, IMediator mediator,
+            IDepartmentLookup departmentLookup) // ✅ inject lookup
         {
             _repository = repository;
             _mapper = mapper;
             _mediator = mediator;
-            // _departmentGrpcClient = departmentGrpcClient;
+            _departmentLookup = departmentLookup;
         }
 
         public async Task<ApiResponseDTO<List<AssetTransferDetailsDto>>> Handle(AssetTransferQuery request, CancellationToken cancellationToken)
@@ -38,22 +38,34 @@ namespace FAM.Application.Reports.AssetTransferReport
 
             // Map to DTOs
             var assetTransfersReportDtos = _mapper.Map<List<AssetTransferDetailsDto>>(assetTransfersReports);
-            // // 🔥 Fetch departments using gRPC
 
-            // var departments = await _departmentGrpcClient.GetAllDepartmentAsync();
-            // var departmentLookup = departments.ToDictionary(d => d.DepartmentId, d => d.DepartmentName);
-            // var assetTransferDictionary = new Dictionary<int, AssetTransferDetailsDto>();
+            // ✅ Enrich DepartmentName using lookup interface (UserManagement owner)
+            var deptIds = assetTransfersReportDtos
+                .SelectMany(x => new[] { x.FromDepartmentId, x.ToDepartmentId })
+                .Where(x => x > 0)
+                .Distinct()
+                .ToArray();
 
-            // // 🔥 Map department names to AssetTransferData
-            // foreach (var data in assetTransfersReportDtos)
-            // {
-            //     if (departmentLookup.TryGetValue(data.FromDepartmentId, out var departmentName) && departmentName != null)
-            //     {
-            //         data.FromDepartmentName = departmentName;
-            //     }
-            //     assetTransferDictionary[data.FromDepartmentId] = data;
+            if (deptIds.Length > 0)
+            {
+                var departments = await _departmentLookup.GetByIdsAsync(deptIds, cancellationToken);
 
-            // }
+                var deptMap = departments
+                    .Where(d => d != null)
+                    .ToDictionary(d => d.DepartmentId, d => d.DepartmentName);
+
+                foreach (var item in assetTransfersReportDtos)
+                {
+                    if (deptMap.TryGetValue(item.FromDepartmentId, out var fromDeptName))
+                    {
+                        item.FromDepartmentName = fromDeptName;
+                    }
+                    if (deptMap.TryGetValue(item.ToDepartmentId, out var toDeptName))
+                    {
+                        item.ToDepartmentName = toDeptName;
+                    }
+                }
+            }
 
             // Log audit
             var domainEvent = new AuditLogsDomainEvent(

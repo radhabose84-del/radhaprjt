@@ -1,4 +1,4 @@
-using BackgroundService.Infrastructure.GrpcClients;
+/* using BackgroundService.Infrastructure.GrpcClients;
 using Contracts.Interfaces.External.IFixedAssetManagement;
 using Contracts.Interfaces.External.IMaintenance;
 using Contracts.Interfaces.External.IUser;
@@ -122,3 +122,4 @@ namespace BackgroundService.Infrastructure
         }
     }
 }
+ */

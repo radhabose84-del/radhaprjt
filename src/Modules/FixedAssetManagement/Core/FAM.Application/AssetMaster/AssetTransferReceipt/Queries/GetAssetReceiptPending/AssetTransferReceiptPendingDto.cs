@@ -14,8 +14,10 @@ namespace FAM.Application.AssetMaster.AssetTransferReceipt.Queries.GetAssetRecei
         // public string? AssetCode { get; set; }
         // public string? AssetName { get; set; }
         // public int AssetId { get; set; }       
-        public string? FromUnitname { get; set; }  
-        public string? ToUnitname { get; set; } 
+        public int FromUnitId { get; set; }
+        public string? FromUnitname { get; set; }
+        public int ToUnitId { get; set; }
+        public string? ToUnitname { get; set; }
         public int FromDepartmentId { get; set; }
         public string? FromDepartment { get; set; }
         public int ToDepartmentId { get; set; } 

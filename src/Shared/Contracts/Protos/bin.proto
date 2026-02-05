@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+option csharp_namespace = "GrpcServices.Warehouse.Bin";
+package warehouse.bin;
+
+service BinService {
+  rpc GetAllBinMaster (BinListRequest) returns (BinListResponse);
+  rpc GetBinById      (GetBinByIdRequest) returns (BinDto);
+}
+
+message BinListRequest {
+  int32 pageNumber = 1;
+  int32 pageSize   = 2;
+  string search    = 3; // optional
+}
+
+message BinListResponse {
+  repeated BinDto items = 1;
+  int32 totalCount = 2;
+  int32 pageNumber = 3;
+  int32 pageSize   = 4;
+}
+
+message GetBinByIdRequest { int32 id = 1; }
+
+message BinDto {
+  int32 id = 1;
+  string binCode = 2;
+  string binName = 3;
+
+  int32 warehouseId = 4;
+  string warehouseCode = 5;
+  string warehouseName = 6;
+
+  int32 rackId = 7;        // 0 = NULL
+  string rackCode = 8;
+  string rackName = 9;
+
+  double binCapacity = 10;
+  int32 capacityUOMId = 11;  
+}

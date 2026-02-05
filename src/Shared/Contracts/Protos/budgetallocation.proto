@@ -1,0 +1,99 @@
+syntax = "proto3";
+
+option csharp_namespace = "GrpcServices.BudgetManagement";
+
+service BudgetAllocationService {
+  rpc GetSpindleDetailsMonthwise (SpindleMonthwiseRequest) returns (SpindleMonthwiseResponse);
+  rpc ApplyRemainingBalanceDelta (ApplyRemainingBalanceDeltaRequest) returns (ApplyRemainingBalanceDeltaResponse);
+  rpc GetRemainingBalance (GetRemainingBalanceRequest) returns (GetRemainingBalanceResponse);
+}
+
+message SpindleMonthwiseRequest {
+  int32 financialYearId = 1;
+  int32 departmentId = 2;  
+  int32 costCenterId = 3;
+  int32 allocationTypeId = 4;
+  int32 budgetGroupId = 5;         
+  string budgetDate = 6;           
+}
+
+message BudgetAllocationDto {
+  int32 unitId = 1;
+  string unitName = 2;
+  int32 financialYearId = 3;
+  string financialYearName = 4;
+  int32 budgetGroupId = 5;
+  string budgetGroup = 6;
+  int32 requestById = 7;
+  string requestBy = 8;
+  int32 requestMonthId = 9;
+  string monthCode = 10;
+  string requestMonth = 11;
+  int32 allocationTypeId = 12;
+  string allocationType = 13;
+  double spindleCount = 14;
+  double ratePerSpindle = 15;
+  string fromDate = 16;
+  string toDate = 17;
+  double approvedAmount = 18;
+  int32 departmentId = 19;
+  string department = 20;
+  int32 costCenterId = 21;
+  string costCenter = 22;
+  int32 currencyId = 23;
+  string currency = 24;
+  double remainingBalance = 25;
+  int32 requestId = 26;
+  int32 projectId = 27;
+  int32 wbsId = 28;
+}
+
+message SpindleMonthwiseResponse {
+  repeated BudgetAllocationDto allocations = 1;
+}
+
+message ApplyRemainingBalanceDeltaRequest {  
+  int32 budgetGroupId = 1;
+  string budgetDate = 2;   
+  int32 monthId=3;
+  int32 requestById = 4;   
+  double deltaAmount = 5;  
+  int32 projectId = 6;   
+  int32 wbsId = 7;   
+  int32 financialYearId = 8; 
+}
+
+message ApplyRemainingBalanceDeltaResponse {
+  bool success = 1;
+  string error = 2;
+}
+
+message GetRemainingBalanceRequest {
+  int32 budgetGroupId = 1;
+  string budgetDate = 2;  
+  int32 monthId = 3;      
+  int32 requestById = 4;  
+  int32 projectId = 5;    
+  int32 wbsId = 6;    
+  int32 financialYearId = 7;  
+}
+
+message RemainingBalanceWithPrevMessage {
+  int32 id = 1;
+  int32 previousId = 2;
+  int32 budgetGroupId = 3;
+  string budgetDate = 4;  
+  int32 monthId = 5;
+  int32 requestById = 6;
+  int32 projectId = 7;
+  int32 wbsId = 8;
+  int32 financialYearId = 9;
+  double currentRemainingBalance = 10;
+  double previousRemainingBalance = 11;
+}
+
+message GetRemainingBalanceResponse {
+  bool success = 1;
+  string error = 2;
+  RemainingBalanceWithPrevMessage data = 3;
+}

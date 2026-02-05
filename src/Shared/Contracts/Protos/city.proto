@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+option csharp_namespace = "GrpcServices.UserManagement";
+
+service CityService {
+    rpc GetAllCity (google.protobuf.Empty) returns (CityListResponse);
+}
+
+message CityDto {
+    int32 CityId=1;
+    string CityCode =2;
+    string CityName=3;
+    int32 StateId=4;
+  
+}
+
+message CityListResponse  {
+    repeated CityDto cities=1;
+}

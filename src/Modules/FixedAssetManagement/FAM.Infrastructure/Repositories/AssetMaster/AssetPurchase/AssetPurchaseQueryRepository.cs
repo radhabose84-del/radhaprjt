@@ -254,25 +254,7 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetPurchase
             return assetSources.ToList();
         }
 
-        public async Task<List<AssetUnit>> GetAssetUnit(string userName)
-        {
-         
-
-            const string query = @"
-            SELECT C.OldUnitId, C.UnitName 
-            FROM BannariERP.AppSecurity.Users A
-            INNER JOIN BannariERP.AppSecurity.UserUnit B ON A.UserId = B.UserId
-            INNER JOIN BannariERP.AppData.Unit C ON B.UnitId = C.Id
-            WHERE B.IsActive = 1 
-            AND A.IsActive = 1 
-            AND A.UserName = @UserName
-             ORDER BY C.UnitName ASC";
-    
-             var parameters = new { UserName = userName };
-
-            var assetSources = await _dbConnection.QueryAsync<FAM.Domain.Entities.AssetPurchase.AssetUnit>(query, parameters);
-            return assetSources.ToList();
-        }
+        // GetAssetUnit removed - use IUnitLookup.GetUserUnitByUserNameAsync instead
 
         public async Task<AssetPurchaseDetails?> GetByIdAsync(int Id)
         {

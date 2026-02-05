@@ -3,56 +3,61 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
+using Contracts.Interfaces.Lookups.Users;
 using FAM.Application.Common.Interfaces.IExcelImport;
-using FAM.Application.ExcelImport;
-using Dapper;
 using FAM.Application.ExcelImport;
 
 namespace FAM.Infrastructure.Repositories.ExcelImport
 {
     public class ExcelImportCommandQueryRepository  : IExcelImportQueryRepository
     {
-        private readonly IDbConnection _dbConnection;
-        public ExcelImportCommandQueryRepository(IDbConnection dbConnection)
+        private readonly IUnitLookup _unitLookup;
+        private readonly IDepartmentLookup _departmentLookup;
+        private readonly ICompanyLookup _companyLookup;
+
+        public ExcelImportCommandQueryRepository(
+            IUnitLookup unitLookup, IDepartmentLookup departmentLookup, ICompanyLookup companyLookup)
         {
-            _dbConnection = dbConnection;
+            _unitLookup = unitLookup;
+            _departmentLookup = departmentLookup;
+            _companyLookup = companyLookup;
         }
 
         public async Task<int?> GetAssetDeptIdByNameAsync(string deptName)
         {
-            const string query = @"            
-             SELECT  Id from BannariERP.appData.Department where DeptName like @deptName and IsDeleted=0";            
-            var result = await _dbConnection.QueryFirstOrDefaultAsync<int?>(query, new { deptName = $"%{deptName}%" });
-            return result;
+            var allDepts = await _departmentLookup.GetAllDepartmentAsync();
+            var match = allDepts.FirstOrDefault(d =>
+                d.DepartmentName != null &&
+                d.DepartmentName.Contains(deptName, StringComparison.OrdinalIgnoreCase));
+            return match?.DepartmentId;
         }
 
-         public async Task<int?> GetAssetUnitIdByNameAsync(string unitName)
+        public async Task<int?> GetAssetUnitIdByNameAsync(string unitName)
         {
-            const string query = @"            
-                SELECT Id 
-                FROM BannariERP.appData.Unit 
-                WHERE UnitName LIKE @unitName AND IsDeleted = 0";
-            var result = await _dbConnection.QueryFirstOrDefaultAsync<int?>(query, new { unitName = $"%{unitName}%" });
-            return result;
+            var allUnits = await _unitLookup.GetAllUnitAsync();
+            var match = allUnits.FirstOrDefault(u =>
+                u.UnitName != null &&
+                u.UnitName.Contains(unitName, StringComparison.OrdinalIgnoreCase));
+            return match?.UnitId;
         }
-
 
         public async Task<string?> GetCompanyByNameAsync(int companyId)
         {
-            const string query = @"            
-             SELECT  CompanyName from BannariERP.appData.Company where id =@companyId and IsDeleted=0";
-            var result = await _dbConnection.QueryFirstOrDefaultAsync<string?>(query, new { companyId});
-            return result;
+            var allCompanies = await _companyLookup.GetAllCompanyAsync();
+            var match = allCompanies.FirstOrDefault(c => c.CompanyId == companyId);
+            return match?.CompanyName;
         }
 
-         public async Task<UnitDto?> GetUnitByNameAsync(int unitId)
+        public async Task<UnitDto?> GetUnitByNameAsync(int unitId)
         {
-            const string query = @"            
-            SELECT shortname, OldUnitId 
-            FROM BannariERP.appData.Unit 
-            WHERE id = @unitId AND IsDeleted = 0";
-            var result = await _dbConnection.QueryFirstOrDefaultAsync<UnitDto>(query, new { unitId });
-            return result;
+            var allUnits = await _unitLookup.GetAllUnitAsync();
+            var match = allUnits.FirstOrDefault(u => u.UnitId == unitId);
+            if (match == null) return null;
+            return new UnitDto
+            {
+                ShortName = match.ShortName,
+                OldUnitId = match.OldUnitId
+            };
         }
 
     }

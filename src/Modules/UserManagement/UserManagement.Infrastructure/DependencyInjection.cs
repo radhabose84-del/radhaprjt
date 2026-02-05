@@ -83,9 +83,6 @@ using Infrastructure.Data;
 using Microsoft.Extensions.Hosting;
 using Contracts.Interfaces.Lookups.Users;
 using UserManagement.Infrastructure.Repositories.Lookups.Users;
-using UserManagement.Infrastructure.Repositories.Lookups.Units;
-using UserManagement.Infrastructure.Repositories.Lookups.Country;
-
 namespace UserManagement.Infrastructure
 {
     public static class DependencyInjection
@@ -303,6 +300,7 @@ namespace UserManagement.Infrastructure
             services.AddScoped<IDepartmentQueryRepository, DepartmentQueryRepository>();
              //Lookups
             services.AddScoped<IDepartmentLookup, DepartmentLookupRepository>();
+            services.AddScoped<ICompanyLookup, CompanyLookupRepository>();
 
             services.AddScoped<IUserRoleCommandRepository, UserRoleCommandRepository>();
             services.AddScoped<IUserRoleQueryRepository, UserRoleQueryRepository>();
@@ -326,9 +324,11 @@ namespace UserManagement.Infrastructure
 
             services.AddScoped<IStateCommandRepository, StateCommandRepository>();
             services.AddScoped<IStateQueryRepository, StateQueryRepository>();
+            services.AddScoped<IStateLookup, StateLookupRepository>();
 
             services.AddScoped<ICityCommandRepository, CityCommandRepository>();
             services.AddScoped<ICityQueryRepository, CityQueryRepository>();
+            services.AddScoped<ICityLookup, CityLookupRepository>();
 
             services.AddScoped<IAuditLogRepository, AuditLogRepository>();
             services.AddScoped<IUserSessionRepository, UserSessionRepository>();

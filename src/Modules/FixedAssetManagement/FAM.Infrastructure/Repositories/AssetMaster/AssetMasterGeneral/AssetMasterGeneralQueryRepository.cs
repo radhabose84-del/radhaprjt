@@ -1,5 +1,5 @@
 using System.Data;
-// using Contracts.Interfaces.External.IUser;
+using Contracts.Interfaces.Lookups.Users; // ✅ lookup contracts
 using FAM.Application.AssetMaster.AssetMasterGeneral.Queries.GetAssetMasterGeneral;
 using FAM.Application.Common.Interfaces;
 using FAM.Application.Common.Interfaces.IAssetMaster.IAssetMasterGeneral;
@@ -14,19 +14,26 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetMasterGeneral
 {
     public class AssetMasterGeneralQueryRepository : BaseQueryRepository,IAssetMasterGeneralQueryRepository
     {
-        private readonly IDbConnection _dbConnection;   
-        // private readonly ICompanyGrpcClient _companyGrpcClient;     
-        // private readonly IUnitGrpcClient _unitGrpcClient;   
-        // private readonly IDepartmentAllGrpcClient _departmentAllGrpcClient;  
-        public AssetMasterGeneralQueryRepository(IDbConnection dbConnection, IIPAddressService ipAddressService
-        // , ICompanyGrpcClient companyGrpcClient, IUnitGrpcClient unitGrpcClient, IDepartmentAllGrpcClient departmentAllGrpcClient
-        )
-            : base(ipAddressService) 
+        private readonly IDbConnection _dbConnection;
+        private readonly IDepartmentLookup _departmentLookup;
+        private readonly IUnitLookup _unitLookup;
+        private readonly ICountryLookup _countryLookup;
+        private readonly IStateLookup _stateLookup;
+        private readonly ICityLookup _cityLookup;
+        private readonly ICompanyLookup _companyLookup;
+
+        public AssetMasterGeneralQueryRepository(IDbConnection dbConnection, IIPAddressService ipAddressService,
+            IDepartmentLookup departmentLookup, IUnitLookup unitLookup, ICountryLookup countryLookup,
+            IStateLookup stateLookup, ICityLookup cityLookup, ICompanyLookup companyLookup)
+            : base(ipAddressService)
         {
-            _dbConnection = dbConnection;      
-            // _companyGrpcClient = companyGrpcClient;  
-            // _unitGrpcClient=unitGrpcClient;   
-            // _departmentAllGrpcClient=departmentAllGrpcClient;
+            _dbConnection = dbConnection;
+            _departmentLookup = departmentLookup;
+            _unitLookup = unitLookup;
+            _countryLookup = countryLookup;
+            _stateLookup = stateLookup;
+            _cityLookup = cityLookup;
+            _companyLookup = companyLookup;
         }     
         public async Task<(List<AssetMasterGeneralDTO>, int)> GetAllAssetAsync(int PageNumber, int PageSize, string? SearchTerm)
         {
@@ -269,20 +276,21 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetMasterGeneral
    
         public async Task<(dynamic AssetResult, dynamic LocationResult, IEnumerable<dynamic> PurchaseDetails, IEnumerable<dynamic> Spec, IEnumerable<dynamic> Warranty, IEnumerable<dynamic> Amc, dynamic Disposal, IEnumerable<dynamic> Insurance, IEnumerable<dynamic> AdditionalCost)> GetAssetMasterByIdAsync(int assetId)
         {
-             
-            // var companies = await _companyGrpcClient.GetAllCompanyAsync();
-            // var departments = await _departmentAllGrpcClient.GetDepartmentAllAsync();
-            // var units = await _unitGrpcClient.GetAllUnitAsync();
+            var companies = await _companyLookup.GetAllCompanyAsync();
+            var departments = await _departmentLookup.GetAllDepartmentAsync();
+            var units = await _unitLookup.GetAllUnitAsync();
 
-            // var companyLookup = companies.ToDictionary(c => c.CompanyId, c => c.CompanyName);
-            // var unitLookup = units.ToDictionary(u => u.UnitId, u => u.UnitName);
-            // var oldUnitLookup = units.Where(u => !string.IsNullOrEmpty(u.OldUnitId))
-            //                     .ToDictionary(u => u.OldUnitId, u => u.UnitName);
-            // var departmentLookup = departments.ToDictionary(d => d.DepartmentId, d => d.DepartmentName);
+            var companyLookup = companies.ToDictionary(c => c.CompanyId, c => c.CompanyName);
+            var unitLookup = units.ToDictionary(u => u.UnitId, u => u.UnitName);
+            var oldUnitLookup = units
+                .Where(u => !string.IsNullOrEmpty(u.OldUnitId))
+                .GroupBy(u => u.OldUnitId, StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(g => g.Key ?? string.Empty, g => g.First().UnitName ?? string.Empty, StringComparer.OrdinalIgnoreCase);
+            var departmentLookup = departments.ToDictionary(d => d.DepartmentId, d => d.DepartmentName);
 
-            // var CompanyName = companyLookup.TryGetValue(CompanyId, out var cName) ? cName : string.Empty;
-            // var UnitName = unitLookup.TryGetValue(UnitId, out var uName) ? uName : string.Empty;
-            // var OldUnitName = oldUnitLookup.TryGetValue(OldUnitId, out var oName) ? oName : string.Empty;
+            var CompanyName = companyLookup.TryGetValue(CompanyId, out var cName) ? cName : string.Empty;
+            var UnitName = unitLookup.TryGetValue(UnitId, out var uName) ? uName : string.Empty;
+            var OldUnitName = oldUnitLookup.TryGetValue(OldUnitId, out var oName) ? oName : string.Empty;
 
             var sqlQuery = @"
                 -- First Query: AssetMaster (One-to-One)
@@ -328,17 +336,15 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetMasterGeneral
                 WHERE A.AssetId=@AssetId  and A.IsDeleted=0
 
                 SELECT Aw.Id,CAST(AW.StartDate AS DATE) AS StartDate,CAST(AW.EndDate AS DATE) AS EndDate,AW.Period,MMWaranty.description AS WarrantyType,MMClaim.description AS ServiceClaimStatus,
-                AW.WarrantyProvider,AW.MobileNumber,AW.ContactPerson,AW.Description,AW.Email,AW.Document,C.CountryName,S.StateName,City.CityName,
+                AW.WarrantyProvider,AW.MobileNumber,AW.ContactPerson,AW.Description,AW.Email,AW.Document,
+                CAST(NULL AS NVARCHAR(200)) AS CountryName,CAST(NULL AS NVARCHAR(200)) AS StateName,CAST(NULL AS NVARCHAR(200)) AS CityName,
                 AW.ServiceAddressLine1,AW.ServiceAddressLine2,
                 AW.ServicePinCode,AW.ServiceContactPerson,AW.ServiceMobileNumber,AW.ServiceEmail,AW.ServiceClaimProcessDescription,
                 CAST(AW.ServiceLastClaimDate AS DATE) AS ServiceLastClaimDate,AW.WarrantyType AS WarrantyTypeId,
-                AW.ServiceClaimStatus AS ServiceClaimStatusId,AW.ServiceCountryId,AW.ServiceStateId,AW.ServiceCityId 
+                AW.ServiceClaimStatus AS ServiceClaimStatusId,AW.ServiceCountryId,AW.ServiceStateId,AW.ServiceCityId
                 FROM [FixedAsset].[AssetWarranty] AW
                 INNER JOIN [FixedAsset].[MiscMaster] MMWaranty ON MMWaranty.Id=AW.WarrantyType
                 LEFT JOIN [FixedAsset].[MiscMaster] MMClaim ON MMClaim.Id=AW.ServiceClaimStatus
-                INNER JOIN [BannariERP].[AppData].[Country] C ON C.Id=AW.ServiceCountryId
-                INNER JOIN [BannariERP].[AppData].[State] S ON S.Id=AW.ServiceStateId
-                INNER JOIN [BannariERP].[AppData].[City] City ON City.Id=AW.ServiceCityId
                 WHERE AW.AssetId=@AssetId  and AW.IsDeleted=0
 
                 SELECT AA.Id,CAST(AA.StartDate AS DATE) AS StartDate,CAST(AA.EndDate AS DATE) AS EndDate,AA.Period,AA.VendorCode,AA.VendorName,
@@ -377,8 +383,8 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetMasterGeneral
                     CompanyId,
                     UnitId,
                     AssetId = assetId
-                    // ,companyName = CompanyName,
-                    // unitName = UnitName, oldUnitId = OldUnitId,oldUnitName=OldUnitName
+                     ,companyName = CompanyName,
+                     unitName = UnitName, oldUnitId = OldUnitId,oldUnitName=OldUnitName
                 });            
 
 
@@ -392,12 +398,56 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetMasterGeneral
             var insuranceDetails = (await multi.ReadAsync<dynamic>()).ToList();
             var additionalCost   = (await multi.ReadAsync<dynamic>()).ToList();
 
+            // Enrich warranty details with Country, State, City names via lookups
+            if (warrantyDetails.Count > 0)
+            {
+                var countryIds = warrantyDetails
+                    .Select(w => (int)w.ServiceCountryId)
+                    .Where(x => x > 0).Distinct().ToArray();
+                var stateIds = warrantyDetails
+                    .Select(w => (int)w.ServiceStateId)
+                    .Where(x => x > 0).Distinct().ToArray();
+                var cityIds = warrantyDetails
+                    .Select(w => (int)w.ServiceCityId)
+                    .Where(x => x > 0).Distinct().ToArray();
+
+                var countryMap = new Dictionary<int, string>();
+                var stateMap = new Dictionary<int, string>();
+                var cityMap = new Dictionary<int, string>();
+
+                if (countryIds.Length > 0)
+                {
+                    var countries = await _countryLookup.GetByIdsAsync(countryIds);
+                    countryMap = countries.Where(c => c != null).ToDictionary(c => c.CountryId, c => c.CountryName);
+                }
+                if (stateIds.Length > 0)
+                {
+                    var states = await _stateLookup.GetByIdsAsync(stateIds);
+                    stateMap = states.Where(s => s != null).ToDictionary(s => s.StateId, s => s.StateName);
+                }
+                if (cityIds.Length > 0)
+                {
+                    var cities = await _cityLookup.GetByIdsAsync(cityIds);
+                    cityMap = cities.Where(c => c != null).ToDictionary(c => c.CityId, c => c.CityName);
+                }
+
+                foreach (var w in warrantyDetails)
+                {
+                    if (countryMap.TryGetValue((int)w.ServiceCountryId, out var countryName))
+                        w.CountryName = countryName;
+                    if (stateMap.TryGetValue((int)w.ServiceStateId, out var stateName))
+                        w.StateName = stateName;
+                    if (cityMap.TryGetValue((int)w.ServiceCityId, out var cityName))
+                        w.CityName = cityName;
+                }
+            }
+
         if (locationResult != null)
         {
-            // if (departmentLookup.TryGetValue(locationResult.DepartmentId, out string deptName))
-            //     {
-            //     locationResult.DeptName = deptName;
-            // }
+             if (departmentLookup.TryGetValue(locationResult.DepartmentId, out string deptName))
+                 {
+                 locationResult.DeptName = deptName;
+             }
         
             // Fetch Custodian
             if (!string.IsNullOrEmpty(locationResult.OldUnitId) && locationResult.CustodianId > 0)
@@ -429,23 +479,23 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetMasterGeneral
 
         public async Task<(dynamic AssetResult, dynamic LocationResult, IEnumerable<dynamic> PurchaseDetails, IEnumerable<dynamic> AdditionalCost)> GetAssetMasterSplitByIdAsync(int assetId)
         {
-            // var companies = await _companyGrpcClient.GetAllCompanyAsync();
-            // var departments = await _departmentAllGrpcClient.GetDepartmentAllAsync();
-            // var units = await _unitGrpcClient.GetAllUnitAsync();
+             var companies = await _companyLookup.GetAllCompanyAsync();
+            var departments = await _departmentLookup.GetAllDepartmentAsync();
+            var units = await _unitLookup.GetAllUnitAsync();
 
-            // var companyLookup = companies.ToDictionary(c => c.CompanyId, c => c.CompanyName);
-            // var unitLookup = units.ToDictionary(u => u.UnitId, u => u.UnitName);
-            // var oldUnitLookup = units.Where(u => !string.IsNullOrEmpty(u.OldUnitId))
-            // .ToDictionary(u => u.OldUnitId, u => u.UnitName);
+            var companyLookup = companies.ToDictionary(c => c.CompanyId, c => c.CompanyName);
+            var unitLookup = units.ToDictionary(u => u.UnitId, u => u.UnitName);
+            var oldUnitLookup = units
+                .Where(u => !string.IsNullOrEmpty(u.OldUnitId))
+                .GroupBy(u => u.OldUnitId, StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(g => g.Key ?? string.Empty, g => g.First().UnitName ?? string.Empty, StringComparer.OrdinalIgnoreCase);
+            var departmentLookup = departments.ToDictionary(d => d.DepartmentId, d => d.DepartmentName);
 
-            // var departmentLookup = departments.ToDictionary(d => d.DepartmentId, d => d.DepartmentName);
+            var CompanyName = companyLookup.TryGetValue(CompanyId, out var cName) ? cName : string.Empty;
+            var UnitName = unitLookup.TryGetValue(UnitId, out var uName) ? uName : string.Empty;
+            var OldUnitName = oldUnitLookup.TryGetValue(OldUnitId, out var oName) ? oName : string.Empty;
 
-            // var CompanyName = companyLookup.TryGetValue(CompanyId, out var cName) ? cName : string.Empty;
-            // var UnitName = unitLookup.TryGetValue(UnitId, out var uName) ? uName : string.Empty;
-            // var OldUnitName = oldUnitLookup.TryGetValue(OldUnitId, out var oName) ? oName : string.Empty;
-
-
-           var sqlQuery = @"
+            var sqlQuery = @"
                 -- First Query: AssetMaster (One-to-One)
                 SELECT AM.AssetName, AM.AssetCode, AM.Quantity, U.UOMName, AG.GroupName,ASG.SubGroupName,AC.CategoryName, ASUBC.SubCategoryName, AssetParent.AssetName,AM.AssetGroupId ,AM.AssetSubGroupId,                
                 case when (isnull(AM.AssetImage,'') <> '') then MM.Description+''+MM1.Description+'/'+@companyName+'/'+@unitName +'/'+AM.AssetImage  else 
@@ -501,10 +551,10 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetMasterGeneral
                     CompanyId,
                     UnitId,
                     AssetId = assetId
-                    // ,companyName = CompanyName,
-                    // unitName = UnitName,
-                    // oldUnitId = OldUnitId,
-                    // oldUnitName = OldUnitName
+                     ,companyName = CompanyName,
+                     unitName = UnitName,
+                     oldUnitId = OldUnitId,
+                     oldUnitName = OldUnitName
                 });    
             var assetResult     = (await multi.ReadAsync<dynamic>()).FirstOrDefault();
             var locationResult  = (await multi.ReadAsync<dynamic>()).FirstOrDefault();
@@ -513,10 +563,10 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetMasterGeneral
 
             if (locationResult != null)
             {
-                // if (departmentLookup.TryGetValue(locationResult.DepartmentId, out string deptName))
-                // {
-                //     locationResult.DeptName = deptName;
-                // }
+                 if (departmentLookup.TryGetValue(locationResult.DepartmentId, out string deptName))
+                 {
+                     locationResult.DeptName = deptName;
+                 }
                 // Fetch Custodian
                 if (!string.IsNullOrEmpty(locationResult.OldUnitId) && locationResult.CustodianId > 0)
                 {                   

@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+option csharp_namespace = "GrpcServices.UserManagement.UserUnit";
+
+service UserUnitService {
+    rpc GetUserUnit (UserUnitRequest) returns (UserUnitListResponse);
+}
+message UserUnitRequest {
+    int32 UserId = 1;
+}
+message UnitDto {
+    int32 unitId = 1;
+    string unitName = 2;
+    string shortName = 3;
+    string unitHeadName = 4;
+    string OldUnitId = 5;
+    int32  spindlesCapacity=6;
+}
+
+message UserUnitListResponse {
+    repeated UnitDto units = 1;
+}
