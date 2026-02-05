@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+option csharp_namespace = "GrpcServices.Warehouse.Rack";
+package warehouse.rack;
+
+service RackService {
+  rpc GetAllRackMaster (RackListRequest) returns (RackListResponse);
+  rpc GetRackById (GetRackByIdRequest) returns (RackDto);
+}
+
+message RackListRequest {
+  int32 pageNumber = 1;      // default 1
+  int32 pageSize   = 2;      // default 15
+  string search    = 3;      // optional
+}
+
+message RackListResponse {
+  repeated RackDto items = 1;
+  int32 totalCount = 2;
+  int32 pageNumber = 3;
+  int32 pageSize   = 4;
+}
+
+message GetRackByIdRequest { int32 id = 1; }
+
+message RackDto {
+  int32 id = 1;
+  int32 warehouseId = 2;
+  string rackCode = 3;
+  string rackName = 4;
+  int32 floorId = 5;
+  int32 aisleId = 6;
+  int32 rackLevelId = 7;
+  double maxCapacity = 8;
+  int32 capacityUOMId = 9;
+  double rackWidth = 10;
+  double rackHeight = 11;
+  int32 dimensionUOMId = 12;  
+}

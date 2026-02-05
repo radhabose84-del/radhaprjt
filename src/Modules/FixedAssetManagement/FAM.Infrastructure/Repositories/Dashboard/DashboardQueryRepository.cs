@@ -1,29 +1,26 @@
 using System.Data;
+using Contracts.Interfaces.Lookups.Users; // ✅ lookup contract
 using FAM.Application.Common.Interfaces;
 using FAM.Application.Common.Interfaces.IDashboard;
 using FAM.Application.Dashboard.CardView;
 using Dapper;
 using FAM.Application.Dashboard.Common;
 using FAM.Application.Dashboard.AssetExpired;
-// using Contracts.Interfaces.External.IUser;
 
 namespace FAM.Infrastructure.Repositories.Dashboard
 {
     public class DashboardQueryRepository : IDashboardQueryRepository
     {
-
         private readonly IDbConnection _dbConnection;
         private readonly IIPAddressService _iPAddressService;
+        private readonly IDepartmentLookup _departmentLookup;  // ✅ lookup dependency
 
-        //  private readonly IDepartmentAllGrpcClient _departmentGrpcClient;
-
-        public DashboardQueryRepository(IDbConnection dbConnection, IIPAddressService iPAddressService
-        // , IDepartmentAllGrpcClient departmentGrpcClient
-        )
+        public DashboardQueryRepository(IDbConnection dbConnection, IIPAddressService iPAddressService,
+            IDepartmentLookup departmentLookup)  // ✅ inject lookup
         {
             _dbConnection = dbConnection;
             _iPAddressService = iPAddressService;
-            // _departmentGrpcClient = departmentGrpcClient;
+            _departmentLookup = departmentLookup;
         }
 
         public async Task<ChartDto> GetAssetChartViewAsync( int? departmentId = null)
@@ -48,13 +45,6 @@ namespace FAM.Infrastructure.Repositories.Dashboard
              ";
            
             var result = await _dbConnection.QueryAsync<AssetGroupSummaryDto>(query, new { UnitId = unitId  , DepartmentId = departmentId });
-            
-
-            //    var departments = await _departmentGrpcClient.GetDepartmentAllAsync();
-            // var deptLookup = departments.ToDictionary(d => d.DepartmentId, d => d.DepartmentName);
-
-       
-
 
             return new ChartDto
             {

@@ -1,0 +1,17 @@
+syntax = "proto3";
+option csharp_namespace = "Inventory.Grpc";
+
+service InventoryCategoryService {
+  rpc GetCategoryByIds (CategoryByIdsRequest) returns (InventoryCategoryResponse);
+}
+
+message CategoryByIdsRequest {
+  repeated int32 ids = 1;
+}
+
+message CategoryMasterDto {
+  int32  id        = 1;
+  string ItemCategoryName      = 2;
+}
+
+message InventoryCategoryResponse   { repeated CategoryMasterDto category = 1; }

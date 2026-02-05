@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+option csharp_namespace = "GrpcServices.FixedAsset";
+
+service FixedAssetCountryService  {
+    rpc IsCountryUsed (CountryUsageRequest) returns (CountryUsageResponse);
+}
+
+message CountryUsageRequest {
+    int32 countryId = 1;
+}
+
+message CountryUsageResponse {
+    bool isUsed = 1;
+}

@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+option csharp_namespace = "GrpcServices.FixedAsset";
+
+service FixedAssetCityService  {
+    rpc IsCityUsed (CityUsageRequest) returns (CityUsageResponse);
+}
+
+message CityUsageRequest {
+    int32 cityId  = 1;
+}
+
+message CityUsageResponse {
+    bool isUsed = 1;
+}

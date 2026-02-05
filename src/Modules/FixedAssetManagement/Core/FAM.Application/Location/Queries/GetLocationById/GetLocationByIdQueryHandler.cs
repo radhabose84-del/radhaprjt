@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
+using Contracts.Interfaces.Lookups.Users;
 using FAM.Application.Common.HttpResponse;
 using FAM.Application.Common.Interfaces.ILocation;
 using FAM.Application.Location.Queries.GetLocations;
@@ -14,13 +16,21 @@ namespace FAM.Application.Location.Queries.GetLocationById
 {
     public class GetLocationByIdQueryHandler : IRequestHandler<GetLocationByIdQuery, LocationDto>
     {
-        private readonly ILocationQueryRepository _locationQueryRepository;        
+        private readonly ILocationQueryRepository _locationQueryRepository;
         private readonly IMapper _mapper;
         private readonly IMediator _mediator;
-        public GetLocationByIdQueryHandler(ILocationQueryRepository locationQueryRepository ,IMediator mediator,IMapper mapper)        {
+        private readonly IDepartmentLookup _departmentLookup;
+
+        public GetLocationByIdQueryHandler(
+            ILocationQueryRepository locationQueryRepository,
+            IMediator mediator,
+            IMapper mapper,
+            IDepartmentLookup departmentLookup)
+        {
             _locationQueryRepository = locationQueryRepository;
             _mediator = mediator;
             _mapper = mapper;
+            _departmentLookup = departmentLookup;
         }
         public async Task<LocationDto> Handle(GetLocationByIdQuery request, CancellationToken cancellationToken)
         {
@@ -31,6 +41,17 @@ namespace FAM.Application.Location.Queries.GetLocationById
                 
             }  
            var location = _mapper.Map<LocationDto>(result);
+
+            // ✅ Enrich DepartmentName using lookup interface (UserManagement owner)
+            if (location.DepartmentId > 0)
+            {
+                var departments = await _departmentLookup.GetByIdsAsync(new[] { location.DepartmentId }, cancellationToken);
+                var dept = departments.FirstOrDefault();
+                if (dept != null)
+                {
+                    location.DepartmentName = dept.DepartmentName;
+                }
+            }
 
           //Domain Event
                 var domainEvent = new AuditLogsDomainEvent(

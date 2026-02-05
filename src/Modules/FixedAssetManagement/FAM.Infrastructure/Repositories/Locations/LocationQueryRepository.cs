@@ -123,7 +123,7 @@ namespace FAM.Infrastructure.Repositories.Locations
         public async Task<Location?> GetByLocationNameAsync(string name, int DepartmentId, int UnitId, int? id = null)
         {
             var query = @"
-            SELECT 
+            SELECT
                 L.Id,
                 L.Code,
                 L.LocationName,
@@ -142,10 +142,10 @@ namespace FAM.Infrastructure.Repositories.Locations
                 L.ModifiedByName,
                 L.ModifiedIP
             FROM FixedAsset.Location L
-            JOIN BannariERP.AppData.Department D ON D.Id = L.DepartmentId
-            JOIN BannariERP.AppData.Unit U ON U.Id = L.UnitId
-            WHERE L.LocationName = @LocationName AND L.IsDeleted = 0 AND L.DepartmentId = @DepartmentId AND L.UnitId = @UnitId
-            
+            WHERE L.LocationName = @LocationName
+              AND L.IsDeleted = 0
+              AND L.DepartmentId = @DepartmentId
+              AND L.UnitId = @UnitId
         ";
 
             return await _dbConnection.QueryFirstOrDefaultAsync<Location>(query, new { LocationName = name, DepartmentId = DepartmentId, UnitId = UnitId });

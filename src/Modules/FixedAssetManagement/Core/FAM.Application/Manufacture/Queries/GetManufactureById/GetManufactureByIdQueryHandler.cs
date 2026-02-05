@@ -1,4 +1,5 @@
 using AutoMapper;
+using Contracts.Interfaces.Lookups.Users;
 using FAM.Application.Common.HttpResponse;
 using FAM.Application.Common.Interfaces;
 using FAM.Application.Common.Interfaces.IManufacture;
@@ -14,15 +15,22 @@ namespace FAM.Application.Manufacture.Queries.GetManufactureById
         private readonly IManufactureQueryRepository _manufactureRepository;
         private readonly IMapper _mapper;
         private readonly IMediator _mediator; 
+        private readonly ICountryLookup _countryLookup;
+        private readonly IStateLookup _stateLookup;
+        private readonly ICityLookup _cityLookup;
         // private readonly ILocationLookupService _locationLookupService;  
 
-        public GetManufactureByIdQueryHandler(IManufactureQueryRepository manufactureRepository, IMapper mapper, IMediator mediator
+        public GetManufactureByIdQueryHandler(IManufactureQueryRepository manufactureRepository, IMapper mapper, IMediator mediator,
+            ICountryLookup countryLookup, IStateLookup stateLookup, ICityLookup cityLookup
         // , ILocationLookupService locationLookupService
         )
         {
             _manufactureRepository =manufactureRepository;
             _mapper =mapper;
             _mediator = mediator;
+            _countryLookup = countryLookup;
+            _stateLookup = stateLookup;
+            _cityLookup = cityLookup;
             // _locationLookupService=locationLookupService;
         }
         public async Task<ManufactureDTO> Handle(GetManufactureByIdQuery request, CancellationToken cancellationToken)
@@ -34,19 +42,27 @@ namespace FAM.Application.Manufacture.Queries.GetManufactureById
                
             }       
             var manufactureDto = _mapper.Map<ManufactureDTO>(manufacture);
-            // Get lookup data for geo enrichment
-            // var countries = await _locationLookupService.GetCountryLookupAsync();
-            // var states = await _locationLookupService.GetStateLookupAsync();
-            // var cities = await _locationLookupService.GetCityLookupAsync();
 
-            // if (countries.TryGetValue(manufactureDto.CountryId, out var countryName))
-            //     manufactureDto.CountryName = countryName;
+            if (manufactureDto.CountryId > 0)
+            {
+                var country = await _countryLookup.GetByIdAsync(manufactureDto.CountryId, cancellationToken);
+                if (country != null)
+                    manufactureDto.CountryName = country.CountryName;
+            }
 
-            // if (states.TryGetValue(manufactureDto.StateId, out var stateName))
-            //     manufactureDto.StateName = stateName;
+            if (manufactureDto.StateId > 0)
+            {
+                var state = await _stateLookup.GetByIdAsync(manufactureDto.StateId, cancellationToken);
+                if (state != null)
+                    manufactureDto.StateName = state.StateName;
+            }
 
-            // if (cities.TryGetValue(manufactureDto.CityId, out var cityName))
-            //     manufactureDto.CityName = cityName;
+            if (manufactureDto.CityId > 0)
+            {
+                var city = await _cityLookup.GetByIdAsync(manufactureDto.CityId, cancellationToken);
+                if (city != null)
+                    manufactureDto.CityName = city.CityName;
+            }
                 
             //Domain Event
             var domainEvent = new AuditLogsDomainEvent(

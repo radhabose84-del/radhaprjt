@@ -1,4 +1,8 @@
+using System.Collections.Generic;
 using System.Data;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Dapper;
 using Contracts.Dtos.Lookups.Users;
 using Contracts.Interfaces.Lookups.Users;
@@ -14,12 +18,28 @@ namespace UserManagement.Infrastructure.Repositories.Lookups.Users
             _dbConnection = dbConnection;
         }
 
+        public async Task<List<DepartmentLookupDto>> GetAllDepartmentAsync()
+        {
+            const string sql = @"
+                SELECT
+                    Id        AS DepartmentId,
+                    DeptName  AS DepartmentName,
+                    ShortName AS ShortName,DepartmentGroupId
+                FROM [AppData].[Department]
+                WHERE IsDeleted = 0
+                ORDER BY DeptName ASC;
+            ";
+
+            var result = await _dbConnection.QueryAsync<DepartmentLookupDto>(sql);
+            return result.ToList();
+        }
+
         public async Task<DepartmentLookupDto?> GetByIdAsync(int departmentId, CancellationToken ct = default)
         {
             const string sql = @"
                 SELECT TOP 1
                     Id       AS DepartmentId,
-                    DeptName AS DeptName
+                    DeptName AS DepartmentName,ShortName,Departmentgroupid
                 FROM [AppData].[Department]
                 WHERE IsDeleted = 0 AND Id = @Id;
             ";
@@ -37,7 +57,7 @@ namespace UserManagement.Infrastructure.Repositories.Lookups.Users
             const string sql = @"
                 SELECT
                     Id       AS DepartmentId,
-                    DeptName AS DeptName
+                    DeptName AS  DepartmentName,ShortName,Departmentgroupid
                 FROM [AppData].[Department]
                 WHERE IsDeleted = 0 AND Id IN @Ids;
             ";

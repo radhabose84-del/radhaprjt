@@ -1,6 +1,5 @@
 using AutoMapper;
-// using Contracts.Events.Users;
-// using Contracts.Interfaces.External.IUser;
+using Contracts.Interfaces.Lookups.Users; // ✅ lookup contract
 using FAM.Application.AssetMaster.AssetMasterGeneral.Queries.GetAssetMasterGeneral;
 using FAM.Application.Common.HttpResponse;
 using FAM.Application.Common.Interfaces;
@@ -17,20 +16,20 @@ namespace FAM.Application.AssetMaster.AssetMasterGeneral.Commands.CreateAssetMas
         private readonly IMapper _mapper;
         private readonly IAssetMasterGeneralCommandRepository _assetMasterGeneralRepository;
         private readonly IAssetMasterGeneralQueryRepository _assetMasterGeneralQueryRepository;
-        private readonly IMediator _mediator;        
-        // private readonly IUnitGrpcClient _unitGrpcClient;
-        // private readonly ICompanyGrpcClient _companyGrpcClient;
+        private readonly IMediator _mediator;
+        private readonly ICompanyLookup _companyLookup;  // ✅ lookup dependency
+        private readonly IUnitLookup _unitLookup;        // ✅ lookup dependency
 
-        public CreateAssetMasterGeneralCommandHandler(IMapper mapper, IAssetMasterGeneralCommandRepository assetMasterGeneralRepository, IAssetMasterGeneralQueryRepository assetMasterGeneralQueryRepository, IMediator mediator
-        // , IUnitGrpcClient unitGrpcClient, ICompanyGrpcClient companyGrpcClient
-        )
+        public CreateAssetMasterGeneralCommandHandler(IMapper mapper, IAssetMasterGeneralCommandRepository assetMasterGeneralRepository, IAssetMasterGeneralQueryRepository assetMasterGeneralQueryRepository, IMediator mediator,
+            ICompanyLookup companyLookup,  // ✅ inject lookup
+            IUnitLookup unitLookup)        // ✅ inject lookup
         {
             _mapper = mapper;
             _assetMasterGeneralRepository = assetMasterGeneralRepository;
             _assetMasterGeneralQueryRepository = assetMasterGeneralQueryRepository;
-            _mediator = mediator;            
-            // _unitGrpcClient = unitGrpcClient;
-            // _companyGrpcClient = companyGrpcClient;
+            _mediator = mediator;
+            _companyLookup = companyLookup;
+            _unitLookup = unitLookup;
         }
 
         public async Task<AssetMasterDto> Handle(CreateAssetMasterGeneralCommand request, CancellationToken cancellationToken)
@@ -56,20 +55,18 @@ namespace FAM.Application.AssetMaster.AssetMasterGeneral.Commands.CreateAssetMas
             {             
                 string tempFilePath = request.AssetMaster.AssetImage;
                 if (tempFilePath != null){
-                    // var companies = await _companyGrpcClient.GetAllCompanyAsync();
-                    // var units = await _unitGrpcClient.GetAllUnitAsync();
-                    //  var companyLookup = companies.ToDictionary(c => c.CompanyId, c => c.CompanyName);
-                    // var unitLookup = units.ToDictionary(u => u.UnitId, u => u.UnitName);
+                    // ✅ Get company and unit names using lookup interfaces
+                    var companies = await _companyLookup.GetAllCompanyAsync();
+                    var units = await _unitLookup.GetAllUnitAsync();
+                    var companyMap = companies.ToDictionary(c => c.CompanyId, c => c.CompanyName);
+                    var unitMap = units.ToDictionary(u => u.UnitId, u => u.UnitName);
 
-                    // var companyName = companyLookup.TryGetValue(request.AssetMaster.CompanyId, out var cname) ? cname : string.Empty;
-                    // var unitName = unitLookup.TryGetValue(request.AssetMaster.UnitId, out var uname) ? uname : string.Empty;   
+                    var companyName = companyMap.TryGetValue(request.AssetMaster.CompanyId, out var cname) ? cname : string.Empty;
+                    var unitName = unitMap.TryGetValue(request.AssetMaster.UnitId, out var uname) ? uname : string.Empty;
 
                     string baseDirectory = await _assetMasterGeneralQueryRepository.GetBaseDirectoryAsync();
 
-                    //var (companyName, unitName) = await _assetMasterGeneralQueryRepository.GetCompanyUnitAsync(request.AssetMaster.CompanyId ,request.AssetMaster.UnitId);
-                    string uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "Resources", baseDirectory
-                    // , companyName, unitName
-                    );   
+                    string uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "Resources", baseDirectory, companyName, unitName);   
                     string filePath = Path.Combine(uploadPath, tempFilePath);
                     EnsureDirectoryExists(Path.GetDirectoryName(filePath));             
 

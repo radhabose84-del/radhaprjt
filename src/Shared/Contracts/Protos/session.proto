@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+option csharp_namespace = "GrpcServices.UserManagement";
+
+service SessionService {
+    rpc GetSessionByJwtId (SessionRequest) returns (SessionResponse);
+    rpc UpdateSession (UpdateSessionRequest) returns (google.protobuf.Empty);
+}
+
+message SessionRequest {
+    string jwtId = 1;
+}
+
+message UpdateSessionRequest {
+    string jwtId = 1;
+    google.protobuf.Timestamp lastActivity = 2;
+}
+
+message SessionResponse {
+    int32 id = 1;
+    int32 userId = 2;
+    string jwtId = 3;
+    string browserInfo = 4;
+    google.protobuf.Timestamp createdAt = 5;
+    google.protobuf.Timestamp expiresAt = 6;
+    int32 isActive = 7;
+    google.protobuf.Timestamp lastActivity = 8;
+}

@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+option csharp_namespace = "GrpcServices.FixedAsset";
+
+service FixedAssetStateService {
+  rpc IsStateUsed (StateUsageRequest) returns (StateUsageResponse);
+}
+
+message StateUsageRequest {
+  int32 stateId = 1;
+}
+
+message StateUsageResponse {
+  bool isUsed = 1;
+}

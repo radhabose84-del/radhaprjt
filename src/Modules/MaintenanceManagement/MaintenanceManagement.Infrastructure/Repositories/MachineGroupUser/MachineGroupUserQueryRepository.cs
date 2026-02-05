@@ -19,8 +19,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.MachineGroupUser
             var parameters = new DynamicParameters();
             parameters.Add("machineGroupId", machineGroupId);
             parameters.Add("departmentId", departmentId);
-            parameters.Add("userId", userId);
-            
+            parameters.Add("userId", userId);           
 
             if (id is not null)
             {

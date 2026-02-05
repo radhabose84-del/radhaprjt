@@ -13,8 +13,15 @@ using MaintenanceManagement.Module;
 using PurchaseManagement.Module;
 
 var builder = WebApplication.CreateBuilder(args);
-
 var environment = builder.Environment.EnvironmentName;
+
+var swaggerModuleDocs = new[]
+{
+    new SwaggerModuleInfo("UserManagement", "User Management API", "v1", "UserManagement.API.Controllers"),
+    new SwaggerModuleInfo("FixedAssetManagement", "Fixed Asset Management API", "v1", "FAM.API.Controllers"),
+    new SwaggerModuleInfo("MaintenanceManagement", "Maintenance Management API", "v1", "MaintenanceManagement.API.Controllers"),
+    new SwaggerModuleInfo("PurchaseManagement", "Purchase Management API", "v1", "PurchaseManagement.API.Controllers")
+};
 
 builder.Configuration
     .AddJsonFile($"appsettings.{environment}.json", optional: true, reloadOnChange: true)
@@ -41,7 +48,7 @@ builder.Services.AddPurchaseManagementModule(builder.Configuration, builder.Envi
 
 // ✅ Controllers + API
 builder.Services.AddControllers();
-builder.Services.AddSwaggerDocumentation();
+builder.Services.AddSwaggerDocumentation(swaggerModuleDocs);
 builder.Services.AddJwtAuthentication(builder.Configuration);
 builder.Services.AddCorsPolicy();
 builder.Services.AddHttpContextAccessor();
@@ -55,7 +62,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "BSOFT API v1");
+        c.DocumentTitle = "BSOFT API";
+        foreach (var module in swaggerModuleDocs)
+        {
+            c.SwaggerEndpoint($"/swagger/{module.DocumentName}/swagger.json", module.Title);
+        }
         c.RoutePrefix = "swagger";
     });
 }

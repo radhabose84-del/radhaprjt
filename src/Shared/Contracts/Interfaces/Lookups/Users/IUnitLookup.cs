@@ -11,6 +11,8 @@ namespace Contracts.Interfaces.Lookups.Users
     {
         Task<UnitLookupDto?> GetByIdAsync(int unitId, CancellationToken ct = default);
         Task<IReadOnlyList<UnitLookupDto>> GetByIdsAsync(IEnumerable<int> unitIds, CancellationToken ct = default);
-
+        Task<List<UnitLookupDto>> GetAllUnitAsync();
+        Task<List<UnitLookupDto>> GetUserUnitAsync(int userId);
+        Task<List<UnitLookupDto>> GetUserUnitByUserNameAsync(string userName);
     }
 }
