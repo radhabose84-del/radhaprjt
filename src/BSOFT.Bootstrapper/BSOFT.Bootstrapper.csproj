@@ -66,6 +66,14 @@
            <!-- ✅ Add Party module -->
    <ProjectReference Include="..\Modules\PartyManagement\PartyManagement.Module\PartyManagement.Module.csproj" />
    <ProjectReference Include="..\Modules\PartyManagement\PartyManagement.Infrastructure\PartyManagement.Infrastructure.csproj" />
+          
+          <!-- ✅ Add Sales module -->
+    <ProjectReference Include="..\Modules\SalesManagement\SalesManagement.Module\SalesManagement.Module.csproj" />
+    <ProjectReference Include="..\Modules\SalesManagement\SalesManagement.Infrastructure\SalesManagement.Infrastructure.csproj" />
+
+          <!-- ✅ Add Warehouse module -->
+    <ProjectReference Include="..\Modules\WarehouseManagement\WarehouseManagement.Module\WarehouseManagement.Module.csproj" />
+    <ProjectReference Include="..\Modules\WarehouseManagement\WarehouseManagement.Infrastructure\WarehouseManagement.Infrastructure.csproj" />
 
     <ProjectReference Include="..\Shared\Contracts\Contracts.csproj" />
     <ProjectReference Include="..\Shared\Shared.Infrastructure\Shared.Infrastructure.csproj" />

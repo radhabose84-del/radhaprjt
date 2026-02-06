@@ -18,6 +18,9 @@ namespace BSOFT.Bootstrapper.Configurations
             new SwaggerModuleInfo("PurchaseManagement", "Purchase Management API", "v1", "PurchaseManagement.API.Controllers"),
             new SwaggerModuleInfo("InventoryManagement", "Inventory Management API", "v1", "InventoryManagement.API.Controllers"),
             new SwaggerModuleInfo("PartyManagement", "Party Management API", "v1", "PartyManagement.API.Controllers"),
+            new SwaggerModuleInfo("WarehouseManagement", "Warehouse Management API", "v1", "WarehouseManagement.API.Controllers"),
+            new SwaggerModuleInfo("SalesManagement", "Sales Management API", "v1", "SalesManagement.API.Controllers"),
+
         };
 
         // ✅ Expose for Program.cs SwaggerUI dropdown

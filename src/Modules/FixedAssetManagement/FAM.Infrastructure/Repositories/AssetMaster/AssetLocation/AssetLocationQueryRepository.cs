@@ -116,14 +116,14 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetLocation
 
                 return result.ToList(); // Convert IEnumerable to List
             }
-        //  public async Task<List<Core.Domain.Entities.SubLocation>> GetSublocationByIdAsync(int id)
+        //  public async Task<List<FAM.Domain.Entities.SubLocation>> GetSublocationByIdAsync(int id)
         // {
            
         //      const string query = @"
         //         SELECT  Id,Code,SubLocationName,Description,UnitId,DepartmentId,LocationId,IsActive  FROM  FixedAsset.SubLocation 
         //         WHERE  LocationId = @id  and  IsDeleted = 0 ";
 
-        //     return  await _dbConnection.QueryFirstOrDefaultAsync<Core.Domain.Entities.SubLocation>(query, new { id });
+        //     return  await _dbConnection.QueryFirstOrDefaultAsync<FAM.Domain.Entities.SubLocation>(query, new { id });
 
         // }     
 

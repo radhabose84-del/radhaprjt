@@ -25,7 +25,7 @@ namespace PartyManagement.Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Core.Domain.Entities.MiscMaster", b =>
+            modelBuilder.Entity("PartyManagement.Domain.Entities.MiscMaster", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -94,7 +94,7 @@ namespace PartyManagement.Infrastructure.Migrations
                     b.ToTable("MiscMaster", "Party");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.MiscTypeMaster", b =>
+            modelBuilder.Entity("PartyManagement.Domain.Entities.MiscTypeMaster", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -152,7 +152,7 @@ namespace PartyManagement.Infrastructure.Migrations
                     b.ToTable("MiscTypeMaster", "Party");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.PartyActivityLog", b =>
+            modelBuilder.Entity("PartyManagement.Domain.Entities.PartyActivityLog", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -212,7 +212,7 @@ namespace PartyManagement.Infrastructure.Migrations
                     b.ToTable("PartyActivityLog", "Party");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.PartyAddress", b =>
+            modelBuilder.Entity("PartyManagement.Domain.Entities.PartyAddress", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -260,7 +260,7 @@ namespace PartyManagement.Infrastructure.Migrations
                     b.ToTable("PartyAddress", "Party");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.PartyBank", b =>
+            modelBuilder.Entity("PartyManagement.Domain.Entities.PartyBank", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -314,7 +314,7 @@ namespace PartyManagement.Infrastructure.Migrations
                     b.ToTable("PartyBank", "Party");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.PartyContact", b =>
+            modelBuilder.Entity("PartyManagement.Domain.Entities.PartyContact", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -381,7 +381,7 @@ namespace PartyManagement.Infrastructure.Migrations
                     b.ToTable("PartyContact", "Party");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.PartyDocument", b =>
+            modelBuilder.Entity("PartyManagement.Domain.Entities.PartyDocument", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -416,7 +416,7 @@ namespace PartyManagement.Infrastructure.Migrations
                     b.ToTable("PartyDocument", "Party");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.PartyGroup", b =>
+            modelBuilder.Entity("PartyManagement.Domain.Entities.PartyGroup", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -499,7 +499,7 @@ namespace PartyManagement.Infrastructure.Migrations
                     b.ToTable("PartyGroup", "Party");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.PartyMaster", b =>
+            modelBuilder.Entity("PartyManagement.Domain.Entities.PartyMaster", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -731,7 +731,7 @@ namespace PartyManagement.Infrastructure.Migrations
                     b.ToTable("PartyMaster", "Party");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.PartyType", b =>
+            modelBuilder.Entity("PartyManagement.Domain.Entities.PartyType", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -763,9 +763,9 @@ namespace PartyManagement.Infrastructure.Migrations
                     b.ToTable("PartyType", "Party");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.MiscMaster", b =>
+            modelBuilder.Entity("PartyManagement.Domain.Entities.MiscMaster", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.MiscTypeMaster", "MiscTypeMaster")
+                    b.HasOne("PartyManagement.Domain.Entities.MiscTypeMaster", "MiscTypeMaster")
                         .WithMany("MiscMaster")
                         .HasForeignKey("MiscTypeId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -774,9 +774,9 @@ namespace PartyManagement.Infrastructure.Migrations
                     b.Navigation("MiscTypeMaster");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.PartyAddress", b =>
+            modelBuilder.Entity("PartyManagement.Domain.Entities.PartyAddress", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.PartyMaster", "PartyAddressId")
+                    b.HasOne("PartyManagement.Domain.Entities.PartyMaster", "PartyAddressId")
                         .WithMany("PartyAddressTypes")
                         .HasForeignKey("PartyId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -785,14 +785,14 @@ namespace PartyManagement.Infrastructure.Migrations
                     b.Navigation("PartyAddressId");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.PartyBank", b =>
+            modelBuilder.Entity("PartyManagement.Domain.Entities.PartyBank", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.MiscMaster", "BankAccountType")
+                    b.HasOne("PartyManagement.Domain.Entities.MiscMaster", "BankAccountType")
                         .WithMany("PartyBankType")
                         .HasForeignKey("AccountTypeId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("Core.Domain.Entities.PartyMaster", "PartyBankId")
+                    b.HasOne("PartyManagement.Domain.Entities.PartyMaster", "PartyBankId")
                         .WithMany("PartyBankTypes")
                         .HasForeignKey("PartyId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -803,25 +803,25 @@ namespace PartyManagement.Infrastructure.Migrations
                     b.Navigation("PartyBankId");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.PartyContact", b =>
+            modelBuilder.Entity("PartyManagement.Domain.Entities.PartyContact", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.MiscMaster", "ContactType")
+                    b.HasOne("PartyManagement.Domain.Entities.MiscMaster", "ContactType")
                         .WithMany("PartyContactType")
                         .HasForeignKey("ContactTypeId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("Core.Domain.Entities.MiscMaster", "Gender")
+                    b.HasOne("PartyManagement.Domain.Entities.MiscMaster", "Gender")
                         .WithMany("PartyGender")
                         .HasForeignKey("GenderId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("Core.Domain.Entities.PartyMaster", "PartyContactId")
+                    b.HasOne("PartyManagement.Domain.Entities.PartyMaster", "PartyContactId")
                         .WithMany("PartyContactTypes")
                         .HasForeignKey("PartyId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Core.Domain.Entities.MiscMaster", "PreferredChannel")
+                    b.HasOne("PartyManagement.Domain.Entities.MiscMaster", "PreferredChannel")
                         .WithMany("ContactPreferredChannel")
                         .HasForeignKey("PreferredChannelId")
                         .OnDelete(DeleteBehavior.Restrict);
@@ -835,15 +835,15 @@ namespace PartyManagement.Infrastructure.Migrations
                     b.Navigation("PreferredChannel");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.PartyDocument", b =>
+            modelBuilder.Entity("PartyManagement.Domain.Entities.PartyDocument", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.MiscMaster", "DocumentTypeMisc")
+                    b.HasOne("PartyManagement.Domain.Entities.MiscMaster", "DocumentTypeMisc")
                         .WithMany("PartyDocumentType")
                         .HasForeignKey("DocumentId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Core.Domain.Entities.PartyMaster", "PartyDocumentId")
+                    b.HasOne("PartyManagement.Domain.Entities.PartyMaster", "PartyDocumentId")
                         .WithMany("PartyDocumentTypes")
                         .HasForeignKey("PartyId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -854,21 +854,21 @@ namespace PartyManagement.Infrastructure.Migrations
                     b.Navigation("PartyDocumentId");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.PartyGroup", b =>
+            modelBuilder.Entity("PartyManagement.Domain.Entities.PartyGroup", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.MiscMaster", "GlCategory")
+                    b.HasOne("PartyManagement.Domain.Entities.MiscMaster", "GlCategory")
                         .WithMany("PartyGlCategoryCode")
                         .HasForeignKey("GlCategoryId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Core.Domain.Entities.MiscMaster", "GroupType")
+                    b.HasOne("PartyManagement.Domain.Entities.MiscMaster", "GroupType")
                         .WithMany("PartyGroupTypes")
                         .HasForeignKey("GroupTypeId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Core.Domain.Entities.PartyGroup", "ParentPartyGroup")
+                    b.HasOne("PartyManagement.Domain.Entities.PartyGroup", "ParentPartyGroup")
                         .WithMany("ChildPartyGroups")
                         .HasForeignKey("ParentPartyGroupId")
                         .OnDelete(DeleteBehavior.Restrict);
@@ -880,34 +880,34 @@ namespace PartyManagement.Infrastructure.Migrations
                     b.Navigation("ParentPartyGroup");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.PartyMaster", b =>
+            modelBuilder.Entity("PartyManagement.Domain.Entities.PartyMaster", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.MiscMaster", "CustomerTypeMisc")
+                    b.HasOne("PartyManagement.Domain.Entities.MiscMaster", "CustomerTypeMisc")
                         .WithMany("PartyCustomerType")
                         .HasForeignKey("CustomerTypeId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("Core.Domain.Entities.MiscMaster", "DueDateTypeMisc")
+                    b.HasOne("PartyManagement.Domain.Entities.MiscMaster", "DueDateTypeMisc")
                         .WithMany("PartyDueDateType")
                         .HasForeignKey("DueDateTypeId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("Core.Domain.Entities.MiscMaster", "MSMETypeMisc")
+                    b.HasOne("PartyManagement.Domain.Entities.MiscMaster", "MSMETypeMisc")
                         .WithMany("PartyMSMEType")
                         .HasForeignKey("MSMETypeId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("Core.Domain.Entities.MiscMaster", "ZoneType")
+                    b.HasOne("PartyManagement.Domain.Entities.MiscMaster", "ZoneType")
                         .WithMany("PartyZoneType")
                         .HasForeignKey("PartyZoneId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("Core.Domain.Entities.MiscMaster", "PaymentModeTypeMisc")
+                    b.HasOne("PartyManagement.Domain.Entities.MiscMaster", "PaymentModeTypeMisc")
                         .WithMany("PartyPaymentModeType")
                         .HasForeignKey("PayementModeId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("Core.Domain.Entities.MiscMaster", "RegistrationType")
+                    b.HasOne("PartyManagement.Domain.Entities.MiscMaster", "RegistrationType")
                         .WithMany("PartyRegistrationType")
                         .HasForeignKey("RegistrationTypeId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -926,21 +926,21 @@ namespace PartyManagement.Infrastructure.Migrations
                     b.Navigation("ZoneType");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.PartyType", b =>
+            modelBuilder.Entity("PartyManagement.Domain.Entities.PartyType", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.PartyGroup", "PartyGroup")
+                    b.HasOne("PartyManagement.Domain.Entities.PartyGroup", "PartyGroup")
                         .WithMany("PartyTypeGroups")
                         .HasForeignKey("PartyGroupId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Core.Domain.Entities.PartyMaster", "Party")
+                    b.HasOne("PartyManagement.Domain.Entities.PartyMaster", "Party")
                         .WithMany("PartyTypes")
                         .HasForeignKey("PartyId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Core.Domain.Entities.MiscMaster", "PartyTypeMisc")
+                    b.HasOne("PartyManagement.Domain.Entities.MiscMaster", "PartyTypeMisc")
                         .WithMany("PartyTypeGroup")
                         .HasForeignKey("PartyTypeId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -953,7 +953,7 @@ namespace PartyManagement.Infrastructure.Migrations
                     b.Navigation("PartyTypeMisc");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.MiscMaster", b =>
+            modelBuilder.Entity("PartyManagement.Domain.Entities.MiscMaster", b =>
                 {
                     b.Navigation("ContactPreferredChannel");
 
@@ -984,19 +984,19 @@ namespace PartyManagement.Infrastructure.Migrations
                     b.Navigation("PartyZoneType");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.MiscTypeMaster", b =>
+            modelBuilder.Entity("PartyManagement.Domain.Entities.MiscTypeMaster", b =>
                 {
                     b.Navigation("MiscMaster");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.PartyGroup", b =>
+            modelBuilder.Entity("PartyManagement.Domain.Entities.PartyGroup", b =>
                 {
                     b.Navigation("ChildPartyGroups");
 
                     b.Navigation("PartyTypeGroups");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.PartyMaster", b =>
+            modelBuilder.Entity("PartyManagement.Domain.Entities.PartyMaster", b =>
                 {
                     b.Navigation("PartyAddressTypes");
 

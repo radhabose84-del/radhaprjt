@@ -13,6 +13,8 @@ using PurchaseManagement.Module;
 using InventoryManagement.Module;
 using UserManagement.Application.Common.Behaviors;
 using PartyManagement.Module;
+using SalesManagement.Module;
+using WarehouseManagement.Module;
 
 var builder = WebApplication.CreateBuilder(args);
 var environment = builder.Environment.EnvironmentName;
@@ -41,6 +43,10 @@ builder.Services.AddMaintenanceManagementModule(builder.Configuration, builder.E
 builder.Services.AddPurchaseManagementModule(builder.Configuration, builder.Environment);
 builder.Services.AddInventoryManagementModule(builder.Configuration, builder.Environment);
 builder.Services.AddPartyManagementModule(builder.Configuration, builder.Environment);
+builder.Services.AddSalesManagementModule(builder.Configuration, builder.Environment);
+builder.Services.AddWarehouseManagementModule(builder.Configuration, builder.Environment);
+
+
 
 // ✅ Controllers + API
 builder.Services.AddControllers();

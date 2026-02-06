@@ -25,7 +25,7 @@ namespace FAM.Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Core.Domain.Entities.AssetCategories", b =>
+            modelBuilder.Entity("FAM.Domain.Entities.AssetCategories", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -95,7 +95,7 @@ namespace FAM.Infrastructure.Migrations
                     b.ToTable("AssetCategories", "FixedAsset");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.AssetGroup", b =>
+            modelBuilder.Entity("FAM.Domain.Entities.AssetGroup", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()

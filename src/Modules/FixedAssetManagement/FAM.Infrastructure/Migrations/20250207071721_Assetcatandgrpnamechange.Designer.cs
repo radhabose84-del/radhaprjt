@@ -25,7 +25,7 @@ namespace FAM.Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Core.Domain.Entities.AssetCategories", b =>
+            modelBuilder.Entity("FAM.Domain.Entities.AssetCategories", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -98,7 +98,7 @@ namespace FAM.Infrastructure.Migrations
                     b.ToTable("AssetCategories", "FixedAsset");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.AssetGroup", b =>
+            modelBuilder.Entity("FAM.Domain.Entities.AssetGroup", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -160,18 +160,18 @@ namespace FAM.Infrastructure.Migrations
                     b.ToTable("AssetGroup", "FixedAsset");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.AssetCategories", b =>
+            modelBuilder.Entity("FAM.Domain.Entities.AssetCategories", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.AssetGroup", "AssetGroup")
+                    b.HasOne("FAM.Domain.Entities.AssetGroup", "AssetGroup")
                         .WithOne("AssetCategories")
-                        .HasForeignKey("Core.Domain.Entities.AssetCategories", "AssetGroupId")
+                        .HasForeignKey("FAM.Domain.Entities.AssetCategories", "AssetGroupId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("AssetGroup");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.AssetGroup", b =>
+            modelBuilder.Entity("FAM.Domain.Entities.AssetGroup", b =>
                 {
                     b.Navigation("AssetCategories");
                 });
