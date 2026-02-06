@@ -1,4 +1,6 @@
+using System;
 using System.Data;
+using System.IO;
 using MaintenanceManagement.Application.Common.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces.IWorkOrder;
 using MaintenanceManagement.Domain.Common;
@@ -10,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore.Storage;
 using MaintenanceManagement.Application.Common;
 using MediatR;
+using Contracts.Interfaces.Lookups.Users;
 // using Contracts.Interfaces.External.IUser;
 using Microsoft.AspNetCore.SignalR;
 using MaintenanceManagement.Application.Common.RealTimeNotificationHub;
@@ -24,13 +27,13 @@ namespace MaintenanceManagement.Infrastructure.Repositories.WorkOrder
         private readonly IDbConnection _dbConnection;
         private readonly IPublishEndpoint _publishEndpoint;
         private readonly ILogger<WorkOrderCommandRepository> _logger;
-        // private readonly ICompanyGrpcClient _companyGrpcClient;     
-        // private readonly IUnitGrpcClient _unitGrpcClient;    
+        private readonly ICompanyLookup _companyLookup;     
+        private readonly IUnitLookup _unitLookup;    
         private readonly ITimeZoneService _timeZoneService;
 
         public WorkOrderCommandRepository(ApplicationDbContext applicationDbContext, IIPAddressService ipAddressService, IDbConnection dbConnection,
         IPublishEndpoint publishEndpoint, ILogger<WorkOrderCommandRepository> logger
-        // , ICompanyGrpcClient companyGrpcClient, IUnitGrpcClient unitGrpcClient
+        , ICompanyLookup companyLookup, IUnitLookup unitLookup
         , ITimeZoneService timeZoneService)
         {
             _applicationDbContext = applicationDbContext;
@@ -38,8 +41,8 @@ namespace MaintenanceManagement.Infrastructure.Repositories.WorkOrder
             _dbConnection = dbConnection;
             _publishEndpoint = publishEndpoint;
             _logger = logger;
-            // _companyGrpcClient = companyGrpcClient;
-            // _unitGrpcClient = unitGrpcClient;
+            _companyLookup = companyLookup;
+             _unitLookup = unitLookup;
             _timeZoneService = timeZoneService;
         }
         public async Task<MaintenanceManagement.Domain.Entities.WorkOrderMaster.WorkOrder> CreateAsync(MaintenanceManagement.Domain.Entities.WorkOrderMaster.WorkOrder workOrder, int requestTypeId, CancellationToken cancellationToken)
@@ -161,17 +164,17 @@ namespace MaintenanceManagement.Infrastructure.Repositories.WorkOrder
                     {
                         string baseDirectory = await GetBaseDirectoryItemAsync();
 
-                        // var companies = await _companyGrpcClient.GetAllCompanyAsync();
-                        // var units = await _unitGrpcClient.GetAllUnitAsync();
+                        var companies = await _companyLookup.GetAllCompanyAsync();
+                        var units = await _unitLookup.GetAllUnitAsync();
 
-                        // var companyLookup = companies.ToDictionary(c => c.CompanyId, c => c.CompanyName);
-                        // var unitLookup = units.ToDictionary(u => u.UnitId, u => u.UnitName);
+                        var companyLookup = companies.ToDictionary(c => c.CompanyId, c => c.CompanyName);
+                        var unitLookup = units.ToDictionary(u => u.UnitId, u => u.UnitName);
 
-                        // var companyName = companyLookup.TryGetValue(workOrder.CompanyId, out var cname) ? cname : string.Empty;
-                        // var unitName = unitLookup.TryGetValue(workOrder.UnitId, out var uname) ? uname : string.Empty;
+                        var companyName = companyLookup.TryGetValue(workOrder.CompanyId, out var cname) ? cname : string.Empty;
+                        var unitName = unitLookup.TryGetValue(workOrder.UnitId, out var uname) ? uname : string.Empty;
 
                         string uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "Resources", baseDirectory
-                        // , companyName, unitName
+                         , companyName, unitName
                         );
                         string filePath = Path.Combine(uploadPath, tempItemFilePath);
                         EnsureDirectoryExists(Path.GetDirectoryName(filePath));

@@ -1,5 +1,6 @@
 
 using AutoMapper;
+using Contracts.Interfaces.Lookups.Users;
 using MaintenanceManagement.Application.Common.HttpResponse;
 using MaintenanceManagement.Application.Common.Interfaces.IWorkOrder;
 using MaintenanceManagement.Application.WorkOrder.Queries.GetWorkOrderById;
@@ -13,16 +14,15 @@ namespace MaintenanceManagement.Application.WorkOrder.Queries.GetWorkOrder
         private readonly IWorkOrderQueryRepository _workOrderRepository;
         private readonly IMapper _mapper;
         private readonly IMediator _mediator; 
-        // private readonly IDepartmentAllGrpcClient _departmentAllGrpcClient;
+        private readonly IDepartmentLookup _departmentLookup;
 
-        public GetWorkOrderQueryHandler(IWorkOrderQueryRepository workOrderRepository, IMapper mapper, IMediator mediator
-        // , IDepartmentAllGrpcClient departmentAllGrpcClient
-        )
+        public GetWorkOrderQueryHandler(IWorkOrderQueryRepository workOrderRepository, IMapper mapper, IMediator mediator,
+         IDepartmentLookup departmentLookup)
         {
             _workOrderRepository = workOrderRepository;
             _mapper = mapper;
             _mediator = mediator;
-            // _departmentAllGrpcClient = departmentAllGrpcClient;
+            _departmentLookup = departmentLookup;
         }
   
         public async Task<ApiResponseDTO<List<Dictionary<string, List<GetWorkOrderDto>>>>> Handle(GetWorkOrderQuery request, CancellationToken cancellationToken)
@@ -30,28 +30,25 @@ namespace MaintenanceManagement.Application.WorkOrder.Queries.GetWorkOrder
            var workOrder = await _workOrderRepository.GetAllWOAsync(request.fromDate,request.toDate, request.requestTypeId, request.departmentId,request.machineId);            
            var mappedWorkOrders = _mapper.Map<List<GetWorkOrderDto>>(workOrder);
 
-            //  // 🔥 Fetch departments using gRPC
-            // var departments = await _departmentAllGrpcClient.GetDepartmentAllAsync(); // ✅ Clean call
+            var departments = await _departmentLookup.GetAllDepartmentAsync();
+            var departmentLookup = departments.ToDictionary(d => d.DepartmentId, d => d.DepartmentName);
 
-            // // var departments = departmentResponse.Departments.ToList();
-            // var departmentLookup = departments.ToDictionary(d => d.DepartmentId, d => d.DepartmentName);
+            var filteredWorkOrders = mappedWorkOrders
+                 .Where(p => departmentLookup.ContainsKey(p.DepartmentId))
+                 .Select(p =>
+                 {
+                     p.Department = departmentLookup[p.DepartmentId];
+                     return p;
+                 })
+                 .ToList();
 
-            // var filteredWorkOrders = mappedWorkOrders
-            //      .Where(p => departmentLookup.ContainsKey(p.DepartmentId))
-            //      .Select(p =>
-            //      {
-            //          p.Department = departmentLookup[p.DepartmentId];
-            //          return p;
-            //      })
-            //      .ToList();
-
-            // var groupedWorkOrders = filteredWorkOrders
-            // .GroupBy(w => w.MaintenanceType ?? "Unknown")
-            // .Select(g => new Dictionary<string, List<GetWorkOrderDto>>
-            // {
-            //     [g.Key] = g.ToList()
-            // })
-            // .ToList();
+            var groupedWorkOrders = filteredWorkOrders
+            .GroupBy(w => w.MaintenanceType ?? "Unknown")
+            .Select(g => new Dictionary<string, List<GetWorkOrderDto>>
+            {
+                [g.Key] = g.ToList()
+            })
+            .ToList();
 
             //Domain Event
             var domainEvent = new AuditLogsDomainEvent(
@@ -66,7 +63,7 @@ namespace MaintenanceManagement.Application.WorkOrder.Queries.GetWorkOrder
             {
                 IsSuccess = true,
                 Message = "Success",
-                // Data = groupedWorkOrders,          
+                Data = groupedWorkOrders,          
             };     
         }
     }

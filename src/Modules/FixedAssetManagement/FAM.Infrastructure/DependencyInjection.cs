@@ -77,6 +77,8 @@ using FAM.Infrastructure.Repositories.AssetTransferReceipt;
 using FAM.Infrastructure.Services;
 using Infrastructure.Data;
 using FAM.Application.Common.Interfaces.IAssetMaster.IAssetTransferIssue; // MongoDbContext
+using Contracts.Interfaces.Lookups.FixedAssetManagement;
+using FAM.Infrastructure.Repositories.Lookups.FixedAssetManagement;
 
 namespace FAM.Infrastructure
 {
@@ -246,6 +248,9 @@ namespace FAM.Infrastructure
             services.AddScoped<IWdvDepreciationCommandRepository, WdvDepreciationCommandRepository>();
 
             services.AddScoped<IDashboardQueryRepository, DashboardQueryRepository>();
+
+            //Lookups
+            services.AddScoped<IAssetSpecificationLookup, AssetSpecificationLookupRepository>();
 
             // ✅ IMPORTANT: Do NOT register AutoMapper here if you want ONE place.
             // Module will register AutoMapper profiles.
