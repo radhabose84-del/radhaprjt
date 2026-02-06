@@ -1,6 +1,9 @@
 
 
+using System;
+using System.IO;
 using AutoMapper;
+using Contracts.Interfaces.Lookups.Users;
 using MaintenanceManagement.Application.Common.HttpResponse;
 using MaintenanceManagement.Application.Common.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces.IWorkOrder;
@@ -16,21 +19,20 @@ namespace MaintenanceManagement.Application.WorkOrder.Command.UploadFileWorOrder
         private readonly ILogger<UploadFileWorkOrderCommandHandler> _logger;
          private readonly IIPAddressService _ipAddressService;
          private readonly IWorkOrderCommandRepository _workOrderRepository;
-        // private readonly IUnitGrpcClient _unitGrpcClient;
-        // private readonly ICompanyGrpcClient _companyGrpcClient;
+         private readonly IUnitLookup _unitLookup;
+        private readonly ICompanyLookup _companyLookup;
 
         public UploadFileWorkOrderCommandHandler(
             IWorkOrderQueryRepository woQueryRepository,
-            ILogger<UploadFileWorkOrderCommandHandler> logger, IIPAddressService ipAddressService, IWorkOrderCommandRepository workOrderRepository
-            // , IUnitGrpcClient unitGrpcClient, ICompanyGrpcClient companyGrpcClient
-            )
+            ILogger<UploadFileWorkOrderCommandHandler> logger, IIPAddressService ipAddressService, IWorkOrderCommandRepository workOrderRepository,
+            IUnitLookup unitLookup, ICompanyLookup companyLookup)
         {           
             _woQueryRepository = woQueryRepository;
             _logger = logger;
             _ipAddressService = ipAddressService;
             _workOrderRepository = workOrderRepository;
-            // _unitGrpcClient = unitGrpcClient;
-            // _companyGrpcClient = companyGrpcClient;
+            _unitLookup = unitLookup;
+            _companyLookup = companyLookup;
         }
 
         public async Task<ApiResponseDTO<WorkOrderImageDto>> Handle(UploadFileWorkOrderCommand request, CancellationToken cancellationToken)
@@ -46,17 +48,17 @@ namespace MaintenanceManagement.Application.WorkOrder.Command.UploadFileWorOrder
                _logger.LogError("Base directory path not found in database.");
                 return new ApiResponseDTO<WorkOrderImageDto> { IsSuccess = false, Message = "Base directory not configured." };
             }
-            // var companyId =_ipAddressService.GetCompanyId();
-            // var unitId = _ipAddressService.GetUnitId();
+            var companyId =_ipAddressService.GetCompanyId();
+            var unitId = _ipAddressService.GetUnitId();
             
-            //    var companies = await _companyGrpcClient.GetAllCompanyAsync();
-            // var units = await _unitGrpcClient.GetAllUnitAsync();
+            var companies = await _companyLookup.GetAllCompanyAsync();
+            var units = await _unitLookup.GetAllUnitAsync();
+    
+            var companyLookup = companies.ToDictionary(c => c.CompanyId, c => c.CompanyName);
+            var unitLookup = units.ToDictionary(u => u.UnitId, u => u.UnitName);
 
-            // var companyLookup = companies.ToDictionary(c => c.CompanyId, c => c.CompanyName);
-            // var unitLookup = units.ToDictionary(u => u.UnitId, u => u.UnitName);
-
-            // var companyName = companyLookup.TryGetValue(companyId, out var cname) ? cname : string.Empty;
-            // var unitName = unitLookup.TryGetValue(unitId, out var uname) ? uname : string.Empty;   
+            var companyName = companyLookup.TryGetValue(companyId, out var cname) ? cname : string.Empty;
+            var unitName = unitLookup.TryGetValue(unitId, out var uname) ? uname : string.Empty;   
 
             string uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "Resources", baseDirectory
             // , companyName, unitName

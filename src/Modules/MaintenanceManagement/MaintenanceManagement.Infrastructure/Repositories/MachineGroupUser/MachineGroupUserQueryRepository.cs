@@ -8,7 +8,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.MachineGroupUser
 {
     public class MachineGroupUserQueryRepository  : IMachineGroupUserQueryRepository
     {
-        private readonly IDbConnection _dbConnection; 
+        private readonly IDbConnection _dbConnection;        
         public MachineGroupUserQueryRepository(IDbConnection dbConnection)
         {
             _dbConnection = dbConnection;
@@ -38,16 +38,14 @@ namespace MaintenanceManagement.Infrastructure.Repositories.MachineGroupUser
             DECLARE @TotalCount INT;
             SELECT @TotalCount = COUNT(*) FROM [Maintenance].[MachineGroupUser]  MT 
             INNER JOIN [Maintenance].[MachineGroup] MG ON MT.MachineGroupId = MG.Id            
-            INNER JOIN BannariERP.AppSecurity.Users U ON U.UserId = MT.UserId
             WHERE MT.IsDeleted = 0
-            {{(string.IsNullOrEmpty(SearchTerm) ? "" : "AND (GroupName LIKE @Search OR UserName LIKE @Search  OR UserName LIKE @Search)")}};
+            {{(string.IsNullOrEmpty(SearchTerm) ? "" : "AND (GroupName LIKE @Search )")}};
 
-            SELECT MT.Id,MT.MachineGroupId,MT.DepartmentId,MT.UserId,MG.GroupName,'' DepartmentName,U.UserName,MT.IsActive,MT.CreatedBy,MT.CreatedDate,MT.CreatedByName,MT.CreatedIP,MT.ModifiedBy,MT.ModifiedDate,MT.ModifiedByName,MT.ModifiedIP
+            SELECT MT.Id,MT.MachineGroupId,MT.DepartmentId,MT.UserId,MG.GroupName,'' DepartmentName,'' UserName,MT.IsActive,MT.CreatedBy,MT.CreatedDate,MT.CreatedByName,MT.CreatedIP,MT.ModifiedBy,MT.ModifiedDate,MT.ModifiedByName,MT.ModifiedIP
             FROM [Maintenance].[MachineGroupUser]  MT 
             INNER JOIN [Maintenance].[MachineGroup] MG ON MT.MachineGroupId = MG.Id            
-            INNER JOIN BannariERP.AppSecurity.Users U ON U.UserId = MT.UserId
             WHERE MT.IsDeleted = 0            
-            {{(string.IsNullOrEmpty(SearchTerm) ? "" : "AND (GroupName LIKE @Search OR UserName LIKE @Search )")}}
+            {{(string.IsNullOrEmpty(SearchTerm) ? "" : "AND (GroupName LIKE @Search )")}}
             ORDER BY Id desc
             OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
             SELECT @TotalCount AS TotalCount;
@@ -68,10 +66,9 @@ namespace MaintenanceManagement.Infrastructure.Repositories.MachineGroupUser
 
         public async Task<MachineGroupUserDto> GetByIdAsync(int id)
         {
-            const string query = @"SELECT MT.Id,MT.MachineGroupId,MT.DepartmentId,MT.UserId,MG.GroupName,'' DepartmentName,U.UserName,MT.IsActive,MT.CreatedBy,MT.CreatedDate,MT.CreatedByName,MT.CreatedIP,MT.ModifiedBy,MT.ModifiedDate,MT.ModifiedByName,MT.ModifiedIP,MT.IsDeleted
+            const string query = @"SELECT MT.Id,MT.MachineGroupId,MT.DepartmentId,MT.UserId,MG.GroupName,'' DepartmentName,'' UserName,MT.IsActive,MT.CreatedBy,MT.CreatedDate,MT.CreatedByName,MT.CreatedIP,MT.ModifiedBy,MT.ModifiedDate,MT.ModifiedByName,MT.ModifiedIP,MT.IsDeleted
             FROM [Maintenance].[MachineGroupUser]  MT 
             INNER JOIN [Maintenance].[MachineGroup] MG ON MT.MachineGroupId = MG.Id            
-            INNER JOIN BannariERP.AppSecurity.Users U ON U.UserId = MT.UserId
             WHERE  MT.Id = @Id AND MT.IsDeleted = 0";
             return await _dbConnection.QueryFirstOrDefaultAsync<MachineGroupUserDto>(query, new { id });
         }
@@ -79,10 +76,9 @@ namespace MaintenanceManagement.Infrastructure.Repositories.MachineGroupUser
         public async Task<List<MachineGroupUserAutoCompleteDto>> GetMachineGroupUserByName(string searchPattern)
         {
             const string query = @"
-            SELECT MT.Id, MT.MachineGroupId,GroupName,UserName,MT.DepartmentId,'' DepartmentName,MT.IsActive,MT.IsDeleted
+            SELECT MT.Id, MT.MachineGroupId,GroupName,'' UserName,MT.DepartmentId,'' DepartmentName,MT.IsActive,MT.IsDeleted
             FROM [Maintenance].[MachineGroupUser]  MT 
             INNER JOIN [Maintenance].[MachineGroup] MG ON MT.MachineGroupId = MG.Id            
-            INNER JOIN BannariERP.AppSecurity.Users U ON U.UserId = MT.UserId
             WHERE MT.IsDeleted = 0 AND GroupName LIKE @SearchPattern";
                 
             var shiftMasters = await _dbConnection.QueryAsync<MachineGroupUserAutoCompleteDto>(query, new { SearchPattern = $"%{searchPattern}%" });

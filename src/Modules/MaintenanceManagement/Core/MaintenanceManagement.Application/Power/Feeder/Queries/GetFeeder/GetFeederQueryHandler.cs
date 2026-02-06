@@ -1,9 +1,9 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
-// using Contracts.Interfaces.External.IUser;
+using Contracts.Interfaces.Lookups.Users;
 using MaintenanceManagement.Application.Common.HttpResponse;
 using MaintenanceManagement.Application.Common.Interfaces.Power.IFeeder;
 using MaintenanceManagement.Domain.Events;
@@ -16,19 +16,21 @@ namespace MaintenanceManagement.Application.Power.Feeder.Queries.GetFeeder
         private readonly IFeederQueryRepository _feederQueryRepository;
         private readonly IMapper _mapper;
         private readonly IMediator _mediator;
-        // private readonly IDepartmentAllGrpcClient _departmentAllGrpcClient;
-        // private readonly IUnitGrpcClient _unitGrpcClient;
+        private readonly IDepartmentLookup _departmentLookup;
+        private readonly IUnitLookup _unitLookup;
 
-
-        public GetFeederQueryHandler(IFeederQueryRepository feederQueryRepository, IMapper mapper, IMediator mediator
-        // , IDepartmentAllGrpcClient departmentAllGrpcClient, IUnitGrpcClient unitGrpcClient
-        )
+        public GetFeederQueryHandler(
+            IFeederQueryRepository feederQueryRepository,
+            IMapper mapper,
+            IMediator mediator,
+            IDepartmentLookup departmentLookup,
+            IUnitLookup unitLookup)
         {
             _feederQueryRepository = feederQueryRepository;
             _mapper = mapper;
             _mediator = mediator;
-            // _departmentAllGrpcClient = departmentAllGrpcClient;
-            // _unitGrpcClient = unitGrpcClient;
+            _departmentLookup = departmentLookup;
+            _unitLookup = unitLookup;
         }
 
         public async Task<ApiResponseDTO<List<GetFeederDto>>> Handle(GetFeederQuery request, CancellationToken cancellationToken)
@@ -36,31 +38,24 @@ namespace MaintenanceManagement.Application.Power.Feeder.Queries.GetFeeder
             var (Feeder, totalCount) = await _feederQueryRepository.GetAllFeederAsync(request.PageNumber, request.PageSize, request.SearchTerm);            
             var Feederlist = _mapper.Map<List<GetFeederDto>>(Feeder);  
 
-            //  var departments = await _departmentAllGrpcClient.GetDepartmentAllAsync();
-            // var departmentLookup = departments.ToDictionary(d => d.DepartmentId, d => d.DepartmentName);
-            // 🔥 Map department & unit names with DataControl to costCenters
-            // foreach (var dto in Feederlist)
-            // {
-            //     if (departmentLookup.TryGetValue(dto.DepartmentId, out var deptName))
-            //         dto.DepartmentName = deptName;
+            var departments = await _departmentLookup.GetAllDepartmentAsync();
+            var departmentLookup = departments.ToDictionary(d => d.DepartmentId, d => d.DepartmentName);
 
-            // }
-            
-            //   var units = await _unitGrpcClient.GetAllUnitAsync();
-            // var unitLookup = units.ToDictionary(u => u.UnitId, u => u.UnitName);  
-            var powerConsumptionDictionary = new Dictionary<int, GetFeederDto>();
+            var units = await _unitLookup.GetAllUnitAsync();
+            var unitLookup = units.ToDictionary(u => u.UnitId, u => u.UnitName);
 
-            // 🔥 Map unit names with DataControl to costCenters
             foreach (var data in Feederlist)
             {
-                // if (unitLookup.TryGetValue(data.UnitId, out var unitName) && unitName != null)
-                // {
-                //     data.UnitName = unitName;
-                // }
+                if (departmentLookup.TryGetValue(data.DepartmentId, out var departmentName) && departmentName != null)
+                {
+                    data.DepartmentName = departmentName;
+                }
 
-                powerConsumptionDictionary[data.UnitId] = data;
-
-            }     
+                if (unitLookup.TryGetValue(data.UnitId, out var unitName) && unitName != null)
+                {
+                    data.UnitName = unitName;
+                }
+            }
 
             //Domain Event
             var domainEvent = new AuditLogsDomainEvent(
