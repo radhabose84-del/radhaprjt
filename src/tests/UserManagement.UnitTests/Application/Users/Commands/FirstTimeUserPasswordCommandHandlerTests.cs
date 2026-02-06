@@ -1,11 +1,11 @@
 using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
-using Core.Application.Common.HttpResponse;
-using Core.Application.Common.Interfaces;
-using Core.Application.Common.Interfaces.IUser;
-using Core.Application.Users.Commands.UpdateFirstTimeUserPassword;
-using Core.Domain.Entities;
+using UserManagement.Application.Common.HttpResponse;
+using UserManagement.Application.Common.Interfaces;
+using UserManagement.Application.Common.Interfaces.IUser;
+using UserManagement.Application.Users.Commands.UpdateFirstTimeUserPassword;
+using UserManagement.Domain.Entities;
 using FluentAssertions;
 using Moq;
 using Xunit;

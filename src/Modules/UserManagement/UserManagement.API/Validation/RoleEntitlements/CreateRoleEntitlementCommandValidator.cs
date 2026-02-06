@@ -1,7 +1,7 @@
 using FluentValidation;
-using Core.Domain.Entities;
-using Core.Application.Users.Commands.CreateUser;
-using Core.Application.RoleEntitlements.Commands.CreateRoleEntitlement;
+using UserManagement.Domain.Entities;
+using UserManagement.Application.Users.Commands.CreateUser;
+using UserManagement.Application.RoleEntitlements.Commands.CreateRoleEntitlement;
 using UserManagement.API.Validation.Common;
 using Serilog;
 using Shared.Validation.Common;

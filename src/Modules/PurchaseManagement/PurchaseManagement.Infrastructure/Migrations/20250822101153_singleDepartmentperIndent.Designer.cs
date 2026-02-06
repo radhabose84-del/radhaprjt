@@ -25,7 +25,7 @@ namespace PurchaseManagement.Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Core.Domain.Entities.IndentDetail", b =>
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.IndentDetail", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -104,7 +104,7 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.ToTable("IndentDetail", "Purchase");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.IndentHeader", b =>
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.IndentHeader", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -180,7 +180,7 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.ToTable("IndentHeader", "Purchase");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.IndentLog", b =>
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.IndentLog", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -234,7 +234,7 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.ToTable("IndentLog", "Purchase");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.MiscMaster", b =>
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.MiscMaster", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -303,7 +303,7 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.ToTable("MiscMaster", "Purchase");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.MiscTypeMaster", b =>
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.MiscTypeMaster", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -361,9 +361,9 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.ToTable("MiscTypeMaster", "Purchase");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.IndentDetail", b =>
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.IndentDetail", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.IndentHeader", "IndentHeader")
+                    b.HasOne("PurchaseManagement.Domain.Entities.IndentHeader", "IndentHeader")
                         .WithMany("IndentDetails")
                         .HasForeignKey("IndentHeaderId")
                         .OnDelete(DeleteBehavior.NoAction)
@@ -372,9 +372,9 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.Navigation("IndentHeader");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.IndentHeader", b =>
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.IndentHeader", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.MiscMaster", "IndentType")
+                    b.HasOne("PurchaseManagement.Domain.Entities.MiscMaster", "IndentType")
                         .WithMany("IndentType")
                         .HasForeignKey("IndentTypeId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -383,9 +383,9 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.Navigation("IndentType");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.MiscMaster", b =>
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.MiscMaster", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.MiscTypeMaster", "MiscTypeMaster")
+                    b.HasOne("PurchaseManagement.Domain.Entities.MiscTypeMaster", "MiscTypeMaster")
                         .WithMany("MiscMaster")
                         .HasForeignKey("MiscTypeId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -394,17 +394,17 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.Navigation("MiscTypeMaster");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.IndentHeader", b =>
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.IndentHeader", b =>
                 {
                     b.Navigation("IndentDetails");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.MiscMaster", b =>
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.MiscMaster", b =>
                 {
                     b.Navigation("IndentType");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.MiscTypeMaster", b =>
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.MiscTypeMaster", b =>
                 {
                     b.Navigation("MiscMaster");
                 });

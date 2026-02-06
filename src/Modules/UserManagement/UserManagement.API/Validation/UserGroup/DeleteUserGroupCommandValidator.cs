@@ -1,5 +1,5 @@
-using Core.Application.Common.Interfaces.IUserGroup;
-using Core.Application.UserGroup.Commands.DeleteUserGroup;
+using UserManagement.Application.Common.Interfaces.IUserGroup;
+using UserManagement.Application.UserGroup.Commands.DeleteUserGroup;
 using FluentValidation;
 using Shared.Validation.Common;
 using UserManagement.API.Validation.Common;

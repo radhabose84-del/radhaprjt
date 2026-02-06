@@ -1,8 +1,8 @@
 using UserManagement.API.Validation.Common;
-using Core.Application.Companies.Commands.CreateCompany;
-using Core.Domain.Entities;
+using UserManagement.Application.Companies.Commands.CreateCompany;
+using UserManagement.Domain.Entities;
 using FluentValidation;
-using Core.Application.Common.Interfaces.ICompany;
+using UserManagement.Application.Common.Interfaces.ICompany;
 using Shared.Validation.Common;
 
 namespace UserManagement.API.Validation.Companies

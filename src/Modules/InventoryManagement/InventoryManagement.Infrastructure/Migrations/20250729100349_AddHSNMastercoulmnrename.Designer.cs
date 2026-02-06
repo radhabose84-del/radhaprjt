@@ -25,7 +25,7 @@ namespace InventoryManagement.Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Core.Domain.Entities.HSNMaster", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.HSNMaster", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -116,7 +116,7 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.ToTable("HSNMaster", "Inventory");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Item.ItemCategory", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemCategory", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -193,7 +193,7 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.ToTable("ItemCategory", "Inventory");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Item.ItemGroup", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemGroup", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -253,7 +253,7 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.ToTable("ItemGroup", "Inventory");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.MiscMaster", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.MiscMaster", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -322,7 +322,7 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.ToTable("MiscMaster", "Inventory");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.MiscTypeMaster", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.MiscTypeMaster", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -380,9 +380,9 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.ToTable("MiscTypeMaster", "Inventory");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.HSNMaster", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.HSNMaster", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.MiscMaster", "GstCategory")
+                    b.HasOne("InventoryManagement.Domain.Entities.MiscMaster", "GstCategory")
                         .WithMany("HSNMasters")
                         .HasForeignKey("GSTCategoryId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -391,20 +391,20 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.Navigation("GstCategory");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Item.ItemCategory", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemCategory", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.Item.ItemGroup", "ItemGroup")
+                    b.HasOne("InventoryManagement.Domain.Entities.Item.ItemGroup", "ItemGroup")
                         .WithMany("ItemCategory")
                         .HasForeignKey("ItemGroupId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Core.Domain.Entities.Item.ItemCategory", "ItemCategoryParent")
+                    b.HasOne("InventoryManagement.Domain.Entities.Item.ItemCategory", "ItemCategoryParent")
                         .WithMany("ChildCategories")
                         .HasForeignKey("ParentCategoryId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("Core.Domain.Entities.Item.ItemCategory", "RootCategory")
+                    b.HasOne("InventoryManagement.Domain.Entities.Item.ItemCategory", "RootCategory")
                         .WithMany()
                         .HasForeignKey("RootCategoryId");
 
@@ -415,9 +415,9 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.Navigation("RootCategory");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.MiscMaster", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.MiscMaster", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.MiscTypeMaster", "MiscTypeMaster")
+                    b.HasOne("InventoryManagement.Domain.Entities.MiscTypeMaster", "MiscTypeMaster")
                         .WithMany("MiscMaster")
                         .HasForeignKey("MiscTypeId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -426,22 +426,22 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.Navigation("MiscTypeMaster");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Item.ItemCategory", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemCategory", b =>
                 {
                     b.Navigation("ChildCategories");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Item.ItemGroup", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemGroup", b =>
                 {
                     b.Navigation("ItemCategory");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.MiscMaster", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.MiscMaster", b =>
                 {
                     b.Navigation("HSNMasters");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.MiscTypeMaster", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.MiscTypeMaster", b =>
                 {
                     b.Navigation("MiscMaster");
                 });

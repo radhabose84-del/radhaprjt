@@ -1,5 +1,5 @@
 using FluentValidation;
-using Core.Application.Entity.Commands.CreateEntity;
+using UserManagement.Application.Entity.Commands.CreateEntity;
 using UserManagement.API.Validation.Common;
 using Serilog;
 using Shared.Validation.Common;
@@ -12,11 +12,11 @@ namespace UserManagement.API.Validation.Entity
          
          public CreateEntityCommandValidator(MaxLengthProvider maxLengthProvider)
          {
-            var EntityNameMaxLength = maxLengthProvider.GetMaxLength<Core.Domain.Entities.Entity>("EntityName") ?? 100;
-            var EntityDescriptionMaxLength = maxLengthProvider.GetMaxLength<Core.Domain.Entities.Entity>("EntityDescription") ?? 250;
-            var AddressMaxLength = maxLengthProvider.GetMaxLength<Core.Domain.Entities.Entity>("Address") ?? 200;
-            var PhoneMaxLength = maxLengthProvider.GetMaxLength<Core.Domain.Entities.Entity>("Phone") ?? 40;
-            var EmailMaxLength = maxLengthProvider.GetMaxLength<Core.Domain.Entities.Entity>("Email") ?? 200;
+            var EntityNameMaxLength = maxLengthProvider.GetMaxLength<UserManagement.Domain.Entities.Entity>("EntityName") ?? 100;
+            var EntityDescriptionMaxLength = maxLengthProvider.GetMaxLength<UserManagement.Domain.Entities.Entity>("EntityDescription") ?? 250;
+            var AddressMaxLength = maxLengthProvider.GetMaxLength<UserManagement.Domain.Entities.Entity>("Address") ?? 200;
+            var PhoneMaxLength = maxLengthProvider.GetMaxLength<UserManagement.Domain.Entities.Entity>("Phone") ?? 40;
+            var EmailMaxLength = maxLengthProvider.GetMaxLength<UserManagement.Domain.Entities.Entity>("Email") ?? 200;
 
             // Load validation rules from JSON or another source
             _validationRules = ValidationRuleLoader.LoadValidationRules();

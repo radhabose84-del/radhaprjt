@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using UserManagement.API.Validation.Common;
-using Core.Application.CompanySettings.Commands.UpdateCompanySettings;
+using UserManagement.Application.CompanySettings.Commands.UpdateCompanySettings;
 using FluentValidation;
-using Core.Application.Common.Interfaces.ICompanySettings;
+using UserManagement.Application.Common.Interfaces.ICompanySettings;
 using Shared.Validation.Common;
 
 namespace UserManagement.API.Validation.CompanySettings

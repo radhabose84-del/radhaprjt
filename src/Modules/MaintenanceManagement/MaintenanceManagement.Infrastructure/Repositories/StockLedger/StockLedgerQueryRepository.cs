@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using MaintenanceManagement.Application.Common.Interfaces.IStcokLedger;
 using MaintenanceManagement.Application.StockLedger.Queries.GetCurrentStock;
 using MaintenanceManagement.Application.StockLedger.Queries.GetCurrentStockItemsById;
-// using Core.Application.StockLedger.Queries.GetStockLegerReport;
+// using MaintenanceManagement.Application.StockLedger.Queries.GetStockLegerReport;
 using Dapper;
 
 namespace MaintenanceManagement.Infrastructure.Repositories.StockLedger

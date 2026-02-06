@@ -2,7 +2,7 @@ using UserManagement.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
-using Core.Application.Common.Interfaces;
+using UserManagement.Application.Common.Interfaces;
 using UserManagement.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Http;
 using UserManagement.Infrastructure.Services;

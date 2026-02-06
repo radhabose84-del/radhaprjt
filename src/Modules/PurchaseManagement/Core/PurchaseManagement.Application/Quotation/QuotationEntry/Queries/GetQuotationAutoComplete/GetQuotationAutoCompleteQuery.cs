@@ -1,4 +1,4 @@
-// Core.Application/Quotations/QuotationEntry/Queries/GetQuotationAutoComplete/GetQuotationAutoCompleteQuery.cs
+// PurchaseManagement.Application/Quotations/QuotationEntry/Queries/GetQuotationAutoComplete/GetQuotationAutoCompleteQuery.cs
 using PurchaseManagement.Application.Quotations.QuotationEntry.DTOs;
 using MediatR;
 

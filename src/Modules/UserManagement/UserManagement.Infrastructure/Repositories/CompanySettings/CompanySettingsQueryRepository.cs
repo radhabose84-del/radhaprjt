@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
-using Core.Application.Common.Interfaces;
-using Core.Application.Common.Interfaces.ICompanySettings;
+using UserManagement.Application.Common.Interfaces;
+using UserManagement.Application.Common.Interfaces.ICompanySettings;
 using Dapper;
 
 namespace UserManagement.Infrastructure.Repositories.CompanySettings
@@ -19,13 +19,13 @@ namespace UserManagement.Infrastructure.Repositories.CompanySettings
             _dbConnection = dbConnection;
             _ipAddressService = ipAddressService;
         }
-        public async Task<Core.Domain.Entities.CompanySettings> GetAsync()
+        public async Task<UserManagement.Domain.Entities.CompanySettings> GetAsync()
         {
               var companyId = _ipAddressService.GetCompanyId();
        
             const string query = "SELECT * FROM AppData.CompanySetting where CompanyId = @CompanyId";
             
-            return await _dbConnection.QueryFirstOrDefaultAsync<Core.Domain.Entities.CompanySettings>(query, new { CompanyId = companyId });
+            return await _dbConnection.QueryFirstOrDefaultAsync<UserManagement.Domain.Entities.CompanySettings>(query, new { CompanyId = companyId });
         }
          public async Task<bool> AlreadyExistsAsync(int CompanyId, int? id = null)
           {

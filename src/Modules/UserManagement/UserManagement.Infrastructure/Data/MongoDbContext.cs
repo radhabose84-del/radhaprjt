@@ -1,4 +1,4 @@
-using Core.Application.Common.Interfaces;
+using UserManagement.Application.Common.Interfaces;
 using MongoDB.Driver;
 
 namespace Infrastructure.Data

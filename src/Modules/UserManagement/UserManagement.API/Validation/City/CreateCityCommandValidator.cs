@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Core.Application.City.Commands.CreateCity;
-using Core.Domain.Entities;
+using UserManagement.Application.City.Commands.CreateCity;
+using UserManagement.Domain.Entities;
 using FluentValidation;
 using Shared.Validation.Common;
 using UserManagement.API.Validation.Common;

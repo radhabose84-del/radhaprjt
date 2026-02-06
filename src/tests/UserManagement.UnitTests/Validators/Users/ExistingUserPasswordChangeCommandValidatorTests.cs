@@ -1,7 +1,7 @@
 using System.Linq;
 using System.Threading.Tasks;
-using Core.Application.Common.Interfaces;
-using Core.Application.Users.Commands.ChangeUserPassword;
+using UserManagement.Application.Common.Interfaces;
+using UserManagement.Application.Users.Commands.ChangeUserPassword;
 using FluentValidation.TestHelper;
 using Moq;
 using UserManagement.API.Validation.Users;

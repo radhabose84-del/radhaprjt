@@ -1,0 +1,13 @@
+using UserManagement.Application.City.Queries.GetCities;
+using MediatR;
+using UserManagement.Application.Common.HttpResponse;
+
+namespace UserManagement.Application.City.Commands.CreateCity
+{     
+    public class CreateCityCommand : IRequest<CityDto>
+    {
+        public int StateId { get; set; }
+        public string? CityCode { get; set; } 
+        public string? CityName { get; set; } 
+    }
+}

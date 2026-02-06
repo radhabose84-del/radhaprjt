@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using UserManagement.API.Validation.Common;
-using Core.Application.FinancialYear.Command.CreateFinancialYear;
+using UserManagement.Application.FinancialYear.Command.CreateFinancialYear;
 using FluentValidation;
 using Shared.Validation.Common;
 
@@ -17,8 +17,8 @@ namespace UserManagement.API.Validation.FinancialYear
        
     public CreateFinancialYearCommandValidator(MaxLengthProvider maxLengthProvider)
     {
-        var startYearMaxLength = maxLengthProvider.GetMaxLength<Core.Domain.Entities.FinancialYear>("StartYear") ?? 50;
-        var finYearNameMaxLength = maxLengthProvider.GetMaxLength<Core.Domain.Entities.FinancialYear>("FinYearName") ?? 50;
+        var startYearMaxLength = maxLengthProvider.GetMaxLength<UserManagement.Domain.Entities.FinancialYear>("StartYear") ?? 50;
+        var finYearNameMaxLength = maxLengthProvider.GetMaxLength<UserManagement.Domain.Entities.FinancialYear>("FinYearName") ?? 50;
 
         _validationRules = ValidationRuleLoader.LoadValidationRules();
         if (_validationRules == null || !_validationRules.Any())

@@ -1,8 +1,8 @@
 using MediatR;
 using UserManagement.Infrastructure.Data;
-using Core.Application.Modules.Commands.UpdateModule;
-using Core.Application.Modules.Commands.CreateModule;
-using Core.Application.Modules.Queries.GetModules;
+using UserManagement.Application.Modules.Commands.UpdateModule;
+using UserManagement.Application.Modules.Commands.CreateModule;
+using UserManagement.Application.Modules.Queries.GetModules;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -10,10 +10,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Core.Application.Modules.Commands.DeleteModule;
+using UserManagement.Application.Modules.Commands.DeleteModule;
 using Microsoft.AspNetCore.Authorization;
-using Core.Application.Modules.Queries.GetModuleById;
-using Core.Application.Modules.Queries.GetModuleAutoComplete;
+using UserManagement.Application.Modules.Queries.GetModuleById;
+using UserManagement.Application.Modules.Queries.GetModuleAutoComplete;
 
 namespace UserManagement.API.Controllers
 {

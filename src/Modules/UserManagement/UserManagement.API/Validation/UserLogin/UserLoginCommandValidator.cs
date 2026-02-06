@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using UserManagement.API.Validation.Common;
-using Core.Application.UserLogin.Commands.UserLogin;
-using Core.Domain.Entities;
+using UserManagement.Application.UserLogin.Commands.UserLogin;
+using UserManagement.Domain.Entities;
 using FluentValidation;
-using Core.Application.Common.Interfaces.IUser;
-using Core.Application.Common.Interfaces.IUserSession;
-using Core.Application.Common.Interfaces.ICompanySettings;
-using Core.Application.Common.Interfaces;
+using UserManagement.Application.Common.Interfaces.IUser;
+using UserManagement.Application.Common.Interfaces.IUserSession;
+using UserManagement.Application.Common.Interfaces.ICompanySettings;
+using UserManagement.Application.Common.Interfaces;
 using Shared.Validation.Common;
 
 namespace UserManagement.API.Validation.UserLogin

@@ -1,8 +1,8 @@
-using Core.Application.Common.Interfaces.AuditLog;
-using Core.Domain.Entities;
+using UserManagement.Application.Common.Interfaces.AuditLog;
+using UserManagement.Domain.Entities;
 using MongoDB.Driver;
 using Microsoft.AspNetCore.Http;
-using Core.Application.Common.Interfaces;
+using UserManagement.Application.Common.Interfaces;
 
 namespace UserManagement.Infrastructure.Repositories
 {

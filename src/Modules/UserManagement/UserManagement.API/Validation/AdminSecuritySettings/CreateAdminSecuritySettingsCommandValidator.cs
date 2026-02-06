@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using FluentValidation;
 using UserManagement.API.Validation.Common;
-using Core.Application.AdminSecuritySettings.Commands.CreateAdminSecuritySettings;
+using UserManagement.Application.AdminSecuritySettings.Commands.CreateAdminSecuritySettings;
 using Shared.Validation.Common;
 
 

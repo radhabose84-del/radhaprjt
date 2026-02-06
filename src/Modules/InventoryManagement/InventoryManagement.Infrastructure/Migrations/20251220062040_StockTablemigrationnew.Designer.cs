@@ -25,7 +25,7 @@ namespace InventoryManagement.Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Core.Domain.Entities.Budget.BudgetDetail", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Budget.BudgetDetail", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -75,7 +75,7 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.ToTable("BudgetDetail", "Inventory");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Budget.BudgetLog", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Budget.BudgetLog", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -134,7 +134,7 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.ToTable("BudgetLog", "Inventory");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Budget.BudgetMaster", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Budget.BudgetMaster", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -197,7 +197,7 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.ToTable("BudgetMaster", "Inventory");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.HSNMaster", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.HSNMaster", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -290,7 +290,7 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.ToTable("HSNMaster", "Inventory");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Item.ItemCategory", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemCategory", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -371,7 +371,7 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.ToTable("ItemCategory", "Inventory");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Item.ItemDetail.ItemInventory", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemDetail.ItemInventory", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -460,7 +460,7 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.ToTable("ItemInventory", "Inventory");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Item.ItemDetail.ItemLog", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemDetail.ItemLog", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -531,7 +531,7 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.ToTable("ItemLogs", "Inventory");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Item.ItemDetail.ItemManufacture", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemDetail.ItemManufacture", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -561,7 +561,7 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.ToTable("ItemManufacture", "Inventory");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Item.ItemDetail.ItemMaster", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemDetail.ItemMaster", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -710,7 +710,7 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.ToTable("ItemMaster", "Inventory");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Item.ItemDetail.ItemPurchase", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemDetail.ItemPurchase", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -771,7 +771,7 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.ToTable("ItemPurchase", "Inventory");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Item.ItemDetail.ItemQuality", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemDetail.ItemQuality", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -820,7 +820,7 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.ToTable("ItemQuality", "Inventory");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Item.ItemDetail.ItemSupplier", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemDetail.ItemSupplier", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -876,7 +876,7 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.ToTable("ItemSupplier", "Inventory");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Item.ItemDetail.ItemUOM", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemDetail.ItemUOM", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -906,7 +906,7 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.ToTable("ItemUOM", "Inventory");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Item.ItemDetail.Templates.InspectionTemplate", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemDetail.Templates.InspectionTemplate", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -955,7 +955,7 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.ToTable("InspectionTemplate", "Inventory");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Item.ItemDetail.Variant.ItemVariantAttribute", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemDetail.Variant.ItemVariantAttribute", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -995,7 +995,7 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.ToTable("ItemVariantAttribute", "Inventory");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Item.ItemDetail.Variant.ItemVariantValue", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemDetail.Variant.ItemVariantValue", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1033,7 +1033,7 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.ToTable("ItemVariantValue", "Inventory");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Item.ItemGroup", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemGroup", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1093,7 +1093,7 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.ToTable("ItemGroup", "Inventory");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Item.PutAway.PutAwayRule", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.PutAway.PutAwayRule", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1162,7 +1162,7 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.ToTable("PutAwayRule", "Inventory");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Item.PutAway.PutAwayStrategy", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.PutAway.PutAwayStrategy", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1226,7 +1226,7 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.ToTable("PutAwayStrategy", "Inventory");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.MiscMaster", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.MiscMaster", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1295,7 +1295,7 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.ToTable("MiscMaster", "Inventory");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.MiscTypeMaster", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.MiscTypeMaster", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1353,7 +1353,7 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.ToTable("MiscTypeMaster", "Inventory");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Stock.StockLedger", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Stock.StockLedger", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1427,7 +1427,7 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.ToTable("StockLedger", "Inventory");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Stock.SubStoreStockLedger", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Stock.SubStoreStockLedger", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1505,7 +1505,7 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.ToTable("SubStoreStockLedger", "Inventory");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.UOM", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.UOM", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1572,7 +1572,7 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.ToTable("UOM", "Inventory");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.UOMConversion", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.UOMConversion", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1632,7 +1632,7 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.ToTable("UOMConversion", "Inventory");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.item.ItemDetail.Templates.InspectionParameter", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.item.ItemDetail.Templates.InspectionParameter", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1696,9 +1696,9 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.ToTable("InspectionParameter", "Inventory");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Budget.BudgetDetail", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Budget.BudgetDetail", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.Budget.BudgetMaster", "BudgetMaster")
+                    b.HasOne("InventoryManagement.Domain.Entities.Budget.BudgetMaster", "BudgetMaster")
                         .WithMany("BudgetDetail")
                         .HasForeignKey("BudgetId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -1707,15 +1707,15 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.Navigation("BudgetMaster");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Budget.BudgetLog", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Budget.BudgetLog", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.MiscMaster", "MiscAction")
+                    b.HasOne("InventoryManagement.Domain.Entities.MiscMaster", "MiscAction")
                         .WithMany("BudgetAction")
                         .HasForeignKey("ActionTypeId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Core.Domain.Entities.Budget.BudgetDetail", "BudgetDetail")
+                    b.HasOne("InventoryManagement.Domain.Entities.Budget.BudgetDetail", "BudgetDetail")
                         .WithMany("BudgetLog")
                         .HasForeignKey("BudgetDetailId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -1726,15 +1726,15 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.Navigation("MiscAction");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.HSNMaster", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.HSNMaster", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.MiscMaster", "GstCategory")
+                    b.HasOne("InventoryManagement.Domain.Entities.MiscMaster", "GstCategory")
                         .WithMany("HSNMasters")
                         .HasForeignKey("GSTCategoryId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Core.Domain.Entities.MiscMaster", "Type")
+                    b.HasOne("InventoryManagement.Domain.Entities.MiscMaster", "Type")
                         .WithMany("TypeHSNs")
                         .HasForeignKey("TypeId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -1746,20 +1746,20 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.Navigation("Type");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Item.ItemCategory", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemCategory", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.Item.ItemGroup", "ItemGroup")
+                    b.HasOne("InventoryManagement.Domain.Entities.Item.ItemGroup", "ItemGroup")
                         .WithMany("ItemCategory")
                         .HasForeignKey("ItemGroupId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Core.Domain.Entities.Item.ItemCategory", "ItemCategoryParent")
+                    b.HasOne("InventoryManagement.Domain.Entities.Item.ItemCategory", "ItemCategoryParent")
                         .WithMany("ChildCategories")
                         .HasForeignKey("ParentCategoryId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("Core.Domain.Entities.Item.ItemCategory", "RootCategory")
+                    b.HasOne("InventoryManagement.Domain.Entities.Item.ItemCategory", "RootCategory")
                         .WithMany()
                         .HasForeignKey("RootCategoryId");
 
@@ -1770,30 +1770,30 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.Navigation("RootCategory");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Item.ItemDetail.ItemInventory", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemDetail.ItemInventory", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.MiscMaster", "MiscDefaultMaterialRequestType")
+                    b.HasOne("InventoryManagement.Domain.Entities.MiscMaster", "MiscDefaultMaterialRequestType")
                         .WithMany("ItemInventoryDefaultMaterialRequestType")
                         .HasForeignKey("DefaultMaterialRequestTypeId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("Core.Domain.Entities.Item.ItemDetail.ItemMaster", "Item")
+                    b.HasOne("InventoryManagement.Domain.Entities.Item.ItemDetail.ItemMaster", "Item")
                         .WithOne("Inventory")
-                        .HasForeignKey("Core.Domain.Entities.Item.ItemDetail.ItemInventory", "ItemId")
+                        .HasForeignKey("InventoryManagement.Domain.Entities.Item.ItemDetail.ItemInventory", "ItemId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Core.Domain.Entities.MiscMaster", "MiscRequestType")
+                    b.HasOne("InventoryManagement.Domain.Entities.MiscMaster", "MiscRequestType")
                         .WithMany("ItemInventoryRequestType")
                         .HasForeignKey("RequestTypeId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("Core.Domain.Entities.MiscMaster", "MiscValuationMethod")
+                    b.HasOne("InventoryManagement.Domain.Entities.MiscMaster", "MiscValuationMethod")
                         .WithMany("ItemInventoryValuationMethod")
                         .HasForeignKey("ValuationMethodId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("Core.Domain.Entities.UOM", "WeightUOM")
+                    b.HasOne("InventoryManagement.Domain.Entities.UOM", "WeightUOM")
                         .WithMany("InventoryUOM")
                         .HasForeignKey("WeightUomId")
                         .OnDelete(DeleteBehavior.Restrict);
@@ -1809,15 +1809,15 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.Navigation("WeightUOM");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Item.ItemDetail.ItemManufacture", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemDetail.ItemManufacture", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.Item.ItemDetail.ItemMaster", "Item")
+                    b.HasOne("InventoryManagement.Domain.Entities.Item.ItemDetail.ItemMaster", "Item")
                         .WithMany("Manufacture")
                         .HasForeignKey("ItemId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Core.Domain.Entities.MiscMaster", "MiscManufactureType")
+                    b.HasOne("InventoryManagement.Domain.Entities.MiscMaster", "MiscManufactureType")
                         .WithMany("ItemManufactureType")
                         .HasForeignKey("ManufacturingTypeId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -1828,44 +1828,44 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.Navigation("MiscManufactureType");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Item.ItemDetail.ItemMaster", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemDetail.ItemMaster", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.HSNMaster", "HSNMaster")
+                    b.HasOne("InventoryManagement.Domain.Entities.HSNMaster", "HSNMaster")
                         .WithMany("ItemMasterHSN")
                         .HasForeignKey("HSNId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("Core.Domain.Entities.MiscMaster", "MiscIssueRule")
+                    b.HasOne("InventoryManagement.Domain.Entities.MiscMaster", "MiscIssueRule")
                         .WithMany("ItemMasterIssueRule")
                         .HasForeignKey("IssueRuleId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("Core.Domain.Entities.Item.ItemCategory", "ItemCategory")
+                    b.HasOne("InventoryManagement.Domain.Entities.Item.ItemCategory", "ItemCategory")
                         .WithMany("ItemMasterCategory")
                         .HasForeignKey("ItemCategoryId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("Core.Domain.Entities.MiscMaster", "MiscClassification")
+                    b.HasOne("InventoryManagement.Domain.Entities.MiscMaster", "MiscClassification")
                         .WithMany("ItemMasterClassification")
                         .HasForeignKey("ItemClassificationId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("Core.Domain.Entities.Item.ItemGroup", "ItemGroup")
+                    b.HasOne("InventoryManagement.Domain.Entities.Item.ItemGroup", "ItemGroup")
                         .WithMany("ItemMasterGroup")
                         .HasForeignKey("ItemGroupId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("Core.Domain.Entities.Item.ItemDetail.ItemMaster", "ParentItem")
+                    b.HasOne("InventoryManagement.Domain.Entities.Item.ItemDetail.ItemMaster", "ParentItem")
                         .WithMany("ChildItems")
                         .HasForeignKey("ParentItemId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("Core.Domain.Entities.UOM", "UOM")
+                    b.HasOne("InventoryManagement.Domain.Entities.UOM", "UOM")
                         .WithMany("ItemMasterUOM")
                         .HasForeignKey("StockUomId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("Core.Domain.Entities.MiscMaster", "MiscStatus")
+                    b.HasOne("InventoryManagement.Domain.Entities.MiscMaster", "MiscStatus")
                         .WithMany("ItemMasterStatus")
                         .HasForeignKey("XPlantMaterialStatusId")
                         .OnDelete(DeleteBehavior.Restrict);
@@ -1887,20 +1887,20 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.Navigation("UOM");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Item.ItemDetail.ItemPurchase", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemDetail.ItemPurchase", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.Item.ItemDetail.ItemMaster", "Item")
+                    b.HasOne("InventoryManagement.Domain.Entities.Item.ItemDetail.ItemMaster", "Item")
                         .WithOne("Purchase")
-                        .HasForeignKey("Core.Domain.Entities.Item.ItemDetail.ItemPurchase", "ItemId")
+                        .HasForeignKey("InventoryManagement.Domain.Entities.Item.ItemDetail.ItemPurchase", "ItemId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Core.Domain.Entities.UOM", "PurchaseUOM")
+                    b.HasOne("InventoryManagement.Domain.Entities.UOM", "PurchaseUOM")
                         .WithMany("PurchaseUOM")
                         .HasForeignKey("PurchaseUomId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("Core.Domain.Entities.MiscMaster", "MiscSource")
+                    b.HasOne("InventoryManagement.Domain.Entities.MiscMaster", "MiscSource")
                         .WithMany("ItemPurchaseSource")
                         .HasForeignKey("SourceOfItem")
                         .OnDelete(DeleteBehavior.Restrict);
@@ -1912,21 +1912,21 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.Navigation("PurchaseUOM");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Item.ItemDetail.ItemQuality", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemDetail.ItemQuality", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.MiscMaster", "MiscCertificateType")
+                    b.HasOne("InventoryManagement.Domain.Entities.MiscMaster", "MiscCertificateType")
                         .WithMany("ItemQualityCertificateType")
                         .HasForeignKey("CertificateTypeId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("Core.Domain.Entities.Item.ItemDetail.Templates.InspectionTemplate", "InspectionTemplate")
+                    b.HasOne("InventoryManagement.Domain.Entities.Item.ItemDetail.Templates.InspectionTemplate", "InspectionTemplate")
                         .WithMany("Items")
                         .HasForeignKey("InspectionTemplateId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("Core.Domain.Entities.Item.ItemDetail.ItemMaster", "Item")
+                    b.HasOne("InventoryManagement.Domain.Entities.Item.ItemDetail.ItemMaster", "Item")
                         .WithOne("Quality")
-                        .HasForeignKey("Core.Domain.Entities.Item.ItemDetail.ItemQuality", "ItemId")
+                        .HasForeignKey("InventoryManagement.Domain.Entities.Item.ItemDetail.ItemQuality", "ItemId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -1937,9 +1937,9 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.Navigation("MiscCertificateType");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Item.ItemDetail.ItemSupplier", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemDetail.ItemSupplier", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.Item.ItemDetail.ItemMaster", "Item")
+                    b.HasOne("InventoryManagement.Domain.Entities.Item.ItemDetail.ItemMaster", "Item")
                         .WithMany("Suppliers")
                         .HasForeignKey("ItemId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -1948,15 +1948,15 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.Navigation("Item");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Item.ItemDetail.ItemUOM", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemDetail.ItemUOM", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.UOM", "ConversionUOM")
+                    b.HasOne("InventoryManagement.Domain.Entities.UOM", "ConversionUOM")
                         .WithMany("ItemUOM")
                         .HasForeignKey("ConversionUOMId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Core.Domain.Entities.Item.ItemDetail.ItemMaster", "Item")
+                    b.HasOne("InventoryManagement.Domain.Entities.Item.ItemDetail.ItemMaster", "Item")
                         .WithMany("ItemUOMs")
                         .HasForeignKey("ItemId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -1967,26 +1967,26 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.Navigation("Item");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Item.ItemDetail.Variant.ItemVariantAttribute", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemDetail.Variant.ItemVariantAttribute", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.MiscTypeMaster", "MiscAttributeGroup")
+                    b.HasOne("InventoryManagement.Domain.Entities.MiscTypeMaster", "MiscAttributeGroup")
                         .WithMany("ItemVariantAttributeGroup")
                         .HasForeignKey("AttributeGroupId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("Core.Domain.Entities.MiscMaster", "MiscAttribute")
+                    b.HasOne("InventoryManagement.Domain.Entities.MiscMaster", "MiscAttribute")
                         .WithMany("ItemAttribute")
                         .HasForeignKey("AttributeId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Core.Domain.Entities.Item.ItemDetail.ItemMaster", "ItemMaster")
+                    b.HasOne("InventoryManagement.Domain.Entities.Item.ItemDetail.ItemMaster", "ItemMaster")
                         .WithMany("VariantAttributes")
                         .HasForeignKey("ItemId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Core.Domain.Entities.MiscMaster", "MiscVariantBasedOn")
+                    b.HasOne("InventoryManagement.Domain.Entities.MiscMaster", "MiscVariantBasedOn")
                         .WithMany("ItemAttributeBasedOn")
                         .HasForeignKey("VariantBasedOn")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -2001,21 +2001,21 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.Navigation("MiscVariantBasedOn");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Item.ItemDetail.Variant.ItemVariantValue", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemDetail.Variant.ItemVariantValue", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.Item.ItemDetail.ItemMaster", "ItemMaster")
+                    b.HasOne("InventoryManagement.Domain.Entities.Item.ItemDetail.ItemMaster", "ItemMaster")
                         .WithMany("VariantValues")
                         .HasForeignKey("ItemId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Core.Domain.Entities.Item.ItemDetail.ItemMaster", "ParentItem")
+                    b.HasOne("InventoryManagement.Domain.Entities.Item.ItemDetail.ItemMaster", "ParentItem")
                         .WithMany("VariantParentItem")
                         .HasForeignKey("ParentItemId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Core.Domain.Entities.Item.ItemDetail.Variant.ItemVariantAttribute", "VariantAttribute")
+                    b.HasOne("InventoryManagement.Domain.Entities.Item.ItemDetail.Variant.ItemVariantAttribute", "VariantAttribute")
                         .WithMany("ItemVariantValues")
                         .HasForeignKey("VariantAttributeId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -2028,21 +2028,21 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.Navigation("VariantAttribute");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Item.PutAway.PutAwayRule", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.PutAway.PutAwayRule", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.Item.ItemCategory", "ItemCategory")
+                    b.HasOne("InventoryManagement.Domain.Entities.Item.ItemCategory", "ItemCategory")
                         .WithMany("PutAwayRuleCategory")
                         .HasForeignKey("ItemCategoryId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Core.Domain.Entities.Item.ItemGroup", "ItemGroup")
+                    b.HasOne("InventoryManagement.Domain.Entities.Item.ItemGroup", "ItemGroup")
                         .WithMany("PutAwayRuleGroup")
                         .HasForeignKey("ItemGroupId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Core.Domain.Entities.Item.ItemDetail.ItemMaster", "ItemMaster")
+                    b.HasOne("InventoryManagement.Domain.Entities.Item.ItemDetail.ItemMaster", "ItemMaster")
                         .WithMany("PutAwayRules")
                         .HasForeignKey("ItemId")
                         .OnDelete(DeleteBehavior.Restrict);
@@ -2054,21 +2054,21 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.Navigation("ItemMaster");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Item.PutAway.PutAwayStrategy", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.PutAway.PutAwayStrategy", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.MiscMaster", "MiscPriority")
+                    b.HasOne("InventoryManagement.Domain.Entities.MiscMaster", "MiscPriority")
                         .WithMany("PutAwayStrategyPriority")
                         .HasForeignKey("PriorityId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Core.Domain.Entities.Item.PutAway.PutAwayRule", "PutAwayRule")
+                    b.HasOne("InventoryManagement.Domain.Entities.Item.PutAway.PutAwayRule", "PutAwayRule")
                         .WithMany("Strategies")
                         .HasForeignKey("PutAwayRuleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Core.Domain.Entities.MiscMaster", "MiscStorageTypeId")
+                    b.HasOne("InventoryManagement.Domain.Entities.MiscMaster", "MiscStorageTypeId")
                         .WithMany("PutAwayStrategyStorageType")
                         .HasForeignKey("StorageTypeId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -2081,9 +2081,9 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.Navigation("PutAwayRule");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.MiscMaster", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.MiscMaster", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.MiscTypeMaster", "MiscTypeMaster")
+                    b.HasOne("InventoryManagement.Domain.Entities.MiscTypeMaster", "MiscTypeMaster")
                         .WithMany("MiscMaster")
                         .HasForeignKey("MiscTypeId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -2092,9 +2092,9 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.Navigation("MiscTypeMaster");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.UOM", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.UOM", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.MiscMaster", "UOMType")
+                    b.HasOne("InventoryManagement.Domain.Entities.MiscMaster", "UOMType")
                         .WithMany("UOMs")
                         .HasForeignKey("UOMTypeId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -2103,15 +2103,15 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.Navigation("UOMType");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.UOMConversion", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.UOMConversion", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.UOM", "FromUOM")
+                    b.HasOne("InventoryManagement.Domain.Entities.UOM", "FromUOM")
                         .WithMany("FromUOMConversions")
                         .HasForeignKey("FromUOMId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Core.Domain.Entities.UOM", "ToUOM")
+                    b.HasOne("InventoryManagement.Domain.Entities.UOM", "ToUOM")
                         .WithMany("ToUOMConversions")
                         .HasForeignKey("ToUOMId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -2122,9 +2122,9 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.Navigation("ToUOM");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.item.ItemDetail.Templates.InspectionParameter", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.item.ItemDetail.Templates.InspectionParameter", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.Item.ItemDetail.Templates.InspectionTemplate", "Template")
+                    b.HasOne("InventoryManagement.Domain.Entities.Item.ItemDetail.Templates.InspectionTemplate", "Template")
                         .WithMany("Parameters")
                         .HasForeignKey("TemplateId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -2133,22 +2133,22 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.Navigation("Template");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Budget.BudgetDetail", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Budget.BudgetDetail", b =>
                 {
                     b.Navigation("BudgetLog");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Budget.BudgetMaster", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Budget.BudgetMaster", b =>
                 {
                     b.Navigation("BudgetDetail");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.HSNMaster", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.HSNMaster", b =>
                 {
                     b.Navigation("ItemMasterHSN");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Item.ItemCategory", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemCategory", b =>
                 {
                     b.Navigation("ChildCategories");
 
@@ -2157,7 +2157,7 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.Navigation("PutAwayRuleCategory");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Item.ItemDetail.ItemMaster", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemDetail.ItemMaster", b =>
                 {
                     b.Navigation("ChildItems");
 
@@ -2182,19 +2182,19 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.Navigation("VariantValues");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Item.ItemDetail.Templates.InspectionTemplate", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemDetail.Templates.InspectionTemplate", b =>
                 {
                     b.Navigation("Items");
 
                     b.Navigation("Parameters");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Item.ItemDetail.Variant.ItemVariantAttribute", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemDetail.Variant.ItemVariantAttribute", b =>
                 {
                     b.Navigation("ItemVariantValues");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Item.ItemGroup", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemGroup", b =>
                 {
                     b.Navigation("ItemCategory");
 
@@ -2203,12 +2203,12 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.Navigation("PutAwayRuleGroup");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Item.PutAway.PutAwayRule", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.PutAway.PutAwayRule", b =>
                 {
                     b.Navigation("Strategies");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.MiscMaster", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.MiscMaster", b =>
                 {
                     b.Navigation("BudgetAction");
 
@@ -2245,14 +2245,14 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.Navigation("UOMs");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.MiscTypeMaster", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.MiscTypeMaster", b =>
                 {
                     b.Navigation("ItemVariantAttributeGroup");
 
                     b.Navigation("MiscMaster");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.UOM", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.UOM", b =>
                 {
                     b.Navigation("FromUOMConversions");
 

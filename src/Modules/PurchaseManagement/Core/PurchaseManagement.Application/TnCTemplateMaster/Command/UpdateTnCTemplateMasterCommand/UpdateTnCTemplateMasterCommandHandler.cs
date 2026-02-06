@@ -79,7 +79,7 @@ namespace PurchaseManagement.Application.TnCTemplateMaster.Command.UpdateTnCTemp
         //         throw new ExceptionRules($"T&C Template not found for Id={request.Id}.");
 
         //     // Prepare incoming master (like your PaymentTerm example)
-        //     var incoming = new Core.Domain.Entities.TnCTemplateMaster
+        //     var incoming = new PurchaseManagement.Domain.Entities.TnCTemplateMaster
         //     {
         //         Id = request.Id,
         //         //   TemplateCode   = request.TemplateCode,
@@ -92,7 +92,7 @@ namespace PurchaseManagement.Application.TnCTemplateMaster.Command.UpdateTnCTemp
 
         //     // Rebuild desired child list from command (simple DTO -> entity projection)
         //     var desiredApplicabilities = request.Applicabilities?
-        //         .Select(a => new Core.Domain.Entities.TnCTemplateApplicability
+        //         .Select(a => new PurchaseManagement.Domain.Entities.TnCTemplateApplicability
         //         {
         //             TnCTemplateMasterId = request.Id,          // for repo convenience
         //             ApplicabilityId     = a.ApplicabilityId

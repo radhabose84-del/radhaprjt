@@ -2,12 +2,12 @@
 using Microsoft.EntityFrameworkCore;
 using UserManagement.Infrastructure.Data;
 using UserManagement.Infrastructure.Repositories;
-using Core.Domain.Entities;
+using UserManagement.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Core.Application.Common.Interfaces.IRoleEntitlement;
+using UserManagement.Application.Common.Interfaces.IRoleEntitlement;
 using System.Data;
 using Dapper;
 using Serilog;
@@ -23,7 +23,7 @@ namespace UserManagement.Infrastructure.Repositories.RoleEntitlements
             _dbConnection = dbConnection;   
 
         }
-        public async Task<(Core.Domain.Entities.UserRole,IList<RoleModule>,IList<RoleParent>,IList<RoleChild>,IList<RoleMenuPrivileges>)> GetByIdAsync(int roleEntitlementId)
+        public async Task<(UserManagement.Domain.Entities.UserRole,IList<RoleModule>,IList<RoleParent>,IList<RoleChild>,IList<RoleMenuPrivileges>)> GetByIdAsync(int roleEntitlementId)
         {
 
             var  query = @"
@@ -51,7 +51,7 @@ namespace UserManagement.Infrastructure.Repositories.RoleEntitlements
               var role = await multi.ReadFirstOrDefaultAsync<UserRole>();
 
              
-             var modules = (await multi.ReadAsync<Core.Domain.Entities.RoleModule>()).ToList();
+             var modules = (await multi.ReadAsync<UserManagement.Domain.Entities.RoleModule>()).ToList();
 
              
               var parentmenu = (await multi.ReadAsync<RoleParent>()).ToList();
@@ -113,7 +113,7 @@ namespace UserManagement.Infrastructure.Repositories.RoleEntitlements
    public async Task<List<Modules>> GetRolePrivileges(int userid, CancellationToken cancellationToken)
 {
     var moduleDictionary = new Dictionary<int, Modules>();
-    var menuDictionary = new Dictionary<int, Core.Domain.Entities.Menu>(); // To store menus for nesting
+    var menuDictionary = new Dictionary<int, UserManagement.Domain.Entities.Menu>(); // To store menus for nesting
 
     string sql = @"
         SELECT * INTO #MENUPERMISSION FROM (
@@ -135,7 +135,7 @@ namespace UserManagement.Infrastructure.Repositories.RoleEntitlements
     WHERE URA.UserId = @UserId AND M.IsDeleted = 0 AND Menu.IsDeleted=0
     ORDER BY Menu.ParentId, Menu.SortOrder;"; 
 
-    var result = await _dbConnection.QueryAsync<Modules, Core.Domain.Entities.Menu, RoleMenuPrivileges, Modules>(
+    var result = await _dbConnection.QueryAsync<Modules, UserManagement.Domain.Entities.Menu, RoleMenuPrivileges, Modules>(
         sql,
         (module, menu, privilege) =>
         {
@@ -143,7 +143,7 @@ namespace UserManagement.Infrastructure.Repositories.RoleEntitlements
             if (!moduleDictionary.TryGetValue(module.Id, out var moduleEntry))
             {
                 moduleEntry = module;
-                moduleEntry.Menus = new List<Core.Domain.Entities.Menu>();
+                moduleEntry.Menus = new List<UserManagement.Domain.Entities.Menu>();
                 moduleDictionary.Add(module.Id, moduleEntry);
             }
 
@@ -151,7 +151,7 @@ namespace UserManagement.Infrastructure.Repositories.RoleEntitlements
             if (!menuDictionary.TryGetValue(menu.Id, out var menuEntry))
             {
                 menuEntry = menu;
-                menuEntry.ChildMenus = new List<Core.Domain.Entities.Menu>();
+                menuEntry.ChildMenus = new List<UserManagement.Domain.Entities.Menu>();
                 menuEntry.RoleMenus = new List<RoleMenuPrivileges>();
                 menuDictionary.Add(menu.Id, menuEntry);
             }
@@ -204,7 +204,7 @@ namespace UserManagement.Infrastructure.Repositories.RoleEntitlements
         //     LEFT JOIN AppData.Modules m ON mn.ModuleId = m.Id
         //     WHERE ur.RoleName = @RoleName AND re.IsDeleted = 0";
 
-        // var roleEntitlements = await _dbConnection.QueryAsync<RoleEntitlement, UserRole, Modules, Core.Domain.Entities.Menu, RoleEntitlement>(
+        // var roleEntitlements = await _dbConnection.QueryAsync<RoleEntitlement, UserRole, Modules, UserManagement.Domain.Entities.Menu, RoleEntitlement>(
         //     query,
         //     (re, ur, m, mn) =>
         //     {

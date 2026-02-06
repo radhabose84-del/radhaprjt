@@ -1,10 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using UserManagement.Infrastructure.Data;
-using Core.Domain.Entities;
-using Core.Application.Common.Interfaces.IEntity;
+using UserManagement.Domain.Entities;
+using UserManagement.Application.Common.Interfaces.IEntity;
 using System.Data;
 using Dapper;
-using Core.Application.Common.Interfaces.ICurrency;
+using UserManagement.Application.Common.Interfaces.ICurrency;
 
 namespace UserManagement.Infrastructure.Repositories.Currency
 {
@@ -16,7 +16,7 @@ namespace UserManagement.Infrastructure.Repositories.Currency
             _dbConnection = dbConnection;
         }
 
-        public async Task<List<Core.Domain.Entities.Currency>> GetByCurrencyNameAsync(string searchPattern)
+        public async Task<List<UserManagement.Domain.Entities.Currency>> GetByCurrencyNameAsync(string searchPattern)
         {
             searchPattern = searchPattern ?? string.Empty; // Prevent null issues
 
@@ -30,11 +30,11 @@ namespace UserManagement.Infrastructure.Repositories.Currency
                 SearchPattern = $"%{searchPattern}%"
             };
 
-            var currenciesGroups = await _dbConnection.QueryAsync<Core.Domain.Entities.Currency>(query, parameters);
+            var currenciesGroups = await _dbConnection.QueryAsync<UserManagement.Domain.Entities.Currency>(query, parameters);
             return currenciesGroups.ToList();
         }
 
-        public async Task<(List<Core.Domain.Entities.Currency>, int)> GetAllCurrencyAsync(int PageNumber, int PageSize, string? SearchTerm)
+        public async Task<(List<UserManagement.Domain.Entities.Currency>, int)> GetAllCurrencyAsync(int PageNumber, int PageSize, string? SearchTerm)
         {
             var query = $$"""
              DECLARE @TotalCount INT;
@@ -76,29 +76,29 @@ namespace UserManagement.Infrastructure.Repositories.Currency
             };
 
             var currencygroup = await _dbConnection.QueryMultipleAsync(query, parameters);
-            var currenciesgrouplist = (await currencygroup.ReadAsync<Core.Domain.Entities.Currency>()).ToList();
+            var currenciesgrouplist = (await currencygroup.ReadAsync<UserManagement.Domain.Entities.Currency>()).ToList();
             int totalCount = (await currencygroup.ReadFirstAsync<int>());
             return (currenciesgrouplist, totalCount);
         }
 
-        public async Task<Core.Domain.Entities.Currency?> GetByIdAsync(int id)
+        public async Task<UserManagement.Domain.Entities.Currency?> GetByIdAsync(int id)
         {
             const string query = @"
                     SELECT * 
                     FROM AppData.Currency 
                     WHERE Id = @Id AND IsDeleted = 0";
-            var currencyGroup = await _dbConnection.QueryFirstOrDefaultAsync<Core.Domain.Entities.Currency>(query, new { id });
+            var currencyGroup = await _dbConnection.QueryFirstOrDefaultAsync<UserManagement.Domain.Entities.Currency>(query, new { id });
             return currencyGroup;
         }
-        public async Task<List<Core.Domain.Entities.Currency>> GetByIdsAsync(IEnumerable<int> ids, CancellationToken ct = default)
+        public async Task<List<UserManagement.Domain.Entities.Currency>> GetByIdsAsync(IEnumerable<int> ids, CancellationToken ct = default)
         {
             var idList = ids?.Distinct().ToArray() ?? Array.Empty<int>();
-            if (idList.Length == 0) return new List<Core.Domain.Entities.Currency>();
+            if (idList.Length == 0) return new List<UserManagement.Domain.Entities.Currency>();
 
             const string sql = @"SELECT Id, Code, Name
                                 FROM AppData.Currency
                                 WHERE IsDeleted = 0 AND Id IN @ids";
-            var list = await _dbConnection.QueryAsync<Core.Domain.Entities.Currency>(sql, new { ids = idList });
+            var list = await _dbConnection.QueryAsync<UserManagement.Domain.Entities.Currency>(sql, new { ids = idList });
             return list.ToList();
         }
     }

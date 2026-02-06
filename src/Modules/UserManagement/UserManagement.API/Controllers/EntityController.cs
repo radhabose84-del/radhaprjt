@@ -1,20 +1,20 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Core.Application.Entity.Queries.GetEntity;
-using Core.Application.Entity.Queries.GetEntityById;
-using Core.Application.Entity.Queries.GetEntityLastCode;
-using Core.Application.Entity.Commands.CreateEntity;
-using Core.Application.Entity.Commands.UpdateEntity;
-using Core.Application.Entity.Commands.DeleteEntity;
+using UserManagement.Application.Entity.Queries.GetEntity;
+using UserManagement.Application.Entity.Queries.GetEntityById;
+using UserManagement.Application.Entity.Queries.GetEntityLastCode;
+using UserManagement.Application.Entity.Commands.CreateEntity;
+using UserManagement.Application.Entity.Commands.UpdateEntity;
+using UserManagement.Application.Entity.Commands.DeleteEntity;
 using FluentValidation;
 using UserManagement.Infrastructure.Data;
-using Core.Application.Entity.Queries.GetEntityAutoComplete;
+using UserManagement.Application.Entity.Queries.GetEntityAutoComplete;
 using System.Net;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using Microsoft.AspNetCore.Authorization;
-using Core.Application.Entity.Queries.GetEntityBasedCompany;
-using Core.Application.Entity.Queries.GetCompanyBasedUnit;
+using UserManagement.Application.Entity.Queries.GetEntityBasedCompany;
+using UserManagement.Application.Entity.Queries.GetCompanyBasedUnit;
 
 namespace UserManagement.API.Controllers
 {

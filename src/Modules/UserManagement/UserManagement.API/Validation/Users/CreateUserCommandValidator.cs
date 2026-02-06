@@ -1,18 +1,18 @@
 using FluentValidation;
-using Core.Domain.Entities;
-using Core.Application.Users.Commands.CreateUser;
+using UserManagement.Domain.Entities;
+using UserManagement.Application.Users.Commands.CreateUser;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using UserManagement.API.Validation.Common;
-using Core.Application.Common.Interfaces.IUser;
-using Core.Application.Common.Interfaces.ICompany;
-using Core.Application.Common.Interfaces.IDivision;
-using Core.Application.Common.Interfaces.IDepartment;
-using Core.Application.Common.Interfaces.IUserRole;
-using Core.Application.Common.Interfaces.IUnit;
-using Core.Application.Common.Interfaces;
+using UserManagement.Application.Common.Interfaces.IUser;
+using UserManagement.Application.Common.Interfaces.ICompany;
+using UserManagement.Application.Common.Interfaces.IDivision;
+using UserManagement.Application.Common.Interfaces.IDepartment;
+using UserManagement.Application.Common.Interfaces.IUserRole;
+using UserManagement.Application.Common.Interfaces.IUnit;
+using UserManagement.Application.Common.Interfaces;
 using Shared.Validation.Common;
 
 namespace UserManagement.API.Validation.Users

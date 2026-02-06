@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using UserManagement.API.Validation.Common;
-using Core.Application.Currency.Commands.CreateCurrency;
+using UserManagement.Application.Currency.Commands.CreateCurrency;
 using FluentValidation;
 using Serilog;
 using Shared.Validation.Common;
@@ -17,8 +17,8 @@ namespace UserManagement.API.Validation.Currency
         {
                  // Get max lengths dynamically using MaxLengthProvider
             var currencyNameMinLength = 3;
-            var currencyCodeMaxLength = maxLengthProvider.GetMaxLength<Core.Domain.Entities.Currency>("Code") ?? 6;
-            var currencyNameMaxLength = maxLengthProvider.GetMaxLength<Core.Domain.Entities.Currency>("Name") ?? 50;
+            var currencyCodeMaxLength = maxLengthProvider.GetMaxLength<UserManagement.Domain.Entities.Currency>("Code") ?? 6;
+            var currencyNameMaxLength = maxLengthProvider.GetMaxLength<UserManagement.Domain.Entities.Currency>("Name") ?? 50;
              // Load validation rules from JSON or another source
             _validationRules = ValidationRuleLoader.LoadValidationRules();
             if (_validationRules == null || !_validationRules.Any())

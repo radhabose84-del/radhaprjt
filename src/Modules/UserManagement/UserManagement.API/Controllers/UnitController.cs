@@ -1,15 +1,15 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Core.Application.Units.Queries.GetUnits;
-using Core.Application.Units.Queries.GetUnitById;
-using Core.Application.Units.Commands.CreateUnit;
-using Core.Application.Units.Commands.DeleteUnit;
-using Core.Application.Units.Commands.UpdateUnit;
-using Core.Application.Units.Queries.GetUnitAutoComplete;
+using UserManagement.Application.Units.Queries.GetUnits;
+using UserManagement.Application.Units.Queries.GetUnitById;
+using UserManagement.Application.Units.Commands.CreateUnit;
+using UserManagement.Application.Units.Commands.DeleteUnit;
+using UserManagement.Application.Units.Commands.UpdateUnit;
+using UserManagement.Application.Units.Queries.GetUnitAutoComplete;
 using FluentValidation;
 using UserManagement.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
-using Core.Application.Units.Queries.GetUnitByUserId;
+using UserManagement.Application.Units.Queries.GetUnitByUserId;
 
 namespace UserManagement.API.Controllers
 {

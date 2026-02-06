@@ -1,9 +1,9 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text.Json;
-using Core.Application.Common.Interfaces;
-using Core.Application.Common.Interfaces.IUserSession;
-using Core.Domain.Entities;
+using UserManagement.Application.Common.Interfaces;
+using UserManagement.Application.Common.Interfaces.IUserSession;
+using UserManagement.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
 

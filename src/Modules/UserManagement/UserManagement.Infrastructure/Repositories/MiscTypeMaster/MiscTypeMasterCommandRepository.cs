@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Core.Application.Common.Interfaces.IMiscTypeMaster;
+using UserManagement.Application.Common.Interfaces.IMiscTypeMaster;
 using Microsoft.EntityFrameworkCore;
 using UserManagement.Infrastructure.Data;
 
@@ -18,7 +18,7 @@ namespace UserManagement.Infrastructure.Repositories.MiscTypeMaster
         {
             _dbContext = applicationDbContext;
         }                 
-     public async   Task<Core.Domain.Entities.MiscTypeMaster> CreateAsync(Core.Domain.Entities.MiscTypeMaster miscTypeMaster)
+     public async   Task<UserManagement.Domain.Entities.MiscTypeMaster> CreateAsync(UserManagement.Domain.Entities.MiscTypeMaster miscTypeMaster)
         {
              await _dbContext.MiscTypeMaster.AddAsync(miscTypeMaster);
                 await _dbContext.SaveChangesAsync();
@@ -26,7 +26,7 @@ namespace UserManagement.Infrastructure.Repositories.MiscTypeMaster
         }
 
 
-          public async Task<bool> UpdateAsync(int id,Core.Domain.Entities.MiscTypeMaster miscTypeMaster)
+          public async Task<bool> UpdateAsync(int id,UserManagement.Domain.Entities.MiscTypeMaster miscTypeMaster)
         {
             var existingMiscTypeMaster =await _dbContext.MiscTypeMaster.FirstOrDefaultAsync(m =>m.Id == miscTypeMaster.Id);
          
@@ -41,7 +41,7 @@ namespace UserManagement.Infrastructure.Repositories.MiscTypeMaster
             }
             return false;
         }
-        public async Task<bool> DeleteAsync(int id,Core.Domain.Entities.MiscTypeMaster miscTypeMaster)
+        public async Task<bool> DeleteAsync(int id,UserManagement.Domain.Entities.MiscTypeMaster miscTypeMaster)
         {
             var existingMiscTypemaster = await _dbContext.MiscTypeMaster.FirstOrDefaultAsync(u => u.Id == id);
             if (existingMiscTypemaster != null)

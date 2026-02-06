@@ -16,8 +16,8 @@ namespace PurchaseManagement.API.Validation.MiscTypeMaster
              private readonly IMiscTypeMasterQueryRepository _miscTypeMasterQueryRepository;
       public CreateMiscTypeMasterCommandValidator( IMiscTypeMasterQueryRepository machineGroupQueryRepository,MaxLengthProvider maxLengthProvider)
         {
-            var MiscTypeCodeMaxLength = maxLengthProvider.GetMaxLength<Core.Domain.Entities.MiscTypeMaster>("MiscTypeCode") ?? 50;
-            var DescriptionMaxLength = maxLengthProvider.GetMaxLength<Core.Domain.Entities.MiscTypeMaster>("Description")?? 250;
+            var MiscTypeCodeMaxLength = maxLengthProvider.GetMaxLength<PurchaseManagement.Domain.Entities.MiscTypeMaster>("MiscTypeCode") ?? 50;
+            var DescriptionMaxLength = maxLengthProvider.GetMaxLength<PurchaseManagement.Domain.Entities.MiscTypeMaster>("Description")?? 250;
             _validationRules = ValidationRuleLoader.LoadValidationRules();
             _miscTypeMasterQueryRepository = machineGroupQueryRepository;
             if (_validationRules == null || !_validationRules.Any())

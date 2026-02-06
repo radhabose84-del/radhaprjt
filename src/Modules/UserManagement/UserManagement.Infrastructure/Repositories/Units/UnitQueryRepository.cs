@@ -1,11 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using UserManagement.Infrastructure.Data;
-using Core.Domain.Entities;
-using Core.Application.Common.Interfaces.IUnit;
+using UserManagement.Domain.Entities;
+using UserManagement.Application.Common.Interfaces.IUnit;
 using System.Data;
 using Dapper;
-using Core.Application.Units.Queries.GetUnits;
-using Core.Application.Common.Interfaces;
+using UserManagement.Application.Units.Queries.GetUnits;
+using UserManagement.Application.Common.Interfaces;
 
 namespace UserManagement.Infrastructure.Repositories.Units
 {

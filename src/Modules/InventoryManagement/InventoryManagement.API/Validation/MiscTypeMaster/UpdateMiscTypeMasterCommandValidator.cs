@@ -17,8 +17,8 @@ namespace InventoryManagement.API.Validation.MiscTypeMaster
             private readonly IMiscTypeMasterQueryRepository _miscTypeMasterQueryRepository;
           public UpdateMiscTypeMasterCommandValidator(IMiscTypeMasterQueryRepository miscTypeMasterQueryRepository,MaxLengthProvider maxLengthProvider)
           {
-             var MiscTypeCodeMaxLength = maxLengthProvider.GetMaxLength<Core.Domain.Entities.MiscTypeMaster>("MiscTypeCode") ?? 50;
-             var DescriptionMaxLength = maxLengthProvider.GetMaxLength<Core.Domain.Entities.MiscTypeMaster>("Description")?? 250;
+             var MiscTypeCodeMaxLength = maxLengthProvider.GetMaxLength<InventoryManagement.Domain.Entities.MiscTypeMaster>("MiscTypeCode") ?? 50;
+             var DescriptionMaxLength = maxLengthProvider.GetMaxLength<InventoryManagement.Domain.Entities.MiscTypeMaster>("Description")?? 250;
                
                _validationRules = ValidationRuleLoader.LoadValidationRules();
                _miscTypeMasterQueryRepository = miscTypeMasterQueryRepository;

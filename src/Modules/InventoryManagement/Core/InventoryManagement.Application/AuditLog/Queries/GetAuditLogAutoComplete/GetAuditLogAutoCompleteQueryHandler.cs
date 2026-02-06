@@ -1,5 +1,5 @@
 using MongoDB.Driver;
-using Core.Domain.Entities;
+using InventoryManagement.Domain.Entities;
 using MediatR;
 using InventoryManagement.Application.AuditLog.Queries.GetAuditLog;
 using InventoryManagement.Application.Common.HttpResponse;

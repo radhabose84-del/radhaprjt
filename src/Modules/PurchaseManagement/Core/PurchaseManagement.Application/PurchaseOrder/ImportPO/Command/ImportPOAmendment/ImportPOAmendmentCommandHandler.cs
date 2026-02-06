@@ -1,4 +1,4 @@
-// // Core.Application/PurchaseOrder/ImportPO/Command/ImportPOAmendment/ImportPOAmendmentCommandHandler.cs
+// // PurchaseManagement.Application/PurchaseOrder/ImportPO/Command/ImportPOAmendment/ImportPOAmendmentCommandHandler.cs
 // using System.Text.Json;
 // using AutoMapper;
 // using Contracts.Events.Workflow;

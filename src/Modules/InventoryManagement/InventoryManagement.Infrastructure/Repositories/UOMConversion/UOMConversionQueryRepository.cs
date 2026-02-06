@@ -80,7 +80,7 @@ namespace InventoryManagement.Infrastructure.Repositories.UOMConversion
 
             return (conversionList, totalCount);
 
-            // var conversionList = (await result.ReadAsync<Core.Domain.Entities.UOMConversion>()).ToList();
+            // var conversionList = (await result.ReadAsync<InventoryManagement.Domain.Entities.UOMConversion>()).ToList();
             // int totalCount = await result.ReadFirstAsync<int>();
 
             // return (conversionList, totalCount);

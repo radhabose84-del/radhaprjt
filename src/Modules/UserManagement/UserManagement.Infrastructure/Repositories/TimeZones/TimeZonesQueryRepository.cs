@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
-using Core.Application.Common.Interfaces.ITimeZones;
+using UserManagement.Application.Common.Interfaces.ITimeZones;
 using Dapper;
 
 namespace UserManagement.Infrastructure.Repositories.TimeZones
@@ -16,7 +16,7 @@ namespace UserManagement.Infrastructure.Repositories.TimeZones
              _dbConnection = dbConnection;
         }
 
-        public async Task<(List<Core.Domain.Entities.TimeZones>, int)> GetAllTimeZonesAsync(int PageNumber, int PageSize, string? SearchTerm)
+        public async Task<(List<UserManagement.Domain.Entities.TimeZones>, int)> GetAllTimeZonesAsync(int PageNumber, int PageSize, string? SearchTerm)
         {
              var query = $$"""
              DECLARE @TotalCount INT;
@@ -57,22 +57,22 @@ namespace UserManagement.Infrastructure.Repositories.TimeZones
                        };
 
              var timezonesgroup = await _dbConnection.QueryMultipleAsync(query, parameters);
-             var timeZonesgrouplist = (await timezonesgroup.ReadAsync<Core.Domain.Entities.TimeZones>()).ToList();
+             var timeZonesgrouplist = (await timezonesgroup.ReadAsync<UserManagement.Domain.Entities.TimeZones>()).ToList();
              int totalCount = (await timezonesgroup.ReadFirstAsync<int>());
              return (timeZonesgrouplist, totalCount);
         }
 
-        public async Task<Core.Domain.Entities.TimeZones> GetByIdAsync(int Id)
+        public async Task<UserManagement.Domain.Entities.TimeZones> GetByIdAsync(int Id)
         {
               const string query = @"
                     SELECT * 
                     FROM AppData.TimeZones 
                     WHERE Id = @Id AND IsDeleted = 0";
-                    var timeZonesGroup = await _dbConnection.QueryFirstOrDefaultAsync<Core.Domain.Entities.TimeZones>(query, new { Id });
+                    var timeZonesGroup = await _dbConnection.QueryFirstOrDefaultAsync<UserManagement.Domain.Entities.TimeZones>(query, new { Id });
                     return timeZonesGroup;
         }
 
-        public async Task<List<Core.Domain.Entities.TimeZones>> GetByTimeZonesNameAsync(string searchPattern)
+        public async Task<List<UserManagement.Domain.Entities.TimeZones>> GetByTimeZonesNameAsync(string searchPattern)
         {
             searchPattern = searchPattern ?? string.Empty; // Prevent null issues
 
@@ -86,7 +86,7 @@ namespace UserManagement.Infrastructure.Repositories.TimeZones
             SearchPattern = $"%{searchPattern}%" 
             };
 
-            var timeZonesGroups = await _dbConnection.QueryAsync<Core.Domain.Entities.TimeZones>(query, parameters);
+            var timeZonesGroups = await _dbConnection.QueryAsync<UserManagement.Domain.Entities.TimeZones>(query, parameters);
             return timeZonesGroups.ToList();    
         }
     }

@@ -33,7 +33,7 @@ namespace PurchaseManagement.Application.Common.Mappings
                 .ForMember(d => d.IsActive,        opt => opt.MapFrom(s =>
                     s.IsActive == 1 ? Status.Active : Status.Inactive));
 
-            //    CreateMap<UpdateTnCTemplateMasterCommand, Core.Domain.Entities.TnCTemplateMaster>()
+            //    CreateMap<UpdateTnCTemplateMasterCommand, PurchaseManagement.Domain.Entities.TnCTemplateMaster>()
             //    .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive == 1 ? Status.Active : Status.Inactive));  
 
             CreateMap<TncApplicabilityDto, PurchaseManagement.Domain.Entities.TnCTemplateApplicability>()

@@ -1,10 +1,9 @@
-using Core.Domain.Entities;
+using UserManagement.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using UserManagement.Infrastructure.Data;
-
-using Core.Application.Common.Interfaces.ICountry;
-using Core.Domain.Enums.Common;
-using static Core.Domain.Enums.Common.Enums;
+using UserManagement.Application.Common.Interfaces.ICountry;
+using UserManagement.Domain.Enums.Common;
+using static UserManagement.Domain.Enums.Common.Enums;
 
 namespace UserManagement.Infrastructure.Repositories.Country
 {

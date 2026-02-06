@@ -1,8 +1,8 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Core.Application.Common.Interfaces;
-using Core.Application.Common.Interfaces.IUser;
+using UserManagement.Application.Common.Interfaces;
+using UserManagement.Application.Common.Interfaces.IUser;
 using Dapper;
 using FluentAssertions;
 using Microsoft.Data.SqlClient;

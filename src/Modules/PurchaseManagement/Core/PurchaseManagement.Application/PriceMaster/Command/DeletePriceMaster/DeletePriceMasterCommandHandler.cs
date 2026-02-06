@@ -1,4 +1,4 @@
-// Core.Application/PriceMaster/Commands/Delete/SoftDeletePriceMasterCommandHandler.cs
+// PurchaseManagement.Application/PriceMaster/Commands/Delete/SoftDeletePriceMasterCommandHandler.cs
 using MediatR;
 using PurchaseManagement.Application.Common.Interfaces.PriceMaster;
 using PurchaseManagement.Application.Common.Exceptions;

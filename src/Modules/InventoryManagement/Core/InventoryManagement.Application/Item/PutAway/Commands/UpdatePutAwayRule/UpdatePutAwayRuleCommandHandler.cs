@@ -1,4 +1,4 @@
-    // Core.Application/Item/PutAway/Commands/UpdatePutAwayRule/UpdatePutAwayRuleCommandHandler.cs
+    // InventoryManagement.Application/Item/PutAway/Commands/UpdatePutAwayRule/UpdatePutAwayRuleCommandHandler.cs
     using InventoryManagement.Application.Common.Exceptions;
     using InventoryManagement.Application.Common.Interfaces.Item.PutAway;
     using InventoryManagement.Domain.Entities.Item.PutAway;

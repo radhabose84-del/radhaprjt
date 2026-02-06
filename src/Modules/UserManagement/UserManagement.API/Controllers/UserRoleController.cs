@@ -1,18 +1,18 @@
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Core.Application.UserRole.Queries.GetRole;
-using Core.Application.UserRole.Queries.GetRoleById;
-using Core.Application.UserRole.Commands.CreateRole;
-using Core.Application.UserRole.Commands.DeleteRole;
-using Core.Application.UserRole.Commands.UpdateRole;
-using Core.Application.UserRole.Queries.GetRolesAutocomplete;
-using Core.Application.Common.Interfaces;
+using UserManagement.Application.UserRole.Queries.GetRole;
+using UserManagement.Application.UserRole.Queries.GetRoleById;
+using UserManagement.Application.UserRole.Commands.CreateRole;
+using UserManagement.Application.UserRole.Commands.DeleteRole;
+using UserManagement.Application.UserRole.Commands.UpdateRole;
+using UserManagement.Application.UserRole.Queries.GetRolesAutocomplete;
+using UserManagement.Application.Common.Interfaces;
 using FluentValidation;
 using UserManagement.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
-using Core.Application.Common.Interfaces.IUser;
-using Core.Application.Common.HttpResponse;
+using UserManagement.Application.Common.Interfaces.IUser;
+using UserManagement.Application.Common.HttpResponse;
 
 namespace UserManagement.API.Controllers
 {

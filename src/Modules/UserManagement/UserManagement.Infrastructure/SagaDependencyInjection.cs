@@ -1,5 +1,5 @@
 // using Contracts.Events.Users;
-// using Core.Application.Common.Interfaces;
+// using UserManagement.Application.Common.Interfaces;
 // using MassTransit;
 // using Microsoft.Extensions.Configuration;
 // using Microsoft.Extensions.DependencyInjection;
@@ -28,8 +28,8 @@
 
 //                  x.SetKebabCaseEndpointNameFormatter();
 //                 // Register consumers
-//                 x.AddConsumer<Core.Application.Consumers.PartyApprovedConsumer>();
-//                 x.AddConsumer<Core.Application.Consumers.PartySyncConsumer>();
+//                 x.AddConsumer<UserManagement.Application.Consumers.PartyApprovedConsumer>();
+//                 x.AddConsumer<UserManagement.Application.Consumers.PartySyncConsumer>();
 
 //                 x.UsingRabbitMq((context, cfg) =>
 //                 {
@@ -79,7 +79,7 @@
 //                                 ? m.Message.PartyId
 //                                 : 0);
 
-//                         e.ConfigureConsumer<Core.Application.Consumers.PartyApprovedConsumer>(context);
+//                         e.ConfigureConsumer<UserManagement.Application.Consumers.PartyApprovedConsumer>(context);
 //                     });
 
 //                     // PartySync endpoint
@@ -106,7 +106,7 @@
 //                                 ? m.Message.PartyId
 //                                 : 0);
 
-//                         e.ConfigureConsumer<Core.Application.Consumers.PartySyncConsumer>(context);
+//                         e.ConfigureConsumer<UserManagement.Application.Consumers.PartySyncConsumer>(context);
 //                     });
 //                 });
 //             });

@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
-using Core.Application.Common.Interfaces.IProfile;
-using Core.Domain.Entities;
+using UserManagement.Application.Common.Interfaces.IProfile;
+using UserManagement.Domain.Entities;
 using Dapper;
 
 namespace UserManagement.Infrastructure.Repositories.Profile

@@ -2,8 +2,8 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
-using Core.Application.Common.Interfaces.IPasswordComplexityRule;
-using Core.Domain.Entities;
+using UserManagement.Application.Common.Interfaces.IPasswordComplexityRule;
+using UserManagement.Domain.Entities;
 using Dapper;
 using DnsClient.Internal;
 
@@ -19,8 +19,8 @@ namespace UserManagement.Infrastructure.Repositories.PasswordComplexityRule
          _dbConnection = dbConnection;
     }
 
-      //public async Task<List<Core.Domain.Entities.PasswordComplexityRule>>GetPasswordComplexityAsync( )
-       public async Task<(List<Core.Domain.Entities.PasswordComplexityRule>,int)> GetPasswordComplexityAsync(int PageNumber, int PageSize, string? SearchTerm)
+      //public async Task<List<UserManagement.Domain.Entities.PasswordComplexityRule>>GetPasswordComplexityAsync( )
+       public async Task<(List<UserManagement.Domain.Entities.PasswordComplexityRule>,int)> GetPasswordComplexityAsync(int PageNumber, int PageSize, string? SearchTerm)
     {
           var query = $$"""
              DECLARE @TotalCount INT;
@@ -54,19 +54,19 @@ namespace UserManagement.Infrastructure.Repositories.PasswordComplexityRule
                        };
 
                var passwordComplexityRule = await _dbConnection.QueryMultipleAsync(query, parameters);
-             var PasswordComplexityRulelist = (await passwordComplexityRule.ReadAsync<Core.Domain.Entities.PasswordComplexityRule>()).ToList();
+             var PasswordComplexityRulelist = (await passwordComplexityRule.ReadAsync<UserManagement.Domain.Entities.PasswordComplexityRule>()).ToList();
              int totalCount = (await passwordComplexityRule.ReadFirstAsync<int>());
             return (PasswordComplexityRulelist, totalCount);      
 
       
     }
 
-      public async Task<Core.Domain.Entities.PasswordComplexityRule> GetByIdAsync(int id)
+      public async Task<UserManagement.Domain.Entities.PasswordComplexityRule> GetByIdAsync(int id)
     {
        
 
          const string query = @"SELECT * FROM AppSecurity.PasswordComplexityRule WHERE Id = @Id AND IsDeleted = 0 ORDER BY Id DESC";
-            var passwordComplexity = await _dbConnection.QueryFirstOrDefaultAsync<Core.Domain.Entities.PasswordComplexityRule>(query, new { id });           
+            var passwordComplexity = await _dbConnection.QueryFirstOrDefaultAsync<UserManagement.Domain.Entities.PasswordComplexityRule>(query, new { id });           
              if (passwordComplexity == null)
             {
              
@@ -75,7 +75,7 @@ namespace UserManagement.Infrastructure.Repositories.PasswordComplexityRule
             }
             return passwordComplexity;
         }       
-         public async Task<List<Core.Domain.Entities.PasswordComplexityRule>>  GetpwdautocompleteAsync(string searchTerm = null)
+         public async Task<List<UserManagement.Domain.Entities.PasswordComplexityRule>>  GetpwdautocompleteAsync(string searchTerm = null)
         {
 
 
@@ -98,7 +98,7 @@ namespace UserManagement.Infrastructure.Repositories.PasswordComplexityRule
                   searchTerm = $"%{searchTerm ?? string.Empty}%"
               };
 
-               var Pwdrule = await _dbConnection.QueryAsync<Core.Domain.Entities.PasswordComplexityRule>(query, parameters);
+               var Pwdrule = await _dbConnection.QueryAsync<UserManagement.Domain.Entities.PasswordComplexityRule>(query, parameters);
             return Pwdrule.ToList();   
         }
     }

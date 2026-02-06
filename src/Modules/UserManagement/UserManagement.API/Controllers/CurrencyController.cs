@@ -7,14 +7,14 @@ using UserManagement.Infrastructure.Data;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Core.Application.Currency.Queries.GetCurrency;
-using Core.Application.Currency.Queries.GetCurrencyById;
-using Core.Application.Currency.Queries.GetCurrencyAutoComplete;
-using Core.Application.Currency.Commands.CreateCurrency;
-using Core.Application.Currency.Commands.UpdateCurrency;
+using UserManagement.Application.Currency.Queries.GetCurrency;
+using UserManagement.Application.Currency.Queries.GetCurrencyById;
+using UserManagement.Application.Currency.Queries.GetCurrencyAutoComplete;
+using UserManagement.Application.Currency.Commands.CreateCurrency;
+using UserManagement.Application.Currency.Commands.UpdateCurrency;
 using FluentValidation;
-using Core.Application.AdminSecuritySettings.Commands.DeleteAdminSecuritySettings;
-using Core.Application.Currency.Commands.DeleteCurrency;
+using UserManagement.Application.AdminSecuritySettings.Commands.DeleteAdminSecuritySettings;
+using UserManagement.Application.Currency.Commands.DeleteCurrency;
 
 namespace UserManagement.API.Controllers
 {

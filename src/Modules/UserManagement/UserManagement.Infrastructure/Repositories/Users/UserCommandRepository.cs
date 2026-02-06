@@ -3,19 +3,19 @@ using System.Data;
 using Microsoft.EntityFrameworkCore;
 using UserManagement.Infrastructure.Data;
 using UserManagement.Infrastructure.Repositories;
-using Core.Application.Common.Interfaces;
-using Core.Domain.Entities;
+using UserManagement.Application.Common.Interfaces;
+using UserManagement.Domain.Entities;
 using System.Linq;
 using System.Text;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Core.Application.Common.Interfaces.IUser;
+using UserManagement.Application.Common.Interfaces.IUser;
 using Polly;
 using Polly.Timeout;
 using Serilog;
 using System.Collections.Concurrent;
-using Core.Application.UserLogin.Commands.UserLogin;
-using Core.Application.Common.Utilities;
+using UserManagement.Application.UserLogin.Commands.UserLogin;
+using UserManagement.Application.Common.Utilities;
 
 namespace UserManagement.Infrastructure.Repositories
 {
@@ -209,7 +209,7 @@ namespace UserManagement.Infrastructure.Repositories
 
                 foreach (var newRoleId in newRoleIds)
                 {
-                    existingUser.UserRoleAllocations.Add(new Core.Domain.Entities.UserRoleAllocation
+                    existingUser.UserRoleAllocations.Add(new UserManagement.Domain.Entities.UserRoleAllocation
                     {
                         UserId = existingUser.UserId,
                         UserRoleId = newRoleId,
@@ -229,7 +229,7 @@ namespace UserManagement.Infrastructure.Repositories
 
                 foreach (var newUnitId in newUnitIds)
                 {
-                    existingUser.UserUnits.Add(new Core.Domain.Entities.UserUnit
+                    existingUser.UserUnits.Add(new UserManagement.Domain.Entities.UserUnit
                     {
                         UserId = existingUser.UserId,
                         UnitId = newUnitId,
@@ -249,7 +249,7 @@ namespace UserManagement.Infrastructure.Repositories
 
                 foreach (var newDivisionId in newDivisionIds)
                 {
-                    existingUser.UserDivisions.Add(new Core.Domain.Entities.UserDivision
+                    existingUser.UserDivisions.Add(new UserManagement.Domain.Entities.UserDivision
                     {
                         UserId = existingUser.UserId,
                         DivisionId = newDivisionId,
@@ -269,7 +269,7 @@ namespace UserManagement.Infrastructure.Repositories
 
                 foreach (var newDepartmentId in newDepartmentIds)
                 {
-                    existingUser.UserDepartments.Add(new Core.Domain.Entities.UserDepartment
+                    existingUser.UserDepartments.Add(new UserManagement.Domain.Entities.UserDepartment
                     {
                         UserId = existingUser.UserId,
                         DepartmentId = newDepartmentId,
@@ -288,13 +288,13 @@ namespace UserManagement.Infrastructure.Repositories
          public async Task<int> GetMiscmasterByIdAsync(string miscTypeCode, string code)
             {
                 // Adjust table names if different in your context
-                var id = await _applicationDbContext.Set< Core.Domain.Entities.MiscMaster>()
-                    .Join(_applicationDbContext.Set< Core.Domain.Entities.MiscTypeMaster>(),
+                var id = await _applicationDbContext.Set< UserManagement.Domain.Entities.MiscMaster>()
+                    .Join(_applicationDbContext.Set< UserManagement.Domain.Entities.MiscTypeMaster>(),
                         m => m.MiscTypeId, t => t.Id,
                         (m, t) => new { m, t })
                     .Where(x => x.t.MiscTypeCode == miscTypeCode &&
                                 x.m.Code == code &&
-                                x.m.IsActive == Core.Domain.Enums.Common.Enums.Status.Active)
+                                x.m.IsActive == UserManagement.Domain.Enums.Common.Enums.Status.Active)
                     .Select(x => x.m.Id)
                     .FirstOrDefaultAsync();
 

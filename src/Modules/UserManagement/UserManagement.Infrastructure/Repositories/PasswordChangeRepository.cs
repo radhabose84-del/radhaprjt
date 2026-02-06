@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using UserManagement.Infrastructure.Data;
-using Core.Application.Common.Interfaces;
-using Core.Domain.Entities;
+using UserManagement.Application.Common.Interfaces;
+using UserManagement.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
-using static Core.Domain.Enums.Common.Enums;
+using static UserManagement.Domain.Enums.Common.Enums;
 using System.Data;
 using Dapper;
 

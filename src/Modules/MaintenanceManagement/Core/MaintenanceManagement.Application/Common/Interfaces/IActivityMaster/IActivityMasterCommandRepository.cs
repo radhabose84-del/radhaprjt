@@ -10,8 +10,8 @@ namespace MaintenanceManagement.Application.Common.Interfaces.IActivityMaster
     {
         Task<MaintenanceManagement.Domain.Entities.ActivityMaster> CreateAsync(MaintenanceManagement.Domain.Entities.ActivityMaster  activityMaster); 
 
-      //  Task<Core.Domain.Entities.ActivityMaster> UpdateAsync(Core.Domain.Entities.ActivityMaster activityMaster);  
-       //  Task<bool> UpdateAsync( Core.Domain.Entities.ActivityMaster activityMaster);
+      //  Task<MaintenanceManagement.Domain.Entities.ActivityMaster> UpdateAsync(MaintenanceManagement.Domain.Entities.ActivityMaster activityMaster);  
+       //  Task<bool> UpdateAsync( MaintenanceManagement.Domain.Entities.ActivityMaster activityMaster);
 
          Task<int> UpdateAsync(UpdateActivityMasterDto activityMaster);
     }

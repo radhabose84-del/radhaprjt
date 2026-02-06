@@ -20,8 +20,8 @@ namespace InventoryManagement.Application.MiscMaster
 
 
 
-            var MiscCodeMaxLength = maxLengthProvider.GetMaxLength<Core.Domain.Entities.MiscMaster>("Code") ?? 50;
-            var DescriptionMaxLength = maxLengthProvider.GetMaxLength<Core.Domain.Entities.MiscMaster>("Description") ?? 250;
+            var MiscCodeMaxLength = maxLengthProvider.GetMaxLength<InventoryManagement.Domain.Entities.MiscMaster>("Code") ?? 50;
+            var DescriptionMaxLength = maxLengthProvider.GetMaxLength<InventoryManagement.Domain.Entities.MiscMaster>("Description") ?? 250;
 
             _validationRules = ValidationRuleLoader.LoadValidationRules();
             _miscMasterQuery = miscMasterQuery;

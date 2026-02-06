@@ -25,7 +25,7 @@ namespace UserManagement.Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Core.Domain.Entities.Cities", b =>
+            modelBuilder.Entity("UserManagement.Domain.Entities.Cities", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -93,7 +93,7 @@ namespace UserManagement.Infrastructure.Migrations
                     b.ToTable("City", "AppData");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Company", b =>
+            modelBuilder.Entity("UserManagement.Domain.Entities.Company", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -185,7 +185,7 @@ namespace UserManagement.Infrastructure.Migrations
                     b.ToTable("Company", "AppData");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.CompanyAddress", b =>
+            modelBuilder.Entity("UserManagement.Domain.Entities.CompanyAddress", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -243,7 +243,7 @@ namespace UserManagement.Infrastructure.Migrations
                     b.ToTable("CompanyAddress", "AppData");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.CompanyContact", b =>
+            modelBuilder.Entity("UserManagement.Domain.Entities.CompanyContact", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -289,7 +289,7 @@ namespace UserManagement.Infrastructure.Migrations
                     b.ToTable("CompanyContact", "AppData");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Countries", b =>
+            modelBuilder.Entity("UserManagement.Domain.Entities.Countries", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -351,7 +351,7 @@ namespace UserManagement.Infrastructure.Migrations
                     b.ToTable("Country", "AppData");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Department", b =>
+            modelBuilder.Entity("UserManagement.Domain.Entities.Department", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -408,7 +408,7 @@ namespace UserManagement.Infrastructure.Migrations
                     b.ToTable("Department", "AppData");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Division", b =>
+            modelBuilder.Entity("UserManagement.Domain.Entities.Division", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -462,7 +462,7 @@ namespace UserManagement.Infrastructure.Migrations
                     b.ToTable("Division", "AppData");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Entity", b =>
+            modelBuilder.Entity("UserManagement.Domain.Entities.Entity", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -536,7 +536,7 @@ namespace UserManagement.Infrastructure.Migrations
                     b.ToTable("Entity", "AppData");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Menu", b =>
+            modelBuilder.Entity("UserManagement.Domain.Entities.Menu", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -561,7 +561,7 @@ namespace UserManagement.Infrastructure.Migrations
                     b.ToTable("Menus", "AppData");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Modules", b =>
+            modelBuilder.Entity("UserManagement.Domain.Entities.Modules", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -582,7 +582,7 @@ namespace UserManagement.Infrastructure.Migrations
                     b.ToTable("Modules", "AppData");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.PasswordLog", b =>
+            modelBuilder.Entity("UserManagement.Domain.Entities.PasswordLog", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -623,7 +623,7 @@ namespace UserManagement.Infrastructure.Migrations
                     b.ToTable("PasswordLog", "AppSecurity");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.RoleEntitlement", b =>
+            modelBuilder.Entity("UserManagement.Domain.Entities.RoleEntitlement", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -705,7 +705,7 @@ namespace UserManagement.Infrastructure.Migrations
                     b.ToTable("RoleEntitlements", "AppSecurity");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.States", b =>
+            modelBuilder.Entity("UserManagement.Domain.Entities.States", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -773,7 +773,7 @@ namespace UserManagement.Infrastructure.Migrations
                     b.ToTable("State", "AppData");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Unit", b =>
+            modelBuilder.Entity("UserManagement.Domain.Entities.Unit", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -845,7 +845,7 @@ namespace UserManagement.Infrastructure.Migrations
                     b.ToTable("Unit", "AppData");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.UnitAddress", b =>
+            modelBuilder.Entity("UserManagement.Domain.Entities.UnitAddress", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -899,7 +899,7 @@ namespace UserManagement.Infrastructure.Migrations
                     b.ToTable("UnitAddress", "AppData");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.UnitContacts", b =>
+            modelBuilder.Entity("UserManagement.Domain.Entities.UnitContacts", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -943,7 +943,7 @@ namespace UserManagement.Infrastructure.Migrations
                     b.ToTable("UnitContacts", "AppData");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.User", b =>
+            modelBuilder.Entity("UserManagement.Domain.Entities.User", b =>
                 {
                     b.Property<int>("UserId")
                         .ValueGeneratedOnAdd()
@@ -1043,7 +1043,7 @@ namespace UserManagement.Infrastructure.Migrations
                     b.ToTable("Users", "AppSecurity");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.UserRole", b =>
+            modelBuilder.Entity("UserManagement.Domain.Entities.UserRole", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1101,7 +1101,7 @@ namespace UserManagement.Infrastructure.Migrations
                     b.ToTable("UserRole", "AppSecurity");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.UserRoleAllocation", b =>
+            modelBuilder.Entity("UserManagement.Domain.Entities.UserRoleAllocation", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1159,7 +1159,7 @@ namespace UserManagement.Infrastructure.Migrations
                     b.ToTable("UserRoleAllocation", (string)null);
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.UserSessions", b =>
+            modelBuilder.Entity("UserManagement.Domain.Entities.UserSessions", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1202,9 +1202,9 @@ namespace UserManagement.Infrastructure.Migrations
                     b.ToTable("UserSessions", "AppSecurity");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Cities", b =>
+            modelBuilder.Entity("UserManagement.Domain.Entities.Cities", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.States", "States")
+                    b.HasOne("UserManagement.Domain.Entities.States", "States")
                         .WithMany("Cities")
                         .HasForeignKey("StateId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -1213,31 +1213,31 @@ namespace UserManagement.Infrastructure.Migrations
                     b.Navigation("States");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.CompanyAddress", b =>
+            modelBuilder.Entity("UserManagement.Domain.Entities.CompanyAddress", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.Company", "Company")
+                    b.HasOne("UserManagement.Domain.Entities.Company", "Company")
                         .WithOne("CompanyAddress")
-                        .HasForeignKey("Core.Domain.Entities.CompanyAddress", "CompanyId")
+                        .HasForeignKey("UserManagement.Domain.Entities.CompanyAddress", "CompanyId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Company");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.CompanyContact", b =>
+            modelBuilder.Entity("UserManagement.Domain.Entities.CompanyContact", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.Company", "Company")
+                    b.HasOne("UserManagement.Domain.Entities.Company", "Company")
                         .WithOne("CompanyContact")
-                        .HasForeignKey("Core.Domain.Entities.CompanyContact", "CompanyId")
+                        .HasForeignKey("UserManagement.Domain.Entities.CompanyContact", "CompanyId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Company");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Menu", b =>
+            modelBuilder.Entity("UserManagement.Domain.Entities.Menu", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.Modules", "Module")
+                    b.HasOne("UserManagement.Domain.Entities.Modules", "Module")
                         .WithMany("Menus")
                         .HasForeignKey("ModuleId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1246,9 +1246,9 @@ namespace UserManagement.Infrastructure.Migrations
                     b.Navigation("Module");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.PasswordLog", b =>
+            modelBuilder.Entity("UserManagement.Domain.Entities.PasswordLog", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.User", "User")
+                    b.HasOne("UserManagement.Domain.Entities.User", "User")
                         .WithMany("Passwords")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -1257,21 +1257,21 @@ namespace UserManagement.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.RoleEntitlement", b =>
+            modelBuilder.Entity("UserManagement.Domain.Entities.RoleEntitlement", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.Menu", "Menu")
+                    b.HasOne("UserManagement.Domain.Entities.Menu", "Menu")
                         .WithMany("RoleEntitlements")
                         .HasForeignKey("MenuId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Core.Domain.Entities.Modules", "Module")
+                    b.HasOne("UserManagement.Domain.Entities.Modules", "Module")
                         .WithMany("RoleEntitlements")
                         .HasForeignKey("ModuleId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Core.Domain.Entities.UserRole", "UserRole")
+                    b.HasOne("UserManagement.Domain.Entities.UserRole", "UserRole")
                         .WithMany("RoleEntitlements")
                         .HasForeignKey("UserRoleId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1284,9 +1284,9 @@ namespace UserManagement.Infrastructure.Migrations
                     b.Navigation("UserRole");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.States", b =>
+            modelBuilder.Entity("UserManagement.Domain.Entities.States", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.Countries", "Countries")
+                    b.HasOne("UserManagement.Domain.Entities.Countries", "Countries")
                         .WithMany("States")
                         .HasForeignKey("CountryId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -1295,9 +1295,9 @@ namespace UserManagement.Infrastructure.Migrations
                     b.Navigation("Countries");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.UnitAddress", b =>
+            modelBuilder.Entity("UserManagement.Domain.Entities.UnitAddress", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.Unit", "Unit")
+                    b.HasOne("UserManagement.Domain.Entities.Unit", "Unit")
                         .WithMany("UnitAddress")
                         .HasForeignKey("UnitId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1306,9 +1306,9 @@ namespace UserManagement.Infrastructure.Migrations
                     b.Navigation("Unit");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.UnitContacts", b =>
+            modelBuilder.Entity("UserManagement.Domain.Entities.UnitContacts", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.Unit", "Unit")
+                    b.HasOne("UserManagement.Domain.Entities.Unit", "Unit")
                         .WithMany("UnitContacts")
                         .HasForeignKey("UnitId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1317,15 +1317,15 @@ namespace UserManagement.Infrastructure.Migrations
                     b.Navigation("Unit");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.UserRoleAllocation", b =>
+            modelBuilder.Entity("UserManagement.Domain.Entities.UserRoleAllocation", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.User", "User")
+                    b.HasOne("UserManagement.Domain.Entities.User", "User")
                         .WithMany("UserRoleAllocations")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Core.Domain.Entities.UserRole", "UserRole")
+                    b.HasOne("UserManagement.Domain.Entities.UserRole", "UserRole")
                         .WithMany("UserRoleAllocations")
                         .HasForeignKey("UserRoleId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1336,16 +1336,16 @@ namespace UserManagement.Infrastructure.Migrations
                     b.Navigation("UserRole");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.UserSessions", b =>
+            modelBuilder.Entity("UserManagement.Domain.Entities.UserSessions", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.User", null)
+                    b.HasOne("UserManagement.Domain.Entities.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Company", b =>
+            modelBuilder.Entity("UserManagement.Domain.Entities.Company", b =>
                 {
                     b.Navigation("CompanyAddress")
                         .IsRequired();
@@ -1354,43 +1354,43 @@ namespace UserManagement.Infrastructure.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Countries", b =>
+            modelBuilder.Entity("UserManagement.Domain.Entities.Countries", b =>
                 {
                     b.Navigation("States");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Menu", b =>
+            modelBuilder.Entity("UserManagement.Domain.Entities.Menu", b =>
                 {
                     b.Navigation("RoleEntitlements");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Modules", b =>
+            modelBuilder.Entity("UserManagement.Domain.Entities.Modules", b =>
                 {
                     b.Navigation("Menus");
 
                     b.Navigation("RoleEntitlements");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.States", b =>
+            modelBuilder.Entity("UserManagement.Domain.Entities.States", b =>
                 {
                     b.Navigation("Cities");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Unit", b =>
+            modelBuilder.Entity("UserManagement.Domain.Entities.Unit", b =>
                 {
                     b.Navigation("UnitAddress");
 
                     b.Navigation("UnitContacts");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.User", b =>
+            modelBuilder.Entity("UserManagement.Domain.Entities.User", b =>
                 {
                     b.Navigation("Passwords");
 
                     b.Navigation("UserRoleAllocations");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.UserRole", b =>
+            modelBuilder.Entity("UserManagement.Domain.Entities.UserRole", b =>
                 {
                     b.Navigation("RoleEntitlements");
 

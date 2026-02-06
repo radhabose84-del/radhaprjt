@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using Core.Application.Common.Interfaces;
+using UserManagement.Application.Common.Interfaces;
 using Microsoft.AspNetCore.Http;
 
 namespace UserManagement.Infrastructure.Repositories

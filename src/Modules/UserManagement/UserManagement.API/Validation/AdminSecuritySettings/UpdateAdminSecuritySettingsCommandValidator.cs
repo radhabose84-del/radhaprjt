@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using UserManagement.API.Validation.Common;
-using Core.Application.AdminSecuritySettings.Commands.UpdateAdminSecuritySettings;
+using UserManagement.Application.AdminSecuritySettings.Commands.UpdateAdminSecuritySettings;
 using FluentValidation;
 
 namespace UserManagement.API.Validation.AdminSecuritySettings

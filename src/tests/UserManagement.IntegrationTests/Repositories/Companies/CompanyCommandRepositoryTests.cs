@@ -1,8 +1,8 @@
 using System.Threading.Tasks;
-using Core.Application.Common.Interfaces;
-using Core.Application.Common.Interfaces.ICompany;
-using Core.Domain.Entities;
-using Core.Domain.Enums.Common;          // for Enums.Status / Enums.IsDelete
+using UserManagement.Application.Common.Interfaces;
+using UserManagement.Application.Common.Interfaces.ICompany;
+using UserManagement.Domain.Entities;
+using UserManagement.Domain.Enums.Common;          // for Enums.Status / Enums.IsDelete
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;

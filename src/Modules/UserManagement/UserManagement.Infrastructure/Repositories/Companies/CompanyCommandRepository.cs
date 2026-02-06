@@ -1,12 +1,12 @@
 using Microsoft.EntityFrameworkCore;
 using UserManagement.Infrastructure.Data;
-using Core.Domain.Entities;
+using UserManagement.Domain.Entities;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AutoMapper;
 using Azure;
-using Core.Application.Common.Interfaces.ICompany;
-using Core.Application.Common.Interfaces;
+using UserManagement.Application.Common.Interfaces.ICompany;
+using UserManagement.Application.Common.Interfaces;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 

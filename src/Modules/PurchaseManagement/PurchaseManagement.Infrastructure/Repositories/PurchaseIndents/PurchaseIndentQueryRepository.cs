@@ -117,16 +117,16 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseIndents
         // //         StatusId
         // //     };
 
-        // //     var Indent = await _dbConnection.QueryAsync<IndentHeader, Core.Domain.Entities.MiscMaster, Core.Domain.Entities.MiscMaster, IndentHeader>(
+        // //     var Indent = await _dbConnection.QueryAsync<IndentHeader, PurchaseManagement.Domain.Entities.MiscMaster, PurchaseManagement.Domain.Entities.MiscMaster, IndentHeader>(
         // //         dataQuery,
         // //         (indentHeader, indentType, status) =>
         // //         {
-        // //             indentHeader.IndentType = new Core.Domain.Entities.MiscMaster
+        // //             indentHeader.IndentType = new PurchaseManagement.Domain.Entities.MiscMaster
         // //             {
         // //                 Id = indentType.Id,
         // //                 Code = indentType.Code
         // //             };
-        // //             indentHeader.Status = new Core.Domain.Entities.MiscMaster
+        // //             indentHeader.Status = new PurchaseManagement.Domain.Entities.MiscMaster
         // //             {
         // //                 Id = status.Id,
         // //                 Code = status.Code
@@ -409,11 +409,11 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseIndents
         //         Pending = MiscEnumEntity.Pending
         //     };
 
-        //     var Indent = await _dbConnection.QueryAsync<IndentHeader, Core.Domain.Entities.MiscMaster, IndentHeader>(
+        //     var Indent = await _dbConnection.QueryAsync<IndentHeader, PurchaseManagement.Domain.Entities.MiscMaster, IndentHeader>(
         //         dataQuery,
         //         (indentHeader, indentType) =>
         //         {
-        //             indentHeader.IndentType = new Core.Domain.Entities.MiscMaster
+        //             indentHeader.IndentType = new PurchaseManagement.Domain.Entities.MiscMaster
         //             {
         //                 Id = indentType.Id,
         //                 Code = indentType.Code
@@ -738,7 +738,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseIndents
                     return (data, totalCount);
         }
 
-        //     public async Task<(List<Core.Application.PurchaseIndents.Queries.GetAllPurchaseIndent.IndentDto>, int)> GetAllPurchaseIndentAsync(
+        //     public async Task<(List<PurchaseManagement.Application.PurchaseIndents.Queries.GetAllPurchaseIndent.IndentDto>, int)> GetAllPurchaseIndentAsync(
         //     int pageNumber,
         //     int pageSize,
         //     string? searchTerm,
@@ -819,7 +819,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseIndents
         //         PageSize = pageSize
         //     };
 
-        //     var data = (await _dbConnection.QueryAsync<Core.Application.PurchaseIndents.Queries.GetAllPurchaseIndent.IndentDto, int, Core.Application.PurchaseIndents.Queries.GetAllPurchaseIndent.IndentDto>(
+        //     var data = (await _dbConnection.QueryAsync<PurchaseManagement.Application.PurchaseIndents.Queries.GetAllPurchaseIndent.IndentDto, int, PurchaseManagement.Application.PurchaseIndents.Queries.GetAllPurchaseIndent.IndentDto>(
         //         sql,
         //         (indent, totalCount) =>
         //         {

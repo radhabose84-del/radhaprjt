@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
-using Core.Domain.Entities;
+using UserManagement.Domain.Entities;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Core.Application.Common.Interfaces;
-using Core.Domain.Common;
+using UserManagement.Application.Common.Interfaces;
+using UserManagement.Domain.Common;
 using UserManagement.Infrastructure.Data.Configurations;
 
 

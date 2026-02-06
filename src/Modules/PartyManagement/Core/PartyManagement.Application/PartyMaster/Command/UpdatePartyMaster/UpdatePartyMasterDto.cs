@@ -1,0 +1,129 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace PartyManagement.Application.PartyMaster.Command.UpdatePartyMaster
+{
+    public class UpdatePartyMasterDto
+    {
+        public int Id { get; set; }
+        public string? PartyCode { get; set; } //Readonly Field
+        public string? PartyName { get; set; }
+        public int? PartyZoneId { get; set; }
+        public int? RegistrationTypeId { get; set; }
+        public string? GSTNumber { get; set; }
+        public int? GSTStateCode { get; set; }
+        public string? PAN { get; set; }
+        public string? Website { get; set; }
+        public string? TAN { get; set; }
+        public int? TDSCategoryId { get; set; }
+        public int? MSMETypeId { get; set; }
+        public string? MSMENO { get; set; }
+        public DateTimeOffset? MSMEValidUpto { get; set; }
+        public byte IsMsmeCompliant { get; set; }
+        public byte IsTDSApplicable { get; set; }
+        public byte IsTCSApplicable { get; set; }
+        public byte IsGstReverseCharge { get; set; }
+        public byte Is206AB206CCAApplicable { get; set; }
+        public int? PayementModeId { get; set; }
+        public string? FavourOf { get; set; }
+        public int? PreferredCurrencyPurchase { get; set; }
+        public int? CreditDays { get; set; }
+        public int? DueDateTypeId { get; set; }
+        public int? LeadTime { get; set; }
+        public int? PreferredCurrencySale { get; set; }
+        public decimal? CreditLimit { get; set; }
+        public int? SellingPriceListId { get; set; }
+        public int? CustomerTypeId { get; set; }
+        public byte IsInternalSupplier { get; set; }
+        public byte IsInternalCustomer { get; set; }
+        public byte IsStopPayment { get; set; }
+        public DateTimeOffset? GSTRegistrationDate { get; set; }
+        public DateTimeOffset? MSMERegistrationDate { get; set; }
+        public string? CIN { get; set; }
+        public string? IECode { get; set; }
+        public byte IsGroup { get; set; }
+        public byte IsSubsidiary { get; set; }
+        public decimal? InsuranceLimit { get; set; }
+        public byte IsActive { get; set; }
+        public byte IsPortalAccessEnabled { get; set; }
+        public List<UpdatePartyUniCompanyDto>? PartyUnitCompaniesUpdate { get; set; }
+        public List<UpdatePartyTypeDto>? PartyTypesUpdate { get; set; }
+        public List<UpdatePartyContactDto>? PartyContactsUpdate { get; set; }
+        public List<UpdatePartyAddressDto>? PartyAddressesUpdate { get; set; }
+        public List<UpdatePartyBankDto>? PartyBanksUpdate { get; set; }
+        public List<UpdatePartyDocumentDto>? PartyDocumentsUpdate { get; set; }
+
+         public class UpdatePartyUniCompanyDto
+        {
+            public int Id { get; set; } // PK of PartyType, 0 for new
+            public int PartyId { get; set; } // FK 
+            public int CompanyId { get; set; }
+            public int UnitId { get; set; }
+        }
+        public class UpdatePartyTypeDto
+        {
+            public int Id { get; set; } // PK of PartyType, 0 for new
+            public int PartyId { get; set; } // FK 
+            public int PartyTypeId { get; set; }
+            public int PartyGroupId { get; set; }
+        }
+
+        public class UpdatePartyContactDto
+        {
+            public int Id { get; set; } // PK of PartyContact, 0 for new
+            public int PartyId { get; set; } // FK 
+            public string? FirstName { get; set; }
+            public string? LastName { get; set; }
+            public int? GenderId { get; set; }
+            public string? Designation { get; set; }
+            public string? EmailID { get; set; }
+            public string? MobileNo { get; set; }
+            public string? Phone { get; set; }
+            public int? PreferredChannelId { get; set; }
+            public int? ContactTypeId { get; set; }
+            public string? ContactBy { get; set; }
+        }
+
+        public class UpdatePartyAddressDto
+        {
+            public int Id { get; set; } // PK of PartyAddress, 0 for new
+            public int PartyId { get; set; } // FK 
+            public string? AddressType { get; set; }
+            public string? AddressLine1 { get; set; }
+            public string? AddressLine2 { get; set; }
+           // public int? CityId { get; set; }
+           // public int? StateId { get; set; }
+            public string? PostalCode { get; set; }
+           // public int? CountryId { get; set; }
+            public string? City { get; set; }
+            public string? State { get; set; }
+            public string? Country { get; set; }
+        }
+        public class UpdatePartyBankDto
+        {
+            public int Id { get; set; } // PK of PartyAddress, 0 for new
+            public int PartyId { get; set; } // FK 
+            public string? BankName { get; set; }
+            public string? BankAccountNumber { get; set; }
+            public string? BankBranch { get; set; }
+            public string? IFSCCode { get; set; }
+            public string? SWIFTCode { get; set; }
+            public int? AccountTypeId { get; set; }
+            public byte IsDefaultAccount { get; set; }
+            public byte IsPrimaryAccount { get; set; }
+        }
+
+        public class UpdatePartyDocumentDto
+        {
+            public int Id { get; set; } // PK of PartDocument, 0 for new
+            public int PartyId { get; set; } // FK 
+            public int DocumentId { get; set; }
+            public string? FileName { get; set; } 
+            public DateTimeOffset UploadedDate { get; set; }            
+        }
+
+
+    }
+}

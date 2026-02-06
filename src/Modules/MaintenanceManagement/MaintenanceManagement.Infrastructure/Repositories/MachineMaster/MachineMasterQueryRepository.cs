@@ -150,7 +150,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.MachineMaster
         //     SearchPattern = $"%{searchPattern}%" 
         //     };
 
-        //     var machineMasters = await _dbConnection.QueryAsync<Core.Domain.Entities.MachineMaster>(query, parameters);
+        //     var machineMasters = await _dbConnection.QueryAsync<MaintenanceManagement.Domain.Entities.MachineMaster>(query, parameters);
         //     return machineMasters.ToList();
         // }
         public async Task<List<MaintenanceManagement.Domain.Entities.MachineMaster>> GetMachineByGroupSagaAsync(int MachineGroupId, int UnitId)

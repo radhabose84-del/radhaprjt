@@ -1,9 +1,9 @@
-using Core.Application.UserGroup.Commands.CreateUserGroup;
-using Core.Application.UserGroup.Commands.DeleteUserGroup;
-using Core.Application.UserGroup.Commands.UpdateUesrGroup;
-using Core.Application.UserGroup.Queries.GetUserGroup;
-using Core.Application.UserGroup.Queries.GetUserGroupAutoComplete;
-using Core.Application.UserGroup.Queries.GetUserGroupById;
+using UserManagement.Application.UserGroup.Commands.CreateUserGroup;
+using UserManagement.Application.UserGroup.Commands.DeleteUserGroup;
+using UserManagement.Application.UserGroup.Commands.UpdateUesrGroup;
+using UserManagement.Application.UserGroup.Queries.GetUserGroup;
+using UserManagement.Application.UserGroup.Queries.GetUserGroupAutoComplete;
+using UserManagement.Application.UserGroup.Queries.GetUserGroupById;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;

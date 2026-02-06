@@ -1,10 +1,10 @@
 using System.Text.RegularExpressions;
 using FluentValidation;
 using FluentValidation.Results;
-using Core.Application.Country.Commands.CreateCountry;
-using Core.Domain.Entities;
+using UserManagement.Application.Country.Commands.CreateCountry;
+using UserManagement.Domain.Entities;
 using UserManagement.API.Validation.Common;   // MaxLengthProvider, ValidationRuleLoader
-using Core.Application.Common.Interfaces.ICountry;
+using UserManagement.Application.Common.Interfaces.ICountry;
 using Shared.Validation.Common; // repo with ExistsBy* methods
 
 namespace UserManagement.API.Validation.Country

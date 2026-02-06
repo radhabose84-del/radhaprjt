@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using UserManagement.Infrastructure.Data;
-using Core.Application.Common.Interfaces.IPasswordComplexityRule;
+using UserManagement.Application.Common.Interfaces.IPasswordComplexityRule;
 using Microsoft.EntityFrameworkCore;
 
 namespace UserManagement.Infrastructure.Repositories.PasswordComplexityRule
@@ -19,14 +19,14 @@ namespace UserManagement.Infrastructure.Repositories.PasswordComplexityRule
           _applicationDbContext = applicationDbContext;
       }
 
-      public async  Task<Core.Domain.Entities.PasswordComplexityRule> CreateAsync(Core.Domain.Entities.PasswordComplexityRule passwordComplexityRule)
+      public async  Task<UserManagement.Domain.Entities.PasswordComplexityRule> CreateAsync(UserManagement.Domain.Entities.PasswordComplexityRule passwordComplexityRule)
       {
           await _applicationDbContext.PasswordComplexityRule.AddAsync(passwordComplexityRule);
           await _applicationDbContext.SaveChangesAsync();
           return passwordComplexityRule; 
       }
 
-       public async Task<int>UpdateAsync(int id, Core.Domain.Entities.PasswordComplexityRule passwordComplexityRule)
+       public async Task<int>UpdateAsync(int id, UserManagement.Domain.Entities.PasswordComplexityRule passwordComplexityRule)
         {
             var existingpwdcomrule  = await _applicationDbContext.PasswordComplexityRule.FirstOrDefaultAsync(p => p.Id == id);
             if (existingpwdcomrule  != null)
@@ -40,7 +40,7 @@ namespace UserManagement.Infrastructure.Repositories.PasswordComplexityRule
             return 0; // No id found
          }
 
-          public async Task<int> DeleteAsync(int id ,Core.Domain.Entities.PasswordComplexityRule pwdcomplexityrule )
+          public async Task<int> DeleteAsync(int id ,UserManagement.Domain.Entities.PasswordComplexityRule pwdcomplexityrule )
            {                        
 
             var PwdcomplexityruleToDelete = await _applicationDbContext.PasswordComplexityRule.FirstOrDefaultAsync(u => u.Id == id);

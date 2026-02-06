@@ -1,9 +1,9 @@
 using System.Text.RegularExpressions;
 using FluentValidation;
 using FluentValidation.Results;            // PreValidate
-using Core.Domain.Entities;
-using Core.Application.Country.Commands.UpdateCountry;
-using Core.Application.Common.Interfaces.ICountry;
+using UserManagement.Domain.Entities;
+using UserManagement.Application.Country.Commands.UpdateCountry;
+using UserManagement.Application.Common.Interfaces.ICountry;
 using UserManagement.API.Validation.Common; // MaxLengthProvider
 
 namespace UserManagement.API.Validation.Country

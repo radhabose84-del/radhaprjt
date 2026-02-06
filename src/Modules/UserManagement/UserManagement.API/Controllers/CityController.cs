@@ -1,10 +1,10 @@
-using Core.Application.City.Commands.CreateCity;
-using Core.Application.City.Commands.DeleteCity;
-using Core.Application.City.Commands.UpdateCity;
-using Core.Application.City.Queries.GetCities;
-using Core.Application.City.Queries.GetCityAutoComplete;
-using Core.Application.City.Queries.GetCityById;
-using Core.Application.City.Queries.GetCityByStateId;
+using UserManagement.Application.City.Commands.CreateCity;
+using UserManagement.Application.City.Commands.DeleteCity;
+using UserManagement.Application.City.Commands.UpdateCity;
+using UserManagement.Application.City.Queries.GetCities;
+using UserManagement.Application.City.Queries.GetCityAutoComplete;
+using UserManagement.Application.City.Queries.GetCityById;
+using UserManagement.Application.City.Queries.GetCityByStateId;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;

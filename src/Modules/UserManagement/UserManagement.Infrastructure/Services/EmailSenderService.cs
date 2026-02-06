@@ -1,6 +1,6 @@
 
 using System.Net.Http.Json;
-using Core.Application.Common.Interfaces;
+using UserManagement.Application.Common.Interfaces;
 using Contracts.Events.Notifications;
 using Microsoft.AspNetCore.Http;
 

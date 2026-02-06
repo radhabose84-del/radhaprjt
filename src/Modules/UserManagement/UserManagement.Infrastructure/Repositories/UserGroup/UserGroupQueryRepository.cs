@@ -1,6 +1,6 @@
 using System.Data;
-using Core.Application.Common.Interfaces;
-using Core.Application.Common.Interfaces.IUserGroup;
+using UserManagement.Application.Common.Interfaces;
+using UserManagement.Application.Common.Interfaces.IUserGroup;
 using Dapper;
 
 namespace UserManagement.Infrastructure.Repositories.UserGroup
@@ -15,7 +15,7 @@ namespace UserManagement.Infrastructure.Repositories.UserGroup
             _ipAddressService = ipAddressService;
         }
 
-        public async Task<(List<Core.Domain.Entities.UserGroup>, int)> GetAllUserGroupAsync(int PageNumber, int PageSize, string? SearchTerm)
+        public async Task<(List<UserManagement.Domain.Entities.UserGroup>, int)> GetAllUserGroupAsync(int PageNumber, int PageSize, string? SearchTerm)
         {
                var query = $$"""
                 DECLARE @TotalCount INT;
@@ -38,19 +38,19 @@ namespace UserManagement.Infrastructure.Repositories.UserGroup
                            PageSize
                        };          
             var userGroup = await _dbConnection.QueryMultipleAsync(query, parameters);
-            var userGroupList = (await userGroup.ReadAsync<Core.Domain.Entities.UserGroup>()).ToList();
+            var userGroupList = (await userGroup.ReadAsync<UserManagement.Domain.Entities.UserGroup>()).ToList();
             int totalCount = (await userGroup.ReadFirstAsync<int>());             
             return (userGroupList, totalCount);   
         }
 
-        public async Task<Core.Domain.Entities.UserGroup> GetByIdAsync(int id)
+        public async Task<UserManagement.Domain.Entities.UserGroup> GetByIdAsync(int id)
         {
             const string query = @"
             SELECT Id, GroupCode, GroupName, IsActive, CreatedBy, CreatedAt, CreatedByName, CreatedIP, 
             ModifiedBy, ModifiedAt, ModifiedByName, ModifiedIP
             FROM AppSecurity.UserGroup  
             WHERE Id = @id AND IsDeleted = 0";
-            var userGroup = await _dbConnection.QueryFirstOrDefaultAsync<Core.Domain.Entities.UserGroup>(query, new { id });           
+            var userGroup = await _dbConnection.QueryFirstOrDefaultAsync<UserManagement.Domain.Entities.UserGroup>(query, new { id });           
              if (userGroup is null)
             {
                 throw new KeyNotFoundException($"UserGroup with ID {id} not found.");
@@ -58,7 +58,7 @@ namespace UserManagement.Infrastructure.Repositories.UserGroup
             return userGroup;
         }
 
-        public async Task<List<Core.Domain.Entities.UserGroup>> GetUserGroups(string searchTerm = null)
+        public async Task<List<UserManagement.Domain.Entities.UserGroup>> GetUserGroups(string searchTerm = null)
         { 
             var groupCode = _ipAddressService.GetGroupcode();
             var userid = _ipAddressService.GetUserId();
@@ -100,7 +100,7 @@ namespace UserManagement.Infrastructure.Repositories.UserGroup
             UserId =userid
             };
 
-            var userRoles = await _dbConnection.QueryAsync<Core.Domain.Entities.UserGroup>(query, parameters);
+            var userRoles = await _dbConnection.QueryAsync<UserManagement.Domain.Entities.UserGroup>(query, parameters);
             return userRoles.ToList();
         }
 

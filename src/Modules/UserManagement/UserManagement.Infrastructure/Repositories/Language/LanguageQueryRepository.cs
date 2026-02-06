@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
-using Core.Application.Common.Interfaces.ILanguage;
+using UserManagement.Application.Common.Interfaces.ILanguage;
 using Dapper;
 
 namespace UserManagement.Infrastructure.Repositories.Language
@@ -15,7 +15,7 @@ namespace UserManagement.Infrastructure.Repositories.Language
         {
             _dbConnection = dbConnection;
         }
-        public async Task<(List<Core.Domain.Entities.Language>,int)> GetAllLanguageAsync(int PageNumber, int PageSize, string? SearchTerm)
+        public async Task<(List<UserManagement.Domain.Entities.Language>,int)> GetAllLanguageAsync(int PageNumber, int PageSize, string? SearchTerm)
         {
              var query = $$"""
 
@@ -51,19 +51,19 @@ namespace UserManagement.Infrastructure.Repositories.Language
                        };
 
              var language = await _dbConnection.QueryMultipleAsync(query, parameters);
-             var languagelist = (await language.ReadAsync<Core.Domain.Entities.Language>()).ToList();
+             var languagelist = (await language.ReadAsync<UserManagement.Domain.Entities.Language>()).ToList();
              int totalCount = (await language.ReadFirstAsync<int>());
              
            return (languagelist, totalCount);
         }
 
-        public async Task<Core.Domain.Entities.Language> GetByIdAsync(int id)
+        public async Task<UserManagement.Domain.Entities.Language> GetByIdAsync(int id)
         {
             const string query = "SELECT * FROM AppData.Language WHERE Id = @Id AND IsDeleted = 0";
-            return await _dbConnection.QueryFirstOrDefaultAsync<Core.Domain.Entities.Language>(query, new { id });
+            return await _dbConnection.QueryFirstOrDefaultAsync<UserManagement.Domain.Entities.Language>(query, new { id });
         }
 
-        public async Task<Core.Domain.Entities.Language?> GetByLanguagenameAsync(string name, int? id = null)
+        public async Task<UserManagement.Domain.Entities.Language?> GetByLanguagenameAsync(string name, int? id = null)
         {
              if (string.IsNullOrWhiteSpace(name))
             {
@@ -84,11 +84,11 @@ namespace UserManagement.Infrastructure.Repositories.Language
                  parameters.Add("Id", id);
              }
 
-            return await _dbConnection.QueryFirstOrDefaultAsync<Core.Domain.Entities.Language>(query, parameters);
+            return await _dbConnection.QueryFirstOrDefaultAsync<UserManagement.Domain.Entities.Language>(query, parameters);
             
         }
 
-        public async Task<List<Core.Domain.Entities.Language>> GetLanguage(string searchPattern=null)
+        public async Task<List<UserManagement.Domain.Entities.Language>> GetLanguage(string searchPattern=null)
         {
 
             const string query = @"
@@ -96,7 +96,7 @@ namespace UserManagement.Infrastructure.Repositories.Language
                 FROM AppData.Language 
                 WHERE IsDeleted = 0 AND Name LIKE @SearchPattern";
                 
-            var languages = await _dbConnection.QueryAsync<Core.Domain.Entities.Language>(query, new { SearchPattern = $"%{searchPattern}%" });
+            var languages = await _dbConnection.QueryAsync<UserManagement.Domain.Entities.Language>(query, new { SearchPattern = $"%{searchPattern}%" });
             return languages.ToList();
         }
     }

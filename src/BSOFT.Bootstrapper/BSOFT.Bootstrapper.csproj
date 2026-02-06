@@ -40,7 +40,7 @@
 
   <ItemGroup>
     <!-- Project references -->
-    <ProjectReference Include="..\Modules\UserManagement\Core\Core.Application\Core.Application.csproj" />
+    <ProjectReference Include="..\Modules\UserManagement\Core\UserManagement.Application\UserManagement.Application.csproj" />
     <ProjectReference Include="..\Modules\UserManagement\UserManagement.Infrastructure\UserManagement.Infrastructure.csproj" />
     <ProjectReference Include="..\Modules\UserManagement\UserManagement.API\UserManagement.API.csproj" />
     
@@ -58,12 +58,15 @@
            <!-- ✅ Add Purchse module -->
    <ProjectReference Include="..\Modules\PurchaseManagement\PurchaseManagement.Module\PurchaseManagement.Module.csproj" />
    <ProjectReference Include="..\Modules\PurchaseManagement\PurchaseManagement.Infrastructure\PurchaseManagement.Infrastructure.csproj" />
-
    
            <!-- ✅ Add Inventory module -->
    <ProjectReference Include="..\Modules\InventoryManagement\InventoryManagement.Module\InventoryManagement.Module.csproj" />
    <ProjectReference Include="..\Modules\InventoryManagement\InventoryManagement.Infrastructure\InventoryManagement.Infrastructure.csproj" />
-    
+       
+           <!-- ✅ Add Party module -->
+   <ProjectReference Include="..\Modules\PartyManagement\PartyManagement.Module\PartyManagement.Module.csproj" />
+   <ProjectReference Include="..\Modules\PartyManagement\PartyManagement.Infrastructure\PartyManagement.Infrastructure.csproj" />
+
     <ProjectReference Include="..\Shared\Contracts\Contracts.csproj" />
     <ProjectReference Include="..\Shared\Shared.Infrastructure\Shared.Infrastructure.csproj" />
     <ProjectReference Include="..\..\..\Shared\Shared.Validation\Shared.Validation.csproj" />

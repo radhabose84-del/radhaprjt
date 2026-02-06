@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using UserManagement.API.Validation.Common;
-using Core.Application.Companies.Commands.UploadFileCompany;
+using UserManagement.Application.Companies.Commands.UploadFileCompany;
 using FluentValidation;
 using Serilog;
 using Shared.Validation.Common;

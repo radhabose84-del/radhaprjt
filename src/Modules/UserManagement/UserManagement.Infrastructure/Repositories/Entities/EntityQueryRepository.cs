@@ -1,15 +1,15 @@
 using Microsoft.EntityFrameworkCore;
 using UserManagement.Infrastructure.Data;
-using Core.Domain.Entities;
-using Core.Application.Common.Interfaces.IEntity;
+using UserManagement.Domain.Entities;
+using UserManagement.Application.Common.Interfaces.IEntity;
 using System.Data;
 using Dapper;
-using Core.Application.Entity.Queries.GetEntityLastCode;
+using UserManagement.Application.Entity.Queries.GetEntityLastCode;
 using Microsoft.Data.SqlClient;
 using UserManagement.Infrastructure.Migrations;
-using Core.Application.Common.Interfaces;
-using Core.Application.Entity.Queries.GetEntityBasedCompany;
-using Core.Application.Entity.Queries.GetCompanyBasedUnit;
+using UserManagement.Application.Common.Interfaces;
+using UserManagement.Application.Entity.Queries.GetEntityBasedCompany;
+using UserManagement.Application.Entity.Queries.GetCompanyBasedUnit;
 
 namespace UserManagement.Infrastructure.Repositories.Entities
 {
@@ -87,7 +87,7 @@ namespace UserManagement.Infrastructure.Repositories.Entities
                        };
 
              var entitygroup = await _dbConnection.QueryMultipleAsync(query, parameters);
-             var entitiesgrouplist = (await entitygroup.ReadAsync<Core.Domain.Entities.Entity>()).ToList();
+             var entitiesgrouplist = (await entitygroup.ReadAsync<UserManagement.Domain.Entities.Entity>()).ToList();
              int totalCount = (await entitygroup.ReadFirstAsync<int>());
              return (entitiesgrouplist, totalCount);
         }
@@ -107,7 +107,7 @@ namespace UserManagement.Infrastructure.Repositories.Entities
             EntityId = enityId
             };
 
-            var entitiesGroups = await _dbConnection.QueryAsync<Core.Domain.Entities.Entity>(query, parameters);
+            var entitiesGroups = await _dbConnection.QueryAsync<UserManagement.Domain.Entities.Entity>(query, parameters);
             return entitiesGroups.ToList();  
         }
 
@@ -117,7 +117,7 @@ namespace UserManagement.Infrastructure.Repositories.Entities
                     SELECT * 
                     FROM AppData.Entity 
                     WHERE Id = @Id AND IsDeleted = 0";
-                    var entityGroup = await _dbConnection.QueryFirstOrDefaultAsync<Core.Domain.Entities.Entity>(query, new { Id });
+                    var entityGroup = await _dbConnection.QueryFirstOrDefaultAsync<UserManagement.Domain.Entities.Entity>(query, new { Id });
                     return entityGroup;
         }
 
@@ -157,7 +157,7 @@ namespace UserManagement.Infrastructure.Repositories.Entities
                  SearchPattern = $"%{searchPattern}%" 
                  };
 
-                 var entitiesGroups = await _dbConnection.QueryAsync<Core.Domain.Entities.Entity>(query, parameters);
+                 var entitiesGroups = await _dbConnection.QueryAsync<UserManagement.Domain.Entities.Entity>(query, parameters);
                  return entitiesGroups.ToList();  
              }
 

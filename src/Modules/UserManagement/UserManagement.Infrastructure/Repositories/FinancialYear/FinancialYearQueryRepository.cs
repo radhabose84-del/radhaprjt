@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
-using Core.Application.Common.Interfaces.IFinancialYear;
+using UserManagement.Application.Common.Interfaces.IFinancialYear;
 using Dapper;
 
 namespace UserManagement.Infrastructure.Repositories.FinancialYear
@@ -18,7 +18,7 @@ namespace UserManagement.Infrastructure.Repositories.FinancialYear
     }
 
    
-            public async Task<(List<Core.Domain.Entities.FinancialYear>, int)> GetAllFinancialYearAsync(int PageNumber, int PageSize, string? SearchTerm)
+            public async Task<(List<UserManagement.Domain.Entities.FinancialYear>, int)> GetAllFinancialYearAsync(int PageNumber, int PageSize, string? SearchTerm)
         {
             var query = $$"""
                 DECLARE @TotalCount INT;
@@ -47,17 +47,17 @@ namespace UserManagement.Infrastructure.Repositories.FinancialYear
             };
 
             var financialYearsResult = await _dbConnection.QueryMultipleAsync(query, parameters);
-            var financialYears = (await financialYearsResult.ReadAsync<Core.Domain.Entities.FinancialYear>()).ToList();
+            var financialYears = (await financialYearsResult.ReadAsync<UserManagement.Domain.Entities.FinancialYear>()).ToList();
             int totalCount = await financialYearsResult.ReadFirstAsync<int>();
 
             return (financialYears, totalCount);
         }
-        public async Task<Core.Domain.Entities.FinancialYear>GetByIdAsync(int id)
+        public async Task<UserManagement.Domain.Entities.FinancialYear>GetByIdAsync(int id)
         {               
                 const string query = @"SELECT * FROM AppData.FinancialYear WHERE Id = @Id AND   IsDeleted = 0  ORDER BY ID DESC";
-                return await _dbConnection.QueryFirstOrDefaultAsync<Core.Domain.Entities.FinancialYear>(query, new { id });
+                return await _dbConnection.QueryFirstOrDefaultAsync<UserManagement.Domain.Entities.FinancialYear>(query, new { id });
         } 
-       public async Task<List<Core.Domain.Entities.FinancialYear>> GetAllFinancialAutoCompleteSearchAsync(string searchTerm)
+       public async Task<List<UserManagement.Domain.Entities.FinancialYear>> GetAllFinancialAutoCompleteSearchAsync(string searchTerm)
             {
                 const string query = @"
                     SELECT Id, StartYear, StartDate, EndDate, FinYearName, IsActive, CreatedBy, CreatedAt, 
@@ -72,7 +72,7 @@ namespace UserManagement.Infrastructure.Repositories.FinancialYear
                     SearchTerm = $"%{searchTerm ?? string.Empty}%"
                 };
 
-                var financialYears = await _dbConnection.QueryAsync<Core.Domain.Entities.FinancialYear>(query, parameters);
+                var financialYears = await _dbConnection.QueryAsync<UserManagement.Domain.Entities.FinancialYear>(query, parameters);
                 return financialYears.ToList();
             }
 

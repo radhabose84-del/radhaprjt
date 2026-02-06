@@ -1,13 +1,13 @@
  
  using UserManagement.Infrastructure.Data;
-using Core.Application.PasswordComplexityRule.Commands.UpdatePasswordComplexityRule;
+using UserManagement.Application.PasswordComplexityRule.Commands.UpdatePasswordComplexityRule;
 
-//using Core.Application.PasswordComplexityRule.Commands.UpdatePasswordComplexityRule;
-using Core.Application.PwdComplexityRule.Commands.CreatePasswordComplexityRule;
-using Core.Application.PwdComplexityRule.Commands.DeletePasswordComplexityRule;
-using Core.Application.PwdComplexityRule.Queries;
-using Core.Application.PwdComplexityRule.Queries.GetPwdComplexityRuleAutoComplete;
-using Core.Application.PwdComplexityRule.Queries.GetPwdComplexityRuleById;
+//using UserManagement.Application.PasswordComplexityRule.Commands.UpdatePasswordComplexityRule;
+using UserManagement.Application.PwdComplexityRule.Commands.CreatePasswordComplexityRule;
+using UserManagement.Application.PwdComplexityRule.Commands.DeletePasswordComplexityRule;
+using UserManagement.Application.PwdComplexityRule.Queries;
+using UserManagement.Application.PwdComplexityRule.Queries.GetPwdComplexityRuleAutoComplete;
+using UserManagement.Application.PwdComplexityRule.Queries.GetPwdComplexityRuleById;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;

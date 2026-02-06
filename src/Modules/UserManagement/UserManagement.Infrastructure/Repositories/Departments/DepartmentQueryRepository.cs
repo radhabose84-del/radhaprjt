@@ -1,14 +1,14 @@
 using Microsoft.EntityFrameworkCore;
 using UserManagement.Infrastructure.Data;
-using Core.Domain.Entities;
+using UserManagement.Domain.Entities;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Core.Application.Common.Interfaces.IDepartment;
+using UserManagement.Application.Common.Interfaces.IDepartment;
 using System.Data;
 using Dapper;
-using Core.Application.Departments.Queries.GetDepartments;
-using Core.Application.Common.Interfaces;
-using Core.Application.Departments.Queries.GetDepartmentByGroupWithControl;
+using UserManagement.Application.Departments.Queries.GetDepartments;
+using UserManagement.Application.Common.Interfaces;
+using UserManagement.Application.Departments.Queries.GetDepartmentByGroupWithControl;
 
 namespace UserManagement.Infrastructure.Repositories.Departments
 {

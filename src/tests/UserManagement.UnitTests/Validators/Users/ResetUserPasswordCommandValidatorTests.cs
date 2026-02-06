@@ -1,11 +1,11 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Core.Application.Common.Interfaces;
-using Core.Application.Common.Interfaces.IUser;
-using Core.Application.Common.Utilities;
-using Core.Application.Users.Commands.ResetUserPassword;
-using Core.Domain.Entities; // User
+using UserManagement.Application.Common.Interfaces;
+using UserManagement.Application.Common.Interfaces.IUser;
+using UserManagement.Application.Common.Utilities;
+using UserManagement.Application.Users.Commands.ResetUserPassword;
+using UserManagement.Domain.Entities; // User
 using FluentValidation.TestHelper;
 using Moq;
 using Xunit;

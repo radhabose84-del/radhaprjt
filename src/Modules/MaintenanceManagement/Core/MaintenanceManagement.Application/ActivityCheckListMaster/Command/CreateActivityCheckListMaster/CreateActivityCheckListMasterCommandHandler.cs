@@ -42,7 +42,7 @@ namespace MaintenanceManagement.Application.ActivityCheckListMaster.Command.Crea
                 module: "MachineMaster");
             await _imediator.Publish(domainEvent, cancellationToken);
 
-            // var activityCheckListMasterDto = _imapper.Map<Core.Domain.Entities.ActivityCheckListMaster>(activityCheckListMaster);
+            // var activityCheckListMasterDto = _imapper.Map<MaintenanceManagement.Domain.Entities.ActivityCheckListMaster>(activityCheckListMaster);
             if (result != null)
             {
 

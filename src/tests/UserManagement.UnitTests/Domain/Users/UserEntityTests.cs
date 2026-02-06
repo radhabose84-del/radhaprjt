@@ -1,5 +1,5 @@
 using System;
-using Core.Domain.Entities;
+using UserManagement.Domain.Entities;
 using FluentAssertions;
 using Xunit;
 

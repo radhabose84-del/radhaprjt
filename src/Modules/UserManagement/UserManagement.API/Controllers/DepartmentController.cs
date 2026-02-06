@@ -1,15 +1,15 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Core.Application.Departments.Queries.GetDepartments;
-using Core.Application.Departments.Queries.GetDepartmentById;
-using Core.Application.Departments.Commands.CreateDepartment;
-using Core.Application.Departments.Commands.UpdateDepartment;
-using Core.Application.Departments.Commands.DeleteDepartment;
-using Core.Application.Departments.Queries.GetDepartmentAutoCompleteSearch;
+using UserManagement.Application.Departments.Queries.GetDepartments;
+using UserManagement.Application.Departments.Queries.GetDepartmentById;
+using UserManagement.Application.Departments.Commands.CreateDepartment;
+using UserManagement.Application.Departments.Commands.UpdateDepartment;
+using UserManagement.Application.Departments.Commands.DeleteDepartment;
+using UserManagement.Application.Departments.Queries.GetDepartmentAutoCompleteSearch;
 using UserManagement.Infrastructure.Data;
 using FluentValidation;
-using Core.Application.Departments.Queries.GetDepartmentByDepartmentGroupId;
-using Core.Application.Departments.Queries.GetDepartmentByGroupWithControl;
+using UserManagement.Application.Departments.Queries.GetDepartmentByDepartmentGroupId;
+using UserManagement.Application.Departments.Queries.GetDepartmentByGroupWithControl;
 
 namespace UserManagement.API.Controllers
 {

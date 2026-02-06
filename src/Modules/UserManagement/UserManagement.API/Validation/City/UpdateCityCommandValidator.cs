@@ -1,8 +1,8 @@
 using FluentValidation;
-using Core.Domain.Entities;
+using UserManagement.Domain.Entities;
 using UserManagement.API.Validation.Common;
-using Core.Application.City.Commands.UpdateCity;
-using Core.Application.City.Commands.CreateCity;
+using UserManagement.Application.City.Commands.UpdateCity;
+using UserManagement.Application.City.Commands.CreateCity;
 using Shared.Validation.Common;
 
 namespace UserManagement.API.Validation.Country

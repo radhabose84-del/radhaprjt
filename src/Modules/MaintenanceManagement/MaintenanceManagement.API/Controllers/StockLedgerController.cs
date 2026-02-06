@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using MaintenanceManagement.Application.StockLedger.Queries.GetCurrentAllItemsById;
 using MaintenanceManagement.Application.StockLedger.Queries.GetCurrentStock;
 using MaintenanceManagement.Application.StockLedger.Queries.GetCurrentStockItemsById;
-// using Core.Application.StockLedger.Queries.GetStockLegerReport;
+// using MaintenanceManagement.Application.StockLedger.Queries.GetStockLegerReport;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

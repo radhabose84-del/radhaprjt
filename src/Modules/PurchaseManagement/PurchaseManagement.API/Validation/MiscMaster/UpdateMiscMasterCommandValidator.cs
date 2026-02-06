@@ -19,8 +19,8 @@ namespace PurchaseManagement.API.Validation.MiscMaster
 
           public UpdateMiscMasterCommandValidator( IMiscMasterQueryRepository miscMasterQuery,MaxLengthProvider maxLengthProvider)
         {
-            var MiscCodeMaxLength = maxLengthProvider.GetMaxLength<Core.Domain.Entities.MiscMaster>("Code") ?? 50;
-            var DescriptionMaxLength = maxLengthProvider.GetMaxLength<Core.Domain.Entities.MiscMaster>("Description")?? 250;
+            var MiscCodeMaxLength = maxLengthProvider.GetMaxLength<PurchaseManagement.Domain.Entities.MiscMaster>("Code") ?? 50;
+            var DescriptionMaxLength = maxLengthProvider.GetMaxLength<PurchaseManagement.Domain.Entities.MiscMaster>("Description")?? 250;
 
             _validationRules = ValidationRuleLoader.LoadValidationRules();
             _miscMasterQuery = miscMasterQuery;

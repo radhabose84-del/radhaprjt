@@ -1,13 +1,13 @@
 using Microsoft.EntityFrameworkCore;
 using UserManagement.Infrastructure.Data;
-using Core.Domain.Entities;
+using UserManagement.Domain.Entities;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Core.Application.Common.Interfaces.IUserRole;
+using UserManagement.Application.Common.Interfaces.IUserRole;
 using System.Data;
 using Dapper;
-using Core.Application.UserRole.Queries.GetRole;
-using Core.Application.Common.Interfaces;
+using UserManagement.Application.UserRole.Queries.GetRole;
+using UserManagement.Application.Common.Interfaces;
 
 namespace UserManagement.Infrastructure.Repositories.UserRoles
 {

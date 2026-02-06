@@ -1,5 +1,5 @@
-using Core.Application.AuditLog.Queries;
-using Core.Application.AuditLog.Queries.GetAuditLog;
+using UserManagement.Application.AuditLog.Queries;
+using UserManagement.Application.AuditLog.Queries.GetAuditLog;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;

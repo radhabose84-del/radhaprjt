@@ -1,6 +1,6 @@
-using Core.Application.CompanySettings.Commands.CreateCompanySettings;
-using Core.Application.CompanySettings.Commands.UpdateCompanySettings;
-using Core.Application.CompanySettings.Queries.GetCompanySettingsById;
+using UserManagement.Application.CompanySettings.Commands.CreateCompanySettings;
+using UserManagement.Application.CompanySettings.Commands.UpdateCompanySettings;
+using UserManagement.Application.CompanySettings.Queries.GetCompanySettingsById;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;

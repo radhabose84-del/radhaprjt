@@ -1,6 +1,6 @@
-// using Core.Application.Common.Interfaces;
-// using Core.Application.Consumers;
-// using Core.Application.Consumers.PreventiveScheduler;
+// using MaintenanceManagement.Application.Common.Interfaces;
+// using MaintenanceManagement.Application.Consumers;
+// using MaintenanceManagement.Application.Consumers.PreventiveScheduler;
 // using MaintenanceManagement.Infrastructure.Persistence;
 // using MaintenanceManagement.Infrastructure.Services;
 // using MassTransit;
@@ -36,8 +36,8 @@
 //                 // x.AddConsumer<ScheduleWorkOrderTaskConsumer>();
 //                 x.AddConsumer<RollbackPreventiveDetailConsumer>();
 //                 // x.AddConsumer<RollBackScheduleWorkOrderConsumer>();
-//                 // x.AddConsumer<Core.Application.Consumers.PreventiveScheduler.Update.ScheduleWorkOrderConsumer>();
-//                 x.AddConsumer<Core.Application.Consumers.PreventiveScheduler.Update.RollBackScheduleWorkOrderConsumer>();
+//                 // x.AddConsumer<MaintenanceManagement.Application.Consumers.PreventiveScheduler.Update.ScheduleWorkOrderConsumer>();
+//                 x.AddConsumer<MaintenanceManagement.Application.Consumers.PreventiveScheduler.Update.RollBackScheduleWorkOrderConsumer>();
 //                 // x.AddConsumer<RollbackNextScheduleConsumer>();
 
 //                 x.UsingRabbitMq((context, cfg) =>
@@ -76,12 +76,12 @@
 //                     // });
 //                     cfg.ReceiveEndpoint("update-rollback-scheduleWorkOrder-queue", e =>
 //                 {
-//                     e.ConfigureConsumer<Core.Application.Consumers.PreventiveScheduler.Update.RollBackScheduleWorkOrderConsumer>(context);
+//                     e.ConfigureConsumer<MaintenanceManagement.Application.Consumers.PreventiveScheduler.Update.RollBackScheduleWorkOrderConsumer>(context);
 //                 });
 
 //                     // cfg.ReceiveEndpoint("update-scheduleWorkOrder-task-queue", e =>
 //                     // {
-//                     //     e.ConfigureConsumer<Core.Application.Consumers.PreventiveScheduler.Update.ScheduleWorkOrderConsumer>(context);
+//                     //     e.ConfigureConsumer<MaintenanceManagement.Application.Consumers.PreventiveScheduler.Update.ScheduleWorkOrderConsumer>(context);
 //                     // });
 
 //                     //  cfg.ReceiveEndpoint("hangfire-next-schedule-queue", e =>

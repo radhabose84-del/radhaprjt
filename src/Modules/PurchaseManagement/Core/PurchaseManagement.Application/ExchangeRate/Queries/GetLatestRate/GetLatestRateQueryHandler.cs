@@ -1,4 +1,4 @@
-// Core.Application/ExchangeRate/Queries/GetLatestRateQueryHandler.cs
+// PurchaseManagement.Application/ExchangeRate/Queries/GetLatestRateQueryHandler.cs
 using AutoMapper;
 using PurchaseManagement.Application.Common.Interfaces.IExchangeRate;
 using PurchaseManagement.Application.ExchangeRate.Commands;

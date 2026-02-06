@@ -1,8 +1,8 @@
 using System.Threading;
 using System.Threading.Tasks;
-using Core.Application.Common.HttpResponse;
-using Core.Application.Common.Interfaces.IUser;
-using Core.Application.Users.Commands.RemoveVerificationCode;
+using UserManagement.Application.Common.HttpResponse;
+using UserManagement.Application.Common.Interfaces.IUser;
+using UserManagement.Application.Users.Commands.RemoveVerificationCode;
 using FluentAssertions;
 using Moq;
 using Xunit;

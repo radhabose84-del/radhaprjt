@@ -1,11 +1,11 @@
 using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
-using Core.Application.Common.HttpResponse;
-using Core.Application.Common.Interfaces.IUser;
-using Core.Application.Users.Commands.UpdateUser;
-using Core.Domain.Entities;
-using Core.Domain.Events;
+using UserManagement.Application.Common.HttpResponse;
+using UserManagement.Application.Common.Interfaces.IUser;
+using UserManagement.Application.Users.Commands.UpdateUser;
+using UserManagement.Domain.Entities;
+using UserManagement.Domain.Events;
 using FluentAssertions;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -56,8 +56,8 @@ namespace UserManagement.UnitTests.Application.Users.Commands
             // The handler assigns an int (or similar) returned from this call
             _cmdRepo
                 .Setup(r => r.GetMiscmasterByIdAsync(
-                    Core.Domain.Enums.Common.MiscEnumEntity.UserType.MiscTypeCode,
-                    Core.Domain.Enums.Common.MiscEnumEntity.UserType.Internal))
+                    UserManagement.Domain.Enums.Common.MiscEnumEntity.UserType.MiscTypeCode,
+                    UserManagement.Domain.Enums.Common.MiscEnumEntity.UserType.Internal))
                 .ReturnsAsync(1);
 
             // IMPORTANT: Map(source, destination) must be set up and return the destination
@@ -102,8 +102,8 @@ namespace UserManagement.UnitTests.Application.Users.Commands
 
             _cmdRepo
                 .Setup(r => r.GetMiscmasterByIdAsync(
-                    Core.Domain.Enums.Common.MiscEnumEntity.UserType.MiscTypeCode,
-                    Core.Domain.Enums.Common.MiscEnumEntity.UserType.Internal))
+                    UserManagement.Domain.Enums.Common.MiscEnumEntity.UserType.MiscTypeCode,
+                    UserManagement.Domain.Enums.Common.MiscEnumEntity.UserType.Internal))
                 .ReturnsAsync(1);
 
             _mapper
@@ -148,8 +148,8 @@ namespace UserManagement.UnitTests.Application.Users.Commands
             // Let the code pass the strict mock here so it can reach the null dereference:
             _cmdRepo
                 .Setup(r => r.GetMiscmasterByIdAsync(
-                    Core.Domain.Enums.Common.MiscEnumEntity.UserType.MiscTypeCode,
-                    Core.Domain.Enums.Common.MiscEnumEntity.UserType.Internal))
+                    UserManagement.Domain.Enums.Common.MiscEnumEntity.UserType.MiscTypeCode,
+                    UserManagement.Domain.Enums.Common.MiscEnumEntity.UserType.Internal))
                 .ReturnsAsync(1);
 
             var sut = CreateSut();

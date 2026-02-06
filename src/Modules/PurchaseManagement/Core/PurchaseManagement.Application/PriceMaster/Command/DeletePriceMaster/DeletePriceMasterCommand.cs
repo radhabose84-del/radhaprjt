@@ -1,4 +1,4 @@
-// Core.Application/PriceMaster/Commands/Delete/SoftDeletePriceMasterCommand.cs
+// PurchaseManagement.Application/PriceMaster/Commands/Delete/SoftDeletePriceMasterCommand.cs
 using MediatR;
 
 namespace PurchaseManagement.Application.PriceMaster.Commands.Delete

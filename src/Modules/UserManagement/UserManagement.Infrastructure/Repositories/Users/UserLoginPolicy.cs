@@ -3,10 +3,10 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Core.Application.Common.Interfaces;
-using Core.Application.Common.Interfaces.ICompanySettings;
-using Core.Application.Common.Interfaces.IUser;
-using Core.Application.UserLogin.Commands.UserLogin;
+using UserManagement.Application.Common.Interfaces;
+using UserManagement.Application.Common.Interfaces.ICompanySettings;
+using UserManagement.Application.Common.Interfaces.IUser;
+using UserManagement.Application.UserLogin.Commands.UserLogin;
 
 namespace UserManagement.Infrastructure.Repositories.Users
 {

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Core.Application.DepartmentGroup.Command.UpdateDepartmentGroup;
+using UserManagement.Application.DepartmentGroup.Command.UpdateDepartmentGroup;
 using FluentValidation;
 using UserManagement.API.Validation.Common;
 using Serilog;
@@ -16,8 +16,8 @@ namespace UserManagement.API.Validation.DepartmentGroup
 
         public UpdateDepartmentGroupCommandValidator(MaxLengthProvider maxLengthProvider)
         {
-            var GroupCodeMaxLength = maxLengthProvider.GetMaxLength<Core.Domain.Entities.DepartmentGroup>("DepartmentGroupCode") ?? 15;
-            var GroupNameMaxLength = maxLengthProvider.GetMaxLength<Core.Domain.Entities.DepartmentGroup>("DepartmentGroupName") ?? 50;
+            var GroupCodeMaxLength = maxLengthProvider.GetMaxLength<UserManagement.Domain.Entities.DepartmentGroup>("DepartmentGroupCode") ?? 15;
+            var GroupNameMaxLength = maxLengthProvider.GetMaxLength<UserManagement.Domain.Entities.DepartmentGroup>("DepartmentGroupName") ?? 50;
 
             _validationRules = ValidationRuleLoader.LoadValidationRules();
             if (_validationRules == null || !_validationRules.Any())

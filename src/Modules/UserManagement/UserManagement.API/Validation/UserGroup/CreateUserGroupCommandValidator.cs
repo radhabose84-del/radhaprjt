@@ -1,5 +1,5 @@
 using FluentValidation;
-using Core.Application.UserGroup.Commands.CreateUserGroup;
+using UserManagement.Application.UserGroup.Commands.CreateUserGroup;
 using UserManagement.API.Validation.Common;
 using Shared.Validation.Common;
 
@@ -13,8 +13,8 @@ namespace UserManagement.API.Validation.UserGroup
         public CreateUserGroupCommandValidator(MaxLengthProvider maxLengthProvider)
         {
             // Get max lengths dynamically using MaxLengthProvider
-            var groupCodeMaxLength = maxLengthProvider.GetMaxLength<Core.Domain.Entities.UserGroup>("GroupCode") ?? 5;
-            var groupNameMaxLength = maxLengthProvider.GetMaxLength<Core.Domain.Entities.UserGroup>("GroupName") ?? 50;
+            var groupCodeMaxLength = maxLengthProvider.GetMaxLength<UserManagement.Domain.Entities.UserGroup>("GroupCode") ?? 5;
+            var groupNameMaxLength = maxLengthProvider.GetMaxLength<UserManagement.Domain.Entities.UserGroup>("GroupName") ?? 50;
 
             // Load validation rules from JSON or another source
             _validationRules = ValidationRuleLoader.LoadValidationRules();

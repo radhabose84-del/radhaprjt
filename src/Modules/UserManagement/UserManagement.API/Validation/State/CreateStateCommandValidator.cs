@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using FluentValidation;
-using Core.Application.State.Commands;
-using Core.Application.State.Commands.CreateState;
-using Core.Domain.Entities;
+using UserManagement.Application.State.Commands;
+using UserManagement.Application.State.Commands.CreateState;
+using UserManagement.Domain.Entities;
 using UserManagement.API.Validation.Common;
 using Shared.Validation.Common;
 

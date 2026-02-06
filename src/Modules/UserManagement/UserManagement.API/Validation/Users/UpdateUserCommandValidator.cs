@@ -1,8 +1,8 @@
 using FluentValidation;
-using Core.Domain.Entities;
-using Core.Application.Users.Commands.UpdateUser;
+using UserManagement.Domain.Entities;
+using UserManagement.Application.Users.Commands.UpdateUser;
 using UserManagement.API.Validation.Common;
-using Core.Application.Common.Interfaces.IUser;
+using UserManagement.Application.Common.Interfaces.IUser;
 using Serilog;
 using Shared.Validation.Common;
 

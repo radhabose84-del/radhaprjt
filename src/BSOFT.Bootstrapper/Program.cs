@@ -1,4 +1,3 @@
-using Core.Application.Common.Behaviors;
 using FluentValidation;
 using MediatR;
 
@@ -12,17 +11,12 @@ using FixedAssetManagement.Module;
 using MaintenanceManagement.Module;
 using PurchaseManagement.Module;
 using InventoryManagement.Module;
+using UserManagement.Application.Common.Behaviors;
+using PartyManagement.Module;
 
 var builder = WebApplication.CreateBuilder(args);
 var environment = builder.Environment.EnvironmentName;
 
-var swaggerModuleDocs = new[]
-{
-    new SwaggerModuleInfo("UserManagement", "User Management API", "v1", "UserManagement.API.Controllers"),
-    new SwaggerModuleInfo("FixedAssetManagement", "Fixed Asset Management API", "v1", "FAM.API.Controllers"),
-    new SwaggerModuleInfo("MaintenanceManagement", "Maintenance Management API", "v1", "MaintenanceManagement.API.Controllers"),
-    new SwaggerModuleInfo("PurchaseManagement", "Purchase Management API", "v1", "PurchaseManagement.API.Controllers")
-};
 
 builder.Configuration
     .AddJsonFile($"appsettings.{environment}.json", optional: true, reloadOnChange: true)
@@ -46,12 +40,12 @@ builder.Services.AddFixedAssetManagementModule(builder.Configuration, builder.En
 builder.Services.AddMaintenanceManagementModule(builder.Configuration, builder.Environment);
 builder.Services.AddPurchaseManagementModule(builder.Configuration, builder.Environment);
 builder.Services.AddInventoryManagementModule(builder.Configuration, builder.Environment);
-
-
+builder.Services.AddPartyManagementModule(builder.Configuration, builder.Environment);
 
 // ✅ Controllers + API
 builder.Services.AddControllers();
-builder.Services.AddSwaggerDocumentation(swaggerModuleDocs);
+// builder.Services.AddSwaggerDocumentation(swaggerModuleDocs);
+builder.Services.AddSwaggerDocumentation();
 builder.Services.AddJwtAuthentication(builder.Configuration);
 builder.Services.AddCorsPolicy();
 builder.Services.AddHttpContextAccessor();
@@ -66,7 +60,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(c =>
     {
         c.DocumentTitle = "BSOFT API";
-        foreach (var module in swaggerModuleDocs)
+        foreach (var module in SwaggerSetup.DefaultModuleDocs)
         {
             c.SwaggerEndpoint($"/swagger/{module.DocumentName}/swagger.json", module.Title);
         }

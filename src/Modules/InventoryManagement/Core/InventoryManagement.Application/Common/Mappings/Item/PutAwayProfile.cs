@@ -1,4 +1,4 @@
-// Core.Application/Common/Mappings/Item/PutAwayProfile.cs
+// InventoryManagement.Application/Common/Mappings/Item/PutAwayProfile.cs
 using AutoMapper;
 using InventoryManagement.Application.Item.PutAway.Commands.CreatePutAwayRule;
 using InventoryManagement.Application.Item.PutAway.Queries.GetAllPutAwayRule;

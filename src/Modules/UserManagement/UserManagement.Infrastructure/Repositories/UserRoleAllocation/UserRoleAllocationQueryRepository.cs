@@ -2,8 +2,8 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
-using Core.Application.Common.Interfaces.IUserRoleAllocation;
-using Core.Domain.Entities;
+using UserManagement.Application.Common.Interfaces.IUserRoleAllocation;
+using UserManagement.Domain.Entities;
 using Dapper;
 
 namespace UserManagement.Infrastructure.Repositories.UserRoleAllocation.UserRoleAllocationQueryRepository
@@ -17,7 +17,7 @@ namespace UserManagement.Infrastructure.Repositories.UserRoleAllocation.UserRole
             _dbConnection = dbConnection;
         }
 
-        public async Task<List<Core.Domain.Entities.UserRoleAllocation>> GetAllAsync()
+        public async Task<List<UserManagement.Domain.Entities.UserRoleAllocation>> GetAllAsync()
         {
             const string query = @"
                 SELECT 
@@ -32,7 +32,7 @@ namespace UserManagement.Infrastructure.Repositories.UserRoleAllocation.UserRole
                 ON 
                     ura.UserRoleId = ur.UserRoleId";
 
-            var allocations = await _dbConnection.QueryAsync<Core.Domain.Entities.UserRoleAllocation, UserRole, Core.Domain.Entities.UserRoleAllocation>(
+            var allocations = await _dbConnection.QueryAsync<UserManagement.Domain.Entities.UserRoleAllocation, UserRole, UserManagement.Domain.Entities.UserRoleAllocation>(
                 query,
                 (ura, ur) =>
                 {
@@ -45,7 +45,7 @@ namespace UserManagement.Infrastructure.Repositories.UserRoleAllocation.UserRole
             return allocations.ToList();
         }
 
-        public async Task<Core.Domain.Entities.UserRoleAllocation?> GetByIdAsync(int id)
+        public async Task<UserManagement.Domain.Entities.UserRoleAllocation?> GetByIdAsync(int id)
         {
             const string query = @"
                 SELECT 
@@ -62,7 +62,7 @@ namespace UserManagement.Infrastructure.Repositories.UserRoleAllocation.UserRole
                 WHERE 
                     ura.Id = @Id";
 
-            var allocations = await _dbConnection.QueryAsync<Core.Domain.Entities.UserRoleAllocation, UserRole, Core.Domain.Entities.UserRoleAllocation>(
+            var allocations = await _dbConnection.QueryAsync<UserManagement.Domain.Entities.UserRoleAllocation, UserRole, UserManagement.Domain.Entities.UserRoleAllocation>(
                 query,
                 (ura, ur) =>
                 {
@@ -76,7 +76,7 @@ namespace UserManagement.Infrastructure.Repositories.UserRoleAllocation.UserRole
             return allocations.FirstOrDefault();
         }
 
-        public async Task<List<Core.Domain.Entities.UserRoleAllocation>> GetByUserIdAsync(int userId)
+        public async Task<List<UserManagement.Domain.Entities.UserRoleAllocation>> GetByUserIdAsync(int userId)
         {
             const string query = @"
                 SELECT 
@@ -93,7 +93,7 @@ namespace UserManagement.Infrastructure.Repositories.UserRoleAllocation.UserRole
                 WHERE 
                     ura.UserId = @UserId";
 
-            var allocations = await _dbConnection.QueryAsync<Core.Domain.Entities.UserRoleAllocation, UserRole, Core.Domain.Entities.UserRoleAllocation>(
+            var allocations = await _dbConnection.QueryAsync<UserManagement.Domain.Entities.UserRoleAllocation, UserRole, UserManagement.Domain.Entities.UserRoleAllocation>(
                 query,
                 (ura, ur) =>
                 {
