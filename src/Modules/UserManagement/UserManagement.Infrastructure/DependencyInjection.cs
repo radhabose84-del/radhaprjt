@@ -301,6 +301,8 @@ namespace UserManagement.Infrastructure
              //Lookups
             services.AddScoped<IDepartmentLookup, DepartmentLookupRepository>();
             services.AddScoped<ICompanyLookup, CompanyLookupRepository>();
+            services.AddScoped<IUserLookup, UserLookupRepository>();
+            services.AddScoped<IDepartmentGroupLookup, DepartmentGroupLookupRepository>();
 
             services.AddScoped<IUserRoleCommandRepository, UserRoleCommandRepository>();
             services.AddScoped<IUserRoleQueryRepository, UserRoleQueryRepository>();

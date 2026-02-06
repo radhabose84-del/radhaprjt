@@ -1,11 +1,12 @@
+using AutoMapper;
+using MaintenanceManagement.Application.Common.Mappings;
+using MaintenanceManagement.Domain.Entities;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace MaintenanceManagement.Application.PreventiveSchedulers.Queries.GetPreventiveSchedulerById
 {
-    public class PreventiveSchedulerHdrByIdDto
+    public class PreventiveSchedulerHdrByIdDto : IMapFrom<PreventiveSchedulerHeader>
     {
         public int Id { get; set; }
         public string PreventiveSchedulerName { get; set; }
@@ -26,5 +27,14 @@ namespace MaintenanceManagement.Application.PreventiveSchedulers.Queries.GetPrev
         public required List<PreventiveSchedulerActivityByIdDto> Activity { get; set; }
         public List<PreventiveSchedulerItemByIdDto>? Items { get; set; }
         public required List<PreventiveSchedulerDtlByIdDto> PreventiveSchedulerDtl { get; set; }
+
+        public void Mapping(Profile profile)
+        {
+            profile.CreateMap<PreventiveSchedulerHeader, PreventiveSchedulerHdrByIdDto>()
+                .ForMember(dest => dest.Activity, opt => opt.MapFrom(src => src.PreventiveSchedulerActivities))
+                .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.PreventiveSchedulerItems))
+                .ForMember(dest => dest.PreventiveSchedulerDtl, opt => opt.MapFrom(src => src.PreventiveSchedulerDetails))
+                .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => (byte)src.IsActive));
+        }
     }
 }

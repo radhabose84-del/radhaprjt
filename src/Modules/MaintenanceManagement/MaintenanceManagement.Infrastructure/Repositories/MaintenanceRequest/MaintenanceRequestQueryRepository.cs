@@ -49,8 +49,6 @@ namespace MaintenanceManagement.Infrastructure.Repositories.MaintenanceRequest
                 LEFT JOIN Maintenance.MiscMaster H ON A.ModeOfDispatchId = H.Id 
                 LEFT JOIN Maintenance.MiscMaster I ON A.SparesTypeId = I.Id 
                 LEFT JOIN Maintenance.MiscMaster J ON A.RequestStatusId = J.Id   
-                left join BannariERP.AppData.Department D on A.MaintenanceDepartmentId = D.Id
-                left join BannariERP.AppData.Department Dep on A.ProductionDepartmentId = Dep.Id
                 inner  join Maintenance.WorkOrder WO  on a.id=WO.RequestId 
                 LEFT JOIN Maintenance.MiscMaster k on WO.StatusId=k.Id                       
                 WHERE 
@@ -93,7 +91,6 @@ namespace MaintenanceManagement.Infrastructure.Repositories.MaintenanceRequest
                     I.Code AS SparesType,
                     J.Id AS RequestStatusId,
                     J.Code AS RequestStatus,
-                    D.DeptName AS MaintenanceDepartmentName,
                     k.Code  AS  WorkorderStatus,
                     A.Remarks,
                     WO.Id as WorkOrderId
@@ -107,8 +104,6 @@ namespace MaintenanceManagement.Infrastructure.Repositories.MaintenanceRequest
                 LEFT JOIN Maintenance.MiscMaster H ON A.ModeOfDispatchId = H.Id 
                 LEFT JOIN Maintenance.MiscMaster I ON A.SparesTypeId = I.Id 
                 LEFT JOIN Maintenance.MiscMaster J ON A.RequestStatusId = J.Id   
-                left join BannariERP.AppData.Department D on A.MaintenanceDepartmentId = D.Id
-                left join BannariERP.AppData.Department Dep on A.ProductionDepartmentId = Dep.Id
                 inner  join Maintenance.WorkOrder WO  on a.id=WO.RequestId 
                 LEFT JOIN Maintenance.MiscMaster k on WO.StatusId=k.Id    
 
@@ -116,7 +111,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.MaintenanceRequest
                 and cast(A.createddate as date) >=@FromDate and cast(A.createddate as date) <= @ToDate
                 AND A.UnitId = @UnitId
 
-                {{(string.IsNullOrEmpty(SearchTerm) ? "" : "AND (CAST(A.Id AS NVARCHAR) LIKE @Search OR A.Remarks LIKE @Search OR B.Code LIKE @Search OR C.Code LIKE @Search OR F.Code LIKE @Search or G.Code LIKE @Search OR H.Code LIKE @Search  OR E.MachineName LIKE @Search OR I.Code LIKE @Search  or J.Code LIKE @Search  Or  D.DeptName LIKE @Search or k.Code LIKE @Search ) ")}}
+                {{(string.IsNullOrEmpty(SearchTerm) ? "" : "AND (CAST(A.Id AS NVARCHAR) LIKE @Search OR A.Remarks LIKE @Search OR B.Code LIKE @Search OR C.Code LIKE @Search OR F.Code LIKE @Search or G.Code LIKE @Search OR H.Code LIKE @Search  OR E.MachineName LIKE @Search OR I.Code LIKE @Search  or J.Code LIKE @Search or k.Code LIKE @Search ) ")}}
                 ORDER BY A.Id DESC 
                  OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;               
 
@@ -165,7 +160,6 @@ namespace MaintenanceManagement.Infrastructure.Repositories.MaintenanceRequest
                          LEFT JOIN Maintenance.MiscMaster I ON A.SparesTypeId = I.Id 
                          LEFT JOIN Maintenance.MiscMaster J ON A.RequestStatusId = J.Id 
                          LEFT JOIN Maintenance.WorkOrder K ON A.Id = K.RequestId
-                         left join BannariERP.AppData.Department D on A.MaintenanceDepartmentId = D.Id   
 
                         WHERE   B.Code = @MiscCode  AND C.Code <> @MaintenanceStatusUpdate 
                         AND cast(A.createddate as date) >=@FromDate and cast(A.createddate as date) <= @ToDate
@@ -210,7 +204,6 @@ namespace MaintenanceManagement.Infrastructure.Repositories.MaintenanceRequest
                             I.Code AS SparesType,
                             J.Id AS RequestStatusId,
                             J.Code AS RequestStatus,
-                            D.DeptName AS MaintenanceDepartmentName,
                             L.Code as WorkOrderStatus
 
 
@@ -224,7 +217,6 @@ namespace MaintenanceManagement.Infrastructure.Repositories.MaintenanceRequest
                         LEFT JOIN Maintenance.MiscMaster I ON A.SparesTypeId = I.Id 
                         LEFT JOIN Maintenance.MiscMaster J ON A.RequestStatusId = J.Id 
                         LEFT JOIN Maintenance.WorkOrder K ON A.Id = K.RequestId
-                        Left join BannariERP.AppData.Department D on A.MaintenanceDepartmentId = D.Id  
                         inner  join Maintenance.WorkOrder WO  on a.id=WO.RequestId 
                         LEFT JOIN Maintenance.MiscMaster L on WO.StatusId=L.Id      
 
@@ -232,7 +224,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.MaintenanceRequest
                         and cast(A.createddate as date) >=@FromDate and cast(A.createddate as date) <= @ToDate
                         AND A.UnitId = @UnitId 
                         AND A.Id NOT IN (SELECT    RequestId FROM Maintenance.WorkOrder WHERE  K.RequestId IS NOT NULL)
-                        {{(string.IsNullOrEmpty(SearchTerm) ? "" : "AND (CAST(A.Id AS NVARCHAR) LIKE @Search OR A.Remarks LIKE @Search OR B.Code LIKE @Search OR C.Code LIKE @Search OR F.Code LIKE @Search or G.Code LIKE @Search OR H.Code LIKE @Search  OR E.MachineName LIKE @Search OR I.Code LIKE @Search  or J.Code LIKE @Search  or L.Code LIKE @Search or D.DeptName LIKE @Search)")}}
+                        {{(string.IsNullOrEmpty(SearchTerm) ? "" : "AND (CAST(A.Id AS NVARCHAR) LIKE @Search OR A.Remarks LIKE @Search OR B.Code LIKE @Search OR C.Code LIKE @Search OR F.Code LIKE @Search or G.Code LIKE @Search OR H.Code LIKE @Search  OR E.MachineName LIKE @Search OR I.Code LIKE @Search  or J.Code LIKE @Search  or L.Code LIKE @Search)")}}
                         ORDER BY A.Id DESC
                         OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;     
 
@@ -381,7 +373,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.MaintenanceRequest
                             I.Id AS SparesTypeId,
                             I.Code AS SparesType,
                             J.Id AS RequestStatusId,
-                            J.Code AS RequestStatus
+                            J.Code AS RequestStatus,
                             L.Id as WorkOrderStatus
                         FROM Maintenance.MaintenanceRequest A
                         INNER JOIN Maintenance.MiscMaster B ON A.RequestTypeId = B.Id

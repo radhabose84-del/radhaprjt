@@ -6,32 +6,41 @@ using System.Threading.Tasks;
 using Dapper;
 using Contracts.Dtos.Lookups.Users;
 using Contracts.Interfaces.Lookups.Users;
+using Core.Application.Common.Interfaces;
 
 namespace UserManagement.Infrastructure.Repositories.Lookups.Users
 {
     internal class DepartmentLookupRepository : IDepartmentLookup
     {
         private readonly IDbConnection _dbConnection;
+        private readonly IIPAddressService _ipAddressService;
 
-        public DepartmentLookupRepository(IDbConnection dbConnection)
+        public DepartmentLookupRepository(IDbConnection dbConnection, IIPAddressService ipAddressService)
         {
             _dbConnection = dbConnection;
+            _ipAddressService = ipAddressService;
         }
 
         public async Task<List<DepartmentLookupDto>> GetAllDepartmentAsync()
         {
+            var CompanyId = _ipAddressService.GetCompanyId();
             const string sql = @"
                 SELECT
                     Id        AS DepartmentId,
                     DeptName  AS DepartmentName,
                     ShortName AS ShortName,DepartmentGroupId
                 FROM [AppData].[Department]
-                WHERE IsDeleted = 0
+                WHERE IsDeleted = 0 AND CompanyId=@CompanyId 
                 ORDER BY DeptName ASC;
             ";
 
-            var result = await _dbConnection.QueryAsync<DepartmentLookupDto>(sql);
-            return result.ToList();
+             var parameters = new
+                {        
+                    CompanyId = CompanyId
+                };
+
+            var result = await _dbConnection.QueryAsync<DepartmentLookupDto>(sql, parameters);
+            return result.ToList();           
         }
 
         public async Task<DepartmentLookupDto?> GetByIdAsync(int departmentId, CancellationToken ct = default)

@@ -1,7 +1,8 @@
 // Updated Repository and Supporting Code for Unified ChartDto Across Dashboards
 
 using System.Data;
-// using Contracts.Interfaces.External.IUser;
+using System.Linq;
+using Contracts.Interfaces.Lookups.Users;
 using MaintenanceManagement.Application.Common.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces.IDashboard;
 using MaintenanceManagement.Application.Dashboard.CardView;
@@ -17,15 +18,15 @@ namespace MaintenanceManagement.Infrastructure.Repositories.Dashboard
     public class DashboardQueryRepository : BaseQueryRepository, IDashboardQueryRepository
     {
         private readonly IDbConnection _connection;
-        // private readonly IDepartmentAllGrpcClient _departmentGrpcClient;
+        private readonly IDepartmentLookup _departmentLookup;
         public DashboardQueryRepository(
             IDbConnection connection,
-            // IDepartmentAllGrpcClient departmentGrpcClient,
+            IDepartmentLookup departmentLookup,
             IIPAddressService ipAddressService)
             : base(ipAddressService)
         {
             _connection = connection;
-            // _departmentGrpcClient = departmentGrpcClient;
+            _departmentLookup = departmentLookup;
         }
         public async Task<ChartDto> WorkOrderSummaryAsync(DateTime fromDate, DateTime toDate, string? departmentId, string? machineGroupId)
         {
@@ -84,20 +85,16 @@ namespace MaintenanceManagement.Infrastructure.Repositories.Dashboard
                 commandType: CommandType.StoredProcedure
             );
 
-            // Fill names via GRPC for dept-wise data
-            // var departments = await _departmentGrpcClient.GetDepartmentAllAsync();
-            // var deptLookup = departments.ToDictionary(d => d.DepartmentId, d => d.DepartmentName);
+            var departments = await _departmentLookup.GetAllDepartmentAsync();
+            var deptLookup = departments.ToDictionary(d => d.DepartmentId, d => d.DepartmentName);
 
-            // // foreach (var item in data)
-            // //     item.Name = deptLookup.TryGetValue(item.Id, out var name) ? name : item.Name;
-
-            // foreach (var item in data)
-            // {
-            //     if (deptLookup.TryGetValue(item.Id, out var name))
-            //         item.Name = $"{name}-{item.Id}";
-            //     else
-            //         item.Name = $"Unknown-{item.Id}";
-            // }
+            foreach (var item in data)
+            {
+                if (deptLookup.TryGetValue(item.Id, out var name))
+                    item.Name = $"{name}-{item.Id}";
+                else
+                    item.Name = $"Unknown-{item.Id}";
+            }
 
             // Build categories
             var categories = data.Select(x => x.Name ?? "Unknown").Distinct().ToList();
@@ -211,16 +208,16 @@ namespace MaintenanceManagement.Infrastructure.Repositories.Dashboard
                 commandType: CommandType.StoredProcedure
             );
 
-            // var departments = await _departmentGrpcClient.GetDepartmentAllAsync();
-            // var deptLookup = departments.ToDictionary(d => d.DepartmentId, d => d.DepartmentName);
+            var departments = await _departmentLookup.GetAllDepartmentAsync();
+            var deptLookup = departments.ToDictionary(d => d.DepartmentId, d => d.DepartmentName);
             
-            // foreach (var item in data)
-            // {
-            //     if (deptLookup.TryGetValue(item.Id, out var name))
-            //         item.Name = $"{name}-{item.Id}";
-            //     else
-            //         item.Name = $"Unknown-{item.Id}";
-            // }
+            foreach (var item in data)
+            {
+                if (deptLookup.TryGetValue(item.Id, out var name))
+                    item.Name = $"{name}-{item.Id}";
+                else
+                    item.Name = $"Unknown-{item.Id}";
+            }
 
             return new ChartDto
             {
