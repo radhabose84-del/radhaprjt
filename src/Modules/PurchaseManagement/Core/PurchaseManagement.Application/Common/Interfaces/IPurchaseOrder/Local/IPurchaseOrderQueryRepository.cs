@@ -1,4 +1,4 @@
-using PurchaseLocalDetailDto.Application.PurchaseOrder.Dtos.Local;
+using PurchaseManagement.Application.PurchaseOrder.Dtos.Local;
 using PurchaseManagement.Application.PurchaseIndents.Queries.ApprovedIndentDetailsForPO;
 using PurchaseManagement.Application.PurchaseOrder.Local.Queries.GetPOLocalPending;
 

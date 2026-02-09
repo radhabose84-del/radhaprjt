@@ -16,6 +16,7 @@ using PartyManagement.Module;
 using SalesManagement.Module;
 using WarehouseManagement.Module;
 using ProjectManagement.Module;
+using BudgetManagement.Module;
 
 var builder = WebApplication.CreateBuilder(args);
 var environment = builder.Environment.EnvironmentName;
@@ -47,6 +48,7 @@ builder.Services.AddPartyManagementModule(builder.Configuration, builder.Environ
 builder.Services.AddSalesManagementModule(builder.Configuration, builder.Environment);
 builder.Services.AddWarehouseManagementModule(builder.Configuration, builder.Environment);
 builder.Services.AddProjectManagementModule(builder.Configuration, builder.Environment);
+builder.Services.AddBudgetManagementModule(builder.Configuration, builder.Environment);
 
 
 // ✅ Controllers + API
@@ -88,3 +90,4 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+

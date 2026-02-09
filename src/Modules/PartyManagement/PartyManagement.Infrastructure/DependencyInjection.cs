@@ -25,7 +25,9 @@ using PartyManagement.Infrastructure.Repositories.MiscMaster;
 using PartyManagement.Infrastructure.Repositories.MiscTypeMaster;
 using PartyManagement.Infrastructure.Repositories.PartyGroup;
 using PartyManagement.Infrastructure.Repositories.PartyMaster;
+using PartyManagement.Infrastructure.Repositories.Lookups;
 using PartyManagement.Infrastructure.Services;
+using Contracts.Interfaces.Lookups.Party;
 using Serilog;
 using Microsoft.Extensions.Hosting;
 
@@ -119,6 +121,8 @@ namespace PartyManagement.Infrastructure
             services.AddScoped<IBankMasterQueryRepository, BankMasterQueryRepository>();
             services.AddScoped<IBankMasterCommandRepository, BankMasterCommandRepository>();
 
+            // Lookups
+services.AddScoped<IPartyLookup, PartyLookupRepository>();
 
             // Miscellaneous services
             services.AddScoped<IIPAddressService, IPAddressService>();

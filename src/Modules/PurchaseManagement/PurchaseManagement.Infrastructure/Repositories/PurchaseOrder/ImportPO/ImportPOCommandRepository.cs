@@ -1,4 +1,3 @@
-using Contracts.Interfaces.External.IBudget;
 using PurchaseManagement.Application.Common.Interfaces.IMiscMaster;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.ImportPO;
 using PurchaseManagement.Application.PurchaseOrder.Dtos.ImportPO;
@@ -17,14 +16,12 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.ImportPO
     {
         private readonly ApplicationDbContext _db;
         private readonly IMiscMasterQueryRepository _misc;
-        private readonly IBudgetAllocationGrpcClient _budgetGrpc;
         private readonly ILogger<ImportPOCommandRepository> _logger;
 
-        public ImportPOCommandRepository(ApplicationDbContext db, IMiscMasterQueryRepository misc, IBudgetAllocationGrpcClient  budgetGrpc,ILogger<ImportPOCommandRepository> logger  )
+        public ImportPOCommandRepository(ApplicationDbContext db, IMiscMasterQueryRepository misc, ILogger<ImportPOCommandRepository> logger  )
         {
             _db = db;
             _misc = misc;
-            _budgetGrpc = budgetGrpc;
             _logger     = logger;
         }
 
@@ -95,35 +92,6 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.ImportPO
                 if (impacted.Count > 0)
                     await RecomputeImportIndentPoQtyAsync(impacted, ct);
                 
-                if (aggregate.BudgetGroupId > 0 && aggregate.PurchaseValue > 0)
-                {
-                    var budgetMonthDate = new DateOnly(aggregate.PODate.Year, aggregate.PODate.Month, 1);
-                    var deltaAmount     = aggregate.PurchaseValue; 
-
-                    var ok = await _budgetGrpc.ApplyRemainingBalanceDeltaAsync(
-                        aggregate.BudgetGroupId??0,
-                        budgetMonthDate,
-                        aggregate.BudgetMonthId??0,
-                        aggregate.BudgetRequestById??0,
-                        deltaAmount,
-                        aggregate.ProjectId,
-                        aggregate.WBSId,
-                        aggregate.FinancialYearId,
-                        ct);
-
-                    if (!ok)
-                    {
-                        _logger?.LogWarning(
-                            "Import PO: ApplyRemainingBalanceDeltaAsync failed. PO {PoId}, BG {BgId}, Delta {Delta}",
-                            aggregate.Id,
-                            aggregate.BudgetGroupId,
-                            deltaAmount,
-                            aggregate.ProjectId,
-                            aggregate.WBSId
-                            );
-                    }
-                }
-
                 await tx.CommitAsync(ct);
                 return aggregate.Id;
             });
@@ -334,42 +302,6 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.ImportPO
                 if (incomingDocs.Count > 0)
                     _db.PurchaseDocuments.AddRange(incomingDocs); 
                     
-                if (oldBudgetGroupId > 0 || newBudgetGroupId > 0)
-                {
-                    var oldMonth = new DateOnly(oldPoDate.Year, oldPoDate.Month, 1);
-                    var newMonth = new DateOnly(newPoDate.Year, newPoDate.Month, 1);
-
-                    if (oldBudgetGroupId == newBudgetGroupId && oldBudgetGroupId > 0)
-                    {
-                        var delta = newValue - oldValue;
-                        if (delta != 0)
-                        {
-                            var ok = await _budgetGrpc.ApplyRemainingBalanceDeltaAsync(oldBudgetGroupId??0, oldMonth,oldRequestById ??0, oldMonthId ?? 0,delta,oldProjectId??0,oldWbsId??0,oldFinancialYearId??0, ct);
-                            if (!ok)
-                                _logger?.LogWarning("Import PO: Budget delta failed (same BG). PO {PoId}, BG {BgId}, Delta {Delta}",
-                                    existing.Id, oldBudgetGroupId, delta);
-                        }
-                    }
-                    else
-                    {
-                        if (oldBudgetGroupId > 0 && oldValue != 0)
-                        {
-                            var OldData = await _budgetGrpc.ApplyRemainingBalanceDeltaAsync(oldBudgetGroupId??0, oldMonth,oldRequestById??0,oldMonthId ?? 0, -oldValue, oldProjectId??0,oldWbsId??0,oldFinancialYearId??0, ct);
-                            if (!OldData)
-                                _logger?.LogWarning("Import PO: Budget refund failed (old BG). PO {PoId}, BG {BgId}, Delta {Delta}",
-                                    existing.Id, oldBudgetGroupId, -oldValue);
-                        }
-
-                        if (newBudgetGroupId > 0 && newValue != 0)
-                        {
-                            var okNew = await _budgetGrpc.ApplyRemainingBalanceDeltaAsync(newBudgetGroupId??0, newMonth, newRequestById??0,newMonthId ?? 0, newValue, newProjectId??0,newWbsId??0,oldFinancialYearId??0, ct);
-                            if (!okNew)
-                                _logger?.LogWarning("Import PO: Budget consume failed (new BG). PO {PoId}, BG {BgId}, Delta {Delta}",
-                                    existing.Id, newBudgetGroupId, newValue);
-                        }
-                    }
-                }
-
                 await _db.SaveChangesAsync(ct);
 
                 if (impacted.Count > 0)

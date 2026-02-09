@@ -303,6 +303,8 @@ namespace UserManagement.Infrastructure
             services.AddScoped<ICompanyLookup, CompanyLookupRepository>();
             services.AddScoped<IUserLookup, UserLookupRepository>();
             services.AddScoped<IDepartmentGroupLookup, DepartmentGroupLookupRepository>();
+            services.AddScoped<IFinancialYearLookup, FinancialYearLookupRepository>();
+            services.AddScoped<ICurrencyLookup, CurrencyLookupRepository>();
 
             services.AddScoped<IUserRoleCommandRepository, UserRoleCommandRepository>();
             services.AddScoped<IUserRoleQueryRepository, UserRoleQueryRepository>();

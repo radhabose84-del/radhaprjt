@@ -1,5 +1,5 @@
 using MediatR;
-using PurchaseLocalDetailDto.Application.PurchaseOrder.Dtos.Local;
+using PurchaseManagement.Application.PurchaseOrder.Dtos.Local;
 
 namespace PurchaseManagement.Application.PurchaseOrder.Local.Queries.GetPurchaseOrderById;
 

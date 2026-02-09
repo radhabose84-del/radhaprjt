@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Http;
 namespace PurchaseManagement.API.Controllers;
 
 [ApiController]
-[Route("api/logs")]
+[Route("api/purchase/logs")]
 public class ActivityLogsController : ControllerBase
 {
     private readonly IMediator _mediator;

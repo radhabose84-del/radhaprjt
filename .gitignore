@@ -112,3 +112,13 @@
 /src/Modules/ProjectManagement/ProjectManagement.Infrastructure/bin
 /src/Modules/ProjectManagement/ProjectManagement.Module/bin
 /src/Modules/ProjectManagement/ProjectManagement.Module/obj
+/src/Modules/BudgetManagement/BudgetManagement.API/bin
+/src/Modules/BudgetManagement/BudgetManagement.API/obj
+/src/Modules/BudgetManagement/BudgetManagement.Infrastructure/obj
+/src/Modules/BudgetManagement/BudgetManagement.Infrastructure/bin
+/src/Modules/BudgetManagement/BudgetManagement.Module/bin
+/src/Modules/BudgetManagement/BudgetManagement.Module/obj
+/src/Modules/BudgetManagement/Core/BudgetManagement.Application/bin
+/src/Modules/BudgetManagement/Core/BudgetManagement.Application/obj
+/src/Modules/BudgetManagement/Core/BudgetManagement.Domain/bin
+/src/Modules/BudgetManagement/Core/BudgetManagement.Domain/obj

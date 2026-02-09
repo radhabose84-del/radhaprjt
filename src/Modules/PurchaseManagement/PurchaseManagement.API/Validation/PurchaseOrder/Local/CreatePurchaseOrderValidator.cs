@@ -1,5 +1,5 @@
 using FluentValidation;
-using PurchaseLocalDetailDto.Application.PurchaseOrder.Dtos.Local;
+using PurchaseManagement.Application.PurchaseOrder.Dtos.Local;
 
 namespace PurchaseManagement.API.Validation.PurchaseOrder.Local;
 

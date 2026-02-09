@@ -47,6 +47,13 @@
     <!-- ADD THIS LINE - Module project -->
     <ProjectReference Include="..\Modules\UserManagement\UserManagement.Module\UserManagement.Module.csproj" />
 
+    <!-- Budget module -->
+    <ProjectReference Include="..\Modules\BudgetManagement\BudgetManagement.Module\BudgetManagement.Module.csproj" />
+    <ProjectReference Include="..\Modules\BudgetManagement\BudgetManagement.Infrastructure\BudgetManagement.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\BudgetManagement\BudgetManagement.API\BudgetManagement.API.csproj" />
+    <ProjectReference Include="..\Modules\BudgetManagement\Core\BudgetManagement.Application\BudgetManagement.Application.csproj" />
+    <ProjectReference Include="..\Modules\BudgetManagement\Core\BudgetManagement.Domain\BudgetManagement.Domain.csproj" />
+
      <!-- ✅ Add Fixed Asset module -->
     <ProjectReference Include="..\Modules\FixedAssetManagement\FixedAssetManagement.Module\FixedAssetManagement.Module.csproj" />
     <ProjectReference Include="..\Modules\FixedAssetManagement\FAM.Infrastructure\FAM.Infrastructure.csproj" />

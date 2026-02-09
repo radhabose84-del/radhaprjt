@@ -1,8 +1,10 @@
-using Contracts.Dtos.Party;
-using Contracts.Interfaces.External.IInvetoryManagement;
-using Contracts.Interfaces.External.IParty;
-using Contracts.Interfaces.External.IUser;
-using Contracts.Interfaces.External.IWorkflow;
+using System.Collections.Generic;
+using System.Linq;
+using Contracts.Dtos.Lookups.Inventory;
+using Contracts.Dtos.Lookups.Users;
+using Contracts.Interfaces.Lookups.Inventory;
+using Contracts.Interfaces.Lookups.Party;
+using Contracts.Interfaces.Lookups.Users;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.ImportPO;
 using PurchaseManagement.Application.PurchaseOrder.ImportPO.Queries.GetImportPOPending;
@@ -16,33 +18,26 @@ namespace PurchaseManagement.Application.PurchaseOrder.ImportPO.Queries.GetImpor
         : IRequestHandler<GetImportPOsPendingQuery, (List<GetPOImportPendingGroupDto> Items, int TotalCount)>
     {
         private readonly IImportPOQueryRepository _importPOQueryRepository;
-        // private readonly IItemGrpcClient _itemGrpc;
+        private readonly IPartyLookup _partyLookup;
+        private readonly IItemLookup _itemLookup;
+        private readonly IDepartmentLookup _departmentLookup;
         private readonly IMediator _mediator;
-        // private readonly IWorkflowGrpcClient _workflowGrpcClient;
-        // private readonly IUsersAllGrpcClient _usersAllGrpcClient;
-        // private readonly IPartyGrpcClient _partyGrpc;
         private readonly IIPAddressService _ipAddressService;
-        // private readonly IDepartmentAllGrpcClient _departmentAllGrpcClient;
 
         public GetImportPOsPendingQueryHandler(
             IImportPOQueryRepository importPOQueryRepository,
-            // IItemGrpcClient itemGrpc,
+            IPartyLookup partyLookup,
+            IItemLookup itemLookup,
+            IDepartmentLookup departmentLookup,
             IMediator mediator,
-            // IWorkflowGrpcClient workflowGrpcClient,
-            // IUsersAllGrpcClient usersAllGrpcClient,
-            // IPartyGrpcClient partyGrpc,
-            IIPAddressService ipAddressService
-            //, IDepartmentAllGrpcClient departmentAllGrpcClient
-            )
+            IIPAddressService ipAddressService)
         {
             _importPOQueryRepository = importPOQueryRepository;
-            // _itemGrpc = itemGrpc;
+            _partyLookup = partyLookup;
+            _itemLookup = itemLookup;
+            _departmentLookup = departmentLookup;
             _mediator = mediator;
-            // _workflowGrpcClient = workflowGrpcClient;
-            // _usersAllGrpcClient = usersAllGrpcClient;
-            // _partyGrpc = partyGrpc;
             _ipAddressService = ipAddressService;
-            // _departmentAllGrpcClient = departmentAllGrpcClient;
         }
 
         public async Task<(List<GetPOImportPendingGroupDto> Items, int TotalCount)> Handle(
@@ -180,21 +175,12 @@ namespace PurchaseManagement.Application.PurchaseOrder.ImportPO.Queries.GetImpor
             //     }
             // }
 
+            // if (rows.Count > 0)
+            //     await EnrichRowsAsync(rows, ct);
+
             await PublishAudit(rows.Count, request, ct);
             return (rows, rows.Count);
         }
- private static (string? Email, string? Mobile) ResolveVendorContact(PartyDetailsDto party)
-        {
-            if (party?.Contacts == null || party.Contacts.Count == 0)
-                return (null, null);
-
-            var primary = party.Contacts.FirstOrDefault(c =>
-                string.Equals(c.ContactType?.Trim(), "Primary", StringComparison.OrdinalIgnoreCase) &&
-                (!string.IsNullOrWhiteSpace(c.Email) || !string.IsNullOrWhiteSpace(c.Mobile)));
-
-            return (primary?.Email, primary?.Mobile);
-        }
-        // Helper method to publish audit logs
         private Task PublishAudit(int count, GetImportPOsPendingQuery request, CancellationToken ct)
             => _mediator.Publish(new AuditLogsDomainEvent(
                 actionDetail: "GetAll-Pending",
