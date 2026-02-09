@@ -1,5 +1,5 @@
 using AutoMapper;
-using LocalDtos = PurchaseLocalDetailDto.Application.PurchaseOrder.Dtos.Local;
+using LocalDtos = PurchaseManagement.Application.PurchaseOrder.Dtos.Local;
 // using PurchaseLocalDetailDto.Application.PurchaseOrder.Dtos.Local;
 // using PurchaseManagement.Application.PurchaseOrder.Dtos.Local;
 using PurchaseManagement.Application.PurchaseOrder.Local.Commands.Create;

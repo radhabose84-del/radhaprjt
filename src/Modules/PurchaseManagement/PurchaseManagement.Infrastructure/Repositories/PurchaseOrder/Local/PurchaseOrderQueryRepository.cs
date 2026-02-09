@@ -1,23 +1,15 @@
 using System.Data;
-using Contracts.Dtos.Users;
-using Contracts.Interfaces.External.IInvetoryManagement;
-using Contracts.Interfaces.External.IParty;
-using Contracts.Interfaces.External.IUser;
 using PurchaseManagement.Application.Common;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IMiscMaster;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.Local;
 using PurchaseManagement.Application.PurchaseIndents.Queries.ApprovedIndentDetailsForPO;
-using PurchaseManagement.Application.PurchaseOrder.Dtos.ImportPO;
-// using PurchaseManagement.Application.PurchaseOrder.Dtos.Local;
-using LocalDtos = PurchaseLocalDetailDto.Application.PurchaseOrder.Dtos.Local;
+using PurchaseManagement.Application.PurchaseOrder.Dtos.Local;
 using PurchaseManagement.Application.PurchaseOrder.Local.Queries.GetPOLocalPending;
-using PurchaseManagement.Application.PurchaseOrder.UploadPODocument;
 using PurchaseManagement.Domain.Common;
 using Dapper;
 using Microsoft.EntityFrameworkCore;
 using PurchaseManagement.Infrastructure.Data;
-using PurchaseLocalDetailDto.Application.PurchaseOrder.Dtos.Local;
 
 namespace PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.Local;
 
@@ -25,32 +17,22 @@ public class PurchaseOrderQueryRepository : IPurchaseOrderQueryRepository
 {
     private readonly IDbConnection _conn;
     private readonly IIPAddressService _ip;
-    private readonly IPartyGrpcClient _partyGrpc;
     private readonly ApplicationDbContext _applicationDb;
     private readonly IMiscMasterQueryRepository _miscMasterQueryRepository;
-    private readonly IUOMGrpcClient _uomGrpc;
-    private readonly IItemGrpcClient _itemGrpcClient;
-    private readonly IDepartmentAllGrpcClient _departmentAllGrpcClient;
-    private readonly ICurrencyGrpcClient _currencyGrpc;
-    private readonly ICompanyGrpcClient _companyGrpcClient;     
-    private readonly IUnitGrpcClient _unitGrpcClient;   
 
-    public PurchaseOrderQueryRepository(IDbConnection conn, IIPAddressService ip, IPartyGrpcClient partyGrpc, ApplicationDbContext applicationDb, IMiscMasterQueryRepository miscMasterQueryRepository, IUOMGrpcClient uomGrpc, IItemGrpcClient itemGrpcClient, IDepartmentAllGrpcClient departmentAllGrpcClient, ICurrencyGrpcClient currencyGrpc,ICompanyGrpcClient companyGrpcClient,IUnitGrpcClient unitGrpcClient)
+    public PurchaseOrderQueryRepository(
+        IDbConnection conn,
+        IIPAddressService ip,
+        ApplicationDbContext applicationDb,
+        IMiscMasterQueryRepository miscMasterQueryRepository)
     {
         _conn = conn;
         _ip = ip;
-        _partyGrpc = partyGrpc;
         _applicationDb = applicationDb;
         _miscMasterQueryRepository = miscMasterQueryRepository;
-        _uomGrpc = uomGrpc;
-        _itemGrpcClient = itemGrpcClient;
-        _departmentAllGrpcClient = departmentAllGrpcClient;
-        _currencyGrpc = currencyGrpc;
-        _companyGrpcClient = companyGrpcClient;  
-        _unitGrpcClient=unitGrpcClient;   
     }
 
-     public async Task<PagedResult<LocalDtos.PurchaseOrderListItemDto>> GetAllAsync(
+     public async Task<PagedResult<PurchaseOrderListItemDto>> GetAllAsync(
         int page, 
         int size, 
         string? searchTerm, 
@@ -130,9 +112,9 @@ public class PurchaseOrderQueryRepository : IPurchaseOrderQueryRepository
         });
 
         var total = await multi.ReadFirstAsync<int>();
-        var items = (await multi.ReadAsync<LocalDtos.PurchaseOrderListItemDto>()).ToList();
+        var items = (await multi.ReadAsync<PurchaseOrderListItemDto>()).ToList();
 
-        return new PagedResult<LocalDtos.PurchaseOrderListItemDto>
+        return new PagedResult<PurchaseOrderListItemDto>
         {
             Page = page,
             PageSize = size,
@@ -140,91 +122,36 @@ public class PurchaseOrderQueryRepository : IPurchaseOrderQueryRepository
             Items = items,
         };
     }
-    public async Task<LocalDtos.PurchaseOrderDetailDto?> GetByIdAsync(int id, CancellationToken ct)
+    public async Task<PurchaseOrderDetailDto?> GetByIdAsync(int id, CancellationToken ct)
     {
-             var companies = await _companyGrpcClient.GetAllCompanyAsync();
-            var departments = await _departmentAllGrpcClient.GetDepartmentAllAsync();
-            var units = await _unitGrpcClient.GetAllUnitAsync();
-
-            var companyLookup = companies.ToDictionary(c => c.CompanyId, c => c.CompanyName);
-            var unitLookup = units.ToDictionary(u => u.UnitId, u => u.UnitName);
-            var oldUnitLookup = units.Where(u => !string.IsNullOrEmpty(u.OldUnitId))
-                                .ToDictionary(u => u.OldUnitId, u => u.UnitName);
-            var departmentLookup = departments.ToDictionary(d => d.DepartmentId, d => d.DepartmentName);
-
-            var CompanyName = companyLookup.TryGetValue(_ip.GetCompanyId(), out var cName) ? cName : string.Empty;
-            var UnitName = unitLookup.TryGetValue(_ip.GetUnitId(), out var uName) ? uName : string.Empty;            
-
         // header
-        var header = await _conn.QueryFirstOrDefaultAsync<LocalDtos.PurchaseOrderDetailDto>(
+        var header = await _conn.QueryFirstOrDefaultAsync<PurchaseOrderDetailDto>(
             "SELECT * FROM Purchase.PurchaseOrderHeader WHERE Id=@id AND IsDeleted=0;", new { id });
 
-        if (header is null) return null;        
-        try
-        {
-            var vendorIds = new List<int> { header.VendorId }.Where(v => v > 0).Distinct().ToList();
-            var tasks = vendorIds.Select(vId => _partyGrpc.GetPartyByIdAsync(vId)).ToArray();
-            await Task.WhenAll(tasks);
-
-            var map = tasks
-                .Where(t => t.Status == TaskStatus.RanToCompletion && t.Result != null)
-                .Select(t => t.Result!)
-                .ToDictionary(x => x.Id, x => x.PartyName ?? string.Empty);
-
-            if (map.TryGetValue(header.VendorId, out var vname))
-                header.VendorName = vname;               
-        }
-        catch
-        {
-            // swallow vendor enrichment failures
-        }
-        try
-        {
-            var currencyIds = new List<int> { header.CurrencyId }
-                .Where(c => c > 0)
-                .Distinct()
-                .ToList();
-
-            // both branches are List<CurrencyDto>
-            var list = currencyIds.Count == 0
-                ? new List<CurrencyDto>()
-                : (await _currencyGrpc.GetByIdsAsync(currencyIds, ct)).ToList();
-
-            var map = list.ToDictionary(c => c.Id, c => c.Code ?? c.Name ?? string.Empty);
-
-            if (map.TryGetValue(header.CurrencyId, out var cname))
-                header.CurrencyName = cname;
-        }
-        catch
-        {
-            // swallow currency enrichment failures
-        }
+        if (header is null) return null;
 
         // payment terms
-        var terms = await _conn.QueryAsync<LocalDtos.PurchasePaymentTermDto>(
+        var terms = await _conn.QueryAsync<PurchasePaymentTermDto>(
             "SELECT * FROM Purchase.PurchasePaymentTerm WHERE PurchaseOrderId=@id AND IsDeleted=0 ORDER BY Id;", new { id });
         header.PaymentTerms = terms.ToList();
 
+        // documents (raw paths - enrichment done in handler)
         const string docSql = @"
-        SELECT 
+        SELECT
             d.DocumentId,
-            mm.Code          AS DocumentName,
+            mm.Code AS DocumentName,
             d.FileName,
-            d.UploadedDate,
-            mtm.Description+'/'+MT.Description+'/'+ @companyName + '/' + @unitName+'/'+filename AS UploadedPath
+            d.UploadedDate
         FROM Purchase.PurchaseDocuments AS d WITH (NOLOCK)
-        JOIN Purchase.MiscMaster      AS mm ON mm.Id = d.DocumentId
-        LEFT JOIN Purchase.MiscTypeMaster mtm ON mtm.MiscTypeCode = 'ImagePath'
-        LEFT JOIN Purchase.MiscTypeMaster mt  ON mt.MiscTypeCode  = 'POImage'
+        JOIN Purchase.MiscMaster AS mm ON mm.Id = d.DocumentId
         WHERE d.POId = @id
         ORDER BY d.Id;";
 
-        var rows = await _conn.QueryAsync<LocalDtos.LocalDocumentDto>(docSql, new { id,  companyName = CompanyName,
-                    unitName = UnitName });
-            header.DocumentsList = rows.ToList();
+        var rows = await _conn.QueryAsync<LocalDocumentDto>(docSql, new { id });
+        header.DocumentsList = rows.ToList();
 
         // local headers
-        var locals = (await _conn.QueryAsync<LocalDtos.PurchaseLocalHeaderDto>(
+        var locals = (await _conn.QueryAsync<PurchaseLocalHeaderDto>(
             @"SELECT lh.*
             FROM Purchase.PurchaseLocalHeader lh
             WHERE lh.PurchaseOrderId = @id AND lh.IsDeleted = 0
@@ -233,7 +160,7 @@ public class PurchaseOrderQueryRepository : IPurchaseOrderQueryRepository
         )).ToList();
 
         header.Headers = locals;
-        
+
         var hasGrn = await HasAnyGrnAsync(id, ct);
         var statusCode = await GetStatusCodeAsync(id, ct) ?? "";
         var (editFlag, editReason) = ComputeEditGate(hasGrn, statusCode);
@@ -241,119 +168,42 @@ public class PurchaseOrderQueryRepository : IPurchaseOrderQueryRepository
         header.Edit = editFlag;
         header.EditReason = editReason;
 
-
         if (locals.Count > 0)
         {
             // fetch all details for these headers in one go
             var localIds = locals.Where(l => l.Id.HasValue).Select(l => l.Id!.Value).ToArray();
-            var details = (await _conn.QueryAsync<LocalDtos.PurchaseLocalDetailDto>(
+            var details = (await _conn.QueryAsync<PurchaseLocalDetailDto>(
                 "SELECT * FROM Purchase.PurchaseLocalDetail WHERE IsDeleted=0 AND PurchaseLocalId IN @ids ORDER BY Id;",
                 new { ids = localIds })).ToList();
+
             if (details.Count == 0)
                 return header;
 
-
-
-            // ---- collect keys to enrich ----
-            var itemIds = details.Select(x => x.ItemId).Where(x => x > 0).Distinct().ToList();
-            var uomIds = details.Select(x => x.UOMId).Where(x => x > 0).Distinct().ToList();
-            var deptIds = details.Select(x => x.DepartmentId ?? 0).Where(x => x > 0).Distinct().ToList();
-            var indentIds = details.Select(x => x.IndentId ?? 0).Where(x => x > 0).Distinct().ToArray();             
-        
-
-            // ---- kick off lookups in parallel where possible ----
-            var uomsTask = _uomGrpc.GetUOMAsync();                    // List<UOMDto>
-            var deptsTask = _departmentAllGrpcClient.GetDepartmentAllAsync();
-            var itemsTask = _itemGrpcClient.GetItemsByIdsAsync(itemIds, ct);
-
-        
-            // indent numbers are from SQL; only query if we have ids
-            Task<IEnumerable<dynamic>> indentRowsTask = Task.FromResult<IEnumerable<dynamic>>(Array.Empty<dynamic>());
+            // Fetch indent numbers from SQL (local data)
+            var indentIds = details.Select(x => x.IndentId ?? 0).Where(x => x > 0).Distinct().ToArray();
             if (indentIds.Length > 0)
             {
-                indentRowsTask = _conn.QueryAsync(
+                var indentRows = await _conn.QueryAsync(
                     @"SELECT Id, IndentNumber
                     FROM Purchase.IndentHeader
                     WHERE IsDeleted = 0 AND Id IN @ids;",
                     new { ids = indentIds });
-            }
 
-            await Task.WhenAll(uomsTask, deptsTask, itemsTask, indentRowsTask);
-
-            // ---- build maps ----
-
-            // UOM map
-            var uomMap = new Dictionary<int, string>();
-            var uoms = await uomsTask;
-            if (uoms.Any())
-            {
-                uomMap = uoms
-                    .Where(u => uomIds.Contains(u.Id))
-                    .GroupBy(u => u.Id)
-                    .ToDictionary(
-                        g => g.Key,
-                        g =>
-                        {
-                            var u = g.First();
-                            return !string.IsNullOrWhiteSpace(u.UOMName) ? u.UOMName! : (u.Code ?? string.Empty);
-                        });
-            }
-
-            // Department map
-            var deptMap = new Dictionary<int, string>();
-            var depts = await deptsTask;
-            if (depts.Any())
-            {
-                deptMap = depts
-                    .Where(d => deptIds.Contains(d.DepartmentId))
-                    .ToDictionary(d => d.DepartmentId, d => d.DepartmentName ?? string.Empty);
-            }
-
-            // Item map (for ItemName)
-            var itemMap = new Dictionary<int, string>();
-            var items = await itemsTask;
-            if (items.Any())
-            {
-                itemMap = items
-                    .GroupBy(i => i.Id)
-                    .ToDictionary(
-                        g => g.Key,
-                        g =>
-                        {
-                            var it = g.First();
-                            // choose the best display name
-                            return !string.IsNullOrWhiteSpace(it.ItemName) ? it.ItemName! : (it.ItemCode ?? string.Empty);
-                        });
-            }
-
-            // Indent map
-            var indentMap = new Dictionary<int, string>();
-            var indentRows = await indentRowsTask;
-            if (indentRows.Any())
-            {
+                var indentMap = new Dictionary<int, string>();
                 foreach (var r in indentRows)
                 {
                     int rid = (int)r.Id;
                     string num = (string)r.IndentNumber;
                     indentMap[rid] = num;
                 }
+
+                foreach (var d in details)
+                {
+                    if (d.IndentId is > 0 && indentMap.TryGetValue(d.IndentId.Value, out var indentNo))
+                        d.IndentNumber = indentNo;
+                }
             }
 
-            // ---- apply enrichment to each line ----
-            foreach (var d in details)
-            {
-                if (d.UOMId is > 0 && uomMap.TryGetValue(d.UOMId, out var uomName))
-                    d.UOMName = uomName;
-
-                if (d.DepartmentId is > 0 && deptMap.TryGetValue(d.DepartmentId.Value, out var deptName))
-                    d.DepartmentName = deptName;
-
-                if (d.IndentId is > 0 && indentMap.TryGetValue(d.IndentId.Value, out var indentNo))
-                    d.IndentNumber = indentNo;
-
-                if (d.ItemId > 0 && itemMap.TryGetValue(d.ItemId, out var itemName))
-                    d.ItemName = itemName;
-            }
             var lookup = details.GroupBy(d => d.PurchaseLocalId).ToDictionary(g => g.Key, g => g.ToList());
 
             foreach (var lh in locals)
@@ -363,6 +213,7 @@ public class PurchaseOrderQueryRepository : IPurchaseOrderQueryRepository
                     lh.Details = list;
             }
         }
+
         return header;
     }
     static (int Edit, string? Reason) ComputeEditGate(bool hasGrn, string statusCode)
@@ -577,7 +428,7 @@ public class PurchaseOrderQueryRepository : IPurchaseOrderQueryRepository
         var headers = (await multi.ReadAsync<GetPOLocalPendingGroupDto>()).ToList();
 
         // 4) details (unified)
-        var details = (await multi.ReadAsync<LocalDtos.PurchaseLocalDetailDto>()).ToList();
+        var details = (await multi.ReadAsync<PurchaseLocalDetailDto>()).ToList();
 
         // 4b) parentId -> POId map (works for both local & import; parentId = PurchaseLocalId alias)
         var mapRows = (await multi.ReadAsync<(int PurchaseLocalId, int PurchaseOrderId)>()).ToList();

@@ -66,10 +66,12 @@ using MaintenanceManagement.Application.Common.Interfaces.IPreventiveSchedulerLo
 using MaintenanceManagement.Infrastructure.Repositories.PreventiveSchedulesLogs;
 using MaintenanceManagement.Application.Common.IMachineSpecification;
 using MaintenanceManagement.Infrastructure.Persistence;
+using Contracts.Interfaces.Lookups.Maintenance;
+using MaintenanceManagement.Infrastructure.Repositories.Lookups.Maintenance;
 
 namespace MaintenanceManagement.Infrastructure
 {
-    public static class DependencyInjection
+    public static class DependencyInjection 
     {
         public static IServiceCollection AddMaintenanceInfrastructure(
             this IServiceCollection services,
@@ -146,6 +148,7 @@ namespace MaintenanceManagement.Infrastructure
 
             services.AddScoped<ICostCenterQueryRepository, CostCenterQueryRepository>();
             services.AddScoped<ICostCenterCommandRepository, CostCenterCommandRepository>();
+            services.AddScoped<ICostCenterLookup, CostCenterLookupRepository>();
             services.AddScoped<IWorkCenterQueryRepository, WorkCenterQueryRepository>();
             services.AddScoped<IWorkCenterCommandRepository, WorkCenterCommandRepository>();
             services.AddScoped<IMachineGroupCommandRepository, MachineGroupCommandRepository>();

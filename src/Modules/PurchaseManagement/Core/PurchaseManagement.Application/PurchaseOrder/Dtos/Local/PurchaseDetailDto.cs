@@ -1,6 +1,4 @@
-// using PurchaseLocalDetailDto.Application.PurchaseOrder.Dtos.ImportPO;
-
-namespace PurchaseLocalDetailDto.Application.PurchaseOrder.Dtos.Local;
+namespace PurchaseManagement.Application.PurchaseOrder.Dtos.Local;
 
 public sealed class PurchaseLocalDetailDto
 {

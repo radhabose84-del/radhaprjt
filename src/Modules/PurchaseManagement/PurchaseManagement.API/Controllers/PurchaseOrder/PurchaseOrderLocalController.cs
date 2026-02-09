@@ -9,7 +9,7 @@ using PurchaseManagement.Application.PurchaseOrder.POAmendment;
 using PurchaseManagement.Application.PurchaseOrder.Reports;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using PurchaseLocalDetailDto.Application.PurchaseOrder.Dtos.Local;
+using PurchaseManagement.Application.PurchaseOrder.Dtos.Local;
 using Microsoft.AspNetCore.Http;
 
 namespace PurchaseManagement.API.Controllers.PurchaseOrder;

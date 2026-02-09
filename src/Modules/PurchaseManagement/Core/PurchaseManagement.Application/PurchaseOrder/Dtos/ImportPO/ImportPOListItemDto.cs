@@ -170,7 +170,9 @@ namespace PurchaseManagement.Application.PurchaseOrder.Dtos.ImportPO
         public int DocumentId { get; set; }
         public string? FileName { get; set; }
         public DateTimeOffset UploadedDate { get; set; }
-        public string? UploadedPath { get; set; }  
+        public string? UploadedPath { get; set; }
+        public string? BasePath { get; set; }
+        public string? ImageFolder { get; set; }
         public string? DocumentName { get; set; }  
 }
 }

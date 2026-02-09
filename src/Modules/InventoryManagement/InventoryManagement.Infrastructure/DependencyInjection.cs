@@ -42,7 +42,9 @@ using InventoryManagement.Infrastructure.Repositories.Reports;
 using InventoryManagement.Infrastructure.Repositories.Stock;
 using InventoryManagement.Infrastructure.Repositories.UOMConversion;
 using InventoryManagement.Infrastructure.Repositories.UOMs;
+using InventoryManagement.Infrastructure.Repositories.Lookups;
 using InventoryManagement.Infrastructure.Services;
+using Contracts.Interfaces.Lookups.Inventory;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -171,8 +173,9 @@ namespace InventoryManagement.Infrastructure
             services.AddScoped<IIssueQueryCommandRepository, IssueEntryQueryRepository>();
             services.AddScoped<IStockReportQueryRepository, StockReportQueryRepository>();
 
-
-
+            // Lookups
+            services.AddScoped<IUOMLookup, UOMLookupRepository>();
+            services.AddScoped<IItemLookup, ItemLookupRepository>();
 
             // Miscellaneous services
             services.AddScoped<IIPAddressService, IPAddressService>();

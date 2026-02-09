@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Dapper;
 using Contracts.Dtos.Lookups.Users;
 using Contracts.Interfaces.Lookups.Users;
-using Core.Application.Common.Interfaces;
+using UserManagement.Application.Common.Interfaces;
 
 namespace UserManagement.Infrastructure.Repositories.Lookups.Users
 {

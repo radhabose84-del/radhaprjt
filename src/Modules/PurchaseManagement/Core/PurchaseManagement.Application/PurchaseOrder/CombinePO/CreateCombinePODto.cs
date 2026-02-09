@@ -1,7 +1,7 @@
 // using PurchaseManagement.Application.PurchaseOrder.Dtos.Local;
 using PurchaseManagement.Application.PurchaseOrder.Dtos.ImportPO;
 using PurchaseManagement.Application.PurchaseOrder.Dtos;
-using PurchaseLocalDetailDto.Application.PurchaseOrder.Dtos.Local;
+using PurchaseManagement.Application.PurchaseOrder.Dtos.Local;
 
 namespace PurchaseManagement.Application.PurchaseOrder.CombinePO;
 public sealed class CreateCombinePODto
