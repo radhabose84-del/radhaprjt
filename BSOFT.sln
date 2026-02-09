@@ -114,6 +114,20 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WarehouseManagement.Infrast
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WarehouseManagement.Module", "src\Modules\WarehouseManagement\WarehouseManagement.Module\WarehouseManagement.Module.csproj", "{A9118C40-AC0F-42E5-811A-E651C1C5F285}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ProjectManagement", "ProjectManagement", "{1F58840A-C164-4AC1-ABEB-1CDC7F5E3CA0}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{234D91B9-584E-4D49-B77B-33144DEF7FAC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProjectManagement.Application", "src\Modules\ProjectManagement\Core\ProjectManagement.Application\ProjectManagement.Application.csproj", "{324DBC3C-3FC6-448C-BB03-B6439BE6C0E0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProjectManagement.Domain", "src\Modules\ProjectManagement\Core\ProjectManagement.Domain\ProjectManagement.Domain.csproj", "{D3D63686-091D-4DD9-8110-496BE1EC4D60}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProjectManagement.API", "src\Modules\ProjectManagement\ProjectManagement.API\ProjectManagement.API.csproj", "{87FD006D-DFEF-4D5C-ABC9-BC0A230C7E3F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProjectManagement.Infrastructure", "src\Modules\ProjectManagement\ProjectManagement.Infrastructure\ProjectManagement.Infrastructure.csproj", "{EC5A96D7-6E29-4103-AADB-277C5DC9D4B0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProjectManagement.Module", "src\Modules\ProjectManagement\ProjectManagement.Module\ProjectManagement.Module.csproj", "{73A8DDFD-6404-4640-AD9B-DFED9998D0E6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -284,6 +298,26 @@ Global
 		{A9118C40-AC0F-42E5-811A-E651C1C5F285}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A9118C40-AC0F-42E5-811A-E651C1C5F285}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A9118C40-AC0F-42E5-811A-E651C1C5F285}.Release|Any CPU.Build.0 = Release|Any CPU
+		{324DBC3C-3FC6-448C-BB03-B6439BE6C0E0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{324DBC3C-3FC6-448C-BB03-B6439BE6C0E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{324DBC3C-3FC6-448C-BB03-B6439BE6C0E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{324DBC3C-3FC6-448C-BB03-B6439BE6C0E0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D3D63686-091D-4DD9-8110-496BE1EC4D60}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D3D63686-091D-4DD9-8110-496BE1EC4D60}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D3D63686-091D-4DD9-8110-496BE1EC4D60}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D3D63686-091D-4DD9-8110-496BE1EC4D60}.Release|Any CPU.Build.0 = Release|Any CPU
+		{87FD006D-DFEF-4D5C-ABC9-BC0A230C7E3F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{87FD006D-DFEF-4D5C-ABC9-BC0A230C7E3F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{87FD006D-DFEF-4D5C-ABC9-BC0A230C7E3F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{87FD006D-DFEF-4D5C-ABC9-BC0A230C7E3F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EC5A96D7-6E29-4103-AADB-277C5DC9D4B0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EC5A96D7-6E29-4103-AADB-277C5DC9D4B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EC5A96D7-6E29-4103-AADB-277C5DC9D4B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EC5A96D7-6E29-4103-AADB-277C5DC9D4B0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{73A8DDFD-6404-4640-AD9B-DFED9998D0E6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{73A8DDFD-6404-4640-AD9B-DFED9998D0E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{73A8DDFD-6404-4640-AD9B-DFED9998D0E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{73A8DDFD-6404-4640-AD9B-DFED9998D0E6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{797F6419-CC8D-46D7-AEB3-334FCBA111E0} = {20F0B297-DD7E-436B-A300-D487885AEA89}
@@ -337,6 +371,13 @@ Global
 		{3D03A06E-1787-4885-9F42-4581354596E8} = {6BEB4D28-7805-4F16-A417-0A82E42EB88A}
 		{B12507FB-3164-4396-911C-48D75950B991} = {6BEB4D28-7805-4F16-A417-0A82E42EB88A}
 		{A9118C40-AC0F-42E5-811A-E651C1C5F285} = {6BEB4D28-7805-4F16-A417-0A82E42EB88A}
+		{1F58840A-C164-4AC1-ABEB-1CDC7F5E3CA0} = {797F6419-CC8D-46D7-AEB3-334FCBA111E0}
+		{234D91B9-584E-4D49-B77B-33144DEF7FAC} = {1F58840A-C164-4AC1-ABEB-1CDC7F5E3CA0}
+		{324DBC3C-3FC6-448C-BB03-B6439BE6C0E0} = {234D91B9-584E-4D49-B77B-33144DEF7FAC}
+		{D3D63686-091D-4DD9-8110-496BE1EC4D60} = {234D91B9-584E-4D49-B77B-33144DEF7FAC}
+		{87FD006D-DFEF-4D5C-ABC9-BC0A230C7E3F} = {1F58840A-C164-4AC1-ABEB-1CDC7F5E3CA0}
+		{EC5A96D7-6E29-4103-AADB-277C5DC9D4B0} = {1F58840A-C164-4AC1-ABEB-1CDC7F5E3CA0}
+		{73A8DDFD-6404-4640-AD9B-DFED9998D0E6} = {1F58840A-C164-4AC1-ABEB-1CDC7F5E3CA0}
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -45,7 +45,7 @@ builder.Services.AddInventoryManagementModule(builder.Configuration, builder.Env
 builder.Services.AddPartyManagementModule(builder.Configuration, builder.Environment);
 builder.Services.AddSalesManagementModule(builder.Configuration, builder.Environment);
 builder.Services.AddWarehouseManagementModule(builder.Configuration, builder.Environment);
-
+builder.Services.AddProjectManagementModule(builder.Configuration, builder.Environment);
 
 
 // ✅ Controllers + API

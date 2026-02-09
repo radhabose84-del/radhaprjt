@@ -102,3 +102,13 @@
 /src/Modules/WarehouseManagement/WarehouseManagement.Infrastructure/bin
 /src/Modules/WarehouseManagement/WarehouseManagement.Module/bin
 /src/Modules/WarehouseManagement/WarehouseManagement.Module/obj
+/src/Modules/ProjectManagement/Core/ProjectManagement.Application/bin
+/src/Modules/ProjectManagement/Core/ProjectManagement.Application/obj
+/src/Modules/ProjectManagement/Core/ProjectManagement.Domain/bin
+/src/Modules/ProjectManagement/Core/ProjectManagement.Domain/obj
+/src/Modules/ProjectManagement/ProjectManagement.API/obj
+/src/Modules/ProjectManagement/ProjectManagement.API/bin
+/src/Modules/ProjectManagement/ProjectManagement.Infrastructure/obj
+/src/Modules/ProjectManagement/ProjectManagement.Infrastructure/bin
+/src/Modules/ProjectManagement/ProjectManagement.Module/bin
+/src/Modules/ProjectManagement/ProjectManagement.Module/obj
