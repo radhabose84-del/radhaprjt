@@ -27,8 +27,8 @@ using Contracts.Interfaces.Lookups.Maintenance;
 using Contracts.Interfaces.Lookups.Projects;
 using Contracts.Interfaces.Lookups.Budget;
 using BudgetManagement.Infrastructure.Repositories.Lookups.Budget;
-using GrpcServices.BackgroundService;
-using GrpcServices.BackgroundService.Line;
+// using GrpcServices.BackgroundService;
+// using GrpcServices.BackgroundService.Line;
 using System.Net.Http;
 
 
@@ -146,17 +146,17 @@ namespace BudgetManagement.Infrastructure
                 ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
             };
 
-            services.AddGrpcClient<ApproverService.ApproverServiceClient>(options =>
-                options.Address = new Uri(backgroundServiceUrl))
-                .ConfigurePrimaryHttpMessageHandler(CreateGrpcHandler);
+            // services.AddGrpcClient<ApproverService.ApproverServiceClient>(options =>
+            //     options.Address = new Uri(backgroundServiceUrl))
+            //     .ConfigurePrimaryHttpMessageHandler(CreateGrpcHandler);
 
-            services.AddGrpcClient<ApprovalRequestStatusAllService.ApprovalRequestStatusAllServiceClient>(options =>
-                options.Address = new Uri(backgroundServiceUrl))
-                .ConfigurePrimaryHttpMessageHandler(CreateGrpcHandler);
+            // services.AddGrpcClient<ApprovalRequestStatusAllService.ApprovalRequestStatusAllServiceClient>(options =>
+            //     options.Address = new Uri(backgroundServiceUrl))
+            //     .ConfigurePrimaryHttpMessageHandler(CreateGrpcHandler);
 
-            services.AddGrpcClient<ApprovalRequestLineStatusService.ApprovalRequestLineStatusServiceClient>(options =>
-                options.Address = new Uri(backgroundServiceUrl))
-                .ConfigurePrimaryHttpMessageHandler(CreateGrpcHandler);
+            // services.AddGrpcClient<ApprovalRequestLineStatusService.ApprovalRequestLineStatusServiceClient>(options =>
+            //     options.Address = new Uri(backgroundServiceUrl))
+            //     .ConfigurePrimaryHttpMessageHandler(CreateGrpcHandler);
 
             //services.AddScoped<IWorkflowLookup, WorkflowLookup>();
 

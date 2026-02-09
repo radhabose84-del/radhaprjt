@@ -47,17 +47,9 @@
     <!-- <PackageReference Include="Shared.Contracts" Version="1.0.0" />
     <PackageReference Include="Shared.Infrastructure" Version="1.0.0" />   -->
   </ItemGroup>
-  <ItemGroup>
-  <ProjectReference Include="..\..\Shared\Contracts\Contracts.csproj" />
-  </ItemGroup> 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
-  <ItemGroup>
-    <Protobuf Include="..\..\..\Shared\Contracts\Protos\getapprover.proto" GrpcServices="Client" />
-    <Protobuf Include="..\..\..\Shared\Contracts\Protos\allapprovalrequeststatus.proto" GrpcServices="Client" />
-    <Protobuf Include="..\..\..\Shared\Contracts\Protos\approvalrequestlinestatus.proto" GrpcServices="Client" />
-  </ItemGroup>
 </Project>
