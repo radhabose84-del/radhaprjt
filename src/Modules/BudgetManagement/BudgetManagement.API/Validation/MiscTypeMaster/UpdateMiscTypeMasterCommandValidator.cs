@@ -2,6 +2,7 @@ using BudgetManagement.API.Validation.Common;
 using BudgetManagement.Application.Common.Interfaces.IMiscTypeMaster;
 using BudgetManagement.Application.MiscTypeMaster.Command.UpdateMiscTypeMaster;
 using FluentValidation;
+using Shared.Validation.Common;
 
 namespace PurchaseManagement.API.Validation.MiscTypeMaster
 {

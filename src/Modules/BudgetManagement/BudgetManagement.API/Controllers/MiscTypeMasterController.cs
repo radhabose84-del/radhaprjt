@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace BudgetManagement.API.Controllers
 {
- [Route("api/[controller]")]
+ [Route("api/budget/[controller]")]
     public class MiscTypeMasterController : ApiControllerBase
     {
         public MiscTypeMasterController(ISender mediator) : base(mediator)

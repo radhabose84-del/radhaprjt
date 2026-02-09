@@ -1,7 +1,7 @@
-using BudgetManagement.API.Validation.Common;
 using BudgetManagement.Application.Common.Interfaces.IMiscMaster;
 using BudgetManagement.Application.MiscMaster.Command.DeleteMiscMaster;
 using FluentValidation;
+using Shared.Validation.Common;
 
 namespace BudgetManagement.API.Validation.MiscMaster
 {

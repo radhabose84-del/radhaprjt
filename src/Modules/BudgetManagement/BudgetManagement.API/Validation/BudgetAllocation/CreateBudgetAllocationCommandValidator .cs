@@ -4,6 +4,7 @@ using BudgetManagement.Application.BudgetAllocation.Command.Create;
 using BudgetManagement.Application.Common.Interfaces;
 using BudgetManagement.Application.Common.Interfaces.IBudgetAllocation;
 using FluentValidation;
+using Shared.Validation.Common;
 
 
 namespace BudgetManagement.API.Validation.BudgetAllocation
