@@ -1,8 +1,8 @@
 using System.Security.Claims;
-using Core.Domain.Common;
-using Core.Domain.Entities;
+using ProjectManagement.Domain.Common;
+using ProjectManagement.Domain.Entities;
 
-namespace Core.Application.Common.Interfaces
+namespace ProjectManagement.Application.Common.Interfaces
 {
     public interface IJwtTokenHelper
     {

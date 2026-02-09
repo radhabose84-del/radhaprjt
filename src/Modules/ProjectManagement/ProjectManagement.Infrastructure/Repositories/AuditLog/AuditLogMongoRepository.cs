@@ -1,8 +1,8 @@
-using Core.Application.Common.Interfaces.AuditLog;
-using Core.Domain.Entities;
+using ProjectManagement.Application.Common.Interfaces.AuditLog;
+using ProjectManagement.Domain.Entities;
 using MongoDB.Driver;
 using Microsoft.AspNetCore.Http;
-using Core.Application.Common.Interfaces;
+using ProjectManagement.Application.Common.Interfaces;
 
 namespace ProjectManagement.Infrastructure.Repositories
 {

@@ -2,12 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Core.Application.Common.Interfaces.IMiscMaster;
-using Core.Application.MiscMaster.Command.DeleteMiscMaster;
+using ProjectManagement.Application.Common.Interfaces.IMiscMaster;
+using ProjectManagement.Application.MiscMaster.Command.DeleteMiscMaster;
 using FluentValidation;
 using ProjectManagement.API.Validation.Common;
+using Shared.Validation.Common;
 
-namespace PurchaseManagement.API.Validation.MiscMaster
+namespace ProjectManagement.API.Validation.MiscMaster
 {
     public class DeleteMiscMasterCommandValidator : AbstractValidator<DeleteMiscMasterCommand>
     {

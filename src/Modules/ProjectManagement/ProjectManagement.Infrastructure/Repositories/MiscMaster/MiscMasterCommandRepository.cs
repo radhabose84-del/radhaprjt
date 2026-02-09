@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Core.Application.Common.Interfaces.IMiscMaster;
+using ProjectManagement.Application.Common.Interfaces.IMiscMaster;
 using Microsoft.EntityFrameworkCore;
 using ProjectManagement.Infrastructure.Data;
 
-namespace PurchaseManagement.Infrastructure.Repositories.MiscMaster
+namespace ProjectManagement.Infrastructure.Repositories.MiscMaster
 {
     public class MiscMasterCommandRepository : IMiscMasterCommandRepository
     {
@@ -18,7 +18,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.MiscMaster
             _dbContext = applicationDbContext;
         }
 
-        public async Task<Core.Domain.Entities.MiscMaster> CreateAsync(Core.Domain.Entities.MiscMaster miscMaster)
+        public async Task<ProjectManagement.Domain.Entities.MiscMaster> CreateAsync(ProjectManagement.Domain.Entities.MiscMaster miscMaster)
         {
 
             // Auto-generate SortOrder
@@ -32,7 +32,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.MiscMaster
             return await _dbContext.MiscMaster.MaxAsync(ac => (int?)ac.SortOrder) ?? -1;
         }
 
-        public async Task<bool> UpdateAsync(int id, Core.Domain.Entities.MiscMaster miscMaster)
+        public async Task<bool> UpdateAsync(int id, ProjectManagement.Domain.Entities.MiscMaster miscMaster)
         {
             var existingMiscMaster = await _dbContext.MiscMaster.FirstOrDefaultAsync(m => m.Id == miscMaster.Id);
 
@@ -50,7 +50,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.MiscMaster
             return false;
         }
 
-        public async Task<bool> DeleteAsync(int id, Core.Domain.Entities.MiscMaster miscMaster)
+        public async Task<bool> DeleteAsync(int id, ProjectManagement.Domain.Entities.MiscMaster miscMaster)
         {
             var existingMiscmaster = await _dbContext.MiscMaster.FirstOrDefaultAsync(u => u.Id == id);
             if (existingMiscmaster != null)
@@ -60,10 +60,10 @@ namespace PurchaseManagement.Infrastructure.Repositories.MiscMaster
             }
             return false;
         }   
-         public async Task<Dictionary<int,Core.Domain.Entities.MiscMaster>> GetManyByIdsAsync(IEnumerable<int> ids, CancellationToken ct)
+         public async Task<Dictionary<int,ProjectManagement.Domain.Entities.MiscMaster>> GetManyByIdsAsync(IEnumerable<int> ids, CancellationToken ct)
     {
         var idList = ids?.Distinct().ToList() ?? new List<int>();
-        if (idList.Count == 0) return new Dictionary<int, Core.Domain.Entities.MiscMaster>();
+        if (idList.Count == 0) return new Dictionary<int, ProjectManagement.Domain.Entities.MiscMaster>();
 
         var rows = await _dbContext.MiscMaster
             .AsNoTracking()

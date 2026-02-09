@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Core.Application.ProjectWorkBreakdownStructure.Queries.Dtos;
-using Core.Application.ProjectWorkBreakdownStructure.Queries.GetWbsLookup;
+using ProjectManagement.Application.ProjectWorkBreakdownStructure.Queries.Dtos;
+using ProjectManagement.Application.ProjectWorkBreakdownStructure.Queries.GetWbsLookup;
 
-namespace Core.Application.Common.Interfaces.IProjectWorkBreakdownStructure
+namespace ProjectManagement.Application.Common.Interfaces.IProjectWorkBreakdownStructure
 {
     public interface IProjectWorkBreakdownStructureQueryRepository
     {

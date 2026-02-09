@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
-using Core.Application.Common.HttpResponse;
-using Core.Application.Common.Interfaces.IMiscTypeMaster;
-using Core.Domain.Events;
+using ProjectManagement.Application.Common.HttpResponse;
+using ProjectManagement.Application.Common.Interfaces.IMiscTypeMaster;
+using ProjectManagement.Domain.Events;
 using MediatR;
 
-namespace Core.Application.MiscTypeMaster.Queries.GetMiscTypeMaster
+namespace ProjectManagement.Application.MiscTypeMaster.Queries.GetMiscTypeMaster
 {
     public class GetMiscTypeMasterQueryHandler   : IRequestHandler<GetMiscTypeMasterQuery,ApiResponseDTO<List<GetMiscTypeMasterDto>>>
     {

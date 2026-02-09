@@ -2,13 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Core.Application.Common.Interfaces.IMiscMaster;
-using Core.Application.MiscMaster.Command.CreateMiscMaster;
+using ProjectManagement.Application.Common.Interfaces.IMiscMaster;
+using ProjectManagement.Application.MiscMaster.Command.CreateMiscMaster;
 using FluentValidation;
 using ProjectManagement.API.Validation.Common;
+using Shared.Validation.Common;
 
 
-namespace PurchaseManagement.API.Validation.MiscMaster
+namespace ProjectManagement.API.Validation.MiscMaster
 {
     public class CreateMiscMasterCommandValidator : AbstractValidator<CreateMiscMasterCommand>
     {
@@ -20,8 +21,8 @@ namespace PurchaseManagement.API.Validation.MiscMaster
 
 
 
-            var MiscCodeMaxLength = maxLengthProvider.GetMaxLength<Core.Domain.Entities.MiscMaster>("Code") ?? 50;
-            var DescriptionMaxLength = maxLengthProvider.GetMaxLength<Core.Domain.Entities.MiscMaster>("Description") ?? 250;
+            var MiscCodeMaxLength = maxLengthProvider.GetMaxLength<ProjectManagement.Domain.Entities.MiscMaster>("Code") ?? 50;
+            var DescriptionMaxLength = maxLengthProvider.GetMaxLength<ProjectManagement.Domain.Entities.MiscMaster>("Description") ?? 250;
 
             _validationRules = ValidationRuleLoader.LoadValidationRules();
             _miscMasterQuery = miscMasterQuery;

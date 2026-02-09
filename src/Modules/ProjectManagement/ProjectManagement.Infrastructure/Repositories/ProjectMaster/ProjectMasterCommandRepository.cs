@@ -3,16 +3,16 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
-using Core.Application.Common.Interfaces.IProjectMaster;
+using ProjectManagement.Application.Common.Interfaces.IProjectMaster;
 using Microsoft.EntityFrameworkCore;
 using ProjectManagement.Infrastructure.Data;
 using System.Linq;
 using System.Threading;
-using Core.Domain.Common;
-using Core.Application.Common.Interfaces.IMiscTypeMaster;
+using ProjectManagement.Domain.Common;
+using ProjectManagement.Application.Common.Interfaces.IMiscTypeMaster;
 using AutoMapper;
-using Core.Application.ProjectMaster.Command.UpdateProjectMaster;
-using Core.Application.Common.Interfaces.IMiscMaster;
+using ProjectManagement.Application.ProjectMaster.Command.UpdateProjectMaster;
+using ProjectManagement.Application.Common.Interfaces.IMiscMaster;
 
 namespace ProjectManagement.Infrastructure.Repositories.ProjectMaster
 {
@@ -30,7 +30,7 @@ namespace ProjectManagement.Infrastructure.Repositories.ProjectMaster
             _miscMasterQueryRepository = misc;
             _mapper = mapper;
         }
-        public async Task<Core.Domain.Entities.ProjectMaster> CreateAsync(Core.Domain.Entities.ProjectMaster projectMaster, CancellationToken ct = default)
+        public async Task<ProjectManagement.Domain.Entities.ProjectMaster> CreateAsync(ProjectManagement.Domain.Entities.ProjectMaster projectMaster, CancellationToken ct = default)
         {
             if (projectMaster.CreatedDate == default)
                 projectMaster.CreatedDate = DateTimeOffset.UtcNow;
@@ -49,7 +49,7 @@ namespace ProjectManagement.Infrastructure.Repositories.ProjectMaster
         }
 
 
-        private async Task<string> GenerateProjectCodeAsync(Core.Domain.Entities.ProjectMaster project, CancellationToken ct)
+        private async Task<string> GenerateProjectCodeAsync(ProjectManagement.Domain.Entities.ProjectMaster project, CancellationToken ct)
         {
             // Decide what date to base the code on (explicitly DateTimeOffset)
 
@@ -86,13 +86,13 @@ namespace ProjectManagement.Infrastructure.Repositories.ProjectMaster
             return newCode;
         }
 
-        public async Task UpdateAsync(Core.Domain.Entities.ProjectMaster projectMaster, CancellationToken ct = default)
+        public async Task UpdateAsync(ProjectManagement.Domain.Entities.ProjectMaster projectMaster, CancellationToken ct = default)
         {
             _dbContext.ProjectMaster.Update(projectMaster);
             await _dbContext.SaveChangesAsync(ct);
         }
 
-        public async Task<Core.Domain.Entities.ProjectMaster?> GetByIdAsync(int id, CancellationToken ct = default)
+        public async Task<ProjectManagement.Domain.Entities.ProjectMaster?> GetByIdAsync(int id, CancellationToken ct = default)
         {
             var entity = await _dbContext.ProjectMaster
                 .Include(p => p.ProjectDocuments) // Include related ProjectDocuments
@@ -141,7 +141,7 @@ namespace ProjectManagement.Infrastructure.Repositories.ProjectMaster
    
          public async Task<bool> UpdateProjectApprovalStatusAsync(int projectId, int statusId, CancellationToken ct = default)
         {
-            var entity = await _dbContext.Set<Core.Domain.Entities.ProjectMaster>()
+            var entity = await _dbContext.Set<ProjectManagement.Domain.Entities.ProjectMaster>()
                 .FirstOrDefaultAsync(x => x.Id == projectId && x.IsDeleted == 0, ct);
 
             if (entity == null) return false;

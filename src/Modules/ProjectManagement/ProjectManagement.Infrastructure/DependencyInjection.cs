@@ -1,5 +1,5 @@
 using System.Data;
-using Core.Application.Common.Interfaces;
+using ProjectManagement.Application.Common.Interfaces;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -8,18 +8,19 @@ using MongoDB.Driver;
 using Serilog;
 using ProjectManagement.Infrastructure.Data;
 using ProjectManagement.Infrastructure.Services;
-using Core.Application.Common.Interfaces.IMiscTypeMaster;
+using ProjectManagement.Application.Common.Interfaces.IMiscTypeMaster;
 using ProjectManagement.Infrastructure.Repositories.MiscTypeMaster;
-using PurchaseManagement.Infrastructure.Repositories.MiscTypeMaster;
-using Core.Application.Common.Interfaces.IMiscMaster;
+using ProjectManagement.Infrastructure.Repositories.MiscTypeMaster;
+using ProjectManagement.Application.Common.Interfaces.IMiscMaster;
 using ProjectManagement.Infrastructure.Repositories.MiscMaster;
-using PurchaseManagement.Infrastructure.Repositories.MiscMaster;
-using Core.Application.Common.Mappings;
-using Core.Application.Common.Interfaces.IProjectMaster;
+using ProjectManagement.Infrastructure.Repositories.MiscMaster;
+using ProjectManagement.Application.Common.Mappings;
+using ProjectManagement.Application.Common.Interfaces.IProjectMaster;
 using ProjectManagement.Infrastructure.Repositories.ProjectMaster;
 using ProjectManagement.Infrastructure.Repositories;
-using Core.Application.Common.Interfaces.IProjectWorkBreakdownStructure;
+using ProjectManagement.Application.Common.Interfaces.IProjectWorkBreakdownStructure;
 using ProjectManagement.Infrastructure.Repositories.ProjectWorkBreakdownStructure;
+using Microsoft.Extensions.Hosting;
 
 namespace ProjectManagement.Infrastructure
 {
@@ -92,7 +93,7 @@ namespace ProjectManagement.Infrastructure
             services.AddScoped<IMiscTypeMasterCommandRepository, MiscTypeMasterCommandRepository>();
             services.AddScoped<IMiscMasterQueryRepository, MiscMasterQueryRepository>();
             services.AddScoped<IMiscMasterCommandRepository, MiscMasterCommandRepository>();
-            services.AddScoped<IProjectMasterQueryRepository, ProjectMasterQueryRepository>();
+            // services.AddScoped<IProjectMasterQueryRepository, ProjectMasterQueryRepository>();
             services.AddScoped<IProjectMasterCommandRepository, ProjectMasterCommandRepository>();
             services.AddScoped<IUploadDocumentQueryRepository, DocumentQueryRepository>();
 

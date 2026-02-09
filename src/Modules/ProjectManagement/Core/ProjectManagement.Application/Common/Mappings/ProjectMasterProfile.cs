@@ -53,7 +53,7 @@ namespace ProjectManagement.Application.Common.Mappings
             CreateMap<ProjectManagement.Domain.Entities.ProjectMaster, ProjectMasterAutoCompleteDto>();
 
             // Workflow DTO
-            CreateMap<Core.Domain.Entities.ProjectMaster, ProjectMasterWorkFlowDto>();
+            CreateMap<ProjectManagement.Domain.Entities.ProjectMaster, ProjectMasterWorkFlowDto>();
         }
     }
 }

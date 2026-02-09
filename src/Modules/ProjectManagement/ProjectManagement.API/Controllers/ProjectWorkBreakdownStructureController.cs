@@ -3,19 +3,20 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using Core.Application.Common.Interfaces.IProjectWorkBreakdownStructure;
-using Core.Application.ProjectWorkBreakdownStructure.Command.CreateProjectWorkBreakdownStructureCommand;
-using Core.Application.ProjectWorkBreakdownStructure.Command.SoftDeleteProjectWorkBreakdownStructureCommand;
-using Core.Application.ProjectWorkBreakdownStructure.Command.UpdateProjectWorkBreakdownStructureCommand;
-using Core.Application.ProjectWorkBreakdownStructure.Queries.Autocomplete;
-using Core.Application.ProjectWorkBreakdownStructure.Queries.GetAllProjectWBS;
-using Core.Application.ProjectWorkBreakdownStructure.Queries.GetById;
-using Core.Application.ProjectWorkBreakdownStructure.Queries.GetByProject;
-using Core.Application.ProjectWorkBreakdownStructure.Queries.GetWbsLookup;
+using ProjectManagement.Application.Common.Interfaces.IProjectWorkBreakdownStructure;
+using ProjectManagement.Application.ProjectWorkBreakdownStructure.Command.CreateProjectWorkBreakdownStructureCommand;
+using ProjectManagement.Application.ProjectWorkBreakdownStructure.Command.SoftDeleteProjectWorkBreakdownStructureCommand;
+using ProjectManagement.Application.ProjectWorkBreakdownStructure.Command.UpdateProjectWorkBreakdownStructureCommand;
+using ProjectManagement.Application.ProjectWorkBreakdownStructure.Queries.Autocomplete;
+using ProjectManagement.Application.ProjectWorkBreakdownStructure.Queries.GetAllProjectWBS;
+using ProjectManagement.Application.ProjectWorkBreakdownStructure.Queries.GetById;
+using ProjectManagement.Application.ProjectWorkBreakdownStructure.Queries.GetByProject;
+using ProjectManagement.Application.ProjectWorkBreakdownStructure.Queries.GetWbsLookup;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Http;
 
 namespace ProjectManagement.API.Controllers
 {

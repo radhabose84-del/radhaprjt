@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Core.Application.Common.Interfaces.IProjectMaster
+namespace ProjectManagement.Application.Common.Interfaces.IProjectMaster
 {
     public interface IUploadDocumentQueryRepository
     {

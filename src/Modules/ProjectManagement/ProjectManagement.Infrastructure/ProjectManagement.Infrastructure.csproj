@@ -2,8 +2,8 @@
   <ItemGroup>
     <ProjectReference Include="..\Core\ProjectManagement.Application\ProjectManagement.Application.csproj"/>
     <ProjectReference Include="..\Core\ProjectManagement.Domain\ProjectManagement.Domain.csproj"/>
-    <ProjectReference Include="..\..\Shared\Contracts\Contracts.csproj"/>
-    <ProjectReference Include="..\..\Shared\Shared.Infrastructure\Shared.Infrastructure.csproj"/>
+    <ProjectReference Include="..\..\..\Shared\Contracts\Contracts.csproj"/>
+    <ProjectReference Include="..\..\..\Shared\Shared.Infrastructure\Shared.Infrastructure.csproj"/>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3"/>
@@ -47,28 +47,6 @@
     <!-- <PackageReference Include="Shared.Contracts" Version="1.0.0" />
     <PackageReference Include="Shared.Infrastructure" Version="1.0.0" />   -->
   </ItemGroup>
-   <ItemGroup>
-  <ProjectReference Include="..\..\Shared\Contracts\Contracts.csproj" />
-  </ItemGroup> 
- <ItemGroup>
-  <Protobuf Include="..\..\Shared\Contracts\Protos\session.proto" GrpcServices="Client" />
-  <Protobuf Include="..\..\Shared\Contracts\Protos\unit.proto" GrpcServices="Client" />
-  <Protobuf Include="..\..\Shared\Contracts\Protos\alldepartment.proto" GrpcServices="Client"/>
-  <Protobuf Include="..\..\Shared\Contracts\Protos\department.proto" GrpcServices="Client" />
-  <Protobuf Include="..\..\Shared\Contracts\Protos\currency.proto" GrpcServices="Client"/>
-  <Protobuf Include="..\..\Shared\Contracts\Protos\assetgroup.proto" GrpcServices="Client" />
-  <Protobuf Include="..\..\Shared\Contracts\Protos\financialYear.proto" GrpcServices="Client"/>
-  <Protobuf Include="..\..\Shared\Contracts\Protos\costcenter.proto" GrpcServices="Client"/>
-  <Protobuf Include="..\..\Shared\Contracts\Protos\allapprovalrequeststatus.proto" GrpcServices="Client" />
-  <Protobuf Include="..\..\Shared\Contracts\Protos\approvalrequestlinestatus.proto" GrpcServices="Client" />
-  <Protobuf Include="..\..\Shared\Contracts\Protos\allusers.proto" GrpcServices="Client" />
-  <Protobuf Include="..\..\Shared\Contracts\Protos\getapprover.proto" GrpcServices="Client" />
-  <Protobuf Include="..\..\Shared\Contracts\Protos\project_master.proto" GrpcServices="Client" />  
-  <Protobuf Include="..\..\Shared\Contracts\Protos\project_wbs.proto" GrpcServices="Client" /> 
-
-
-
-</ItemGroup> 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>

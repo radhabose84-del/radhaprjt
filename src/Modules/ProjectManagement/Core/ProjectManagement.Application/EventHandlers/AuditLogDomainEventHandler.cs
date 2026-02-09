@@ -1,5 +1,5 @@
 using MediatR;
-using Core.Application.Common.Interfaces;
+using ProjectManagement.Application.Common.Interfaces;
 using ProjectManagement.Application.Common;
 using ProjectManagement.Domain.Events;
 

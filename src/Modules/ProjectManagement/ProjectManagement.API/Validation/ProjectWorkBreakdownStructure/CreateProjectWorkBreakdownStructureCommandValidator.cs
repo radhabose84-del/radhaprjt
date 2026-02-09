@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Core.Application.Common.Interfaces.IProjectWorkBreakdownStructure;
-using Core.Application.ProjectWorkBreakdownStructure.Command.CreateProjectWorkBreakdownStructureCommand;
+using ProjectManagement.Application.Common.Interfaces.IProjectWorkBreakdownStructure;
+using ProjectManagement.Application.ProjectWorkBreakdownStructure.Command.CreateProjectWorkBreakdownStructureCommand;
 using FluentValidation;
 
 namespace ProjectManagement.API.Validation.ProjectWorkBreakdownStructure

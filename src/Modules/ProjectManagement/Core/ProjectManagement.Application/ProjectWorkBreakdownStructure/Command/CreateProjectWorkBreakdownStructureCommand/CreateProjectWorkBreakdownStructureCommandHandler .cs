@@ -140,7 +140,7 @@ namespace ProjectManagement.Application.ProjectWorkBreakdownStructure.Command.Cr
 //         }
 
 //         // 3️⃣ Map command to entity
-//         var entity = _mapper.Map<Core.Domain.Entities.ProjectWorkBreakdownStructure>(request);
+//         var entity = _mapper.Map<ProjectManagement.Domain.Entities.ProjectWorkBreakdownStructure>(request);
 //         entity.Level = level;
 
 //         // 4️⃣ Set the ProjectCode from the ProjectMaster to the WBS entity

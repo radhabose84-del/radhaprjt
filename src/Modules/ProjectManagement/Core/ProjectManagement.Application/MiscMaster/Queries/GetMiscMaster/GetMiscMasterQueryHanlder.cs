@@ -3,13 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
-using Contracts.Interfaces.External.IInvetoryManagement;
-using Core.Application.Common.HttpResponse;
-using Core.Application.Common.Interfaces.IMiscMaster;
-using Core.Domain.Events;
+using ProjectManagement.Application.Common.HttpResponse;
+using ProjectManagement.Application.Common.Interfaces.IMiscMaster;
+using ProjectManagement.Domain.Events;
 using MediatR;
 
-namespace Core.Application.MiscMaster.Queries.GetMiscMaster
+namespace ProjectManagement.Application.MiscMaster.Queries.GetMiscMaster
 {
     public class GetMiscMasterQueryHanlder : IRequestHandler<GetMiscMasterQuery,ApiResponseDTO<List<GetMiscMasterDto>>> 
     {

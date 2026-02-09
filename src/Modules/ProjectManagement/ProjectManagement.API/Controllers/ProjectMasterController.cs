@@ -3,20 +3,21 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using Core.Application.DeleteDocument;
-using Core.Application.MiscTypeMaster.Command.CreateMiscTypeMaster;
-using Core.Application.ProjectMaster.Command.CreateProjectMaster;
-using Core.Application.ProjectMaster.Command.DeleteProjectMaster;
-using Core.Application.ProjectMaster.Command.UpdateProjectMaster;
-using Core.Application.ProjectMaster.Queries.Dtos;
-using Core.Application.ProjectMaster.Queries.GetProjectMaster;
-using Core.Application.ProjectMaster.Queries.GetProjectMasterById;
-using Core.Application.ProjectMaster.Queries.GetProjectPendingApprovals;
-using Core.Application.ProjectMaster.Queries.ProjectMasterAutoComplete;
-using Core.Application.UploadDocument;
+using ProjectManagement.Application.DeleteDocument;
+using ProjectManagement.Application.MiscTypeMaster.Command.CreateMiscTypeMaster;
+using ProjectManagement.Application.ProjectMaster.Command.CreateProjectMaster;
+using ProjectManagement.Application.ProjectMaster.Command.DeleteProjectMaster;
+using ProjectManagement.Application.ProjectMaster.Command.UpdateProjectMaster;
+using ProjectManagement.Application.ProjectMaster.Queries.Dtos;
+using ProjectManagement.Application.ProjectMaster.Queries.GetProjectMaster;
+using ProjectManagement.Application.ProjectMaster.Queries.GetProjectMasterById;
+using ProjectManagement.Application.ProjectMaster.Queries.GetProjectPendingApprovals;
+using ProjectManagement.Application.ProjectMaster.Queries.ProjectMasterAutoComplete;
+using ProjectManagement.Application.UploadDocument;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Http;
 
 namespace ProjectManagement.API.Controllers
 {

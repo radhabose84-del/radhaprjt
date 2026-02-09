@@ -20,6 +20,8 @@ namespace BSOFT.Bootstrapper.Configurations
             new SwaggerModuleInfo("PartyManagement", "Party Management API", "v1", "PartyManagement.API.Controllers"),
             new SwaggerModuleInfo("WarehouseManagement", "Warehouse Management API", "v1", "WarehouseManagement.API.Controllers"),
             new SwaggerModuleInfo("SalesManagement", "Sales Management API", "v1", "SalesManagement.API.Controllers"),
+            new SwaggerModuleInfo("ProjectManagement", "Project Management API", "v1", "ProjectManagement.API.Controllers"),
+
 
         };
 

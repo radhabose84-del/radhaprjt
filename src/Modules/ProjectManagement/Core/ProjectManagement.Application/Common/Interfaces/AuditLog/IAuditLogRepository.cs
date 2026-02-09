@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Core.Domain.Entities;
+using ProjectManagement.Domain.Entities;
 
-namespace Core.Application.Common.Interfaces.AuditLog
+namespace ProjectManagement.Application.Common.Interfaces.AuditLog
 {
     public interface IAuditLogRepository
     {   

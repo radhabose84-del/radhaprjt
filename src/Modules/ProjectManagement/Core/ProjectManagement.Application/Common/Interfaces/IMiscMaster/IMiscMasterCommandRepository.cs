@@ -3,17 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Core.Application.Common.Interfaces.IMiscMaster
+namespace ProjectManagement.Application.Common.Interfaces.IMiscMaster
 {
     public interface IMiscMasterCommandRepository
     {
-        Task<Core.Domain.Entities.MiscMaster> CreateAsync(Core.Domain.Entities.MiscMaster miscMaster);
+        Task<ProjectManagement.Domain.Entities.MiscMaster> CreateAsync(ProjectManagement.Domain.Entities.MiscMaster miscMaster);
 
         Task<int> GetMaxSortOrderAsync();
 
-        Task<bool> UpdateAsync(int id, Core.Domain.Entities.MiscMaster miscMaster);
+        Task<bool> UpdateAsync(int id, ProjectManagement.Domain.Entities.MiscMaster miscMaster);
 
-        Task<bool> DeleteAsync(int id, Core.Domain.Entities.MiscMaster miscMaster);  
+        Task<bool> DeleteAsync(int id, ProjectManagement.Domain.Entities.MiscMaster miscMaster);  
         Task<Dictionary<int, Domain.Entities.MiscMaster>> GetManyByIdsAsync(IEnumerable<int> ids, CancellationToken ct);
     }
 }

@@ -2,40 +2,43 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Contracts.Interfaces.External.IWorkflow;
-using Core.Application.ProjectMaster.Command.CreateProjectMaster;
+// using Contracts.Interfaces.External.IWorkflow;
+using ProjectManagement.Application.ProjectMaster.Command.CreateProjectMaster;
 using FluentValidation;
 using ProjectManagement.API.Validation.Common;
+using Shared.Validation.Common;
 
 namespace ProjectManagement.API.Validation.ProjectMaster
 {
     public class CreateProjectMasterCommandValidator : AbstractValidator<CreateProjectMasterCommand>
     {
-         private readonly IWorkflowGrpcClient _workflowGrpcClient;
+        //  private readonly IWorkflowGrpcClient _workflowGrpcClient;
          
         private readonly List<ValidationRule> _validationRules;
-        public CreateProjectMasterCommandValidator(IWorkflowGrpcClient workflowGrpcClient, List<ValidationRule> validationRules)
+        public CreateProjectMasterCommandValidator(
+            // IWorkflowGrpcClient workflowGrpcClient,
+         List<ValidationRule> validationRules)
         {
-         _workflowGrpcClient = workflowGrpcClient;
+        //  _workflowGrpcClient = workflowGrpcClient;
             _validationRules = validationRules;
 
 
          // ✅ Only apply dynamic rules if any exist
-        foreach (var rule in _validationRules)
-        {
-            switch (rule.Rule)
-            {
-                case "Workflow":
-                    RuleFor(x => x.Project.UnitId)
-                        .MustAsync(async (command, unitId, cancellation) =>
-                            await _workflowGrpcClient.IsApproveWorkflowConfigure(
-                                Core.Domain.Common.MiscEnumEntity.ProjectMaster,
-                                unitId,
-                                command.Project.DepartmentId))
-                        .WithMessage(rule.Error);
-                    break;
-            }
-        }
+        // foreach (var rule in _validationRules)
+        // {
+        //     switch (rule.Rule)
+        //     {
+        //         case "Workflow":
+        //             RuleFor(x => x.Project.UnitId)
+        //                 .MustAsync(async (command, unitId, cancellation) =>
+        //                     await _workflowGrpcClient.IsApproveWorkflowConfigure(
+        //                         ProjectManagement.Domain.Common.MiscEnumEntity.ProjectMaster,
+        //                         unitId,
+        //                         command.Project.DepartmentId))
+        //                 .WithMessage(rule.Error);
+        //             break;
+        //     }
+        // }
 
             // ✅ Your static rules stay as-is
             RuleFor(x => x.Project.ProjectName)

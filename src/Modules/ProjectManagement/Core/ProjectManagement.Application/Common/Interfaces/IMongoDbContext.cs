@@ -1,6 +1,6 @@
 using MongoDB.Driver;
 
-namespace Core.Application.Common.Interfaces
+namespace ProjectManagement.Application.Common.Interfaces
 {
     public interface IMongoDbContext
     {

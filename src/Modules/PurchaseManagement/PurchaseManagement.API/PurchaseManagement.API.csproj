@@ -26,7 +26,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Core\PurchaseManagement.Application\PurchaseManagement.Application.csproj" />
     <ProjectReference Include="..\PurchaseManagement.Infrastructure\PurchaseManagement.Infrastructure.csproj" />
-    <ProjectReference Include="..\..\Shared\Contracts\Contracts.csproj" />
              <!-- Add reference to Shared.Validation -->
     <ProjectReference Include="..\..\..\Shared\Shared.Validation\Shared.Validation.csproj" />
   </ItemGroup>

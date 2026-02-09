@@ -1,20 +1,21 @@
 using ProjectManagement.API.Validation.Common;
 using FluentValidation;
 using ProjectManagement.Application.MiscTypeMaster.Command.CreateMiscTypeMaster;
-using PurchaseManagement.API.Validation.MiscTypeMaster;
+using ProjectManagement.API.Validation.MiscTypeMaster;
 using ProjectManagement.Application.MiscTypeMaster.Command.DeleteMiscTypeMaster;
 using ProjectManagement.Application.MiscTypeMaster.Command.UpdateMiscTypeMaster;
 using ProjectManagement.Application.MiscMaster.Command.CreateMiscMaster;
 using ProjectManagement.Application.MiscMaster.Command.DeleteMiscMaster;
 using ProjectManagement.Application.MiscMaster.Command.UpdateMiscMaster;
-using PurchaseManagement.API.Validation.MiscMaster;
+using ProjectManagement.API.Validation.MiscMaster;
 using ProjectManagement.Application.ProjectMaster.Command.CreateProjectMaster;
 using ProjectManagement.API.Validation.ProjectMaster;
-using CProjectManagementre.Application.ProjectMaster.Command.UpdateProjectMaster;
+using ProjectManagement.Application.ProjectMaster.Command.UpdateProjectMaster;
 using ProjectManagement.Application.ProjectWorkBreakdownStructure.Command.CreateProjectWorkBreakdownStructureCommand;
 using ProjectManagement.API.Validation.ProjectWorkBreakdownStructure;
 using ProjectManagement.Application.ProjectWorkBreakdownStructure.Command.UpdateProjectWorkBreakdownStructureCommand;
 using ProjectManagement.Application.ProjectWorkBreakdownStructure.Command.SoftDeleteProjectWorkBreakdownStructureCommand;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace ProjectManagement.API.Validation.Common
 {
@@ -32,7 +33,7 @@ namespace ProjectManagement.API.Validation.Common
             services.AddScoped<IValidator<CreateMiscMasterCommand>, CreateMiscMasterCommandValidator>();
             services.AddScoped<IValidator<DeleteMiscMasterCommand>, DeleteMiscMasterCommandValidator>();
             services.AddScoped<IValidator<UpdateMiscMasterCommand>, UpdateMiscMasterCommandValidator>();
-            services.AddScoped<IValidator<CreateProjectMasterCommand>, CreateProjectMasterCommandValidator>();
+            // services.AddScoped<IValidator<CreateProjectMasterCommand>, CreateProjectMasterCommandValidator>();
             services.AddScoped<IValidator<UpdateProjectMasterCommand>, UpdateProjectMasterCommandValidator>();
             services.AddScoped<IValidator<CreateProjectWorkBreakdownStructureCommand>, CreateProjectWorkBreakdownStructureCommandValidator>();
             services.AddScoped<IValidator<UpdateProjectWorkBreakdownStructureCommand>, UpdateProjectWorkBreakdownStructureCommandValidator>();

@@ -1,6 +1,6 @@
 
 
-using Core.Application.Common.Interfaces;
+using ProjectManagement.Application.Common.Interfaces;
 
 namespace ProjectManagement.Infrastructure.Repositories.Common
 {

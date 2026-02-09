@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
-using Core.Application.Common.Interfaces;
-using Core.Application.Common.Interfaces.IProjectWorkBreakdownStructure;
-using Core.Application.ProjectWorkBreakdownStructure.Queries.Dtos;
-using Core.Application.ProjectWorkBreakdownStructure.Queries.GetWbsLookup;
+using ProjectManagement.Application.Common.Interfaces;
+using ProjectManagement.Application.Common.Interfaces.IProjectWorkBreakdownStructure;
+using ProjectManagement.Application.ProjectWorkBreakdownStructure.Queries.Dtos;
+using ProjectManagement.Application.ProjectWorkBreakdownStructure.Queries.GetWbsLookup;
 using Dapper;
 
 namespace ProjectManagement.Infrastructure.Repositories.ProjectWorkBreakdownStructure

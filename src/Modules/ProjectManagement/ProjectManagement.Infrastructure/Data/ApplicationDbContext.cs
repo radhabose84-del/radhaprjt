@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Core.Application.Common.Interfaces;
-using Core.Domain.Common;
-using Core.Domain.Entities;
+using ProjectManagement.Application.Common.Interfaces;
+using ProjectManagement.Domain.Common;
+using ProjectManagement.Domain.Entities;
 using ProjectManagement.Infrastructure.Data.Configurations;
 using Microsoft.CodeAnalysis;
 

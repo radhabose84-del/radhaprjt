@@ -2,8 +2,8 @@
   <ItemGroup>
     <ProjectReference Include="..\Core\PartyManagement.Application\PartyManagement.Application.csproj"/>
     <ProjectReference Include="..\Core\PartyManagement.Domain\PartyManagement.Domain.csproj"/>
-    <ProjectReference Include="..\..\Shared\Contracts\Contracts.csproj"/>
-    <ProjectReference Include="..\..\Shared\Shared.Infrastructure\Shared.Infrastructure.csproj"/>
+    <ProjectReference Include="..\..\..\Shared\Contracts\Contracts.csproj"/>
+    <ProjectReference Include="..\..\..\Shared\Shared.Infrastructure\Shared.Infrastructure.csproj"/>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3"/>

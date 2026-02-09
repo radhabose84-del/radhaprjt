@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
-using Core.Application.Common.Interfaces.IMiscTypeMaster;
+using ProjectManagement.Application.Common.Interfaces.IMiscTypeMaster;
 using Dapper;
 using Microsoft.EntityFrameworkCore;
 using ProjectManagement.Infrastructure.Data;
 
-namespace PurchaseManagement.Infrastructure.Repositories.MiscTypeMaster
+namespace ProjectManagement.Infrastructure.Repositories.MiscTypeMaster
 {
     public class MiscTypeMasterCommandRepository  : IMiscTypeMasterCommandRepository
     {
@@ -19,7 +19,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.MiscTypeMaster
         {
             _dbContext = applicationDbContext;
         }                 
-     public async   Task<Core.Domain.Entities.MiscTypeMaster> CreateAsync(Core.Domain.Entities.MiscTypeMaster miscTypeMaster)
+     public async   Task<ProjectManagement.Domain.Entities.MiscTypeMaster> CreateAsync(ProjectManagement.Domain.Entities.MiscTypeMaster miscTypeMaster)
         {
             await _dbContext.MiscTypeMaster.AddAsync(miscTypeMaster);
             await _dbContext.SaveChangesAsync();
@@ -27,7 +27,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.MiscTypeMaster
         }
 
 
-          public async Task<bool> UpdateAsync(int id,Core.Domain.Entities.MiscTypeMaster miscTypeMaster)
+          public async Task<bool> UpdateAsync(int id,ProjectManagement.Domain.Entities.MiscTypeMaster miscTypeMaster)
         {
             var existingMiscTypeMaster =await _dbContext.MiscTypeMaster.FirstOrDefaultAsync(m =>m.Id == miscTypeMaster.Id);
          
@@ -42,7 +42,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.MiscTypeMaster
             }
             return false;
         }
-        public async Task<bool> DeleteAsync(int id,Core.Domain.Entities.MiscTypeMaster miscTypeMaster)
+        public async Task<bool> DeleteAsync(int id,ProjectManagement.Domain.Entities.MiscTypeMaster miscTypeMaster)
         {
             var existingMiscTypemaster = await _dbContext.MiscTypeMaster.FirstOrDefaultAsync(u => u.Id == id);
             if (existingMiscTypemaster != null)

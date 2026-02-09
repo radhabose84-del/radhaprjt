@@ -1,8 +1,8 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using Core.Application.Common.Interfaces;
-using Core.Domain.Entities;
+using ProjectManagement.Application.Common.Interfaces;
+using ProjectManagement.Domain.Entities;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 

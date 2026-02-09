@@ -3,8 +3,8 @@
   <ItemGroup>
     <ProjectReference Include="..\Core\InventoryManagement.Application\InventoryManagement.Application.csproj" />
     <ProjectReference Include="..\Core\InventoryManagement.Domain\InventoryManagement.Domain.csproj" />
-    <ProjectReference Include="..\..\Shared\Contracts\Contracts.csproj"/>
-    <ProjectReference Include="..\..\Shared\Shared.Infrastructure\Shared.Infrastructure.csproj"/>
+    <ProjectReference Include="..\..\..\Shared\Contracts\Contracts.csproj"/>
+    <ProjectReference Include="..\..\..\Shared\Shared.Infrastructure\Shared.Infrastructure.csproj"/>
   </ItemGroup>
 
 <ItemGroup>

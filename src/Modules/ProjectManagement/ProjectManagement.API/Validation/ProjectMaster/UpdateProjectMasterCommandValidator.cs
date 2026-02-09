@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Core.Application.ProjectMaster.Command.UpdateProjectMaster;
+using ProjectManagement.Application.ProjectMaster.Command.UpdateProjectMaster;
 using FluentValidation;
 
 namespace ProjectManagement.API.Validation.ProjectMaster

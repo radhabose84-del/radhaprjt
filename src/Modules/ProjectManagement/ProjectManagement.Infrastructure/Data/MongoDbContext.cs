@@ -1,4 +1,4 @@
-using Core.Application.Common.Interfaces;
+using ProjectManagement.Application.Common.Interfaces;
 using MongoDB.Driver;
 
 namespace ProjectManagement.Infrastructure.Data

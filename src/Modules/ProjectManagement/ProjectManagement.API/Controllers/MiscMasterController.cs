@@ -3,22 +3,24 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using Core.Application.Common.Interfaces.IMiscMaster;
-using Core.Application.MiscMaster.Command.CreateMiscMaster;
-using Core.Application.MiscMaster.Command.DeleteMiscMaster;
-using Core.Application.MiscMaster.Command.UpdateMiscMaster;
-using Core.Application.MiscMaster.Queries.GetMiscMaster;
-using Core.Application.MiscMaster.Queries.GetMiscMasterAutoComplete;
-using Core.Application.MiscMaster.Queries.GetMiscMasterById;
-using Core.Domain.Entities;
+using ProjectManagement.Application.Common.Interfaces.IMiscMaster;
+using ProjectManagement.Application.MiscMaster.Command.CreateMiscMaster;
+using ProjectManagement.Application.MiscMaster.Command.DeleteMiscMaster;
+using ProjectManagement.Application.MiscMaster.Command.UpdateMiscMaster;
+using ProjectManagement.Application.MiscMaster.Queries.GetMiscMaster;
+using ProjectManagement.Application.MiscMaster.Queries.GetMiscMasterAutoComplete;
+using ProjectManagement.Application.MiscMaster.Queries.GetMiscMasterById;
+using ProjectManagement.Domain.Entities;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Http;
 
 namespace ProjectManagement.API.Controllers
 {
-     [Route("api/[controller]")]
+    [ApiController]
+     [Route("api/project/[controller]")]
 
     public class MiscMasterController  : ApiControllerBase
     {

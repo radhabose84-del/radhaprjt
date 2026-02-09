@@ -15,6 +15,7 @@ using UserManagement.Application.Common.Behaviors;
 using PartyManagement.Module;
 using SalesManagement.Module;
 using WarehouseManagement.Module;
+using ProjectManagement.Module;
 
 var builder = WebApplication.CreateBuilder(args);
 var environment = builder.Environment.EnvironmentName;

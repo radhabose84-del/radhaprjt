@@ -2,13 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Core.Application.Common.Interfaces.IMiscTypeMaster;
-using Core.Application.MiscTypeMaster.Command.CreateMiscTypeMaster;
+using ProjectManagement.Application.Common.Interfaces.IMiscTypeMaster;
+using ProjectManagement.Application.MiscTypeMaster.Command.CreateMiscTypeMaster;
 using FluentValidation;
 using ProjectManagement.API.Validation.Common;
+using Shared.Validation.Common;
 
 
-namespace PurchaseManagement.API.Validation.MiscTypeMaster
+namespace ProjectManagement.API.Validation.MiscTypeMaster
 {
     public class CreateMiscTypeMasterCommandValidator  : AbstractValidator<CreateMiscTypeMasterCommand>
     {
@@ -16,8 +17,8 @@ namespace PurchaseManagement.API.Validation.MiscTypeMaster
              private readonly IMiscTypeMasterQueryRepository _miscTypeMasterQueryRepository;
       public CreateMiscTypeMasterCommandValidator( IMiscTypeMasterQueryRepository machineGroupQueryRepository,MaxLengthProvider maxLengthProvider)
         {
-            var MiscTypeCodeMaxLength = maxLengthProvider.GetMaxLength<Core.Domain.Entities.MiscTypeMaster>("MiscTypeCode") ?? 50;
-            var DescriptionMaxLength = maxLengthProvider.GetMaxLength<Core.Domain.Entities.MiscTypeMaster>("Description")?? 250;
+            var MiscTypeCodeMaxLength = maxLengthProvider.GetMaxLength<ProjectManagement.Domain.Entities.MiscTypeMaster>("MiscTypeCode") ?? 50;
+            var DescriptionMaxLength = maxLengthProvider.GetMaxLength<ProjectManagement.Domain.Entities.MiscTypeMaster>("Description")?? 250;
             _validationRules = ValidationRuleLoader.LoadValidationRules();
             _miscTypeMasterQueryRepository = machineGroupQueryRepository;
             if (_validationRules == null || !_validationRules.Any())

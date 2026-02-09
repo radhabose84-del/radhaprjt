@@ -10,6 +10,7 @@ using ProjectManagement.Infrastructure;
 // ✅ Change these 2 marker types to your real types
 using ProjectManagement.Application.Common.Mappings;
 using ProjectManagement.API.Validation.ProjectMaster;
+using ProjectManagement.API.Validation.Common;
 
 namespace ProjectManagement.Module
 {
@@ -24,8 +25,8 @@ namespace ProjectManagement.Module
             services.AddProjectInfrastructure(configuration, env);
 
             // ✅ 2) Assembly markers (NO Assembly.Load)
-            var applicationAssembly = typeof(ProjectProfile).Assembly;
-            var apiAssembly = typeof(CreateProjectCommandValidator).Assembly;
+            var applicationAssembly = typeof(ProjectMasterProfile).Assembly;
+            var apiAssembly = typeof(CreateProjectMasterCommandValidator).Assembly;
 
             // ✅ 3) MediatR
             services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(applicationAssembly));

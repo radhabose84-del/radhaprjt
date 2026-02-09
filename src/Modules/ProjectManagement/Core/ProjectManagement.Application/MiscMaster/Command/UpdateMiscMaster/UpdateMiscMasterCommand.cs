@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using MediatR;
 
-namespace Core.Application.MiscMaster.Command.UpdateMiscMaster
+namespace ProjectManagement.Application.MiscMaster.Command.UpdateMiscMaster
 {
     public class UpdateMiscMasterCommand : IRequest<bool>
     {

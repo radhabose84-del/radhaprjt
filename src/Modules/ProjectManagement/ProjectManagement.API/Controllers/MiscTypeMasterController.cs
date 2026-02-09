@@ -3,19 +3,20 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using Core.Application.MiscTypeMaster.Command.CreateMiscTypeMaster;
-using Core.Application.MiscTypeMaster.Command.DeleteMiscTypeMaster;
-using Core.Application.MiscTypeMaster.Command.UpdateMiscTypeMaster;
-using Core.Application.MiscTypeMaster.Queries.GetMiscTypeMaster;
-using Core.Application.MiscTypeMaster.Queries.GetMiscTypeMasterAutoComplete;
-using Core.Application.MiscTypeMaster.Queries.GetMiscTypeMasterById;
+using ProjectManagement.Application.MiscTypeMaster.Command.CreateMiscTypeMaster;
+using ProjectManagement.Application.MiscTypeMaster.Command.DeleteMiscTypeMaster;
+using ProjectManagement.Application.MiscTypeMaster.Command.UpdateMiscTypeMaster;
+using ProjectManagement.Application.MiscTypeMaster.Queries.GetMiscTypeMaster;
+using ProjectManagement.Application.MiscTypeMaster.Queries.GetMiscTypeMasterAutoComplete;
+using ProjectManagement.Application.MiscTypeMaster.Queries.GetMiscTypeMasterById;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Http;
 
 namespace ProjectManagement.API.Controllers
 {
- [Route("api/[controller]")]
+    [Route("api/project/[controller]")]
     public class MiscTypeMasterController : ApiControllerBase
     {
         public MiscTypeMasterController(ISender mediator) : base(mediator)

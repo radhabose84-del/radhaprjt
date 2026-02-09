@@ -25,7 +25,7 @@ namespace ProjectManagement.Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Core.Domain.Entities.MiscMaster", b =>
+            modelBuilder.Entity("ProjectManagement.Domain.Entities.MiscMaster", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -94,7 +94,7 @@ namespace ProjectManagement.Infrastructure.Migrations
                     b.ToTable("MiscMaster", "Project");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.MiscTypeMaster", b =>
+            modelBuilder.Entity("ProjectManagement.Domain.Entities.MiscTypeMaster", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -152,9 +152,9 @@ namespace ProjectManagement.Infrastructure.Migrations
                     b.ToTable("MiscTypeMaster", "Project");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.MiscMaster", b =>
+            modelBuilder.Entity("ProjectManagement.Domain.Entities.MiscMaster", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.MiscTypeMaster", "MiscTypeMaster")
+                    b.HasOne("ProjectManagement.Domain.Entities.MiscTypeMaster", "MiscTypeMaster")
                         .WithMany("MiscMaster")
                         .HasForeignKey("MiscTypeId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -163,7 +163,7 @@ namespace ProjectManagement.Infrastructure.Migrations
                     b.Navigation("MiscTypeMaster");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.MiscTypeMaster", b =>
+            modelBuilder.Entity("ProjectManagement.Domain.Entities.MiscTypeMaster", b =>
                 {
                     b.Navigation("MiscMaster");
                 });
