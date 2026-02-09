@@ -41,7 +41,10 @@
      <!-- Add reference to Shared.Validation -->
     <ProjectReference Include="..\..\..\Shared\Shared.Validation\Shared.Validation.csproj" />
 
-    <ProjectReference Include="..\Core\Core.UserManagement\Core.UserManagement.csproj" />
+        <!-- UserManagement Core -->
+    <ProjectReference Include="..\Core\UserManagement.Application\UserManagement.Application.csproj" />
+    <ProjectReference Include="..\Core\UserManagement.Domain\UserManagement.Domain.csproj" />
+    <!-- Infrastructure -->
     <ProjectReference Include="..\UserManagement.Infrastructure\UserManagement.Infrastructure.csproj" />
 
   </ItemGroup>

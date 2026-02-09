@@ -25,7 +25,7 @@ namespace FAM.Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Core.Domain.Entities.AssetCategories", b =>
+            modelBuilder.Entity("FAM.Domain.Entities.AssetCategories", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -97,7 +97,7 @@ namespace FAM.Infrastructure.Migrations
                     b.ToTable("AssetCategories", "FixedAsset");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.AssetGroup", b =>
+            modelBuilder.Entity("FAM.Domain.Entities.AssetGroup", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -159,7 +159,7 @@ namespace FAM.Infrastructure.Migrations
                     b.ToTable("AssetGroup", "FixedAsset");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.AssetSubCategories", b =>
+            modelBuilder.Entity("FAM.Domain.Entities.AssetSubCategories", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -231,7 +231,7 @@ namespace FAM.Infrastructure.Migrations
                     b.ToTable("AssetSubCategories", "FixedAsset");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.DepreciationGroups", b =>
+            modelBuilder.Entity("FAM.Domain.Entities.DepreciationGroups", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -308,7 +308,7 @@ namespace FAM.Infrastructure.Migrations
                     b.ToTable("DepreciationGroups", "FixedAsset");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Location", b =>
+            modelBuilder.Entity("FAM.Domain.Entities.Location", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -381,7 +381,7 @@ namespace FAM.Infrastructure.Migrations
                     b.ToTable("Location", "FixedAsset");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.MiscTypeMaster", b =>
+            modelBuilder.Entity("FAM.Domain.Entities.MiscTypeMaster", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -439,7 +439,7 @@ namespace FAM.Infrastructure.Migrations
                     b.ToTable("MiscTypeMaster", "FixedAsset");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.SubLocation", b =>
+            modelBuilder.Entity("FAM.Domain.Entities.SubLocation", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -514,9 +514,9 @@ namespace FAM.Infrastructure.Migrations
                     b.ToTable("SubLocation", "FixedAsset");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.AssetCategories", b =>
+            modelBuilder.Entity("FAM.Domain.Entities.AssetCategories", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.AssetGroup", "AssetGroup")
+                    b.HasOne("FAM.Domain.Entities.AssetGroup", "AssetGroup")
                         .WithMany("AssetCategories")
                         .HasForeignKey("AssetGroupId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -525,9 +525,9 @@ namespace FAM.Infrastructure.Migrations
                     b.Navigation("AssetGroup");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.AssetSubCategories", b =>
+            modelBuilder.Entity("FAM.Domain.Entities.AssetSubCategories", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.AssetCategories", "AssetCategories")
+                    b.HasOne("FAM.Domain.Entities.AssetCategories", "AssetCategories")
                         .WithMany("AssetSubCategories")
                         .HasForeignKey("AssetCategoriesId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -536,9 +536,9 @@ namespace FAM.Infrastructure.Migrations
                     b.Navigation("AssetCategories");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.DepreciationGroups", b =>
+            modelBuilder.Entity("FAM.Domain.Entities.DepreciationGroups", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.AssetGroup", "AssetGroup")
+                    b.HasOne("FAM.Domain.Entities.AssetGroup", "AssetGroup")
                         .WithMany("DepreciationGroups")
                         .HasForeignKey("AssetGroupId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -547,9 +547,9 @@ namespace FAM.Infrastructure.Migrations
                     b.Navigation("AssetGroup");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.SubLocation", b =>
+            modelBuilder.Entity("FAM.Domain.Entities.SubLocation", b =>
                 {
-                    b.HasOne("Core.Domain.Entities.Location", "Location")
+                    b.HasOne("FAM.Domain.Entities.Location", "Location")
                         .WithMany("SubLocations")
                         .HasForeignKey("LocationId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -558,19 +558,19 @@ namespace FAM.Infrastructure.Migrations
                     b.Navigation("Location");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.AssetCategories", b =>
+            modelBuilder.Entity("FAM.Domain.Entities.AssetCategories", b =>
                 {
                     b.Navigation("AssetSubCategories");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.AssetGroup", b =>
+            modelBuilder.Entity("FAM.Domain.Entities.AssetGroup", b =>
                 {
                     b.Navigation("AssetCategories");
 
                     b.Navigation("DepreciationGroups");
                 });
 
-            modelBuilder.Entity("Core.Domain.Entities.Location", b =>
+            modelBuilder.Entity("FAM.Domain.Entities.Location", b =>
                 {
                     b.Navigation("SubLocations");
                 });

@@ -2,9 +2,8 @@
   <ItemGroup>
     <ProjectReference Include="..\Core\MaintenanceManagement.Application\MaintenanceManagement.Application.csproj"/>
     <ProjectReference Include="..\Core\MaintenanceManagement.Domain\MaintenanceManagement.Domain.csproj"/>
-    <ProjectReference Include="..\..\Shared\Contracts\Contracts.csproj"/>
-    <ProjectReference Include="..\..\Shared\Shared.Infrastructure\Shared.Infrastructure.csproj"/>
-    <!-- <ProjectReference Include="..\SagaOrchestrator\SagaOrchestrator.csproj" /> -->
+    <ProjectReference Include="..\..\..\Shared\Contracts\Contracts.csproj"/>
+    <ProjectReference Include="..\..\..\Shared\Shared.Infrastructure\Shared.Infrastructure.csproj"/>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3"/>
@@ -48,23 +47,6 @@
     <!-- <PackageReference Include="Shared.Contracts" Version="1.0.0" />
     <PackageReference Include="Shared.Infrastructure" Version="1.0.0" />   -->
   </ItemGroup>
-   <ItemGroup>
-  <ProjectReference Include="..\..\Shared\Contracts\Contracts.csproj" />
-  </ItemGroup> 
- <!-- <ItemGroup>
-  <Protobuf Include="..\..\Shared\Contracts\Protos\department.proto" GrpcServices="Client" />
-  <Protobuf Include="..\..\Shared\Contracts\Protos\session.proto" GrpcServices="Client" />
-  <Protobuf Include="..\..\Shared\Contracts\Protos\unit.proto" GrpcServices="Client" />
- <Protobuf Include="..\..\Shared\Contracts\Protos\company.proto" GrpcServices="Client" />
-  <Protobuf Include="..\..\Shared\Contracts\Protos\background_service.proto" GrpcServices="Client" />
-  <Protobuf Include="..\..\Shared\Contracts\Protos\AssetSpecification.proto" GrpcServices="Client" />
-  <Protobuf Include="..\..\Shared\Contracts\Protos\hangfirejob_delete.proto" GrpcServices="Client" />
-  <Protobuf Include="..\..\Shared\Contracts\Protos\alldepartment.proto" GrpcServices="Client" />
-  <Protobuf Include="..\..\Shared\Contracts\Protos\userunit.proto" GrpcServices="Client" />
-  <Protobuf Include="..\..\Shared\Contracts\Protos\allusers.proto" GrpcServices="Client" />
-
-
-</ItemGroup>  -->
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>

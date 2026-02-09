@@ -10,11 +10,11 @@ namespace FAM.Application.Common.Interfaces.IMiscMaster
   {
     Task<(List<FAM.Domain.Entities.MiscMaster>, int)> GetAllMiscMasterAsync(int PageNumber, int PageSize, string? SearchTerm);
     Task<FAM.Domain.Entities.MiscMaster> GetByIdAsync(int id);
-    //  Task<List<Core.Domain.Entities.MiscMaster>> GetMiscMaster(string searchPattern);
+    //  Task<List<FAM.Domain.Entities.MiscMaster>> GetMiscMaster(string searchPattern);
 
     Task<List<FAM.Domain.Entities.MiscMaster>> GetMiscMaster(string miscTypeCode, string miscTypeName);
 
-    // Task<Core.Domain.Entities.MiscMaster?> GetByMiscMasterCodeAsync(string name,int? id = null);
+    // Task<FAM.Domain.Entities.MiscMaster?> GetByMiscMasterCodeAsync(string name,int? id = null);
 
     Task<FAM.Domain.Entities.MiscMaster?> GetByMiscMasterCodeAsync(string name, int miscTypeId, int? id = null);
 
