@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Http;
 namespace BudgetManagement.API.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/budget/[controller]")]
     
     public class AuditLogController : ApiControllerBase
     {       
