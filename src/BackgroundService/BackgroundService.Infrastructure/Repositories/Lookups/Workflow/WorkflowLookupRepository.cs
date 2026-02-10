@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 using Contracts.Dtos.Workflow;
 using Contracts.Interfaces.Lookups.Workflow;
 using Dapper;
-using PurchaseManagement.Application.Common.Interfaces;
+using BackgroundService.Application.Common.Interfaces;
 
-namespace PurchaseManagement.Infrastructure.Repositories.Lookups.Workflow
+namespace BackgroundService.Infrastructure.Repositories.Lookups.Workflow
 {
     internal class WorkflowLookupRepository : IWorkflowLookup
     {
