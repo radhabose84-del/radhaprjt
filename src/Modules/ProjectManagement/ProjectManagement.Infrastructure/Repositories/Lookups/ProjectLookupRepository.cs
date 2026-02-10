@@ -8,7 +8,7 @@ using Contracts.Dtos.Lookups.Projects;
 using Contracts.Interfaces.Lookups.Projects;
 using Dapper;
 
-namespace BudgetManagement.Infrastructure.Repositories.Lookups.Projects;
+namespace ProjectManagement.Infrastructure.Repositories.Lookups.Projects;
 
 internal class ProjectLookupRepository : IProjectLookup
 {
