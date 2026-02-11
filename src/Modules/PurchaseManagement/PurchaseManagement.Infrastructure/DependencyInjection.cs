@@ -38,8 +38,6 @@ using PurchaseManagement.Application.Common.Interfaces.PriceMaster;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.Local;
 using PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.Local;
 using PurchaseManagement.Application.Common.Interfaces.IGRN.IGateEntry;
-using PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.Local;
-using PurchaseManagement.Application.Common.Interfaces.IGRN.IGateEntry;
 using PurchaseManagement.Infrastructure.Repositories.GRN.GateEntry;
 using PurchaseManagement.Application.Common.Mappings.GRN.GateEntry;
 using PurchaseManagement.Infrastructure.Repositories.PriceMaster;
@@ -72,15 +70,6 @@ using PurchaseManagement.Application.Common.Interfaces.IPortMaster;
 using PurchaseManagement.Infrastructure.Repositories.Port;
 using PurchaseManagement.Application.Common.Mappings.MRS;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.ImportPO;
-using Contracts.Interfaces.Lookups.Budget;
-using Contracts.Interfaces.Lookups.Users;
-using Contracts.Interfaces.Lookups.Party;
-using Contracts.Interfaces.Lookups.Inventory;
-using Contracts.Interfaces.Lookups.Workflow;
-using PurchaseManagement.Infrastructure.Repositories.Lookups.Users;
-using PurchaseManagement.Infrastructure.Repositories.Lookups.Party;
-using PurchaseManagement.Infrastructure.Repositories.Lookups.Inventory;
-using PurchaseManagement.Infrastructure.Repositories.Lookups.Workflow;
 // using PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.ImportPO;
 using PurchaseManagement.Application.Common.Interfaces.IPurchase.DutyMaster;
 using PurchaseManagement.Infrastructure.Repositories.DutyMaster;
@@ -298,14 +287,6 @@ namespace PurchaseManagement.Infrastructure
             services.AddScoped<Contracts.Interfaces.External.IWorkflow.IWorkflowGrpcClient>(sp => null!);
             services.AddScoped<Contracts.Interfaces.External.IUser.IUsersAllGrpcClient>(sp => null!);
             // ============= End stub clients =============
-
-            // ============= Lookup repositories =============
-            services.AddScoped<IUserLookup, UserLookupRepository>();
-            services.AddScoped<IDepartmentLookup, DepartmentLookupRepository>();
-            services.AddScoped<IItemLookup, ItemLookupRepository>();
-            services.AddScoped<IPartyLookup, PartyLookupRepository>();
-            services.AddScoped<IWorkflowLookup, WorkflowLookupRepository>();
-            // ============= End lookup repositories =============
 
             services.AddScoped<IExchangeRateCommandRepository, ExchangeRateCommandRepository>();
             services.AddScoped<IExchangeRateQueryRepository, ExchangeRateQueryRepository>();

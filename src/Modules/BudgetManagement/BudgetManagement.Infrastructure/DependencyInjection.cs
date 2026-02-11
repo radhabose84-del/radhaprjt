@@ -20,11 +20,8 @@ using BudgetManagement.Infrastructure.Repositories.MiscMaster;
 using BudgetManagement.Application.Common.Interfaces.IMiscTypeMaster;
 using BudgetManagement.Application.Common.Interfaces.IBudgetAllocation;
 using BudgetManagement.Infrastructure.Repositories.BudgetAllocation;
-using BudgetManagement.Application.Common.Mappings;
 using BudgetManagement.Infrastructure.Persistence;
-using BudgetManagement.Infrastructure.Repositories.Lookups.Projects;
 using Contracts.Interfaces.Lookups.Maintenance;
-using Contracts.Interfaces.Lookups.Projects;
 using Contracts.Interfaces.Lookups.Budget;
 using BudgetManagement.Infrastructure.Repositories.Lookups.Budget;
 // using GrpcServices.BackgroundService;
@@ -112,9 +109,7 @@ namespace BudgetManagement.Infrastructure
             services.AddScoped<IMiscMasterQueryRepository, MiscMasterQueryRepository>();
             services.AddScoped<IMiscTypeMasterCommandRepository, MiscTypeMasterCommandRepository>();
             services.AddScoped<IMiscTypeMasterQueryRepository, MiscTypeMasterQueryRepository>();
-            services.AddScoped<IActivityLogQueryRepository, ActivityLogQueryRepository>();
-            services.AddScoped<IProjectLookup, ProjectLookupRepository>();
-            services.AddScoped<IProjectWbsLookup, ProjectWbsLookupRepository>();            
+            services.AddScoped<IActivityLogQueryRepository, ActivityLogQueryRepository>();                  
             services.AddScoped<IBudgetAllocationLookup, BudgetAllocationLookupRepository>();
 
 
