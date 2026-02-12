@@ -4,31 +4,31 @@ using PurchaseManagement.Application.PriceMaster.Dtos;
 using PurchaseManagement.Application.PriceMaster.Queries.GetAll;
 using PurchaseManagement.Application.Common.Interfaces.PriceMaster;
 using PurchaseManagement.Application.Common;
-using Contracts.Interfaces.External.IInvetoryManagement; // IItemGrpcClient, IUOMGrpcClient
-using Contracts.Interfaces.External.IParty;               // IPartyGrpcClient
-using Contracts.Dtos.Party;
-using Contracts.Interfaces.External.IUser;               // ICurrencyGrpcClient (your currency client lives in "User" svc per your setup)
+using Contracts.Interfaces.Lookups.Inventory;
+using Contracts.Interfaces.Lookups.Party;
+using Contracts.Interfaces.Lookups.Users;
+using Contracts.Dtos.Lookups.Party;               // ICurrencyGrpcClient (your currency client lives in "User" svc per your setup)
 public sealed class GetAllPriceMasterQueryHandler
     : IRequestHandler<GetAllPriceMasterQuery, PagedResult<PriceMasterGetAllDto>>
 {
     private readonly IPriceMasterQueryRepository _repo;
-    private readonly IItemGrpcClient _itemGrpc;
-    private readonly IUOMGrpcClient _uomGrpc;
-    private readonly IPartyGrpcClient _partyGrpc;
-    private readonly ICurrencyGrpcClient _currencyGrpc;
+    private readonly IItemLookup _itemLookup;
+    private readonly IUOMLookup _uomLookup;
+    private readonly IPartyLookup _partyLookup;
+    private readonly ICurrencyLookup _currencyLookup;
 
     public GetAllPriceMasterQueryHandler(
         IPriceMasterQueryRepository repo,
-        IItemGrpcClient itemGrpc,
-        IUOMGrpcClient uomGrpc,
-        IPartyGrpcClient partyGrpc,
-        ICurrencyGrpcClient currencyGrpc)
+        IItemLookup itemLookup,
+        IUOMLookup uomLookup,
+        IPartyLookup partyLookup,
+        ICurrencyLookup currencyLookup)
     {
         _repo = repo;
-        _itemGrpc = itemGrpc;
-        _uomGrpc = uomGrpc;
-        _partyGrpc = partyGrpc;
-        _currencyGrpc = currencyGrpc;
+        _itemLookup = itemLookup;
+        _uomLookup = uomLookup;
+        _partyLookup = partyLookup;
+        _currencyLookup = currencyLookup;
     }
 
     public async Task<PagedResult<PriceMasterGetAllDto>> Handle(GetAllPriceMasterQuery request, CancellationToken ct)
@@ -49,10 +49,10 @@ public sealed class GetAllPriceMasterQueryHandler
             .ToList();
 
         // Step 2: Parallel gRPC calls
-        var itemsTask = _itemGrpc.GetItemsByIdsAsync(itemIds, ct);  // Fetch all Items via gRPC
-        var uomsTask = _uomGrpc.GetUOMAsync();                     // Fetch all UOMs
-        var partiesTask = GetPartiesByIdsAsync(vendorIds, ct);     // Fetch all parties via gRPC
-        var currenciesTask = _currencyGrpc.GetByIdsAsync(currencyIds, ct); // Fetch all currencies via gRPC
+        var itemsTask = _itemLookup.GetByIdsAsync(itemIds, ct);  // Fetch all Items via gRPC
+        var uomsTask = _uomLookup.GetAllAsync();                     // Fetch all UOMs
+        var partiesTask = _partyLookup.GetByIdsAsync(vendorIds, ct);     // Fetch all parties via gRPC
+        var currenciesTask = _currencyLookup.GetByIdsAsync(currencyIds, ct); // Fetch all currencies via gRPC
 
         await Task.WhenAll(itemsTask, uomsTask, partiesTask, currenciesTask);
 
@@ -64,7 +64,7 @@ public sealed class GetAllPriceMasterQueryHandler
         var partyMap = (await partiesTask)
             .GroupBy(p => p.Id).ToDictionary(g => g.Key, g => g.First());
         var currencyMap = (await currenciesTask)
-            .GroupBy(c => c.Id).ToDictionary(g => g.Key, g => g.First());
+            .GroupBy(c => c.CurrencyId).ToDictionary(g => g.Key, g => g.First());
 
         // Step 3: Enrich headers with external data (Items, UOM, Party, Currency)
         foreach (var dto in page.Items)
@@ -137,9 +137,9 @@ public sealed class GetAllPriceMasterQueryHandler
         };
     }
 
-    private async Task<List<PartyDetailsDto>> GetPartiesByIdsAsync(List<int> ids, CancellationToken ct)
+    private async Task<List<PartyLookupDto>> GetByIdAsync(List<int> ids, CancellationToken ct)
     {
-        var tasks = ids.Select(id => _partyGrpc.GetPartyByIdAsync(id)).ToArray();
+        var tasks = ids.Select(id => _partyLookup.GetByIdAsync(id)).ToArray();
         var results = await Task.WhenAll(tasks);
         return results.Where(p => p != null).ToList()!;
     }

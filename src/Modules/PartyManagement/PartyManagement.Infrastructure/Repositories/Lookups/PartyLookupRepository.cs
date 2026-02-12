@@ -24,11 +24,16 @@ namespace PartyManagement.Infrastructure.Repositories.Lookups
                 SELECT p.Id, p.PartyCode, p.PartyName, c.Email, c.Mobile
                 FROM Party.PartyMaster p
                 OUTER APPLY (
-                    SELECT TOP 1 Email, Mobile
-                    FROM Party.PartyContact
-                    WHERE PartyId = p.Id AND IsDeleted = 0 AND LTRIM(RTRIM(ContactType)) = 'Primary'
+                    SELECT TOP 1
+                        pc.EmailID AS Email,
+                        pc.MobileNo AS Mobile
+                    FROM Party.PartyContact pc
+                    LEFT JOIN Party.MiscMaster ct
+                        ON ct.Id = pc.ContactTypeId AND ct.IsDeleted = 0
+                WHERE pc.PartyId = p.Id
+                    AND LTRIM(RTRIM(ct.Code)) = 'Primary'
                 ) c
-                WHERE p.Id = @PartyId AND p.IsDeleted = 0;";
+                WHERE p.Id = @PartyId;";
 
             return await _dbConnection.QueryFirstOrDefaultAsync<PartyLookupDto>(
                 new CommandDefinition(sql, new { PartyId = partyId }, cancellationToken: ct));
@@ -44,11 +49,16 @@ namespace PartyManagement.Infrastructure.Repositories.Lookups
                 SELECT p.Id, p.PartyCode, p.PartyName, c.Email, c.Mobile
                 FROM Party.PartyMaster p
                 OUTER APPLY (
-                    SELECT TOP 1 Email, Mobile
-                    FROM Party.PartyContact
-                    WHERE PartyId = p.Id AND IsDeleted = 0 AND LTRIM(RTRIM(ContactType)) = 'Primary'
+                    SELECT TOP 1
+                        pc.EmailID AS Email,
+                        pc.MobileNo AS Mobile
+                    FROM Party.PartyContact pc
+                    LEFT JOIN Party.MiscMaster ct
+                        ON ct.Id = pc.ContactTypeId AND ct.IsDeleted = 0
+                WHERE pc.PartyId = p.Id
+                    AND LTRIM(RTRIM(ct.Code)) = 'Primary'
                 ) c
-                WHERE p.Id IN @PartyIds AND p.IsDeleted = 0;";
+                WHERE p.Id IN @PartyIds;";
 
             var result = await _dbConnection.QueryAsync<PartyLookupDto>(
                 new CommandDefinition(sql, new { PartyIds = ids }, cancellationToken: ct));
