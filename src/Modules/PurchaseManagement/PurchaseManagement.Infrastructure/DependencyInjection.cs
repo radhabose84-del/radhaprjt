@@ -22,6 +22,7 @@ using PurchaseManagement.Infrastructure.Repositories.PurchaseIndents;
 using PurchaseManagement.Infrastructure.Repositories.PartyMaster;
 using PurchaseManagement.Infrastructure.Services;
 using Serilog;
+using Contracts.Interfaces.Lookups.Workflow;
 using PurchaseManagement.Application.Common.Interfaces.IPaymentTermMaster;
 using PurchaseManagement.Infrastructure.Repositories.PaymentTermMaster;
 // using InventoryManagement.Infrastructure.Repositories.Quotation.RfqEntry;
@@ -73,6 +74,7 @@ using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.ImportPO;
 // using PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.ImportPO;
 using PurchaseManagement.Application.Common.Interfaces.IPurchase.DutyMaster;
 using PurchaseManagement.Infrastructure.Repositories.DutyMaster;
+using PurchaseManagement.Infrastructure.Repositories.Lookups.Workflow;
 using PurchaseManagement.Application.Common.Interfaces.IDutyMaster;
 using PurchaseManagement.Application.Common.Interfaces.IPoMethodLookup;
 using PurchaseManagement.Infrastructure.Repositories.PoMethodLookup;
@@ -237,6 +239,7 @@ namespace PurchaseManagement.Infrastructure
             services.AddScoped<IImportPOCommandRepository, ImportPOCommandRepository>();   
             services.AddScoped<IDutyMasterQueryRepository, DutyMasterQueryRepository>();
             services.AddScoped<IDutyMasterCommandRepository, DutyMasterCommandRepository>();
+            services.AddScoped<IWorkflowLookup, WorkflowLookupRepository>();
 
             services.AddScoped<IPoMethodLookup, PoMethodLookup>();
             services.AddScoped<IPODocumentQueryRepository, PODocumentQueryRepository>();

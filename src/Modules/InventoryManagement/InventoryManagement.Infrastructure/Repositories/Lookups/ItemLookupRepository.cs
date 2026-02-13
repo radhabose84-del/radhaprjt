@@ -9,7 +9,7 @@ using Dapper;
 
 namespace InventoryManagement.Infrastructure.Repositories.Lookups
 {
-    internal class ItemLookupRepository : IItemLookup
+    internal class ItemLookupRepository : IItemLookup 
     {
         private readonly IDbConnection _dbConnection;
 
