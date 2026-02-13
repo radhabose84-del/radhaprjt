@@ -154,6 +154,7 @@ namespace MaintenanceManagement.Infrastructure
             services.AddScoped<ICostCenterQueryRepository, CostCenterQueryRepository>();
             services.AddScoped<ICostCenterCommandRepository, CostCenterCommandRepository>();
             services.AddScoped<ICostCenterLookup, CostCenterLookupRepository>();
+            services.AddScoped<IDepartmentValidationLookup, DepartmentValidationLookupRepository>();
             services.AddScoped<IWorkCenterQueryRepository, WorkCenterQueryRepository>();
             services.AddScoped<IWorkCenterCommandRepository, WorkCenterCommandRepository>();
             services.AddScoped<IMachineGroupCommandRepository, MachineGroupCommandRepository>();

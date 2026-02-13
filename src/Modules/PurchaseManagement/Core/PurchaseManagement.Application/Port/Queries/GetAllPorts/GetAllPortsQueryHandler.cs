@@ -16,20 +16,17 @@ public sealed class GetAllPortsQueryHandler : IRequestHandler<GetAllPortsQuery, 
     private readonly IPortMasterQueryRepository _repo;
     private readonly IMapper _mapper;
     private readonly IMediator _mediator;
-    private readonly ICountryLookup _countryLookup; // ✅ lookup
-    // private readonly ICountryGrpcClient _countryGrpcClient;
+    private readonly ICountryLookup _countryLookup; // ✅ lookup    
     public GetAllPortsQueryHandler(IPortMasterQueryRepository repo,
             IMapper mapper,
             IMediator mediator
-            , ICountryLookup countryLookup
-            // ,ICountryGrpcClient countryGrpcClient
+            , ICountryLookup countryLookup            
             )
     {
         _repo = repo;
         _mapper = mapper;
         _mediator = mediator;
-        _countryLookup = countryLookup;
-        // _countryGrpcClient = countryGrpcClient;
+        _countryLookup = countryLookup;        
     }
 
     public async Task<PagedResult<PortMasterDto>> Handle(GetAllPortsQuery request, CancellationToken ct)
@@ -70,32 +67,7 @@ public sealed class GetAllPortsQueryHandler : IRequestHandler<GetAllPortsQuery, 
                 }
             }
         }
-        
-        //    var (rows, total) = await _repo.GetAllAsync(
-        //             page: request.PageNumber,
-        //             size: request.PageSize,
-        //             search: request.Search,
-        //             countryId: request.CountryId,                
-        //             portTypeId: request.PortTypeId,
-        //             ct
-        //         );
-
-        //         var ports = _mapper.Map<List<PortMasterDto>>(rows);            
-        //         var countriesTask = _countryGrpcClient.GetAllCountryAsync();             
-        //         await Task.WhenAll(countriesTask );
-
-        //         var countryDict = countriesTask.Result
-        //             .GroupBy(x => x.CountryId)
-        //             .ToDictionary(g => g.Key, g => g.First().CountryName);
-
-
-        //         // 3) enrich results
-        //         foreach (var p in ports)
-        //         {
-        //             // Country name
-        //             if (countryDict.TryGetValue(p.CountryId, out var cname))
-        //                 p.Country = cname;              
-        //         }
+              
 
         // 4) audit
         var ev = new AuditLogsDomainEvent(

@@ -2,68 +2,70 @@ using MediatR;
 using UserManagement.Domain.Entities;
 using AutoMapper;
 using UserManagement.Application.Common.Interfaces.IDepartment;
-using UserManagement.Application.Common.HttpResponse;
 using UserManagement.Domain.Events;
 using Microsoft.Extensions.Logging;
-// using Contracts.Interfaces.External.IMaintenance;
-// using Contracts.Interfaces.External.IFixedAssetManagement;
 using FluentValidation;
+using MaintenanceDeptValidation = Contracts.Interfaces.Lookups.Maintenance.IDepartmentValidationLookup;
+using FixedAssetDeptValidation = Contracts.Interfaces.Lookups.FixedAssetManagement.IDepartmentValidationLookup;
 
 namespace UserManagement.Application.Departments.Commands.DeleteDepartment
 {
-
     public class DeleteDepartmentCommandHandler : IRequestHandler<DeleteDepartmentCommand, int>
     {
-
-        private readonly IDepartmentCommandRepository _IdepartmentCommandRepository;
-        private readonly IMapper _Imapper;
-        private readonly IDepartmentQueryRepository _IdepartmentQueryRepository;
+        private readonly IDepartmentCommandRepository _departmentCommandRepository;
+        private readonly IMapper _mapper;
+        private readonly IDepartmentQueryRepository _departmentQueryRepository;
         private readonly IMediator _mediator;
         private readonly ILogger<DeleteDepartmentCommandHandler> _logger;
-        // private readonly IDepartmentValidationGrpcClient _departmentValidationGrpcClient;
-        // private readonly IFixedAssetDepartmentValidationGrpcClient _fixedAssetDepartmentValidationGrpcClient;
+        private readonly MaintenanceDeptValidation _maintenanceDeptValidationLookup;
+        private readonly FixedAssetDeptValidation _fixedAssetDeptValidationLookup;
 
-        public DeleteDepartmentCommandHandler(IDepartmentCommandRepository departmentRepository, IDepartmentQueryRepository departmentQueryRepository, IMediator mediator, IMapper mapper, ILogger<DeleteDepartmentCommandHandler> logger
-        // , IDepartmentValidationGrpcClient departmentValidationGrpcClient, IFixedAssetDepartmentValidationGrpcClient fixedAssetDepartmentValidationGrpcClient
-        )
+        public DeleteDepartmentCommandHandler(
+            IDepartmentCommandRepository departmentRepository,
+            IDepartmentQueryRepository departmentQueryRepository,
+            IMediator mediator,
+            IMapper mapper,
+            ILogger<DeleteDepartmentCommandHandler> logger,
+            MaintenanceDeptValidation maintenanceDeptValidationLookup,
+            FixedAssetDeptValidation fixedAssetDeptValidationLookup)
         {
-
-            _IdepartmentCommandRepository = departmentRepository;
-            _Imapper = mapper;
-            _IdepartmentQueryRepository = departmentQueryRepository;
+            _departmentCommandRepository = departmentRepository;
+            _mapper = mapper;
+            _departmentQueryRepository = departmentQueryRepository;
             _mediator = mediator;
             _logger = logger;
-            // _departmentValidationGrpcClient = departmentValidationGrpcClient;
-            // _fixedAssetDepartmentValidationGrpcClient = fixedAssetDepartmentValidationGrpcClient;
+            _maintenanceDeptValidationLookup = maintenanceDeptValidationLookup;
+            _fixedAssetDeptValidationLookup = fixedAssetDeptValidationLookup;
         }
 
 
         public async Task<int> Handle(DeleteDepartmentCommand request, CancellationToken cancellationToken)
         {
-
             _logger.LogInformation("DeleteDepartmentCommandHandler started for Department ID: {DepartmentId}", request.Id);
-            // ✅Call MaintenanceService via gRPC to check usage
-        //    // bool isUsed = await _departmentValidationGrpcClient.CheckIfDepartmentIsUsedAsync(request.Id);
-            // bool isUsedInMaintenance = await _departmentValidationGrpcClient.CheckIfDepartmentIsUsedAsync(request.Id);
-            // bool isUsedInFixedAsset = await _fixedAssetDepartmentValidationGrpcClient.CheckIfDepartmentIsUsedForFixedAssetAsync(request.Id);
 
+            // Check if department is used in Maintenance or FixedAsset systems
+            var maintenanceTask = _maintenanceDeptValidationLookup.IsDepartmentUsedAsync(request.Id, cancellationToken);
+            var fixedAssetTask = _fixedAssetDeptValidationLookup.IsDepartmentUsedAsync(request.Id, cancellationToken);
 
+            await Task.WhenAll(maintenanceTask, fixedAssetTask);
 
-            // if (isUsedInMaintenance || isUsedInFixedAsset)
-            // {
-            //     _logger.LogWarning("Cannot delete Department ID {DepartmentId} - it is in use by CostCenters.", request.Id);
-            //     throw new ValidationException("Cannot delete department. It is still in use in Maintenance or FixedAsset systems.");
-               
-            // }
-            if (await _IdepartmentQueryRepository.IsDepartmentUsedByAnyUserAsync(request.Id))
+            bool isUsedInMaintenance = maintenanceTask.Result;
+            bool isUsedInFixedAsset = fixedAssetTask.Result;
+
+            if (isUsedInMaintenance || isUsedInFixedAsset)
+            {
+                _logger.LogWarning("Cannot delete Department ID {DepartmentId} - it is in use.", request.Id);
+                throw new ValidationException("Cannot delete department. It is still in use in Maintenance or FixedAsset systems.");
+            }
+
+            if (await _departmentQueryRepository.IsDepartmentUsedByAnyUserAsync(request.Id))
             {
                 throw new ValidationException("Cannot delete Department : this record is referenced by other data.");
             }
 
-
             // Map request to entity and delete
-            var updatedDepartment = _Imapper.Map<Department>(request);
-            var result = await _IdepartmentCommandRepository.DeleteAsync(request.Id, updatedDepartment);
+            var updatedDepartment = _mapper.Map<Department>(request);
+            var result = await _departmentCommandRepository.DeleteAsync(request.Id, updatedDepartment);
 
             if (result <= 0)
             {
@@ -86,7 +88,6 @@ namespace UserManagement.Application.Departments.Commands.DeleteDepartment
             _logger.LogInformation("AuditLogsDomainEvent published for Department ID {DepartmentId}.", request.Id);
 
             return result;
-
         }
 
     }

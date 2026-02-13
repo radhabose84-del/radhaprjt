@@ -1,6 +1,5 @@
 using AutoMapper;
-// using Contracts.Interfaces.External.IFixedAssetManagement;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Interfaces.Lookups.FixedAssetManagement;
 using UserManagement.Application.Common.Interfaces.ICountry;
 using UserManagement.Application.Country.Queries.GetCountries;
 using UserManagement.Domain.Entities;
@@ -10,34 +9,37 @@ using FluentValidation;
 using MediatR;
 
 namespace UserManagement.Application.Country.Commands.DeleteCountry
-{  
-  public class DeleteCountryCommandHandler : IRequestHandler<DeleteCountryCommand, CountryDto>
+{
+    public class DeleteCountryCommandHandler : IRequestHandler<DeleteCountryCommand, CountryDto>
     {
         private readonly ICountryCommandRepository _countryRepository;
         private readonly ICountryQueryRepository _countryQueryRepository;
         private readonly IMapper _mapper;
-        private readonly IMediator _mediator;    
-        // private readonly IFixedAssetCountryValidationGrpcClient _fixedAssetCountryValidationGrpcClient;
+        private readonly IMediator _mediator;
+        private readonly ICountryValidationLookup _countryValidationLookup;
 
-        public DeleteCountryCommandHandler(ICountryCommandRepository countryRepository, IMapper mapper, ICountryQueryRepository countryQueryRepository, IMediator mediator
-        // , IFixedAssetCountryValidationGrpcClient fixedAssetCountry
-        )
+        public DeleteCountryCommandHandler(
+            ICountryCommandRepository countryRepository,
+            IMapper mapper,
+            ICountryQueryRepository countryQueryRepository,
+            IMediator mediator,
+            ICountryValidationLookup countryValidationLookup)
         {
             _countryRepository = countryRepository;
             _mapper = mapper;
             _countryQueryRepository = countryQueryRepository;
             _mediator = mediator;
-            // _fixedAssetCountryValidationGrpcClient = fixedAssetCountry;
+            _countryValidationLookup = countryValidationLookup;
         }       
         public async Task<CountryDto> Handle(DeleteCountryCommand request, CancellationToken cancellationToken)
         {
-            // bool iscountryUsedInFixedAsset = await _fixedAssetCountryValidationGrpcClient.CheckIfCountryIsUsedForFixedAssetAsync(request.Id);
+            bool isCountryUsedInFixedAsset = await _countryValidationLookup.IsCountryUsedAsync(request.Id, cancellationToken);
 
-            // if (iscountryUsedInFixedAsset)
-            // {
-            //     throw new ValidationException("Cannot delete Country. It is still in use in FixedAsset system.");
+            if (isCountryUsedInFixedAsset)
+            {
+                throw new ValidationException("Cannot delete Country. It is still in use in FixedAsset system.");
               
-            // }
+            }
 
             var country = await _countryQueryRepository.GetByIdAsync(request.Id);
             if (country is null || country.IsDeleted is Enums.IsDelete.Deleted)

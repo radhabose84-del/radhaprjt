@@ -141,20 +141,6 @@ namespace BudgetManagement.Infrastructure
                 ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
             };
 
-            // services.AddGrpcClient<ApproverService.ApproverServiceClient>(options =>
-            //     options.Address = new Uri(backgroundServiceUrl))
-            //     .ConfigurePrimaryHttpMessageHandler(CreateGrpcHandler);
-
-            // services.AddGrpcClient<ApprovalRequestStatusAllService.ApprovalRequestStatusAllServiceClient>(options =>
-            //     options.Address = new Uri(backgroundServiceUrl))
-            //     .ConfigurePrimaryHttpMessageHandler(CreateGrpcHandler);
-
-            // services.AddGrpcClient<ApprovalRequestLineStatusService.ApprovalRequestLineStatusServiceClient>(options =>
-            //     options.Address = new Uri(backgroundServiceUrl))
-            //     .ConfigurePrimaryHttpMessageHandler(CreateGrpcHandler);
-
-            //services.AddScoped<IWorkflowLookup, WorkflowLookup>();
-
             return services;
        }
     }
