@@ -49,8 +49,7 @@ namespace WarehouseManagement.Application.BinMaster.Queries.GetBinMasterById
                 // 2) Map
                 var dto = _mapper.Map<BinMasterDto>(entity);
 
-                // 3) Lookups in parallel
-               // var storageTypesTask = _miscMasterGrpcClient.GetMiscMasterByIdAsync("StorageType"); // Id, Description
+                // 3) Lookups in parallel               
                 var uomsTask         = _uomLookup.GetAllAsync();                                // Id, UOMName
                 var warehousesTask   = _warehouseRepo.GetwarehouseAsync();                          // list with Id, WarehouseName
 

@@ -251,6 +251,7 @@ namespace FAM.Infrastructure
 
             //Lookups
             services.AddScoped<IAssetSpecificationLookup, AssetSpecificationLookupRepository>();
+            services.AddScoped<IAssetGroupLookup, AssetGroupLookupRepository>();
 
             // ✅ IMPORTANT: Do NOT register AutoMapper here if you want ONE place.
             // Module will register AutoMapper profiles.

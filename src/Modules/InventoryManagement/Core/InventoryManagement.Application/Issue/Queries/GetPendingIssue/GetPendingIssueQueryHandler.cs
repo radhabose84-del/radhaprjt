@@ -20,8 +20,7 @@ namespace InventoryManagement.Application.Issue.Queries.GetPendingIssue
         private readonly IWarehouseLookup _warehouseLookup;
         private readonly IRackLookup _rackLookup;
         private readonly IBinLookup _binLookup;
-        private readonly IMiscMasterQueryRepository _miscMasterQueryRepository;
-       // private readonly IMiscMasterGrpcClient _miscMasterGrpcClient;
+        private readonly IMiscMasterQueryRepository _miscMasterQueryRepository;       
         public GetPendingIssueQueryHandler(IIssueQueryCommandRepository iissueQueryCommandRepository, IMapper mapper, IMediator mediator, IUnitLookup unitLookup, IDepartmentLookup departmentLookup, IWarehouseLookup warehouseLookup, IRackLookup rackLookup, IBinLookup binLookup, IMiscMasterQueryRepository miscMasterQueryRepository)
         {
             _iissueQueryCommandRepository = iissueQueryCommandRepository;
@@ -32,8 +31,7 @@ namespace InventoryManagement.Application.Issue.Queries.GetPendingIssue
             _warehouseLookup = warehouseLookup;
             _rackLookup = rackLookup;
             _binLookup = binLookup;
-            _miscMasterQueryRepository = miscMasterQueryRepository;
-            // _miscMasterGrpcClient = miscMasterGrpcClient;
+            _miscMasterQueryRepository = miscMasterQueryRepository;            
 
         }
         
@@ -60,12 +58,10 @@ namespace InventoryManagement.Application.Issue.Queries.GetPendingIssue
 
                 // 3️⃣ Fire parallel lookup calls
                 var unitTask = _unitLookup.GetAllUnitAsync();
-                var departmentTask = _departmentLookup.GetAllDepartmentAsync();
-               // var uomTask = _uOMGrpcClient.GetUOMAsync();
+                var departmentTask = _departmentLookup.GetAllDepartmentAsync();               
                 var warehouseTask = warehouseIds.Any()
                     ? _warehouseLookup.GetByIdsAsync(warehouseIds, cancellationToken)
-                    : Task.FromResult<IReadOnlyList<WarehouseLookupDto>>(Array.Empty<WarehouseLookupDto>());
-               // var toleranceTask = _inventoryGrpcClient.GetItemPurchaseToleranceAsync(itemIds, cancellationToken);
+                    : Task.FromResult<IReadOnlyList<WarehouseLookupDto>>(Array.Empty<WarehouseLookupDto>());               
 
                 // 🔹 Fetch StorageType master for Bin/Rack differentiation
                 var storageTypes = await _miscMasterQueryRepository.GetMiscMaster(

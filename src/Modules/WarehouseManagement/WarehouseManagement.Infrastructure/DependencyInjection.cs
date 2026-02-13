@@ -20,6 +20,8 @@ using WarehouseManagement.Infrastructure.Repositories.Lookups;
 using WarehouseManagement.Infrastructure.Repositories.RackMaster;
 using WarehouseManagement.Infrastructure.Repositories.WarehouseMaster;
 using WarehouseManagement.Infrastructure.Services;
+using Contracts.Interfaces.Lookups.Inventory;
+using Contracts.Interfaces.Lookups.Users;
 using Contracts.Interfaces.Lookups.Warehouse;
 
 namespace WarehouseManagement.Infrastructure
@@ -111,6 +113,10 @@ namespace WarehouseManagement.Infrastructure
             services.AddScoped<IWarehouseLookup, WarehouseLookupRepository>();
             services.AddScoped<IRackLookup, RackLookupRepository>();
             services.AddScoped<IBinLookup, BinLookupRepository>();
+            services.AddScoped<IItemGroupLookup, ItemGroupLookupRepository>();
+            services.AddScoped<ILocationLookup, LocationLookupRepository>();
+            services.AddScoped<IMiscMasterLookup, MiscMasterLookupRepository>();
+            services.AddScoped<IUnitLookup, UnitLookupRepository>();
     
 
 
