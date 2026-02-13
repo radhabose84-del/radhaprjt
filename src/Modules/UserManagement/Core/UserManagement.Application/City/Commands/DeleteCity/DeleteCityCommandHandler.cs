@@ -1,7 +1,6 @@
 using AutoMapper;
-// using Contracts.Interfaces.External.IFixedAssetManagement;
+using Contracts.Interfaces.Lookups.FixedAssetManagement;
 using UserManagement.Application.City.Queries.GetCities;
-using UserManagement.Application.Common.HttpResponse;
 using UserManagement.Application.Common.Interfaces.ICity;
 using UserManagement.Domain.Entities;
 using UserManagement.Domain.Enums.Common;
@@ -15,28 +14,32 @@ namespace UserManagement.Application.City.Commands.DeleteCity
     {
         private readonly ICityCommandRepository _cityRepository;
         private readonly IMapper _mapper;
-        private readonly IMediator _mediator; 
+        private readonly IMediator _mediator;
         private readonly ICityQueryRepository _cityQueryRepository;
-        // private readonly IFixedAssetCityValidationGrpcClient _fixedAssetCityValidationGrpcClient;
-        public DeleteCityCommandHandler(ICityCommandRepository cityRepository, IMapper mapper, ICityQueryRepository cityQueryRepository, IMediator mediator
-        // , IFixedAssetCityValidationGrpcClient fixedAssetCityValidationGrpcClient
-        )
+        private readonly ICityValidationLookup _cityValidationLookup;
+
+        public DeleteCityCommandHandler(
+            ICityCommandRepository cityRepository,
+            IMapper mapper,
+            ICityQueryRepository cityQueryRepository,
+            IMediator mediator,
+            ICityValidationLookup cityValidationLookup)
         {
             _cityRepository = cityRepository;
             _mapper = mapper;
             _cityQueryRepository = cityQueryRepository;
             _mediator = mediator;
-            // _fixedAssetCityValidationGrpcClient = fixedAssetCityValidationGrpcClient;
+            _cityValidationLookup = cityValidationLookup;
         }
 
         public async Task<bool> Handle(DeleteCityCommand request, CancellationToken cancellationToken)
         {
-            // bool iscountryUsedInFixedAsset = await _fixedAssetCityValidationGrpcClient.CheckIfCityIsUsedForFixedAssetAsync(request.Id);  
+            bool isCityUsedInFixedAsset = await _cityValidationLookup.IsCityUsedAsync(request.Id, cancellationToken);  
 
-            // if (iscountryUsedInFixedAsset)
-            // {
-            //     throw new ValidationException("Cannot delete City. It is still in use in FixedAsset system.");
-            // }
+            if (isCityUsedInFixedAsset)
+            {
+                throw new ValidationException("Cannot delete City. It is still in use in FixedAsset system.");
+            }
 
             // Fetch the city to be deleted
             var city = await _cityQueryRepository.GetByIdAsync(request.Id);
@@ -68,9 +71,7 @@ namespace UserManagement.Application.City.Commands.DeleteCity
                 await _mediator.Publish(domainEvent, cancellationToken);                 
                 return true;
             }
-            throw new Exception("City deletion failed.");
-         
-           
+            throw new Exception("City deletion failed.");           
         }
     }
 }

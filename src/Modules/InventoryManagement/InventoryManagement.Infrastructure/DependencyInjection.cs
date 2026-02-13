@@ -180,6 +180,7 @@ namespace InventoryManagement.Infrastructure
             services.AddScoped<IMiscMasterLookup, MiscMasterLookupRepository>();
             services.AddScoped<IHSNLookup, HSNLookupRepository>();
             services.AddScoped<IWorkflowLookup, WorkflowLookupRepository>();
+            services.AddScoped<IItemPurchaseToleranceLookup, ItemPurchaseToleranceLookupRepository>();
 
             // Miscellaneous services
             services.AddScoped<IIPAddressService, IPAddressService>();
