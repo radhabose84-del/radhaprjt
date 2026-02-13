@@ -96,6 +96,9 @@ using PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.ServicePO;
 using MassTransit;
 using PurchaseManagement.Application.Consumers;
 using PurchaseManagement.Infrastructure.Persistence;
+using PurchaseManagement.Application.Common.Interfaces.IOutbox;
+using PurchaseManagement.Infrastructure.Repositories.Outbox;
+using PurchaseManagement.Infrastructure.Services.Outbox;
 
 
 
@@ -327,6 +330,23 @@ namespace PurchaseManagement.Infrastructure
 
 
             // );
+
+            // ═══════════════════════════════════════════════════════════════
+            // OUTBOX PATTERN SERVICES (SQL-based for transaction atomicity)
+            // ═══════════════════════════════════════════════════════════════
+
+            // Outbox repository (SQL-based for transaction atomicity)
+            services.AddScoped<IOutboxRepository, OutboxRepository>();
+
+            // Outbox event publisher (saves events to outbox table)
+            services.AddScoped<IOutboxEventPublisher, OutboxEventPublisher>();
+
+            // Configure outbox options from appsettings
+            services.Configure<OutboxOptions>(configuration.GetSection(OutboxOptions.SectionName));
+
+            // Background service for publishing outbox messages
+            services.AddHostedService<OutboxPublisherBackgroundService>();
+
             return services;
         }
 

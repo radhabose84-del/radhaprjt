@@ -4,32 +4,30 @@ using BackgroundService.Application.Interfaces.Notification;
 using BackgroundService.Application.Notification.Common.Interfaces;
 using Contracts.Events.Notifications;
 using Contracts.Events.Notifications.InApp;
-using Hangfire;
 using MassTransit;
 using Microsoft.Extensions.Logging;
 
 namespace BackgroundService.Application.Consumers
 {
+    /// <summary>
+    /// Processes in-app notifications. Retry policy configured in MassTransit DI.
+    /// Failed messages go to inapp-notification-queue_error for manual review.
+    /// </summary>
     public class SendInAppNotificationConsumer : IConsumer<SendInAppNotificationInternalCommand>
     {
-        private const int MaxRetries = 3;
-
         private readonly IInAppNotifier _notifier;
         private readonly ILogger<SendInAppNotificationConsumer> _logger;
-        private readonly IBackgroundJobClient _jobClient;
         private readonly INotificationResolverHandler _resolverHandler;
         private readonly IIPAddressService _ipAddressService;
 
         public SendInAppNotificationConsumer(
             IInAppNotifier notifier,
             ILogger<SendInAppNotificationConsumer> logger,
-            IBackgroundJobClient jobClient,
             INotificationResolverHandler resolverHandler,
             IIPAddressService ipAddressService)
         {
             _notifier = notifier;
             _logger = logger;
-            _jobClient = jobClient;
             _resolverHandler = resolverHandler;
             _ipAddressService = ipAddressService;
         }
@@ -115,23 +113,8 @@ namespace BackgroundService.Application.Consumers
             {
                 _logger.LogError(ex, "Error sending in-app notification. CorrId={CorrelationId}", msg.CorrelationId);
 
-                if (msg.RetryCount < MaxRetries)
-                {
-                    msg.RetryCount++;
-                    _jobClient.Schedule<INotificationHandler<SendInAppNotificationInternalCommand>>(
-                        h => h.ExecuteAsync(msg, msg.CorrelationId),
-                        TimeSpan.FromMinutes(5));
-
-                    _logger.LogWarning("Scheduled retry #{Retry} for InApp (CorrId={CorrelationId})", msg.RetryCount, msg.CorrelationId);
-                }
-                else
-                {
-                    await context.Publish(new SendInAppNotificationFailed
-                    {
-                        CorrelationId = msg.CorrelationId,
-                        Reason = $"Max retry attempts ({MaxRetries}) exceeded. Last error: {ex.Message}"
-                    });
-                }
+                // Throw to let MassTransit handle retry with configured policy
+                throw;
             }
         }
     }

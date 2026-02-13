@@ -38,6 +38,9 @@ using PurchaseManagement.Domain.Entities.PurchaseOrder.BillEntry;
 using Infrastructure.Data.Configurations.PurchaseOrder.BillEntry;
 using PurchaseManagement.Infrastructure.Data.Configurations.PurchaseOrder.BillEntry;
 using PurchaseManagement.Infrastructure.Persistence.Configurations;
+using PurchaseManagement.Domain.Entities.Outbox;
+using PurchaseManagement.Infrastructure.Data.Configurations.Outbox;
+
 namespace PurchaseManagement.Infrastructure.Data
 {
     public class ApplicationDbContext : DbContext
@@ -110,7 +113,10 @@ namespace PurchaseManagement.Infrastructure.Data
         public DbSet<IssueReturnDetail> IssueReturnDetail  { get; set; }
         public DbSet<PurchaseBillEntryHeader> PurchaseBillEntryHeaders  { get; set; }
         public DbSet<PurchaseBillEntryDetail> PurchaseBillEntryDetails  { get; set; }
-        public DbSet<ServiceEntrySheetDocument> ServiceEntrySheetDocuments { get; set; } 
+        public DbSet<ServiceEntrySheetDocument> ServiceEntrySheetDocuments { get; set; }
+
+        // Outbox Pattern
+        public DbSet<OutboxMessage> OutboxMessages { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -180,6 +186,10 @@ namespace PurchaseManagement.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new PurchaseBillEntryHeaderConfiguration());
             modelBuilder.ApplyConfiguration(new PurchaseBillEntryDetailConfiguration());
             modelBuilder.ApplyConfiguration(new ServiceEntrySheetDocumentConfiguration());
+
+            // Outbox Pattern
+            modelBuilder.ApplyConfiguration(new OutboxMessageConfiguration());
+
             base.OnModelCreating(modelBuilder);
         }
 

@@ -3,8 +3,8 @@ using System.Data;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Contracts.Dtos.Lookups.Workflow;
-using Contracts.Interfaces.Lookups.Workflow;
+using Contracts.Dtos.Lookups.Warehouse;
+using Contracts.Interfaces.Lookups.Warehouse;
 using Dapper;
 
 namespace WarehouseManagement.Infrastructure.Repositories.Lookups

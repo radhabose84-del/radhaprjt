@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Contracts.Dtos.Lookups.Workflow;
+using Contracts.Dtos.Lookups.Warehouse;
 
-namespace Contracts.Interfaces.Lookups.Workflow
+namespace Contracts.Interfaces.Lookups.Warehouse
 {
     public interface IRackLookup
     {

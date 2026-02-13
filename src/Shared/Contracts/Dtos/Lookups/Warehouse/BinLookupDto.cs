@@ -1,4 +1,4 @@
-namespace Contracts.Dtos.Lookups.Workflow
+namespace Contracts.Dtos.Lookups.Warehouse
 {
     public sealed class BinLookupDto
     {

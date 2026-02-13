@@ -15,10 +15,12 @@ using Microsoft.Extensions.Logging;
 
 namespace BackgroundService.Application.Consumers
 {
+    /// <summary>
+    /// Processes email notifications. Retry policy configured in MassTransit DI.
+    /// Failed messages go to email-notification-queue_error for manual review.
+    /// </summary>
     public class SendEmailNotificationConsumer : IConsumer<SendEmailNotificationInternalCommand>
     {
-        private const int MaxRetries = 3;
-
         private readonly INotificationResolverHandler _resolverHandler;
         private readonly IEmailSender _emailSender;
         private readonly ILogger<SendEmailNotificationConsumer> _logger;
@@ -205,44 +207,36 @@ namespace BackgroundService.Application.Consumers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Email notification failed (CorrelationId: {CorrelationId})", context.Message.CorrelationId);
+                _logger.LogError(ex, "Email notification failed (CorrelationId: {CorrelationId})", msg.CorrelationId);
 
-                if (msg.RetryCount < MaxRetries)
-                {
-                    msg.RetryCount++;
-                    _jobClient.Schedule<INotificationHandler<SendEmailNotificationInternalCommand>>(
-                        h => h.ExecuteAsync(msg, msg.CorrelationId),
-                        TimeSpan.FromMinutes(5));
-
-                    _logger.LogWarning("Scheduled retry #{Retry} for Email (CorrelationId: {CorrelationId})",
-                        msg.RetryCount, msg.CorrelationId);
-                }
-                else
+                // Log failure for tracking
+                try
                 {
                     await _loggerNotification.LogAsync(new NotificationEventLog
                     {
                         NotificationLevelRuleId = null,
-                        UnitId       = msg.UnitId,
+                        UnitId = msg.UnitId,
                         NotificationStatusId = (int)NotificationEnum.NotificationStatus.Failed,
                         ReadStatusId = (int)NotificationEnum.NotificationReadStatus.Unread,
-                        SendTo       = "Unknown or Failed",
+                        SendTo = msg.Email ?? "Unknown",
                         ActionStatus = "Failed",
-                        ChannelId    = (int)NotificationEnum.NotificationChannel.Email,
-                        MessageText  = ex.Message,
-                        Timestamp    = DateTimeOffset.UtcNow,
-                        CreatedBy    = _ipAddressService.GetUserId(),
+                        ChannelId = (int)NotificationEnum.NotificationChannel.Email,
+                        MessageText = ex.Message,
+                        Timestamp = DateTimeOffset.UtcNow,
+                        CreatedBy = _ipAddressService.GetUserId(),
                         CreatedByName = _ipAddressService.GetUserName(),
-                        CreatedIP    = _ipAddressService.GetSystemIPAddress(),
-                        IsActive     = Domain.Common.BaseEntity.Status.Active,
-                        IsDeleted    = Domain.Common.BaseEntity.IsDelete.NotDeleted
-                    });
-
-                    await context.Publish(new SendEmailNotificationFailed
-                    {
-                        CorrelationId = msg.CorrelationId,
-                        Reason = $"Retry limit exceeded. Last error: {ex.Message}"
+                        CreatedIP = _ipAddressService.GetSystemIPAddress(),
+                        IsActive = Domain.Common.BaseEntity.Status.Active,
+                        IsDeleted = Domain.Common.BaseEntity.IsDelete.NotDeleted
                     });
                 }
+                catch (Exception logEx)
+                {
+                    _logger.LogWarning(logEx, "Failed to log notification failure");
+                }
+
+                // Throw to let MassTransit handle retry with configured policy
+                throw;
             }
         }
 

@@ -8,8 +8,7 @@ using MaintenanceManagement.Domain.Entities.WorkOrderMaster;
 using MaintenanceManagement.Infrastructure.Data.Configurations.WorkOrderMaster;
 using MaintenanceManagement.Domain.Entities.Power;
 using MaintenanceManagement.Infrastructure.Data.Configurations.Power;
-
-
+using MaintenanceManagement.Domain.Entities.Outbox;
 
 namespace MaintenanceManagement.Infrastructure.Data
 {
@@ -62,6 +61,7 @@ namespace MaintenanceManagement.Infrastructure.Data
         public DbSet<MachineSpecification> MachineSpecification { get; set; }       
         public DbSet<GeneratorConsumption> GeneratorConsumption { get; set; }
         public DbSet<PreventiveScheduleLog> PreventiveScheduleLog  { get; set; }
+        public DbSet<OutboxMessage> OutboxMessages { get; set; }
        
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -102,6 +102,7 @@ namespace MaintenanceManagement.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new MachineSpecificationConfiguration());
             modelBuilder.ApplyConfiguration(new GeneratorConsumptionConfiguration());
             modelBuilder.ApplyConfiguration(new PreventiveScheduleLogConfiguration());
+            modelBuilder.ApplyConfiguration(new OutboxMessageConfiguration());
             base.OnModelCreating(modelBuilder);
 
 

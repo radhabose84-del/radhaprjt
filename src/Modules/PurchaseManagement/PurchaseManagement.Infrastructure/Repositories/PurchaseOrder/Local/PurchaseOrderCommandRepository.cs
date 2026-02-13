@@ -9,6 +9,7 @@ using PurchaseManagement.Domain.Entities.PurchaseOrder.Local;
 using PurchaseManagement.Domain.PurchaseOrder;
 using Dapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 using PurchaseManagement.Infrastructure.Data;
 using PurchaseManagement.Application.PurchaseOrder.Dtos.Local;
@@ -36,7 +37,7 @@ public class PurchaseOrderCommandRepository : IPurchaseOrderCommandRepository
         _miscMasterQueryRepository = miscMasterQueryRepository;
         _logger = logger;
     }
-   public async Task<int> CreateAsync(PurchaseOrderHeader aggregate, CancellationToken ct)
+    public async Task<int> CreateAsync(PurchaseOrderHeader aggregate, CancellationToken ct)
     {
         // Ensure children are new
         foreach (var h in aggregate.Headers ?? Enumerable.Empty<PurchaseLocalHeader>())
@@ -88,6 +89,71 @@ public class PurchaseOrderCommandRepository : IPurchaseOrderCommandRepository
             return aggregate.Id;
         });
     }
+
+    /// <summary>
+    /// Creates a purchase order WITHOUT managing transaction internally.
+    /// Caller is responsible for Begin/Commit/Rollback.
+    /// </summary>
+    public async Task<int> CreateWithoutTransactionAsync(PurchaseOrderHeader aggregate, CancellationToken ct)
+    {
+        // Ensure children are new
+        foreach (var h in aggregate.Headers ?? Enumerable.Empty<PurchaseLocalHeader>())
+        {
+            h.Id = 0;
+            foreach (var d in h.Details ?? Enumerable.Empty<PurchaseLocalDetail>())
+                d.Id = 0;
+        }
+        foreach (var t in aggregate.PaymentTerms ?? Enumerable.Empty<PurchasePaymentTerm>())
+            t.Id = 0;
+
+        foreach (var doc in aggregate.PurchaseDocumentTypes ?? Enumerable.Empty<PurchaseDocument>())
+            doc.Id = 0;
+
+        // Status = Pending
+        var pending = await _miscMasterQueryRepository.GetMiscMasterByName(
+            MiscEnumEntity.ApprovalStatus, MiscEnumEntity.Pending);
+        aggregate.StatusId = pending.Id;
+
+        // Add to context (caller will call SaveChangesAsync)
+        _db.PurchaseOrderHeaders.Add(aggregate);
+        await _db.SaveChangesAsync(ct); // PK available
+
+        // If documents were attached, ensure FK
+        if (aggregate.PurchaseDocumentTypes != null && aggregate.PurchaseDocumentTypes.Count > 0)
+        {
+            foreach (var doc in aggregate.PurchaseDocumentTypes)
+            {
+                doc.PoId = aggregate.Id;
+                if (doc.UploadedDate == default) doc.UploadedDate = DateTimeOffset.UtcNow;
+            }
+            await _db.SaveChangesAsync(ct);
+        }
+
+        // NOTE: Caller should call RecomputeIndentPoQtyAsync after all operations
+        return aggregate.Id;
+    }
+
+    /// <summary>
+    /// Begins a database transaction. Caller must Commit or Rollback.
+    /// </summary>
+    public async Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken ct)
+    {
+        return await _db.Database.BeginTransactionAsync(ct);
+    }
+
+    /// <summary>
+    /// Saves all pending changes to the database.
+    /// </summary>
+    public async Task SaveChangesAsync(CancellationToken ct)
+    {
+        await _db.SaveChangesAsync(ct);
+    }
+
+    public IExecutionStrategy CreateExecutionStrategy()
+    {
+        return _db.Database.CreateExecutionStrategy();
+    }
+
    public async Task<int> UpdateAsync(PurchaseOrderHeader incoming, PurchaseOrderUpdateDto dto, CancellationToken ct)
     {
         var existing = await _db.PurchaseOrderHeaders
@@ -282,7 +348,7 @@ public class PurchaseOrderCommandRepository : IPurchaseOrderCommandRepository
 
         return ids.ToHashSet();
     }
-    private async Task RecomputeIndentPoQtyAsync(HashSet<int> indentHeaderIds, CancellationToken ct)
+    public async Task RecomputeIndentPoQtyAsync(HashSet<int> indentHeaderIds, CancellationToken ct)
     {
         if (indentHeaderIds.Count == 0) return;
 

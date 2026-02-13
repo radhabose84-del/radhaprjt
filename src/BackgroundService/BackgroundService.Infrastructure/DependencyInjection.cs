@@ -14,6 +14,7 @@ using BackgroundService.Infrastructure.Repositories.Notification;
 using BackgroundService.Infrastructure.Data.Notification;
 using Microsoft.EntityFrameworkCore;
 using BackgroundService.Application.Notification.Common.Interfaces.INotificationConfig;
+using BackgroundService.Infrastructure.Repositories.Common;
 using BackgroundService.Infrastructure.Repositories.Notification.NotificationConfig;
 using BackgroundService.Application.Notification.Common.Interfaces.INotificationGroup;
 using BackgroundService.Infrastructure.Repositories.Notification.NotificationGroup;
@@ -156,21 +157,24 @@ namespace BackgroundService.Infrastructure
                 options.ServerName = configuration["HangfireServer:Server"];
                 options.Queues = HangfireQueues;
             });
-            //Notification
+            //Notification - Simplified Architecture with MassTransit Retry Policies
             services.AddMassTransit(x =>
             {
                 x.SetKebabCaseEndpointNameFormatter();
-                x.AddConsumer<ResolveNotificationChannelsConsumer>();
+
+                // Notification Consumers - Single responsibility per channel
+                x.AddConsumer<NotificationDispatcherConsumer>();
                 x.AddConsumer<SendEmailNotificationConsumer>();
                 x.AddConsumer<SendSmsNotificationConsumer>();
                 x.AddConsumer<SendInAppNotificationConsumer>();
+                x.AddConsumer<SendWhatsappNotificationConsumer>();
+
+                // Workflow Consumers
                 x.AddConsumer<ApprovalRequestConsumer>();
                 x.AddConsumer<ScheduleWorkOrderConsumer>();
                 x.AddConsumer<NewScheduleWorkOrderTaskConsumer>();
                 x.AddConsumer<RollBackScheduleWorkOrderConsumer>();
                 x.AddConsumer<ScheduleWorkOrderUpdateConsumer>();
-                x.AddConsumer<SendWhatsappNotificationConsumer>();
-                
 
                 x.UsingRabbitMq((context, cfg) =>
                 {
@@ -179,24 +183,68 @@ namespace BackgroundService.Infrastructure
                         h.Username("guest");
                         h.Password("guest");
                     });
-                    cfg.ReceiveEndpoint("resolve-notification-channels-queue", e =>
-                    {          
-                        e.ConfigureConsumer<ResolveNotificationChannelsConsumer>(context);
+
+                    // ═══════════════════════════════════════════════════════════════════
+                    // NOTIFICATION DISPATCHER - Entry point (resolves channels + routes)
+                    // ═══════════════════════════════════════════════════════════════════
+                    cfg.ReceiveEndpoint("notification-dispatcher-queue", e =>
+                    {
+                        e.PrefetchCount = 16;
+                        e.UseMessageRetry(r => r
+                            .Intervals(TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(30))
+                            .Handle<Exception>());
+                        e.ConfigureConsumer<NotificationDispatcherConsumer>(context);
                     });
+
+                    // ═══════════════════════════════════════════════════════════════════
+                    // CHANNEL-SPECIFIC QUEUES - With retry policies for external services
+                    // ═══════════════════════════════════════════════════════════════════
+
+                    // Email: Retry with exponential backoff (SMTP can have temp failures)
                     cfg.ReceiveEndpoint("email-notification-queue", e =>
                     {
+                        e.PrefetchCount = 8;
+                        e.UseMessageRetry(r => r
+                            .Intervals(
+                                TimeSpan.FromSeconds(10),
+                                TimeSpan.FromSeconds(30),
+                                TimeSpan.FromMinutes(2),
+                                TimeSpan.FromMinutes(5))
+                            .Handle<Exception>());
                         e.ConfigureConsumer<SendEmailNotificationConsumer>(context);
                     });
+
+                    // SMS: Retry for API failures
                     cfg.ReceiveEndpoint("sms-notification-queue", e =>
-                    {                        
+                    {
+                        e.PrefetchCount = 8;
+                        e.UseMessageRetry(r => r
+                            .Intervals(
+                                TimeSpan.FromSeconds(10),
+                                TimeSpan.FromSeconds(30),
+                                TimeSpan.FromMinutes(2))
+                            .Handle<Exception>());
                         e.ConfigureConsumer<SendSmsNotificationConsumer>(context);
                     });
+
+                    // InApp: Fast local processing, minimal retry
                     cfg.ReceiveEndpoint("inapp-notification-queue", e =>
-                    {                       
+                    {
+                        e.PrefetchCount = 16;
+                        e.UseMessageRetry(r => r.Immediate(3));
                         e.ConfigureConsumer<SendInAppNotificationConsumer>(context);
                     });
+
+                    // WhatsApp: Retry for API failures
                     cfg.ReceiveEndpoint("whatsapp-notification-queue", e =>
                     {
+                        e.PrefetchCount = 8;
+                        e.UseMessageRetry(r => r
+                            .Intervals(
+                                TimeSpan.FromSeconds(10),
+                                TimeSpan.FromSeconds(30),
+                                TimeSpan.FromMinutes(2))
+                            .Handle<Exception>());
                         e.ConfigureConsumer<SendWhatsappNotificationConsumer>(context);
                     });
                     cfg.ReceiveEndpoint("approval-request-task-queue", e =>
@@ -285,6 +333,7 @@ namespace BackgroundService.Infrastructure
             services.AddScoped<INotificationGroupQuery, NotificationGroupQueryRepository >();
             services.AddScoped<INotificationWhatsAppGroupCommand, NotificationWhatsAppGroupCommandRepository>();
             services.AddScoped<INotificationWhatsAppGroupQuery, NotificationWhatsAppGroupQueryRepository>();
+            services.AddScoped<ILookupRepository, LookupRepository>();
             services.AddScoped<IIPAddressService, IPAddressService>();
 
             services.AddSingleton<ITimeZoneService, TimeZoneService>();

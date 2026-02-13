@@ -3,7 +3,6 @@ using System.Security.Claims;
 using System.Text.Json;
 using BackgroundService.Application.Notification.Common.Interfaces;
 using BackgroundService.Domain.Entities.Notification;
-using Contracts.Interfaces.External.IUser;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
 
@@ -22,7 +21,7 @@ namespace BackgroundService.API.Middleware
             _timeZoneService = timeZoneService;
         }
 
-        public async Task Invoke(HttpContext context, IJwtTokenHelper jwtTokenHelper, IUserSessionGrpcClient sessionService)
+        public async Task Invoke(HttpContext context, IJwtTokenHelper jwtTokenHelper, ILookupRepository lookupRepository)
         {
             var systemTimeZoneId = _timeZoneService.GetSystemTimeZone();
             var currentTime = _timeZoneService.GetCurrentTime(systemTimeZoneId);
@@ -32,11 +31,12 @@ namespace BackgroundService.API.Middleware
                 await _next(context);
                 return;
             }
-              if (context.Request.Path.StartsWithSegments("/hangfire"))
-                {
-                    await _next(context);
-                    return;
-                }
+
+            if (context.Request.Path.StartsWithSegments("/hangfire"))
+            {
+                await _next(context);
+                return;
+            }
 
             // Check for token in the Authorization header
             var token = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
@@ -59,8 +59,8 @@ namespace BackgroundService.API.Middleware
                     return;
                 }
 
-                // Check session in the database
-                var session = await sessionService.GetSessionByJwtIdAsync(jti, token);
+                // Check session in the database using LookupRepository
+                var session = await lookupRepository.GetSessionByJwtIdAsync(jti);
                 if (session is null || session.IsActive is 0 || session.ExpiresAt <= currentTime)
                 {
                     await WriteErrorResponse(context, StatusCodes.Status401Unauthorized, "Session is invalid or expired.");
@@ -72,9 +72,7 @@ namespace BackgroundService.API.Middleware
                 context.Items["UserName"] = principal.Claims.FirstOrDefault(c => c.Type is JwtRegisteredClaimNames.Name)?.Value;
 
                 // Update session's last activity
-                session.LastActivity = currentTime;
-                // await sessionService.UpdateSessionAsync(session);
-                await sessionService.UpdateSessionAsync(jti, currentTime, token);
+                await lookupRepository.UpdateSessionLastActivityAsync(jti, currentTime);
 
                 // Set the User principal
                 context.User = principal;
