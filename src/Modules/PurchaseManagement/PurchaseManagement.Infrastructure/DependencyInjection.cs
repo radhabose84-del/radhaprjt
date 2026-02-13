@@ -341,6 +341,8 @@ namespace PurchaseManagement.Infrastructure
             // Outbox event publisher (saves events to outbox table)
             services.AddScoped<IOutboxEventPublisher, OutboxEventPublisher>();
 
+            services.AddScoped<IEventPublisher, EventPublisher>();
+
             // Configure outbox options from appsettings
             services.Configure<OutboxOptions>(configuration.GetSection(OutboxOptions.SectionName));
 
