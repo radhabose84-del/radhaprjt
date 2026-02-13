@@ -20,6 +20,7 @@ using WarehouseManagement.Infrastructure.Repositories.Lookups;
 using WarehouseManagement.Infrastructure.Repositories.RackMaster;
 using WarehouseManagement.Infrastructure.Repositories.WarehouseMaster;
 using WarehouseManagement.Infrastructure.Services;
+using WarehouseManagement.Application.WarehouseMaster.Services;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Users;
 using Contracts.Interfaces.Lookups.Warehouse;
@@ -101,7 +102,7 @@ namespace WarehouseManagement.Infrastructure
             services.AddScoped<IAuditLogRepository, AuditLogRepository>();
             services.AddScoped<IWarehouseMasterQueryRepository , WarehouseMasterQueryRepository >();
             services.AddScoped<IWarehouseMasterCommandRepository, WarehouseMasterCommandRepository>();
-            // services.AddScoped<IWarehouseCodeGenerator, WarehouseCodeGenerator>();
+            services.AddScoped<IWarehouseCodeGenerator, WarehouseCodeGenerator>();
             services.AddScoped<IRackMasterQueryRepository, RackMasterQueryRepository>();
             services.AddScoped<IRackMasterCommandRepository, RackMasterCommandRepository>();
             // services.AddScoped<IRackCodeGenerator, RackCodeGenerator>();

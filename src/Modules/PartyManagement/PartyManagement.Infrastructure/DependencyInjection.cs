@@ -27,6 +27,7 @@ using PartyManagement.Infrastructure.Repositories.PartyGroup;
 using PartyManagement.Infrastructure.Repositories.PartyMaster;
 using PartyManagement.Infrastructure.Repositories.Lookups;
 using PartyManagement.Infrastructure.Services;
+using PartyManagement.Infrastructure.Persistence;
 using Contracts.Interfaces.Lookups.Party;
 using Serilog;
 using Microsoft.Extensions.Hosting;
@@ -87,11 +88,21 @@ namespace PartyManagement.Infrastructure
             });
 
             // Optional: Register IMongoDatabase if needed directly
-            services.AddSingleton(sp =>
+            services.AddSingleton<IMongoDatabase>(sp =>
             {
                 var mongoDbContext = (MongoDbContext)sp.GetRequiredService<IMongoDbContext>();
                 return mongoDbContext.GetDatabase();
             });
+
+            // Outbox dependencies (shared with EventPublisher)
+            services.AddScoped<IMongoCollection<OutboxMessage>>(sp =>
+            {
+                var database = sp.GetRequiredService<IMongoDatabase>();
+                var collectionName = configuration["MongoDbSettings:OutboxCollectionName"] ?? "OutboxMessages";
+                return database.GetCollection<OutboxMessage>(collectionName);
+            });
+
+            services.AddScoped<IEventPublisher, EventPublisher>();
 
 
             // Register ILogger<T>
