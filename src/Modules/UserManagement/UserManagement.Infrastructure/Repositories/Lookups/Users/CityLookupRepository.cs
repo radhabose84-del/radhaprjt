@@ -19,6 +19,22 @@ namespace UserManagement.Infrastructure.Repositories.Lookups.Users
             _dbConnection = dbConnection;
         }
 
+        public async Task<List<CityLookupDto>> GetAllCityAsync(CancellationToken ct = default)
+        {
+            const string sql = @"
+                SELECT
+                    C.Id AS CityId,
+                    C.CityName
+                FROM [AppData].[City] C
+                WHERE C.IsDeleted = 0
+                AND C.IsActive = 1
+                ORDER BY C.Id DESC;";
+
+            var cmd = new CommandDefinition(sql, cancellationToken: ct);
+            var rows = await _dbConnection.QueryAsync<CityLookupDto>(cmd);
+            return rows.ToList();
+        }
+
         public async Task<CityLookupDto?> GetByIdAsync(int cityId, CancellationToken ct = default)
         {
             const string sql = @"

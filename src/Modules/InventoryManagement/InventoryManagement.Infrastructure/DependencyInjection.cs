@@ -176,6 +176,7 @@ namespace InventoryManagement.Infrastructure
             // Lookups
             services.AddScoped<IUOMLookup, UOMLookupRepository>();
             services.AddScoped<IItemLookup, ItemLookupRepository>();
+            services.AddScoped<IMiscMasterLookup, MiscMasterLookupRepository>();
 
             // Miscellaneous services
             services.AddScoped<IIPAddressService, IPAddressService>();

@@ -10,9 +10,7 @@ using ProjectManagement.Infrastructure.Data;
 using ProjectManagement.Infrastructure.Services;
 using ProjectManagement.Application.Common.Interfaces.IMiscTypeMaster;
 using ProjectManagement.Infrastructure.Repositories.MiscTypeMaster;
-using ProjectManagement.Infrastructure.Repositories.MiscTypeMaster;
 using ProjectManagement.Application.Common.Interfaces.IMiscMaster;
-using ProjectManagement.Infrastructure.Repositories.MiscMaster;
 using ProjectManagement.Infrastructure.Repositories.MiscMaster;
 using ProjectManagement.Application.Common.Mappings;
 using ProjectManagement.Application.Common.Interfaces.IProjectMaster;
@@ -21,6 +19,8 @@ using ProjectManagement.Infrastructure.Repositories;
 using ProjectManagement.Application.Common.Interfaces.IProjectWorkBreakdownStructure;
 using ProjectManagement.Infrastructure.Repositories.ProjectWorkBreakdownStructure;
 using Microsoft.Extensions.Hosting;
+using Contracts.Interfaces.Lookups.Projects;
+using ProjectManagement.Infrastructure.Repositories.Lookups.Projects;
 
 namespace ProjectManagement.Infrastructure
 {
@@ -100,7 +100,8 @@ namespace ProjectManagement.Infrastructure
             services.AddScoped<IProjectWorkBreakdownStructureQueryRepository, ProjectWorkBreakdownStructureQueryRepository>();
             services.AddScoped<IProjectWorkBreakdownStructureCommandRepository, ProjectWorkBreakdownStructureCommandRepository>();
 
-
+            services.AddScoped<IProjectLookup, ProjectLookupRepository>();
+            services.AddScoped<IProjectWbsLookup, ProjectWbsLookupRepository>();      
             // Miscellaneous services
             services.AddScoped<IIPAddressService, IPAddressService>();
             services.AddTransient<IFileUploadService, FileUploadRepository>();

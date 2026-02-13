@@ -19,6 +19,24 @@ namespace UserManagement.Infrastructure.Repositories.Lookups.Users
             _dbConnection = dbConnection;
         }
 
+        public async Task<List<CountryLookupDto>> GetAllCountriesAsync(CancellationToken ct = default)
+        {
+            const string sql = @"
+                SELECT
+                    C.Id AS CountryId,
+                    C.CountryName
+                FROM [AppData].[Country] C
+                WHERE C.IsDeleted = 0
+                AND C.IsActive = 1
+                ORDER BY C.Id DESC;
+                ";
+
+            var cmd = new CommandDefinition(sql, cancellationToken: ct);
+            var rows = await _dbConnection.QueryAsync<CountryLookupDto>(cmd);
+
+            return rows.ToList();
+        }
+
         public async Task<CountryLookupDto?> GetByIdAsync(int countryId, CancellationToken ct = default)
         {
             const string sql = @"

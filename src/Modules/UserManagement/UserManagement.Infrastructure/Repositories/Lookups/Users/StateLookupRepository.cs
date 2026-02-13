@@ -19,6 +19,24 @@ namespace UserManagement.Infrastructure.Repositories.Lookups.Users
             _dbConnection = dbConnection;
         }
 
+        public async Task<List<StateLookupDto>> GetAllStatesAsync(CancellationToken ct = default)
+        {
+            const string sql = @"
+                SELECT
+                    S.Id AS StateId,
+                    S.StateName
+                FROM [AppData].[State] S
+                WHERE S.IsDeleted = 0
+                AND S.IsActive = 1
+                ORDER BY S.Id DESC;
+                ";
+
+            var cmd = new CommandDefinition(sql, cancellationToken: ct);
+            var rows = await _dbConnection.QueryAsync<StateLookupDto>(cmd);
+
+            return rows.ToList();
+        }
+
         public async Task<StateLookupDto?> GetByIdAsync(int stateId, CancellationToken ct = default)
         {
             const string sql = @"
