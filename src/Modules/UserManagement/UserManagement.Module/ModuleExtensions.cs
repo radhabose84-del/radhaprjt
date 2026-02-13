@@ -8,7 +8,7 @@ using UserManagement.Infrastructure;
 
 
 // Validation infra (still in API for now)
-using UserManagement.API.Validation.Common;
+using UserManagement.Presentation.Validation.Common;
 
 // AutoMapper profiles
 using UserManagement.Application.Common.Mappings;
@@ -39,12 +39,12 @@ public static class ModuleExtensions
         // });
 
         // ✅ 2) Validators (scan API validators assembly)
-        var validatorsAssembly = typeof(UserManagement.API.Validation.Companies.CreateCompanyCommandValidator).Assembly;
+        var validatorsAssembly = typeof(UserManagement.Presentation.Validation.Companies.CreateCompanyCommandValidator).Assembly;
         services.AddValidatorsFromAssembly(validatorsAssembly);
 
         // // 2) Validators
         // services.AddValidatorsFromAssembly(
-        //     typeof(UserManagement.API.Validation.Companies.CreateCompanyCommandValidator).Assembly);
+        //     typeof(UserManagement.Presentation.Validation.Companies.CreateCompanyCommandValidator).Assembly);
 
         // ✅ 3) AutoMapper (scan mapping profiles from Application assembly)
         services.AddAutoMapper(applicationAssembly);

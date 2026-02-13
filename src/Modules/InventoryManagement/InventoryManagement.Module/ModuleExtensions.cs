@@ -6,9 +6,9 @@ using Microsoft.Extensions.Hosting;
 
 using InventoryManagement.Infrastructure;
 using InventoryManagement.Application.Common.Mappings;
-using InventoryManagement.API.Validation.Common;
+using InventoryManagement.Presentation.Validation.Common;
 using InventoryManagement.Application.Common.Mappings.Item;
-using InventoryManagement.API.Validation.Item.ItemGroup;
+using InventoryManagement.Presentation.Validation.Item.ItemGroup;
 using Shared.Validation.Common;
 
 namespace InventoryManagement.Module
@@ -25,7 +25,7 @@ namespace InventoryManagement.Module
 
             // ✅ 2) Use compile-time assemblies (NO Assembly.Load)
             var applicationAssembly = typeof(ItemGroupProfile).Assembly;              // InventoryManagement.Application
-            var apiAssembly = typeof(CreateItemGroupCommandValidator).Assembly;            // InventoryManagement.API
+            var apiAssembly = typeof(CreateItemGroupCommandValidator).Assembly;            // InventoryManagement.Presentation
 
             // ✅ 3) MediatR handlers from Application
             services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(applicationAssembly));

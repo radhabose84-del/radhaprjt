@@ -23,8 +23,8 @@ using UserUnitDTO = UserManagement.Application.Users.Queries.GetUsers.UserUnitDT
 using UserDivisionDTO = UserManagement.Application.Users.Commands.CreateUser.UserDivisionDTO;
 using UserDepartmentDTO = UserManagement.Application.Users.Queries.GetUsers.UserDepartmentDTO;
 using UserRoleAllocationDTO = UserManagement.Application.Users.Queries.GetUsers.UserRoleAllocationDTO;
-using UserManagement.API.Validation.Users;
-using UserManagement.API.Validation.Common;
+using UserManagement.Presentation.Validation.Users;
+using UserManagement.Presentation.Validation.Common;
 
 namespace UserManagement.UnitTests.Validators.Users
 {
