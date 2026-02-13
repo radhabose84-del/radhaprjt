@@ -3,9 +3,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using FluentValidation;
 using PurchaseManagement.Infrastructure;
-using PurchaseManagement.API.Validation.Common;
+using PurchaseManagement.Presentation.Validation.Common;
 using PurchaseManagement.Application.Mappings.PurchaseOrder;
-using PurchaseManagement.API.Validation.PurchaseOrder.Local;
+using PurchaseManagement.Presentation.Validation.PurchaseOrder.Local;
 using Shared.Validation.Common;
 
 namespace PurchaseManagement.Module

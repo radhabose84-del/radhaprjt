@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using SalesManagement.Infrastructure;
 using SalesManagement.Application.Common.Mappings;
-using SalesManagement.API.Validation.Common;
+using SalesManagement.Presentation.Validation.Common;
 using SalesManagement.Application;
 
 namespace SalesManagement.Module

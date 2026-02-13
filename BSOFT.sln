@@ -24,7 +24,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MaintenanceManagement", "Ma
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{8B9C1011-2233-4455-6677-8899AABBCCDD}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FAM.API", "src\Modules\FixedAssetManagement\FAM.API\FAM.API.csproj", "{668017C6-AE68-432B-A7B6-44D38362E8A9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FAM.Presentation", "src\Modules\FixedAssetManagement\FAM.Presentation\FAM.Presentation.csproj", "{668017C6-AE68-432B-A7B6-44D38362E8A9}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FAM.Infrastructure", "src\Modules\FixedAssetManagement\FAM.Infrastructure\FAM.Infrastructure.csproj", "{6F57FCF1-D1A4-46A3-83B4-40CD6A09A6C6}"
 EndProject
@@ -38,7 +38,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MaintenanceManagement.Appli
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MaintenanceManagement.Domain", "src\Modules\MaintenanceManagement\Core\MaintenanceManagement.Domain\MaintenanceManagement.Domain.csproj", "{0B2C3D4E-5F67-89AB-CDEF-0123456789AB}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MaintenanceManagement.API", "src\Modules\MaintenanceManagement\MaintenanceManagement.API\MaintenanceManagement.API.csproj", "{1C3D4E5F-6789-ABCD-EF01-23456789ABCD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MaintenanceManagement.Presentation", "src\Modules\MaintenanceManagement\MaintenanceManagement.Presentation\MaintenanceManagement.Presentation.csproj", "{1C3D4E5F-6789-ABCD-EF01-23456789ABCD}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MaintenanceManagement.Infrastructure", "src\Modules\MaintenanceManagement\MaintenanceManagement.Infrastructure\MaintenanceManagement.Infrastructure.csproj", "{2D4E5F67-89AB-CDEF-0123-456789ABCDEF}"
 EndProject
@@ -52,7 +52,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PurchaseManagement.Applicat
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PurchaseManagement.Domain", "src\Modules\PurchaseManagement\Core\PurchaseManagement.Domain\PurchaseManagement.Domain.csproj", "{4C1D5330-B168-49F9-BD58-EF1E627C4D81}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PurchaseManagement.API", "src\Modules\PurchaseManagement\PurchaseManagement.API\PurchaseManagement.API.csproj", "{2270F8AC-2DD0-4A77-804B-D78F2079F988}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PurchaseManagement.Presentation", "src\Modules\PurchaseManagement\PurchaseManagement.Presentation\PurchaseManagement.Presentation.csproj", "{2270F8AC-2DD0-4A77-804B-D78F2079F988}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PurchaseManagement.Infrastructure", "src\Modules\PurchaseManagement\PurchaseManagement.Infrastructure\PurchaseManagement.Infrastructure.csproj", "{D062427D-967E-4954-8A58-8160A7DAD91F}"
 EndProject
@@ -66,7 +66,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InventoryManagement.Applica
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InventoryManagement.Domain", "src\Modules\InventoryManagement\Core\InventoryManagement.Domain\InventoryManagement.Domain.csproj", "{E47E26C6-3F8C-4B29-83FC-7E78157B6F87}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InventoryManagement.API", "src\Modules\InventoryManagement\InventoryManagement.API\InventoryManagement.API.csproj", "{428A066D-34F5-4F62-88C1-C292B7815CDD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InventoryManagement.Presentation", "src\Modules\InventoryManagement\InventoryManagement.Presentation\InventoryManagement.Presentation.csproj", "{428A066D-34F5-4F62-88C1-C292B7815CDD}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InventoryManagement.Infrastructure", "src\Modules\InventoryManagement\InventoryManagement.Infrastructure\InventoryManagement.Infrastructure.csproj", "{57DDE16A-74A5-4B81-857C-B4AC1D216037}"
 EndProject
@@ -82,7 +82,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PartyManagement.Application
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PartyManagement.Infrastructure", "src\Modules\PartyManagement\PartyManagement.Infrastructure\PartyManagement.Infrastructure.csproj", "{75F6F9E2-3881-46C3-ABA5-354E3D7F8449}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PartyManagement.API", "src\Modules\PartyManagement\PartyManagement.API\PartyManagement.API.csproj", "{D4FE8F6F-02CB-498C-A328-3ECB87FFB35A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PartyManagement.Presentation", "src\Modules\PartyManagement\PartyManagement.Presentation\PartyManagement.Presentation.csproj", "{D4FE8F6F-02CB-498C-A328-3ECB87FFB35A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PartyManagement.Module", "src\Modules\PartyManagement\PartyManagement.Module\PartyManagement.Module.csproj", "{975D952B-2748-421A-80AD-25D9E23EBC05}"
 EndProject
@@ -94,7 +94,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SalesManagement.Application
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SalesManagement.Domain", "src\Modules\SalesManagement\Core\SalesManagement.Domain\SalesManagement.Domain.csproj", "{49C04D84-E53B-43F4-9FEE-6DB47C88D8E8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SalesManagement.API", "src\Modules\SalesManagement\SalesManagement.API\SalesManagement.API.csproj", "{4A3FB056-1825-4CD6-A9CD-F15F8C33EA80}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SalesManagement.Presentation", "src\Modules\SalesManagement\SalesManagement.Presentation\SalesManagement.Presentation.csproj", "{4A3FB056-1825-4CD6-A9CD-F15F8C33EA80}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SalesManagement.Infrastructure", "src\Modules\SalesManagement\SalesManagement.Infrastructure\SalesManagement.Infrastructure.csproj", "{6961690B-9ED3-4337-8A54-EBCF796EC09F}"
 EndProject
@@ -108,7 +108,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WarehouseManagement.Applica
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WarehouseManagement.Domain", "src\Modules\WarehouseManagement\Core\WarehouseManagement.Domain\WarehouseManagement.Domain.csproj", "{D99E7C52-5116-4F8B-B987-638DB7383F07}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WarehouseManagement.API", "src\Modules\WarehouseManagement\WarehouseManagement.API\WarehouseManagement.API.csproj", "{3D03A06E-1787-4885-9F42-4581354596E8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WarehouseManagement.Presentation", "src\Modules\WarehouseManagement\WarehouseManagement.Presentation\WarehouseManagement.Presentation.csproj", "{3D03A06E-1787-4885-9F42-4581354596E8}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WarehouseManagement.Infrastructure", "src\Modules\WarehouseManagement\WarehouseManagement.Infrastructure\WarehouseManagement.Infrastructure.csproj", "{B12507FB-3164-4396-911C-48D75950B991}"
 EndProject
@@ -122,7 +122,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProjectManagement.Applicati
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProjectManagement.Domain", "src\Modules\ProjectManagement\Core\ProjectManagement.Domain\ProjectManagement.Domain.csproj", "{D3D63686-091D-4DD9-8110-496BE1EC4D60}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProjectManagement.API", "src\Modules\ProjectManagement\ProjectManagement.API\ProjectManagement.API.csproj", "{87FD006D-DFEF-4D5C-ABC9-BC0A230C7E3F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProjectManagement.Presentation", "src\Modules\ProjectManagement\ProjectManagement.Presentation\ProjectManagement.Presentation.csproj", "{87FD006D-DFEF-4D5C-ABC9-BC0A230C7E3F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProjectManagement.Infrastructure", "src\Modules\ProjectManagement\ProjectManagement.Infrastructure\ProjectManagement.Infrastructure.csproj", "{EC5A96D7-6E29-4103-AADB-277C5DC9D4B0}"
 EndProject
@@ -130,7 +130,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProjectManagement.Module", 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BudgetManagement", "BudgetManagement", "{5AE5ED49-4D94-4714-A1D3-DA6A566A9186}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BudgetManagement.API", "src\Modules\BudgetManagement\BudgetManagement.API\BudgetManagement.API.csproj", "{1F7363DF-84FB-40E4-8A24-F1BDED2219EF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BudgetManagement.Presentation", "src\Modules\BudgetManagement\BudgetManagement.Presentation\BudgetManagement.Presentation.csproj", "{1F7363DF-84FB-40E4-8A24-F1BDED2219EF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BudgetManagement.Infrastructure", "src\Modules\BudgetManagement\BudgetManagement.Infrastructure\BudgetManagement.Infrastructure.csproj", "{D3220739-A5CB-4E3E-AEAD-A54DC824866C}"
 EndProject
@@ -141,6 +141,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BudgetManagement.Application", "src\Modules\BudgetManagement\Core\BudgetManagement.Application\BudgetManagement.Application.csproj", "{DA734528-6CE5-4C31-91A6-C4E7282BC181}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BudgetManagement.Domain", "src\Modules\BudgetManagement\Core\BudgetManagement.Domain\BudgetManagement.Domain.csproj", "{BEE75783-90A8-467E-9058-69CCD420BA0C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "UserManagement", "UserManagement", "{0617F1CB-1C77-4AE5-B64D-15A96430CE81}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UserManagement.Presentation", "src\Modules\UserManagement\UserManagement.Presentation\UserManagement.Presentation.csproj", "{CC6DD8FC-0109-4F55-9BA0-78CEBC41DA59}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -352,6 +356,10 @@ Global
 		{BEE75783-90A8-467E-9058-69CCD420BA0C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BEE75783-90A8-467E-9058-69CCD420BA0C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BEE75783-90A8-467E-9058-69CCD420BA0C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CC6DD8FC-0109-4F55-9BA0-78CEBC41DA59}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CC6DD8FC-0109-4F55-9BA0-78CEBC41DA59}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CC6DD8FC-0109-4F55-9BA0-78CEBC41DA59}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CC6DD8FC-0109-4F55-9BA0-78CEBC41DA59}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{797F6419-CC8D-46D7-AEB3-334FCBA111E0} = {20F0B297-DD7E-436B-A300-D487885AEA89}
@@ -419,6 +427,8 @@ Global
 		{CD38BA58-24EE-45BC-A08D-BDE0548EA1FE} = {5AE5ED49-4D94-4714-A1D3-DA6A566A9186}
 		{DA734528-6CE5-4C31-91A6-C4E7282BC181} = {CD38BA58-24EE-45BC-A08D-BDE0548EA1FE}
 		{BEE75783-90A8-467E-9058-69CCD420BA0C} = {CD38BA58-24EE-45BC-A08D-BDE0548EA1FE}
+		{0617F1CB-1C77-4AE5-B64D-15A96430CE81} = {797F6419-CC8D-46D7-AEB3-334FCBA111E0}
+		{CC6DD8FC-0109-4F55-9BA0-78CEBC41DA59} = {0617F1CB-1C77-4AE5-B64D-15A96430CE81}
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

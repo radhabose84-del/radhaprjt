@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="..\ProjectManagement.API\ProjectManagement.API.csproj" />
+    <ProjectReference Include="..\ProjectManagement.Presentation\ProjectManagement.Presentation.csproj" />
     <ProjectReference Include="..\Core\ProjectManagement.Application\ProjectManagement.Application.csproj" />
     <ProjectReference Include="..\ProjectManagement.Infrastructure\ProjectManagement.Infrastructure.csproj" />
   </ItemGroup>

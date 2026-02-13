@@ -18,7 +18,7 @@ using FValidationResult = FluentValidation.Results.ValidationResult;
 using FValidationFailure = FluentValidation.Results.ValidationFailure;
 using Moq;
 using UserManagement.Application.Users.Queries.GetUsers;
-using UserManagement.API.Controllers;
+using UserManagement.Presentation.Controllers;
 
 namespace UserManagement.UnitTests.Presentation.Users;
 

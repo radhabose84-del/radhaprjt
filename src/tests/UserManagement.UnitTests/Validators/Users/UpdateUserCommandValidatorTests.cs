@@ -6,8 +6,8 @@ using UserManagement.Domain.Entities;
 using FluentValidation.TestHelper;
 using Microsoft.EntityFrameworkCore;
 using Moq;
-using UserManagement.API.Validation.Common;
-using UserManagement.API.Validation.Users;
+using UserManagement.Presentation.Validation.Common;
+using UserManagement.Presentation.Validation.Users;
 using UserManagement.Infrastructure.Data;
 using Xunit;
 

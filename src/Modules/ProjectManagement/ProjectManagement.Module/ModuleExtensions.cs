@@ -9,8 +9,8 @@ using ProjectManagement.Infrastructure;
 
 // ✅ Change these 2 marker types to your real types
 using ProjectManagement.Application.Common.Mappings;
-using ProjectManagement.API.Validation.ProjectMaster;
-using ProjectManagement.API.Validation.Common;
+using ProjectManagement.Presentation.Validation.ProjectMaster;
+using ProjectManagement.Presentation.Validation.Common;
 
 namespace ProjectManagement.Module
 {

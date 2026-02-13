@@ -13,7 +13,7 @@
 
   <!-- Project References -->
   <ItemGroup>
-    <ProjectReference Include="..\InventoryManagement.API\InventoryManagement.API.csproj" />
+    <ProjectReference Include="..\InventoryManagement.Presentation\InventoryManagement.Presentation.csproj" />
     <ProjectReference Include="..\InventoryManagement.Infrastructure\InventoryManagement.Infrastructure.csproj" />
     <ProjectReference Include="..\Core\InventoryManagement.Application\InventoryManagement.Application.csproj" />
     <ProjectReference Include="..\Core\InventoryManagement.Domain\InventoryManagement.Domain.csproj" />

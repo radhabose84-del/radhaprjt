@@ -42,7 +42,7 @@
     <!-- Project references -->
     <ProjectReference Include="..\Modules\UserManagement\Core\UserManagement.Application\UserManagement.Application.csproj" />
     <ProjectReference Include="..\Modules\UserManagement\UserManagement.Infrastructure\UserManagement.Infrastructure.csproj" />
-    <ProjectReference Include="..\Modules\UserManagement\UserManagement.API\UserManagement.API.csproj" />
+    <ProjectReference Include="..\Modules\UserManagement\UserManagement.Presentation\UserManagement.Presentation.csproj" />
     
     <!-- ADD THIS LINE - Module project -->
     <ProjectReference Include="..\Modules\UserManagement\UserManagement.Module\UserManagement.Module.csproj" />
@@ -50,7 +50,7 @@
     <!-- Budget module -->
     <ProjectReference Include="..\Modules\BudgetManagement\BudgetManagement.Module\BudgetManagement.Module.csproj" />
     <ProjectReference Include="..\Modules\BudgetManagement\BudgetManagement.Infrastructure\BudgetManagement.Infrastructure.csproj" />
-    <ProjectReference Include="..\Modules\BudgetManagement\BudgetManagement.API\BudgetManagement.API.csproj" />
+    <ProjectReference Include="..\Modules\BudgetManagement\BudgetManagement.Presentation\BudgetManagement.Presentation.csproj" />
     <ProjectReference Include="..\Modules\BudgetManagement\Core\BudgetManagement.Application\BudgetManagement.Application.csproj" />
     <ProjectReference Include="..\Modules\BudgetManagement\Core\BudgetManagement.Domain\BudgetManagement.Domain.csproj" />
 

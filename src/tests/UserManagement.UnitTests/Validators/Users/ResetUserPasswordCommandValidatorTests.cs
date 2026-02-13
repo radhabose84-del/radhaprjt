@@ -9,7 +9,7 @@ using UserManagement.Domain.Entities; // User
 using FluentValidation.TestHelper;
 using Moq;
 using Xunit;
-using UserManagement.API.Validation.Users;
+using UserManagement.Presentation.Validation.Users;
 
 namespace UserManagement.UnitTests.Validators.Users
 {

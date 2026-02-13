@@ -13,7 +13,7 @@
 
   <!-- Project References -->
   <ItemGroup>
-    <ProjectReference Include="..\PurchaseManagement.API\PurchaseManagement.API.csproj" />
+    <ProjectReference Include="..\PurchaseManagement.Presentation\PurchaseManagement.Presentation.csproj" />
     <ProjectReference Include="..\PurchaseManagement.Infrastructure\PurchaseManagement.Infrastructure.csproj" />
     <ProjectReference Include="..\Core\PurchaseManagement.Application\PurchaseManagement.Application.csproj" />
     <ProjectReference Include="..\Core\PurchaseManagement.Domain\PurchaseManagement.Domain.csproj" />

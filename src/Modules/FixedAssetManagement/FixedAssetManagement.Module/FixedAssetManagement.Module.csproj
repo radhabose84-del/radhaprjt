@@ -13,7 +13,7 @@
 
   <!-- Project References -->
   <ItemGroup>
-    <ProjectReference Include="..\FAM.API\FAM.API.csproj" />
+    <ProjectReference Include="..\FAM.Presentation\FAM.Presentation.csproj" />
     <ProjectReference Include="..\FAM.Infrastructure\FAM.Infrastructure.csproj" />
     <ProjectReference Include="..\Core\FAM.Application\FAM.Application.csproj" />
     <ProjectReference Include="..\Core\FAM.Domain\FAM.Domain.csproj" />

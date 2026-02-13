@@ -13,7 +13,7 @@
 
   <!-- Project References -->
   <ItemGroup>
-    <ProjectReference Include="..\PartyManagement.API\PartyManagement.API.csproj" />
+    <ProjectReference Include="..\PartyManagement.Presentation\PartyManagement.Presentation.csproj" />
     <ProjectReference Include="..\PartyManagement.Infrastructure\PartyManagement.Infrastructure.csproj" />
     <ProjectReference Include="..\Core\PartyManagement.Application\PartyManagement.Application.csproj" />
     <ProjectReference Include="..\Core\PartyManagement.Domain\PartyManagement.Domain.csproj" />

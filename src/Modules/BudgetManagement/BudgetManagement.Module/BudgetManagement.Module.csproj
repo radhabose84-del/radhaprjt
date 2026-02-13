@@ -13,7 +13,7 @@
 
   <!-- Project References -->
   <ItemGroup>
-    <ProjectReference Include="..\BudgetManagement.API\BudgetManagement.API.csproj" />
+    <ProjectReference Include="..\BudgetManagement.Presentation\BudgetManagement.Presentation.csproj" />
     <ProjectReference Include="..\BudgetManagement.Infrastructure\BudgetManagement.Infrastructure.csproj" />
     <ProjectReference Include="..\Core\BudgetManagement.Application\BudgetManagement.Application.csproj" />
     <ProjectReference Include="..\Core\BudgetManagement.Domain\BudgetManagement.Domain.csproj" />

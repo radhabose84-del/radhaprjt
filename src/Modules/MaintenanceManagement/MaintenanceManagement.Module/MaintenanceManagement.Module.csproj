@@ -13,7 +13,7 @@
 
   <!-- Project References -->
   <ItemGroup>
-    <ProjectReference Include="..\MaintenanceManagement.API\MaintenanceManagement.API.csproj" />
+    <ProjectReference Include="..\MaintenanceManagement.Presentation\MaintenanceManagement.Presentation.csproj" />
     <ProjectReference Include="..\MaintenanceManagement.Infrastructure\MaintenanceManagement.Infrastructure.csproj" />
     <ProjectReference Include="..\Core\MaintenanceManagement.Application\MaintenanceManagement.Application.csproj" />
     <ProjectReference Include="..\Core\MaintenanceManagement.Domain\MaintenanceManagement.Domain.csproj" />

@@ -5,8 +5,8 @@ using Microsoft.Extensions.Hosting;
 using Shared.Validation.Common;
 using WarehouseManagement.Infrastructure;
 using WarehouseManagement.Application.Common.Mappings;          
-using WarehouseManagement.API.Validation.WarehouseMaster;
-using WarehouseManagement.API.Validation.Common;
+using WarehouseManagement.Presentation.Validation.WarehouseMaster;
+using WarehouseManagement.Presentation.Validation.Common;
 
 namespace WarehouseManagement.Module
 {
