@@ -39,22 +39,7 @@ namespace BackgroundService.Application.Workflow.ApprovalRules.Queries.GetAllApp
                     dto.MenuName = MenuName;
                 }
             }
-
-            
-            //  var units = await _unitGrpcClient.GetAllUnitAsync();
-            // var unitDict = units.ToDictionary(u => u.UnitId, u => u.UnitName);
-
-            // foreach (var approval in ApprovalRuleDto)
-            // {
-            //     if (unitDict.TryGetValue(approval.UnitId, out var unitName))
-            //     {
-            //         approval.UnitName = unitName;
-            //     }
-            //     else
-            //     {
-            //         approval.UnitName = "Unknown Unit";
-            //     }
-            // }
+         
             return new ApiResponseDTO<List<ApprovalRuleDto>>
             {
                 IsSuccess = true,

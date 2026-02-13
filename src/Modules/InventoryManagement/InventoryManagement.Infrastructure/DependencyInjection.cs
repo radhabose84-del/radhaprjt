@@ -45,6 +45,7 @@ using InventoryManagement.Infrastructure.Repositories.UOMs;
 using InventoryManagement.Infrastructure.Repositories.Lookups;
 using InventoryManagement.Infrastructure.Services;
 using Contracts.Interfaces.Lookups.Inventory;
+using Contracts.Interfaces.Lookups.Workflow;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -178,6 +179,7 @@ namespace InventoryManagement.Infrastructure
             services.AddScoped<IItemLookup, ItemLookupRepository>();
             services.AddScoped<IMiscMasterLookup, MiscMasterLookupRepository>();
             services.AddScoped<IHSNLookup, HSNLookupRepository>();
+            services.AddScoped<IWorkflowLookup, WorkflowLookupRepository>();
 
             // Miscellaneous services
             services.AddScoped<IIPAddressService, IPAddressService>();
