@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Contracts.Interfaces.External.IWarehouse;
 using PurchaseManagement.Domain.Events;
 using MediatR;
-using Contracts.Interfaces.Lookups.Workflow;
+using Contracts.Interfaces.Lookups.Warehouse;
 
 namespace PurchaseManagement.Application.MRS.Queries.GetParentWarehouse
 {

@@ -4,7 +4,6 @@ using WarehouseManagement.Application.Common.Interfaces.AuditLog;
 using WarehouseManagement.Application.Common.Interfaces.IBinMaster;
 using WarehouseManagement.Application.Common.Interfaces.IRackMaster;
 using WarehouseManagement.Application.Common.Interfaces.IWarehouseMaster;
-using Contracts.Interfaces.Lookups.Workflow;
 using WarehouseManagement.Application.Common.Mappings;
 using Infrastructure.Data;
 using Microsoft.Data.SqlClient;
@@ -15,13 +14,13 @@ using Microsoft.Extensions.Hosting;
 using MongoDB.Driver;
 using PartyManagement.Infrastructure.Repositories;
 using Serilog;
-using WarehouseManagement.Application.Common.Mappings;
 using WarehouseManagement.Infrastructure.Data;
 using WarehouseManagement.Infrastructure.Repositories.BinMaster;
 using WarehouseManagement.Infrastructure.Repositories.Lookups;
 using WarehouseManagement.Infrastructure.Repositories.RackMaster;
 using WarehouseManagement.Infrastructure.Repositories.WarehouseMaster;
 using WarehouseManagement.Infrastructure.Services;
+using Contracts.Interfaces.Lookups.Warehouse;
 
 namespace WarehouseManagement.Infrastructure
 {

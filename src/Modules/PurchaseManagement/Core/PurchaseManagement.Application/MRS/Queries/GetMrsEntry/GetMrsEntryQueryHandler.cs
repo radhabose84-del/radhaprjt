@@ -10,8 +10,8 @@ using PurchaseManagement.Application.Common.HttpResponse;
 using PurchaseManagement.Application.Common.Interfaces.IMRS;
 using PurchaseManagement.Domain.Events;
 using MediatR;
-using Contracts.Dtos.Lookups.Workflow;
-using Contracts.Interfaces.Lookups.Workflow;
+using Contracts.Dtos.Lookups.Warehouse;
+using Contracts.Interfaces.Lookups.Warehouse;
 using Contracts.Interfaces.Lookups.Users;
 
 namespace PurchaseManagement.Application.MRS.Queries.GetMrsEntry
