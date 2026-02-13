@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-// using Contracts.Interfaces.External.IWorkflow;
+using Contracts.Interfaces.Lookups.Workflow;
 using ProjectManagement.Application.ProjectMaster.Command.CreateProjectMaster;
 using FluentValidation;
 using ProjectManagement.Presentation.Validation.Common;
@@ -12,33 +12,33 @@ namespace ProjectManagement.Presentation.Validation.ProjectMaster
 {
     public class CreateProjectMasterCommandValidator : AbstractValidator<CreateProjectMasterCommand>
     {
-        //  private readonly IWorkflowGrpcClient _workflowGrpcClient;
+        private readonly IWorkflowLookup _workflowLookup;
          
         private readonly List<ValidationRule> _validationRules;
         public CreateProjectMasterCommandValidator(
-            // IWorkflowGrpcClient workflowGrpcClient,
+             IWorkflowLookup workflowLookup,
          List<ValidationRule> validationRules)
         {
-        //  _workflowGrpcClient = workflowGrpcClient;
+          _workflowLookup = workflowLookup;
             _validationRules = validationRules;
 
 
          // ✅ Only apply dynamic rules if any exist
-        // foreach (var rule in _validationRules)
-        // {
-        //     switch (rule.Rule)
-        //     {
-        //         case "Workflow":
-        //             RuleFor(x => x.Project.UnitId)
-        //                 .MustAsync(async (command, unitId, cancellation) =>
-        //                     await _workflowGrpcClient.IsApproveWorkflowConfigure(
-        //                         ProjectManagement.Domain.Common.MiscEnumEntity.ProjectMaster,
-        //                         unitId,
-        //                         command.Project.DepartmentId))
-        //                 .WithMessage(rule.Error);
-        //             break;
-        //     }
-        // }
+        foreach (var rule in _validationRules)
+        {
+            switch (rule.Rule)
+            {
+                case "Workflow":
+                    RuleFor(x => x.Project.UnitId)
+                        .MustAsync(async (command, unitId, cancellation) =>
+                            await _workflowLookup.IsApproveWorkflowConfigureAsync(
+                                ProjectManagement.Domain.Common.MiscEnumEntity.ProjectMaster,
+                                unitId,
+                                command.Project.DepartmentId))
+                        .WithMessage(rule.Error);
+                    break;
+            }
+        }
 
             // ✅ Your static rules stay as-is
             RuleFor(x => x.Project.ProjectName)

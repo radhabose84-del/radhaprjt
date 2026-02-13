@@ -42,9 +42,6 @@ namespace WarehouseManagement.Application.RackMaster.Queries.GetAllRackMaster
             // Map
             var rackList = _mapper.Map<List<RackMasterDto>>(racks);
 
-            //  var floorTask = _miscMasterGrpcClient.GetMiscMasterByIdAsync("Floor");
-            // var aisleTask = _miscMasterGrpcClient.GetMiscMasterByIdAsync("WarehouseAisle");
-            // var levelTask = _miscMasterGrpcClient.GetMiscMasterByIdAsync("WarehouseRackLevel");
             var uomTask = _uomLookup.GetAllAsync();
 
             // Avoid running multiple MiscMaster lookups concurrently on the same repository/connection.

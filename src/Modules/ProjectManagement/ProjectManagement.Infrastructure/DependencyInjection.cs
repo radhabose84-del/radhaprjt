@@ -93,7 +93,7 @@ namespace ProjectManagement.Infrastructure
             services.AddScoped<IMiscTypeMasterCommandRepository, MiscTypeMasterCommandRepository>();
             services.AddScoped<IMiscMasterQueryRepository, MiscMasterQueryRepository>();
             services.AddScoped<IMiscMasterCommandRepository, MiscMasterCommandRepository>();
-            // services.AddScoped<IProjectMasterQueryRepository, ProjectMasterQueryRepository>();
+            services.AddScoped<IProjectMasterQueryRepository, ProjectMasterQueryRepository>();
             services.AddScoped<IProjectMasterCommandRepository, ProjectMasterCommandRepository>();
             services.AddScoped<IUploadDocumentQueryRepository, DocumentQueryRepository>();
 

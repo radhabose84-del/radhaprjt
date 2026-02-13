@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
-using Contracts.Interfaces.External.IUser;
+using Contracts.Interfaces.Lookups.Users;
 using InventoryManagement.Application.Common.Interfaces.IMRS;
 using InventoryManagement.Domain.Events;
 using MediatR;
@@ -15,13 +16,13 @@ namespace InventoryManagement.Application.MRS.Queries.GetMrsEntryById
         private readonly IMrsEntryQueryRepository _iMrsEntryQueryRepository;
         private readonly IMapper _mapper;
         private readonly IMediator _mediator;
-        private readonly IDepartmentAllGrpcClient _departmentAllGrpcClient;
-        public GetMrsEntryByIdQueryHandler(IMrsEntryQueryRepository iMrsEntryQueryRepository, IMapper mapper, IMediator mediator, IDepartmentAllGrpcClient departmentAllGrpcClient)
+        private readonly IDepartmentLookup _departmentLookup;
+        public GetMrsEntryByIdQueryHandler(IMrsEntryQueryRepository iMrsEntryQueryRepository, IMapper mapper, IMediator mediator, IDepartmentLookup departmentLookup)
         {
             _iMrsEntryQueryRepository = iMrsEntryQueryRepository;
             _mapper = mapper;
             _mediator = mediator;
-            _departmentAllGrpcClient = departmentAllGrpcClient;
+            _departmentLookup = departmentLookup;
 
         }
 
@@ -37,13 +38,11 @@ namespace InventoryManagement.Application.MRS.Queries.GetMrsEntryById
             var uomIds = dto.MrsDetails.Select(x => x.UomId).Distinct().ToList();
             var itemIds = dto.MrsDetails.Select(x => x.ItemId).Distinct().ToList();
 
-            // 3️⃣ Fire parallel gRPC calls
-            var departmentTask = _departmentAllGrpcClient.GetDepartmentAllAsync();
-        
+            // 3️⃣ Fire parallel lookup calls
+            var departmentTask = _departmentLookup.GetAllDepartmentAsync();
 
             // 4️⃣ Await all together
-            await Task.WhenAll(
-                departmentTask);
+            await Task.WhenAll(departmentTask);
 
             var departments = await departmentTask;
         
