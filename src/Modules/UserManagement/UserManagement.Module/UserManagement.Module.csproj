@@ -8,7 +8,7 @@
 
   <!-- Project References -->
   <ItemGroup>
-    <ProjectReference Include="..\UserManagement.API\UserManagement.API.csproj" />
+    <ProjectReference Include="..\UserManagement.Presentation\UserManagement.Presentation.csproj" />
     <ProjectReference Include="..\UserManagement.Infrastructure\UserManagement.Infrastructure.csproj" />
     <ProjectReference Include="..\Core\UserManagement.Application\UserManagement.Application.csproj" />
      <ProjectReference Include="..\Core\UserManagement.Domain\UserManagement.Domain.csproj" />

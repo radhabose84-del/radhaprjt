@@ -3,8 +3,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-using BudgetManagement.API.Validation.BudgetAllocation;
-using BudgetManagement.API.Validation.Common;
+using BudgetManagement.Presentation.Validation.BudgetAllocation;
+using BudgetManagement.Presentation.Validation.Common;
 using BudgetManagement.Application.Common.Mappings;
 using BudgetManagement.Infrastructure;
 namespace BudgetManagement.Module;

@@ -1,8 +1,8 @@
 using FluentValidation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using PartyManagement.API.Validation.Common;
-using PartyManagement.API.Validation.PartyMaster;
+using PartyManagement.Presentation.Validation.Common;
+using PartyManagement.Presentation.Validation.PartyMaster;
 using PartyManagement.Application.Common.Mappings;
 using Shared.Validation.Common;
 using PartyManagement.Infrastructure;

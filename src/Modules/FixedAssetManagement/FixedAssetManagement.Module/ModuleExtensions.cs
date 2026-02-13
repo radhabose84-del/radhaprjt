@@ -5,8 +5,8 @@ using FluentValidation;
 using MediatR;
 
 using FAM.Infrastructure;
-using FAM.API.Validation.Locations;
-using FAM.API.Validation.Common;
+using FAM.Presentation.Validation.Locations;
+using FAM.Presentation.Validation.Common;
 
 using FAM.Application.Common.Mappings;
 using FAM.Application.Common.Mappings.AssetMaster;
@@ -26,7 +26,7 @@ namespace FixedAssetManagement.Module
 
             // ✅ 1) Use compile-time assemblies (NO Assembly.Load)
             var applicationAssembly = typeof(LocationProfile).Assembly;              // FAM.Application
-            var apiAssembly = typeof(CreateLocationCommandValidator).Assembly;       // FAM.API
+            var apiAssembly = typeof(CreateLocationCommandValidator).Assembly;       // FAM.Presentation
 
             // ✅ 2) MediatR handlers from Application (register ALL handlers)
             services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(applicationAssembly));
@@ -54,9 +54,9 @@ namespace FixedAssetManagement.Module
             // services.AddValidatorsFromAssembly(typeof(CreateLocationCommandValidator).Assembly);
 
             // 3) Module-specific validation infrastructure
-            // services.AddScoped<FAM.API.Validation.Common.MaxLengthProvider>();
-            // services.AddScoped<FAM.API.Validation.Common.IMaxLengthProvider>(
-            //     sp => sp.GetRequiredService<FAM.API.Validation.Common.MaxLengthProvider>());
+            // services.AddScoped<FAM.Presentation.Validation.Common.MaxLengthProvider>();
+            // services.AddScoped<FAM.Presentation.Validation.Common.IMaxLengthProvider>(
+            //     sp => sp.GetRequiredService<FAM.Presentation.Validation.Common.MaxLengthProvider>());
 
 
             // 4) Infrastructure
@@ -64,7 +64,7 @@ namespace FixedAssetManagement.Module
 
             // // ✅ 2) Use compile-time assemblies (NO Assembly.Load)
             // var applicationAssembly = typeof(LocationProfile).Assembly;                 // MaintenanceManagement.Application
-            // var apiAssembly = typeof(CreateLocationCommandValidator).Assembly;          // MaintenanceManagement.API
+            // var apiAssembly = typeof(CreateLocationCommandValidator).Assembly;          // MaintenanceManagement.Presentation
 
             // // ✅ 3) MediatR handlers from Application
             // services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(applicationAssembly));

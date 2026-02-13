@@ -13,7 +13,7 @@
 
   <!-- Project References -->
   <ItemGroup>
-    <ProjectReference Include="..\WarehouseManagement.API\WarehouseManagement.API.csproj" />
+    <ProjectReference Include="..\WarehouseManagement.Presentation\WarehouseManagement.Presentation.csproj" />
     <ProjectReference Include="..\WarehouseManagement.Infrastructure\WarehouseManagement.Infrastructure.csproj" />
     <ProjectReference Include="..\Core\WarehouseManagement.Application\WarehouseManagement.Application.csproj" />
     <ProjectReference Include="..\Core\WarehouseManagement.Domain\WarehouseManagement.Domain.csproj" />

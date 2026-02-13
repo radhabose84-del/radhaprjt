@@ -5,9 +5,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 using MaintenanceManagement.Infrastructure;
-using MaintenanceManagement.API.Validation.MachineGroup;
+using MaintenanceManagement.Presentation.Validation.MachineGroup;
 using MaintenanceManagement.Application.Common.Mappings;
-using MaintenanceManagement.API.Validation.Common; // MachineGroupProfile lives in Application
+using MaintenanceManagement.Presentation.Validation.Common; // MachineGroupProfile lives in Application
 
 namespace MaintenanceManagement.Module
 {
@@ -23,7 +23,7 @@ namespace MaintenanceManagement.Module
 
             // ✅ 2) Use compile-time assemblies (NO Assembly.Load)
             var applicationAssembly = typeof(MachineGroupProfile).Assembly;                 // MaintenanceManagement.Application
-            var apiAssembly = typeof(CreateMachineGroupCommandValidator).Assembly;          // MaintenanceManagement.API
+            var apiAssembly = typeof(CreateMachineGroupCommandValidator).Assembly;          // MaintenanceManagement.Presentation
 
             // ✅ 3) MediatR handlers from Application
             services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(applicationAssembly));
@@ -39,9 +39,9 @@ namespace MaintenanceManagement.Module
             services.AddScoped<IMaxLengthProvider>(sp => sp.GetRequiredService<MaxLengthProvider>());
 
             // // ✅ 6) Module validation helpers (your existing pattern)
-            // services.AddScoped<MaintenanceManagement.API.Validation.Common.MaxLengthProvider>();
-            // services.AddScoped<MaintenanceManagement.API.Validation.Common.IMaxLengthProvider>(
-            //     sp => sp.GetRequiredService<MaintenanceManagement.API.Validation.Common.MaxLengthProvider>());
+            // services.AddScoped<MaintenanceManagement.Presentation.Validation.Common.MaxLengthProvider>();
+            // services.AddScoped<MaintenanceManagement.Presentation.Validation.Common.IMaxLengthProvider>(
+            //     sp => sp.GetRequiredService<MaintenanceManagement.Presentation.Validation.Common.MaxLengthProvider>());
 
             return services;
         }

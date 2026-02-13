@@ -12,16 +12,16 @@ namespace BSOFT.Bootstrapper.Configurations
         // ✅ Default module docs
         private static readonly SwaggerModuleInfo[] swaggerModuleDocs =
         {
-            new SwaggerModuleInfo("UserManagement", "User Management API", "v1", "UserManagement.API.Controllers"),
-            new SwaggerModuleInfo("FixedAssetManagement", "Fixed Asset Management API", "v1", "FAM.API.Controllers"),
-            new SwaggerModuleInfo("MaintenanceManagement", "Maintenance Management API", "v1", "MaintenanceManagement.API.Controllers"),
-            new SwaggerModuleInfo("PurchaseManagement", "Purchase Management API", "v1", "PurchaseManagement.API.Controllers"),
-            new SwaggerModuleInfo("InventoryManagement", "Inventory Management API", "v1", "InventoryManagement.API.Controllers"),
-            new SwaggerModuleInfo("PartyManagement", "Party Management API", "v1", "PartyManagement.API.Controllers"),
-			new SwaggerModuleInfo("BudgetManagement", "Budget Management API", "v1", "BudgetManagement.API.Controllers"),
-            new SwaggerModuleInfo("WarehouseManagement", "Warehouse Management API", "v1", "WarehouseManagement.API.Controllers"),
-            new SwaggerModuleInfo("SalesManagement", "Sales Management API", "v1", "SalesManagement.API.Controllers"),
-            new SwaggerModuleInfo("ProjectManagement", "Project Management API", "v1", "ProjectManagement.API.Controllers")
+            new SwaggerModuleInfo("UserManagement", "User Management API", "v1", "UserManagement.Presentation.Controllers"),
+            new SwaggerModuleInfo("FixedAssetManagement", "Fixed Asset Management API", "v1", "FAM.Presentation.Controllers"),
+            new SwaggerModuleInfo("MaintenanceManagement", "Maintenance Management API", "v1", "MaintenanceManagement.Presentation.Controllers"),
+            new SwaggerModuleInfo("PurchaseManagement", "Purchase Management API", "v1", "PurchaseManagement.Presentation.Controllers"),
+            new SwaggerModuleInfo("InventoryManagement", "Inventory Management API", "v1", "InventoryManagement.Presentation.Controllers"),
+            new SwaggerModuleInfo("PartyManagement", "Party Management API", "v1", "PartyManagement.Presentation.Controllers"),
+			new SwaggerModuleInfo("BudgetManagement", "Budget Management API", "v1", "BudgetManagement.Presentation.Controllers"),
+            new SwaggerModuleInfo("WarehouseManagement", "Warehouse Management API", "v1", "WarehouseManagement.Presentation.Controllers"),
+            new SwaggerModuleInfo("SalesManagement", "Sales Management API", "v1", "SalesManagement.Presentation.Controllers"),
+            new SwaggerModuleInfo("ProjectManagement", "Project Management API", "v1", "ProjectManagement.Presentation.Controllers")
 
 
         };
