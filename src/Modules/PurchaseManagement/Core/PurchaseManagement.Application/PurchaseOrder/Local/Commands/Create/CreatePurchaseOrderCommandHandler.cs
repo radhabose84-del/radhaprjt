@@ -1,17 +1,20 @@
 using System.Text.Json;
 using AutoMapper;
+using Contracts.Commands.Workflow;
 using Contracts.Events.Notifications;
-using Contracts.Events.Workflow;
 using Contracts.Interfaces.Lookups.Budget;
 using Contracts.Interfaces.Lookups.Users;
 using PurchaseManagement.Application.Common.HttpResponse;
 using PurchaseManagement.Application.Common.Interfaces;
+using PurchaseManagement.Application.Common.Interfaces.IOutbox;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.IPurchaseDocument;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.Local;
-using PurchaseManagement.Application.PurchaseOrder.Dtos.Local;
+using LocalDtos = PurchaseManagement.Application.PurchaseOrder.Dtos.Local;
 using PurchaseManagement.Domain.Common;
 using PurchaseManagement.Domain.Entities.PurchaseOrder;
+using PurchaseManagement.Domain.Entities.PurchaseOrder.Local;
 using PurchaseManagement.Domain.PurchaseOrder;
+using Microsoft.EntityFrameworkCore;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -21,12 +24,11 @@ namespace PurchaseManagement.Application.PurchaseOrder.Local.Commands.Create
         : IRequestHandler<CreatePurchaseOrderCommand, ApiResponseDTO<int>>
     {
         private readonly IPurchaseOrderCommandRepository _repo;
-        private readonly IPurchaseOrderQueryRepository _purchaseOrderQueryRepository;
         private readonly IMapper _mapper;
         private readonly IIPAddressService _ip;
         private readonly ITimeZoneService _timeZoneService;
         private readonly ILogger<CreatePurchaseOrderCommandHandler> _logger;
-        //private readonly IEventPublisher _eventPublisher;
+        private readonly IOutboxEventPublisher _outboxEventPublisher;
         private readonly IPODocumentQueryRepository _poDocumentQueryRepository;
         private readonly IUnitLookup _unitLookup;
         private readonly ICompanyLookup _companyLookup;
@@ -39,8 +41,7 @@ namespace PurchaseManagement.Application.PurchaseOrder.Local.Commands.Create
             IIPAddressService ip,
             ITimeZoneService timeZoneService,
             ILogger<CreatePurchaseOrderCommandHandler> logger,
-            //IEventPublisher eventPublisher,
-            IPurchaseOrderQueryRepository purchaseOrderQueryRepository,
+            IOutboxEventPublisher outboxEventPublisher,
             IPODocumentQueryRepository poDocumentQueryRepository,
             IUnitLookup unitLookup,
             ICompanyLookup companyLookup,
@@ -52,8 +53,7 @@ namespace PurchaseManagement.Application.PurchaseOrder.Local.Commands.Create
             _ip = ip ?? throw new ArgumentNullException(nameof(ip));
             _timeZoneService = timeZoneService;
             _logger = logger;
-            //_eventPublisher = eventPublisher;
-            _purchaseOrderQueryRepository = purchaseOrderQueryRepository;
+            _outboxEventPublisher = outboxEventPublisher;
             _poDocumentQueryRepository = poDocumentQueryRepository;
             _unitLookup = unitLookup;
             _companyLookup = companyLookup;
@@ -73,8 +73,8 @@ namespace PurchaseManagement.Application.PurchaseOrder.Local.Commands.Create
                     Message = "Invalid request payload.",
                     Data = 0
                 };
-            }            
-            
+            }
+
             var requestDate = DateOnly.FromDateTime(request.Data.PODate.DateTime);
 
             if (request.Data.FinancialYearId <= 0 || request.Data.FinancialYearId == null)
@@ -87,13 +87,13 @@ namespace PurchaseManagement.Application.PurchaseOrder.Local.Commands.Create
                     .FirstOrDefault(fy =>
                     {
                         var start = DateOnly.FromDateTime(fy.StartDate.Date);
-                        var end   = DateOnly.FromDateTime(fy.EndDate.Date);
+                        var end = DateOnly.FromDateTime(fy.EndDate.Date);
                         return start <= requestDate && requestDate <= end;
                     });
 
                 if (fyMatch != null)
                 {
-                    request.Data.FinancialYearId = fyMatch.FinancialYearId;                    
+                    request.Data.FinancialYearId = fyMatch.FinancialYearId;
                 }
                 else
                 {
@@ -105,8 +105,8 @@ namespace PurchaseManagement.Application.PurchaseOrder.Local.Commands.Create
                 }
             }
 
-             // -------------------------------------------------
-            // 🔍 BUDGET VALIDATION (BudgetGroup vs PurchaseValue)
+            // -------------------------------------------------
+            // BUDGET VALIDATION (Optimistic - read-only check)
             // -------------------------------------------------
             if (dto.BudgetGroupId.HasValue && dto.BudgetGroupId.Value > 0)
             {
@@ -134,7 +134,7 @@ namespace PurchaseManagement.Application.PurchaseOrder.Local.Commands.Create
                     return new ApiResponseDTO<int>
                     {
                         IsSuccess = false,
-                        Message = "Cannot create PO. Budget amount less than PO value.Budget Balance : " + currentRemaining,
+                        Message = "Cannot create PO. Budget amount less than PO value. Budget Balance: " + currentRemaining,
                         Data = 0
                     };
                 }
@@ -186,92 +186,148 @@ namespace PurchaseManagement.Application.PurchaseOrder.Local.Commands.Create
             entity.CreatedIP = _ip.GetSystemIPAddress();
             entity.CreatedDate = now;
 
-            // ---- 📎 Documents (rename on disk + attach to aggregate)
+            // ---- Documents (rename on disk + attach to aggregate)
             await HandleDocumentsAsync(dto, entity, ct);
 
-            // --- Persist header + details (+ documents via graph)
-            var result = await _repo.CreateAsync(entity, ct);
+            // ════════════════════════════════════════════════════════════════════════════
+            // ATOMIC TRANSACTION: PO Creation + Budget Allocation + Outbox Events
+            // All operations participate in the SAME transaction with full rollback support.
+            // If budget allocation fails -- entire transaction rolls back (PO + outbox events)
+            // --------------------------------------------------------------
 
-            if (result > 0)
+            var strategy = _repo.CreateExecutionStrategy();
+
+            return await strategy.ExecuteAsync(async () =>
             {
-                // ---- Apply budget allocation delta after successful PO creation
-                if (entity.BudgetGroupId.HasValue && entity.BudgetGroupId.Value > 0 && entity.PurchaseValue > 0)
-                {
-                    var budgetMonthDate = new DateOnly(entity.PODate.Year, entity.PODate.Month, 1);
-                    var deltaApplied = await _budgetAllocationLookup.ApplyRemainingBalanceDeltaAsync(
-                        budgetGroupId: entity.BudgetGroupId.Value,
-                        budgetDate: budgetMonthDate,
-                        monthId: entity.BudgetMonthId ?? 0,
-                        requestById: entity.BudgetRequestById ?? 0,
-                        deltaAmount: entity.PurchaseValue,
-                        projectId: entity.ProjectId,
-                        wbsId: entity.WBSId,
-                        financialYearId: entity.FinancialYearId,
-                        ct: ct);
+                await using var transaction = await _repo.BeginTransactionAsync(ct);
 
-                    if (!deltaApplied)
+                try
+                {
+                    // --- Persist header + details (+ documents via graph)
+                    var result = await _repo.CreateWithoutTransactionAsync(entity, ct);
+
+                    if (result <= 0)
                     {
-                        _logger.LogWarning(
-                            "ApplyRemainingBalanceDeltaAsync (create) failed. PO {PoId}, BG {BgId}, Delta {Delta}",
-                            result,
-                            entity.BudgetGroupId,
-                            entity.PurchaseValue);
+                        await transaction.RollbackAsync(ct);
+                        return new ApiResponseDTO<int>
+                        {
+                            IsSuccess = false,
+                            Message = "Purchase order was not created.",
+                            Data = 0
+                        };
                     }
+
+                    if (entity.BudgetGroupId.HasValue && entity.BudgetGroupId.Value > 0 && entity.PurchaseValue > 0)
+                    {
+                        var budgetMonthDate = new DateOnly(entity.PODate.Year, entity.PODate.Month, 1);
+                        var deltaApplied = await _budgetAllocationLookup.ApplyRemainingBalanceDeltaAsync(
+                            budgetGroupId: entity.BudgetGroupId.Value,
+                            budgetDate: budgetMonthDate,
+                            monthId: entity.BudgetMonthId ?? 0,
+                            requestById: entity.BudgetRequestById ?? 0,
+                            deltaAmount: entity.PurchaseValue,
+                            projectId: entity.ProjectId,
+                            wbsId: entity.WBSId,
+                            financialYearId: entity.FinancialYearId,
+                            ct: ct);
+
+                        if (!deltaApplied)
+                        {
+                            await transaction.RollbackAsync(ct);
+
+                            _logger.LogError(
+                                "Budget allocation failed. Rolling back PO creation. PO {PoId}, BG {BgId}, Delta {Delta}",
+                                result,
+                                entity.BudgetGroupId,
+                                entity.PurchaseValue);
+
+                            return new ApiResponseDTO<int>
+                            {
+                                IsSuccess = false,
+                                Message = "Budget allocation failed. Purchase order creation rolled back.",
+                                Data = 0
+                                
+                            };
+                        }
+                    }
+
+                    var detailDto = _mapper.Map<LocalDtos.PurchaseOrderDetailDto>(entity);
+                    var reversePayload = _mapper.Map<CreatePOLocalReverseDto>(detailDto);
+                    var serializedPayload = JsonSerializer.Serialize(reversePayload);
+                    var correlationId = Guid.NewGuid();
+
+                    var workflowCommand = new CreateApprovalRequestCommand
+                    {
+                        CorrelationId = correlationId,
+                        ModuleTypeName = MiscEnumEntity.POLocal,
+                        ModuleTransactionId = result,
+                        Payload = serializedPayload
+                    };
+
+                    var notificationEvent = new NotificationCreatedEvent
+                    {
+                        CorrelationId = correlationId,
+                        CreatedByName = entity.CreatedByName,
+                        UnitId = _ip.GetUnitId(),
+                        ModuleName = "Purchase Order",
+                        EventTypeId = (int)NotificationEnum.NotificationEvent.Create,
+                        param1 = entity.PONumber,
+                        param2 = entity.CreatedByName,
+                        param3 = entity.PODate,
+                        param4 = entity.PurchaseValue.ToString(),
+                        param5 = dto.VendorName
+                    };
+
+                    await _outboxEventPublisher.ScheduleWithoutSaveAsync(workflowCommand, correlationId, ct);
+                 //   await _outboxEventPublisher.ScheduleWithoutSaveAsync(notificationEvent, correlationId, ct);
+
+                    var impactedIndentIds = entity.Headers?
+                        .SelectMany(h => h.Details ?? Enumerable.Empty<PurchaseLocalDetail>())
+                        .Select(d => d.IndentId ?? 0)
+                        .Where(id => id > 0)
+                        .Distinct()
+                        .ToHashSet() ?? new HashSet<int>();
+
+                    if (impactedIndentIds.Count > 0)
+                    {
+                        await _repo.RecomputeIndentPoQtyAsync(impactedIndentIds, ct);
+                    }
+
+                    await _repo.SaveChangesAsync(ct);
+                    await transaction.CommitAsync(ct);
+
+                    _logger.LogInformation(
+                        "PO {PoNumber} created with CorrelationId {CorrelationId}. Transaction committed. Events scheduled to outbox.",
+                        entity.PONumber, correlationId);
+
+                    return new ApiResponseDTO<int>
+                    {
+                        IsSuccess = true,
+                        Message = "Purchase order created successfully.",
+                        Data = result
+                    };
                 }
-
-                // ---- Reload aggregate with details for payload
-             /*    var agg = await _purchaseOrderQueryRepository.GetByIdAsync(result, ct)
-                          ?? throw new InvalidOperationException($"Purchase Order - Local {result} not found after create.");
-
-                // ---- Map to payload and publish workflow + notification events
-                var reversePayload = _mapper.Map<CreatePOLocalReverseDto>(agg);
-                var serializedPayload = JsonSerializer.Serialize(reversePayload);
-                var correlationId = Guid.NewGuid();
-
-                var evt = new TransactionCreatedEvent
+                catch (Exception ex)
                 {
-                    CorrelationId = correlationId,
-                    ModuleTypeName = MiscEnumEntity.POLocal,
-                    ModuleTransactionId = result,
-                    Payload = serializedPayload
-                };
+                    await transaction.RollbackAsync(ct);
 
-                var notification = new NotificationCreatedEvent
-                {
-                    CorrelationId = correlationId,
-                    CreatedByName = entity.CreatedByName,
-                    UnitId = _ip.GetUnitId(),
-                    ModuleName = "Purchase Order",
-                    EventTypeId = (int)NotificationEnum.NotificationEvent.Create,
-                    param1 = entity.PONumber,
-                    param2 = entity.CreatedByName,
-                    param3 = entity.PODate,
-                    param4 = entity.PurchaseValue.ToString(),
-                    param5 = dto.VendorName
-                };
+                    _logger.LogError(ex,
+                        "Exception during PO creation. Transaction rolled back. PONumber: {PONumber}",
+                        entity.PONumber);
 
-                await _eventPublisher.SaveEventAsync(evt);
-                await _eventPublisher.SaveEventAsync(notification);
-                await _eventPublisher.PublishPendingEventsAsync(); */
-
-                return new ApiResponseDTO<int>
-                {
-                    IsSuccess = true,
-                    Message = "Purchase order created successfully.",
-                    Data = result
-                };
-            }
-
-            return new ApiResponseDTO<int>
-            {
-                IsSuccess = false,
-                Message = "Purchase order was not created.",
-                Data = 0
-            };
+                    return new ApiResponseDTO<int>
+                    {
+                        IsSuccess = false,
+                        Message = $"Purchase order creation failed: {ex.Message}",
+                        Data = 0
+                    };
+                }
+            });
         }
-
+            
+            
         private async Task HandleDocumentsAsync(
-            PurchaseOrderCreateDto dto,
+            LocalDtos.PurchaseOrderCreateDto dto,
             PurchaseOrderHeader entity,
             CancellationToken ct)
         {

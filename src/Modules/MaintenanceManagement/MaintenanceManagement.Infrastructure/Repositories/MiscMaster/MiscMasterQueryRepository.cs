@@ -108,7 +108,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.MiscMaster
         public async Task<MaintenanceManagement.Domain.Entities.MiscMaster?> GetByWFMiscMasterCodeAsync(string name, int? id = null)
         {
               var query = """
-                 SELECT * FROM Workflow.Appdata.MiscMaster
+                 SELECT * FROM Appdata.MiscMaster
                  WHERE Code = @Name AND IsDeleted = 0 
                  """;
 

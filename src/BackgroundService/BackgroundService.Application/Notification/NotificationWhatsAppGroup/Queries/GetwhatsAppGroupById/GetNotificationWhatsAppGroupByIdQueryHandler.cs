@@ -1,10 +1,8 @@
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using BackgroundService.Application.Dto;
+using BackgroundService.Application.Notification.Common.Interfaces;
 using BackgroundService.Application.Notification.Common.Interfaces.INotificationWhatsAppGroup;
-using Contracts.Interfaces.External.IUser;
-using Grpc.Core;
 using MediatR;
 
 namespace BackgroundService.Application.Notification.NotificationWhatsAppGroup.Queries.GetNotificationWhatsAppGroupById
@@ -13,17 +11,14 @@ namespace BackgroundService.Application.Notification.NotificationWhatsAppGroup.Q
         : IRequestHandler<GetNotificationWhatsAppGroupByIdQuery, NotificationWhatsAppGroupDto?>
     {
         private readonly INotificationWhatsAppGroupQuery _queryRepo;
-        private readonly IDepartmentGrpcClient _departmentGrpcClient;
-        private readonly IUnitGrpcClient _unitGrpcClient;
+        private readonly ILookupRepository _lookupRepository;
 
         public GetNotificationWhatsAppGroupByIdQueryHandler(
             INotificationWhatsAppGroupQuery queryRepo,
-            IDepartmentGrpcClient departmentGrpcClient,
-            IUnitGrpcClient unitGrpcClient)
+            ILookupRepository lookupRepository)
         {
             _queryRepo = queryRepo;
-            _departmentGrpcClient = departmentGrpcClient;
-            _unitGrpcClient = unitGrpcClient;
+            _lookupRepository = lookupRepository;
         }
 
         public async Task<NotificationWhatsAppGroupDto?> Handle(
@@ -34,24 +29,17 @@ namespace BackgroundService.Application.Notification.NotificationWhatsAppGroup.Q
             if (dto == null)
                 return null;
 
-            // ✅ Enrich names (same style as GetAll)
-            try
+            var departments = await _lookupRepository.GetDepartmentsAsync(cancellationToken);
+            if (departments.TryGetValue(dto.DepartmentId, out var deptName))
             {
-                var departments = await _departmentGrpcClient.GetAllDepartmentAsync();
-                var dept = departments.FirstOrDefault(d => d.DepartmentId == dto.DepartmentId);
-                if (dept != null)
-                    dto.DepartmentName = dept.DepartmentName ?? string.Empty;
+                dto.DepartmentName = deptName;
             }
-            catch (RpcException) { }
 
-            try
+            var units = await _lookupRepository.GetUnitsAsync(cancellationToken);
+            if (units.TryGetValue(dto.UnitId, out var unitName))
             {
-                var units = await _unitGrpcClient.GetAllUnitAsync();
-                var unit = units.FirstOrDefault(u => u.UnitId == dto.UnitId);
-                if (unit != null)
-                    dto.UnitName = unit.UnitName ?? string.Empty;
+                dto.UnitName = unitName;
             }
-            catch (RpcException) { }
 
             // ✅ Ensure ApiKey never null
             dto.ApiKey ??= string.Empty;

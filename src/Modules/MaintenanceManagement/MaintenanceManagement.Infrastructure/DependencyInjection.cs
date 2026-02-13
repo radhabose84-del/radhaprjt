@@ -4,6 +4,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using System.Linq;
 using MongoDB.Driver;
 using Serilog;
 using MaintenanceManagement.Infrastructure.Data;
@@ -68,6 +69,10 @@ using MaintenanceManagement.Application.Common.IMachineSpecification;
 using MaintenanceManagement.Infrastructure.Persistence;
 using Contracts.Interfaces.Lookups.Maintenance;
 using MaintenanceManagement.Infrastructure.Repositories.Lookups.Maintenance;
+using MaintenanceManagement.Application.Common.Interfaces.IOutbox;
+using MaintenanceManagement.Infrastructure.Repositories.Outbox;
+using MaintenanceManagement.Infrastructure.Services.Outbox;
+using MassTransit;
 
 namespace MaintenanceManagement.Infrastructure
 {
@@ -213,9 +218,68 @@ namespace MaintenanceManagement.Infrastructure
             services.AddSingleton<ITimeZoneService, TimeZoneService>();
             services.AddTransient<IJwtTokenHelper, JwtTokenHelper>();
             services.AddScoped<ILogQueryService, LogQueryService>();
-
-            // Outbox publisher
             services.AddScoped<IEventPublisher, EventPublisher>();
+
+            var rabbitHost = configuration["MassTransit:RabbitMq:Host"];
+            if (string.IsNullOrWhiteSpace(rabbitHost))
+            {
+                throw new InvalidOperationException("MassTransit:RabbitMq:Host is missing.");
+            }
+
+            var rabbitUser = configuration["MassTransit:RabbitMq:Username"];
+            var rabbitPass = configuration["MassTransit:RabbitMq:Password"];
+
+            var rabbitUri = rabbitHost.StartsWith("rabbitmq://", StringComparison.OrdinalIgnoreCase)
+                ? new Uri(rabbitHost)
+                : new Uri($"rabbitmq://{rabbitHost}");
+
+            if (!services.Any(sd => sd.ServiceType == typeof(IBusControl)))
+            {
+                try
+                {
+                    services.AddMassTransit(x =>
+                    {
+                        x.SetKebabCaseEndpointNameFormatter();
+                        x.UsingRabbitMq((context, cfg) =>
+                        {
+                            cfg.Host(rabbitUri, h =>
+                            {
+                                h.Username(string.IsNullOrWhiteSpace(rabbitUser) ? "guest" : rabbitUser);
+                                h.Password(string.IsNullOrWhiteSpace(rabbitPass) ? "guest" : rabbitPass);
+                            });
+
+                            cfg.ConfigureEndpoints(context);
+                        });
+                    });
+                }
+                catch (MassTransit.ConfigurationException ex)
+                {
+                    if (ex.Message.Contains("AddMassTransit() was already called", StringComparison.OrdinalIgnoreCase))
+                    {
+                        // MassTransit already configured by another module; skip additional registration.
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+            }
+
+            // ═══════════════════════════════════════════════════════════════
+            // OUTBOX PATTERN SERVICES
+            // ═══════════════════════════════════════════════════════════════
+
+            // Outbox repository (SQL-based for transaction atomicity)
+            services.AddScoped<IOutboxRepository, OutboxRepository>();
+
+            // Outbox event publisher (saves events to outbox table)
+            services.AddScoped<IOutboxEventPublisher, OutboxEventPublisher>();
+
+            // Configure outbox options from appsettings
+            services.Configure<OutboxOptions>(configuration.GetSection(OutboxOptions.SectionName));
+
+            // Background service for publishing outbox messages
+            services.AddHostedService<OutboxPublisherBackgroundService>();
 
             return services;
         }

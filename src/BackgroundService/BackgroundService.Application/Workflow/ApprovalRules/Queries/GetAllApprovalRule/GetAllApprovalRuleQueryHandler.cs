@@ -1,37 +1,36 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
 using BackgroundService.Application.Notification.Common.HttpResponse;
+using BackgroundService.Application.Notification.Common.Interfaces;
 using BackgroundService.Application.Workflow.Common.Interfaces.IApprovalRule;
-using Contracts.Interfaces.External.IUser;
 using MediatR;
 
 namespace BackgroundService.Application.Workflow.ApprovalRules.Queries.GetAllApprovalRule
 {
     public class GetAllApprovalRuleQueryHandler : IRequestHandler<GetAllApprovalRuleQuery, ApiResponseDTO<List<ApprovalRuleDto>>>
     {
-         private readonly IApprovalRuleQuery _approvalRuleQuery;
+        private readonly IApprovalRuleQuery _approvalRuleQuery;
         private readonly IMediator _mediator;
         private readonly IMapper _mapper;
-        private readonly IMenuGrpcClient _menuGrpcClient;
+        private readonly ILookupRepository _lookupRepository;
         public GetAllApprovalRuleQueryHandler(IApprovalRuleQuery approvalRuleQuery, IMediator mediator, IMapper mapper,
-            IMenuGrpcClient menuGrpcClient)
+            ILookupRepository lookupRepository)
         {
             _approvalRuleQuery = approvalRuleQuery;
             _mediator = mediator;
             _mapper = mapper;
-            _menuGrpcClient = menuGrpcClient;
+            _lookupRepository = lookupRepository;
         }
         public async Task<ApiResponseDTO<List<ApprovalRuleDto>>> Handle(GetAllApprovalRuleQuery request, CancellationToken cancellationToken)
         {
             var (ApprovalRule, TotalCount) = await _approvalRuleQuery.GetAllApprovalRuleAsync(request.PageNumber, request.PageSize, request.SearchTerm);
             var ApprovalRuleDto = _mapper.Map<List<ApprovalRuleDto>>(ApprovalRule);
 
-              var menus = await _menuGrpcClient.GetMenuIdsAsync(ApprovalRuleDto.Select(x => x.MenuId).ToList());
-
-            var menuLookup  = menus.ToDictionary(d => d.Id, d => d.MenuName);
+            var menuLookup = await _lookupRepository.GetMenuNamesAsync(ApprovalRuleDto.Select(x => x.MenuId), cancellationToken);
 
             foreach (var dto in ApprovalRuleDto)
             {

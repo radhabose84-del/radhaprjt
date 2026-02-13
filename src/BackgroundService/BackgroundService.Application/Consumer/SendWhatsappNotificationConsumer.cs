@@ -10,19 +10,19 @@ using BackgroundService.Application.Notification.Common.Interfaces;
 using BackgroundService.Domain.Entities.Notification;
 using Contracts.Events.Notifications;
 using Contracts.Events.Notifications.Whatsapp;
-using Hangfire;
 using MassTransit;
 using Microsoft.Extensions.Logging;
 
 namespace BackgroundService.Application.Consumers
 {
+    /// <summary>
+    /// Processes WhatsApp notifications. Retry policy configured in MassTransit DI.
+    /// Failed messages go to whatsapp-notification-queue_error for manual review.
+    /// </summary>
     public class SendWhatsappNotificationConsumer : IConsumer<SendWhatsappNotificationInternalCommand>
     {
-        private const int MaxRetries = 3;
-
         private readonly IWhatsAppSender _waSender;
         private readonly ILogger<SendWhatsappNotificationConsumer> _logger;
-        private readonly IBackgroundJobClient _jobClient;
         private readonly INotificationResolverHandler _resolverHandler;
         private readonly INotificationLogger _loggerNotification;
         private readonly IIPAddressService _ipAddressService;
@@ -31,7 +31,6 @@ namespace BackgroundService.Application.Consumers
         public SendWhatsappNotificationConsumer(
             IWhatsAppSender waSender,
             ILogger<SendWhatsappNotificationConsumer> logger,
-            IBackgroundJobClient jobClient,
             INotificationResolverHandler resolverHandler,
             INotificationLogger loggerNotification,
             IIPAddressService ipAddressService,
@@ -39,7 +38,6 @@ namespace BackgroundService.Application.Consumers
         {
             _waSender = waSender;
             _logger = logger;
-            _jobClient = jobClient;
             _resolverHandler = resolverHandler;
             _loggerNotification = loggerNotification;
             _ipAddressService = ipAddressService;
@@ -175,30 +173,36 @@ namespace BackgroundService.Application.Consumers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex,
-                    "WhatsApp Notification Failed for CorrelationId: {CorrelationId}",
-                    msg.CorrelationId);
+                _logger.LogError(ex, "WhatsApp Notification Failed for CorrelationId: {CorrelationId}", msg.CorrelationId);
 
-                if (msg.RetryCount < MaxRetries)
+                // Log failure for tracking
+                try
                 {
-                    msg.RetryCount++;
-
-                    _jobClient.Schedule<INotificationHandler<SendWhatsappNotificationInternalCommand>>(
-                        h => h.ExecuteAsync(msg, msg.CorrelationId),
-                        TimeSpan.FromMinutes(5));
-
-                    _logger.LogWarning(
-                        "Scheduled retry #{Retry} for WhatsApp notification (CorrelationId: {CorrelationId})",
-                        msg.RetryCount, msg.CorrelationId);
-                }
-                else
-                {
-                    await context.Publish(new SendWhatsappNotificationFailed
+                    await _loggerNotification.LogAsync(new NotificationEventLog
                     {
-                        CorrelationId = msg.CorrelationId,
-                        Reason = $"Max retry attempts ({MaxRetries}) exceeded. Last error: {ex.Message}"
+                        NotificationLevelRuleId = null,
+                        UnitId = msg.UnitId,
+                        ChannelId = (int)NotificationEnum.NotificationChannel.WhatsApp,
+                        NotificationStatusId = (int)NotificationEnum.NotificationStatus.Failed,
+                        ReadStatusId = (int)NotificationEnum.NotificationReadStatus.Unread,
+                        SendTo = msg.Mobile ?? "Unknown",
+                        ActionStatus = "Failed",
+                        MessageText = ex.Message,
+                        Timestamp = DateTimeOffset.UtcNow,
+                        CreatedBy = _ipAddressService.GetUserId(),
+                        CreatedByName = _ipAddressService.GetUserName(),
+                        CreatedIP = _ipAddressService.GetSystemIPAddress(),
+                        IsActive = Domain.Common.BaseEntity.Status.Active,
+                        IsDeleted = Domain.Common.BaseEntity.IsDelete.NotDeleted
                     });
                 }
+                catch (Exception logEx)
+                {
+                    _logger.LogWarning(logEx, "Failed to log WhatsApp notification failure");
+                }
+
+                // Throw to let MassTransit handle retry with configured policy
+                throw;
             }
         }
 

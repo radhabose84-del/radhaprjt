@@ -1,7 +1,6 @@
 using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using BackgroundService.Application.Notification.Common.Interfaces;
 using BackgroundService.Application.Workflow.Common.Interfaces.IApprovalRequest;
@@ -9,7 +8,6 @@ using BackgroundService.Domain.Common;
 using BackgroundService.Domain.Entities.Workflow;
 using BackgroundService.Infrastructure.Data.Notification;
 using Contracts.Events.Workflow;
-using Contracts.Interfaces.External.IUser;
 using Dapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,16 +20,20 @@ namespace BackgroundService.Infrastructure.Repositories.Workflow.ApprovalRequest
         private readonly IDbConnection _dbConnection;
         private readonly IIPAddressService _ipAddressService;
         private readonly IEventPublisher _eventPublisher;
-        private readonly IMenuGrpcClient _menuGrpcClient;
+        private readonly ILookupRepository _lookupRepository;
 
-        public ApprovalRequestCommandRepository(NotificationDbContext notificationDbContext, [FromKeyedServices("Notification")] IDbConnection dbConnection, IIPAddressService ipAddressService,
-        IEventPublisher eventPublisher, IMenuGrpcClient menuGrpcClient)
+        public ApprovalRequestCommandRepository(
+            NotificationDbContext notificationDbContext,
+            [FromKeyedServices("Notification")] IDbConnection dbConnection,
+            IIPAddressService ipAddressService,
+            IEventPublisher eventPublisher,
+            ILookupRepository lookupRepository)
         {
             _notificationDbContext = notificationDbContext;
             _dbConnection = dbConnection;
             _ipAddressService = ipAddressService;
             _eventPublisher = eventPublisher;
-            _menuGrpcClient = menuGrpcClient;
+            _lookupRepository = lookupRepository;
         }
 
         public async Task<int> Approve(ApprovalRequest approvalRequest,string ApprovalRequestLines,CancellationToken ct)
@@ -73,27 +75,26 @@ namespace BackgroundService.Infrastructure.Repositories.Workflow.ApprovalRequest
         {
             try
             {
-                var MenuId = await _menuGrpcClient.GetMenuByNameAsync(workflowType);
+                var menuId = await _lookupRepository.GetMenuIdByNameAsync(workflowType);
                 var procParams = new
                 {
-                    MenuId,
+                    MenuId = menuId,
                     WorkflowCode = workflowType,
                     TransactionId = transactionId,
                     ContextJson = contextJson
                 };
 
                 await _dbConnection.ExecuteAsync(
-                 "[AppData].[sp_EvaluateApproval]",
-                 procParams,
-                 commandType: CommandType.StoredProcedure,
-                 commandTimeout: 60
-             );
+                    "[AppData].[sp_EvaluateApproval]",
+                    procParams,
+                    commandType: CommandType.StoredProcedure,
+                    commandTimeout: 60);
 
                 return true;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                  var correlationId = Guid.NewGuid();
+                var correlationId = Guid.NewGuid();
                 var @event = new ApprovalRequestFailedEvent
                 {
                     CorrelationId = correlationId,
@@ -104,9 +105,8 @@ namespace BackgroundService.Infrastructure.Repositories.Workflow.ApprovalRequest
                 await _eventPublisher.SaveEventAsync(@event);
                 await _eventPublisher.PublishPendingEventsAsync();
 
-                 throw new Exception("EvaluateApproval Stored Procedure Failed");
+                throw new Exception("EvaluateApproval Stored Procedure Failed");
             }
-
         }
 
     }

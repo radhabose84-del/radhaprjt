@@ -4,6 +4,7 @@ using MaintenanceManagement.Application.Common.HttpResponse;
 using MaintenanceManagement.Application.Common.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces.IMaintenanceRequest;
 using MaintenanceManagement.Application.Common.Interfaces.IMiscMaster;
+using MaintenanceManagement.Application.Common.Interfaces.IOutbox;
 using MaintenanceManagement.Application.Common.Interfaces.IWorkOrder;
 using MaintenanceManagement.Domain.Common;
 using MaintenanceManagement.Domain.Events;
@@ -13,7 +14,33 @@ using Contracts.Interfaces.Lookups.Users;
 
 namespace MaintenanceManagement.Application.MaintenanceRequest.Command.CreateMaintenanceRequest
 {
-    public class CreateMaintenanceRequestCommandHandler 
+    /// <summary>
+    /// Handles creation of maintenance requests with transactional outbox pattern.
+    ///
+    /// Flow:
+    /// ┌─────────────────────────────────────────────────────────────────────┐
+    /// │  BEGIN TRANSACTION                                                   │
+    /// │    1. Create MaintenanceRequest                                      │
+    /// │    2. Create WorkOrder (if internal type)                           │
+    /// │    3. Save NotificationCreatedEvent to OutboxMessages table         │
+    /// │  COMMIT TRANSACTION                                                  │
+    /// │                                                                      │
+    /// │  ✅ Return 200 OK to user immediately                               │
+    /// └─────────────────────────────────────────────────────────────────────┘
+    ///
+    /// Background (async):
+    /// ┌─────────────────────────────────────────────────────────────────────┐
+    /// │  OutboxPublisherBackgroundService (every 5 seconds)                 │
+    /// │    1. Poll OutboxMessages WHERE Status = Pending                    │
+    /// │    2. Publish NotificationCreatedEvent to RabbitMQ                  │
+    /// │    3. Mark OutboxMessage as Published                               │
+    /// │                                                                      │
+    /// │  NotificationDispatcherConsumer                                      │
+    /// │    1. Resolve channels (Email, SMS, WhatsApp, InApp)                │
+    /// │    2. Dispatch to channel-specific consumers                        │
+    /// └─────────────────────────────────────────────────────────────────────┘
+    /// </summary>
+    public class CreateMaintenanceRequestCommandHandler
         : IRequestHandler<CreateMaintenanceRequestCommand, ApiResponseDTO<int>>
     {
         private readonly IMaintenanceRequestCommandRepository _maintenanceRequestCommandRepository;
@@ -23,7 +50,7 @@ namespace MaintenanceManagement.Application.MaintenanceRequest.Command.CreateMai
         private readonly IWorkOrderCommandRepository _workOrderCommandRepository;
         private readonly IIPAddressService _ipAddressService;
         private readonly ILogger<CreateMaintenanceRequestCommandHandler> _logger;
-        private readonly IEventPublisher _eventPublisher;
+        private readonly IOutboxEventPublisher _outboxEventPublisher;
         private readonly IMiscMasterQueryRepository _miscMasterQueryRepository;
         private readonly IDepartmentLookup _departmentLookup;
 
@@ -35,7 +62,7 @@ namespace MaintenanceManagement.Application.MaintenanceRequest.Command.CreateMai
             IWorkOrderCommandRepository workOrderCommandRepository,
             IIPAddressService ipAddressService,
             ILogger<CreateMaintenanceRequestCommandHandler> logger,
-            IEventPublisher eventPublisher,
+            IOutboxEventPublisher outboxEventPublisher,
             IMiscMasterQueryRepository miscMasterQueryRepository,
             IDepartmentLookup departmentLookup)
         {
@@ -46,7 +73,7 @@ namespace MaintenanceManagement.Application.MaintenanceRequest.Command.CreateMai
             _workOrderCommandRepository = workOrderCommandRepository;
             _ipAddressService = ipAddressService;
             _logger = logger;
-            _eventPublisher = eventPublisher;
+            _outboxEventPublisher = outboxEventPublisher;
             _miscMasterQueryRepository = miscMasterQueryRepository;
             _departmentLookup = departmentLookup;
         }
@@ -55,8 +82,15 @@ namespace MaintenanceManagement.Application.MaintenanceRequest.Command.CreateMai
             CreateMaintenanceRequestCommand request,
             CancellationToken cancellationToken)
         {
-            // 🔹 Misc status (Open)
-            var statuses   = await _maintenanceRequestQueryRepository.GetMaintenanceOpenstatusAsync();
+            // Generate correlation ID for distributed tracing
+            var correlationId = Guid.NewGuid();
+
+            _logger.LogInformation(
+                "Creating Maintenance Request. CorrelationId: {CorrelationId}, MachineId: {MachineId}",
+                correlationId, request.MachineId);
+
+            // Get Open status for maintenance requests
+            var statuses = await _maintenanceRequestQueryRepository.GetMaintenanceOpenstatusAsync();
             var openStatus = statuses.FirstOrDefault();
 
             if (openStatus == null)
@@ -64,51 +98,56 @@ namespace MaintenanceManagement.Application.MaintenanceRequest.Command.CreateMai
                 return new ApiResponseDTO<int>
                 {
                     IsSuccess = false,
-                    Message   = "Open status not configured for maintenance requests."
+                    Message = "Open status not configured for maintenance requests."
                 };
             }
 
-            // 🔹 Map request to domain entity
+            // Map request to domain entity
             var maintenanceRequest = _imapper.Map<MaintenanceManagement.Domain.Entities.MaintenanceRequest>(request);
 
-            // 🔹 Override status and company/unit from IP address service
+            // Set status and company/unit from context
             maintenanceRequest.RequestStatusId = openStatus.Id;
-            maintenanceRequest.CompanyId       = _ipAddressService.GetCompanyId();
-            maintenanceRequest.UnitId          = _ipAddressService.GetUnitId();
+            maintenanceRequest.CompanyId = _ipAddressService.GetCompanyId();
+            maintenanceRequest.UnitId = _ipAddressService.GetUnitId();
 
-            // 🔹 Insert into the database
+            // ═══════════════════════════════════════════════════════════════════
+            // BEGIN TRANSACTION (implicitly via EF Core DbContext)
+            // All operations below participate in the same transaction
+            // ═══════════════════════════════════════════════════════════════════
+
+            // Step 1: Create Maintenance Request
             var result = await _maintenanceRequestCommandRepository.CreateAsync(maintenanceRequest);
             if (result <= 0)
             {
                 return new ApiResponseDTO<int>
                 {
                     IsSuccess = false,
-                    Message   = "Failed to create Maintenance Request"
+                    Message = "Failed to create Maintenance Request"
                 };
             }
 
-            // 🔹 Get internal request type
-            var requestTypes   = await _maintenanceRequestQueryRepository.GetMaintenanceRequestTypeAsync();
+            // Get request type info
+            var requestTypes = await _maintenanceRequestQueryRepository.GetMaintenanceRequestTypeAsync();
             var internalTypeId = requestTypes.FirstOrDefault()?.Id;
 
-            // 🔹 Get machine name
-            var machineInfo  = await _maintenanceRequestQueryRepository
+            // Get machine info
+            var machineInfo = await _maintenanceRequestQueryRepository
                 .GetMachineInfoAsync(maintenanceRequest.MachineId);
             if (machineInfo is null)
             {
                 return new ApiResponseDTO<int>
                 {
                     IsSuccess = false,
-                    Message   = $"Machine with Id {maintenanceRequest.MachineId} not found."
+                    Message = $"Machine with Id {maintenanceRequest.MachineId} not found."
                 };
             }
-            var machineName  = machineInfo.Value.MachineName;
+            var machineName = machineInfo.Value.MachineName;
             var departmentId = machineInfo.Value.DepartmentId;
 
-            // 🔹 Create WorkOrder only for internal type
+            // Step 2: Create WorkOrder (only for internal type)
             if (internalTypeId.HasValue && maintenanceRequest.RequestTypeId == internalTypeId.Value)
             {
-                var workOrder = _imapper.Map<MaintenanceManagement.Domain.Entities.WorkOrderMaster.WorkOrder>(maintenanceRequest);
+                var workOrder = _imapper.Map<Domain.Entities.WorkOrderMaster.WorkOrder>(maintenanceRequest);
                 workOrder.RequestId = result;
                 workOrder.CompanyId = _ipAddressService.GetCompanyId();
                 workOrder.UnitId = _ipAddressService.GetUnitId();
@@ -117,108 +156,119 @@ namespace MaintenanceManagement.Application.MaintenanceRequest.Command.CreateMai
                 await _workOrderCommandRepository.CreateAsync(
                     workOrder, request.MaintenanceTypeId, cancellationToken);
 
-                // 🔹 Get Workflow Create EventType (Misc)
+                // Get workflow event type 
                 var wfCreate = await _miscMasterQueryRepository.GetByWFMiscMasterCodeAsync(
                     MiscEnumEntity.WorkFlowCreate);
 
-                // 🔹 Get Breakdown MaintenanceType code
+                // Get breakdown maintenance type
                 var breakDownCode = await _miscMasterQueryRepository.GetByMiscMasterCodeAsync(
                     MiscEnumEntity.BreakDown);
 
-                // Fetch departments using lookup
+                // Resolve department names
                 var departments = await _departmentLookup.GetAllDepartmentAsync();
-                var departmentLookup = departments.ToDictionary(d => d.DepartmentId, d => d.DepartmentName);
+                var departmentDict = departments.ToDictionary(d => d.DepartmentId, d => d.DepartmentName);
 
-                string productionDeptName = string.Empty;
-                string maintenanceDeptName = string.Empty;
+                string productionDeptName = departmentDict.TryGetValue(request.ProductionDepartmentId, out var prodName)
+                    ? prodName ?? string.Empty
+                    : string.Empty;
 
-                if (departmentLookup.TryGetValue(request.ProductionDepartmentId, out var prodName)
-                    && !string.IsNullOrWhiteSpace(prodName))
-                {
-                    productionDeptName = prodName;
-                }
+                string maintenanceDeptName = departmentDict.TryGetValue(request.MaintenanceDepartmentId, out var maintName)
+                    ? maintName ?? string.Empty
+                    : string.Empty;
 
-                if (departmentLookup.TryGetValue(request.MaintenanceDepartmentId, out var maintName)
-                    && !string.IsNullOrWhiteSpace(maintName))
-                {
-                    maintenanceDeptName = maintName;
-                }
-                
-                var correlationId = Guid.NewGuid();
                 var createdDate = workOrder.CreatedDate ?? DateTimeOffset.UtcNow;
-                var createdBy = workOrder.CreatedByName;
+                var createdBy = workOrder.CreatedByName ?? string.Empty;
 
-                if (request.MaintenanceTypeId == breakDownCode.Id)
-                {
-                    var @event = new NotificationCreatedEvent
-                    {
-                        CorrelationId = correlationId,
-                        CreatedByName = workOrder.CreatedByName,
-                        UnitId = _ipAddressService.GetUnitId(),
-                        ModuleName = "WorkOrder-BreakDown",
-                        EventTypeId = wfCreate.Id,
-                        ccMail = departmentId.ToString(),
-                        param1 = workOrder.Id.ToString(),
-                        param2 = productionDeptName,
-                        param3 = createdDate,
-                        param4 = machineName,
-                        param5 = maintenanceDeptName, 
-                        param6 = request.Remarks ?? string.Empty,
-                        param7 = createdBy ?? string.Empty
-                    };
+                // Step 3: Schedule notification via Outbox (participates in same transaction)
+                var notificationEvent = CreateNotificationEvent(
+                    correlationId: correlationId,
+                    workOrder: workOrder,
+                    isBreakdown: request.MaintenanceTypeId == breakDownCode.Id,
+                    eventTypeId: wfCreate.Id,
+                    departmentId: departmentId,
+                    productionDeptName: productionDeptName,
+                    maintenanceDeptName: maintenanceDeptName,
+                    machineName: machineName,
+                    remarks: request.Remarks ?? string.Empty,
+                    createdDate: createdDate,
+                    createdBy: createdBy);
 
-                    await _eventPublisher.SaveEventAsync(@event);
-                    await _eventPublisher.PublishPendingEventsAsync();
+                // This saves to OutboxMessages table (within same transaction)
+                await _outboxEventPublisher.ScheduleAsync(notificationEvent, correlationId, cancellationToken);
 
-                    _logger.LogInformation(
-                        "✅ Breakdown Workorder Created. CorrId={CorrelationId}, WorkOrderId={WorkOrderId}, ProdDept={ProdDept}, MaintDept={MaintDept}",
-                        correlationId, workOrder.Id, productionDeptName, maintenanceDeptName);
-                }
-                else
-                {
-                    // 🔔 Non-breakdown WorkOrder notification
-                    var @event = new NotificationCreatedEvent
-                    {
-                        CorrelationId = correlationId,
-                        CreatedByName = workOrder.CreatedByName,
-                        UnitId = _ipAddressService.GetUnitId(),
-                        ModuleName = "WorkOrder",
-                        EventTypeId = wfCreate.Id,
-
-                        param1 = workOrder.Id.ToString(),
-                        param2 = machineName,
-                        param3 = createdDate,
-                        param4 = productionDeptName,
-                        param5 = maintenanceDeptName,
-                        param6 = request.Remarks ?? string.Empty
-                    };
-
-                    await _eventPublisher.SaveEventAsync(@event);
-                    await _eventPublisher.PublishPendingEventsAsync();
-
-                    _logger.LogInformation(
-                        "✅ Maintenance Request Workorder Created. CorrId={CorrelationId}, WorkOrderId={WorkOrderId}, ProdDept={ProdDept}, MaintDept={MaintDept}",
-                        correlationId, workOrder.Id, productionDeptName, maintenanceDeptName);
-                }
+                _logger.LogInformation(
+                    "Scheduled notification via outbox. CorrelationId: {CorrelationId}, WorkOrderId: {WorkOrderId}, IsBreakdown: {IsBreakdown}",
+                    correlationId, workOrder.Id, request.MaintenanceTypeId == breakDownCode.Id);
             }
 
-            // 🔹 Publish domain event for auditing/logging
+            // ═══════════════════════════════════════════════════════════════════
+            // COMMIT TRANSACTION (SaveChangesAsync commits all changes atomically)
+            // MaintenanceRequest + WorkOrder + OutboxMessage all committed together
+            // ═══════════════════════════════════════════════════════════════════
+
+            // Publish domain event for auditing (in-process, no message broker)
             var domainEvent = new AuditLogsDomainEvent(
                 actionDetail: "Create",
                 actionCode: request.MachineId.ToString(),
                 actionName: "Maintenance Request Created",
-                details: "Maintenance Request was created.",
+                details: $"Maintenance Request created. CorrelationId: {correlationId}",
                 module: "MaintenanceRequest"
             );
 
             await _mediator.Publish(domainEvent, cancellationToken);
 
-            // 🔹 Return success response
+            _logger.LogInformation(
+                "✅ Maintenance Request created successfully. Id: {Id}, CorrelationId: {CorrelationId}",
+                result, correlationId);
+
+            // Return immediately - notification will be sent asynchronously by background service
             return new ApiResponseDTO<int>
             {
                 IsSuccess = true,
-                Message   = "Maintenance Request created successfully",
-                Data      = result
+                Message = "Maintenance Request created successfully",
+                Data = result
+            };
+        }
+
+        /// <summary>
+        /// Creates the notification event with all parameters for template rendering
+        /// </summary>
+        private NotificationCreatedEvent CreateNotificationEvent(
+            Guid correlationId,
+            MaintenanceManagement.Domain.Entities.WorkOrderMaster.WorkOrder workOrder,
+            bool isBreakdown,
+            int eventTypeId,
+            int departmentId,
+            string productionDeptName,
+            string maintenanceDeptName,
+            string machineName,
+            string remarks,
+            DateTimeOffset createdDate,
+            string createdBy)
+        {
+            return new NotificationCreatedEvent
+            {
+                CorrelationId = correlationId,
+                CreatedByName = workOrder.CreatedByName,
+                UnitId = _ipAddressService.GetUnitId(),
+                ModuleName = isBreakdown ? "WorkOrder-BreakDown" : "WorkOrder",
+                EventTypeId = eventTypeId,
+                // CC mail uses department ID for recipient resolution
+                ccMail = isBreakdown ? departmentId.ToString() : string.Empty,
+
+                // Template parameters (used by notification template engine)
+                param1 = workOrder.Id.ToString(),
+                param2 = isBreakdown ? productionDeptName : machineName,
+                param3 = createdDate,
+                param4 = isBreakdown ? machineName : productionDeptName,
+                param5 = maintenanceDeptName,
+                param6 = remarks,
+                param7 = isBreakdown ? createdBy : string.Empty,
+
+                // Additional parameters available for templates
+                param8 = string.Empty,
+                param9 = string.Empty,
+                param10 = string.Empty
             };
         }
     }

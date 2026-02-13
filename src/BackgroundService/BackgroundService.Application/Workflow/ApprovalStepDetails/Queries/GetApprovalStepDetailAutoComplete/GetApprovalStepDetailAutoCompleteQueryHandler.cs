@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
+using BackgroundService.Application.Notification.Common.Interfaces;
 using BackgroundService.Application.Workflow.Common.Interfaces.IApprovalStepDetail;
-using Contracts.Interfaces.External.IUser;
 using MediatR;
 
 namespace BackgroundService.Application.Workflow.ApprovalStepDetails.Queries.GetApprovalStepDetailAutoComplete
@@ -13,14 +14,12 @@ namespace BackgroundService.Application.Workflow.ApprovalStepDetails.Queries.Get
     {
         private readonly IApprovalStepDetailQuery _approvalStepDetailQuery;
         private readonly IMapper _imapper;
-        private readonly IUsersAllGrpcClient _usersAllGrpcClient;
-        private readonly IMenuGrpcClient _menuGrpcClient;
-        public GetApprovalStepDetailAutoCompleteQueryHandler(IApprovalStepDetailQuery approvalStepDetailQuery, IMapper imapper, IUsersAllGrpcClient usersAllGrpcClient, IMenuGrpcClient menuGrpcClient)
+        private readonly ILookupRepository _lookupRepository;
+        public GetApprovalStepDetailAutoCompleteQueryHandler(IApprovalStepDetailQuery approvalStepDetailQuery, IMapper imapper, ILookupRepository lookupRepository)
         {
             _approvalStepDetailQuery = approvalStepDetailQuery;
             _imapper = imapper;
-            _usersAllGrpcClient = usersAllGrpcClient;
-            _menuGrpcClient = menuGrpcClient;
+            _lookupRepository = lookupRepository;
         }
         public async Task<List<ApprovalStepDetailAutoCompleteDto>> Handle(GetApprovalStepDetailAutoCompleteQuery request, CancellationToken cancellationToken)
         {
@@ -28,33 +27,29 @@ namespace BackgroundService.Application.Workflow.ApprovalStepDetails.Queries.Get
 
               var ApprovalRule = _imapper.Map<List<ApprovalStepDetailAutoCompleteDto>>(Result);
 
-                var users = await _usersAllGrpcClient.GetUserAllAsync();
-            var userDict = users.ToDictionary(u => u.UserId, u => u.UserName);
+            var menuIdLookupTask = _lookupRepository.GetMenuNamesAsync(
+                ApprovalRule.Select(x => x.MenuId),
+                cancellationToken);
+            var userLookupTask = _lookupRepository.GetUserNamesAsync(
+                ApprovalRule.Select(x => x.TargetValueId),
+                cancellationToken);
+
+            await Task.WhenAll(userLookupTask, menuIdLookupTask);
+            var userLookup = userLookupTask.Result;
+            var menuLookup = menuIdLookupTask.Result;
 
             foreach (var approvalStep in ApprovalRule)
             {
-                if (userDict.TryGetValue(approvalStep.TargetValueId, out var approverName))
-                {
-                    approvalStep.ApproverName = approverName;
-                }
-                else
-                {
-                    approvalStep.ApproverName = "Unknown User";
-                }
-            }
+                approvalStep.ApproverName = userLookup.TryGetValue(approvalStep.TargetValueId, out var approverName)
+                    ? approverName
+                    : "Unknown User";
 
-              var menus = await _menuGrpcClient.GetMenuIdsAsync(ApprovalRule.Select(x => x.MenuId).ToList());
-
-            var menuLookup  = menus.ToDictionary(d => d.Id, d => d.MenuName);
-
-            foreach (var dto in ApprovalRule)
-            {
-                if (menuLookup.TryGetValue(dto.MenuId, out var MenuName))
+                if (menuLookup.TryGetValue(approvalStep.MenuId, out var menuName))
                 {
-                    dto.MenuName = MenuName;
+                    approvalStep.MenuName = menuName;
                 }
             }
-            
+
             
             return ApprovalRule;
         }

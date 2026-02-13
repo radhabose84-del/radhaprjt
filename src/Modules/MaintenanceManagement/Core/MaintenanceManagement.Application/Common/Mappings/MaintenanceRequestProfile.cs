@@ -1,10 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
-using MaintenanceManagement.Application.Common.Interfaces;
-using MaintenanceManagement.Application.Common.Interfaces.IWorkOrder;
 using MaintenanceManagement.Application.MaintenanceRequest.Command.CreateMaintenanceRequest;
 using MaintenanceManagement.Application.MaintenanceRequest.Command.UpdateMaintenanceRequestCommand;
 using MaintenanceManagement.Application.MaintenanceRequest.Queries.GetExistingVendorDetails;
@@ -15,24 +9,30 @@ namespace MaintenanceManagement.Application.Common.Mappings
 {
     public class MaintenanceRequestProfile : Profile
     {
-        
-        private readonly IIPAddressService _ipAddressService;
-
         public MaintenanceRequestProfile()
         {
             CreateMap<CreateMaintenanceRequestCommand, MaintenanceManagement.Domain.Entities.MaintenanceRequest>();
             CreateMap<MaintenanceManagement.Domain.Entities.MaintenanceRequest,GetMaintenanceRequestDto>();
-          
+
 
            CreateMap<UpdateMaintenanceRequestCommand, MaintenanceManagement.Domain.Entities.MaintenanceRequest>();
 
             CreateMap<MaintenanceManagement.Domain.Entities.ExistingVendorDetails, GetExistingVendorDetailsDto>();
             CreateMap<MaintenanceManagement.Domain.Entities.MaintenanceRequest, MaintenanceManagement.Domain.Entities.WorkOrderMaster.WorkOrder>()
              .ForMember(dest => dest.Id, opt => opt.Ignore())
-            .ForMember(dest => dest.RequestId, opt => opt.MapFrom(src => src.Id))           
+            .ForMember(dest => dest.RequestId, opt => opt.MapFrom(src => src.Id))
             .ForMember(dest => dest.StatusId, opt => opt.MapFrom(src => src.RequestStatusId))
-            .ForMember(dest => dest.CompanyId, opt => opt.MapFrom(src => _ipAddressService.GetCompanyId()))
-            .ForMember(dest => dest.UnitId, opt => opt.MapFrom(src => _ipAddressService.GetUnitId()));
+            // Ignore navigation properties to prevent circular reference / stack overflow
+            .ForMember(dest => dest.WOMaintenanceRequest, opt => opt.Ignore())
+            .ForMember(dest => dest.WOPreventiveScheduler, opt => opt.Ignore())
+            .ForMember(dest => dest.MiscStatus, opt => opt.Ignore())
+            .ForMember(dest => dest.MiscRootCause, opt => opt.Ignore())
+            // Ignore collections
+            .ForMember(dest => dest.WorkOrderItems, opt => opt.Ignore())
+            .ForMember(dest => dest.WorkOrderActivities, opt => opt.Ignore())
+            .ForMember(dest => dest.WorkOrderSchedules, opt => opt.Ignore())
+            .ForMember(dest => dest.WorkOrderTechnicians, opt => opt.Ignore())
+            .ForMember(dest => dest.WorkOrderCheckLists, opt => opt.Ignore());
 
 
             CreateMap<GetExternalRequestByIdDto,MaintenanceManagement.Domain.Entities.WorkOrderMaster.WorkOrder>()

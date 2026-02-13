@@ -4,28 +4,27 @@ using BackgroundService.Application.Notification.Common.Interfaces;
 using BackgroundService.Domain.Entities.Notification;
 using Contracts.Events.Notifications;
 using Contracts.Events.Notifications.Sms;
-using Hangfire;
 using MassTransit;
 using Microsoft.Extensions.Logging;
 
 namespace BackgroundService.Application.Consumers
 {
+    /// <summary>
+    /// Processes SMS notifications. Retry policy configured in MassTransit DI.
+    /// Failed messages go to sms-notification-queue_error for manual review.
+    /// </summary>
     public class SendSmsNotificationConsumer : IConsumer<SendSmsNotificationInternalCommand>
     {
         private readonly ISmsSender _smsSender;
         private readonly ILogger<SendSmsNotificationConsumer> _logger;
-        private readonly IBackgroundJobClient _jobClient;
         private readonly INotificationResolverHandler _resolverHandler;
         private readonly INotificationLogger _loggerNotification;
         private readonly IIPAddressService _ipAddressService;
         private readonly ITimeZoneService _timeZoneService;
 
-        private const int MaxRetries = 3;
-
         public SendSmsNotificationConsumer(
             ISmsSender smsSender,
             ILogger<SendSmsNotificationConsumer> logger,
-            IBackgroundJobClient jobClient,
             INotificationResolverHandler resolverHandler,
             INotificationLogger loggerNotification,
             IIPAddressService ipAddressService,
@@ -33,7 +32,6 @@ namespace BackgroundService.Application.Consumers
         {
             _smsSender = smsSender;
             _logger = logger;
-            _jobClient = jobClient;
             _resolverHandler = resolverHandler;
             _loggerNotification = loggerNotification;
             _ipAddressService = ipAddressService;
@@ -157,29 +155,36 @@ namespace BackgroundService.Application.Consumers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ SMS Notification Failed for CorrelationId: {CorrelationId}", msg.CorrelationId);
+                _logger.LogError(ex, "SMS Notification Failed for CorrelationId: {CorrelationId}", msg.CorrelationId);
 
-                if (msg.RetryCount < MaxRetries)
+                // Log failure for tracking
+                try
                 {
-                    msg.RetryCount++;
-                    _jobClient.Schedule<INotificationHandler<SendSmsNotificationInternalCommand>>(
-                        h => h.ExecuteAsync(msg, msg.CorrelationId),
-                        TimeSpan.FromMinutes(5));
-
-                    _logger.LogWarning("🔁 Scheduled retry #{Retry} for SMS notification (CorrelationId: {CorrelationId})",
-                        msg.RetryCount, msg.CorrelationId);
-                }
-                else
-                {
-                    _logger.LogError("⛔ Max retry attempts reached. Notification dropped (CorrelationId: {CorrelationId}).",
-                        msg.CorrelationId);
-
-                    await context.Publish(new SendSmsNotificationFailed
+                    await _loggerNotification.LogAsync(new NotificationEventLog
                     {
-                        CorrelationId = msg.CorrelationId,
-                        Reason = $"Max retry attempts ({MaxRetries}) exceeded. Last error: {ex.Message}"
+                        NotificationLevelRuleId = null,
+                        UnitId = msg.UnitId,
+                        ChannelId = (int)NotificationEnum.NotificationChannel.SMS,
+                        NotificationStatusId = (int)NotificationEnum.NotificationStatus.Failed,
+                        ReadStatusId = (int)NotificationEnum.NotificationReadStatus.Unread,
+                        SendTo = msg.Mobile ?? "Unknown",
+                        ActionStatus = "Failed",
+                        MessageText = ex.Message,
+                        Timestamp = DateTimeOffset.UtcNow,
+                        CreatedBy = _ipAddressService.GetUserId(),
+                        CreatedByName = _ipAddressService.GetUserName(),
+                        CreatedIP = _ipAddressService.GetSystemIPAddress(),
+                        IsActive = Domain.Common.BaseEntity.Status.Active,
+                        IsDeleted = Domain.Common.BaseEntity.IsDelete.NotDeleted
                     });
                 }
+                catch (Exception logEx)
+                {
+                    _logger.LogWarning(logEx, "Failed to log SMS notification failure");
+                }
+
+                // Throw to let MassTransit handle retry with configured policy
+                throw;
             }
         }
     }

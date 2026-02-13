@@ -66,7 +66,7 @@ namespace BackgroundService.Application.Notification
             }
 
             // Fallback: if no explicit SMS channel but mobile numbers exist, add "SMS"
-            var hasMobiles = targets.Any(t => !string.IsNullOrWhiteSpace(t.TargetMobileNumbers));
+          /*   var hasMobiles = targets.Any(t => !string.IsNullOrWhiteSpace(t.TargetMobileNumbers));
             if (hasMobiles && !normalized.Contains("SMS"))
             {
                 _logger.LogInformation(
@@ -75,7 +75,7 @@ namespace BackgroundService.Application.Notification
 
                 normalized.Add("SMS");
             }
-
+ */
             var result = normalized.ToList();
 
             _logger.LogInformation(
