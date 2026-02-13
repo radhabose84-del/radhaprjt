@@ -9,11 +9,11 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 
-namespace API.Controllers
+namespace PurchaseManagement.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public sealed class PriceMasterController : ControllerBase
+    public  class PriceMasterController : ControllerBase
     {
         private readonly IMediator _mediator;
         public PriceMasterController(IMediator mediator) => _mediator = mediator;

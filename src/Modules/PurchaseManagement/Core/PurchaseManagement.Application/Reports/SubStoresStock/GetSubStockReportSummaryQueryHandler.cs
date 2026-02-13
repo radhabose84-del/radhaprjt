@@ -1,6 +1,7 @@
 // using System;
 // using System.Collections.Generic;
 // using System.Linq;
+// using System.Threading;
 // using System.Threading.Tasks;
 // using AutoMapper;
 // using Contracts.Interfaces.External.IInvetoryManagement;
@@ -9,6 +10,10 @@
 // using PurchaseManagement.Application.Common.Interfaces.IReports.IStockReport;
 // using PurchaseManagement.Domain.Events;
 // using MediatR;
+// using Contracts.Interfaces.Lookups.Workflow;
+
+// using Contracts.Interfaces.Lookups.Users;
+// using Contracts.Interfaces.Lookups.Inventory;
 
 // namespace PurchaseManagement.Application.Reports.SubStoresStock
 // {
@@ -18,28 +23,28 @@
 //         private readonly IStockReportQueryRepository _istockReportQueryRepository;
 //         private readonly IMapper _mapper;
 //         private readonly IMediator _mediator;
-//         private readonly IWarehouseGrpcClient _warehouseGrpcClient;
+//         private readonly IWarehouseLookup _warehouseLookup;
 //         private readonly IInventoryGrpcClient _inventoryGrpcClient;
-//         private readonly IMiscMasterGrpcClient _miscMasterGrpcClient;
-//         private readonly IRackGrpcClient _rackClient;
-//         private readonly IBinGrpcClient _binClient;
-//         private readonly IUOMGrpcClient _uomGrpcClient;
-//         private readonly IDepartmentAllGrpcClient _departmentAllGrpcClient;
+//         private readonly IMiscMasterLookup _miscMasterLookup;
+//         private readonly IRackLookup _rackLookup;
+//         private readonly IBinLookup _binLookup;
+//         private readonly IUOMLookup _uomLookup;
+//         private readonly IDepartmentLookup _departmentLookup;
 
 //         public GetSubStockReportSummaryQueryHandler(IStockReportQueryRepository istockReportQueryRepository, IMapper mapper, IMediator mediator
-//             , IWarehouseGrpcClient warehouseGrpcClient
-//             , IInventoryGrpcClient inventoryGrpcClient, IMiscMasterGrpcClient miscMasterGrpcClient, IRackGrpcClient rackClient, IBinGrpcClient binClient, IUOMGrpcClient uomGrpcClient, IDepartmentAllGrpcClient departmentAllGrpcClient)
+//             , IWarehouseLookup warehouseLookup
+//             , IInventoryGrpcClient inventoryGrpcClient, IMiscMasterLookup miscMasterLookup, IRackLookup rackLookup, IBinLookup binLookup, IUOMLookup uomLookup, IDepartmentLookup departmentLookup)
 //         {
 //             _istockReportQueryRepository = istockReportQueryRepository;
 //             _mapper = mapper;
 //             _mediator = mediator;
-//             _warehouseGrpcClient = warehouseGrpcClient;
+//             _warehouseLookup = warehouseLookup;
 //             _inventoryGrpcClient = inventoryGrpcClient;
-//             _miscMasterGrpcClient = miscMasterGrpcClient;
-//             _rackClient = rackClient;
-//             _binClient = binClient;
-//             _uomGrpcClient = uomGrpcClient;
-//             _departmentAllGrpcClient = departmentAllGrpcClient;
+//             _miscMasterLookup = miscMasterLookup;
+//             _rackLookup = rackLookup;
+//             _binLookup = binLookup;
+//             _uomLookup = uomLookup;
+//             _departmentLookup = departmentLookup;
 //         }
 
 //         public async Task<List<SubStockSummaryDto>> Handle(GetSubStockReportSummaryQuery request, CancellationToken cancellationToken)
@@ -94,7 +99,7 @@
             
 
 //             // 3️⃣ Fetch all storage types for identifying Bin and Rack
-//             var storageTypes = await _miscMasterGrpcClient.GetMiscMasterByIdAsync("StorageType");
+//             var storageTypes = await _miscMasterLookup.GetMiscMasterByIdAsync("StorageType");
 
 //             var binTypeIds = storageTypes
 //                 .Where(x => string.Equals(x.Description, "Bin", StringComparison.OrdinalIgnoreCase))
@@ -122,20 +127,20 @@
 //                 .ToList();
 
 //             // 5️⃣ Fire all gRPC / lookup tasks in parallel
-//             var toleranceTask = _inventoryGrpcClient.GetItemPurchaseToleranceAsync(itemIds, cancellationToken);
-//             var warehouseTasks = warehouseIds.Select(id => _warehouseGrpcClient.GetByIdAsync(id, cancellationToken)).ToList();
-//             var binTasks = binIds.Select(id => _binClient.GetByIdAsync(id)).ToList();
-//             var rackTasks = rackIds.Select(id => _rackClient.GetByIdAsync(id)).ToList();
-//             var uomTasks = uomIds.Select(id => _uomGrpcClient.GetByIdAsync(id,cancellationToken)).ToList();
-//             var departmentTask = _departmentAllGrpcClient.GetDepartmentAllAsync(); // ✅ single call
+//              var toleranceTask = _inventoryGrpcClient.GetItemPurchaseToleranceAsync(itemIds, cancellationToken);
+//             var warehouseTask = _warehouseLookup.GetByIdsAsync(warehouseIds, cancellationToken);
+//             var binTask = _binLookup.GetByIdsAsync(binIds);
+//             var rackTask = _rackLookup.GetByIdsAsync(rackIds);
+//             var uomTask = _uomLookup.GetByIdsAsync(uomIds, cancellationToken);
+//             var departmentTask = _departmentLookup.GetAllDepartmentAsync(); // ✅ single call
 
 //             // 6️⃣ Await all tasks together
 //             await Task.WhenAll(
 //                 toleranceTask,
-//                 Task.WhenAll(warehouseTasks),
-//                 Task.WhenAll(binTasks),
-//                 Task.WhenAll(rackTasks),
-//                 Task.WhenAll(uomTasks),
+//                 warehouseTask,
+//                 binTask,
+//                 rackTask,
+//                 uomTask,
 //                 departmentTask
 //             );
 
@@ -144,24 +149,16 @@
 //                 .GroupBy(t => t.ItemId)
 //                 .ToDictionary(g => g.Key, g => g.First());
 
-//             var warehouseById = warehouseTasks
-//                 .Select(t => t.Result)
-//                 .Where(x => x != null)
+//             var warehouseById = warehouseTask.Result
 //                 .ToDictionary(x => x.Id, x => x.WarehouseName);
 
-//             var binById = binTasks
-//                 .Select(t => t.Result)
-//                 .Where(b => b != null)
+//             var binById = binTask.Result
 //                 .ToDictionary(b => b.Id, b => b);
 
-//             var rackById = rackTasks
-//                 .Select(t => t.Result)
-//                 .Where(r => r != null)
+//             var rackById = rackTask.Result
 //                 .ToDictionary(r => r.Id, r => r);
 
-//             var uomById = uomTasks
-//                 .Select(t => t.Result)
-//                 .Where(u => u != null)
+//             var uomById = uomTask.Result
 //                 .ToDictionary(u => u.Id, u => u);
                 
 //             // ✅ Department lookup
