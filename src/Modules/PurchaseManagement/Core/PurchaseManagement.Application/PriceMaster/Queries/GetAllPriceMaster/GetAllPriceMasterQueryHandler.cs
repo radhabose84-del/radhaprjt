@@ -7,7 +7,7 @@ using PurchaseManagement.Application.Common;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Users;
-using Contracts.Dtos.Lookups.Party;               // ICurrencyGrpcClient (your currency client lives in "User" svc per your setup)
+using Contracts.Dtos.Lookups.Party;             
 public sealed class GetAllPriceMasterQueryHandler
     : IRequestHandler<GetAllPriceMasterQuery, PagedResult<PriceMasterGetAllDto>>
 {

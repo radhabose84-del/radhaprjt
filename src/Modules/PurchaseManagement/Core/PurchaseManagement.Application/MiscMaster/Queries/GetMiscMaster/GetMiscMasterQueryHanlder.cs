@@ -19,8 +19,7 @@ namespace PurchaseManagement.Application.MiscMaster.Queries.GetMiscMaster
             private readonly IMediator _mediator;           
        
 
-        public GetMiscMasterQueryHanlder(IMiscMasterQueryRepository miscMasterQueryRepository, IMapper mapper, IMediator mediator
-        // , IInventoryGrpcClient inventoryGrpcClient
+        public GetMiscMasterQueryHanlder(IMiscMasterQueryRepository miscMasterQueryRepository, IMapper mapper, IMediator mediator        
         )
         {
             _miscMasterQueryRepository = miscMasterQueryRepository;

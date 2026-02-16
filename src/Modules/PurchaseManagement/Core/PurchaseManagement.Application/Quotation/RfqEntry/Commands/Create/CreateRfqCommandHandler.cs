@@ -22,8 +22,7 @@ namespace PurchaseManagement.Application.Quotation.RfqEntry.Commands.Create
         private readonly IRfqCommandRepository _rfqRepo;
         private readonly IMapper _mapper;
         private readonly IIPAddressService _ip;
-        private readonly IEventPublisher _eventPublisher;
-        //private readonly IPartyGrpcClient _partyGrpcClient;
+        private readonly IEventPublisher _eventPublisher;        
         private readonly IItemLookup _itemLookup;
         private readonly IUOMLookup _uomLookup;
         private readonly ILogger<CreateRfqCommandHandler> _logger;
@@ -33,8 +32,7 @@ namespace PurchaseManagement.Application.Quotation.RfqEntry.Commands.Create
             IRfqCommandRepository rfqRepo,
             IMapper mapper,
             IIPAddressService ip,
-            IEventPublisher eventPublisher,
-            //IPartyGrpcClient partyGrpcClient,
+            IEventPublisher eventPublisher,            
             ILogger<CreateRfqCommandHandler> logger,
             IItemLookup itemLookup,
             IUOMLookup uOMLookup, ITimeZoneService timeZoneService, IPurchaseIndentCommand indentRepo)
@@ -42,8 +40,7 @@ namespace PurchaseManagement.Application.Quotation.RfqEntry.Commands.Create
             _rfqRepo = rfqRepo ?? throw new ArgumentNullException(nameof(rfqRepo));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _ip = ip ?? throw new ArgumentNullException(nameof(ip));
-            _eventPublisher = eventPublisher ?? throw new ArgumentNullException(nameof(_eventPublisher));
-            //  _partyGrpcClient = partyGrpcClient ?? throw new ArgumentNullException(nameof(partyGrpcClient));
+            _eventPublisher = eventPublisher ?? throw new ArgumentNullException(nameof(_eventPublisher));            
             _itemLookup = itemLookup ?? throw new ArgumentNullException(nameof(itemLookup));
             _uomLookup = uOMLookup ?? throw new ArgumentNullException(nameof(uOMLookup));
             _logger = logger ?? NullLogger<CreateRfqCommandHandler>.Instance;
