@@ -1,0 +1,12 @@
+F:\MyProjects\Development\ModulerMonolithic\LayerNameChange\BSOFT\src\Modules\BudgetManagement\Core\BudgetManagement.Domain\bin\Debug\net8.0\BudgetManagement.Domain.deps.json
+F:\MyProjects\Development\ModulerMonolithic\LayerNameChange\BSOFT\src\Modules\BudgetManagement\Core\BudgetManagement.Domain\bin\Debug\net8.0\BudgetManagement.Domain.dll
+F:\MyProjects\Development\ModulerMonolithic\LayerNameChange\BSOFT\src\Modules\BudgetManagement\Core\BudgetManagement.Domain\bin\Debug\net8.0\BudgetManagement.Domain.pdb
+F:\MyProjects\Development\ModulerMonolithic\LayerNameChange\BSOFT\src\Modules\BudgetManagement\Core\BudgetManagement.Domain\obj\Debug\net8.0\BudgetManagement.Domain.csproj.AssemblyReference.cache
+F:\MyProjects\Development\ModulerMonolithic\LayerNameChange\BSOFT\src\Modules\BudgetManagement\Core\BudgetManagement.Domain\obj\Debug\net8.0\BudgetManagement.Domain.GeneratedMSBuildEditorConfig.editorconfig
+F:\MyProjects\Development\ModulerMonolithic\LayerNameChange\BSOFT\src\Modules\BudgetManagement\Core\BudgetManagement.Domain\obj\Debug\net8.0\BudgetManagement.Domain.AssemblyInfoInputs.cache
+F:\MyProjects\Development\ModulerMonolithic\LayerNameChange\BSOFT\src\Modules\BudgetManagement\Core\BudgetManagement.Domain\obj\Debug\net8.0\BudgetManagement.Domain.AssemblyInfo.cs
+F:\MyProjects\Development\ModulerMonolithic\LayerNameChange\BSOFT\src\Modules\BudgetManagement\Core\BudgetManagement.Domain\obj\Debug\net8.0\BudgetManagement.Domain.csproj.CoreCompileInputs.cache
+F:\MyProjects\Development\ModulerMonolithic\LayerNameChange\BSOFT\src\Modules\BudgetManagement\Core\BudgetManagement.Domain\obj\Debug\net8.0\BudgetManagement.Domain.dll
+F:\MyProjects\Development\ModulerMonolithic\LayerNameChange\BSOFT\src\Modules\BudgetManagement\Core\BudgetManagement.Domain\obj\Debug\net8.0\refint\BudgetManagement.Domain.dll
+F:\MyProjects\Development\ModulerMonolithic\LayerNameChange\BSOFT\src\Modules\BudgetManagement\Core\BudgetManagement.Domain\obj\Debug\net8.0\BudgetManagement.Domain.pdb
+F:\MyProjects\Development\ModulerMonolithic\LayerNameChange\BSOFT\src\Modules\BudgetManagement\Core\BudgetManagement.Domain\obj\Debug\net8.0\ref\BudgetManagement.Domain.dll
