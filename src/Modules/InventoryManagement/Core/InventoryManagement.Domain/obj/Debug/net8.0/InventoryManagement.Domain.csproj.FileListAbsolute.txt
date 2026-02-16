@@ -1,0 +1,12 @@
+F:\MyProjects\Development\ModulerMonolithic\LayerNameChange\BSOFT\src\Modules\InventoryManagement\Core\InventoryManagement.Domain\bin\Debug\net8.0\InventoryManagement.Domain.deps.json
+F:\MyProjects\Development\ModulerMonolithic\LayerNameChange\BSOFT\src\Modules\InventoryManagement\Core\InventoryManagement.Domain\bin\Debug\net8.0\InventoryManagement.Domain.dll
+F:\MyProjects\Development\ModulerMonolithic\LayerNameChange\BSOFT\src\Modules\InventoryManagement\Core\InventoryManagement.Domain\bin\Debug\net8.0\InventoryManagement.Domain.pdb
+F:\MyProjects\Development\ModulerMonolithic\LayerNameChange\BSOFT\src\Modules\InventoryManagement\Core\InventoryManagement.Domain\obj\Debug\net8.0\InventoryManagement.Domain.csproj.AssemblyReference.cache
+F:\MyProjects\Development\ModulerMonolithic\LayerNameChange\BSOFT\src\Modules\InventoryManagement\Core\InventoryManagement.Domain\obj\Debug\net8.0\InventoryManagement.Domain.GeneratedMSBuildEditorConfig.editorconfig
+F:\MyProjects\Development\ModulerMonolithic\LayerNameChange\BSOFT\src\Modules\InventoryManagement\Core\InventoryManagement.Domain\obj\Debug\net8.0\InventoryManagement.Domain.AssemblyInfoInputs.cache
+F:\MyProjects\Development\ModulerMonolithic\LayerNameChange\BSOFT\src\Modules\InventoryManagement\Core\InventoryManagement.Domain\obj\Debug\net8.0\InventoryManagement.Domain.AssemblyInfo.cs
+F:\MyProjects\Development\ModulerMonolithic\LayerNameChange\BSOFT\src\Modules\InventoryManagement\Core\InventoryManagement.Domain\obj\Debug\net8.0\InventoryManagement.Domain.csproj.CoreCompileInputs.cache
+F:\MyProjects\Development\ModulerMonolithic\LayerNameChange\BSOFT\src\Modules\InventoryManagement\Core\InventoryManagement.Domain\obj\Debug\net8.0\InventoryManagement.Domain.dll
+F:\MyProjects\Development\ModulerMonolithic\LayerNameChange\BSOFT\src\Modules\InventoryManagement\Core\InventoryManagement.Domain\obj\Debug\net8.0\refint\InventoryManagement.Domain.dll
+F:\MyProjects\Development\ModulerMonolithic\LayerNameChange\BSOFT\src\Modules\InventoryManagement\Core\InventoryManagement.Domain\obj\Debug\net8.0\InventoryManagement.Domain.pdb
+F:\MyProjects\Development\ModulerMonolithic\LayerNameChange\BSOFT\src\Modules\InventoryManagement\Core\InventoryManagement.Domain\obj\Debug\net8.0\ref\InventoryManagement.Domain.dll

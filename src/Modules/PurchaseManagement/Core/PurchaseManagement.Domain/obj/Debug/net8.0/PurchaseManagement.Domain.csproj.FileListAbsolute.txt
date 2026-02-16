@@ -1,0 +1,12 @@
+F:\MyProjects\Development\ModulerMonolithic\LayerNameChange\BSOFT\src\Modules\PurchaseManagement\Core\PurchaseManagement.Domain\bin\Debug\net8.0\PurchaseManagement.Domain.deps.json
+F:\MyProjects\Development\ModulerMonolithic\LayerNameChange\BSOFT\src\Modules\PurchaseManagement\Core\PurchaseManagement.Domain\bin\Debug\net8.0\PurchaseManagement.Domain.dll
+F:\MyProjects\Development\ModulerMonolithic\LayerNameChange\BSOFT\src\Modules\PurchaseManagement\Core\PurchaseManagement.Domain\bin\Debug\net8.0\PurchaseManagement.Domain.pdb
+F:\MyProjects\Development\ModulerMonolithic\LayerNameChange\BSOFT\src\Modules\PurchaseManagement\Core\PurchaseManagement.Domain\obj\Debug\net8.0\PurchaseManagement.Domain.csproj.AssemblyReference.cache
+F:\MyProjects\Development\ModulerMonolithic\LayerNameChange\BSOFT\src\Modules\PurchaseManagement\Core\PurchaseManagement.Domain\obj\Debug\net8.0\PurchaseManagement.Domain.GeneratedMSBuildEditorConfig.editorconfig
+F:\MyProjects\Development\ModulerMonolithic\LayerNameChange\BSOFT\src\Modules\PurchaseManagement\Core\PurchaseManagement.Domain\obj\Debug\net8.0\PurchaseManagement.Domain.AssemblyInfoInputs.cache
+F:\MyProjects\Development\ModulerMonolithic\LayerNameChange\BSOFT\src\Modules\PurchaseManagement\Core\PurchaseManagement.Domain\obj\Debug\net8.0\PurchaseManagement.Domain.AssemblyInfo.cs
+F:\MyProjects\Development\ModulerMonolithic\LayerNameChange\BSOFT\src\Modules\PurchaseManagement\Core\PurchaseManagement.Domain\obj\Debug\net8.0\PurchaseManagement.Domain.csproj.CoreCompileInputs.cache
+F:\MyProjects\Development\ModulerMonolithic\LayerNameChange\BSOFT\src\Modules\PurchaseManagement\Core\PurchaseManagement.Domain\obj\Debug\net8.0\PurchaseManagement.Domain.dll
+F:\MyProjects\Development\ModulerMonolithic\LayerNameChange\BSOFT\src\Modules\PurchaseManagement\Core\PurchaseManagement.Domain\obj\Debug\net8.0\refint\PurchaseManagement.Domain.dll
+F:\MyProjects\Development\ModulerMonolithic\LayerNameChange\BSOFT\src\Modules\PurchaseManagement\Core\PurchaseManagement.Domain\obj\Debug\net8.0\PurchaseManagement.Domain.pdb
+F:\MyProjects\Development\ModulerMonolithic\LayerNameChange\BSOFT\src\Modules\PurchaseManagement\Core\PurchaseManagement.Domain\obj\Debug\net8.0\ref\PurchaseManagement.Domain.dll
