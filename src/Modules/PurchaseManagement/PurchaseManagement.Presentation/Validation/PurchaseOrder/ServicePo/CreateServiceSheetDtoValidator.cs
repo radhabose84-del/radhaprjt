@@ -7,17 +7,18 @@ using PurchaseManagement.Application.PurchaseOrder.ServicePO.Command.CreateServi
 using FluentValidation;
 using PurchaseManagement.Presentation.Validation.Common;
 using Shared.Validation.Common;
+using Contracts.Interfaces.Lookups.Workflow;
 
 namespace PurchaseManagement.Presentation.Validation.PurchaseOrder.ServicePo
 {
     public class CreateServiceSheetDtoValidator : AbstractValidator<CreateServiceSheetDto>
     {
 
-         private readonly IWorkflowGrpcClient _workflowGrpcClient;             
+        private readonly IWorkflowLookup _workflowLookup;            
         private readonly List<ValidationRule> _validationRules;
-        public CreateServiceSheetDtoValidator( IWorkflowGrpcClient workflowGrpcClient , List<ValidationRule> validationRules)
+        public CreateServiceSheetDtoValidator( IWorkflowLookup workflowLookup , List<ValidationRule> validationRules)
         {
-            _workflowGrpcClient = workflowGrpcClient;
+            _workflowLookup = workflowLookup;
             _validationRules = validationRules;
 
             if (_validationRules == null || !_validationRules.Any())
@@ -31,7 +32,7 @@ namespace PurchaseManagement.Presentation.Validation.PurchaseOrder.ServicePo
                     case "Workflow":
                         RuleFor(x => x.UnitId)
                             .MustAsync(async (unitId, cancellation) =>
-                                await _workflowGrpcClient.IsApproveWorkflowConfigure(
+                                await _workflowLookup.IsApproveWorkflowConfigureAsync(
                                     PurchaseManagement.Domain.Common.MiscEnumEntity.ServiceEntrySheet, // entity type
                                     unitId,
                                     0))                      // DepartmentId not required, pass null

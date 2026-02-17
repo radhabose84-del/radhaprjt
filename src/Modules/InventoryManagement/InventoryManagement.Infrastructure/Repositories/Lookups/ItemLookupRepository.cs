@@ -25,7 +25,14 @@ namespace InventoryManagement.Infrastructure.Repositories.Lookups
                 return new List<ItemLookupDto>();
 
             const string sql = @"
-                SELECT Id, ItemCode, ItemName
+                SELECT Id,
+                       ItemCode,
+                       ItemName,
+                       TariffNumber,
+                       HSNCode,
+                       GSTPercentage,
+                       IsOnSpot,
+                       SourceOfItem
                 FROM Inventory.ItemMaster
                 WHERE Id IN @ItemIds AND IsDeleted = 0;";
 

@@ -16,22 +16,22 @@ namespace PurchaseManagement.Application.Quotation.QuotationCompare.Queries.GetQ
         private readonly IQuotationCompareQueryRepository _quotationCompareQueryRepository;
         private readonly IMapper _mapper;
         private readonly IMediator _mediator;
-        private readonly IItemLookup _itemGrpcLookup;
-        private readonly IUOMLookup _uomGrpcLookup;
+        private readonly IItemLookup _itemLookup;
+        private readonly IUOMLookup _uomLookup;
 
 
         public GetQuoteComparisonQueryHandler(
             IQuotationCompareQueryRepository quotationCompareQueryRepository,
             IMapper mapper,
             IMediator mediator,
-            IItemLookup itemGrpcLookup,
-            IUOMLookup uomGrpcLookup)
+            IItemLookup itemLookup,
+            IUOMLookup uomLookup)
         {
             _quotationCompareQueryRepository = quotationCompareQueryRepository;
             _mapper = mapper;
             _mediator = mediator;
-            _itemGrpcLookup = itemGrpcLookup;
-            _uomGrpcLookup = uomGrpcLookup;
+            _itemLookup = itemLookup;
+            _uomLookup = uomLookup;
         }
         public async Task<QuoteComparisonDto?> Handle(GetQuoteComparisonQuery request, CancellationToken cancellationToken)
         {
@@ -49,8 +49,8 @@ namespace PurchaseManagement.Application.Quotation.QuotationCompare.Queries.GetQ
             var uomIds = quoteComparison.Items.Select(i => i.UomId).Distinct().ToList();
 
             // Step 3: Kick off gRPC calls in parallel
-            var itemsTask = _itemGrpcLookup.GetByIdsAsync(itemIds, cancellationToken);
-            var uomsTask = _uomGrpcLookup.GetAllAsync();
+            var itemsTask = _itemLookup.GetByIdsAsync(itemIds, cancellationToken);
+            var uomsTask = _uomLookup.GetAllAsync();
 
             await Task.WhenAll(itemsTask, uomsTask);
 

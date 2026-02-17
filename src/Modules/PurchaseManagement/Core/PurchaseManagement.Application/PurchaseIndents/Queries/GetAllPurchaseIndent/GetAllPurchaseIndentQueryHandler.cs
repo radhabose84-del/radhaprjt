@@ -1,14 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json;
-using System.Threading.Tasks;
 using AutoMapper;
-using Contracts.Interfaces.External.IUser;
 using PurchaseManagement.Application.Common.HttpResponse;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseIndent;
 using PurchaseManagement.Domain.Events;
 using MediatR;
+using Contracts.Interfaces.Lookups.Users;
 
 namespace PurchaseManagement.Application.PurchaseIndents.Queries.GetAllPurchaseIndent
 {
@@ -17,16 +13,16 @@ namespace PurchaseManagement.Application.PurchaseIndents.Queries.GetAllPurchaseI
         private readonly IPurchaseIndentQuery _purchaseIndentQuery;
         private readonly IMediator _mediator;
         private readonly IMapper _mapper;
-        private readonly IUnitGrpcClient _unitGrpcClient;
-        private readonly IDepartmentAllGrpcClient _departmentAllGrpcClient;
-        public GetAllPurchaseIndentQueryHandler(IPurchaseIndentQuery purchaseIndentQuery, IMediator mediator, IMapper mapper, IUnitGrpcClient unitGrpcClient,
-            IDepartmentAllGrpcClient departmentAllGrpcClient)
+        private readonly IDepartmentLookup _departmentLookup;
+        private readonly IUnitLookup _unitLookup;
+        public GetAllPurchaseIndentQueryHandler(IPurchaseIndentQuery purchaseIndentQuery, IMediator mediator, IMapper mapper,             IDepartmentLookup departmentLookup,
+            IUnitLookup unitLookup)
         {
             _purchaseIndentQuery = purchaseIndentQuery;
             _mediator = mediator;
             _mapper = mapper;
-            _unitGrpcClient = unitGrpcClient;
-            _departmentAllGrpcClient = departmentAllGrpcClient;
+            _departmentLookup = departmentLookup;
+            _unitLookup = unitLookup;
         }
         public async Task<ApiResponseDTO<List<PurchaseManagement.Application.PurchaseIndents.Queries.GetAllPurchaseIndent.IndentDto>>> Handle(GetAllPurchaseIndentQuery request, CancellationToken cancellationToken)
         {
@@ -38,10 +34,10 @@ namespace PurchaseManagement.Application.PurchaseIndents.Queries.GetAllPurchaseI
                 request.StatusId
             );
 
-        var units = await _unitGrpcClient.GetAllUnitAsync();
+        var units = await _unitLookup.GetAllUnitAsync();
         var unitLookup = units.ToDictionary(x => x.UnitId, x => x.UnitName);
 
-        var departments = await _departmentAllGrpcClient.GetDepartmentAllAsync();
+        var departments = await _departmentLookup.GetAllDepartmentAsync();
         var deptLookup = departments.ToDictionary(x => x.DepartmentId, x => x.DepartmentName);
 
         foreach (var indent in indents)

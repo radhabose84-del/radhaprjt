@@ -7,16 +7,17 @@ using PurchaseManagement.Application.PurchaseIndents.Command.CreatePurchaseInden
 using PurchaseManagement.Domain.Common;
 using FluentValidation;
 using PurchaseManagement.Presentation.Validation.Common;
+using Contracts.Interfaces.Lookups.Workflow;
 
 namespace PurchaseManagement.Presentation.Validation.PurchaseIndent
 {
     public class CreatePurchaseIndentCommandValidator : AbstractValidator<CreatePurchaseIndentCommand>
     {
         // private readonly List<ValidationRule> _validationRules;
-        private readonly IWorkflowGrpcClient _workflowGrpcClient;
-        public CreatePurchaseIndentCommandValidator(IWorkflowGrpcClient workflowGrpcClient)
+        private readonly IWorkflowLookup _workflowLookup;
+        public CreatePurchaseIndentCommandValidator(IWorkflowLookup workflowLookup)
         {
-            _workflowGrpcClient = workflowGrpcClient;
+            _workflowLookup = workflowLookup;
 
             RuleFor(x => x.IndentDate)
                             .NotEmpty()
@@ -44,7 +45,7 @@ namespace PurchaseManagement.Presentation.Validation.PurchaseIndent
 
             RuleFor(x => new { x.UnitId, x.DepartmentId })
                             .MustAsync(async (indent, cancellation) => 
-                          await _workflowGrpcClient.IsApproveWorkflowConfigure(MiscEnumEntity.PurchaseIndent,indent.UnitId, indent.DepartmentId))
+                          await _workflowLookup.IsApproveWorkflowConfigureAsync(MiscEnumEntity.PurchaseIndent,indent.UnitId, indent.DepartmentId))
                             .WithMessage("Approval Workflow is not configured.");
 
           

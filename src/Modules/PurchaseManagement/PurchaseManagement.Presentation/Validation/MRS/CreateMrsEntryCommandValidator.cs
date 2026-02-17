@@ -7,6 +7,7 @@ using PurchaseManagement.Application.MRS.Command.CreateMrsEntry;
 using FluentValidation;
 using PurchaseManagement.Presentation.Validation.Common;
 using Shared.Validation.Common;
+using Contracts.Interfaces.Lookups.Workflow;
 
 
 namespace PurchaseManagement.Presentation.Validation.MRS
@@ -14,11 +15,11 @@ namespace PurchaseManagement.Presentation.Validation.MRS
     public class CreateMrsEntryCommandValidator : AbstractValidator<CreateMrsEntryCommand>
     {
         private readonly List<ValidationRule> _validationRules;
-        private readonly IWorkflowGrpcClient _workflowGrpcClient;
-        public CreateMrsEntryCommandValidator(MaxLengthProvider maxLengthProvider, IWorkflowGrpcClient workflowGrpcClient)
+        private readonly IWorkflowLookup _workflowLookup;
+        public CreateMrsEntryCommandValidator(MaxLengthProvider maxLengthProvider, IWorkflowLookup workflowLookup)
         {
             _validationRules = ValidationRuleLoader.LoadValidationRules();
-            _workflowGrpcClient= workflowGrpcClient;
+            _workflowLookup = workflowLookup;
             if (_validationRules == null || !_validationRules.Any())
             {
                 throw new InvalidOperationException("Validation rules could not be loaded.");
@@ -30,7 +31,7 @@ namespace PurchaseManagement.Presentation.Validation.MRS
                     case "Workflow":
                             RuleFor(x => x.MrsEntry.UnitId)
                                 .MustAsync(async (unitId, cancellation) =>
-                                    await _workflowGrpcClient.IsApproveWorkflowConfigure(
+                                    await _workflowLookup.IsApproveWorkflowConfigureAsync(
                                         PurchaseManagement.Domain.Common.MiscEnumEntity.MaterialRequest, // entity type
                                         unitId,
                                         0))                      // DepartmentId not required, pass null
