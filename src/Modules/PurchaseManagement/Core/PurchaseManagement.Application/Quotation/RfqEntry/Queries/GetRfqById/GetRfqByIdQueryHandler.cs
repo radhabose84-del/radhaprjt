@@ -1,6 +1,4 @@
 using AutoMapper;
-using Contracts.Dtos.Inventory;
-using Contracts.Interfaces.External.IInvetoryManagement;
 using PurchaseManagement.Application.Common.Exceptions;
 using PurchaseManagement.Application.Common.Interfaces.IQuotation.IRfqEntry;
 using PurchaseManagement.Application.Quotation.RfqEntry.DTOs;
@@ -8,7 +6,6 @@ using PurchaseManagement.Application.Quotation.RfqEntry.Queries.GetRfqById;
 using PurchaseManagement.Domain.Events;
 using MediatR;
 using Contracts.Interfaces.Lookups.Inventory;
-using System.Linq;
 
 namespace PurchaseManagement.Application.Quotation.RfqEntry.Queries;
 
@@ -17,7 +14,7 @@ public class GetRfqByIdQueryHandler : IRequestHandler<GetRfqByIdQuery, RfqDto>
     private readonly IRfqQueryRepository _repo;
     private readonly IMapper _mapper;
     private readonly IMediator _mediator;
-    private readonly IItemGrpcClient _itemGrpcClient;
+    private readonly IItemLookup _itemLookup;
     private readonly IUOMLookup _uomLookup;
     private readonly IHSNLookup _hsnLookup;
 
@@ -25,14 +22,14 @@ public class GetRfqByIdQueryHandler : IRequestHandler<GetRfqByIdQuery, RfqDto>
         IRfqQueryRepository repo,
         IMapper mapper,
         IMediator mediator,
-        IItemGrpcClient itemGrpcClient,
+        IItemLookup itemLookup,
         IUOMLookup uomLookup,
         IHSNLookup hsnLookup)
     {
         _repo = repo;
         _mapper = mapper;
         _mediator = mediator;
-        _itemGrpcClient = itemGrpcClient;
+        _itemLookup = itemLookup;
         _uomLookup = uomLookup;
         _hsnLookup = hsnLookup;
     }
@@ -56,7 +53,7 @@ public class GetRfqByIdQueryHandler : IRequestHandler<GetRfqByIdQuery, RfqDto>
         var hsnIds  = result.Items.Select(i => i.HsnId).Where(id => id > 0).Distinct().ToList();
 
         // Parallel lookups
-        var itemsTask = _itemGrpcClient.GetItemsByIdsAsync(itemIds, ct);                       // List<ItemMasterDto>
+        var itemsTask = _itemLookup.GetByIdsAsync(itemIds, ct);                       // List<ItemMasterDto>
         var uomTask   = _uomLookup.GetByIdsAsync(uomIds, ct);                                 // IReadOnlyList<UOMLookupDto>
         var hsnTask   = _hsnLookup.GetByIdsAsync(hsnIds, ct);                                 // IReadOnlyList<HSNLookupDto>
 
@@ -94,7 +91,7 @@ public class GetRfqByIdQueryHandler : IRequestHandler<GetRfqByIdQuery, RfqDto>
             .GroupBy(h => h.Id)
             .ToDictionary(g => g.Key, g => g.First()); // HSN Id -> HSN dto (has GSTPercentage)
 
-        // Rebuild items with names, GST & ItemCategoryId from gRPC (when missing in RFQ)
+        // Rebuild items with names and GST from lookups; ItemCategoryId stays from RFQ data.
         var enrichedItems = result.Items.Select(i =>
         {
             itemNameMap.TryGetValue(i.ItemId, out var itemName);
@@ -108,10 +105,8 @@ public class GetRfqByIdQueryHandler : IRequestHandler<GetRfqByIdQuery, RfqDto>
             else if (gst <= 0 && grpcItem is not null)
                 gst = grpcItem.GSTPercentage;
 
-            // ItemCategoryId: RFQ if present, else gRPC item
-            int itemCategoryId = i.ItemCategoryId > 0
-                ? i.ItemCategoryId
-                : (grpcItem?.ItemCategoryId ?? 0);
+            // ItemCategoryId comes from RFQ payload/domain item.
+            int itemCategoryId = i.ItemCategoryId;
 
             return new RfqItemDto(
                 i.ItemId,
