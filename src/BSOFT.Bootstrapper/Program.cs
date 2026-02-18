@@ -21,14 +21,19 @@ using BudgetManagement.Module;
 var builder = WebApplication.CreateBuilder(args);
 var environment = builder.Environment.EnvironmentName;
 
-
 builder.Configuration
     .AddJsonFile($"appsettings.{environment}.json", optional: true, reloadOnChange: true)
     .AddJsonFile($"settings/serilogsetting.{environment}.json", optional: true, reloadOnChange: true)
     .AddJsonFile("settings/jwtsetting.json", optional: true, reloadOnChange: true)
     .AddEnvironmentVariables();
 
-// ✅ Global MediatR pipeline behaviors
+// ✅ Core Services (registered once)
+builder.Services.AddControllers();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddProblemDetails();
+builder.Services.AddEndpointsApiExplorer();
+
+// ✅ MediatR pipeline behaviors
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 
 // ✅ Shared validation provider
@@ -38,7 +43,7 @@ builder.Services.AddSingleton<IValidationRuleProvider, JsonValidationRuleProvide
 ValidatorOptions.Global.DefaultClassLevelCascadeMode = CascadeMode.Continue;
 ValidatorOptions.Global.DefaultRuleLevelCascadeMode = CascadeMode.Stop;
 
-// ✅ Register modules (each module registers its own handlers/validators/mappings/infra)
+// ✅ Modules
 builder.Services.AddUserManagementModule(builder.Configuration, builder.Environment);
 builder.Services.AddFixedAssetManagementModule(builder.Configuration, builder.Environment);
 builder.Services.AddMaintenanceManagementModule(builder.Configuration, builder.Environment);
@@ -50,44 +55,43 @@ builder.Services.AddWarehouseManagementModule(builder.Configuration, builder.Env
 builder.Services.AddProjectManagementModule(builder.Configuration, builder.Environment);
 builder.Services.AddBudgetManagementModule(builder.Configuration, builder.Environment);
 
-
-// ✅ Controllers + API
-builder.Services.AddControllers();
-// builder.Services.AddSwaggerDocumentation(swaggerModuleDocs);
+// ✅ Infrastructure
 builder.Services.AddSwaggerDocumentation();
 builder.Services.AddJwtAuthentication(builder.Configuration);
 builder.Services.AddCorsPolicy();
-builder.Services.AddHttpContextAccessor();
-builder.Services.AddProblemDetails();
-builder.Services.AddEndpointsApiExplorer();
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
+// ✅ Swagger (always first so UI is accessible)
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
+    c.DocumentTitle = "BSOFT API";
+    foreach (var module in SwaggerSetup.DefaultModuleDocs)
     {
-        c.DocumentTitle = "BSOFT API";
-        foreach (var module in SwaggerSetup.DefaultModuleDocs)
-        {
-            c.SwaggerEndpoint($"/swagger/{module.DocumentName}/swagger.json", module.Title);
-        }
-        c.RoutePrefix = "swagger";
-    });
+        c.SwaggerEndpoint($"{module.DocumentName}/swagger.json", module.Title);
+    }
+    c.RoutePrefix = "swagger";
+});
+
+// ✅ HTTPS Redirection only in Production to avoid Swagger CORS issues in dev
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
 }
 
+// ✅ Correct middleware order
 app.UseRouting();
-app.UseCors("AllowAll");
 
-app.UseHttpsRedirection(); // ✅ recommended
+app.UseCors("AllowAll");         // Must be after UseRouting, before UseAuthentication
+
 app.UseAuthentication();
 
 app.UseMiddleware<TokenValidationMiddleware>();
 app.UseMiddleware<UserManagement.Infrastructure.Logging.Middleware.LoggingMiddleware>();
 
 app.UseAuthorization();
+
 app.MapControllers();
 
 app.Run();
-
