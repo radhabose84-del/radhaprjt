@@ -25,7 +25,9 @@ namespace UserManagement.Application.RoleEntitlements.Queries.GetRoleEntitlement
 
     }
 
+    #pragma warning disable CS1998
     public async Task<List<RoleEntitlementDto>> Handle(GetRoleEntitlementsQuery request, CancellationToken cancellationToken)
+    #pragma warning restore CS1998
     {
         // Fetch role entitlements from the repository
         // var roleEntitlements = await _repository.GetRoleEntitlementsByRoleNameAsync(request.RoleName, cancellationToken);

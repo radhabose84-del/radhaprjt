@@ -5,7 +5,7 @@
 // using System.Threading.Tasks;
 // using AutoMapper;
 // using Contracts.Events.Workflow;
-// using PurchaseManagement.Application.Common.Exceptions;
+// using Contracts.Common;
 // using PurchaseManagement.Application.Common.Interfaces;
 // using PurchaseManagement.Application.Common.Interfaces.ILogService;
 // using PurchaseManagement.Application.Common.Interfaces.IMRS;

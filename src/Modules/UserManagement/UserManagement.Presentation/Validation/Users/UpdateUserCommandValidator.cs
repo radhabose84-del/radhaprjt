@@ -1,3 +1,4 @@
+#nullable disable
 using FluentValidation;
 using UserManagement.Domain.Entities;
 using UserManagement.Application.Users.Commands.UpdateUser;

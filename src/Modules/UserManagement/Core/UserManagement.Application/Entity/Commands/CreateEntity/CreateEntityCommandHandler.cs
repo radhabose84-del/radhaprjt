@@ -1,3 +1,4 @@
+#nullable disable
 using UserManagement.Application.Entity.Queries.GetEntity;
 using UserManagement.Application.Entity.Queries.GetEntityLastCode;
 using UserManagement.Application.Common.Interfaces;
@@ -8,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using UserManagement.Application.Common;
 using UserManagement.Domain.Events;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using Serilog;
 using FluentValidation;
 

@@ -1,5 +1,5 @@
 using AutoMapper;
-using PurchaseManagement.Application.Common.Exceptions;
+using Contracts.Common;
 using PurchaseManagement.Application.Common.Interfaces.IPortMaster;
 using PurchaseManagement.Application.Port.Commands;
 using PurchaseManagement.Application.Port.Dto;

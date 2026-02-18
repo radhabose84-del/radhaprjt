@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -21,7 +22,7 @@ namespace InventoryManagement.Infrastructure.Repositories.UOMConversion
             _dbConnection = dbConnection;
             
         }
-        public async Task<(List<UOMConversionDto>, int)> GetAllUOMConversionAsync(int PageNumber, int PageSize, string? SearchTerm)
+        public async Task<(List<UOMConversionDto>, int)> GetAllUOMConversionAsync(int PageNumber, int PageSize, string SearchTerm)
         {
             var query = $$"""
                 DECLARE @TotalCount INT;

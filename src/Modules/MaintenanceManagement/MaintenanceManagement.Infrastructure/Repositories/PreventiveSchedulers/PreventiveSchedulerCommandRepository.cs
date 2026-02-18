@@ -1,3 +1,4 @@
+#nullable disable
 // using Contracts.Events.Maintenance;
 // using Contracts.Interfaces.External.IMaintenance;
 using MaintenanceManagement.Application.Common.Interfaces;
@@ -138,7 +139,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.PreventiveSchedulers
             return false;
 
         }
-        public async Task<PreventiveSchedulerDetail?> CreateNextSchedulerDetailAsync(int Id)
+        public async Task<PreventiveSchedulerDetail> CreateNextSchedulerDetailAsync(int Id)
         {
             await _preventiveScheduleLogService.CaptureLogs(null, Id, "Create Next Schedule", JsonConvert.SerializeObject(Id));
             var existingPreventiveScheduler = await _applicationDbContext.PreventiveSchedulerDtl
@@ -308,7 +309,6 @@ namespace MaintenanceManagement.Infrastructure.Repositories.PreventiveSchedulers
                 // var delay = existingPreventiveScheduler.WorkOrderCreationStartDate.ToDateTime(TimeOnly.MinValue) - DateTime.Today;
                 var targetDateTime = existingPreventiveScheduler.WorkOrderCreationStartDate.ToDateTime(TimeOnly.MinValue);
                 var delay = targetDateTime - DateTime.Now;
-                string newJobId;
                 var delayInMinutes = (int)delay.TotalMinutes;
 
                 // if (delay.TotalSeconds > 0)
@@ -329,7 +329,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.PreventiveSchedulers
             return false;
         }
 
-        public async Task<PreventiveSchedulerDetail?> GetDetailByMachineActivityAndUnitAsync(string machineCode, string activityName, int unitId)
+        public async Task<PreventiveSchedulerDetail> GetDetailByMachineActivityAndUnitAsync(string machineCode, string activityName, int unitId)
         {
             return await (
            from m in _applicationDbContext.MachineMaster

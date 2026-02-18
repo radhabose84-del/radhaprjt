@@ -1,10 +1,11 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using FAM.Application.AssetMaster.AssetInsurance.Queries.GetAssetInsurance;
-using FAM.Application.Common.HttpResponse;
+using Contracts.Common;
 using FAM.Application.Common.Interfaces.IAssetMaster.IAssetInsurance;
 using MediatR;
 using FAM.Domain.Entities.AssetMaster;
@@ -15,7 +16,7 @@ namespace FAM.Application.AssetMaster.AssetInsurance.Commands.DeleteAssetInsuran
 {
     public class DeleteAssetInsuranceCommandHandler    : IRequestHandler<DeleteAssetInsuranceCommand, bool>
     {  
-        private readonly IAssetInsuranceCommandRepository? _assetInsuranceCommandRepository;
+        private readonly IAssetInsuranceCommandRepository _assetInsuranceCommandRepository;
         private readonly IMapper _mapper;
         private readonly IMediator _mediator; 
         public DeleteAssetInsuranceCommandHandler(IAssetInsuranceCommandRepository assetInsuranceCommandRepository , IMapper mapper,  IMediator mediator

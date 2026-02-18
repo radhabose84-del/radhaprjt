@@ -10,7 +10,7 @@ namespace MaintenanceManagement.Application.PreventiveSchedulers.Queries.GetPrev
         public int Id { get; set; }
         public int DepartmentId { get; set; }
         public string? DepartmentName { get; set; }
-        public string PreventiveSchedulerName { get; set; }
+        public string PreventiveSchedulerName { get; set; } = default!;
         public int FrequencyInterval { get; set; }
         public string? EffectiveDate { get; set; }
         public int GraceDays { get; set; }

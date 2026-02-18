@@ -14,7 +14,7 @@ namespace MaintenanceManagement.Domain.Entities.WorkOrderMaster
         public int StatusId { get; set; } 
         public required MiscMaster MiscStatus { get; set; }       
         public int? RootCauseId { get; set; }          
-        public MiscMaster MiscRootCause { get; set; } 
+        public MiscMaster MiscRootCause { get; set; } = default!;
         public string? Remarks { get; set; }
         public string? Image { get; set; }
         public int? TotalManPower { get; set; }

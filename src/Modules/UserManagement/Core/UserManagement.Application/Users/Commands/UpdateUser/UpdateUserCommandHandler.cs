@@ -1,8 +1,9 @@
+#nullable disable
 using MediatR;
 using AutoMapper;
 using UserManagement.Application.Common.Interfaces.IUser;
 using UserManagement.Domain.Events;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using Microsoft.Extensions.Logging;
 
 

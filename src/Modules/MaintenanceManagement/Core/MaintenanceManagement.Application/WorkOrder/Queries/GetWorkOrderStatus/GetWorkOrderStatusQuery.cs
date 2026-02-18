@@ -1,4 +1,4 @@
-using MaintenanceManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using MaintenanceManagement.Application.MiscMaster.Queries.GetMiscMaster;
 using MediatR;
 

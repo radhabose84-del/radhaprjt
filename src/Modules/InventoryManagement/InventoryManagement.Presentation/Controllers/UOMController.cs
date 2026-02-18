@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -32,7 +33,7 @@ namespace InventoryManagement.Presentation.Controllers
             _updateUOMCommandValidator = updateUOMCommandValidator;
         }
         [HttpGet]
-        public async Task<IActionResult> GetAllUOMAsync([FromQuery] int PageNumber, [FromQuery] int PageSize, [FromQuery] string? SearchTerm = null)
+        public async Task<IActionResult> GetAllUOMAsync([FromQuery] int PageNumber, [FromQuery] int PageSize, [FromQuery] string SearchTerm = null)
         {
             var uom = await Mediator.Send(
                 new GetUOMQuery
@@ -179,7 +180,7 @@ namespace InventoryManagement.Presentation.Controllers
         }
 
         [HttpGet("by-name")]
-        public async Task<IActionResult> GetUOM([FromQuery] string? name)
+        public async Task<IActionResult> GetUOM([FromQuery] string name)
         {
             var result = await Mediator.Send(new GetUOMAutoCompleteQuery { SearchPattern = name });
             if (!result.IsSuccess)
@@ -198,7 +199,7 @@ namespace InventoryManagement.Presentation.Controllers
             });
         }
         [HttpGet("by-Type")]
-        public async Task<IActionResult> GetUOMType([FromQuery] string? name)
+        public async Task<IActionResult> GetUOMType([FromQuery] string name)
         {
             var result = await Mediator.Send(new GetUOMTypeAutoCompleteQuery { SearchPattern = name });
             if (!result.IsSuccess)

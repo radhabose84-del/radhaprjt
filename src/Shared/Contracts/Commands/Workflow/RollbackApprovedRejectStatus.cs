@@ -12,8 +12,8 @@ namespace Contracts.Commands.Workflow
     {
         public Guid CorrelationId { get; set; }
         public int IndentId { get; set; }
-        public string Reason { get; set; }
-        public ICollection<UpdateLineStatusDto> RollbackApprovedRejected { get; set; }
+        public string Reason { get; set; } = default!;
+        public ICollection<UpdateLineStatusDto> RollbackApprovedRejected { get; set; } = default!;
         
     }
 }

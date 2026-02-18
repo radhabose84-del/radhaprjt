@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -135,7 +136,7 @@ namespace WarehouseManagement.Infrastructure.Repositories.WarehouseMaster
 
             return (warehouses, totalCount);
         }
-        public async Task<WarehouseMasterDto?> GetByIdAsync(int id)
+        public async Task<WarehouseMasterDto> GetByIdAsync(int id)
         {
             var unitId = _ipAddressService.GetUnitId();
             var sql = @"

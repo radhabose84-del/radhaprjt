@@ -1,3 +1,4 @@
+#nullable disable
 using UserManagement.Application.UserRoleAllocation.Queries.GetUserRoleAllocation;
 using UserManagement.Application.Common.Interfaces;
 using AutoMapper;
@@ -26,7 +27,7 @@ namespace UserManagement.Application.UserRoleAllocation.Queries.GetUserRoleAlloc
             _mapper = mapper;
         }
 
-        public async Task<CreateUserRoleAllocationDto?> Handle(GetUserRoleAllocationByIdQuery request, CancellationToken cancellationToken)
+        public async Task<CreateUserRoleAllocationDto> Handle(GetUserRoleAllocationByIdQuery request, CancellationToken cancellationToken)
         {
             if (request.UserId <= 0)
             {

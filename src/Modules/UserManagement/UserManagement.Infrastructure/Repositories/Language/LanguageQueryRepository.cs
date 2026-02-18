@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -15,7 +16,7 @@ namespace UserManagement.Infrastructure.Repositories.Language
         {
             _dbConnection = dbConnection;
         }
-        public async Task<(List<UserManagement.Domain.Entities.Language>,int)> GetAllLanguageAsync(int PageNumber, int PageSize, string? SearchTerm)
+        public async Task<(List<UserManagement.Domain.Entities.Language>,int)> GetAllLanguageAsync(int PageNumber, int PageSize, string SearchTerm)
         {
              var query = $$"""
 
@@ -63,7 +64,7 @@ namespace UserManagement.Infrastructure.Repositories.Language
             return await _dbConnection.QueryFirstOrDefaultAsync<UserManagement.Domain.Entities.Language>(query, new { id });
         }
 
-        public async Task<UserManagement.Domain.Entities.Language?> GetByLanguagenameAsync(string name, int? id = null)
+        public async Task<UserManagement.Domain.Entities.Language> GetByLanguagenameAsync(string name, int? id = null)
         {
              if (string.IsNullOrWhiteSpace(name))
             {

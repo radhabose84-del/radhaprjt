@@ -1,3 +1,4 @@
+#nullable disable
 using FAM.Application.AssetMaster.AssetMasterGeneral.Commands.CreateAssetMasterGeneral;
 using FAM.Application.AssetMaster.AssetMasterGeneral.Commands.DeleteAssetMasterGeneral;
 using FAM.Application.AssetMaster.AssetMasterGeneral.Commands.DeleteDocumentAssetMasterGeneral;
@@ -12,8 +13,7 @@ using FAM.Application.AssetMaster.AssetMasterGeneral.Queries.GetAssetMasterGener
 using FAM.Application.AssetMaster.AssetMasterGeneral.Queries.GetAssetMasterGeneralAutoComplete;
 using FAM.Application.AssetMaster.AssetMasterGeneral.Queries.GetAssetMasterGeneralById;
 using FAM.Application.AssetMaster.AssetMasterGeneral.Queries.GetAssetParentMaster;
-using FAM.Application.Common.Exceptions;
-using FAM.Application.Common.HttpResponse;
+using Contracts.Common;
 using FAM.Application.DepreciationGroup.Queries.GetAssetTypeQuery;
 using FAM.Application.DepreciationGroup.Queries.GetWorkingStatusQuery;
 using FAM.Application.ExcelImport;
@@ -41,7 +41,7 @@ namespace FAM.Presentation.Controllers.AssetMaster
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllAssetMasterGeneralAsync([FromQuery] int PageNumber, [FromQuery] int PageSize, [FromQuery] string? SearchTerm = null)
+        public async Task<IActionResult> GetAllAssetMasterGeneralAsync([FromQuery] int PageNumber, [FromQuery] int PageSize, [FromQuery] string SearchTerm = null)
 
         {
             var assetMaster = await Mediator.Send(
@@ -153,7 +153,7 @@ namespace FAM.Presentation.Controllers.AssetMaster
         // GET: api/AssetMasterGeneral/by-name?name=...
 
         [HttpGet("by-name")]
-        public async Task<IActionResult> GetAssetName([FromQuery] string? name)
+        public async Task<IActionResult> GetAssetName([FromQuery] string name)
 
         {
             var result = await Mediator.Send(new GetAssetMasterGeneralAutoCompleteQuery { SearchPattern = name });

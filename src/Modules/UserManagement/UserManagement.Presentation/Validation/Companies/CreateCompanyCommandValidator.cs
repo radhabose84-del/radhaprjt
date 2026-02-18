@@ -1,3 +1,4 @@
+#nullable disable
 using UserManagement.Presentation.Validation.Common;
 using UserManagement.Application.Companies.Commands.CreateCompany;
 using UserManagement.Domain.Entities;

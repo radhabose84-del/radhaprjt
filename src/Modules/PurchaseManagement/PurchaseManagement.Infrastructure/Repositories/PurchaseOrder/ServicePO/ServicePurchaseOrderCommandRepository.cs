@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -36,7 +37,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.ServicePO
             _ip = ip;
             _dbConnection = dbConnection;
         }
-        public async Task<PurchaseOrderHeader?> GetAggregateAsync(int id, CancellationToken ct)
+        public async Task<PurchaseOrderHeader> GetAggregateAsync(int id, CancellationToken ct)
         {
             // Tracked entity (needed for soft-close + EF graph insert in AmendAsync)
             return await _db.PurchaseOrderHeaders
@@ -599,7 +600,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.ServicePO
         }
 
         // 🔹 NEW: Load SES by Id including Activities
-        public async Task<ServiceEntrySheet?> GetServiceEntrySheetByIdAsync(int id, CancellationToken ct = default)
+        public async Task<ServiceEntrySheet> GetServiceEntrySheetByIdAsync(int id, CancellationToken ct = default)
         {
                 return await _db.ServiceEntrySheets
                     .Include(s => s.Activities)

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using PurchaseManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using PurchaseManagement.Application.PurchaseOrder.ServicePO.Command.CreateServiceEntrySheet;
 using PurchaseManagement.Application.PurchaseOrder.ServicePO.Command.UpdateServiceEntrySheet;
 using PurchaseManagement.Application.PurchaseOrder.ServicePO.Queries.ServiceEntrySheet.GetAllSES;
@@ -28,7 +28,6 @@ namespace PurchaseManagement.Presentation.Controllers.PurchaseOrder
     {
 
 
-        private readonly ILogger<ServicePurchaseOrderController> _logger;
 
 
         public SESController(ISender mediator) : base(mediator)

@@ -3,7 +3,7 @@ using AutoMapper;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using UserManagement.Application.Common.Interfaces.IUnit;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using FluentValidation;
 
 namespace UserManagement.Application.Units.Commands.DeleteUnit

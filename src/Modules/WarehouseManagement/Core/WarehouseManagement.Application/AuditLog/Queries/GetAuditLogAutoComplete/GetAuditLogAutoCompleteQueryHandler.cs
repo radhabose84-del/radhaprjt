@@ -2,7 +2,7 @@ using MongoDB.Driver;
 using WarehouseManagement.Domain.Entities;
 using MediatR;
 using WarehouseManagement.Application.AuditLog.Queries.GetAuditLog;
-using WarehouseManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 
 namespace WarehouseManagement.Application.AuditLog.Queries.GetAuditLogBySearchPattern
 {

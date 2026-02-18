@@ -1,5 +1,5 @@
 using Contracts.Interfaces.Lookups.Users;
-using PurchaseManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.IPurchaseDocument;
 using PurchaseManagement.Domain.Common;

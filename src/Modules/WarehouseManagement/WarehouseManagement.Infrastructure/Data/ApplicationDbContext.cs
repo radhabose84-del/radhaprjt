@@ -32,6 +32,20 @@ namespace WarehouseManagement.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new RackMasterConfiguration());
             modelBuilder.ApplyConfiguration(new BinMasterConfiguration());
 
+            
+            // Global convention: set explicit precision/scale for all decimal properties
+            // This prevents EF Core runtime warnings about silent truncation
+            foreach (var property in modelBuilder.Model.GetEntityTypes()
+                .SelectMany(e => e.GetProperties())
+                .Where(p => p.ClrType == typeof(decimal) || p.ClrType == typeof(decimal?)))
+            {
+                if (property.GetPrecision() == null)
+                {
+                    property.SetPrecision(18);
+                    property.SetScale(6);
+                }
+            }
+
             base.OnModelCreating(modelBuilder);
         }
         public override int SaveChanges()

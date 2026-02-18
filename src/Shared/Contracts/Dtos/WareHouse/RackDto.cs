@@ -4,8 +4,8 @@ namespace Contracts.Dtos.Warehouse
     {
         public int Id { get; set; }
         public int WarehouseId { get; set; }
-        public string RackCode { get; set; }
-        public string RackName { get; set; }
+        public string RackCode { get; set; } = default!;
+        public string RackName { get; set; } = default!;
         public int FloorId { get; set; }
         public int AisleId { get; set; }
         public int RackLevelId { get; set; }

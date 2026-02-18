@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
-using FAM.Application.Common.HttpResponse;
+using Contracts.Common;
 using FAM.Application.Common.Interfaces.ISubLocation;
 using FAM.Application.Location.Command.UpdateSubLocation;
 using FAM.Domain.Common;

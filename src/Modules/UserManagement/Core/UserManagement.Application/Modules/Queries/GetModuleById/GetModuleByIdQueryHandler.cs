@@ -1,5 +1,5 @@
 using AutoMapper;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using UserManagement.Application.Common.Interfaces.IModule;
 using UserManagement.Application.Modules.Queries.GetModules;
 using UserManagement.Application.RoleEntitlements.Queries.GetRoleEntitlements;

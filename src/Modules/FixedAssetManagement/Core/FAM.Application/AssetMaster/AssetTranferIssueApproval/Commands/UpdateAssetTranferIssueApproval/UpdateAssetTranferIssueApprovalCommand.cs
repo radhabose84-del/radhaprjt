@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using FAM.Application.Common.HttpResponse;
+using Contracts.Common;
 using MediatR;
 
 namespace FAM.Application.AssetMaster.AssetTranferIssueApproval.Commands.UpdateAssetTranferIssueApproval

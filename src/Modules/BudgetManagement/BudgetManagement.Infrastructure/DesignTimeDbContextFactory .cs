@@ -1,3 +1,4 @@
+#nullable disable
 using BudgetManagement.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;

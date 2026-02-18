@@ -2,14 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using MaintenanceManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using MediatR;
 
 namespace MaintenanceManagement.Application.PreventiveSchedulers.Commands.CreatePreventiveScheduler
 {
     public class CreatePreventiveSchedulerCommand : IRequest<int>
     {
-        public string PreventiveSchedulerName { get; set; }
+        public string PreventiveSchedulerName { get; set; } = default!;
         public int MachineGroupId { get; set; }
         public int DepartmentId { get; set; }
         public int MaintenanceCategoryId { get; set; }

@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +11,7 @@ using UserManagement.Domain.Entities;
 using UserManagement.Application.Divisions.Queries.GetDivisions;
 using System.Data;
 using UserManagement.Application.Common.Interfaces.IDivision;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using UserManagement.Domain.Events;
 using System.Text.Json;
 using UserManagement.Application.Users.Queries.GetUsers;

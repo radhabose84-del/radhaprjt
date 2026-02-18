@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using PurchaseManagement.Application.Common.Exceptions;
+using Contracts.Common;
 using PurchaseManagement.Application.Common.Interfaces.IPaymentTermMaster;
 using PurchaseManagement.Domain.Events;
 using MediatR;

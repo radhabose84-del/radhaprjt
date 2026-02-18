@@ -9,6 +9,6 @@ namespace Contracts.Dtos.Purchase
     {
         public int ModuleLineId { get; set; }
         // public decimal ApprovedQuantity { get; set; }
-        public string Status { get; set; }
+        public string Status { get; set; } = default!;
     }
 }

@@ -1,3 +1,4 @@
+#nullable disable
 using System.Data;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;

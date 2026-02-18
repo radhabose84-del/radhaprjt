@@ -1,3 +1,4 @@
+#nullable disable
 using UserManagement.Application.Departments.Queries.GetDepartments;
 using UserManagement.Application.Departments.Commands.CreateDepartment;
 using UserManagement.Domain.Entities;
@@ -10,7 +11,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using UserManagement.Application.Common.Interfaces.IDepartment;
 using UserManagement.Application.Common;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using UserManagement.Domain.Events;
 using Microsoft.Extensions.Logging;
 using FluentValidation;

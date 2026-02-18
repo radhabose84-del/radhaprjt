@@ -37,7 +37,7 @@
         }
     public class ItemDetailsDto : ItemDto
     {
-        public int Id { get; set; }
+        public new int Id { get; set; }
         public string? HSNCode { get; set; }
         public string? ItemGroupName { get; set; }
         public string? ItemCategoryName { get; set; }

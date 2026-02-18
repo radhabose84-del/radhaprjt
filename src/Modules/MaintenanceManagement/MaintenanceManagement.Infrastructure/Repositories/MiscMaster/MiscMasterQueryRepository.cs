@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -18,7 +19,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.MiscMaster
 
         }
 
-        public async Task<(List<MaintenanceManagement.Domain.Entities.MiscMaster>,int)> GetAllMiscMasterAsync(int PageNumber, int PageSize, string? SearchTerm)
+        public async Task<(List<MaintenanceManagement.Domain.Entities.MiscMaster>,int)> GetAllMiscMasterAsync(int PageNumber, int PageSize, string SearchTerm)
         {
                 var query = $$"""
                 DECLARE @TotalCount INT;
@@ -87,7 +88,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.MiscMaster
             return miscmaster.ToList();
         }
 
-        public async Task<MaintenanceManagement.Domain.Entities.MiscMaster?> GetByMiscMasterCodeAsync(string name, int? id = null)
+        public async Task<MaintenanceManagement.Domain.Entities.MiscMaster> GetByMiscMasterCodeAsync(string name, int? id = null)
         {
               var query = """
                  SELECT * FROM Maintenance.MiscMaster
@@ -105,7 +106,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.MiscMaster
             return await _dbConnection.QueryFirstOrDefaultAsync<MaintenanceManagement.Domain.Entities.MiscMaster>(query, parameters);
         } 
         
-        public async Task<MaintenanceManagement.Domain.Entities.MiscMaster?> GetByWFMiscMasterCodeAsync(string name, int? id = null)
+        public async Task<MaintenanceManagement.Domain.Entities.MiscMaster> GetByWFMiscMasterCodeAsync(string name, int? id = null)
         {
               var query = """
                  SELECT * FROM Appdata.MiscMaster

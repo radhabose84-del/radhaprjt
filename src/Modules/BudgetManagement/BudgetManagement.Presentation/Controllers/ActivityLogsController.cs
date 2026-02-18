@@ -1,4 +1,4 @@
-using BudgetManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using BudgetManagement.Domain.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;

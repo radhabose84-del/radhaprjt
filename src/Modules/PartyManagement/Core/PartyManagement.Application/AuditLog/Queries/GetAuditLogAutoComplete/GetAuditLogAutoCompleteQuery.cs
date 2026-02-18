@@ -1,5 +1,5 @@
 using PartyManagement.Application.AuditLog.Queries.GetAuditLog;
-using PartyManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using MediatR;
 
 namespace PartyManagement.Application.AuditLog.Queries

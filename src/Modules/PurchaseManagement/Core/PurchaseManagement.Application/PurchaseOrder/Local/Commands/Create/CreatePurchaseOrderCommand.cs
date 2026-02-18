@@ -1,5 +1,5 @@
 
-using PurchaseManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 // using PurchaseManagement.Application.PurchaseOrder.Dtos.Local;
 using MediatR;
 using PurchaseManagement.Application.PurchaseOrder.Dtos.Local;

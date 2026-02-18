@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using Contracts.Interfaces.Lookups.Users;
-using MaintenanceManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using MaintenanceManagement.Application.Common.Interfaces.IMaintenanceRequest;
 using MaintenanceManagement.Application.MaintenanceRequest.Queries.GetMaintenanceRequest;
 using MaintenanceManagement.Domain.Events;

@@ -1,7 +1,7 @@
 using System.Linq;
 using AutoMapper;
 using Contracts.Interfaces.Lookups.Users; // ✅ lookup contract
-using FAM.Application.Common.HttpResponse;
+using Contracts.Common;
 using FAM.Application.Common.Interfaces.IAssetTransferReceipt;
 using FAM.Domain.Events;
 using MediatR;

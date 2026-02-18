@@ -10,7 +10,7 @@ namespace Contracts.Commands.Budget
     {
         public Guid CorrelationId { get; set; }
         public int ModuleTransactionId { get; set; }
-        public string Reason { get; set; }
-        public string ModuleTypeName { get; set; }
+        public string Reason { get; set; } = default!;
+        public string ModuleTypeName { get; set; } = default!;
     }
 }

@@ -1,3 +1,4 @@
+#nullable disable
 using System.ComponentModel.DataAnnotations;
 using Contracts.Interfaces.Lookups.Users;
 using BudgetManagement.Application.BudgetRequest.Commands;

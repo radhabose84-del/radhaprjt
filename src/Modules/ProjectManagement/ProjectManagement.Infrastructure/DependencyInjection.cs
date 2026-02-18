@@ -1,3 +1,4 @@
+#nullable disable
 using System.Data;
 using ProjectManagement.Application.Common.Interfaces;
 using Microsoft.Data.SqlClient;

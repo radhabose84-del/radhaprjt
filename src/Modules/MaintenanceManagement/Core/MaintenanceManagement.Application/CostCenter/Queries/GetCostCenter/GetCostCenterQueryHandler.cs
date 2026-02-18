@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using Contracts.Interfaces.Lookups.Users;
-using MaintenanceManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using MaintenanceManagement.Application.Common.Interfaces.ICostCenter;
 using MaintenanceManagement.Domain.Events;
 using MediatR;

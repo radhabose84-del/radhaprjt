@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
-using BudgetManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using BudgetManagement.Application.Common.Interfaces.IMiscTypeMaster;
 using BudgetManagement.Domain.Events;
 using MediatR;

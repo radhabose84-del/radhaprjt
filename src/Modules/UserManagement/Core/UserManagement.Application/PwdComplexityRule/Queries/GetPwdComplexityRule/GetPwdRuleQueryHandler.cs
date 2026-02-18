@@ -5,7 +5,7 @@ using System.Data;
 using UserManagement.Domain.Entities;
 using UserManagement.Application.Common.Interfaces.IPasswordComplexityRule;
 using Microsoft.Extensions.Logging;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using UserManagement.Domain.Events;
 using UserManagement.Application.PwdComplexityRule.Queries.GetPwdComplexityRule;
 

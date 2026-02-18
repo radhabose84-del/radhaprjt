@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using BackgroundService.API.Controller.Notification;
-using BackgroundService.Application.Notification.Common.HttpResponse;
+using Contracts.Common;
 using BackgroundService.Application.Workflow.ApprovalRequests.Commands.ApproveApprovalRequest;
 using BackgroundService.Application.Workflow.ApprovalRequests.Commands.ApproveDocumentUpload;
 using BackgroundService.Application.Workflow.ApprovalRequests.Queries.ApprovalDocumentDownload;

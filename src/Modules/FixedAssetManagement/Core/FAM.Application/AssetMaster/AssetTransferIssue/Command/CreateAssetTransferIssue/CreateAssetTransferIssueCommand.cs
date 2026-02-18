@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using FAM.Application.AssetMaster.AssetTransferIssue.Queries.GetAssetTransfered;
-using FAM.Application.Common.HttpResponse;
+using Contracts.Common;
 using FAM.Domain.Entities.AssetMaster;
 using MediatR;
 

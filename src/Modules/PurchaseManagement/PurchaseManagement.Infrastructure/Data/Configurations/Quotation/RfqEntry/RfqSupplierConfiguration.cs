@@ -1,3 +1,4 @@
+#nullable disable
 using PurchaseManagement.Domain.Entities.Quotation.RfqEntry;
 using PurchaseManagement.Domain.Entities.ValueObjects;
 using Microsoft.EntityFrameworkCore;

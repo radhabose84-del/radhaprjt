@@ -1,5 +1,6 @@
+#nullable disable
 using AutoMapper;
-using MaintenanceManagement.Application.Common.Exceptions;
+using Contracts.Common;
 using MaintenanceManagement.Application.Common.Interfaces.ICostCenter;
 using MaintenanceManagement.Domain.Events;
 using MediatR;

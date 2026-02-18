@@ -17,13 +17,13 @@ namespace PurchaseManagement.Domain.Entities
         public DateOnly RequiredDate { get; set; }
         public decimal? TotalEstimatedCost { get; set; }
         public int PRConsumptionDays { get; set; }
-        public string Remark { get; set; }
+        public string Remark { get; set; } = default!;
         // public decimal? ApprovedQuantity { get; set; }
         public bool IsRFQDone { get; set; }
         public int StatusId { get; set; }
         public decimal? POQty { get; set; }
-        public IndentHeader IndentHeader { get; set; }
-        public MiscMaster Status { get; set; }
+        public IndentHeader IndentHeader { get; set; } = default!;
+        public new MiscMaster Status { get; set; } = default!;
         
     }
 }

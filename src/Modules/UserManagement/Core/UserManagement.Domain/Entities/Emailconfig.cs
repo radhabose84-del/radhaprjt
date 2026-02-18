@@ -15,6 +15,6 @@ namespace UserManagement.Domain.Entities
         public int MailDay { get; set; }
         public int MailMonth { get; set; }
         public DateTime SentDate { get; set; }
-        public byte IsActive { get; set; } 
+        public new byte IsActive { get; set; } 
     }
 }

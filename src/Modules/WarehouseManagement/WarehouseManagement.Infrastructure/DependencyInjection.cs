@@ -1,3 +1,4 @@
+#nullable disable
 using System.Data;
 using WarehouseManagement.Application.Common.Interfaces;
 using WarehouseManagement.Application.Common.Interfaces.AuditLog;

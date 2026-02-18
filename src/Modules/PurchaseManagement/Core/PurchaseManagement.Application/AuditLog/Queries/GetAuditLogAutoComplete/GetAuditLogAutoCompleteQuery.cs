@@ -1,5 +1,5 @@
 using PurchaseManagement.Application.AuditLog.Queries.GetAuditLog;
-using PurchaseManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using MediatR;
 
 namespace PurchaseManagement.Application.AuditLog.Queries

@@ -8,7 +8,7 @@ namespace PurchaseManagement.Application.PurchaseOrder.Dtos.ServicePO
 
     public class ServicePurchaseOrderUpdateDto : CreateServicePurchaseOrderDto
     {
-        public int Id { get; set; }
+        public new int Id { get; set; }
     }
     public class CreateServicePurchaseOrderDto
     {
@@ -90,9 +90,15 @@ namespace PurchaseManagement.Application.PurchaseOrder.Dtos.ServicePO
         public string? AmendmentReason { get; set; }
         public int Edit { get; set; }
         public string? EditReason { get; set; }
+        #pragma warning disable CS0109
         public new List<PurchaseOrderServiceHeaderDto> ServicePo { get; set; } = new();
+        #pragma warning restore CS0109
+        #pragma warning disable CS0109
         public new List<PurchaseOrderServicePaymentTermDto> PaymentTerms { get; set; } = new();
+        #pragma warning restore CS0109
+        #pragma warning disable CS0109
         public new List<ServiceDocumentDto> DocumentsList { get; set; } = new();
+        #pragma warning restore CS0109
     }
 
     public sealed class PurchaseOrderServiceHeaderDto

@@ -1,7 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
-using BackgroundService.Application.Notification.Common.HttpResponse;
+using Contracts.Common;
 using BackgroundService.Application.Notification.Common.Interfaces.INotificationGroupMembers;
 using BackgroundService.Application.Notification.NotificationGroupMember.Queries.GetAllNotificationGroupMember;
 using BackgroundService.Application.Notification.NotificationGroupMember.Queries.GetNotificationGroupById;

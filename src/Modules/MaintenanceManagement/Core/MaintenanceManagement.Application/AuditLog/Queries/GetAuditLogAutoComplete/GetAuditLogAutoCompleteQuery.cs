@@ -1,5 +1,5 @@
 using MaintenanceManagement.Application.AuditLog.Queries.GetAuditLog;
-using MaintenanceManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using MediatR;
 
 namespace MaintenanceManagement.Application.AuditLog.Queries

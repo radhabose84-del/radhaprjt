@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
-using PurchaseManagement.Application.Common.Exceptions;
+using Contracts.Common;
 using PurchaseManagement.Application.Common.Interfaces.ITnCTemplateMaster;
 using PurchaseManagement.Domain.Events;
 using MediatR;

@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -98,7 +99,7 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
             return partyMaster;
         }
 
-        public async Task<(List<GetPartyMasterDto>, int)> GetAllPartyMasterAsync(int PageNumber, int PageSize, string? SearchTerm)
+        public async Task<(List<GetPartyMasterDto>, int)> GetAllPartyMasterAsync(int PageNumber, int PageSize, string SearchTerm)
         {
             var query = $$"""
                 ;WITH PartyMaster_CTE AS (
@@ -235,7 +236,7 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
             return partyMasters.ToList();
         }
 
-        public async Task<(List<PartyMasterPendingDto>, int)> GetAllPartyMasterPendingAsync(string? SearchTerm)
+        public async Task<(List<PartyMasterPendingDto>, int)> GetAllPartyMasterPendingAsync(string SearchTerm)
         {
             var UnitId = _ipAddressService.GetUnitId();
 
@@ -320,7 +321,7 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
                     WHERE pt.PartyId = @PartyId AND mm.IsActive = 1 AND mm.IsDeleted = 0;
                 ";
 
-                var rows = await _dbConnection.QueryAsync<string?>(sql, new { PartyId = partyId });
+                var rows = await _dbConnection.QueryAsync<string>(sql, new { PartyId = partyId });
 
                 // Filter out nulls, normalize casing, and return as IReadOnlyList<string>
                 var codes = rows

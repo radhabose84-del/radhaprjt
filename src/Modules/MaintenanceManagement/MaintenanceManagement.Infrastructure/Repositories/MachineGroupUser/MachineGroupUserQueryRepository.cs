@@ -1,3 +1,4 @@
+#nullable disable
 using System.Data;
 using MaintenanceManagement.Application.Common.Interfaces.IMachineGroupUser;
 using MaintenanceManagement.Application.MachineGroupUser.Queries.GetMachineGroupUser;
@@ -32,7 +33,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.MachineGroupUser
         }
 
 
-        public async Task<(List<MachineGroupUserDto>, int)> GetAllMachineGroupUserAsync(int PageNumber, int PageSize, string? SearchTerm)
+        public async Task<(List<MachineGroupUserDto>, int)> GetAllMachineGroupUserAsync(int PageNumber, int PageSize, string SearchTerm)
         {
             var query = $$"""
             DECLARE @TotalCount INT;

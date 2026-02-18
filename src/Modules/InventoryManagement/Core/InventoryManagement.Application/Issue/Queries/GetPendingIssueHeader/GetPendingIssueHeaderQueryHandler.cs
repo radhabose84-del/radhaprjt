@@ -7,7 +7,7 @@ using AutoMapper;
 using Contracts.Dtos.Lookups.Warehouse;
 using Contracts.Interfaces.Lookups.Users;
 using Contracts.Interfaces.Lookups.Warehouse;
-using InventoryManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using InventoryManagement.Application.Common.Interfaces.IIssue;
 using InventoryManagement.Domain.Events;
 using MediatR;

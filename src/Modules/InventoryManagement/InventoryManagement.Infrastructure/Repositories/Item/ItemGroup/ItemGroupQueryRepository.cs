@@ -1,3 +1,4 @@
+#nullable disable
 using System.Data;
 using InventoryManagement.Application.Common.Interfaces.Item.ItemGroup;
 using InventoryManagement.Application.Item.ItemGroup.Queries.GetItemGroup;
@@ -22,7 +23,7 @@ namespace  InventoryManagement.Infrastructure.Repositories.Item.ItemGroup
                     FROM  Inventory.ItemGroup WHERE Id = @Id AND IsDeleted = 0";
             return await _dbConnection.QueryFirstOrDefaultAsync<ItemGroupDto>(query, new { Id });
         }
-        public async Task<(IEnumerable<dynamic>, int)> GetAllItemGroupAsync(int PageNumber, int PageSize, string? SearchTerm)
+        public async Task<(IEnumerable<dynamic>, int)> GetAllItemGroupAsync(int PageNumber, int PageSize, string SearchTerm)
         {
             var query = $$"""
             DECLARE @TotalCount INT;

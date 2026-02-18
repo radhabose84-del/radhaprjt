@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +11,7 @@ using UserManagement.Application.Common.Interfaces.IPasswordComplexityRule;
 using UserManagement.Application.Common;
 using UserManagement.Domain.Events;
 using Microsoft.Extensions.Logging;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using FluentValidation;
 
 namespace UserManagement.Application.PwdComplexityRule.Commands.DeletePasswordComplexityRule
@@ -20,7 +21,6 @@ namespace UserManagement.Application.PwdComplexityRule.Commands.DeletePasswordCo
         private readonly  IPasswordComplexityRuleCommandRepository _IpasswordComplexityRepository;  
        private readonly IMapper _Imapper;
         private readonly IMediator _mediator; 
-        private readonly IPasswordComplexityRuleQueryRepository _passwordComplexityRuleQueryRepository;
         private readonly ILogger<DeletePasswordComplexityRuleCommandHandler> _logger;
        
         public DeletePasswordComplexityRuleCommandHandler (IPasswordComplexityRuleCommandRepository passwordcomplexityrulerepository,IPasswordComplexityRuleQueryRepository passwordComplexityRuleQueryRepository , IMapper mapper,ILogger<DeletePasswordComplexityRuleCommandHandler> logger,IMediator mediator)

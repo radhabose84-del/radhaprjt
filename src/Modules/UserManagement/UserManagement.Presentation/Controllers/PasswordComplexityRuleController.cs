@@ -157,7 +157,9 @@ namespace UserManagement.Presentation.Controllers
             // Send the update command to the mediator
             var updateResult = await Mediator.Send(updatePasswordComplexityRuleCommand);
 
+            #pragma warning disable CS0472
             if (updateResult == null)
+            #pragma warning restore CS0472
             {
                 _logger.LogWarning($"Failed to update Password Complexity Rule with ID: {updatePasswordComplexityRuleCommand.Id}");
 

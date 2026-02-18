@@ -1,3 +1,4 @@
+#nullable disable
 using UserManagement.Application.Divisions.Queries.GetDivisions;
 using UserManagement.Domain.Entities;
 using UserManagement.Application.Common.Interfaces;
@@ -7,7 +8,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using UserManagement.Application.Common.Interfaces.IDivision;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using UserManagement.Domain.Events;
 using FluentValidation;
 

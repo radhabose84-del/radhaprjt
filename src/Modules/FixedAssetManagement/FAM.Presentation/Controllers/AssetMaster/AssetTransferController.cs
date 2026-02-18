@@ -10,7 +10,7 @@ using FAM.Application.AssetMaster.AssetTransferIssue.Queries.GetBulkAssetToTrans
 using FAM.Application.AssetMaster.AssetTransferIssue.Queries.GetCategoryByCustodian;
 using FAM.Application.AssetMaster.AssetTransferIssue.Queries.GetCategoryByDeptId;
 using FAM.Application.AssetMaster.AssetTransferIssue.Queries.GetTransferType;
-using FAM.Application.Common.HttpResponse;
+using Contracts.Common;
 using FAM.Application.Common.Interfaces.IAssetMaster.IAssetTransferIssue;
 using FAM.Domain.Entities.AssetMaster;
 using FluentValidation;

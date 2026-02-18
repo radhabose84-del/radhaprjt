@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -16,7 +17,7 @@ namespace UserManagement.Infrastructure.Repositories.TimeZones
              _dbConnection = dbConnection;
         }
 
-        public async Task<(List<UserManagement.Domain.Entities.TimeZones>, int)> GetAllTimeZonesAsync(int PageNumber, int PageSize, string? SearchTerm)
+        public async Task<(List<UserManagement.Domain.Entities.TimeZones>, int)> GetAllTimeZonesAsync(int PageNumber, int PageSize, string SearchTerm)
         {
              var query = $$"""
              DECLARE @TotalCount INT;

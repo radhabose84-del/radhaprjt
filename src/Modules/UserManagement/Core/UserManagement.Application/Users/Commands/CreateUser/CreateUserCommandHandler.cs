@@ -4,7 +4,7 @@ using AutoMapper;
 using MediatR;
 using UserManagement.Application.Common.Interfaces.IUser;
 using UserManagement.Domain.Events;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using Microsoft.Extensions.Logging;
 using UserManagement.Application.Common.Interfaces;
 // using Contracts.Events.Users;

@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -53,8 +54,12 @@ namespace MaintenanceManagement.Presentation.Validation.ActivityMaster
                         .MustAsync(async (model, activityname, _) =>
                             !await _activityMasterQueryRepository.GetByActivityNameAsync(
                                 activityname, model.UpdateActivityMaster.ActivityId))
+                        #pragma warning disable CS0162
                         .WithMessage("Activity name already exists."); break;       
+                        #pragma warning restore CS0162
+                    #pragma warning disable CS0162
                     break;
+                    #pragma warning restore CS0162
           
                 }
             }

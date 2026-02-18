@@ -1,3 +1,4 @@
+#nullable disable
 
 using MaintenanceManagement.Application.Common.Interfaces.IWorkOrder;
 using MaintenanceManagement.Application.WorkOrder.Command.CreateWorkOrder.CreateSchedule;

@@ -1,3 +1,4 @@
+#nullable disable
 using UserManagement.Application.Users.Queries.GetUsers;
 using UserManagement.Domain.Entities;
 using AutoMapper;

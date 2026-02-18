@@ -1,6 +1,7 @@
+#nullable disable
 using AutoMapper;
 using Contracts.Events.Notifications;
-using MaintenanceManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using MaintenanceManagement.Application.Common.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces.IMaintenanceRequest;
 using MaintenanceManagement.Application.Common.Interfaces.IMiscMaster;

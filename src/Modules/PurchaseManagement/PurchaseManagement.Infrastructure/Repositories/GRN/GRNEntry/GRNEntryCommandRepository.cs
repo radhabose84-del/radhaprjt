@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -178,7 +179,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
                 return putawayList.Count;
             });
         }
-        public async Task<GrnHeader?> GetGrnHeaderAsync(int grnId, CancellationToken ct = default)
+        public async Task<GrnHeader> GetGrnHeaderAsync(int grnId, CancellationToken ct = default)
         {
             return await _applicationDbContext.Set<GrnHeader>()
                 .FirstOrDefaultAsync(x => x.Id == grnId, ct);
@@ -191,7 +192,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
                 .Where(x => x.GrnId == grnId)
                 .ToListAsync(ct);
         }
-          public async Task<GrnHeader?> GetGrnWithDetailsAsync(int grnId, CancellationToken ct = default)
+          public async Task<GrnHeader> GetGrnWithDetailsAsync(int grnId, CancellationToken ct = default)
         {
             return await _applicationDbContext.Set<GrnHeader>()
                 .Include(x => x.GrnDetails)   

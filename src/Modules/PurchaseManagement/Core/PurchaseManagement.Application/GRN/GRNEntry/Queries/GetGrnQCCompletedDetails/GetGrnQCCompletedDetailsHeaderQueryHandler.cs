@@ -5,7 +5,7 @@
 // using AutoMapper;
 // using Contracts.Interfaces.External.IParty;
 // using Contracts.Interfaces.External.IWarehouse;
-// using PurchaseManagement.Application.Common.HttpResponse;
+// using Contracts.Common;
 // using PurchaseManagement.Application.Common.Interfaces.IGRN.IGRNEntry;
 // using PurchaseManagement.Domain.Events;
 // using MassTransit.Futures.Contracts;

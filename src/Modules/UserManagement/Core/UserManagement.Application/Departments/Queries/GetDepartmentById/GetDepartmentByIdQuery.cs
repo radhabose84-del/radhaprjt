@@ -1,6 +1,6 @@
 
 using UserManagement.Application.Common;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using UserManagement.Application.Departments.Queries.GetDepartments;
 using MediatR;
 using System;

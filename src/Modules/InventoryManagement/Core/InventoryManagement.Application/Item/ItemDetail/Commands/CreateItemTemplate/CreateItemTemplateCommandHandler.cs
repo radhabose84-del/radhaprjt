@@ -1,3 +1,4 @@
+#nullable disable
 using AutoMapper;
 using InventoryManagement.Application.Common.Interfaces.Item.ItemDetail.Commands;
 using InventoryManagement.Application.Common.Interfaces.Item.ItemDetail.Queries;
@@ -8,12 +9,24 @@ using MediatR;
 namespace InventoryManagement.Application.Item.ItemDetail.Commands.CreateItemTemplate
 {
     public sealed class CreateItemTemplateCommandHandler : IRequestHandler<CreateItemTemplateCommand, int>
+    #pragma warning disable CS0649
     {        
+    #pragma warning restore CS0649
+        #pragma warning disable CS0649
         private readonly IItemVariantAttributeCommandRepository _attrRepo;
+        #pragma warning restore CS0649
+        #pragma warning disable CS0649
         private readonly IItemQueryRepository _itemQry;
+        #pragma warning restore CS0649
+        #pragma warning disable CS0649
         private readonly IItemCommandRepository _itemRepo;        
+        #pragma warning restore CS0649
+        #pragma warning disable CS0649
         private readonly IUnitOfWork _uow;
+        #pragma warning restore CS0649
+        #pragma warning disable CS0649
         private readonly IMapper _mapper;
+        #pragma warning restore CS0649
 
         public async Task<int> Handle(CreateItemTemplateCommand request, CancellationToken ct)
         {

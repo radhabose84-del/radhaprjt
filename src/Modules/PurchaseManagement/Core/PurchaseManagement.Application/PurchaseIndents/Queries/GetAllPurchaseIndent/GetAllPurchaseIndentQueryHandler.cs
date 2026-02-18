@@ -5,7 +5,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using AutoMapper;
 using Contracts.Interfaces.External.IUser;
-using PurchaseManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseIndent;
 using PurchaseManagement.Domain.Events;
 using MediatR;

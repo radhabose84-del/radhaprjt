@@ -2,7 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using UserManagement.Application.Common.Interfaces.IRoleEntitlement;
 using UserManagement.Application.RoleEntitlements.Queries.GetRoleEntitlements;
 using UserManagement.Domain.Entities;
@@ -31,7 +31,9 @@ namespace UserManagement.Application.RoleEntitlements.Commands.DeleteRoleEntitle
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
         }
 
+        #pragma warning disable CS1998
         public async Task<ApiResponseDTO<RoleEntitlementDto>> Handle(DeleteRoleEntitlementCommand request, CancellationToken cancellationToken)
+        #pragma warning restore CS1998
         {
             // if (request == null)
             // {

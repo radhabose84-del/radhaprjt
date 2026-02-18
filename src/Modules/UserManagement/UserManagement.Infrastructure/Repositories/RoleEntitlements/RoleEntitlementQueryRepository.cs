@@ -1,3 +1,4 @@
+#nullable disable
 
 using Microsoft.EntityFrameworkCore;
 using UserManagement.Infrastructure.Data;
@@ -98,7 +99,7 @@ namespace UserManagement.Infrastructure.Repositories.RoleEntitlements
 
         public async Task<UserRole> GetRoleByNameAsync(string roleName, CancellationToken cancellationToken)
         {
-        // return await _applicationDbContext.UserRole.FirstOrDefaultAsync(r => r.RoleName == roleName, cancellationToken) ?? new UserRole();
+        // return await _applicationDbContext.UserRole.AsNoTracking().FirstOrDefaultAsync(r => r.RoleName == roleName, cancellationToken) ?? new UserRole();
             const string query = @"
         SELECT Id, RoleName, IsActive, CreatedBy, CreatedAt, CreatedByName, CreatedIP, 
                ModifiedBy, ModifiedAt, ModifiedByName, ModifiedIP

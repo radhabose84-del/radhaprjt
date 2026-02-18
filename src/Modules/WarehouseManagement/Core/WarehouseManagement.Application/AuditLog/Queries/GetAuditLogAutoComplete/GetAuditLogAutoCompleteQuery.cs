@@ -1,5 +1,5 @@
 using WarehouseManagement.Application.AuditLog.Queries.GetAuditLog;
-using WarehouseManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using MediatR;
 
 namespace WarehouseManagement.Application.AuditLog.Queries

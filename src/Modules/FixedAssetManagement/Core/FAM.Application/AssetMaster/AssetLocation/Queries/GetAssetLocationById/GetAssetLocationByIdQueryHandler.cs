@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using FAM.Application.AssetLocation.Queries.GetAssetLocation;
-using FAM.Application.Common.HttpResponse;
+using Contracts.Common;
 using FAM.Application.Common.Interfaces.IAssetMaster.IAssetLocation;
 using FAM.Domain.Events;
 using FluentValidation;
@@ -43,8 +43,12 @@ namespace FAM.Application.AssetLocation.Queries.GetAssetLocationById
             //Domain Event
             var domainEvent = new AuditLogsDomainEvent(
                 actionDetail: "GetById",
+                #pragma warning disable CS0472
                 actionCode: assetlocationDto.AssetId == null ? "" : assetlocationDto.AssetId.ToString(),        
+                #pragma warning restore CS0472
+                #pragma warning disable CS0472
                 actionName: assetlocationDto.SubLocationId == null ? "" : assetlocationDto.SubLocationId.ToString(),                
+                #pragma warning restore CS0472
                 details: $"Asset '{assetlocationDto.UnitId}' was created. Code: {assetlocationDto.DepartmentId}",
                 module:"AssetMasterGeneral"
             );

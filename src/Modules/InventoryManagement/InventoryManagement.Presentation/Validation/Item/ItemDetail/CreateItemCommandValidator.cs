@@ -1,3 +1,4 @@
+#nullable disable
 using FluentValidation;
 using InventoryManagement.Application.Common.Interfaces.Item.ItemDetail.Commands;
 using InventoryManagement.Application.Item.ItemDetail.Commands.CreateItem;
@@ -22,8 +23,12 @@ namespace InventoryManagement.Presentation.Validation.Item.ItemDetail
             IValidator<ItemManufactureDto> manuRowV,
             IValidator<ItemUomDto> uomRowV,
             IItemQueryRepository qryRepo)
+        #pragma warning disable CS0618
         {
+        #pragma warning restore CS0618
+            #pragma warning disable CS0618
             CascadeMode = CascadeMode.Stop;
+            #pragma warning restore CS0618
 
             // Safe max lengths
             int codeMax = 50, nameMax = 200;

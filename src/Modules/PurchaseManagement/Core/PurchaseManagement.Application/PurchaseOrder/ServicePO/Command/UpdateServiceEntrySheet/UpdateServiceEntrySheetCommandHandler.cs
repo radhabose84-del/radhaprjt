@@ -7,7 +7,7 @@ using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.ServicePO;
 using MediatR;
 using ServiceEntrySheetEntity   = PurchaseManagement.Domain.Entities.PurchaseOrder.ServicePO.ServiceEntrySheet;
 using ServiceEntryActivityEntity = PurchaseManagement.Domain.Entities.PurchaseOrder.ServicePO.ServiceEntryActivity;
-using PurchaseManagement.Application.Common.Exceptions;
+using Contracts.Common;
 using PurchaseManagement.Domain.Events;
 using System.Text.Json;
 using PurchaseManagement.Application.Common.Interfaces.IMiscTypeMaster;

@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -21,7 +22,7 @@ namespace WarehouseManagement.Infrastructure.Repositories.RackMaster
         }
 
 
-        public async Task<(List<RackMasterDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
+        public async Task<(List<RackMasterDto>, int)> GetAllAsync(int pageNumber, int pageSize, string searchTerm)
         {
             var sql = @"
                     DECLARE @TotalCount INT;
@@ -78,7 +79,7 @@ namespace WarehouseManagement.Infrastructure.Repositories.RackMaster
             return (items, total);
         }
 
-        public async Task<RackMasterDto?> GetByIdAsync(int id)
+        public async Task<RackMasterDto> GetByIdAsync(int id)
         {
              const string sql = @"
                 SELECT 
@@ -167,7 +168,7 @@ namespace WarehouseManagement.Infrastructure.Repositories.RackMaster
         //     return rows.ToList();
         // }
         
-        public async Task<List<GetRackMasterAutoCompleteDto>> GetRackMasterAutoCompletes( string? searchPattern, int? warehouseId = null)
+        public async Task<List<GetRackMasterAutoCompleteDto>> GetRackMasterAutoCompletes( string searchPattern, int? warehouseId = null)
         {
             const string sql = @"
                 SELECT 

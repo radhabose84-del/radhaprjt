@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using WarehouseManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using WarehouseManagement.Application.Common.Interfaces.IRackMaster;
 using WarehouseManagement.Application.RackMaster.Command.CreateRackMaster;
 using WarehouseManagement.Application.RackMaster.Command.DeleteRackMaster;

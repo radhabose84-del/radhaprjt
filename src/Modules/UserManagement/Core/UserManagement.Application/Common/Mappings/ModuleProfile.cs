@@ -1,3 +1,4 @@
+#nullable disable
 using AutoMapper;
 using UserManagement.Domain.Entities;
 using UserManagement.Application.Modules.Queries.GetModules;

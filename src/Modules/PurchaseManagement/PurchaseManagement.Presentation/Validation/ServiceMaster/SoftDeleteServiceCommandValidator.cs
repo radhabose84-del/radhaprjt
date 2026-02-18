@@ -10,7 +10,6 @@ namespace PurchaseManagement.Presentation.Validation.ServiceMaster
 {
     public class SoftDeleteServiceCommandValidator  : AbstractValidator<DeleteServiceCommand>
     {
-         private readonly IServiceQueryRepository queryRepo;
         public SoftDeleteServiceCommandValidator(IServiceQueryRepository queryRepo)
         {
             // 1) Id required

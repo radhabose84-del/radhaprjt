@@ -1,3 +1,4 @@
+#nullable disable
 using InventoryManagement.Application.Common.Interfaces;
 using InventoryManagement.Application.Common.Interfaces.Item.ItemDetail.Queries;
 using MediatR;

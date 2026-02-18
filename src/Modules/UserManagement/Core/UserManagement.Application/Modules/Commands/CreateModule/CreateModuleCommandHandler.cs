@@ -9,7 +9,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using UserManagement.Application.Common.Interfaces.IModule;
 using UserManagement.Domain.Events;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using Microsoft.Extensions.Logging;
 
 namespace UserManagement.Application.Modules.Commands.CreateModule

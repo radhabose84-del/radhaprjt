@@ -1,9 +1,10 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
-using BudgetManagement.Application.Common.Exceptions;
+using Contracts.Common;
 using BudgetManagement.Application.Common.Interfaces;
 using BudgetManagement.Application.Common.Interfaces.IBudgetAllocation;
 using BudgetManagement.Domain.Events;

@@ -1,9 +1,10 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
-using FAM.Application.Common.HttpResponse;
+using Contracts.Common;
 using FAM.Application.Common.Interfaces.ILocation;
 using FAM.Application.Location.Queries.GetLocations;
 using FAM.Domain.Events;

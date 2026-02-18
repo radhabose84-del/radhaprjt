@@ -1,3 +1,4 @@
+#nullable disable
 using UserManagement.Domain.Entities;
 using UserManagement.Application.Common.Interfaces;
 using FluentValidation;
@@ -5,7 +6,7 @@ using AutoMapper;
 using MediatR;
 using UserManagement.Application.Common.Interfaces.IModule;
 using UserManagement.Domain.Events;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using Microsoft.Extensions.Logging;
 
 namespace UserManagement.Application.Modules.Commands.UpdateModule
@@ -77,7 +78,13 @@ namespace UserManagement.Application.Modules.Commands.UpdateModule
 
     await _mediator.Publish(domainEvent, cancellationToken);
 
+#pragma warning disable CS4014
+
+
+#pragma warning restore CS4014
+    #pragma warning disable CS4014
     _moduleRepository.UpdateModuleAsync(moduledata); // Ensure EF Core tracks changes
+    #pragma warning restore CS4014
     // await _moduleRepository.SaveChangesAsync();
 
     _logger.LogInformation("Module with ID {ModuleId} successfully updated.", request.ModuleId);

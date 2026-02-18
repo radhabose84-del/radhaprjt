@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -5,7 +6,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using Contracts.Dtos.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Inventory;
-using WarehouseManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using WarehouseManagement.Application.Common.Interfaces.IRackMaster;
 using WarehouseManagement.Domain.Events;
 using MediatR;

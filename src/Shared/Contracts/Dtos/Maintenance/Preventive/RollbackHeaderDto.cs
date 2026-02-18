@@ -8,7 +8,7 @@ namespace Contracts.Dtos.Maintenance.Preventive
     public class RollbackHeaderDto
     {
         public int Id { get; set; }
-        public string PreventiveSchedulerName { get; set; }
+        public string PreventiveSchedulerName { get; set; } = default!;
         public int MachineGroupId { get; set; }
         public int DepartmentId { get; set; }
         public int MaintenanceCategoryId { get; set; }
@@ -24,7 +24,7 @@ namespace Contracts.Dtos.Maintenance.Preventive
         public decimal DownTimeEstimateHrs { get; set; }
         public int UnitId { get; set; }
         public int CompanyId { get; set; }
-        public List<RollbackActivityDto> rollbackActivities { get; set; }
-        public List<RollbackItemsDto> rollbackItems { get; set; }
+        public List<RollbackActivityDto> rollbackActivities { get; set; } = default!;
+        public List<RollbackItemsDto> rollbackItems { get; set; } = default!;
     }
 }

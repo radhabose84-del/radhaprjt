@@ -1,3 +1,4 @@
+#nullable disable
 using FAM.Application.AssetMaster.AssetSpecification.Commands.CreateAssetSpecification;
 using FAM.Application.AssetMaster.AssetSpecification.Commands.DeleteAssetSpecification;
 using FAM.Application.AssetMaster.AssetSpecification.Commands.UpdateAssetSpecification;
@@ -25,7 +26,7 @@ namespace FAM.Presentation.Controllers.AssetMaster
             
         }
         [HttpGet]
-        public async Task<IActionResult> GetAllAssetSpecificationAsync([FromQuery] int PageNumber, [FromQuery] int PageSize, [FromQuery] string? SearchTerm = null)
+        public async Task<IActionResult> GetAllAssetSpecificationAsync([FromQuery] int PageNumber, [FromQuery] int PageSize, [FromQuery] string SearchTerm = null)
         {
             var specificationMaster = await Mediator.Send(
             new GetAssetSpecificationQuery
@@ -119,7 +120,7 @@ namespace FAM.Presentation.Controllers.AssetMaster
         }
 
         [HttpGet("by-name")]
-        public async Task<IActionResult> GetAssetSpecification([FromQuery] string? name)
+        public async Task<IActionResult> GetAssetSpecification([FromQuery] string name)
         {
             var result = await Mediator.Send(new GetAssetSpecificationAutoCompleteQuery { SearchPattern = name }); // Pass `searchPattern` to the constructor
            
@@ -131,7 +132,7 @@ namespace FAM.Presentation.Controllers.AssetMaster
             });
         }
          [HttpGet("GetAllAssetSpecificationBasedOnMachineNo")]                
-        public async Task<IActionResult> GetAllAssetSpecificationBasedOnMachineNo([FromQuery] int PageNumber,[FromQuery] int PageSize,[FromQuery] string? SearchTerm = null)
+        public async Task<IActionResult> GetAllAssetSpecificationBasedOnMachineNo([FromQuery] int PageNumber,[FromQuery] int PageSize,[FromQuery] string SearchTerm = null)
         {            
             var specificationMaster = await Mediator.Send(
             new GetAssetSpecificationBasedMachineNoQuery

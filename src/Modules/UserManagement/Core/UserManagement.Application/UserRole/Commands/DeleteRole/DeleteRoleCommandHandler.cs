@@ -8,7 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using UserManagement.Application.Common.Interfaces.IUserRole;
 using Microsoft.Extensions.Logging;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using UserManagement.Domain.Events;
 
 namespace UserManagement.Application.UserRole.Commands.DeleteRole

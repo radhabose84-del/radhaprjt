@@ -2,7 +2,7 @@ using MongoDB.Driver;
 using ProjectManagement.Domain.Entities;
 using MediatR;
 using ProjectManagement.Application.AuditLog.Queries.GetAuditLog;
-using ProjectManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 
 namespace ProjectManagement.Application.AuditLog.Queries.GetAuditLogBySearchPattern
 {

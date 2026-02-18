@@ -1,7 +1,7 @@
 using AutoMapper;
 using Contracts.Dtos.Inventory;
 using Contracts.Interfaces.External.IInvetoryManagement;
-using PurchaseManagement.Application.Common.Exceptions;
+using Contracts.Common;
 using PurchaseManagement.Application.Common.Interfaces.IQuotation.IRfqEntry;
 using PurchaseManagement.Application.Quotation.RfqEntry.DTOs;
 using PurchaseManagement.Application.Quotation.RfqEntry.Queries.GetRfqById;

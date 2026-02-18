@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using FAM.Application.AssetMaster.AssetTransferIssue.Queries.GetAssetDtlToTransfer;
-using FAM.Application.Common.HttpResponse;
+using Contracts.Common;
 using MediatR;
 
 namespace FAM.Application.AssetMaster.AssetTransferIssue.Queries.GetBulkAssetToTransfer

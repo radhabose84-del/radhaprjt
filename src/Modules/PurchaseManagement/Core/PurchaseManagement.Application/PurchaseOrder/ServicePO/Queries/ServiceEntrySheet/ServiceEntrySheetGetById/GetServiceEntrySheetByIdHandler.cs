@@ -3,8 +3,8 @@
 // using System.Linq;
 // using System.Threading.Tasks;
 // using AutoMapper;
-// using PurchaseManagement.Application.Common.Exceptions;
-// using PurchaseManagement.Application.Common.HttpResponse;
+// using Contracts.Common;
+// using Contracts.Common;
 // using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.ServicePO;
 // using PurchaseManagement.Application.PurchaseOrder.ServicePO.Queries.ServiceEntrySheet.GetAllSES;
 // using PurchaseManagement.Application.PurchaseOrder.ServicePO.Queries.ServiceEntrySheet.ServiceEntrySheetGetById;

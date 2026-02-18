@@ -1,6 +1,6 @@
 
 using AutoMapper;
-using FAM.Application.Common.HttpResponse;
+using Contracts.Common;
 using FAM.Application.Common.Interfaces.IManufacture;
 using FAM.Application.Manufacture.Queries.GetManufacture;
 using FAM.Domain.Common;

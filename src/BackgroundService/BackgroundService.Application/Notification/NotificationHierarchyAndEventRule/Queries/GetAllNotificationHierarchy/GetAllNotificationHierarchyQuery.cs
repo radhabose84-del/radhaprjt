@@ -1,5 +1,5 @@
 
-using BackgroundService.Application.Notification.Common.HttpResponse;
+using Contracts.Common;
 using BackgroundService.Application.Notification.NotificationHierarchyAndEventRule.Commands.UpdateNotificationEventRule;
 using MediatR;
 

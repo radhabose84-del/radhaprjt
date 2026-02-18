@@ -1,3 +1,4 @@
+#nullable disable
 using AutoMapper;
 using UserManagement.Application.Common.Interfaces;
 using MediatR;
@@ -7,7 +8,7 @@ using UserManagement.Application.Users.Queries.GetUsers;
 using UserManagement.Application.Common.Interfaces.IUser;
 using UserManagement.Domain.Events;
 using Microsoft.Extensions.Logging;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 namespace UserManagement.Application.Users.Queries.GetUserAutoComplete
 {
     public class GetUserAutoCompleteQueryHandler: IRequestHandler<GetUserAutoCompleteQuery,ApiResponseDTO<List<UserAutoCompleteDto>>>

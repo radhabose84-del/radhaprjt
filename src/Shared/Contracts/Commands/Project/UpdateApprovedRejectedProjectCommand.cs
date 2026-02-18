@@ -10,8 +10,8 @@ namespace Contracts.Commands.Project
     {
         public Guid CorrelationId { get; set; }
         public int ModuleTransactionId { get; set; }
-        public string ModuleTypeName { get; set; }
-        public string Status { get; set; }
+        public string ModuleTypeName { get; set; } = default!;
+        public string Status { get; set; } = default!;
 
         
     }

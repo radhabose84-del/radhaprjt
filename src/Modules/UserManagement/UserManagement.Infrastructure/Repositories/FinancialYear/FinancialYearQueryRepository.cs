@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -18,7 +19,7 @@ namespace UserManagement.Infrastructure.Repositories.FinancialYear
     }
 
    
-            public async Task<(List<UserManagement.Domain.Entities.FinancialYear>, int)> GetAllFinancialYearAsync(int PageNumber, int PageSize, string? SearchTerm)
+            public async Task<(List<UserManagement.Domain.Entities.FinancialYear>, int)> GetAllFinancialYearAsync(int PageNumber, int PageSize, string SearchTerm)
         {
             var query = $$"""
                 DECLARE @TotalCount INT;

@@ -1,3 +1,4 @@
+#nullable disable
 using UserManagement.Application.Entity.Queries.GetEntity;
 using UserManagement.Application.Common.Interfaces;
 using MediatR;
@@ -6,7 +7,7 @@ using UserManagement.Application.Common.Interfaces.IEntity;
 using AutoMapper;
 using UserManagement.Application.Common;
 using UserManagement.Domain.Events;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using Microsoft.Extensions.Logging;
 using FluentValidation;
 

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using Contracts.Interfaces.Lookups.Users;
-using WarehouseManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using WarehouseManagement.Application.Common.Interfaces.IWarehouseMaster;
 using WarehouseManagement.Domain.Entities;
 using WarehouseManagement.Domain.Events;

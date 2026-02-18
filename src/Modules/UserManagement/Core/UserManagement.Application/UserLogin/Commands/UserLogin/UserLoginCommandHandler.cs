@@ -1,3 +1,4 @@
+#nullable disable
 using System.Security.Cryptography;
 using System.Text;
 using UserManagement.Application.Common.Interfaces;
@@ -6,7 +7,7 @@ using Microsoft.Extensions.Logging; // This is where the ILogger interface is de
 using UserManagement.Application.Common.Interfaces.IUser;
 using UserManagement.Domain.Events;
 using Serilog;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using UserManagement.Application.Common.Interfaces.IUserSession;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;

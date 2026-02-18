@@ -1,3 +1,4 @@
+#nullable disable
 using ProjectManagement.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;

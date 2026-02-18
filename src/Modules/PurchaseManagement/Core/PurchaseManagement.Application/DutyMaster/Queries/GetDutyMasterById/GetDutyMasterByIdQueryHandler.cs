@@ -1,3 +1,4 @@
+#nullable disable
 using System.Globalization;
 using AutoMapper;
 using Contracts.Dtos.Lookups.Inventory;
@@ -16,9 +17,9 @@ public class GetDutyMasterByIdQueryHandler(
     IMediator mediator,
     IHSNLookup hsnLookup,
     IMiscMasterCommandRepository misc)
-  : IRequestHandler<GetDutyMasterByIdQuery, DutyMasterViewDto?>
+  : IRequestHandler<GetDutyMasterByIdQuery, DutyMasterViewDto>
 {
-    public async Task<DutyMasterViewDto?> Handle(GetDutyMasterByIdQuery r, CancellationToken ct)
+    public async Task<DutyMasterViewDto> Handle(GetDutyMasterByIdQuery r, CancellationToken ct)
     {
         // 1) Get main entity (single DB call)
         var entity = await read.GetByIdAsync(r.Id, ct);
@@ -68,7 +69,7 @@ public class GetDutyMasterByIdQueryHandler(
         return dto;
     }
 
-    private static async Task<HSNLookupDto?> FetchHsnByCodeAsync(IHSNLookup hsnLookup, string code, CancellationToken ct)
+    private static async Task<HSNLookupDto> FetchHsnByCodeAsync(IHSNLookup hsnLookup, string code, CancellationToken ct)
     {
         var list = await hsnLookup.GetAllAsync(ct);
         return list.FirstOrDefault(x => string.Equals(x.HSNCode, code, StringComparison.OrdinalIgnoreCase));

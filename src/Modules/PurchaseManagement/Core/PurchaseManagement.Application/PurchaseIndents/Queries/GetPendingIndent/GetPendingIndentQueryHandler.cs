@@ -6,7 +6,7 @@
 // using AutoMapper;
 // // using Contracts.Interfaces.External.IUser;
 // // using Contracts.Interfaces.External.IWorkflow;
-// using PurchaseManagement.Application.Common.HttpResponse;
+// using Contracts.Common;
 // using PurchaseManagement.Application.Common.Interfaces;
 // using PurchaseManagement.Application.Common.Interfaces.IPurchaseIndent;
 // using PurchaseManagement.Domain.Common;

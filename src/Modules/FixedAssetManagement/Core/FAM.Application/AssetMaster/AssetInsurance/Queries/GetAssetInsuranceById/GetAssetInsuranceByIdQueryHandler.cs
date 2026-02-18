@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using FAM.Application.AssetMaster.AssetInsurance.Queries.GetAssetInsurance;
-using FAM.Application.Common.HttpResponse;
+using Contracts.Common;
 using FAM.Application.Common.Interfaces.IAssetMaster.IAssetInsurance;
 using FAM.Domain.Events;
 using FluentValidation;
@@ -41,7 +41,9 @@ namespace FAM.Application.AssetMaster.AssetInsurance.Queries.GetAssetInsuranceBy
               //Domain Event
             var domainEvent = new AuditLogsDomainEvent(
                 actionDetail: "GetById",
+                #pragma warning disable CS0472
                 actionCode: assetinsuranceDto.AssetId == null ? "" : assetinsuranceDto.AssetId.ToString(),        
+                #pragma warning restore CS0472
                 actionName: assetinsuranceDto.PolicyNo == null ? "" : assetinsuranceDto.PolicyNo.ToString(),                
                 details: $"Asset '{assetinsuranceDto.AssetId}' was created. Code: {assetinsuranceDto.Id}",
                 module:"AssetMasterGeneral"

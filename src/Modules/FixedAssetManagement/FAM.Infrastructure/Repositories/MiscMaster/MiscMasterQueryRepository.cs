@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -18,7 +19,7 @@ namespace FAM.Infrastructure.Repositories.MiscMaster
 
         }
 
-        public async Task<(List<FAM.Domain.Entities.MiscMaster>, int)> GetAllMiscMasterAsync(int PageNumber, int PageSize, string? SearchTerm)
+        public async Task<(List<FAM.Domain.Entities.MiscMaster>, int)> GetAllMiscMasterAsync(int PageNumber, int PageSize, string SearchTerm)
         {
             var query = $$"""
                 DECLARE @TotalCount INT;
@@ -86,7 +87,7 @@ namespace FAM.Infrastructure.Repositories.MiscMaster
 
         }
 
-        public async Task<FAM.Domain.Entities.MiscMaster?> GetByMiscMasterCodeAsync(string name, int miscTypeId, int? id = null)
+        public async Task<FAM.Domain.Entities.MiscMaster> GetByMiscMasterCodeAsync(string name, int miscTypeId, int? id = null)
         {
             var query = """
                  SELECT * FROM FixedAsset.MiscMaster
@@ -130,7 +131,7 @@ namespace FAM.Infrastructure.Repositories.MiscMaster
             return count > 0;
         }    
                     
-        public async Task<FAM.Domain.Entities.MiscMaster?> GetByMiscTypeIdAndCodeAsync(int miscTypeId, string code)
+        public async Task<FAM.Domain.Entities.MiscMaster> GetByMiscTypeIdAndCodeAsync(int miscTypeId, string code)
             {
                 var sql = @"
                     SELECT TOP 1 *

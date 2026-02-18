@@ -1,5 +1,5 @@
 using UserManagement.Application.City.Queries.GetCities;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using MediatR;
 
 namespace UserManagement.Application.City.Queries.GetCityById

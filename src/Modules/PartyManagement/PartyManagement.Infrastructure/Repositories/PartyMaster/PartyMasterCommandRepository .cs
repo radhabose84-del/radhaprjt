@@ -1,3 +1,4 @@
+#nullable disable
 using PartyManagement.Application.Common.Interfaces;
 using PartyManagement.Application.Common.Interfaces.IPartyMaster;
 using PartyManagement.Application.PartyMaster.Command.CreatePartyMaster;
@@ -544,7 +545,7 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
             return false;
         }
 
-        public async Task<PartyManagement.Domain.Entities.PartyMaster?> GetByIdAsync(int partyId)
+        public async Task<PartyManagement.Domain.Entities.PartyMaster> GetByIdAsync(int partyId)
         {
             return await _applicationDbContext.PartyMaster
                 .FirstOrDefaultAsync(p => p.Id == partyId);
@@ -593,14 +594,14 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
             return entity!;
         }
 
-        public async Task<PartyManagement.Domain.Entities.PartyMaster?> GetByIdWithContactsAsync(int partyId)
+        public async Task<PartyManagement.Domain.Entities.PartyMaster> GetByIdWithContactsAsync(int partyId)
         {
             return await _applicationDbContext.PartyMaster
                 .Include(p => p.PartyContactTypes)
                 .FirstOrDefaultAsync(p => p.Id == partyId);
         }
 
-        public async Task<PartyContact?> GetPrimaryContactAsync(int partyId)
+        public async Task<PartyContact> GetPrimaryContactAsync(int partyId)
         {
             return await _applicationDbContext.Set<PartyContact>()
                 .Where(c => c.PartyId == partyId)

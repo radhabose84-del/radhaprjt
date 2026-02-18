@@ -1,10 +1,11 @@
+#nullable disable
 using AutoMapper;
 using MediatR;
 using UserManagement.Application.Companies.Queries.GetCompanies;
 using System.Data;
 using UserManagement.Application.Common.Interfaces.ICompany;
 using UserManagement.Domain.Entities;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using UserManagement.Domain.Events;
 using UserManagement.Application.Common.Interfaces;
 

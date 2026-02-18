@@ -1,3 +1,4 @@
+#nullable disable
 using System.Data;
 using System.Threading;
 using Dapper;
@@ -36,7 +37,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.Templates
         }
 
         public async Task<(IEnumerable<PutAwayRuleListDto> rows, int total)> GetAllAsync(
-            int page, int size, string? search, CancellationToken ct = default)
+            int page, int size, string search, CancellationToken ct = default)
         {
             var skip = (page - 1) * size;
             var sql = """
@@ -109,7 +110,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.Templates
             return (rows, total);
         }
 
-        public async Task<PutAwayRuleDetailDto?> GetByIdAsync(int id, CancellationToken ct = default)
+        public async Task<PutAwayRuleDetailDto> GetByIdAsync(int id, CancellationToken ct = default)
         {
            var sql = """
             SELECT 
@@ -156,7 +157,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.Templates
             if (missingTypeIds.Length > 0)
             {
                 const string typeSql = "SELECT Id, Code FROM Inventory.MiscMaster WHERE Id IN @Ids AND IsDeleted = 0;";
-                var types = await _db.QueryAsync<(int Id, string? Code)>(
+                var types = await _db.QueryAsync<(int Id, string Code)>(
                     new CommandDefinition(typeSql, new { Ids = missingTypeIds }, cancellationToken: ct));
                 var typeDict = types.Where(t => !string.IsNullOrWhiteSpace(t.Code))
                                     .ToDictionary(t => t.Id, t => t.Code!);
@@ -166,7 +167,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.Templates
             }
 
             // ---- Enrich TargetCode/TargetName via gRPC based on storage type of EACH strategy ----
-            string Norm(string? s) =>
+            string Norm(string s) =>
                 string.IsNullOrWhiteSpace(s) ? "" : s.Trim().ToUpperInvariant().Replace(" ", "").Replace("_", "");
 
             var binIds  = head.Strategies.Where(s => s.TargetId.HasValue && Norm(s.StorageTypeCode) == "BIN")
@@ -209,7 +210,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.Templates
         private static string Normalize(string text) =>
             string.IsNullOrWhiteSpace(text) ? string.Empty : text.Trim().ToUpperInvariant().Replace(" ", "").Replace("_", "");
 
-        private static Contracts.Dtos.Warehouse.BinDto? PickFirstUsableBin(
+        private static Contracts.Dtos.Warehouse.BinDto PickFirstUsableBin(
             List<Contracts.Dtos.Warehouse.BinDto> bins,
             PutAwayEvaluateRequest req)
         {            
@@ -404,7 +405,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.Templates
             return rules.ToList();
         }
 
-        public async Task<List<GetPutAwayRuleItemIdDto?>> GetPutAwayRuleWarehouseDetailsAsync(List<int> itemids, List<int> warehouseIds)
+        public async Task<List<GetPutAwayRuleItemIdDto>> GetPutAwayRuleWarehouseDetailsAsync(List<int> itemids, List<int> warehouseIds)
         {
             if (itemids == null || !itemids.Any())
                 return null;

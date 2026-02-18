@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using BudgetManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using MediatR;
 
 namespace BudgetManagement.Application.MiscTypeMaster.Command.UpdateMiscTypeMaster

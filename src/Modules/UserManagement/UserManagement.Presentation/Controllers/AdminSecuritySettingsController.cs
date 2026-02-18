@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -43,7 +44,7 @@ namespace UserManagement.Presentation.Controllers
         }
 
          [HttpGet]
-                public async Task<IActionResult> GetAllAdminSecuritySettingsAsync([FromQuery] int PageNumber, [FromQuery] int PageSize, [FromQuery] string? SearchTerm = null)
+                public async Task<IActionResult> GetAllAdminSecuritySettingsAsync([FromQuery] int PageNumber, [FromQuery] int PageSize, [FromQuery] string SearchTerm = null)
         {
             _logger.LogInformation("Fetching All Admin Security Settings Request started.");
 

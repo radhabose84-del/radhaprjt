@@ -1,3 +1,4 @@
+#nullable disable
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using FluentValidation;
@@ -24,7 +25,7 @@ namespace FAM.Presentation.Controllers
             
         }
         [HttpGet]
-        public async Task<IActionResult> GetAllLocationAsync([FromQuery] int PageNumber, [FromQuery] int PageSize, [FromQuery] string? SearchTerm = null)
+        public async Task<IActionResult> GetAllLocationAsync([FromQuery] int PageNumber, [FromQuery] int PageSize, [FromQuery] string SearchTerm = null)
         {
             var locations = await Mediator.Send(
                 new GetLocationQuery
@@ -127,7 +128,7 @@ namespace FAM.Presentation.Controllers
         }
 
         [HttpGet("by-name")]
-        public async Task<IActionResult> GetLocation([FromQuery] string? name)
+        public async Task<IActionResult> GetLocation([FromQuery] string name)
         {
             var result = await Mediator.Send(new GetLocationAutoCompleteQuery { SearchPattern = name });
          

@@ -9,7 +9,7 @@ namespace FAM.Domain.Entities.AssetMaster
     {
         public int Id {get;set;}
         public int AssetTransferId { get; set; }        
-        public AssetTransferIssueHdr AssetTransferIssueHdr { get; set; } 
+        public AssetTransferIssueHdr AssetTransferIssueHdr { get; set; } = default!;
         public DateTimeOffset DocDate { get; set; }  
         public string? Sdcno { get; set; }
         public string? GatePassNo  { get; set; }

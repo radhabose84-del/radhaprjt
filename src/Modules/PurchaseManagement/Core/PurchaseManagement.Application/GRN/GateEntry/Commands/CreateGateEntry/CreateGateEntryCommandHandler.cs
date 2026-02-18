@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
-using PurchaseManagement.Application.Common.Exceptions;
+using Contracts.Common;
 using PurchaseManagement.Application.Common.Interfaces.IGRN.IGateEntry;
 using PurchaseManagement.Domain.Entities.GRN.GateEntry;
 using PurchaseManagement.Domain.Events;

@@ -12,7 +12,7 @@ using FluentValidation;
 using UserManagement.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
 using UserManagement.Application.Common.Interfaces.IUser;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using Microsoft.Extensions.Logging;
 
 namespace UserManagement.Presentation.Controllers
@@ -138,7 +138,9 @@ namespace UserManagement.Presentation.Controllers
             var command = new DeleteRoleCommand { Id = id };
            
                 var userRole = await Mediator.Send(command);
+                #pragma warning disable CS0472
                 if (userRole == null)
+                #pragma warning restore CS0472
                 {
                     _logger.LogWarning($"User Role with ID {id} not found.");
 

@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -18,7 +19,7 @@ namespace FAM.Infrastructure.Repositories.AssetCategories
             _dbConnection = dbConnection;
         }
 
-        public async Task<(List<AssetCategoriesDto>, int)> GetAllAssetCategoriesAsync(int PageNumber, int PageSize, string? SearchTerm)
+        public async Task<(List<AssetCategoriesDto>, int)> GetAllAssetCategoriesAsync(int PageNumber, int PageSize, string SearchTerm)
         {
              var query = $$"""
              DECLARE @TotalCount INT;
@@ -80,7 +81,7 @@ namespace FAM.Infrastructure.Repositories.AssetCategories
             return assetCategories.ToList();
         }
 
-        public async Task<List<AssetCategoriesAutoCompleteDto?>> GetByAssetgroupIdAsync(int AssetGroupId)
+        public async Task<List<AssetCategoriesAutoCompleteDto>> GetByAssetgroupIdAsync(int AssetGroupId)
         {
             const string query = @"
             SELECT 
@@ -99,7 +100,7 @@ namespace FAM.Infrastructure.Repositories.AssetCategories
 
     
 
-        public async Task<AssetCategoriesDto?> GetByIdAsync(int Id)
+        public async Task<AssetCategoriesDto> GetByIdAsync(int Id)
         {
             const string query = @"
                     SELECT a.*,b.GroupName as AssetGroupName 

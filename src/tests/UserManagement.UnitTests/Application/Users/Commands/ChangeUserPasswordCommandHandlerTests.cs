@@ -1,7 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using UserManagement.Application.Common.Interfaces;
 using UserManagement.Application.Common.Interfaces.IUser;
 using UserManagement.Application.Users.Commands.ChangeUserPassword;

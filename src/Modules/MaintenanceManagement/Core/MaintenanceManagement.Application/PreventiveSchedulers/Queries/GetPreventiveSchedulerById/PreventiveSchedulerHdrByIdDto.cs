@@ -9,7 +9,7 @@ namespace MaintenanceManagement.Application.PreventiveSchedulers.Queries.GetPrev
     public class PreventiveSchedulerHdrByIdDto : IMapFrom<PreventiveSchedulerHeader>
     {
         public int Id { get; set; }
-        public string PreventiveSchedulerName { get; set; }
+        public string PreventiveSchedulerName { get; set; } = default!;
         public int MachineGroupId { get; set; }
         public int DepartmentId { get; set; }
         public int MaintenanceCategoryId { get; set; }

@@ -1,3 +1,4 @@
+#nullable disable
 using BudgetManagement.Application.Common.Interfaces;
 using Microsoft.AspNetCore.Http;
 

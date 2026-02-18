@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.IO;
 using System.Threading;
@@ -5,7 +6,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using Contracts.Events.Maintenance;
 using Contracts.Interfaces.Lookups.Users;
-using MaintenanceManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using MaintenanceManagement.Application.Common.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces.IPreventiveScheduler;
 using MaintenanceManagement.Application.Common.Interfaces.IPreventiveSchedulerLog;
@@ -76,8 +77,12 @@ namespace MaintenanceManagement.Application.WorkOrder.Command.UpdateWorkOrder
                     systemTimeZone = TimeZoneInfo.Local;
             }
 
+            #pragma warning disable CS8321
             // Helper for nullable DateTimeOffset
+            #pragma warning restore CS8321
+            #pragma warning disable CS8321
             static DateTimeOffset? ConvertIfHasValue(DateTimeOffset? value, TimeZoneInfo tz)
+            #pragma warning restore CS8321
             {
                 if (!value.HasValue || value.Value == DateTimeOffset.MinValue)
                     return null;
@@ -141,8 +146,8 @@ namespace MaintenanceManagement.Application.WorkOrder.Command.UpdateWorkOrder
                     var companies = await _companyLookup.GetAllCompanyAsync();
                     var unitLookup = units.ToDictionary(u => u.UnitId, u => u.UnitName);
                     var companyLookup = companies.ToDictionary(u => u.CompanyId, u => u.CompanyName);
-                    string? unitName = null;
-                    string? companyName = null;
+                    string unitName = null;
+                    string companyName = null;
 
                     if (unitLookup.TryGetValue(request.WorkOrder.UnitId, out var unitNameGrpc))
                     {

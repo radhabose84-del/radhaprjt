@@ -1,3 +1,4 @@
+#nullable disable
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using UserManagement.Application.Units.Queries.GetUnits;
@@ -30,7 +31,7 @@ namespace UserManagement.Presentation.Controllers
             _logger = logger;
         }
         [HttpGet]
-        public async Task<IActionResult> GetAllUnitsAsync([FromQuery] int PageNumber,[FromQuery] int PageSize,[FromQuery] string? SearchTerm = null)
+        public async Task<IActionResult> GetAllUnitsAsync([FromQuery] int PageNumber,[FromQuery] int PageSize,[FromQuery] string SearchTerm = null)
         {
             var result = await Mediator.Send(
             new GetUnitQuery
@@ -143,7 +144,7 @@ namespace UserManagement.Presentation.Controllers
     }
 
        [HttpGet("by-name")]
-        public async Task<IActionResult> GetUnit([FromQuery] string? unitname,int? CompanyId)
+        public async Task<IActionResult> GetUnit([FromQuery] string unitname,int? CompanyId)
         {
             var units = await Mediator.Send(new GetUnitAutoCompleteQuery {SearchPattern = unitname??string.Empty, CompanyId = CompanyId??0});
              _logger.LogInformation("Search pattern: {SearchPattern}", unitname);

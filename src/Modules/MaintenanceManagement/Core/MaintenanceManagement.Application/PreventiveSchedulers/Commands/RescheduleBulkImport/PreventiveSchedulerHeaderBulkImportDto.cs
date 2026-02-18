@@ -7,7 +7,7 @@ namespace MaintenanceManagement.Application.PreventiveSchedulers.Commands.Resche
 {
     public class PreventiveSchedulerHeaderBulkImportDto
     {
-        public string PreventiveSchedulerName { get; set; }
+        public string PreventiveSchedulerName { get; set; } = default!;
         public int MachineGroupId { get; set; }
         public int DepartmentId { get; set; }
         public int MaintenanceCategoryId { get; set; }
@@ -23,7 +23,7 @@ namespace MaintenanceManagement.Application.PreventiveSchedulers.Commands.Resche
         public decimal DownTimeEstimateHrs { get; set; }
         public int UnitId { get; set; }
         public int CompanyId { get; set; }
-        public List<PrevetiveSchedulerDetailBulkImportDto> PreventDetails { get; set; }
-        public List<PreventiveSchedulerBulkImprotActivityDto> PreventActivities { get; set; }
+        public List<PrevetiveSchedulerDetailBulkImportDto> PreventDetails { get; set; } = default!;
+        public List<PreventiveSchedulerBulkImprotActivityDto> PreventActivities { get; set; } = default!;
     }
 }

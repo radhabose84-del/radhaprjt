@@ -1,5 +1,4 @@
-using FAM.Application.Common.Exceptions;
-using FAM.Application.Common.HttpResponse;
+using Contracts.Common;
 using FAM.Application.DepreciationGroup.Commands.CreateDepreciationGroup;
 using FAM.Application.DepreciationGroup.Commands.DeleteDepreciationGroup;
 using FAM.Application.DepreciationGroup.Commands.UpdateDepreciationGroup;

@@ -1,3 +1,4 @@
+#nullable disable
 using System.Text;
 using AutoMapper;
 using InventoryManagement.Application.Common.Interfaces;
@@ -381,7 +382,7 @@ namespace InventoryManagement.Application.Item.ItemAggregate.Handlers
         // ============================== helpers ==============================
 
 
-        private static string Tokenize(string? s)
+        private static string Tokenize(string s)
         {
             var raw = (s ?? string.Empty).Trim();
             var sb = new StringBuilder(raw.Length);
@@ -463,7 +464,7 @@ namespace InventoryManagement.Application.Item.ItemAggregate.Handlers
         }
         public static class DtoEmptyChecker
         {           
-            public static bool IsEmpty(object? dto, params string[] ignoreProps)
+            public static bool IsEmpty(object dto, params string[] ignoreProps)
             {
                 if (dto is null) return true;
 
@@ -519,7 +520,7 @@ namespace InventoryManagement.Application.Item.ItemAggregate.Handlers
                 return true;
             }
 
-            public static bool HasAny<T>(IEnumerable<T>? list) => list != null && list.Any();
+            public static bool HasAny<T>(IEnumerable<T> list) => list != null && list.Any();
         }
 
     }

@@ -10,7 +10,6 @@ namespace ProjectManagement.Presentation.Validation.ProjectWorkBreakdownStructur
 {
     public class CreateProjectWorkBreakdownStructureCommandValidator  : AbstractValidator<CreateProjectWorkBreakdownStructureCommand>
     {
-        private readonly IProjectWorkBreakdownStructureQueryRepository _queryRepo;
 
       public CreateProjectWorkBreakdownStructureCommandValidator(            IProjectWorkBreakdownStructureCommandRepository repo)
         {

@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -34,7 +35,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.MRS
             var newIRNO = await GetNewIRNOAsync(headerRequest.Divcode, headerRequest.IrDate);
             var requestTime = DateTime.Now.ToString("HH:mm:ss", CultureInfo.InvariantCulture);
             string hostName = Dns.GetHostName();
-            string? localIP = Dns.GetHostEntry(hostName)
+            string localIP = Dns.GetHostEntry(hostName)
                      .AddressList
                      .FirstOrDefault(ip => ip.AddressFamily == AddressFamily.InterNetwork)
                      ?.ToString();

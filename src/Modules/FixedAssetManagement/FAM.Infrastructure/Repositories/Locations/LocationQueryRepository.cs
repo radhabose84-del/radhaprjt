@@ -1,3 +1,4 @@
+#nullable disable
 using System.Data;
 using FAM.Application.Common.Interfaces;
 using FAM.Application.Common.Interfaces.ILocation;
@@ -63,7 +64,7 @@ namespace FAM.Infrastructure.Repositories.Locations
         //     return (locationlist, totalCount);
         // }
 
-        public async Task<(List<LocationDto>, int)> GetAllLocationListAsync(int PageNumber, int PageSize, string? SearchTerm)
+        public async Task<(List<LocationDto>, int)> GetAllLocationListAsync(int PageNumber, int PageSize, string SearchTerm)
         {
             var unitId = _ipAddressService.GetUnitId();
 
@@ -120,7 +121,7 @@ namespace FAM.Infrastructure.Repositories.Locations
             return await _dbConnection.QueryFirstOrDefaultAsync<Location>(query, new { id });
         }
 
-        public async Task<Location?> GetByLocationNameAsync(string name, int DepartmentId, int UnitId, int? id = null)
+        public async Task<Location> GetByLocationNameAsync(string name, int DepartmentId, int UnitId, int? id = null)
         {
             var query = @"
             SELECT

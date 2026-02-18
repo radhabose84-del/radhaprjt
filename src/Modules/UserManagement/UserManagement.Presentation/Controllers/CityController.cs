@@ -1,3 +1,4 @@
+#nullable disable
 using UserManagement.Application.City.Commands.CreateCity;
 using UserManagement.Application.City.Commands.DeleteCity;
 using UserManagement.Application.City.Commands.UpdateCity;
@@ -25,7 +26,7 @@ namespace UserManagement.Presentation.Controllers
              
         }
         [HttpGet]                
-        public async Task<IActionResult> GetAllCitiesAsync([FromQuery] int PageNumber,[FromQuery] int PageSize,[FromQuery] string? SearchTerm = null)
+        public async Task<IActionResult> GetAllCitiesAsync([FromQuery] int PageNumber,[FromQuery] int PageSize,[FromQuery] string SearchTerm = null)
         {            
             var cities = await Mediator.Send(
             new GetCityQuery
@@ -126,7 +127,7 @@ namespace UserManagement.Presentation.Controllers
         }
              
         [HttpGet("by-name")]  
-        public async Task<IActionResult> GetCity([FromQuery] string? name)
+        public async Task<IActionResult> GetCity([FromQuery] string name)
         {          
             var result = await Mediator.Send(new GetCityAutoCompleteQuery {SearchPattern = name}); // Pass `searchPattern` to the constructor
           

@@ -1,3 +1,4 @@
+#nullable disable
 using UserManagement.Application.Common.Interfaces;
 using UserManagement.Domain.Entities;
 using MediatR;
@@ -10,7 +11,7 @@ using System.Threading.Tasks;
 using UserManagement.Application.Departments.Queries.GetDepartments;
 using UserManagement.Application.Common.Interfaces.IDepartment;
 using UserManagement.Domain.Events;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using UserManagement.Application.Common;
 using UserManagement.Domain.Enums.Common;
 using FluentValidation;

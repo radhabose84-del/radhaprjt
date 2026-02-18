@@ -2,7 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
 using Contracts.Interfaces.Lookups.Users;
-using MaintenanceManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using MaintenanceManagement.Application.Common.Interfaces.ICostCenter;
 using MaintenanceManagement.Application.CostCenter.Queries.GetCostCenter;
 using MaintenanceManagement.Domain.Events;

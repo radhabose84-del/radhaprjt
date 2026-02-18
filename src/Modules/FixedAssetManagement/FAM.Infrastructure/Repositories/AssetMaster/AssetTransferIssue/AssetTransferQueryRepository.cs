@@ -1,3 +1,4 @@
+#nullable disable
 using System.Data;
 using System.Text.Json;
 using Contracts.Interfaces.Lookups.Users;
@@ -32,7 +33,7 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetTransferIssue
             _departmentLookup = departmentLookup;
         }
 
-        public async Task<(List<AssetTransferDto>, int)> GetAllAsync(int PageNumber, int PageSize, string? SearchTerm, DateTimeOffset? FromDate, DateTimeOffset? ToDate)
+        public async Task<(List<AssetTransferDto>, int)> GetAllAsync(int PageNumber, int PageSize, string SearchTerm, DateTimeOffset? FromDate, DateTimeOffset? ToDate)
         {
             var CompanyId = _iPAddressService.GetCompanyId();
             var UnitId = _iPAddressService.GetUnitId();

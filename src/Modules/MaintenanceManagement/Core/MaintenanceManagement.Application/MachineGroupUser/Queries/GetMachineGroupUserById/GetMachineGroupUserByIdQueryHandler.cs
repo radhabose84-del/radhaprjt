@@ -1,7 +1,7 @@
 
 using AutoMapper;
 using Contracts.Interfaces.Lookups.Users;
-using MaintenanceManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using MaintenanceManagement.Application.Common.Interfaces.IMachineGroupUser;
 using MaintenanceManagement.Application.MachineGroupUser.Queries.GetMachineGroupUser;
 using MaintenanceManagement.Domain.Events;

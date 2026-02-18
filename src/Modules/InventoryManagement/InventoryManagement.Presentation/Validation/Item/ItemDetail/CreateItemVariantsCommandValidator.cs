@@ -6,7 +6,9 @@ public sealed class CreateItemVariantsCommandValidator : AbstractValidator<ItemD
 {
     public CreateItemVariantsCommandValidator()
     {
+        #pragma warning disable CS0618
         CascadeMode = CascadeMode.Stop;
+        #pragma warning restore CS0618
 
         // Must target a template
         RuleFor(x => x.ParentItemId)

@@ -1,3 +1,4 @@
+#nullable disable
 using System.Text.Json;
 using AutoMapper;
 using Contracts.Events.Workflow;

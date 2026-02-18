@@ -1,3 +1,4 @@
+#nullable disable
 using System.Net;
 using System.Security.Claims;
 using UserManagement.Application.Common.Interfaces;

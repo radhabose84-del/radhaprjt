@@ -1,6 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using UserManagement.Application.Common.Interfaces.IUser;
 using UserManagement.Application.Users.Commands.RemoveVerificationCode;
 using FluentAssertions;

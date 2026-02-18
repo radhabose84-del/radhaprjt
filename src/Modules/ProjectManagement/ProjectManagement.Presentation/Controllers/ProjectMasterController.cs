@@ -24,7 +24,6 @@ namespace ProjectManagement.Presentation.Controllers
     [Route("api/[controller]")]
     public class ProjectMasterController : ApiControllerBase
     {
-        private readonly ILogger<ProjectMasterController> _logger;
 
         public ProjectMasterController(ISender mediator) : base(mediator)
 

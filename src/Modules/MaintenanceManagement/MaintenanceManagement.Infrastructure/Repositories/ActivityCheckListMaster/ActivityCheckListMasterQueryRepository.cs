@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -24,7 +25,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.ActivityCheckListMas
             _ipAddressService = ipAddressService;
 
         }
-        public async Task<(List<GetAllActivityCheckListMasterDto>, int)> GetAllActivityCheckListMasterAsync(int PageNumber, int PageSize, string? SearchTerm)
+        public async Task<(List<GetAllActivityCheckListMasterDto>, int)> GetAllActivityCheckListMasterAsync(int PageNumber, int PageSize, string SearchTerm)
         {
            var UnitId = _ipAddressService.GetUnitId();
 

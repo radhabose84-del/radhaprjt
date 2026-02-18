@@ -7,7 +7,7 @@ using AutoMapper;
 using Contracts.Interfaces.External.IInvetoryManagement;
 using Contracts.Interfaces.External.IUser;
 using Contracts.Interfaces.External.IWorkflow;
-using PurchaseManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IMRS;
 using PurchaseManagement.Domain.Common;

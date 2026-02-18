@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using FAM.Application.AssetCategories.Queries.GetAssetCategories;
 using FAM.Application.AssetSubCategories.Queries.GetAssetSubCategories;
-using FAM.Application.Common.HttpResponse;
+using Contracts.Common;
 using FAM.Application.Common.Interfaces.IAssetCategories;
 using FAM.Application.Common.Interfaces.IAssetSubCategories;
 using FAM.Domain.Events;

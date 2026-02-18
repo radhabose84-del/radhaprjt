@@ -1,3 +1,4 @@
+#nullable disable
 using System.Data;
 using Contracts.Interfaces.Lookups.Users; // ✅ lookup contract
 using FAM.Application.Common.Interfaces;

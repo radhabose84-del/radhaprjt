@@ -1,3 +1,4 @@
+#nullable disable
 using System.Globalization;
 using FAM.Application.AssetMaster.AssetMasterGeneral.Queries.GetAssetMasterGeneral;
 using FAM.Application.Common.Interfaces;
@@ -22,18 +23,18 @@ namespace FAM.Application.ExcelImport
         // Otherwise, set to null to use local offset.
         private static readonly TimeSpan? DefaultOffset = TimeSpan.FromHours(5.5);
 
-        public List<AssetPurchaseCombineDto>? ProcessAssetPurchase()
+        public List<AssetPurchaseCombineDto> ProcessAssetPurchase()
         {
             var oldUnitId     = _ip.GetOldUnitId();
 
             // ---- Read cells (adjust column numbers if your sheet differs) ----
-            string? vendorCode   = GetText(_ws, _row, 36);
-            string? vendorName   = GetText(_ws, _row, 37);
+            string vendorCode   = GetText(_ws, _row, 36);
+            string vendorName   = GetText(_ws, _row, 37);
             int      poNo        = GetInt(_ws, _row, 38);
             var      poDate      = GetDate(_ws, _row, 39, DefaultOffset);
-            string?  pjYear      = GetText(_ws, _row, 40);
+            string  pjYear      = GetText(_ws, _row, 40);
             var      billDate    = GetDate(_ws, _row, 41, DefaultOffset); // Invoice Date
-            string?  billNo      = GetText(_ws, _row, 42);                // Invoice No
+            string  billNo      = GetText(_ws, _row, 42);                // Invoice No
             decimal  purchaseVal = GetDecimal(_ws, _row, 43);             // Cost of purchase
             var      grnDate     = GetDate(_ws, _row, 44, DefaultOffset); // Inward Date/GRN Date if that's your map
 
@@ -83,7 +84,7 @@ namespace FAM.Application.ExcelImport
 
         // ----------------- helpers -----------------
 
-        private static string? GetText(ExcelWorksheet ws, int row, int col)
+        private static string GetText(ExcelWorksheet ws, int row, int col)
         {
             // Prefer .Text (formatted), fall back to .Value
             var s = ws.Cells[row, col].Text;

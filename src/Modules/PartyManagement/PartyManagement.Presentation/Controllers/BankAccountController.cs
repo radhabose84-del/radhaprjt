@@ -1,3 +1,4 @@
+#nullable disable
 using PartyManagement.Application.BankAccount.Command.CreateBankAccount;
 using PartyManagement.Application.BankAccount.Command.DeleteBankAccount;
 using PartyManagement.Application.BankAccount.Command.UpdateBankAccount;
@@ -22,7 +23,7 @@ public class BankAccountController : ControllerBase
     public async Task<IActionResult> GetAllBankAccountsAsync(
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 20,
-        [FromQuery] string? searchTerm = null,[FromQuery] int? bankId = null)
+        [FromQuery] string searchTerm = null,[FromQuery] int? bankId = null)
     {
         // normalize
         pageNumber = pageNumber <= 0 ? 1 : pageNumber;
@@ -117,7 +118,7 @@ public class BankAccountController : ControllerBase
         });
     }
     [HttpGet("by-name")]
-    public async Task<IActionResult> GetAllAutocomplete([FromQuery] string? term, CancellationToken ct)
+    public async Task<IActionResult> GetAllAutocomplete([FromQuery] string term, CancellationToken ct)
     {
         var data = await _mediator.Send(new GetBankAccountAutoCompleteQuery(term), ct);
 

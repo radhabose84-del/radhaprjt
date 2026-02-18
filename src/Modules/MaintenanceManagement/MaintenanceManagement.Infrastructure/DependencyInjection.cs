@@ -1,3 +1,4 @@
+#nullable disable
 using System.Data;
 using MaintenanceManagement.Application.Common.Interfaces;
 using Microsoft.Data.SqlClient;

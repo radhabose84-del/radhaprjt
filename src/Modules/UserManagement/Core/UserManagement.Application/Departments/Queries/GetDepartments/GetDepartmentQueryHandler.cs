@@ -5,7 +5,7 @@ using System.Data;
 using UserManagement.Domain.Events;
 using UserManagement.Application.Common.Interfaces.IDepartment;
 using UserManagement.Application.Common;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using Microsoft.Extensions.Logging;
 
 

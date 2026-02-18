@@ -1,3 +1,4 @@
+#nullable disable
 using System.ComponentModel.DataAnnotations;
 using AutoMapper;
 using InventoryManagement.Application.Common.Interfaces;

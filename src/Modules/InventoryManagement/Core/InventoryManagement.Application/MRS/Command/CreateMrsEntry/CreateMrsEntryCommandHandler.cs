@@ -5,7 +5,7 @@
 // using System.Threading.Tasks;
 // using AutoMapper;
 // using Contracts.Events.Workflow;
-// using InventoryManagement.Application.Common.Exceptions;
+// using Contracts.Common;
 // using InventoryManagement.Application.Common.Interfaces;
 // using InventoryManagement.Application.Common.Interfaces.IMRS;
 // using InventoryManagement.Domain.Common;

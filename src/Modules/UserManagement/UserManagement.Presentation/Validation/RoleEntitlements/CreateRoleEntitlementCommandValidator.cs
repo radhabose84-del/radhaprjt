@@ -10,7 +10,6 @@ namespace UserManagement.Presentation.Validation.RoleEntitlements
 {
     public class CreateRoleEntitlementCommandValidator : AbstractValidator<CreateRoleEntitlementCommand>
     {
-      private readonly List<ValidationRule> _validationRules;
       public CreateRoleEntitlementCommandValidator(MaxLengthProvider maxLengthProvider)
       {
             // _validationRules = ValidationRuleLoader.LoadValidationRules();

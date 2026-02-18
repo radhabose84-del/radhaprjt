@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,7 +13,6 @@ namespace PurchaseManagement.Presentation.Validation.ServiceMaster
 {
     public class CreateServiceMasterCommandValidator : AbstractValidator<CreateServiceCommand>
     {
-        private readonly List<ValidationRule> _validationRules;
 
         private readonly IServiceQueryRepository _serviceQueryRepository;
 

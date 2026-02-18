@@ -1,3 +1,4 @@
+#nullable disable
 using Microsoft.EntityFrameworkCore;
 using UserManagement.Infrastructure.Data;
 using UserManagement.Domain.Entities;

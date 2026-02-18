@@ -20,7 +20,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.Reports
     public class ReportsRepository : BaseQueryRepository, IReportRepository
     {
         private readonly IDbConnection _dbConnection;
-        private readonly IIPAddressService _ipAddressService;
+        private new readonly IIPAddressService _ipAddressService;
         public ReportsRepository(IDbConnection dbConnection, IIPAddressService ipAddressService)
             : base(ipAddressService)
         {

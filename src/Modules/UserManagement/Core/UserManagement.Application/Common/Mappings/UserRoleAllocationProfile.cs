@@ -1,3 +1,4 @@
+#nullable disable
 using AutoMapper;
 using UserManagement.Application.UserRoleAllocation.Queries.GetUserRoleAllocation;
 

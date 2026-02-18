@@ -9,8 +9,8 @@ namespace Contracts.Dtos.Inventory
     {
         public int Id { get; set; }
         public int UnitId { get; set; }
-        public string ItemGroupCode { get; set; }
-        public string ItemGroupName { get; set; }
+        public string ItemGroupCode { get; set; } = default!;
+        public string ItemGroupName { get; set; } = default!;
         public bool IsActive { get; set; }       
        
     }

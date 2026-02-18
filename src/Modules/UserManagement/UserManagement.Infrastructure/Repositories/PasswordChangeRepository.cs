@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -144,7 +145,6 @@ namespace UserManagement.Infrastructure.Repositories
             if (passwordHistoryCount  == 0)
               return false;
 
-            var sortBy = "Id descending";
                 var passwordLogs = await _applicationDbContext.PasswordLogs
                     .Where(p => p.UserId == userId)
                     .OrderByDescending(p => p.Id)
@@ -164,7 +164,7 @@ namespace UserManagement.Infrastructure.Repositories
                 }
                 return false;
         }
-            public async Task<string?> GetUserPasswordHashAsync(int userId)
+            public async Task<string> GetUserPasswordHashAsync(int userId)
           {
               return await _applicationDbContext.User
                   .Where(u => u.UserId == userId)

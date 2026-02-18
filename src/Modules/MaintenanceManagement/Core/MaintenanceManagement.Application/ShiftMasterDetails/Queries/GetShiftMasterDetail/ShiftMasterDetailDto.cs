@@ -10,13 +10,13 @@ namespace MaintenanceManagement.Application.ShiftMasterDetails.Queries.GetShiftM
         
         public int ShiftMasterId { get; set; }
         public int Id { get; set; }
-        public string ShiftCode { get; set; }
-        public string ShiftName { get; set; }
-        public string StartTime { get; set; }
-        public string EndTime { get; set; }
-        public string DurationInHours { get; set; }
-        public string BreakDurationInMinutes { get; set; }
-        public string EffectiveDate { get; set; }
+        public string ShiftCode { get; set; } = default!;
+        public string ShiftName { get; set; } = default!;
+        public string StartTime { get; set; } = default!;
+        public string EndTime { get; set; } = default!;
+        public string DurationInHours { get; set; } = default!;
+        public string BreakDurationInMinutes { get; set; } = default!;
+        public string EffectiveDate { get; set; } = default!;
         public int ShiftSupervisorId { get; set; }
         public DateTimeOffset CreatedDate { get; set; }
     }

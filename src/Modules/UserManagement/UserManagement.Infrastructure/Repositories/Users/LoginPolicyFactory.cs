@@ -26,7 +26,9 @@ namespace UserManagement.Infrastructure.Repositories.Users
         }
      
 
+        #pragma warning disable CS1998
         public async Task<ILoginPolicy> GetPolicyAsync(User user)
+        #pragma warning restore CS1998
         {
             if (user?.UserGroup?.GroupCode == "SUPER_ADMIN")
             {

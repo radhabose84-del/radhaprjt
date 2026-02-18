@@ -8,7 +8,7 @@ namespace UserManagement.Application.RoleEntitlements.Queries.GetRoleEntitlement
 {
     public class GetRoleEntitlementsQuery : IRequest<List<RoleEntitlementDto>>
     {
-        public string RoleName { get; set; }
+        public string RoleName { get; set; } = default!;
     }
 
 }

@@ -1,5 +1,5 @@
 // using AutoMapper;
-// using InventoryManagement.Application.Common.HttpResponse;
+// using Contracts.Common;
 // using InventoryManagement.Application.Common.Interfaces.Item.PutAway;
 // using InventoryManagement.Application.Item.PutAway.Queries.GetAllPutAwayRule;
 // using InventoryManagement.Domain.Events;

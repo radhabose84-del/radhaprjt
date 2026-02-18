@@ -19,7 +19,6 @@ namespace InventoryManagement.Presentation.Controllers
     [Route("api/[controller]")]
     public class UOMConversionController : ApiControllerBase
     {
-        private readonly ILogger<UOMConversionController> _logger;
 
         public UOMConversionController(ISender mediator) : base(mediator)
 

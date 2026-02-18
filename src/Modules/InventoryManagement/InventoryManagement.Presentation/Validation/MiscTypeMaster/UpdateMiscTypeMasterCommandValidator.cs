@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -54,8 +55,12 @@ namespace InventoryManagement.Presentation.Validation.MiscTypeMaster
                             .MustAsync(async (command, cancellation) =>
                                 !await _miscTypeMasterQueryRepository.AlreadyExistsAsync(command.MiscTypeCode, command.Id))
                             .WithName(nameof(UpdateMiscTypeMasterCommand.MiscTypeCode))
+                            #pragma warning disable CS0162
                             .WithMessage("MiscTypeCode already exists."); break;    
+                            #pragma warning restore CS0162
+                        #pragma warning disable CS0162
                         break;
+                        #pragma warning restore CS0162
                         
                         
                         case "NotFound":

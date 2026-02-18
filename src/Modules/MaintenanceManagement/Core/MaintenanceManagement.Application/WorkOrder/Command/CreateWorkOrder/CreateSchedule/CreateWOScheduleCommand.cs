@@ -1,6 +1,6 @@
 
 
-using MaintenanceManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using MaintenanceManagement.Application.WorkOrder.Command.UpdateWorkOrder;
 using MediatR;
 

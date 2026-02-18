@@ -1,3 +1,4 @@
+#nullable disable
 using UserManagement.Domain.Entities;
 using UserManagement.Application.Common.Interfaces.IModule;
 using System.Data;
@@ -33,10 +34,10 @@ namespace UserManagement.Infrastructure.Repositories.Module
             );
 
             return result.FirstOrDefault();
-            // return await _applicationDbContext.Modules.Include(m => m.Menus).FirstOrDefaultAsync(m => m.Id == id);
+            // return await _applicationDbContext.Modules.AsNoTracking().Include(m => m.Menus).FirstOrDefaultAsync(m => m.Id == id);
         }
 
-        public async Task<(List<Modules>, int)> GetAllModulesAsync(int PageNumber, int PageSize, string? SearchTerm)
+        public async Task<(List<Modules>, int)> GetAllModulesAsync(int PageNumber, int PageSize, string SearchTerm)
         {
             var query = $$"""
              DECLARE @TotalCount INT;

@@ -2,7 +2,7 @@ using MongoDB.Driver;
 using PartyManagement.Domain.Entities;
 using MediatR;
 using PartyManagement.Application.AuditLog.Queries.GetAuditLog;
-using PartyManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 
 namespace PartyManagement.Application.AuditLog.Queries.GetAuditLogBySearchPattern
 {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using FAM.Application.Common.HttpResponse;
+using Contracts.Common;
 using FAM.Application.Common.Interfaces.IMiscMaster;
 using FAM.Application.ExcelImport.MiscMaster;
 using FAM.Application.MiscMaster.Command.CreateMiscMaster;
@@ -26,7 +26,6 @@ namespace FAM.Presentation.Controllers
     [Route("api/fam/[controller]")]
     public class MiscMasterController : ApiControllerBase
     {
-        private readonly ILogger<MiscMaster> _logger;
         private readonly IMiscMasterCommandRepository _miscMasterCommandRepository;
         public MiscMasterController(ISender mediator,IMiscMasterCommandRepository miscMasterCommandRepository) 
         : base(mediator)

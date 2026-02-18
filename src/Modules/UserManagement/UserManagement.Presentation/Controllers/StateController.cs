@@ -1,3 +1,4 @@
+#nullable disable
 using UserManagement.Infrastructure.Data;
 using UserManagement.Application.State.Commands.CreateState;
 using UserManagement.Application.State.Commands.DeleteState;
@@ -27,7 +28,7 @@ namespace UserManagement.Presentation.Controllers
             
         }
         [HttpGet]
-        public async Task<IActionResult> GetAllStatesAsync([FromQuery] int PageNumber,[FromQuery] int PageSize,[FromQuery] string? SearchTerm = null)
+        public async Task<IActionResult> GetAllStatesAsync([FromQuery] int PageNumber,[FromQuery] int PageSize,[FromQuery] string SearchTerm = null)
         {
             var states = await Mediator.Send(
             new GetStateQuery
@@ -132,7 +133,7 @@ namespace UserManagement.Presentation.Controllers
         }
 
         [HttpGet("by-name")]  
-        public async Task<IActionResult> GetState([FromQuery] string? name)
+        public async Task<IActionResult> GetState([FromQuery] string name)
         {           
             var result = await Mediator.Send(new GetStateAutoCompleteQuery {SearchPattern = name}); // Pass `searchPattern` to the constructor
          

@@ -1,5 +1,6 @@
+#nullable disable
 using AutoMapper;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using UserManagement.Application.Common.Interfaces.IUser;
 using UserManagement.Domain.Entities;
 using UserManagement.Domain.Events;

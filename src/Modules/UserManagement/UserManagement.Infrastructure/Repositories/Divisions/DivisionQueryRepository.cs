@@ -1,3 +1,4 @@
+#nullable disable
 using Microsoft.EntityFrameworkCore;
 using UserManagement.Infrastructure.Data;
 using UserManagement.Domain.Entities;
@@ -21,7 +22,7 @@ namespace UserManagement.Infrastructure.Repositories.Divisions
             _dbConnection = dbConnection;
             _ipAddressService = ipAddressService;
         }
-         public async Task<(List<Division>,int)> GetAllDivisionAsync(int PageNumber, int PageSize, string? SearchTerm)
+         public async Task<(List<Division>,int)> GetAllDivisionAsync(int PageNumber, int PageSize, string SearchTerm)
         {
             var CompanyId = _ipAddressService.GetCompanyId();
                  var query = $$"""
@@ -67,7 +68,7 @@ namespace UserManagement.Infrastructure.Repositories.Divisions
              int totalCount = (await division.ReadFirstAsync<int>());
             return (divisionlist, totalCount);
         }   
-        public async Task<Division?> GetByDivisionnameAsync(string name, int? id = null)
+        public async Task<Division> GetByDivisionnameAsync(string name, int? id = null)
         {
             var CompanyId = _ipAddressService.GetCompanyId();
               var query = """

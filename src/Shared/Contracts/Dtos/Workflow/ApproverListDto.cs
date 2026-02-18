@@ -9,9 +9,9 @@ namespace Contracts.Dtos.Workflow
     {
         public int ApprovalRequestLineId { get; set; }
         public int ModuleTransactionId { get; set; }
-        public string Status { get; set; }
-        public string ApproverBinding { get; set; }
-        public string ApproverValue { get; set; }
+        public string Status { get; set; } = default!;
+        public string ApproverBinding { get; set; } = default!;
+        public string ApproverValue { get; set; } = default!;
         public int ApprovalRequestId { get; set; }        
         public byte IsEdit { get; set; }
     }

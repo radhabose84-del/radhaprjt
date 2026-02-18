@@ -2,7 +2,7 @@ using MongoDB.Driver;
 using PurchaseManagement.Domain.Entities;
 using MediatR;
 using PurchaseManagement.Application.AuditLog.Queries.GetAuditLog;
-using PurchaseManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 
 namespace PurchaseManagement.Application.AuditLog.Queries.GetAuditLogBySearchPattern
 {

@@ -1,3 +1,4 @@
+#nullable disable
 using FAM.Application.AssetMaster.AssetMasterGeneral.Queries.GetAssetMasterGeneral;
 using OfficeOpenXml;
 
@@ -14,7 +15,7 @@ namespace FAM.Application.ExcelImport
             _row = row;
         }
 
-        public List<AssetInsuranceCombineDto>? ProcessAssetInsurance()
+        public List<AssetInsuranceCombineDto> ProcessAssetInsurance()
         {
             string policyNo = _worksheet.Cells[_row, 48].Value?.ToString()?.Trim();
             string policyAmountStr = _worksheet.Cells[_row, 51].Value?.ToString()?.Trim();

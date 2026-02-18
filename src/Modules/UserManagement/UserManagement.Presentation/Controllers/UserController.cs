@@ -1,3 +1,4 @@
+#nullable disable
 using UserManagement.Infrastructure.Data;
 using FluentValidation;
 using MediatR;
@@ -60,7 +61,7 @@ namespace UserManagement.Presentation.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllUsersAsync([FromQuery] int PageNumber, [FromQuery] int PageSize, [FromQuery] string? SearchTerm = null)
+        public async Task<IActionResult> GetAllUsersAsync([FromQuery] int PageNumber, [FromQuery] int PageSize, [FromQuery] string SearchTerm = null)
         {
             var users = await Mediator.Send(new GetUserQuery
             {
@@ -249,7 +250,7 @@ namespace UserManagement.Presentation.Controllers
 
         [HttpGet]
         [Route("by-name")]
-        public async Task<IActionResult> GetByUsernameAsync([FromQuery] string? name)
+        public async Task<IActionResult> GetByUsernameAsync([FromQuery] string name)
         {
             var users = await Mediator.Send(new GetUserAutoCompleteQuery { SearchPattern = name });
             _logger.LogWarning($"Users listed successfully: {string.Join(", ", users)}");

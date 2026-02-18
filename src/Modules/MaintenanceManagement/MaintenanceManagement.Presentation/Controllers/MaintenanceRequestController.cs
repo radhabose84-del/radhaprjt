@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -10,7 +11,7 @@ using Microsoft.Extensions.Logging;
 using MediatR;
 using MaintenanceManagement.Application.MaintenanceRequest.Queries.GetMaintenanceRequest;
 using MaintenanceManagement.Application.MaintenanceRequest.Queries.GetMaintenanceRequestById;
-using MaintenanceManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using MaintenanceManagement.Application.MaintenanceRequest.Command.CreateMaintenanceRequest;
 using MaintenanceManagement.Application.MaintenanceRequest.Command.UpdateMaintenanceRequestCommand;
 using MaintenanceManagement.Application.MaintenanceRequest.Queries.GetExistingVendorDetails;
@@ -35,7 +36,6 @@ namespace MaintenanceManagement.Presentation.Controllers
     {
         private readonly ILogger<MaintenanceRequestController> _logger;
 
-        private readonly MassTransit.Mediator.IMediator _mediator;
          private readonly IValidator<CreateMaintenanceRequestCommand> _createmaintenancecommandvalidator;
 
          private readonly IValidator<UpdateMaintenanceRequestCommand> _updateMaintenanceRequestCommandValidator;
@@ -57,7 +57,7 @@ namespace MaintenanceManagement.Presentation.Controllers
 
 
         [HttpGet("InternalRequest")]
-        public async Task<IActionResult> GetAllMaintenanceRequestAsync([FromQuery] int PageNumber, [FromQuery] int PageSize, [FromQuery] string? SearchTerm = null, [FromQuery] DateTimeOffset FromDate = default, [FromQuery] DateTimeOffset ToDate = default)
+        public async Task<IActionResult> GetAllMaintenanceRequestAsync([FromQuery] int PageNumber, [FromQuery] int PageSize, [FromQuery] string SearchTerm = null, [FromQuery] DateTimeOffset FromDate = default, [FromQuery] DateTimeOffset ToDate = default)
         {
             var maintenancerequest = await Mediator.Send(
             new GetMaintenanceRequestQuery
@@ -82,7 +82,7 @@ namespace MaintenanceManagement.Presentation.Controllers
           //  return Ok(maintenancerequest);
         }
          [HttpGet("ExternalRequest")] 
-        public async Task<IActionResult> GetAllMaintenanceExternalRequestAsync([FromQuery] int PageNumber,[FromQuery] int PageSize,[FromQuery] string? SearchTerm = null , [FromQuery] DateTimeOffset FromDate = default, [FromQuery] DateTimeOffset ToDate = default)
+        public async Task<IActionResult> GetAllMaintenanceExternalRequestAsync([FromQuery] int PageNumber,[FromQuery] int PageSize,[FromQuery] string SearchTerm = null , [FromQuery] DateTimeOffset FromDate = default, [FromQuery] DateTimeOffset ToDate = default)
         {
             var maintenanceexternalrequest = await Mediator.Send(
             new GetMaintenanceExternalRequestQuery

@@ -1,3 +1,4 @@
+#nullable disable
 using AutoMapper;
 using MediatR;
 using PurchaseManagement.Application.Common.Interfaces.PriceMaster;

@@ -1,5 +1,5 @@
 using FAM.Application.AssetSubGroup.Queries.GetAssetSubGroup;
-using FAM.Application.Common.HttpResponse;
+using Contracts.Common;
 using MediatR;
 
 namespace FAM.Application.AssetSubGroup.Queries.GetAssetSubGroupById

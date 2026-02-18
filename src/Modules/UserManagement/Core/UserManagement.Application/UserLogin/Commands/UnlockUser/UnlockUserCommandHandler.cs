@@ -1,6 +1,7 @@
+#nullable disable
 
 
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using UserManagement.Application.Common.Interfaces.IUser;
 
 using MediatR;

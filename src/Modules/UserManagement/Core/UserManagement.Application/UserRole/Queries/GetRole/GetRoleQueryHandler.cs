@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using UserManagement.Domain.Entities;
 using System.Data;
 using UserManagement.Application.Common.Interfaces.IUserRole;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using UserManagement.Domain.Events;
 using Microsoft.Extensions.Logging;
 

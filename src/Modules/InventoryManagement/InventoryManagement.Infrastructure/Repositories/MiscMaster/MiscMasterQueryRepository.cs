@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -18,7 +19,7 @@ namespace InventoryManagement.Infrastructure.Repositories.MiscMaster
 
         }
 
-        public async Task<(List<InventoryManagement.Domain.Entities.MiscMaster>,int)> GetAllMiscMasterAsync(int PageNumber, int PageSize, string? SearchTerm)
+        public async Task<(List<InventoryManagement.Domain.Entities.MiscMaster>,int)> GetAllMiscMasterAsync(int PageNumber, int PageSize, string SearchTerm)
         {
                 var query = $$"""
                 DECLARE @TotalCount INT;
@@ -67,7 +68,7 @@ namespace InventoryManagement.Infrastructure.Repositories.MiscMaster
         } 
 
 
-        public async Task<List<InventoryManagement.Domain.Entities.MiscMaster>>  GetMiscMaster(string searchPattern,string? miscTypeCode,string? miscTypeDesc)
+        public async Task<List<InventoryManagement.Domain.Entities.MiscMaster>>  GetMiscMaster(string searchPattern,string miscTypeCode,string miscTypeDesc)
         {
             
 
@@ -97,7 +98,7 @@ namespace InventoryManagement.Infrastructure.Repositories.MiscMaster
             return miscmaster.ToList();
         }
 
-        public async Task<InventoryManagement.Domain.Entities.MiscMaster?> GetByMiscMasterCodeAsync(string name, int? id = null)
+        public async Task<InventoryManagement.Domain.Entities.MiscMaster> GetByMiscMasterCodeAsync(string name, int? id = null)
         {
               var query = """
                  SELECT * FROM Inventory.MiscMaster

@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -26,7 +27,7 @@ namespace FAM.Infrastructure.Repositories.AssetTransferReceipt
             _ipAddressService = ipAddressService;
         }
 
-         public async Task<(List<AssetReceiptDetailsDto>, int)> GetAllAssetReceiptDetails(int PageNumber, int PageSize, string? Receiptno, DateTimeOffset? FromDate, DateTimeOffset? ToDate)
+         public async Task<(List<AssetReceiptDetailsDto>, int)> GetAllAssetReceiptDetails(int PageNumber, int PageSize, string Receiptno, DateTimeOffset? FromDate, DateTimeOffset? ToDate)
         {
             var UnitId = _ipAddressService.GetUnitId();
              var query = $$"""
@@ -119,7 +120,7 @@ namespace FAM.Infrastructure.Repositories.AssetTransferReceipt
         }
 
         public async Task<(List<AssetTransferReceiptPendingDto>, int)> GetAllPendingAssetTransferAsync(
-            int PageNumber, int PageSize, int? AssetTransferId, string? TransferType, DateTimeOffset? FromDate, DateTimeOffset? ToDate)
+            int PageNumber, int PageSize, int? AssetTransferId, string TransferType, DateTimeOffset? FromDate, DateTimeOffset? ToDate)
         {
             var UnitId = _ipAddressService.GetUnitId();
             var query = $$"""
@@ -234,7 +235,7 @@ namespace FAM.Infrastructure.Repositories.AssetTransferReceipt
         // return header;
     // }
 
-        public async Task<AssetTransferDto?> GetByAssetTransferId(int assetTransferId)
+        public async Task<AssetTransferDto> GetByAssetTransferId(int assetTransferId)
         {
             var UnitId = _ipAddressService.GetUnitId();
              const string query = @"
@@ -249,7 +250,7 @@ namespace FAM.Infrastructure.Repositories.AssetTransferReceipt
             return assetTransfer;
         }
 
-        public async Task<AssetTrasnferReceiptHdrPendingDto?> GetAssetTransferByIdAsync(int assetTransferId)
+        public async Task<AssetTrasnferReceiptHdrPendingDto> GetAssetTransferByIdAsync(int assetTransferId)
         {
             var UnitId = _ipAddressService.GetUnitId();
              const string query = @"

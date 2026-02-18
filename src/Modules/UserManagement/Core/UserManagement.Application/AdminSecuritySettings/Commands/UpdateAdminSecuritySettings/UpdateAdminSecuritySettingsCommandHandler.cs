@@ -5,7 +5,7 @@ using UserManagement.Application.AdminSecuritySettings.Queries.GetAdminSecurityS
 using UserManagement.Domain.Events;
 using MediatR;
 using UserManagement.Domain.Entities;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using Microsoft.Extensions.Logging;
 using FluentValidation;
 

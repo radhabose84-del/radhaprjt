@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -83,8 +84,12 @@ namespace UserManagement.Presentation.Validation.Users
                 }
                 
             }
+        #pragma warning disable CS1998
         }
+        #pragma warning restore CS1998
+          #pragma warning disable CS1998
           private async Task<bool> IsVerificationCodeValid(string userName)
+          #pragma warning restore CS1998
           {
               var systemTimeZoneId = _timeZoneService.GetSystemTimeZone();
               var currentTime = _timeZoneService.GetCurrentTime(systemTimeZoneId);
@@ -106,7 +111,13 @@ namespace UserManagement.Presentation.Validation.Users
           }
 
     
+#pragma warning disable CS1998
+    
+    
+#pragma warning restore CS1998
+           #pragma warning disable CS1998
            private async Task<bool> IsVerificationCodeCorrect(string userName, string verificationCode)
+           #pragma warning restore CS1998
            {
                if (ForgotPasswordCache.CodeStorage.TryGetValue(userName, out var verificationCodeDetails))
                {

@@ -7,7 +7,7 @@ using BudgetManagement.Application.BudgetGroups.Commands.UpdateBudgetGroup;
 using BudgetManagement.Application.BudgetGroups.Queries.GetBudgetGroup;
 using BudgetManagement.Application.BudgetGroups.Queries.GetBudgetGroupAutoComplete;
 using BudgetManagement.Application.BudgetGroups.Queries.GetBudgetGroupById;
-using BudgetManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;

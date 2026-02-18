@@ -2,7 +2,7 @@ using MediatR;
 using AutoMapper;
 using UserManagement.Application.Common.Interfaces.ICountry;
 using UserManagement.Domain.Events;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 
 namespace UserManagement.Application.Country.Queries.GetCountries
 {

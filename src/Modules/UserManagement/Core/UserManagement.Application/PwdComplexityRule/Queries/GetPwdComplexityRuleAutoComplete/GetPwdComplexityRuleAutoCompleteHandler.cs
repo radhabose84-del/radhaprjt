@@ -1,3 +1,4 @@
+#nullable disable
 using UserManagement.Application.Common.Interfaces;
 using UserManagement.Domain.Entities;
 using MediatR;
@@ -7,7 +8,7 @@ using UserManagement.Application.Common.Interfaces.IPasswordComplexityRule;
 using UserManagement.Application.Common;
 using UserManagement.Domain.Events;
 using Microsoft.Extensions.Logging;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using UserManagement.Application.UserRole.Queries.GetRole;
 
 

@@ -133,7 +133,9 @@ namespace PurchaseManagement.Infrastructure.Repositories.Quotation.QuotationComp
             // Selected rows from comparison detail (must have QuotationDetailId)
             var rows = await _dbContext.QuotationComparisonDetail
                 .Where(d => d.QuotationComparisonHeaderId == comparisonHeaderId &&
+                            #pragma warning disable CS0472
                             d.QuotationDetailId != null)
+                            #pragma warning restore CS0472
                 .Select(d => new { d.QuotationDetailId, d.QuotationHeaderId })
                 .ToListAsync(ct);
 

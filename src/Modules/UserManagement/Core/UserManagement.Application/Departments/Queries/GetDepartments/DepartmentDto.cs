@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using UserManagement.Domain.Entities;
 using UserManagement.Application.Common.Mappings;
 using UserManagement.Application.Common;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using static UserManagement.Domain.Enums.Common.Enums;
 
 namespace UserManagement.Application.Departments.Queries.GetDepartments

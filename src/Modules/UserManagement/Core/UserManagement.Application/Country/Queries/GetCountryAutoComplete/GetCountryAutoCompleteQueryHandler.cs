@@ -3,7 +3,7 @@ using AutoMapper;
 using MediatR;
 using UserManagement.Application.Common.Interfaces.ICountry;
 using UserManagement.Domain.Events;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using FluentValidation;
 
 namespace UserManagement.Application.Country.Queries.GetCountryAutoComplete

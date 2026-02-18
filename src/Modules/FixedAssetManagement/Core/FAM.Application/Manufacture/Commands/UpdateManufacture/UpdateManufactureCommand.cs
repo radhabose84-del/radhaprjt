@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using FAM.Application.Common.HttpResponse;
+using Contracts.Common;
 using FAM.Application.Manufacture.Queries.GetManufacture;
 using MediatR;
 using static FAM.Domain.Common.BaseEntity;

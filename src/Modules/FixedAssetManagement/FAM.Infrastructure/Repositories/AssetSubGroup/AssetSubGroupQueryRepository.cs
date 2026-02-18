@@ -1,3 +1,4 @@
+#nullable disable
 using System.Data;
 using FAM.Application.Common.Interfaces.IAssetSubGroup;
 using Dapper;
@@ -13,7 +14,7 @@ namespace FAM.Infrastructure.Repositories.AssetSubGroup
             _dbConnection = dbConnection;
         }
 
-        public async Task<FAM.Domain.Entities.AssetSubGroup?> GetByIdAsync( int id)
+        public async Task<FAM.Domain.Entities.AssetSubGroup> GetByIdAsync( int id)
         {
                 const string query = @"
                     SELECT * 
@@ -23,7 +24,7 @@ namespace FAM.Infrastructure.Repositories.AssetSubGroup
                     var assetSubGroup = await _dbConnection.QueryFirstOrDefaultAsync<FAM.Domain.Entities.AssetSubGroup>(query, new { id });
                     return assetSubGroup;
         }
-        public async Task<List<FAM.Domain.Entities.AssetSubGroup?>> GetByGroupIdAsync(int groupId)
+        public async Task<List<FAM.Domain.Entities.AssetSubGroup>> GetByGroupIdAsync(int groupId)
         {
             const string query = @"
                     SELECT * 
@@ -34,7 +35,7 @@ namespace FAM.Infrastructure.Repositories.AssetSubGroup
             return assetSubGroup.ToList();             
         }
 
-         public async Task<(List<FAM.Domain.Entities.AssetSubGroup>, int)> GetAllAssetSubGroupAsync(int PageNumber, int PageSize, string? SearchTerm)
+         public async Task<(List<FAM.Domain.Entities.AssetSubGroup>, int)> GetAllAssetSubGroupAsync(int PageNumber, int PageSize, string SearchTerm)
         {
             var query = $$"""
             DECLARE @TotalCount INT;

@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -474,7 +475,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
          DateTimeOffset? toDate,
          int PageNumber,
          int PageSize,
-         string? SearchTerm)
+         string SearchTerm)
         {
             var UnitId = _ipAddressService.GetUnitId();
 
@@ -592,7 +593,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
                bool? IsQcGenerated,
                int PageNumber,
                int PageSize,
-               string? SearchTerm)
+               string SearchTerm)
         {
             var UnitId = _ipAddressService.GetUnitId();
 

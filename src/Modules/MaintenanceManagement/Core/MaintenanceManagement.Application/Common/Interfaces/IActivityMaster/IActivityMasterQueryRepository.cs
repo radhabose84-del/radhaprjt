@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,7 +17,7 @@ namespace MaintenanceManagement.Application.Common.Interfaces.IActivityMaster
 
         //  Task<(List<GetAllActivityMasterDto>, int)> GetAllActivityMasterAsync(int PageNumber, int PageSize ,string? SearchTerm );
 
-        Task<(List<GetAllActivityMasterDto>, int)> GetAllActivityMasterAsync(int PageNumber, int PageSize, string? SearchTerm);
+        Task<(List<GetAllActivityMasterDto>, int)> GetAllActivityMasterAsync(int PageNumber, int PageSize, string SearchTerm);
 
         //  Task<MaintenanceManagement.Domain.Entities.ActivityMaster> GetByIdAsync(int id);
 

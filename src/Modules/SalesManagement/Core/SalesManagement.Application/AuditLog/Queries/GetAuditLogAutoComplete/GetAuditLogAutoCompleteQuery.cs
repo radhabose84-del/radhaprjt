@@ -1,5 +1,5 @@
 using SalesManagement.Application.AuditLog.Queries.GetAuditLog;
-using SalesManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using MediatR;
 
 namespace SalesManagement.Application.AuditLog.Queries

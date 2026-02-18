@@ -6,7 +6,7 @@ namespace MaintenanceManagement.Application.PreventiveSchedulers.Queries.GetMach
 {
     public class MachineDetailActivityDto : IMapFrom<PreventiveSchedulerActivity>
     {
-        public string ActivityName { get; set; }
+        public string ActivityName { get; set; } = default!;
 
         public void Mapping(Profile profile)
         {

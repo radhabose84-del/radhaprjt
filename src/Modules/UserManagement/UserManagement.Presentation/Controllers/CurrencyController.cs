@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -39,7 +40,7 @@ namespace UserManagement.Presentation.Controllers
         
 
         [HttpGet]
-        public async Task<IActionResult> GetAllCurrencyAsync([FromQuery] int PageNumber,[FromQuery] int PageSize,[FromQuery] string? SearchTerm = null)
+        public async Task<IActionResult> GetAllCurrencyAsync([FromQuery] int PageNumber,[FromQuery] int PageSize,[FromQuery] string SearchTerm = null)
         {
         
             var result = await Mediator.Send(
@@ -101,7 +102,7 @@ namespace UserManagement.Presentation.Controllers
    
 }
         [HttpGet("by-name")]
-        public async Task<IActionResult> GetCurrency([FromQuery] string? CurrencyName)
+        public async Task<IActionResult> GetCurrency([FromQuery] string CurrencyName)
         {       
         // Fetch entities based on search pattern
         var result = await Mediator.Send(new GetCurrencyAutocompleteQuery { SearchPattern = CurrencyName ?? string.Empty });

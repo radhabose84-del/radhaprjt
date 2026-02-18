@@ -7,7 +7,7 @@ namespace PurchaseManagement.Application.PurchaseIndents.Command.CreatePurchaseI
 {
     public class IndentReverseMapDto
     {
-        public CreateIndentHeaderDto Header { get; set; }
-        public ICollection<CreateIndentDetailDto> Lines { get; set; }
+        public CreateIndentHeaderDto Header { get; set; } = default!;
+        public ICollection<CreateIndentDetailDto> Lines { get; set; } = default!;
     }
 }

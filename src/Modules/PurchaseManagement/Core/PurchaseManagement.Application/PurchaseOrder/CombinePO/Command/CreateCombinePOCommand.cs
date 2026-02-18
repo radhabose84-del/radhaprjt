@@ -1,4 +1,4 @@
-using PurchaseManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using MediatR;
 
 namespace PurchaseManagement.Application.PurchaseOrder.CombinePO.Command;

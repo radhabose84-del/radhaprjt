@@ -1,3 +1,4 @@
+#nullable disable
 using Microsoft.EntityFrameworkCore;
 using UserManagement.Infrastructure.Data;
 using System.Collections.Generic;
@@ -22,7 +23,7 @@ namespace UserManagement.Infrastructure.Repositories.Companies
             _ipAddressService = ipAddressService;
         }
 
-        public async Task<(List<Company>, int)> GetAllCompaniesAsync(int PageNumber, int PageSize, string? SearchTerm)
+        public async Task<(List<Company>, int)> GetAllCompaniesAsync(int PageNumber, int PageSize, string SearchTerm)
         {
             var entityId = _ipAddressService.GetEntityId();
             var query = $$"""
@@ -77,7 +78,7 @@ namespace UserManagement.Infrastructure.Repositories.Companies
             return (companies, totalCount);
 
         }
-        public async Task<Company?> GetByCompanynameAsync(string name, int? id = null)
+        public async Task<Company> GetByCompanynameAsync(string name, int? id = null)
         {
 
             var query = """

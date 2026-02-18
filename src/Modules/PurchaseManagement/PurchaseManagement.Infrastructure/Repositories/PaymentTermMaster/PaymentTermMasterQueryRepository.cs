@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -19,7 +20,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PaymentTermMaster
         {
             _dbConnection = dbConnection;
         }
-        public async Task<(List<PaymentTermMasterDto>, int)> GetAllPaymentTermMasterAsync(int pageNumber, int pageSize, string? searchTerm)
+        public async Task<(List<PaymentTermMasterDto>, int)> GetAllPaymentTermMasterAsync(int pageNumber, int pageSize, string searchTerm)
         {
             if (pageNumber <= 0) pageNumber = 1;
             if (pageSize <= 0) pageSize = 10;
@@ -90,7 +91,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PaymentTermMaster
 
             return (byId.Values.ToList(), totalCount);
         }
-        public async Task<PaymentTermMasterDto?> GetByIdAsync(int id)
+        public async Task<PaymentTermMasterDto> GetByIdAsync(int id)
         {
             const string sql = @"
                 SELECT 
@@ -144,7 +145,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PaymentTermMaster
             var exists = await _dbConnection.ExecuteScalarAsync<int?>(sql, new { Id = id });
             return exists.HasValue;
         }
-        public async Task<List<AutoCompleteDto>> GetPaymentTermAutoComplete(string? searchPattern, string? paymentTermCode)
+        public async Task<List<AutoCompleteDto>> GetPaymentTermAutoComplete(string searchPattern, string paymentTermCode)
         {
             const string sql = @"
             SELECT TOP (10)

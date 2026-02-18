@@ -1,3 +1,4 @@
+#nullable disable
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -43,7 +44,7 @@ namespace BudgetManagement.Infrastructure.Services
             } 
         }
 
-      public string GenerateToken(string? username,int userid,string Mobile,string EmailId,string IsFirstTimeUser,int EntityId,string GroupCode,int CompanyId,int DivisionId,int UnitId,string OldUnitId, out string jti)
+      public string GenerateToken(string username,int userid,string Mobile,string EmailId,string IsFirstTimeUser,int EntityId,string GroupCode,int CompanyId,int DivisionId,int UnitId,string OldUnitId, out string jti)
         {
             jti = Guid.NewGuid().ToString();            
             var systemTimeZoneId = _timeZoneService.GetSystemTimeZone();

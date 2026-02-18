@@ -1,6 +1,6 @@
 using AutoMapper;
 using MediatR;
-using BackgroundService.Application.Notification.Common.HttpResponse;
+using Contracts.Common;
 using BackgroundService.Application.Notification.Common.Interfaces.INotificationLevelHierarchy;
 using BackgroundService.Application.Notification.NotificationHierarchyAndEventRule.Commands.UpdateNotificationEventRule;
 using BackgroundService.Application.Notification.NotificationHierarchyAndEventRule.Queries.GetAllNotificationHierarchy;

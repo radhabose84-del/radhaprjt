@@ -1,5 +1,5 @@
 using AutoMapper;
-using FAM.Application.Common.Exceptions;
+using Contracts.Common;
 using FAM.Application.Common.Interfaces.IDepreciationGroup;
 using FAM.Application.DepreciationGroup.Queries.GetDepreciationGroup;
 using FAM.Domain.Common;

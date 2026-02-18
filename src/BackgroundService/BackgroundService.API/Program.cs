@@ -9,7 +9,7 @@ using BackgroundService.API.Validation.Common;
 using MediatR;
 using BackgroundService.Application.Hubs;
 using BackgroundService.API.Middleware;
-using BackgroundService.Application.Common.Behaviors;
+using Contracts.Common;
 
 var builder = WebApplication.CreateBuilder(args);
 var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")?? "Development";

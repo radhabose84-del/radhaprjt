@@ -1,5 +1,5 @@
 using AutoMapper;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using UserManagement.Application.Common.Interfaces.IUserGroup;
 using UserManagement.Domain.Events;
 using MediatR;

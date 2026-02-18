@@ -10,8 +10,8 @@ namespace Contracts.Dtos.Users
     {
         [JsonPropertyName("id")]
          public int CityId { get; set; }
-        public string CityCode { get; set; } 
-        public string CityName { get; set; } 
+        public string CityCode { get; set; } = default!;
+        public string CityName { get; set; } = default!;
         public int StateId { get; set; }
     }
 }

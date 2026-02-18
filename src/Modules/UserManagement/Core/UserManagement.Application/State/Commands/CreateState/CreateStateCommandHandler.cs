@@ -4,7 +4,7 @@ using MediatR;
 using UserManagement.Application.State.Queries.GetStates;
 using UserManagement.Application.Common.Interfaces.IState;
 using UserManagement.Domain.Events;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using FluentValidation;
 
 namespace UserManagement.Application.State.Commands.CreateState

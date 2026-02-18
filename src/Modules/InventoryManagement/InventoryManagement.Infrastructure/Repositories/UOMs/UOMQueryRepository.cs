@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -19,7 +20,7 @@ namespace InventoryManagement.Infrastructure.Repositories.UOMs
             _dbConnection = dbConnection;
 
         }
-        public async Task<(List<UOM>, int)> GetAllUOMAsync(int PageNumber, int PageSize, string? SearchTerm)
+        public async Task<(List<UOM>, int)> GetAllUOMAsync(int PageNumber, int PageSize, string SearchTerm)
         {
             var query = $$"""
              DECLARE @TotalCount INT;
@@ -67,7 +68,7 @@ namespace InventoryManagement.Infrastructure.Repositories.UOMs
             return await _dbConnection.QueryFirstOrDefaultAsync<UOM>(query, new { id });
         }
 
-        public async Task<UOM?> GetByUOMNameAsync(string name, int? id = null)
+        public async Task<UOM> GetByUOMNameAsync(string name, int? id = null)
         {
             var query = """
                  SELECT * FROM Inventory.UOM

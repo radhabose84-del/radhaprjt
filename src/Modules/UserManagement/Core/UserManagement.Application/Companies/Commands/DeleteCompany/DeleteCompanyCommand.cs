@@ -6,7 +6,7 @@ using MediatR;
 using System.Reflection;
 using System.Text;
 using UserManagement.Application.Companies.Queries.GetCompanies;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 
 namespace UserManagement.Application.Companies.Commands.DeleteCompany
 {

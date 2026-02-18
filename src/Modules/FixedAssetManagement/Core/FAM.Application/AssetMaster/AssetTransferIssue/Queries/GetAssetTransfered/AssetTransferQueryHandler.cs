@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using Contracts.Interfaces.Lookups.Users;
 using FAM.Application.AssetMaster.AssetTransferIssue.Queries.GetAssetTransfered;
-using FAM.Application.Common.HttpResponse;
+using Contracts.Common;
 using FAM.Application.Common.Interfaces.IAssetMaster.IAssetTransferIssue;
 using FAM.Domain.Events;
 using MediatR;

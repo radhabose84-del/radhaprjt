@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using UserManagement.Application.AdminSecuritySettings.Queries.GetAdminSecuritySettings;
 using UserManagement.Application.Common;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using MediatR;
 
 namespace UserManagement.Application.AdminSecuritySettings.Commands.CreateAdminSecuritySettings

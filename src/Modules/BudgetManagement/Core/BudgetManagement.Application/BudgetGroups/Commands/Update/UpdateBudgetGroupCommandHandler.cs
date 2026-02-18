@@ -2,7 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
 using BudgetManagement.Application.BudgetGroups.Commands.UpdateBudgetGroup;
-using BudgetManagement.Application.Common.Exceptions;
+using Contracts.Common;
 using BudgetManagement.Application.Common.Interfaces.IBudgetGroupMaster;
 using BudgetManagement.Domain.Common;
 using BudgetManagement.Domain.Events;

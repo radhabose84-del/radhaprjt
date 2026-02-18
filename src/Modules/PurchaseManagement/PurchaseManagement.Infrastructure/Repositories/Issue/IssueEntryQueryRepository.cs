@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -27,7 +28,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.Issue
             _ipAddressService = ipAddressService;
         }
 
-        public async Task<List<GetApprovedMrsByIdDto>> GetApprovedMrsDetails(string? searchPattern)
+        public async Task<List<GetApprovedMrsByIdDto>> GetApprovedMrsDetails(string searchPattern)
         {
             var unitId = _ipAddressService.GetUnitId();
             var sql = @"
@@ -126,13 +127,13 @@ namespace PurchaseManagement.Infrastructure.Repositories.Issue
     }
 
 
-        public async Task<string?> GetDescriptionByIdAsync(int id)
+        public async Task<string> GetDescriptionByIdAsync(int id)
         {
              var sql = "SELECT Description FROM Purchase.MiscMaster WHERE Id = @Id";
-             return await _dbConnection.QueryFirstOrDefaultAsync<string?>(sql, new { Id = id });
+             return await _dbConnection.QueryFirstOrDefaultAsync<string>(sql, new { Id = id });
         }
 
-       public async Task<List<GetPendingStockBinDto>> GetMainStoresStockBinWise(List<int>? itemIds, int warehouseId)
+       public async Task<List<GetPendingStockBinDto>> GetMainStoresStockBinWise(List<int> itemIds, int warehouseId)
         {
             var unitId = _ipAddressService.GetUnitId();
 
@@ -186,7 +187,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.Issue
             DateTimeOffset? toDate,
             int PageNumber,
             int PageSize,
-            string? SearchTerm)
+            string SearchTerm)
         {
             var UnitId = _ipAddressService.GetUnitId();
 
@@ -317,7 +318,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.Issue
             }
         }
 
-        public async Task<(List<PendingIssueReturnDto>, int)> GetPendingIssueReturnAsync(int PageNumber, int PageSize, string? SearchTerm)
+        public async Task<(List<PendingIssueReturnDto>, int)> GetPendingIssueReturnAsync(int PageNumber, int PageSize, string SearchTerm)
         {
             var UnitId = _ipAddressService.GetUnitId();
 

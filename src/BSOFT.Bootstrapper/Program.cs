@@ -5,13 +5,14 @@ using BSOFT.Bootstrapper.Configurations;
 using BSOFT.Bootstrapper.Middleware;
 
 using Shared.Validation.Common;
+using Shared.Infrastructure.Caching;
 
 using UserManagement.Module;
 using FixedAssetManagement.Module;
 using MaintenanceManagement.Module;
 using PurchaseManagement.Module;
 using InventoryManagement.Module;
-using UserManagement.Application.Common.Behaviors;
+using Contracts.Common;
 using PartyManagement.Module;
 using SalesManagement.Module;
 using WarehouseManagement.Module;
@@ -50,9 +51,22 @@ builder.Services.AddWarehouseManagementModule(builder.Configuration, builder.Env
 builder.Services.AddProjectManagementModule(builder.Configuration, builder.Environment);
 builder.Services.AddBudgetManagementModule(builder.Configuration, builder.Environment);
 
+// ✅ Global lookup caching (MUST be after module registrations)
+// Automatically decorates ALL I*Lookup interfaces with caching - zero changes needed in handlers!
+builder.Services.AddLookupCaching(options =>
+{
+    options.CacheDuration = TimeSpan.FromMinutes(30);       // Cache for 30 min if not accessed
+    options.AbsoluteExpiration = TimeSpan.FromHours(24);    // Force refresh after 24 hours
+    options.SizeLimit = 2000;                                // Max 2000 cached lookup entries
+    options.EnableDetailedLogging = false;                   // Set to true for debugging
+});
 
 // ✅ Controllers + API
-builder.Services.AddControllers();
+//builder.Services.AddControllers();
+builder.Services.AddControllers(o =>
+{
+    o.Filters.Add<DbUniqueToValidationFilter>();
+});
 // builder.Services.AddSwaggerDocumentation(swaggerModuleDocs);
 builder.Services.AddSwaggerDocumentation();
 builder.Services.AddJwtAuthentication(builder.Configuration);
@@ -71,7 +85,7 @@ if (app.Environment.IsDevelopment())
         c.DocumentTitle = "BSOFT API";
         foreach (var module in SwaggerSetup.DefaultModuleDocs)
         {
-            c.SwaggerEndpoint($"/swagger/{module.DocumentName}/swagger.json", module.Title);
+            c.SwaggerEndpoint($"../swagger/{module.DocumentName}/swagger.json", module.Title);
         }
         c.RoutePrefix = "swagger";
     });
@@ -83,8 +97,8 @@ app.UseCors("AllowAll");
 app.UseHttpsRedirection(); // ✅ recommended
 app.UseAuthentication();
 
+app.UseMiddleware<Shared.Infrastructure.Middleware.GlobalExceptionMiddleware>();
 app.UseMiddleware<TokenValidationMiddleware>();
-app.UseMiddleware<UserManagement.Infrastructure.Logging.Middleware.LoggingMiddleware>();
 
 app.UseAuthorization();
 app.MapControllers();

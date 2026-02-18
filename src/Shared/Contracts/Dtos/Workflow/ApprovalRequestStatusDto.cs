@@ -10,7 +10,7 @@ namespace Contracts.Dtos.Workflow
         public int Id { get; set; }
         public int ModuleTransactionId { get; set; }
         public int ApprovalRequestId { get; set; }
-        public string CurrentStatus { get; set; }
-        public string ModuleTypeName { get; set; }
+        public string CurrentStatus { get; set; } = default!;
+        public string ModuleTypeName { get; set; } = default!;
     }
 }

@@ -1,5 +1,5 @@
 using FAM.Application.AuditLog.Queries.GetAuditLog;
-using FAM.Application.Common.HttpResponse;
+using Contracts.Common;
 using MediatR;
 
 namespace FAM.Application.AuditLog.Queries

@@ -8,7 +8,7 @@ using MediatR;
 using UserManagement.Application.Common.Interfaces.IAdminSecuritySettings;
 using AutoMapper;
 using UserManagement.Application.AdminSecuritySettings.Queries.GetAdminSecuritySettings;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 
 namespace UserManagement.Application.AdminSecuritySettings.Queries.GetAdminSecuritySettingsById
 {

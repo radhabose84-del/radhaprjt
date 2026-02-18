@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,7 +27,7 @@ namespace MaintenanceManagement.Presentation.Controllers
             
         }
            [HttpGet]
-        public async Task<IActionResult> GetAllShiftMastersAsync([FromQuery] int PageNumber,[FromQuery] int PageSize,[FromQuery] string? SearchTerm = null)
+        public async Task<IActionResult> GetAllShiftMastersAsync([FromQuery] int PageNumber,[FromQuery] int PageSize,[FromQuery] string SearchTerm = null)
         {
            var divisions = await Mediator.Send(
             new GetShiftMasterQuery
@@ -148,7 +149,7 @@ namespace MaintenanceManagement.Presentation.Controllers
         }
 
          [HttpGet("by-name")]
-        public async Task<IActionResult> GetShiftMaster([FromQuery] string? name)
+        public async Task<IActionResult> GetShiftMaster([FromQuery] string name)
         {
            
            var shiftMaster = await Mediator.Send(new GetShiftMasterAutoCompleteQuery {SearchPattern = name});

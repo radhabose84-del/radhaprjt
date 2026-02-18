@@ -1,3 +1,4 @@
+#nullable disable
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -20,7 +21,7 @@ namespace UserManagement.Infrastructure.Repositories.PasswordComplexityRule
     }
 
       //public async Task<List<UserManagement.Domain.Entities.PasswordComplexityRule>>GetPasswordComplexityAsync( )
-       public async Task<(List<UserManagement.Domain.Entities.PasswordComplexityRule>,int)> GetPasswordComplexityAsync(int PageNumber, int PageSize, string? SearchTerm)
+       public async Task<(List<UserManagement.Domain.Entities.PasswordComplexityRule>,int)> GetPasswordComplexityAsync(int PageNumber, int PageSize, string SearchTerm)
     {
           var query = $$"""
              DECLARE @TotalCount INT;

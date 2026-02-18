@@ -1,6 +1,6 @@
 
 using AutoMapper;
-using InventoryManagement.Application.Common.Exceptions;
+using Contracts.Common;
 using InventoryManagement.Application.Common.Interfaces.Item.ItemGroup;
 using InventoryManagement.Application.Item.ItemGroup.Commands.UpdateItemGroup;
 using InventoryManagement.Domain.Events;

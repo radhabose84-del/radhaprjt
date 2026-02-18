@@ -1,3 +1,4 @@
+#nullable disable
 using System.Text.Json;
 using ProjectManagement.Application.Common.Interfaces;
 using MassTransit;

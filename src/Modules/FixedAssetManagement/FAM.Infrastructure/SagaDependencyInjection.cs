@@ -50,7 +50,9 @@ namespace FAM.Infrastructure
             });
 
             // Ensure MassTransit background service is added
+            #pragma warning disable CS0618
             services.AddMassTransitHostedService();
+            #pragma warning restore CS0618
 
             return services;
         }

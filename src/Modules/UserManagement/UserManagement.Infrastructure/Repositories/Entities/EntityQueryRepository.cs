@@ -1,3 +1,4 @@
+#nullable disable
 using Microsoft.EntityFrameworkCore;
 using UserManagement.Infrastructure.Data;
 using UserManagement.Domain.Entities;
@@ -42,7 +43,7 @@ namespace UserManagement.Infrastructure.Repositories.Entities
             return $"ENT-{nextCodeNumber:D5}"; 
         }
 
-        public async Task<(List<Entity>, int)> GetAllEntityAsync(int PageNumber, int PageSize, string? SearchTerm)
+        public async Task<(List<Entity>, int)> GetAllEntityAsync(int PageNumber, int PageSize, string SearchTerm)
         {
            var query = $$"""
              DECLARE @TotalCount INT;

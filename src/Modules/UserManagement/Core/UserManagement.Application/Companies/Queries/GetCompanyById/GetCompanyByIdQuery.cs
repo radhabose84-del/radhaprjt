@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using MediatR;
 using System.Text;
 using UserManagement.Application.Companies.Queries.GetCompanies;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 
 namespace UserManagement.Application.Companies.Queries.GetCompanyById
 {

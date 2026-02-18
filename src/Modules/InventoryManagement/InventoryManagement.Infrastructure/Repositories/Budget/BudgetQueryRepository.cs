@@ -1,3 +1,4 @@
+#nullable disable
 using System.Globalization;
 using InventoryManagement.Application.Budget.Queries.GetAllBudgets;
 using InventoryManagement.Application.Budget.Queries.GetBudgetById;
@@ -16,7 +17,7 @@ namespace Infrastructure.Persistence.Repositories
             _context = context;
         }
 
-        public async Task<BudgetResponseDto?> GetBudgetByIdAsync(int budgetId)
+        public async Task<BudgetResponseDto> GetBudgetByIdAsync(int budgetId)
         {
                var master = await _context.BudgetMaster
                 .Include(b => b.BudgetDetail)

@@ -1,7 +1,7 @@
 using AutoMapper;
 using FAM.Application.AssetGroup.Queries.GetAssetGroupById;
 using FAM.Application.AssetSubGroup.Queries.GetAssetSubGroup;
-using FAM.Application.Common.HttpResponse;
+using Contracts.Common;
 using FAM.Application.Common.Interfaces.IAssetSubGroup;
 using FAM.Domain.Events;
 using FluentValidation;

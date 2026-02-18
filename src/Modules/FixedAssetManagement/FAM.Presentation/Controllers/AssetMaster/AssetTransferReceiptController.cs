@@ -10,7 +10,7 @@ using FAM.Application.AssetMaster.AssetTransferReceipt.Queries.GetAssetReceiptDe
 using FAM.Application.AssetMaster.AssetTransferReceipt.Queries.GetAssetReceiptDetailsById;
 using FAM.Application.AssetMaster.AssetTransferReceipt.Queries.GetAssetReceiptPending;
 using FAM.Application.AssetMaster.AssetTransferReceipt.Queries.GetAssetRecieptDtlPending;
-using FAM.Application.Common.HttpResponse;
+using Contracts.Common;
 using FAM.Domain.Entities.AssetMaster;
 using FluentValidation;
 using MediatR;

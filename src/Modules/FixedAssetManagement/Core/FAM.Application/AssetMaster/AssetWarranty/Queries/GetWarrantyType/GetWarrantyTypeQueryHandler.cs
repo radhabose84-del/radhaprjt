@@ -1,5 +1,5 @@
 using AutoMapper;
-using FAM.Application.Common.HttpResponse;
+using Contracts.Common;
 using FAM.Application.Common.Interfaces.IAssetMaster.IAssetWarranty;
 using FAM.Application.MiscMaster.Queries.GetMiscMaster;
 using MediatR;

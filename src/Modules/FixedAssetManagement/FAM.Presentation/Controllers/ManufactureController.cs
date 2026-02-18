@@ -1,3 +1,4 @@
+#nullable disable
 using FAM.Application.Manufacture.Commands.CreateManufacture;
 using FAM.Application.Manufacture.Commands.UpdateManufacture;
 using FluentValidation;
@@ -25,7 +26,7 @@ namespace FAM.Presentation.Controllers
         }
 
         [HttpGet]                
-        public async Task<IActionResult> GetAllCitiesAsync([FromQuery] int PageNumber,[FromQuery] int PageSize,[FromQuery] string? SearchTerm = null)
+        public async Task<IActionResult> GetAllCitiesAsync([FromQuery] int PageNumber,[FromQuery] int PageSize,[FromQuery] string SearchTerm = null)
         {            
             var manufactures = await Mediator.Send(
             new GetManufactureQuery
@@ -116,7 +117,7 @@ namespace FAM.Presentation.Controllers
         }
              
         [HttpGet("by-name")]  
-        public async Task<IActionResult> GetManufacture([FromQuery] string? name)
+        public async Task<IActionResult> GetManufacture([FromQuery] string name)
         {          
             var result = await Mediator.Send(new GetManufactureAutoCompleteQuery {SearchPattern = name}); // Pass `searchPattern` to the constructor
           

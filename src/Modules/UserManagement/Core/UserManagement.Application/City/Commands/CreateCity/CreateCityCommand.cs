@@ -1,6 +1,6 @@
 using UserManagement.Application.City.Queries.GetCities;
 using MediatR;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 
 namespace UserManagement.Application.City.Commands.CreateCity
 {     
