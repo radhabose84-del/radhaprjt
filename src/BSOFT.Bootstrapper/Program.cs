@@ -101,7 +101,6 @@ app.UseAuthentication();
 
 app.UseMiddleware<Shared.Infrastructure.Middleware.GlobalExceptionMiddleware>();
 app.UseMiddleware<TokenValidationMiddleware>();
-app.UseMiddleware<UserManagement.Infrastructure.Logging.Middleware.LoggingMiddleware>();
 
 
 app.UseAuthorization();

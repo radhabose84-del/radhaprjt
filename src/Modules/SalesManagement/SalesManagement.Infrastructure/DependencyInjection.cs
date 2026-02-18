@@ -7,9 +7,17 @@ using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Driver;
 using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Application.Common.Interfaces.AuditLog;
+using SalesManagement.Application.Common.Interfaces.IDesignation;
+using SalesManagement.Application.Common.Interfaces.ISalesOfficeMaster;
+using SalesManagement.Application.Common.Interfaces.ISalesGroupMaster;
+using SalesManagement.Application.Common.Interfaces.IEmployeeMaster;
 using SalesManagement.Infrastructure.Data;
 using SalesManagement.Infrastructure.Persistence;
 using SalesManagement.Infrastructure.Repositories.AuditLog;
+using SalesManagement.Infrastructure.Repositories.Designation;
+using SalesManagement.Infrastructure.Repositories.SalesOfficeMaster;
+using SalesManagement.Infrastructure.Repositories.SalesGroupMaster;
+using SalesManagement.Infrastructure.Repositories.EmployeeMaster;
 using SalesManagement.Infrastructure.Services;
 using Serilog;
 
@@ -97,6 +105,16 @@ namespace SalesManagement.Infrastructure
             services.AddSingleton<ITimeZoneService, TimeZoneService>();
             services.AddTransient<IJwtTokenHelper, JwtTokenHelper>();
             services.AddScoped<ILogQueryService, LogQueryService>();
+
+            // ── Employee Master Repositories ────────────────────────────────
+            services.AddScoped<IDesignationCommandRepository, DesignationCommandRepository>();
+            services.AddScoped<IDesignationQueryRepository, DesignationQueryRepository>();
+            services.AddScoped<ISalesOfficeMasterCommandRepository, SalesOfficeMasterCommandRepository>();
+            services.AddScoped<ISalesOfficeMasterQueryRepository, SalesOfficeMasterQueryRepository>();
+            services.AddScoped<ISalesGroupMasterCommandRepository, SalesGroupMasterCommandRepository>();
+            services.AddScoped<ISalesGroupMasterQueryRepository, SalesGroupMasterQueryRepository>();
+            services.AddScoped<IEmployeeMasterCommandRepository, EmployeeMasterCommandRepository>();
+            services.AddScoped<IEmployeeMasterQueryRepository, EmployeeMasterQueryRepository>();
 
             return services;
         }

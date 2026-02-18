@@ -1,6 +1,6 @@
 #nullable disable
 using System.Data;
-using PurchaseManagement.Application.Common.Interfaces;
+using Dapper;
 using PurchaseManagement.Application.Common.Interfaces.IMiscMaster;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.Local;
 using PurchaseManagement.Domain.Common;
@@ -8,10 +8,8 @@ using PurchaseManagement.Domain.Entities;
 using PurchaseManagement.Domain.Entities.PurchaseOrder;
 using PurchaseManagement.Domain.Entities.PurchaseOrder.Local;
 using PurchaseManagement.Domain.PurchaseOrder;
-using Dapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.Extensions.Logging;
 using PurchaseManagement.Infrastructure.Data;
 using PurchaseManagement.Application.PurchaseOrder.Dtos.Local;
 
@@ -20,81 +18,15 @@ namespace PurchaseManagement.Infrastructure.PurchaseOrder.Local;
 public class PurchaseOrderCommandRepository : IPurchaseOrderCommandRepository
 {
     private readonly ApplicationDbContext _db;
-    private readonly IIPAddressService _ip;
-    private readonly IDbConnection _dbConnection;
     private readonly IMiscMasterQueryRepository _miscMasterQueryRepository;
-    private readonly ILogger<PurchaseOrderCommandRepository> _logger;
 
     public PurchaseOrderCommandRepository(
         ApplicationDbContext db,
-        IIPAddressService ip,
-        IDbConnection dbConnection,
-        IMiscMasterQueryRepository miscMasterQueryRepository,
-        ILogger<PurchaseOrderCommandRepository> logger)
+        IMiscMasterQueryRepository miscMasterQueryRepository)
     {
         _db = db;
-        _ip = ip;
-        _dbConnection = dbConnection;
         _miscMasterQueryRepository = miscMasterQueryRepository;
-        _logger = logger;
     }
-    public async Task<int> CreateAsync(PurchaseOrderHeader aggregate, CancellationToken ct)
-    {
-        // Ensure children are new
-        foreach (var h in aggregate.Headers ?? Enumerable.Empty<PurchaseLocalHeader>())
-        {
-            h.Id = 0;
-            foreach (var d in h.Details ?? Enumerable.Empty<PurchaseLocalDetail>())
-                d.Id = 0;
-        }
-        foreach (var t in aggregate.PaymentTerms ?? Enumerable.Empty<PurchasePaymentTerm>())
-            t.Id = 0;
-
-        // ✅ Ensure document rows are new (if handler attached them)
-        foreach (var doc in aggregate.PurchaseDocumentTypes ?? Enumerable.Empty<PurchaseDocument>())
-            doc.Id = 0;
-
-        // Status = Pending
-        var pending = await _miscMasterQueryRepository.GetMiscMasterByName(
-            MiscEnumEntity.ApprovalStatus, MiscEnumEntity.Pending);
-        aggregate.StatusId = pending.Id;
-
-        // Compute impacted indents from the incoming graph
-        var impacted = GetImpactedIndentIdsFromPo(aggregate);
-
-        var strategy = _db.Database.CreateExecutionStrategy();
-        
-        return await strategy.ExecuteAsync(async () =>
-        {
-            await using var tx = await _db.Database.BeginTransactionAsync(ct);
-
-            _db.PurchaseOrderHeaders.Add(aggregate);
-            await _db.SaveChangesAsync(ct); // PK available
-
-            // ✅ If documents were attached on the aggregate, ensure FK and save
-            if (aggregate.PurchaseDocumentTypes != null && aggregate.PurchaseDocumentTypes.Count > 0)
-            {
-                foreach (var doc in aggregate.PurchaseDocumentTypes)
-                {
-                    doc.PoId = aggregate.Id;
-                    if (doc.UploadedDate == default) doc.UploadedDate = DateTimeOffset.UtcNow;
-                }
-                await _db.SaveChangesAsync(ct);
-            }
-
-            // Recompute POQty for impacted indents
-            if (impacted.Count > 0)
-                await RecomputeIndentPoQtyAsync(impacted, ct);
-
-            await tx.CommitAsync(ct);
-            return aggregate.Id;
-        });
-    }
-
-    /// <summary>
-    /// Creates a purchase order WITHOUT managing transaction internally.
-    /// Caller is responsible for Begin/Commit/Rollback.
-    /// </summary>
     public async Task<int> CreateWithoutTransactionAsync(PurchaseOrderHeader aggregate, CancellationToken ct)
     {
         // Ensure children are new
@@ -291,52 +223,6 @@ public class PurchaseOrderCommandRepository : IPurchaseOrderCommandRepository
     }
 
 
-    private static void ApplyScalarUpdates(PurchaseOrderHeader existing, PurchaseOrderHeader incoming)
-    {
-        existing.UnitId        = incoming.UnitId;
-        existing.PODate        = incoming.PODate;
-        existing.POCategoryId  = incoming.POCategoryId;
-        existing.POMethodId    = incoming.POMethodId;
-        existing.CurrencyId    = incoming.CurrencyId;
-        existing.VendorId      = incoming.VendorId;
-
-        existing.ItemTotal     = incoming.ItemTotal;
-        existing.DiscountTotal = incoming.DiscountTotal;
-        existing.PandFTotal    = incoming.PandFTotal;
-        existing.MiscCharges   = incoming.MiscCharges;
-        existing.GSTTotal      = incoming.GSTTotal;        
-        existing.CGSTTotal     = incoming.CGSTTotal;
-        existing.SGSTTotal     = incoming.SGSTTotal;
-        existing.IGSTTotal     = incoming.IGSTTotal;
-        existing.FreightTotal  = incoming.FreightTotal;
-        existing.InsuranceTotal= incoming.InsuranceTotal;
-        existing.TDSTotal      = incoming.TDSTotal;
-        existing.AdvanceAmount = incoming.AdvanceAmount;
-        existing.PurchaseValue = incoming.PurchaseValue;
-
-        existing.StatusId      = incoming.StatusId;
-        existing.RevisionNo    = incoming.RevisionNo;
-        existing.AmendmentReason = incoming.AmendmentReason;
-        existing.BudgetGroupId  = incoming.BudgetGroupId;
-        // Optional FKs: 0 -> null normalization if not already handled
-        existing.CapitalTypeId  = incoming.CapitalTypeId  > 0 ? incoming.CapitalTypeId  : null;
-        existing.PurchaseTypeId = incoming.PurchaseTypeId > 0 ? incoming.PurchaseTypeId : null;
-        existing.ProjectId      = incoming.ProjectId      > 0 ? incoming.ProjectId      : null;
-        existing.WBSId      = incoming.WBSId      > 0 ? incoming.WBSId      : null;
-        existing.FinancialYearId      = incoming.FinancialYearId      > 0 ? incoming.FinancialYearId      : null;
-        existing.CostCenterId   = incoming.CostCenterId   > 0 ? incoming.CostCenterId   : null;
-    }
-
-
-    private static HashSet<int> GetImpactedIndentIdsFromPo(PurchaseOrderHeader po)
-    {
-        return po.Headers
-           .SelectMany(h => h.Details)
-            .Select(d => d.IndentId ?? 0)
-            .Where(id => id > 0)
-            .Distinct()
-            .ToHashSet();
-    }
     private async Task<HashSet<int>> GetImpactedIndentIdsFromDbAsync(int poId, CancellationToken ct)
     {
         var ids = await (
@@ -496,15 +382,6 @@ public class PurchaseOrderCommandRepository : IPurchaseOrderCommandRepository
         var fyStart = new DateTimeOffset(localStart, tz.GetUtcOffset(localStart));
         return (fyStart, fyStart.AddYears(1));
     }
-    public async Task<string> GetBaseDirectoryAsync(CancellationToken ct = default)
-    {
-        const string query = @"
-            SELECT Description AS BaseDirectory
-            FROM Purchase.MiscTypeMaster
-            WHERE MiscTypeCode = 'POImage' AND IsDeleted = 0";
-        var result = await _dbConnection.QueryFirstOrDefaultAsync<string>(query);
-        return result;
-    }   
     public async Task<bool> UpdatePOApproveAsync(int poId, int statusId, CancellationToken ct = default)
     {
         var qch = await _db.PurchaseOrderHeaders
