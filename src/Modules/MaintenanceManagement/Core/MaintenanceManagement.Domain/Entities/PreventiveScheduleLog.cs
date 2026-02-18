@@ -10,8 +10,8 @@ namespace MaintenanceManagement.Domain.Entities
         public int Id { get; set; }
         public int? PreventiveScheduleId { get; set; }
         public int? PreventiveScheduleDetailId { get; set; }
-        public string ActionType { get; set; }
-        public string ChangedFields { get; set; }
+        public string ActionType { get; set; } = default!;
+        public string ChangedFields { get; set; } = default!;
         public string? Remarks { get; set; }
         public string? Source { get; set; }
         public bool IsSuccess  { get; set; }

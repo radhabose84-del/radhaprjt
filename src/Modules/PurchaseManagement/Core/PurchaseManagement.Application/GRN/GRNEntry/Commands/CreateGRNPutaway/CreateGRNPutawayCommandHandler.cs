@@ -4,7 +4,7 @@
 // using System.Threading.Tasks;
 // using AutoMapper;
 // using Contracts.Interfaces.External.IInvetoryManagement;
-// using PurchaseManagement.Application.Common.Exceptions;
+// using Contracts.Common;
 // using PurchaseManagement.Application.Common.Interfaces;
 // using PurchaseManagement.Application.Common.Interfaces.IGRN.IGRNEntry;
 // using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.IBillEntry;

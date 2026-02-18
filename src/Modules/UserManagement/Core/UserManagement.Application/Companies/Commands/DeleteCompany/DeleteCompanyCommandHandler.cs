@@ -7,7 +7,7 @@ using UserManagement.Domain.Entities;
 using MediatR;
 using AutoMapper;
 using UserManagement.Application.Common.Interfaces.ICompany;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using UserManagement.Domain.Events;
 using FluentValidation;
 

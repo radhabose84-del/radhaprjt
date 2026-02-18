@@ -1,3 +1,4 @@
+#nullable disable
 using MediatR;
 using UserManagement.Infrastructure.Data;
 using UserManagement.Application.Modules.Commands.UpdateModule;
@@ -53,7 +54,7 @@ namespace UserManagement.Presentation.Controllers
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAllModuleAsync([FromQuery] int PageNumber,[FromQuery] int PageSize,[FromQuery] string? SearchTerm = null)
+    public async Task<IActionResult> GetAllModuleAsync([FromQuery] int PageNumber,[FromQuery] int PageSize,[FromQuery] string SearchTerm = null)
     {
         var modules = await Mediator.Send(new GetModulesQuery
             {
@@ -126,7 +127,7 @@ namespace UserManagement.Presentation.Controllers
             });
     }
      [HttpGet("by-name")]
-        public async Task<IActionResult> GetModule([FromQuery] string? name)
+        public async Task<IActionResult> GetModule([FromQuery] string name)
         {
            
             var modules = await Mediator.Send(new GetModuleAutoCompleteQuery {SearchPattern = name});

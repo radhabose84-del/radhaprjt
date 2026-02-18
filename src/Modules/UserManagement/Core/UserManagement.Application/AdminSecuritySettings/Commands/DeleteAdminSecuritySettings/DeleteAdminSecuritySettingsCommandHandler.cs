@@ -10,7 +10,7 @@ using AutoMapper;
 using MediatR;
 using UserManagement.Application.Common.Interfaces.IAdminSecuritySettings;
 using System.Threading;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using Microsoft.Extensions.Logging;
 using FluentValidation;
 

@@ -2,7 +2,7 @@ using MongoDB.Driver;
 using FAM.Domain.Entities;
 using MediatR;
 using FAM.Application.AuditLog.Queries.GetAuditLog;
-using FAM.Application.Common.HttpResponse;
+using Contracts.Common;
 
 namespace FAM.Application.AuditLog.Queries.GetAuditLogBySearchPattern
 {

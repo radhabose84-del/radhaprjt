@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -22,7 +23,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.MachineGroup
 
         }
        
-       public async Task<MaintenanceManagement.Domain.Entities.MachineGroup?>GetByIdAsync(int id)
+       public async Task<MaintenanceManagement.Domain.Entities.MachineGroup>GetByIdAsync(int id)
         { 
             var UnitId = _ipAddressService.GetUnitId();           
             const string query = @"
@@ -67,7 +68,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.MachineGroup
                 var count = await _dbConnection.ExecuteScalarAsync<int>(query, new { Id = id , UnitId });
                 return count > 0;
         }   
-        public async Task<(List<MaintenanceManagement.Domain.Entities.MachineGroup>, int)> GetAllMachineGroupsAsync(int PageNumber, int PageSize, string? SearchTerm)
+        public async Task<(List<MaintenanceManagement.Domain.Entities.MachineGroup>, int)> GetAllMachineGroupsAsync(int PageNumber, int PageSize, string SearchTerm)
             {
                var UnitId = _ipAddressService.GetUnitId();
                 var query = $$"""

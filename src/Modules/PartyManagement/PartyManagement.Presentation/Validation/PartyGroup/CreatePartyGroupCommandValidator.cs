@@ -1,3 +1,4 @@
+#nullable disable
 using PartyManagement.Application.Common.Interfaces.IPartyGroup;
 using PartyManagement.Application.PartyGroup.Command.CreatePartyGroup;
 using FluentValidation;

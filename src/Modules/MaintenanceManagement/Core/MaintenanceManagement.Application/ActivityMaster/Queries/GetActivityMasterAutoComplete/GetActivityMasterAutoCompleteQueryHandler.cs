@@ -1,9 +1,10 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
-using MaintenanceManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using MaintenanceManagement.Application.Common.Interfaces.IActivityMaster;
 using MaintenanceManagement.Application.Common.Interfaces.IMachineGroup;
 using MaintenanceManagement.Application.MachineGroup.Queries.GetActivityMasterAutoComplete;

@@ -1,4 +1,4 @@
-using PurchaseManagement.Application.Common.Exceptions;
+using Contracts.Common;
 using PurchaseManagement.Application.Common.Interfaces.IPortMaster;
 using PurchaseManagement.Domain.Events;
 using MediatR;

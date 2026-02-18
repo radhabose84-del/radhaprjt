@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using BackgroundService.Application.Notification.Common.HttpResponse;
+using Contracts.Common;
 using MediatR;
 
 namespace BackgroundService.Application.Workflow.ApprovalRequests.Queries.GetApprovalRequestById

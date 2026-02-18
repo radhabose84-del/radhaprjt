@@ -19,7 +19,6 @@ using Infrastructure.Data.Configurations;
 using PurchaseManagement.Domain.Entities.PurchaseOrder.Local;
 using PurchaseManagement.Domain.Entities.GRN.GRNEntry;
 using PurchaseManagement.Infrastructure.Data.Configurations.GRN.GRNEntry;
-using PurchaseManagement.Domain.Entities;
 using PurchaseManagement.Domain.Entities.GRN.StockLedger;
 using PurchaseManagement.Infrastructure.Data.Configurations.GRN.GRNEntry.StockLedger;
 using PurchaseManagement.Domain.Entities.PurchaseOrder.ServicePO;
@@ -189,6 +188,20 @@ namespace PurchaseManagement.Infrastructure.Data
 
             // Outbox Pattern
             modelBuilder.ApplyConfiguration(new OutboxMessageConfiguration());
+
+            
+            // Global convention: set explicit precision/scale for all decimal properties
+            // This prevents EF Core runtime warnings about silent truncation
+            foreach (var property in modelBuilder.Model.GetEntityTypes()
+                .SelectMany(e => e.GetProperties())
+                .Where(p => p.ClrType == typeof(decimal) || p.ClrType == typeof(decimal?)))
+            {
+                if (property.GetPrecision() == null)
+                {
+                    property.SetPrecision(18);
+                    property.SetScale(6);
+                }
+            }
 
             base.OnModelCreating(modelBuilder);
         }

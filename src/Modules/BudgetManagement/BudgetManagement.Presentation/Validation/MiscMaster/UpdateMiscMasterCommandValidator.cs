@@ -1,3 +1,4 @@
+#nullable disable
 using BudgetManagement.Presentation.Validation.Common;
 using BudgetManagement.Application.Common.Interfaces.IMiscMaster;
 using BudgetManagement.Application.MiscMaster.Command.UpdateMiscMaster;

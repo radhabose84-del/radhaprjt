@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -67,9 +68,9 @@ namespace Shared.Validation.Common
 
     public class ValidationRule
     {
-        public string Pattern { get; set; }
-        public string Rule { get; set; }
-        public string Error { get; set; }
-        public List<string> allowedExtensions { get; set; }
+        public string Pattern { get; set; } = default!;
+        public string Rule { get; set; } = default!;
+        public string Error { get; set; } = default!;
+        public List<string> allowedExtensions { get; set; } = default!;
     }
 }

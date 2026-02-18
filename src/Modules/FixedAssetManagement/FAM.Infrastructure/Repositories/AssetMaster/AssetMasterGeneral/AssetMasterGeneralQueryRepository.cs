@@ -1,3 +1,4 @@
+#nullable disable
 using System.Data;
 using Contracts.Interfaces.Lookups.Users; // ✅ lookup contracts
 using FAM.Application.AssetMaster.AssetMasterGeneral.Queries.GetAssetMasterGeneral;
@@ -35,7 +36,7 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetMasterGeneral
             _cityLookup = cityLookup;
             _companyLookup = companyLookup;
         }     
-        public async Task<(List<AssetMasterGeneralDTO>, int)> GetAllAssetAsync(int PageNumber, int PageSize, string? SearchTerm)
+        public async Task<(List<AssetMasterGeneralDTO>, int)> GetAllAssetAsync(int PageNumber, int PageSize, string SearchTerm)
         {
             var parameters = new DynamicParameters();
             parameters.Add("@CompanyId", CompanyId);
@@ -208,7 +209,7 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetMasterGeneral
             return locationExists.HasValue || purchaseExists.HasValue || warrantyExists.HasValue  || specExists.HasValue  || amcExists.HasValue || insuranceExists.HasValue || additionalCostExists.HasValue || depreciationExists.HasValue ; 
         }
 
-        public async Task<string?> GetLatestAssetCode( int assetGroupId, int assetCategoryId, int DepartmentId, int LocationId)
+        public async Task<string> GetLatestAssetCode( int assetGroupId, int assetCategoryId, int DepartmentId, int LocationId)
         {
             var parameters = new DynamicParameters();
             parameters.Add("@CompanyId", CompanyId);

@@ -9,6 +9,6 @@ namespace Contracts.Dtos.Maintenance.Preventive
     {
         public int Id { get; set; }
         // public DateOnly WorkOrderCreationStartDate { get; set; }
-        public string HangfireJobId { get; set; }
+        public string HangfireJobId { get; set; } = default!;
     }
 }

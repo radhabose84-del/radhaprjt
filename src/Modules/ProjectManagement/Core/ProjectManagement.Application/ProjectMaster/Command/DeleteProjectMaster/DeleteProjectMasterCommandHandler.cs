@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
-using ProjectManagement.Application.Common.Exceptions;
+using Contracts.Common;
 using ProjectManagement.Application.Common.Interfaces.IProjectMaster;
 using ProjectManagement.Domain.Events;
 using MediatR;

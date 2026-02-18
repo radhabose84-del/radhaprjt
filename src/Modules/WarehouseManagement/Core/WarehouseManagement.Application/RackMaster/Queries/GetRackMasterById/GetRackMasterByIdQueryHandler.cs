@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
-using WarehouseManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using WarehouseManagement.Application.Common.Interfaces.IRackMaster;
 using WarehouseManagement.Application.RackMaster.Queries.GetAllRackMaster;
 using Contracts.Interfaces.External.IInvetoryManagement;

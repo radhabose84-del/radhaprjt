@@ -1,10 +1,11 @@
+#nullable disable
 using System.Text.Json;
 using AutoMapper;
 using Contracts.Commands.Workflow;
 using Contracts.Events.Notifications;
 using Contracts.Interfaces.Lookups.Budget;
 using Contracts.Interfaces.Lookups.Users;
-using PurchaseManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IOutbox;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.IPurchaseDocument;
@@ -420,7 +421,7 @@ namespace PurchaseManagement.Application.PurchaseOrder.Local.Commands.Create
                 .ToList();
         }
 
-        private static void EnsureDirectoryExists(string? path)
+        private static void EnsureDirectoryExists(string path)
         {
             if (!string.IsNullOrWhiteSpace(path) && !Directory.Exists(path))
                 Directory.CreateDirectory(path);

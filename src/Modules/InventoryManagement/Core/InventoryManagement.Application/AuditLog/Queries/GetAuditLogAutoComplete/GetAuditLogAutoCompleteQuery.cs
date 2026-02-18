@@ -1,5 +1,5 @@
 using InventoryManagement.Application.AuditLog.Queries.GetAuditLog;
-using InventoryManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using MediatR;
 
 namespace InventoryManagement.Application.AuditLog.Queries

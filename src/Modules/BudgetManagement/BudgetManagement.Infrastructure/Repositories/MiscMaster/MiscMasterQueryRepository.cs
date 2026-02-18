@@ -1,3 +1,4 @@
+#nullable disable
 using System.Data;
 using BudgetManagement.Application.Common.Interfaces.IMiscMaster;
 using Dapper;
@@ -14,7 +15,7 @@ namespace BudgetManagement.Infrastructure.Repositories.MiscMaster
 
         }
 
-        public async Task<(List<BudgetManagement.Domain.Entities.MiscMaster>, int)> GetAllMiscMasterAsync(int PageNumber, int PageSize, string? SearchTerm)
+        public async Task<(List<BudgetManagement.Domain.Entities.MiscMaster>, int)> GetAllMiscMasterAsync(int PageNumber, int PageSize, string SearchTerm)
         {
             var query = $$"""
                 DECLARE @TotalCount INT;
@@ -83,7 +84,7 @@ namespace BudgetManagement.Infrastructure.Repositories.MiscMaster
             return miscmaster.ToList();
         }
 
-        public async Task<BudgetManagement.Domain.Entities.MiscMaster?> GetByMiscMasterCodeAsync(string name, int? id = null)
+        public async Task<BudgetManagement.Domain.Entities.MiscMaster> GetByMiscMasterCodeAsync(string name, int? id = null)
         {
             var query = """
                  SELECT * FROM Budget.MiscMaster
@@ -165,7 +166,7 @@ namespace BudgetManagement.Infrastructure.Repositories.MiscMaster
             var p = new { MiscTypeCode = miscTypeCode, MiscTypeName = miscTypeName };
             return await _dbConnection.QueryFirstOrDefaultAsync<BudgetManagement.Domain.Entities.MiscMaster>(sql, p);
         }      
-        public async Task<BudgetManagement.Domain.Entities.MiscMaster?> GetByTypeAndCodeAsync(
+        public async Task<BudgetManagement.Domain.Entities.MiscMaster> GetByTypeAndCodeAsync(
             string miscTypeCode,
             string code,
             CancellationToken ct = default)

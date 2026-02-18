@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -21,7 +22,7 @@ namespace FAM.Infrastructure.Repositories.MiscTypeMaster
 
 
 
-          public async Task<(List<FAM.Domain.Entities.MiscTypeMaster>,int)> GetAllMiscTypeMasterAsync(int PageNumber, int PageSize, string? SearchTerm)
+          public async Task<(List<FAM.Domain.Entities.MiscTypeMaster>,int)> GetAllMiscTypeMasterAsync(int PageNumber, int PageSize, string SearchTerm)
         {
                  var query = $$"""
                     DECLARE @TotalCount INT;
@@ -52,7 +53,7 @@ namespace FAM.Infrastructure.Repositories.MiscTypeMaster
              int totalCount = (await misctype.ReadFirstAsync<int>());
             return (misctypemaster, totalCount);
         }
-          public async Task<FAM.Domain.Entities.MiscTypeMaster?> GetByMiscTypeMasterCodeAsync(string name, int? id = null)
+          public async Task<FAM.Domain.Entities.MiscTypeMaster> GetByMiscTypeMasterCodeAsync(string name, int? id = null)
         {
               var query = """
                  SELECT * FROM FixedAsset.MiscTypeMaster

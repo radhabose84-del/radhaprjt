@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using ProjectManagement.Application.ProjectMaster.Queries.Dtos;
 using MediatR;
-using ProjectManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 
 namespace ProjectManagement.Application.ProjectMaster.Queries.GetProjectMaster
 {

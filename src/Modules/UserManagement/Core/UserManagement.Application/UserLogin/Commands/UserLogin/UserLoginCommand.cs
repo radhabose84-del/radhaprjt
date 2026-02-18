@@ -1,4 +1,4 @@
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using UserManagement.Application.Users.Queries.GetUsers;
 using MediatR;
 using System;
@@ -13,8 +13,8 @@ namespace UserManagement.Application.UserLogin.Commands.UserLogin
     public class UserLoginCommand : IRequest<ApiResponseDTO<LoginResponse>>
     {
         // public LoginRequest Request { get; set; }
-        public string Username { get; set; }
-        public string Password { get; set; }
+        public string Username { get; set; } = default!;
+        public string Password { get; set; } = default!;
 
     }
 

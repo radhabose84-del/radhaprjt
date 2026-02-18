@@ -1,3 +1,4 @@
+#nullable disable
 using MaintenanceManagement.Application.Common.Interfaces.IWorkOrder;
 using MaintenanceManagement.Application.Maintenance.WorkOrder.Command.UpdateWorkOrderRequestDate;
 using MaintenanceManagement.Application.Reports.WorkOrderItemConsuption;
@@ -370,7 +371,7 @@ namespace MaintenanceManagement.Presentation.Controllers
             });
         }
         [HttpGet]
-        public async Task<IActionResult> GetByAllAsync([FromQuery] string? fromDate, [FromQuery] string? toDate, [FromQuery] int? requestTypeId
+        public async Task<IActionResult> GetByAllAsync([FromQuery] string fromDate, [FromQuery] string toDate, [FromQuery] int? requestTypeId
        , [FromQuery] int? departmentId, [FromQuery] int? machineId)
         {
             DateTimeOffset? parsedStartDate = null;

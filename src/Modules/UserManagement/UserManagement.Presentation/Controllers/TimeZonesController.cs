@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -29,7 +30,7 @@ namespace UserManagement.Presentation.Controllers
             _mediator = mediator;
         }
         [HttpGet]
-        public async Task<IActionResult> GetAllTimeZonesAsync([FromQuery] int PageNumber,[FromQuery] int PageSize,[FromQuery] string? SearchTerm = null)
+        public async Task<IActionResult> GetAllTimeZonesAsync([FromQuery] int PageNumber,[FromQuery] int PageSize,[FromQuery] string SearchTerm = null)
         {
         
         var result  = await Mediator.Send(new 
@@ -90,7 +91,7 @@ namespace UserManagement.Presentation.Controllers
    
 }
         [HttpGet("by-name")]
-        public async Task<IActionResult> GetTimeZones([FromQuery] string? TimeZoneName)
+        public async Task<IActionResult> GetTimeZones([FromQuery] string TimeZoneName)
         {       
         // Fetch entities based on search pattern
         var result = await Mediator.Send(new GetTimeZonesAutocompleteQuery { SearchPattern = TimeZoneName?? string.Empty });

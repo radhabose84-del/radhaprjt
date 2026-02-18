@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
-using InventoryManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using InventoryManagement.Application.Common.Interfaces.IUOM;
 using InventoryManagement.Application.UOM.Queries.GetUOMs;
 using InventoryManagement.Domain.Events;

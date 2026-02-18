@@ -6,7 +6,7 @@ using UserManagement.Application.City.Queries.GetCities;
 using UserManagement.Application.Common;
 using UserManagement.Application.Common.Interfaces.ICity;
 using UserManagement.Domain.Events;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using FluentValidation;
 
 namespace UserManagement.Application.City.Commands.CreateCity

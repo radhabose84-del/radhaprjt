@@ -1,3 +1,4 @@
+#nullable disable
 using System.Data;
 using PartyManagement.Application.Common.Interfaces;
 using PartyManagement.Application.Common.Interfaces.AuditLog;

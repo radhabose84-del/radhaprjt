@@ -1,3 +1,4 @@
+#nullable disable
 using System.Data;
 using InventoryManagement.Application.Common.Interfaces;
 using InventoryManagement.Application.Common.Interfaces.AuditLog;

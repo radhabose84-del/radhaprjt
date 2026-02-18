@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -163,7 +164,7 @@ namespace WarehouseManagement.Infrastructure.Repositories.BinMaster
             return await _dbConnection.QueryAsync<string>(cmd);
         }
 
-        public async Task<IReadOnlyList<BinAutoDto>> AutocompleteAsync(string? q, int top = 10, int? warehouseId = null, int? rackId = null, CancellationToken ct = default)
+        public async Task<IReadOnlyList<BinAutoDto>> AutocompleteAsync(string q, int top = 10, int? warehouseId = null, int? rackId = null, CancellationToken ct = default)
         
             {
                 const string sql = @"

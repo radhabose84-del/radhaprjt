@@ -1,3 +1,4 @@
+#nullable disable
 using Microsoft.Extensions.Configuration;
 using System;
 

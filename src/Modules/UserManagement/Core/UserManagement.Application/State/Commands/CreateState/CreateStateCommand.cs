@@ -1,6 +1,6 @@
 using MediatR;
 using UserManagement.Application.State.Queries.GetStates;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 
 namespace UserManagement.Application.State.Commands.CreateState
 {     

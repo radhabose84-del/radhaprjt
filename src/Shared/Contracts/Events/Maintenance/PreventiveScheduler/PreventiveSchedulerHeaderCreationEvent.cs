@@ -23,6 +23,6 @@ namespace Contracts.Events.Maintenance.PreventiveScheduler
         public byte IsDownTimeRequired { get; set; }
         public decimal DownTimeEstimateHrs { get; set; }
         public int UnitId { get; set; }
-         public string token { get; set; }
+         public string token { get; set; } = default!;
     }
 }

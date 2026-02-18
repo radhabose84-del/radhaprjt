@@ -1,5 +1,5 @@
 using AutoMapper;
-using PurchaseManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using PurchaseManagement.Application.Common.Interfaces.IGRN.IGRNEntry;
 using PurchaseManagement.Domain.Events;
 using MediatR;

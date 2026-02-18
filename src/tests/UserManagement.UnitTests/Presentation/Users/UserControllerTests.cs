@@ -1,3 +1,4 @@
+#nullable disable
 using UserManagement.Application.Users.Commands.ChangeUserPassword;
 using UserManagement.Application.Users.Commands.CreateUser;
 using UserManagement.Application.Users.Commands.DeleteUser;
@@ -81,7 +82,7 @@ public sealed class UserControllerTests
 
         // IMPORTANT: return the correct TResponse type (UserByIdDTO?) not object
         _sender.Setup(m => m.Send(It.Is<GetUserByIdQuery>(q => q.UserId == id), It.IsAny<CancellationToken>()))
-               .ReturnsAsync((UserByIdDTO?)null);
+               .ReturnsAsync((UserByIdDTO)null);
 
         var result = await _sut.GetByIdAsync(id);
 

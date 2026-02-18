@@ -2,14 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using MaintenanceManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using MediatR;
 
 namespace MaintenanceManagement.Application.PreventiveSchedulers.Commands.UpdatePreventiveScheduler
 {
     public class UpdatePreventiveSchedulerCommand : IRequest<ApiResponseDTO<bool>>
     {
-        public string PreventiveSchedulerName { get; set; }
+        public string PreventiveSchedulerName { get; set; } = default!;
         public int Id { get; set; }
         public int MachineGroupId { get; set; }
         public int DepartmentId { get; set; }

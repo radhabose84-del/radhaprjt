@@ -1,3 +1,4 @@
+#nullable disable
 using Dapper;
 using System.Data;
 using UserManagement.Infrastructure.Data;
@@ -32,7 +33,7 @@ namespace UserManagement.Infrastructure.Repositories.Users
             _ipAddressService = ipAddressService;
        
         }
-        public async Task<(List<User>,int)> GetAllUsersAsync(int PageNumber, int PageSize, string? SearchTerm)
+        public async Task<(List<User>,int)> GetAllUsersAsync(int PageNumber, int PageSize, string SearchTerm)
         {
             var groupCode = _ipAddressService.GetGroupcode();
            
@@ -115,7 +116,7 @@ namespace UserManagement.Infrastructure.Repositories.Users
                     // });
         }
 
-     public async Task<User?> GetByIdAsync(int userId)
+     public async Task<User> GetByIdAsync(int userId)
 {
     // var UnitId = _ipAddressService.GetUnitId();
     const string query = @"
@@ -211,7 +212,7 @@ namespace UserManagement.Infrastructure.Repositories.Users
 
 
 
-        public async Task<User?> GetByUsernameAsync(string? username, int? id = null)
+        public async Task<User> GetByUsernameAsync(string username, int? id = null)
         {
             var UnitId = _ipAddressService.GetUnitId();
            
@@ -296,7 +297,7 @@ namespace UserManagement.Infrastructure.Repositories.Users
                 var count = await _dbConnection.ExecuteScalarAsync<int>(query, parameters);
                 return count > 0;
           }
-          public async Task<User?> GetByUserByUnit(int UserId,int UnitId)
+          public async Task<User> GetByUserByUnit(int UserId,int UnitId)
           {
             const string query = @"
                 SELECT U.UserId, U.UserName,U.Mobile,U.EmailId,U.IsFirstTimeUser,U.EntityId,U.UserGroupId,FirstName,LastName,GstNumber
@@ -316,7 +317,7 @@ namespace UserManagement.Infrastructure.Repositories.Users
             
             
           }
-            public async Task<bool> ValidateUsernameAsync(string? username, int? id = null)
+            public async Task<bool> ValidateUsernameAsync(string username, int? id = null)
           {
               var query = "SELECT COUNT(1) FROM AppSecurity.Users WHERE UserName = @Username AND IsDeleted = 0";
                var condition = id is not null ? "AND UserId != @Id" : "";
@@ -328,7 +329,7 @@ namespace UserManagement.Infrastructure.Repositories.Users
                 return count > 0;
           }
           
-            public async Task<bool> ValidateUserActiveAsync(string? username, int? id = null)
+            public async Task<bool> ValidateUserActiveAsync(string username, int? id = null)
              {
                  var query = "SELECT COUNT(1) FROM AppSecurity.Users WHERE UserName = @Username AND IsActive = 1";
                   var condition = id is not null ? "AND UserId != @Id" : "";

@@ -1,3 +1,4 @@
+#nullable disable
 using System.Data;
 using MaintenanceManagement.Application.Common.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces.IWorkOrder;
@@ -32,7 +33,6 @@ namespace MaintenanceManagement.Infrastructure.Repositories.WorkOrder
             parameters.Add("@MachineId", machineId);
 
             List<WorkOrderWithScheduleDto> workOrderList;
-            int totalCount;
 
             using (var multiResult = await _dbConnection.QueryMultipleAsync(
                 "dbo.Usp_GetWorkOrder", parameters, commandType: CommandType.StoredProcedure))

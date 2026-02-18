@@ -1,4 +1,4 @@
-using MaintenanceManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using MediatR;
 
 namespace MaintenanceManagement.Application.MachineGroupUser.Queries.GetMachineGroupUser

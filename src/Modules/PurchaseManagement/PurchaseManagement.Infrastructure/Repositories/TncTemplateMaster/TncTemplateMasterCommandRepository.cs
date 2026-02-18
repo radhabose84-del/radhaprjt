@@ -1,8 +1,9 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using PurchaseManagement.Application.Common.Exceptions;
+using Contracts.Common;
 using PurchaseManagement.Application.Common.Interfaces.ITnCTemplateMaster;
 using PurchaseManagement.Domain.Entities;
 using Microsoft.Data.SqlClient;
@@ -28,7 +29,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.TncTemplateMaster
             await _dbContext.SaveChangesAsync(ct);    // EF wraps this in a transaction
             return entity.Id;
         }
-        public async Task<bool> UpdateAsync(TnCTemplateMaster incoming, List<TnCTemplateApplicability>? newApplicabilities)
+        public async Task<bool> UpdateAsync(TnCTemplateMaster incoming, List<TnCTemplateApplicability> newApplicabilities)
         {
             var db = _dbContext;
 

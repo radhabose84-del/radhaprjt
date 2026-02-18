@@ -11,8 +11,8 @@ namespace Contracts.Events.Purchase
     {
         public Guid CorrelationId { get; set; }
         public int IndentId { get; set; }
-        public string Reason { get; set; }
-        public ICollection<UpdateLineStatusDto> LineStatus { get; set; }
+        public string Reason { get; set; } = default!;
+        public ICollection<UpdateLineStatusDto> LineStatus { get; set; } = default!;
 
     }
 }

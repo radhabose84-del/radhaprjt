@@ -1,7 +1,7 @@
 using AutoMapper;
 using BackgroundService.Application.Common.Interfaces.IMiscTypeMaster;
 using BackgroundService.Application.MiscTypeMaster.Queries.GetMiscTypeMaster;
-using BackgroundService.Application.Notification.Common.HttpResponse;
+using Contracts.Common;
 using BackgroundService.Domain.Events;
 using MediatR;
 

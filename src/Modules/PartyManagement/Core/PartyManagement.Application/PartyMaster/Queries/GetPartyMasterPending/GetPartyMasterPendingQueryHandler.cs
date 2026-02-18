@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using Contracts.Interfaces.Lookups.Users;
 using Contracts.Interfaces.Lookups.Workflow;
-using PartyManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using PartyManagement.Application.Common.Interfaces;
 using PartyManagement.Application.Common.Interfaces.IPartyMaster;
 using PartyManagement.Domain.Common;

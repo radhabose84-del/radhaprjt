@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using Contracts.Interfaces.External.IInvetoryManagement;
 using Contracts.Interfaces.External.IUser;
-using WarehouseManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using WarehouseManagement.Application.Common.Interfaces.IWarehouseMaster;
 using WarehouseManagement.Application.WarehouseMaster.GetAllWarehouseMaster;
 using MediatR;

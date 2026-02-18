@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -64,7 +65,7 @@ namespace BudgetManagement.Infrastructure.Repositories.BudgetAllocation
 
 
         public async Task<(List<GetSpindleDetailsMonthwiseDto>, int)> GetBudgetGroupDetailSpindlewise(
-        int PageNumber, int PageSize, string? SearchTerm)
+        int PageNumber, int PageSize, string SearchTerm)
         {
             var UnitId = _ipAddressService.GetUnitId();
 
@@ -276,8 +277,8 @@ namespace BudgetManagement.Infrastructure.Repositories.BudgetAllocation
         // ✅ Update using EF Core
         public async Task UpdateRemainingBalanceAsync(int id, decimal newRemainingBalance, CancellationToken ct = default)
         {
-            var allocation = await _applicationDbContext.BudgetAllocations
-                .FirstOrDefaultAsync(x => x.Id == id, ct);
+            var allocation = await _applicationDbContext.BudgetAllocations.AsNoTracking()
+.FirstOrDefaultAsync(x => x.Id == id, ct);
 
             if (allocation == null) return;
 

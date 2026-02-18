@@ -16,7 +16,6 @@ namespace UserManagement.Presentation.Validation.Currency
         public UpdateCurrencyCommandValidator(MaxLengthProvider maxLengthProvider)
         {
                  // Get max lengths dynamically using MaxLengthProvider
-            var currencyNameMinLength = 3;
             var currencyCodeMaxLength = maxLengthProvider.GetMaxLength<UserManagement.Domain.Entities.Currency>("Code") ?? 6;
             var currencyNameMaxLength = maxLengthProvider.GetMaxLength<UserManagement.Domain.Entities.Currency>("Name") ?? 50;
              // Load validation rules from JSON or another source

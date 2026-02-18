@@ -1,3 +1,4 @@
+#nullable disable
 using PartyManagement.Application.Common.Interfaces.IPartyMaster;
 using PartyManagement.Application.PartyMaster.Command.UpdatePartyMaster;
 using PartyManagement.Domain.Common;

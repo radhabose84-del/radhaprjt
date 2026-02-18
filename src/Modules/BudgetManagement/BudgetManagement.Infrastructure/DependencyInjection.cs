@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Data;
 using BudgetManagement.Application.Common.Interfaces;
@@ -136,7 +137,13 @@ namespace BudgetManagement.Infrastructure
                     "Background service gRPC URL is missing. Set HttpClientSettings:BackgroundService or GrpcSettings:BackGroundUrl.");
             }
 
+#pragma warning disable CS8321
+
+
+#pragma warning restore CS8321
+            #pragma warning disable CS8321
             static HttpClientHandler CreateGrpcHandler() => new()
+            #pragma warning restore CS8321
             {
                 ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
             };

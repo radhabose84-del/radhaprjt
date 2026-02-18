@@ -5,7 +5,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using AutoMapper;
 using Contracts.Events.Workflow;
-using PurchaseManagement.Application.Common.Exceptions;
+using Contracts.Common;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IQuotation.IQuotationCompare;
 using PurchaseManagement.Application.Quotation.QuotationCompare.Commands.CreateQuoteComparision;

@@ -2,7 +2,7 @@ using MongoDB.Driver;
 using UserManagement.Domain.Entities;
 using MediatR;
 using UserManagement.Application.AuditLog.Queries.GetAuditLog;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 
 namespace UserManagement.Application.AuditLog.Queries.GetAuditLogBySearchPattern
 {

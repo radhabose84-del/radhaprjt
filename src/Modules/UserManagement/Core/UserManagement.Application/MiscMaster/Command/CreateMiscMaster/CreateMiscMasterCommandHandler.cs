@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -67,11 +68,11 @@ namespace UserManagement.Application.MiscMaster.Command.CreateMiscMaster
         {
         }
 
-        public ExceptionRules(string? message) : base(message)
+        public ExceptionRules(string message) : base(message)
         {
         }
 
-        public ExceptionRules(string? message, Exception? innerException) : base(message, innerException)
+        public ExceptionRules(string message, Exception innerException) : base(message, innerException)
         {
         }
     }

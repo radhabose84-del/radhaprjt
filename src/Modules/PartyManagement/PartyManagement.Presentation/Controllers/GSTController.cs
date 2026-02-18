@@ -1,3 +1,4 @@
+#nullable disable
 using PartyManagement.Application.GST.Queries;
 using PartyManagement.Application.Interfaces.GST;
 using MediatR;

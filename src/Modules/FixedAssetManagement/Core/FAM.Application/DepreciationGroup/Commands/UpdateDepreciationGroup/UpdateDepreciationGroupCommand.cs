@@ -1,4 +1,4 @@
-using FAM.Application.Common.HttpResponse;
+using Contracts.Common;
 using FAM.Application.DepreciationGroup.Queries.GetDepreciationGroup;
 using MediatR;
 using static FAM.Domain.Common.BaseEntity;

@@ -1,3 +1,4 @@
+#nullable disable
 using AutoMapper;
 using UserManagement.Application.Common.Interfaces;
 using MediatR;
@@ -5,7 +6,7 @@ using UserManagement.Application.Common.Interfaces.IDepartment;
 using UserManagement.Application.Departments.Queries.GetDepartments;
 using UserManagement.Domain.Events;
 using UserManagement.Application.Common;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using Microsoft.Extensions.Logging;
 using FluentValidation;
 

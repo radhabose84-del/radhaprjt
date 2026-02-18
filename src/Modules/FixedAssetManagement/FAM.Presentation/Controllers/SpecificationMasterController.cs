@@ -1,3 +1,4 @@
+#nullable disable
 using FAM.Application.SpecificationMaster.Commands.CreateSpecificationMaster;
 using FAM.Application.SpecificationMaster.Commands.DeleteSpecificationMaster;
 using FAM.Application.SpecificationMaster.Commands.UpdateSpecificationMaster;
@@ -24,7 +25,7 @@ namespace FAM.Presentation.Controllers
          
         }
         [HttpGet]                
-        public async Task<IActionResult> GetAllSpecificationMasterAsync([FromQuery] int PageNumber,[FromQuery] int PageSize,[FromQuery] string? SearchTerm = null)
+        public async Task<IActionResult> GetAllSpecificationMasterAsync([FromQuery] int PageNumber,[FromQuery] int PageSize,[FromQuery] string SearchTerm = null)
         {            
             var specificationMaster = await Mediator.Send(
             new GetSpecificationMasterQuery
@@ -116,7 +117,7 @@ namespace FAM.Presentation.Controllers
         }
             
         [HttpGet("by-name")]  
-        public async Task<IActionResult> GetSpecificationMaster([FromQuery] int assetGroupId,string? name)
+        public async Task<IActionResult> GetSpecificationMaster([FromQuery] int assetGroupId,string name)
         {          
             var result = await Mediator.Send(new GetSpecificationMasterAutoCompleteQuery {AssetGroupId=assetGroupId,SearchPattern = name}); // Pass `searchPattern` to the constructor
           

@@ -1,5 +1,5 @@
 using FAM.Application.AssetMaster.AssetSpecification.Queries.GetAssetSpecification;
-using FAM.Application.Common.HttpResponse;
+using Contracts.Common;
 using MediatR;
 using static FAM.Domain.Common.BaseEntity;
 

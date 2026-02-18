@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -29,7 +30,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.ActivityMaster
         }
 
 
-        public async Task<(List<GetAllActivityMasterDto>, int)> GetAllActivityMasterAsync(int PageNumber, int PageSize, string? SearchTerm)
+        public async Task<(List<GetAllActivityMasterDto>, int)> GetAllActivityMasterAsync(int PageNumber, int PageSize, string SearchTerm)
         {
             var UnitId = _ipAddressService.GetUnitId();
             var query = $$"""

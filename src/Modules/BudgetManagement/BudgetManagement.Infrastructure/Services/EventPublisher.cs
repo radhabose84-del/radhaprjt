@@ -1,3 +1,4 @@
+#nullable disable
 using System.Text.Json;
 using BudgetManagement.Application.Common.Interfaces;
 using MassTransit;

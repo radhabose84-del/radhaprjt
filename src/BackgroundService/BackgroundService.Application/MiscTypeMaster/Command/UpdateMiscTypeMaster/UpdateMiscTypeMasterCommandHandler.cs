@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using BackgroundService.Application.Common.Interfaces.IMiscTypeMaster;
-using BackgroundService.Application.Notification.Common.HttpResponse;
+using Contracts.Common;
 using BackgroundService.Domain.Events;
 using MediatR;
 

@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -75,7 +76,7 @@ namespace InventoryManagement.Infrastructure.Repositories.HSNMaster
             return (hsnList, totalCount);
         }
 
-        public async Task<HSNMasterDto?> GetByIdAsync(int id)
+        public async Task<HSNMasterDto> GetByIdAsync(int id)
         {
             var query = @"
                 SELECT h.Id, h.TypeId ,m2.Code AS Type, h.HSNCode, h.Description, h.GSTCategoryId,
@@ -114,8 +115,8 @@ namespace InventoryManagement.Infrastructure.Repositories.HSNMaster
         // }
 
         public async Task<List<GetHSNMasterAutoCompleteDto>> GetHSNMasterAutoCompleteAsync(
-            string? search = null,                 // null/empty => no text filter
-            string? typeCode = null         // "HSN", "SAC", or null/empty => both
+            string search = null,                 // null/empty => no text filter
+            string typeCode = null         // "HSN", "SAC", or null/empty => both
         )
         {
             const string sql = @"

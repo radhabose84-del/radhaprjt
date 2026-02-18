@@ -1,3 +1,4 @@
+#nullable disable
 using System.Data;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.IPurchaseDocument;
 using PurchaseManagement.Domain.Common;
@@ -9,9 +10,15 @@ using PurchaseManagement.Infrastructure.Data;
 namespace PurchaseManagement.Infrastructure.Repositories.PurchaseOrder
 {
     public class PODocumentQueryRepository : IPODocumentQueryRepository
+    #pragma warning disable CS0649
     {
+    #pragma warning restore CS0649
+        #pragma warning disable CS0649
         private readonly IDbConnection _dbConnection;
+        #pragma warning restore CS0649
+        #pragma warning disable CS0649
         private readonly ApplicationDbContext _applicationDbContext;
+        #pragma warning restore CS0649
       
         public async Task<string> GetDocumentDirectoryAsync()
         {

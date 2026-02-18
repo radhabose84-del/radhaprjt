@@ -8,7 +8,7 @@ using MediatR;
 using System.Text;
 using System.Data;
 using UserManagement.Application.Common.Interfaces.IDivision;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using UserManagement.Domain.Events;
 
 namespace UserManagement.Application.Divisions.Queries.GetDivisions

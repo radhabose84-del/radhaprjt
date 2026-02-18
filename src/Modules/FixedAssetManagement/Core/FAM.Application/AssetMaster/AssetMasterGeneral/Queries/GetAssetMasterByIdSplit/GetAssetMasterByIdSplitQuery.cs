@@ -1,5 +1,5 @@
 using FAM.Application.AssetMaster.AssetMasterGeneral.Queries.GetAssetMasterGeneralById;
-using FAM.Application.Common.HttpResponse;
+using Contracts.Common;
 using MediatR;
 
 namespace FAM.Application.AssetMaster.AssetMasterGeneral.Queries.GetAssetMasterByIdSplit

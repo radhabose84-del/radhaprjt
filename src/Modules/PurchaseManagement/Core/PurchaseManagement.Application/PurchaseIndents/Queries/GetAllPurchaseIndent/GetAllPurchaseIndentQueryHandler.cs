@@ -1,6 +1,6 @@
 using System.Text.Json;
 using AutoMapper;
-using PurchaseManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseIndent;
 using PurchaseManagement.Domain.Events;
 using MediatR;

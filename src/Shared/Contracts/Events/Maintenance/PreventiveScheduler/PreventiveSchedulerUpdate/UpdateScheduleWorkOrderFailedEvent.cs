@@ -9,9 +9,9 @@ namespace Contracts.Events.Maintenance.PreventiveScheduler.PreventiveSchedulerUp
     public class UpdateScheduleWorkOrderFailedEvent
     {
         public Guid CorrelationId { get; set; }
-        public string Reason { get; set; }
+        public string Reason { get; set; } = default!;
         // public List<MachinedetailDto> MachinedetailDtos { get; set; }
-        public RollbackHeaderDto rollbackHeaders { get; set; }
-        public string token { get; set; }
+        public RollbackHeaderDto rollbackHeaders { get; set; } = default!;
+        public string token { get; set; } = default!;
     }
 }

@@ -1,3 +1,4 @@
+#nullable disable
 using Microsoft.EntityFrameworkCore;
 using UserManagement.Infrastructure.Data;
 using UserManagement.Domain.Entities;
@@ -21,7 +22,7 @@ namespace UserManagement.Infrastructure.Repositories.Units
       _ipAddressService = ipAddressService;
     }
 
-    public async Task<(List<Unit>, int)> GetAllUnitsAsync(int PageNumber, int PageSize, string? SearchTerm)
+    public async Task<(List<Unit>, int)> GetAllUnitsAsync(int PageNumber, int PageSize, string SearchTerm)
     {
       var query = $$"""
             DECLARE @TotalCount INT;

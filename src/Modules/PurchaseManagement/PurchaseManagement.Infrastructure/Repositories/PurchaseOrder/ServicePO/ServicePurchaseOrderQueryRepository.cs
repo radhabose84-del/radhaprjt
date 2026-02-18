@@ -30,7 +30,6 @@ using PurchaseManagement.Domain.Entities.PurchaseOrder.ServicePO;
 using Dapper;
 using Microsoft.EntityFrameworkCore;
 using PurchaseManagement.Infrastructure.Data;
-using PurchaseManagement.Application.PurchaseOrder.ServicePO.Queries.ServiceEntrySheet.ServiceEntrySheetGetById;
 
 namespace PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.ServicePO
 {

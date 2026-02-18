@@ -1,7 +1,8 @@
+#nullable disable
 
 
 using System.Globalization;
-using FAM.Application.Common.HttpResponse;
+using Contracts.Common;
 using FAM.Application.DepreciationDetail.Commands.CreateDepreciationDetail;
 using FAM.Application.DepreciationDetail.Commands.DeleteDepreciationDetail;
 using FAM.Application.DepreciationDetail.Commands.UpdateDepreciationDetail;
@@ -25,12 +26,12 @@ namespace FAM.Presentation.Controllers
         public async Task<IActionResult> DepreciationCalculateAsync( [FromQuery] int companyId, 
         [FromQuery] int unitId, 
         [FromQuery] int finYearId,
-        [FromQuery] string? startDate,
-        [FromQuery] string? endDate,
+        [FromQuery] string startDate,
+        [FromQuery] string endDate,
         [FromQuery] int depreciationType,
         [FromQuery] int pageNumber,
         [FromQuery] int pageSize,
-        [FromQuery] string? searchTerm,
+        [FromQuery] string searchTerm,
         [FromQuery] int depreciationPeriod)
         { 
             // Convert string dates to DateTimeOffset?
@@ -80,7 +81,7 @@ namespace FAM.Presentation.Controllers
         }
          [HttpGet("Abstract")]
         public async Task<IActionResult> DepreciationAbstractAsync( [FromQuery] int companyId, 
-        [FromQuery] int unitId,[FromQuery] int finYearId,[FromQuery] string? startDate,[FromQuery] string? endDate,[FromQuery] int depreciationPeriod,[FromQuery] int depreciationType)
+        [FromQuery] int unitId,[FromQuery] int finYearId,[FromQuery] string startDate,[FromQuery] string endDate,[FromQuery] int depreciationPeriod,[FromQuery] int depreciationType)
         {            
             DateTimeOffset? parsedStartDate = null;
             DateTimeOffset? parsedEndDate = null;

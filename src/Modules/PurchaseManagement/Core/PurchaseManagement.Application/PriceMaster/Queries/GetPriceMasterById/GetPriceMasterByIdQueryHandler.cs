@@ -1,3 +1,4 @@
+#nullable disable
 using AutoMapper;
 using MediatR;
 using PurchaseManagement.Domain.Events;
@@ -10,7 +11,7 @@ using Contracts.Interfaces.Lookups.Users;
 namespace PurchaseManagement.Application.PriceMaster.Queries.GetById
 {
     public class GetPriceMasterByIdQueryHandler
-        : IRequestHandler<GetPriceMasterByIdQuery, PriceMasterGetAllDto?>
+        : IRequestHandler<GetPriceMasterByIdQuery, PriceMasterGetAllDto>
     {
         private readonly IPriceMasterQueryRepository _repo;
         private readonly IMapper _mapper;
@@ -38,7 +39,7 @@ namespace PurchaseManagement.Application.PriceMaster.Queries.GetById
         _currencyLookup = currencyLookup;
         }
 
-        public async Task<PriceMasterGetAllDto?> Handle(GetPriceMasterByIdQuery request, CancellationToken ct)
+        public async Task<PriceMasterGetAllDto> Handle(GetPriceMasterByIdQuery request, CancellationToken ct)
         {
             var baseDto = await _repo.GetByIdAsync(request.Id, ct);
             if (baseDto is null) return null;
@@ -83,14 +84,14 @@ namespace PurchaseManagement.Application.PriceMaster.Queries.GetById
             // ---- resolve header names/codes ----
             itemMap.TryGetValue(baseDto.ItemId, out var itemDto);
 
-            string? uomName = null;
+            string uomName = null;
             if (baseDto.UomId > 0 && uomMap.TryGetValue(baseDto.UomId, out var uom))
                 uomName = uom.UOMName ?? uom.Code ?? uom.UOMName;
 
             // (optional) derive header-level currency if ALL details share the same id
             // If your PriceMasterGetAllDto does NOT expose CurrencyId/Name at header, you can delete this block.
             int? headerCurrencyId = null;
-            string? headerCurrencyName = null;
+            string headerCurrencyName = null;
             if (baseDto.Details is { Count: > 0 })
             {
                 var distinctCurIds = baseDto.Details.Select(d => d.CurrencyId).Where(id => id > 0).Distinct().ToList();

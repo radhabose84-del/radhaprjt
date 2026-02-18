@@ -9,7 +9,7 @@ using UserManagement.Application.Common.Interfaces.IAdminSecuritySettings;
 using UserManagement.Application.Common;
 using UserManagement.Domain.Events;
 using Microsoft.Extensions.Logging;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 
 namespace UserManagement.Application.AdminSecuritySettings.Queries.GetAdminSecuritySettings
 {

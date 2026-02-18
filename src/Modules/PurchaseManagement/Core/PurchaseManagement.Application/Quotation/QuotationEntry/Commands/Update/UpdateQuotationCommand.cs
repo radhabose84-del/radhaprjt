@@ -1,5 +1,5 @@
 
-using PurchaseManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using PurchaseManagement.Application.Quotations.QuotationEntry.DTOs;
 using PurchaseManagement.Domain.Common;
 using MediatR;

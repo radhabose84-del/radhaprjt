@@ -1,7 +1,8 @@
+#nullable disable
 // PurchaseManagement.Application/PriceMaster/Commands/Delete/SoftDeletePriceMasterCommandHandler.cs
 using MediatR;
 using PurchaseManagement.Application.Common.Interfaces.PriceMaster;
-using PurchaseManagement.Application.Common.Exceptions;
+using Contracts.Common;
 using PurchaseManagement.Domain.Events;
 
 namespace PurchaseManagement.Application.PriceMaster.Commands.Delete

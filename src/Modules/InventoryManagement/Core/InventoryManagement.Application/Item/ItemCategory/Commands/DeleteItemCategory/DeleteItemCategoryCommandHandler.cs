@@ -1,5 +1,5 @@
 using AutoMapper;
-using InventoryManagement.Application.Common.Exceptions;
+using Contracts.Common;
 using InventoryManagement.Application.Common.Interfaces.Item.ItemCategory;
 using InventoryManagement.Domain.Events;
 using MediatR;

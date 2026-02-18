@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,7 +23,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Issue
             _ipAddressService = ipAddressService;
         }
 
-        public async Task<int> CreateIssueAsync(IssueHeader issueHeader, Func<Task>? publishEvents = null)
+        public async Task<int> CreateIssueAsync(IssueHeader issueHeader, Func<Task> publishEvents = null)
         {
             var strategy = _applicationDbContext.Database.CreateExecutionStrategy();
 
@@ -51,7 +52,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Issue
                     });
         }
 
-        public async Task<int> CreateIssueWithLedgersAsync(IssueHeader issueHeader, List<StockLedger> stockLedgerEntries, List<SubStoreStockLedger> subStoreLedgerEntries, Func<Task>? publishEvents)
+        public async Task<int> CreateIssueWithLedgersAsync(IssueHeader issueHeader, List<StockLedger> stockLedgerEntries, List<SubStoreStockLedger> subStoreLedgerEntries, Func<Task> publishEvents)
         {
             var strategy = _applicationDbContext.Database.CreateExecutionStrategy();
 

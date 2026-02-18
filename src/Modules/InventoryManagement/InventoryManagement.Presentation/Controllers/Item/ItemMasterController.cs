@@ -1,4 +1,4 @@
-using InventoryManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using InventoryManagement.Application.Item.ItemDetail.Commands.CreateItem;
 using InventoryManagement.Application.Item.ItemDetail.Commands.CreateItemTemplate;
 using InventoryManagement.Application.Item.ItemDetail.Commands.CreateItemVariants;

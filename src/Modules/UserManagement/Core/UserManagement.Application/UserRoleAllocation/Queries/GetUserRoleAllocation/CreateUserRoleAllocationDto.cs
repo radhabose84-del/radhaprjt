@@ -8,6 +8,6 @@ namespace UserManagement.Application.UserRoleAllocation.Queries.GetUserRoleAlloc
     public class CreateUserRoleAllocationDto
     {
             public int UserId { get; set; }
-            public List<int> RoleIds { get; set; }
+            public List<int> RoleIds { get; set; } = default!;
     }
 }

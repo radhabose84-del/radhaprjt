@@ -10,7 +10,7 @@ using UserManagement.Domain.Entities;
 using UserManagement.Application.Common.Interfaces.IUser;
 using UserManagement.Domain.Events;
 using Microsoft.Extensions.Logging;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 
 namespace UserManagement.Application.Users.Queries.GetUsers
 {

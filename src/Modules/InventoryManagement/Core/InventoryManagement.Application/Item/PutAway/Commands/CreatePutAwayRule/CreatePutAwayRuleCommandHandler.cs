@@ -1,5 +1,5 @@
 using AutoMapper;
-using InventoryManagement.Application.Common.Exceptions;
+using Contracts.Common;
 using InventoryManagement.Application.Common.Interfaces.Item.PutAway;
 using InventoryManagement.Application.Item.PutAway.Commands.CreatePutAwayRule;
 using InventoryManagement.Domain.Entities.Item.PutAway;

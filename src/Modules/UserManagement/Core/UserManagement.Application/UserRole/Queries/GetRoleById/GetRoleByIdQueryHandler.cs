@@ -1,3 +1,4 @@
+#nullable disable
 using UserManagement.Application.UserRole.Queries.GetRole;
 using UserManagement.Application.Common.Interfaces;
 using AutoMapper;
@@ -10,7 +11,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Data;
 using UserManagement.Application.Common.Interfaces.IUserRole;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using UserManagement.Domain.Events;
 using Microsoft.Extensions.Logging;
 using FluentValidation;

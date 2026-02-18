@@ -6,7 +6,7 @@ using AutoMapper;
 using Contracts.Dtos.Lookups.Users;
 using Contracts.Interfaces.Lookups.Maintenance;
 using Contracts.Interfaces.Lookups.Users;
-using ProjectManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using ProjectManagement.Application.Common.Interfaces.IProjectWorkBreakdownStructure;
 using ProjectManagement.Application.ProjectWorkBreakdownStructure.Queries.Dtos;
 using ProjectManagement.Domain.Events;

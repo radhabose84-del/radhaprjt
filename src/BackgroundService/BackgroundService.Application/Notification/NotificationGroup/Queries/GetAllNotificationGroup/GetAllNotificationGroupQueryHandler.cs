@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using BackgroundService.Application.Notification.Common.Interfaces.INotificationGroup;
-using BackgroundService.Application.Notification.Common.HttpResponse;
+using Contracts.Common;
 using MediatR;
 
 namespace BackgroundService.Application.Notification.NotificationGroup.Queries.GetAllNotificationGroup

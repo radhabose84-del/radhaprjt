@@ -6,7 +6,7 @@ namespace Contracts.Dtos.Users
     {
         [JsonPropertyName("id")]
          public int CountryId { get; set; }
-        public string CountryCode { get; set; } 
-        public string CountryName { get; set; }         
+        public string CountryCode { get; set; } = default!;
+        public string CountryName { get; set; } = default!;
     }
 }

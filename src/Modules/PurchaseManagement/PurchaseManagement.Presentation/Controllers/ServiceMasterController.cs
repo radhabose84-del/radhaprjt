@@ -28,7 +28,6 @@ namespace PurchaseManagement.Presentation.Controllers
         private readonly IValidator<CreateServiceCommand> _createServiceValidator;
         private readonly IValidator<UpdateServiceCommand> _updateServiceValidator;
         private readonly IValidator<DeleteServiceCommand> _deleteServiceValidator;
-        private readonly IMediator _mediator;
 
         public ServiceMasterController(ISender mediator, ILogger<ServiceMasterController> logger, IServiceQueryRepository serviceMasterQueryRepository, IValidator<CreateServiceCommand> createServiceValidator, IValidator<UpdateServiceCommand> updateServiceValidator
         , IValidator<DeleteServiceCommand> deleteServiceValidator) : base(mediator)

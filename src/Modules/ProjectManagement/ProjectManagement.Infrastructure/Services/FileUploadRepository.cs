@@ -1,3 +1,4 @@
+#nullable disable
 using ProjectManagement.Application.Common.Interfaces;
 using Microsoft.AspNetCore.Http;
 

@@ -1,6 +1,6 @@
 using UserManagement.Application.Country.Queries.GetCountries;
 using MediatR;     
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 
 namespace UserManagement.Application.Country.Commands.CreateCountry
 {     

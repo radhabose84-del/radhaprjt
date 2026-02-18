@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -22,7 +23,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.MiscTypeMaster
 
 
 
-          public async Task<(List<MaintenanceManagement.Domain.Entities.MiscTypeMaster>,int)> GetAllMiscTypeMasterAsync(int PageNumber, int PageSize, string? SearchTerm)
+          public async Task<(List<MaintenanceManagement.Domain.Entities.MiscTypeMaster>,int)> GetAllMiscTypeMasterAsync(int PageNumber, int PageSize, string SearchTerm)
         {
                  var query = $$"""
                     DECLARE @TotalCount INT;
@@ -53,7 +54,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.MiscTypeMaster
              int totalCount = (await misctype.ReadFirstAsync<int>());
             return (misctypemaster, totalCount);
         }
-          public async Task<MaintenanceManagement.Domain.Entities.MiscTypeMaster?> GetByMiscTypeMasterCodeAsync(string name, int? id = null)
+          public async Task<MaintenanceManagement.Domain.Entities.MiscTypeMaster> GetByMiscTypeMasterCodeAsync(string name, int? id = null)
         {
               var query = """
                  SELECT * FROM Maintenance.MiscTypeMaster

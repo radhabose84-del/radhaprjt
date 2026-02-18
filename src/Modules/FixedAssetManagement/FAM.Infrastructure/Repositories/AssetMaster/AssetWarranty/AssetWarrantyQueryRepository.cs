@@ -1,3 +1,4 @@
+#nullable disable
 using System.Data;
 using FAM.Application.AssetMaster.AssetWarranty.Queries.GetAssetWarranty;
 using FAM.Application.Common.Interfaces.IAssetMaster.IAssetWarranty;
@@ -13,7 +14,7 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetWarranty
         {
             _dbConnection = dbConnection;          
         }     
-        public async Task<(List<AssetWarrantyDTO>, int)> GetAllAssetWarrantyAsync(int PageNumber, int PageSize, string? SearchTerm)
+        public async Task<(List<AssetWarrantyDTO>, int)> GetAllAssetWarrantyAsync(int PageNumber, int PageSize, string SearchTerm)
         {
             var query = $$"""
                 DECLARE @TotalCount INT;

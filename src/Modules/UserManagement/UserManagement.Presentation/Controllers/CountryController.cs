@@ -1,3 +1,4 @@
+#nullable disable
 using UserManagement.Application.Country.Commands.CreateCountry;
 using UserManagement.Application.Country.Commands.DeleteCountry;
 using UserManagement.Application.Country.Commands.UpdateCountry;
@@ -22,7 +23,7 @@ namespace UserManagement.Presentation.Controllers
         {                  
         }
         [HttpGet]        
-        public async Task<IActionResult> GetAllCountriesAsync([FromQuery] int PageNumber,[FromQuery] int PageSize,[FromQuery] string? SearchTerm = null)
+        public async Task<IActionResult> GetAllCountriesAsync([FromQuery] int PageNumber,[FromQuery] int PageSize,[FromQuery] string SearchTerm = null)
         {   
             var countries = await Mediator.Send(
             new GetCountryQuery
@@ -124,7 +125,7 @@ namespace UserManagement.Presentation.Controllers
         }
 
         [HttpGet("by-name")]     
-        public async Task<IActionResult> GetCountry([FromQuery] string? name)
+        public async Task<IActionResult> GetCountry([FromQuery] string name)
         {
             var result = await Mediator.Send(new GetCountryAutoCompleteQuery { SearchPattern = name });
        

@@ -48,16 +48,16 @@ namespace FAM.Infrastructure.Repositories.WDVDepreciation
 
         public async Task<bool> ExistDataAsync(int finYearId)
         {
-            return await _applicationDbContext.WDVDepreciationDetail
-                .Where(d => d.CompanyId == CompanyId &&
+            return await _applicationDbContext.WDVDepreciationDetail.AsNoTracking()
+.Where(d => d.CompanyId == CompanyId &&
                             d.FinYear == finYearId  ) 
                 .AnyAsync();
         }
 
         public async Task<bool> ExistDataLockedAsync(int finYearId)
         {
-             return await _applicationDbContext.WDVDepreciationDetail
-                .Where(d => d.CompanyId == CompanyId &&
+             return await _applicationDbContext.WDVDepreciationDetail.AsNoTracking()
+.Where(d => d.CompanyId == CompanyId &&
                             d.FinYear == finYearId  &&  d.IsLocked ==1)
                 .AnyAsync();
         }      

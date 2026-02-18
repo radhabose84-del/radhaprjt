@@ -3,7 +3,7 @@ using System.Data;
 using UserManagement.Application.Common.Interfaces.IEntity;
 using AutoMapper;
 using UserManagement.Application.Entity.Queries.GetEntity;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using Microsoft.Extensions.Logging;
 
 namespace UserManagement.Application.Entity.Queries.GetEntityLastCode

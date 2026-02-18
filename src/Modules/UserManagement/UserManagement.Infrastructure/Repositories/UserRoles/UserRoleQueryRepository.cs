@@ -1,3 +1,4 @@
+#nullable disable
 using Microsoft.EntityFrameworkCore;
 using UserManagement.Infrastructure.Data;
 using UserManagement.Domain.Entities;
@@ -24,7 +25,7 @@ namespace UserManagement.Infrastructure.Repositories.UserRoles
     }
 
 
-            public async Task<(List<UserRole>, int)> GetAllRoleAsync(int PageNumber, int PageSize, string? SearchTerm)
+            public async Task<(List<UserRole>, int)> GetAllRoleAsync(int PageNumber, int PageSize, string SearchTerm)
         {
             var CompanyId = _ipAddressService.GetCompanyId();
             var query = $$"""

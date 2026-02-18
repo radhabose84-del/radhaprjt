@@ -1,5 +1,6 @@
+#nullable disable
 using AutoMapper;
-using FAM.Application.Common.HttpResponse;
+using Contracts.Common;
 using FAM.Application.Common.Interfaces.IDepreciationDetail;
 using FAM.Application.Common.Interfaces.IWdvDepreciation;
 using FAM.Application.WDVDepreciation.Queries.CalculateDepreciation;

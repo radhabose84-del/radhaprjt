@@ -1,3 +1,4 @@
+#nullable disable
 using Microsoft.EntityFrameworkCore;
 using UserManagement.Infrastructure.Data;
 using UserManagement.Domain.Entities;
@@ -24,7 +25,7 @@ namespace UserManagement.Infrastructure.Repositories.Departments
     }
    
 
-    public async Task<(List<DepartmentDto>, int)> GetAllDepartmentAsync(int PageNumber, int PageSize, string? SearchTerm)
+    public async Task<(List<DepartmentDto>, int)> GetAllDepartmentAsync(int PageNumber, int PageSize, string SearchTerm)
     {
       
       var query = $$"""
@@ -79,7 +80,7 @@ namespace UserManagement.Infrastructure.Repositories.Departments
 
 
 
-    public async Task<Department?> GetByIdAsync(int id)
+    public async Task<Department> GetByIdAsync(int id)
     {
       const string query = @"SELECT * FROM AppData.Department WHERE Id = @Id AND IsDeleted = 0 ORDER BY Id DESC ";
       var departments = await _dbConnection.QueryAsync<Department>(query, new { Id = id });

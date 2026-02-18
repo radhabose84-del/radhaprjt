@@ -9,7 +9,7 @@ using Contracts.Dtos.Lookups.Users;
 using Contracts.Interfaces.Lookups.FixedAssetManagement;
 using Contracts.Interfaces.Lookups.Maintenance;
 using Contracts.Interfaces.Lookups.Users;
-using ProjectManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using ProjectManagement.Application.Common.Interfaces.IProjectMaster;
 using ProjectManagement.Application.ProjectMaster.Queries.Dtos;
 using ProjectManagement.Domain.Events;

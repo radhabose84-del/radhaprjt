@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -18,7 +19,7 @@ namespace InventoryManagement.Infrastructure.Repositories.MiscTypeMaster
             _dbConnection = dbConnection;
 
         }
-        public async Task<(List<InventoryManagement.Domain.Entities.MiscTypeMaster>, int)> GetAllMiscTypeMasterAsync(int PageNumber, int PageSize, string? SearchTerm)
+        public async Task<(List<InventoryManagement.Domain.Entities.MiscTypeMaster>, int)> GetAllMiscTypeMasterAsync(int PageNumber, int PageSize, string SearchTerm)
         {
             var query = $$"""
                     DECLARE @TotalCount INT;
@@ -49,7 +50,7 @@ namespace InventoryManagement.Infrastructure.Repositories.MiscTypeMaster
             int totalCount = (await misctype.ReadFirstAsync<int>());
             return (misctypemaster, totalCount);
         }
-        public async Task<InventoryManagement.Domain.Entities.MiscTypeMaster?> GetByMiscTypeMasterCodeAsync(string name, int? id = null)
+        public async Task<InventoryManagement.Domain.Entities.MiscTypeMaster> GetByMiscTypeMasterCodeAsync(string name, int? id = null)
         {
             var query = """
                  SELECT * FROM Inventory.MiscTypeMaster

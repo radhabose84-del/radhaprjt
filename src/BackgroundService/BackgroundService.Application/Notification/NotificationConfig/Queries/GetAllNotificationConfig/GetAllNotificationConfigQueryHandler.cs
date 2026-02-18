@@ -1,5 +1,5 @@
 using AutoMapper;
-using BackgroundService.Application.Notification.Common.HttpResponse;
+using Contracts.Common;
 using BackgroundService.Application.Notification.Common.Interfaces.INotificationConfig;
 using BackgroundService.Domain.Events;
 using MediatR;

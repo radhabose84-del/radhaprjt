@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -5,7 +6,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using FAM.Application.AssetCategories.Command.CreateAssetCategories;
 using FAM.Application.AssetSubCategories.Queries.GetAssetSubCategories;
-using FAM.Application.Common.HttpResponse;
+using Contracts.Common;
 using FAM.Application.Common.Interfaces.IAssetCategories;
 using FAM.Application.Common.Interfaces.IAssetSubCategories;
 using FAM.Domain.Events;

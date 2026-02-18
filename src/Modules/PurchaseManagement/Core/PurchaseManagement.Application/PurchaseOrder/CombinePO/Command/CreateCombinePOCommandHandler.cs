@@ -1,7 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using PurchaseManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using PurchaseManagement.Application.Common.Interfaces.IPoMethodLookup;
 using PurchaseManagement.Application.PurchaseOrder.ImportPO.Command.Create;
 using PurchaseManagement.Application.PurchaseOrder.Local.Commands.Create;

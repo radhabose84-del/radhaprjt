@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -21,7 +22,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.Power.Feeder
             _ipAddressService = ipAddressService;
         }
 
-        public async Task<(List<GetFeederDto>, int)> GetAllFeederAsync(int pageNumber, int pageSize, string? searchTerm)
+        public async Task<(List<GetFeederDto>, int)> GetAllFeederAsync(int pageNumber, int pageSize, string searchTerm)
         {
             var UnitId = _ipAddressService.GetUnitId();
             

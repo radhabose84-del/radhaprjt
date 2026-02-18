@@ -1,3 +1,4 @@
+#nullable disable
 using FAM.Application.AssetMaster.AssetMasterGeneral.Commands.CreateAssetMasterGeneral;
 using FAM.Domain.Entities;
 using FAM.Domain.Entities.AssetPurchase;

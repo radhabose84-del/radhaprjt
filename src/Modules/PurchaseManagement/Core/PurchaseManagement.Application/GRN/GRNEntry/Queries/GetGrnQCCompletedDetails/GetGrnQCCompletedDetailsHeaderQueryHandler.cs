@@ -1,5 +1,5 @@
 using AutoMapper;
-using PurchaseManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using PurchaseManagement.Application.Common.Interfaces.IGRN.IGRNEntry;
 using PurchaseManagement.Domain.Events;
 using MediatR;
@@ -48,7 +48,7 @@ namespace PurchaseManagement.Application.GRN.GRNEntry.Queries.GetGrnQCCompletedD
         var allWarehouseIds = pendingpoIds
             .SelectMany(x => new[] { x.ReceivingWarehouseId, x.QcWarehouseId })
             .Where(id => id.HasValue)
-            .Select(id => id.Value)
+            .Select(id => id!.Value)
             .Distinct()
             .ToList();
 

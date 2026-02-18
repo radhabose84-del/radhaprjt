@@ -2,7 +2,7 @@ using MediatR;
 using AutoMapper;
 using UserManagement.Application.Common.Interfaces.ICity;
 using UserManagement.Domain.Events;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 
 namespace UserManagement.Application.City.Queries.GetCities
 {

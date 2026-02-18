@@ -98,10 +98,10 @@ namespace PurchaseManagement.Application.PurchaseIndents.Queries.GetPurchaseInde
                     .ToDictionary(g => g.Key, g => g.First().UnitName);
 
                 if (deptLookupEmpty.TryGetValue(indent.DepartmentId, out var deptName))
-                    indent.DepartmentName = deptName;
+                    indent.DepartmentName = deptName ?? string.Empty;
 
                 if (unitLookupEmpty.TryGetValue(indent.UnitId, out var unitName))
-                    indent.UnitName = unitName;
+                    indent.UnitName = unitName ?? string.Empty;
 
                 await PublishAuditAsync(request, cancellationToken);
                 return indent;
@@ -136,10 +136,10 @@ namespace PurchaseManagement.Application.PurchaseIndents.Queries.GetPurchaseInde
 
             // 6) Header enrichment
             if (departmentLookup.TryGetValue(indent.DepartmentId, out var deptName2))
-                indent.DepartmentName = deptName2;
+                indent.DepartmentName = deptName2 ?? string.Empty;
 
             if (unitLookup.TryGetValue(indent.UnitId, out var unitName2))
-                indent.UnitName = unitName2;
+                indent.UnitName = unitName2 ?? string.Empty;
 
             // 7) Line enrichment (ItemName + SourceId + IsOnSpot + GST + HSN)
             foreach (var dto in indent.IndentDetails)

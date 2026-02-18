@@ -8,10 +8,10 @@ namespace MaintenanceManagement.Application.PreventiveSchedulers.Queries.GetPrev
     {
         public int Id { get; set; }
         public int PreventiveSchedulerHdrId { get; set; }
-        public string OldItemId { get; set; }
+        public string OldItemId { get; set; } = default!;
         public int RequiredQty { get; set; }
-        public string OldCategoryDescription { get; set; }
-        public string OldGroupName { get; set; }
+        public string OldCategoryDescription { get; set; } = default!;
+        public string OldGroupName { get; set; } = default!;
         public string? OldItemName { get; set; }
 
         public void Mapping(Profile profile)

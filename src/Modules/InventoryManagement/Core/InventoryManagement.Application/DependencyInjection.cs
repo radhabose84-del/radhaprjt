@@ -1,5 +1,5 @@
 // using System.Reflection;
-// using InventoryManagement.Application.Common.Behaviors;
+// using Contracts.Common;
 // using FluentValidation;
 // using MediatR;
 // using Microsoft.Extensions.DependencyInjection;

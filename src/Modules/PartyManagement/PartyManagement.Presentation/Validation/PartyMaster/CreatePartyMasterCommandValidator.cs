@@ -1,3 +1,4 @@
+#nullable disable
 using Contracts.Interfaces.Lookups.Workflow;
 using PartyManagement.Application.Common.Interfaces.IPartyMaster;
 using PartyManagement.Application.PartyMaster.Command.CreatePartyMaster;

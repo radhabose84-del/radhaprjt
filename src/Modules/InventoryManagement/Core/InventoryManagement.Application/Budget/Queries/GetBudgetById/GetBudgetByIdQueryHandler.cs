@@ -1,5 +1,5 @@
 using InventoryManagement.Application.Budget.Queries.GetBudgetById;
-using InventoryManagement.Application.Common.Exceptions;
+using Contracts.Common;
 using InventoryManagement.Application.Common.Interfaces.Budget;
 using MediatR;
 

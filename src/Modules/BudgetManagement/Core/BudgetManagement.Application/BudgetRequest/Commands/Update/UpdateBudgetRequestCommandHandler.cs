@@ -1,3 +1,4 @@
+#nullable disable
 using AutoMapper;
 using Contracts.Interfaces.Lookups.Users;
 using BudgetManagement.Application.BudgetRequest.Commands.Update;

@@ -1,3 +1,4 @@
+#nullable disable
 using AutoMapper;
 using UserManagement.Application.Common.Interfaces;
 using MediatR;
@@ -5,7 +6,7 @@ using UserManagement.Application.Common.Interfaces.IDepartment;
 using UserManagement.Application.Departments.Queries.GetDepartments;
 using UserManagement.Domain.Events;
 using UserManagement.Application.Common;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using Microsoft.Extensions.Logging;
 
 namespace UserManagement.Application.Departments.Queries.GetDepartmentAutoCompleteSearch
@@ -45,7 +46,13 @@ namespace UserManagement.Application.Departments.Queries.GetDepartmentAutoComple
                    }; 
                 
 
+#pragma warning disable CS0162
+
+
+#pragma warning restore CS0162
+            #pragma warning disable CS0162
             _logger.LogInformation($"Handling GetDepartmentAutoCompleteSearchQuery with search pattern: {request.SearchPattern}" );
+            #pragma warning restore CS0162
               
              // Fetch departments matching the search pattern
                 var result = await _departmentRepository.GetAllDepartmentAutoCompleteSearchAsync(request.SearchPattern);

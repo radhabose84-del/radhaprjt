@@ -7,7 +7,7 @@ using MediatR;
 using Microsoft.Extensions.Logging;
 
 // ✅ use your existing custom exceptions namespace (adjust if different)
-using PurchaseManagement.Application.Common.Exceptions;
+using Contracts.Common;
 using Contracts.Interfaces.Lookups.Users;
 
 namespace PurchaseManagement.Application.Quotations.QuotationEntry.Commands.Update

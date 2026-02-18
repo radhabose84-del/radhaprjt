@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using FAM.Application.AssetMaster.AssetWarranty.Queries.GetAssetWarranty;
-using FAM.Application.Common.HttpResponse;
+using Contracts.Common;
 using FAM.Application.Common.Interfaces.IAssetMaster.IAssetWarranty;
 using FAM.Domain.Events;
 using FluentValidation;

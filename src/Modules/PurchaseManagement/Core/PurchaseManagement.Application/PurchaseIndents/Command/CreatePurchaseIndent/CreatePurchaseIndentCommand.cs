@@ -15,6 +15,6 @@ namespace PurchaseManagement.Application.PurchaseIndents.Command.CreatePurchaseI
         public string? Purpose { get; set; }
         public int DepartmentId { get; set; }
         public byte IsDraft { get; set; }
-        public ICollection<IndentDetailDto> IndentDetails { get; set; }
+        public ICollection<IndentDetailDto> IndentDetails { get; set; } = default!;
     }
 }

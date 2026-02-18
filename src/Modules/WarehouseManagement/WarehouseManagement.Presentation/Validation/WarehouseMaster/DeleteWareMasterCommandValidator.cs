@@ -11,7 +11,6 @@ namespace WarehouseManagement.Presentation.Validation.WarehouseMaster
     public class DeleteWareMasterCommandValidator : AbstractValidator<DeleteWarehouseMasterCommand>
     {
 
-        private readonly IValidator<DeleteWarehouseMasterCommand> _validator;
 
         private readonly IWarehouseMasterCommandRepository _warehouseMasterCommandRepository;
 

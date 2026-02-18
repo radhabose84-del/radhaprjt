@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -275,7 +276,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseIndents
             return count > 0;
         }
 
-        public async Task<(List<PendingIndentDto>, int)> GetPendingPurchaseIndentAsync(int PageNumber, int PageSize, string? SearchTerm)
+        public async Task<(List<PendingIndentDto>, int)> GetPendingPurchaseIndentAsync(int PageNumber, int PageSize, string SearchTerm)
         {
             var unitId = _ipAddressService.GetUnitId();
 
@@ -430,7 +431,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseIndents
         //     return (Indent.ToList(), totalCount);
         // }
 
-        public async Task<List<IndentHeader>> GetPurchaseIndentAutoCompleteAsync(string status, string? searchTerm, bool allIndents = false)
+        public async Task<List<IndentHeader>> GetPurchaseIndentAutoCompleteAsync(string status, string searchTerm, bool allIndents = false)
         {
             var unitId = _ipAddressService.GetUnitId();
 
@@ -635,7 +636,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseIndents
             return dict.Values.ToList();
         }
 
-        private static string? MergeReason(string? a, string? b)
+        private static string MergeReason(string a, string b)
         {
             a = string.IsNullOrWhiteSpace(a) ? null : a.Trim();
             b = string.IsNullOrWhiteSpace(b) ? null : b.Trim();
@@ -647,7 +648,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseIndents
             return $"{a}; {b}";
         }
 
-        public async Task<(List<PurchaseManagement.Application.PurchaseIndents.Queries.GetAllPurchaseIndent.IndentDto> Items, int TotalCount)> GetAllPurchaseIndentAsync(int pageNumber, int pageSize, string? searchTerm, int? statusId)
+        public async Task<(List<PurchaseManagement.Application.PurchaseIndents.Queries.GetAllPurchaseIndent.IndentDto> Items, int TotalCount)> GetAllPurchaseIndentAsync(int pageNumber, int pageSize, string searchTerm, int? statusId)
         {
            var unitId = _ipAddressService.GetUnitId();
 

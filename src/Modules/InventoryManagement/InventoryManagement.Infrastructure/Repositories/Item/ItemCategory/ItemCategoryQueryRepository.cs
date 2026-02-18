@@ -1,3 +1,4 @@
+#nullable disable
 using System.Data;
 using InventoryManagement.Application.Common.Interfaces.Item.ItemCategory;
 using InventoryManagement.Application.Item.ItemCategory.Queries.GetItemCategory;
@@ -38,7 +39,7 @@ namespace  InventoryManagement.Infrastructure.Repositories.Item.ItemCategory
 
             return await _dbConnection.QueryFirstOrDefaultAsync<ItemCategoryDto>(sql, new { Id = Id });
         }
-        public async Task<(IEnumerable<dynamic>, int)> GetAllItemCategoryAsync(int PageNumber, int PageSize, string? SearchTerm)
+        public async Task<(IEnumerable<dynamic>, int)> GetAllItemCategoryAsync(int PageNumber, int PageSize, string SearchTerm)
         {
             var query = $$"""
                 DECLARE @TotalCount INT;

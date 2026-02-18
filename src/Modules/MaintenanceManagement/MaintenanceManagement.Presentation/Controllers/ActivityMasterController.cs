@@ -10,7 +10,7 @@ using MaintenanceManagement.Application.ActivityMaster.Queries.GetActivityByMach
 using MaintenanceManagement.Application.ActivityMaster.Queries.GetActivityType;
 using MaintenanceManagement.Application.ActivityMaster.Queries.GetAllActivityMaster;
 using MaintenanceManagement.Application.ActivityMaster.Queries.GetMachineGroupById;
-using MaintenanceManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using MaintenanceManagement.Application.Common.Interfaces.IActivityMaster;
 using MaintenanceManagement.Application.MachineGroup.Queries.GetActivityMasterAutoComplete;
 using MaintenanceManagement.Application.MachineGroup.Queries.GetMachineGroupById;

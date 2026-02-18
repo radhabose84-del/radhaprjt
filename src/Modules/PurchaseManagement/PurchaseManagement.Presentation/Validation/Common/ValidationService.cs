@@ -62,7 +62,6 @@ using PurchaseManagement.Application.PurchaseOrder.BillEntry.Queries.GetAll;
 using PurchaseManagement.Application.IssueReturn.Command.CreateIssueReturn;
 using PurchaseManagement.Presentation.Validation.IssueReturn;
 using Microsoft.Extensions.DependencyInjection;
-using PurchaseManagement.Presentation.Validation.IssueReturn;
 
 
 namespace PurchaseManagement.Presentation.Validation.Common

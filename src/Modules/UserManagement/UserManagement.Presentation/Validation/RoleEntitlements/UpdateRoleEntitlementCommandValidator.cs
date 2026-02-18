@@ -9,7 +9,6 @@ namespace UserManagement.Presentation.Validation.RoleEntitlements
 {
     public class UpdateRoleEntitlementCommandValidator : AbstractValidator<UpdateRoleEntitlementCommand>
     {
-        private readonly List<ValidationRule> _validationRules;
         public UpdateRoleEntitlementCommandValidator(MaxLengthProvider maxLengthProvider)
         {
             // _validationRules = ValidationRuleLoader.LoadValidationRules();

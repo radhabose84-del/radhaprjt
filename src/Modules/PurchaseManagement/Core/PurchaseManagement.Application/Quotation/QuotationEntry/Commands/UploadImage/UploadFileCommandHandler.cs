@@ -1,7 +1,8 @@
+#nullable disable
 
 using System.ComponentModel.DataAnnotations;
 using Contracts.Interfaces.External.IUser;
-using PurchaseManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IQuotation.IQuotationEntry;
 using PurchaseManagement.Application.Quotation.QuotationEntry.Commands.UploadItemImage;

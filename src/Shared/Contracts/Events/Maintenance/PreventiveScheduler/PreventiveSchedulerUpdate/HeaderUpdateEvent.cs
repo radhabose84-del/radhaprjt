@@ -17,12 +17,12 @@ namespace Contracts.Events.Maintenance.PreventiveScheduler.PreventiveSchedulerUp
         // public int FrequencyInterval { get; set; }
         // public int ReminderWorkOrderDays { get; set; }
         // public int ReminderMaterialReqDays { get; set; }
-        public RollbackHeaderDto rollbackHeaders { get; set; }
+        public RollbackHeaderDto rollbackHeaders { get; set; } = default!;
         // public string token { get; set; }
         // public bool isFrequencyChanged { get; set; }
-        public ICollection<RollbackScheduleDetailDto> rollbackDetails { get; set; }
+        public ICollection<RollbackScheduleDetailDto> rollbackDetails { get; set; } = default!;
         // public int PreventiveSchedulerDetailId { get; set; }
         // public int DelayInMinutes { get; set; }
-        public ICollection<ScheduleDetailUpdateDto> ScheduleDetailUpdate { get; set; }
+        public ICollection<ScheduleDetailUpdateDto> ScheduleDetailUpdate { get; set; } = default!;
     }
 }

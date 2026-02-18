@@ -1,3 +1,4 @@
+#nullable disable
 
 using AutoMapper;
 using Contracts.Commands.Purchase;

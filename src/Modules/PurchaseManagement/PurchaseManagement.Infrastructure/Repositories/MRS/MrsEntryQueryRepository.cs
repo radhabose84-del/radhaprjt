@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -72,7 +73,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.MRS
     public async Task<(List<GetMrsEntryDto>, int)> GetMrsEntryDetails(
     int PageNumber,
     int PageSize,
-    string? SearchTerm,
+    string SearchTerm,
     DateTimeOffset? fromDate,
     DateTimeOffset? toDate)
 {
@@ -193,7 +194,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.MRS
        public async Task<(List<MrsPendingDto>, int)> GetPendingMrsDetailsAsync(
             int PageNumber, 
             int PageSize, 
-            string? SearchTerm)
+            string SearchTerm)
         {
             var UnitId = _ipAddressService.GetUnitId();
 

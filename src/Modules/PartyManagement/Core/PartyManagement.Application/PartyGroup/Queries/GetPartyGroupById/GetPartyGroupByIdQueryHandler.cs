@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,7 +24,7 @@ namespace PartyManagement.Application.PartyGroup.Queries.GetPartyGroupById
             _mediator = mediator;
         }       
 
-        public async Task<PartyGroupByIdDto?> Handle(GetPartyGroupByIdQuery request, CancellationToken cancellationToken)
+        public async Task<PartyGroupByIdDto> Handle(GetPartyGroupByIdQuery request, CancellationToken cancellationToken)
         {
             var result = await _ipartygroupQueryRepository.GetByIdAsync(request.Id);
 

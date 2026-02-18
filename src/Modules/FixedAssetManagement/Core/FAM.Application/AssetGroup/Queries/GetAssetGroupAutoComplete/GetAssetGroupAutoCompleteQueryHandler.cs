@@ -1,10 +1,11 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using FAM.Application.AssetGroup.Queries.GetAssetGroup;
-using FAM.Application.Common.HttpResponse;
+using Contracts.Common;
 using FAM.Application.Common.Interfaces.IAssetGroup;
 using FAM.Domain.Events;
 using MediatR;

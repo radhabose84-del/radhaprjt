@@ -12,10 +12,10 @@ namespace PurchaseManagement.Application.PurchaseIndents.Command.UpdatePurchaseI
         public DateOnly IndentDate { get; set; }
         public int IndentTypeId { get; set; }
         public int UnitId { get; set; }
-        public string Purpose { get; set; }
+        public string Purpose { get; set; } = default!;
         public int DepartmentId { get; set; }
         public byte IsActive { get; set; }
         public byte IsDraft { get; set; }
-        public ICollection<IndentDetailUpdateDto> IndentDetails { get; set; }
+        public ICollection<IndentDetailUpdateDto> IndentDetails { get; set; } = default!;
     }
 }

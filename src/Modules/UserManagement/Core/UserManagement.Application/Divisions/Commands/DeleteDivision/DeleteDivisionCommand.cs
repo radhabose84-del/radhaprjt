@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using MediatR;
 using System.Reflection;
 using System.Text;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using UserManagement.Application.Divisions.Queries.GetDivisions;
 
 namespace UserManagement.Application.Divisions.Commands.DeleteDivision

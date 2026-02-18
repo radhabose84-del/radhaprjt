@@ -23,6 +23,6 @@ namespace Contracts.Commands.Maintenance.PreventiveScheduler.Update
         // public ICollection<ScheduleDetailSagaDto> ScheduleDetail { get; set; }
         // public int PreventiveSchedulerDetailId { get; set; }
         // public int DelayInMinutes { get; set; }
-        public ICollection<ScheduleDetailUpdateDto> ScheduleDetailUpdate { get; set; }
+        public ICollection<ScheduleDetailUpdateDto> ScheduleDetailUpdate { get; set; } = default!;
     }
 }

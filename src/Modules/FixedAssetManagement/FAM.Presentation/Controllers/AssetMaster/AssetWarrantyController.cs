@@ -1,3 +1,4 @@
+#nullable disable
 using FAM.Application.AssetMaster.AssetWarranty.Commands.CreateAssetWarranty;
 using FAM.Application.AssetMaster.AssetWarranty.Commands.DeleteAssetWarranty;
 using FAM.Application.AssetMaster.AssetWarranty.Commands.DeleteFileAssetWarranty;
@@ -25,7 +26,7 @@ namespace FAM.Presentation.Controllers.AssetMaster
         {        
         }
         [HttpGet]                
-        public async Task<IActionResult> GetAllAssetWarrantyAsync([FromQuery] int PageNumber,[FromQuery] int PageSize,[FromQuery] string? SearchTerm = null)
+        public async Task<IActionResult> GetAllAssetWarrantyAsync([FromQuery] int PageNumber,[FromQuery] int PageSize,[FromQuery] string SearchTerm = null)
         {            
             var WarrantyMaster = await Mediator.Send(
             new GetAssetWarrantyQuery
@@ -118,7 +119,7 @@ namespace FAM.Presentation.Controllers.AssetMaster
         }
             
         [HttpGet("by-name")]  
-        public async Task<IActionResult> GetAssetWarranty([FromQuery] string? name)
+        public async Task<IActionResult> GetAssetWarranty([FromQuery] string name)
         {          
             var result = await Mediator.Send(new GetAssetWarrantyAutoCompleteQuery {SearchPattern = name}); // Pass `searchPattern` to the constructor
         

@@ -1,22 +1,20 @@
 using FluentValidation;
 using MediatR;
-
 using BSOFT.Bootstrapper.Configurations;
 using BSOFT.Bootstrapper.Middleware;
-
 using Shared.Validation.Common;
-
+using Shared.Infrastructure.Caching;
 using UserManagement.Module;
 using FixedAssetManagement.Module;
 using MaintenanceManagement.Module;
 using PurchaseManagement.Module;
 using InventoryManagement.Module;
-using UserManagement.Application.Common.Behaviors;
 using PartyManagement.Module;
 using SalesManagement.Module;
 using WarehouseManagement.Module;
 using ProjectManagement.Module;
 using BudgetManagement.Module;
+using Contracts.Common;
 
 var builder = WebApplication.CreateBuilder(args);
 var environment = builder.Environment.EnvironmentName;
@@ -27,8 +25,6 @@ builder.Configuration
     .AddJsonFile("settings/jwtsetting.json", optional: true, reloadOnChange: true)
     .AddEnvironmentVariables();
 
-// ✅ Core Services (registered once)
-builder.Services.AddControllers();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddProblemDetails();
 builder.Services.AddEndpointsApiExplorer();
@@ -54,6 +50,22 @@ builder.Services.AddSalesManagementModule(builder.Configuration, builder.Environ
 builder.Services.AddWarehouseManagementModule(builder.Configuration, builder.Environment);
 builder.Services.AddProjectManagementModule(builder.Configuration, builder.Environment);
 builder.Services.AddBudgetManagementModule(builder.Configuration, builder.Environment);
+
+// ✅ Global lookup caching (MUST be after module registrations)
+builder.Services.AddLookupCaching(options =>
+{
+    options.CacheDuration        = TimeSpan.FromMinutes(30);
+    options.AbsoluteExpiration   = TimeSpan.FromHours(24);
+    options.SizeLimit            = 2000;
+    options.EnableDetailedLogging = false;
+});
+
+// ✅ Controllers with filters (registered once)
+builder.Services.AddControllers(o =>
+{
+    o.Filters.Add<DbUniqueToValidationFilter>();
+});
+
 
 // ✅ Infrastructure
 builder.Services.AddSwaggerDocumentation();
@@ -87,8 +99,10 @@ app.UseCors("AllowAll");         // Must be after UseRouting, before UseAuthenti
 
 app.UseAuthentication();
 
+app.UseMiddleware<Shared.Infrastructure.Middleware.GlobalExceptionMiddleware>();
 app.UseMiddleware<TokenValidationMiddleware>();
 app.UseMiddleware<UserManagement.Infrastructure.Logging.Middleware.LoggingMiddleware>();
+
 
 app.UseAuthorization();
 

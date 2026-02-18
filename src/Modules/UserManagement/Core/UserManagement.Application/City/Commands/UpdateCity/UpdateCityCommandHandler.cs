@@ -4,7 +4,7 @@ using AutoMapper;
 using UserManagement.Application.City.Queries.GetCities;
 using UserManagement.Application.Common.Interfaces.ICity;
 using UserManagement.Domain.Events;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using UserManagement.Domain.Enums.Common;
 using FluentValidation;
 

@@ -1,3 +1,4 @@
+#nullable disable
 using System.Data;
 using System.Net;
 using AutoMapper;
@@ -80,7 +81,7 @@ namespace FAM.Infrastructure.Repositories.ExcelImport
             });
         }
         // ✅ CreateAsync - Handles Single Asset Insert
-        public async Task<AssetMasterGenerals?> CreateAsync(AssetMasterGenerals asset)
+        public async Task<AssetMasterGenerals> CreateAsync(AssetMasterGenerals asset)
         {
             await _applicationDbContext.AssetMasterGenerals.AddAsync(asset);
             await _applicationDbContext.SaveChangesAsync();

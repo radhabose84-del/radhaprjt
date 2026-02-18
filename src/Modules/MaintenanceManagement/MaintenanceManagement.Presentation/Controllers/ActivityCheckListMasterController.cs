@@ -9,7 +9,7 @@ using MaintenanceManagement.Application.ActivityCheckListMaster.Command.UpdateAc
 using MaintenanceManagement.Application.ActivityCheckListMaster.Queries.GetActivityCheckListMaster;
 using MaintenanceManagement.Application.ActivityCheckListMaster.Queries.GetActivityCheckListMasterById;
 using MaintenanceManagement.Application.ActivityCheckListMaster.Queries.GetCheckListByActivityId;
-using MaintenanceManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using MaintenanceManagement.Application.Common.Interfaces.IActivityMaster;
 using FluentValidation;
 using MediatR;

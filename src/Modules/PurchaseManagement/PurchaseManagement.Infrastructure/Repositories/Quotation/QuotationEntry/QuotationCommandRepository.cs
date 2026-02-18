@@ -1,3 +1,4 @@
+#nullable disable
 using PurchaseManagement.Domain.Common;
 using PurchaseManagement.Application.Common.Interfaces.IQuotation.IQuotationEntry;
 using Microsoft.EntityFrameworkCore;
@@ -28,7 +29,7 @@ public class QuotationCommandRepository(ApplicationDbContext db,IDbConnection db
     public Task AddAsync(QuotationHeader header, CancellationToken ct)
         => db.Set<QuotationHeader>().AddAsync(header, ct).AsTask();
 
-    public Task<QuotationHeader?> GetWithLinesAsync(int id, CancellationToken ct)
+    public Task<QuotationHeader> GetWithLinesAsync(int id, CancellationToken ct)
         => db.Set<QuotationHeader>()
              .Include(h => h.Lines)
              .FirstOrDefaultAsync(h =>

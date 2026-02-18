@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -18,7 +19,7 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetInsurance
             _dbConnection = dbConnection;
         }              
     
-    public async Task<(List<FAM.Domain.Entities.AssetMaster.AssetInsurance>, int)> GetAllAssetInsuranceAsync(int PageNumber, int PageSize, string? SearchTerm)
+    public async Task<(List<FAM.Domain.Entities.AssetMaster.AssetInsurance>, int)> GetAllAssetInsuranceAsync(int PageNumber, int PageSize, string SearchTerm)
         {
                         var query = $$"""
                     DECLARE @TotalCount INT;

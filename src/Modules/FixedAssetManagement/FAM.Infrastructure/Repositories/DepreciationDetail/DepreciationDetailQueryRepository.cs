@@ -1,3 +1,4 @@
+#nullable disable
 
 using System.Data;
 using FAM.Application.Common.Interfaces;
@@ -23,7 +24,7 @@ namespace FAM.Infrastructure.Repositories.DepreciationDetail
             _applicationDbContext = applicationDbContext;        
         }
     
-        public async Task<(List<DepreciationDto>, int,bool, string)> CalculateDepreciationAsync(int companyId, int unitId, int finYearId, DateTimeOffset? startDate, DateTimeOffset? endDate,int depreciationType, int PageNumber, int PageSize, string? SearchTerm,int depreciationPeriod)
+        public async Task<(List<DepreciationDto>, int,bool, string)> CalculateDepreciationAsync(int companyId, int unitId, int finYearId, DateTimeOffset? startDate, DateTimeOffset? endDate,int depreciationType, int PageNumber, int PageSize, string SearchTerm,int depreciationPeriod)
         {
             var parameters = new DynamicParameters();
             parameters.Add("@CompanyId", companyId);
@@ -115,8 +116,8 @@ namespace FAM.Infrastructure.Repositories.DepreciationDetail
 
         public async Task<bool> ExistDataAsync( int finYearId, int depreciationType,int depreciationPeriod)
         {
-            return await _applicationDbContext.DepreciationDetails
-                .Where(d => d.CompanyId == CompanyId &&
+            return await _applicationDbContext.DepreciationDetails.AsNoTracking()
+.Where(d => d.CompanyId == CompanyId &&
                             d.Finyear == finYearId &&
                             d.DepreciationPeriod == depreciationPeriod &&
                             d.DepreciationType == depreciationType &&                                                    
@@ -125,8 +126,8 @@ namespace FAM.Infrastructure.Repositories.DepreciationDetail
         }
         public async Task<bool> ExistDataLockedAsync( int finYearId, int depreciationType,int depreciationPeriod)
         {
-            return await _applicationDbContext.DepreciationDetails
-                .Where(d => d.CompanyId == CompanyId &&
+            return await _applicationDbContext.DepreciationDetails.AsNoTracking()
+.Where(d => d.CompanyId == CompanyId &&
                             d.Finyear == finYearId &&
                             d.DepreciationPeriod == depreciationPeriod &&
                             d.DepreciationType == depreciationType &&  d.IsLocked ==1 &&                                             

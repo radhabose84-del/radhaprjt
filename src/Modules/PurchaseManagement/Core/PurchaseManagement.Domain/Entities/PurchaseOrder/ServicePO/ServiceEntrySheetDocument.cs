@@ -8,7 +8,7 @@ namespace PurchaseManagement.Domain.Entities.PurchaseOrder.ServicePO
 {
     public class ServiceEntrySheetDocument : BaseEntity
     {
-        public int Id { get; set; }
+        public new int Id { get; set; }
         public int ServiceEntrySheetId { get; set; }
         public ServiceEntrySheet ServiceEntrySheet { get; set; } = null!;
 

@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -5,7 +6,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using FAM.Application.AssetMaster.AssetSpecification.Commands.UpdateAssetSpecification;
 using FAM.Application.AssetMaster.AssetSpecification.Queries.GetAssetSpecification;
-using FAM.Application.Common.HttpResponse;
+using Contracts.Common;
 using FAM.Application.Common.Interfaces.IAssetMaster.IAssetSpecification;
 using FAM.Domain.Common;
 using FAM.Domain.Entities.AssetMaster;

@@ -3,7 +3,7 @@
 // using System.Linq;
 // using System.Threading.Tasks;
 // using AutoMapper;
-// using PurchaseManagement.Application.Common.HttpResponse;
+// using Contracts.Common;
 // using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.ServicePO;
 // using PurchaseManagement.Application.Common.Interfaces.IServiceMaster;
 // using MediatR;

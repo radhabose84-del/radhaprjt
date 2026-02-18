@@ -1,5 +1,5 @@
 
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using UserManagement.Application.UserRole.Queries.GetRole;
 using MediatR;
 using System;

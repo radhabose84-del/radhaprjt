@@ -1,5 +1,5 @@
 using UserManagement.Application.Common;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using MediatR;
 using System;
 using System.Collections.Generic;

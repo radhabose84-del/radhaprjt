@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using Contracts.Interfaces.Lookups.Users;
 using Contracts.Interfaces.Lookups.Maintenance;
-using BudgetManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using BudgetManagement.Application.Common.Interfaces.IBudgetAllocation;
 using BudgetManagement.Domain.Events;
 using MediatR;

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Contracts.Interfaces.External.IInvetoryManagement;
-using WarehouseManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using WarehouseManagement.Application.Common.Interfaces.IBinMaster;
 using WarehouseManagement.Application.Common.Interfaces.IRackMaster;
 using WarehouseManagement.Application.Common.Interfaces.IWarehouseMaster;

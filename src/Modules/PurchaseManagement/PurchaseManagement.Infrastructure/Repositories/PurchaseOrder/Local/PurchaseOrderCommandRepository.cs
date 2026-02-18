@@ -1,3 +1,4 @@
+#nullable disable
 using System.Data;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IMiscMaster;
@@ -738,7 +739,7 @@ public class PurchaseOrderCommandRepository : IPurchaseOrderCommandRepository
             return code[..idx];
         return code;
     }
-    public Task<PurchaseOrderHeader?> GetAggregateAsync(int id, CancellationToken ct)
+    public Task<PurchaseOrderHeader> GetAggregateAsync(int id, CancellationToken ct)
         => _db.PurchaseOrderHeaders
               .Include(h => h.Headers).ThenInclude(l => l.Details)
               .Include(h => h.PaymentTerms)

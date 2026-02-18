@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -40,7 +41,13 @@ namespace MaintenanceManagement.Infrastructure.Repositories.PreventiveSchedulers
             return count > 0;
         }
 
+#pragma warning disable CS1998
+
+
+#pragma warning restore CS1998
+        #pragma warning disable CS1998
         public async Task<(DateTime nextDate, DateTime reminderDate)> CalculateNextScheduleDate(DateTime startDate, int interval, string unit, int reminderDays)
+        #pragma warning restore CS1998
         {
             DateTime nextDate = unit.ToLower() switch
             {
@@ -54,7 +61,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.PreventiveSchedulers
             return (nextDate, reminderDate);
         }
 
-        public async Task<(IEnumerable<dynamic> PreventiveSchedulerList, int)> GetAllPreventiveSchedulerAsync(int PageNumber, int PageSize, string? SearchTerm, List<int> departmentIds)
+        public async Task<(IEnumerable<dynamic> PreventiveSchedulerList, int)> GetAllPreventiveSchedulerAsync(int PageNumber, int PageSize, string SearchTerm, List<int> departmentIds)
         {
             var UnitId = _ipAddressService.GetUnitId();
             var query = $@"

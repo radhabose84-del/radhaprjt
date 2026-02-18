@@ -7,7 +7,7 @@ namespace MaintenanceManagement.Application.PreventiveSchedulers.Commands.Create
 {
     public class PreventiveSchedulerItemsDto
     {
-        public string ItemId { get; set; }
+        public string ItemId { get; set; } = default!;
         public int RequiredQty { get; set; }
         // public int? SourceId { get; set; }
         public string? OldCategoryDescription { get; set; }

@@ -1,3 +1,4 @@
+#nullable disable
 using System.Threading.Tasks;
 using UserManagement.Application.Common.Interfaces;
 using UserManagement.Application.Common.Interfaces.IUser;
@@ -64,7 +65,7 @@ namespace UserManagement.UnitTests.Validation.Users
             var cmd = new UpdateUserCommand(); // all defaults
 
             // Broad default setups to satisfy async rules invoked by the validator:
-            _userRepo.Setup(r => r.AlreadyExistsAsync(It.IsAny<string?>(), It.IsAny<int?>()))
+            _userRepo.Setup(r => r.AlreadyExistsAsync(It.IsAny<string>(), It.IsAny<int?>()))
                      .ReturnsAsync(false);
             _userRepo.Setup(r => r.NotFoundAsync(It.IsAny<int>()))
                      .ReturnsAsync(false);
@@ -82,7 +83,7 @@ namespace UserManagement.UnitTests.Validation.Users
         [Fact]
         public async Task MaxLength_for_FirstName_is_enforced()
         {
-            _userRepo.Setup(r => r.AlreadyExistsAsync(It.IsAny<string?>(), It.IsAny<int?>()))
+            _userRepo.Setup(r => r.AlreadyExistsAsync(It.IsAny<string>(), It.IsAny<int?>()))
                      .ReturnsAsync(false);
             _userRepo.Setup(r => r.NotFoundAsync(It.IsAny<int>()))
                      .ReturnsAsync(true);

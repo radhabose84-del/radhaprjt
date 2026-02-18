@@ -8,10 +8,10 @@ namespace MaintenanceManagement.Application.PreventiveSchedulers.Queries.GetMach
     public class PreventiveSchedulerDto : IMapFrom<PreventiveSchedulerHeader>
     {
         public int Id { get; set; }
-        public string PreventiveSchedulerName { get; set; }
-        public string GroupName { get; set; }
+        public string PreventiveSchedulerName { get; set; } = default!;
+        public string GroupName { get; set; } = default!;
         public int DepartmentId { get; set; }
-        public string DepartmentName { get; set; }
+        public string DepartmentName { get; set; } = default!;
         public int FrequencyInterval { get; set; }
         public int GraceDays { get; set; }
         public int ReminderWorkOrderDays { get; set; }

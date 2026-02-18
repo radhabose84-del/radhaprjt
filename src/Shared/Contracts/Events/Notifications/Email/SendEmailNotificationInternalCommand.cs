@@ -12,9 +12,9 @@ namespace Contracts.Events.Notifications.Email
         public int EventTypeId { get; set; }
         public int EventRuleId { get; set; }
         public int ChannelId { get; set; }
-        public string Email { get; set; }
-        public string ccMail { get; set; }
-        public string Mobile { get; set; }
+        public string Email { get; set; } = default!;
+        public string ccMail { get; set; } = default!;
+        public string Mobile { get; set; } = default!;
         public string CreatedByName { get; set; } = string.Empty;
         public string param1 { get; set; } = string.Empty;
         public string param2 { get; set; } = string.Empty;

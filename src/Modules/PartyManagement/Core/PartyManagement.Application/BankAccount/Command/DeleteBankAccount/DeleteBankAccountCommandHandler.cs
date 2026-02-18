@@ -1,4 +1,4 @@
-using PartyManagement.Application.Common.Exceptions; // if you use ExceptionRules
+using Contracts.Common; // if you use ExceptionRules
 using PartyManagement.Application.Common.Interfaces.IBankAccount;
 using PartyManagement.Domain.Events;
 using MediatR;

@@ -1,7 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using BudgetManagement.Application.BudgetGroup.Command.DeleteBudgetGroup;
-using BudgetManagement.Application.Common.Exceptions;
+using Contracts.Common;
 using BudgetManagement.Application.Common.Interfaces.IBudgetGroupMaster;
 using BudgetManagement.Domain.Common;
 using BudgetManagement.Domain.Events;

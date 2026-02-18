@@ -1,4 +1,4 @@
-using InventoryManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using InventoryManagement.Application.Item.PutAway.Queries.GetAllPutAwayRule;
 using MediatR;
 

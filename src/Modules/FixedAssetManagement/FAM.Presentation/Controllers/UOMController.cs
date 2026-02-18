@@ -1,3 +1,4 @@
+#nullable disable
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using FluentValidation;
@@ -25,7 +26,7 @@ namespace FAM.Presentation.Controllers
             
         }
     [HttpGet]
-    public async Task<IActionResult> GetAllUOMAsync([FromQuery] int PageNumber,[FromQuery] int PageSize,[FromQuery] string? SearchTerm = null)
+    public async Task<IActionResult> GetAllUOMAsync([FromQuery] int PageNumber,[FromQuery] int PageSize,[FromQuery] string SearchTerm = null)
     {
         var uom = await Mediator.Send(
             new GetUOMQuery
@@ -127,7 +128,7 @@ namespace FAM.Presentation.Controllers
     }
 
     [HttpGet("by-name")]
-    public async Task<IActionResult> GetUOM([FromQuery] string? name)
+    public async Task<IActionResult> GetUOM([FromQuery] string name)
     {
         var result = await Mediator.Send(new GetUOMAutoCompleteQuery {SearchPattern = name});
       
@@ -139,7 +140,7 @@ namespace FAM.Presentation.Controllers
             });
     }
      [HttpGet("by-Type")]
-    public async Task<IActionResult> GetUOMType([FromQuery] string? name)
+    public async Task<IActionResult> GetUOMType([FromQuery] string name)
     {
         var result = await Mediator.Send(new GetUOMTypeAutoCompleteQuery {SearchPattern = name});
       

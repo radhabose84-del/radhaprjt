@@ -1,6 +1,6 @@
 
 using AutoMapper;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using UserManagement.Application.Common.Interfaces.IUserGroup;
 using UserManagement.Application.UserGroup.Queries.GetUserGroup;
 using UserManagement.Domain.Events;

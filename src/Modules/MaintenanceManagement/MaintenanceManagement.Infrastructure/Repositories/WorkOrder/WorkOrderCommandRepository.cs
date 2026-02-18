@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Data;
 using System.IO;
@@ -53,7 +54,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.WorkOrder
             await _applicationDbContext.SaveChangesAsync();
             return workOrder;
         }
-        public async Task<string?> GetLatestWorkOrderDocNo(int TypeId)
+        public async Task<string> GetLatestWorkOrderDocNo(int TypeId)
         {
             var companyId = _ipAddressService.GetCompanyId();
             var unitId = _ipAddressService.GetUnitId();
@@ -334,7 +335,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.WorkOrder
             return true;
         }
 
-        public async Task<MaintenanceManagement.Domain.Entities.MiscMaster?> GetMiscMasterByCodeAsync(string code)
+        public async Task<MaintenanceManagement.Domain.Entities.MiscMaster> GetMiscMasterByCodeAsync(string code)
         {
             return await _applicationDbContext.MiscMaster
                 .FirstOrDefaultAsync(x => x.Code == code);

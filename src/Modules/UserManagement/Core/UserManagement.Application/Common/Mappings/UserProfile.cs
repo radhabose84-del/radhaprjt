@@ -11,7 +11,6 @@ using UserManagement.Application.Common.Interfaces;
 
 public class UserProfile : Profile
 {
-    private readonly IIPAddressService _ipAddressService;
     public UserProfile()
     {
         CreateMap<CreateUserCommand, User>()

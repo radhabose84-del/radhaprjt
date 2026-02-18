@@ -1,6 +1,6 @@
 
 using AutoMapper;
-using MaintenanceManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using MaintenanceManagement.Application.Common.Interfaces.IWorkOrder;
 using MediatR;
 

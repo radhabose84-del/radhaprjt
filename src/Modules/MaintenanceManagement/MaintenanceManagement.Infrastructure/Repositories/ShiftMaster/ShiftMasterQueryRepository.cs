@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -44,7 +45,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.ShiftMaster
                 return count > 0;
         }
 
-        public async Task<(List<MaintenanceManagement.Domain.Entities.ShiftMaster>, int)> GetAllShiftMasterAsync(int PageNumber, int PageSize, string? SearchTerm)
+        public async Task<(List<MaintenanceManagement.Domain.Entities.ShiftMaster>, int)> GetAllShiftMasterAsync(int PageNumber, int PageSize, string SearchTerm)
         {
             var query = $$"""
              DECLARE @TotalCount INT;

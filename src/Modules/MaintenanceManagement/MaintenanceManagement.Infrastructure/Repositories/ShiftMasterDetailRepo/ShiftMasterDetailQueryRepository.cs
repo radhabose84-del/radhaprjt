@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -35,7 +36,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.ShiftMasterDetailRep
                 return count > 0;
         }
 
-        public async Task<(IEnumerable<dynamic>, int)> GetAllShiftMasterDetailAsync(int PageNumber, int PageSize, string? SearchTerm)
+        public async Task<(IEnumerable<dynamic>, int)> GetAllShiftMasterDetailAsync(int PageNumber, int PageSize, string SearchTerm)
         {
             var UnitId = _ipAddressService.GetUnitId();
               var query = $$"""

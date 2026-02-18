@@ -1,9 +1,10 @@
+#nullable disable
 
 
 using System.Collections.Generic;
 using AutoMapper;
 using Contracts.Interfaces.Lookups.Users;
-using MaintenanceManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using MaintenanceManagement.Application.Common.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces.IWorkOrder;
 using MaintenanceManagement.Application.Common.RealTimeNotificationHub;
@@ -73,8 +74,8 @@ namespace MaintenanceManagement.Application.WorkOrder.Command.CreateWorkOrder
                     var companies = await _companyLookup.GetAllCompanyAsync();
                     var unitLookup = units.ToDictionary(u => u.UnitId, u => u.UnitName);
                     var companyLookup = companies.ToDictionary(u => u.CompanyId, u => u.CompanyName);
-                    string? unitName = null;
-                    string? companyName = null;
+                    string unitName = null;
+                    string companyName = null;
 
                     if (unitLookup.TryGetValue(unitId, out var unitNameGrpc))
                     {

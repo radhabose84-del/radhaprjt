@@ -10,6 +10,6 @@ namespace Contracts.Events.Hangfire.PreventiveScheduler
         public Guid CorrelationId { get; set; }
         public int SchedulerId { get; set; }
         public int WorkOrderId { get; set; }
-        public string Reason { get; set; }
+        public string Reason { get; set; } = default!;
     }
 }

@@ -1,3 +1,4 @@
+#nullable disable
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IMiscMaster;
 using PurchaseManagement.Application.Common.Interfaces.IQuotation.IRfqEntry;
@@ -24,7 +25,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.Quotation.RfqEntry
             _miscMasterQueryRepository = miscMasterQueryRepository;
         }
 
-        public Task<RfqMaster?> GetAggregateAsync(int id, CancellationToken ct = default) =>
+        public Task<RfqMaster> GetAggregateAsync(int id, CancellationToken ct = default) =>
               _db.Rfqs
               .AsNoTracking()
               .Include(r => r.Items)
@@ -33,7 +34,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.Quotation.RfqEntry
               .Include(r => r.InitiationType)
               .FirstOrDefaultAsync(r => r.Id == id, ct);
       
-        public async Task<(IReadOnlyList<RfqListItemDto> Items, int Total)> GetAllAsync(int page, int pageSize, int? statusId, string? searchTerm, CancellationToken ct)
+        public async Task<(IReadOnlyList<RfqListItemDto> Items, int Total)> GetAllAsync(int page, int pageSize, int? statusId, string searchTerm, CancellationToken ct)
         {
             var unitId = _ip.GetUnitId();
             if (page <= 0) page = 1;
@@ -109,7 +110,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.Quotation.RfqEntry
 
 
         public async Task<List<RfqAutoCompleteDto>> GetRfqAutoCompleteAsync(
-        string? searchPattern,
+        string searchPattern,
         DateOnly? lastSubmitDate,    // optional override
         CancellationToken ct)
         {
@@ -140,7 +141,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.Quotation.RfqEntry
                 .ToListAsync(ct);
         }
         public async Task<List<RfqAutoCompleteDto>> GetRfqAutoCompleteQuotationAsync(
-            string? searchPattern,
+            string searchPattern,
             DateOnly? lastSubmitDate,
             CancellationToken ct/*, int? supplierId = null*/)
         {
@@ -185,7 +186,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.Quotation.RfqEntry
                 .ToListAsync(ct);
         }
         public async Task<List<RfqAutoCompleteDto>> GetRfqAutoCompleteComparisonAsync(
-            string? searchPattern,
+            string searchPattern,
             DateOnly? lastSubmitDate,
             int? statusId,
             CancellationToken ct)
@@ -288,8 +289,12 @@ namespace PurchaseManagement.Infrastructure.Repositories.Quotation.RfqEntry
             // “Blocking” = LastSubmitDate not null and >= now (i.e., BEFORE last submission date)
             var q =
                 from m in _db.Set<RfqMaster>().AsNoTracking()
+                #pragma warning disable CS0472
                 where m.UnitId == unitId
+                #pragma warning restore CS0472
+                #pragma warning disable CS0472
                 && (m.IsDeleted == null || m.IsDeleted == BaseEntity.IsDelete.NotDeleted)
+                #pragma warning restore CS0472
                 && m.LastSubmitDate != null
                 && m.LastSubmitDate >= now
                 && (excludingRfqId == null || m.Id != excludingRfqId.Value)

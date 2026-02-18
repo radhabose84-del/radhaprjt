@@ -13,7 +13,7 @@ namespace Contracts.Dtos.Inventory
         public int ItemCategoryId { get; set; }
         public int ItemGroupId { get; set; }
         public int SourceOfItem { get; set; }
-        public string TariffNumber { get; set; }
+        public string TariffNumber { get; set; } = default!;
         public bool IsOnSpot { get; set; }
         public List<ItemVendorDto>? Vendors { get; set; }
     }

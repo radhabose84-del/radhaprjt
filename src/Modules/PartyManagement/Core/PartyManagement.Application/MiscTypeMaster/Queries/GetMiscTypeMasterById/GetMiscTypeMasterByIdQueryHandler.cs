@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
-using PartyManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using PartyManagement.Application.Common.Interfaces.IMiscTypeMaster;
 using PartyManagement.Application.MiscTypeMaster.Queries.GetMiscTypeMaster;
 using PartyManagement.Domain.Events;

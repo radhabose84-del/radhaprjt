@@ -1,7 +1,7 @@
 
 
 using FAM.Application.AssetMaster.AssetSpecification.Queries.GetAssetSpecification;
-using FAM.Application.Common.HttpResponse;
+using Contracts.Common;
 using MediatR;
 
 namespace FAM.Application.AssetMaster.AssetSpecification.Commands.CreateAssetSpecification

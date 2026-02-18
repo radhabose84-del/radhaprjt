@@ -1,3 +1,4 @@
+#nullable disable
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -5,7 +6,7 @@ using System.Threading.Tasks;
 using Contracts.Interfaces.Lookups.Users;
 using Contracts.Interfaces.Lookups.Maintenance;
 using BudgetManagement.Application.BudgetGroups;
-using BudgetManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using BudgetManagement.Application.Common.Interfaces.IBudgetGroupMaster;
 using BudgetManagement.Domain.Events;
 using MediatR;

@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -49,7 +50,7 @@ namespace UserManagement.Infrastructure.Repositories.DepartmentGroup
             return await _dbConnection.QueryFirstOrDefaultAsync<UserManagement.Domain.Entities.DepartmentGroup>(sql, new { Id = id });
         }
 
-        public async Task<(List<UserManagement.Domain.Entities.DepartmentGroup>, int)> GetAllDepartmentGroupAsync(int pageNumber, int pageSize, string? searchTerm)
+        public async Task<(List<UserManagement.Domain.Entities.DepartmentGroup>, int)> GetAllDepartmentGroupAsync(int pageNumber, int pageSize, string searchTerm)
         {
             var query = $$"""
                     DECLARE @TotalCount INT;
@@ -145,7 +146,7 @@ namespace UserManagement.Infrastructure.Repositories.DepartmentGroup
         }
 
         
-        public async Task<UserManagement.Domain.Entities.DepartmentGroup?> GetByDepartmentGroupNameAsync(string departmentGroupName)
+        public async Task<UserManagement.Domain.Entities.DepartmentGroup> GetByDepartmentGroupNameAsync(string departmentGroupName)
     {
         const string query = @"
             SELECT TOP 1 * 

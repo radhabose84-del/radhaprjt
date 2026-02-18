@@ -1,7 +1,8 @@
+#nullable disable
 using System.ComponentModel;
 using AutoMapper;
 using UserManagement.Application.Common;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using UserManagement.Application.Common.Interfaces.IEntity;
 using UserManagement.Domain.Events;
 using MediatR;

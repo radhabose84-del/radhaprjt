@@ -1,3 +1,4 @@
+#nullable disable
 using MaintenanceManagement.Application.WorkOrder.Command.CreateWorkOrder;
 using FluentValidation;
 using MaintenanceManagement.Presentation.Validation.Common;

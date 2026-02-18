@@ -2,7 +2,7 @@ using AutoMapper;
 using Contracts.Interfaces.Lookups.Users;
 
 // using Contracts.Interfaces.External.IUser;
-using FAM.Application.Common.HttpResponse;
+using Contracts.Common;
 using FAM.Application.Common.Interfaces.ISubLocation;
 using FAM.Domain.Events;
 using MediatR;

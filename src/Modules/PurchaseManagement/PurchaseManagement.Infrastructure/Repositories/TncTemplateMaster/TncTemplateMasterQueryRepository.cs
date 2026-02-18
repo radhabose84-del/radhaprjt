@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -21,7 +22,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.TncTemplateMaster
         }
 
         public async Task<(List<TncTemplateMasterDto>, int)> GetAllTncTemplateAsync(
-            int pageNumber, int pageSize, string? searchTerm)
+            int pageNumber, int pageSize, string searchTerm)
         {
             if (pageNumber <= 0) pageNumber = 1;
             if (pageSize <= 0) pageSize = 10;
@@ -163,7 +164,7 @@ ORDER BY p.TemplateName ASC, p.Id ASC, ta.Id ASC;";
             return (items, totalCount);
         }
 
-        public async Task<TncTemplateMasterDto?> GetByIdAsync(int id)
+        public async Task<TncTemplateMasterDto> GetByIdAsync(int id)
         {
             const string sql = @"
         SELECT 
@@ -282,7 +283,7 @@ ORDER BY p.TemplateName ASC, p.Id ASC, ta.Id ASC;";
          
          
 
-         public async Task<List<TnCAutoCompleteDto>> GetTnCTemplateAutoCompleteAsync(  string? search,   int? templateTypeId, int? applicabilityId)
+         public async Task<List<TnCAutoCompleteDto>> GetTnCTemplateAutoCompleteAsync(  string search,   int? templateTypeId, int? applicabilityId)
         {
             var args = new
             {

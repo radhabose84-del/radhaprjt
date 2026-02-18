@@ -1,4 +1,4 @@
-using InventoryManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using MediatR;
 
 namespace InventoryManagement.Application.Item.ItemDetail.Commands.DeleteItemImage

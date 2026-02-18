@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using MediatR;
-using FAM.Application.Common.HttpResponse;
+using Contracts.Common;
 
 namespace FAM.Application.MiscTypeMaster.Queries.GetMiscTypeMaster
 {

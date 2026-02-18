@@ -7,7 +7,7 @@ using BudgetManagement.Application.BudgetRequest.Commands.Update;
 using BudgetManagement.Application.BudgetRequest.Queries.GetAll;
 using BudgetManagement.Application.BudgetRequest.Queries.GetBudgetRequestPending;
 using BudgetManagement.Application.BudgetRequest.Queries.GetById;
-using BudgetManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;

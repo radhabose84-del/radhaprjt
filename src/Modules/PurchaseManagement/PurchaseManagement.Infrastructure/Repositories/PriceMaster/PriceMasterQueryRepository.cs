@@ -1,3 +1,4 @@
+#nullable disable
 using System.Data;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IMiscMaster;
@@ -18,7 +19,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PriceMaster
       IIPAddressService _ipAddress, IDbConnection _db,IMiscMasterQueryRepository _miscMasterQueryRepository
     ) : IPriceMasterQueryRepository
     {
-        public async Task<PriceMasterUpdateDto?> GetForEditAsync(int id, CancellationToken ct)
+        public async Task<PriceMasterUpdateDto> GetForEditAsync(int id, CancellationToken ct)
         {
             const string headerSql = @"
                 SELECT Id, ItemId, VendorId, CurrencyCode, ValidFrom, ValidTo,
@@ -39,7 +40,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PriceMaster
             h.Details.AddRange((await multi.ReadAsync<PriceMasterDetailUpsertDto>()).ToList());
             return h;
         }
-        public async Task<PriceMasterGetAllDto?> GetByIdAsync(int id, CancellationToken ct)
+        public async Task<PriceMasterGetAllDto> GetByIdAsync(int id, CancellationToken ct)
         {
             var unitId = _ipAddress.GetUnitId();
 
@@ -100,7 +101,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PriceMaster
         public async Task<PurchaseManagement.Application.Common.PagedResult<PriceMasterGetAllDto>> GetAllAsync(
             int? page, 
             int? size, 
-            string? searchTerm, 
+            string searchTerm, 
             int? itemId, 
             decimal? qtyFrom, 
             decimal? qtyTo, int? statusId,bool expiredList,
@@ -193,7 +194,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PriceMaster
         }
 
         public async Task<(List<PriceMasterPendingGroupDto>, int)> GetPriceMasterPendingAsync(
-            int PageNumber, int PageSize, string? SearchTerm)
+            int PageNumber, int PageSize, string SearchTerm)
         {
             var unitId = _ipAddress.GetUnitId();
             var page   = Math.Max(1, PageNumber);

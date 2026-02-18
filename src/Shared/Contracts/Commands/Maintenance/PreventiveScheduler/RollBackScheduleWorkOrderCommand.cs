@@ -10,7 +10,7 @@ namespace Contracts.Commands.Maintenance.PreventiveScheduler
     {
         public Guid CorrelationId { get; set; }
         public int PreventiveSchedulerHeaderId { get; set; }
-        public string Reason { get; set; }
-        public string token { get; set; }
+        public string Reason { get; set; } = default!;
+        public string token { get; set; } = default!;
     }
 }

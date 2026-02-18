@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -24,7 +25,7 @@ namespace UserManagement.Infrastructure.Repositories.CustomFields
                 return count > 0;
         }
 
-      public async Task<(List<CustomField>, int)> GetAllCustomFieldsAsync(int pageNumber, int pageSize, string? searchTerm)
+      public async Task<(List<CustomField>, int)> GetAllCustomFieldsAsync(int pageNumber, int pageSize, string searchTerm)
         {
             var query = $@"
                 DECLARE @TotalCount INT;
@@ -132,7 +133,13 @@ namespace UserManagement.Infrastructure.Repositories.CustomFields
             return (customfieldResult,customFieldMenuResult.ToList(),customFieldUnit.ToList(),customFieldOption.ToList());
         }
 
+#pragma warning disable CS1998
+
+
+#pragma warning restore CS1998
+        #pragma warning disable CS1998
         public async Task<List<CustomField>> GetCustomField(string searchPattern)
+        #pragma warning restore CS1998
         {
             
                 throw new NotImplementedException();

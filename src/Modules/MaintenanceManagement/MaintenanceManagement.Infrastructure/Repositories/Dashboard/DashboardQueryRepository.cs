@@ -1,3 +1,4 @@
+#nullable disable
 // Updated Repository and Supporting Code for Unified ChartDto Across Dashboards
 
 using System.Data;
@@ -28,7 +29,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.Dashboard
             _connection = connection;
             _departmentLookup = departmentLookup;
         }
-        public async Task<ChartDto> WorkOrderSummaryAsync(DateTime fromDate, DateTime toDate, string? departmentId, string? machineGroupId)
+        public async Task<ChartDto> WorkOrderSummaryAsync(DateTime fromDate, DateTime toDate, string departmentId, string machineGroupId)
         {
             var data = await _connection.QueryAsync<WorkOrderDashboardDto>(
                 "Dashboard_Maintenance",
@@ -51,7 +52,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.Dashboard
             };
         }
 
-        public async Task<ChartDto> ItemConsumptionSummaryAsync(DateTime fromDate, DateTime toDate, string? departmentId, string? machineGroupId)
+        public async Task<ChartDto> ItemConsumptionSummaryAsync(DateTime fromDate, DateTime toDate, string departmentId, string machineGroupId)
         {
             var data = await _connection.QueryAsync<ItemConsumptionDto>(
                 "Dashboard_Maintenance",
@@ -72,7 +73,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.Dashboard
                 Series = series
             };
         }
-        public async Task<ChartDto> MaintenanceHoursDeptAsync(DateTime fromDate, DateTime toDate, string? type, string? departmentId)
+        public async Task<ChartDto> MaintenanceHoursDeptAsync(DateTime fromDate, DateTime toDate, string type, string departmentId)
         {
             var parameters = new DynamicParameters();
             parameters.Add("FromDate", fromDate);
@@ -119,7 +120,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.Dashboard
             };
         }
 
-        public async Task<ChartDto> MaintenanceHoursMachineGroupAsync(DateTime fromDate, DateTime toDate, string? type, string? departmentId = null)
+        public async Task<ChartDto> MaintenanceHoursMachineGroupAsync(DateTime fromDate, DateTime toDate, string type, string departmentId = null)
         {
             var parameters = new DynamicParameters();
             parameters.Add("FromDate", fromDate);
@@ -155,7 +156,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.Dashboard
                 Series = new List<ChartSeriesDto> { maintenanceSeries, downtimeSeries }
             };
         }
-        public async Task<ChartDto> MaintenanceHoursMachineAsync(DateTime fromDate, DateTime toDate, string? type, string? departmentId = null, string? machineGroupId = null)
+        public async Task<ChartDto> MaintenanceHoursMachineAsync(DateTime fromDate, DateTime toDate, string type, string departmentId = null, string machineGroupId = null)
         {
             var parameters = new DynamicParameters();
             parameters.Add("FromDate", fromDate);
@@ -192,7 +193,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.Dashboard
                 Series = new List<ChartSeriesDto> { maintenanceSeries, downtimeSeries }
             };
         }
-        public async Task<ChartDto> ItemConsumptionDeptSummaryAsync(DateTime fromDate, DateTime toDate, string? type, string? departmentId, string? itemCode = null)
+        public async Task<ChartDto> ItemConsumptionDeptSummaryAsync(DateTime fromDate, DateTime toDate, string type, string departmentId, string itemCode = null)
         {
             var parameters = new DynamicParameters();
             parameters.Add("FromDate", fromDate);
@@ -232,7 +233,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.Dashboard
                 }
             };
         }
-        public async Task<ChartDto> ItemConsumptionMachineSummaryAsync(DateTime fromDate, DateTime toDate, string? type, string? departmentId, string? itemCode = null)
+        public async Task<ChartDto> ItemConsumptionMachineSummaryAsync(DateTime fromDate, DateTime toDate, string type, string departmentId, string itemCode = null)
         {
             var parameters = new DynamicParameters();
             parameters.Add("FromDate", fromDate);
@@ -260,7 +261,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.Dashboard
                 }
             };
         }
-        public async Task<CardViewDto> GetCardDashboardAsync(DateTime fromDate, DateTime toDate, string? type, string? departmentId, string? machineGroupId)
+        public async Task<CardViewDto> GetCardDashboardAsync(DateTime fromDate, DateTime toDate, string type, string departmentId, string machineGroupId)
         {
             var parameters = new DynamicParameters();
             parameters.Add("FromDate", fromDate);

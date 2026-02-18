@@ -1,4 +1,4 @@
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using UserManagement.Application.Common.Mappings;
 using UserManagement.Domain.Enums;
 using static UserManagement.Domain.Enums.Common.Enums;

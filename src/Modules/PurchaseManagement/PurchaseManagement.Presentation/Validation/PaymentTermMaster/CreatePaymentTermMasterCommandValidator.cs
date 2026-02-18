@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,7 +13,6 @@ namespace PurchaseManagement.Presentation.Validation.PaymentTermMaster
 {
     public class CreatePaymentTermMasterCommandValidator : AbstractValidator<CreatePaymentTermMasterCommand>
     {    
-          private readonly List<ValidationRule> _validationRules;
           
           private readonly IPaymentTermMasterQueryRepository _paymentTermMasterQueryRepository;
 

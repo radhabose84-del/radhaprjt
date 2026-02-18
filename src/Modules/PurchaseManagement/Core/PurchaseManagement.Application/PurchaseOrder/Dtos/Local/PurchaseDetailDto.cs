@@ -115,7 +115,7 @@ public class PurchaseOrderCreateDto
 
 public class    PurchaseOrderUpdateDto : PurchaseOrderCreateDto
 {
-    public int Id { get; set; }
+    public new int Id { get; set; }
 }
 
 public sealed class PurchaseOrderListItemDto
@@ -168,7 +168,9 @@ public sealed class PurchaseOrderDetailDto : PurchaseOrderUpdateDto
 {
     public new List<PurchaseLocalHeaderDto> Headers { get; set; } = new();
     public new List<PurchasePaymentTermDto> PaymentTerms { get; set; } = new();    
+    #pragma warning disable CS0109
     public new List<LocalDocumentDto> DocumentsList { get; set; } = new();    
+    #pragma warning restore CS0109
 }
 
 public sealed class AutocompleteDto

@@ -71,7 +71,7 @@ namespace PurchaseManagement.Application.PurchaseIndents.Queries.GetPendingInden
              
                if (departmentLookup.TryGetValue(Indent.DepartmentId, out var DepartmentName))
                 {
-                    Indent.DepartmentName = DepartmentName;
+                    Indent.DepartmentName = DepartmentName ?? string.Empty;
                 }
                  if (unitLookup.TryGetValue(Indent.UnitId, out var UnitName))
                 {
@@ -115,7 +115,7 @@ namespace PurchaseManagement.Application.PurchaseIndents.Queries.GetPendingInden
            
                 if (approverNameLookup.TryGetValue(Indent.ApproverId, out var UserName))
                 {
-                    Indent.ApproverName =  UserName;
+                    Indent.ApproverName = UserName ?? string.Empty;
                 }
               //  approverMap.IsApprover = approverMap.ApproverId == _ipAddressService.GetUserId() ? "Y" : "N";
                var evt = new AuditLogsDomainEvent(

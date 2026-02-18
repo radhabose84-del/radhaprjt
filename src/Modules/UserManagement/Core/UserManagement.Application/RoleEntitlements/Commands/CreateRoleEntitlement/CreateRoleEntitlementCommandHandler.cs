@@ -1,3 +1,4 @@
+#nullable disable
 using UserManagement.Domain.Entities;
 using UserManagement.Application.Common.Interfaces;
 using FluentValidation;
@@ -9,7 +10,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using UserManagement.Application.Common.Interfaces.IRoleEntitlement;
 using UserManagement.Domain.Events;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using Microsoft.Extensions.Logging;
 using static UserManagement.Domain.Enums.Common.Enums;
 
@@ -39,7 +40,7 @@ namespace UserManagement.Application.RoleEntitlements.Commands.CreateRoleEntitle
         public async Task<bool> Handle(CreateRoleEntitlementCommand request, CancellationToken cancellationToken)
         {
 
-                _logger.LogInformation("Starting role entitlement creation process for RoleName: {RoleName}");
+                _logger.LogInformation("Starting role entitlement creation process for RoleName: {RoleName}", request.RoleId);
                 
                var roleId = request.RoleId;
 
@@ -77,7 +78,7 @@ namespace UserManagement.Application.RoleEntitlements.Commands.CreateRoleEntitle
                         module: "RoleEntitlement"
                     );
                     await _mediator.Publish(domainEvent, cancellationToken);
-                    _logger.LogInformation("Role entitlements successfully created for RoleName: {RoleName}");
+                    _logger.LogInformation("Role entitlements successfully created for RoleName: {RoleName}", request.RoleId);
 
                     return true;
         }

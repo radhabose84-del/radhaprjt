@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -30,7 +31,7 @@ namespace FAM.Presentation.Controllers
            
     }
     [HttpGet]
-    public async Task<IActionResult> GetAllSubLocationAsync([FromQuery] int PageNumber,[FromQuery] int PageSize,[FromQuery] string? SearchTerm = null)
+    public async Task<IActionResult> GetAllSubLocationAsync([FromQuery] int PageNumber,[FromQuery] int PageSize,[FromQuery] string SearchTerm = null)
     {
         var sublocations = await Mediator.Send(
             new GetSubLocationQuery
@@ -130,7 +131,7 @@ namespace FAM.Presentation.Controllers
             });
     }
     [HttpGet("by-name")]
-    public async Task<IActionResult> GetSubLocation([FromQuery] string? name)
+    public async Task<IActionResult> GetSubLocation([FromQuery] string name)
     {
         var result = await Mediator.Send(new GetSubLocationAutoCompleteQuery {SearchPattern = name});
       

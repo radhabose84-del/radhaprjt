@@ -1,3 +1,4 @@
+#nullable disable
 using Contracts.Interfaces.Lookups.Users;
 using BudgetManagement.Application.Common.Interfaces;
 using BudgetManagement.Application.Common.Interfaces.IBudgetRequest;

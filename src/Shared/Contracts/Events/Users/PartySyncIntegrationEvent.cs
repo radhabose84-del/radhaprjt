@@ -33,7 +33,7 @@ namespace Contracts.Events.Users
         public int CreatedBy { get; set; }
         public int CreatedByName { get; set; }
         public  DateTime CreatedAt { get; set;}
-        public string CreatedIp { get; set; }
+        public string CreatedIp { get; set; } = default!;
         // Audit/meta
         public int?  ModifiedBy   { get; set; }
         public string? ModifiedByName { get; set; }

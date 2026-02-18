@@ -8,7 +8,7 @@ namespace MaintenanceManagement.Application.ShiftMasters.Queries.GetShiftMasterA
     public class ShiftMasterAutoCompleteDTO
     {
         public int Id { get; set; }
-        public string ShiftCode { get; set; }
-        public string ShiftName { get; set; }
+        public string ShiftCode { get; set; } = default!;
+        public string ShiftName { get; set; } = default!;
     }
 }

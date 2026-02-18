@@ -8,7 +8,6 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Comman
     public class UnitOfWork : IUnitOfWork
     {
         private readonly ApplicationDbContext _db;
-        private IDbContextTransaction? _tx;
 
         public UnitOfWork(ApplicationDbContext db) => _db = db;
 

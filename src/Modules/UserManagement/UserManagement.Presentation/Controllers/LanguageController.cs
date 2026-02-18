@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,7 +27,7 @@ namespace UserManagement.Presentation.Controllers
         {
         }
           [HttpGet]
-        public async Task<IActionResult> GetAllLanguagesAsync([FromQuery] int PageNumber,[FromQuery] int PageSize,[FromQuery] string? SearchTerm = null)
+        public async Task<IActionResult> GetAllLanguagesAsync([FromQuery] int PageNumber,[FromQuery] int PageSize,[FromQuery] string SearchTerm = null)
         {
            var languages = await Mediator.Send(
             new GetLanguageQuery
@@ -101,7 +102,7 @@ namespace UserManagement.Presentation.Controllers
             
         }
          [HttpGet("by-name")]
-        public async Task<IActionResult> GetLanguage([FromQuery] string? name)
+        public async Task<IActionResult> GetLanguage([FromQuery] string name)
         {
            
             var languages = await Mediator.Send(new GetLanguageAutoCompleteQuery {SearchPattern = name});

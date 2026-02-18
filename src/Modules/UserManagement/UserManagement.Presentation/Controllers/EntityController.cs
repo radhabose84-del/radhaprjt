@@ -1,3 +1,4 @@
+#nullable disable
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using UserManagement.Application.Entity.Queries.GetEntity;
@@ -39,7 +40,7 @@ namespace UserManagement.Presentation.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllEntityAsync([FromQuery] int PageNumber, [FromQuery] int PageSize, [FromQuery] string? SearchTerm = null)
+        public async Task<IActionResult> GetAllEntityAsync([FromQuery] int PageNumber, [FromQuery] int PageSize, [FromQuery] string SearchTerm = null)
         {
 
             var result = await Mediator.Send(
@@ -187,7 +188,7 @@ namespace UserManagement.Presentation.Controllers
         }
 
         [HttpGet("by-name")]
-        public async Task<IActionResult> GetEntity([FromQuery] string? EntityName)
+        public async Task<IActionResult> GetEntity([FromQuery] string EntityName)
         {
             // Fetch entities based on search pattern
             var entities = await Mediator.Send(new GetEntityAutocompleteQuery { SearchPattern = EntityName ?? string.Empty });
@@ -259,7 +260,7 @@ namespace UserManagement.Presentation.Controllers
                 return NotFound(new
                 {
                     StatusCode = StatusCodes.Status404NotFound,
-                    data = (object?)null,
+                    data = (object)null,
                     message = $"Company with ID {companyIds} not found"
                 });
             }

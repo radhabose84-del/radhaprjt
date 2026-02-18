@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -5,7 +6,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using Contracts.Events.Users;
 using Contracts.Interfaces.Lookups.Users;
-using PartyManagement.Application.Common.Exceptions;
+using Contracts.Common;
 using PartyManagement.Application.Common.Interfaces;
 using PartyManagement.Application.Common.Interfaces.IPartyMaster;
 using PartyManagement.Application.PartyMaster.Queries.GetPartyMasterById;
@@ -298,7 +299,7 @@ namespace PartyManagement.Application.PartyMaster.Command.UpdatePartyMaster
             return codes.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
         }
 
-        private static PartyMasterDto.PartyContactDto? GetPrimaryContactFromRequestOrBefore(
+        private static PartyMasterDto.PartyContactDto GetPrimaryContactFromRequestOrBefore(
             UpdatePartyMasterCommand request,
             PartyMasterDto before)
         {

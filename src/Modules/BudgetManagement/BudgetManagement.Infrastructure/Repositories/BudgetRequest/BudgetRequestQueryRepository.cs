@@ -1,3 +1,4 @@
+#nullable disable
 using System.Data;
 using BudgetManagement.Application.BudgetRequest;
 using BudgetManagement.Application.BudgetRequest.Queries.GetBudgetRequestPending;
@@ -30,7 +31,7 @@ public class BudgetRequestQueryRepository : IBudgetRequestQueryRepository
     }
 
     public async Task<(List<BudgetRequestListItemDto> Items, int Total)> GetAllAsync(
-    int? statusId, int pageNumber, int pageSize, string? searchTerm, CancellationToken ct = default)
+    int? statusId, int pageNumber, int pageSize, string searchTerm, CancellationToken ct = default)
     {
         var skip = (pageNumber - 1) * pageSize;
         var UnitId = _ipAddressService.GetUnitId();
@@ -152,7 +153,7 @@ public class BudgetRequestQueryRepository : IBudgetRequestQueryRepository
                 StringComparison.OrdinalIgnoreCase);
 
             int editFlag;
-            string? reason;
+            string reason;
 
             if (r.FromDate.HasValue && r.ToDate.HasValue)
             {
@@ -257,7 +258,7 @@ public class BudgetRequestQueryRepository : IBudgetRequestQueryRepository
 
         return (items, total);
     }
-    public async Task<BudgetRequestDto?> GetByIdAsync(int id, CancellationToken ct = default)
+    public async Task<BudgetRequestDto> GetByIdAsync(int id, CancellationToken ct = default)
     {
         var sql = @"
         SELECT TOP 1
@@ -280,7 +281,7 @@ public class BudgetRequestQueryRepository : IBudgetRequestQueryRepository
         return await _db.QueryFirstOrDefaultAsync<BudgetRequestDto>(sql, new { Id = id });
     }
 
-    public async Task<string?> GetBaseDirectoryAsync(CancellationToken ct = default)
+    public async Task<string> GetBaseDirectoryAsync(CancellationToken ct = default)
     {
         const string sql = @"
             SELECT TOP (1) [Description]
@@ -297,7 +298,7 @@ public class BudgetRequestQueryRepository : IBudgetRequestQueryRepository
     public async Task<(List<GetBudgetRequestPendingDto> Items, int Total)> GetPendingRequestAsync(
         int pageNumber,
         int pageSize,
-        string? search,
+        string search,
         CancellationToken ct = default)
     {
         var skip = (pageNumber - 1) * pageSize;

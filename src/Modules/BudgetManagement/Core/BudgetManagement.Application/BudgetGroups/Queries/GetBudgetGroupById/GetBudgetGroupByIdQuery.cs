@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using BudgetManagement.Application.BudgetGroups;
-using BudgetManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using MediatR;
 
 namespace BudgetManagement.Application.BudgetGroups.Queries.GetBudgetGroupById

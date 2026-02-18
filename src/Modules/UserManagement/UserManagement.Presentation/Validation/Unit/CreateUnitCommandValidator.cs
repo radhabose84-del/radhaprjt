@@ -1,3 +1,4 @@
+#nullable disable
 using FluentValidation;
 using UserManagement.Application.Units.Commands.CreateUnit;
 using System.Text.RegularExpressions;

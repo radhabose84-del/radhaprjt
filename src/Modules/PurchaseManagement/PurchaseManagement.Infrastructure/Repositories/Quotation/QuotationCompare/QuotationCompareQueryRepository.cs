@@ -1,3 +1,4 @@
+#nullable disable
 using System.Data;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IMiscMaster;
@@ -31,7 +32,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.Quotation.QuotationComp
                 new CommandDefinition(sql, new { Id = id }, cancellationToken: ct));    
         }
 
-        public async Task<QuoteComparisonDto?> GetQuoteComparisonAsync(int rfqId, CancellationToken cancellationToken)
+        public async Task<QuoteComparisonDto> GetQuoteComparisonAsync(int rfqId, CancellationToken cancellationToken)
     {
         var approved = await _miscMasterQueryRepository.GetMiscMasterByName(
                 MiscEnumEntity.ApprovalStatus,
@@ -87,7 +88,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.Quotation.QuotationComp
 
         var rows = await _dbConnection.QueryAsync<QuoteComparisonRow>(sql, new { RfqId = rfqId,Approved =  approved.Id });
 
-        QuoteComparisonDto? result = null;
+        QuoteComparisonDto result = null;
         var lookup = new Dictionary<int, QuoteItemDto>();
 
         foreach (var row in rows)
@@ -137,7 +138,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.Quotation.QuotationComp
         return result;
     }
       public async Task<(List<QuoteComparisonPendingGroupDto>, int)> GetQuoteComparisonPendingAsync(
-            int PageNumber, int PageSize, string? SearchTerm)
+            int PageNumber, int PageSize, string SearchTerm)
         {
             var unitId = _ip.GetUnitId();
             var page    = Math.Max(1, PageNumber);

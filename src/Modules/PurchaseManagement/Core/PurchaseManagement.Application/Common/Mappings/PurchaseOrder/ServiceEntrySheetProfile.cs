@@ -4,7 +4,6 @@ using PurchaseManagement.Application.PurchaseOrder.ServicePO.Command.CreateServi
 using PurchaseManagement.Application.PurchaseOrder.ServicePO.Queries.ServiceEntrySheet.GetPoServiceHeaderByPoId;
 using PurchaseManagement.Application.PurchaseOrder.ServicePO.Queries.ServiceEntrySheet.GetScheduleByPoIdandSeviceidandServiceItemid;
 using PurchaseManagement.Domain.Entities.PurchaseOrder.ServicePO;
-using PurchaseManagement.Application.PurchaseOrder.ServicePO.Queries.ServiceEntrySheet.ServiceEntrySheetGetById;
 
 namespace PurchaseManagement.Application.Common.Mappings.PurchaseOrder
 {

@@ -8,7 +8,7 @@ namespace Contracts.Events.Maintenance.PreventiveScheduler
     public class MachineWiseScheduleFailedEvent
     {
         public Guid CorrelationId { get; set; }
-        public string Reason { get; set; }
-        public string token { get; set; }
+        public string Reason { get; set; } = default!;
+        public string token { get; set; } = default!;
     }
 }

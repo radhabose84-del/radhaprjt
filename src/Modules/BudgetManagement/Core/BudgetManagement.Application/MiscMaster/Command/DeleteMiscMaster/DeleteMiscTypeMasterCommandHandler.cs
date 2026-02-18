@@ -1,5 +1,5 @@
 using AutoMapper;
-using BudgetManagement.Application.Common.Exceptions;
+using Contracts.Common;
 using BudgetManagement.Application.Common.Interfaces.IMiscMaster;
 using BudgetManagement.Domain.Events;
 using MediatR;

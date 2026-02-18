@@ -1,5 +1,5 @@
 
-using InventoryManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using MediatR;
 
 namespace InventoryManagement.Application.Item.ItemGroup.Queries.GetItemGroup

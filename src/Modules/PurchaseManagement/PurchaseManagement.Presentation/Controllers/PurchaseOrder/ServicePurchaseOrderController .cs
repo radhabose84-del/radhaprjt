@@ -26,7 +26,6 @@ namespace PurchaseManagement.Presentation.Controllers.PurchaseOrder
     {
 
 
-        private readonly ILogger<ServicePurchaseOrderController> _logger;
 
 
         public ServicePurchaseOrderController(ISender mediator) : base(mediator)

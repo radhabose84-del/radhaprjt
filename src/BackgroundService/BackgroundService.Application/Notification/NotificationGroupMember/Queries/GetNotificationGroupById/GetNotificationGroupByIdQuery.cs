@@ -1,5 +1,5 @@
 using MediatR;
-using BackgroundService.Application.Notification.Common.HttpResponse;
+using Contracts.Common;
 using BackgroundService.Application.Notification.NotificationGroupMember.Queries.GetAllNotificationGroupMember;
 
 namespace BackgroundService.Application.Notification.NotificationGroupMember.Queries.GetNotificationGroupById

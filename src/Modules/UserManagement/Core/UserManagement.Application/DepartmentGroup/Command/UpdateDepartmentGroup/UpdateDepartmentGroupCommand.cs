@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using UserManagement.Application.DepartmentGroup.Queries.GetDepartmentGroupById;
 using MediatR;
 using static UserManagement.Domain.Enums.Common.Enums;

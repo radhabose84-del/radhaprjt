@@ -11,7 +11,7 @@ namespace FAM.Domain.Entities
         public string? Code { get; set; }
         public string? Description { get; set; }
         public int SortOrder { get; set; }
-        public Status IsActive { get; set; }
+        public new Status IsActive { get; set; }
 
         public MiscTypeMaster? MiscTypeMaster { get; set; }
         //Depreciation

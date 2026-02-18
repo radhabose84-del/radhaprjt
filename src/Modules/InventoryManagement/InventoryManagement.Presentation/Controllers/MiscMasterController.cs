@@ -28,7 +28,6 @@ namespace InventoryManagement.Presentation.Controllers
         // private readonly IValidator<UpdateMiscMasterCommand> _updateMiscMasterCommand;
 
         // private readonly IValidator<DeleteMiscMasterCommand> _deleteMiscMasterCommand;
-        private readonly IMiscMasterCommandRepository _miscMasterCommandRepository;
         
         
        public MiscMasterController (ISender mediator, IValidator<CreateMiscMasterCommand> miscMasterCommand, IValidator<UpdateMiscMasterCommand> updateMiscMasterCommand, IMiscMasterCommandRepository miscMasterCommandRepository,

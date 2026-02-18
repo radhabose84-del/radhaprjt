@@ -2,7 +2,7 @@ using MongoDB.Driver;
 using InventoryManagement.Domain.Entities;
 using MediatR;
 using InventoryManagement.Application.AuditLog.Queries.GetAuditLog;
-using InventoryManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 
 namespace InventoryManagement.Application.AuditLog.Queries.GetAuditLogBySearchPattern
 {

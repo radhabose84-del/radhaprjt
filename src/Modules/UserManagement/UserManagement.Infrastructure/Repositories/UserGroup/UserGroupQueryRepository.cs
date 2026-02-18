@@ -1,3 +1,4 @@
+#nullable disable
 using System.Data;
 using UserManagement.Application.Common.Interfaces;
 using UserManagement.Application.Common.Interfaces.IUserGroup;
@@ -15,7 +16,7 @@ namespace UserManagement.Infrastructure.Repositories.UserGroup
             _ipAddressService = ipAddressService;
         }
 
-        public async Task<(List<UserManagement.Domain.Entities.UserGroup>, int)> GetAllUserGroupAsync(int PageNumber, int PageSize, string? SearchTerm)
+        public async Task<(List<UserManagement.Domain.Entities.UserGroup>, int)> GetAllUserGroupAsync(int PageNumber, int PageSize, string SearchTerm)
         {
                var query = $$"""
                 DECLARE @TotalCount INT;

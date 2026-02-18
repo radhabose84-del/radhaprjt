@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -60,7 +61,7 @@ namespace UserManagement.Infrastructure.Repositories.Menu
             var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = Id });
             return count > 0;
         }
-        public async Task<(IEnumerable<dynamic>, int)> GetAllMenuAsync(int PageNumber, int PageSize, string? SearchTerm)
+        public async Task<(IEnumerable<dynamic>, int)> GetAllMenuAsync(int PageNumber, int PageSize, string SearchTerm)
         {
 
             var query = $$"""

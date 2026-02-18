@@ -1,6 +1,6 @@
 using MediatR;
 using UserManagement.Application.Users.Queries.GetUsers;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 
 namespace UserManagement.Application.Users.Queries.GetUserAutoComplete
 {

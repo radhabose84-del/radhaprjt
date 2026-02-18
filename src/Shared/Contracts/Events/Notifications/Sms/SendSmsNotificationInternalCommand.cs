@@ -9,13 +9,13 @@ namespace Contracts.Events.Notifications.Sms
         public Guid CorrelationId { get; set; }
         public int UnitId { get; set; }
         public int EventTypeId { get; set; }
-        public string ModuleName { get; set; }
+        public string ModuleName { get; set; } = default!;
         public List<string> MobileNumbers { get; set; } = new();
         public int ChannelId { get; set; }
         public int EventRuleId { get; set; }
-        public string Email { get; set; }
-        public string ccMail { get; set; }
-        public string Mobile { get; set; }
+        public string Email { get; set; } = default!;
+        public string ccMail { get; set; } = default!;
+        public string Mobile { get; set; } = default!;
         public string CreatedByName { get; set; } = string.Empty;
         public string param1 { get; set; } = string.Empty;
         public string param2 { get; set; } = string.Empty;

@@ -1,3 +1,4 @@
+#nullable disable
 using System.Data;
 using InventoryManagement.Application.Common.Interfaces;
 using InventoryManagement.Application.Common.Interfaces.Item.ItemDetail.Queries;
@@ -24,7 +25,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
             _ipAddressService = ipAddressService;
         }
         public async Task<(List<ItemListDto> Items, int TotalCount)> GetAllAsync(
-            int? page, int? size, string? search, bool onlyActive,
+            int? page, int? size, string search, bool onlyActive,
             int? itemGroupId, int? itemCategoryId, CancellationToken ct = default)
         {
             var q = _db.ItemMaster.AsNoTracking()
@@ -85,7 +86,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
             return (list, total);
         }
 
-        public async Task<ItemDetailsDto?> GetByIdAsync(int id, CancellationToken ct = default)
+        public async Task<ItemDetailsDto> GetByIdAsync(int id, CancellationToken ct = default)
         {
             // Read the two “configuration” rows once
             var basePath = await _db.MiscTypeMaster
@@ -307,7 +308,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
             return true;
         }
 
-        public async Task<string?> GetLatestItemCode(int itemGroupId, int itemCategoryId, CancellationToken ct = default)
+        public async Task<string> GetLatestItemCode(int itemGroupId, int itemCategoryId, CancellationToken ct = default)
         {
             var parameters = new DynamicParameters();
             parameters.Add("@GroupId", itemGroupId);

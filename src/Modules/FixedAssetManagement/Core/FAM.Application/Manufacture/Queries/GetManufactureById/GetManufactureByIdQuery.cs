@@ -1,4 +1,4 @@
-using FAM.Application.Common.HttpResponse;
+using Contracts.Common;
 using FAM.Application.Manufacture.Queries.GetManufacture;
 using MediatR;
 

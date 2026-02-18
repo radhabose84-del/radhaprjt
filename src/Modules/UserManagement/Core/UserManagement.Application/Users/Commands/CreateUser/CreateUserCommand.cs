@@ -1,4 +1,4 @@
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using UserManagement.Application.Users.Queries.GetUsers;
 using MediatR;
 

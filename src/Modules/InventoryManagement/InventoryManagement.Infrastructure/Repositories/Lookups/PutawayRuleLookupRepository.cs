@@ -38,7 +38,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Lookups
 
             return rules
                 .Where(dto => dto != null)
-                .Select(MapToLookupDto)
+                .Select(dto => MapToLookupDto(dto!))
                 .ToList();
         }
 
@@ -59,7 +59,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Lookups
 
             return rules
                 .Where(dto => dto != null)
-                .Select(MapToPutawayRuleDto)
+                .Select(dto => MapToPutawayRuleDto(dto!))
                 .ToList();
         }
 
@@ -80,7 +80,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Lookups
 
             return rules
                 .Where(dto => dto != null)
-                .Select(MapToPutawayRuleDto)
+                .Select(dto => MapToPutawayRuleDto(dto!))
                 .ToList();
         }
 

@@ -1,3 +1,4 @@
+#nullable disable
 using Dapper;
 using System.Data;
 using Microsoft.EntityFrameworkCore;

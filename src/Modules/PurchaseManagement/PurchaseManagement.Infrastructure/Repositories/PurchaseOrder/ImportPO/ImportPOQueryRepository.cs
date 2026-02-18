@@ -1,3 +1,4 @@
+#nullable disable
 using System.Data;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.ImportPO;
@@ -24,7 +25,7 @@ public class ImportPOQueryRepository : IImportPOQueryRepository
         _miscMasterQueryRepository = miscMasterQueryRepository;
     }
 
-    public async Task<ImportPOFullVm?> GetByIdAsync(int id, CancellationToken ct)
+    public async Task<ImportPOFullVm> GetByIdAsync(int id, CancellationToken ct)
     {
         // 1) PO header summary (strictly non-deleted)
         var po = await _conn.QueryFirstOrDefaultAsync<PurchaseOrderHeaderSummaryDto>(
@@ -138,7 +139,7 @@ public class ImportPOQueryRepository : IImportPOQueryRepository
         return exists.HasValue;
     }
 
-    public async Task<string?> GetStatusCodeAsync(int poId, CancellationToken ct)
+    public async Task<string> GetStatusCodeAsync(int poId, CancellationToken ct)
     {
         const string sql = @"
                 SELECT m.Code
@@ -146,9 +147,9 @@ public class ImportPOQueryRepository : IImportPOQueryRepository
                 LEFT JOIN Purchase.MiscMaster m ON m.Id = h.StatusId
                 WHERE h.Id = @poId AND h.IsDeleted = 0;";
 
-        return await _conn.ExecuteScalarAsync<string?>(sql, new { poId });
+        return await _conn.ExecuteScalarAsync<string>(sql, new { poId });
     }
-    static (int Edit, string? Reason) ComputeEditGate(bool hasGrn, string statusCode)
+    static (int Edit, string Reason) ComputeEditGate(bool hasGrn, string statusCode)
     {
         if (hasGrn)
             return (2, "GRN exists for this PO. Edit/Amendment  is not allowed.");
@@ -163,7 +164,7 @@ public class ImportPOQueryRepository : IImportPOQueryRepository
         return (0, $"Editing is allowed'.");
     }
     public async Task<(List<GetPOImportPendingGroupDto> Rows, int Total)> GetImportPOPendingAsync(
-        int? page, int? size, string? search, int? poId, CancellationToken ct)
+        int? page, int? size, string search, int? poId, CancellationToken ct)
     {
         var p = (page.HasValue && page > 0) ? page.Value : 1;
         var s = (size.HasValue && size > 0) ? size.Value : 15;

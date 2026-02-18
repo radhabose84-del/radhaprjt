@@ -8,12 +8,12 @@ namespace Contracts.Dtos.Users
     public class DivisionUnitDto
     {
         public int UnitId { get; set; }
-        public string UnitName { get; set; }
+        public string UnitName { get; set; } = default!;
 
         public int DivisionId { get; set; }
-        public string DivisionName { get; set; }
+        public string DivisionName { get; set; } = default!;
 
         public int CompanyId { get; set; }
-        public string CompanyName { get; set; }
+        public string CompanyName { get; set; } = default!;
     }
 }

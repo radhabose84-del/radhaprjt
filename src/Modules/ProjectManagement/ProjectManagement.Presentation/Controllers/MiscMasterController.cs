@@ -24,7 +24,6 @@ namespace ProjectManagement.Presentation.Controllers
 
     public class MiscMasterController  : ApiControllerBase
     {
-        private readonly ILogger<MiscMaster> _logger;
         private  readonly IValidator<CreateMiscMasterCommand> _miscMasterCommand;
         private readonly IValidator<UpdateMiscMasterCommand> _updateMiscMasterCommand;
 

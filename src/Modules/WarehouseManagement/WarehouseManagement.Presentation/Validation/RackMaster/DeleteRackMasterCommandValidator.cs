@@ -11,7 +11,6 @@ namespace WarehouseManagement.Presentation.Validation.RackMaster
     public class DeleteRackMasterCommandValidator : AbstractValidator<DeleteRackMasterCommand>
     {
         
-        private readonly IValidator<DeleteRackMasterCommand> _validator;
         private readonly IRackMasterCommandRepository _cmdRepo;
       
         public DeleteRackMasterCommandValidator(    IRackMasterCommandRepository cmdRepo)

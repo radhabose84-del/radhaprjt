@@ -1,5 +1,5 @@
 using ProjectManagement.Application.AuditLog.Queries.GetAuditLog;
-using ProjectManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using MediatR;
 
 namespace ProjectManagement.Application.AuditLog.Queries

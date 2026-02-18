@@ -1,3 +1,4 @@
+#nullable disable
 using AutoMapper;
 using PurchaseManagement.Application.Quotation.RfqEntry.Commands.Create;
 using PurchaseManagement.Application.Quotation.RfqEntry.Dtos;

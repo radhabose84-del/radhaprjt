@@ -1,4 +1,4 @@
-using PurchaseManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 

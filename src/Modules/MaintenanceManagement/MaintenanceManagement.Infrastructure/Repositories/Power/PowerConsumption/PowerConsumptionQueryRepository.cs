@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -23,7 +24,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.Power.PowerConsumpti
             _ipAddressService = ipAddressService;
         }
 
-        public async Task<(List<GetPowerConsumptionDto>, int)> GetAllPowerConsumptionAsync(int PageNumber, int PageSize, string? SearchTerm)
+        public async Task<(List<GetPowerConsumptionDto>, int)> GetAllPowerConsumptionAsync(int PageNumber, int PageSize, string SearchTerm)
         {
             var UnitId = _ipAddressService.GetUnitId();
             var query = $$"""

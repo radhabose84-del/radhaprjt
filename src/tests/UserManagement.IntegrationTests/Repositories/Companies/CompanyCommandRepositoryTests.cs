@@ -1,3 +1,4 @@
+#nullable disable
 using System.Threading.Tasks;
 using UserManagement.Application.Common.Interfaces;
 using UserManagement.Application.Common.Interfaces.ICompany;

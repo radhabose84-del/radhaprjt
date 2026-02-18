@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
-using MaintenanceManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using MaintenanceManagement.Application.Common.Interfaces.IShiftMaster;
 using MaintenanceManagement.Application.ShiftMasters.Queries.GetShiftMaster;
 using MaintenanceManagement.Domain.Events;

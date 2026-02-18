@@ -1,3 +1,4 @@
+#nullable disable
 using UserManagement.Application.UserGroup.Commands.CreateUserGroup;
 using UserManagement.Application.UserGroup.Commands.DeleteUserGroup;
 using UserManagement.Application.UserGroup.Commands.UpdateUesrGroup;
@@ -22,7 +23,7 @@ namespace UserManagement.Presentation.Controllers
         {        
         }
            [HttpGet]        
-        public async Task<IActionResult> GetAllCountriesAsync([FromQuery] int PageNumber,[FromQuery] int PageSize,[FromQuery] string? SearchTerm = null)
+        public async Task<IActionResult> GetAllCountriesAsync([FromQuery] int PageNumber,[FromQuery] int PageSize,[FromQuery] string SearchTerm = null)
         {   
             var countries = await Mediator.Send(
             new GetUserGroupQuery
@@ -123,7 +124,7 @@ namespace UserManagement.Presentation.Controllers
         }
 
         [HttpGet("by-name")]     
-        public async Task<IActionResult> GetUserGroup([FromQuery] string? name)
+        public async Task<IActionResult> GetUserGroup([FromQuery] string name)
         {
             var result = await Mediator.Send(new GetUserGroupAutoCompleteQuery { SearchPattern = name });
          

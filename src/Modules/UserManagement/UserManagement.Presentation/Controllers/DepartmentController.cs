@@ -1,3 +1,4 @@
+#nullable disable
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using UserManagement.Application.Departments.Queries.GetDepartments;
@@ -30,7 +31,7 @@ namespace UserManagement.Presentation.Controllers
         }
     [HttpGet]
     // public async Task<IActionResult> GetAllDepartmentAsync()
-        public async Task<IActionResult> GetAllDepartmentAsync([FromQuery] int PageNumber,[FromQuery] int PageSize,[FromQuery] string? SearchTerm = null)
+        public async Task<IActionResult> GetAllDepartmentAsync([FromQuery] int PageNumber,[FromQuery] int PageSize,[FromQuery] string SearchTerm = null)
         {
               
            _logger.LogInformation("Fetching All Department Request started.");
@@ -85,7 +86,7 @@ namespace UserManagement.Presentation.Controllers
         }
 
         [HttpGet("by-name/")]
-        public async Task<IActionResult> GetAllDepartmentAutoCompleteSearchAsync([FromQuery] string? name)
+        public async Task<IActionResult> GetAllDepartmentAutoCompleteSearchAsync([FromQuery] string name)
         {
             _logger.LogInformation($"Starting GetAllDepartmentAutoCompleteSearchAsync with search pattern: {name} ");
              var query = new GetDepartmentAutoCompleteSearchQuery { SearchPattern = name ?? string.Empty };
@@ -103,7 +104,7 @@ namespace UserManagement.Presentation.Controllers
             
         }
         [HttpGet("withoutDatacontrol")]
-        public async Task<IActionResult> GetAllDepartment([FromQuery] string? name)
+        public async Task<IActionResult> GetAllDepartment([FromQuery] string name)
         {
                 var query = new GetDepartmentwithoutDataControl { SearchPattern = name ?? string.Empty };
                 var result = await Mediator.Send(query);

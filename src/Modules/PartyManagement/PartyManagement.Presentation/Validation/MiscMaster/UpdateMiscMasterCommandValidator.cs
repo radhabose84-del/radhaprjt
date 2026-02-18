@@ -1,3 +1,4 @@
+#nullable disable
 using PartyManagement.Application.Common.Interfaces.IMiscMaster;
 using PartyManagement.Application.MiscMaster.Command.UpdateMiscMaster;
 using FluentValidation;

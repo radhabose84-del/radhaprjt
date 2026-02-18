@@ -1,4 +1,4 @@
-using PurchaseManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using PurchaseManagement.Application.Quotation.QuotationEntry.Commands.UploadItemImage;
 using MediatR;
 using Microsoft.AspNetCore.Http;

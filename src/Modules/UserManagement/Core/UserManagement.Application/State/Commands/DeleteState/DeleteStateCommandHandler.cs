@@ -1,6 +1,6 @@
 using AutoMapper;
 using UserManagement.Application.Common;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using UserManagement.Application.Common.Interfaces.IState;
 using UserManagement.Application.State.Queries.GetStates;
 using UserManagement.Domain.Entities;

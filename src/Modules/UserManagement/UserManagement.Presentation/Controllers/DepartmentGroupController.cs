@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using UserManagement.Application.DepartmentGroup.Command.CreateDepartmentGroup;
 using UserManagement.Application.DepartmentGroup.Command.DeleteDepartmentGroup;
 using UserManagement.Application.DepartmentGroup.Command.UpdateDepartmentGroup;

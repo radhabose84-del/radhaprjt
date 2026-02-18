@@ -1,6 +1,6 @@
 
 
-using MaintenanceManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using MediatR;
 
 namespace MaintenanceManagement.Application.WorkOrder.Command.UpdateWorkOrder.UpdateSchedule

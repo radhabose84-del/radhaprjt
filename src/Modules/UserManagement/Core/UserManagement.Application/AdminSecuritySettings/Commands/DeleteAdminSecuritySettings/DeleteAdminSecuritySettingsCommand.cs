@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using UserManagement.Application.Common;
 using UserManagement.Application.AdminSecuritySettings.Queries.GetAdminSecuritySettings;
 using MediatR;
-using UserManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 
 
 namespace UserManagement.Application.AdminSecuritySettings.Commands.DeleteAdminSecuritySettings
