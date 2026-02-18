@@ -1,8 +1,3 @@
-using System.Data;
-using Contracts.Dtos.Inventory;
-using Contracts.Interfaces.External.IInvetoryManagement;
-using Contracts.Interfaces.External.IParty;
-using Contracts.Interfaces.External.IUser;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IQuotation.IQuotationEntry;
 using PurchaseManagement.Application.Quotations.QuotationEntry.DTOs;
@@ -12,15 +7,21 @@ using PurchaseManagement.Domain.Entities.Quotation.QuotationEntry;
 using PurchaseManagement.Domain.Entities.Quotation.RfqEntry;
 using Microsoft.EntityFrameworkCore;
 using PurchaseManagement.Infrastructure.Data;
+using Contracts.Interfaces.Lookups.Users;
+using Contracts.Interfaces.Lookups.Inventory;
+using Contracts.Interfaces.Lookups.Party;
 
 namespace PurchaseManagement.Infrastructure.Repositories.Quotation.QuotationEntry;
 
 public class QuotationQueryRepository(
     ApplicationDbContext db,
-    IItemGrpcClient itemGrpc,
-    IUOMGrpcClient uomGrpc,
-    IPartyGrpcClient partyGrpc  ,IIPAddressService ip    ,ICurrencyGrpcClient currencyGrpc,ICompanyGrpcClient companyGrpcClient,IUnitGrpcClient unitGrpcClient
-) : IQuotationQueryRepository
+    IItemLookup itemLookup,
+    IUOMLookup uOMLookup,
+    IPartyLookup partyLookup,
+    IIPAddressService ip,
+    ICurrencyLookup currencyLookup,
+    ICompanyLookup companyLookup,
+    IUnitLookup unitGrpcLookup) : IQuotationQueryRepository
 {
     public async Task<(List<QuotationListItemDto> Items, int Total)> GetAllAsync(
     int PageNumber,
@@ -91,11 +92,8 @@ public class QuotationQueryRepository(
                             .Select(m => new { m.Id, m.Code })
                             .ToDictionaryAsync(k => k.Id, v => v.Code ?? string.Empty);
 
-        var supplierTasks = supplierIds.Select(id => partyGrpc.GetPartyByIdAsync(id)).ToArray();
-        await Task.WhenAll(supplierTasks);
-        var supplierMap = supplierTasks.Where(t => t.Result != null)
-                                    .Select(t => t.Result!)
-                                    .ToDictionary(k => k.Id, v => v.PartyName ?? string.Empty);
+        var suppliers = await partyLookup.GetByIdsAsync(supplierIds);
+        var supplierMap = suppliers.ToDictionary(k => k.Id, v => v.PartyName ?? string.Empty);
 
         var items = page.Select(p => new QuotationListItemDto(
             Id:               p.Id,
@@ -135,16 +133,14 @@ public class QuotationQueryRepository(
             .Select(t => t.Description)
             .FirstOrDefaultAsync(ct);
 
-         var companies = await companyGrpcClient.GetAllCompanyAsync();
-        var units = await unitGrpcClient.GetAllUnitAsync();
+         var companies = await companyLookup.GetAllCompanyAsync();
+        var units = await unitGrpcLookup.GetAllUnitAsync();
 
-        var companyLookup = companies.ToDictionary(c => c.CompanyId, c => c.CompanyName);
-        var unitLookup = units.ToDictionary(u => u.UnitId, u => u.UnitName);
-        var oldUnitLookup = units.Where(u => !string.IsNullOrEmpty(u.OldUnitId))
-                            .ToDictionary(u => u.OldUnitId, u => u.UnitName);
+        var companyNameLookup = companies.ToDictionary(c => c.CompanyId, c => c.CompanyName);
+        var unitNameLookup = units.ToDictionary(u => u.UnitId, u => u.UnitName);
 
-        var CompanyName = companyLookup.TryGetValue(ip.GetCompanyId(), out var cName) ? cName : string.Empty;
-        var UnitName = unitLookup.TryGetValue(ip.GetUnitId(), out var uName) ? uName : string.Empty;
+        var CompanyName = companyNameLookup.TryGetValue(ip.GetCompanyId(), out var cName) ? cName : string.Empty;
+        var UnitName = unitNameLookup.TryGetValue(ip.GetUnitId(), out var uName) ? uName : string.Empty;
 
         string prefix = string.Empty;
         if (!string.IsNullOrWhiteSpace(basePath) && !string.IsNullOrWhiteSpace(folder))
@@ -175,9 +171,9 @@ public class QuotationQueryRepository(
        
 
         // 3) Kick off ONLY gRPC calls in parallel
-        var itemsTask    = itemGrpc.GetItemsByIdsAsync(itemIds, ct); 
-        var supplierTask = partyGrpc.GetPartyByIdAsync(h.SupplierId); 
-        var currencyTask = currencyGrpc.GetByIdsAsync(currencyIds,ct); 
+        var itemsTask    = itemLookup.GetByIdsAsync(itemIds, ct); 
+        var supplierTask = partyLookup.GetByIdAsync(h.SupplierId, ct); 
+        var currencyTask = currencyLookup.GetByIdsAsync(currencyIds,ct); 
 
         // 4) EF queries MUST be awaited sequentially
         var rfq = await db.Set<RfqMaster>()
@@ -197,18 +193,14 @@ public class QuotationQueryRepository(
 
         // 5) Now await gRPC tasks (safe to run in parallel)
         var items    = (await itemsTask).ToDictionary(k => k.Id, v => v);
-        var supplier = supplierTask.Result;        
-        var currencies = (await currencyTask).ToDictionary(k => k.Id, v => v);
+        var supplier = await supplierTask;        
+        var currencies = (await currencyTask).ToDictionary(k => k.CurrencyId, v => v);
         
         // 6) UOM fan-out (gRPC), fine to parallelize per-id
-        var uomMap = new Dictionary<int, UOMMasterDto>();
-        if (uomIds.Count > 0)
-        {
-            var uomTasks = uomIds.Select(id2 => uomGrpc.GetByIdAsync(id2, ct)).ToArray();
-            var results  = await Task.WhenAll(uomTasks);
-            foreach (var u in results.Where(x => x != null))
-                uomMap[u!.Id] = u!;
-        }        
+        var uomMap = uomIds.Count > 0
+            ? (await uOMLookup.GetByIdsAsync(uomIds, ct)).ToDictionary(k => k.Id, v => v)
+            : new Dictionary<int, Contracts.Dtos.Lookups.Inventory.UOMLookupDto>();
+
         var lines = linesNotDeleted.Select(l =>
         {
             items.TryGetValue(l.ItemId, out var im);            
@@ -306,12 +298,8 @@ public class QuotationQueryRepository(
         var rfqIds = baseList.Select(b => b.RfqId).Distinct().ToList();
 
         // Supplier names via gRPC (fan-out; adjust if you add batch later)
-        var supplierTasks = supplierIds.Select(id => partyGrpc.GetPartyByIdAsync(id)).ToArray();
-        await Task.WhenAll(supplierTasks);
-        var supplierMap = supplierTasks
-            .Where(t => t.Result != null)
-            .Select(t => t.Result!)
-            .ToDictionary(k => k.Id, v => v.PartyName ?? string.Empty);
+        var suppliers = await partyLookup.GetByIdsAsync(supplierIds);
+        var supplierMap = suppliers.ToDictionary(k => k.Id, v => v.PartyName ?? string.Empty);
 
         // RFQ numbers via EF
         var rfqMap = await db.Set<RfqMaster>()
