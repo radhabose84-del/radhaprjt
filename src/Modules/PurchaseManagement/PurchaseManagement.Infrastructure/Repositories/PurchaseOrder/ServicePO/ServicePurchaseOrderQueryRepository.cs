@@ -1,18 +1,10 @@
-using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using AutoMapper;
-using Contracts.Interfaces.External.IInvetoryManagement;
-using Contracts.Interfaces.External.IParty;
-using Contracts.Interfaces.External.IUser;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IMiscMaster;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.ServicePO;
 using PurchaseManagement.Application.PurchaseOrder.Dtos.ServicePO;
-using PurchaseManagement.Application.PurchaseOrder.ServicePO.Command.CreateServiceEntrySheet;
 using PurchaseManagement.Application.PurchaseOrder.ServicePO.Queries.GetServicePOPending;
 using PurchaseManagement.Application.PurchaseOrder.ServicePO.Queries.ServiceEntrySheet;
 using PurchaseManagement.Application.PurchaseOrder.ServicePO.Queries.ServiceEntrySheet.GetAllSES;
@@ -30,6 +22,9 @@ using PurchaseManagement.Domain.Entities.PurchaseOrder.ServicePO;
 using Dapper;
 using Microsoft.EntityFrameworkCore;
 using PurchaseManagement.Infrastructure.Data;
+using Contracts.Interfaces.Lookups.Users;
+using Contracts.Interfaces.Lookups.Party;
+using Contracts.Interfaces.Lookups.Inventory;
 
 namespace PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.ServicePO
 {
@@ -38,29 +33,29 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.ServicePO
         private readonly IDbConnection _conn;
         private readonly IIPAddressService _ip;
 
-        private readonly ICurrencyGrpcClient _currencyGrpcClient;
+        private readonly ICurrencyLookup _currencyLookup;
 
-        private readonly IPartyGrpcClient _partyGrpcClient;
+        private readonly IPartyLookup _partyLookup;
         private readonly ApplicationDbContext _applicationDb;
         private readonly IMiscMasterQueryRepository _miscMasterQueryRepository;
 
-        private readonly IUOMGrpcClient _uOMGrpcClient;
-        private readonly IUnitGrpcClient _unitGrpcClient;
+        private readonly IUOMLookup _uOMLookup;
+        private readonly IUnitLookup _unitLookup;
         private readonly IMapper _mapper;
 
 
-        public ServicePurchaseOrderQueryRepository(IDbConnection conn, IIPAddressService ip, ApplicationDbContext db, ICurrencyGrpcClient currencyGrpcClient, IPartyGrpcClient partyGrpcClient,
-            IMiscMasterQueryRepository miscMasterQueryRepository, IUOMGrpcClient uOMGrpcClient, IUnitGrpcClient unitGrpcClient, IMapper mapper)
+        public ServicePurchaseOrderQueryRepository(IDbConnection conn, IIPAddressService ip, ApplicationDbContext db, ICurrencyLookup currencyLookup, IPartyLookup partyLookup,
+            IMiscMasterQueryRepository miscMasterQueryRepository, IUOMLookup uOMLookup, IUnitLookup unitLookup, IMapper mapper)
         {
 
             _conn = conn;
             _ip = ip;
-            _currencyGrpcClient = currencyGrpcClient;
-            _partyGrpcClient = partyGrpcClient;
+            _currencyLookup = currencyLookup;
+            _partyLookup = partyLookup;
             _applicationDb = db;
             _miscMasterQueryRepository = miscMasterQueryRepository;
-            _uOMGrpcClient = uOMGrpcClient;
-            _unitGrpcClient = unitGrpcClient;
+            _uOMLookup = uOMLookup;
+            _unitLookup = unitLookup;
             _mapper = mapper;
         }
 
@@ -299,7 +294,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.ServicePO
                 try
                 {
                     // if API accepts a single Id, many services still want a list
-                    var res = await _currencyGrpcClient.GetByIdsAsync(new[] { header.CurrencyId }, ct);
+                    var res = await _currencyLookup.GetByIdsAsync(new[] { header.CurrencyId }, ct);
                     var found = res?.FirstOrDefault();
                     if (found is not null)
                     {
@@ -315,7 +310,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.ServicePO
 
             if (header.VendorId > 0)
             {
-                var partyDetails = await _partyGrpcClient.GetPartyByIdAsync(header.VendorId);
+                var partyDetails = await _partyLookup.GetByIdAsync(header.VendorId, ct);
                 if (partyDetails != null)
                 {
                     header.VendorName = partyDetails.PartyName;

@@ -99,6 +99,8 @@ using PurchaseManagement.Infrastructure.Persistence;
 using PurchaseManagement.Application.Common.Interfaces.IOutbox;
 using PurchaseManagement.Infrastructure.Repositories.Outbox;
 using PurchaseManagement.Infrastructure.Services.Outbox;
+using Contracts.Interfaces.Lookups.Inventory;
+using PurchaseManagement.Infrastructure.Repositories.Lookups;
 
 
 
@@ -243,6 +245,7 @@ namespace PurchaseManagement.Infrastructure
             services.AddScoped<IDutyMasterQueryRepository, DutyMasterQueryRepository>();
             services.AddScoped<IDutyMasterCommandRepository, DutyMasterCommandRepository>();
             services.AddScoped<IWorkflowLookup, WorkflowLookupRepository>();
+            services.AddScoped<IStockLedgerLookup, StockLedgerLookupRepository>();
 
             services.AddScoped<IPoMethodLookup, PoMethodLookup>();
             services.AddScoped<IPODocumentQueryRepository, PODocumentQueryRepository>();
