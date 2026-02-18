@@ -1,0 +1,18 @@
+<Project>
+  <!--
+    Shared MSBuild properties for all projects in this solution.
+    Any property set here applies to ALL projects under src/.
+    Per-project overrides in individual .csproj files take precedence.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <!-- Treat warnings as errors to prevent regression -->
+    <!-- Uncomment when all warnings are resolved:
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    -->
+    <!-- Suppress EF Core migration class naming warnings (auto-generated) -->
+    <NoWarn>$(NoWarn);CS8981</NoWarn>
+  </PropertyGroup>
+</Project>

@@ -55,3 +55,6 @@ ScaffoldingReadMe.txt
 # JetBrains Rider
 .idea/
 *.sln.iml
+/.claude
+/docs
+/docs
