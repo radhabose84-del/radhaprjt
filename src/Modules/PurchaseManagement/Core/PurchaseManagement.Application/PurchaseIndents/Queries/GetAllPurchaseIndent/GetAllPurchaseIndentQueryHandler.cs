@@ -1,11 +1,6 @@
 using System.Text.Json;
 using AutoMapper;
-<<<<<<< HEAD
-using Contracts.Interfaces.External.IUser;
 using Contracts.Common;
-=======
-using PurchaseManagement.Application.Common.HttpResponse;
->>>>>>> remotes/origin/ModulerMonolithic_DEV
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseIndent;
 using PurchaseManagement.Domain.Events;
 using MediatR;

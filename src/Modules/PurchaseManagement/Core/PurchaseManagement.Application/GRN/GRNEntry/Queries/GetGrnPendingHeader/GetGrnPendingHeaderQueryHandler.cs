@@ -1,24 +1,10 @@
-<<<<<<< HEAD
-// using System;
-// using System.Collections.Generic;
-// using System.Linq;
-// using System.Threading.Tasks;
-// using AutoMapper;
-// using Contracts.Interfaces.External.IParty;
-// using Contracts.Interfaces.External.IWarehouse;
-// using Contracts.Common;
-// using PurchaseManagement.Application.Common.Interfaces.IGRN.IGRNEntry;
-// using PurchaseManagement.Domain.Events;
-// using MediatR;
-=======
 using AutoMapper;
-using PurchaseManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using PurchaseManagement.Application.Common.Interfaces.IGRN.IGRNEntry;
 using PurchaseManagement.Domain.Events;
 using MediatR;
 using Contracts.Interfaces.Lookups.Warehouse;
 using Contracts.Interfaces.Lookups.Party;
->>>>>>> remotes/origin/ModulerMonolithic_DEV
 
 namespace PurchaseManagement.Application.GRN.GRNEntry.Queries.GetGrnPendingHeader
 {

@@ -1,30 +1,12 @@
-<<<<<<< HEAD
-// using System;
-// using System.Collections.Generic;
-// using System.Linq;
-// using System.Threading.Tasks;
-// using AutoMapper;
-// using Contracts.Interfaces.External.IUser;
-// using Contracts.Interfaces.External.IWarehouse;
-// using Contracts.Common;
-// using PurchaseManagement.Application.Common.Interfaces.IIssue;
-// using PurchaseManagement.Domain.Events;
-// using MediatR;
-=======
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
+using Contracts.Common;
 using Contracts.Interfaces.External.IUser;
 using Contracts.Interfaces.External.IWarehouse;
-using PurchaseManagement.Application.Common.HttpResponse;
 using PurchaseManagement.Application.Common.Interfaces.IIssue;
 using PurchaseManagement.Domain.Events;
 using MediatR;
 using Contracts.Interfaces.Lookups.Warehouse;
 using Contracts.Interfaces.Lookups.Users;
->>>>>>> remotes/origin/ModulerMonolithic_DEV
 
 namespace PurchaseManagement.Application.Issue.Queries.GetPendingIssueHeader
 {

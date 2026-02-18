@@ -1,22 +1,6 @@
-<<<<<<< HEAD
-// using System;
-// using System.Collections.Generic;
-// using System.Linq;
-// using System.Text.Json;
-// using System.Threading.Tasks;
-// using AutoMapper;
-// // using Contracts.Interfaces.External.IUser;
-// // using Contracts.Interfaces.External.IWorkflow;
-// using Contracts.Common;
-// using PurchaseManagement.Application.Common.Interfaces;
-// using PurchaseManagement.Application.Common.Interfaces.IPurchaseIndent;
-// using PurchaseManagement.Domain.Common;
-// using PurchaseManagement.Domain.Events;
-// using MediatR;
-=======
 using System.Text.Json;
 using AutoMapper;
-using PurchaseManagement.Application.Common.HttpResponse;
+using Contracts.Common;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseIndent;
 using PurchaseManagement.Domain.Common;
@@ -24,7 +8,6 @@ using PurchaseManagement.Domain.Events;
 using MediatR;
 using Contracts.Interfaces.Lookups.Users;
 using Contracts.Interfaces.Lookups.Workflow;
->>>>>>> remotes/origin/ModulerMonolithic_DEV
 
 namespace PurchaseManagement.Application.PurchaseIndents.Queries.GetPendingIndent
 {

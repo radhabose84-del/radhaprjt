@@ -110,12 +110,14 @@ namespace PurchaseManagement.Application.PurchaseIndents.Queries.ApprovedIndentD
                 var headerTariffs = header.IndentDetails
                     .Select(x => itemTariffLookup.TryGetValue(x.ItemId, out var t) ? t : null)
                     .Where(s => !string.IsNullOrWhiteSpace(s))
+                    .Select(s => s!)
                     .Distinct(StringComparer.OrdinalIgnoreCase)
                     .ToArray();
 
                 var headerHsns = header.IndentDetails
                     .Select(x => itemHsnLookup.TryGetValue(x.ItemId, out var h) ? h : null)
                     .Where(s => !string.IsNullOrWhiteSpace(s))
+                    .Select(s => s!)
                     .Distinct(StringComparer.OrdinalIgnoreCase)
                     .ToArray();
 
@@ -124,7 +126,7 @@ namespace PurchaseManagement.Application.PurchaseIndents.Queries.ApprovedIndentD
 
                 // 7) Header-level enrichments
                 if (departmentLookup.TryGetValue(header.DepartmentId, out var deptName))
-                    header.DepartmentName = deptName;
+                    header.DepartmentName = deptName ?? string.Empty;
 
                 if (unitLookup.TryGetValue(header.UnitId, out var unitName))
                     header.UnitName = unitName;
@@ -133,8 +135,10 @@ namespace PurchaseManagement.Application.PurchaseIndents.Queries.ApprovedIndentD
                 foreach (var dto in header.IndentDetails)
                 {
                     if (itemLookup.TryGetValue(dto.ItemId, out var item))
+                    {
                         dto.ItemName = item.ItemName;
-                        dto.IsOnSpot = item.IsOnSpot; 
+                        dto.IsOnSpot = item.IsOnSpot;
+                    }
 
                     if (uomLookup.TryGetValue(dto.ItemUOMId, out var uomName))
                         dto.UOMName = uomName;

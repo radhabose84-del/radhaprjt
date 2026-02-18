@@ -9,12 +9,12 @@ using FixedAssetManagement.Module;
 using MaintenanceManagement.Module;
 using PurchaseManagement.Module;
 using InventoryManagement.Module;
-using UserManagement.Application.Common.Behaviors;
 using PartyManagement.Module;
 using SalesManagement.Module;
 using WarehouseManagement.Module;
 using ProjectManagement.Module;
 using BudgetManagement.Module;
+using Contracts.Common;
 
 var builder = WebApplication.CreateBuilder(args);
 var environment = builder.Environment.EnvironmentName;
