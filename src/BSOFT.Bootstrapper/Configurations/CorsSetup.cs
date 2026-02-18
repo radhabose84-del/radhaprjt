@@ -1,4 +1,3 @@
-
 namespace BSOFT.Bootstrapper.Configurations
 {
     public static class CorsSetup
@@ -7,10 +6,10 @@ namespace BSOFT.Bootstrapper.Configurations
         {
             services.AddCors(options =>
             {
-                options.AddPolicy("AllowAll", builder =>
+                options.AddPolicy("AllowAll", policy =>
                 {
-                    builder
-                        .AllowAnyOrigin() // In production: replace with .WithOrigins("https://your-frontend.com")
+                    policy
+                        .AllowAnyOrigin()
                         .AllowAnyMethod()
                         .AllowAnyHeader();
                 });

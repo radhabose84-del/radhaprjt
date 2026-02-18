@@ -9,22 +9,23 @@ using PurchaseManagement.Domain.Common;
 using FluentValidation;
 using PurchaseManagement.Presentation.Validation.Common;
 using Shared.Validation.Common;
+using Contracts.Interfaces.Lookups.Workflow;
 
 namespace PurchaseManagement.Presentation.Validation.Quotation.QuotationCompare
 {
     public class CreateQuotationCompareValidator : AbstractValidator<CreateQuoteComparsionCommand>
     {
         private readonly List<ValidationRule> _validationRules;
-        private readonly IWorkflowGrpcClient _workflowGrpcClient;
+        private readonly IWorkflowLookup _workflowLookup;
         private readonly IQuotationCompareCommandRepository _iquotationCompareCommandRepository;
         private readonly IIPAddressService _ipAddressService;
 
         public CreateQuotationCompareValidator(
             IQuotationCompareCommandRepository iquotationCompareCommandRepository,
-            MaxLengthProvider maxLengthProvider, IWorkflowGrpcClient workflowGrpcClient, IIPAddressService iPAddressService)
+            MaxLengthProvider maxLengthProvider, IWorkflowLookup workflowLookup, IIPAddressService iPAddressService)
         {
             _iquotationCompareCommandRepository = iquotationCompareCommandRepository;
-            _workflowGrpcClient = workflowGrpcClient;
+            _workflowLookup = workflowLookup;
             _ipAddressService = iPAddressService;
 
             _validationRules = ValidationRuleLoader.LoadValidationRules();
@@ -36,7 +37,7 @@ namespace PurchaseManagement.Presentation.Validation.Quotation.QuotationCompare
             var UnitId = _ipAddressService.GetUnitId();
             RuleFor(x => new { UnitId })
                             .MustAsync(async (indent, cancellation) =>
-                          await _workflowGrpcClient.IsApproveWorkflowConfigure(MiscEnumEntity.QuotationComparison, indent.UnitId, 0))
+                          await _workflowLookup.IsApproveWorkflowConfigureAsync(MiscEnumEntity.QuotationComparison, indent.UnitId, 0))
                             .WithMessage("Approval Workflow is not configured.");
 
             foreach (var rule in _validationRules)

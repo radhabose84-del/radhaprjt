@@ -7,6 +7,7 @@ using PurchaseManagement.Application.Common.Interfaces.IQuotation.IRfqEntry;
 using PurchaseManagement.Domain.Entities.Quotation.RfqEntry;
 using Microsoft.EntityFrameworkCore;
 using PurchaseManagement.Infrastructure.Data;
+using Contracts.Interfaces.Lookups.Users;
 
 namespace InventoryManagement.Infrastructure.Repositories.Quotation.RfqEntry
 {
@@ -14,13 +15,13 @@ namespace InventoryManagement.Infrastructure.Repositories.Quotation.RfqEntry
     {
         private readonly ApplicationDbContext _db;
         private readonly IIPAddressService _ip;
-        private readonly IUnitGrpcClient _unitGrpcClient;
+        private readonly IUnitLookup _unitLookup;
 
-        public RfqCommandRepository(ApplicationDbContext db, IIPAddressService ip, IUnitGrpcClient unitGrpcClient)
+        public RfqCommandRepository(ApplicationDbContext db, IIPAddressService ip, IUnitLookup unitLookup)
         {
             _db = db;
             _ip = ip;
-            _unitGrpcClient = unitGrpcClient;
+            _unitLookup = unitLookup;
         }
 
         public async Task<int> CreateAsync(RfqMaster rfq, CancellationToken ct = default)
@@ -137,7 +138,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Quotation.RfqEntry
         {
             var unitId = _ip.GetUnitId();
               string unitCode;
-            var Units = await _unitGrpcClient.GetAllUnitAsync();
+            var Units = await _unitLookup.GetAllUnitAsync();
             var UnitLookup = Units.ToDictionary(d => d.UnitId, d => d.ShortName);
 
             if (UnitLookup.TryGetValue(unitId, out var ShortName))

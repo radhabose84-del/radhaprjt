@@ -165,7 +165,7 @@ namespace InventoryManagement.Infrastructure
             services.AddScoped<ITemplateQueryRepository, TemplateQueryRepository>();
             services.AddScoped<ITemplateCommandRepository, TemplateCommandRepository>();
             services.AddScoped<IPutAwayRuleCommandRepository, PutAwayRuleCommandRepository>();
-            // services.AddScoped<IPutAwayRuleQueryRepository, PutAwayRuleQueryRepository>();
+            services.AddScoped<IPutAwayRuleQueryRepository, PutAwayRuleQueryRepository>();
             services.AddScoped<IItemVariantAttributeCommandRepository, ItemVariantAttributeCommandRepository>();
             services.AddScoped<IItemLogQueryRepository, ItemLogQueryRepository>();
             services.AddScoped<IStockLedgerRepository, StockLedgerRepository>();
@@ -182,6 +182,8 @@ namespace InventoryManagement.Infrastructure
             services.AddScoped<IHSNLookup, HSNLookupRepository>();
             services.AddScoped<IWorkflowLookup, WorkflowLookupRepository>();
             services.AddScoped<IItemPurchaseToleranceLookup, ItemPurchaseToleranceLookupRepository>();
+            services.AddScoped<IPutawayRuleLookup, PutawayRuleLookupRepository>();
+            services.AddScoped<IInventoryCategoryLookup, ItemCategoryLookupRepository>();
 
             // Miscellaneous services
             services.AddScoped<IIPAddressService, IPAddressService>();
