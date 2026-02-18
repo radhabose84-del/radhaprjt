@@ -24,8 +24,12 @@ public class GlobalExceptionMiddleware
 
     public async Task Invoke(HttpContext context)
     {
+        var traceId = context.TraceIdentifier;
+        context.Request.EnableBuffering();
+
         try
         {
+            LogRequest(context, traceId);
             await _next(context);
         }
         catch (ValidationException ex)
@@ -42,8 +46,18 @@ public class GlobalExceptionMiddleware
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unhandled exception");
+            _logger.LogError(ex, "TraceId: {TraceId}, Unhandled exception", traceId);
             await HandleException(context, StatusCodes.Status500InternalServerError, "Internal Server Error");
+        }
+    }
+
+    private void LogRequest(HttpContext context, string traceId)
+    {
+        var method = context.Request.Method;
+        if (method == HttpMethods.Get || method == HttpMethods.Post || method == HttpMethods.Put)
+        {
+            _logger.LogInformation("TraceId: {TraceId}, Request Path: {Path}, Method: {Method}",
+                traceId, context.Request.Path, context.Request.Method);
         }
     }
 
