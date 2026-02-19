@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.ChangeTracking;
 using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Domain.Common;
 using SalesManagement.Domain.Entities;
-using SalesManagement.Infrastructure.Data.Configurations;
+
 
 
 namespace SalesManagement.Infrastructure.Data
@@ -22,20 +22,11 @@ namespace SalesManagement.Infrastructure.Data
         }
 
         // ── Employee Master DbSets ──────────────────────────────────────────
-        public DbSet<Designation> DesignationMasters { get; set; }
-        public DbSet<SalesOfficeMaster> SalesOfficeMasters { get; set; }
-        public DbSet<SalesGroupMaster> SalesGroupMasters { get; set; }
-        public DbSet<EmployeeMaster> EmployeeMasters { get; set; }
-        public DbSet<EmployeeSalesGroup> EmployeeSalesGroups { get; set; }
-
+        
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // ── Entity Configurations ───────────────────────────────────────
-            modelBuilder.ApplyConfiguration(new DesignationConfiguration());
-            modelBuilder.ApplyConfiguration(new SalesOfficeMasterConfiguration());
-            modelBuilder.ApplyConfiguration(new SalesGroupMasterConfiguration());
-            modelBuilder.ApplyConfiguration(new EmployeeMasterConfiguration());
-            modelBuilder.ApplyConfiguration(new EmployeeSalesGroupConfiguration());
+            
 
             // Global convention: set explicit precision/scale for all decimal properties
             // This prevents EF Core runtime warnings about silent truncation

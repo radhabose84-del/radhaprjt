@@ -5,7 +5,6 @@ using Microsoft.Extensions.Hosting;
 using SalesManagement.Infrastructure;
 using SalesManagement.Application.Common.Mappings;
 using SalesManagement.Presentation.Validation.Common;
-using SalesManagement.Presentation.Validation.EmployeeMaster;
 using SalesManagement.Application;
 
 namespace SalesManagement.Module
@@ -23,8 +22,7 @@ namespace SalesManagement.Module
             // 2) Application services (MediatR + AutoMapper via reflection)
             services.AddApplicationServices();
 
-            // 3) Validators from Presentation assembly
-            services.AddValidatorsFromAssemblyContaining<CreateEmployeeMasterValidator>();
+         
 
             // 4) Validation helpers
             services.AddScoped<MaxLengthProvider>();
