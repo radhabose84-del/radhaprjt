@@ -7,5 +7,8 @@ namespace SalesManagement.Domain.Entities
     {
         public string SalesChannelCode { get; set; }
         public string SalesChannelName { get; set; }
+
+        // Navigation property for reverse relationship
+        public ICollection<SalesSegment> SalesSegments { get; set; }
     }
 }

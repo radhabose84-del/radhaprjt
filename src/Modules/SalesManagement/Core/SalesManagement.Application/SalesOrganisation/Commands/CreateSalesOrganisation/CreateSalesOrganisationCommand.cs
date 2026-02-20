@@ -9,5 +9,6 @@ namespace SalesManagement.Application.SalesOrganisation.Commands.CreateSalesOrga
         public string SalesOrganisationCode { get; set; }
         public string SalesOrganisationName { get; set; }
         public int CompanyId { get; set; }
+        public string Description { get; set; }
     }
 }

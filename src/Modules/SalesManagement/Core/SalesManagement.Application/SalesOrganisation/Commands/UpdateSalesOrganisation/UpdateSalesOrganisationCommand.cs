@@ -9,6 +9,7 @@ namespace SalesManagement.Application.SalesOrganisation.Commands.UpdateSalesOrga
         public int Id { get; set; }
         public string SalesOrganisationName { get; set; }
         public int CompanyId { get; set; }
+        public string Description { get; set; }
         public int IsActive { get; set; }
     }
 }

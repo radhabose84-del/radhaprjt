@@ -14,6 +14,10 @@ using SalesManagement.Application.Common.Interfaces.ISalesOrganisation;
 using SalesManagement.Infrastructure.Repositories.SalesOrganisation;
 using SalesManagement.Application.Common.Interfaces.ISalesChannel;
 using SalesManagement.Infrastructure.Repositories.SalesChannel;
+using SalesManagement.Application.Common.Interfaces.IBusinessUnit;
+using SalesManagement.Infrastructure.Repositories.BusinessUnit;
+using SalesManagement.Application.Common.Interfaces.ISalesSegment;
+using SalesManagement.Infrastructure.Repositories.SalesSegment;
 using SalesManagement.Infrastructure.Services;
 using Serilog;
 
@@ -111,6 +115,14 @@ namespace SalesManagement.Infrastructure
             // ── Sales Channel Repositories ───────────────────────────────
             services.AddScoped<ISalesChannelCommandRepository, SalesChannelCommandRepository>();
             services.AddScoped<ISalesChannelQueryRepository, SalesChannelQueryRepository>();
+
+            // ── Business Unit Repositories ───────────────────────────────
+            services.AddScoped<IBusinessUnitCommandRepository, BusinessUnitCommandRepository>();
+            services.AddScoped<IBusinessUnitQueryRepository, BusinessUnitQueryRepository>();
+
+            // ── Sales Segment Repositories ───────────────────────────────
+            services.AddScoped<ISalesSegmentCommandRepository, SalesSegmentCommandRepository>();
+            services.AddScoped<ISalesSegmentQueryRepository, SalesSegmentQueryRepository>();
 
             return services;
         }
