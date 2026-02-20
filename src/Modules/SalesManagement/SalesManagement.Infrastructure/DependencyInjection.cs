@@ -12,6 +12,8 @@ using SalesManagement.Infrastructure.Persistence;
 using SalesManagement.Infrastructure.Repositories.AuditLog;
 using SalesManagement.Application.Common.Interfaces.ISalesOrganisation;
 using SalesManagement.Infrastructure.Repositories.SalesOrganisation;
+using SalesManagement.Application.Common.Interfaces.ISalesChannel;
+using SalesManagement.Infrastructure.Repositories.SalesChannel;
 using SalesManagement.Infrastructure.Services;
 using Serilog;
 
@@ -105,6 +107,10 @@ namespace SalesManagement.Infrastructure
             // ── Sales Organisation Repositories ───────────────────────────────
             services.AddScoped<ISalesOrganisationCommandRepository, SalesOrganisationCommandRepository>();
             services.AddScoped<ISalesOrganisationQueryRepository, SalesOrganisationQueryRepository>();
+
+            // ── Sales Channel Repositories ───────────────────────────────
+            services.AddScoped<ISalesChannelCommandRepository, SalesChannelCommandRepository>();
+            services.AddScoped<ISalesChannelQueryRepository, SalesChannelQueryRepository>();
 
             return services;
         }

@@ -768,6 +768,8 @@ All C# files use `#nullable disable` (legacy project setting) — maintain consi
 ### 10. **Autocomplete Filtering**
 Autocomplete MUST filter `WHERE IsActive = 1 AND IsDeleted = 0` — only show active, available records.
 
+First Create Document after confirm code will generate
+
 ---
 
 ## 🎓 Learning Path
