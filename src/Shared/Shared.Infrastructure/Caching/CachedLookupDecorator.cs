@@ -11,7 +11,7 @@ namespace Shared.Infrastructure.Caching;
 /// Uses .NET's DispatchProxy for runtime interception - zero code changes needed in handlers/repositories.
 /// </summary>
 /// <typeparam name="TLookup">The lookup interface type (e.g., IUnitLookup, IUOMLookup)</typeparam>
-public sealed class CachedLookupDecorator<TLookup> : DispatchProxy where TLookup : class
+public class CachedLookupDecorator<TLookup> : DispatchProxy where TLookup : class
 {
     private TLookup _inner = null!;
     private IMemoryCache _cache = null!;

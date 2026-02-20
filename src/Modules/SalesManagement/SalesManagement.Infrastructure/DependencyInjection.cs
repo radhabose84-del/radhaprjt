@@ -7,17 +7,11 @@ using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Driver;
 using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Application.Common.Interfaces.AuditLog;
-using SalesManagement.Application.Common.Interfaces.IDesignation;
-using SalesManagement.Application.Common.Interfaces.ISalesOfficeMaster;
-using SalesManagement.Application.Common.Interfaces.ISalesGroupMaster;
-using SalesManagement.Application.Common.Interfaces.IEmployeeMaster;
 using SalesManagement.Infrastructure.Data;
 using SalesManagement.Infrastructure.Persistence;
 using SalesManagement.Infrastructure.Repositories.AuditLog;
-using SalesManagement.Infrastructure.Repositories.Designation;
-using SalesManagement.Infrastructure.Repositories.SalesOfficeMaster;
-using SalesManagement.Infrastructure.Repositories.SalesGroupMaster;
-using SalesManagement.Infrastructure.Repositories.EmployeeMaster;
+using SalesManagement.Application.Common.Interfaces.ISalesOrganisation;
+using SalesManagement.Infrastructure.Repositories.SalesOrganisation;
 using SalesManagement.Infrastructure.Services;
 using Serilog;
 
@@ -107,14 +101,10 @@ namespace SalesManagement.Infrastructure
             services.AddScoped<ILogQueryService, LogQueryService>();
 
             // ── Employee Master Repositories ────────────────────────────────
-            services.AddScoped<IDesignationCommandRepository, DesignationCommandRepository>();
-            services.AddScoped<IDesignationQueryRepository, DesignationQueryRepository>();
-            services.AddScoped<ISalesOfficeMasterCommandRepository, SalesOfficeMasterCommandRepository>();
-            services.AddScoped<ISalesOfficeMasterQueryRepository, SalesOfficeMasterQueryRepository>();
-            services.AddScoped<ISalesGroupMasterCommandRepository, SalesGroupMasterCommandRepository>();
-            services.AddScoped<ISalesGroupMasterQueryRepository, SalesGroupMasterQueryRepository>();
-            services.AddScoped<IEmployeeMasterCommandRepository, EmployeeMasterCommandRepository>();
-            services.AddScoped<IEmployeeMasterQueryRepository, EmployeeMasterQueryRepository>();
+
+            // ── Sales Organisation Repositories ───────────────────────────────
+            services.AddScoped<ISalesOrganisationCommandRepository, SalesOrganisationCommandRepository>();
+            services.AddScoped<ISalesOrganisationQueryRepository, SalesOrganisationQueryRepository>();
 
             return services;
         }

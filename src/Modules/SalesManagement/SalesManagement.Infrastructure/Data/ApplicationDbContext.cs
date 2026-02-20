@@ -6,6 +6,7 @@ using SalesManagement.Domain.Entities;
 using SalesManagement.Infrastructure.Data.Configurations;
 
 
+
 namespace SalesManagement.Infrastructure.Data
 {
     public class ApplicationDbContext : DbContext
@@ -21,21 +22,14 @@ namespace SalesManagement.Infrastructure.Data
 
         }
 
-        // ── Employee Master DbSets ──────────────────────────────────────────
-        public DbSet<Designation> DesignationMasters { get; set; }
-        public DbSet<SalesOfficeMaster> SalesOfficeMasters { get; set; }
-        public DbSet<SalesGroupMaster> SalesGroupMasters { get; set; }
-        public DbSet<EmployeeMaster> EmployeeMasters { get; set; }
-        public DbSet<EmployeeSalesGroup> EmployeeSalesGroups { get; set; }
+        // ── DbSets ────────────────────────────────────────────────────────────
+        public DbSet<SalesOrganisation> SalesOrganisation { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // ── Entity Configurations ───────────────────────────────────────
-            modelBuilder.ApplyConfiguration(new DesignationConfiguration());
-            modelBuilder.ApplyConfiguration(new SalesOfficeMasterConfiguration());
-            modelBuilder.ApplyConfiguration(new SalesGroupMasterConfiguration());
-            modelBuilder.ApplyConfiguration(new EmployeeMasterConfiguration());
-            modelBuilder.ApplyConfiguration(new EmployeeSalesGroupConfiguration());
+            modelBuilder.ApplyConfiguration(new SalesOrganisationConfiguration());
+
 
             // Global convention: set explicit precision/scale for all decimal properties
             // This prevents EF Core runtime warnings about silent truncation
