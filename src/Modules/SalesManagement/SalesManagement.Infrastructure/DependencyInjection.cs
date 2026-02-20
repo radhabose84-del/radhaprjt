@@ -10,6 +10,8 @@ using SalesManagement.Application.Common.Interfaces.AuditLog;
 using SalesManagement.Infrastructure.Data;
 using SalesManagement.Infrastructure.Persistence;
 using SalesManagement.Infrastructure.Repositories.AuditLog;
+using SalesManagement.Application.Common.Interfaces.ISalesOrganisation;
+using SalesManagement.Infrastructure.Repositories.SalesOrganisation;
 using SalesManagement.Infrastructure.Services;
 using Serilog;
 
@@ -99,7 +101,10 @@ namespace SalesManagement.Infrastructure
             services.AddScoped<ILogQueryService, LogQueryService>();
 
             // ── Employee Master Repositories ────────────────────────────────
-            
+
+            // ── Sales Organisation Repositories ───────────────────────────────
+            services.AddScoped<ISalesOrganisationCommandRepository, SalesOrganisationCommandRepository>();
+            services.AddScoped<ISalesOrganisationQueryRepository, SalesOrganisationQueryRepository>();
 
             return services;
         }
