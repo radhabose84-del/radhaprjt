@@ -8,6 +8,7 @@ namespace SalesManagement.Application.SalesOrganisation.Dto
         public string SalesOrganisationName { get; set; }
         public int CompanyId { get; set; }
         public string CompanyName { get; set; }
+        public string Description { get; set; }
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }
         public int CreatedBy { get; set; }

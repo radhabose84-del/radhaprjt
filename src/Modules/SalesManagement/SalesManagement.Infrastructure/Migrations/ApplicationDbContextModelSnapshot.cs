@@ -22,6 +22,67 @@ namespace SalesManagement.Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("SalesManagement.Domain.Entities.BusinessUnit", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("BusinessUnitCode")
+                        .IsRequired()
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<string>("BusinessUnitName")
+                        .IsRequired()
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BusinessUnitCode")
+                        .IsUnique();
+
+                    b.HasIndex("IsActive");
+
+                    b.HasIndex("IsDeleted");
+
+                    b.ToTable("BusinessUnit", "Sales");
+                });
+
             modelBuilder.Entity("SalesManagement.Domain.Entities.SalesChannel", b =>
                 {
                     b.Property<int>("Id")
@@ -118,6 +179,10 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("varchar(50)")
                         .HasColumnName("CreatedIP");
 
+                    b.Property<string>("Description")
+                        .HasColumnType("varchar(500)")
+                        .HasColumnName("Description");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit")
                         .HasColumnName("IsActive");
@@ -160,6 +225,122 @@ namespace SalesManagement.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("SalesOrganisation", "Sales");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.SalesSegment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BusinessUnitId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("CurrencyId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("SalesChannelId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SalesOrganisationId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SegmentName")
+                        .IsRequired()
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<DateTime?>("ValidFrom")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BusinessUnitId");
+
+                    b.HasIndex("CurrencyId");
+
+                    b.HasIndex("SalesChannelId");
+
+                    b.HasIndex("SalesOrganisationId");
+
+                    b.HasIndex("SalesOrganisationId", "SalesChannelId", "BusinessUnitId")
+                        .IsUnique()
+                        .HasFilter("[IsDeleted] = 0");
+
+                    b.ToTable("SalesSegment", "Sales");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.SalesSegment", b =>
+                {
+                    b.HasOne("SalesManagement.Domain.Entities.BusinessUnit", "BusinessUnit")
+                        .WithMany("SalesSegments")
+                        .HasForeignKey("BusinessUnitId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SalesManagement.Domain.Entities.SalesChannel", "SalesChannel")
+                        .WithMany("SalesSegments")
+                        .HasForeignKey("SalesChannelId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SalesManagement.Domain.Entities.SalesOrganisation", "SalesOrganisation")
+                        .WithMany("SalesSegments")
+                        .HasForeignKey("SalesOrganisationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("BusinessUnit");
+
+                    b.Navigation("SalesChannel");
+
+                    b.Navigation("SalesOrganisation");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.BusinessUnit", b =>
+                {
+                    b.Navigation("SalesSegments");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.SalesChannel", b =>
+                {
+                    b.Navigation("SalesSegments");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.SalesOrganisation", b =>
+                {
+                    b.Navigation("SalesSegments");
                 });
 #pragma warning restore 612, 618
         }

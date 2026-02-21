@@ -31,7 +31,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrganisation
                 {{(string.IsNullOrWhiteSpace(searchTerm) ? "" : "AND (so.SalesOrganisationCode LIKE @Search OR so.SalesOrganisationName LIKE @Search)")}};
 
                 SELECT so.Id, so.SalesOrganisationCode, so.SalesOrganisationName,
-                    so.CompanyId,
+                    so.CompanyId, so.Description,
                     so.IsActive, so.IsDeleted,
                     so.CreatedBy, so.CreatedDate, so.CreatedByName, so.CreatedIP,
                     so.ModifiedBy, so.ModifiedDate, so.ModifiedByName, so.ModifiedIP
@@ -61,7 +61,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrganisation
         {
             const string sql = @"
                 SELECT so.Id, so.SalesOrganisationCode, so.SalesOrganisationName,
-                    so.CompanyId,
+                    so.CompanyId, so.Description,
                     so.IsActive, so.IsDeleted,
                     so.CreatedBy, so.CreatedDate, so.CreatedByName, so.CreatedIP,
                     so.ModifiedBy, so.ModifiedDate, so.ModifiedByName, so.ModifiedIP

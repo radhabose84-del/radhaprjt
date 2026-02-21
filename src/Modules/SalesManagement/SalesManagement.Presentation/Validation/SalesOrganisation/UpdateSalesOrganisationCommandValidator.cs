@@ -28,6 +28,10 @@ namespace SalesManagement.Presentation.Validation.SalesOrganisation
                     await _queryRepository.CompanyExistsAsync(companyId))
                 .WithMessage("CompanyId does not exist in Company Master.")
                 .When(x => x.CompanyId > 0);
+
+            RuleFor(x => x.Description)
+                .MaximumLength(500).WithMessage("Description cannot exceed 500 characters.")
+                .When(x => !string.IsNullOrWhiteSpace(x.Description));
         }
     }
 }

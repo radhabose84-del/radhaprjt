@@ -25,12 +25,16 @@ namespace SalesManagement.Infrastructure.Data
         // ── DbSets ────────────────────────────────────────────────────────────
         public DbSet<SalesOrganisation> SalesOrganisation { get; set; }
         public DbSet<SalesChannel> SalesChannel { get; set; }
+        public DbSet<BusinessUnit> BusinessUnit { get; set; }
+        public DbSet<SalesSegment> SalesSegment { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // ── Entity Configurations ───────────────────────────────────────
             modelBuilder.ApplyConfiguration(new SalesOrganisationConfiguration());
             modelBuilder.ApplyConfiguration(new SalesChannelConfiguration());
+            modelBuilder.ApplyConfiguration(new BusinessUnitConfiguration());
+            modelBuilder.ApplyConfiguration(new SalesSegmentConfiguration());
 
 
             // Global convention: set explicit precision/scale for all decimal properties

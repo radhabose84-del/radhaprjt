@@ -32,6 +32,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrganisation
 
             existingEntity.SalesOrganisationName = entity.SalesOrganisationName;
             existingEntity.CompanyId = entity.CompanyId;
+            existingEntity.Description = entity.Description;
             existingEntity.IsActive = entity.IsActive;
 
             _applicationDbContext.SalesOrganisation.Update(existingEntity);

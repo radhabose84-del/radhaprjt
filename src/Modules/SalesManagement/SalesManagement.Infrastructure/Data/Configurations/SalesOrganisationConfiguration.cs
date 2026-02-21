@@ -44,6 +44,11 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("int")
                 .IsRequired();
 
+            builder.Property(t => t.Description)
+                .HasColumnName("Description")
+                .HasColumnType("varchar(500)")
+                .IsRequired(false);
+
             builder.Property(b => b.IsActive)
                 .HasColumnName("IsActive")
                 .HasColumnType("bit")
