@@ -7,9 +7,9 @@ using static SalesManagement.Domain.Common.BaseEntity;
 
 namespace SalesManagement.Infrastructure.Data.Configurations
 {
-    public class SalesOrganisationConfiguration : IEntityTypeConfiguration<SalesOrganisation>
+    public class SalesOfficeConfiguration : IEntityTypeConfiguration<SalesOffice>
     {
-        public void Configure(EntityTypeBuilder<SalesOrganisation> builder)
+        public void Configure(EntityTypeBuilder<SalesOffice> builder)
         {
             var statusConverter = new ValueConverter<Status, bool>(
                 v => v == Status.Active,
@@ -21,7 +21,7 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 v => v ? IsDelete.Deleted : IsDelete.NotDeleted
             );
 
-            builder.ToTable("SalesOrganisation", "Sales");
+            builder.ToTable("SalesOffice", "Sales");
             builder.HasKey(t => t.Id);
 
             builder.Property(t => t.Id)
@@ -29,23 +29,48 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("int")
                 .IsRequired();
 
-            builder.Property(t => t.SalesOrganisationCode)
-                .HasColumnName("SalesOrganisationCode")
-                .HasColumnType("varchar(20)")
-                .IsRequired();
-
-            builder.Property(t => t.SalesOrganisationName)
-                .HasColumnName("SalesOrganisationName")
+            builder.Property(t => t.SalesOfficeName)
+                .HasColumnName("SalesOfficeName")
                 .HasColumnType("varchar(100)")
                 .IsRequired();
 
-            builder.Property(t => t.CompanyId)
-                .HasColumnName("CompanyId")
+            builder.Property(t => t.SalesOrganisationId)
+                .HasColumnName("SalesOrganisationId")
                 .HasColumnType("int")
                 .IsRequired();
 
-            builder.Property(t => t.Description)
-                .HasColumnName("Description")
+            builder.Property(t => t.CityId)
+                .HasColumnName("CityId")
+                .HasColumnType("int")
+                .IsRequired();
+
+            builder.Property(t => t.Pincode)
+                .HasColumnName("Pincode")
+                .HasColumnType("varchar(20)")
+                .IsRequired(false);
+
+            builder.Property(t => t.Phone)
+                .HasColumnName("Phone")
+                .HasColumnType("varchar(20)")
+                .IsRequired(false);
+
+            builder.Property(t => t.Email)
+                .HasColumnName("Email")
+                .HasColumnType("varchar(200)")
+                .IsRequired(false);
+
+            builder.Property(t => t.ResponsibleManager)
+                .HasColumnName("ResponsibleManager")
+                .HasColumnType("varchar(100)")
+                .IsRequired(false);
+
+            builder.Property(t => t.RegionTerritory)
+                .HasColumnName("RegionTerritory")
+                .HasColumnType("varchar(100)")
+                .IsRequired(false);
+
+            builder.Property(t => t.Address)
+                .HasColumnName("Address")
                 .HasColumnType("varchar(500)")
                 .IsRequired(false);
 
@@ -70,9 +95,18 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             builder.Property(t => t.ModifiedByName).HasColumnName("ModifiedByName").HasColumnType("varchar(100)");
             builder.Property(t => t.ModifiedIP).HasColumnName("ModifiedIP").HasColumnType("varchar(50)");
 
-            builder.HasIndex(t => t.SalesOrganisationCode).IsUnique();
-            builder.HasIndex(t => t.CompanyId);
-            // Relationship to SalesOffices configured on dependent side (SalesOfficeConfiguration)
+            // Composite unique index: SalesOfficeName unique within SalesOrganisation (BR-2)
+            builder.HasIndex(t => new { t.SalesOrganisationId, t.SalesOfficeName }).IsUnique();
+            builder.HasIndex(t => t.SalesOrganisationId);
+            builder.HasIndex(t => t.CityId);
+
+            // FK: SalesOffice → SalesOrganisation (same module, Sales schema)
+            builder.HasOne(t => t.SalesOrganisation)
+                .WithMany(o => o.SalesOffices)
+                .HasForeignKey(t => t.SalesOrganisationId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // CityId is cross-module (UserManagement) — no FK constraint
         }
     }
 }
