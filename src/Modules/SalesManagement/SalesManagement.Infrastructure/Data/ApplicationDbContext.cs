@@ -28,6 +28,7 @@ namespace SalesManagement.Infrastructure.Data
         public DbSet<BusinessUnit> BusinessUnit { get; set; }
         public DbSet<SalesSegment> SalesSegment { get; set; }
         public DbSet<SalesOffice> SalesOffice { get; set; }
+        public DbSet<SalesGroup> SalesGroup { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -37,6 +38,7 @@ namespace SalesManagement.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new BusinessUnitConfiguration());
             modelBuilder.ApplyConfiguration(new SalesSegmentConfiguration());
             modelBuilder.ApplyConfiguration(new SalesOfficeConfiguration());
+            modelBuilder.ApplyConfiguration(new SalesGroupConfiguration());
 
 
             // Global convention: set explicit precision/scale for all decimal properties

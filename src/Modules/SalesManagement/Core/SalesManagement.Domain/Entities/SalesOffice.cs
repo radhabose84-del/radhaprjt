@@ -15,7 +15,8 @@ namespace SalesManagement.Domain.Entities
         public string RegionTerritory { get; set; }
         public string Address { get; set; }
 
-        // Navigation property
+        // Navigation properties
         public SalesOrganisation SalesOrganisation { get; set; }
+        public ICollection<SalesGroup> SalesGroups { get; set; }
     }
 }
