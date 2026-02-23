@@ -18,6 +18,8 @@ using SalesManagement.Application.Common.Interfaces.IBusinessUnit;
 using SalesManagement.Infrastructure.Repositories.BusinessUnit;
 using SalesManagement.Application.Common.Interfaces.ISalesSegment;
 using SalesManagement.Infrastructure.Repositories.SalesSegment;
+using SalesManagement.Application.Common.Interfaces.ISalesOffice;
+using SalesManagement.Infrastructure.Repositories.SalesOffice;
 using SalesManagement.Infrastructure.Services;
 using Serilog;
 
@@ -123,6 +125,10 @@ namespace SalesManagement.Infrastructure
             // ── Sales Segment Repositories ───────────────────────────────
             services.AddScoped<ISalesSegmentCommandRepository, SalesSegmentCommandRepository>();
             services.AddScoped<ISalesSegmentQueryRepository, SalesSegmentQueryRepository>();
+
+            // ── Sales Office Repositories ───────────────────────────────
+            services.AddScoped<ISalesOfficeCommandRepository, SalesOfficeCommandRepository>();
+            services.AddScoped<ISalesOfficeQueryRepository, SalesOfficeQueryRepository>();
 
             return services;
         }

@@ -10,7 +10,8 @@ namespace SalesManagement.Domain.Entities
         public int CompanyId { get; set; }
         public string Description { get; set; }
 
-        // Navigation property for reverse relationship
+        // Navigation properties for reverse relationships
         public ICollection<SalesSegment> SalesSegments { get; set; }
+        public ICollection<SalesOffice> SalesOffices { get; set; }
     }
 }
