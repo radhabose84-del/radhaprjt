@@ -25,7 +25,6 @@ using Microsoft.Extensions.Logging;
 namespace UserManagement.Presentation.Controllers
 {
     [Route("api/[controller]")]
-    [ApiController]
 
     public class UserController : ApiControllerBase
     {

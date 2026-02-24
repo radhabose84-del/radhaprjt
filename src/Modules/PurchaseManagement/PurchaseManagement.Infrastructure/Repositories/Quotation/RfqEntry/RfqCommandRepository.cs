@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using PurchaseManagement.Infrastructure.Data;
 using Contracts.Interfaces.Lookups.Users;
 
-namespace InventoryManagement.Infrastructure.Repositories.Quotation.RfqEntry
+namespace PurchaseManagement.Infrastructure.Repositories.Quotation.RfqEntry
 {
     public class RfqCommandRepository :  IRfqCommandRepository
     {

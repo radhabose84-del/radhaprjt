@@ -17,12 +17,11 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace InventoryManagement.Presentation.Controllers.Item
 {
-    [ApiController]
     [Route("api/[controller]")]
-    public sealed class ItemMasterController : ControllerBase
+    public sealed class ItemMasterController : ApiControllerBase
     {
         private readonly IMediator _mediator;
-        public ItemMasterController(IMediator mediator) => _mediator = mediator;
+        public ItemMasterController(IMediator mediator) : base(mediator) => _mediator = mediator;
 
         // GET: /api/ItemMaster
         [HttpGet]

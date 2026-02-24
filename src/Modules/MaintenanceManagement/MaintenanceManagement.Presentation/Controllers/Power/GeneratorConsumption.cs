@@ -15,7 +15,6 @@ using Microsoft.Extensions.Logging;
 
 namespace MaintenanceManagement.Presentation.Controllers.Power
 {
-    [ApiController]
     [Route("api/[controller]")]
     public class GeneratorConsumption : ApiControllerBase
     {

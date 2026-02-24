@@ -1,11 +1,15 @@
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace UserManagement.Presentation.Controllers
 {
-    [ApiController]
     [Route("api/[controller]")]
-    public class HealthController : ControllerBase
+    public class HealthController : ApiControllerBase
     {
+        public HealthController(ISender mediator) : base(mediator)
+        {
+        }
+
         [HttpGet]
         public IActionResult Get()
         {

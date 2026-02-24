@@ -15,12 +15,11 @@ using Microsoft.AspNetCore.Http;
 namespace BudgetManagement.Presentation.Controllers
 {
     [Route("api/[controller]")]
-    [ApiController]
-    public class BudgetGroupController : ControllerBase
+    public class BudgetGroupController : ApiControllerBase
     {
         private readonly IMediator _mediator;
 
-        public BudgetGroupController(IMediator mediator)
+        public BudgetGroupController(IMediator mediator) : base(mediator)
         {
             _mediator = mediator;
         }

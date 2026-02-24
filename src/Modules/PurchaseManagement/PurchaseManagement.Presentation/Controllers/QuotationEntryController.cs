@@ -15,12 +15,11 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace PurchaseManagement.Presentation.Controllers
 {
-    [ApiController]
     [Route("api/[controller]")]
-    public class QuotationEntryController : ControllerBase
+    public class QuotationEntryController : ApiControllerBase
     {
         private readonly IMediator _mediator;
-        public QuotationEntryController(IMediator mediator) => _mediator = mediator;
+        public QuotationEntryController(IMediator mediator) : base(mediator) => _mediator = mediator;
         [HttpGet]
 
         [HttpGet("GetAll")]

@@ -11,12 +11,11 @@ using Microsoft.AspNetCore.Http;
 
 namespace PurchaseManagement.Presentation.Controllers
 {
-    [ApiController]
     [Route("api/[controller]")]
-    public class DutyMasterController : ControllerBase
+    public class DutyMasterController : ApiControllerBase
     {
         private readonly IMediator _mediator;
-        public DutyMasterController(IMediator mediator) => _mediator = mediator;
+        public DutyMasterController(IMediator mediator) : base(mediator) => _mediator = mediator;
 
         [HttpGet]
         public async Task<IActionResult> GetAll(

@@ -9,12 +9,11 @@ using Microsoft.AspNetCore.Http;
 namespace PurchaseManagement.Presentation.Controllers
 {
 
-    [ApiController]
     [Route("api/[controller]")]
-    public class QuotationCompareController : ControllerBase
+    public class QuotationCompareController : ApiControllerBase
     {
         private readonly IMediator _mediator;
-        public QuotationCompareController(IMediator mediator) => _mediator = mediator;
+        public QuotationCompareController(IMediator mediator) : base(mediator) => _mediator = mediator;
 
         [HttpGet("comparison/{rfqId}")]
         [ActionName(nameof(GetComparisonAsync))]

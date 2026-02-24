@@ -16,7 +16,6 @@ using Microsoft.AspNetCore.Http;
 namespace PurchaseManagement.Presentation.Controllers.Issue
 {
 
-    [ApiController]
     [Route("api/purchase/[controller]")]
     public class IssueController : ApiControllerBase
     {

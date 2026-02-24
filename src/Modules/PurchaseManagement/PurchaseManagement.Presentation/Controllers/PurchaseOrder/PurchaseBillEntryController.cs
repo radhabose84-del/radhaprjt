@@ -10,9 +10,8 @@ using Microsoft.AspNetCore.Http;
 
 namespace PurchaseManagement.Presentation.Controllers.PurchaseOrder
 {
-    [ApiController]
     [Route("api/[controller]")]
-    
+
     public class PurchaseBillEntryController : ApiControllerBase  
     {
         

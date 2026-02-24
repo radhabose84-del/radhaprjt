@@ -19,29 +19,29 @@ using Microsoft.AspNetCore.Http;
 
 namespace UserManagement.Presentation.Controllers
 {
-    [ApiController]
     [Route("api/[controller]")]
 
-    public class AuthController : ControllerBase
+    public class AuthController : ApiControllerBase
     {
-        
-        private readonly IMediator _mediator;        
+
+        private readonly IMediator _mediator;
         private readonly IValidator<UserLoginCommand> _userLoginCommandValidator;
         private readonly ILogger<AuthController> _logger;
-        private readonly IUserSessionRepository _userSessionRepository;        
+        private readonly IUserSessionRepository _userSessionRepository;
         private readonly IUserQueryRepository _userQueryRepository;
         private readonly ITimeZoneService _timeZoneService;
         private readonly IValidator<DeactivateUserSessionCommand> _deactivateUserSessionCommandValidator;
 
         public AuthController(IMediator mediator,IValidator<UserLoginCommand> userLoginCommandValidator,  ILogger<AuthController> logger,IUserSessionRepository userSessionRepository, IUserQueryRepository userQueryRepository, ITimeZoneService timeZoneService, IValidator<DeactivateUserSessionCommand> deactivateUserSessionCommandValidator)
+        : base(mediator)
         {
             _mediator = mediator;
             _userLoginCommandValidator = userLoginCommandValidator;
             _logger = logger;
-            _userSessionRepository = userSessionRepository;            
-            _userQueryRepository = userQueryRepository; 
-            _timeZoneService = timeZoneService; 
-            _deactivateUserSessionCommandValidator = deactivateUserSessionCommandValidator;          
+            _userSessionRepository = userSessionRepository;
+            _userQueryRepository = userQueryRepository;
+            _timeZoneService = timeZoneService;
+            _deactivateUserSessionCommandValidator = deactivateUserSessionCommandValidator;
         }
 
         [HttpPost("login")]

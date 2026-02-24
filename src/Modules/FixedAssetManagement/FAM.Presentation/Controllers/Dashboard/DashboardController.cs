@@ -6,10 +6,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FAM.Presentation.Controllers.Dashboard
-{ 
-    [ApiController]    
+{
     [Route("api/fam/[controller]")]
-    public class DashboardController : ControllerBase
+    public class DashboardController : ApiControllerBase
     {
         private readonly IDashboardQueryRepository _dashboardQueryRepository;
         private readonly IHttpContextAccessor _httpContextAccessor;
@@ -17,6 +16,7 @@ namespace FAM.Presentation.Controllers.Dashboard
 
 
         public DashboardController(IDashboardQueryRepository dashboardQueryRepository, IHttpContextAccessor httpContextAccessor, IMediator mediator)
+            : base(mediator)
         {
             _dashboardQueryRepository = dashboardQueryRepository;
             _httpContextAccessor = httpContextAccessor;

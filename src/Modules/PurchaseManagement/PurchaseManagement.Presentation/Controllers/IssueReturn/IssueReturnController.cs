@@ -15,7 +15,6 @@ using Microsoft.AspNetCore.Http;
 
 namespace PurchaseManagement.Presentation.Controllers.IssueReturn
 {
-    [ApiController]
     [Route("api/[controller]")]
     public class IssueReturnController : ApiControllerBase
     {

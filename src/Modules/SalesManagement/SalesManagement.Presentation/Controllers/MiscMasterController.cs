@@ -1,0 +1,113 @@
+#nullable disable
+using MediatR;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using SalesManagement.Application.MiscMaster.Commands.CreateMiscMaster;
+using SalesManagement.Application.MiscMaster.Commands.UpdateMiscMaster;
+using SalesManagement.Application.MiscMaster.Commands.DeleteMiscMaster;
+using SalesManagement.Application.MiscMaster.Queries.GetAllMiscMaster;
+using SalesManagement.Application.MiscMaster.Queries.GetMiscMasterById;
+using SalesManagement.Application.MiscMaster.Queries.GetMiscMasterAutoComplete;
+
+namespace SalesManagement.Presentation.Controllers
+{
+    [Route("api/sales/[controller]")]
+    public class MiscMasterController : ApiControllerBase
+    {
+        public MiscMasterController(IMediator mediator) : base(mediator) { }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAllMiscMasterAsync(
+            [FromQuery] int PageNumber,
+            [FromQuery] int PageSize,
+            [FromQuery] string SearchTerm = null,
+            [FromQuery] int? MiscTypeId = null)
+        {
+            var result = await Mediator.Send(new GetAllMiscMasterQuery
+            {
+                PageNumber = PageNumber,
+                PageSize = PageSize,
+                SearchTerm = SearchTerm,
+                MiscTypeId = MiscTypeId
+            });
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result.Data,
+                TotalCount = result.TotalCount,
+                PageNumber = result.PageNumber,
+                PageSize = result.PageSize
+            });
+        }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetMiscMasterByIdAsync(int id)
+        {
+            var result = await Mediator.Send(new GetMiscMasterByIdQuery { Id = id });
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                isSuccess = result.IsSuccess,
+                message = result.Message,
+                data = result.Data
+            });
+        }
+
+        [HttpGet("by-name")]
+        public async Task<IActionResult> GetMiscMasterAutoCompleteAsync(
+            [FromQuery] string term = null,
+            [FromQuery] int? miscTypeId = null)
+        {
+            var result = await Mediator.Send(new GetMiscMasterAutoCompleteQuery(term ?? string.Empty, miscTypeId));
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result
+            });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateMiscMaster([FromBody] CreateMiscMasterCommand command)
+        {
+            var result = await Mediator.Send(command);
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                isSuccess = result.IsSuccess,
+                message = result.Message,
+                data = result.Data
+            });
+        }
+
+        [HttpPut]
+        public async Task<IActionResult> UpdateMiscMaster([FromBody] UpdateMiscMasterCommand command)
+        {
+            var result = await Mediator.Send(command);
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                isSuccess = result.IsSuccess,
+                message = result.Message,
+                data = result.Data
+            });
+        }
+
+        [HttpDelete]
+        public async Task<IActionResult> DeleteMiscMaster(int id)
+        {
+            var result = await Mediator.Send(new DeleteMiscMasterCommand(id));
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                isSuccess = result,
+                message = result ? "Misc Master deleted successfully." : "Failed to delete Misc Master."
+            });
+        }
+    }
+}

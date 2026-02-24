@@ -6,9 +6,8 @@ using Microsoft.AspNetCore.Http;
 
 namespace PartyManagement.Presentation.Controllers
 {
-    [ApiController]
     [Route("api/party/[controller]")]
-    
+
     public class AuditLogController : ApiControllerBase
     {       
          

@@ -16,13 +16,12 @@ using Microsoft.AspNetCore.Http;
 
 namespace PurchaseManagement.Presentation.Controllers
 {
-    [ApiController]
     [Route("api/[controller]")]
-    public class GateEntryController : ControllerBase
+    public class GateEntryController : ApiControllerBase
     {
         private readonly IMediator _mediator;
 
-        public GateEntryController(IMediator mediator) => _mediator = mediator;
+        public GateEntryController(IMediator mediator) : base(mediator) => _mediator = mediator;
 
         [HttpPost]
         public async Task<IActionResult> CreateAsync(CreateGateEntryCommand createGateEntryCommand)

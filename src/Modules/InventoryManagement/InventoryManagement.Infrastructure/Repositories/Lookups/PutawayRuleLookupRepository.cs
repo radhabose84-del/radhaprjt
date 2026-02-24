@@ -12,7 +12,7 @@ using InventoryManagement.Application.Common.Interfaces.Item.PutAway;
 
 namespace InventoryManagement.Infrastructure.Repositories.Lookups
 {
-    public class PutawayRuleLookupRepository : IPutawayRuleLookup
+    internal sealed class PutawayRuleLookupRepository : IPutawayRuleLookup
     {
         private readonly IPutAwayRuleQueryRepository _putAwayRuleQueryRepository;
 

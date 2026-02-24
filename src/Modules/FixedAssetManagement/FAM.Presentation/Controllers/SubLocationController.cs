@@ -18,7 +18,6 @@ using Microsoft.Extensions.Logging;
 
 namespace FAM.Presentation.Controllers
 {
-    [ApiController]
     [Route("api/[controller]")]
     public class SubLocationController : ApiControllerBase
     {

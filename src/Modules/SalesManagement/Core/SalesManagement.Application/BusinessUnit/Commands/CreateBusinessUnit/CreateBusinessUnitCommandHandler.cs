@@ -1,5 +1,6 @@
 #nullable disable
 
+using AutoMapper;
 using Contracts.Common;
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.IBusinessUnit;
@@ -10,28 +11,30 @@ namespace SalesManagement.Application.BusinessUnit.Commands.CreateBusinessUnit
     public class CreateBusinessUnitCommandHandler : IRequestHandler<CreateBusinessUnitCommand, ApiResponseDTO<int>>
     {
         private readonly IBusinessUnitCommandRepository _commandRepository;
+        private readonly IBusinessUnitQueryRepository _queryRepository;
         private readonly IMediator _mediator;
+        private readonly IMapper _mapper;
 
         public CreateBusinessUnitCommandHandler(
             IBusinessUnitCommandRepository commandRepository,
-            IMediator mediator)
+            IBusinessUnitQueryRepository queryRepository,
+            IMediator mediator,
+            IMapper mapper)
         {
             _commandRepository = commandRepository;
+            _queryRepository = queryRepository;
             _mediator = mediator;
+            _mapper = mapper;
         }
 
         public async Task<ApiResponseDTO<int>> Handle(CreateBusinessUnitCommand request, CancellationToken cancellationToken)
         {
-            var businessUnit = new Domain.Entities.BusinessUnit
-            {
-                BusinessUnitCode = request.BusinessUnitCode,
-                BusinessUnitName = request.BusinessUnitName,
-                Description = request.Description
-            };
+            var entity = _mapper.Map<Domain.Entities.BusinessUnit>(request);
+            entity.IsActive = Domain.Common.BaseEntity.Status.Active;
+            entity.IsDeleted = Domain.Common.BaseEntity.IsDelete.NotDeleted;
 
-            var newId = await _commandRepository.CreateAsync(businessUnit);
+            var newId = await _commandRepository.CreateAsync(entity);
 
-            // Publish audit log event
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Create",
                 actionCode: "BUSINESSUNIT_CREATE",
@@ -44,7 +47,7 @@ namespace SalesManagement.Application.BusinessUnit.Commands.CreateBusinessUnit
             return new ApiResponseDTO<int>
             {
                 IsSuccess = true,
-                Message = "Business Unit created successfully",
+                Message = "Business Unit created successfully.",
                 Data = newId
             };
         }

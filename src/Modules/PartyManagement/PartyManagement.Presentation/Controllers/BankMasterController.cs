@@ -10,12 +10,11 @@ using Microsoft.AspNetCore.Http;
 
 namespace PartyManagement.Presentation.Controllers;
 
-[ApiController]
 [Route("api/[controller]")]
-public class BankMasterController : ControllerBase
+public class BankMasterController : ApiControllerBase
 {
     private readonly ISender _mediator;
-    public BankMasterController(ISender mediator) => _mediator = mediator;
+    public BankMasterController(ISender mediator) : base(mediator) => _mediator = mediator;
 
     // GET: api/BankMaster
     [HttpGet]

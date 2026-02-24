@@ -19,8 +19,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace ProjectManagement.Presentation.Controllers
 {
-    [ApiController]
-     [Route("api/project/[controller]")]
+    [Route("api/project/[controller]")]
 
     public class MiscMasterController  : ApiControllerBase
     {

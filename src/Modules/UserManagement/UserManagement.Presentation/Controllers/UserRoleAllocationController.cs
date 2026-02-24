@@ -10,9 +10,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace UserManagement.Presentation.Controllers
 {
-    [ApiController]
     [Route("api/[controller]")]
-    
+
     public class UserRoleAllocationController : ApiControllerBase
     {
         public UserRoleAllocationController(ISender mediator) : base(mediator)

@@ -1,7 +1,6 @@
 #nullable disable
 
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SalesManagement.Application.BusinessUnit.Commands.CreateBusinessUnit;
@@ -13,7 +12,6 @@ using SalesManagement.Application.BusinessUnit.Queries.GetBusinessUnitById;
 
 namespace SalesManagement.Presentation.Controllers
 {
-    [Authorize]
     [Route("api/[controller]")]
     public class BusinessUnitController : ApiControllerBase
     {
@@ -56,7 +54,7 @@ namespace SalesManagement.Presentation.Controllers
             });
         }
 
-        [HttpGet("autocomplete")]
+        [HttpGet("by-name")]
         public async Task<IActionResult> GetBusinessUnitAutoCompleteAsync([FromQuery] string term = null)
         {
             var result = await Mediator.Send(new GetBusinessUnitAutoCompleteQuery(term));
@@ -68,12 +66,9 @@ namespace SalesManagement.Presentation.Controllers
             });
         }
 
-        [HttpPost("create")]
+        [HttpPost]
         public async Task<IActionResult> CreateBusinessUnit([FromBody] CreateBusinessUnitCommand command)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
             var result = await Mediator.Send(command);
 
             return Ok(new
@@ -85,12 +80,9 @@ namespace SalesManagement.Presentation.Controllers
             });
         }
 
-        [HttpPut("update")]
+        [HttpPut]
         public async Task<IActionResult> UpdateBusinessUnit([FromBody] UpdateBusinessUnitCommand command)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
             var result = await Mediator.Send(command);
 
             return Ok(new
@@ -102,7 +94,7 @@ namespace SalesManagement.Presentation.Controllers
             });
         }
 
-        [HttpDelete("delete/{id}")]
+        [HttpDelete]
         public async Task<IActionResult> DeleteBusinessUnit(int id)
         {
             var result = await Mediator.Send(new DeleteBusinessUnitCommand(id));
@@ -111,7 +103,7 @@ namespace SalesManagement.Presentation.Controllers
             {
                 StatusCode = StatusCodes.Status200OK,
                 isSuccess = result,
-                message = result ? "Business Unit deleted successfully" : "Failed to delete Business Unit"
+                message = result ? "Business Unit deleted successfully." : "Failed to delete Business Unit."
             });
         }
     }

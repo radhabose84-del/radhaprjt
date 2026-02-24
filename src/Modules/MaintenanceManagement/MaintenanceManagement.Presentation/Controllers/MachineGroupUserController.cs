@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace MaintenanceManagement.Presentation.Controllers
 {
-    [ApiController]
     [Route("api/[controller]")]
     public class MachineGroupUserController  : ApiControllerBase
     {

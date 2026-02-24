@@ -12,12 +12,11 @@ using Microsoft.AspNetCore.Http;
 
 namespace PartyManagement.Presentation.Controllers;
 
-[ApiController]
 [Route("api/[controller]")]
-public class BankAccountController : ControllerBase
+public class BankAccountController : ApiControllerBase
 {
     private readonly ISender _mediator;
-    public BankAccountController(ISender mediator) => _mediator = mediator;
+    public BankAccountController(ISender mediator) : base(mediator) => _mediator = mediator;
 
     [HttpGet]
     public async Task<IActionResult> GetAllBankAccountsAsync(

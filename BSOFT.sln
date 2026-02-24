@@ -146,6 +146,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "UserManagement", "UserManag
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UserManagement.Presentation", "src\Modules\UserManagement\UserManagement.Presentation\UserManagement.Presentation.csproj", "{CC6DD8FC-0109-4F55-9BA0-78CEBC41DA59}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{64D09F85-7AA6-420E-B2A7-D79253998E18}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SalesManagement.UnitTests", "src\tests\SalesManagement.UnitTests\SalesManagement.UnitTests.csproj", "{5D5784FF-90C8-49B0-8CDC-B094C2A35EA5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SalesManagement.IntegrationTests", "src\tests\SalesManagement.IntegrationTests\SalesManagement.IntegrationTests.csproj", "{6170E121-758B-43FC-9740-2C911338B195}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -360,6 +366,14 @@ Global
 		{CC6DD8FC-0109-4F55-9BA0-78CEBC41DA59}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CC6DD8FC-0109-4F55-9BA0-78CEBC41DA59}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CC6DD8FC-0109-4F55-9BA0-78CEBC41DA59}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5D5784FF-90C8-49B0-8CDC-B094C2A35EA5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5D5784FF-90C8-49B0-8CDC-B094C2A35EA5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5D5784FF-90C8-49B0-8CDC-B094C2A35EA5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5D5784FF-90C8-49B0-8CDC-B094C2A35EA5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6170E121-758B-43FC-9740-2C911338B195}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6170E121-758B-43FC-9740-2C911338B195}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6170E121-758B-43FC-9740-2C911338B195}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6170E121-758B-43FC-9740-2C911338B195}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{797F6419-CC8D-46D7-AEB3-334FCBA111E0} = {20F0B297-DD7E-436B-A300-D487885AEA89}
@@ -429,6 +443,9 @@ Global
 		{BEE75783-90A8-467E-9058-69CCD420BA0C} = {CD38BA58-24EE-45BC-A08D-BDE0548EA1FE}
 		{0617F1CB-1C77-4AE5-B64D-15A96430CE81} = {797F6419-CC8D-46D7-AEB3-334FCBA111E0}
 		{CC6DD8FC-0109-4F55-9BA0-78CEBC41DA59} = {0617F1CB-1C77-4AE5-B64D-15A96430CE81}
+		{64D09F85-7AA6-420E-B2A7-D79253998E18} = {20F0B297-DD7E-436B-A300-D487885AEA89}
+		{5D5784FF-90C8-49B0-8CDC-B094C2A35EA5} = {64D09F85-7AA6-420E-B2A7-D79253998E18}
+		{6170E121-758B-43FC-9740-2C911338B195} = {64D09F85-7AA6-420E-B2A7-D79253998E18}
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -4,13 +4,13 @@ using PurchaseManagement.Application.ExchangeRate.Queries.GetRateByDate;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
+using PurchaseManagement.Presentation.Controllers;
 
-[ApiController]
 [Route("api/[controller]")]
-public sealed class ExchangeRateController : ControllerBase
+public sealed class ExchangeRateController : ApiControllerBase
 {
     private readonly IMediator _mediator;
-    public ExchangeRateController(IMediator mediator) => _mediator = mediator;
+    public ExchangeRateController(IMediator mediator) : base(mediator) => _mediator = mediator;
 
     [HttpPost]
             /*     {

@@ -22,7 +22,12 @@ using SalesManagement.Application.Common.Interfaces.ISalesOffice;
 using SalesManagement.Infrastructure.Repositories.SalesOffice;
 using SalesManagement.Application.Common.Interfaces.ISalesGroup;
 using SalesManagement.Infrastructure.Repositories.SalesGroup;
-using SalesManagement.Infrastructure.Services;
+using SalesManagement.Application.Common.Interfaces.ISalesItemPriceMaster;
+using SalesManagement.Infrastructure.Repositories.SalesItemPriceMaster;
+using SalesManagement.Application.Common.Interfaces.IMiscTypeMaster;
+using SalesManagement.Infrastructure.Repositories.MiscTypeMaster;
+using SalesManagement.Application.Common.Interfaces.IMiscMaster;
+using SalesManagement.Infrastructure.Repositories.MiscMaster;using SalesManagement.Infrastructure.Services;
 using Serilog;
 
 
@@ -30,9 +35,9 @@ namespace SalesManagement.Infrastructure
 {
     public static class DependencyInjection
     {
-        public static IServiceCollection AddSalesInfrastructure(
+        public static IServiceCollection AddSalesInfrastructureServices(
             this IServiceCollection services,
-            IConfiguration configuration)
+            IConfiguration configuration,, IHostEnvironment env)
         {
             var connectionString = configuration.GetConnectionString("DefaultConnection")
                                                 .Replace("{SERVER}", Environment.GetEnvironmentVariable("DATABASE_SERVER") ?? "")
@@ -135,6 +140,17 @@ namespace SalesManagement.Infrastructure
             // ── Sales Group Repositories ─────────────────────────────────
             services.AddScoped<ISalesGroupCommandRepository, SalesGroupCommandRepository>();
             services.AddScoped<ISalesGroupQueryRepository, SalesGroupQueryRepository>();
+  			// ── Sales Item Price Master Repositories ─────────────────────
+            services.AddScoped<ISalesItemPriceMasterCommandRepository, SalesItemPriceMasterCommandRepository>();
+            services.AddScoped<ISalesItemPriceMasterQueryRepository, SalesItemPriceMasterQueryRepository>();
+
+            // ── Misc Type Master Repositories ─────────────────────────────
+            services.AddScoped<IMiscTypeMasterCommandRepository, MiscTypeMasterCommandRepository>();
+            services.AddScoped<IMiscTypeMasterQueryRepository, MiscTypeMasterQueryRepository>();
+
+            // ── Misc Master Repositories ──────────────────────────────────
+            services.AddScoped<IMiscMasterCommandRepository, MiscMasterCommandRepository>();
+            services.AddScoped<IMiscMasterQueryRepository, MiscMasterQueryRepository>();
 
             return services;
         }

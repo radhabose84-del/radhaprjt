@@ -26,17 +26,13 @@ using Serilog;
 using Contracts.Interfaces.Lookups.Workflow;
 using PurchaseManagement.Application.Common.Interfaces.IPaymentTermMaster;
 using PurchaseManagement.Infrastructure.Repositories.PaymentTermMaster;
-// using InventoryManagement.Infrastructure.Repositories.Quotation.RfqEntry;
-// using PurchaseManagement.Infrastructure.Repositories.Quotation.QuotationEntry;
 using PurchaseManagement.Application.Common.Interfaces.ITnCTemplateMaster;
 using PurchaseManagement.Infrastructure.Repositories.TncTemplateMaster;
-// using PurchaseManagement.Application.Common.Interfaces.IQuotation.IRfqEntry;
 using PurchaseManagement.Application.Common.Interfaces.IQuotation.IQuotationEntry;
 using PurchaseManagement.Application.Common.Interfaces.IQuotation.IQuotationCompare;
 using PurchaseManagement.Infrastructure.Repositories.Quotation.QuotationCompare;
 using PurchaseManagement.Application.Common.Mappings.Quotation;
 using PurchaseManagement.Application.Common.Interfaces.PriceMaster;
-// using PurchaseManagement.Infrastructure.PurchaseOrder.Local;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.Local;
 using PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.Local;
 using PurchaseManagement.Application.Common.Interfaces.IGRN.IGateEntry;
@@ -61,7 +57,6 @@ using PurchaseManagement.Application.Common.Mappings.Issue;
 using PurchaseManagement.Application.Common.Interfaces.IIssue;
 using PurchaseManagement.Infrastructure.Repositories.Issue;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.ServicePO;
-// using PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.ServicePO;
 using PurchaseManagement.Application.Common.Mappings.PurchaseOrder;
 using PurchaseManagement.Application.External;
 using PurchaseManagement.Application.ExchangeRate.Interfaces;
@@ -71,7 +66,6 @@ using PurchaseManagement.Application.Common.Interfaces.IPortMaster;
 using PurchaseManagement.Infrastructure.Repositories.Port;
 using PurchaseManagement.Application.Common.Mappings.MRS;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.ImportPO;
-// using PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.ImportPO;
 using PurchaseManagement.Application.Common.Interfaces.IPurchase.DutyMaster;
 using PurchaseManagement.Infrastructure.Repositories.DutyMaster;
 using PurchaseManagement.Infrastructure.Repositories.Lookups.Workflow;
@@ -86,7 +80,6 @@ using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.IPurchaseD
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.IBillEntry;
 using PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.BillEntry;
 using Microsoft.Extensions.Hosting;
-using InventoryManagement.Infrastructure.Repositories.Quotation.RfqEntry;
 using PurchaseManagement.Application.Common.Interfaces.IQuotation.IRfqEntry;
 using PurchaseManagement.Infrastructure.Repositories.Quotation.QuotationEntry;
 using PurchaseManagement.Infrastructure.Repositories.Quotation.RfqEntry;
@@ -100,7 +93,9 @@ using PurchaseManagement.Application.Common.Interfaces.IOutbox;
 using PurchaseManagement.Infrastructure.Repositories.Outbox;
 using PurchaseManagement.Infrastructure.Services.Outbox;
 using Contracts.Interfaces.Lookups.Inventory;
+using Contracts.Interfaces.Lookups.Purchase;
 using PurchaseManagement.Infrastructure.Repositories.Lookups;
+using PurchaseManagement.Infrastructure.Repositories.Lookups.Purchase;
 
 
 
@@ -246,6 +241,7 @@ namespace PurchaseManagement.Infrastructure
             services.AddScoped<IDutyMasterCommandRepository, DutyMasterCommandRepository>();
             services.AddScoped<IWorkflowLookup, WorkflowLookupRepository>();
             services.AddScoped<IStockLedgerLookup, StockLedgerLookupRepository>();
+            services.AddScoped<IPaymentTermLookup, PaymentTermLookupRepository>();
 
             services.AddScoped<IPoMethodLookup, PoMethodLookup>();
             services.AddScoped<IPODocumentQueryRepository, PODocumentQueryRepository>();

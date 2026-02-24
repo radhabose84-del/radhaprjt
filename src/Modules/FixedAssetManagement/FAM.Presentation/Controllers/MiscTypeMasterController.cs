@@ -20,8 +20,6 @@ using Microsoft.AspNetCore.Http;
 
 namespace FAM.Presentation.Controllers
 {
-    [ApiController]
-
    [Route("api/fam/[controller]")]
     public class MiscTypeMasterController : ApiControllerBase
     {
