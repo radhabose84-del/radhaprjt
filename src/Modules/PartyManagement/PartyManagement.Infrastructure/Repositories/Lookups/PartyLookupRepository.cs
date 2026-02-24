@@ -9,7 +9,7 @@ using Dapper;
 
 namespace PartyManagement.Infrastructure.Repositories.Lookups
 {
-    public class PartyLookupRepository : IPartyLookup
+    internal sealed class PartyLookupRepository : IPartyLookup
     {
         private readonly IDbConnection _dbConnection;
 

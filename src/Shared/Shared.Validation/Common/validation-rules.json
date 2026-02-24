@@ -36,6 +36,11 @@
         "Error": " must contain only alphabetic characters."
     },
     {
+        "rule": "Alphanumeric",
+        "pattern": "^[A-Za-z0-9]+$",
+        "error": " must be alphanumeric only."
+    },
+    {
         "Rule": "NumericOnly",
         "pattern": "^[0-9]{10}$",
         "Error": " must contain only numeric values."

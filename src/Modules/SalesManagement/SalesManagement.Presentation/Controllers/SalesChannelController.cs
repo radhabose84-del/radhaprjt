@@ -1,6 +1,5 @@
 #nullable disable
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SalesManagement.Application.SalesChannel.Commands.CreateSalesChannel;
@@ -12,13 +11,10 @@ using SalesManagement.Application.SalesChannel.Queries.GetSalesChannelAutoComple
 
 namespace SalesManagement.Presentation.Controllers
 {
-    [Authorize]
     [Route("api/[controller]")]
     public class SalesChannelController : ApiControllerBase
     {
-        public SalesChannelController(IMediator mediator) : base(mediator)
-        {
-        }
+        public SalesChannelController(IMediator mediator) : base(mediator) { }
 
         [HttpGet]
         public async Task<IActionResult> GetAllSalesChannelAsync(
@@ -47,29 +43,31 @@ namespace SalesManagement.Presentation.Controllers
         public async Task<IActionResult> GetSalesChannelByIdAsync(int id)
         {
             var result = await Mediator.Send(new GetSalesChannelByIdQuery { Id = id });
+
             return Ok(new
             {
                 StatusCode = StatusCodes.Status200OK,
-                data = result.Data,
+                isSuccess = result.IsSuccess,
                 message = result.Message,
-                isSuccess = result.IsSuccess
+                data = result.Data
             });
         }
 
-        [HttpGet("autocomplete")]
-        public async Task<IActionResult> GetSalesChannelAutoCompleteAsync(
-            [FromQuery] string term = null)
+        [HttpGet("by-name")]
+        public async Task<IActionResult> GetSalesChannelAutoCompleteAsync([FromQuery] string term = null)
         {
             var result = await Mediator.Send(new GetSalesChannelAutoCompleteQuery(term ?? string.Empty));
-            return Ok(new { StatusCode = StatusCodes.Status200OK, data = result });
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result
+            });
         }
 
-        [HttpPost("create")]
+        [HttpPost]
         public async Task<IActionResult> CreateSalesChannel([FromBody] CreateSalesChannelCommand command)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
             var result = await Mediator.Send(command);
 
             return Ok(new
@@ -81,15 +79,9 @@ namespace SalesManagement.Presentation.Controllers
             });
         }
 
-        [HttpPut("update")]
+        [HttpPut]
         public async Task<IActionResult> UpdateSalesChannel([FromBody] UpdateSalesChannelCommand command)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            if (command.Id <= 0)
-                return BadRequest(new { StatusCode = StatusCodes.Status400BadRequest, Message = "Invalid Id provided." });
-
             var result = await Mediator.Send(command);
 
             return Ok(new
@@ -101,20 +93,16 @@ namespace SalesManagement.Presentation.Controllers
             });
         }
 
-        [HttpDelete("delete/{id}")]
+        [HttpDelete]
         public async Task<IActionResult> DeleteSalesChannel(int id)
         {
-            if (id <= 0)
-                return BadRequest(new { StatusCode = StatusCodes.Status400BadRequest, Message = "Invalid Id provided." });
-
             var result = await Mediator.Send(new DeleteSalesChannelCommand(id));
 
             return Ok(new
             {
                 StatusCode = StatusCodes.Status200OK,
                 isSuccess = result,
-                message = result ? "Sales Channel deleted successfully." : "Failed to delete Sales Channel.",
-                data = result
+                message = result ? "Sales Channel deleted successfully." : "Failed to delete Sales Channel."
             });
         }
     }

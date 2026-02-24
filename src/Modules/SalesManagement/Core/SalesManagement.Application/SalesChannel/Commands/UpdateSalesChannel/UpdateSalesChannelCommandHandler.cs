@@ -28,10 +28,6 @@ namespace SalesManagement.Application.SalesChannel.Commands.UpdateSalesChannel
 
         public async Task<ApiResponseDTO<int>> Handle(UpdateSalesChannelCommand request, CancellationToken cancellationToken)
         {
-            var existing = await _queryRepository.GetByIdAsync(request.Id);
-            if (existing == null)
-                throw new EntityNotFoundException($"Sales Channel with Id {request.Id} not found.");
-
             var entity = _mapper.Map<Domain.Entities.SalesChannel>(request);
 
             var updatedId = await _commandRepository.UpdateAsync(entity);
@@ -39,8 +35,8 @@ namespace SalesManagement.Application.SalesChannel.Commands.UpdateSalesChannel
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Update",
                 actionCode: "SALES_CHANNEL_UPDATE",
-                actionName: existing.SalesChannelCode,
-                details: $"Sales Channel '{existing.SalesChannelCode}' updated successfully.",
+                actionName: request.Id.ToString(),
+                details: $"Sales Channel with Id {request.Id} updated successfully.",
                 module: "SalesChannel"
             );
             await _mediator.Publish(auditEvent, cancellationToken);

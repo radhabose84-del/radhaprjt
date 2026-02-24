@@ -13,7 +13,6 @@ using Microsoft.AspNetCore.Http;
 
 namespace FAM.Presentation.Controllers
 {
-    [ApiController]
     [Route("api/[controller]")]
     public class ManufactureController  : ApiControllerBase
     { 

@@ -3,36 +3,71 @@
 using FluentValidation;
 using SalesManagement.Application.BusinessUnit.Commands.UpdateBusinessUnit;
 using SalesManagement.Application.Common.Interfaces.IBusinessUnit;
+using SalesManagement.Presentation.Validation.Common;
+using Shared.Validation.Common;
 
 namespace SalesManagement.Presentation.Validation.BusinessUnit
 {
     public class UpdateBusinessUnitCommandValidator : AbstractValidator<UpdateBusinessUnitCommand>
     {
+        private readonly List<ValidationRule> _validationRules;
         private readonly IBusinessUnitQueryRepository _queryRepository;
 
-        public UpdateBusinessUnitCommandValidator(IBusinessUnitQueryRepository queryRepository)
+        public UpdateBusinessUnitCommandValidator(
+            MaxLengthProvider maxLengthProvider,
+            IBusinessUnitQueryRepository queryRepository)
         {
             _queryRepository = queryRepository;
 
-            // ID validation
-            RuleFor(x => x.Id)
-                .GreaterThan(0).WithMessage("Valid Business Unit ID is required.")
-                .MustAsync(async (id, ct) => !await _queryRepository.NotFoundAsync(id))
-                .WithMessage("Business Unit not found.");
+            var maxLengthName = maxLengthProvider.GetMaxLength<SalesManagement.Domain.Entities.BusinessUnit>("BusinessUnitName") ?? 100;
+            var maxLengthDescription = maxLengthProvider.GetMaxLength<SalesManagement.Domain.Entities.BusinessUnit>("Description") ?? 500;
 
-            // Business Unit Name validation
-            RuleFor(x => x.BusinessUnitName)
-                .NotEmpty().WithMessage("Business Unit Name is required.")
-                .MaximumLength(100).WithMessage("Business Unit Name cannot exceed 100 characters.");
+            _validationRules = ValidationRuleLoader.LoadValidationRules();
+            if (_validationRules == null || !_validationRules.Any())
+            {
+                throw new InvalidOperationException("Validation rules could not be loaded.");
+            }
 
-            // Description validation (optional)
-            RuleFor(x => x.Description)
-                .MaximumLength(500).WithMessage("Description cannot exceed 500 characters.")
-                .When(x => !string.IsNullOrWhiteSpace(x.Description));
+            foreach (var rule in _validationRules)
+            {
+                switch (rule.Rule)
+                {
+                    case "NotEmpty":
+                        RuleFor(x => x.BusinessUnitName)
+                            .NotNull()
+                            .WithMessage($"{nameof(UpdateBusinessUnitCommand.BusinessUnitName)} {rule.Error}")
+                            .NotEmpty()
+                            .WithMessage($"{nameof(UpdateBusinessUnitCommand.BusinessUnitName)} {rule.Error}");
+                        break;
 
-            // IsActive validation
-            RuleFor(x => x.IsActive)
-                .Must(x => x == 0 || x == 1).WithMessage("Status must be Active (1) or Inactive (0).");
+                    case "MaxLength":
+                        RuleFor(x => x.BusinessUnitName)
+                            .MaximumLength(maxLengthName)
+                            .WithMessage($"{nameof(UpdateBusinessUnitCommand.BusinessUnitName)} {rule.Error} {maxLengthName} characters.");
+
+                        RuleFor(x => x.Description)
+                            .MaximumLength(maxLengthDescription)
+                            .WithMessage($"{nameof(UpdateBusinessUnitCommand.Description)} {rule.Error} {maxLengthDescription} characters.")
+                            .When(x => !string.IsNullOrWhiteSpace(x.Description));
+                        break;
+
+                    case "NotFound":
+                        RuleFor(x => x.Id)
+                            .GreaterThan(0).WithMessage("Valid Business Unit ID is required.")
+                            .MustAsync(async (id, ct) => !await _queryRepository.NotFoundAsync(id))
+                            .WithMessage($"Business Unit {rule.Error}");
+                        break;
+
+                    case "ByteValue":
+                        RuleFor(x => x.IsActive)
+                            .InclusiveBetween(0, 1)
+                            .WithMessage($"{nameof(UpdateBusinessUnitCommand.IsActive)} {rule.Error}");
+                        break;
+
+                    default:
+                        break;
+                }
+            }
         }
     }
 }

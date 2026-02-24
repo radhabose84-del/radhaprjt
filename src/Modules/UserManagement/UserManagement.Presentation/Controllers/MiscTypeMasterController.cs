@@ -17,10 +17,9 @@ using Microsoft.AspNetCore.Http;
 namespace UserManagement.Presentation.Controllers
 {
     // [Route("[controller]")]
-    [ApiController]
 
    [Route("api/usermanagement/[controller]")]
-    
+
     public class MiscTypeMasterController : ApiControllerBase
     {
         public MiscTypeMasterController(ISender mediator) : base(mediator)

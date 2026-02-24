@@ -16,9 +16,8 @@ using Microsoft.AspNetCore.Http;
 
 namespace UserManagement.Presentation.Controllers
 {
-    [ApiController]
     [Route("api/[controller]")]
-    
+
     public class DepartmentController : ApiControllerBase
     {
        

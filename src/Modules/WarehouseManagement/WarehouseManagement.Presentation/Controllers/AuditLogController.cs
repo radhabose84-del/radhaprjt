@@ -6,9 +6,8 @@ using Microsoft.AspNetCore.Http;
 
 namespace WarehouseManagement.Presentation.Controllers
 {
-    [ApiController]
     [Route("api/warehouse/[controller]")]
-    
+
     public class AuditLogController : ApiControllerBase
     {       
          

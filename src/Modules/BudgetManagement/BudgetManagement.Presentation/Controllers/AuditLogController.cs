@@ -6,9 +6,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace BudgetManagement.Presentation.Controllers
 {
-    [ApiController]
     [Route("api/budget/[controller]")]
-    
     public class AuditLogController : ApiControllerBase
     {       
          

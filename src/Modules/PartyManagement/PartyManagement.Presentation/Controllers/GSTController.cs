@@ -1,19 +1,20 @@
 #nullable disable
 using PartyManagement.Application.GST.Queries;
 using PartyManagement.Application.Interfaces.GST;
+using PartyManagement.Presentation.Controllers;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 
 namespace WebAPI.Controllers
 {
-    [ApiController]
     [Route("api/[controller]")]
-    public class GSTController : ControllerBase
+    public class GSTController : ApiControllerBase
     {
         private readonly IMediator _mediator;
         private readonly IGSTAuthService _gstService;
         public GSTController(IMediator mediator, IGSTAuthService gstService)
+            : base(mediator)
         {
             _mediator = mediator;
             _gstService = gstService;

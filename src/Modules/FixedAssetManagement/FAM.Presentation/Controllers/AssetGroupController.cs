@@ -19,7 +19,6 @@ using Microsoft.Extensions.Logging;
 namespace FAM.Presentation.Controllers
 {
     [Route("api/[controller]")]
-     [ApiController]
     public class AssetGroupController : ApiControllerBase
     {
         private readonly ILogger<AssetGroupController> _logger;

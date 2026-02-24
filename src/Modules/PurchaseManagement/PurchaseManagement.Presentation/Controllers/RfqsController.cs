@@ -9,17 +9,17 @@ using PurchaseManagement.Application.Quotation.RfqEntry.Queries.GetRfqById;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
+using PurchaseManagement.Presentation.Controllers;
 
 namespace API.Controllers.Quotation;
 
 public record ApiResponse<T>(int StatusCode, string Message, T? Data);
 
-[ApiController]
 [Route("api/quotation/rfqs")]
-public class RfqsController : ControllerBase
+public class RfqsController : ApiControllerBase
 {
     private readonly IMediator _mediator;
-    public RfqsController(IMediator mediator) => _mediator = mediator;
+    public RfqsController(IMediator mediator) : base(mediator) => _mediator = mediator;
 
     // CREATE RFQ
     [HttpPost]

@@ -28,10 +28,6 @@ namespace SalesManagement.Application.SalesOrganisation.Commands.UpdateSalesOrga
 
         public async Task<ApiResponseDTO<int>> Handle(UpdateSalesOrganisationCommand request, CancellationToken cancellationToken)
         {
-            var existing = await _queryRepository.GetByIdAsync(request.Id);
-            if (existing == null)
-                throw new EntityNotFoundException($"Sales Organisation with Id {request.Id} not found.");
-
             var entity = _mapper.Map<Domain.Entities.SalesOrganisation>(request);
 
             var updatedId = await _commandRepository.UpdateAsync(entity);
@@ -39,8 +35,8 @@ namespace SalesManagement.Application.SalesOrganisation.Commands.UpdateSalesOrga
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Update",
                 actionCode: "SALES_ORG_UPDATE",
-                actionName: existing.SalesOrganisationCode,
-                details: $"Sales Organisation '{existing.SalesOrganisationCode}' updated successfully.",
+                actionName: request.Id.ToString(),
+                details: $"Sales Organisation with Id {request.Id} updated successfully.",
                 module: "SalesOrganisation"
             );
             await _mediator.Publish(auditEvent, cancellationToken);

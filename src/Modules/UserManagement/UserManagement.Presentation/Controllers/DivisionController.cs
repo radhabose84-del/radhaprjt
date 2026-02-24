@@ -18,9 +18,8 @@ using System.Text.Json;
 
 namespace UserManagement.Presentation.Controllers
 {
-    [ApiController]
     [Route("api/[controller]")]
-    
+
     public class DivisionController : ApiControllerBase
     {
         

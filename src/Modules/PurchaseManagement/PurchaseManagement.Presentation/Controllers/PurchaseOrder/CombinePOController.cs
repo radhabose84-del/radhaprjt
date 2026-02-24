@@ -6,15 +6,15 @@ using PurchaseManagement.Application.PurchaseOrder.CombinePO.Amendment;
 using PurchaseManagement.Application.PurchaseOrder.CombinePO.Queries.GetCombinePOById;
 using PurchaseManagement.Application.PurchaseOrder.CombinePO.Commands.Update;
 using Microsoft.AspNetCore.Http;
+using PurchaseManagement.Presentation.Controllers;
 
 namespace PurchaseManagement.Presentation.Controllers.PurchaseOrder
 {    
-    [ApiController]
     [Route("api/[controller]")]
-    public sealed class CombinePOController : ControllerBase
+    public sealed class CombinePOController : ApiControllerBase
     {
         private readonly IMediator _mediator;
-        public CombinePOController(IMediator mediator) => _mediator = mediator;
+        public CombinePOController(IMediator mediator) : base(mediator) => _mediator = mediator;
     
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateCombinePODto dto, CancellationToken ct)

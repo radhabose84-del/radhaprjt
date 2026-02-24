@@ -20,7 +20,6 @@ using Microsoft.Extensions.Logging;
 
 namespace UserManagement.Presentation.Controllers
 {
-[ApiController]
 [Route("api/[controller]")]
 
 public class RoleEntitlementsController : ApiControllerBase

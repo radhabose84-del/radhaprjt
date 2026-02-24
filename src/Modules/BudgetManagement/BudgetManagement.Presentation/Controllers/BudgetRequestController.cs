@@ -14,12 +14,11 @@ using Microsoft.AspNetCore.Http;
 
 namespace BudgetManagement.Presentation.Controllers;
 
-[ApiController]
 [Route("api/[controller]")]
-public class BudgetRequestController : ControllerBase
+public class BudgetRequestController : ApiControllerBase
 {
     private readonly IMediator _mediator;
-    public BudgetRequestController(IMediator mediator) => _mediator = mediator;
+    public BudgetRequestController(IMediator mediator) : base(mediator) => _mediator = mediator;
 
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateBudgetRequestCommand cmd)

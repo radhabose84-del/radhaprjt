@@ -17,7 +17,6 @@ using Microsoft.AspNetCore.Http;
 
 namespace PurchaseManagement.Presentation.Controllers.GRN
 {
-    [ApiController]
     [Route("api/[controller]")]
     public class GRNEntryController : ApiControllerBase
     {

@@ -26,7 +26,6 @@ using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 namespace FAM.Presentation.Controllers.AssetMaster
 {
-    [ApiController]
     [Route("api/[controller]")]
     public class AssetMasterGeneralController : ApiControllerBase
     {

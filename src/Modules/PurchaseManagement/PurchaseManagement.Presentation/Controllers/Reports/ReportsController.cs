@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Http;
 
 namespace PurchaseManagement.Presentation.Controllers.Reports
 {
-    [ApiController]
     [Route("api/purchase/[controller]")]
     public class ReportsController : ApiControllerBase
     {

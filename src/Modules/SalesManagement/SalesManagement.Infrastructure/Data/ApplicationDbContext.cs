@@ -27,6 +27,9 @@ namespace SalesManagement.Infrastructure.Data
         public DbSet<SalesChannel> SalesChannel { get; set; }
         public DbSet<BusinessUnit> BusinessUnit { get; set; }
         public DbSet<SalesSegment> SalesSegment { get; set; }
+        public DbSet<SalesItemPriceMaster> SalesItemPriceMaster { get; set; }
+        public DbSet<MiscTypeMaster> MiscTypeMaster { get; set; }
+        public DbSet<MiscMaster> MiscMaster { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -35,6 +38,9 @@ namespace SalesManagement.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new SalesChannelConfiguration());
             modelBuilder.ApplyConfiguration(new BusinessUnitConfiguration());
             modelBuilder.ApplyConfiguration(new SalesSegmentConfiguration());
+            modelBuilder.ApplyConfiguration(new SalesItemPriceMasterConfiguration());
+            modelBuilder.ApplyConfiguration(new MiscTypeMasterConfiguration());
+            modelBuilder.ApplyConfiguration(new MiscMasterConfiguration());
 
 
             // Global convention: set explicit precision/scale for all decimal properties

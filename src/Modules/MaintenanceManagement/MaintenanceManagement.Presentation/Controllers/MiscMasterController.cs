@@ -21,7 +21,6 @@ using Microsoft.AspNetCore.Http;
 
 namespace MaintenanceManagement.Presentation.Controllers
 {
-    [ApiController]
     [Route("api/maintenance/[controller]")]
     public class MiscMasterController  : ApiControllerBase
     {

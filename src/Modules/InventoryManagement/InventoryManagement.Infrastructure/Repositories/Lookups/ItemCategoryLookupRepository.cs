@@ -5,7 +5,7 @@ using Dapper;
 
 namespace InventoryManagement.Infrastructure.Repositories.Lookups
 {
-    public class ItemCategoryLookupRepository : IInventoryCategoryLookup
+    internal sealed class ItemCategoryLookupRepository : IInventoryCategoryLookup
     {
         private readonly IDbConnection _dbConnection;
 

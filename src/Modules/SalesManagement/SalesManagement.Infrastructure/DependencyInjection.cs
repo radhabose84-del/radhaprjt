@@ -4,6 +4,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using MongoDB.Driver;
 using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Application.Common.Interfaces.AuditLog;
@@ -18,6 +19,12 @@ using SalesManagement.Application.Common.Interfaces.IBusinessUnit;
 using SalesManagement.Infrastructure.Repositories.BusinessUnit;
 using SalesManagement.Application.Common.Interfaces.ISalesSegment;
 using SalesManagement.Infrastructure.Repositories.SalesSegment;
+using SalesManagement.Application.Common.Interfaces.ISalesItemPriceMaster;
+using SalesManagement.Infrastructure.Repositories.SalesItemPriceMaster;
+using SalesManagement.Application.Common.Interfaces.IMiscTypeMaster;
+using SalesManagement.Infrastructure.Repositories.MiscTypeMaster;
+using SalesManagement.Application.Common.Interfaces.IMiscMaster;
+using SalesManagement.Infrastructure.Repositories.MiscMaster;
 using SalesManagement.Infrastructure.Services;
 using Serilog;
 
@@ -26,9 +33,9 @@ namespace SalesManagement.Infrastructure
 {
     public static class DependencyInjection
     {
-        public static IServiceCollection AddSalesInfrastructure(
+        public static IServiceCollection AddSalesInfrastructureServices(
             this IServiceCollection services,
-            IConfiguration configuration)
+            IConfiguration configuration, IHostEnvironment env)
         {
             var connectionString = configuration.GetConnectionString("DefaultConnection")
                                                 .Replace("{SERVER}", Environment.GetEnvironmentVariable("DATABASE_SERVER") ?? "")
@@ -123,6 +130,18 @@ namespace SalesManagement.Infrastructure
             // ── Sales Segment Repositories ───────────────────────────────
             services.AddScoped<ISalesSegmentCommandRepository, SalesSegmentCommandRepository>();
             services.AddScoped<ISalesSegmentQueryRepository, SalesSegmentQueryRepository>();
+
+            // ── Sales Item Price Master Repositories ─────────────────────
+            services.AddScoped<ISalesItemPriceMasterCommandRepository, SalesItemPriceMasterCommandRepository>();
+            services.AddScoped<ISalesItemPriceMasterQueryRepository, SalesItemPriceMasterQueryRepository>();
+
+            // ── Misc Type Master Repositories ─────────────────────────────
+            services.AddScoped<IMiscTypeMasterCommandRepository, MiscTypeMasterCommandRepository>();
+            services.AddScoped<IMiscTypeMasterQueryRepository, MiscTypeMasterQueryRepository>();
+
+            // ── Misc Master Repositories ──────────────────────────────────
+            services.AddScoped<IMiscMasterCommandRepository, MiscMasterCommandRepository>();
+            services.AddScoped<IMiscMasterQueryRepository, MiscMasterQueryRepository>();
 
             return services;
         }

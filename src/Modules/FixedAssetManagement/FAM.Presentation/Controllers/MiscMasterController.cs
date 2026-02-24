@@ -22,7 +22,6 @@ using Microsoft.Extensions.Logging;
 
 namespace FAM.Presentation.Controllers
 {
-    [ApiController]
     [Route("api/fam/[controller]")]
     public class MiscMasterController : ApiControllerBase
     {

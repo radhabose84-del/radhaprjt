@@ -10,7 +10,7 @@ using Dapper;
 
 namespace UserManagement.Infrastructure.Repositories.Lookups.Users
 {
-    public class StateLookupRepository : IStateLookup
+    internal sealed class StateLookupRepository : IStateLookup
     {
         private readonly IDbConnection _dbConnection;
 

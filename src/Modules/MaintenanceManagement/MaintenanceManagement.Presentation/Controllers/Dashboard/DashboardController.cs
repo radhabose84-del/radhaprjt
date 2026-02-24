@@ -4,13 +4,13 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace MaintenanceManagement.Presentation.Controllers.Dashboard
 {
-    [ApiController]
     [Route("api/maintenance/[controller]")]
-    public class DashboardController : ControllerBase
+    public class DashboardController : ApiControllerBase
     {
         private readonly IMediator _mediator;
 
         public DashboardController(IMediator mediator)
+        : base(mediator)
         {
             _mediator = mediator;
         }

@@ -6,9 +6,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace FAM.Presentation.Controllers
 {
-    [ApiController]
     [Route("api/fam/[controller]")]
-    
+
     public class AuditLogController : ApiControllerBase
     {       
          

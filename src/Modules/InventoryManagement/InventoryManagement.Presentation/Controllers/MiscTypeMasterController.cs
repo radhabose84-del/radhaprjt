@@ -17,7 +17,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace InventoryManagement.Presentation.Controllers
 {
-   [Route("api/[controller]")]
+   [Route("api/inventory/[controller]")]
     public class MiscTypeMasterController : ApiControllerBase
     {
 

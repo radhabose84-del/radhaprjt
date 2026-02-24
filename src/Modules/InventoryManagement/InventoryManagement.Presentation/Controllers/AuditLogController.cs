@@ -6,9 +6,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace InventoryManagement.Presentation.Controllers
 {
-    [ApiController]
     [Route("api/inventory/[controller]")]
-    
+
     public class AuditLogController : ApiControllerBase
     {       
          

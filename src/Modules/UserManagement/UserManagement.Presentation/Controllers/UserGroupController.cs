@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Http;
 
 namespace UserManagement.Presentation.Controllers
 {
-    [ApiController]
     [Microsoft.AspNetCore.Components.Route("api/[controller]")]
 
     public class UserGroupController  : ApiControllerBase

@@ -9,12 +9,11 @@ using Microsoft.AspNetCore.Mvc;
 namespace InventoryManagement.Presentation.Controllers
 {
     [Route("api/[controller]")]
-    [ApiController]
-    public class BudgetController : ControllerBase
+    public class BudgetController : ApiControllerBase
     {
         private readonly IMediator _mediator;
 
-        public BudgetController(IMediator mediator)
+        public BudgetController(IMediator mediator) : base(mediator)
         {
             _mediator = mediator;
         }

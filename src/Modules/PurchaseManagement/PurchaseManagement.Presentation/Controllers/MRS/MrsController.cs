@@ -17,7 +17,6 @@ using Microsoft.AspNetCore.Http;
 
 namespace PurchaseManagement.Presentation.Controllers.MRS
 {
-    [ApiController]
     [Route("api/purchase/[controller]")]
     public class MrsController : ApiControllerBase
     {

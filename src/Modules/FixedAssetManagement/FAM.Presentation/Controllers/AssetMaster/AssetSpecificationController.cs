@@ -13,12 +13,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace FAM.Presentation.Controllers.AssetMaster
 {
-    [ApiController]
     [Route("api/[controller]")]
     public class AssetSpecificationController : ApiControllerBase
     {
-       
-
 
         public AssetSpecificationController(ISender mediator)
             : base(mediator)

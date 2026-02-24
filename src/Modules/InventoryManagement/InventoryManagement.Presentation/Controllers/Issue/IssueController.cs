@@ -14,7 +14,6 @@ using Microsoft.Extensions.Logging;
 
 namespace InventoryManagement.Presentation.Controllers.Issue
 {
-    [ApiController]
     [Route("api/inventory/[controller]")]
     public class IssueController : ApiControllerBase
     {

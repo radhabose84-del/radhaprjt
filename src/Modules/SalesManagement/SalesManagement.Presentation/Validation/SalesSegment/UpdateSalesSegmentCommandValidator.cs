@@ -1,39 +1,82 @@
 #nullable disable
 
+using Contracts.Interfaces.Lookups.Users;
 using FluentValidation;
 using SalesManagement.Application.Common.Interfaces.ISalesSegment;
 using SalesManagement.Application.SalesSegment.Commands.UpdateSalesSegment;
+using SalesManagement.Presentation.Validation.Common;
+using Shared.Validation.Common;
 
 namespace SalesManagement.Presentation.Validation.SalesSegment
 {
     public class UpdateSalesSegmentCommandValidator : AbstractValidator<UpdateSalesSegmentCommand>
     {
+        private readonly List<ValidationRule> _validationRules;
         private readonly ISalesSegmentQueryRepository _queryRepository;
+        private readonly ICurrencyLookup _currencyLookup;
 
-        public UpdateSalesSegmentCommandValidator(ISalesSegmentQueryRepository queryRepository)
+        public UpdateSalesSegmentCommandValidator(
+            MaxLengthProvider maxLengthProvider,
+            ISalesSegmentQueryRepository queryRepository,
+            ICurrencyLookup currencyLookup)
         {
             _queryRepository = queryRepository;
+            _currencyLookup = currencyLookup;
 
-            // 1. Id must exist
-            RuleFor(x => x.Id)
-                .GreaterThan(0).WithMessage("Valid Sales Segment Id is required.")
-                .MustAsync(async (id, ct) => !await _queryRepository.NotFoundAsync(id))
-                .WithMessage("Sales Segment not found.");
+            var maxLengthSegmentName = maxLengthProvider.GetMaxLength<SalesManagement.Domain.Entities.SalesSegment>("SegmentName") ?? 200;
 
-            // 2. SegmentName required
-            RuleFor(x => x.SegmentName)
-                .NotEmpty().WithMessage("Segment Name is required.")
-                .MaximumLength(200).WithMessage("Segment Name cannot exceed 200 characters.");
+            _validationRules = ValidationRuleLoader.LoadValidationRules();
+            if (_validationRules == null || !_validationRules.Any())
+            {
+                throw new InvalidOperationException("Validation rules could not be loaded.");
+            }
 
-            // 3. IsActive valid values
-            RuleFor(x => x.IsActive)
-                .Must(x => x == 0 || x == 1)
-                .WithMessage("IsActive must be 0 (Inactive) or 1 (Active).");
+            foreach (var rule in _validationRules)
+            {
+                switch (rule.Rule)
+                {
+                    case "NotEmpty":
+                        RuleFor(x => x.SegmentName)
+                            .NotNull()
+                            .WithMessage($"{nameof(UpdateSalesSegmentCommand.SegmentName)} {rule.Error}")
+                            .NotEmpty()
+                            .WithMessage($"{nameof(UpdateSalesSegmentCommand.SegmentName)} {rule.Error}");
+                        break;
 
-            // Note: Composite key fields (SalesOrganisationId, SalesChannelId, BusinessUnitId) are IMMUTABLE
-            // They cannot be changed after creation - not included in update command
+                    case "MaxLength":
+                        RuleFor(x => x.SegmentName)
+                            .MaximumLength(maxLengthSegmentName)
+                            .WithMessage($"{nameof(UpdateSalesSegmentCommand.SegmentName)} {rule.Error} {maxLengthSegmentName} characters.");
+                        break;
 
-            // Note: CurrencyId is optional and validated in handler via ICurrencyLookup
+                    case "NotFound":
+                        RuleFor(x => x.Id)
+                            .GreaterThan(0).WithMessage("Valid Sales Segment Id is required.")
+                            .MustAsync(async (id, ct) => !await _queryRepository.NotFoundAsync(id))
+                            .WithMessage($"Sales Segment {rule.Error}");
+                        break;
+
+                    case "FKColumnDelete":
+                        RuleFor(x => x.CurrencyId)
+                            .MustAsync(async (currencyId, ct) =>
+                            {
+                                var currencies = await _currencyLookup.GetByIdsAsync(new[] { currencyId.Value }, ct);
+                                return currencies.Any();
+                            })
+                            .WithMessage($"{nameof(UpdateSalesSegmentCommand.CurrencyId)} {rule.Error}")
+                            .When(x => x.CurrencyId.HasValue && x.CurrencyId.Value > 0);
+                        break;
+
+                    case "ByteValue":
+                        RuleFor(x => x.IsActive)
+                            .InclusiveBetween(0, 1)
+                            .WithMessage($"{nameof(UpdateSalesSegmentCommand.IsActive)} {rule.Error}");
+                        break;
+
+                    default:
+                        break;
+                }
+            }
         }
     }
 }

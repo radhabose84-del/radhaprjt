@@ -6,9 +6,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace SalesManagement.Presentation.Controllers
 {
-    [ApiController]
     [Route("api/sales/[controller]")]
-    
+
     public class AuditLogController : ApiControllerBase
     {       
          

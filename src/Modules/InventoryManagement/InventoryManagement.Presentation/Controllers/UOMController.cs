@@ -19,7 +19,6 @@ using Microsoft.AspNetCore.Http;
 
 namespace InventoryManagement.Presentation.Controllers
 {
-    [ApiController]
     [Route("api/inventory/[controller]")]
     public class UOMController : ApiControllerBase
     {

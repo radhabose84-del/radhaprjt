@@ -11,12 +11,11 @@ using Microsoft.AspNetCore.Http;
 
 namespace PurchaseManagement.Presentation.Controllers
 {
-    [ApiController]
     [Route("api/[controller]")]
-    public  class PriceMasterController : ControllerBase
+    public  class PriceMasterController : ApiControllerBase
     {
         private readonly IMediator _mediator;
-        public PriceMasterController(IMediator mediator) => _mediator = mediator;
+        public PriceMasterController(IMediator mediator) : base(mediator) => _mediator = mediator;
 
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] PriceMasterCreateDto dto, CancellationToken ct)

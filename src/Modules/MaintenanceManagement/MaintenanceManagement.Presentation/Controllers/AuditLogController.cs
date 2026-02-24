@@ -6,9 +6,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace MaintenanceManagement.Presentation.Controllers
 {
-    [ApiController]
     [Route("api/maintenance/[controller]")]
-    
+
     public class AuditLogController : ApiControllerBase
     {       
          

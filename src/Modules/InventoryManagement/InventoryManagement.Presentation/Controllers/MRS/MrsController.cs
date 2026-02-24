@@ -17,7 +17,6 @@ using Microsoft.Extensions.Logging;
 
 namespace InventoryManagement.Presentation.Controllers.MRS
 {
-    [ApiController]
     [Route("api/inventory/[controller]")]
     public class MrsController : ApiControllerBase
     {

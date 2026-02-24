@@ -1,52 +1,121 @@
 #nullable disable
 
+using Contracts.Interfaces.Lookups.Users;
 using FluentValidation;
 using SalesManagement.Application.Common.Interfaces.ISalesSegment;
 using SalesManagement.Application.SalesSegment.Commands.CreateSalesSegment;
+using SalesManagement.Presentation.Validation.Common;
+using Shared.Validation.Common;
 
 namespace SalesManagement.Presentation.Validation.SalesSegment
 {
     public class CreateSalesSegmentCommandValidator : AbstractValidator<CreateSalesSegmentCommand>
     {
+        private readonly List<ValidationRule> _validationRules;
         private readonly ISalesSegmentQueryRepository _queryRepository;
+        private readonly ICurrencyLookup _currencyLookup;
 
-        public CreateSalesSegmentCommandValidator(ISalesSegmentQueryRepository queryRepository)
+        public CreateSalesSegmentCommandValidator(
+            MaxLengthProvider maxLengthProvider,
+            ISalesSegmentQueryRepository queryRepository,
+            ICurrencyLookup currencyLookup)
         {
             _queryRepository = queryRepository;
+            _currencyLookup = currencyLookup;
 
-            // 1. SalesOrganisationId required + exists
-            RuleFor(x => x.SalesOrganisationId)
-                .GreaterThan(0).WithMessage("Sales Organisation is required.")
-                .MustAsync(async (id, ct) => await _queryRepository.SalesOrganisationExistsAsync(id))
-                .WithMessage("Sales Organisation does not exist in Sales Organisation Master.");
+            var maxLengthSegmentName = maxLengthProvider.GetMaxLength<SalesManagement.Domain.Entities.SalesSegment>("SegmentName") ?? 200;
 
-            // 2. SalesChannelId required + exists
-            RuleFor(x => x.SalesChannelId)
-                .GreaterThan(0).WithMessage("Sales Channel is required.")
-                .MustAsync(async (id, ct) => await _queryRepository.SalesChannelExistsAsync(id))
-                .WithMessage("Sales Channel does not exist in Sales Channel Master.");
+            _validationRules = ValidationRuleLoader.LoadValidationRules();
+            if (_validationRules == null || !_validationRules.Any())
+            {
+                throw new InvalidOperationException("Validation rules could not be loaded.");
+            }
 
-            // 3. BusinessUnitId required + exists
-            RuleFor(x => x.BusinessUnitId)
-                .GreaterThan(0).WithMessage("Business Unit is required.")
-                .MustAsync(async (id, ct) => await _queryRepository.BusinessUnitExistsAsync(id))
-                .WithMessage("Business Unit does not exist in Business Unit Master.");
+            foreach (var rule in _validationRules)
+            {
+                switch (rule.Rule)
+                {
+                    case "NotEmpty":
+                        // 1. SalesOrganisationId required
+                        RuleFor(x => x.SalesOrganisationId)
+                            .NotNull()
+                            .WithMessage($"{nameof(CreateSalesSegmentCommand.SalesOrganisationId)} {rule.Error}")
+                            .NotEmpty()
+                            .WithMessage($"{nameof(CreateSalesSegmentCommand.SalesOrganisationId)} {rule.Error}");
 
-            // 4. SegmentName required
-            RuleFor(x => x.SegmentName)
-                .NotEmpty().WithMessage("Segment Name is required.")
-                .MaximumLength(200).WithMessage("Segment Name cannot exceed 200 characters.");
+                        // 2. SalesChannelId required
+                        RuleFor(x => x.SalesChannelId)
+                            .NotNull()
+                            .WithMessage($"{nameof(CreateSalesSegmentCommand.SalesChannelId)} {rule.Error}")
+                            .NotEmpty()
+                            .WithMessage($"{nameof(CreateSalesSegmentCommand.SalesChannelId)} {rule.Error}");
 
-            // 5. Composite key uniqueness
-            RuleFor(x => x)
-                .MustAsync(async (cmd, ct) =>
-                    !await _queryRepository.CompositeKeyExistsAsync(
-                        cmd.SalesOrganisationId,
-                        cmd.SalesChannelId,
-                        cmd.BusinessUnitId))
-                .WithMessage("This combination of Sales Organisation, Sales Channel, and Business Unit already exists.");
+                        // 3. BusinessUnitId required
+                        RuleFor(x => x.BusinessUnitId)
+                            .NotNull()
+                            .WithMessage($"{nameof(CreateSalesSegmentCommand.BusinessUnitId)} {rule.Error}")
+                            .NotEmpty()
+                            .WithMessage($"{nameof(CreateSalesSegmentCommand.BusinessUnitId)} {rule.Error}");
 
-            // Note: CurrencyId is optional and validated in handler via ICurrencyLookup
+                        // 4. SegmentName required
+                        RuleFor(x => x.SegmentName)
+                            .NotNull()
+                            .WithMessage($"{nameof(CreateSalesSegmentCommand.SegmentName)} {rule.Error}")
+                            .NotEmpty()
+                            .WithMessage($"{nameof(CreateSalesSegmentCommand.SegmentName)} {rule.Error}");
+                        break;
+
+                    case "MaxLength":
+                        RuleFor(x => x.SegmentName)
+                            .MaximumLength(maxLengthSegmentName)
+                            .WithMessage($"{nameof(CreateSalesSegmentCommand.SegmentName)} {rule.Error} {maxLengthSegmentName} characters.");
+                        break;
+
+                    case "FKColumnDelete":
+                        // SalesOrganisationId FK exists
+                        RuleFor(x => x.SalesOrganisationId)
+                            .MustAsync(async (id, ct) =>
+                                await _queryRepository.SalesOrganisationExistsAsync(id))
+                            .WithMessage($"{nameof(CreateSalesSegmentCommand.SalesOrganisationId)} {rule.Error}");
+
+                        // SalesChannelId FK exists
+                        RuleFor(x => x.SalesChannelId)
+                            .MustAsync(async (id, ct) =>
+                                await _queryRepository.SalesChannelExistsAsync(id))
+                            .WithMessage($"{nameof(CreateSalesSegmentCommand.SalesChannelId)} {rule.Error}");
+
+                        // BusinessUnitId FK exists
+                        RuleFor(x => x.BusinessUnitId)
+                            .MustAsync(async (id, ct) =>
+                                await _queryRepository.BusinessUnitExistsAsync(id))
+                            .WithMessage($"{nameof(CreateSalesSegmentCommand.BusinessUnitId)} {rule.Error}");
+
+                        // CurrencyId FK exists (optional cross-module)
+                        RuleFor(x => x.CurrencyId)
+                            .MustAsync(async (currencyId, ct) =>
+                            {
+                                var currencies = await _currencyLookup.GetByIdsAsync(new[] { currencyId.Value }, ct);
+                                return currencies.Any();
+                            })
+                            .WithMessage($"{nameof(CreateSalesSegmentCommand.CurrencyId)} {rule.Error}")
+                            .When(x => x.CurrencyId.HasValue && x.CurrencyId.Value > 0);
+                        break;
+
+                    case "AlreadyExists":
+                        // Composite key uniqueness
+                        RuleFor(x => x)
+                            .MustAsync(async (cmd, ct) =>
+                                !await _queryRepository.CompositeKeyExistsAsync(
+                                    cmd.SalesOrganisationId,
+                                    cmd.SalesChannelId,
+                                    cmd.BusinessUnitId))
+                            .WithMessage($"This combination of Sales Organisation, Sales Channel, and Business Unit {rule.Error}");
+                        break;
+
+                    default:
+                        break;
+                }
+            }
         }
     }
 }

@@ -19,7 +19,6 @@ using Microsoft.AspNetCore.Http;
 
 namespace PurchaseManagement.Presentation.Controllers
 {
-    [ApiController]
      [Route("api/purchase/[controller]")]
 
     public class MiscMasterController  : ApiControllerBase

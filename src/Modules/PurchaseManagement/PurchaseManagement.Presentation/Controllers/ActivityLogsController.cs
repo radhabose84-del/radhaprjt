@@ -6,12 +6,11 @@ using Microsoft.AspNetCore.Http;
 
 namespace PurchaseManagement.Presentation.Controllers;
 
-[ApiController]
 [Route("api/purchase/logs")]
-public class ActivityLogsController : ControllerBase
+public class ActivityLogsController : ApiControllerBase
 {
     private readonly IMediator _mediator;
-    public ActivityLogsController(IMediator mediator) => _mediator = mediator;
+    public ActivityLogsController(IMediator mediator) : base(mediator) => _mediator = mediator;
 
     [HttpGet("{entityName}/{entityId:int}")]
     public async Task<IActionResult> GetAll(string entityName, int entityId, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 50, CancellationToken ct = default)

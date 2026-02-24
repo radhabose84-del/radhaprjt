@@ -21,7 +21,6 @@ using Microsoft.AspNetCore.Http;
 namespace UserManagement.Presentation.Controllers
 {
     [Route("api/[controller]")]
-    [ApiController]
     public class CurrencyController : ApiControllerBase
     {
         

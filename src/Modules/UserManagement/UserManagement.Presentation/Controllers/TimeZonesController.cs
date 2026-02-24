@@ -17,7 +17,6 @@ using Microsoft.AspNetCore.Http;
 namespace UserManagement.Presentation.Controllers
 {
     [Route("api/[controller]")]
-    [ApiController]
     public class TimeZonesController : ApiControllerBase
     {
         private readonly ILogger<TimeZonesController> _logger;
