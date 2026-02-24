@@ -4,7 +4,6 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using MongoDB.Driver;
 using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Application.Common.Interfaces.AuditLog;
@@ -19,13 +18,16 @@ using SalesManagement.Application.Common.Interfaces.IBusinessUnit;
 using SalesManagement.Infrastructure.Repositories.BusinessUnit;
 using SalesManagement.Application.Common.Interfaces.ISalesSegment;
 using SalesManagement.Infrastructure.Repositories.SalesSegment;
+using SalesManagement.Application.Common.Interfaces.ISalesOffice;
+using SalesManagement.Infrastructure.Repositories.SalesOffice;
+using SalesManagement.Application.Common.Interfaces.ISalesGroup;
+using SalesManagement.Infrastructure.Repositories.SalesGroup;
 using SalesManagement.Application.Common.Interfaces.ISalesItemPriceMaster;
 using SalesManagement.Infrastructure.Repositories.SalesItemPriceMaster;
 using SalesManagement.Application.Common.Interfaces.IMiscTypeMaster;
 using SalesManagement.Infrastructure.Repositories.MiscTypeMaster;
 using SalesManagement.Application.Common.Interfaces.IMiscMaster;
-using SalesManagement.Infrastructure.Repositories.MiscMaster;
-using SalesManagement.Infrastructure.Services;
+using SalesManagement.Infrastructure.Repositories.MiscMaster;using SalesManagement.Infrastructure.Services;
 using Serilog;
 
 
@@ -35,7 +37,7 @@ namespace SalesManagement.Infrastructure
     {
         public static IServiceCollection AddSalesInfrastructureServices(
             this IServiceCollection services,
-            IConfiguration configuration, IHostEnvironment env)
+            IConfiguration configuration,, IHostEnvironment env)
         {
             var connectionString = configuration.GetConnectionString("DefaultConnection")
                                                 .Replace("{SERVER}", Environment.GetEnvironmentVariable("DATABASE_SERVER") ?? "")
@@ -131,7 +133,14 @@ namespace SalesManagement.Infrastructure
             services.AddScoped<ISalesSegmentCommandRepository, SalesSegmentCommandRepository>();
             services.AddScoped<ISalesSegmentQueryRepository, SalesSegmentQueryRepository>();
 
-            // ── Sales Item Price Master Repositories ─────────────────────
+            // ── Sales Office Repositories ───────────────────────────────
+            services.AddScoped<ISalesOfficeCommandRepository, SalesOfficeCommandRepository>();
+            services.AddScoped<ISalesOfficeQueryRepository, SalesOfficeQueryRepository>();
+
+            // ── Sales Group Repositories ─────────────────────────────────
+            services.AddScoped<ISalesGroupCommandRepository, SalesGroupCommandRepository>();
+            services.AddScoped<ISalesGroupQueryRepository, SalesGroupQueryRepository>();
+  			// ── Sales Item Price Master Repositories ─────────────────────
             services.AddScoped<ISalesItemPriceMasterCommandRepository, SalesItemPriceMasterCommandRepository>();
             services.AddScoped<ISalesItemPriceMasterQueryRepository, SalesItemPriceMasterQueryRepository>();
 

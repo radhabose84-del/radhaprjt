@@ -7,9 +7,9 @@ using static SalesManagement.Domain.Common.BaseEntity;
 
 namespace SalesManagement.Infrastructure.Data.Configurations
 {
-    public class SalesOrganisationConfiguration : IEntityTypeConfiguration<SalesOrganisation>
+    public class SalesGroupConfiguration : IEntityTypeConfiguration<SalesGroup>
     {
-        public void Configure(EntityTypeBuilder<SalesOrganisation> builder)
+        public void Configure(EntityTypeBuilder<SalesGroup> builder)
         {
             var statusConverter = new ValueConverter<Status, bool>(
                 v => v == Status.Active,
@@ -21,7 +21,7 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 v => v ? IsDelete.Deleted : IsDelete.NotDeleted
             );
 
-            builder.ToTable("SalesOrganisation", "Sales");
+            builder.ToTable("SalesGroup", "Sales");
             builder.HasKey(t => t.Id);
 
             builder.Property(t => t.Id)
@@ -29,24 +29,29 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("int")
                 .IsRequired();
 
-            builder.Property(t => t.SalesOrganisationCode)
-                .HasColumnName("SalesOrganisationCode")
-                .HasColumnType("varchar(20)")
-                .IsRequired();
-
-            builder.Property(t => t.SalesOrganisationName)
-                .HasColumnName("SalesOrganisationName")
+            builder.Property(t => t.SalesGroupName)
+                .HasColumnName("SalesGroupName")
                 .HasColumnType("varchar(100)")
                 .IsRequired();
 
-            builder.Property(t => t.CompanyId)
-                .HasColumnName("CompanyId")
+            builder.Property(t => t.SalesOfficeId)
+                .HasColumnName("SalesOfficeId")
                 .HasColumnType("int")
                 .IsRequired();
 
-            builder.Property(t => t.Description)
-                .HasColumnName("Description")
-                .HasColumnType("varchar(500)")
+            builder.Property(t => t.ResponsibleManager)
+                .HasColumnName("ResponsibleManager")
+                .HasColumnType("varchar(100)")
+                .IsRequired(false);
+
+            builder.Property(t => t.ProductCategoryId)
+                .HasColumnName("ProductCategoryId")
+                .HasColumnType("int")
+                .IsRequired(false);
+
+            builder.Property(t => t.RegionTerritory)
+                .HasColumnName("RegionTerritory")
+                .HasColumnType("varchar(100)")
                 .IsRequired(false);
 
             builder.Property(b => b.IsActive)
@@ -70,9 +75,18 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             builder.Property(t => t.ModifiedByName).HasColumnName("ModifiedByName").HasColumnType("varchar(100)");
             builder.Property(t => t.ModifiedIP).HasColumnName("ModifiedIP").HasColumnType("varchar(50)");
 
-            builder.HasIndex(t => t.SalesOrganisationCode).IsUnique();
-            builder.HasIndex(t => t.CompanyId);
-            // Relationship to SalesOffices configured on dependent side (SalesOfficeConfiguration)
+            // Composite unique index: SalesGroupName unique within SalesOffice
+            builder.HasIndex(t => new { t.SalesOfficeId, t.SalesGroupName }).IsUnique();
+            builder.HasIndex(t => t.SalesOfficeId);
+
+            // ProductCategoryId is cross-module (InventoryManagement) — no FK constraint
+            builder.HasIndex(t => t.ProductCategoryId);
+
+            // FK: SalesGroup → SalesOffice (same module, Sales schema)
+            builder.HasOne(t => t.SalesOffice)
+                .WithMany(o => o.SalesGroups)
+                .HasForeignKey(t => t.SalesOfficeId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }
