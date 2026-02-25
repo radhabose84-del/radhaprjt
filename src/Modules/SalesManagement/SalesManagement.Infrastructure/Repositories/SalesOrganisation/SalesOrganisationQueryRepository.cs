@@ -124,5 +124,13 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrganisation
                 new CommandDefinition(sql, new { Term = $"%{term}%" }, cancellationToken: ct));
             return result.ToList();
         }
+
+        public async Task<bool> SoftDeleteValidationAsync(int id)
+        {
+            // Returns true if SalesOrganisation is linked to active dependent records (blocking deletion).
+            // Currently SalesOrganisation has no FK children — always returns false (safe to delete).
+            await Task.CompletedTask;
+            return false;
+        }
     }
 }

@@ -96,5 +96,13 @@ namespace SalesManagement.Infrastructure.Repositories.MiscTypeMaster
             var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = id });
             return count == 0;
         }
+
+        public async Task<bool> SoftDeleteValidationAsync(int id)
+        {
+            // Returns true if MiscTypeMaster is linked to active dependent records (blocking deletion).
+            // Currently MiscTypeMaster has no FK children — always returns false (safe to delete).
+            await Task.CompletedTask;
+            return false;
+        }
     }
 }

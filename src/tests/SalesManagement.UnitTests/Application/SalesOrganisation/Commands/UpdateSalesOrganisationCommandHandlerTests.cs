@@ -1,6 +1,5 @@
-﻿#nullable disable
+#nullable disable
 using AutoMapper;
-using Contracts.Common;
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.ISalesOrganisation;
 using SalesManagement.Application.SalesOrganisation.Commands.UpdateSalesOrganisation;
@@ -12,14 +11,12 @@ namespace SalesManagement.UnitTests.Application.SalesOrganisation.Commands
     public class UpdateSalesOrganisationCommandHandlerTests
     {
         private readonly Mock<ISalesOrganisationCommandRepository> _mockCommandRepo = new(MockBehavior.Strict);
-        private readonly Mock<ISalesOrganisationQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Strict);
         private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Strict);
 
         private UpdateSalesOrganisationCommandHandler CreateSut() =>
             new UpdateSalesOrganisationCommandHandler(
                 _mockCommandRepo.Object,
-                _mockQueryRepo.Object,
                 _mockMediator.Object,
                 _mockMapper.Object);
 
@@ -30,10 +27,8 @@ namespace SalesManagement.UnitTests.Application.SalesOrganisation.Commands
         {
             // Arrange
             var command = SalesOrganisationBuilders.ValidUpdateCommand(id: 1);
-            var existingDto = SalesOrganisationBuilders.ValidDto(id: 1, code: "ORG001");
             var entity = SalesOrganisationBuilders.ValidEntity(id: 1);
 
-            _mockQueryRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(existingDto);
             _mockMapper.Setup(m => m.Map<SalesManagement.Domain.Entities.SalesOrganisation>(command)).Returns(entity);
             _mockCommandRepo.Setup(r => r.UpdateAsync(entity)).ReturnsAsync(1);
             _mockMediator.Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>()))
@@ -55,10 +50,8 @@ namespace SalesManagement.UnitTests.Application.SalesOrganisation.Commands
         {
             // Arrange
             var command = SalesOrganisationBuilders.ValidUpdateCommand(id: 1);
-            var existingDto = SalesOrganisationBuilders.ValidDto(id: 1);
             var entity = SalesOrganisationBuilders.ValidEntity(id: 1);
 
-            _mockQueryRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(existingDto);
             _mockMapper.Setup(m => m.Map<SalesManagement.Domain.Entities.SalesOrganisation>(command)).Returns(entity);
             _mockCommandRepo.Setup(r => r.UpdateAsync(entity)).ReturnsAsync(1);
             _mockMediator.Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>()))
@@ -78,10 +71,8 @@ namespace SalesManagement.UnitTests.Application.SalesOrganisation.Commands
         {
             // Arrange
             var command = SalesOrganisationBuilders.ValidUpdateCommand(id: 1);
-            var existingDto = SalesOrganisationBuilders.ValidDto(id: 1);
             var entity = SalesOrganisationBuilders.ValidEntity(id: 1);
 
-            _mockQueryRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(existingDto);
             _mockMapper.Setup(m => m.Map<SalesManagement.Domain.Entities.SalesOrganisation>(command)).Returns(entity);
             _mockCommandRepo.Setup(r => r.UpdateAsync(entity)).ReturnsAsync(1);
             _mockMediator.Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>()))
@@ -101,10 +92,8 @@ namespace SalesManagement.UnitTests.Application.SalesOrganisation.Commands
         {
             // Arrange
             var command = SalesOrganisationBuilders.ValidUpdateCommand(id: 1);
-            var existingDto = SalesOrganisationBuilders.ValidDto(id: 1, code: "ORG001");
             var entity = SalesOrganisationBuilders.ValidEntity(id: 1);
 
-            _mockQueryRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(existingDto);
             _mockMapper.Setup(m => m.Map<SalesManagement.Domain.Entities.SalesOrganisation>(command)).Returns(entity);
             _mockCommandRepo.Setup(r => r.UpdateAsync(entity)).ReturnsAsync(1);
             _mockMediator.Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>()))
@@ -131,10 +120,8 @@ namespace SalesManagement.UnitTests.Application.SalesOrganisation.Commands
         {
             // Arrange
             var command = SalesOrganisationBuilders.ValidUpdateCommand(id: 1);
-            var existingDto = SalesOrganisationBuilders.ValidDto(id: 1, code: "ORG001");
             var entity = SalesOrganisationBuilders.ValidEntity(id: 1);
 
-            _mockQueryRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(existingDto);
             _mockMapper.Setup(m => m.Map<SalesManagement.Domain.Entities.SalesOrganisation>(command)).Returns(entity);
             _mockCommandRepo.Setup(r => r.UpdateAsync(entity)).ReturnsAsync(1);
             _mockMediator.Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>()))
@@ -145,75 +132,12 @@ namespace SalesManagement.UnitTests.Application.SalesOrganisation.Commands
             // Act
             await sut.Handle(command, CancellationToken.None);
 
-            // Assert — audit event uses the existing code (ORG001) from the fetched DTO
+            // Assert
             _mockMediator.Verify(
                 m => m.Publish(
                     It.Is<AuditLogsDomainEvent>(e => e.ActionName == "1"),
                     It.IsAny<CancellationToken>()),
                 Times.Once);
-        }
-
-        [Fact]
-        public async Task Handle_ValidCommand_DoesNotCallGetByIdAsync()
-        {
-            // Arrange
-            // Handler trusts FluentValidation (Rule 18) - it does NOT call GetByIdAsync.
-            // Entity existence is verified by the validator via NotFoundAsync, not the handler.
-            var command = SalesOrganisationBuilders.ValidUpdateCommand(id: 1);
-            var entity = SalesOrganisationBuilders.ValidEntity(id: 1);
-
-            // No GetByIdAsync setup - strict mock throws if handler calls it
-            _mockMapper.Setup(m => m.Map<SalesManagement.Domain.Entities.SalesOrganisation>(command)).Returns(entity);
-            _mockCommandRepo.Setup(r => r.UpdateAsync(entity)).ReturnsAsync(1);
-            _mockMediator.Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>()))
-                .Returns(Task.CompletedTask);
-
-            var sut = CreateSut();
-
-            // Act
-            var result = await sut.Handle(command, CancellationToken.None);
-
-            // Assert
-            result.IsSuccess.Should().BeTrue();
-            _mockQueryRepo.VerifyNoOtherCalls();
-        }
-
-        [Fact]
-        public async Task Handle_EntityNotFound_DoesNotCallUpdateAsync()
-        {
-            // Arrange
-            var command = SalesOrganisationBuilders.ValidUpdateCommand(id: 99);
-
-            _mockQueryRepo.Setup(r => r.GetByIdAsync(99))
-                .ReturnsAsync((SalesManagement.Application.SalesOrganisation.Dto.SalesOrganisationDto)null);
-
-            var sut = CreateSut();
-
-            // Act
-            try { await sut.Handle(command, CancellationToken.None); } catch { }
-
-            // Assert
-            _mockCommandRepo.Verify(r => r.UpdateAsync(It.IsAny<SalesManagement.Domain.Entities.SalesOrganisation>()), Times.Never);
-        }
-
-        [Fact]
-        public async Task Handle_EntityNotFound_DoesNotPublishAuditEvent()
-        {
-            // Arrange
-            var command = SalesOrganisationBuilders.ValidUpdateCommand(id: 99);
-
-            _mockQueryRepo.Setup(r => r.GetByIdAsync(99))
-                .ReturnsAsync((SalesManagement.Application.SalesOrganisation.Dto.SalesOrganisationDto)null);
-
-            var sut = CreateSut();
-
-            // Act
-            try { await sut.Handle(command, CancellationToken.None); } catch { }
-
-            // Assert
-            _mockMediator.Verify(
-                m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>()),
-                Times.Never);
         }
     }
 }

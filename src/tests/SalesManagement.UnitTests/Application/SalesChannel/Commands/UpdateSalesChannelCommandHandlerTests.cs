@@ -1,6 +1,5 @@
-﻿#nullable disable
+#nullable disable
 using AutoMapper;
-using Contracts.Common;
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.ISalesChannel;
 using SalesManagement.Application.SalesChannel.Commands.UpdateSalesChannel;
@@ -12,14 +11,12 @@ namespace SalesManagement.UnitTests.Application.SalesChannel.Commands
     public class UpdateSalesChannelCommandHandlerTests
     {
         private readonly Mock<ISalesChannelCommandRepository> _mockCommandRepo = new(MockBehavior.Strict);
-        private readonly Mock<ISalesChannelQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Strict);
         private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Strict);
 
         private UpdateSalesChannelCommandHandler CreateSut() =>
             new UpdateSalesChannelCommandHandler(
                 _mockCommandRepo.Object,
-                _mockQueryRepo.Object,
                 _mockMediator.Object,
                 _mockMapper.Object);
 
@@ -29,10 +26,8 @@ namespace SalesManagement.UnitTests.Application.SalesChannel.Commands
         public async Task Handle_EntityExists_ReturnsSuccess()
         {
             var command = SalesChannelBuilders.ValidUpdateCommand(id: 1);
-            var existingDto = SalesChannelBuilders.ValidDto(id: 1, code: "CH001");
             var entity = SalesChannelBuilders.ValidEntity(id: 1);
 
-            _mockQueryRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(existingDto);
             _mockMapper.Setup(m => m.Map<SalesManagement.Domain.Entities.SalesChannel>(command)).Returns(entity);
             _mockCommandRepo.Setup(r => r.UpdateAsync(entity)).ReturnsAsync(1);
             _mockMediator.Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>()))
@@ -49,10 +44,8 @@ namespace SalesManagement.UnitTests.Application.SalesChannel.Commands
         public async Task Handle_EntityExists_ReturnsSuccessMessage()
         {
             var command = SalesChannelBuilders.ValidUpdateCommand(id: 1);
-            var existingDto = SalesChannelBuilders.ValidDto(id: 1);
             var entity = SalesChannelBuilders.ValidEntity(id: 1);
 
-            _mockQueryRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(existingDto);
             _mockMapper.Setup(m => m.Map<SalesManagement.Domain.Entities.SalesChannel>(command)).Returns(entity);
             _mockCommandRepo.Setup(r => r.UpdateAsync(entity)).ReturnsAsync(1);
             _mockMediator.Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>()))
@@ -67,10 +60,8 @@ namespace SalesManagement.UnitTests.Application.SalesChannel.Commands
         public async Task Handle_EntityExists_CallsUpdateAsync_Once()
         {
             var command = SalesChannelBuilders.ValidUpdateCommand(id: 1);
-            var existingDto = SalesChannelBuilders.ValidDto(id: 1);
             var entity = SalesChannelBuilders.ValidEntity(id: 1);
 
-            _mockQueryRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(existingDto);
             _mockMapper.Setup(m => m.Map<SalesManagement.Domain.Entities.SalesChannel>(command)).Returns(entity);
             _mockCommandRepo.Setup(r => r.UpdateAsync(entity)).ReturnsAsync(1);
             _mockMediator.Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>()))
@@ -85,10 +76,8 @@ namespace SalesManagement.UnitTests.Application.SalesChannel.Commands
         public async Task Handle_EntityExists_PublishesAuditLogEvent_Once()
         {
             var command = SalesChannelBuilders.ValidUpdateCommand(id: 1);
-            var existingDto = SalesChannelBuilders.ValidDto(id: 1, code: "CH001");
             var entity = SalesChannelBuilders.ValidEntity(id: 1);
 
-            _mockQueryRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(existingDto);
             _mockMapper.Setup(m => m.Map<SalesManagement.Domain.Entities.SalesChannel>(command)).Returns(entity);
             _mockCommandRepo.Setup(r => r.UpdateAsync(entity)).ReturnsAsync(1);
             _mockMediator.Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>()))
@@ -110,10 +99,8 @@ namespace SalesManagement.UnitTests.Application.SalesChannel.Commands
         public async Task Handle_EntityExists_AuditEvent_ContainsChannelCode()
         {
             var command = SalesChannelBuilders.ValidUpdateCommand(id: 1);
-            var existingDto = SalesChannelBuilders.ValidDto(id: 1, code: "CH001");
             var entity = SalesChannelBuilders.ValidEntity(id: 1);
 
-            _mockQueryRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(existingDto);
             _mockMapper.Setup(m => m.Map<SalesManagement.Domain.Entities.SalesChannel>(command)).Returns(entity);
             _mockCommandRepo.Setup(r => r.UpdateAsync(entity)).ReturnsAsync(1);
             _mockMediator.Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>()))
@@ -126,56 +113,6 @@ namespace SalesManagement.UnitTests.Application.SalesChannel.Commands
                     It.Is<AuditLogsDomainEvent>(e => e.ActionName == "1"),
                     It.IsAny<CancellationToken>()),
                 Times.Once);
-        }
-
-        [Fact]
-        public async Task Handle_ValidCommand_DoesNotCallGetByIdAsync()
-        {
-            // Handler trusts FluentValidation (Rule 18) - it does NOT call GetByIdAsync.
-            // Entity existence is verified by the validator via NotFoundAsync, not the handler.
-            var command = SalesChannelBuilders.ValidUpdateCommand(id: 1);
-            var entity = SalesChannelBuilders.ValidEntity(id: 1);
-
-            // No GetByIdAsync setup - strict mock throws if handler calls it
-            _mockMapper.Setup(m => m.Map<SalesManagement.Domain.Entities.SalesChannel>(command)).Returns(entity);
-            _mockCommandRepo.Setup(r => r.UpdateAsync(entity)).ReturnsAsync(1);
-            _mockMediator.Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>()))
-                .Returns(Task.CompletedTask);
-
-            var result = await CreateSut().Handle(command, CancellationToken.None);
-
-            result.IsSuccess.Should().BeTrue();
-            _mockQueryRepo.VerifyNoOtherCalls();
-        }
-
-        [Fact]
-        public async Task Handle_EntityNotFound_DoesNotCallUpdateAsync()
-        {
-            var command = SalesChannelBuilders.ValidUpdateCommand(id: 99);
-
-            _mockQueryRepo.Setup(r => r.GetByIdAsync(99))
-                .ReturnsAsync((SalesManagement.Application.SalesChannel.Dto.SalesChannelDto)null);
-
-            try { await CreateSut().Handle(command, CancellationToken.None); } catch { }
-
-            _mockCommandRepo.Verify(
-                r => r.UpdateAsync(It.IsAny<SalesManagement.Domain.Entities.SalesChannel>()),
-                Times.Never);
-        }
-
-        [Fact]
-        public async Task Handle_EntityNotFound_DoesNotPublishAuditEvent()
-        {
-            var command = SalesChannelBuilders.ValidUpdateCommand(id: 99);
-
-            _mockQueryRepo.Setup(r => r.GetByIdAsync(99))
-                .ReturnsAsync((SalesManagement.Application.SalesChannel.Dto.SalesChannelDto)null);
-
-            try { await CreateSut().Handle(command, CancellationToken.None); } catch { }
-
-            _mockMediator.Verify(
-                m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>()),
-                Times.Never);
         }
     }
 }

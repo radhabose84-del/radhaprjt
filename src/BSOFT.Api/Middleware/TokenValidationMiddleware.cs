@@ -7,7 +7,7 @@ using UserManagement.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
 
-namespace BSOFT.Bootstrapper.Middleware
+namespace BSOFT.Api.Middleware
 {
     public class TokenValidationMiddleware
     {

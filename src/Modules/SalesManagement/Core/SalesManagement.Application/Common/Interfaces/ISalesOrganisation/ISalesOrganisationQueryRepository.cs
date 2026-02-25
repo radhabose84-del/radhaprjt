@@ -10,5 +10,6 @@ namespace SalesManagement.Application.Common.Interfaces.ISalesOrganisation
         Task<bool> AlreadyExistsAsync(string salesOrganisationCode, int? id = null);
         Task<bool> NotFoundAsync(int id);
         Task<bool> CompanyExistsAsync(int companyId);
+        Task<bool> SoftDeleteValidationAsync(int id);
     }
 }

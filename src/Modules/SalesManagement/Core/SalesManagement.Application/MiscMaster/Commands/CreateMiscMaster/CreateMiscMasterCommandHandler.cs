@@ -1,3 +1,4 @@
+#nullable disable
 using AutoMapper;
 using Contracts.Common;
 using MediatR;
@@ -25,8 +26,6 @@ namespace SalesManagement.Application.MiscMaster.Commands.CreateMiscMaster
         public async Task<ApiResponseDTO<int>> Handle(CreateMiscMasterCommand request, CancellationToken cancellationToken)
         {
             var entity = _mapper.Map<Domain.Entities.MiscMaster>(request);
-            entity.IsActive = Domain.Common.BaseEntity.Status.Active;
-            entity.IsDeleted = Domain.Common.BaseEntity.IsDelete.NotDeleted;
             entity.SortOrder = await _commandRepository.GetMaxSortOrderAsync(request.MiscTypeId) + 1;
 
             var newId = await _commandRepository.CreateAsync(entity);

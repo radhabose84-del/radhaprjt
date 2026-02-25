@@ -1,4 +1,4 @@
-namespace BSOFT.Bootstrapper.Configurations
+namespace BSOFT.Api.Configurations
 {
     public static class CorsSetup
     {

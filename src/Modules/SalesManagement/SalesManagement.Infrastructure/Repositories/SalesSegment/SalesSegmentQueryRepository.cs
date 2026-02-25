@@ -195,5 +195,13 @@ namespace SalesManagement.Infrastructure.Repositories.SalesSegment
 
             return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { Id = id });
         }
+
+        public async Task<bool> SoftDeleteValidationAsync(int id)
+        {
+            // Returns true if SalesSegment is linked to active dependent records (blocking deletion).
+            // Currently SalesSegment has no FK children — always returns false (safe to delete).
+            await Task.CompletedTask;
+            return false;
+        }
     }
 }

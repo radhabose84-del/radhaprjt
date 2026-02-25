@@ -10,7 +10,7 @@
 ## 🎯 Quick Reference
 
 - **Solution:** `d:\BSOFT\BSOFT.sln`
-- **Entry Point:** `src/BSOFT.Bootstrapper/Program.cs`
+- **Entry Point:** `src/BSOFT.Api/Program.cs`
 - **Branch:** `usha_ModulerMonolithic` (main development)
 - **Target Framework:** .NET 8.0
 - **Database:** SQL Server (with EF Core + Dapper)
@@ -183,10 +183,8 @@ public class Create{EntityName}CommandHandler : IRequestHandler<Create{EntityNam
 
     public async Task<ApiResponseDTO<int>> Handle(Create{EntityName}Command request, CancellationToken cancellationToken)
     {
-        // ✅ ALWAYS use AutoMapper — never manually assign properties
+        // ✅ ALWAYS use AutoMapper — IsActive/IsDeleted are set via ForMember in the Profile
         var entity = _mapper.Map<Domain.Entities.{EntityName}>(request);
-        entity.IsActive = Domain.Common.BaseEntity.Status.Active;
-        entity.IsDeleted = Domain.Common.BaseEntity.IsDelete.NotDeleted;
 
         var newId = await _commandRepository.CreateAsync(entity);
 
@@ -232,11 +230,8 @@ public class Update{EntityName}CommandHandler : IRequestHandler<Update{EntityNam
 
     public async Task<ApiResponseDTO<int>> Handle(Update{EntityName}Command request, CancellationToken cancellationToken)
     {
-        // ✅ Use AutoMapper to map mutable fields onto the existing entity
+        // ✅ Use AutoMapper — IsActive is mapped via ForMember in the Profile
         var entity = _mapper.Map<Domain.Entities.{EntityName}>(request);
-        entity.IsActive = request.IsActive == 1
-            ? Domain.Common.BaseEntity.Status.Active
-            : Domain.Common.BaseEntity.Status.Inactive;
 
         var result = await _commandRepository.UpdateAsync(entity);
 
@@ -262,9 +257,9 @@ public class Update{EntityName}CommandHandler : IRequestHandler<Update{EntityNam
 ⚠️ **Key Rules for Command Handlers:**
 1. **ALWAYS inject `IMapper`** — never manually assign command properties to entity properties
 2. **ALWAYS use `_mapper.Map<>(request)`** to map command → domain entity
-3. **ALWAYS explicitly set `IsActive` and `IsDeleted`** after mapping (Create sets Active/NotDeleted; Update maps `IsActive` from int)
+3. **NEVER set `IsActive`/`IsDeleted` manually in the handler** — define them via `ForMember` in the AutoMapper Profile instead
 4. **ALWAYS inject all 4 dependencies:** `ICommandRepository`, `IQueryRepository`, `IMediator`, `IMapper`
-5. **AutoMapper Profile MUST exist** in `Common/Mappings/{EntityName}Profile.cs` with mappings for both Create and Update commands
+5. **AutoMapper Profile MUST exist** in `Common/Mappings/{EntityName}Profile.cs` with `ForMember` for `IsActive` and `IsDeleted` on Create, and `ForMember` for `IsActive` on Update
 
 ### Query Pattern
 
@@ -291,6 +286,138 @@ public class Get{EntityName}ByIdQuery : IRequest<ApiResponseDTO<{EntityName}Dto>
 public sealed record Get{EntityName}AutoCompleteQuery(string Term)
     : IRequest<IReadOnlyList<{EntityName}LookupDto>>;
 ```
+
+### Query Handler Pattern (IMapper + IMediator Required)
+
+All query handlers MUST inject `IMapper` and `IMediator` alongside the query repository.
+
+**GetAll Query Handler:**
+```csharp
+public class GetAll{EntityName}QueryHandler : IRequestHandler<GetAll{EntityName}Query, ApiResponseDTO<List<{EntityName}Dto>>>
+{
+    private readonly I{EntityName}QueryRepository _queryRepository;
+    private readonly IMapper _mapper;
+    private readonly IMediator _mediator;
+
+    public GetAll{EntityName}QueryHandler(I{EntityName}QueryRepository queryRepository, IMapper mapper, IMediator mediator)
+    {
+        _queryRepository = queryRepository;
+        _mapper = mapper;
+        _mediator = mediator;
+    }
+
+    public async Task<ApiResponseDTO<List<{EntityName}Dto>>> Handle(GetAll{EntityName}Query request, CancellationToken cancellationToken)
+    {
+        var (data, totalCount) = await _queryRepository.GetAllAsync(request.PageNumber, request.PageSize, request.SearchTerm);
+        var dtos = _mapper.Map<List<{EntityName}Dto>>(data);
+
+        // 📘 Log domain event
+        var domainEvent = new AuditLogsDomainEvent(
+            actionDetail: "GetAll{EntityName}Query",
+            actionCode: "Get",
+            actionName: data.Count.ToString(),
+            details: "{EntityName} details were fetched.",
+            module: "{EntityName}"
+        );
+        await _mediator.Publish(domainEvent, cancellationToken);
+
+        return new ApiResponseDTO<List<{EntityName}Dto>>
+        {
+            IsSuccess = true,
+            Message = "Success",
+            Data = dtos,
+            TotalCount = totalCount,
+            PageNumber = request.PageNumber,
+            PageSize = request.PageSize
+        };
+    }
+}
+```
+
+**GetById Query Handler:**
+```csharp
+public class Get{EntityName}ByIdQueryHandler : IRequestHandler<Get{EntityName}ByIdQuery, ApiResponseDTO<{EntityName}Dto>>
+{
+    private readonly I{EntityName}QueryRepository _queryRepository;
+    private readonly IMapper _mapper;
+    private readonly IMediator _mediator;
+
+    public Get{EntityName}ByIdQueryHandler(I{EntityName}QueryRepository queryRepository, IMapper mapper, IMediator mediator)
+    {
+        _queryRepository = queryRepository;
+        _mapper = mapper;
+        _mediator = mediator;
+    }
+
+    public async Task<ApiResponseDTO<{EntityName}Dto>> Handle(Get{EntityName}ByIdQuery request, CancellationToken cancellationToken)
+    {
+        var result = await _queryRepository.GetByIdAsync(request.Id);
+
+        if (result == null)
+            return null;
+
+        var dto = _mapper.Map<{EntityName}Dto>(result);
+
+        var domainEvent = new AuditLogsDomainEvent(
+            actionDetail: "GetById",
+            actionCode: "Get{EntityName}ByIdQuery",
+            actionName: dto.Id.ToString(),
+            details: $"{EntityName} details {dto.Id} was fetched.",
+            module: "{EntityName}"
+        );
+        await _mediator.Publish(domainEvent, cancellationToken);
+
+        return new ApiResponseDTO<{EntityName}Dto>
+        {
+            IsSuccess = true,
+            Message = "{EntityName} retrieved successfully.",
+            Data = dto
+        };
+    }
+}
+```
+
+**AutoComplete Query Handler:**
+```csharp
+public class Get{EntityName}AutoCompleteQueryHandler : IRequestHandler<Get{EntityName}AutoCompleteQuery, IReadOnlyList<{EntityName}LookupDto>>
+{
+    private readonly I{EntityName}QueryRepository _queryRepository;
+    private readonly IMapper _mapper;
+    private readonly IMediator _mediator;
+
+    public Get{EntityName}AutoCompleteQueryHandler(I{EntityName}QueryRepository queryRepository, IMapper mapper, IMediator mediator)
+    {
+        _queryRepository = queryRepository;
+        _mapper = mapper;
+        _mediator = mediator;
+    }
+
+    public async Task<IReadOnlyList<{EntityName}LookupDto>> Handle(Get{EntityName}AutoCompleteQuery request, CancellationToken cancellationToken)
+    {
+        var result = await _queryRepository.AutocompleteAsync(request.Term ?? string.Empty, cancellationToken);
+        var dtos = _mapper.Map<List<{EntityName}LookupDto>>(result);
+
+        // Domain Event
+        var domainEvent = new AuditLogsDomainEvent(
+            actionDetail: "GetAll",
+            actionCode: "Get{EntityName}AutoCompleteQuery",
+            actionName: dtos.Count.ToString(),
+            details: "{EntityName} details was fetched.",
+            module: "{EntityName}"
+        );
+        await _mediator.Publish(domainEvent, cancellationToken);
+
+        return dtos;
+    }
+}
+```
+
+⚠️ **Key Rules for Query Handlers:**
+1. **ALWAYS inject all 3 dependencies:** `IQueryRepository`, `IMapper`, `IMediator`
+2. **ALWAYS use `_mapper.Map<>(data)`** — never return repo result directly
+3. **ALWAYS publish `AuditLogsDomainEvent`** after fetching data
+4. **Use `public class`** (not `sealed`) and block namespace syntax (not file-scoped)
+5. **GetById null guard:** `if (result == null) return null;` before mapping
 
 ---
 
@@ -959,19 +1086,19 @@ using {Module}.Application.{EntityName}.Dto;
 ```bash
 cd src/Modules/{Module}/{Module}.Infrastructure
 
-dotnet ef migrations add {EntityName}Master --startup-project ../../../BSOFT.Bootstrapper
+dotnet ef migrations add {EntityName}Master --startup-project ../../../BSOFT.Api
 ```
 
 ### Apply Migration
 
 ```bash
-dotnet ef database update --startup-project ../../../BSOFT.Bootstrapper
+dotnet ef database update --startup-project ../../../BSOFT.Api
 ```
 
 ### Design-Time Factory
 
 Each module has `DesignTimeDbContextFactory.cs` that:
-- Loads configuration from `BSOFT.Bootstrapper/appsettings.json`
+- Loads configuration from `BSOFT.Api/appsettings.json`
 - Injects dummy `IIPAddressService`, `ITimeZoneService` for migrations
 - Uses hardcoded connection string for dev environment
 
@@ -2067,8 +2194,8 @@ mockCompanyLookup.Setup(c => c.GetAllCompanyAsync())
 > ❌ DO NOT run migrations. DO NOT create migration files.
 > ✋ User will run migration manually:
 > ```bash
-> dotnet ef migrations add {EntityName}Master --startup-project ../../../BSOFT.Bootstrapper
-> dotnet ef database update --startup-project ../../../BSOFT.Bootstrapper
+> dotnet ef migrations add {EntityName}Master --startup-project ../../../BSOFT.Api
+> dotnet ef database update --startup-project ../../../BSOFT.Api
 > ```
 > ✋ Wait for user confirmation: *"Migration done"* or *"Table created"*
 
@@ -2226,8 +2353,8 @@ ALWAYS generate the specification document first and wait for explicit user conf
 > ✅ **MIGRATIONS ARE ALWAYS MANUAL — USER RUNS THEM:**
 > The user is responsible for reviewing the entity and FK design, then running:
 > ```bash
-> dotnet ef migrations add {EntityName}Master --startup-project ../../../BSOFT.Bootstrapper
-> dotnet ef database update --startup-project ../../../BSOFT.Bootstrapper
+> dotnet ef migrations add {EntityName}Master --startup-project ../../../BSOFT.Api
+> dotnet ef database update --startup-project ../../../BSOFT.Api
 > ```
 > AI must wait for the user to confirm **"Migration done"** or **"Table created"** before writing any further code.
 
@@ -2302,12 +2429,24 @@ When implementing an entity with a cross-module FK, ALWAYS check `src/Shared/Con
 > };
 > ```
 
-> ✅ **ALWAYS use `IMapper` to map command → entity:**
+> ✅ **ALWAYS use `IMapper` to map command → entity, with `IsActive`/`IsDeleted` in the Profile:**
 > ```csharp
-> // ✅ CORRECT — AutoMapper
+> // ✅ CORRECT — AutoMapper handles everything including IsActive/IsDeleted
 > var entity = _mapper.Map<Domain.Entities.BusinessUnit>(request);
-> entity.IsActive = Domain.Common.BaseEntity.Status.Active;
-> entity.IsDeleted = Domain.Common.BaseEntity.IsDelete.NotDeleted;
+> // No manual IsActive/IsDeleted assignment — handled in BusinessUnitProfile via ForMember
+> ```
+>
+> **In `BusinessUnitProfile.cs`:**
+> ```csharp
+> using static BusinessUnit.Domain.Common.BaseEntity;
+>
+> CreateMap<CreateBusinessUnitCommand, Domain.Entities.BusinessUnit>()
+>     .ForMember(dest => dest.IsActive,  opt => opt.MapFrom(src => Status.Active))
+>     .ForMember(dest => dest.IsDeleted, opt => opt.MapFrom(src => IsDelete.NotDeleted));
+>
+> CreateMap<UpdateBusinessUnitCommand, Domain.Entities.BusinessUnit>()
+>     .ForMember(dest => dest.IsActive,  opt => opt.MapFrom(src =>
+>         src.IsActive == 1 ? Status.Active : Status.Inactive));
 > ```
 
 **Mandatory handler dependencies (all 4 required):**
@@ -2322,7 +2461,10 @@ When implementing an entity with a cross-module FK, ALWAYS check `src/Shared/Con
 - **Scalability:** Adding new fields requires zero handler changes
 - **Testability:** `IMapper` can be mocked in unit tests for isolated testing
 
-> ⚠️ Every Create/Update command MUST have a corresponding `AutoMapper.Profile` in `Common/Mappings/{EntityName}Profile.cs` that defines `CreateMap<Create{EntityName}Command, {EntityName}>()` and `CreateMap<Update{EntityName}Command, {EntityName}>()`.
+> ⚠️ Every Create/Update command MUST have a corresponding `AutoMapper.Profile` in `Common/Mappings/{EntityName}Profile.cs` that:
+> - Maps `CreateMap<Create{EntityName}Command, {EntityName}>()` with **`ForMember` for `IsActive = Status.Active` and `IsDeleted = IsDelete.NotDeleted`**
+> - Maps `CreateMap<Update{EntityName}Command, {EntityName}>()` with **`ForMember` for `IsActive` from `src.IsActive == 1 ? Status.Active : Status.Inactive`**
+> - Uses `using static {Module}.Domain.Common.BaseEntity;` for clean enum references
 
 ### 17. **NO [Authorize] on Controllers — Simple HTTP Verb Routes Only**
 
@@ -2448,6 +2590,29 @@ Authentication is handled globally by `TokenValidationMiddleware` in the request
 >     .Matches("^[A-Za-z0-9]+$").WithMessage("Code must be alphanumeric.")
 >     .MaximumLength(20).WithMessage("Code cannot exceed 20 characters.");
 > ```
+>
+> ❌ **NEVER hardcode the regex pattern in the `Alphanumeric` case — even with a comment:**
+> ```csharp
+> // ❌ WRONG — hardcoded regex, even with a comment explaining the business rule
+> case "Alphanumeric":
+>     // SalesGroupName allows alphanumeric + spaces (per business rule)
+>     RuleFor(x => x.SalesGroupName)
+>         .Matches(@"^[A-Za-z0-9 ]+$")   // ❌ HARDCODED — must never appear
+>         .WithMessage($"{nameof(Command.SalesGroupName)} {rule.Error}")
+>         .When(x => !string.IsNullOrWhiteSpace(x.SalesGroupName));
+>     break;
+> ```
+>
+> ✅ **ALWAYS use `rule.Pattern` from the shared validation JSON — no exceptions:**
+> ```csharp
+> // ✅ CORRECT — pattern comes from validation-rules.json via ValidationRuleLoader
+> case "Alphanumeric":
+>     RuleFor(x => x.SalesGroupName)
+>         .Matches(rule.Pattern)          // ✅ sourced from JSON, never hardcoded
+>         .WithMessage($"{nameof(Command.SalesGroupName)} {rule.Error}")
+>         .When(x => !string.IsNullOrWhiteSpace(x.SalesGroupName));
+>     break;
+> ```
 
 > ✅ **ALWAYS use `ValidationRuleLoader` + `MaxLengthProvider` + `switch/case` pattern:**
 > ```csharp
@@ -2487,9 +2652,10 @@ Authentication is handled globally by `TokenValidationMiddleware` in the request
 **Mandatory validator structure:**
 1. Extract max lengths via `maxLengthProvider.GetMaxLength<Entity>("PropertyName") ?? fallback`
 2. Load rules via `ValidationRuleLoader.LoadValidationRules()`
-3. Null/empty check on loaded rules → throw `InvalidOperationException`
+3. Null/empty check on loaded rules → `_validationRules.Count == 0` (not `!Any()`) → throw `InvalidOperationException`
 4. `foreach (var rule in _validationRules)` with `switch (rule.Rule)`
 5. Error messages: `$"{nameof(Command.Property)} {rule.Error}"`
+6. **`Alphanumeric` case MUST use `.Matches(rule.Pattern)` — NEVER `.Matches(@"^[A-Za-z0-9 ]+$")` or any hardcoded string**
 
 **Key files:**
 - `src/Shared/Shared.Validation/Common/ValidationRuleLoader.cs` — rule loader

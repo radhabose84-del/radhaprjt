@@ -9,5 +9,6 @@ namespace SalesManagement.Application.Common.Interfaces.ISalesChannel
         Task<IReadOnlyList<SalesChannelLookupDto>> AutocompleteAsync(string term, CancellationToken ct);
         Task<bool> AlreadyExistsAsync(string salesChannelCode, int? id = null);
         Task<bool> NotFoundAsync(int id);
+        Task<bool> SoftDeleteValidationAsync(int id);
     }
 }
