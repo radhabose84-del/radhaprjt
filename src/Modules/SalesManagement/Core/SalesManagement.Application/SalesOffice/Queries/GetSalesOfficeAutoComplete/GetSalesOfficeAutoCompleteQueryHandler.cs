@@ -1,16 +1,41 @@
+#nullable disable
+using AutoMapper;
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.ISalesOffice;
 using SalesManagement.Application.SalesOffice.Dto;
+using SalesManagement.Domain.Events;
 
-namespace SalesManagement.Application.SalesOffice.Queries.GetSalesOfficeAutoComplete;
-
-public sealed class GetSalesOfficeAutoCompleteQueryHandler
-    : IRequestHandler<GetSalesOfficeAutoCompleteQuery, IReadOnlyList<SalesOfficeLookupDto>>
+namespace SalesManagement.Application.SalesOffice.Queries.GetSalesOfficeAutoComplete
 {
-    private readonly ISalesOfficeQueryRepository _repo;
+    public class GetSalesOfficeAutoCompleteQueryHandler : IRequestHandler<GetSalesOfficeAutoCompleteQuery, IReadOnlyList<SalesOfficeLookupDto>>
+    {
+        private readonly ISalesOfficeQueryRepository _queryRepository;
+        private readonly IMapper _mapper;
+        private readonly IMediator _mediator;
 
-    public GetSalesOfficeAutoCompleteQueryHandler(ISalesOfficeQueryRepository repo) => _repo = repo;
+        public GetSalesOfficeAutoCompleteQueryHandler(ISalesOfficeQueryRepository queryRepository, IMapper mapper, IMediator mediator)
+        {
+            _queryRepository = queryRepository;
+            _mapper = mapper;
+            _mediator = mediator;
+        }
 
-    public Task<IReadOnlyList<SalesOfficeLookupDto>> Handle(GetSalesOfficeAutoCompleteQuery r, CancellationToken ct)
-        => _repo.AutocompleteAsync(r.Term ?? string.Empty, ct);
+        public async Task<IReadOnlyList<SalesOfficeLookupDto>> Handle(GetSalesOfficeAutoCompleteQuery request, CancellationToken cancellationToken)
+        {
+            var result = await _queryRepository.AutocompleteAsync(request.Term ?? string.Empty, cancellationToken);
+            var salesOffices = _mapper.Map<List<SalesOfficeLookupDto>>(result);
+
+            // Domain Event
+            var domainEvent = new AuditLogsDomainEvent(
+                actionDetail: "GetAll",
+                actionCode: "GetSalesOfficeAutoCompleteQuery",
+                actionName: salesOffices.Count.ToString(),
+                details: "SalesOffice details was fetched.",
+                module: "SalesOffice"
+            );
+            await _mediator.Publish(domainEvent, cancellationToken);
+
+            return salesOffices;
+        }
+    }
 }
