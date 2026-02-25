@@ -1,3 +1,4 @@
+#nullable disable
 using AutoMapper;
 using Contracts.Common;
 using MediatR;
@@ -9,28 +10,21 @@ namespace SalesManagement.Application.SalesOffice.Commands.UpdateSalesOffice
     public class UpdateSalesOfficeCommandHandler : IRequestHandler<UpdateSalesOfficeCommand, ApiResponseDTO<int>>
     {
         private readonly ISalesOfficeCommandRepository _commandRepository;
-        private readonly ISalesOfficeQueryRepository _queryRepository;
         private readonly IMediator _mediator;
         private readonly IMapper _mapper;
 
         public UpdateSalesOfficeCommandHandler(
             ISalesOfficeCommandRepository commandRepository,
-            ISalesOfficeQueryRepository queryRepository,
             IMediator mediator,
             IMapper mapper)
         {
             _commandRepository = commandRepository;
-            _queryRepository = queryRepository;
             _mediator = mediator;
             _mapper = mapper;
         }
 
         public async Task<ApiResponseDTO<int>> Handle(UpdateSalesOfficeCommand request, CancellationToken cancellationToken)
         {
-            var existing = await _queryRepository.GetByIdAsync(request.Id);
-            if (existing == null)
-                throw new EntityNotFoundException($"Sales Office with Id {request.Id} not found.");
-
             var entity = _mapper.Map<Domain.Entities.SalesOffice>(request);
 
             var updatedId = await _commandRepository.UpdateAsync(entity);
@@ -38,8 +32,8 @@ namespace SalesManagement.Application.SalesOffice.Commands.UpdateSalesOffice
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Update",
                 actionCode: "SALES_OFFICE_UPDATE",
-                actionName: existing.SalesOfficeName,
-                details: $"Sales Office '{existing.SalesOfficeName}' updated successfully.",
+                actionName: request.Id.ToString(),
+                details: $"Sales Office with Id {request.Id} updated successfully.",
                 module: "SalesOffice"
             );
             await _mediator.Publish(auditEvent, cancellationToken);

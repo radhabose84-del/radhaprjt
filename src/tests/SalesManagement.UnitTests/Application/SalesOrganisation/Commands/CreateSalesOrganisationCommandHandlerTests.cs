@@ -12,14 +12,12 @@ namespace SalesManagement.UnitTests.Application.SalesOrganisation.Commands
     public class CreateSalesOrganisationCommandHandlerTests
     {
         private readonly Mock<ISalesOrganisationCommandRepository> _mockCommandRepo = new(MockBehavior.Strict);
-        private readonly Mock<ISalesOrganisationQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Strict);
         private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Strict);
 
         private CreateSalesOrganisationCommandHandler CreateSut() =>
             new CreateSalesOrganisationCommandHandler(
                 _mockCommandRepo.Object,
-                _mockQueryRepo.Object,
                 _mockMediator.Object,
                 _mockMapper.Object);
 

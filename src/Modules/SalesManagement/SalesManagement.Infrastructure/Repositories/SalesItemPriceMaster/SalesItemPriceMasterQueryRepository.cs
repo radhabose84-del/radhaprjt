@@ -267,5 +267,13 @@ namespace SalesManagement.Infrastructure.Repositories.SalesItemPriceMaster
             });
             return count > 0;
         }
+
+        public async Task<bool> SoftDeleteValidationAsync(int id)
+        {
+            // Returns true if SalesItemPriceMaster is linked to active dependent records (blocking deletion).
+            // Currently SalesItemPriceMaster has no FK children — always returns false (safe to delete).
+            await Task.CompletedTask;
+            return false;
+        }
     }
 }

@@ -9,7 +9,9 @@ namespace SalesManagement.Application.Common.Mappings
     {
         public MiscTypeMasterProfile()
         {
-            CreateMap<CreateMiscTypeMasterCommand, Domain.Entities.MiscTypeMaster>();
+            CreateMap<CreateMiscTypeMasterCommand, Domain.Entities.MiscTypeMaster>()
+                .ForMember(dest => dest.IsActive,  opt => opt.MapFrom(src => Status.Active))
+                .ForMember(dest => dest.IsDeleted, opt => opt.MapFrom(src => IsDelete.NotDeleted));
 
             CreateMap<UpdateMiscTypeMasterCommand, Domain.Entities.MiscTypeMaster>()
                 .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src =>

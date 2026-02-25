@@ -1,4 +1,4 @@
-using Contracts.Common;
+#nullable disable
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.ISalesOffice;
 using SalesManagement.Domain.Events;
@@ -7,36 +7,29 @@ namespace SalesManagement.Application.SalesOffice.Commands.DeleteSalesOffice
 {
     public sealed class DeleteSalesOfficeCommandHandler : IRequestHandler<DeleteSalesOfficeCommand, bool>
     {
-        private readonly ISalesOfficeCommandRepository _commandRepo;
-        private readonly ISalesOfficeQueryRepository _queryRepo;
+        private readonly ISalesOfficeCommandRepository _commandRepository;
         private readonly IMediator _mediator;
 
         public DeleteSalesOfficeCommandHandler(
-            ISalesOfficeCommandRepository commandRepo,
-            ISalesOfficeQueryRepository queryRepo,
+            ISalesOfficeCommandRepository commandRepository,
             IMediator mediator)
         {
-            _commandRepo = commandRepo;
-            _queryRepo = queryRepo;
+            _commandRepository = commandRepository;
             _mediator = mediator;
         }
 
-        public async Task<bool> Handle(DeleteSalesOfficeCommand request, CancellationToken ct)
+        public async Task<bool> Handle(DeleteSalesOfficeCommand request, CancellationToken cancellationToken)
         {
-            var before = await _queryRepo.GetByIdAsync(request.Id)
-                         ?? throw new ExceptionRules("Sales Office not found.");
+            await _commandRepository.SoftDeleteAsync(request.Id, cancellationToken);
 
-            var ok = await _commandRepo.SoftDeleteAsync(request.Id, ct);
-            if (!ok) throw new ExceptionRules("Failed to delete Sales Office.");
-
-            var ev = new AuditLogsDomainEvent(
+            var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "SoftDelete",
                 actionCode: "SALES_OFFICE_DELETE",
-                actionName: before.SalesOfficeName,
-                details: $"Sales Office '{before.SalesOfficeName}' soft-deleted.",
+                actionName: request.Id.ToString(),
+                details: $"Sales Office with Id {request.Id} soft deleted.",
                 module: "SalesOffice"
             );
-            await _mediator.Publish(ev, ct);
+            await _mediator.Publish(auditEvent, cancellationToken);
 
             return true;
         }

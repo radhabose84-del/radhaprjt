@@ -1,3 +1,4 @@
+#nullable disable
 using AutoMapper;
 using Contracts.Common;
 using MediatR;
@@ -9,18 +10,15 @@ namespace SalesManagement.Application.SalesOrganisation.Commands.UpdateSalesOrga
     public class UpdateSalesOrganisationCommandHandler : IRequestHandler<UpdateSalesOrganisationCommand, ApiResponseDTO<int>>
     {
         private readonly ISalesOrganisationCommandRepository _commandRepository;
-        private readonly ISalesOrganisationQueryRepository _queryRepository;
         private readonly IMediator _mediator;
         private readonly IMapper _mapper;
 
         public UpdateSalesOrganisationCommandHandler(
             ISalesOrganisationCommandRepository commandRepository,
-            ISalesOrganisationQueryRepository queryRepository,
             IMediator mediator,
             IMapper mapper)
         {
             _commandRepository = commandRepository;
-            _queryRepository = queryRepository;
             _mediator = mediator;
             _mapper = mapper;
         }

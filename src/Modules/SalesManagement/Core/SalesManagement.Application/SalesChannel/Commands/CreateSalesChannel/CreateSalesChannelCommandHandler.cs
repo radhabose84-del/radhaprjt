@@ -1,3 +1,4 @@
+#nullable disable
 using AutoMapper;
 using Contracts.Common;
 using MediatR;
@@ -9,18 +10,15 @@ namespace SalesManagement.Application.SalesChannel.Commands.CreateSalesChannel
     public class CreateSalesChannelCommandHandler : IRequestHandler<CreateSalesChannelCommand, ApiResponseDTO<int>>
     {
         private readonly ISalesChannelCommandRepository _commandRepository;
-        private readonly ISalesChannelQueryRepository _queryRepository;
         private readonly IMediator _mediator;
         private readonly IMapper _mapper;
 
         public CreateSalesChannelCommandHandler(
             ISalesChannelCommandRepository commandRepository,
-            ISalesChannelQueryRepository queryRepository,
             IMediator mediator,
             IMapper mapper)
         {
             _commandRepository = commandRepository;
-            _queryRepository = queryRepository;
             _mediator = mediator;
             _mapper = mapper;
         }
@@ -28,8 +26,6 @@ namespace SalesManagement.Application.SalesChannel.Commands.CreateSalesChannel
         public async Task<ApiResponseDTO<int>> Handle(CreateSalesChannelCommand request, CancellationToken cancellationToken)
         {
             var entity = _mapper.Map<Domain.Entities.SalesChannel>(request);
-            entity.IsActive = Domain.Common.BaseEntity.Status.Active;
-            entity.IsDeleted = Domain.Common.BaseEntity.IsDelete.NotDeleted;
 
             var newId = await _commandRepository.CreateAsync(entity);
 

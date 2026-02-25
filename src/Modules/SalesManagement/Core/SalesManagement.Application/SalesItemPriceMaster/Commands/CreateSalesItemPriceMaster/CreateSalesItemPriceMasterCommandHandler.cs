@@ -1,3 +1,4 @@
+#nullable disable
 using AutoMapper;
 using Contracts.Common;
 using MediatR;
@@ -28,8 +29,6 @@ namespace SalesManagement.Application.SalesItemPriceMaster.Commands.CreateSalesI
             CancellationToken cancellationToken)
         {
             var entity = _mapper.Map<Domain.Entities.SalesItemPriceMaster>(request);
-            entity.IsActive = Domain.Common.BaseEntity.Status.Active;
-            entity.IsDeleted = Domain.Common.BaseEntity.IsDelete.NotDeleted;
 
             var newId = await _commandRepository.CreateAsync(entity);
 

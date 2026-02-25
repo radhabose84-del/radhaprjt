@@ -153,5 +153,13 @@ namespace SalesManagement.Infrastructure.Repositories.SalesGroup
             var categories = await _categoryLookup.GetCategoryByIdsAsync(new[] { categoryId }, ct);
             return categories != null && categories.Any();
         }
+
+        public async Task<bool> SoftDeleteValidationAsync(int id)
+        {
+            // Returns true if the SalesGroup is linked to active dependent records (blocking deletion).
+            // Currently SalesGroup has no FK children — always returns false (safe to delete).
+            await Task.CompletedTask;
+            return false;
+        }
     }
 }

@@ -15,5 +15,6 @@ namespace SalesManagement.Application.Common.Interfaces.ISalesSegment
         Task<bool> SalesOrganisationExistsAsync(int id);
         Task<bool> SalesChannelExistsAsync(int id);
         Task<bool> BusinessUnitExistsAsync(int id);
+        Task<bool> SoftDeleteValidationAsync(int id);
     }
 }

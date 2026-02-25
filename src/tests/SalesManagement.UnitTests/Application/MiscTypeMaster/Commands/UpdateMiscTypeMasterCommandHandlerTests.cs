@@ -1,6 +1,5 @@
 #nullable disable
 using AutoMapper;
-using Contracts.Common;
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.IMiscTypeMaster;
 using SalesManagement.Application.MiscTypeMaster.Commands.UpdateMiscTypeMaster;
@@ -12,23 +11,19 @@ namespace SalesManagement.UnitTests.Application.MiscTypeMaster.Commands
     public class UpdateMiscTypeMasterCommandHandlerTests
     {
         private readonly Mock<IMiscTypeMasterCommandRepository> _mockCommandRepo = new(MockBehavior.Strict);
-        private readonly Mock<IMiscTypeMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Strict);
         private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Strict);
 
         private UpdateMiscTypeMasterCommandHandler CreateSut() =>
             new UpdateMiscTypeMasterCommandHandler(
                 _mockCommandRepo.Object,
-                _mockQueryRepo.Object,
                 _mockMediator.Object,
                 _mockMapper.Object);
 
         private void SetupHappyPath(UpdateMiscTypeMasterCommand command, int updatedId = 1)
         {
-            var existingDto = MiscTypeMasterBuilders.ValidDto(id: command.Id);
             var entity = MiscTypeMasterBuilders.ValidEntity(command.Id);
 
-            _mockQueryRepo.Setup(r => r.GetByIdAsync(command.Id)).ReturnsAsync(existingDto);
             _mockMapper.Setup(m => m.Map<SalesManagement.Domain.Entities.MiscTypeMaster>(command)).Returns(entity);
             _mockCommandRepo.Setup(r => r.UpdateAsync(entity)).ReturnsAsync(updatedId);
             _mockMediator
@@ -93,35 +88,6 @@ namespace SalesManagement.UnitTests.Application.MiscTypeMaster.Commands
                         e.Module == "MiscTypeMaster"),
                     It.IsAny<CancellationToken>()),
                 Times.Once);
-        }
-
-        [Fact]
-        public async Task Handle_EntityNotFound_ThrowsEntityNotFoundException()
-        {
-            var command = MiscTypeMasterBuilders.ValidUpdateCommand(id: 99);
-            _mockQueryRepo.Setup(r => r.GetByIdAsync(99))
-                .ReturnsAsync((SalesManagement.Application.MiscTypeMaster.Dto.MiscTypeMasterDto)null);
-            var sut = CreateSut();
-
-            Func<Task> act = async () => await sut.Handle(command, CancellationToken.None);
-
-            await act.Should().ThrowAsync<EntityNotFoundException>()
-                .WithMessage("*not found*");
-        }
-
-        [Fact]
-        public async Task Handle_EntityNotFound_DoesNotCallUpdateAsync()
-        {
-            var command = MiscTypeMasterBuilders.ValidUpdateCommand(id: 99);
-            _mockQueryRepo.Setup(r => r.GetByIdAsync(99))
-                .ReturnsAsync((SalesManagement.Application.MiscTypeMaster.Dto.MiscTypeMasterDto)null);
-            var sut = CreateSut();
-
-            try { await sut.Handle(command, CancellationToken.None); } catch { }
-
-            _mockCommandRepo.Verify(
-                r => r.UpdateAsync(It.IsAny<SalesManagement.Domain.Entities.MiscTypeMaster>()),
-                Times.Never);
         }
     }
 }
