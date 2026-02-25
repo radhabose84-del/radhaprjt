@@ -6,6 +6,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <PreserveCompilationContext>true</PreserveCompilationContext>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <RootNamespace>BSOFT.Api</RootNamespace>
+    <AssemblyName>BSOFT.Api</AssemblyName>
   </PropertyGroup>
 
 <ItemGroup>

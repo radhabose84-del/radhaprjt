@@ -10,7 +10,7 @@
 ## 🎯 Quick Reference
 
 - **Solution:** `d:\BSOFT\BSOFT.sln`
-- **Entry Point:** `src/BSOFT.Bootstrapper/Program.cs`
+- **Entry Point:** `src/BSOFT.Api/Program.cs`
 - **Branch:** `usha_ModulerMonolithic` (main development)
 - **Target Framework:** .NET 8.0
 - **Database:** SQL Server (with EF Core + Dapper)
@@ -1091,19 +1091,19 @@ using {Module}.Application.{EntityName}.Dto;
 ```bash
 cd src/Modules/{Module}/{Module}.Infrastructure
 
-dotnet ef migrations add {EntityName}Master --startup-project ../../../BSOFT.Bootstrapper
+dotnet ef migrations add {EntityName}Master --startup-project ../../../BSOFT.Api
 ```
 
 ### Apply Migration
 
 ```bash
-dotnet ef database update --startup-project ../../../BSOFT.Bootstrapper
+dotnet ef database update --startup-project ../../../BSOFT.Api
 ```
 
 ### Design-Time Factory
 
 Each module has `DesignTimeDbContextFactory.cs` that:
-- Loads configuration from `BSOFT.Bootstrapper/appsettings.json`
+- Loads configuration from `BSOFT.Api/appsettings.json`
 - Injects dummy `IIPAddressService`, `ITimeZoneService` for migrations
 - Uses hardcoded connection string for dev environment
 
@@ -2198,8 +2198,8 @@ mockCompanyLookup.Setup(c => c.GetAllCompanyAsync())
 > ❌ DO NOT run migrations. DO NOT create migration files.
 > ✋ User will run migration manually:
 > ```bash
-> dotnet ef migrations add {EntityName}Master --startup-project ../../../BSOFT.Bootstrapper
-> dotnet ef database update --startup-project ../../../BSOFT.Bootstrapper
+> dotnet ef migrations add {EntityName}Master --startup-project ../../../BSOFT.Api
+> dotnet ef database update --startup-project ../../../BSOFT.Api
 > ```
 > ✋ Wait for user confirmation: *"Migration done"* or *"Table created"*
 
@@ -2357,8 +2357,8 @@ ALWAYS generate the specification document first and wait for explicit user conf
 > ✅ **MIGRATIONS ARE ALWAYS MANUAL — USER RUNS THEM:**
 > The user is responsible for reviewing the entity and FK design, then running:
 > ```bash
-> dotnet ef migrations add {EntityName}Master --startup-project ../../../BSOFT.Bootstrapper
-> dotnet ef database update --startup-project ../../../BSOFT.Bootstrapper
+> dotnet ef migrations add {EntityName}Master --startup-project ../../../BSOFT.Api
+> dotnet ef database update --startup-project ../../../BSOFT.Api
 > ```
 > AI must wait for the user to confirm **"Migration done"** or **"Table created"** before writing any further code.
 

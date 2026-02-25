@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.OpenApi.Models;
 
-namespace BSOFT.Bootstrapper.Configurations
+namespace BSOFT.Api.Configurations
 {
     public static class SwaggerSetup
     {
@@ -125,7 +125,7 @@ namespace BSOFT.Bootstrapper.Configurations
 // using Microsoft.AspNetCore.Mvc.Controllers;
 // using Microsoft.OpenApi.Models;
 
-// namespace BSOFT.Bootstrapper.Configurations
+// namespace BSOFT.Api.Configurations
 // {
 //     public static class SwaggerSetup
 //     {

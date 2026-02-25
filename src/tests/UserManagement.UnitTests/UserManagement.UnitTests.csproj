@@ -42,7 +42,7 @@
     <ProjectReference Include="..\..\Modules\UserManagement\Core\UserManagement.Application\UserManagement.Application.csproj" />
     <ProjectReference Include="..\..\Modules\UserManagement\Core\UserManagement.Domain\UserManagement.Domain.csproj" />
     <ProjectReference Include="..\..\Modules\UserManagement\UserManagement.Infrastructure\UserManagement.Infrastructure.csproj" />
-    <ProjectReference Include="..\..\BSOFT.Bootstrapper\BSOFT.Bootstrapper.csproj" />
+    <ProjectReference Include="..\..\BSOFT.Api\BSOFT.Api.csproj" />
   </ItemGroup>
 
 </Project>
