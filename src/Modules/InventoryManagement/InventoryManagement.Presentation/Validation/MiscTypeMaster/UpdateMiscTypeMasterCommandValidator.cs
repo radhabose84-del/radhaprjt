@@ -1,8 +1,4 @@
 #nullable disable
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using InventoryManagement.Application.Common.Interfaces.IMiscTypeMaster;
 using InventoryManagement.Application.MiscTypeMaster.Command.UpdateMiscTypeMaster;
 using FluentValidation;

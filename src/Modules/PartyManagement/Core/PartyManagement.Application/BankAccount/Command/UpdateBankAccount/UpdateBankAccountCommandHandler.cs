@@ -1,7 +1,6 @@
 using PartyManagement.Application.BankAccount.Command.UpdateBankAccount;
 using PartyManagement.Application.Common.Interfaces;
 using PartyManagement.Application.Common.Interfaces.IBankAccount;
-using PartyManagement.Domain.Common;
 using PartyManagement.Domain.Events;
 using MediatR;
 

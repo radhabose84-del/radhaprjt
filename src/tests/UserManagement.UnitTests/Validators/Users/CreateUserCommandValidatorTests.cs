@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using UserManagement.Application.Common.Interfaces;
 using UserManagement.Application.Common.Interfaces.ICompany;
 using UserManagement.Application.Common.Interfaces.IDepartment;
@@ -9,10 +7,7 @@ using UserManagement.Application.Common.Interfaces.IUser;
 using UserManagement.Application.Common.Interfaces.IUserRole;
 using UserManagement.Application.Users.Commands.CreateUser;
 using UserManagement.Domain.Entities;
-using FluentAssertions;
 using FluentValidation.TestHelper;
-using Moq;
-using Xunit;
 
 using Microsoft.EntityFrameworkCore;
 using UserManagement.Infrastructure.Data;

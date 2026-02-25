@@ -1,6 +1,5 @@
 using FAM.Application.Common.Interfaces.IDepreciationGroup;
 using FAM.Application.DepreciationGroup.Commands.DeleteDepreciationGroup;
-using FAM.Presentation.Validation.Common;
 using FluentValidation;
 using Shared.Validation.Common;
 

@@ -1,9 +1,4 @@
 #nullable disable
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Threading.Tasks;
 using MaintenanceManagement.Application.Common.Interfaces.IActivityMaster;
 using MaintenanceManagement.Application.Common.Interfaces.IMachineGroup;
 using MaintenanceManagement.Application.Common.Interfaces.IMiscMaster;
@@ -11,7 +6,6 @@ using MaintenanceManagement.Application.Common.Interfaces.IPreventiveScheduler;
 using MaintenanceManagement.Application.PreventiveSchedulers.Commands.UpdatePreventiveScheduler;
 using MaintenanceManagement.Domain.Common;
 using FluentValidation;
-using MaintenanceManagement.Presentation.Validation.Common;
 using Shared.Validation.Common;
 
 namespace MaintenanceManagement.Presentation.Validation.PreventiveSchedulers

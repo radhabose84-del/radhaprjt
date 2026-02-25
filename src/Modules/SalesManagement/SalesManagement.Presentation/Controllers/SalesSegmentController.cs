@@ -1,5 +1,3 @@
-#nullable disable
-
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -21,7 +19,7 @@ namespace SalesManagement.Presentation.Controllers
         public async Task<IActionResult> GetAllSalesSegmentAsync(
             [FromQuery] int PageNumber,
             [FromQuery] int PageSize,
-            [FromQuery] string SearchTerm = null)
+            [FromQuery] string? SearchTerm = null)
         {
             var result = await Mediator.Send(new GetAllSalesSegmentQuery
             {
@@ -34,9 +32,9 @@ namespace SalesManagement.Presentation.Controllers
             {
                 StatusCode = StatusCodes.Status200OK,
                 data = result.Data,
-                TotalCount = result.TotalCount,
-                PageNumber = result.PageNumber,
-                PageSize = result.PageSize
+                result.TotalCount,
+                result.PageNumber,
+                result.PageSize
             });
         }
 
@@ -55,9 +53,9 @@ namespace SalesManagement.Presentation.Controllers
         }
 
         [HttpGet("by-name")]
-        public async Task<IActionResult> GetSalesSegmentAutoCompleteAsync([FromQuery] string term = null)
+        public async Task<IActionResult> GetSalesSegmentAutoCompleteAsync([FromQuery] string? term = null)
         {
-            var result = await Mediator.Send(new GetSalesSegmentAutoCompleteQuery(term));
+            var result = await Mediator.Send(new GetSalesSegmentAutoCompleteQuery(term ?? string.Empty));
 
             return Ok(new
             {

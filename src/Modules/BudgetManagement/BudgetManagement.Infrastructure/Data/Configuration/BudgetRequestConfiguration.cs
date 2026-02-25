@@ -1,4 +1,3 @@
-using BudgetManagement.Domain.Common;
 using BudgetManagement.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;

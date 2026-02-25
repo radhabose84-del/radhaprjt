@@ -1,17 +1,16 @@
-#nullable disable
-using SalesManagement.Domain.Common;
+﻿using SalesManagement.Domain.Common;
 
 namespace SalesManagement.Domain.Entities
 {
     public class SalesGroup : BaseEntity
     {
-        public string SalesGroupName { get; set; }
+        public string SalesGroupName { get; set; } = null!;
         public int SalesOfficeId { get; set; }
-        public string ResponsibleManager { get; set; }
+        public string ResponsibleManager { get; set; } = null!;
         public int? ProductCategoryId { get; set; }
-        public string RegionTerritory { get; set; }
+        public string RegionTerritory { get; set; } = null!;
 
         // Navigation property
-        public SalesOffice SalesOffice { get; set; }
+        public SalesOffice SalesOffice { get; set; } = null!;
     }
 }

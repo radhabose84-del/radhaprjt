@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace Contracts.Dtos.Inventory
 {
     public sealed class ItemMasterDto

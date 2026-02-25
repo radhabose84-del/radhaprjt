@@ -1,4 +1,3 @@
-using FluentAssertions;
 using FluentValidation;
 
 namespace UserManagement.UnitTests.Common.Helpers;

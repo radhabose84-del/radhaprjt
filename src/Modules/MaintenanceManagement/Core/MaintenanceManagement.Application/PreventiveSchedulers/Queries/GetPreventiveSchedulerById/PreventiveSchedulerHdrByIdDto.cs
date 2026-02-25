@@ -1,8 +1,6 @@
 using AutoMapper;
 using MaintenanceManagement.Application.Common.Mappings;
 using MaintenanceManagement.Domain.Entities;
-using System;
-using System.Collections.Generic;
 
 namespace MaintenanceManagement.Application.PreventiveSchedulers.Queries.GetPreventiveSchedulerById
 {

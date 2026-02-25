@@ -1,6 +1,4 @@
 using System.Data;
-using System.Threading;
-using System.Threading.Tasks;
 using Contracts.Dtos.Lookups.Users;
 using Contracts.Interfaces.Lookups.Users;
 using Dapper;

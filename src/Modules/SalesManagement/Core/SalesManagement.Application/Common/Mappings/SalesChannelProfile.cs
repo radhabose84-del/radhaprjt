@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using SalesManagement.Application.SalesChannel.Commands.CreateSalesChannel;
 using SalesManagement.Application.SalesChannel.Commands.UpdateSalesChannel;

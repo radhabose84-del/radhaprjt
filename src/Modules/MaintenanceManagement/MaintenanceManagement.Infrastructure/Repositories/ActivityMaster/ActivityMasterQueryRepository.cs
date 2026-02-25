@@ -1,11 +1,6 @@
 #nullable disable
-using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Diagnostics;
-using System.Linq;
 using System.Text.Json;
-using System.Threading.Tasks;
 using MaintenanceManagement.Application.ActivityMaster.Queries.GetActivityByMachinGroupId;
 using MaintenanceManagement.Application.ActivityMaster.Queries.GetAllActivityMaster;
 using MaintenanceManagement.Application.ActivityMaster.Queries.GetMachineGroupById;

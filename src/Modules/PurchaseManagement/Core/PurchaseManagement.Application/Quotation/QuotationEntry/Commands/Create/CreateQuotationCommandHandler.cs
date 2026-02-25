@@ -3,9 +3,6 @@ using PurchaseManagement.Application.Common.Interfaces.IQuotation.IQuotationEntr
 using PurchaseManagement.Domain.Entities.Quotation.QuotationEntry;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using Contracts.Interfaces.External.IInvetoryManagement;
-using Contracts.Interfaces.External.IUser;
-using System.IO;
 using Contracts.Interfaces.Lookups.Users;
 
 namespace PurchaseManagement.Application.Quotations.QuotationEntry.Commands.Create;

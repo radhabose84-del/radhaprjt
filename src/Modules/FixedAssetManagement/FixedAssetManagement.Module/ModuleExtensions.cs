@@ -2,15 +2,12 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using FluentValidation;
-using MediatR;
 
 using FAM.Infrastructure;
 using FAM.Presentation.Validation.Locations;
 using FAM.Presentation.Validation.Common;
 
 using FAM.Application.Common.Mappings;
-using FAM.Application.Common.Mappings.AssetMaster;
-using FAM.Application.Common.Mappings.AssetPurchase;
 
 namespace FixedAssetManagement.Module
 {

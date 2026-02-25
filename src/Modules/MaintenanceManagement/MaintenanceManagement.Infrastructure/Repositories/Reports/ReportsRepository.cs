@@ -7,7 +7,6 @@ using MaintenanceManagement.Application.Reports.WorkOrderItemConsuption;
 using MaintenanceManagement.Application.Reports.WorkOrderReport;
 using MaintenanceManagement.Application.StockLedger.Queries.GetCurrentStock;
 using MaintenanceManagement.Application.Reports.WorkOderCheckListReport;
-using MaintenanceManagement.Application.WorkOrder.Command.CreateWorkOrder;
 using Dapper;
 using MaintenanceManagement.Infrastructure.Repositories.Common;
 using MaintenanceManagement.Application.Reports.MRS;

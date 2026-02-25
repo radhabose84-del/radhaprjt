@@ -1,12 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
 using PurchaseManagement.Application.PaymentTermMaster.Command.CreatePaymentTermMaster;
 using PurchaseManagement.Application.PaymentTermMaster.Command.UpdatePaymentTermMaster;
 using PurchaseManagement.Application.PaymentTermMaster.Queries.GetAllPaymentTermMaster;
-using PurchaseManagement.Application.PurchaseIndents.Queries.GetAllPurchaseIndent;
 using PurchaseManagement.Domain.Entities;
 using static PurchaseManagement.Domain.Common.BaseEntity;
 

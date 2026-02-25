@@ -1,6 +1,4 @@
 using System.Security.Claims;
-using SalesManagement.Domain.Common;
-using SalesManagement.Domain.Entities;
 
 namespace SalesManagement.Application.Common.Interfaces
 {

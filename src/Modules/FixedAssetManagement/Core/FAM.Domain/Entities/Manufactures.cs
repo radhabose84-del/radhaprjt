@@ -1,5 +1,4 @@
 using FAM.Domain.Common;
-using FAM.Domain.Entities.AssetMaster;
 
 namespace FAM.Domain.Entities
 {

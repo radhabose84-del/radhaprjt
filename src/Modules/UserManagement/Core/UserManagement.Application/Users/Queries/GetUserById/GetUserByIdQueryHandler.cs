@@ -1,15 +1,7 @@
 #nullable disable
 using UserManagement.Application.Users.Queries.GetUsers;
-using UserManagement.Domain.Entities;
 using AutoMapper;
 using MediatR;
-using System.Data;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using UserManagement.Application.Common.Interfaces.IUser;
 using UserManagement.Domain.Events;
 using Microsoft.Extensions.Logging;

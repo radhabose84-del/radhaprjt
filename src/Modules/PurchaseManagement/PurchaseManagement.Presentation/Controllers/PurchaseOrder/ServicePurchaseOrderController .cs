@@ -1,21 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using PurchaseManagement.Application.PurchaseOrder.Dtos.ServicePO;
 using PurchaseManagement.Application.PurchaseOrder.ServicePO.Command.Create;
-using PurchaseManagement.Application.PurchaseOrder.ServicePO.Command.CreateServiceEntrySheet;
 using PurchaseManagement.Application.PurchaseOrder.ServicePO.Command.Update;
 using PurchaseManagement.Application.PurchaseOrder.ServicePO.Queries.GetServicePO;
 using PurchaseManagement.Application.PurchaseOrder.ServicePO.Queries.GetServicePOPending;
 using PurchaseManagement.Application.PurchaseOrder.ServicePO.Queries.GetVendorServicePO;
 using PurchaseManagement.Application.PurchaseOrder.SevicePOAmendment;
-using PurchaseManagement.Application.ServiceMaster.Commands.CreateService;
-using MassTransit.Futures.Contracts;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Http;
 
 namespace PurchaseManagement.Presentation.Controllers.PurchaseOrder

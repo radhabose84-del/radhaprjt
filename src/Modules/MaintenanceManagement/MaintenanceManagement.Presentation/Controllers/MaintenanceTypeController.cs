@@ -1,23 +1,16 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using MaintenanceManagement.Application.MaintenanceType.Command.CreateMaintenanceType;
 using MaintenanceManagement.Application.MaintenanceType.Command.DeleteMaintenanceType;
 using MaintenanceManagement.Application.MaintenanceType.Command.UpdateMaintenanceType;
 using MaintenanceManagement.Application.MaintenanceType.Queries.GetMaintenanceType;
 using MaintenanceManagement.Application.MaintenanceType.Queries.GetMaintenanceTypeAutoComplete;
 using MaintenanceManagement.Application.MaintenanceType.Queries.GetMaintenanceTypeById;
-using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 
 namespace MaintenanceManagement.Presentation.Controllers
 {
-     [Route("api/[controller]")]
+    [Route("api/[controller]")]
     public class MaintenanceTypeController : ApiControllerBase
     {
         

@@ -1,9 +1,5 @@
 using MongoDB.Driver;
 using MediatR;
-using MaintenanceManagement.Application.Common.Interfaces;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using MaintenanceManagement.Domain.Entities;
 
 namespace MaintenanceManagement.Application.AuditLog.Queries.GetAuditLog

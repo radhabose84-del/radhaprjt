@@ -1,6 +1,5 @@
 using MediatR;
 using MaintenanceManagement.Application.Common.Interfaces;
-using MaintenanceManagement.Application.Common;
 using MaintenanceManagement.Domain.Events;
 
 namespace MaintenanceManagement.Application.EventHandlers

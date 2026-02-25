@@ -1,5 +1,3 @@
-using UserManagement.Application.Common.Mappings;
-
 namespace UserManagement.Application.Units.Queries.GetUnits
 {
     public class UnitContactsDto 

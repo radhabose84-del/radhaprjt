@@ -1,4 +1,3 @@
-using InventoryManagement.Application.Item.ItemCategory.Queries.GetItemCategoryAutoComplete;
 using MediatR;
 
 namespace InventoryManagement.Application.Item.ItemCategory.Queries.GetItemCategoryAutoComplete

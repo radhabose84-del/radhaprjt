@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using PurchaseManagement.Application.MiscTypeMaster.Command.CreateMiscTypeMaster;
 using PurchaseManagement.Application.MiscTypeMaster.Command.DeleteMiscTypeMaster;
 using PurchaseManagement.Application.MiscTypeMaster.Command.UpdateMiscTypeMaster;
@@ -11,12 +6,11 @@ using PurchaseManagement.Application.MiscTypeMaster.Queries.GetMiscTypeMasterAut
 using PurchaseManagement.Application.MiscTypeMaster.Queries.GetMiscTypeMasterById;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Http;
 
 namespace PurchaseManagement.Presentation.Controllers
 {
- [Route("api/purchase/[controller]")]
+    [Route("api/purchase/[controller]")]
     public class MiscTypeMasterController : ApiControllerBase
     {
         public MiscTypeMasterController(ISender mediator) : base(mediator)

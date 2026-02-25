@@ -1,6 +1,5 @@
 using MediatR;
 using SalesManagement.Application.Common.Interfaces;
-using SalesManagement.Application.Common;
 using SalesManagement.Domain.Events;
 
 namespace SalesManagement.Application.EventHandlers

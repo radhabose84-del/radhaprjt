@@ -1,5 +1,3 @@
-using Contracts.Common;
-using UserManagement.Application.Units.Queries.GetUnits;
 using MediatR;
 
 namespace UserManagement.Application.Units.Commands.DeleteUnit

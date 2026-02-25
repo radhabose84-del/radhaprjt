@@ -1,11 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using AutoMapper;
-using Contracts.Interfaces.External.IUser;
-using Contracts.Interfaces.External.IWarehouse;
 using Contracts.Common;
 using PurchaseManagement.Application.Common.Interfaces.IMRS;
 using PurchaseManagement.Domain.Events;

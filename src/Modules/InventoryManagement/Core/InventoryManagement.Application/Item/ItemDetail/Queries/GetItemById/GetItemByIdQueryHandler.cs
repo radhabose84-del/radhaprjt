@@ -1,10 +1,6 @@
-using System.Threading;
-using System.Threading.Tasks;
 using MediatR;
-using InventoryManagement.Application.Common.Interfaces.Item.ItemDetail;
 using InventoryManagement.Application.Item.ItemDetail.Queries.GetAllItems;
 using InventoryManagement.Application.Common.Interfaces.Item.ItemDetail.Queries;
-using AutoMapper;
 
 namespace InventoryManagement.Application.Item.ItemDetail.Queries.GetItemById
 {

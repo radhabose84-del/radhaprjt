@@ -107,6 +107,7 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesSegment
                     {
                         BusinessUnitCode = code,
                         BusinessUnitName = $"Integration Test BU {i}",
+                        Description = $"Integration Test BU {i}",
                         IsActive = Status.Active,
                         IsDeleted = IsDelete.NotDeleted
                     };
@@ -124,6 +125,7 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesSegment
         {
             await using var cnn = OpenConnection();
             await cnn.OpenAsync();
+            await cnn.ExecuteAsync("DELETE FROM Sales.SalesItemPriceMaster");
             await cnn.ExecuteAsync("DELETE FROM Sales.SalesSegment");
         }
 

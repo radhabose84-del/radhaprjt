@@ -1,10 +1,4 @@
 #nullable disable
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
-using UserManagement.Infrastructure.Data;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -13,8 +7,6 @@ using UserManagement.Application.Currency.Queries.GetCurrencyById;
 using UserManagement.Application.Currency.Queries.GetCurrencyAutoComplete;
 using UserManagement.Application.Currency.Commands.CreateCurrency;
 using UserManagement.Application.Currency.Commands.UpdateCurrency;
-using FluentValidation;
-using UserManagement.Application.AdminSecuritySettings.Commands.DeleteAdminSecuritySettings;
 using UserManagement.Application.Currency.Commands.DeleteCurrency;
 using Microsoft.AspNetCore.Http;
 

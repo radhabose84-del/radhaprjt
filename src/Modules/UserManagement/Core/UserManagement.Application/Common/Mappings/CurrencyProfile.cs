@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
 using UserManagement.Application.Currency.Commands.CreateCurrency;
 using UserManagement.Application.Currency.Commands.DeleteCurrency;

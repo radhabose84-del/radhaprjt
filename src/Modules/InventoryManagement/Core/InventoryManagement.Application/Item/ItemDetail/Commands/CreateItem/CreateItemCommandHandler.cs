@@ -1,7 +1,6 @@
 #nullable disable
 using System.Text;
 using AutoMapper;
-using InventoryManagement.Application.Common.Interfaces;
 using InventoryManagement.Application.Common.Interfaces.Item.ItemDetail.Commands;
 using InventoryManagement.Application.Common.Interfaces.Item.ItemDetail.Queries;
 using InventoryManagement.Application.Item.ItemDetail.Commands.CreateItem;

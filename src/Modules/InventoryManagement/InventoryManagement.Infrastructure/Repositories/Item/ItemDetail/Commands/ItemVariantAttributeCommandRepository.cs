@@ -1,6 +1,5 @@
 using InventoryManagement.Application.Common.Interfaces.Item.ItemDetail.Commands;
 using InventoryManagement.Application.Item.ItemDetail.Queries.GetAllItems;
-using InventoryManagement.Domain.Common;
 using InventoryManagement.Domain.Entities.Item.ItemDetail.Variant;
 using InventoryManagement.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;

@@ -1,19 +1,10 @@
 #nullable disable
-using UserManagement.Application.Common.Interfaces;
 using UserManagement.Domain.Entities;
 using MediatR;
 using AutoMapper;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using UserManagement.Application.Departments.Queries.GetDepartments;
 using UserManagement.Application.Common.Interfaces.IDepartment;
 using UserManagement.Domain.Events;
-using Contracts.Common;
-using UserManagement.Application.Common;
-using UserManagement.Domain.Enums.Common;
 using FluentValidation;
 
 

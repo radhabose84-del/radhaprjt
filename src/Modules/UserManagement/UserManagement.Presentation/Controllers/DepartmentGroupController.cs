@@ -1,20 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
-using Contracts.Common;
 using UserManagement.Application.DepartmentGroup.Command.CreateDepartmentGroup;
 using UserManagement.Application.DepartmentGroup.Command.DeleteDepartmentGroup;
 using UserManagement.Application.DepartmentGroup.Command.UpdateDepartmentGroup;
 using UserManagement.Application.DepartmentGroup.Queries.GetAllDepartmentGroup;
 using UserManagement.Application.DepartmentGroup.Queries.GetDepartmentGroupAutoSearch;
 using UserManagement.Application.DepartmentGroup.Queries.GetDepartmentGroupById;
-using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using UserManagement.Infrastructure.Data;
 using Microsoft.AspNetCore.Http;
 
 namespace UserManagement.Presentation.Controllers

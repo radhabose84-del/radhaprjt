@@ -1,11 +1,6 @@
-using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using System.Threading.Tasks;
 
 using PurchaseManagement.Application.Common.Interfaces.IServiceMaster;
-using PurchaseManagement.Application.EventHandlers;
 using Microsoft.EntityFrameworkCore;
 using PurchaseManagement.Infrastructure.Data;
 

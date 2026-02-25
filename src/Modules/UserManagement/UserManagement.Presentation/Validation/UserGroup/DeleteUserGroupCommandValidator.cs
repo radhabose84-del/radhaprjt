@@ -2,7 +2,6 @@ using UserManagement.Application.Common.Interfaces.IUserGroup;
 using UserManagement.Application.UserGroup.Commands.DeleteUserGroup;
 using FluentValidation;
 using Shared.Validation.Common;
-using UserManagement.Presentation.Validation.Common;
 
 namespace UserManagement.Presentation.Validation.UserGroup
 {

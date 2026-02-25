@@ -1,11 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using MediatR;
-using System.Text;
 using UserManagement.Application.Companies.Queries.GetCompanies;
-using Contracts.Common;
 
 namespace UserManagement.Application.Companies.Queries.GetCompanyById
 {

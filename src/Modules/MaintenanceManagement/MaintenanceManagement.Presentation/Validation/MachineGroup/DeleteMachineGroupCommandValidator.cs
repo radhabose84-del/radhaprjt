@@ -1,11 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using MaintenanceManagement.Application.Common.Interfaces.IMachineGroup;
 using MaintenanceManagement.Application.MachineGroup.Command.DeleteMachineGroup;
 using FluentValidation;
-using MaintenanceManagement.Presentation.Validation.Common;
 using Shared.Validation.Common;
 
 namespace MaintenanceManagement.Presentation.Validation.MachineGroup

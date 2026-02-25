@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace FAM.Domain.Common
 {
     public static class MiscEnumEntity

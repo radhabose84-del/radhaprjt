@@ -8,7 +8,6 @@ using InventoryManagement.Domain.Entities;
 using InventoryManagement.Infrastructure.Data.Configurations;
 using InventoryManagement.Infrastructure.Data.Configurations.Budget;
 using InventoryManagement.Domain.Entities.Budget;
-using Microsoft.Identity.Client;
 using InventoryManagement.Domain.Entities.Item.ItemDetail;
 using InventoryManagement.Domain.Entities.Item.ItemDetail.Variant;
 using InventoryManagement.Infrastructure.Data.Configurations.Item.ItemDetail;

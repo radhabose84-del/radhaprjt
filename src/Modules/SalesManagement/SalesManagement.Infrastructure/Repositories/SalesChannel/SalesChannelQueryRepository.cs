@@ -1,4 +1,3 @@
-#nullable disable
 using System.Data;
 using Dapper;
 using SalesManagement.Application.Common.Interfaces.ISalesChannel;
@@ -15,7 +14,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesChannel
             _dbConnection = dbConnection;
         }
 
-        public async Task<(List<SalesChannelDto>, int)> GetAllAsync(int pageNumber, int pageSize, string searchTerm)
+        public async Task<(List<SalesChannelDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
         {
             var query = $$"""
                 DECLARE @TotalCount INT;
@@ -45,7 +44,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesChannel
             return (list, totalCount);
         }
 
-        public async Task<SalesChannelDto> GetByIdAsync(int id)
+        public async Task<SalesChannelDto?> GetByIdAsync(int id)
         {
             const string sql = @"
                 SELECT sc.Id, sc.SalesChannelCode, sc.SalesChannelName,

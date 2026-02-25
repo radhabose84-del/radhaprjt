@@ -1,4 +1,3 @@
-using System;
 using System.Data;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Data.SqlClient;
@@ -11,7 +10,6 @@ using Serilog;
 using MassTransit;
 using UserManagement.Application.Common.Interfaces;
 using UserManagement.Application.Common.Interfaces.AuditLog;
-using UserManagement.Domain.Common;
 using UserManagement.Infrastructure.Data;
 using UserManagement.Infrastructure.Persistence;
 using UserManagement.Infrastructure.Repositories;
@@ -78,7 +76,6 @@ using UserManagement.Application.Common.Interfaces.IRoleEntitlement;
 using UserManagement.Application.Notification.Queries;
 
 using UserManagement.Domain.Entities;
-using MongoDB.Driver.Linq;
 using Infrastructure.Data;
 using Microsoft.Extensions.Hosting;
 using Contracts.Interfaces.Lookups.Users;

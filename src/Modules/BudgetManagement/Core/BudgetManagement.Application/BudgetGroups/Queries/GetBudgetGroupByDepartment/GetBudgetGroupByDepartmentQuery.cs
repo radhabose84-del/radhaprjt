@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using MediatR;
 
 namespace BudgetManagement.Application.BudgetGroups.Queries.GetBudgetGroupByDepartment

@@ -38,6 +38,8 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesChannel
 
         private async Task ClearTableAsync(ApplicationDbContext ctx)
         {
+            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Sales.SalesItemPriceMaster");
+            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Sales.SalesSegment");
             ctx.SalesChannel.RemoveRange(ctx.SalesChannel);
             await ctx.SaveChangesAsync();
         }

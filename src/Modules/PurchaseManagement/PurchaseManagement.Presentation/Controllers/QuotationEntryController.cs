@@ -1,5 +1,4 @@
 using API.Controllers.Quotation;
-using Contracts.Common;
 using PurchaseManagement.Application.Item.ItemDetail.Commands.UploadItemImage;
 using PurchaseManagement.Application.Quotation.QuotationEntry.Commands.DeleteImage;
 using PurchaseManagement.Application.Quotations.QuotationEntry.Commands.Create;
@@ -9,7 +8,6 @@ using PurchaseManagement.Application.Quotations.QuotationEntry.Queries.GetAllQuo
 using PurchaseManagement.Application.Quotations.QuotationEntry.Queries.GetQuotationAutoComplete;
 using PurchaseManagement.Application.Quotations.QuotationEntry.Queries.GetQuotationById;
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 

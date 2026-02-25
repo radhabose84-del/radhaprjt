@@ -6,7 +6,6 @@ using UserManagement.Application.City.Queries.GetCities;
 using UserManagement.Application.City.Queries.GetCityAutoComplete;
 using UserManagement.Application.City.Queries.GetCityById;
 using UserManagement.Application.City.Queries.GetCityByStateId;
-using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;

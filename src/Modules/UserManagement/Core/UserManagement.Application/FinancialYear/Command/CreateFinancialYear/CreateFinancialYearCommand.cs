@@ -1,14 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Contracts.Common;
 using MediatR;
-using UserManagement.Domain.Entities;
-using UserManagement.Domain.Enums;
 using UserManagement.Application.FinancialYear.Queries.GetFinancialYear;
-using System.Text.Json.Serialization;
-using static UserManagement.Domain.Enums.FinancialYearEnum;
 
 namespace UserManagement.Application.FinancialYear.Command.CreateFinancialYear
 {

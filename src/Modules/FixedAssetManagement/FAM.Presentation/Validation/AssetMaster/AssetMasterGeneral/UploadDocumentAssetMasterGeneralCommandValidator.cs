@@ -1,7 +1,5 @@
-using System.Linq;
 using FAM.Application.AssetMaster.AssetMasterGeneral.Commands.UploadAssetMasterGeneral;
 using FAM.Application.AssetMaster.AssetMasterGeneral.Commands.UploadDocumentAssetMaster;
-using FAM.Presentation.Validation.Common;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Shared.Validation.Common;

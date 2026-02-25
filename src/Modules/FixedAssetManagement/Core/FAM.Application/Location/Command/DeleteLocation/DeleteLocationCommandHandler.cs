@@ -1,9 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
-using Contracts.Common;
 using FAM.Application.Common.Interfaces.IAssetMaster.IAssetLocation;
 using FAM.Application.Common.Interfaces.ILocation;
 using FAM.Application.Location.Queries.GetLocations;

@@ -1,7 +1,3 @@
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Contracts.Interfaces.Lookups.Users;
 using Contracts.Common;
 using PurchaseManagement.Application.Common.Interfaces;

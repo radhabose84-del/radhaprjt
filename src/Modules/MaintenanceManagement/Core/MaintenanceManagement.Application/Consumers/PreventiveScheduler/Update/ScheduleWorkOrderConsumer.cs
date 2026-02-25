@@ -1,13 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using MaintenanceManagement.Application.Common.Interfaces.IMiscMaster;
-using MaintenanceManagement.Application.Common.Interfaces.IPreventiveScheduler;
-using MaintenanceManagement.Application.Common.Interfaces.IPreventiveSchedulerLog;
-using MassTransit;
-using Newtonsoft.Json;
-
 namespace MaintenanceManagement.Application.Consumers.PreventiveScheduler.Update
 {
     public class ScheduleWorkOrderConsumer 

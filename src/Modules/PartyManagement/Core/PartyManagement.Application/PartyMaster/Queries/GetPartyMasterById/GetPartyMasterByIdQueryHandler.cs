@@ -1,14 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
 using Contracts.Interfaces.Lookups.Users;
 using PartyManagement.Application.Common.Interfaces.IPartyMaster;
 using PartyManagement.Domain.Common;
 using PartyManagement.Domain.Events;
 using MediatR;
-using static PartyManagement.Application.PartyMaster.Queries.GetPartyMasterById.PartyMasterDto;
 
 namespace PartyManagement.Application.PartyMaster.Queries.GetPartyMasterById
 {

@@ -40,6 +40,8 @@ namespace SalesManagement.IntegrationTests.Repositories.BusinessUnit
 
         private async Task ClearTableAsync(ApplicationDbContext ctx)
         {
+            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Sales.SalesItemPriceMaster");
+            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Sales.SalesSegment");
             ctx.BusinessUnit.RemoveRange(ctx.BusinessUnit);
             await ctx.SaveChangesAsync();
         }
@@ -83,13 +85,13 @@ namespace SalesManagement.IntegrationTests.Repositories.BusinessUnit
         }
 
         [Fact]
-        public async Task CreateAsync_Should_Persist_Entity_With_Null_Description()
+        public async Task CreateAsync_Should_Persist_Entity_With_Empty_Description()
         {
             await using var ctx = _fixture.CreateFreshDbContext();
             await ClearTableAsync(ctx);
 
             var repo = CreateRepository(ctx);
-            var entity = BuildEntity(code: "BU002", name: "No Desc Unit", description: null);
+            var entity = BuildEntity(code: "BU002", name: "Empty Desc Unit", description: "");
 
             var newId = await repo.CreateAsync(entity);
             ctx.ChangeTracker.Clear();
@@ -97,7 +99,7 @@ namespace SalesManagement.IntegrationTests.Repositories.BusinessUnit
             var saved = await ctx.BusinessUnit.FirstOrDefaultAsync(x => x.Id == newId);
 
             saved.Should().NotBeNull();
-            saved!.Description.Should().BeNull();
+            saved!.Description.Should().BeEmpty();
         }
 
         [Fact]
@@ -154,7 +156,7 @@ namespace SalesManagement.IntegrationTests.Repositories.BusinessUnit
         }
 
         [Fact]
-        public async Task UpdateAsync_Should_Clear_Description_When_Null()
+        public async Task UpdateAsync_Should_Update_Description_To_Empty()
         {
             await using var ctx = _fixture.CreateFreshDbContext();
             await ClearTableAsync(ctx);
@@ -168,7 +170,7 @@ namespace SalesManagement.IntegrationTests.Repositories.BusinessUnit
             {
                 Id = id,
                 BusinessUnitName = "Has Desc",
-                Description = null,
+                Description = "",
                 IsActive = Status.Active
             };
 
@@ -176,7 +178,7 @@ namespace SalesManagement.IntegrationTests.Repositories.BusinessUnit
             ctx.ChangeTracker.Clear();
 
             var saved = await ctx.BusinessUnit.FirstOrDefaultAsync(x => x.Id == id);
-            saved!.Description.Should().BeNull();
+            saved!.Description.Should().BeEmpty();
         }
 
         [Fact]
@@ -194,6 +196,7 @@ namespace SalesManagement.IntegrationTests.Repositories.BusinessUnit
             {
                 Id = id,
                 BusinessUnitName = "Updated Name",
+                Description = "Test Description",
                 IsActive = Status.Active
             };
 
@@ -238,6 +241,7 @@ namespace SalesManagement.IntegrationTests.Repositories.BusinessUnit
             {
                 Id = id,
                 BusinessUnitName = "Updated Name",
+                Description = "Test Description",
                 IsActive = Status.Active
             };
 

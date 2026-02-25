@@ -1,5 +1,3 @@
-using System;
-
 namespace Contracts.Dtos.Budget
 {
     public class RemainingBalanceWithPrevDto

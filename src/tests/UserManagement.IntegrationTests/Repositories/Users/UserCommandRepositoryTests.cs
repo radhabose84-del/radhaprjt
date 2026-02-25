@@ -8,7 +8,6 @@ using UserManagement.Infrastructure.Repositories;
 using UserManagement.Application.Common.Interfaces;
 using Xunit;
 using FluentAssertions;
-using UserManagement.Infrastructure.Services; // ITimeZoneService
 
 // Alias your enums to keep code readable
 using Enums = UserManagement.Domain.Enums.Common.Enums;

@@ -1,7 +1,6 @@
 using AutoMapper;
 using Contracts.Common;
 using InventoryManagement.Application.Common.Interfaces.Item.ItemCategory;
-using InventoryManagement.Application.Item.ItemCategory.Commands.CreateItemCategory;
 using InventoryManagement.Domain.Events;
 using MediatR;
 

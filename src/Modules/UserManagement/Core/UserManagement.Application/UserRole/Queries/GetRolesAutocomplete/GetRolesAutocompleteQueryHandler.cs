@@ -2,15 +2,7 @@
 using AutoMapper;
 using UserManagement.Application.Common.Interfaces;
 using MediatR;
-using System.Data;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using UserManagement.Application.UserRole.Queries.GetRole;
 using UserManagement.Application.Common.Interfaces.IUserRole;
-using Contracts.Common;
 using UserManagement.Domain.Events;
 using Microsoft.Extensions.Logging;
 using FluentValidation;

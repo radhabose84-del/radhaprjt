@@ -1,4 +1,3 @@
-using System;
 using MassTransit;
 namespace Contracts.Events.Purchase;
 public record ApprovedRejectedProjectCompletedEvent : CorrelatedBy<Guid>

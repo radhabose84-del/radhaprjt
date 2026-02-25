@@ -1,9 +1,5 @@
 using MongoDB.Driver;
 using MediatR;
-using PurchaseManagement.Application.Common.Interfaces;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using PurchaseManagement.Domain.Entities;
 
 namespace PurchaseManagement.Application.AuditLog.Queries.GetAuditLog

@@ -4,9 +4,8 @@ using FAM.Application.DepreciationDetail.Commands.DeleteDepreciationDetail;
 using FAM.Application.DepreciationDetail.Commands.UpdateDepreciationDetail;
 using FAM.Application.DepreciationDetail.Queries.GetDepreciationDetail;
 using FAM.Domain.Entities;
-using static FAM.Domain.Common.BaseEntity;
 
-namespace FAM.Application.Common.Mappings 
+namespace FAM.Application.Common.Mappings
 {
     public class DepreciationDetailProfile : Profile
     {

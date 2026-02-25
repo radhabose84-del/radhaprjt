@@ -1,14 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using FAM.Application.AssetMaster.AssetAdditionalCost.Commands.CreateAssetAdditionalCost;
 using FAM.Application.AssetMaster.AssetAdditionalCost.Commands.UpdateAssetAdditionalCost;
 using FAM.Application.AssetMaster.AssetAdditionalCost.Queries.GetAssetAdditionalCost;
 using FAM.Application.AssetMaster.AssetAdditionalCost.Queries.GetAssetAdditionalCostById;
 using FAM.Application.AssetMaster.AssetAdditionalCost.Queries.GetCostTypeQuery;
-using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

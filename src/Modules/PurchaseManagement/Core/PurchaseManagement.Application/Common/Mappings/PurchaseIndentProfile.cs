@@ -1,16 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
 using Contracts.Commands.Purchase;
-using Contracts.Commands.Workflow;
 using Contracts.Dtos.Purchase;
 using PurchaseManagement.Application.PurchaseIndents.Command.CreatePurchaseIndent;
 using PurchaseManagement.Application.PurchaseIndents.Command.DeletePurchaseIndent;
 using PurchaseManagement.Application.PurchaseIndents.Command.UpdatePurchaseIndent;
 using PurchaseManagement.Application.PurchaseIndents.Queries.ApprovedIndentDetailsForPO;
-using PurchaseManagement.Application.PurchaseIndents.Queries.GetAllPurchaseIndent;
 using PurchaseManagement.Application.PurchaseIndents.Queries.GetPendingIndent;
 using PurchaseManagement.Application.PurchaseIndents.Queries.GetPendingIndentById;
 using PurchaseManagement.Application.PurchaseIndents.Queries.GetPurchaseIndentAutoComplete;

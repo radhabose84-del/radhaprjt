@@ -1,4 +1,3 @@
-#nullable disable
 
 using Contracts.Common;
 using Contracts.Interfaces.Lookups.Users;

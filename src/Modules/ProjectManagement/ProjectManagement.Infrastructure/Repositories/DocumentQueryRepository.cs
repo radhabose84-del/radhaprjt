@@ -1,9 +1,5 @@
 #nullable disable
-using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using System.Threading.Tasks;
 using ProjectManagement.Application.Common.Interfaces.IProjectMaster;
 using ProjectManagement.Domain.Common;
 using Dapper;

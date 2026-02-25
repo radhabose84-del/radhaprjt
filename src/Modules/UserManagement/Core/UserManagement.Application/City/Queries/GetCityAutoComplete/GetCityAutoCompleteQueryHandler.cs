@@ -1,9 +1,8 @@
 using AutoMapper;
 using MediatR;
-using UserManagement.Application.City.Queries.GetCities; 
+using UserManagement.Application.City.Queries.GetCities;
 using UserManagement.Application.Common.Interfaces.ICity;
 using UserManagement.Domain.Events;
-using Contracts.Common;
 using FluentValidation;
 
 namespace UserManagement.Application.City.Queries.GetCityAutoComplete

@@ -1,13 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using MaintenanceManagement.Application.ShiftMasterDetails.Commands.CreateShiftMasterDetail;
 using MaintenanceManagement.Application.ShiftMasterDetails.Commands.DeleteShiftMasterDetail;
 using MaintenanceManagement.Application.ShiftMasterDetails.Commands.UpdateShiftMasterDetail;
 using MaintenanceManagement.Application.ShiftMasterDetails.Queries.GetShiftMasterDetail;
 using MaintenanceManagement.Application.ShiftMasterDetails.Queries.GetShiftMasterDetailById;
-using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

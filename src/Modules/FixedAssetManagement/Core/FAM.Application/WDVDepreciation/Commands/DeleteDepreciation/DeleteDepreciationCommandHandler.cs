@@ -1,8 +1,5 @@
 using AutoMapper;
-using Contracts.Common;
-using FAM.Application.Common.Interfaces.IDepreciationDetail;
 using FAM.Application.Common.Interfaces.IWdvDepreciation;
-using FAM.Application.WDVDepreciation.Queries.CalculateDepreciation;
 using FAM.Application.WDVDepreciation.Queries.GetDepreciation;
 using FAM.Domain.Events;
 using FluentValidation;

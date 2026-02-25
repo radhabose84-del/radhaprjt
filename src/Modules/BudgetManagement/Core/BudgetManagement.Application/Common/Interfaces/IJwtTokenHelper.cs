@@ -1,6 +1,4 @@
 using System.Security.Claims;
-using BudgetManagement.Domain.Common;
-using BudgetManagement.Domain.Entities;
 
 namespace BudgetManagement.Application.Common.Interfaces
 {

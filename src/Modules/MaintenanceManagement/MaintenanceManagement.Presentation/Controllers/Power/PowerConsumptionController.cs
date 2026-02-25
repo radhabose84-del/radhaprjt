@@ -1,19 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using MaintenanceManagement.Application.Power.PowerConsumption.Command.CreatePowerConsumption;
 using MaintenanceManagement.Application.Power.PowerConsumption.Queries;
 using MaintenanceManagement.Application.Power.PowerConsumption.Queries.GetClosingReaderValueById;
 using MaintenanceManagement.Application.Power.PowerConsumption.Queries.GetPowerConsumption;
 using MaintenanceManagement.Application.Power.PowerConsumption.Queries.GetPowerConsumptionById;
-using FluentValidation;
-using MassTransit.Futures.Contracts;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 
 namespace MaintenanceManagement.Presentation.Controllers.Power
 {

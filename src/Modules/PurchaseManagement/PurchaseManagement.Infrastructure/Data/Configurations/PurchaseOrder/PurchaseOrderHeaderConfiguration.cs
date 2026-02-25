@@ -1,5 +1,4 @@
 using PurchaseManagement.Domain.Entities.PurchaseOrder;
-using PurchaseManagement.Domain.Entities.PurchaseOrder.Local;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

@@ -1,6 +1,4 @@
 using FAM.Domain.Entities;
-using FAM.Domain.Entities.AssetMaster;
-using FAM.Domain.Entities.AssetPurchase;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;

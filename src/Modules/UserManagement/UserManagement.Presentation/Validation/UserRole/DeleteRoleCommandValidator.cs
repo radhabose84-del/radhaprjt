@@ -1,12 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using UserManagement.Application.Common.Interfaces.IUserRole;
 using UserManagement.Application.UserRole.Commands.DeleteRole;
 using FluentValidation;
 using Shared.Validation.Common;
-using UserManagement.Presentation.Validation.Common;
 
 namespace UserManagement.Presentation.Validation.UserRole
 {

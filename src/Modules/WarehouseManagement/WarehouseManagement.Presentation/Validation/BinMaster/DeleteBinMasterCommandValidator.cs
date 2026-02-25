@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using WarehouseManagement.Application.BinMaster.Command.DeleteBinMaster;
 using WarehouseManagement.Application.Common.Interfaces.IBinMaster;
 using WarehouseManagement.Application.WarehouseMaster.Command.DeleteWarehouseMaster;
 using FluentValidation;

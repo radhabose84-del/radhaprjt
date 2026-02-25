@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
 using PurchaseManagement.Application.Common.Interfaces.ITnCTemplateMaster;
 using PurchaseManagement.Application.TnCTemplateMaster.Queries.GetAllTnCTemplateMaster;

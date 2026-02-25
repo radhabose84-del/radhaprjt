@@ -1,6 +1,3 @@
-
-using PartyManagement.Domain.Entities;
-
 namespace PartyManagement.Application.Common.Interfaces.IBankAccount;
 
 public interface IBankAccountCommandRepository

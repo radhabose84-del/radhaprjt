@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using MaintenanceManagement.Application.MainStoreStock.Queries.GetItemStockbyId;
 using MaintenanceManagement.Application.MainStoreStock.Queries.GetMainStoreStock;
 using MaintenanceManagement.Application.MainStoreStock.Queries.GetMainStoreStockItems;

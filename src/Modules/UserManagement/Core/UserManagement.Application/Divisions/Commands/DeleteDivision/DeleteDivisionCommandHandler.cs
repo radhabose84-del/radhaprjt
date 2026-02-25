@@ -1,15 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using UserManagement.Application.Common.Interfaces;
 using UserManagement.Domain.Entities;
 using MediatR;
 using AutoMapper;
 using UserManagement.Application.Common.Interfaces.IDivision;
-using Contracts.Common;
 using UserManagement.Domain.Events;
-using UserManagement.Application.Divisions.Queries.GetDivisions;
 
 namespace UserManagement.Application.Divisions.Commands.DeleteDivision
 {

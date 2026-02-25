@@ -2,11 +2,10 @@
 using AutoMapper;
 using Contracts.Common;
 using InventoryManagement.Application.Common.Interfaces.Item.ItemGroup;
-using InventoryManagement.Application.Item.ItemGroup.Commands.UpdateItemGroup;
 using InventoryManagement.Domain.Events;
 using MediatR;
 
-namespace  InventoryManagement.Application.Item.ItemGroup.Commands.UpdateItemGroup
+namespace InventoryManagement.Application.Item.ItemGroup.Commands.UpdateItemGroup
 {
     public class UpdateItemGroupCommandHandler  : IRequestHandler<UpdateItemGroupCommand, int>
     {

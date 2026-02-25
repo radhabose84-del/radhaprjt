@@ -3,7 +3,6 @@ using BudgetManagement.Application.Common.Interfaces.IBudgetAllocation;
 using BudgetManagement.Application.Common.Interfaces.IBudgetRequest;
 using BudgetManagement.Application.Common.Interfaces.IMiscMaster;
 using BudgetManagement.Domain.Common;
-using BudgetManagement.Domain.Entities;
 using BudgetManagement.Application.BudgetAllocation.Command.Update;
 
 namespace BudgetManagement.Application.BudgetAllocation.Command.UpsertOnApproval

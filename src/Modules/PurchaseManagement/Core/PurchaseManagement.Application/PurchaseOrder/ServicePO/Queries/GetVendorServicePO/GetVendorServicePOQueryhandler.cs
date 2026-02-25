@@ -1,12 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
 // using Contracts.Interfaces.External.IParty;
 // using Contracts.Interfaces.External.IUser;
 using PurchaseManagement.Application.Common.Interfaces.IServiceMaster;
-using PurchaseManagement.Application.GRN.GateEntry.Queries.GetGateEntriesApprovedPo;
 using PurchaseManagement.Domain.Events;
 using MediatR;
 

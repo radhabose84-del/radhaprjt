@@ -1,4 +1,3 @@
-using Contracts.Common;
 using MediatR;
 
 namespace FAM.Application.AssetMaster.AssetMasterGeneral.Commands.SaveAssetDocument

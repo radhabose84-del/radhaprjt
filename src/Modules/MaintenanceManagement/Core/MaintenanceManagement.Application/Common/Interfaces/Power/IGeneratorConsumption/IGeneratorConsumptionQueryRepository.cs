@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using MaintenanceManagement.Application.MachineMaster.Queries.GetMachineDepartmentbyId;
 using MaintenanceManagement.Application.Power.GeneratorConsumption.Queries.GetClosingEnergyReaderValueById;
 using MaintenanceManagement.Application.Power.GeneratorConsumption.Queries.GetGeneratorConsumption;
 using MaintenanceManagement.Application.Power.GeneratorConsumption.Queries.GetUnitIdBasedOnMachineId;

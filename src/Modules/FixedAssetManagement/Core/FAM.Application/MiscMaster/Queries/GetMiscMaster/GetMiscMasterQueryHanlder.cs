@@ -1,13 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
 using Contracts.Common;
 using FAM.Application.Common.Interfaces.IMiscMaster;
 using FAM.Domain.Events;
 using MediatR;
-using FAM.Application.MiscMaster.Queries.GetMiscMaster;
 
 namespace FAM.Application.MiscMaster.Queries.GetMiscMaster
 {

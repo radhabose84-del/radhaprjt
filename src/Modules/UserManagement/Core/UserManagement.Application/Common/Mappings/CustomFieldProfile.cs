@@ -1,14 +1,9 @@
 #nullable disable
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
 using UserManagement.Application.CustomFields.Commands.CreateCustomField;
 using UserManagement.Application.CustomFields.Commands.DeleteCustomField;
 using UserManagement.Application.CustomFields.Commands.UpdateCustomField;
 using UserManagement.Application.CustomFields.Queries.GetCustomField;
-using UserManagement.Application.CustomFields.Queries.GetCustomFieldById;
 using UserManagement.Domain.Entities;
 using static UserManagement.Domain.Enums.Common.Enums;
 

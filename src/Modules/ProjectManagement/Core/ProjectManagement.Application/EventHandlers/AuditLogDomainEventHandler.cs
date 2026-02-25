@@ -1,6 +1,5 @@
 using MediatR;
 using ProjectManagement.Application.Common.Interfaces;
-using ProjectManagement.Application.Common;
 using ProjectManagement.Domain.Events;
 
 namespace ProjectManagement.Application.EventHandlers

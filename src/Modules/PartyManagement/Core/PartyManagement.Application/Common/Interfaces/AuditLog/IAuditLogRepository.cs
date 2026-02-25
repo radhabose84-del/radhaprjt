@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using PartyManagement.Domain.Entities;
 
 namespace PartyManagement.Application.Common.Interfaces.AuditLog

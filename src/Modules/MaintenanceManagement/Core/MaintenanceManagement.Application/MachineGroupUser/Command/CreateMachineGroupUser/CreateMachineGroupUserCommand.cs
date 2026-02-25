@@ -1,4 +1,3 @@
-using Contracts.Common;
 using MediatR;
 
 namespace MaintenanceManagement.Application.MachineGroupUsers.Command.CreateMachineGroupUser

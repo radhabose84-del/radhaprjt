@@ -1,11 +1,9 @@
 using FluentValidation;
-using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 using InventoryManagement.Infrastructure;
-using InventoryManagement.Application.Common.Mappings;
 using InventoryManagement.Presentation.Validation.Common;
 using InventoryManagement.Application.Common.Mappings.Item;
 using InventoryManagement.Presentation.Validation.Item.ItemGroup;

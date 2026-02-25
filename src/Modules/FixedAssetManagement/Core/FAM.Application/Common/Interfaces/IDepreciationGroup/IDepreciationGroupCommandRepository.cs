@@ -1,7 +1,4 @@
-
-using FAM.Domain.Common;
 using FAM.Domain.Entities;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 
 namespace FAM.Application.Common.Interfaces.IDepreciationGroup
 {

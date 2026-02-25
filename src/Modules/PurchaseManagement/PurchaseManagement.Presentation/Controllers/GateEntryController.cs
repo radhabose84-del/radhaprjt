@@ -1,17 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using PurchaseManagement.Application.GRN.GateEntry.Commands.CreateGateEntry;
 using PurchaseManagement.Application.GRN.GateEntry.Commands.DeleteGateEntryDocument;
 using PurchaseManagement.Application.GRN.GateEntry.Commands.UploadGateEntryDocument;
 using PurchaseManagement.Application.GRN.GateEntry.Queries.GetGateEntriesApprovedPo;
-using PurchaseManagement.Application.GRN.GRNEntry.Queries.GetGateEntryPendingPo;
-using MassTransit.Futures.Contracts;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Http;
 
 namespace PurchaseManagement.Presentation.Controllers

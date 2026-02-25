@@ -1,12 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Data;
 using WarehouseManagement.Application.Common.Interfaces.IWarehouseMaster;
-using WarehouseManagement.Application.WarehouseMaster.GetAllWarehouseMaster;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using AutoMapper;
 using WarehouseManagement.Domain.Entities;
 using Contracts.Interfaces.Lookups.Inventory;

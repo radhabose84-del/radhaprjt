@@ -4,14 +4,7 @@ using System.Data;
 using UserManagement.Infrastructure.Data;
 using UserManagement.Domain.Entities;
 using UserManagement.Application.Common.Interfaces.IUser;
-
-using Polly;
-using Polly.Timeout;
-using Serilog;
-using Microsoft.EntityFrameworkCore.Migrations.Operations;
-using UserManagement.Domain.Common;
 using UserManagement.Application.Common.Interfaces;
-using Microsoft.EntityFrameworkCore;
 
 namespace UserManagement.Infrastructure.Repositories.Users
 {

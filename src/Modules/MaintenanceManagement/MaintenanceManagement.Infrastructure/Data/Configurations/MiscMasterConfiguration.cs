@@ -1,11 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using MaintenanceManagement.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Microsoft.IdentityModel.Tokens;
 using static MaintenanceManagement.Domain.Common.BaseEntity;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 

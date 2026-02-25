@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Contracts.Dtos.Users;
 using InventoryManagement.Application.Reports.StockReport;
 using InventoryManagement.Application.Reports.StockReportDivisionwise;
 using InventoryManagement.Application.Reports.SubStoresStock;

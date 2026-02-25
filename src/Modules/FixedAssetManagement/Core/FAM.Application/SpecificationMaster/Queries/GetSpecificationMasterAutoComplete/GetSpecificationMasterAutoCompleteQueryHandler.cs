@@ -1,5 +1,4 @@
 using AutoMapper;
-using Contracts.Common;
 using FAM.Application.Common.Interfaces.ISpecificationMaster;
 using FAM.Application.SpecificationMaster.Queries.GetSpecificationMaster;
 using FAM.Domain.Events;

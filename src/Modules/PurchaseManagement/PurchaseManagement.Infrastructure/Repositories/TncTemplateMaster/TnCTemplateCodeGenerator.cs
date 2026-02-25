@@ -1,10 +1,6 @@
 #nullable disable
-using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using PurchaseManagement.Application.Common.Interfaces.ITnCTemplateMaster;
 using Microsoft.EntityFrameworkCore;
 using PurchaseManagement.Infrastructure.Data;

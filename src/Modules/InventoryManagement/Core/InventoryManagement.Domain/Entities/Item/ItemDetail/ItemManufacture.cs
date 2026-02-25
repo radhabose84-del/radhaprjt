@@ -1,5 +1,3 @@
-using InventoryManagement.Domain.Common;
-
 namespace InventoryManagement.Domain.Entities.Item.ItemDetail
 {
     public class ItemManufacture 

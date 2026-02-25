@@ -1,13 +1,10 @@
 #nullable disable
 using AutoMapper;
-using Contracts.Common;
-using UserManagement.Application.Common.Interfaces;
 using UserManagement.Application.Common.Interfaces.IDivision;
 using UserManagement.Domain.Entities;
 using UserManagement.Domain.Events;
 using FluentValidation;
 using MediatR;
-using Microsoft.AspNetCore.Http;
 
 namespace UserManagement.Application.Divisions.Commands.UpdateDivision
 {

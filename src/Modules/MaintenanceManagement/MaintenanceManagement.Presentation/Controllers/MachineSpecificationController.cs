@@ -1,14 +1,7 @@
 #nullable disable
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using MaintenanceManagement.Application.MachineSpecification.Command.CreateMachineSpecfication;
 using MaintenanceManagement.Application.MachineSpecification.Command.UpdateMachineSpecfication;
-using MaintenanceManagement.Application.MachineSpecification.DeleteMachineSpecfication;
 using MaintenanceManagement.Application.MachineSpecification.Queries.GetMachineSpecificationById;
-using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

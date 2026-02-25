@@ -1,11 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Threading.Tasks;
 using MaintenanceManagement.Application.Common.Interfaces.IMiscTypeMaster;
 using Microsoft.EntityFrameworkCore;
-using MaintenanceManagement.Domain.Entities;
 using MaintenanceManagement.Infrastructure.Data;
 
 namespace MaintenanceManagement.Infrastructure.Repositories.MiscTypeMaster

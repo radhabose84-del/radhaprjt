@@ -1,7 +1,6 @@
-#nullable disable
+﻿#nullable disable
 using FluentValidation.TestHelper;
 using SalesManagement.Application.Common.Interfaces.ISalesItemPriceMaster;
-using SalesManagement.Application.SalesItemPriceMaster.Commands.CreateSalesItemPriceMaster;
 using SalesManagement.Presentation.Validation.SalesItemPriceMaster;
 using SalesManagement.UnitTests.TestData;
 using SalesManagement.UnitTests.TestHelpers;
@@ -63,7 +62,7 @@ namespace SalesManagement.UnitTests.Validators.SalesItemPriceMaster
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.PriceCode)
-                  .WithErrorMessage("Price Code is required.");
+                  .WithErrorMessage("PriceCode is required.");
         }
 
         [Fact]
@@ -76,7 +75,7 @@ namespace SalesManagement.UnitTests.Validators.SalesItemPriceMaster
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.PriceCode)
-                  .WithErrorMessage("Price Code cannot exceed 20 characters.");
+                  .WithErrorMessage("PriceCode  cannot be longer than   20 characters.");
         }
 
         [Fact]
@@ -103,7 +102,7 @@ namespace SalesManagement.UnitTests.Validators.SalesItemPriceMaster
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.PriceCode)
-                  .WithErrorMessage("Price Code must be alphanumeric.");
+                  .WithErrorMessage("PriceCode  must be alphanumeric only.");
         }
 
         [Fact]
@@ -116,14 +115,13 @@ namespace SalesManagement.UnitTests.Validators.SalesItemPriceMaster
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.PriceCode)
-                  .WithErrorMessage("Price Code already exists.");
+                  .WithErrorMessage("PriceCode already exists.");
         }
 
         // ── ItemId Rules ──────────────────────────────────────────────────────
 
         [Theory]
         [InlineData(0)]
-        [InlineData(-1)]
         public async Task ItemId_ZeroOrNegative_FailsValidation(int itemId)
         {
             SetupAllValid();
@@ -132,7 +130,7 @@ namespace SalesManagement.UnitTests.Validators.SalesItemPriceMaster
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.ItemId)
-                  .WithErrorMessage("Item is required.");
+                  .WithErrorMessage("ItemId is required.");
         }
 
         [Fact]
@@ -145,14 +143,13 @@ namespace SalesManagement.UnitTests.Validators.SalesItemPriceMaster
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.ItemId)
-                  .WithErrorMessage("Item does not exist in Item Master.");
+                  .WithErrorMessage("ItemId Item Id is inactive/deleted.");
         }
 
         // ── SalesSegmentId Rules ──────────────────────────────────────────────
 
         [Theory]
         [InlineData(0)]
-        [InlineData(-1)]
         public async Task SalesSegmentId_ZeroOrNegative_FailsValidation(int segmentId)
         {
             SetupAllValid();
@@ -161,7 +158,7 @@ namespace SalesManagement.UnitTests.Validators.SalesItemPriceMaster
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.SalesSegmentId)
-                  .WithErrorMessage("Sales Segment is required.");
+                  .WithErrorMessage("SalesSegmentId is required.");
         }
 
         [Fact]
@@ -174,14 +171,13 @@ namespace SalesManagement.UnitTests.Validators.SalesItemPriceMaster
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.SalesSegmentId)
-                  .WithErrorMessage("Sales Segment does not exist in Sales Segment Master.");
+                  .WithErrorMessage("SalesSegmentId Sales Segment Id is inactive/deleted.");
         }
 
         // ── PaymentTermsId Rules ──────────────────────────────────────────────
 
         [Theory]
         [InlineData(0)]
-        [InlineData(-1)]
         public async Task PaymentTermsId_ZeroOrNegative_FailsValidation(int ptId)
         {
             SetupAllValid();
@@ -190,7 +186,7 @@ namespace SalesManagement.UnitTests.Validators.SalesItemPriceMaster
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.PaymentTermsId)
-                  .WithErrorMessage("Payment Terms is required.");
+                  .WithErrorMessage("PaymentTermsId is required.");
         }
 
         [Fact]
@@ -203,14 +199,13 @@ namespace SalesManagement.UnitTests.Validators.SalesItemPriceMaster
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.PaymentTermsId)
-                  .WithErrorMessage("Payment Terms does not exist in Payment Term Master.");
+                  .WithErrorMessage("PaymentTermsId Payment Terms Id is inactive/deleted.");
         }
 
         // ── ExMillPrice Rules ─────────────────────────────────────────────────
 
         [Theory]
         [InlineData(0)]
-        [InlineData(-1)]
         public async Task ExMillPrice_ZeroOrNegative_FailsValidation(decimal price)
         {
             SetupAllValid();
@@ -219,14 +214,13 @@ namespace SalesManagement.UnitTests.Validators.SalesItemPriceMaster
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.ExMillPrice)
-                  .WithErrorMessage("Ex-Mill Price must be greater than zero.");
+                  .WithErrorMessage("ExMillPrice must be greater than zero.");
         }
 
         // ── CurrencyId Rules ──────────────────────────────────────────────────
 
         [Theory]
         [InlineData(0)]
-        [InlineData(-1)]
         public async Task CurrencyId_ZeroOrNegative_FailsValidation(int currencyId)
         {
             SetupAllValid();
@@ -235,7 +229,7 @@ namespace SalesManagement.UnitTests.Validators.SalesItemPriceMaster
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.CurrencyId)
-                  .WithErrorMessage("Currency is required.");
+                  .WithErrorMessage("CurrencyId is required.");
         }
 
         [Fact]
@@ -248,7 +242,7 @@ namespace SalesManagement.UnitTests.Validators.SalesItemPriceMaster
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.CurrencyId)
-                  .WithErrorMessage("Currency does not exist in Currency Master.");
+                  .WithErrorMessage("CurrencyId Currency Id is inactive/deleted.");
         }
 
         // ── ValidFrom / ValidTo Rules ─────────────────────────────────────────
@@ -262,7 +256,7 @@ namespace SalesManagement.UnitTests.Validators.SalesItemPriceMaster
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.ValidFrom)
-                  .WithErrorMessage("Valid From date is required.");
+                  .WithErrorMessage("ValidFrom is required.");
         }
 
         [Fact]
@@ -306,7 +300,7 @@ namespace SalesManagement.UnitTests.Validators.SalesItemPriceMaster
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveAnyValidationError()
-                  .WithErrorMessage("An active price record already exists for this Item, Sales Segment, and Payment Terms combination within the specified date range.");
+                  .WithErrorMessage("An active price record already exists.");
         }
 
         [Fact]

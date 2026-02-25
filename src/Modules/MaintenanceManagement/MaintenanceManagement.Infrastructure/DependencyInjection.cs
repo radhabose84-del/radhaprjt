@@ -5,7 +5,6 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System.Linq;
 using MongoDB.Driver;
 using Serilog;
 using MaintenanceManagement.Infrastructure.Data;

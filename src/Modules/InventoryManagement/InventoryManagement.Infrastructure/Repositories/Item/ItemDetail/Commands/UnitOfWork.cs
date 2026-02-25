@@ -1,7 +1,6 @@
 using InventoryManagement.Application.Common.Interfaces.Item.ItemDetail.Commands;
 using InventoryManagement.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
 
 namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Commands
 {

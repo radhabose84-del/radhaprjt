@@ -1,15 +1,11 @@
 #nullable disable
 using AutoMapper;
-using UserManagement.Application.Common;
-
-using Contracts.Common;
 using UserManagement.Application.Common.Interfaces.IUnit;
 using UserManagement.Application.Units.Queries.GetUnits;
 using UserManagement.Domain.Events;
 using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using System.Data;
 
 namespace UserManagement.Application.Units.Queries.GetUnitById
 {

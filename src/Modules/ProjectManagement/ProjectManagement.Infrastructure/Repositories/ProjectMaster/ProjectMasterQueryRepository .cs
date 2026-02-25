@@ -1,19 +1,13 @@
-using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using System.Threading.Tasks;
 using Contracts.Interfaces.Lookups.Users;
 using ProjectManagement.Application.Common.Interfaces;
 using ProjectManagement.Application.Common.Interfaces.IMiscMaster;
 using ProjectManagement.Application.Common.Interfaces.IProjectMaster;
-using ProjectManagement.Application.ProjectMaster.Queries.Dtos;
 using ProjectManagement.Application.ProjectMaster.Queries.GetProjectMaster;
 using ProjectManagement.Application.ProjectMaster.Queries.GetProjectPendingApprovals;
 using ProjectManagement.Application.ProjectMaster.Queries.ProjectMasterAutoComplete;
 using ProjectManagement.Domain.Common;
 using Dapper;
-using MassTransit.Futures.Contracts;
 
 namespace ProjectManagement.Infrastructure.Repositories.ProjectMaster
 {

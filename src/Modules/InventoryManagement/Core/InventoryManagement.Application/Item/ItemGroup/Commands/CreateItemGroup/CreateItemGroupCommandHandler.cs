@@ -1,7 +1,6 @@
 using AutoMapper;
 using Contracts.Common;
 using InventoryManagement.Application.Common.Interfaces.Item.ItemGroup;
-using InventoryManagement.Application.Item.ItemGroup.Commands.CreateItemGroup;
 using InventoryManagement.Domain.Events;
 using MediatR;
 

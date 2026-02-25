@@ -1,13 +1,7 @@
 #nullable disable
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Contracts.Common;
 using UserManagement.Application.Common.Interfaces.INotifications;
 using UserManagement.Domain.Events;
 using FluentValidation;
-using Hangfire;
 using MediatR;
 using Microsoft.Extensions.Logging;
 

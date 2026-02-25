@@ -1,4 +1,3 @@
-using System.Linq;
 using FluentValidation;
 using PurchaseManagement.Application.Common.Interfaces;                       // IIPAddressService
 using PurchaseManagement.Application.Common.Interfaces.IQuotation.IRfqEntry; // IRfqQueryRepository

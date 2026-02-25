@@ -1,6 +1,5 @@
 
 using System.Data;
-using FAM.Application.AssetMaster.AssetTransferIssue.Queries.GetAssetTransfered;
 using FAM.Application.Common.Interfaces;
 using FAM.Application.Common.Interfaces.IReports;
 using FAM.Application.Reports.AssetAudit;
@@ -8,7 +7,6 @@ using FAM.Application.Reports.AssetReport;
 using FAM.Application.Reports.AssetTransferReport;
 using Dapper;
 using FAM.Infrastructure.Repositories.Common;
-using Microsoft.Data.SqlClient;
 
 namespace FAM.Infrastructure.Repositories.Reports
 {

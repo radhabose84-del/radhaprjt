@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using static BudgetManagement.Domain.Common.BaseEntity;
 
 namespace BudgetManagement.Application.MiscTypeMaster.Queries.GetMiscTypeMaster

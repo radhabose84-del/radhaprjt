@@ -1,12 +1,7 @@
 #nullable disable
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
 using Contracts.Interfaces.Lookups.Users; // ✅ lookup contract
 using FAM.Application.AssetMaster.AssetPurchase.Queries.GetAssetSourceAutoComplete;
-using Contracts.Common;
 using FAM.Domain.Events;
 using MediatR;
 

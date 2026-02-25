@@ -1,18 +1,15 @@
-#nullable disable
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SalesManagement.Application.SalesGroup.Commands.CreateSalesGroup;
-using SalesManagement.Application.SalesGroup.Commands.UpdateSalesGroup;
 using SalesManagement.Application.SalesGroup.Commands.DeleteSalesGroup;
+using SalesManagement.Application.SalesGroup.Commands.UpdateSalesGroup;
 using SalesManagement.Application.SalesGroup.Queries.GetAllSalesGroup;
-using SalesManagement.Application.SalesGroup.Queries.GetSalesGroupById;
 using SalesManagement.Application.SalesGroup.Queries.GetSalesGroupAutoComplete;
+using SalesManagement.Application.SalesGroup.Queries.GetSalesGroupById;
 
 namespace SalesManagement.Presentation.Controllers
 {
-    [Authorize]
     [Route("api/[controller]")]
     public class SalesGroupController : ApiControllerBase
     {
@@ -24,7 +21,7 @@ namespace SalesManagement.Presentation.Controllers
         public async Task<IActionResult> GetAllSalesGroupAsync(
             [FromQuery] int PageNumber,
             [FromQuery] int PageSize,
-            [FromQuery] string SearchTerm = null)
+            [FromQuery] string? SearchTerm = null)
         {
             var result = await Mediator.Send(new GetAllSalesGroupQuery
             {
@@ -37,9 +34,9 @@ namespace SalesManagement.Presentation.Controllers
             {
                 StatusCode = StatusCodes.Status200OK,
                 data = result.Data,
-                TotalCount = result.TotalCount,
-                PageNumber = result.PageNumber,
-                PageSize = result.PageSize
+                result.TotalCount,
+                result.PageNumber,
+                result.PageSize
             });
         }
 
@@ -56,20 +53,17 @@ namespace SalesManagement.Presentation.Controllers
             });
         }
 
-        [HttpGet("autocomplete")]
+        [HttpGet("by-name")]
         public async Task<IActionResult> GetSalesGroupAutoCompleteAsync(
-            [FromQuery] string term = null)
+            [FromQuery] string? term = null)
         {
             var result = await Mediator.Send(new GetSalesGroupAutoCompleteQuery(term ?? string.Empty));
             return Ok(new { StatusCode = StatusCodes.Status200OK, data = result });
         }
 
-        [HttpPost("create")]
+        [HttpPost]
         public async Task<IActionResult> CreateSalesGroup([FromBody] CreateSalesGroupCommand command)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
             var result = await Mediator.Send(command);
 
             return Ok(new
@@ -81,15 +75,9 @@ namespace SalesManagement.Presentation.Controllers
             });
         }
 
-        [HttpPut("update")]
+        [HttpPut]
         public async Task<IActionResult> UpdateSalesGroup([FromBody] UpdateSalesGroupCommand command)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            if (command.Id <= 0)
-                return BadRequest(new { StatusCode = StatusCodes.Status400BadRequest, Message = "Invalid Id provided." });
-
             var result = await Mediator.Send(command);
 
             return Ok(new
@@ -101,12 +89,9 @@ namespace SalesManagement.Presentation.Controllers
             });
         }
 
-        [HttpDelete("delete/{id}")]
+        [HttpDelete]
         public async Task<IActionResult> DeleteSalesGroup(int id)
         {
-            if (id <= 0)
-                return BadRequest(new { StatusCode = StatusCodes.Status400BadRequest, Message = "Invalid Id provided." });
-
             var result = await Mediator.Send(new DeleteSalesGroupCommand(id));
 
             return Ok(new

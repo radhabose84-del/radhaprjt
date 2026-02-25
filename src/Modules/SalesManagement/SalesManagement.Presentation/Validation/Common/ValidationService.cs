@@ -1,6 +1,4 @@
-using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
-using SalesManagement.Presentation.Validation.Common;
 
 namespace SalesManagement.Presentation.Validation.Common
 {

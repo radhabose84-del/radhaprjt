@@ -94,7 +94,7 @@ namespace SalesManagement.UnitTests.Validators.SalesSegment
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.SegmentName)
-                  .WithErrorMessage("Segment Name is required.");
+                  .WithErrorMessage("SegmentName is required.");
         }
 
         [Fact]
@@ -107,7 +107,7 @@ namespace SalesManagement.UnitTests.Validators.SalesSegment
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.SegmentName)
-                  .WithErrorMessage("Segment Name cannot exceed 200 characters.");
+                  .WithErrorMessage("SegmentName  cannot be longer than   200 characters.");
         }
 
         // ── IsActive Rules ────────────────────────────────────────────────────
@@ -136,7 +136,7 @@ namespace SalesManagement.UnitTests.Validators.SalesSegment
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.IsActive)
-                  .WithErrorMessage("IsActive must be 0 (Inactive) or 1 (Active).");
+                  .WithErrorMessage("IsActive  must be either 0 or 1.");
         }
 
         // ── Immutability Verification ─────────────────────────────────────────

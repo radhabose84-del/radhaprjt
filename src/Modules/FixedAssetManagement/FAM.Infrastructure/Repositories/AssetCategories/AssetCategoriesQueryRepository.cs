@@ -1,9 +1,5 @@
 #nullable disable
-using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using System.Threading.Tasks;
 using FAM.Application.AssetCategories.Queries.GetAssetCategories;
 using FAM.Application.Common.Interfaces.IAssetCategories;
 using Dapper;

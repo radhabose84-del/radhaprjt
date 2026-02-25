@@ -1,7 +1,6 @@
 using AutoMapper;
 using Contracts.Common;
 using PurchaseManagement.Application.Common.Interfaces.IPortMaster;
-using PurchaseManagement.Application.Port.Commands;
 using PurchaseManagement.Application.Port.Dto;
 using PurchaseManagement.Domain.Entities;
 using PurchaseManagement.Domain.Events;

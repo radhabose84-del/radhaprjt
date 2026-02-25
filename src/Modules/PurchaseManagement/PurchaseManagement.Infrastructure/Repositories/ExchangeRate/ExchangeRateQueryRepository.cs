@@ -1,6 +1,5 @@
 using System.Data;
 using Dapper;
-using PurchaseManagement.Domain.Entities;
 using PurchaseManagement.Application.Common.Interfaces.IExchangeRate;
 
 namespace PurchaseManagement.Infrastructure.Repositories;

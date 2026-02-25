@@ -3,7 +3,6 @@ using UserManagement.Application.Entity.Queries.GetEntity;
 using UserManagement.Application.Entity.Commands.CreateEntity;
 using UserManagement.Application.Entity.Commands.UpdateEntity;
 using UserManagement.Application.Entity.Commands.DeleteEntity;
-using UserManagement.Domain.Entities;
 using static UserManagement.Domain.Enums.Common.Enums;
 
 

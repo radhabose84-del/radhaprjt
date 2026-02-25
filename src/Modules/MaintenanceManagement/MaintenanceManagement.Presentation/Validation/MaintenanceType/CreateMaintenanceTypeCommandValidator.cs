@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using MaintenanceManagement.Application.Common.Interfaces.IMaintenanceCategory;
 using MaintenanceManagement.Application.Common.Interfaces.IMaintenanceType;
 using MaintenanceManagement.Application.MaintenanceType.Command.CreateMaintenanceType;
 using FluentValidation;

@@ -1,14 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using UserManagement.Application.EntityLevelAdmin.Commands.CreateEntityLevelAdmin;
 using UserManagement.Application.EntityLevelAdmin.Commands.ResetPassword;
 using UserManagement.Application.EntityLevelAdmin.Commands.SendOTP;
-using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using UserManagement.Presentation.Validation.Admin;
 using Microsoft.AspNetCore.Http;
 
 namespace UserManagement.Presentation.Controllers

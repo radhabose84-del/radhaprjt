@@ -1,19 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using FAM.Application.AssetMaster.AssetInsurance.Commands.CreateAssetInsurance;
 using FAM.Application.AssetMaster.AssetInsurance.Commands.DeleteAssetInsurance;
 using FAM.Application.AssetMaster.AssetInsurance.Commands.UpdateAssetInsurance;
 using FAM.Application.AssetMaster.AssetInsurance.Queries.GetAssetInsurance;
 using FAM.Application.AssetMaster.AssetInsurance.Queries.GetAssetInsuranceById;
-using FAM.Infrastructure.Data;
-using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 
 namespace FAM.Presentation.Controllers.AssetMaster
 {

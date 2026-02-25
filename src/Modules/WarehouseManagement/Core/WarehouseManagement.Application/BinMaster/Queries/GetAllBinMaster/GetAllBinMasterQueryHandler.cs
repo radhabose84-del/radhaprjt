@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Contracts.Interfaces.External.IInvetoryManagement;
 using Contracts.Common;
 using WarehouseManagement.Application.Common.Interfaces.IBinMaster;
 using WarehouseManagement.Application.Common.Interfaces.IRackMaster;

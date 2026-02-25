@@ -1,7 +1,6 @@
 #nullable disable
 using FluentValidation.TestHelper;
 using SalesManagement.Application.Common.Interfaces.IBusinessUnit;
-using SalesManagement.Application.BusinessUnit.Commands.CreateBusinessUnit;
 using SalesManagement.Presentation.Validation.BusinessUnit;
 using SalesManagement.UnitTests.TestData;
 using SalesManagement.UnitTests.TestHelpers;
@@ -69,7 +68,7 @@ namespace SalesManagement.UnitTests.Validators.BusinessUnit
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.BusinessUnitCode)
-                  .WithErrorMessage("Business Unit Code is required.");
+                  .WithErrorMessage("BusinessUnitCode is required.");
         }
 
         [Fact]
@@ -83,7 +82,7 @@ namespace SalesManagement.UnitTests.Validators.BusinessUnit
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.BusinessUnitCode)
-                  .WithErrorMessage("Business Unit Code cannot exceed 20 characters.");
+                  .WithErrorMessage("BusinessUnitCode  cannot be longer than   20 characters.");
         }
 
         [Theory]
@@ -101,7 +100,7 @@ namespace SalesManagement.UnitTests.Validators.BusinessUnit
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.BusinessUnitCode)
-                  .WithErrorMessage("Business Unit Code must be alphanumeric.");
+                  .WithErrorMessage("BusinessUnitCode  must be alphanumeric only.");
         }
 
         [Fact]
@@ -113,7 +112,7 @@ namespace SalesManagement.UnitTests.Validators.BusinessUnit
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.BusinessUnitCode)
-                  .WithErrorMessage("Business Unit Code already exists.");
+                  .WithErrorMessage("BusinessUnitCode already exists.");
         }
 
         [Fact]
@@ -152,7 +151,7 @@ namespace SalesManagement.UnitTests.Validators.BusinessUnit
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.BusinessUnitName)
-                  .WithErrorMessage("Business Unit Name is required.");
+                  .WithErrorMessage("BusinessUnitName is required.");
         }
 
         [Fact]
@@ -165,7 +164,7 @@ namespace SalesManagement.UnitTests.Validators.BusinessUnit
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.BusinessUnitName)
-                  .WithErrorMessage("Business Unit Name cannot exceed 100 characters.");
+                  .WithErrorMessage("BusinessUnitName  cannot be longer than   100 characters.");
         }
 
         [Fact]
@@ -192,7 +191,7 @@ namespace SalesManagement.UnitTests.Validators.BusinessUnit
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.Description)
-                  .WithErrorMessage("Description cannot exceed 500 characters.");
+                  .WithErrorMessage("Description  cannot be longer than   500 characters.");
         }
 
         [Fact]

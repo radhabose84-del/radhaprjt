@@ -1,10 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
 using FAM.Application.AssetMaster.AssetInsurance.Queries.GetAssetInsurance;
-using Contracts.Common;
 using FAM.Application.Common.Interfaces.IAssetMaster.IAssetInsurance;
 using FAM.Domain.Events;
 using FluentValidation;

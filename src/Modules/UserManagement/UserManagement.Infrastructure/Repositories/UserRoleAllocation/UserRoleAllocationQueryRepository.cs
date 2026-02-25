@@ -1,7 +1,4 @@
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using System.Threading.Tasks;
 using UserManagement.Application.Common.Interfaces.IUserRoleAllocation;
 using UserManagement.Domain.Entities;
 using Dapper;

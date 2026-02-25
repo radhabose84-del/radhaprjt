@@ -1,4 +1,3 @@
-using InventoryManagement.Domain.Entities.Item.ItemDetail;
 using InventoryManagement.Domain.Entities.Item.ItemDetail.Variant;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;

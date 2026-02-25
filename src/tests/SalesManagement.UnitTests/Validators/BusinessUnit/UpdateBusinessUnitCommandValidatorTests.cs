@@ -99,7 +99,7 @@ namespace SalesManagement.UnitTests.Validators.BusinessUnit
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.BusinessUnitName)
-                  .WithErrorMessage("Business Unit Name is required.");
+                  .WithErrorMessage("BusinessUnitName is required.");
         }
 
         [Fact]
@@ -112,7 +112,7 @@ namespace SalesManagement.UnitTests.Validators.BusinessUnit
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.BusinessUnitName)
-                  .WithErrorMessage("Business Unit Name cannot exceed 100 characters.");
+                  .WithErrorMessage("BusinessUnitName  cannot be longer than   100 characters.");
         }
 
         // ── Description Rules (Optional, max 500) ────────────────────────────
@@ -127,7 +127,7 @@ namespace SalesManagement.UnitTests.Validators.BusinessUnit
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.Description)
-                  .WithErrorMessage("Description cannot exceed 500 characters.");
+                  .WithErrorMessage("Description  cannot be longer than   500 characters.");
         }
 
         [Fact]
@@ -167,7 +167,7 @@ namespace SalesManagement.UnitTests.Validators.BusinessUnit
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.IsActive)
-                  .WithErrorMessage("Status must be Active (1) or Inactive (0).");
+                  .WithErrorMessage("IsActive  must be either 0 or 1.");
         }
 
         // ── Immutability Verification ─────────────────────────────────────────

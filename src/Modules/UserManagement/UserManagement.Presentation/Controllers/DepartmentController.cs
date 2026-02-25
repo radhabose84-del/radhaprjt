@@ -7,8 +7,6 @@ using UserManagement.Application.Departments.Commands.CreateDepartment;
 using UserManagement.Application.Departments.Commands.UpdateDepartment;
 using UserManagement.Application.Departments.Commands.DeleteDepartment;
 using UserManagement.Application.Departments.Queries.GetDepartmentAutoCompleteSearch;
-using UserManagement.Infrastructure.Data;
-using FluentValidation;
 using UserManagement.Application.Departments.Queries.GetDepartmentByDepartmentGroupId;
 using UserManagement.Application.Departments.Queries.GetDepartmentByGroupWithControl;
 using Microsoft.Extensions.Logging;

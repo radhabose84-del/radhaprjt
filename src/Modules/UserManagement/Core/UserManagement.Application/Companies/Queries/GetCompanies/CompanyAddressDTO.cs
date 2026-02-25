@@ -1,11 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using AutoMapper;
-using UserManagement.Application.Common.Mappings;
-using UserManagement.Domain.Entities;
-
 namespace UserManagement.Application.Companies.Queries.GetCompanies
 {
     public class CompanyAddressDTO 

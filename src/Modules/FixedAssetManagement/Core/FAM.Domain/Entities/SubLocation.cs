@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using FAM.Domain.Common;
 using FAM.Domain.Entities.AssetMaster;
 

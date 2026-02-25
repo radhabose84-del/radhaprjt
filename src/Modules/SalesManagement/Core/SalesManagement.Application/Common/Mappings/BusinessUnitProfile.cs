@@ -1,4 +1,3 @@
-#nullable disable
 
 using AutoMapper;
 using SalesManagement.Application.BusinessUnit.Commands.CreateBusinessUnit;

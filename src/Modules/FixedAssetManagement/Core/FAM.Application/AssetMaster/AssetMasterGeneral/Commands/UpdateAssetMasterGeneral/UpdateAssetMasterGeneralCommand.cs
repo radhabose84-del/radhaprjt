@@ -1,8 +1,6 @@
 
 using FAM.Application.AssetMaster.AssetMasterGeneral.Queries.GetAssetMasterGeneral;
-using Contracts.Common;
 using MediatR;
-using static FAM.Domain.Common.BaseEntity;
 
 namespace FAM.Application.AssetMaster.AssetMasterGeneral.Commands.UpdateAssetMasterGeneral
 {

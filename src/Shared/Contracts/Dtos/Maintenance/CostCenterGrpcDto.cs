@@ -1,5 +1,3 @@
-using System;
-
 namespace Contracts.Dtos.Maintenance
 {
     public class CostCenterGrpcDto

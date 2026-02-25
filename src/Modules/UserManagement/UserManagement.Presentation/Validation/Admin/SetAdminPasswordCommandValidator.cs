@@ -1,14 +1,9 @@
 #nullable disable
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using UserManagement.Application.Common.Interfaces;
 using UserManagement.Application.Common.Utilities;
 using UserManagement.Application.EntityLevelAdmin.Commands.ResetPassword;
 using FluentValidation;
 using Shared.Validation.Common;
-using UserManagement.Presentation.Validation.Common;
 
 namespace UserManagement.Presentation.Validation.Admin
 {

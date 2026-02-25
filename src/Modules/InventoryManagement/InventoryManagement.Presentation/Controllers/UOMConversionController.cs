@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using InventoryManagement.Application.UOMConversion.Command.CreateUOMConversion;
 using InventoryManagement.Application.UOMConversion.Command.DeleteUOMConversion;
 using InventoryManagement.Application.UOMConversion.Command.UpdateUOMConversion;
@@ -12,7 +7,6 @@ using InventoryManagement.Application.UOMConversion.Queries.GetUOMConversionById
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 
 namespace InventoryManagement.Presentation.Controllers
 {

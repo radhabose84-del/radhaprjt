@@ -1,10 +1,7 @@
 using AutoMapper;
-using UserManagement.Application.Common.Interfaces;
 using MediatR;
-using System.Data;
 using UserManagement.Domain.Events;
 using UserManagement.Application.Common.Interfaces.IDepartment;
-using UserManagement.Application.Common;
 using Contracts.Common;
 using Microsoft.Extensions.Logging;
 

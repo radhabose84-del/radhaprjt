@@ -1,14 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using ProjectManagement.Application.Common.Interfaces.IProjectWorkBreakdownStructure;
 using ProjectManagement.Application.ProjectWorkBreakdownStructure.Command.UpdateProjectWorkBreakdownStructureCommand;
 using FluentValidation;
 
 namespace ProjectManagement.Presentation.Validation.ProjectWorkBreakdownStructure
 {
-       public class UpdateProjectWorkBreakdownStructureCommandValidator  : AbstractValidator<UpdateProjectWorkBreakdownStructureCommand>
+    public class UpdateProjectWorkBreakdownStructureCommandValidator  : AbstractValidator<UpdateProjectWorkBreakdownStructureCommand>
     {
        
 

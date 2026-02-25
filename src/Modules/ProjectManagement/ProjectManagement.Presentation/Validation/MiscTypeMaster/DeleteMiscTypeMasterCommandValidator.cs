@@ -1,11 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using ProjectManagement.Application.Common.Interfaces.IMiscTypeMaster;
 using ProjectManagement.Application.MiscTypeMaster.Command.DeleteMiscTypeMaster;
 using FluentValidation;
-using ProjectManagement.Presentation.Validation.Common;
 using Shared.Validation.Common;
 
 

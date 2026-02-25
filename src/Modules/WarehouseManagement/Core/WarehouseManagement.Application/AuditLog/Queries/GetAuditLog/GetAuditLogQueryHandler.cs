@@ -1,9 +1,5 @@
 using MongoDB.Driver;
 using MediatR;
-using WarehouseManagement.Application.Common.Interfaces;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using WarehouseManagement.Domain.Entities;
 
 namespace WarehouseManagement.Application.AuditLog.Queries.GetAuditLog

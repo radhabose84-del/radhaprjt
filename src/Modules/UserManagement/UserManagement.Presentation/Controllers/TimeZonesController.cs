@@ -1,17 +1,10 @@
 #nullable disable
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using UserManagement.Application.TimeZones.Queries.GetTimeZones;
 using UserManagement.Application.TimeZones.Queries.GetTimeZonesAutoComplete;
 using UserManagement.Application.TimeZones.Queries.GetTimeZonesById;
-using UserManagement.Infrastructure.Data;
 using MediatR;
-using Polly.Caching;
 using Microsoft.AspNetCore.Http;
 
 namespace UserManagement.Presentation.Controllers

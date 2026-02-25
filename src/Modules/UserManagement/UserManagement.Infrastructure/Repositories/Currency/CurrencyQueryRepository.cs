@@ -1,7 +1,3 @@
-using Microsoft.EntityFrameworkCore;
-using UserManagement.Infrastructure.Data;
-using UserManagement.Domain.Entities;
-using UserManagement.Application.Common.Interfaces.IEntity;
 using System.Data;
 using Dapper;
 using UserManagement.Application.Common.Interfaces.ICurrency;

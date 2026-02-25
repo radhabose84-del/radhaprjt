@@ -1,7 +1,6 @@
 #nullable disable
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using FluentValidation;
 using FAM.Application.UOM.Command.CreateUOM;
 using FAM.Application.UOM.Command.UpdateUOM;
 using FAM.Application.UOM.Queries.GetUOMs;

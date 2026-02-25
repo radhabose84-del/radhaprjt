@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using FAM.Application.Common.Interfaces.IAssetMaster.IAssetLocation;
 using FAM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;

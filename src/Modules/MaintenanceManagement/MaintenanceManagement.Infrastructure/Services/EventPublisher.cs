@@ -1,11 +1,6 @@
 #nullable disable
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json;
-using System.Threading.Tasks;
 using MaintenanceManagement.Application.Common.Interfaces;
-using MaintenanceManagement.Domain.Entities;
 using MassTransit;
 using MongoDB.Driver;
 using Serilog;

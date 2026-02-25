@@ -1,12 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using UserManagement.Infrastructure.Data;
 using UserManagement.Application.Common.Interfaces.ICurrency;
-using UserManagement.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
-using static UserManagement.Domain.Enums.Common.Enums;
 
 namespace UserManagement.Infrastructure.Repositories.Currency
 {

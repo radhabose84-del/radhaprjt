@@ -1,4 +1,3 @@
-using Contracts.Common;
 using MediatR;
 
 namespace UserManagement.Application.Modules.Commands.UpdateModule

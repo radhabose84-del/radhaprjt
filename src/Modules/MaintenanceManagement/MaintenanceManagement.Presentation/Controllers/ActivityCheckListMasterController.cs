@@ -1,21 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using MaintenanceManagement.Application.ActivityCheckListMaster.Command.CreateActivityCheckListMaster;
 using MaintenanceManagement.Application.ActivityCheckListMaster.Command.DeleteActivityCheckListMaster;
 using MaintenanceManagement.Application.ActivityCheckListMaster.Command.UpdateActivityCheckListMaster;
 using MaintenanceManagement.Application.ActivityCheckListMaster.Queries.GetActivityCheckListMaster;
 using MaintenanceManagement.Application.ActivityCheckListMaster.Queries.GetActivityCheckListMasterById;
 using MaintenanceManagement.Application.ActivityCheckListMaster.Queries.GetCheckListByActivityId;
-using Contracts.Common;
-using MaintenanceManagement.Application.Common.Interfaces.IActivityMaster;
-using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 
 namespace MaintenanceManagement.Presentation.Controllers
 {

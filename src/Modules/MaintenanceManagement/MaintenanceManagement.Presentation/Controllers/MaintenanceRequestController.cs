@@ -1,10 +1,4 @@
 #nullable disable
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
-using MassTransit.Mediator;
 using Microsoft.AspNetCore.Mvc;
 using FluentValidation;
 using Microsoft.Extensions.Logging;
@@ -26,7 +20,6 @@ using MaintenanceManagement.Application.MaintenanceRequest.Queries.GetMaintenanc
 using MaintenanceManagement.Application.MaintenanceRequest.Queries.GetMaintenanceSparesType;
 using MaintenanceManagement.Application.MaintenanceRequest.Queries.GetMaintenanceDipatchMode;
 using MaintenanceManagement.Application.Common.Interfaces.IMaintenanceRequest;
-using MaintenanceManagement.Application.Reports.MaintenanceRequestReport;
 using Microsoft.AspNetCore.Http;
 
 namespace MaintenanceManagement.Presentation.Controllers

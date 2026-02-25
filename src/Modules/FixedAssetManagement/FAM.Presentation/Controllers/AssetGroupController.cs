@@ -1,16 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using FAM.Application.AssetGroup.Command.CreateAssetGroup;
 using FAM.Application.AssetGroup.Command.DeleteAssetGroup;
 using FAM.Application.AssetGroup.Command.UpdateAssetGroup;
 using FAM.Application.AssetGroup.Queries.GetAssetGroup;
 using FAM.Application.AssetGroup.Queries.GetAssetGroupAutoComplete;
 using FAM.Application.AssetGroup.Queries.GetAssetGroupById;
-using FAM.Infrastructure.Data;
-using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

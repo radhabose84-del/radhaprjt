@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace InventoryManagement.Domain.Common
 {
     public static class MiscEnumEntity

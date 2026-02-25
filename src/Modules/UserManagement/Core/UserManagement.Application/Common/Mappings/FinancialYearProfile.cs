@@ -1,23 +1,16 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
-using UserManagement.Application.AdminSecuritySettings.Queries;
 using UserManagement.Application.FinancialYear.Command.CreateFinancialYear;
 using UserManagement.Application.FinancialYear.Command.DeleteFinancialYear;
 using UserManagement.Application.FinancialYear.Command.UpdateFinancialYear;
 using UserManagement.Application.FinancialYear.Queries.GetFinancialYear;
 using UserManagement.Application.FinancialYear.Queries.GetFinancialYearAutoComplete;
-using UserManagement.Domain.Entities;
-using UserManagement.Domain.Enums;
 using static UserManagement.Domain.Enums.Common.Enums;
 using static UserManagement.Domain.Enums.FinancialYearEnum;
 
 
 namespace UserManagement.Application.Common.Mappings
 {
-   
+
 
     public class FinancialYearProfile :Profile
     {

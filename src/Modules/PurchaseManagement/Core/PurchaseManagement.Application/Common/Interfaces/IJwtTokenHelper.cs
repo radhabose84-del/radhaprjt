@@ -1,6 +1,4 @@
 using System.Security.Claims;
-using PurchaseManagement.Domain.Common;
-using PurchaseManagement.Domain.Entities;
 
 namespace PurchaseManagement.Application.Common.Interfaces
 {

@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using ProjectManagement.Application.MiscTypeMaster.Command.CreateMiscTypeMaster;
 using ProjectManagement.Application.MiscTypeMaster.Command.DeleteMiscTypeMaster;
 using ProjectManagement.Application.MiscTypeMaster.Command.UpdateMiscTypeMaster;
@@ -11,7 +6,6 @@ using ProjectManagement.Application.MiscTypeMaster.Queries.GetMiscTypeMasterAuto
 using ProjectManagement.Application.MiscTypeMaster.Queries.GetMiscTypeMasterById;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Http;
 
 namespace ProjectManagement.Presentation.Controllers

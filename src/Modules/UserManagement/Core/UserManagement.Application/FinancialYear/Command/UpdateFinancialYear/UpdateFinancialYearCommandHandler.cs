@@ -1,15 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
-using Contracts.Common;
 using UserManagement.Application.Common.Interfaces.IFinancialYear;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using UserManagement.Domain.Events;
-using UserManagement.Application.FinancialYear.Queries.GetFinancialYear;
-using UserManagement.Application.FinancialYear.Command.UpdateFinancialYear;
 using FluentValidation;
 
 namespace UserManagement.Application.FinancialYear.Command.UpdateFinancialYear

@@ -1,10 +1,4 @@
-using UserManagement.Application.RoleEntitlements.Commands.CreateRoleEntitlement;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using MediatR;
-using Contracts.Common;
 
 namespace UserManagement.Application.RoleEntitlements.Commands.CreateRoleEntitlement
 {

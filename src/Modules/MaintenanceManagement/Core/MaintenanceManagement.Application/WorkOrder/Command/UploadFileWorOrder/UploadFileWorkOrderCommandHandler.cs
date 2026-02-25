@@ -1,9 +1,6 @@
 #nullable disable
 
 
-using System;
-using System.IO;
-using AutoMapper;
 using Contracts.Interfaces.Lookups.Users;
 using Contracts.Common;
 using MaintenanceManagement.Application.Common.Interfaces;

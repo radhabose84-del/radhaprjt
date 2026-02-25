@@ -1,6 +1,5 @@
 using System.Data;
 // using Contracts.Interfaces.External.IUser;
-using FAM.Application.Common.Interfaces;
 using FAM.Application.Common.Interfaces.IManufacture;
 using FAM.Application.Manufacture.Queries.GetManufacture;
 using FAM.Domain.Common;

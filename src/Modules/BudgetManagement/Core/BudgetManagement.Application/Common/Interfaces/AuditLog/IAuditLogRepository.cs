@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using BudgetManagement.Domain.Entities;
 
 namespace BudgetManagement.Application.Common.Interfaces.AuditLog

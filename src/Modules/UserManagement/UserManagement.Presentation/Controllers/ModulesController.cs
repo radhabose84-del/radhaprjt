@@ -1,25 +1,18 @@
 #nullable disable
 using MediatR;
-using UserManagement.Infrastructure.Data;
 using UserManagement.Application.Modules.Commands.UpdateModule;
 using UserManagement.Application.Modules.Commands.CreateModule;
 using UserManagement.Application.Modules.Queries.GetModules;
-using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using UserManagement.Application.Modules.Commands.DeleteModule;
-using Microsoft.AspNetCore.Authorization;
 using UserManagement.Application.Modules.Queries.GetModuleById;
 using UserManagement.Application.Modules.Queries.GetModuleAutoComplete;
 using Microsoft.Extensions.Logging;
 
 namespace UserManagement.Presentation.Controllers
 {
-[Route("api/[controller]")]
+    [Route("api/[controller]")]
 
     public class ModulesController : ApiControllerBase
     {

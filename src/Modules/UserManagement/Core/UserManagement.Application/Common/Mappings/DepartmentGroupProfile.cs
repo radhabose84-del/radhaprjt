@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
 using UserManagement.Application.DepartmentGroup.Command.CreateDepartmentGroup;
 using UserManagement.Application.DepartmentGroup.Command.DeleteDepartmentGroup;

@@ -1,12 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text.Json.Serialization;
-using System.Threading.Tasks;
-
 namespace Contracts.Dtos.Party
-{   
-     public class PartyContactDto
+{
+    public class PartyContactDto
     {
         public int Id { get; set; }
         public string FirstName  { get; set; } = string.Empty;

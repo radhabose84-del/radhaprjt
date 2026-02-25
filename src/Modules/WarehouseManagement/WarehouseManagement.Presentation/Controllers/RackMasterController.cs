@@ -1,9 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
-using Contracts.Common;
 using WarehouseManagement.Application.Common.Interfaces.IRackMaster;
 using WarehouseManagement.Application.RackMaster.Command.CreateRackMaster;
 using WarehouseManagement.Application.RackMaster.Command.DeleteRackMaster;
@@ -13,7 +7,6 @@ using WarehouseManagement.Application.RackMaster.Queries.GetRackMasterAutoComple
 using WarehouseManagement.Application.RackMaster.Queries.GetRackMasterById;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Http;
 
 namespace WarehouseManagement.Presentation.Controllers

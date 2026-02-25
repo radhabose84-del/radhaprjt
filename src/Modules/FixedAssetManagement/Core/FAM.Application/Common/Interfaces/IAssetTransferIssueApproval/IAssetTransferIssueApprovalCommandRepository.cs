@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Threading.Tasks;
 using FAM.Domain.Entities.AssetMaster;
 
 namespace FAM.Application.Common.Interfaces.IAssetTransferIssueApproval

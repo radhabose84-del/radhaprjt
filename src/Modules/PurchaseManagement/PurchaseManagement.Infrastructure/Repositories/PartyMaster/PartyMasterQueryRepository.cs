@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using System.Threading.Tasks;
 using PurchaseManagement.Application.Common.Interfaces.IPartyMaster;
 using PurchaseManagement.Application.PartyMaster.Queries.GetPartyDetails;
 using Dapper;

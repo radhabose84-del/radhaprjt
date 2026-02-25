@@ -2,7 +2,6 @@ using System.Data;
 using FAM.Application.Common.Interfaces.IDepreciationGroup;
 using FAM.Application.DepreciationGroup.Queries.GetDepreciationGroup;
 using FAM.Domain.Common;
-using FAM.Domain.Entities;
 using Dapper;
 
 namespace FAM.Infrastructure.Repositories.DepreciationGroup

@@ -1,18 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
-using Contracts.Common;
 using UserManagement.Application.Common.Interfaces.IUserGroup;
-using UserManagement.Application.Users.Queries.GetUserAutoComplete;
 using UserManagement.Domain.Events;
 using FluentValidation;
 using MediatR;
-using Microsoft.Extensions.Logging;
 
 namespace UserManagement.Application.UserGroup.Queries.GetUserGroupAutoComplete
-{    
+{
     public class GetUserGroupAutoCompleteQueryHandler : IRequestHandler<GetUserGroupAutoCompleteQuery, List<UserGroupAutoCompleteDto>>
     {
 

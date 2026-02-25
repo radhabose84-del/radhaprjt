@@ -5,7 +5,6 @@ using MaintenanceManagement.Application.MachineGroupUser.Queries.GetMachineGroup
 using MaintenanceManagement.Application.MachineGroupUser.Queries.GetMachineGroupUserAutoComplete;
 using MaintenanceManagement.Application.MachineGroupUser.Queries.GetMachineGroupUserById;
 using MaintenanceManagement.Application.MachineGroupUsers.Command.CreateMachineGroupUser;
-using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

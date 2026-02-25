@@ -1,9 +1,4 @@
 #nullable disable
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
 namespace Contracts.Dtos.Lookups.Users
 {
     public class CompanyLookupDto

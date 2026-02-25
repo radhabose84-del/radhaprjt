@@ -2,7 +2,6 @@
 using System.Data;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.IPurchaseDocument;
 using PurchaseManagement.Domain.Common;
-using PurchaseManagement.Domain.PurchaseOrder;
 using Dapper;
 using Microsoft.EntityFrameworkCore;
 using PurchaseManagement.Infrastructure.Data;

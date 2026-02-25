@@ -40,7 +40,6 @@ using FAM.Application.Common.Interfaces.IAssetTransferIssueApproval;
 using FAM.Application.Common.Interfaces.IAssetTransferReceipt;
 
 using FAM.Infrastructure.Data;
-using FAM.Infrastructure.Helpers;
 using FAM.Infrastructure.Repositories;
 using FAM.Infrastructure.Repositories.AssetCategories;
 using FAM.Infrastructure.Repositories.AssetGroup;

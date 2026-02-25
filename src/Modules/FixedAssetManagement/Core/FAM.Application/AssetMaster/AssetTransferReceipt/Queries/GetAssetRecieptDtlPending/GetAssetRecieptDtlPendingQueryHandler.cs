@@ -1,13 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
 using Contracts.Interfaces.Lookups.Users; // ✅ lookup contract
-using FAM.Application.AssetMaster.AssetTransferReceipt.Queries.GetAssetReceiptDetailsById;
-using Contracts.Common;
 using FAM.Application.Common.Interfaces.IAssetTransferReceipt;
-using FAM.Domain.Events;
 using FluentValidation;
 using MediatR;
 

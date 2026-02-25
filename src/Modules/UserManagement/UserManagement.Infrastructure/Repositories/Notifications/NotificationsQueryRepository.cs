@@ -1,9 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Dapper;
-using UserManagement.Infrastructure.Data;
 using System.Data;
 using UserManagement.Application.Common.Interfaces.INotifications;
 using UserManagement.Application.Common.Interfaces;

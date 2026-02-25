@@ -1,9 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
-using Contracts.Common;
 using MaintenanceManagement.Application.Common.Interfaces.Power.IPowerConsumption;
 using MaintenanceManagement.Application.Power.PowerConsumption.Queries.GetPowerConsumption;
 using MaintenanceManagement.Domain.Events;

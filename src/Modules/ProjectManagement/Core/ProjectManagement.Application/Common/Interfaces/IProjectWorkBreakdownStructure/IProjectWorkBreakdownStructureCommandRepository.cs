@@ -1,11 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
 namespace ProjectManagement.Application.Common.Interfaces.IProjectWorkBreakdownStructure
 {
-  public interface IProjectWorkBreakdownStructureCommandRepository
+    public interface IProjectWorkBreakdownStructureCommandRepository
   {
     Task<ProjectManagement.Domain.Entities.ProjectWorkBreakdownStructure?> GetByIdAsync(int id);
     Task<ProjectManagement.Domain.Entities.ProjectMaster?> GetProjectAsync(int projectId);

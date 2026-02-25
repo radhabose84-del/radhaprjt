@@ -1,9 +1,8 @@
 using UserManagement.Application.City.Queries.GetCities;
 using MediatR;
-using Contracts.Common;
 
 namespace UserManagement.Application.City.Commands.CreateCity
-{     
+{
     public class CreateCityCommand : IRequest<CityDto>
     {
         public int StateId { get; set; }

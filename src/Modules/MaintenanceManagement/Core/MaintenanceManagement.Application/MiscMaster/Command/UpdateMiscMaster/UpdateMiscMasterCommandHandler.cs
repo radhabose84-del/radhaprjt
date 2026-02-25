@@ -1,12 +1,7 @@
 #nullable disable
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
 using Contracts.Common;
 using MaintenanceManagement.Application.Common.Interfaces.IMiscMaster;
-using MaintenanceManagement.Application.MiscMaster.Queries.GetMiscMasterById;
 using MaintenanceManagement.Domain.Events;
 using MediatR;
 

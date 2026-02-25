@@ -1,12 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using UserManagement.Domain.Entities;
 using System.Data;
 using Dapper;
 using UserManagement.Application.Common.Interfaces.IAdminSecuritySettings;
-using System.Security.Permissions;
 using UserManagement.Application.Common.Interfaces;
 
 

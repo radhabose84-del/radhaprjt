@@ -1,4 +1,3 @@
-using Contracts.Common;
 using MediatR;
 
 namespace InventoryManagement.Application.Item.ItemDetail.Queries.GetAllItems

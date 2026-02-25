@@ -1,4 +1,3 @@
-#nullable disable
 
 using Contracts.Common;
 using Contracts.Interfaces.Lookups.Users;
@@ -32,7 +31,7 @@ namespace SalesManagement.Application.SalesSegment.Queries.GetAllSalesSegment
             if (data != null && data.Any())
             {
                 var currencyIds = data.Where(x => x.CurrencyId.HasValue)
-                    .Select(x => x.CurrencyId.Value)
+                    .Select(x => x.CurrencyId!.Value)
                     .Distinct()
                     .ToList();
 
@@ -42,7 +41,7 @@ namespace SalesManagement.Application.SalesSegment.Queries.GetAllSalesSegment
 
                     foreach (var item in data.Where(x => x.CurrencyId.HasValue))
                     {
-                        var currency = currencies.FirstOrDefault(c => c.CurrencyId == item.CurrencyId.Value);
+                        var currency = currencies.FirstOrDefault(c => c.CurrencyId == item.CurrencyId!.Value);
                         item.CurrencyName = currency?.Name;
                     }
                 }

@@ -1,12 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using UserManagement.Application.Common.Interfaces.IMiscMaster;
 using UserManagement.Application.MiscMaster.Command.DeleteMiscMaster;
 using FluentValidation;
 using Shared.Validation.Common;
-using UserManagement.Presentation.Validation.Common;
 
 namespace UserManagement.Presentation.Validation.MiscMaster
 {

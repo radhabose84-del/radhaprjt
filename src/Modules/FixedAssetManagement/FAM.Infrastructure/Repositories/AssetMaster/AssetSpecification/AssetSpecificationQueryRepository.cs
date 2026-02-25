@@ -1,7 +1,5 @@
 
 using System.Data;
-using System.Text.Json;
-using FAM.Application.AssetMaster.AssetSpecification.Queries.GetAssetSpecification;
 using FAM.Application.AssetMaster.AssetSpecification.Queries.GetAssetSpecificationBasedMachineNo;
 using FAM.Application.Common.Interfaces.IAssetMaster.IAssetSpecification;
 using Dapper;

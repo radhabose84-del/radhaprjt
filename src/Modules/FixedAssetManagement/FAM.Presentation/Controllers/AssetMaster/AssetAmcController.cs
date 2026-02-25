@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using FAM.Application.AssetMaster.AssetAmc.Command.CreateAssetAmc;
 using FAM.Application.AssetMaster.AssetAmc.Command.DeleteAssetAmc;
 using FAM.Application.AssetMaster.AssetAmc.Command.UpdateAssetAmc;
@@ -11,8 +6,6 @@ using FAM.Application.AssetMaster.AssetAmc.Queries.GetAssetAmcById;
 using FAM.Application.AssetMaster.AssetAmc.Queries.GetCoverageScope;
 using FAM.Application.AssetMaster.AssetAmc.Queries.GetExistingVendorDetails;
 using FAM.Application.AssetMaster.AssetAmc.Queries.GetRenewStatus;
-using FAM.Infrastructure.Migrations;
-using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -20,7 +13,7 @@ using Microsoft.Extensions.Logging;
 
 namespace FAM.Presentation.Controllers.AssetMaster
 {
-   [Route("api/[controller]")]
+    [Route("api/[controller]")]
     public class AssetAmcController : ApiControllerBase
     {
         private readonly ILogger<AssetAmcController> _logger;

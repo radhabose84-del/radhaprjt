@@ -1,6 +1,4 @@
 #nullable disable
-using System.Security.Cryptography;
-using System.Text;
 using UserManagement.Application.Common.Interfaces;
 using MediatR;
 using Microsoft.Extensions.Logging; // This is where the ILogger interface is defined
@@ -13,9 +11,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using UserManagement.Domain.Entities;
 using System.Collections.Concurrent;
-using Hangfire;
-using UserManagement.Application.Common.Interfaces.ICompanySettings;
-using static UserManagement.Domain.Enums.Common.Enums;
 namespace UserManagement.Application.UserLogin.Commands.UserLogin
 {
     public class UserLoginCommandHandler : IRequestHandler<UserLoginCommand, ApiResponseDTO<LoginResponse>>

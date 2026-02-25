@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using UserManagement.Application.City.Commands.CreateCity;
 using UserManagement.Domain.Entities;
 using FluentValidation;

@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using MaintenanceManagement.Application.PreventiveSchedulers.Commands.ActiveInActivePreventive;
 using MaintenanceManagement.Application.PreventiveSchedulers.Commands.CreatePreventiveScheduler;
 using MaintenanceManagement.Application.PreventiveSchedulers.Commands.DeletePreventiveScheduler;
@@ -17,7 +13,6 @@ using MaintenanceManagement.Application.PreventiveSchedulers.Queries.GetPreventi
 using MaintenanceManagement.Application.PreventiveSchedulers.Queries.GetPreventiveSchedulerById;
 using MaintenanceManagement.Application.PreventiveSchedulers.Queries.GetSchedulerByDate;
 using MaintenanceManagement.Application.PreventiveSchedulers.Queries.GetUnMappedMachine;
-using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;

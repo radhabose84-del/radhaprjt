@@ -1,4 +1,3 @@
-using FAM.Application.AssetGroup.Queries.GetAssetGroupById;
 using FAM.Application.AssetSubGroup.Command.CreateAssetSubGroup;
 using FAM.Application.AssetSubGroup.Command.DeleteAssetSubGroup;
 using FAM.Application.AssetSubGroup.Command.UpdateAssetSubGroup;
@@ -6,8 +5,6 @@ using FAM.Application.AssetSubGroup.Queries.GetAssetGroupById;
 using FAM.Application.AssetSubGroup.Queries.GetAssetSubGroup;
 using FAM.Application.AssetSubGroup.Queries.GetAssetSubGroupAutoComplete;
 using FAM.Application.AssetSubGroup.Queries.GetAssetSubGroupById;
-using FAM.Infrastructure.Data;
-using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

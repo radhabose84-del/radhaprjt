@@ -1,9 +1,5 @@
 using MongoDB.Driver;
 using MediatR;
-using PartyManagement.Application.Common.Interfaces;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using PartyManagement.Domain.Entities;
 
 namespace PartyManagement.Application.AuditLog.Queries.GetAuditLog

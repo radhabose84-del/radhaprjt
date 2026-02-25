@@ -1,15 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Contracts.Common;
 using FAM.Application.Common.Interfaces.IAssetMaster.IAssetTransferIssue;
 using FluentValidation;
 using MediatR;
 
 namespace FAM.Application.AssetMaster.AssetTransferIssue.Queries.GetAllAssetTransfer
 {
-    
+
     public class GetAllTransferQueryHandler : IRequestHandler<GetAllTransferQuery, List<GetAllTransferDtlDto>>
     {
         private readonly IAssetTransferQueryRepository _assetTransferQueryRepository; 

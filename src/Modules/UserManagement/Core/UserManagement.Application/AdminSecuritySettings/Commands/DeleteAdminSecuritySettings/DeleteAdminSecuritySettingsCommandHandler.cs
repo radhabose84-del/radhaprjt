@@ -1,16 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using UserManagement.Application.AdminSecuritySettings.Commands.DeleteAdminSecuritySettings;
-using UserManagement.Application.AdminSecuritySettings.Queries.GetAdminSecuritySettings;
 using UserManagement.Domain.Events;
-using UserManagement.Application.Common;
 using AutoMapper;
 using MediatR;
 using UserManagement.Application.Common.Interfaces.IAdminSecuritySettings;
-using System.Threading;
-using Contracts.Common;
 using Microsoft.Extensions.Logging;
 using FluentValidation;
 

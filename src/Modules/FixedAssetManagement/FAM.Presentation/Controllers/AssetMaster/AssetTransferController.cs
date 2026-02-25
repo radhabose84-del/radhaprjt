@@ -13,8 +13,6 @@ using FAM.Application.AssetMaster.AssetTransferIssue.Queries.GetTransferType;
 using Contracts.Common;
 using FAM.Application.Common.Interfaces.IAssetMaster.IAssetTransferIssue;
 using FAM.Domain.Entities.AssetMaster;
-using FluentValidation;
-using MassTransit.Futures.Contracts;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

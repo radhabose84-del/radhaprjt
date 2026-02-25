@@ -1,17 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using MaintenanceManagement.Application.Power.GeneratorConsumption.Command;
 using MaintenanceManagement.Application.Power.GeneratorConsumption.Queries.GetClosingEnergyReaderValueById;
 using MaintenanceManagement.Application.Power.GeneratorConsumption.Queries.GetGeneratorConsumption;
 using MaintenanceManagement.Application.Power.GeneratorConsumption.Queries.GetUnitIdBasedOnMachineId;
-using MassTransit.Futures.Contracts;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 
 namespace MaintenanceManagement.Presentation.Controllers.Power
 {

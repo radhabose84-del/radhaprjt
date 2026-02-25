@@ -1,9 +1,5 @@
 #nullable disable
-using Microsoft.EntityFrameworkCore;
-using UserManagement.Infrastructure.Data;
 using UserManagement.Domain.Entities;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using UserManagement.Application.Common.Interfaces.IDepartment;
 using System.Data;
 using Dapper;
@@ -13,7 +9,7 @@ using UserManagement.Application.Departments.Queries.GetDepartmentByGroupWithCon
 
 namespace UserManagement.Infrastructure.Repositories.Departments
 {
-  public class DepartmentQueryRepository : IDepartmentQueryRepository
+    public class DepartmentQueryRepository : IDepartmentQueryRepository
   {
     private readonly IDbConnection _dbConnection;
     private readonly IIPAddressService _ipAddressService;

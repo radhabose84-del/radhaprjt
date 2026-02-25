@@ -1,15 +1,10 @@
 #nullable disable
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using UserManagement.Application.Common.Interfaces;
 using UserManagement.Application.Common.Interfaces.IUser;
 using UserManagement.Application.Common.Utilities;
 using UserManagement.Application.Users.Commands.ResetUserPassword;
 using UserManagement.Domain.Entities; // User
 using FluentValidation.TestHelper;
-using Moq;
-using Xunit;
 using UserManagement.Presentation.Validation.Users;
 
 namespace UserManagement.UnitTests.Validators.Users

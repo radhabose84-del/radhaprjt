@@ -2,7 +2,6 @@
 using AutoMapper;
 using PurchaseManagement.Application.Common.Interfaces.IExchangeRate;
 using PurchaseManagement.Application.ExchangeRate.Commands;
-using PurchaseManagement.Application.ExchangeRate.Interfaces;
 using MediatR;
 
 namespace PurchaseManagement.Application.ExchangeRate.Queries.GetLatestRate;

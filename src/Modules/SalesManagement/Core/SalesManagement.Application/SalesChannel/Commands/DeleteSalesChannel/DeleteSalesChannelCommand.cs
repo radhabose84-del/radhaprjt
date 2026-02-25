@@ -1,4 +1,3 @@
-#nullable disable
 using MediatR;
 
 namespace SalesManagement.Application.SalesChannel.Commands.DeleteSalesChannel;

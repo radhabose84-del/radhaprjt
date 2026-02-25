@@ -1,13 +1,7 @@
 #nullable disable
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using PurchaseManagement.Application.Common.Interfaces.IPaymentTermMaster;
 using PurchaseManagement.Application.PaymentTermMaster.Command.CreatePaymentTermMaster;
 using FluentValidation;
-using PurchaseManagement.Presentation.Validation.Common;
-using Shared.Validation.Common;
 
 namespace PurchaseManagement.Presentation.Validation.PaymentTermMaster
 {

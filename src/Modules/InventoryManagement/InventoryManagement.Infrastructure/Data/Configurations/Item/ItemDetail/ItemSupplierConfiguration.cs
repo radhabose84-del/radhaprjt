@@ -1,8 +1,6 @@
 using InventoryManagement.Domain.Entities.Item.ItemDetail;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using static InventoryManagement.Domain.Common.BaseEntity;
 
 namespace InventoryManagement.Infrastructure.Data.Configurations.Item.ItemDetail
 {

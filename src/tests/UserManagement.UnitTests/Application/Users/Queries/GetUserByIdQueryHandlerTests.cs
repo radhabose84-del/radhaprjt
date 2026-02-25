@@ -1,5 +1,3 @@
-using System.Threading;
-using System.Threading.Tasks;
 using AutoMapper;
 using UserManagement.Application.Users.Queries.GetUserById;
 using UserManagement.Application.Users.Queries.GetUsers; // for UserByIdDTO if it lives here; adjust if different
@@ -7,9 +5,6 @@ using UserManagement.Domain.Entities;
 using UserManagement.Domain.Events;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using Moq;
-using FluentAssertions;
-using Xunit;
 using UserManagement.Application.Common.Interfaces.IUser;
 
 namespace UserManagement.UnitTests.Application.Users.Queries

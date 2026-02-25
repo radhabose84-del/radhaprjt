@@ -7,12 +7,7 @@ using UserManagement.Application.UserRole.Commands.CreateRole;
 using UserManagement.Application.UserRole.Commands.DeleteRole;
 using UserManagement.Application.UserRole.Commands.UpdateRole;
 using UserManagement.Application.UserRole.Queries.GetRolesAutocomplete;
-using UserManagement.Application.Common.Interfaces;
-using FluentValidation;
-using UserManagement.Infrastructure.Data;
-using Microsoft.AspNetCore.Authorization;
 using UserManagement.Application.Common.Interfaces.IUser;
-using Contracts.Common;
 using Microsoft.Extensions.Logging;
 
 namespace UserManagement.Presentation.Controllers

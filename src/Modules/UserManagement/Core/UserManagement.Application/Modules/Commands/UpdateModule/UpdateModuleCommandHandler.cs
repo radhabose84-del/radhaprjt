@@ -1,12 +1,9 @@
 #nullable disable
-using UserManagement.Domain.Entities;
-using UserManagement.Application.Common.Interfaces;
 using FluentValidation;
 using AutoMapper;
 using MediatR;
 using UserManagement.Application.Common.Interfaces.IModule;
 using UserManagement.Domain.Events;
-using Contracts.Common;
 using Microsoft.Extensions.Logging;
 
 namespace UserManagement.Application.Modules.Commands.UpdateModule

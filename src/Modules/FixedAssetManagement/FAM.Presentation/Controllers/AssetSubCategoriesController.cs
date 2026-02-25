@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using FAM.Application.AssetSubCategories.Command.CreateAssetSubCategories;
 using FAM.Application.AssetSubCategories.Command.DeleteAssetSubCategories;
 using FAM.Application.AssetSubCategories.Command.UpdateAssetSubCategories;
@@ -10,8 +5,6 @@ using FAM.Application.AssetSubCategories.Queries.GetAssetSubCategories;
 using FAM.Application.AssetSubCategories.Queries.GetAssetSubCategoriesAutoComplete;
 using FAM.Application.AssetSubCategories.Queries.GetAssetSubCategoriesByCategoryId;
 using FAM.Application.AssetSubCategories.Queries.GetAssetSubCategoriesById;
-using FAM.Infrastructure.Data;
-using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

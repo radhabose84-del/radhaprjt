@@ -1,11 +1,6 @@
 #nullable disable
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
 using Contracts.Interfaces.Lookups.Users;
-using Contracts.Common;
 using MaintenanceManagement.Application.Common.Interfaces.IMachineMaster;
 using MaintenanceManagement.Application.MachineMaster.Queries.GetMachineMaster;
 using MaintenanceManagement.Domain.Events;

@@ -6,7 +6,6 @@ using PurchaseManagement.Domain.Entities.PriceMaster;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Domain.Common;
 using PurchaseManagement.Application.Common.Interfaces.IMiscMaster;
-using PurchaseManagement.Application.PriceMaster.Dtos;
 using System.Text.Json;
 using Contracts.Events.Workflow;
 using PurchaseManagement.Domain.Events;

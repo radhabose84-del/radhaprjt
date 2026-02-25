@@ -1,15 +1,9 @@
 #nullable disable
-using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Data.Common;
-using System.Linq;
-using System.Threading.Tasks;
 using MaintenanceManagement.Application.Common.Interfaces.IMRS;
 using MaintenanceManagement.Application.MRS.Command.CreateMRS;
 using Dapper;
 using MaintenanceManagement.Infrastructure.Data;
-using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
 using System.Net.Sockets;

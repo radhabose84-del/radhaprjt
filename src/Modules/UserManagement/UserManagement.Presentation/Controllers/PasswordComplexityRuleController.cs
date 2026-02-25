@@ -1,5 +1,3 @@
- 
- using UserManagement.Infrastructure.Data;
 using UserManagement.Application.PasswordComplexityRule.Commands.UpdatePasswordComplexityRule;
 
 //using UserManagement.Application.PasswordComplexityRule.Commands.UpdatePasswordComplexityRule;
@@ -8,7 +6,6 @@ using UserManagement.Application.PwdComplexityRule.Commands.DeletePasswordComple
 using UserManagement.Application.PwdComplexityRule.Queries;
 using UserManagement.Application.PwdComplexityRule.Queries.GetPwdComplexityRuleAutoComplete;
 using UserManagement.Application.PwdComplexityRule.Queries.GetPwdComplexityRuleById;
-using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;

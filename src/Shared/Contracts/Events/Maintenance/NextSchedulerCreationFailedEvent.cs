@@ -1,5 +1,3 @@
-using System;
-
 namespace Contracts.Events.Maintenance
 {
     public class NextSchedulerCreationFailedEvent

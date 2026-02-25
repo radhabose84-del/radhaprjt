@@ -1,7 +1,6 @@
 
 using MaintenanceManagement.Application.Dashboard.CardView;
 using MaintenanceManagement.Application.Dashboard.Common;
-using MaintenanceManagement.Application.Dashboard.WorkOrderSummary;
 
 namespace MaintenanceManagement.Application.Common.Interfaces.IDashboard
 {

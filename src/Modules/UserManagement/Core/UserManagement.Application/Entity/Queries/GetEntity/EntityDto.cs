@@ -1,5 +1,3 @@
-using Contracts.Common;
-using UserManagement.Application.Common.Mappings;
 using static UserManagement.Domain.Enums.Common.Enums;
 
 namespace UserManagement.Application.Entity.Queries.GetEntity

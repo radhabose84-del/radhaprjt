@@ -4,7 +4,6 @@ using UserManagement.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using UserManagement.Domain.Entities;
 using UserManagement.Application.Common.Interfaces.IUserSession;
-using Infrastructure;
 using UserManagement.Application.Common.Interfaces;
 using System.Data;
 using Dapper;

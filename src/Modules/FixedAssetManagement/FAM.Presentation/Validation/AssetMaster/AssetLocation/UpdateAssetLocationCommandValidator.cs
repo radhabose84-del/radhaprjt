@@ -1,9 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using FAM.Application.AssetMaster.AssetLocation.Commands.UpdateAssetLocation;
-using FAM.Presentation.Validation.Common;
 using FluentValidation;
 using Shared.Validation.Common;
 

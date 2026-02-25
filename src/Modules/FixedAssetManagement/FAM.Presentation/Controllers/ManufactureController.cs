@@ -1,7 +1,6 @@
 #nullable disable
 using FAM.Application.Manufacture.Commands.CreateManufacture;
 using FAM.Application.Manufacture.Commands.UpdateManufacture;
-using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using MediatR;
 using FAM.Application.Manufacture.Queries.GetManufacture;

@@ -1,16 +1,11 @@
 #nullable disable
 using UserManagement.Application.Entity.Queries.GetEntity;
 using UserManagement.Application.Entity.Queries.GetEntityLastCode;
-using UserManagement.Application.Common.Interfaces;
 using AutoMapper;
 using MediatR;
 using UserManagement.Application.Common.Interfaces.IEntity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using UserManagement.Application.Common;
 using UserManagement.Domain.Events;
-using Contracts.Common;
-using Serilog;
 using FluentValidation;
 
 

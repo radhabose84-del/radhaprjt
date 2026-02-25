@@ -1,6 +1,5 @@
 using PurchaseManagement.Application.PurchaseOrder.Dtos.ImportPO;
 using PurchaseManagement.Domain.Entities.PurchaseOrder;
-using PurchaseManagement.Domain.Entities.PurchaseOrder.ImportPO;
 
 namespace PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.ImportPO;
 

@@ -1,5 +1,4 @@
 using PurchaseManagement.Domain.Common;
-using PurchaseManagement.Domain.PurchaseOrder;
 
 namespace PurchaseManagement.Domain.Entities.PurchaseOrder.ImportPO;
 

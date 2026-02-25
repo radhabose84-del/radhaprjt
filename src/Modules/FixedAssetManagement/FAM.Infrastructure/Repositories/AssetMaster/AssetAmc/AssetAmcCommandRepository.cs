@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Threading.Tasks;
 using FAM.Application.Common.Interfaces.IAssetMaster.IAssetAmc;
 using FAM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;

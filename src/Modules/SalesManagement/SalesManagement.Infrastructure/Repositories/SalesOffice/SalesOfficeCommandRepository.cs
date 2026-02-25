@@ -1,7 +1,5 @@
-#nullable disable
 using Microsoft.EntityFrameworkCore;
 using SalesManagement.Application.Common.Interfaces.ISalesOffice;
-using SalesManagement.Domain.Common;
 using SalesManagement.Infrastructure.Data;
 using static SalesManagement.Domain.Common.BaseEntity;
 

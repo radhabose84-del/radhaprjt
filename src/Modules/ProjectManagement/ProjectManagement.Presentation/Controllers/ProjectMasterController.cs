@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using ProjectManagement.Application.DeleteDocument;
 using ProjectManagement.Application.MiscTypeMaster.Command.CreateMiscTypeMaster;
 using ProjectManagement.Application.ProjectMaster.Command.CreateProjectMaster;
@@ -16,7 +11,6 @@ using ProjectManagement.Application.ProjectMaster.Queries.ProjectMasterAutoCompl
 using ProjectManagement.Application.UploadDocument;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Http;
 
 namespace ProjectManagement.Presentation.Controllers

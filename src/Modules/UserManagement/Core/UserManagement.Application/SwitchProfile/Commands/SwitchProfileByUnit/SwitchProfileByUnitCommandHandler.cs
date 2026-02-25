@@ -1,9 +1,4 @@
 #nullable disable
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Contracts.Common;
 using UserManagement.Application.Common.Interfaces;
 using UserManagement.Application.Common.Interfaces.IUser;
 using UserManagement.Application.Common.Interfaces.IUserSession;
@@ -13,7 +8,6 @@ using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
-using static UserManagement.Domain.Enums.Common.Enums;
 
 namespace UserManagement.Application.SwitchProfile.Commands.SwitchProfileByUnit
 {

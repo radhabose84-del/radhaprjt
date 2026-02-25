@@ -1,9 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
-using UserManagement.Domain.Entities;
 using UserManagement.Application.AdminSecuritySettings.Queries.GetAdminSecuritySettings;
 using UserManagement.Application.AdminSecuritySettings.Commands.CreateAdminSecuritySettings;
 using UserManagement.Application.AdminSecuritySettings.Commands.DeleteAdminSecuritySettings;

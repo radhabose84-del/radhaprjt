@@ -6,7 +6,6 @@ using FAM.Application.AssetMaster.AssetSpecification.Queries.GetAssetSpecificati
 using FAM.Application.AssetMaster.AssetSpecification.Queries.GetAssetSpecificationAutoComplete;
 using FAM.Application.AssetMaster.AssetSpecification.Queries.GetAssetSpecificationBasedMachineNo;
 using FAM.Application.AssetMaster.AssetSpecification.Queries.GetAssetSpecificationById;
-using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

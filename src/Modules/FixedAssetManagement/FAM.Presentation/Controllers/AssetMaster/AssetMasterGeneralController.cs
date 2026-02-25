@@ -18,12 +18,9 @@ using FAM.Application.DepreciationGroup.Queries.GetAssetTypeQuery;
 using FAM.Application.DepreciationGroup.Queries.GetWorkingStatusQuery;
 using FAM.Application.ExcelImport;
 using FAM.Application.ExcelImport.PhysicalStockVerification;
-using FluentValidation;
-using MassTransit;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Swashbuckle.AspNetCore.Annotations;
 namespace FAM.Presentation.Controllers.AssetMaster
 {
     [Route("api/[controller]")]

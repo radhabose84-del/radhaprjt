@@ -1,5 +1,4 @@
 using Contracts.Dtos.Lookups.Inventory;
-using Contracts.Dtos.Lookups.Users;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Users;

@@ -1,7 +1,5 @@
 using AutoMapper;
 using Contracts.Interfaces.Lookups.Users;
-using Contracts.Common;
-using FAM.Application.Common.Interfaces;
 using FAM.Application.Common.Interfaces.IManufacture;
 using FAM.Application.Manufacture.Queries.GetManufacture;
 using FAM.Domain.Events;

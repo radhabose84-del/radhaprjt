@@ -1,17 +1,10 @@
 #nullable disable
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
-using Contracts.Common;
 using UserManagement.Application.Common.Interfaces.IFinancialYear;
 using UserManagement.Application.FinancialYear.Queries.GetFinancialYear;
-using UserManagement.Application.FinancialYear.Command.CreateFinancialYear;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using UserManagement.Domain.Events;
-using Microsoft.EntityFrameworkCore;
 using FluentValidation;
 
 

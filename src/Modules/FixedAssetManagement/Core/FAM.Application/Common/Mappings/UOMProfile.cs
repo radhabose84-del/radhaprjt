@@ -3,7 +3,6 @@ using FAM.Application.UOM.Command.CreateUOM;
 using FAM.Application.UOM.Command.DeleteUOM;
 using FAM.Application.UOM.Command.UpdateUOM;
 using FAM.Application.UOM.Queries.GetUOMs;
-using FAM.Application.UOM.Queries.GetUOMTypeAutoComplete;
 using static FAM.Domain.Common.BaseEntity;
 
 namespace FAM.Application.Common.Mappings

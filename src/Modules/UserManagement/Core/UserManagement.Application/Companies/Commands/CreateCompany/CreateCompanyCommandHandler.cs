@@ -3,7 +3,6 @@ using UserManagement.Application.Common.Interfaces;
 using AutoMapper;
 using MediatR;
 using UserManagement.Application.Common.Interfaces.ICompany;
-using Contracts.Common;
 using UserManagement.Domain.Events;
 
 namespace UserManagement.Application.Companies.Commands.CreateCompany

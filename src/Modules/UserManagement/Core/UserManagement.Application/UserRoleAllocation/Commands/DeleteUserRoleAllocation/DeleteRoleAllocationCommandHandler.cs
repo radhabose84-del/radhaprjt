@@ -1,11 +1,5 @@
 using MediatR;
-using UserManagement.Application.Common.Interfaces;
-using UserManagement.Domain.Entities;
 using AutoMapper;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using UserManagement.Application.Common.Interfaces.IUserRole;
 using UserManagement.Application.DeleteUserRoleAllocation.Commands.DeleteUserRoleAllocation;
 using UserManagement.Application.Common.Interfaces.IUserRoleAllocation;

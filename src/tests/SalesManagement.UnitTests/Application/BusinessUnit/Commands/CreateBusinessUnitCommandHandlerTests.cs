@@ -1,6 +1,5 @@
 #nullable disable
 using AutoMapper;
-using Contracts.Common;
 using MediatR;
 using SalesManagement.Application.BusinessUnit.Commands.CreateBusinessUnit;
 using SalesManagement.Application.Common.Interfaces.IBusinessUnit;

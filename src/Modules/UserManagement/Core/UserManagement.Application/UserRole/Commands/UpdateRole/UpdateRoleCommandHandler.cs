@@ -1,18 +1,10 @@
 #nullable disable
-using UserManagement.Application.Common.Interfaces;
 using UserManagement.Application.UserRole.Queries.GetRole;
-using UserManagement.Domain.Entities;
 using MediatR;
 using AutoMapper;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using UserManagement.Application.Common.Interfaces.IUserRole;
-using Contracts.Common;
 using UserManagement.Domain.Events;
 using Microsoft.Extensions.Logging;
-using UserManagement.Domain.Enums.Common;
 using FluentValidation;
 
 namespace UserManagement.Application.UserRole.Commands.UpdateRole

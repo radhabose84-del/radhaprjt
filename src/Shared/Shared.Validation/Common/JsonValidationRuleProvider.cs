@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace  Shared.Validation.Common
+namespace Shared.Validation.Common
 {
     public sealed class JsonValidationRuleProvider : IValidationRuleProvider
     {

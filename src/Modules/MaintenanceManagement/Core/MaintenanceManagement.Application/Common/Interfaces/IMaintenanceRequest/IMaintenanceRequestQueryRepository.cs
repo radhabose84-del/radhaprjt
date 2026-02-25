@@ -1,10 +1,9 @@
 using MaintenanceManagement.Application.MaintenanceRequest.Queries.GetExternalRequestById;
-using MaintenanceManagement.Application.Reports.MaintenanceRequestReport;
 
 
 namespace MaintenanceManagement.Application.Common.Interfaces.IMaintenanceRequest
 {
-  public interface IMaintenanceRequestQueryRepository
+    public interface IMaintenanceRequestQueryRepository
   {
 
       Task<(IEnumerable<dynamic> MaintenanceRequestList, int)> GetAllMaintenanceRequestAsync(int PageNumber, int PageSize, string? SearchTerm, DateTimeOffset? FromDate, DateTimeOffset? ToDate);

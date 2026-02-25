@@ -1,5 +1,3 @@
-using System.Threading;
-using System.Threading.Tasks;
 using PurchaseManagement.Domain.Entities.PriceMaster;
 
 namespace PurchaseManagement.Application.Common.Interfaces.PriceMaster

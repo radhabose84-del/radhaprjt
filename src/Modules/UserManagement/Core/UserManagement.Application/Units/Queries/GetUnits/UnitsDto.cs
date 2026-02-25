@@ -1,11 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using UserManagement.Application.Common.Mappings;
-using UserManagement.Domain.Entities;
-using static UserManagement.Domain.Enums.Common.Enums;
-
 namespace UserManagement.Application.Units.Queries.GetUnits
 {
     public class UnitsDto 

@@ -1,7 +1,4 @@
-
-using Contracts.Common;
 using PurchaseManagement.Application.Quotations.QuotationEntry.DTOs;
-using PurchaseManagement.Domain.Common;
 using MediatR;
 
 namespace PurchaseManagement.Application.Quotations.QuotationEntry.Commands.Update;

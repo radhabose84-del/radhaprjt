@@ -1,6 +1,5 @@
 #nullable disable
 using Microsoft.Extensions.Configuration;
-using System;
 
 namespace FAM.Infrastructure.Helpers
 {

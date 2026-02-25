@@ -1,16 +1,13 @@
 using UserManagement.Domain.Entities;
-using UserManagement.Application.Common.Interfaces;
 using AutoMapper;
 using MediatR;
 using UserManagement.Application.City.Queries.GetCities;
-using UserManagement.Application.Common;
 using UserManagement.Application.Common.Interfaces.ICity;
 using UserManagement.Domain.Events;
-using Contracts.Common;
 using FluentValidation;
 
 namespace UserManagement.Application.City.Commands.CreateCity
-{    
+{
     public class CreateCityCommandHandler : IRequestHandler<CreateCityCommand, CityDto>
     {
         private readonly IMapper _mapper;

@@ -1,6 +1,3 @@
-using UserManagement.Domain.Entities;
-using UserManagement.Application.Common.Mappings;
-
 namespace UserManagement.Application.Users.Queries.GetUserAutoComplete
 {
     public class UserAutoCompleteDto 

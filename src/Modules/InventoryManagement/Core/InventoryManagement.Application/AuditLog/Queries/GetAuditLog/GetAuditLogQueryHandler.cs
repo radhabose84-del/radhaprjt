@@ -1,9 +1,5 @@
 using MongoDB.Driver;
 using MediatR;
-using InventoryManagement.Application.Common.Interfaces;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using InventoryManagement.Domain.Entities;
 
 namespace InventoryManagement.Application.AuditLog.Queries.GetAuditLog

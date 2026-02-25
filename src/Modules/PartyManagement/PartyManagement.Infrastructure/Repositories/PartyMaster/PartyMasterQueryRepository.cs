@@ -1,9 +1,5 @@
 #nullable disable
-using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using System.Threading.Tasks;
 using PartyManagement.Application.Common.Interfaces;
 using PartyManagement.Application.Common.Interfaces.IPartyMaster;
 using PartyManagement.Application.PartyMaster.Command.CreatePartyMaster;
@@ -13,9 +9,7 @@ using PartyManagement.Application.PartyMaster.Queries.GetPartyGroupLoad;
 using PartyManagement.Application.PartyMaster.Queries.GetPartyMasterById;
 using PartyManagement.Application.PartyMaster.Queries.GetPartyMasterPending;
 using PartyManagement.Domain.Common;
-using PartyManagement.Domain.Entities;
 using Dapper;
-using InventoryManagement.Infrastructure.Services;
 
 namespace PartyManagement.Infrastructure.Repositories.PartyMaster
 {

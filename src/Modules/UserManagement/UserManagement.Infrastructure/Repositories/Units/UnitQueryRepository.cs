@@ -1,6 +1,4 @@
 #nullable disable
-using Microsoft.EntityFrameworkCore;
-using UserManagement.Infrastructure.Data;
 using UserManagement.Domain.Entities;
 using UserManagement.Application.Common.Interfaces.IUnit;
 using System.Data;
@@ -10,7 +8,7 @@ using UserManagement.Application.Common.Interfaces;
 
 namespace UserManagement.Infrastructure.Repositories.Units
 {
-  public class UnitQueryRepository : IUnitQueryRepository, IUnitGrpcQuery
+    public class UnitQueryRepository : IUnitQueryRepository, IUnitGrpcQuery
   {
     private readonly IDbConnection _dbConnection;
 

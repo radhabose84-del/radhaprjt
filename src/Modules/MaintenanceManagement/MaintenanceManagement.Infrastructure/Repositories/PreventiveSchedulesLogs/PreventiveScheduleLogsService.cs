@@ -1,14 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using MaintenanceManagement.Application.Common.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces.IPreventiveSchedulerLog;
 using MaintenanceManagement.Domain.Entities;
 using MaintenanceManagement.Infrastructure.Data;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Newtonsoft.Json;
 
 namespace MaintenanceManagement.Infrastructure.Repositories.PreventiveSchedulesLogs
 {

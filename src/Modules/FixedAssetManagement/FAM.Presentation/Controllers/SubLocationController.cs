@@ -1,20 +1,13 @@
 #nullable disable
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using FAM.Application.Location.Command.DeleteAubLocation;
 using FAM.Application.Location.Command.UpdateSubLocation;
 using FAM.Application.SubLocation.Command.CreateSubLocation;
 using FAM.Application.SubLocation.Queries.GetSubLocationAutoComplete;
 using FAM.Application.SubLocation.Queries.GetSubLocationById;
 using FAM.Application.SubLocation.Queries.GetSubLocations;
-using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 
 namespace FAM.Presentation.Controllers
 {

@@ -1,9 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using static PurchaseManagement.Application.IssueReturn.Command.CreateIssueReturn.CreateIssueReturnDto;
-
 namespace PurchaseManagement.Application.IssueReturn.Command.CreateIssueReturn
 {
     public class IssueReturnReverseMapDto

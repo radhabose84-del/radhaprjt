@@ -1,7 +1,6 @@
 #nullable disable
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using FluentValidation;
 using FAM.Application.Location.Command.CreateLocation;
 using FAM.Application.Location.Command.UpdateLocation;
 using FAM.Application.Location.Queries.GetLocations;

@@ -1,12 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using UserManagement.Application.Common.Interfaces.ICustomField;
 using UserManagement.Application.CustomFields.Commands.DeleteCustomField;
 using FluentValidation;
 using Shared.Validation.Common;
-using UserManagement.Presentation.Validation.Common;
 
 namespace UserManagement.Presentation.Validation.CustomFields
 {

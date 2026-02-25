@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using static InventoryManagement.Domain.Common.BaseEntity;
 
 namespace InventoryManagement.Application.MiscMaster.Queries.GetMiscMaster

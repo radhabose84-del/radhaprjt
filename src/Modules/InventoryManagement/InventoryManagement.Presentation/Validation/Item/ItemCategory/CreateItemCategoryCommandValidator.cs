@@ -1,4 +1,3 @@
-using InventoryManagement.Application.Common.Interfaces;
 using InventoryManagement.Application.Common.Interfaces.Item.ItemCategory;
 using InventoryManagement.Application.Item.ItemCategory.Commands.CreateItemCategory;
 using FluentValidation;

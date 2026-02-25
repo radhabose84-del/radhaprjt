@@ -1,5 +1,4 @@
 using AutoMapper;
-using Contracts.Common;
 using FAM.Application.Common.Interfaces.IDepreciationGroup;
 using FAM.Application.MiscMaster.Queries.GetMiscMaster;
 using MediatR;

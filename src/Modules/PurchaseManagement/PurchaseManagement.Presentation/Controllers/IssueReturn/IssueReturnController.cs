@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using PurchaseManagement.Application.IssueReturn.Command.CreateIssueReturn;
 using PurchaseManagement.Application.IssueReturn.Command.UpdateIssueReturn;
 using PurchaseManagement.Application.IssueReturn.Queries.GetIssueDetailsById;
@@ -10,7 +5,6 @@ using PurchaseManagement.Application.IssueReturn.Queries.GetPendingIssueReturn;
 using PurchaseManagement.Application.IssueReturn.Queries.GetPendingIssueReturnById;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Http;
 
 namespace PurchaseManagement.Presentation.Controllers.IssueReturn

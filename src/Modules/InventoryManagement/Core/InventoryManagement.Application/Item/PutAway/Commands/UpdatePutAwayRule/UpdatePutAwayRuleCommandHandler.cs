@@ -1,15 +1,14 @@
-    // InventoryManagement.Application/Item/PutAway/Commands/UpdatePutAwayRule/UpdatePutAwayRuleCommandHandler.cs
-    using Contracts.Common;
-    using InventoryManagement.Application.Common.Interfaces.Item.PutAway;
-    using InventoryManagement.Domain.Entities.Item.PutAway;
-    using MediatR;
-    using Microsoft.EntityFrameworkCore;
-    using System.Linq;
-    using static InventoryManagement.Domain.Common.BaseEntity;
+// InventoryManagement.Application/Item/PutAway/Commands/UpdatePutAwayRule/UpdatePutAwayRuleCommandHandler.cs
+using Contracts.Common;
+using InventoryManagement.Application.Common.Interfaces.Item.PutAway;
+using InventoryManagement.Domain.Entities.Item.PutAway;
+using MediatR;
+using Microsoft.EntityFrameworkCore;
+using static InventoryManagement.Domain.Common.BaseEntity;
 
-    namespace InventoryManagement.Application.Item.PutAway.Commands.UpdatePutAwayRule
-    {
-        public sealed class UpdatePutAwayRuleCommandHandler : IRequestHandler<UpdatePutAwayRuleCommand, Unit>
+namespace InventoryManagement.Application.Item.PutAway.Commands.UpdatePutAwayRule
+{
+    public sealed class UpdatePutAwayRuleCommandHandler : IRequestHandler<UpdatePutAwayRuleCommand, Unit>
         {
             private readonly IPutAwayRuleCommandRepository _repo;
 

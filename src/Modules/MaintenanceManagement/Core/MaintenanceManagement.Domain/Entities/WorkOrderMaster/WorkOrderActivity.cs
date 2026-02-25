@@ -1,5 +1,3 @@
-using MaintenanceManagement.Domain.Common;
-
 namespace MaintenanceManagement.Domain.Entities.WorkOrderMaster
 {
     public class WorkOrderActivity

@@ -4,12 +4,11 @@ using AutoMapper;
 using UserManagement.Application.State.Queries.GetStates;
 using UserManagement.Application.Common.Interfaces.IState;
 using UserManagement.Domain.Events;
-using Contracts.Common;
 using UserManagement.Domain.Enums.Common;
 using FluentValidation;
 
 namespace UserManagement.Application.State.Commands.UpdateState
-{    
+{
     public class UpdateStateCommandHandler : IRequestHandler<UpdateStateCommand, bool>
     {
         private readonly IStateCommandRepository _stateRepository;

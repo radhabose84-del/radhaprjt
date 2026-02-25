@@ -3,9 +3,7 @@ using ProjectManagement.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
-using System.IO;
 using ProjectManagement.Application.Common.Interfaces;
-using MongoDB.Driver;
 using Microsoft.AspNetCore.Http;
 using ProjectManagement.Infrastructure.Services;
 

@@ -1,8 +1,4 @@
 #nullable disable
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using FAM.Application.AssetMaster.AssetPurchase.Commands.CreateAssetPurchaseDetails;
 using FAM.Domain.Entities.AssetPurchase;
 using FAM.Presentation.Validation.Common;

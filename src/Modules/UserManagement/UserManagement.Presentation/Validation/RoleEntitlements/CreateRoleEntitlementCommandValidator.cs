@@ -1,10 +1,6 @@
 using FluentValidation;
-using UserManagement.Domain.Entities;
-using UserManagement.Application.Users.Commands.CreateUser;
 using UserManagement.Application.RoleEntitlements.Commands.CreateRoleEntitlement;
 using UserManagement.Presentation.Validation.Common;
-using Serilog;
-using Shared.Validation.Common;
 
 namespace UserManagement.Presentation.Validation.RoleEntitlements
 {

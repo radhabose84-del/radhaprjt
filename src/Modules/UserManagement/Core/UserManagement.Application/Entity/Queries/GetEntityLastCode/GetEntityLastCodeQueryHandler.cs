@@ -1,8 +1,6 @@
 using MediatR;
-using System.Data;
 using UserManagement.Application.Common.Interfaces.IEntity;
 using AutoMapper;
-using UserManagement.Application.Entity.Queries.GetEntity;
 using Contracts.Common;
 using Microsoft.Extensions.Logging;
 

@@ -1,6 +1,5 @@
 #nullable disable
 using System.Data;
-using FAM.Application.Common.Interfaces.ILocation;
 using FAM.Application.Common.Interfaces.IUOM;
 using FAM.Application.UOM.Queries.GetUOMTypeAutoComplete;
 using FAM.Domain.Entities;

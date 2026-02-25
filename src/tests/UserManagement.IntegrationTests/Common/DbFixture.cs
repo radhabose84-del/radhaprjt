@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using UserManagement.Application.Common.Interfaces;
 using Dapper;
 using Microsoft.EntityFrameworkCore;

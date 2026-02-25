@@ -1,15 +1,9 @@
 #nullable disable
-using UserManagement.Application.Common.Interfaces;
-using UserManagement.Domain.Entities;
 using MediatR;
 using AutoMapper;
-using UserManagement.Application.PwdComplexityRule.Queries;
 using UserManagement.Application.Common.Interfaces.IPasswordComplexityRule;
-using UserManagement.Application.Common;
 using UserManagement.Domain.Events;
 using Microsoft.Extensions.Logging;
-using Contracts.Common;
-using UserManagement.Application.UserRole.Queries.GetRole;
 
 
 namespace UserManagement.Application.PwdComplexityRule.Queries.GetPwdComplexityRuleAutoComplete

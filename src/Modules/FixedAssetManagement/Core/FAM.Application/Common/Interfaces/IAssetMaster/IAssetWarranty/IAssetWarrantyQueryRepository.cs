@@ -1,5 +1,4 @@
 using FAM.Application.AssetMaster.AssetWarranty.Queries.GetAssetWarranty;
-using FAM.Domain.Entities.AssetMaster;
 
 namespace FAM.Application.Common.Interfaces.IAssetMaster.IAssetWarranty
 {

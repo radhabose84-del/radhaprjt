@@ -1,14 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
-using UserManagement.Application.Common.Interfaces;
 using MediatR;
-using System.Text;
 using UserManagement.Application.Divisions.Queries.GetDivisions;
 using UserManagement.Application.Common.Interfaces.IDivision;
-using Contracts.Common;
 using UserManagement.Domain.Events;
 
 namespace UserManagement.Application.Divisions.Queries.GetDivisionById

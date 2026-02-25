@@ -1,5 +1,4 @@
 using AutoMapper;
-using Contracts.Common;
 using FAM.Application.Common.Interfaces.IWdvDepreciation;
 using FAM.Application.WDVDepreciation.Queries.GetDepreciation;
 using FAM.Domain.Events;

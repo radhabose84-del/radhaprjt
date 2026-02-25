@@ -1,10 +1,5 @@
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-
-    namespace PurchaseManagement.Application.PaymentTermMaster.Queries.GetAllPaymentTermMaster
-    {
+namespace PurchaseManagement.Application.PaymentTermMaster.Queries.GetAllPaymentTermMaster
+{
     public class PaymentTermInstallmentDto
     {
         // public int Id { get; set; }

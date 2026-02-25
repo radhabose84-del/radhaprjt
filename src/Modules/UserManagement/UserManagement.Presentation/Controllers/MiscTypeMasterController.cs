@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using UserManagement.Application.MiscTypeMaster.Command.CreateMiscTypeMaster;
 using UserManagement.Application.MiscTypeMaster.Command.DeleteMiscTypeMaster;
 using UserManagement.Application.MiscTypeMaster.Command.UpdateMiscTypeMaster;
@@ -11,14 +6,13 @@ using UserManagement.Application.MiscTypeMaster.Queries.GetMiscTypeMasterAutoCom
 using UserManagement.Application.MiscTypeMaster.Queries.GetMiscTypeMasterById;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Http;
 
 namespace UserManagement.Presentation.Controllers
 {
     // [Route("[controller]")]
 
-   [Route("api/usermanagement/[controller]")]
+    [Route("api/usermanagement/[controller]")]
 
     public class MiscTypeMasterController : ApiControllerBase
     {

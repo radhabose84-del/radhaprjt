@@ -1,9 +1,5 @@
 using MongoDB.Driver;
 using MediatR;
-using BudgetManagement.Application.Common.Interfaces;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using BudgetManagement.Domain.Entities;
 
 namespace BudgetManagement.Application.AuditLog.Queries.GetAuditLog

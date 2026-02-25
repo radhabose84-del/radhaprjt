@@ -1,5 +1,4 @@
 #nullable disable
-using System.Linq;
 using FluentValidation;
 using InventoryManagement.Application.Common.Interfaces.Item.ItemDetail.Commands;
 using InventoryManagement.Application.Common.Interfaces.Item.ItemDetail.Queries;

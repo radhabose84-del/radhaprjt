@@ -1,4 +1,3 @@
-#nullable disable
 
 using Dapper;
 using SalesManagement.Application.Common.Interfaces.ISalesSegment;
@@ -16,7 +15,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesSegment
             _dbConnection = dbConnection;
         }
 
-        public async Task<(List<SalesSegmentDto>, int)> GetAllAsync(int pageNumber, int pageSize, string searchTerm)
+        public async Task<(List<SalesSegmentDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
         {
             const string countSql = @"
                 SELECT COUNT(1)
@@ -74,7 +73,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesSegment
             return (data, totalCount);
         }
 
-        public async Task<SalesSegmentDto> GetByIdAsync(int id)
+        public async Task<SalesSegmentDto?> GetByIdAsync(int id)
         {
             const string sql = @"
                 SELECT

@@ -1,5 +1,4 @@
 using FAM.Application.AssetMaster.AssetMasterGeneral.Commands.UpdateAssetMasterGeneral;
-using static FAM.Domain.Common.BaseEntity;
 
 namespace FAM.Application.AssetMaster.AssetMasterGeneral.Queries.GetAssetMasterGeneral
 {

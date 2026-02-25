@@ -1,12 +1,10 @@
 #nullable disable
-using UserManagement.Infrastructure.Data;
 using UserManagement.Application.State.Commands.CreateState;
 using UserManagement.Application.State.Commands.DeleteState;
 using UserManagement.Application.State.Commands.UpdateState;
 using UserManagement.Application.State.Queries.GetStates;
 using UserManagement.Application.State.Queries.GetStateAutoComplete;
 using UserManagement.Application.State.Queries.GetStateById;
-using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using UserManagement.Application.State.Queries.GetStateByCountryId;

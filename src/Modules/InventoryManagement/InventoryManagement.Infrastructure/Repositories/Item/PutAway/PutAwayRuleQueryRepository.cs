@@ -1,17 +1,12 @@
 #nullable disable
 using System.Data;
-using System.Threading;
 using Dapper;
 using InventoryManagement.Application.Common.Interfaces.Item.PutAway;
 using InventoryManagement.Application.Item.PutAway.Queries.GetAllPutAwayRule;
 using Contracts.Dtos.Lookups.Warehouse;
-using Contracts.Interfaces.Lookups.Users;
 using Contracts.Interfaces.Lookups.Warehouse;
 using InventoryManagement.Application.Item.PutAway.Queries.GetPutAwayRuleItemId;
 using InventoryManagement.Application.Common.Interfaces;
-using System.Data.Common;
-using Microsoft.Data.SqlClient;
-using MongoDB.Driver.Core.Configuration; 
 
 namespace InventoryManagement.Infrastructure.Repositories.Item.Templates
 {

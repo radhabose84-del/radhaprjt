@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using PurchaseManagement.Domain.Entities;
 
 namespace PurchaseManagement.Application.Common.Interfaces.AuditLog

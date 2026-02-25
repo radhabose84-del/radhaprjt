@@ -1,10 +1,5 @@
 #nullable disable
-using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using System.Threading.Tasks;
-using BSOFT.Infrastructure.Migrations;
 using UserManagement.Application.Common.Interfaces.ICustomField;
 using UserManagement.Domain.Entities;
 using Dapper;

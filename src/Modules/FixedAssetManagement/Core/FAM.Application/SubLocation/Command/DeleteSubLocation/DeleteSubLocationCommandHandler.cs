@@ -1,14 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
-using Contracts.Common;
 using FAM.Application.Common.Interfaces.IAssetMaster.IAssetLocation;
 using FAM.Application.Common.Interfaces.ILocation;
 using FAM.Application.Common.Interfaces.ISubLocation;
 using FAM.Application.Location.Command.DeleteAubLocation;
-using FAM.Application.SubLocation.Queries.GetSubLocations;
 using FAM.Domain.Common;
 using FAM.Domain.Events;
 using FluentValidation;

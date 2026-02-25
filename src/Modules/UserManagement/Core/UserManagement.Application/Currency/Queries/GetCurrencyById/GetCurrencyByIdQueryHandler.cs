@@ -1,9 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
-using Contracts.Common;
 using UserManagement.Application.Common.Interfaces.ICurrency;
 using UserManagement.Application.Currency.Queries.GetCurrency;
 using UserManagement.Domain.Events;

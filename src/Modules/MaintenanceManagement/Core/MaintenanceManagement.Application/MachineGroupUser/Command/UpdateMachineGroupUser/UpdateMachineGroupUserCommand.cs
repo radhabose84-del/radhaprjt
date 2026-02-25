@@ -1,5 +1,3 @@
-
-using Contracts.Common;
 using MediatR;
 
 namespace MaintenanceManagement.Application.MachineGroupUser.Command.UpdateMachineGroupUser

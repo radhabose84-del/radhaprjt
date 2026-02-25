@@ -1,17 +1,9 @@
 #nullable disable
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using UserManagement.Application.Common.Interfaces;
 using MediatR;
 using AutoMapper;
-using UserManagement.Domain.Entities;
 using UserManagement.Application.Common.Interfaces.IPasswordComplexityRule;
-using UserManagement.Application.Common;
 using UserManagement.Domain.Events;
 using Microsoft.Extensions.Logging;
-using Contracts.Common;
 using FluentValidation;
 
 namespace UserManagement.Application.PwdComplexityRule.Commands.DeletePasswordComplexityRule

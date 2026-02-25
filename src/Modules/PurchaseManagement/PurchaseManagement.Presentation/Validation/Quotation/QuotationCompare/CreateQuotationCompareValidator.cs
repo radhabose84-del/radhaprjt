@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Contracts.Interfaces.External.IWorkflow;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IQuotation.IQuotationCompare;
 using PurchaseManagement.Application.Quotation.QuotationCompare.Commands.CreateQuoteComparsion;

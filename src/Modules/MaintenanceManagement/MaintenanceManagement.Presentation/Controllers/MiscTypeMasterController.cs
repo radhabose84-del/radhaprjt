@@ -1,26 +1,16 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using MediatR;
-using MaintenanceManagement.Infrastructure.Data;
 using MaintenanceManagement.Application.MiscTypeMaster.Queries.GetMiscTypeMaster;
-using FluentValidation;
 using MaintenanceManagement.Application.MiscTypeMaster.Queries.GetMiscTypeMasterById;
 using MaintenanceManagement.Application.MiscTypeMaster.Queries.GetMiscTypeMasterAutoComplete;
 using MaintenanceManagement.Application.MiscTypeMaster.Command.CreateMiscTypeMaster;
-using MaintenanceManagement.Infrastructure.Repositories.MiscTypeMaster;
 using MaintenanceManagement.Application.MiscTypeMaster.Command.UpdateMiscTypeMaster;
-using MaintenanceManagement.Application.Common.Interfaces.IMiscTypeMaster;
 using MaintenanceManagement.Application.MiscTypeMaster.Command.DeleteMiscTypeMaster;
 using Microsoft.AspNetCore.Http;
 
 namespace MaintenanceManagement.Presentation.Controllers
 {
-   [Route("api/maintenance/[controller]")]
+    [Route("api/maintenance/[controller]")]
     public class MiscTypeMasterController : ApiControllerBase
     {
 

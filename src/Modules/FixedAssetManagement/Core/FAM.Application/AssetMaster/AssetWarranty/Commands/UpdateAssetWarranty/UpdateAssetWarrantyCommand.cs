@@ -1,7 +1,4 @@
-using FAM.Application.AssetMaster.AssetWarranty.Queries.GetAssetWarranty;
-using Contracts.Common;
 using MediatR;
-using static FAM.Domain.Common.BaseEntity;
 
 namespace FAM.Application.AssetMaster.AssetWarranty.Commands.UpdateAssetWarranty
 {

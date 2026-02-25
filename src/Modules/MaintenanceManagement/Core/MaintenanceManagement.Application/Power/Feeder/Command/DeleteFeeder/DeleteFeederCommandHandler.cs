@@ -1,13 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
 using Contracts.Common;
 using MaintenanceManagement.Application.Common.Interfaces.Power.IFeeder;
-using MaintenanceManagement.Application.Power.Feeder.Queries.GetFeeder;
 using MaintenanceManagement.Domain.Events;
-using MassTransit.Futures.Contracts;
 using MediatR;
 using FluentValidation;
 

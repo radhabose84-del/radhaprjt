@@ -1,6 +1,4 @@
 using System.Security.Claims;
-using MaintenanceManagement.Domain.Common;
-using MaintenanceManagement.Domain.Entities;
 
 namespace MaintenanceManagement.Application.Common.Interfaces
 {

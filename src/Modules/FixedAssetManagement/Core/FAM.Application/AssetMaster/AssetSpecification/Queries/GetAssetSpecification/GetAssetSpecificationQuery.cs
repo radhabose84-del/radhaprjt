@@ -1,5 +1,4 @@
 using Contracts.Common;
-using FAM.Domain.Entities.AssetMaster;
 using MediatR;
 
 namespace FAM.Application.AssetMaster.AssetSpecification.Queries.GetAssetSpecification

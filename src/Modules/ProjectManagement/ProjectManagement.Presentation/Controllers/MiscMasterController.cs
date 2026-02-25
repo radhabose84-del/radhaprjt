@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using ProjectManagement.Application.Common.Interfaces.IMiscMaster;
 using ProjectManagement.Application.MiscMaster.Command.CreateMiscMaster;
 using ProjectManagement.Application.MiscMaster.Command.DeleteMiscMaster;
@@ -10,11 +5,9 @@ using ProjectManagement.Application.MiscMaster.Command.UpdateMiscMaster;
 using ProjectManagement.Application.MiscMaster.Queries.GetMiscMaster;
 using ProjectManagement.Application.MiscMaster.Queries.GetMiscMasterAutoComplete;
 using ProjectManagement.Application.MiscMaster.Queries.GetMiscMasterById;
-using ProjectManagement.Domain.Entities;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Http;
 
 namespace ProjectManagement.Presentation.Controllers

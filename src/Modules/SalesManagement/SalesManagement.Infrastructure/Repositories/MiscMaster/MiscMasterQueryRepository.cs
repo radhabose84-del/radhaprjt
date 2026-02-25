@@ -1,4 +1,3 @@
-#nullable disable
 using System.Data;
 using Dapper;
 using SalesManagement.Application.Common.Interfaces.IMiscMaster;
@@ -15,7 +14,7 @@ namespace SalesManagement.Infrastructure.Repositories.MiscMaster
             _dbConnection = dbConnection;
         }
 
-        public async Task<(List<MiscMasterDto>, int)> GetAllAsync(int pageNumber, int pageSize, string searchTerm, int? miscTypeId = null)
+        public async Task<(List<MiscMasterDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm, int? miscTypeId = null)
         {
             var whereClause = "mm.IsDeleted = 0";
             if (!string.IsNullOrWhiteSpace(searchTerm))
@@ -51,7 +50,7 @@ namespace SalesManagement.Infrastructure.Repositories.MiscMaster
             return (list, totalCount);
         }
 
-        public async Task<MiscMasterDto> GetByIdAsync(int id)
+        public async Task<MiscMasterDto?> GetByIdAsync(int id)
         {
             const string sql = @"
                 SELECT mm.Id, mm.MiscTypeId, mm.Code, mm.Description, mm.SortOrder,

@@ -1,11 +1,8 @@
 #nullable disable
 using AutoMapper;
-using Contracts.Common;
 using UserManagement.Application.Common.Interfaces.IDepartmentGroup;
 using UserManagement.Domain.Events;
 using MediatR;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace UserManagement.Application.DepartmentGroup.Command.CreateDepartmentGroup
 {

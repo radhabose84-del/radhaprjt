@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using UserManagement.Application.Menu.Commands.CreateMenu;
 using UserManagement.Application.Menu.Commands.DeleteMenu;
 using UserManagement.Application.Menu.Commands.UpdateMenu;

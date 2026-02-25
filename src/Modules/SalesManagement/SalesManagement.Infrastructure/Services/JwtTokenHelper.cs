@@ -1,13 +1,7 @@
-#nullable disable
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Security.Cryptography;
 using System.Text;
-using System.Text.Json;
 using SalesManagement.Application.Common.Interfaces;
-using SalesManagement.Domain.Common;
-using SalesManagement.Domain.Entities;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using MaintenanceManagement.Domain.Entities;
@@ -49,7 +43,7 @@ namespace SalesManagement.Infrastructure.Services
             } 
         }
 
-      public string GenerateToken(string username,int userid,string Mobile,string EmailId,string IsFirstTimeUser,int EntityId,string GroupCode,int CompanyId,int DivisionId,int UnitId,string OldUnitId, out string jti)
+      public string GenerateToken(string? username,int userid,string Mobile,string EmailId,string IsFirstTimeUser,int EntityId,string GroupCode,int CompanyId,int DivisionId,int UnitId,string OldUnitId, out string jti)
         {
             jti = Guid.NewGuid().ToString();            
             var systemTimeZoneId = _timeZoneService.GetSystemTimeZone();
@@ -57,7 +51,7 @@ namespace SalesManagement.Infrastructure.Services
 
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Name, username),
+                new Claim(ClaimTypes.Name, username ?? string.Empty),
                 new Claim(JwtRegisteredClaimNames.NameId, userid.ToString()),
                 // new Claim(JwtRegisteredClaimNames.Typ, usertype.ToString()),
                 // new Claim(JwtRegisteredClaimNames.PhoneNumber, mobile.ToString()),

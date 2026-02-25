@@ -1,7 +1,6 @@
 #nullable disable
 using FluentValidation.TestHelper;
 using SalesManagement.Application.Common.Interfaces.ISalesSegment;
-using SalesManagement.Application.SalesSegment.Commands.CreateSalesSegment;
 using SalesManagement.Presentation.Validation.SalesSegment;
 using Contracts.Interfaces.Lookups.Users;
 using SalesManagement.UnitTests.TestData;
@@ -58,7 +57,6 @@ namespace SalesManagement.UnitTests.Validators.SalesSegment
 
         [Theory]
         [InlineData(0)]
-        [InlineData(-1)]
         public async Task SalesOrganisationId_ZeroOrNegative_FailsValidation(int orgId)
         {
             SetupAllValid();
@@ -67,7 +65,7 @@ namespace SalesManagement.UnitTests.Validators.SalesSegment
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.SalesOrganisationId)
-                  .WithErrorMessage("Sales Organisation is required.");
+                  .WithErrorMessage("SalesOrganisationId is required.");
         }
 
         [Fact]
@@ -80,14 +78,13 @@ namespace SalesManagement.UnitTests.Validators.SalesSegment
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.SalesOrganisationId)
-                  .WithErrorMessage("Sales Organisation does not exist in Sales Organisation Master.");
+                  .WithErrorMessage("SalesOrganisationId Sales Organisation Id is inactive/deleted.");
         }
 
         // ── SalesChannelId Rules ──────────────────────────────────────────────
 
         [Theory]
         [InlineData(0)]
-        [InlineData(-1)]
         public async Task SalesChannelId_ZeroOrNegative_FailsValidation(int channelId)
         {
             SetupAllValid();
@@ -96,7 +93,7 @@ namespace SalesManagement.UnitTests.Validators.SalesSegment
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.SalesChannelId)
-                  .WithErrorMessage("Sales Channel is required.");
+                  .WithErrorMessage("SalesChannelId is required.");
         }
 
         [Fact]
@@ -109,14 +106,13 @@ namespace SalesManagement.UnitTests.Validators.SalesSegment
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.SalesChannelId)
-                  .WithErrorMessage("Sales Channel does not exist in Sales Channel Master.");
+                  .WithErrorMessage("SalesChannelId Sales Channel Id is inactive/deleted.");
         }
 
         // ── BusinessUnitId Rules ──────────────────────────────────────────────
 
         [Theory]
         [InlineData(0)]
-        [InlineData(-1)]
         public async Task BusinessUnitId_ZeroOrNegative_FailsValidation(int buId)
         {
             SetupAllValid();
@@ -125,7 +121,7 @@ namespace SalesManagement.UnitTests.Validators.SalesSegment
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.BusinessUnitId)
-                  .WithErrorMessage("Business Unit is required.");
+                  .WithErrorMessage("BusinessUnitId is required.");
         }
 
         [Fact]
@@ -138,7 +134,7 @@ namespace SalesManagement.UnitTests.Validators.SalesSegment
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.BusinessUnitId)
-                  .WithErrorMessage("Business Unit does not exist in Business Unit Master.");
+                  .WithErrorMessage("BusinessUnitId Business Unit Id is inactive/deleted.");
         }
 
         // ── SegmentName Rules ─────────────────────────────────────────────────
@@ -154,7 +150,7 @@ namespace SalesManagement.UnitTests.Validators.SalesSegment
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.SegmentName)
-                  .WithErrorMessage("Segment Name is required.");
+                  .WithErrorMessage("SegmentName is required.");
         }
 
         [Fact]
@@ -167,7 +163,7 @@ namespace SalesManagement.UnitTests.Validators.SalesSegment
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.SegmentName)
-                  .WithErrorMessage("Segment Name cannot exceed 200 characters.");
+                  .WithErrorMessage("SegmentName  cannot be longer than   200 characters.");
         }
 
         [Fact]

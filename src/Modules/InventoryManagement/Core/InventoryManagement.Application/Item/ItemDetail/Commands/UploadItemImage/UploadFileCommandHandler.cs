@@ -1,7 +1,5 @@
 #nullable disable
 using System.ComponentModel.DataAnnotations;
-using AutoMapper;
-using InventoryManagement.Application.Common.Interfaces;
 using InventoryManagement.Application.Common.Interfaces.Item.ItemDetail.Queries;
 using MediatR;
 using Microsoft.Extensions.Logging;

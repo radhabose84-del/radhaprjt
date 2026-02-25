@@ -1,6 +1,5 @@
 using AutoMapper;
 using UserManagement.Application.City.Queries.GetCities;
-using Contracts.Common;
 using UserManagement.Application.Common.Interfaces.ICity;
 using UserManagement.Domain.Events;
 using FluentValidation;

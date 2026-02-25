@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using PurchaseManagement.Domain.Entities.Quotation.RfqEntry;
 
 namespace PurchaseManagement.Domain.Entities.Quotation.QuotationCompare

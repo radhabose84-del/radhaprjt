@@ -1,16 +1,11 @@
 #nullable disable
-using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using System.Threading.Tasks;
 using WarehouseManagement.Application.Common.Interfaces;
 using WarehouseManagement.Application.Common.Interfaces.IWarehouseMaster;
 using WarehouseManagement.Application.WarehouseMaster.GetAllWarehouseMaster;
 using WarehouseManagement.Application.WarehouseMaster.Queries.GetParentWarehouseMaster;
 using WarehouseManagement.Application.WarehouseMaster.Queries.GetWareMasterAutoComplete;
 using Dapper;
-using MediatR;
 
 namespace WarehouseManagement.Infrastructure.Repositories.WarehouseMaster
 {

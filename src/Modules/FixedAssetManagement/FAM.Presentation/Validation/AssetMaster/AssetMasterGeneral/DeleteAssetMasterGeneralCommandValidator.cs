@@ -1,8 +1,6 @@
 
 using FAM.Application.AssetMaster.AssetMasterGeneral.Commands.DeleteAssetMasterGeneral;
 using FAM.Application.Common.Interfaces.IAssetMaster.IAssetMasterGeneral;
-using FAM.Presentation.Validation.Common;
-using FAM.Infrastructure.Repositories.AssetMaster.AssetMasterGeneral;
 using FluentValidation;
 using Shared.Validation.Common;
 

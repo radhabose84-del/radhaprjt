@@ -1,17 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using AutoMapper;
 using FAM.Application.AssetMaster.AssetTransferIssue.Queries.GetAssetTransfered;
-using Contracts.Common;
 using FAM.Application.Common.Interfaces.IAssetMaster.IAssetTransferIssue;
 using FluentValidation;
 using MediatR;
 
 namespace FAM.Application.AssetMaster.AssetTransferIssue.Queries.GetAssetTranferedById
 {
-   public class  GetAssetTranferedByIdQueryHanlder  : IRequestHandler<GetAssetTranferedByIdQuery, AssetTransferJsonDto>
+    public class  GetAssetTranferedByIdQueryHanlder  : IRequestHandler<GetAssetTranferedByIdQuery, AssetTransferJsonDto>
 
     {
        private readonly IAssetTransferQueryRepository _assetTransferQueryRepository;       

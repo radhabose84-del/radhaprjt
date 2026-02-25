@@ -1,4 +1,3 @@
-#nullable disable
 using System.Data;
 using Dapper;
 using Contracts.Interfaces.Lookups.Users;
@@ -18,7 +17,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrganisation
             _companyLookup = companyLookup;
         }
 
-        public async Task<(List<SalesOrganisationDto>, int)> GetAllAsync(int pageNumber, int pageSize, string searchTerm)
+        public async Task<(List<SalesOrganisationDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
         {
             var companies = await _companyLookup.GetAllCompanyAsync();
             var companyDict = companies.ToDictionary(c => c.CompanyId, c => c.CompanyName);
@@ -57,7 +56,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrganisation
             return (list, totalCount);
         }
 
-        public async Task<SalesOrganisationDto> GetByIdAsync(int id)
+        public async Task<SalesOrganisationDto?> GetByIdAsync(int id)
         {
             const string sql = @"
                 SELECT so.Id, so.SalesOrganisationCode, so.SalesOrganisationName,

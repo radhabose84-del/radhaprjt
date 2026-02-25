@@ -1,5 +1,3 @@
-using AutoMapper;
-using Contracts.Interfaces.External.IUser;
 using PurchaseManagement.Application.Common.Interfaces.IPortMaster;
 using PurchaseManagement.Application.Port.Dto;
 using MediatR;

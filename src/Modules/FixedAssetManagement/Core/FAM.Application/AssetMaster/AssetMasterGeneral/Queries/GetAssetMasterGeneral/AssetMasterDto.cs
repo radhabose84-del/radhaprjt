@@ -1,12 +1,9 @@
-    using FAM.Application.AssetLocation.Queries.GetAssetLocation;
-    using FAM.Application.AssetMaster.AssetPurchase.Queries.GetAssetPurchase;
-    using FAM.Application.Common.Mappings;
-    using FAM.Domain.Entities;
-    using static FAM.Domain.Common.BaseEntity;
+using FAM.Application.Common.Mappings;
+using FAM.Domain.Entities;
 
-    namespace FAM.Application.AssetMaster.AssetMasterGeneral.Queries.GetAssetMasterGeneral
-    {
-        public class AssetMasterDto  : IMapFrom<AssetMasterGenerals>
+namespace FAM.Application.AssetMaster.AssetMasterGeneral.Queries.GetAssetMasterGeneral
+{
+    public class AssetMasterDto  : IMapFrom<AssetMasterGenerals>
         {          
              public int Id { get; set; }     
             public int CompanyId { get; set; }

@@ -1,6 +1,4 @@
-using PartyManagement.Application.Common;
 using PartyManagement.Application.Common.Interfaces.IBankAccount;
-using PartyManagement.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using PartyManagement.Infrastructure.Data;
 using static PartyManagement.Domain.Common.BaseEntity;

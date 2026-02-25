@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
 using PurchaseManagement.Application.Quotation.QuotationCompare.Commands.CreateQuoteComparsion;
 using PurchaseManagement.Domain.Entities.Quotation.QuotationCompare;

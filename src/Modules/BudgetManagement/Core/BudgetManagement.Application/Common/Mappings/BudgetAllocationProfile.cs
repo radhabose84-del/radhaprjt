@@ -1,11 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
 using BudgetManagement.Application.BudgetAllocation.Command.Create;
-using BudgetManagement.Application.BudgetAllocation.Queries.GetSpindleDetailsMonthwise;
-using BudgetManagement.Application.BudgetAllocation.Queries.GetSpindleMonthwiseReport;
 using static BudgetManagement.Domain.Common.BaseEntity;
 
 namespace BudgetManagement.Application.Common.Mappings

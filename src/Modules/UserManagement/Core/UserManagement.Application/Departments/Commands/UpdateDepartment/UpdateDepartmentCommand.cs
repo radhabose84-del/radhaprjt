@@ -1,13 +1,4 @@
-using UserManagement.Application.Common;
-using Contracts.Common;
-using UserManagement.Application.Departments.Queries.GetDepartments;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using static UserManagement.Domain.Enums.Common.Enums;
 
 namespace UserManagement.Application.Departments.Commands.UpdateDepartment

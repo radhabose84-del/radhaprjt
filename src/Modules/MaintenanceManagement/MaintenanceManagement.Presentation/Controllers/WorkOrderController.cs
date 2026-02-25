@@ -1,7 +1,6 @@
 #nullable disable
 using MaintenanceManagement.Application.Common.Interfaces.IWorkOrder;
 using MaintenanceManagement.Application.Maintenance.WorkOrder.Command.UpdateWorkOrderRequestDate;
-using MaintenanceManagement.Application.Reports.WorkOrderItemConsuption;
 using MaintenanceManagement.Application.WorkOrder;
 using MaintenanceManagement.Application.WorkOrder.Command.CreateWorkOrder;
 using MaintenanceManagement.Application.WorkOrder.Command.CreateWorkOrder.CreateSchedule;
@@ -19,8 +18,6 @@ using MaintenanceManagement.Application.WorkOrder.Queries.GetWorkOrderRootCause;
 using MaintenanceManagement.Application.WorkOrder.Queries.GetWorkOrderSource;
 using MaintenanceManagement.Application.WorkOrder.Queries.GetWorkOrderStatus;
 using MaintenanceManagement.Application.WorkOrder.Queries.GetWorkOrderStoreType;
-using FluentValidation;
-using MaintenanceManagement.Presentation.Validation.WorkOrder;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

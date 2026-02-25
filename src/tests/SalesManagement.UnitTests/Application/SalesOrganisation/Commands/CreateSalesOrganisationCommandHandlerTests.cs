@@ -1,10 +1,8 @@
 #nullable disable
 using AutoMapper;
-using Contracts.Common;
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.ISalesOrganisation;
 using SalesManagement.Application.SalesOrganisation.Commands.CreateSalesOrganisation;
-using SalesManagement.Application.SalesOrganisation.Dto;
 using SalesManagement.Domain.Events;
 using SalesManagement.UnitTests.TestData;
 using static SalesManagement.Domain.Common.BaseEntity;

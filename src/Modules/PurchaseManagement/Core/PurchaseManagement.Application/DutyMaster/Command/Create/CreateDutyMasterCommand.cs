@@ -1,4 +1,3 @@
-using PurchaseManagement.Application.DutyMaster;
 using MediatR;
 
 namespace PurchaseManagement.Application.DutyMaster.Command.Create

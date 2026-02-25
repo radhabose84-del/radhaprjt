@@ -1,8 +1,5 @@
-using FAM.Application.AssetLocation.Queries.GetAssetLocation;
-using FAM.Application.AssetMaster.AssetPurchase.Queries.GetAssetPurchase;
 using FAM.Application.Common.Mappings;
 using FAM.Domain.Entities;
-using FAM.Domain.Entities.AssetPurchase;
 using static FAM.Domain.Common.BaseEntity;
 
 namespace FAM.Application.AssetMaster.AssetMasterGeneral.Queries.GetAssetMasterGeneral

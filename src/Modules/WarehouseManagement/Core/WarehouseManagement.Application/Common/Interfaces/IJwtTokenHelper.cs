@@ -1,6 +1,4 @@
 using System.Security.Claims;
-using WarehouseManagement.Domain.Common;
-using WarehouseManagement.Domain.Entities;
 
 namespace WarehouseManagement.Application.Common.Interfaces
 {

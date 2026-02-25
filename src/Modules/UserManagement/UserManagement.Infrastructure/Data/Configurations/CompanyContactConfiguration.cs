@@ -1,10 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using UserManagement.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;  
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace UserManagement.Infrastructure.Data.Configurations
 {

@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using BudgetManagement.Application.BudgetAllocation.Queries.GetBudgetBalanceReport;
 using BudgetManagement.Application.BudgetAllocation.Queries.GetRemainingBalance;
 using BudgetManagement.Application.BudgetAllocation.Queries.GetSpindleDetailsMonthwise;
@@ -9,7 +5,7 @@ using BudgetManagement.Application.BudgetAllocation.Queries.GetSpindleMonthwiseR
 
 namespace BudgetManagement.Application.Common.Interfaces.IBudgetAllocation
 {
-  public interface IBudgetAllocationQueryRepository
+    public interface IBudgetAllocationQueryRepository
   {
     Task<(List<GetSpindleDetailsMonthwiseDto>, int)> GetBudgetGroupDetailSpindlewise(int PageNumber, int PageSize, string? SearchTerm);
     Task<bool> ExistsAsync(

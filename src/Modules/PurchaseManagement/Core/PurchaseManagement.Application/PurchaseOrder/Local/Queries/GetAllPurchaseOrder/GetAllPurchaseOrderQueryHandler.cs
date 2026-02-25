@@ -1,14 +1,13 @@
-using System.Linq;
 using Contracts.Interfaces.Lookups.Budget;
 using Contracts.Interfaces.Lookups.Party;
-    using PurchaseManagement.Application.Common;
-    using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.Local;
-    using PurchaseManagement.Application.PurchaseOrder.Dtos.Local;
-    using MediatR;
+using PurchaseManagement.Application.Common;
+using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.Local;
+using PurchaseManagement.Application.PurchaseOrder.Dtos.Local;
+using MediatR;
 
-    namespace PurchaseManagement.Application.PurchaseOrder.Local.Queries.GetAllPurchaseOrder;
+namespace PurchaseManagement.Application.PurchaseOrder.Local.Queries.GetAllPurchaseOrder;
 
-    public class GetPurchaseOrdersQueryHandler 
+public class GetPurchaseOrdersQueryHandler 
     : IRequestHandler<GetPurchaseOrdersQuery, PagedResult<PurchaseOrderListItemDto>>
 {
     private readonly IPurchaseOrderQueryRepository _repo;

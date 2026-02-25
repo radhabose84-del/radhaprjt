@@ -1,17 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
 using FAM.Application.AssetMaster.AssetMasterGeneral.Queries.GetAssetMasterGeneral;
 using FAM.Application.AssetMaster.AssetTransferIssue.Command.CreateAssetTransferIssue;
 using FAM.Application.AssetMaster.AssetTransferIssue.Command.UpdateAssetTransferIssue;
 using FAM.Application.AssetMaster.AssetTransferIssue.Queries.GetAssertByCategory;
-using FAM.Application.AssetMaster.AssetTransferIssue.Queries.GetAssetDtlToTransfer;
 using FAM.Application.AssetMaster.AssetTransferIssue.Queries.GetAssetTransfered;
 using FAM.Application.AssetMaster.AssetTransferIssue.Queries.GetCategoryByDeptId;
-using FAM.Application.AssetMaster.AssetTransferIssue.Queries.GetTransferType;
-using static FAM.Domain.Common.BaseEntity;
 
 namespace FAM.Application.Common.Mappings.AssetMaster
 {

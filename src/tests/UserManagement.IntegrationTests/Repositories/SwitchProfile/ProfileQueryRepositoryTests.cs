@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using Dapper;
 using FluentAssertions;
 using Microsoft.Data.SqlClient;

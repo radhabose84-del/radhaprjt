@@ -1,12 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Threading.Tasks;
 using FAM.Application.Common.Interfaces.IMiscTypeMaster;
 using FAM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using FAM.Domain.Entities;
 
 namespace FAM.Infrastructure.Repositories.MiscTypeMaster
 {

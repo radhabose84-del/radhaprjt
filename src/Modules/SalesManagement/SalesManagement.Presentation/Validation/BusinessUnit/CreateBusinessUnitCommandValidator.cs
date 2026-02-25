@@ -1,4 +1,3 @@
-#nullable disable
 
 using FluentValidation;
 using SalesManagement.Application.BusinessUnit.Commands.CreateBusinessUnit;

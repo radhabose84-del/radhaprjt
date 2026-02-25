@@ -5,7 +5,6 @@ using FAM.Application.SpecificationMaster.Commands.UpdateSpecificationMaster;
 using FAM.Application.SpecificationMaster.Queries.GetSpecificationMaster;
 using FAM.Application.SpecificationMaster.Queries.GetSpecificationMasterAutoComplete;
 using FAM.Application.SpecificationMaster.Queries.GetSpecificationMasterById;
-using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

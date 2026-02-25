@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Contracts.Dtos.Inventory;
 
 namespace Contracts.Dtos.Lookups.Inventory

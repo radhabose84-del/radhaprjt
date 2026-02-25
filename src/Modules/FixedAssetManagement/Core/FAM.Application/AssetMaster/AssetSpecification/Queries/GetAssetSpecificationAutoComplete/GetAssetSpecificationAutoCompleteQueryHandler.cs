@@ -1,15 +1,12 @@
-    using AutoMapper;
-    using FAM.Application.AssetMaster.AssetSpecification.Queries.GetAssetSpecification;
-    using FAM.Application.AssetMaster.AssetSpecification.Queries.GetAssetSpecificationAutoComplete;
-    using Contracts.Common;
-    using FAM.Application.Common.Interfaces.IAssetMaster.IAssetSpecification;
-    using FAM.Domain.Events;
+using AutoMapper;
+using FAM.Application.Common.Interfaces.IAssetMaster.IAssetSpecification;
+using FAM.Domain.Events;
 using FluentValidation;
 using MediatR;
 
-    namespace FAM.Application.AssetMaster.AssetSpecification.Queries.GetAssetSpecificationAutoComplete
-    {
-        public class GetAssetSpecificationAutoCompleteQueryHandler : IRequestHandler<GetAssetSpecificationAutoCompleteQuery, List<AssetSpecificationJsonDto>>
+namespace FAM.Application.AssetMaster.AssetSpecification.Queries.GetAssetSpecificationAutoComplete
+{
+    public class GetAssetSpecificationAutoCompleteQueryHandler : IRequestHandler<GetAssetSpecificationAutoCompleteQuery, List<AssetSpecificationJsonDto>>
         {
             private readonly IAssetSpecificationQueryRepository _assetSpecificationRepository;
             private readonly IMapper _mapper;

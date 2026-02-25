@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using FAM.Application.UOM.Command.CreateUOM;
 using FAM.Presentation.Validation.Common;
 using FluentValidation;

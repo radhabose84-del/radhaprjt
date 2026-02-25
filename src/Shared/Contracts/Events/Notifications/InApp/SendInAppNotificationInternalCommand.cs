@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using MassTransit;
 
 namespace Contracts.Events.Notifications.InApp

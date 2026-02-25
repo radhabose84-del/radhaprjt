@@ -1,23 +1,16 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using InventoryManagement.Application.MiscTypeMaster.Command.CreateMiscTypeMaster;
 using InventoryManagement.Application.MiscTypeMaster.Command.DeleteMiscTypeMaster;
 using InventoryManagement.Application.MiscTypeMaster.Command.UpdateMiscTypeMaster;
 using InventoryManagement.Application.MiscTypeMaster.Queries.GetMiscTypeMaster;
 using InventoryManagement.Application.MiscTypeMaster.Queries.GetMiscTypeMasterAutoComplete;
 using InventoryManagement.Application.MiscTypeMaster.Queries.GetMiscTypeMasterById;
-using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Http;
 
 namespace InventoryManagement.Presentation.Controllers
 {
-   [Route("api/inventory/[controller]")]
+    [Route("api/inventory/[controller]")]
     public class MiscTypeMasterController : ApiControllerBase
     {
 

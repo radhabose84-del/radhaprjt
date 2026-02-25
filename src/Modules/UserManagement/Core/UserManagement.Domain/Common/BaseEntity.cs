@@ -1,10 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.ComponentModel.DataAnnotations.Schema;
-using UserManagement.Domain.Common;
-using System.ComponentModel.DataAnnotations;
 using static UserManagement.Domain.Enums.Common.Enums;
 
 namespace UserManagement.Domain.Common

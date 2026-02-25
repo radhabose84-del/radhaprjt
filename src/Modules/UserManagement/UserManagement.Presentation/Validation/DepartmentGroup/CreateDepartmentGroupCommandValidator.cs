@@ -1,8 +1,4 @@
 #nullable disable
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using UserManagement.Application.DepartmentGroup.Command.CreateDepartmentGroup;
 using FluentValidation;
 using UserManagement.Presentation.Validation.Common;

@@ -1,12 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
 using Contracts.Common;
 using UserManagement.Application.Common.Interfaces;
 using UserManagement.Application.Common.Interfaces.IUser;
-using UserManagement.Application.Users.Commands.CreateFirstTimeUserPassword;
 using UserManagement.Domain.Entities;
 using MediatR;
 

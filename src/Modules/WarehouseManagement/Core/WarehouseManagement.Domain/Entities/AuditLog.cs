@@ -1,5 +1,3 @@
-
-using System;
 using WarehouseManagement.Domain.Common;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;

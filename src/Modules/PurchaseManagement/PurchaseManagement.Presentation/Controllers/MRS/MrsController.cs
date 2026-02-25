@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using PurchaseManagement.Application.MRS.Command.CreateMrsEntry;
 using PurchaseManagement.Application.MRS.Command.UpdateMrsEntry;
 using PurchaseManagement.Application.MRS.Queries.GetMrsEntry;
@@ -12,7 +7,6 @@ using PurchaseManagement.Application.MRS.Queries.GetParentWarehouse;
 using PurchaseManagement.Application.MRS.Queries.GetStockItemBased;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Http;
 
 namespace PurchaseManagement.Presentation.Controllers.MRS

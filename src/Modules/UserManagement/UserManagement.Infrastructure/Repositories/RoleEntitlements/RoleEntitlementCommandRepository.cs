@@ -1,12 +1,7 @@
 
 using Microsoft.EntityFrameworkCore;
 using UserManagement.Infrastructure.Data;
-using UserManagement.Infrastructure.Repositories;
 using UserManagement.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using UserManagement.Application.Common.Interfaces.IRoleEntitlement;
 
 namespace UserManagement.Infrastructure.Repositories.RoleEntitlements

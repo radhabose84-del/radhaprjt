@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using FAM.Application.AssetCategories.Command.CreateAssetCategories;
 using FAM.Application.AssetCategories.Command.DeleteAssetCategories;
 using FAM.Application.AssetCategories.Command.UpdateAssetCategories;
@@ -10,7 +5,6 @@ using FAM.Application.AssetCategories.Queries.GetAssetCategories;
 using FAM.Application.AssetCategories.Queries.GetAssetCategoriesAutoComplete;
 using FAM.Application.AssetCategories.Queries.GetAssetCategoriesByAssetGroupId;
 using FAM.Application.AssetCategories.Queries.GetAssetCategoriesById;
-using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

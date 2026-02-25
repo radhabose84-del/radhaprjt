@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
 using MaintenanceManagement.Application.Power.GeneratorConsumption.Command;
 using static MaintenanceManagement.Domain.Common.BaseEntity;

@@ -5,7 +5,6 @@ using UserManagement.Application.UserGroup.Commands.UpdateUesrGroup;
 using UserManagement.Application.UserGroup.Queries.GetUserGroup;
 using UserManagement.Application.UserGroup.Queries.GetUserGroupAutoComplete;
 using UserManagement.Application.UserGroup.Queries.GetUserGroupById;
-using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;

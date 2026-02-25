@@ -1,8 +1,5 @@
 using FAM.Infrastructure.Data;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
-using System;
-using System.Linq;
 
 namespace FAM.Presentation.Validation.Common
 {

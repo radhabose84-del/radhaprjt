@@ -1,4 +1,3 @@
-using PurchaseManagement.Domain.Entities;
 using PurchaseManagement.Domain.Entities.Quotation.QuotationEntry;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;

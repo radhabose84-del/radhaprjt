@@ -1,9 +1,7 @@
-    using FAM.Application.AssetMaster.AssetSpecification.Queries.GetAssetSpecification;
 using FAM.Application.AssetMaster.AssetSpecification.Queries.GetAssetSpecificationBasedMachineNo;
-using FAM.Domain.Entities.AssetMaster;
 
-    namespace FAM.Application.Common.Interfaces.IAssetMaster.IAssetSpecification
-    {
+namespace FAM.Application.Common.Interfaces.IAssetMaster.IAssetSpecification
+{
     public interface IAssetSpecificationQueryRepository
     {
         Task<AssetSpecificationJsonDto> GetByIdAsync(int assetId);

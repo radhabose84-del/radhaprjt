@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
 using InventoryManagement.Application.MiscTypeMaster.Command.CreateMiscTypeMaster;
 using InventoryManagement.Application.MiscTypeMaster.Command.DeleteMiscTypeMaster;

@@ -1,13 +1,9 @@
 #nullable disable
 using UserManagement.Application.Entity.Queries.GetEntity;
-using UserManagement.Application.Common.Interfaces;
 using MediatR;
-using System.Data;
 using UserManagement.Application.Common.Interfaces.IEntity;
 using AutoMapper;
-using UserManagement.Application.Common;
 using UserManagement.Domain.Events;
-using Contracts.Common;
 using Microsoft.Extensions.Logging;
 using FluentValidation;
 

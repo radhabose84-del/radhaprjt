@@ -1,11 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using InventoryManagement.Application.Common.Interfaces.IMiscTypeMaster;
 using InventoryManagement.Application.MiscTypeMaster.Command.DeleteMiscTypeMaster;
 using FluentValidation;
-using InventoryManagement.Presentation.Validation.Common;
 using Shared.Validation.Common;
 
 namespace InventoryManagement.Presentation.Validation.MiscTypeMaster

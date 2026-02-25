@@ -1,7 +1,6 @@
 using InventoryManagement.Application.Budget.Commands.CreateBudget;
 using InventoryManagement.Application.Common.Interfaces.Budget;
 using FluentValidation;
-using InventoryManagement.Presentation.Validation.Common;
 using System.Text.RegularExpressions;
 using Shared.Validation.Common;
 

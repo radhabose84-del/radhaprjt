@@ -1,4 +1,3 @@
-#nullable disable
 
 using Microsoft.EntityFrameworkCore;
 using SalesManagement.Application.Common.Interfaces.IBusinessUnit;
