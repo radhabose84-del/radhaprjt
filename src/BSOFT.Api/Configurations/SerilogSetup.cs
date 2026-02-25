@@ -1,5 +1,5 @@
 using Serilog;
-namespace BSOFT.Bootstrapper.Configurations
+namespace BSOFT.Api.Configurations
 {
     public static class SerilogSetup
     {

@@ -1,6 +1,6 @@
 ﻿Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BSOFT.Bootstrapper", "src\BSOFT.Bootstrapper\BSOFT.Bootstrapper.csproj", "{A1A1A1A1-A1A1-A1A1-A1A1-A1A1A1A1A1A1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BSOFT.Api", "src\BSOFT.Api\BSOFT.Api.csproj", "{A1A1A1A1-A1A1-A1A1-A1A1-A1A1A1A1A1A1}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UserManagement.Application", "src\Modules\UserManagement\Core\UserManagement.Application\UserManagement.Application.csproj", "{B2B2B2B2-B2B2-B2B2-B2B2-B2B2B2B2B2B2}"
 EndProject

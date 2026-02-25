@@ -3,11 +3,11 @@
   "configurations": [
     
     {
-      "name": "BSOFT.Bootstrapper (Launch)",
+      "name": "BSOFT.Api (Launch)",
       "type": "coreclr",
       "request": "launch",
-      "program": "${workspaceFolder}/src/BSOFT.Bootstrapper/bin/Debug/net8.0/BSOFT.Bootstrapper.dll",
-      "cwd": "${workspaceFolder}/src/BSOFT.Bootstrapper",
+      "program": "${workspaceFolder}/src/BSOFT.Api/bin/Debug/net8.0/BSOFT.Api.dll",
+      "cwd": "${workspaceFolder}/src/BSOFT.Api",
       "env": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },

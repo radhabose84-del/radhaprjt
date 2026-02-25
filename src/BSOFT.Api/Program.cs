@@ -1,7 +1,7 @@
 using FluentValidation;
 using MediatR;
-using BSOFT.Bootstrapper.Configurations;
-using BSOFT.Bootstrapper.Middleware;
+using BSOFT.Api.Configurations;
+using BSOFT.Api.Middleware;
 using Shared.Validation.Common;
 using Shared.Infrastructure.Caching;
 using UserManagement.Module;
