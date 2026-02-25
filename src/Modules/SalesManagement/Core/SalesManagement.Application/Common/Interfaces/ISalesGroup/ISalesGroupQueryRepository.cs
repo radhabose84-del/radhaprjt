@@ -11,5 +11,6 @@ namespace SalesManagement.Application.Common.Interfaces.ISalesGroup
         Task<bool> NotFoundAsync(int id);
         Task<bool> SalesOfficeExistsAsync(int salesOfficeId);
         Task<bool> ProductCategoryExistsAsync(int categoryId, CancellationToken ct = default);
+        Task<bool> SoftDeleteValidationAsync(int id);
     }
 }

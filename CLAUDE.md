@@ -183,10 +183,8 @@ public class Create{EntityName}CommandHandler : IRequestHandler<Create{EntityNam
 
     public async Task<ApiResponseDTO<int>> Handle(Create{EntityName}Command request, CancellationToken cancellationToken)
     {
-        // ✅ ALWAYS use AutoMapper — never manually assign properties
+        // ✅ ALWAYS use AutoMapper — IsActive/IsDeleted are set via ForMember in the Profile
         var entity = _mapper.Map<Domain.Entities.{EntityName}>(request);
-        entity.IsActive = Domain.Common.BaseEntity.Status.Active;
-        entity.IsDeleted = Domain.Common.BaseEntity.IsDelete.NotDeleted;
 
         var newId = await _commandRepository.CreateAsync(entity);
 
@@ -232,11 +230,8 @@ public class Update{EntityName}CommandHandler : IRequestHandler<Update{EntityNam
 
     public async Task<ApiResponseDTO<int>> Handle(Update{EntityName}Command request, CancellationToken cancellationToken)
     {
-        // ✅ Use AutoMapper to map mutable fields onto the existing entity
+        // ✅ Use AutoMapper — IsActive is mapped via ForMember in the Profile
         var entity = _mapper.Map<Domain.Entities.{EntityName}>(request);
-        entity.IsActive = request.IsActive == 1
-            ? Domain.Common.BaseEntity.Status.Active
-            : Domain.Common.BaseEntity.Status.Inactive;
 
         var result = await _commandRepository.UpdateAsync(entity);
 
@@ -262,9 +257,9 @@ public class Update{EntityName}CommandHandler : IRequestHandler<Update{EntityNam
 ⚠️ **Key Rules for Command Handlers:**
 1. **ALWAYS inject `IMapper`** — never manually assign command properties to entity properties
 2. **ALWAYS use `_mapper.Map<>(request)`** to map command → domain entity
-3. **ALWAYS explicitly set `IsActive` and `IsDeleted`** after mapping (Create sets Active/NotDeleted; Update maps `IsActive` from int)
+3. **NEVER set `IsActive`/`IsDeleted` manually in the handler** — define them via `ForMember` in the AutoMapper Profile instead
 4. **ALWAYS inject all 4 dependencies:** `ICommandRepository`, `IQueryRepository`, `IMediator`, `IMapper`
-5. **AutoMapper Profile MUST exist** in `Common/Mappings/{EntityName}Profile.cs` with mappings for both Create and Update commands
+5. **AutoMapper Profile MUST exist** in `Common/Mappings/{EntityName}Profile.cs` with `ForMember` for `IsActive` and `IsDeleted` on Create, and `ForMember` for `IsActive` on Update
 
 ### Query Pattern
 
@@ -2301,12 +2296,24 @@ When implementing an entity with a cross-module FK, ALWAYS check `src/Shared/Con
 > };
 > ```
 
-> ✅ **ALWAYS use `IMapper` to map command → entity:**
+> ✅ **ALWAYS use `IMapper` to map command → entity, with `IsActive`/`IsDeleted` in the Profile:**
 > ```csharp
-> // ✅ CORRECT — AutoMapper
+> // ✅ CORRECT — AutoMapper handles everything including IsActive/IsDeleted
 > var entity = _mapper.Map<Domain.Entities.BusinessUnit>(request);
-> entity.IsActive = Domain.Common.BaseEntity.Status.Active;
-> entity.IsDeleted = Domain.Common.BaseEntity.IsDelete.NotDeleted;
+> // No manual IsActive/IsDeleted assignment — handled in BusinessUnitProfile via ForMember
+> ```
+>
+> **In `BusinessUnitProfile.cs`:**
+> ```csharp
+> using static BusinessUnit.Domain.Common.BaseEntity;
+>
+> CreateMap<CreateBusinessUnitCommand, Domain.Entities.BusinessUnit>()
+>     .ForMember(dest => dest.IsActive,  opt => opt.MapFrom(src => Status.Active))
+>     .ForMember(dest => dest.IsDeleted, opt => opt.MapFrom(src => IsDelete.NotDeleted));
+>
+> CreateMap<UpdateBusinessUnitCommand, Domain.Entities.BusinessUnit>()
+>     .ForMember(dest => dest.IsActive,  opt => opt.MapFrom(src =>
+>         src.IsActive == 1 ? Status.Active : Status.Inactive));
 > ```
 
 **Mandatory handler dependencies (all 4 required):**
@@ -2321,7 +2328,10 @@ When implementing an entity with a cross-module FK, ALWAYS check `src/Shared/Con
 - **Scalability:** Adding new fields requires zero handler changes
 - **Testability:** `IMapper` can be mocked in unit tests for isolated testing
 
-> ⚠️ Every Create/Update command MUST have a corresponding `AutoMapper.Profile` in `Common/Mappings/{EntityName}Profile.cs` that defines `CreateMap<Create{EntityName}Command, {EntityName}>()` and `CreateMap<Update{EntityName}Command, {EntityName}>()`.
+> ⚠️ Every Create/Update command MUST have a corresponding `AutoMapper.Profile` in `Common/Mappings/{EntityName}Profile.cs` that:
+> - Maps `CreateMap<Create{EntityName}Command, {EntityName}>()` with **`ForMember` for `IsActive = Status.Active` and `IsDeleted = IsDelete.NotDeleted`**
+> - Maps `CreateMap<Update{EntityName}Command, {EntityName}>()` with **`ForMember` for `IsActive` from `src.IsActive == 1 ? Status.Active : Status.Inactive`**
+> - Uses `using static {Module}.Domain.Common.BaseEntity;` for clean enum references
 
 ### 17. **NO [Authorize] on Controllers — Simple HTTP Verb Routes Only**
 
@@ -2447,6 +2457,29 @@ Authentication is handled globally by `TokenValidationMiddleware` in the request
 >     .Matches("^[A-Za-z0-9]+$").WithMessage("Code must be alphanumeric.")
 >     .MaximumLength(20).WithMessage("Code cannot exceed 20 characters.");
 > ```
+>
+> ❌ **NEVER hardcode the regex pattern in the `Alphanumeric` case — even with a comment:**
+> ```csharp
+> // ❌ WRONG — hardcoded regex, even with a comment explaining the business rule
+> case "Alphanumeric":
+>     // SalesGroupName allows alphanumeric + spaces (per business rule)
+>     RuleFor(x => x.SalesGroupName)
+>         .Matches(@"^[A-Za-z0-9 ]+$")   // ❌ HARDCODED — must never appear
+>         .WithMessage($"{nameof(Command.SalesGroupName)} {rule.Error}")
+>         .When(x => !string.IsNullOrWhiteSpace(x.SalesGroupName));
+>     break;
+> ```
+>
+> ✅ **ALWAYS use `rule.Pattern` from the shared validation JSON — no exceptions:**
+> ```csharp
+> // ✅ CORRECT — pattern comes from validation-rules.json via ValidationRuleLoader
+> case "Alphanumeric":
+>     RuleFor(x => x.SalesGroupName)
+>         .Matches(rule.Pattern)          // ✅ sourced from JSON, never hardcoded
+>         .WithMessage($"{nameof(Command.SalesGroupName)} {rule.Error}")
+>         .When(x => !string.IsNullOrWhiteSpace(x.SalesGroupName));
+>     break;
+> ```
 
 > ✅ **ALWAYS use `ValidationRuleLoader` + `MaxLengthProvider` + `switch/case` pattern:**
 > ```csharp
@@ -2486,9 +2519,10 @@ Authentication is handled globally by `TokenValidationMiddleware` in the request
 **Mandatory validator structure:**
 1. Extract max lengths via `maxLengthProvider.GetMaxLength<Entity>("PropertyName") ?? fallback`
 2. Load rules via `ValidationRuleLoader.LoadValidationRules()`
-3. Null/empty check on loaded rules → throw `InvalidOperationException`
+3. Null/empty check on loaded rules → `_validationRules.Count == 0` (not `!Any()`) → throw `InvalidOperationException`
 4. `foreach (var rule in _validationRules)` with `switch (rule.Rule)`
 5. Error messages: `$"{nameof(Command.Property)} {rule.Error}"`
+6. **`Alphanumeric` case MUST use `.Matches(rule.Pattern)` — NEVER `.Matches(@"^[A-Za-z0-9 ]+$")` or any hardcoded string**
 
 **Key files:**
 - `src/Shared/Shared.Validation/Common/ValidationRuleLoader.cs` — rule loader

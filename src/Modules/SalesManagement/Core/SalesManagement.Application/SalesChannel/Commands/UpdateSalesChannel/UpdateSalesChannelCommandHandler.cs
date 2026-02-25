@@ -1,3 +1,4 @@
+#nullable disable
 using AutoMapper;
 using Contracts.Common;
 using MediatR;
@@ -9,18 +10,15 @@ namespace SalesManagement.Application.SalesChannel.Commands.UpdateSalesChannel
     public class UpdateSalesChannelCommandHandler : IRequestHandler<UpdateSalesChannelCommand, ApiResponseDTO<int>>
     {
         private readonly ISalesChannelCommandRepository _commandRepository;
-        private readonly ISalesChannelQueryRepository _queryRepository;
         private readonly IMediator _mediator;
         private readonly IMapper _mapper;
 
         public UpdateSalesChannelCommandHandler(
             ISalesChannelCommandRepository commandRepository,
-            ISalesChannelQueryRepository queryRepository,
             IMediator mediator,
             IMapper mapper)
         {
             _commandRepository = commandRepository;
-            _queryRepository = queryRepository;
             _mediator = mediator;
             _mapper = mapper;
         }

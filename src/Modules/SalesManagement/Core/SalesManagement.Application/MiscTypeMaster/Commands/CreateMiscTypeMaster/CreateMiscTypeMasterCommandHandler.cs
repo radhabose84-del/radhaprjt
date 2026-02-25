@@ -1,3 +1,4 @@
+#nullable disable
 using AutoMapper;
 using Contracts.Common;
 using MediatR;
@@ -25,8 +26,6 @@ namespace SalesManagement.Application.MiscTypeMaster.Commands.CreateMiscTypeMast
         public async Task<ApiResponseDTO<int>> Handle(CreateMiscTypeMasterCommand request, CancellationToken cancellationToken)
         {
             var entity = _mapper.Map<Domain.Entities.MiscTypeMaster>(request);
-            entity.IsActive = Domain.Common.BaseEntity.Status.Active;
-            entity.IsDeleted = Domain.Common.BaseEntity.IsDelete.NotDeleted;
 
             var newId = await _commandRepository.CreateAsync(entity);
 

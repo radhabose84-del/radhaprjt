@@ -1,4 +1,4 @@
-using Contracts.Common;
+#nullable disable
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.ISalesChannel;
 using SalesManagement.Domain.Events;
@@ -8,36 +8,29 @@ namespace SalesManagement.Application.SalesChannel.Commands.DeleteSalesChannel
     public sealed class DeleteSalesChannelCommandHandler
         : IRequestHandler<DeleteSalesChannelCommand, bool>
     {
-        private readonly ISalesChannelCommandRepository _commandRepo;
-        private readonly ISalesChannelQueryRepository _queryRepo;
+        private readonly ISalesChannelCommandRepository _commandRepository;
         private readonly IMediator _mediator;
 
         public DeleteSalesChannelCommandHandler(
-            ISalesChannelCommandRepository commandRepo,
-            ISalesChannelQueryRepository queryRepo,
+            ISalesChannelCommandRepository commandRepository,
             IMediator mediator)
         {
-            _commandRepo = commandRepo;
-            _queryRepo = queryRepo;
+            _commandRepository = commandRepository;
             _mediator = mediator;
         }
 
-        public async Task<bool> Handle(DeleteSalesChannelCommand request, CancellationToken ct)
+        public async Task<bool> Handle(DeleteSalesChannelCommand request, CancellationToken cancellationToken)
         {
-            var before = await _queryRepo.GetByIdAsync(request.Id)
-                         ?? throw new ExceptionRules("Sales Channel not found.");
+            await _commandRepository.SoftDeleteAsync(request.Id, cancellationToken);
 
-            var ok = await _commandRepo.SoftDeleteAsync(request.Id, ct);
-            if (!ok) throw new ExceptionRules("Failed to delete Sales Channel.");
-
-            var ev = new AuditLogsDomainEvent(
+            var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "SoftDelete",
-                actionCode: before.SalesChannelCode,
-                actionName: before.SalesChannelName,
-                details: $"Sales Channel '{before.SalesChannelCode} - {before.SalesChannelName}' soft-deleted.",
+                actionCode: "SALES_CHANNEL_DELETE",
+                actionName: request.Id.ToString(),
+                details: $"Sales Channel with Id {request.Id} soft deleted.",
                 module: "SalesChannel"
             );
-            await _mediator.Publish(ev, ct);
+            await _mediator.Publish(auditEvent, cancellationToken);
 
             return true;
         }

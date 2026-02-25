@@ -10,5 +10,6 @@ namespace SalesManagement.Application.Common.Interfaces.IBusinessUnit
         Task<IReadOnlyList<BusinessUnitLookupDto>> AutocompleteAsync(string term, CancellationToken cancellationToken);
         Task<bool> AlreadyExistsAsync(string businessUnitCode, int? id = null);
         Task<bool> NotFoundAsync(int id);
+        Task<bool> SoftDeleteValidationAsync(int id);
     }
 }

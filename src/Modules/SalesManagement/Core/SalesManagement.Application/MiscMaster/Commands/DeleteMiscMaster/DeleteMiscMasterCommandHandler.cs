@@ -1,4 +1,4 @@
-using Contracts.Common;
+#nullable disable
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.IMiscMaster;
 using SalesManagement.Domain.Events;
@@ -8,35 +8,25 @@ namespace SalesManagement.Application.MiscMaster.Commands.DeleteMiscMaster
     public class DeleteMiscMasterCommandHandler : IRequestHandler<DeleteMiscMasterCommand, bool>
     {
         private readonly IMiscMasterCommandRepository _commandRepository;
-        private readonly IMiscMasterQueryRepository _queryRepository;
         private readonly IMediator _mediator;
 
         public DeleteMiscMasterCommandHandler(
             IMiscMasterCommandRepository commandRepository,
-            IMiscMasterQueryRepository queryRepository,
             IMediator mediator)
         {
             _commandRepository = commandRepository;
-            _queryRepository = queryRepository;
             _mediator = mediator;
         }
 
         public async Task<bool> Handle(DeleteMiscMasterCommand request, CancellationToken cancellationToken)
         {
-            var existing = await _queryRepository.GetByIdAsync(request.Id);
-            if (existing == null)
-                throw new ExceptionRules($"Misc Master with Id {request.Id} not found.");
-
-            var result = await _commandRepository.SoftDeleteAsync(request.Id, cancellationToken);
-
-            if (!result)
-                throw new ExceptionRules("Failed to delete Misc Master.");
+            await _commandRepository.SoftDeleteAsync(request.Id, cancellationToken);
 
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "SoftDelete",
                 actionCode: "MISC_MASTER_DELETE",
-                actionName: existing.Code,
-                details: $"Misc Master '{existing.Code}' deleted successfully.",
+                actionName: request.Id.ToString(),
+                details: $"Misc Master with Id {request.Id} soft deleted.",
                 module: "MiscMaster"
             );
             await _mediator.Publish(auditEvent, cancellationToken);

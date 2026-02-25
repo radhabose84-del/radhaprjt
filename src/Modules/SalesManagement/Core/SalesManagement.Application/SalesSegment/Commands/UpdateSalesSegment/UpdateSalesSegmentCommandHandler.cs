@@ -1,4 +1,4 @@
-
+#nullable disable
 using AutoMapper;
 using Contracts.Common;
 using MediatR;
@@ -10,18 +10,15 @@ namespace SalesManagement.Application.SalesSegment.Commands.UpdateSalesSegment
     public class UpdateSalesSegmentCommandHandler : IRequestHandler<UpdateSalesSegmentCommand, ApiResponseDTO<int>>
     {
         private readonly ISalesSegmentCommandRepository _commandRepository;
-        private readonly ISalesSegmentQueryRepository _queryRepository;
         private readonly IMediator _mediator;
         private readonly IMapper _mapper;
 
         public UpdateSalesSegmentCommandHandler(
             ISalesSegmentCommandRepository commandRepository,
-            ISalesSegmentQueryRepository queryRepository,
             IMediator mediator,
             IMapper mapper)
         {
             _commandRepository = commandRepository;
-            _queryRepository = queryRepository;
             _mediator = mediator;
             _mapper = mapper;
         }
@@ -29,17 +26,14 @@ namespace SalesManagement.Application.SalesSegment.Commands.UpdateSalesSegment
         public async Task<ApiResponseDTO<int>> Handle(UpdateSalesSegmentCommand request, CancellationToken cancellationToken)
         {
             var entity = _mapper.Map<Domain.Entities.SalesSegment>(request);
-            entity.IsActive = request.IsActive == 1
-                ? Domain.Common.BaseEntity.Status.Active
-                : Domain.Common.BaseEntity.Status.Inactive;
 
             var result = await _commandRepository.UpdateAsync(entity);
 
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Update",
                 actionCode: "SALES_SEGMENT_UPDATE",
-                actionName: request.SegmentName,
-                details: $"Sales Segment Id {request.Id} updated successfully.",
+                actionName: request.Id.ToString(),
+                details: $"Sales Segment with Id {request.Id} updated successfully.",
                 module: "SalesSegment"
             );
             await _mediator.Publish(auditEvent, cancellationToken);

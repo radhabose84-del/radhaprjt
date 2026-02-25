@@ -12,14 +12,12 @@ namespace SalesManagement.UnitTests.Application.SalesChannel.Commands
     public class CreateSalesChannelCommandHandlerTests
     {
         private readonly Mock<ISalesChannelCommandRepository> _mockCommandRepo = new(MockBehavior.Strict);
-        private readonly Mock<ISalesChannelQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Strict);
         private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Strict);
 
         private CreateSalesChannelCommandHandler CreateSut() =>
             new CreateSalesChannelCommandHandler(
                 _mockCommandRepo.Object,
-                _mockQueryRepo.Object,
                 _mockMediator.Object,
                 _mockMapper.Object);
 

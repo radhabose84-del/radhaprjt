@@ -1,58 +1,96 @@
+#nullable disable
 using FluentValidation;
 using SalesManagement.Application.Common.Interfaces.ISalesGroup;
 using SalesManagement.Application.SalesGroup.Commands.CreateSalesGroup;
+using SalesManagement.Presentation.Validation.Common;
+using Shared.Validation.Common;
 
 namespace SalesManagement.Presentation.Validation.SalesGroup
 {
     public class CreateSalesGroupCommandValidator : AbstractValidator<CreateSalesGroupCommand>
     {
+        private readonly List<ValidationRule> _validationRules;
         private readonly ISalesGroupQueryRepository _queryRepository;
 
-        public CreateSalesGroupCommandValidator(ISalesGroupQueryRepository queryRepository)
+        public CreateSalesGroupCommandValidator(
+            MaxLengthProvider maxLengthProvider,
+            ISalesGroupQueryRepository queryRepository)
         {
             _queryRepository = queryRepository;
 
-            // Sales Group Name — mandatory, alphanumeric + spaces
-            RuleFor(x => x.SalesGroupName)
-                .NotEmpty().WithMessage("Sales Group Name is required.")
-                .MaximumLength(100).WithMessage("Sales Group Name cannot exceed 100 characters.")
-                .Matches(@"^[A-Za-z0-9 ]+$").WithMessage("Sales Group Name must contain alphanumeric characters and spaces only.");
+            var maxLengthName    = maxLengthProvider.GetMaxLength<Domain.Entities.SalesGroup>("SalesGroupName")      ?? 100;
+            var maxLengthManager = maxLengthProvider.GetMaxLength<Domain.Entities.SalesGroup>("ResponsibleManager")  ?? 100;
+            var maxLengthRegion  = maxLengthProvider.GetMaxLength<Domain.Entities.SalesGroup>("RegionTerritory")     ?? 100;
 
-            // Sales Office — mandatory FK
-            RuleFor(x => x.SalesOfficeId)
-                .GreaterThan(0).WithMessage("Valid Sales Office is required.");
+            _validationRules = ValidationRuleLoader.LoadValidationRules();
+            if (_validationRules == null || _validationRules.Count == 0)
+            {
+                throw new InvalidOperationException("Validation rules could not be loaded.");
+            }
 
-            RuleFor(x => x.SalesOfficeId)
-                .MustAsync(async (id, ct) => await _queryRepository.SalesOfficeExistsAsync(id))
-                .WithMessage("Sales Office does not exist or is inactive.")
-                .When(x => x.SalesOfficeId > 0);
+            foreach (var rule in _validationRules)
+            {
+                switch (rule.Rule)
+                {
+                    case "NotEmpty":
+                        RuleFor(x => x.SalesGroupName)
+                            .NotNull()
+                            .WithMessage($"{nameof(CreateSalesGroupCommand.SalesGroupName)} {rule.Error}")
+                            .NotEmpty()
+                            .WithMessage($"{nameof(CreateSalesGroupCommand.SalesGroupName)} {rule.Error}");
 
-            // Uniqueness: SalesGroupName within SalesOffice
-            RuleFor(x => x)
-                .MustAsync(async (cmd, ct) =>
-                    !await _queryRepository.AlreadyExistsAsync(cmd.SalesGroupName, cmd.SalesOfficeId))
-                .WithMessage("Sales Group Name already exists for this Sales Office.")
-                .When(x => !string.IsNullOrWhiteSpace(x.SalesGroupName) && x.SalesOfficeId > 0);
+                        RuleFor(x => x.SalesOfficeId)
+                            .GreaterThan(0)
+                            .WithMessage($"{nameof(CreateSalesGroupCommand.SalesOfficeId)} {rule.Error}");
+                        break;
 
-            // Responsible Manager — optional
-            RuleFor(x => x.ResponsibleManager)
-                .MaximumLength(100).WithMessage("Responsible Manager cannot exceed 100 characters.")
-                .When(x => !string.IsNullOrWhiteSpace(x.ResponsibleManager));
+                    case "Alphanumeric":
+                        RuleFor(x => x.SalesGroupName)
+                            .Matches(rule.Pattern)
+                            .WithMessage($"{nameof(CreateSalesGroupCommand.SalesGroupName)} {rule.Error}")
+                            .When(x => !string.IsNullOrWhiteSpace(x.SalesGroupName));
+                        break;
 
-            // Product Category — optional, must exist if provided
-            RuleFor(x => x.ProductCategoryId)
-                .GreaterThan(0).WithMessage("Valid Product Category is required when provided.")
-                .When(x => x.ProductCategoryId.HasValue);
+                    case "MaxLength":
+                        RuleFor(x => x.SalesGroupName)
+                            .MaximumLength(maxLengthName)
+                            .WithMessage($"{nameof(CreateSalesGroupCommand.SalesGroupName)} {rule.Error} {maxLengthName} characters.");
 
-            RuleFor(x => x.ProductCategoryId)
-                .MustAsync(async (id, ct) => await _queryRepository.ProductCategoryExistsAsync(id!.Value, ct))
-                .WithMessage("Product Category does not exist in Category Master.")
-                .When(x => x.ProductCategoryId.HasValue && x.ProductCategoryId.Value > 0);
+                        RuleFor(x => x.ResponsibleManager)
+                            .MaximumLength(maxLengthManager)
+                            .WithMessage($"{nameof(CreateSalesGroupCommand.ResponsibleManager)} {rule.Error} {maxLengthManager} characters.")
+                            .When(x => !string.IsNullOrWhiteSpace(x.ResponsibleManager));
 
-            // Region / Territory — optional
-            RuleFor(x => x.RegionTerritory)
-                .MaximumLength(100).WithMessage("Region / Territory cannot exceed 100 characters.")
-                .When(x => !string.IsNullOrWhiteSpace(x.RegionTerritory));
+                        RuleFor(x => x.RegionTerritory)
+                            .MaximumLength(maxLengthRegion)
+                            .WithMessage($"{nameof(CreateSalesGroupCommand.RegionTerritory)} {rule.Error} {maxLengthRegion} characters.")
+                            .When(x => !string.IsNullOrWhiteSpace(x.RegionTerritory));
+                        break;
+
+                    case "FKColumnDelete":
+                        RuleFor(x => x.SalesOfficeId)
+                            .MustAsync(async (id, ct) => await _queryRepository.SalesOfficeExistsAsync(id))
+                            .WithMessage($"{nameof(CreateSalesGroupCommand.SalesOfficeId)} {rule.Error}")
+                            .When(x => x.SalesOfficeId > 0);
+
+                        RuleFor(x => x.ProductCategoryId)
+                            .MustAsync(async (id, ct) => await _queryRepository.ProductCategoryExistsAsync(id!.Value, ct))
+                            .WithMessage($"{nameof(CreateSalesGroupCommand.ProductCategoryId)} {rule.Error}")
+                            .When(x => x.ProductCategoryId.HasValue && x.ProductCategoryId.Value > 0);
+                        break;
+
+                    case "AlreadyExists":
+                        RuleFor(x => x)
+                            .MustAsync(async (cmd, ct) =>
+                                !await _queryRepository.AlreadyExistsAsync(cmd.SalesGroupName, cmd.SalesOfficeId))
+                            .WithMessage($"{nameof(CreateSalesGroupCommand.SalesGroupName)} {rule.Error}")
+                            .When(x => !string.IsNullOrWhiteSpace(x.SalesGroupName) && x.SalesOfficeId > 0);
+                        break;
+
+                    default:
+                        break;
+                }
+            }
         }
     }
 }
