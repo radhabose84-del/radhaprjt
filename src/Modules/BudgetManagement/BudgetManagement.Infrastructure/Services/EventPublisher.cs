@@ -1,4 +1,3 @@
-#nullable disable
 using System.Text.Json;
 using BudgetManagement.Application.Common.Interfaces;
 using MassTransit;
@@ -41,14 +40,14 @@ namespace BudgetManagement.Infrastructure.Services
             {
                 try
                 {
-                    var eventType = Type.GetType(message.EventType);
+                    var eventType = Type.GetType(message.EventType!);
                     if (eventType == null)
                     {
                         Log.Warning($"Unknown event type: {message.EventType}");
                         continue;
                     }
 
-                    var @event = JsonSerializer.Deserialize(message.EventData, eventType);
+                    var @event = JsonSerializer.Deserialize(message.EventData!, eventType);
                     if (@event == null)
                     {
                         Log.Warning($"Deserialization failed for event type: {message.EventType}");

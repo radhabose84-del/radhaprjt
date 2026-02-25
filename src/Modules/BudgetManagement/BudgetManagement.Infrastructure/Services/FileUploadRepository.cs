@@ -1,4 +1,3 @@
-#nullable disable
 using BudgetManagement.Application.Common.Interfaces;
 using Microsoft.AspNetCore.Http;
 
@@ -68,13 +67,13 @@ namespace BudgetManagement.Infrastructure.Services
 
             string finalPath = Path.Combine(uploadPath, fileName);
             File.Move(filePath, finalPath);
-             string logoBase64 = null;
+             string? logoBase64 = null;
              if (!string.IsNullOrEmpty(finalPath) && File.Exists(finalPath))
              {
                  byte[] imageBytes = await File.ReadAllBytesAsync(finalPath);
                  logoBase64 = Convert.ToBase64String(imageBytes);
              }
-            return (true, finalPath, logoBase64);
+            return (true, finalPath, logoBase64 ?? string.Empty);
         }
     }
 }

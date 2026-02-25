@@ -1119,7 +1119,8 @@ src/tests/
 ├── Controllers/
 │   └── {EntityName}ControllerTests.cs
 ├── Domain/
-│   └── EntityTests.cs
+│   ├── {EntityName}EntityTests.cs       ← one file per entity
+│   └── BaseEntityAuditFieldsTests.cs
 ├── Validators/
 │   └── {EntityName}/
 │       ├── Create{EntityName}CommandValidatorTests.cs
@@ -2101,7 +2102,7 @@ mockCompanyLookup.Setup(c => c.GetAllCompanyAsync())
 - [ ] Create `Validators/{EntityName}/Create{EntityName}CommandValidatorTests.cs`
 - [ ] Create `Validators/{EntityName}/Update{EntityName}CommandValidatorTests.cs`
 - [ ] Create `Controllers/{EntityName}ControllerTests.cs`
-- [ ] Create or update `Domain/EntityTests.cs` (add tests for the new entity)
+- [ ] Create `Domain/{EntityName}EntityTests.cs` (one dedicated file per entity — never add to a shared `EntityTests.cs`)
 - [ ] Run: `dotnet test src/tests/{Module}.UnitTests/` ✅ All pass
 
 ---

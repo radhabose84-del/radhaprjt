@@ -14,3 +14,6 @@ public sealed class GetSalesChannelAutoCompleteQueryHandler
     public Task<IReadOnlyList<SalesChannelLookupDto>> Handle(GetSalesChannelAutoCompleteQuery r, CancellationToken ct)
         => _repo.AutocompleteAsync(r.Term ?? string.Empty, ct);
 }
+
+
+

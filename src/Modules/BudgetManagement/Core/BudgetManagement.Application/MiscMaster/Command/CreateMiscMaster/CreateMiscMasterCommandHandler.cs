@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using Contracts.Common;
 using BudgetManagement.Application.Common.Interfaces.IMiscMaster;
@@ -42,8 +41,8 @@ namespace BudgetManagement.Application.MiscMaster.Command.CreateMiscMaster
             // 🔹 Publish domain event for auditing/logging
             var domainEvent = new AuditLogsDomainEvent(
                 actionDetail: "Create",
-                actionCode: miscMaster.Code,
-                actionName: miscMaster.Description,
+                actionCode: miscMaster.Code ?? string.Empty,
+                actionName: miscMaster.Description ?? string.Empty,
                 details: $"Misc  Master '{miscMaster.Code}' was created.",
                 module: "MiscMaster"
             );

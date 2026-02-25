@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using Contracts.Common;
 using BudgetManagement.Application.Common.Interfaces;
@@ -40,7 +39,7 @@ namespace BudgetManagement.Application.BudgetAllocation.Command.Create
                     var domainEvent = new AuditLogsDomainEvent(
                         actionDetail: "Create",
                         actionCode: entity.Id.ToString(),
-                        actionName: entity.BudgetGroupId.ToString(),
+                        actionName: entity.BudgetGroupId?.ToString() ?? string.Empty,
                         details: $"Budget Allocation Created",
                         module: "BudgetAllocation"
                     );

@@ -9,9 +9,7 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BackgroundService.API.Controllers
-{
-    [ApiController]
-    
+{        
    [Route("api/backgroundservice/[controller]")]
     public class MiscTypeMasterController : ApiControllerBase
     {

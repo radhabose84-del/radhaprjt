@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using Contracts.Common;
 using BudgetManagement.Application.Common.Interfaces.IMiscMaster;
@@ -33,8 +32,8 @@ namespace BudgetManagement.Application.MiscMaster.Command.UpdateMiscMaster
 
                     var domainEvent = new AuditLogsDomainEvent(
                         actionDetail: "Update",
-                        actionCode: miscmaster.Code,
-                        actionName: miscmaster.Description,
+                        actionCode: miscmaster.Code ?? string.Empty,
+                        actionName: miscmaster.Description ?? string.Empty,
                         details: $"MiscMaster '{miscmaster.Id}' was updated.",
                         module:"MiscMaster"
                     );               
