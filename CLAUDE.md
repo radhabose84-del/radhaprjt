@@ -292,6 +292,138 @@ public sealed record Get{EntityName}AutoCompleteQuery(string Term)
     : IRequest<IReadOnlyList<{EntityName}LookupDto>>;
 ```
 
+### Query Handler Pattern (IMapper + IMediator Required)
+
+All query handlers MUST inject `IMapper` and `IMediator` alongside the query repository.
+
+**GetAll Query Handler:**
+```csharp
+public class GetAll{EntityName}QueryHandler : IRequestHandler<GetAll{EntityName}Query, ApiResponseDTO<List<{EntityName}Dto>>>
+{
+    private readonly I{EntityName}QueryRepository _queryRepository;
+    private readonly IMapper _mapper;
+    private readonly IMediator _mediator;
+
+    public GetAll{EntityName}QueryHandler(I{EntityName}QueryRepository queryRepository, IMapper mapper, IMediator mediator)
+    {
+        _queryRepository = queryRepository;
+        _mapper = mapper;
+        _mediator = mediator;
+    }
+
+    public async Task<ApiResponseDTO<List<{EntityName}Dto>>> Handle(GetAll{EntityName}Query request, CancellationToken cancellationToken)
+    {
+        var (data, totalCount) = await _queryRepository.GetAllAsync(request.PageNumber, request.PageSize, request.SearchTerm);
+        var dtos = _mapper.Map<List<{EntityName}Dto>>(data);
+
+        // 📘 Log domain event
+        var domainEvent = new AuditLogsDomainEvent(
+            actionDetail: "GetAll{EntityName}Query",
+            actionCode: "Get",
+            actionName: data.Count.ToString(),
+            details: "{EntityName} details were fetched.",
+            module: "{EntityName}"
+        );
+        await _mediator.Publish(domainEvent, cancellationToken);
+
+        return new ApiResponseDTO<List<{EntityName}Dto>>
+        {
+            IsSuccess = true,
+            Message = "Success",
+            Data = dtos,
+            TotalCount = totalCount,
+            PageNumber = request.PageNumber,
+            PageSize = request.PageSize
+        };
+    }
+}
+```
+
+**GetById Query Handler:**
+```csharp
+public class Get{EntityName}ByIdQueryHandler : IRequestHandler<Get{EntityName}ByIdQuery, ApiResponseDTO<{EntityName}Dto>>
+{
+    private readonly I{EntityName}QueryRepository _queryRepository;
+    private readonly IMapper _mapper;
+    private readonly IMediator _mediator;
+
+    public Get{EntityName}ByIdQueryHandler(I{EntityName}QueryRepository queryRepository, IMapper mapper, IMediator mediator)
+    {
+        _queryRepository = queryRepository;
+        _mapper = mapper;
+        _mediator = mediator;
+    }
+
+    public async Task<ApiResponseDTO<{EntityName}Dto>> Handle(Get{EntityName}ByIdQuery request, CancellationToken cancellationToken)
+    {
+        var result = await _queryRepository.GetByIdAsync(request.Id);
+
+        if (result == null)
+            return null;
+
+        var dto = _mapper.Map<{EntityName}Dto>(result);
+
+        var domainEvent = new AuditLogsDomainEvent(
+            actionDetail: "GetById",
+            actionCode: "Get{EntityName}ByIdQuery",
+            actionName: dto.Id.ToString(),
+            details: $"{EntityName} details {dto.Id} was fetched.",
+            module: "{EntityName}"
+        );
+        await _mediator.Publish(domainEvent, cancellationToken);
+
+        return new ApiResponseDTO<{EntityName}Dto>
+        {
+            IsSuccess = true,
+            Message = "{EntityName} retrieved successfully.",
+            Data = dto
+        };
+    }
+}
+```
+
+**AutoComplete Query Handler:**
+```csharp
+public class Get{EntityName}AutoCompleteQueryHandler : IRequestHandler<Get{EntityName}AutoCompleteQuery, IReadOnlyList<{EntityName}LookupDto>>
+{
+    private readonly I{EntityName}QueryRepository _queryRepository;
+    private readonly IMapper _mapper;
+    private readonly IMediator _mediator;
+
+    public Get{EntityName}AutoCompleteQueryHandler(I{EntityName}QueryRepository queryRepository, IMapper mapper, IMediator mediator)
+    {
+        _queryRepository = queryRepository;
+        _mapper = mapper;
+        _mediator = mediator;
+    }
+
+    public async Task<IReadOnlyList<{EntityName}LookupDto>> Handle(Get{EntityName}AutoCompleteQuery request, CancellationToken cancellationToken)
+    {
+        var result = await _queryRepository.AutocompleteAsync(request.Term ?? string.Empty, cancellationToken);
+        var dtos = _mapper.Map<List<{EntityName}LookupDto>>(result);
+
+        // Domain Event
+        var domainEvent = new AuditLogsDomainEvent(
+            actionDetail: "GetAll",
+            actionCode: "Get{EntityName}AutoCompleteQuery",
+            actionName: dtos.Count.ToString(),
+            details: "{EntityName} details was fetched.",
+            module: "{EntityName}"
+        );
+        await _mediator.Publish(domainEvent, cancellationToken);
+
+        return dtos;
+    }
+}
+```
+
+⚠️ **Key Rules for Query Handlers:**
+1. **ALWAYS inject all 3 dependencies:** `IQueryRepository`, `IMapper`, `IMediator`
+2. **ALWAYS use `_mapper.Map<>(data)`** — never return repo result directly
+3. **ALWAYS publish `AuditLogsDomainEvent`** after fetching data
+4. **Use `public class`** (not `sealed`) and block namespace syntax (not file-scoped)
+5. **GetById null guard:** `if (result == null) return null;` before mapping
+
 ---
 
 ## 📊 Repository Pattern

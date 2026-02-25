@@ -1,31 +1,49 @@
+#nullable disable
+using AutoMapper;
 using Contracts.Common;
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.IMiscTypeMaster;
 using SalesManagement.Application.MiscTypeMaster.Dto;
+using SalesManagement.Domain.Events;
 
 namespace SalesManagement.Application.MiscTypeMaster.Queries.GetMiscTypeMasterById
 {
     public class GetMiscTypeMasterByIdQueryHandler : IRequestHandler<GetMiscTypeMasterByIdQuery, ApiResponseDTO<MiscTypeMasterDto>>
     {
         private readonly IMiscTypeMasterQueryRepository _queryRepository;
+        private readonly IMapper _mapper;
+        private readonly IMediator _mediator;
 
-        public GetMiscTypeMasterByIdQueryHandler(IMiscTypeMasterQueryRepository queryRepository)
+        public GetMiscTypeMasterByIdQueryHandler(IMiscTypeMasterQueryRepository queryRepository, IMapper mapper, IMediator mediator)
         {
             _queryRepository = queryRepository;
+            _mapper = mapper;
+            _mediator = mediator;
         }
 
         public async Task<ApiResponseDTO<MiscTypeMasterDto>> Handle(GetMiscTypeMasterByIdQuery request, CancellationToken cancellationToken)
         {
-            var dto = await _queryRepository.GetByIdAsync(request.Id);
+            var result = await _queryRepository.GetByIdAsync(request.Id);
 
-            if (dto == null)
-                throw new EntityNotFoundException($"Misc Type Master with Id {request.Id} not found.");
+            if (result == null)
+                return null;
+
+            var miscTypeMaster = _mapper.Map<MiscTypeMasterDto>(result);
+
+            var domainEvent = new AuditLogsDomainEvent(
+                actionDetail: "GetById",
+                actionCode: "GetMiscTypeMasterByIdQuery",
+                actionName: miscTypeMaster.Id.ToString(),
+                details: $"MiscTypeMaster details {miscTypeMaster.Id} was fetched.",
+                module: "MiscTypeMaster"
+            );
+            await _mediator.Publish(domainEvent, cancellationToken);
 
             return new ApiResponseDTO<MiscTypeMasterDto>
             {
                 IsSuccess = true,
                 Message = "Misc Type Master retrieved successfully.",
-                Data = dto
+                Data = miscTypeMaster
             };
         }
     }

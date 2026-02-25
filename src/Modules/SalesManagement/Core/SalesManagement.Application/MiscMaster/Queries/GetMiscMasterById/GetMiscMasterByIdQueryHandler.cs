@@ -1,31 +1,49 @@
+#nullable disable
+using AutoMapper;
 using Contracts.Common;
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.IMiscMaster;
 using SalesManagement.Application.MiscMaster.Dto;
+using SalesManagement.Domain.Events;
 
 namespace SalesManagement.Application.MiscMaster.Queries.GetMiscMasterById
 {
     public class GetMiscMasterByIdQueryHandler : IRequestHandler<GetMiscMasterByIdQuery, ApiResponseDTO<MiscMasterDto>>
     {
         private readonly IMiscMasterQueryRepository _queryRepository;
+        private readonly IMapper _mapper;
+        private readonly IMediator _mediator;
 
-        public GetMiscMasterByIdQueryHandler(IMiscMasterQueryRepository queryRepository)
+        public GetMiscMasterByIdQueryHandler(IMiscMasterQueryRepository queryRepository, IMapper mapper, IMediator mediator)
         {
             _queryRepository = queryRepository;
+            _mapper = mapper;
+            _mediator = mediator;
         }
 
         public async Task<ApiResponseDTO<MiscMasterDto>> Handle(GetMiscMasterByIdQuery request, CancellationToken cancellationToken)
         {
-            var dto = await _queryRepository.GetByIdAsync(request.Id);
+            var result = await _queryRepository.GetByIdAsync(request.Id);
 
-            if (dto == null)
-                throw new EntityNotFoundException($"Misc Master with Id {request.Id} not found.");
+            if (result == null)
+                return null;
+
+            var miscMaster = _mapper.Map<MiscMasterDto>(result);
+
+            var domainEvent = new AuditLogsDomainEvent(
+                actionDetail: "GetById",
+                actionCode: "GetMiscMasterByIdQuery",
+                actionName: miscMaster.Id.ToString(),
+                details: $"MiscMaster details {miscMaster.Id} was fetched.",
+                module: "MiscMaster"
+            );
+            await _mediator.Publish(domainEvent, cancellationToken);
 
             return new ApiResponseDTO<MiscMasterDto>
             {
                 IsSuccess = true,
                 Message = "Misc Master retrieved successfully.",
-                Data = dto
+                Data = miscMaster
             };
         }
     }
