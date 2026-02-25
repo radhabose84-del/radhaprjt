@@ -1,6 +1,5 @@
 #nullable disable
 using AutoMapper;
-using Contracts.Common;
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.ISalesItemPriceMaster;
 using SalesManagement.Application.SalesItemPriceMaster.Dto;
@@ -9,7 +8,7 @@ using SalesManagement.Domain.Events;
 namespace SalesManagement.Application.SalesItemPriceMaster.Queries.GetSalesItemPriceMasterById
 {
     public class GetSalesItemPriceMasterByIdQueryHandler
-        : IRequestHandler<GetSalesItemPriceMasterByIdQuery, ApiResponseDTO<SalesItemPriceMasterDto>>
+        : IRequestHandler<GetSalesItemPriceMasterByIdQuery, SalesItemPriceMasterDto>
     {
         private readonly ISalesItemPriceMasterQueryRepository _queryRepository;
         private readonly IMapper _mapper;
@@ -22,7 +21,7 @@ namespace SalesManagement.Application.SalesItemPriceMaster.Queries.GetSalesItemP
             _mediator = mediator;
         }
 
-        public async Task<ApiResponseDTO<SalesItemPriceMasterDto>> Handle(
+        public async Task<SalesItemPriceMasterDto> Handle(
             GetSalesItemPriceMasterByIdQuery request,
             CancellationToken cancellationToken)
         {
@@ -42,12 +41,7 @@ namespace SalesManagement.Application.SalesItemPriceMaster.Queries.GetSalesItemP
             );
             await _mediator.Publish(domainEvent, cancellationToken);
 
-            return new ApiResponseDTO<SalesItemPriceMasterDto>
-            {
-                IsSuccess = true,
-                Message = "Sales Item Price Master retrieved successfully.",
-                Data = salesItemPriceMaster
-            };
+            return salesItemPriceMaster;
         }
     }
 }

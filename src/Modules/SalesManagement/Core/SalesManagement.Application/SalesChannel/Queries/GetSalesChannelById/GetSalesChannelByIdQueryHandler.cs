@@ -1,6 +1,5 @@
 #nullable disable
 using AutoMapper;
-using Contracts.Common;
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.ISalesChannel;
 using SalesManagement.Application.SalesChannel.Dto;
@@ -8,7 +7,7 @@ using SalesManagement.Domain.Events;
 
 namespace SalesManagement.Application.SalesChannel.Queries.GetSalesChannelById
 {
-    public class GetSalesChannelByIdQueryHandler : IRequestHandler<GetSalesChannelByIdQuery, ApiResponseDTO<SalesChannelDto>>
+    public class GetSalesChannelByIdQueryHandler : IRequestHandler<GetSalesChannelByIdQuery, SalesChannelDto>
     {
         private readonly ISalesChannelQueryRepository _queryRepository;
         private readonly IMapper _mapper;
@@ -21,7 +20,7 @@ namespace SalesManagement.Application.SalesChannel.Queries.GetSalesChannelById
             _mediator = mediator;
         }
 
-        public async Task<ApiResponseDTO<SalesChannelDto>> Handle(GetSalesChannelByIdQuery request, CancellationToken cancellationToken)
+        public async Task<SalesChannelDto> Handle(GetSalesChannelByIdQuery request, CancellationToken cancellationToken)
         {
             var result = await _queryRepository.GetByIdAsync(request.Id);
 
@@ -39,12 +38,7 @@ namespace SalesManagement.Application.SalesChannel.Queries.GetSalesChannelById
             );
             await _mediator.Publish(domainEvent, cancellationToken);
 
-            return new ApiResponseDTO<SalesChannelDto>
-            {
-                IsSuccess = true,
-                Message = "Sales Channel retrieved successfully.",
-                Data = salesChannel
-            };
+            return salesChannel;
         }
     }
 }

@@ -1,5 +1,6 @@
 #nullable disable
-using Contracts.Common;
+using AutoMapper;
+using MediatR;
 using SalesManagement.Application.Common.Interfaces.ISalesGroup;
 using SalesManagement.Application.SalesGroup.Dto;
 using SalesManagement.Application.SalesGroup.Queries.GetSalesGroupById;
@@ -10,123 +11,85 @@ namespace SalesManagement.UnitTests.Application.SalesGroup.Queries
     public class GetSalesGroupByIdQueryHandlerTests
     {
         private readonly Mock<ISalesGroupQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
+        private readonly Mock<IMapper> _mockMapper = new();
+        private readonly Mock<IMediator> _mockMediator = new();
 
-        private GetSalesGroupByIdQueryHandler CreateSut() =>
-            new GetSalesGroupByIdQueryHandler(_mockQueryRepo.Object);
+        private GetSalesGroupByIdQueryHandler CreateSut()
+        {
+            _mockMapper.Setup(m => m.Map<SalesGroupDto>(It.IsAny<object>()))
+                .Returns<object>(o => o as SalesGroupDto);
+            _mockMediator.Setup(m => m.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
+            return new GetSalesGroupByIdQueryHandler(_mockQueryRepo.Object, _mockMapper.Object, _mockMediator.Object);
+        }
 
-        // ── Tests ─────────────────────────────────────────────────────────────
+        // â”€â”€ Tests â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
         [Fact]
-        public async Task Handle_EntityExists_ReturnsSuccess()
+        public async Task Handle_EntityExists_ReturnsNotNull()
         {
-            // Arrange
             var query = new GetSalesGroupByIdQuery { Id = 1 };
             var dto = SalesGroupBuilders.ValidDto(id: 1, name: "Test Sales Group");
-
             _mockQueryRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(dto);
-
             var sut = CreateSut();
 
-            // Act
             var result = await sut.Handle(query, CancellationToken.None);
 
-            // Assert
             result.Should().NotBeNull();
-            result.IsSuccess.Should().BeTrue();
         }
 
         [Fact]
         public async Task Handle_EntityExists_ReturnsCorrectDto()
         {
-            // Arrange
             var query = new GetSalesGroupByIdQuery { Id = 1 };
             var dto = SalesGroupBuilders.ValidDto(id: 1, name: "North Region Group");
-
             _mockQueryRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(dto);
-
             var sut = CreateSut();
 
-            // Act
             var result = await sut.Handle(query, CancellationToken.None);
 
-            // Assert
-            result.Data.Should().NotBeNull();
-            result.Data.Id.Should().Be(1);
-            result.Data.SalesGroupName.Should().Be("North Region Group");
+            result.Should().NotBeNull();
+            result.Id.Should().Be(1);
+            result.SalesGroupName.Should().Be("North Region Group");
         }
 
         [Fact]
-        public async Task Handle_EntityExists_ReturnsSuccessMessage()
+        public async Task Handle_EntityExists_PublishesAuditEvent()
         {
-            // Arrange
             var query = new GetSalesGroupByIdQuery { Id = 1 };
             var dto = SalesGroupBuilders.ValidDto(id: 1);
-
             _mockQueryRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(dto);
-
             var sut = CreateSut();
 
-            // Act
-            var result = await sut.Handle(query, CancellationToken.None);
+            await sut.Handle(query, CancellationToken.None);
 
-            // Assert
-            result.Message.Should().Contain("retrieved");
+            _mockMediator.Verify(m => m.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
         public async Task Handle_EntityExists_CallsGetByIdAsync_Once()
         {
-            // Arrange
             var query = new GetSalesGroupByIdQuery { Id = 7 };
             var dto = SalesGroupBuilders.ValidDto(id: 7);
-
             _mockQueryRepo.Setup(r => r.GetByIdAsync(7)).ReturnsAsync(dto);
-
             var sut = CreateSut();
 
-            // Act
             await sut.Handle(query, CancellationToken.None);
 
-            // Assert
             _mockQueryRepo.Verify(r => r.GetByIdAsync(7), Times.Once);
         }
 
         [Fact]
-        public async Task Handle_EntityNotFound_ThrowsEntityNotFoundException()
+        public async Task Handle_EntityNotFound_ReturnsNull()
         {
-            // Arrange
             var query = new GetSalesGroupByIdQuery { Id = 99 };
-
             _mockQueryRepo.Setup(r => r.GetByIdAsync(99))
                 .ReturnsAsync((SalesGroupDto)null);
-
             var sut = CreateSut();
 
-            // Act
-            Func<Task> act = async () => await sut.Handle(query, CancellationToken.None);
+            var result = await sut.Handle(query, CancellationToken.None);
 
-            // Assert
-            await act.Should().ThrowAsync<EntityNotFoundException>()
-                .WithMessage("*99*");
-        }
-
-        [Fact]
-        public async Task Handle_EntityNotFound_ExceptionMessage_ContainsEntityType()
-        {
-            // Arrange
-            var query = new GetSalesGroupByIdQuery { Id = 99 };
-
-            _mockQueryRepo.Setup(r => r.GetByIdAsync(99))
-                .ReturnsAsync((SalesGroupDto)null);
-
-            var sut = CreateSut();
-
-            // Act
-            Func<Task> act = async () => await sut.Handle(query, CancellationToken.None);
-
-            // Assert — message should mention "Sales Group"
-            await act.Should().ThrowAsync<EntityNotFoundException>()
-                .WithMessage("*Sales Group*");
+            result.Should().BeNull();
         }
     }
 }

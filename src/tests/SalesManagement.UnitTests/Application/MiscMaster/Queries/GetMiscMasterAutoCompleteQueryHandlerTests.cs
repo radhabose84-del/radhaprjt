@@ -1,4 +1,6 @@
 #nullable disable
+using AutoMapper;
+using MediatR;
 using SalesManagement.Application.Common.Interfaces.IMiscMaster;
 using SalesManagement.Application.MiscMaster.Dto;
 using SalesManagement.Application.MiscMaster.Queries.GetMiscMasterAutoComplete;
@@ -9,8 +11,17 @@ namespace SalesManagement.UnitTests.Application.MiscMaster.Queries
     public sealed class GetMiscMasterAutoCompleteQueryHandlerTests
     {
         private readonly Mock<IMiscMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
+        private readonly Mock<IMapper> _mockMapper = new();
+        private readonly Mock<IMediator> _mockMediator = new();
 
-        private GetMiscMasterAutoCompleteQueryHandler CreateSut() => new(_mockQueryRepo.Object);
+        private GetMiscMasterAutoCompleteQueryHandler CreateSut()
+        {
+            _mockMapper.Setup(m => m.Map<List<MiscMasterLookupDto>>(It.IsAny<object>()))
+                .Returns<object>(o => o is IEnumerable<MiscMasterLookupDto> e ? e.ToList() : new List<MiscMasterLookupDto>());
+            _mockMediator.Setup(m => m.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
+            return new GetMiscMasterAutoCompleteQueryHandler(_mockQueryRepo.Object, _mockMapper.Object, _mockMediator.Object);
+        }
 
         // ── Happy Path ────────────────────────────────────────────────────────
 

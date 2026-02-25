@@ -1,5 +1,6 @@
 #nullable disable
-using Contracts.Common;
+using AutoMapper;
+using MediatR;
 using SalesManagement.Application.Common.Interfaces.ISalesOffice;
 using SalesManagement.Application.SalesOffice.Dto;
 using SalesManagement.Application.SalesOffice.Queries.GetSalesOfficeById;
@@ -10,14 +11,22 @@ namespace SalesManagement.UnitTests.Application.SalesOffice.Queries
     public class GetSalesOfficeByIdQueryHandlerTests
     {
         private readonly Mock<ISalesOfficeQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
+        private readonly Mock<IMapper> _mockMapper = new();
+        private readonly Mock<IMediator> _mockMediator = new();
 
-        private GetSalesOfficeByIdQueryHandler CreateSut() =>
-            new GetSalesOfficeByIdQueryHandler(_mockQueryRepo.Object);
+        private GetSalesOfficeByIdQueryHandler CreateSut()
+        {
+            _mockMapper.Setup(m => m.Map<SalesOfficeDto>(It.IsAny<object>()))
+                .Returns<object>(o => o as SalesOfficeDto);
+            _mockMediator.Setup(m => m.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
+            return new GetSalesOfficeByIdQueryHandler(_mockQueryRepo.Object, _mockMapper.Object, _mockMediator.Object);
+        }
 
         // ── Tests ─────────────────────────────────────────────────────────────
 
         [Fact]
-        public async Task Handle_ValidId_ReturnsSuccess()
+        public async Task Handle_ValidId_ReturnsNotNull()
         {
             var query = new GetSalesOfficeByIdQuery { Id = 1 };
             var dto = SalesOfficeBuilders.ValidDto(id: 1, name: "Office Alpha");
@@ -26,7 +35,6 @@ namespace SalesManagement.UnitTests.Application.SalesOffice.Queries
             var result = await CreateSut().Handle(query, CancellationToken.None);
 
             result.Should().NotBeNull();
-            result.IsSuccess.Should().BeTrue();
         }
 
         [Fact]
@@ -38,34 +46,33 @@ namespace SalesManagement.UnitTests.Application.SalesOffice.Queries
 
             var result = await CreateSut().Handle(query, CancellationToken.None);
 
-            result.Data.Should().NotBeNull();
-            result.Data.Id.Should().Be(1);
-            result.Data.SalesOfficeName.Should().Be("Office Alpha");
-            result.Data.SalesOrganisationId.Should().Be(2);
-            result.Data.SalesOrganisationName.Should().Be("Org Two");
+            result.Should().NotBeNull();
+            result.Id.Should().Be(1);
+            result.SalesOfficeName.Should().Be("Office Alpha");
+            result.SalesOrganisationId.Should().Be(2);
+            result.SalesOrganisationName.Should().Be("Org Two");
         }
 
         [Fact]
-        public async Task Handle_NotFound_ThrowsEntityNotFoundException()
+        public async Task Handle_NotFound_ReturnsNull()
         {
             var query = new GetSalesOfficeByIdQuery { Id = 99 };
             _mockQueryRepo.Setup(r => r.GetByIdAsync(99)).ReturnsAsync((SalesOfficeDto)null);
 
-            Func<Task> act = async () => await CreateSut().Handle(query, CancellationToken.None);
+            var result = await CreateSut().Handle(query, CancellationToken.None);
 
-            await act.Should().ThrowAsync<EntityNotFoundException>()
-                .WithMessage("*99*");
+            result.Should().BeNull();
         }
 
         [Fact]
-        public async Task Handle_ValidId_ReturnsSuccessMessage()
+        public async Task Handle_ValidId_PublishesAuditEvent()
         {
             var query = new GetSalesOfficeByIdQuery { Id = 1 };
             _mockQueryRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(SalesOfficeBuilders.ValidDto(id: 1));
 
-            var result = await CreateSut().Handle(query, CancellationToken.None);
+            await CreateSut().Handle(query, CancellationToken.None);
 
-            result.Message.Should().Contain("retrieved");
+            _mockMediator.Verify(m => m.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]

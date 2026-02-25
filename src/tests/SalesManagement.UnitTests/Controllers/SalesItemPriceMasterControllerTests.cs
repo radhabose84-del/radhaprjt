@@ -66,11 +66,7 @@ public sealed class SalesItemPriceMasterControllerTests
     {
         _mockMediator
             .Setup(m => m.Send(It.IsAny<GetSalesItemPriceMasterByIdQuery>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ApiResponseDTO<SalesItemPriceMasterDto>
-            {
-                IsSuccess = true,
-                Data = new SalesItemPriceMasterDto()
-            });
+            .ReturnsAsync(new SalesItemPriceMasterDto());
 
         var result = await CreateSut().GetSalesItemPriceMasterByIdAsync(1);
 

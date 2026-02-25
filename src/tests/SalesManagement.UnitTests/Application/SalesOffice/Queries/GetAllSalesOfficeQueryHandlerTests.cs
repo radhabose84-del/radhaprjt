@@ -1,4 +1,6 @@
 #nullable disable
+using AutoMapper;
+using MediatR;
 using SalesManagement.Application.Common.Interfaces.ISalesOffice;
 using SalesManagement.Application.SalesOffice.Dto;
 using SalesManagement.Application.SalesOffice.Queries.GetAllSalesOffice;
@@ -9,9 +11,17 @@ namespace SalesManagement.UnitTests.Application.SalesOffice.Queries
     public class GetAllSalesOfficeQueryHandlerTests
     {
         private readonly Mock<ISalesOfficeQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
+        private readonly Mock<IMapper> _mockMapper = new();
+        private readonly Mock<IMediator> _mockMediator = new();
 
-        private GetAllSalesOfficeQueryHandler CreateSut() =>
-            new GetAllSalesOfficeQueryHandler(_mockQueryRepo.Object);
+        private GetAllSalesOfficeQueryHandler CreateSut()
+        {
+            _mockMapper.Setup(m => m.Map<List<SalesOfficeDto>>(It.IsAny<object>()))
+                .Returns<object>(o => o as List<SalesOfficeDto> ?? new List<SalesOfficeDto>());
+            _mockMediator.Setup(m => m.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
+            return new GetAllSalesOfficeQueryHandler(_mockQueryRepo.Object, _mockMapper.Object, _mockMediator.Object);
+        }
 
         // ── Tests ─────────────────────────────────────────────────────────────
 
