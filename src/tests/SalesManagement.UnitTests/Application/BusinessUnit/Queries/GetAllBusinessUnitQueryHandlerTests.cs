@@ -1,4 +1,7 @@
 #nullable disable
+using AutoMapper;
+using MediatR;
+using SalesManagement.Application.BusinessUnit.Dto;
 using SalesManagement.Application.BusinessUnit.Queries.GetAllBusinessUnit;
 using SalesManagement.Application.Common.Interfaces.IBusinessUnit;
 using SalesManagement.UnitTests.TestData;
@@ -8,9 +11,17 @@ namespace SalesManagement.UnitTests.Application.BusinessUnit.Queries
     public class GetAllBusinessUnitQueryHandlerTests
     {
         private readonly Mock<IBusinessUnitQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
+        private readonly Mock<IMapper> _mockMapper = new();
+        private readonly Mock<IMediator> _mockMediator = new();
 
-        private GetAllBusinessUnitQueryHandler CreateSut() =>
-            new GetAllBusinessUnitQueryHandler(_mockQueryRepo.Object);
+        private GetAllBusinessUnitQueryHandler CreateSut()
+        {
+            _mockMapper.Setup(m => m.Map<List<BusinessUnitDto>>(It.IsAny<object>()))
+                .Returns<object>(o => o as List<BusinessUnitDto> ?? new List<BusinessUnitDto>());
+            _mockMediator.Setup(m => m.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
+            return new GetAllBusinessUnitQueryHandler(_mockQueryRepo.Object, _mockMapper.Object, _mockMediator.Object);
+        }
 
         // ── Tests ─────────────────────────────────────────────────────────────
 

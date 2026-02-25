@@ -66,11 +66,7 @@ public sealed class MiscMasterControllerTests
     {
         _mockMediator
             .Setup(m => m.Send(It.IsAny<GetMiscMasterByIdQuery>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ApiResponseDTO<MiscMasterDto>
-            {
-                IsSuccess = true,
-                Data = new MiscMasterDto()
-            });
+            .ReturnsAsync(new MiscMasterDto());
 
         var result = await CreateSut().GetMiscMasterByIdAsync(1);
 
