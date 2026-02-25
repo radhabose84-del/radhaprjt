@@ -46,9 +46,7 @@ namespace SalesManagement.Presentation.Controllers
             return Ok(new
             {
                 StatusCode = StatusCodes.Status200OK,
-                isSuccess = result.IsSuccess,
-                message = result.Message,
-                data = result.Data
+                data = result
             });
         }
 

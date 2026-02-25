@@ -1,5 +1,7 @@
 #nullable disable
+using AutoMapper;
 using Contracts.Interfaces.Lookups.Users;
+using MediatR;
 using SalesManagement.Application.Common.Interfaces.ISalesSegment;
 using SalesManagement.Application.SalesSegment.Dto;
 using SalesManagement.Application.SalesSegment.Queries.GetAllSalesSegment;
@@ -15,9 +17,17 @@ namespace SalesManagement.UnitTests.Application.SalesSegment.Queries
     {
         private readonly Mock<ISalesSegmentQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
         private readonly Mock<ICurrencyLookup> _mockCurrencyLookup = new(MockBehavior.Strict);
+        private readonly Mock<IMapper> _mockMapper = new();
+        private readonly Mock<IMediator> _mockMediator = new();
 
-        private GetAllSalesSegmentQueryHandler CreateSut() =>
-            new GetAllSalesSegmentQueryHandler(_mockQueryRepo.Object, _mockCurrencyLookup.Object);
+        private GetAllSalesSegmentQueryHandler CreateSut()
+        {
+            _mockMapper.Setup(m => m.Map<List<SalesSegmentDto>>(It.IsAny<object>()))
+                .Returns<object>(o => o as List<SalesSegmentDto> ?? new List<SalesSegmentDto>());
+            _mockMediator.Setup(m => m.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
+            return new GetAllSalesSegmentQueryHandler(_mockQueryRepo.Object, _mockCurrencyLookup.Object, _mockMapper.Object, _mockMediator.Object);
+        }
 
         // ── Tests ─────────────────────────────────────────────────────────────
 

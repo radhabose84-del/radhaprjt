@@ -1,4 +1,6 @@
 #nullable disable
+using AutoMapper;
+using MediatR;
 using SalesManagement.Application.Common.Interfaces.IMiscMaster;
 using SalesManagement.Application.MiscMaster.Dto;
 using SalesManagement.Application.MiscMaster.Queries.GetAllMiscMaster;
@@ -9,8 +11,17 @@ namespace SalesManagement.UnitTests.Application.MiscMaster.Queries
     public sealed class GetAllMiscMasterQueryHandlerTests
     {
         private readonly Mock<IMiscMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
+        private readonly Mock<IMapper> _mockMapper = new();
+        private readonly Mock<IMediator> _mockMediator = new();
 
-        private GetAllMiscMasterQueryHandler CreateSut() => new(_mockQueryRepo.Object);
+        private GetAllMiscMasterQueryHandler CreateSut()
+        {
+            _mockMapper.Setup(m => m.Map<List<MiscMasterDto>>(It.IsAny<object>()))
+                .Returns<object>(o => o as List<MiscMasterDto> ?? new List<MiscMasterDto>());
+            _mockMediator.Setup(m => m.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
+            return new GetAllMiscMasterQueryHandler(_mockQueryRepo.Object, _mockMapper.Object, _mockMediator.Object);
+        }
 
         // ── Happy Path ────────────────────────────────────────────────────────
 

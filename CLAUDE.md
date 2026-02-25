@@ -275,7 +275,7 @@ public class GetAll{EntityName}Query : IRequest<ApiResponseDTO<List<{EntityName}
 
 **GetById Query:**
 ```csharp
-public class Get{EntityName}ByIdQuery : IRequest<ApiResponseDTO<{EntityName}Dto>>
+public class Get{EntityName}ByIdQuery : IRequest<{EntityName}Dto>
 {
     public int Id { get; set; }
 }
@@ -336,7 +336,7 @@ public class GetAll{EntityName}QueryHandler : IRequestHandler<GetAll{EntityName}
 
 **GetById Query Handler:**
 ```csharp
-public class Get{EntityName}ByIdQueryHandler : IRequestHandler<Get{EntityName}ByIdQuery, ApiResponseDTO<{EntityName}Dto>>
+public class Get{EntityName}ByIdQueryHandler : IRequestHandler<Get{EntityName}ByIdQuery, {EntityName}Dto>
 {
     private readonly I{EntityName}QueryRepository _queryRepository;
     private readonly IMapper _mapper;
@@ -349,7 +349,7 @@ public class Get{EntityName}ByIdQueryHandler : IRequestHandler<Get{EntityName}By
         _mediator = mediator;
     }
 
-    public async Task<ApiResponseDTO<{EntityName}Dto>> Handle(Get{EntityName}ByIdQuery request, CancellationToken cancellationToken)
+    public async Task<{EntityName}Dto> Handle(Get{EntityName}ByIdQuery request, CancellationToken cancellationToken)
     {
         var result = await _queryRepository.GetByIdAsync(request.Id);
 
@@ -367,12 +367,7 @@ public class Get{EntityName}ByIdQueryHandler : IRequestHandler<Get{EntityName}By
         );
         await _mediator.Publish(domainEvent, cancellationToken);
 
-        return new ApiResponseDTO<{EntityName}Dto>
-        {
-            IsSuccess = true,
-            Message = "{EntityName} retrieved successfully.",
-            Data = dto
-        };
+        return dto;
     }
 }
 ```
@@ -848,7 +843,15 @@ public class {EntityName}Controller : ApiControllerBase
     }
 
     [HttpGet("{id}")]
-    public async Task<IActionResult> Get{EntityName}ByIdAsync(int id) { /* ... */ }
+    public async Task<IActionResult> Get{EntityName}ByIdAsync(int id)
+    {
+        var result = await Mediator.Send(new Get{EntityName}ByIdQuery { Id = id });
+        return Ok(new
+        {
+            StatusCode = StatusCodes.Status200OK,
+            data = result
+        });
+    }
 
     [HttpGet("by-name")]
     public async Task<IActionResult> Get{EntityName}AutoCompleteAsync([FromQuery] string term = null) { /* ... */ }

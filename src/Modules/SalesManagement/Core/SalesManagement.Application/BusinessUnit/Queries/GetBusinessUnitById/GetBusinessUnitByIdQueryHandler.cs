@@ -1,6 +1,5 @@
 #nullable disable
 using AutoMapper;
-using Contracts.Common;
 using MediatR;
 using SalesManagement.Application.BusinessUnit.Dto;
 using SalesManagement.Application.Common.Interfaces.IBusinessUnit;
@@ -8,7 +7,7 @@ using SalesManagement.Domain.Events;
 
 namespace SalesManagement.Application.BusinessUnit.Queries.GetBusinessUnitById
 {
-    public class GetBusinessUnitByIdQueryHandler : IRequestHandler<GetBusinessUnitByIdQuery, ApiResponseDTO<BusinessUnitDto>>
+    public class GetBusinessUnitByIdQueryHandler : IRequestHandler<GetBusinessUnitByIdQuery, BusinessUnitDto>
     {
         private readonly IBusinessUnitQueryRepository _queryRepository;
         private readonly IMapper _mapper;
@@ -21,11 +20,11 @@ namespace SalesManagement.Application.BusinessUnit.Queries.GetBusinessUnitById
             _mediator = mediator;
         }
 
-        public async Task<ApiResponseDTO<BusinessUnitDto>> Handle(GetBusinessUnitByIdQuery request, CancellationToken cancellationToken)
+        public async Task<BusinessUnitDto> Handle(GetBusinessUnitByIdQuery request, CancellationToken cancellationToken)
         {
             var result = await _queryRepository.GetByIdAsync(request.Id);
 
-            if (result == null)
+            if (result is null)
                 return null;
 
             var businessUnit = _mapper.Map<BusinessUnitDto>(result);
@@ -39,12 +38,7 @@ namespace SalesManagement.Application.BusinessUnit.Queries.GetBusinessUnitById
             );
             await _mediator.Publish(domainEvent, cancellationToken);
 
-            return new ApiResponseDTO<BusinessUnitDto>
-            {
-                IsSuccess = true,
-                Message = "Business Unit retrieved successfully",
-                Data = businessUnit
-            };
+            return businessUnit;
         }
     }
 }

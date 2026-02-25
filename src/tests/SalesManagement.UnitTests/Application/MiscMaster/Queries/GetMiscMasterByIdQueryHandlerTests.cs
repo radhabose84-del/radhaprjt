@@ -1,5 +1,6 @@
 #nullable disable
-using Contracts.Common;
+using AutoMapper;
+using MediatR;
 using SalesManagement.Application.Common.Interfaces.IMiscMaster;
 using SalesManagement.Application.MiscMaster.Dto;
 using SalesManagement.Application.MiscMaster.Queries.GetMiscMasterById;
@@ -10,13 +11,22 @@ namespace SalesManagement.UnitTests.Application.MiscMaster.Queries
     public sealed class GetMiscMasterByIdQueryHandlerTests
     {
         private readonly Mock<IMiscMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
+        private readonly Mock<IMapper> _mockMapper = new();
+        private readonly Mock<IMediator> _mockMediator = new();
 
-        private GetMiscMasterByIdQueryHandler CreateSut() => new(_mockQueryRepo.Object);
+        private GetMiscMasterByIdQueryHandler CreateSut()
+        {
+            _mockMapper.Setup(m => m.Map<MiscMasterDto>(It.IsAny<object>()))
+                .Returns<object>(o => o as MiscMasterDto);
+            _mockMediator.Setup(m => m.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
+            return new GetMiscMasterByIdQueryHandler(_mockQueryRepo.Object, _mockMapper.Object, _mockMediator.Object);
+        }
 
         // ── Happy Path ────────────────────────────────────────────────────────
 
         [Fact]
-        public async Task Handle_ExistingId_ReturnsSuccess()
+        public async Task Handle_ExistingId_ReturnsNotNull()
         {
             _mockQueryRepo
                 .Setup(r => r.GetByIdAsync(1))
@@ -26,7 +36,7 @@ namespace SalesManagement.UnitTests.Application.MiscMaster.Queries
                 new GetMiscMasterByIdQuery { Id = 1 },
                 CancellationToken.None);
 
-            result.IsSuccess.Should().BeTrue();
+            result.Should().NotBeNull();
         }
 
         [Fact]
@@ -39,8 +49,8 @@ namespace SalesManagement.UnitTests.Application.MiscMaster.Queries
                 new GetMiscMasterByIdQuery { Id = 3 },
                 CancellationToken.None);
 
-            result.Data.Id.Should().Be(3);
-            result.Data.Code.Should().Be("CODE003");
+            result.Id.Should().Be(3);
+            result.Code.Should().Be("CODE003");
         }
 
         [Fact]
@@ -53,41 +63,24 @@ namespace SalesManagement.UnitTests.Application.MiscMaster.Queries
                 new GetMiscMasterByIdQuery { Id = 1 },
                 CancellationToken.None);
 
-            result.Data.MiscTypeId.Should().Be(2);
-            result.Data.MiscTypeCode.Should().Be("MISC002");
+            result.MiscTypeId.Should().Be(2);
+            result.MiscTypeCode.Should().Be("MISC002");
         }
 
         // ── Not Found ─────────────────────────────────────────────────────────
 
         [Fact]
-        public async Task Handle_NonExistentId_ThrowsEntityNotFoundException()
+        public async Task Handle_NonExistentId_ReturnsNull()
         {
             _mockQueryRepo
                 .Setup(r => r.GetByIdAsync(999))
                 .ReturnsAsync((MiscMasterDto)null);
 
-            var sut = CreateSut();
-            Func<Task> act = async () => await sut.Handle(
+            var result = await CreateSut().Handle(
                 new GetMiscMasterByIdQuery { Id = 999 },
                 CancellationToken.None);
 
-            await act.Should().ThrowAsync<EntityNotFoundException>();
-        }
-
-        [Fact]
-        public async Task Handle_NonExistentId_ThrowsWithIdInMessage()
-        {
-            _mockQueryRepo
-                .Setup(r => r.GetByIdAsync(999))
-                .ReturnsAsync((MiscMasterDto)null);
-
-            var sut = CreateSut();
-            Func<Task> act = async () => await sut.Handle(
-                new GetMiscMasterByIdQuery { Id = 999 },
-                CancellationToken.None);
-
-            await act.Should().ThrowAsync<EntityNotFoundException>()
-                     .WithMessage("*999*");
+            result.Should().BeNull();
         }
     }
 }

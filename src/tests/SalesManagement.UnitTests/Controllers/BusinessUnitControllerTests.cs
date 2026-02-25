@@ -66,11 +66,7 @@ public sealed class BusinessUnitControllerTests
     {
         _mockMediator
             .Setup(m => m.Send(It.IsAny<GetBusinessUnitByIdQuery>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ApiResponseDTO<BusinessUnitDto>
-            {
-                IsSuccess = true,
-                Data = new BusinessUnitDto()
-            });
+            .ReturnsAsync(new BusinessUnitDto());
 
         var result = await CreateSut().GetBusinessUnitByIdAsync(1);
 
