@@ -1,4 +1,6 @@
 #nullable disable
+using AutoMapper;
+using MediatR;
 using SalesManagement.Application.Common.Interfaces.ISalesSegment;
 using SalesManagement.Application.SalesSegment.Dto;
 using SalesManagement.Application.SalesSegment.Queries.GetSalesSegmentAutoComplete;
@@ -12,9 +14,17 @@ namespace SalesManagement.UnitTests.Application.SalesSegment.Queries
     public class GetSalesSegmentAutoCompleteQueryHandlerTests
     {
         private readonly Mock<ISalesSegmentQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
+        private readonly Mock<IMapper> _mockMapper = new();
+        private readonly Mock<IMediator> _mockMediator = new();
 
-        private GetSalesSegmentAutoCompleteQueryHandler CreateSut() =>
-            new GetSalesSegmentAutoCompleteQueryHandler(_mockQueryRepo.Object);
+        private GetSalesSegmentAutoCompleteQueryHandler CreateSut()
+        {
+            _mockMapper.Setup(m => m.Map<List<SalesSegmentLookupDto>>(It.IsAny<object>()))
+                .Returns<object>(o => o is IEnumerable<SalesSegmentLookupDto> e ? e.ToList() : new List<SalesSegmentLookupDto>());
+            _mockMediator.Setup(m => m.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
+            return new GetSalesSegmentAutoCompleteQueryHandler(_mockQueryRepo.Object, _mockMapper.Object, _mockMediator.Object);
+        }
 
         // ── Tests ─────────────────────────────────────────────────────────────
 

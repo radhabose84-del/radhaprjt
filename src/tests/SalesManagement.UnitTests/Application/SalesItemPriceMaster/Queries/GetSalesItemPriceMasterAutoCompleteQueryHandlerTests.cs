@@ -1,5 +1,8 @@
 #nullable disable
+using AutoMapper;
+using MediatR;
 using SalesManagement.Application.Common.Interfaces.ISalesItemPriceMaster;
+using SalesManagement.Application.SalesItemPriceMaster.Dto;
 using SalesManagement.Application.SalesItemPriceMaster.Queries.GetSalesItemPriceMasterAutoComplete;
 using SalesManagement.UnitTests.TestData;
 
@@ -8,9 +11,17 @@ namespace SalesManagement.UnitTests.Application.SalesItemPriceMaster.Queries
     public class GetSalesItemPriceMasterAutoCompleteQueryHandlerTests
     {
         private readonly Mock<ISalesItemPriceMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
+        private readonly Mock<IMapper> _mockMapper = new();
+        private readonly Mock<IMediator> _mockMediator = new();
 
-        private GetSalesItemPriceMasterAutoCompleteQueryHandler CreateSut() =>
-            new GetSalesItemPriceMasterAutoCompleteQueryHandler(_mockQueryRepo.Object);
+        private GetSalesItemPriceMasterAutoCompleteQueryHandler CreateSut()
+        {
+            _mockMapper.Setup(m => m.Map<List<SalesItemPriceMasterLookupDto>>(It.IsAny<object>()))
+                .Returns<object>(o => o is IEnumerable<SalesItemPriceMasterLookupDto> e ? e.ToList() : new List<SalesItemPriceMasterLookupDto>());
+            _mockMediator.Setup(m => m.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
+            return new GetSalesItemPriceMasterAutoCompleteQueryHandler(_mockQueryRepo.Object, _mockMapper.Object, _mockMediator.Object);
+        }
 
         [Fact]
         public async Task Handle_ReturnsList_WhenMatchesFound()

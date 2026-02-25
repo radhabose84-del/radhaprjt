@@ -66,11 +66,7 @@ public sealed class SalesOfficeControllerTests
     {
         _mockMediator
             .Setup(m => m.Send(It.IsAny<GetSalesOfficeByIdQuery>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ApiResponseDTO<SalesOfficeDto>
-            {
-                IsSuccess = true,
-                Data = new SalesOfficeDto()
-            });
+            .ReturnsAsync(new SalesOfficeDto());
 
         var result = await CreateSut().GetSalesOfficeByIdAsync(1);
 

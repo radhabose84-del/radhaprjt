@@ -1,6 +1,5 @@
 #nullable disable
 using AutoMapper;
-using Contracts.Common;
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.ISalesGroup;
 using SalesManagement.Application.SalesGroup.Dto;
@@ -8,7 +7,7 @@ using SalesManagement.Domain.Events;
 
 namespace SalesManagement.Application.SalesGroup.Queries.GetSalesGroupById
 {
-    public class GetSalesGroupByIdQueryHandler : IRequestHandler<GetSalesGroupByIdQuery, ApiResponseDTO<SalesGroupDto>>
+    public class GetSalesGroupByIdQueryHandler : IRequestHandler<GetSalesGroupByIdQuery, SalesGroupDto>
     {
         private readonly ISalesGroupQueryRepository _queryRepository;
         private readonly IMapper _mapper;
@@ -21,7 +20,7 @@ namespace SalesManagement.Application.SalesGroup.Queries.GetSalesGroupById
             _mediator = mediator;
         }
 
-        public async Task<ApiResponseDTO<SalesGroupDto>> Handle(GetSalesGroupByIdQuery request, CancellationToken cancellationToken)
+        public async Task<SalesGroupDto> Handle(GetSalesGroupByIdQuery request, CancellationToken cancellationToken)
         {
             var result = await _queryRepository.GetByIdAsync(request.Id);
 
@@ -39,12 +38,7 @@ namespace SalesManagement.Application.SalesGroup.Queries.GetSalesGroupById
             );
             await _mediator.Publish(domainEvent, cancellationToken);
 
-            return new ApiResponseDTO<SalesGroupDto>
-            {
-                IsSuccess = true,
-                Message = "Sales Group retrieved successfully.",
-                Data = dto
-            };
+            return dto;
         }
     }
 }

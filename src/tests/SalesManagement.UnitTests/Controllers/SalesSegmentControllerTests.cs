@@ -66,11 +66,7 @@ public sealed class SalesSegmentControllerTests
     {
         _mockMediator
             .Setup(m => m.Send(It.IsAny<GetSalesSegmentByIdQuery>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ApiResponseDTO<SalesSegmentDto>
-            {
-                IsSuccess = true,
-                Data = new SalesSegmentDto()
-            });
+            .ReturnsAsync(new SalesSegmentDto());
 
         var result = await CreateSut().GetSalesSegmentByIdAsync(1);
 

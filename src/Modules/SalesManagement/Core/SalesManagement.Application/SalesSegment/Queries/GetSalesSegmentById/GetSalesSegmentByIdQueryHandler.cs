@@ -1,6 +1,5 @@
 #nullable disable
 using AutoMapper;
-using Contracts.Common;
 using Contracts.Interfaces.Lookups.Users;
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.ISalesSegment;
@@ -9,7 +8,7 @@ using SalesManagement.Domain.Events;
 
 namespace SalesManagement.Application.SalesSegment.Queries.GetSalesSegmentById
 {
-    public class GetSalesSegmentByIdQueryHandler : IRequestHandler<GetSalesSegmentByIdQuery, ApiResponseDTO<SalesSegmentDto>>
+    public class GetSalesSegmentByIdQueryHandler : IRequestHandler<GetSalesSegmentByIdQuery, SalesSegmentDto>
     {
         private readonly ISalesSegmentQueryRepository _queryRepository;
         private readonly ICurrencyLookup _currencyLookup;
@@ -28,7 +27,7 @@ namespace SalesManagement.Application.SalesSegment.Queries.GetSalesSegmentById
             _mediator = mediator;
         }
 
-        public async Task<ApiResponseDTO<SalesSegmentDto>> Handle(GetSalesSegmentByIdQuery request, CancellationToken cancellationToken)
+        public async Task<SalesSegmentDto> Handle(GetSalesSegmentByIdQuery request, CancellationToken cancellationToken)
         {
             var result = await _queryRepository.GetByIdAsync(request.Id);
 
@@ -54,12 +53,7 @@ namespace SalesManagement.Application.SalesSegment.Queries.GetSalesSegmentById
             );
             await _mediator.Publish(domainEvent, cancellationToken);
 
-            return new ApiResponseDTO<SalesSegmentDto>
-            {
-                IsSuccess = true,
-                Message = "Sales Segment retrieved successfully.",
-                Data = salesSegment
-            };
+            return salesSegment;
         }
     }
 }

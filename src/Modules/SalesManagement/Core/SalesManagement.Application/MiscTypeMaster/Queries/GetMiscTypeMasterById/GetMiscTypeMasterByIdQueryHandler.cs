@@ -1,6 +1,5 @@
 #nullable disable
 using AutoMapper;
-using Contracts.Common;
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.IMiscTypeMaster;
 using SalesManagement.Application.MiscTypeMaster.Dto;
@@ -8,7 +7,7 @@ using SalesManagement.Domain.Events;
 
 namespace SalesManagement.Application.MiscTypeMaster.Queries.GetMiscTypeMasterById
 {
-    public class GetMiscTypeMasterByIdQueryHandler : IRequestHandler<GetMiscTypeMasterByIdQuery, ApiResponseDTO<MiscTypeMasterDto>>
+    public class GetMiscTypeMasterByIdQueryHandler : IRequestHandler<GetMiscTypeMasterByIdQuery, MiscTypeMasterDto>
     {
         private readonly IMiscTypeMasterQueryRepository _queryRepository;
         private readonly IMapper _mapper;
@@ -21,7 +20,7 @@ namespace SalesManagement.Application.MiscTypeMaster.Queries.GetMiscTypeMasterBy
             _mediator = mediator;
         }
 
-        public async Task<ApiResponseDTO<MiscTypeMasterDto>> Handle(GetMiscTypeMasterByIdQuery request, CancellationToken cancellationToken)
+        public async Task<MiscTypeMasterDto> Handle(GetMiscTypeMasterByIdQuery request, CancellationToken cancellationToken)
         {
             var result = await _queryRepository.GetByIdAsync(request.Id);
 
@@ -39,12 +38,7 @@ namespace SalesManagement.Application.MiscTypeMaster.Queries.GetMiscTypeMasterBy
             );
             await _mediator.Publish(domainEvent, cancellationToken);
 
-            return new ApiResponseDTO<MiscTypeMasterDto>
-            {
-                IsSuccess = true,
-                Message = "Misc Type Master retrieved successfully.",
-                Data = miscTypeMaster
-            };
+            return miscTypeMaster;
         }
     }
 }

@@ -1,10 +1,9 @@
-using Contracts.Common;
 using MediatR;
 using SalesManagement.Application.MiscMaster.Dto;
 
 namespace SalesManagement.Application.MiscMaster.Queries.GetMiscMasterById
 {
-    public class GetMiscMasterByIdQuery : IRequest<ApiResponseDTO<MiscMasterDto>>
+    public class GetMiscMasterByIdQuery : IRequest<MiscMasterDto>
     {
         public int Id { get; set; }
     }

@@ -1,6 +1,5 @@
 #nullable disable
 using AutoMapper;
-using Contracts.Common;
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.ISalesOffice;
 using SalesManagement.Application.SalesOffice.Dto;
@@ -8,7 +7,7 @@ using SalesManagement.Domain.Events;
 
 namespace SalesManagement.Application.SalesOffice.Queries.GetSalesOfficeById
 {
-    public class GetSalesOfficeByIdQueryHandler : IRequestHandler<GetSalesOfficeByIdQuery, ApiResponseDTO<SalesOfficeDto>>
+    public class GetSalesOfficeByIdQueryHandler : IRequestHandler<GetSalesOfficeByIdQuery, SalesOfficeDto>
     {
         private readonly ISalesOfficeQueryRepository _queryRepository;
         private readonly IMapper _mapper;
@@ -21,7 +20,7 @@ namespace SalesManagement.Application.SalesOffice.Queries.GetSalesOfficeById
             _mediator = mediator;
         }
 
-        public async Task<ApiResponseDTO<SalesOfficeDto>> Handle(GetSalesOfficeByIdQuery request, CancellationToken cancellationToken)
+        public async Task<SalesOfficeDto> Handle(GetSalesOfficeByIdQuery request, CancellationToken cancellationToken)
         {
             var result = await _queryRepository.GetByIdAsync(request.Id);
 
@@ -39,12 +38,7 @@ namespace SalesManagement.Application.SalesOffice.Queries.GetSalesOfficeById
             );
             await _mediator.Publish(domainEvent, cancellationToken);
 
-            return new ApiResponseDTO<SalesOfficeDto>
-            {
-                IsSuccess = true,
-                Message = "Sales Office retrieved successfully.",
-                Data = salesOffice
-            };
+            return salesOffice;
         }
     }
 }

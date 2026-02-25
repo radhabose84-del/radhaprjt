@@ -1,6 +1,5 @@
 #nullable disable
 using AutoMapper;
-using Contracts.Common;
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.ISalesOrganisation;
 using SalesManagement.Application.SalesOrganisation.Dto;
@@ -8,7 +7,7 @@ using SalesManagement.Domain.Events;
 
 namespace SalesManagement.Application.SalesOrganisation.Queries.GetSalesOrganisationById
 {
-    public class GetSalesOrganisationByIdQueryHandler : IRequestHandler<GetSalesOrganisationByIdQuery, ApiResponseDTO<SalesOrganisationDto>>
+    public class GetSalesOrganisationByIdQueryHandler : IRequestHandler<GetSalesOrganisationByIdQuery, SalesOrganisationDto>
     {
         private readonly ISalesOrganisationQueryRepository _queryRepository;
         private readonly IMapper _mapper;
@@ -21,7 +20,7 @@ namespace SalesManagement.Application.SalesOrganisation.Queries.GetSalesOrganisa
             _mediator = mediator;
         }
 
-        public async Task<ApiResponseDTO<SalesOrganisationDto>> Handle(GetSalesOrganisationByIdQuery request, CancellationToken cancellationToken)
+        public async Task<SalesOrganisationDto> Handle(GetSalesOrganisationByIdQuery request, CancellationToken cancellationToken)
         {
             var result = await _queryRepository.GetByIdAsync(request.Id);
 
@@ -39,12 +38,7 @@ namespace SalesManagement.Application.SalesOrganisation.Queries.GetSalesOrganisa
             );
             await _mediator.Publish(domainEvent, cancellationToken);
 
-            return new ApiResponseDTO<SalesOrganisationDto>
-            {
-                IsSuccess = true,
-                Message = "Sales Organisation retrieved successfully.",
-                Data = salesOrganisation
-            };
+            return salesOrganisation;
         }
     }
 }
