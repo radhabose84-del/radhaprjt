@@ -1,16 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using UserManagement.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace UserManagement.Infrastructure.Data.Configurations
 {
-   public class PasswordLogConfiguration : IEntityTypeConfiguration<PasswordLog>
+    public class PasswordLogConfiguration : IEntityTypeConfiguration<PasswordLog>
    {
       public void Configure(EntityTypeBuilder<PasswordLog> builder)
       {

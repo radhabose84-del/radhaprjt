@@ -1,5 +1,3 @@
-
-using System;
 using MaintenanceManagement.Domain.Common;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;

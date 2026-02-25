@@ -1,26 +1,15 @@
-using Newtonsoft.Json;
 using MediatR;
-using UserManagement.Infrastructure.Data;
-using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using UserManagement.Application.RoleEntitlements.Commands.CreateRoleEntitlement;
 using UserManagement.Application.RoleEntitlements.Commands.UpdateRoleRntitlement;
-using UserManagement.Application.RoleEntitlements.Queries.GetRoleEntitlements;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
-using UserManagement.Application.RoleEntitlements.Commands.DeleteRoleEntitlement;
 using UserManagement.Application.RoleEntitlements.Queries.GetRoleEntitlementById;
 using UserManagement.Application.RoleEntitlements.Queries.GetRolePrivileges;
 using Microsoft.Extensions.Logging;
 
 namespace UserManagement.Presentation.Controllers
 {
-[Route("api/[controller]")]
+    [Route("api/[controller]")]
 
 public class RoleEntitlementsController : ApiControllerBase
 {

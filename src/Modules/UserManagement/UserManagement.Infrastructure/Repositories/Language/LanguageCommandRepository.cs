@@ -1,10 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using UserManagement.Infrastructure.Data;
 using UserManagement.Application.Common.Interfaces.ILanguage;
-using UserManagement.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace UserManagement.Infrastructure.Repositories.Language

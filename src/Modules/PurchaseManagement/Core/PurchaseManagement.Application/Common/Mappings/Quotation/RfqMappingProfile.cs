@@ -3,13 +3,9 @@ using AutoMapper;
 using PurchaseManagement.Application.Quotation.RfqEntry.Commands.Create;
 using PurchaseManagement.Application.Quotation.RfqEntry.Dtos;
 using PurchaseManagement.Application.Quotation.RfqEntry.DTOs;
-using PurchaseManagement.Domain.Common;
 using PurchaseManagement.Domain.Entities.Quotation.RfqEntry;
 using PurchaseManagement.Domain.Entities.ValueObjects;
-using System;
-using System.Linq;
-using static PurchaseManagement.Domain.Common.BaseEntity;
-using DomainBase = PurchaseManagement.Domain.Common.BaseEntity; 
+using DomainBase = PurchaseManagement.Domain.Common.BaseEntity;
 namespace PurchaseManagement.Application.Common.Mappings.Quotation
 {
     public class RfqMappingProfile : Profile

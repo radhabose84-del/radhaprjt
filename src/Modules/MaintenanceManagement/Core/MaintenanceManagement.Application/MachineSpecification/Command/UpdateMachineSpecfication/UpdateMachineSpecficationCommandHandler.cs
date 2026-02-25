@@ -1,12 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
 using Contracts.Common;
 using MaintenanceManagement.Application.Common.IMachineSpecification;
 using MaintenanceManagement.Application.Common.Interfaces;
-using MaintenanceManagement.Application.Common.Interfaces.IMachineSpecification;
 using MaintenanceManagement.Domain.Events;
 using MediatR;
 

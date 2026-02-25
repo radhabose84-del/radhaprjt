@@ -1,4 +1,3 @@
-using PartyManagement.Application.Common;
 using PartyManagement.Application.Common.Interfaces;
 using PartyManagement.Application.Common.Interfaces.IBankMaster;
 using MediatR;

@@ -1,11 +1,10 @@
 using UserManagement.Domain.Entities;
 using System.Data;
 using Dapper;
-using UserManagement.Application.Common;
 using UserManagement.Application.Common.Interfaces.IState;
 
 namespace UserManagement.Infrastructure.Repositories
-{    
+{
     public class StateQueryRepository : IStateQueryRepository
     {        
         private readonly IDbConnection _dbConnection;

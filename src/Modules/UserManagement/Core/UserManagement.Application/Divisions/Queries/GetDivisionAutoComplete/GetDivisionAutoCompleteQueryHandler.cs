@@ -1,20 +1,10 @@
 #nullable disable
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
 using UserManagement.Application.Common.Interfaces;
 using MediatR;
-using System.Text;
-using UserManagement.Domain.Entities;
 using UserManagement.Application.Divisions.Queries.GetDivisions;
-using System.Data;
 using UserManagement.Application.Common.Interfaces.IDivision;
-using Contracts.Common;
 using UserManagement.Domain.Events;
-using System.Text.Json;
-using UserManagement.Application.Users.Queries.GetUsers;
 
 
 

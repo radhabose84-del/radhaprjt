@@ -1,11 +1,6 @@
-using System.Threading;
-using System.Threading.Tasks;
 using Contracts.Common;
 using UserManagement.Application.Common.Interfaces.IUser;
 using UserManagement.Application.Users.Commands.RemoveVerificationCode;
-using FluentAssertions;
-using Moq;
-using Xunit;
 
 namespace UserManagement.UnitTests.Application.Users.Commands
 {

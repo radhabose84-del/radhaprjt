@@ -1,7 +1,6 @@
 #nullable disable
 using FluentValidation.TestHelper;
 using SalesManagement.Application.Common.Interfaces.IMiscTypeMaster;
-using SalesManagement.Application.MiscTypeMaster.Commands.CreateMiscTypeMaster;
 using SalesManagement.Presentation.Validation.MiscTypeMaster;
 using SalesManagement.UnitTests.TestData;
 using SalesManagement.UnitTests.TestHelpers;
@@ -57,7 +56,7 @@ namespace SalesManagement.UnitTests.Validators.MiscTypeMaster
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.MiscTypeCode)
-                  .WithErrorMessage("Misc Type Code is required.");
+                  .WithErrorMessage("MiscTypeCode is required.");
         }
 
         [Fact]
@@ -70,7 +69,7 @@ namespace SalesManagement.UnitTests.Validators.MiscTypeMaster
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.MiscTypeCode)
-                  .WithErrorMessage("Misc Type Code cannot exceed 20 characters.");
+                  .WithErrorMessage("MiscTypeCode  cannot be longer than   20 characters.");
         }
 
         [Theory]
@@ -86,7 +85,7 @@ namespace SalesManagement.UnitTests.Validators.MiscTypeMaster
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.MiscTypeCode)
-                  .WithErrorMessage("Misc Type Code must be alphanumeric only.");
+                  .WithErrorMessage("MiscTypeCode  must be alphanumeric only.");
         }
 
         [Fact]
@@ -98,7 +97,7 @@ namespace SalesManagement.UnitTests.Validators.MiscTypeMaster
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.MiscTypeCode)
-                  .WithErrorMessage("Misc Type Code already exists.");
+                  .WithErrorMessage("MiscTypeCode already exists.");
         }
 
         [Fact]
@@ -150,7 +149,7 @@ namespace SalesManagement.UnitTests.Validators.MiscTypeMaster
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.Description)
-                  .WithErrorMessage("Description cannot exceed 250 characters.");
+                  .WithErrorMessage("Description  cannot be longer than   250 characters.");
         }
 
         [Fact]

@@ -1,8 +1,4 @@
 using FluentValidation;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using UserManagement.Application.PwdComplexityRule.Commands.CreatePasswordComplexityRule;
 using UserManagement.Presentation.Validation.Common;
 using UserManagement.Domain.Entities;

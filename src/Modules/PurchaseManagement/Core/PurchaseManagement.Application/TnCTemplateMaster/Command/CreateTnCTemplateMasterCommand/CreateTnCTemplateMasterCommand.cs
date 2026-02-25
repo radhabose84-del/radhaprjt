@@ -1,9 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using PurchaseManagement.Application.TnCTemplateMaster.Queries.GetAllTnCTemplateMaster;
-using PurchaseManagement.Domain.Entities;
 using MediatR;
 
 namespace PurchaseManagement.Application.TnCTemplateMaster.Command.CreateTnCTemplateMasterCommand

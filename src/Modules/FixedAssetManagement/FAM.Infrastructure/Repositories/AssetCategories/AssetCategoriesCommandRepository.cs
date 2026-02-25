@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Formats.Asn1;
-using System.Linq;
-using System.Threading.Tasks;
 using FAM.Application.Common.Interfaces.IAssetCategories;
 using FAM.Domain.Common;
 using FAM.Infrastructure.Data;

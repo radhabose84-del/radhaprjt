@@ -1,7 +1,5 @@
 #nullable disable
-using System;
 using System.Data;
-using System.IO;
 using MaintenanceManagement.Application.Common.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces.IWorkOrder;
 using MaintenanceManagement.Domain.Common;
@@ -10,13 +8,8 @@ using MaintenanceManagement.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using MassTransit;
 using Microsoft.Extensions.Logging;
-using Microsoft.EntityFrameworkCore.Storage;
-using MaintenanceManagement.Application.Common;
-using MediatR;
 using Contracts.Interfaces.Lookups.Users;
 // using Contracts.Interfaces.External.IUser;
-using Microsoft.AspNetCore.SignalR;
-using MaintenanceManagement.Application.Common.RealTimeNotificationHub;
 using Serilog;
 
 namespace MaintenanceManagement.Infrastructure.Repositories.WorkOrder

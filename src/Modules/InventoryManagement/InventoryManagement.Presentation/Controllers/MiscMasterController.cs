@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using InventoryManagement.Application.Common.Interfaces.IMiscMaster;
 using InventoryManagement.Application.MiscMaster.Command.CreateMiscMaster;
 using InventoryManagement.Application.MiscMaster.Command.DeleteMiscMaster;
@@ -10,16 +5,14 @@ using InventoryManagement.Application.MiscMaster.Command.UpdateMiscMaster;
 using InventoryManagement.Application.MiscMaster.Queries.GetMiscMaster;
 using InventoryManagement.Application.MiscMaster.Queries.GetMiscMasterAutoComplete;
 using InventoryManagement.Application.MiscMaster.Queries.GetMiscMasterById;
-using InventoryManagement.Domain.Entities;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Http;
 
 namespace InventoryManagement.Presentation.Controllers
 {
-       [Route("api/inventory/[controller]")]
+    [Route("api/inventory/[controller]")]
 
     public class MiscMasterController  : ApiControllerBase
     {

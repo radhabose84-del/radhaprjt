@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
 namespace PurchaseManagement.Application.PurchaseIndents.Queries.GetPendingIndentById
 {
     public class PendingIndentByIdDto

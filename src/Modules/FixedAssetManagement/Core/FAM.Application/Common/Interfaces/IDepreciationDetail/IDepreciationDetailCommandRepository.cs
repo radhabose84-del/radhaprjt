@@ -1,7 +1,3 @@
-using System;
-using System.Threading.Tasks;
-using FAM.Domain.Entities;
-
 namespace FAM.Application.Common.Interfaces.IDepreciationDetail
 {
     public interface IDepreciationDetailCommandRepository

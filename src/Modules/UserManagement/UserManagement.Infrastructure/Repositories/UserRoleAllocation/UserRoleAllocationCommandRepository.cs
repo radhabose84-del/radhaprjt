@@ -1,9 +1,4 @@
-using Microsoft.EntityFrameworkCore;
 using UserManagement.Infrastructure.Data;
-using UserManagement.Domain.Entities;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using UserManagement.Infrastructure.Repositories.UserRoleAllocation;
 using UserManagement.Application.Common.Interfaces.IUserRoleAllocation;
 
 namespace UserManagement.Infrastructure.Repositories.UserRoleAllocation.UserRoleAllocationCommandRepository

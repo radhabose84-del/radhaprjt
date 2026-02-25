@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using MaintenanceManagement.Application.StockLedger.Queries.GetCurrentAllItemsById;
 using MaintenanceManagement.Application.StockLedger.Queries.GetCurrentStock;
 using MaintenanceManagement.Application.StockLedger.Queries.GetCurrentStockItemsById;
@@ -10,7 +5,6 @@ using MaintenanceManagement.Application.StockLedger.Queries.GetCurrentStockItems
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 
 namespace MaintenanceManagement.Presentation.Controllers
 {

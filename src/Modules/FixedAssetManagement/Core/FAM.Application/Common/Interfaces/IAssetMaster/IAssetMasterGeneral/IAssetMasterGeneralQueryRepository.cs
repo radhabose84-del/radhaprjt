@@ -1,6 +1,4 @@
 using FAM.Application.AssetMaster.AssetMasterGeneral.Queries.GetAssetMasterGeneral;
-using FAM.Application.Reports.AssetReport;
-using FAM.Domain.Entities;
 
 namespace FAM.Application.Common.Interfaces.IAssetMaster.IAssetMasterGeneral
 {

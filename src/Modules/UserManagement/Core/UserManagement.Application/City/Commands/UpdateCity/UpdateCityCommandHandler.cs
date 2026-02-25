@@ -4,12 +4,11 @@ using AutoMapper;
 using UserManagement.Application.City.Queries.GetCities;
 using UserManagement.Application.Common.Interfaces.ICity;
 using UserManagement.Domain.Events;
-using Contracts.Common;
 using UserManagement.Domain.Enums.Common;
 using FluentValidation;
 
 namespace UserManagement.Application.City.Commands.UpdateCity
-{       
+{
     public class UpdateCityCommandHandler : IRequestHandler<UpdateCityCommand, CityDto>
     {
         private readonly ICityCommandRepository _cityRepository;

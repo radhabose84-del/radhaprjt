@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using Contracts.Dtos.Lookups.FixedAssetManagement;
 
 namespace Contracts.Interfaces.Lookups.FixedAssetManagement

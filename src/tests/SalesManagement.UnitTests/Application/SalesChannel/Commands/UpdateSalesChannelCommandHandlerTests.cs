@@ -1,4 +1,4 @@
-#nullable disable
+﻿#nullable disable
 using AutoMapper;
 using Contracts.Common;
 using MediatR;
@@ -123,23 +123,29 @@ namespace SalesManagement.UnitTests.Application.SalesChannel.Commands
 
             _mockMediator.Verify(
                 m => m.Publish(
-                    It.Is<AuditLogsDomainEvent>(e => e.ActionName == "CH001"),
+                    It.Is<AuditLogsDomainEvent>(e => e.ActionName == "1"),
                     It.IsAny<CancellationToken>()),
                 Times.Once);
         }
 
         [Fact]
-        public async Task Handle_EntityNotFound_ThrowsEntityNotFoundException()
+        public async Task Handle_ValidCommand_DoesNotCallGetByIdAsync()
         {
-            var command = SalesChannelBuilders.ValidUpdateCommand(id: 99);
+            // Handler trusts FluentValidation (Rule 18) - it does NOT call GetByIdAsync.
+            // Entity existence is verified by the validator via NotFoundAsync, not the handler.
+            var command = SalesChannelBuilders.ValidUpdateCommand(id: 1);
+            var entity = SalesChannelBuilders.ValidEntity(id: 1);
 
-            _mockQueryRepo.Setup(r => r.GetByIdAsync(99))
-                .ReturnsAsync((SalesManagement.Application.SalesChannel.Dto.SalesChannelDto)null);
+            // No GetByIdAsync setup - strict mock throws if handler calls it
+            _mockMapper.Setup(m => m.Map<SalesManagement.Domain.Entities.SalesChannel>(command)).Returns(entity);
+            _mockCommandRepo.Setup(r => r.UpdateAsync(entity)).ReturnsAsync(1);
+            _mockMediator.Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
 
-            Func<Task> act = async () => await CreateSut().Handle(command, CancellationToken.None);
+            var result = await CreateSut().Handle(command, CancellationToken.None);
 
-            await act.Should().ThrowAsync<EntityNotFoundException>()
-                .WithMessage("*99*");
+            result.IsSuccess.Should().BeTrue();
+            _mockQueryRepo.VerifyNoOtherCalls();
         }
 
         [Fact]

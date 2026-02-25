@@ -1,21 +1,14 @@
 #nullable disable
-using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using System.Threading.Tasks;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IMiscMaster;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.ServicePO;
-using PurchaseManagement.Application.PurchaseOrder.Dtos.ServicePO;
 using PurchaseManagement.Domain.Common;
 using PurchaseManagement.Domain.Entities.PurchaseOrder;
 using PurchaseManagement.Domain.Entities.PurchaseOrder.ServicePO;
 using Dapper;
 using Microsoft.EntityFrameworkCore;
 using PurchaseManagement.Infrastructure.Data;
-using ServiceEntrySheetEntity   = PurchaseManagement.Domain.Entities.PurchaseOrder.ServicePO.ServiceEntrySheet;
-using ServiceEntryActivityEntity = PurchaseManagement.Domain.Entities.PurchaseOrder.ServicePO.ServiceEntryActivity;
 
 namespace PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.ServicePO
 {

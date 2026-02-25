@@ -1,9 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
-using Contracts.Common;
 using UserManagement.Application.Common.Interfaces.ICompanySettings;
 using UserManagement.Domain.Events;
 using MediatR;

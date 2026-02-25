@@ -3,7 +3,6 @@ using UserManagement.Application.UserRoleAllocation.Commands.CreateUserRoleAlloc
 using UserManagement.Application.UserRoleAllocation.Queries.GetUserRoleAllocation;
 using UserManagement.Application.UserRoleAllocation.Queries.GetUserRoleAllocationById;
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 

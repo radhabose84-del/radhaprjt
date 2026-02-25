@@ -1,10 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
 using MaintenanceManagement.Application.Common.Interfaces.Power.IGeneratorConsumption;
-using MaintenanceManagement.Application.Common.Interfaces.Power.IPowerConsumption;
 using MaintenanceManagement.Domain.Events;
 using MediatR;
 

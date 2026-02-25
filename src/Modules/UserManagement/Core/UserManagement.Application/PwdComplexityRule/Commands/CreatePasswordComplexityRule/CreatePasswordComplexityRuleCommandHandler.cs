@@ -1,18 +1,10 @@
 #nullable disable
 using AutoMapper;
-using UserManagement.Application.Common.Interfaces;
 using UserManagement.Application.PwdComplexityRule.Queries;
-using UserManagement.Domain.Entities;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using UserManagement.Application.Common.Interfaces.IPasswordComplexityRule;
-using UserManagement.Application.Common;
 using UserManagement.Domain.Events;
 using Microsoft.Extensions.Logging;
-using Contracts.Common;
 using FluentValidation;
 
 namespace UserManagement.Application.PwdComplexityRule.Commands.CreatePasswordComplexityRule

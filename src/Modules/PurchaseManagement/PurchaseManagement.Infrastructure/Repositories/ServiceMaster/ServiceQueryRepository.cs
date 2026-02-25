@@ -1,9 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using System.Threading.Tasks;
-using Contracts.Interfaces.External.IInvetoryManagement;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IServiceMaster;
 using PurchaseManagement.Application.PurchaseOrder.ServicePO.Queries.GetVendorServicePO;
@@ -11,7 +6,6 @@ using PurchaseManagement.Application.ServiceMaster.Queries.GetAllServices;
 using PurchaseManagement.Application.ServiceMaster.Queries.GetServiceAutocomplete;
 using PurchaseManagement.Domain.Common;
 using Dapper;
-using PurchaseManagement.Infrastructure.Services;
 
 namespace PurchaseManagement.Infrastructure.Repositories.ServiceMaster
 {

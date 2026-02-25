@@ -1,10 +1,9 @@
-using Contracts.Common;
 using UserManagement.Application.Country.Queries.GetCountries;
 using MediatR;
 
 namespace UserManagement.Application.Country.Commands.UpdateCountry
 {
-       public class UpdateCountryCommand : IRequest<CountryDto>
+    public class UpdateCountryCommand : IRequest<CountryDto>
        {
               public int Id { get; set; }
               public string? CountryCode { get; set; }

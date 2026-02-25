@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using InventoryManagement.Application.MRS.Command.CreateMrsEntry;
 using InventoryManagement.Application.MRS.Command.UpdateMrsEntry;
 using InventoryManagement.Application.MRS.Queries.GetMrsEntry;
@@ -13,7 +8,6 @@ using InventoryManagement.Application.MRS.Queries.GetStockItemBased;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 
 namespace InventoryManagement.Presentation.Controllers.MRS
 {

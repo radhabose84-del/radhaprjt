@@ -1,4 +1,3 @@
-#nullable disable
 using Contracts.Common;
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.ISalesOffice;

@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
 using PartyManagement.Application.MiscMaster.Command.CreateMiscMaster;
 using PartyManagement.Application.MiscMaster.Command.DeleteMiscMaster;

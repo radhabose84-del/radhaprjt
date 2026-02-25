@@ -2,7 +2,6 @@
 using System.Data;
 using FAM.Application.Common.Interfaces;
 using FAM.Application.Common.Interfaces.IWdvDepreciation;
-using Dapper;
 using FAM.Infrastructure.Data;
 using FAM.Infrastructure.Repositories.Common;
 using Microsoft.EntityFrameworkCore;

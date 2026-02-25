@@ -1,9 +1,5 @@
 #nullable disable
-using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using System.Threading.Tasks;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IGRN.IGateEntry;
 using PurchaseManagement.Application.GRN.GateEntry.Queries.GetGateEntriesApprovedPo;

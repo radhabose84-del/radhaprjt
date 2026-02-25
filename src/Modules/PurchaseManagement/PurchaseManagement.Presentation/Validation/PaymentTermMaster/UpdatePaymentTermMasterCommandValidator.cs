@@ -1,12 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using PurchaseManagement.Application.Common.Interfaces.IPaymentTermMaster;
 using PurchaseManagement.Application.PaymentTermMaster.Command.UpdatePaymentTermMaster;
 using FluentValidation;
-using Microsoft.Identity.Client;
-using PurchaseManagement.Presentation.Validation.Common;
 
 namespace PurchaseManagement.Presentation.Validation.PaymentTermMaster
 {

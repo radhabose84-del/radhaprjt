@@ -1,4 +1,3 @@
-#nullable disable
 using System.Data;
 using Contracts.Interfaces.Lookups.Users;
 using Dapper;
@@ -18,7 +17,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOffice
             _cityLookup = cityLookup;
         }
 
-        public async Task<(List<SalesOfficeDto>, int)> GetAllAsync(int pageNumber, int pageSize, string searchTerm)
+        public async Task<(List<SalesOfficeDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
         {
             var query = $$"""
                 DECLARE @TotalCount INT;
@@ -64,7 +63,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOffice
             return (list, totalCount);
         }
 
-        public async Task<SalesOfficeDto> GetByIdAsync(int id)
+        public async Task<SalesOfficeDto?> GetByIdAsync(int id)
         {
             const string sql = @"
                 SELECT so.Id, so.SalesOfficeName, so.SalesOrganisationId,

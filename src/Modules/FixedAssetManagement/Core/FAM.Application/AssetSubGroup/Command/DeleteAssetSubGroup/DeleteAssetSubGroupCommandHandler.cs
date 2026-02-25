@@ -1,5 +1,4 @@
 using AutoMapper;
-using Contracts.Common;
 using FAM.Application.Common.Interfaces.IAssetSubGroup;
 using FAM.Domain.Events;
 using FluentValidation;

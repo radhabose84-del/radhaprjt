@@ -1,12 +1,6 @@
 using UserManagement.Application.UserRoleAllocation.Queries.GetUserRoleAllocation;
-using UserManagement.Domain.Entities;
-using UserManagement.Application.Common.Interfaces;
 using AutoMapper;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using UserManagement.Application.Common.Interfaces.IUserRoleAllocation;
 
 namespace UserManagement.Application.UserRoleAllocation.Commands.CreateUserRoleAllocation

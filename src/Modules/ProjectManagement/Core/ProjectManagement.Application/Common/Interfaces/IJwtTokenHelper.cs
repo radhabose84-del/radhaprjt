@@ -1,6 +1,4 @@
 using System.Security.Claims;
-using ProjectManagement.Domain.Common;
-using ProjectManagement.Domain.Entities;
 
 namespace ProjectManagement.Application.Common.Interfaces
 {

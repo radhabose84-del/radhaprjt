@@ -1,9 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using UserManagement.Domain.Entities;
-using System.Text;
 
 namespace UserManagement.Application.Common.Interfaces.IDivision
 {

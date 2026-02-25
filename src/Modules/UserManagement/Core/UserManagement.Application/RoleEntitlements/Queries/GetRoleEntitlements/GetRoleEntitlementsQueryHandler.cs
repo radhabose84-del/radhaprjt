@@ -1,12 +1,6 @@
 using AutoMapper;
-using UserManagement.Application.Common.Interfaces;
 using UserManagement.Application.Common.Interfaces.IRoleEntitlement;
-using UserManagement.Domain.Events;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace UserManagement.Application.RoleEntitlements.Queries.GetRoleEntitlements
 {

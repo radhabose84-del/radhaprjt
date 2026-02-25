@@ -1,5 +1,4 @@
 // tests/UserManagement.UnitTests/_Common/TestData/UserBuilder.cs
-using System;
 using UserManagement.Domain.Entities;
 // if you need to set Status.Active, uncomment the next line:
 // using static UserManagement.Domain.Enums.Common.Enums;

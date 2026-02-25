@@ -1,9 +1,4 @@
 #nullable disable
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using UserManagement.Presentation.Validation.Common;
 using UserManagement.Application.Companies.Commands.UploadFileCompany;
 using FluentValidation;
 using Serilog;

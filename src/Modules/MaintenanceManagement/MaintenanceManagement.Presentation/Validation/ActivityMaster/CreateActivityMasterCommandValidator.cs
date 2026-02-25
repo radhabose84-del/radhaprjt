@@ -1,13 +1,8 @@
 #nullable disable
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using MaintenanceManagement.Application.ActivityMaster.Command.CreateActivityMaster;
 using MaintenanceManagement.Application.Common.Interfaces.IActivityMaster;
 using FluentValidation;
 using MaintenanceManagement.Presentation.Validation.Common;
-using MaintenanceManagement.Infrastructure.Migrations;
 using Shared.Validation.Common;
 
 namespace MaintenanceManagement.Presentation.Validation.ActivityMaster

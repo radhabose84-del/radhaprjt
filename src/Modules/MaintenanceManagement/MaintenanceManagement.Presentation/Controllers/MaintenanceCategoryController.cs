@@ -1,20 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using MaintenanceManagement.Application.MaintenanceCategory.Command.CreateMaintenanceCategory;
 using MaintenanceManagement.Application.MaintenanceCategory.Command.DeleteMaintenanceCategory;
 using MaintenanceManagement.Application.MaintenanceCategory.Command.UpdateMaintenanceCategory;
 using MaintenanceManagement.Application.MaintenanceCategory.Queries.GetMaintenanceCategory;
 using MaintenanceManagement.Application.MaintenanceCategory.Queries.GetMaintenanceCategoryAutoComplete;
 using MaintenanceManagement.Application.MaintenanceCategory.Queries.GetMaintenanceCategoryById;
-using MaintenanceManagement.Application.MaintenanceType.Queries.GetMaintenanceType;
-using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 
 namespace MaintenanceManagement.Presentation.Controllers
 {

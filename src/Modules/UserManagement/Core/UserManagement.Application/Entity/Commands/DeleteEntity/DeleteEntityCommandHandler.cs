@@ -1,8 +1,4 @@
 using AutoMapper;
-using UserManagement.Application.Common;
-
-using Contracts.Common;
-using UserManagement.Application.Common.Interfaces;
 using UserManagement.Application.Common.Interfaces.IEntity;
 using UserManagement.Domain.Events;
 using FluentValidation;

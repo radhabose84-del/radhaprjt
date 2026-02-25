@@ -1,10 +1,9 @@
 
 using FAM.Application.Common.Interfaces;
-using FAM.Infrastructure.Services;
 
 namespace FAM.Infrastructure.Repositories.Common
 {
-   public class BaseQueryRepository
+    public class BaseQueryRepository
     {
         protected readonly IIPAddressService _ipAddressService;
 

@@ -1,5 +1,3 @@
-
-using FAM.Application.AssetMaster.AssetTransferIssue.Queries.GetAssetTransfered;
 using FAM.Application.Reports.AssetAudit;
 using FAM.Application.Reports.AssetReport;
 using FAM.Application.Reports.AssetTransferReport;

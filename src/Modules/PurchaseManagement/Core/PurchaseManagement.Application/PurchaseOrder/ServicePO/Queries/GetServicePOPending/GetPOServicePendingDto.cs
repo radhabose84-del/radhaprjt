@@ -1,12 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
 namespace PurchaseManagement.Application.PurchaseOrder.ServicePO.Queries.GetServicePOPending
 {
- 
-public sealed class GetPOServicePendingDto
+
+    public sealed class GetPOServicePendingDto
 {
     public int Id { get; set; }
     public int PurchaseOrderId { get; set; }

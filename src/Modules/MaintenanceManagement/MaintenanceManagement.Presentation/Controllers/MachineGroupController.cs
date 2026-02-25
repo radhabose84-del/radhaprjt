@@ -1,20 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
-using MaintenanceManagement.Application.Common.Interfaces.IMachineGroup;
 using MaintenanceManagement.Application.MachineGroup.Command.CreateMachineGroup;
 using MaintenanceManagement.Application.MachineGroup.Command.DeleteMachineGroup;
 using MaintenanceManagement.Application.MachineGroup.Command.UpdateMachineGroup;
 using MaintenanceManagement.Application.MachineGroup.Queries.GetMachineGroup;
 using MaintenanceManagement.Application.MachineGroup.Queries.GetMachineGroupAutoComplete;
 using MaintenanceManagement.Application.MachineGroup.Queries.GetMachineGroupById;
-using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 
 namespace MaintenanceManagement.Presentation.Controllers
 {

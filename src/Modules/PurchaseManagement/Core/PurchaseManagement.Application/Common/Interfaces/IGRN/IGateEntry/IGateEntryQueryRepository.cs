@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using PurchaseManagement.Application.GRN.GateEntry.Queries.GetGateEntriesApprovedPo;
 
 namespace PurchaseManagement.Application.Common.Interfaces.IGRN.IGateEntry

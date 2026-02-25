@@ -1,21 +1,13 @@
 #nullable disable
 
-using Microsoft.EntityFrameworkCore;
-using UserManagement.Infrastructure.Data;
-using UserManagement.Infrastructure.Repositories;
 using UserManagement.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using UserManagement.Application.Common.Interfaces.IRoleEntitlement;
 using System.Data;
 using Dapper;
-using Serilog;
 
 namespace UserManagement.Infrastructure.Repositories.RoleEntitlements
 {
-        public class RoleEntitlementQueryRepository : IRoleEntitlementQueryRepository
+    public class RoleEntitlementQueryRepository : IRoleEntitlementQueryRepository
         {
         private readonly IDbConnection _dbConnection;
 

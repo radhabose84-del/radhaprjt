@@ -1,26 +1,16 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using MediatR;
-using FAM.Infrastructure.Data;
 using FAM.Application.MiscTypeMaster.Queries.GetMiscTypeMaster;
-using FluentValidation;
 using FAM.Application.MiscTypeMaster.Queries.GetMiscTypeMasterById;
 using FAM.Application.MiscTypeMaster.Queries.GetMiscTypeMasterAutoComplete;
 using FAM.Application.MiscTypeMaster.Command.CreateMiscTypeMaster;
-using FAM.Infrastructure.Repositories.MiscTypeMaster;
 using FAM.Application.MiscTypeMaster.Command.UpdateMiscTypeMaster;
-using FAM.Application.Common.Interfaces.IMiscTypeMaster;
 using FAM.Application.MiscTypeMaster.Command.DeleteMiscTypeMaster;
 using Microsoft.AspNetCore.Http;
 
 namespace FAM.Presentation.Controllers
 {
-   [Route("api/fam/[controller]")]
+    [Route("api/fam/[controller]")]
     public class MiscTypeMasterController : ApiControllerBase
     {
 

@@ -1,12 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
-using UserManagement.Application.Common.Interfaces;
 using MediatR;
-using System.Text;
-using System.Data;
 using UserManagement.Application.Common.Interfaces.IDivision;
 using Contracts.Common;
 using UserManagement.Domain.Events;

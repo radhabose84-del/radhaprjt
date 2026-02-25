@@ -1,28 +1,18 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
-using MaintenanceManagement.Application.ActivityCheckListMaster.Command.UpdateActivityCheckListMaster;
 using MaintenanceManagement.Application.ActivityMaster.Command.CreateActivityMaster;
 using MaintenanceManagement.Application.ActivityMaster.Command.UpdateActivityMster;
 using MaintenanceManagement.Application.ActivityMaster.Queries.GetActivityByMachinGroupId;
 using MaintenanceManagement.Application.ActivityMaster.Queries.GetActivityType;
 using MaintenanceManagement.Application.ActivityMaster.Queries.GetAllActivityMaster;
 using MaintenanceManagement.Application.ActivityMaster.Queries.GetMachineGroupById;
-using Contracts.Common;
-using MaintenanceManagement.Application.Common.Interfaces.IActivityMaster;
 using MaintenanceManagement.Application.MachineGroup.Queries.GetActivityMasterAutoComplete;
 using MaintenanceManagement.Application.MachineGroup.Queries.GetMachineGroupById;
-using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 
 namespace MaintenanceManagement.Presentation.Controllers
 {
-     [Route("api/[controller]")]
+    [Route("api/[controller]")]
     public class ActivityMasterController : ApiControllerBase
     {
         

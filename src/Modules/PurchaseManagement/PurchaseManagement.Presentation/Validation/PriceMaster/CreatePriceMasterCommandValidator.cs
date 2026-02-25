@@ -1,4 +1,3 @@
-using System.Linq;
 using FluentValidation;
 
 namespace PurchaseManagement.Application.PriceMaster.Commands.Create

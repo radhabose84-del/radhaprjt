@@ -1,5 +1,4 @@
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.Local;
-using PurchaseManagement.Application.PurchaseOrder.Local.Commands.Delete;
 using MediatR;
 
 namespace PurchaseManagement.Application.PurchaseOrder.Local.Commands.Delete;

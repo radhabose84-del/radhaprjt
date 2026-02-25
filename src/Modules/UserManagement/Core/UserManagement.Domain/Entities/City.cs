@@ -1,5 +1,4 @@
 using UserManagement.Domain.Common;
-using static UserManagement.Domain.Enums.Common.Enums;
 
 namespace UserManagement.Domain.Entities
 {

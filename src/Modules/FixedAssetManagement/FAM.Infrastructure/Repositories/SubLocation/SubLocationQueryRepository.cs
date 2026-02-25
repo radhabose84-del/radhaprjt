@@ -1,6 +1,5 @@
 #nullable disable
 using System.Data;
-using FAM.Application.Common.Interfaces;
 using FAM.Application.Common.Interfaces.ISubLocation;
 using Dapper;
 

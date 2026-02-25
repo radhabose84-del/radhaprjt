@@ -3,7 +3,6 @@ using UserManagement.Application.State.Queries.GetStates;
 using AutoMapper;
 using UserManagement.Application.Common.Interfaces.IState;
 using UserManagement.Domain.Events;
-using Contracts.Common;
 using FluentValidation;
 
 namespace UserManagement.Application.State.Queries.GetStateAutoComplete

@@ -1,5 +1,4 @@
 using Serilog;
-using Serilog.Events;
 namespace BSOFT.Bootstrapper.Configurations
 {
     public static class SerilogSetup

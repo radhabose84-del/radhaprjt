@@ -1,10 +1,8 @@
 using AutoMapper;
 using UserManagement.Application.UserRole.Queries.GetRole;
-using UserManagement.Domain.Entities;
 using UserManagement.Application.UserRole.Commands.CreateRole;
 using UserManagement.Application.UserRole.Commands.UpdateRole;
 using UserManagement.Application.UserRole.Commands.DeleteRole;
-using UserManagement.Application.PwdComplexityRule.Queries.GetPwdComplexityRule;
 using UserManagement.Application.UserRole.Queries.GetRolesAutocomplete;
 using static UserManagement.Domain.Enums.Common.Enums;
 

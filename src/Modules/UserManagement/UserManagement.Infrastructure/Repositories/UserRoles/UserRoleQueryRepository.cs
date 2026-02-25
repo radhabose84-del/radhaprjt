@@ -1,13 +1,8 @@
 #nullable disable
-using Microsoft.EntityFrameworkCore;
-using UserManagement.Infrastructure.Data;
 using UserManagement.Domain.Entities;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using UserManagement.Application.Common.Interfaces.IUserRole;
 using System.Data;
 using Dapper;
-using UserManagement.Application.UserRole.Queries.GetRole;
 using UserManagement.Application.Common.Interfaces;
 
 namespace UserManagement.Infrastructure.Repositories.UserRoles

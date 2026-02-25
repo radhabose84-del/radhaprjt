@@ -1,16 +1,15 @@
-#nullable disable
-
+﻿
 using SalesManagement.Domain.Common;
 
 namespace SalesManagement.Domain.Entities
 {
     public class BusinessUnit : BaseEntity
     {
-        public string BusinessUnitCode { get; set; }
-        public string BusinessUnitName { get; set; }
-        public string Description { get; set; }
+        public string BusinessUnitCode { get; set; } = null!;
+        public string BusinessUnitName { get; set; } = null!;
+        public string Description { get; set; } = null!;
 
         // Navigation property for reverse relationship
-        public ICollection<SalesSegment> SalesSegments { get; set; }
+        public ICollection<SalesSegment> SalesSegments { get; set; } = null!;
     }
 }

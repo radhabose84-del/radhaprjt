@@ -1,4 +1,3 @@
-#nullable disable
 
 using Dapper;
 using SalesManagement.Application.BusinessUnit.Dto;
@@ -16,7 +15,7 @@ namespace SalesManagement.Infrastructure.Repositories.BusinessUnit
             _dbConnection = dbConnection;
         }
 
-        public async Task<(List<BusinessUnitDto>, int)> GetAllAsync(int pageNumber, int pageSize, string searchTerm)
+        public async Task<(List<BusinessUnitDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
         {
             var offset = (pageNumber - 1) * pageSize;
 
@@ -48,7 +47,7 @@ namespace SalesManagement.Infrastructure.Repositories.BusinessUnit
             return (data, totalCount);
         }
 
-        public async Task<BusinessUnitDto> GetByIdAsync(int id)
+        public async Task<BusinessUnitDto?> GetByIdAsync(int id)
         {
             const string sql = @"
                 SELECT * FROM Sales.BusinessUnit

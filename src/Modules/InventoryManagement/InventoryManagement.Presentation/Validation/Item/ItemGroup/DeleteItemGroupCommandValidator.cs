@@ -1,7 +1,6 @@
 using InventoryManagement.Application.Common.Interfaces.Item.ItemGroup;
 using InventoryManagement.Application.Item.ItemGroup.Commands.DeleteItemGroup;
 using FluentValidation;
-using InventoryManagement.Presentation.Validation.Common;
 using Shared.Validation.Common;
 
 namespace InventoryManagement.Presentation.Validation.Item.ItemGroup

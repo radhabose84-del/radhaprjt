@@ -1,10 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using AutoMapper;
-using Contracts.Interfaces.External.IUser;
-using BudgetManagement.Application.Common.Interfaces.IBudgetAllocation;
 using MediatR;
 
 namespace BudgetManagement.Application.BudgetAllocation.Queries.GetSpindleMonthwiseReport

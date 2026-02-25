@@ -6,10 +6,8 @@ using UserManagement.Application.Companies.Queries.GetCompanyById;
 using UserManagement.Application.Companies.Commands.UpdateCompany;
 using UserManagement.Application.Companies.Commands.DeleteCompany;
 using UserManagement.Application.Companies.Queries.GetCompanyAutoComplete;
-using FluentValidation;
 using UserManagement.Application.Companies.Commands.UploadFileCompany;
 using UserManagement.Application.Companies.Commands.DeleteFileCompany;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 
 namespace UserManagement.Presentation.Controllers

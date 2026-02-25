@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using UserManagement.Application.Common.Interfaces.IMiscMaster;
 using UserManagement.Application.MiscMaster.Command.CreateMiscMaster;
 using UserManagement.Application.MiscMaster.Command.DeleteMiscMaster;
@@ -9,15 +5,13 @@ using UserManagement.Application.MiscMaster.Command.UpdateMiscMaster;
 using UserManagement.Application.MiscMaster.Queries.GetMiscMaster;
 using UserManagement.Application.MiscMaster.Queries.GetMiscMasterAutoComplete;
 using UserManagement.Application.MiscMaster.Queries.GetMiscMasterById;
-using UserManagement.Domain.Entities;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Http;
 
 namespace UserManagement.Presentation.Controllers
-{  
+{
     [Route("api/usermanagement/[controller]")]
     public class MiscMasterController  : ApiControllerBase
     {

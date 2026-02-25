@@ -1,5 +1,3 @@
-using static InventoryManagement.Domain.Common.BaseEntity;
-
 namespace InventoryManagement.Application.Item.PutAway.Commands.CreatePutAwayRule
 {
     public sealed class CreatePutAwayRuleRequest

@@ -1,13 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
 using FAM.Application.AssetGroup.Command.CreateAssetGroup;
 using FAM.Application.AssetGroup.Command.DeleteAssetGroup;
 using FAM.Application.AssetGroup.Command.UpdateAssetGroup;
 using FAM.Application.AssetGroup.Queries.GetAssetGroup;
-using FAM.Domain.Common;
 using static FAM.Domain.Common.BaseEntity;
 
 namespace FAM.Application.Common.Mappings

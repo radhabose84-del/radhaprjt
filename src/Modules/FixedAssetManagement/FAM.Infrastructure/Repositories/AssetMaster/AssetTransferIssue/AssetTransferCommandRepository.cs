@@ -1,12 +1,4 @@
 #nullable disable
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using AutoMapper;
-using FAM.Application.AssetMaster.AssetTransferIssue.Command.CreateAssetTransferIssue;
-using FAM.Application.AssetMaster.AssetTransferIssue.Queries.GetAssetTransfered;
-using Contracts.Common;
 using FAM.Application.Common.Interfaces.IAssetMaster.IAssetTransferIssue;
 using FAM.Domain.Entities.AssetMaster;
 using FAM.Infrastructure.Data;

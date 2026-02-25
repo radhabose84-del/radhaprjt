@@ -1,4 +1,3 @@
-#nullable disable
 using System.Data;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
@@ -27,8 +26,10 @@ using SalesManagement.Infrastructure.Repositories.SalesItemPriceMaster;
 using SalesManagement.Application.Common.Interfaces.IMiscTypeMaster;
 using SalesManagement.Infrastructure.Repositories.MiscTypeMaster;
 using SalesManagement.Application.Common.Interfaces.IMiscMaster;
-using SalesManagement.Infrastructure.Repositories.MiscMaster;using SalesManagement.Infrastructure.Services;
+using SalesManagement.Infrastructure.Repositories.MiscMaster;
+using SalesManagement.Infrastructure.Services;
 using Serilog;
+using Microsoft.Extensions.Hosting;
 
 
 namespace SalesManagement.Infrastructure
@@ -37,9 +38,9 @@ namespace SalesManagement.Infrastructure
     {
         public static IServiceCollection AddSalesInfrastructureServices(
             this IServiceCollection services,
-            IConfiguration configuration,, IHostEnvironment env)
+            IConfiguration configuration, IHostEnvironment env)
         {
-            var connectionString = configuration.GetConnectionString("DefaultConnection")
+            var connectionString = (configuration.GetConnectionString("DefaultConnection") ?? string.Empty)
                                                 .Replace("{SERVER}", Environment.GetEnvironmentVariable("DATABASE_SERVER") ?? "")
                                                 .Replace("{USER_ID}", Environment.GetEnvironmentVariable("DATABASE_USERID") ?? "")
                                                 .Replace("{ENC_PASSWORD}", Environment.GetEnvironmentVariable("DATABASE_PASSWORD") ?? "");

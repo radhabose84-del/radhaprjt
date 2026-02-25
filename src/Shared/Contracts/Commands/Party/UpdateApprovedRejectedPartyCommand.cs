@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using Contracts.Dtos.Common;
 using Contracts.Dtos.Purchase;
 using MassTransit;

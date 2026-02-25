@@ -1,7 +1,6 @@
 #nullable disable
 
 
-using System.Globalization;
 using Contracts.Common;
 using FAM.Application.DepreciationDetail.Commands.CreateDepreciationDetail;
 using FAM.Application.DepreciationDetail.Commands.DeleteDepreciationDetail;
@@ -9,7 +8,6 @@ using FAM.Application.DepreciationDetail.Commands.UpdateDepreciationDetail;
 using FAM.Application.DepreciationDetail.Queries.GetDepreciationAbstract;
 using FAM.Application.DepreciationDetail.Queries.GetDepreciationDetail;
 using FAM.Application.DepreciationDetail.Queries.GetDepreciationMethod;
-using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

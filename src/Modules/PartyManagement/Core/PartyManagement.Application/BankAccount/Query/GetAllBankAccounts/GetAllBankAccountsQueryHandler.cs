@@ -1,5 +1,4 @@
 using AutoMapper;
-using PartyManagement.Application.BankAccount;
 using PartyManagement.Application.BankAccount.Query.GetBankAccountsPaged;
 using PartyManagement.Application.Common.Interfaces.IBankAccount;
 using PartyManagement.Domain.Events;

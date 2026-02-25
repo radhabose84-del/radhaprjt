@@ -4,11 +4,10 @@ using MediatR;
 using UserManagement.Application.State.Queries.GetStates;
 using UserManagement.Application.Common.Interfaces.IState;
 using UserManagement.Domain.Events;
-using Contracts.Common;
 using FluentValidation;
 
 namespace UserManagement.Application.State.Commands.CreateState
-{    
+{
     public class CreateStateCommandHandler : IRequestHandler<CreateStateCommand, StateDto>     
     {
         private readonly IMapper _mapper;

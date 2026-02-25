@@ -1,9 +1,5 @@
 #nullable disable
-using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using System.Threading.Tasks;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IGRN.IGRNEntry;
 using PurchaseManagement.Application.GRN.GRNEntry.Commands.CreateGRNEntry;
@@ -14,9 +10,7 @@ using PurchaseManagement.Application.GRN.GRNEntry.Queries.GetGrnPendingDetails;
 using PurchaseManagement.Application.GRN.GRNEntry.Queries.GetGrnPendingHeader;
 using PurchaseManagement.Application.GRN.GRNEntry.Queries.GetGrnQCCompletedDetails;
 using PurchaseManagement.Domain.Common;
-using PurchaseManagement.Domain.Entities.GRN.GRNEntry;
 using Dapper;
-using static PurchaseManagement.Domain.Common.MiscEnumEntity;
 
 namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
 {

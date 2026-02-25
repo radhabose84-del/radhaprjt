@@ -1,5 +1,4 @@
 using FAM.Application.AssetMaster.AssetWarranty.Queries.GetAssetWarranty;
-using Contracts.Common;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 

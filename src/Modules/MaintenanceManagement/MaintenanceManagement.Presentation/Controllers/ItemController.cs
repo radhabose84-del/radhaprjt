@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using MaintenanceManagement.Application.Item.ItemGroup.Queries;
 using MaintenanceManagement.Application.Item.ItemMaster.Queries;
 using MediatR;
@@ -12,7 +7,7 @@ using Microsoft.Extensions.Logging;
 
 namespace MaintenanceManagement.Presentation.Controllers
 {
-     [Route("api/[controller]")]
+    [Route("api/[controller]")]
     public class ItemController : ApiControllerBase
     {
         private readonly ILogger<ItemController> _logger;

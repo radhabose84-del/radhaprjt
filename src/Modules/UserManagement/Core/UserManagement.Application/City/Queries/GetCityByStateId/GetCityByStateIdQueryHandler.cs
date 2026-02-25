@@ -1,7 +1,6 @@
 using MediatR;
 using AutoMapper;
 using UserManagement.Domain.Events;
-using Contracts.Common;
 using UserManagement.Application.City.Queries.GetCities;
 using UserManagement.Application.Common.Interfaces.ICity;
 using FluentValidation;

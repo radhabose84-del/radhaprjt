@@ -1,7 +1,6 @@
 using AutoMapper;
 using Contracts.Common;
 using FAM.Application.Common.Interfaces.IDepreciationGroup;
-using FAM.Application.DepreciationGroup.Queries.GetDepreciationGroup;
 using FAM.Domain.Common;
 using FAM.Domain.Entities;
 using FAM.Domain.Events;

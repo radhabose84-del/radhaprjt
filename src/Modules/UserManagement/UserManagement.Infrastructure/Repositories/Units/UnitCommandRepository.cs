@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using UserManagement.Infrastructure.Data;
 using UserManagement.Domain.Entities;
 using UserManagement.Application.Common.Interfaces.IUnit;
-using OfficeOpenXml.Style.XmlAccess;
 
 namespace UserManagement.Infrastructure.Repositories.Units
 {

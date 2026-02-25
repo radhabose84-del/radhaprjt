@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using FAM.Application.AssetGroup.Command.CreateAssetGroup;
 using FAM.Presentation.Validation.Common;
 using FluentValidation;

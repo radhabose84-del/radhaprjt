@@ -1,7 +1,6 @@
 using MaintenanceManagement.Application.Common.Interfaces.IMachineGroupUser;
 using MaintenanceManagement.Application.MachineGroupUser.Command.DeleteMachineGroupUser;
 using FluentValidation;
-using MaintenanceManagement.Presentation.Validation.Common;
 using Shared.Validation.Common;
 
 namespace MaintenanceManagement.Presentation.Validation.MachineGroupUser

@@ -1,13 +1,7 @@
 #nullable disable
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using UserManagement.Presentation.Validation.Common;
 using UserManagement.Application.Users.Commands.ChangeUserPassword;
 using FluentValidation;
 using UserManagement.Application.Common.Interfaces;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Shared.Validation.Common;
 
 namespace UserManagement.Presentation.Validation.Users

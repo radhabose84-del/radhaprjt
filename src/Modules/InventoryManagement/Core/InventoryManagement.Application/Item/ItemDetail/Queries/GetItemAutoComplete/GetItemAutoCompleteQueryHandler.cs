@@ -1,6 +1,5 @@
 using AutoMapper;
 using InventoryManagement.Application.Common.Interfaces.Item.ItemDetail.Queries;
-using InventoryManagement.Application.Item.ItemDetail.Queries.GetItemAutoComplete;
 using InventoryManagement.Domain.Events;
 using MediatR;
 

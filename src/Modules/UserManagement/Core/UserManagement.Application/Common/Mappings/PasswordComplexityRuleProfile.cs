@@ -1,11 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
-using UserManagement.Domain.Entities;
 using UserManagement.Application.PwdComplexityRule.Queries;
-using UserManagement.Application.PwdComplexityRule.Commands;
 using UserManagement.Application.PwdComplexityRule.Commands.CreatePasswordComplexityRule;
 using UserManagement.Application.PasswordComplexityRule.Commands.UpdatePasswordComplexityRule;
 using UserManagement.Application.PwdComplexityRule.Queries.GetPwdComplexityRule;

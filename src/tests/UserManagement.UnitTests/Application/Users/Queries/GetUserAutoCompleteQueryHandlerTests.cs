@@ -1,18 +1,11 @@
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using AutoMapper;
 using Contracts.Common;
 using UserManagement.Application.Common.Interfaces.IUser;
 using UserManagement.Application.Users.Queries.GetUserAutoComplete;
-using UserManagement.Application.Users.Queries.GetUsers; // for UserAutoCompleteDto
 using UserManagement.Domain.Entities;                   // for User
 using UserManagement.Domain.Events;
-using FluentAssertions;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using Moq;
-using Xunit;
 
 namespace UserManagement.UnitTests.Application.Users.Queries
 {

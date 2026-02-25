@@ -1,4 +1,3 @@
-#nullable disable
 using FluentValidation;
 using SalesManagement.Application.Common.Interfaces.ISalesGroup;
 using SalesManagement.Application.SalesGroup.Commands.CreateSalesGroup;
@@ -46,7 +45,7 @@ namespace SalesManagement.Presentation.Validation.SalesGroup
                 .When(x => x.ProductCategoryId.HasValue);
 
             RuleFor(x => x.ProductCategoryId)
-                .MustAsync(async (id, ct) => await _queryRepository.ProductCategoryExistsAsync(id.Value, ct))
+                .MustAsync(async (id, ct) => await _queryRepository.ProductCategoryExistsAsync(id!.Value, ct))
                 .WithMessage("Product Category does not exist in Category Master.")
                 .When(x => x.ProductCategoryId.HasValue && x.ProductCategoryId.Value > 0);
 

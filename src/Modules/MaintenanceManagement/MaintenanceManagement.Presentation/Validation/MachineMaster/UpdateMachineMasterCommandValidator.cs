@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using MaintenanceManagement.Application.Common.Interfaces.IMachineMaster;
 using MaintenanceManagement.Application.MachineMaster.Command.UpdateMachineMaster;
 using FluentValidation;

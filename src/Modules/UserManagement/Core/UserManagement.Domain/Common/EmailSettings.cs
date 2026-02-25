@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace UserManagement.Domain.Common
 {
     public class EmailProviderSettings

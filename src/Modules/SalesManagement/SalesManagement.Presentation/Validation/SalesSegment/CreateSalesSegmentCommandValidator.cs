@@ -1,4 +1,3 @@
-#nullable disable
 
 using Contracts.Interfaces.Lookups.Users;
 using FluentValidation;
@@ -94,7 +93,7 @@ namespace SalesManagement.Presentation.Validation.SalesSegment
                         RuleFor(x => x.CurrencyId)
                             .MustAsync(async (currencyId, ct) =>
                             {
-                                var currencies = await _currencyLookup.GetByIdsAsync(new[] { currencyId.Value }, ct);
+                                var currencies = await _currencyLookup.GetByIdsAsync(new[] { currencyId!.Value }, ct);
                                 return currencies.Any();
                             })
                             .WithMessage($"{nameof(CreateSalesSegmentCommand.CurrencyId)} {rule.Error}")

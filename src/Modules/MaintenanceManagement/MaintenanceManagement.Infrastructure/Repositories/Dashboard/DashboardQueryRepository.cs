@@ -2,7 +2,6 @@
 // Updated Repository and Supporting Code for Unified ChartDto Across Dashboards
 
 using System.Data;
-using System.Linq;
 using Contracts.Interfaces.Lookups.Users;
 using MaintenanceManagement.Application.Common.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces.IDashboard;

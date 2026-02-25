@@ -1,5 +1,4 @@
 // PartyManagement.Application/BankAccount/Query/GetBankAutocomplete/GetBankAutocompleteQueryHandler.cs
-using PartyManagement.Application.BankAccount.Query.GetBankAutocomplete;
 using PartyManagement.Application.Common.Interfaces.IBankAccount;
 using PartyManagement.Domain.Events;
 using MediatR;

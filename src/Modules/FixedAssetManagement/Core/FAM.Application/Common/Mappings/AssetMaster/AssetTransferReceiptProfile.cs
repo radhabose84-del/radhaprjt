@@ -1,10 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
 using FAM.Application.AssetMaster.AssetTransferReceipt.Queries.GetAssetReceiptPending;
-using FAM.Domain.Entities.AssetMaster;
 
 namespace FAM.Application.Common.Mappings.AssetMaster
 {

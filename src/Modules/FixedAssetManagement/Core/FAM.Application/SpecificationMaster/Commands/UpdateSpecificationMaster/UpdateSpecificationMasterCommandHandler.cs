@@ -1,8 +1,6 @@
 using AutoMapper;
-using Contracts.Common;
 using FAM.Application.Common.Interfaces.ISpecificationMaster;
 using FAM.Application.SpecificationMaster.Queries.GetSpecificationMaster;
-using FAM.Domain.Common;
 using FAM.Domain.Entities;
 using FAM.Domain.Events;
 using FluentValidation;

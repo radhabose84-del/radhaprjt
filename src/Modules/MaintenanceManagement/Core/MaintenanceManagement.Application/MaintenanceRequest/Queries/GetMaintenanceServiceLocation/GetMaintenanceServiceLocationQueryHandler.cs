@@ -1,11 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
 using Contracts.Common;
 using MaintenanceManagement.Application.Common.Interfaces.IMaintenanceRequest;
-using MaintenanceManagement.Application.MaintenanceRequest.Queries.GetMaintenanceRequestType;
 using MaintenanceManagement.Application.MiscMaster.Queries.GetMiscMaster;
 using MediatR;
 

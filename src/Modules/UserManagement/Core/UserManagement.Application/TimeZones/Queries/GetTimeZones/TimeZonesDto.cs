@@ -1,9 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Contracts.Common;
-using UserManagement.Application.Common.Mappings;
 using static UserManagement.Domain.Enums.Common.Enums;
 
 namespace UserManagement.Application.TimeZones.Queries.GetTimeZones

@@ -1,10 +1,6 @@
 #nullable disable
-using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
 using System.Text.Json;
-using System.Threading.Tasks;
 using FAM.Application.AssetMaster.AssetTransferIssue.Queries.GetAssetTransfered;
 using FAM.Application.AssetMaster.AssetTransferReceipt.Queries.GetAssetReceiptDetails;
 using FAM.Application.AssetMaster.AssetTransferReceipt.Queries.GetAssetReceiptDetailsById;

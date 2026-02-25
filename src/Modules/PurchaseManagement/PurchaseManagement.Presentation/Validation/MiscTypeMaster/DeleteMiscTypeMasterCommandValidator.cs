@@ -1,11 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using PurchaseManagement.Application.Common.Interfaces.IMiscTypeMaster;
 using PurchaseManagement.Application.MiscTypeMaster.Command.DeleteMiscTypeMaster;
 using FluentValidation;
-using PurchaseManagement.Presentation.Validation.Common;
 using Shared.Validation.Common;
 
 namespace PurchaseManagement.Presentation.Validation.MiscTypeMaster

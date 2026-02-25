@@ -1,11 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
 using Contracts.Interfaces.Lookups.Users; // ✅ lookup contract
 using Contracts.Common;
-using FAM.Application.Common.Interfaces;
 using FAM.Application.Common.Interfaces.IManufacture;
 using FAM.Domain.Events;
 using MediatR;

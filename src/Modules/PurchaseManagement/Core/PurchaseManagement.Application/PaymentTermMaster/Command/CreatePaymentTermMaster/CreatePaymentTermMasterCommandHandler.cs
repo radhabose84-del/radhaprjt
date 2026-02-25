@@ -1,11 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
 using Contracts.Common;
 using PurchaseManagement.Application.Common.Interfaces.IPaymentTermMaster;
-using PurchaseManagement.Application.PaymentTermMaster.Queries.GetAllPaymentTermMaster;
 using PurchaseManagement.Domain.Events;
 using MediatR;
 

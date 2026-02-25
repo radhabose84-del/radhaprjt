@@ -1,10 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using PurchaseManagement.Domain.Common;
-using PurchaseManagement.Domain.PurchaseOrder;
-using MediatR.NotificationPublishers;
 
 namespace PurchaseManagement.Domain.Entities.PurchaseOrder.ServicePO
 {

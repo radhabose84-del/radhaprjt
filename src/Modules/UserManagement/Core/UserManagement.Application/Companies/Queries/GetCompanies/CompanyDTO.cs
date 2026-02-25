@@ -1,13 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Text;
-using UserManagement.Domain.Entities;
-using UserManagement.Application.Common.Mappings;
-using Microsoft.AspNetCore.Http;
-using UserManagement.Application.Common;
-
 namespace UserManagement.Application.Companies.Queries.GetCompanies
 {
     public class CompanyDTO

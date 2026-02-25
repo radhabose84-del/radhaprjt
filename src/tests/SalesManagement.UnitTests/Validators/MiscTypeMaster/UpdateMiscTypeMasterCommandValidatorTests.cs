@@ -1,7 +1,6 @@
 #nullable disable
 using FluentValidation.TestHelper;
 using SalesManagement.Application.Common.Interfaces.IMiscTypeMaster;
-using SalesManagement.Application.MiscTypeMaster.Commands.UpdateMiscTypeMaster;
 using SalesManagement.Presentation.Validation.MiscTypeMaster;
 using SalesManagement.UnitTests.TestData;
 using SalesManagement.UnitTests.TestHelpers;
@@ -48,6 +47,7 @@ namespace SalesManagement.UnitTests.Validators.MiscTypeMaster
         public async Task Id_ZeroOrNegative_FailsValidation(int id)
         {
             var command = MiscTypeMasterBuilders.ValidUpdateCommand(id: id);
+            _mockQueryRepo.Setup(r => r.NotFoundAsync(id)).ReturnsAsync(true);
 
             var result = await CreateValidator().TestValidateAsync(command);
 
@@ -93,7 +93,7 @@ namespace SalesManagement.UnitTests.Validators.MiscTypeMaster
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.Description)
-                  .WithErrorMessage("Description cannot exceed 250 characters.");
+                  .WithErrorMessage("Description  cannot be longer than   250 characters.");
         }
 
         // ── IsActive Rules ────────────────────────────────────────────────────
@@ -109,7 +109,7 @@ namespace SalesManagement.UnitTests.Validators.MiscTypeMaster
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.IsActive)
-                  .WithErrorMessage("IsActive must be 0 or 1.");
+                  .WithErrorMessage("IsActive  must be either 0 or 1.");
         }
 
         [Theory]

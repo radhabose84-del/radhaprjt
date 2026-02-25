@@ -7,7 +7,6 @@ using UserManagement.Application.Users.Commands.DeleteUser;
 using UserManagement.Domain.Entities;
 using static UserManagement.Domain.Enums.Common.Enums;
 using UserManagement.Application.Users.Queries.GetUserAutoComplete;
-using UserManagement.Application.Common.Interfaces;
 
 public class UserProfile : Profile
 {

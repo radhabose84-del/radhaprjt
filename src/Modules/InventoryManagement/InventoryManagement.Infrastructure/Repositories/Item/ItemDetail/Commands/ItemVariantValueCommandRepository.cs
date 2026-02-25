@@ -1,4 +1,3 @@
-using System.Linq;
 using InventoryManagement.Application.Common.Interfaces.Item.ItemDetail.Commands;
 using InventoryManagement.Application.Item.ItemDetail.Queries.GetAllItems;
 using InventoryManagement.Domain.Entities.Item.ItemDetail;

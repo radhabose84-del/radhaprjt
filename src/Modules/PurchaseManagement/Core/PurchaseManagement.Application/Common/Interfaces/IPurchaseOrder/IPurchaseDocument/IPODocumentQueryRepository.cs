@@ -1,5 +1,3 @@
-using PurchaseManagement.Domain.PurchaseOrder;
-
 namespace PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.IPurchaseDocument
 {
     public interface IPODocumentQueryRepository

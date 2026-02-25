@@ -1,13 +1,8 @@
 using AutoMapper;
 using UserManagement.Application.RoleEntitlements.Commands.CreateRoleEntitlement;
-using UserManagement.Application.RoleEntitlements.Commands.DeleteRoleEntitlement;
 using UserManagement.Application.RoleEntitlements.Commands.GetRolePrivileges;
-using UserManagement.Application.RoleEntitlements.Commands.UpdateRoleRntitlement;
 using UserManagement.Application.RoleEntitlements.Queries.GetRoleEntitlementById;
-using UserManagement.Application.RoleEntitlements.Queries.GetRoleEntitlements;
-using UserManagement.Application.UserRole.Commands.CreateRole;
 using UserManagement.Domain.Entities;
-using static UserManagement.Domain.Enums.Common.Enums;
 
 namespace UserManagement.Application.Common.Mappings
 {

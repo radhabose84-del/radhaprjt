@@ -1,8 +1,4 @@
 #nullable disable
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using ProjectManagement.Application.Common.Interfaces.IMiscTypeMaster;
 using ProjectManagement.Application.MiscTypeMaster.Command.UpdateMiscTypeMaster;
 using FluentValidation;

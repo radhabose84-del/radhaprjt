@@ -4,7 +4,6 @@ using Contracts.Interfaces.Lookups.Users; // ✅ lookup contracts
 using FAM.Application.AssetMaster.AssetMasterGeneral.Queries.GetAssetMasterGeneral;
 using FAM.Application.Common.Interfaces;
 using FAM.Application.Common.Interfaces.IAssetMaster.IAssetMasterGeneral;
-using FAM.Application.Reports.AssetReport;
 using FAM.Domain.Common;
 using FAM.Domain.Entities.AssetMaster;
 using Dapper;

@@ -1,12 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using PurchaseManagement.Application.MRS.Queries.GetMrsEntry;
 using PurchaseManagement.Application.MRS.Queries.GetMrsEntryById;
 using PurchaseManagement.Application.MRS.Queries.GetMrsPending;
 using PurchaseManagement.Application.MRS.Queries.GetStockItemBased;
-using PurchaseManagement.Domain.Entities.MRS;
 
 namespace PurchaseManagement.Application.Common.Interfaces.IMRS
 {

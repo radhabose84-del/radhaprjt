@@ -1,9 +1,4 @@
 #nullable disable
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using InventoryManagement.Application.UOM.Command.CreateUOM;
 using InventoryManagement.Application.UOM.Command.DeleteUOM;
 using InventoryManagement.Application.UOM.Command.UpdateUOM;
@@ -14,7 +9,6 @@ using InventoryManagement.Application.UOM.Queries.GetUOMTypeAutoComplete;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Http;
 
 namespace InventoryManagement.Presentation.Controllers

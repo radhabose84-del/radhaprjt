@@ -1,10 +1,9 @@
 
 using AutoMapper;
 using PurchaseManagement.Application.Port.Commands;
-using PurchaseManagement.Application.Port.Dto;
 using PurchaseManagement.Domain.Entities;
 
-namespace  PurchaseManagement.Application.Common.Mappings;
+namespace PurchaseManagement.Application.Common.Mappings;
 public sealed class PortMasterMappingProfile : Profile
 {
     public PortMasterMappingProfile()

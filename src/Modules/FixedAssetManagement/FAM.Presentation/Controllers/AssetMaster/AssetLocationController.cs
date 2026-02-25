@@ -1,18 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using FAM.Application.AssetLocation.Commands.CreateAssetLocation;
 using FAM.Application.AssetLocation.Queries.GetAssetLocation;
 using FAM.Application.AssetLocation.Queries.GetAssetLocationById;
 using FAM.Application.AssetMaster.AssetLocation.Commands.UpdateAssetLocation;
 using FAM.Application.AssetMaster.AssetLocation.Queries.GetCustodian;
 using FAM.Application.AssetMaster.AssetLocation.Queries.GetSubLocationById;
-using FAM.Application.AssetSubCategories.Queries.GetAssetSubCategoriesById;
-using FAM.Presentation.Validation.AssetMaster.AssetLocation;
-using FAM.Infrastructure.Data;
-using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -20,7 +11,7 @@ using Microsoft.Extensions.Logging;
 
 namespace FAM.Presentation.Controllers.AssetMaster
 {
-   [Route("api/[controller]")]
+    [Route("api/[controller]")]
     public class AssetLocationController : ApiControllerBase
     {  
          

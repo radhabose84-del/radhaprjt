@@ -1,13 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
-using Contracts.Common;
 using MaintenanceManagement.Application.Common.Interfaces.Power.IPowerConsumption;
 using MaintenanceManagement.Application.Power.PowerConsumption.Queries.GetFeederSubFeederById;
 using MaintenanceManagement.Domain.Events;
-using MassTransit.Futures.Contracts;
 using MediatR;
 
 namespace MaintenanceManagement.Application.Power.PowerConsumption.Queries

@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using InventoryManagement.Application.Reports.GetUnitsByDivision;
 using InventoryManagement.Application.Reports.StockReport;
 using InventoryManagement.Application.Reports.StockReportDivisionwise;
@@ -10,7 +5,6 @@ using InventoryManagement.Application.Reports.SubStoresStock;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 
 namespace InventoryManagement.Presentation.Controllers.Reports
 {

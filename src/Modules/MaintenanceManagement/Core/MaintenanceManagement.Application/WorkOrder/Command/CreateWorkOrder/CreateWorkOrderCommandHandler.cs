@@ -1,16 +1,13 @@
 #nullable disable
 
 
-using System.Collections.Generic;
 using AutoMapper;
 using Contracts.Interfaces.Lookups.Users;
 using Contracts.Common;
 using MaintenanceManagement.Application.Common.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces.IWorkOrder;
-using MaintenanceManagement.Application.Common.RealTimeNotificationHub;
 using MaintenanceManagement.Domain.Events;
 using MediatR;
-using Microsoft.AspNetCore.SignalR;
 using Serilog;
 
 namespace MaintenanceManagement.Application.WorkOrder.Command.CreateWorkOrder

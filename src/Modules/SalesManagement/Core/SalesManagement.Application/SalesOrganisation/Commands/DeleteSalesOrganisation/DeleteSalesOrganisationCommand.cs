@@ -1,4 +1,3 @@
-#nullable disable
 using MediatR;
 
 namespace SalesManagement.Application.SalesOrganisation.Commands.DeleteSalesOrganisation;

@@ -1,9 +1,5 @@
 using MongoDB.Driver;
 using MediatR;
-using SalesManagement.Application.Common.Interfaces;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using SalesManagement.Domain.Entities;
 
 namespace SalesManagement.Application.AuditLog.Queries.GetAuditLog

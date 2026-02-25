@@ -3,7 +3,6 @@ using FAM.Domain.Common;
 using FAM.Domain.Entities.AssetMaster;
 using FAM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using static FAM.Domain.Common.BaseEntity;
 
 namespace FAM.Infrastructure.Repositories.AssetMaster.AssetSpecification
 {

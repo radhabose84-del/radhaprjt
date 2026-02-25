@@ -1,13 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using UserManagement.Application.Common.Interfaces;
 using UserManagement.Domain.Entities;
 using MediatR;
 using AutoMapper;
 using UserManagement.Application.Common.Interfaces.ICompany;
-using Contracts.Common;
 using UserManagement.Domain.Events;
 using FluentValidation;
 

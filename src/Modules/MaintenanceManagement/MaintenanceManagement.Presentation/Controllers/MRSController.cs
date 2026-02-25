@@ -1,20 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
-using Contracts.Common;
 using MaintenanceManagement.Application.MRS.Command.CreateMRS;
 using MaintenanceManagement.Application.MRS.Queries;
 using MaintenanceManagement.Application.MRS.Queries.GetCategory;
 using MaintenanceManagement.Application.MRS.Queries.GetPendingQty;
 using MaintenanceManagement.Application.MRS.Queries.GetSubCostCenter;
 using MaintenanceManagement.Application.MRS.Queries.GetSubDepartment;
-using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 
 namespace MaintenanceManagement.Presentation.Controllers
 {

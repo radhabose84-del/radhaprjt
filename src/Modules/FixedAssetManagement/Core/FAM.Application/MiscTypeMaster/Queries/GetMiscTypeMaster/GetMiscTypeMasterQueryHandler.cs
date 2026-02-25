@@ -1,11 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
 using Contracts.Common;
 using FAM.Application.Common.Interfaces.IMiscTypeMaster;
-using FAM.Domain.Entities;
 using FAM.Domain.Events;
 using MediatR;
 

@@ -1,7 +1,4 @@
-
-using MaintenanceManagement.Application.Reports.WorkOrderItemConsuption;
 using MaintenanceManagement.Application.WorkOrder.Queries.GetWorkOrder;
-using MaintenanceManagement.Application.WorkOrder.Queries.GetWorkOrderById;
 
 namespace MaintenanceManagement.Application.Common.Interfaces.IWorkOrder
 {

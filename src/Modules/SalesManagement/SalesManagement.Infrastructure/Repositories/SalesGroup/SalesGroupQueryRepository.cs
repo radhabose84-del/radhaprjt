@@ -1,4 +1,3 @@
-#nullable disable
 using System.Data;
 using Contracts.Interfaces.Lookups.Inventory;
 using Dapper;
@@ -18,7 +17,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesGroup
             _categoryLookup = categoryLookup;
         }
 
-        public async Task<(List<SalesGroupDto>, int)> GetAllAsync(int pageNumber, int pageSize, string searchTerm)
+        public async Task<(List<SalesGroupDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
         {
             var query = $$"""
                 DECLARE @TotalCount INT;
@@ -53,7 +52,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesGroup
             {
                 var categoryIds = list
                     .Where(x => x.ProductCategoryId.HasValue)
-                    .Select(x => x.ProductCategoryId.Value)
+                    .Select(x => x.ProductCategoryId!.Value)
                     .Distinct()
                     .ToList();
 
@@ -64,7 +63,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesGroup
 
                     foreach (var item in list.Where(x => x.ProductCategoryId.HasValue))
                     {
-                        item.ProductCategoryName = categoryDict.TryGetValue(item.ProductCategoryId.Value, out var name) ? name : null;
+                        item.ProductCategoryName = categoryDict.TryGetValue(item.ProductCategoryId!.Value, out var name) ? name : null;
                     }
                 }
             }
@@ -72,7 +71,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesGroup
             return (list, totalCount);
         }
 
-        public async Task<SalesGroupDto> GetByIdAsync(int id)
+        public async Task<SalesGroupDto?> GetByIdAsync(int id)
         {
             const string sql = @"
                 SELECT sg.Id, sg.SalesGroupName, sg.SalesOfficeId,
@@ -89,7 +88,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesGroup
 
             if (dto?.ProductCategoryId.HasValue == true)
             {
-                var categories = await _categoryLookup.GetCategoryByIdsAsync(new[] { dto.ProductCategoryId.Value });
+                var categories = await _categoryLookup.GetCategoryByIdsAsync(new[] { dto.ProductCategoryId!.Value });
                 dto.ProductCategoryName = categories?.FirstOrDefault()?.ItemCategoryName;
             }
 

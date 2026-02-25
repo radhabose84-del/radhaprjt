@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using MaintenanceManagement.Application.MachineMaster.Command.CreateMachineMaster;
 using MaintenanceManagement.Application.MachineMaster.Command.DeleteMachineMaster;
 using MaintenanceManagement.Application.MachineMaster.Command.UpdateMachineMaster;
@@ -13,12 +8,9 @@ using MaintenanceManagement.Application.MachineMaster.Queries.GetMachineMaster;
 using MaintenanceManagement.Application.MachineMaster.Queries.GetMachineMasterAutoComplete;
 using MaintenanceManagement.Application.MachineMaster.Queries.GetMachineMasterById;
 using MaintenanceManagement.Application.MachineMaster.Queries.GetMachineNoDepartmentbyId;
-using FluentValidation;
-using MassTransit.Futures.Contracts;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 
 namespace MaintenanceManagement.Presentation.Controllers
 {

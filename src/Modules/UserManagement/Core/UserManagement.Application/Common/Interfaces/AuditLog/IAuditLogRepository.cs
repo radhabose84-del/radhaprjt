@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using UserManagement.Domain.Entities;
 
 namespace UserManagement.Application.Common.Interfaces.AuditLog

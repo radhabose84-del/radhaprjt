@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using Contracts.Common;
 using MaintenanceManagement.Application.Common.Interfaces.Power.IFeederGroup;
 
@@ -13,7 +8,6 @@ using MaintenanceManagement.Application.Power.FeederGroup.Queries.GetFeederGroup
 using MaintenanceManagement.Application.Power.FeederGroup.Queries.GetFeederGroupAutoComplete;
 using MaintenanceManagement.Application.Power.FeederGroup.Queries.GetFeederGroupById;
 using FluentValidation;
-using MaintenanceManagement.Presentation.Validation.Power.FeederGroup;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

@@ -1,13 +1,8 @@
 #nullable disable
-using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using System.Threading.Tasks;
 using PurchaseManagement.Application.Common.Interfaces.IPaymentTermMaster;
 using PurchaseManagement.Application.PaymentTermMaster.Queries.GetAllPaymentTermMaster;
 using PurchaseManagement.Application.PaymentTermMaster.Queries.GetPaymentTermAutoComplete;
-using PurchaseManagement.Domain.Entities;
 using Dapper;
 
 namespace PurchaseManagement.Infrastructure.Repositories.PaymentTermMaster

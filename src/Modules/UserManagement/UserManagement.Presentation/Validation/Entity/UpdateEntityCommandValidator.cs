@@ -1,16 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using FluentValidation;
-using UserManagement.Application.Entity.Commands;
 using UserManagement.Application.Entity.Commands.UpdateEntity;
-using UserManagement.Domain.Entities;
 using UserManagement.Presentation.Validation.Common;
-using UserManagement.Infrastructure.Migrations;
 using Serilog;
 using Shared.Validation.Common;
 
-namespace UserManagement.Presentation.Validation.Entity 
+namespace UserManagement.Presentation.Validation.Entity
 {
     public class UpdateEntityCommandValidator : AbstractValidator<UpdateEntityCommand>
     {

@@ -132,6 +132,7 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesItemPriceMaster
                 bu = new Domain.Entities.BusinessUnit
                 {
                     BusinessUnitCode = "INTBU01", BusinessUnitName = "Integration Test BU",
+                    Description = "Integration Test BU",
                     IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted
                 };
                 ctx.BusinessUnit.Add(bu);

@@ -1,8 +1,4 @@
 #nullable disable
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using PartyManagement.Application.Common.Interfaces;
 using MassTransit;
 using MongoDB.Driver;

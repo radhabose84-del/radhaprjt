@@ -1,6 +1,4 @@
 using System.Security.Claims;
-using UserManagement.Domain.Common;
-using UserManagement.Domain.Entities;
 
 namespace UserManagement.Application.Common.Interfaces
 {

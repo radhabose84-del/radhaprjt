@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
 using WarehouseManagement.Application.BinMaster.Command.CreateBinMaster;
 using WarehouseManagement.Application.BinMaster.Command.UpdateBinMaster;

@@ -1,8 +1,5 @@
 using UserManagement.Infrastructure.Data;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
-using System;
-using System.Linq;
 
 namespace UserManagement.Presentation.Validation.Common
 {

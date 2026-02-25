@@ -1,15 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using MaintenanceManagement.Application.WorkCenter.Command.CreateWorkCenter;
 using MaintenanceManagement.Application.WorkCenter.Command.DeleteWorkCenter;
 using MaintenanceManagement.Application.WorkCenter.Command.UpdateWorkCenter;
 using MaintenanceManagement.Application.WorkCenter.Queries.GetWorkCenter;
 using MaintenanceManagement.Application.WorkCenter.Queries.GetWorkCenterAutoComplete;
 using MaintenanceManagement.Application.WorkCenter.Queries.GetWorkCenterById;
-using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

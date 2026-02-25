@@ -1,5 +1,4 @@
 using PartyManagement.Application.Common.Interfaces.IBankAccount;
-using PartyManagement.Domain.Entities;
 using PartyManagement.Domain.Events;
 using MediatR;
 

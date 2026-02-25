@@ -1,5 +1,4 @@
 using Contracts.Common;
-using MaintenanceManagement.Application.WorkOrder.Queries.GetWorkOrderById;
 using MediatR;
 
 namespace MaintenanceManagement.Application.WorkOrder.Queries.GetWorkOrder

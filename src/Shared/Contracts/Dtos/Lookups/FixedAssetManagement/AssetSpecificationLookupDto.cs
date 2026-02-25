@@ -1,5 +1,3 @@
-using System;
-
 namespace Contracts.Dtos.Lookups.FixedAssetManagement
 {
     public class AssetSpecificationLookupDto

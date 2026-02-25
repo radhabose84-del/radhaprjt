@@ -1,4 +1,3 @@
-using InventoryManagement.Application.Budget.Queries.GetBudgetLogs;
 using InventoryManagement.Application.Common.Interfaces.Budget;
 using MediatR;
 

@@ -3,7 +3,6 @@ using AutoMapper;
 using Contracts.Interfaces.Lookups.Users;
 using Contracts.Common;
 using MaintenanceManagement.Application.Common.Interfaces.IWorkOrder;
-using MaintenanceManagement.Application.WorkOrder.Queries.GetWorkOrderById;
 using MaintenanceManagement.Domain.Events;
 using MediatR;
 

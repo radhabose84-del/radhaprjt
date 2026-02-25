@@ -1,5 +1,3 @@
-using UserManagement.Application.Common;
-using Contracts.Common;
 using UserManagement.Application.Country.Queries.GetCountries;
 using MediatR;
 

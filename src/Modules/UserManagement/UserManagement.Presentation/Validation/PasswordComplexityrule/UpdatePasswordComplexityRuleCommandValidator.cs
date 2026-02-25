@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using UserManagement.Presentation.Validation.Common;
 using UserManagement.Application.PasswordComplexityRule.Commands.UpdatePasswordComplexityRule;
 using UserManagement.Domain.Entities;

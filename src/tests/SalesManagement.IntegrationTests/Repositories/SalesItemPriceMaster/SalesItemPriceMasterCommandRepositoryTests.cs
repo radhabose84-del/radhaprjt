@@ -83,6 +83,7 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesItemPriceMaster
                 {
                     BusinessUnitCode = "INTBU01",
                     BusinessUnitName = "Integration Test BU",
+                    Description = "Integration Test BU",
                     IsActive = Status.Active,
                     IsDeleted = IsDelete.NotDeleted
                 };

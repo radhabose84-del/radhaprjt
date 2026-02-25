@@ -1,13 +1,8 @@
 #nullable disable
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
 using Contracts.Common;
 using FAM.Application.Common.Interfaces;
 using FAM.Application.Common.Interfaces.IMiscMaster;
-using FAM.Application.MiscMaster.Queries.GetMiscMaster;
 using MediatR;
 using OfficeOpenXml;
 using static FAM.Domain.Common.BaseEntity;

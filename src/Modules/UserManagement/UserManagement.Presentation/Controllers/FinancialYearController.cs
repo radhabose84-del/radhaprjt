@@ -1,17 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
-using UserManagement.Infrastructure.Data;
-using UserManagement.Application.Common.Interfaces.IFinancialYear;
 using UserManagement.Application.FinancialYear.Command.CreateFinancialYear;
 using UserManagement.Application.FinancialYear.Command.DeleteFinancialYear;
 using UserManagement.Application.FinancialYear.Command.UpdateFinancialYear;
-using UserManagement.Application.FinancialYear.Queries.GetFinancialYear;
 using UserManagement.Application.FinancialYear.Queries.GetFinancialYearGetById;
 using UserManagement.Application.GetFinancialYearYear.Queries.GetFinancialYear;
-using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -20,7 +11,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace UserManagement.Presentation.Controllers
 {
-   [Route("api/[controller]")]
+    [Route("api/[controller]")]
     public class FinancialYearController : ApiControllerBase
     {
       

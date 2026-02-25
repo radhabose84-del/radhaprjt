@@ -1,13 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
 using MaintenanceManagement.Application.MaintenanceCategory.Command.CreateMaintenanceCategory;
 using MaintenanceManagement.Application.MaintenanceCategory.Command.DeleteMaintenanceCategory;
 using MaintenanceManagement.Application.MaintenanceCategory.Command.UpdateMaintenanceCategory;
 using MaintenanceManagement.Application.MaintenanceCategory.Queries.GetMaintenanceCategory;
-using MaintenanceManagement.Application.MaintenanceType.Queries.GetMaintenanceType;
 using static MaintenanceManagement.Domain.Common.BaseEntity;
 
 namespace MaintenanceManagement.Application.Common.Mappings

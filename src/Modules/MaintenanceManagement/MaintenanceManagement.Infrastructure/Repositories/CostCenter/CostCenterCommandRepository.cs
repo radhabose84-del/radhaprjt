@@ -1,12 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Threading.Tasks;
 using MaintenanceManagement.Application.Common.Interfaces.ICostCenter;
 using MaintenanceManagement.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using OfficeOpenXml.Style.XmlAccess;
 
 namespace MaintenanceManagement.Infrastructure.Repositories.CostCenter
 {

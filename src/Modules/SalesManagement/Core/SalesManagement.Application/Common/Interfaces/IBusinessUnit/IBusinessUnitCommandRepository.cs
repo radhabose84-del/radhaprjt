@@ -1,4 +1,3 @@
-#nullable disable
 
 namespace SalesManagement.Application.Common.Interfaces.IBusinessUnit
 {

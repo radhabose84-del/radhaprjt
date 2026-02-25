@@ -1,11 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using UserManagement.Infrastructure.Data;
-using UserManagement.Application.Common.Interfaces;
 using UserManagement.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using UserManagement.Application.Common.Interfaces.IModule;
 
 namespace UserManagement.Infrastructure.Repositories.Module

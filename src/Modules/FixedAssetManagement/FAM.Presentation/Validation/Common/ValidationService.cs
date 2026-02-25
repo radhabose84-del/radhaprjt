@@ -69,7 +69,6 @@ using FAM.Application.AssetMaster.AssetTransferReceipt.Command.CreateAssetTransf
 using FAM.Application.AssetMaster.AssetMasterGeneral.Commands.DeleteAssetMasterGeneral;
 using FAM.Application.DepreciationGroup.Commands.DeleteDepreciationGroup;
 using FAM.Application.AssetMaster.AssetWarranty.Commands.DeleteAssetWarranty;
-using FAM.Application.Manufacture.Commands.DeleteManufacture;
 using FAM.Application.AssetMaster.AssetSpecification.Commands.DeleteAssetSpecification;
 using FAM.Application.SpecificationMaster.Commands.DeleteSpecificationMaster;
 using FAM.Application.AssetMaster.AssetAmc.Command.CreateAssetAmc;

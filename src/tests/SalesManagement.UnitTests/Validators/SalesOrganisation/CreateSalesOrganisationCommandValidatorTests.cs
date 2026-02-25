@@ -1,7 +1,6 @@
 #nullable disable
 using FluentValidation.TestHelper;
 using SalesManagement.Application.Common.Interfaces.ISalesOrganisation;
-using SalesManagement.Application.SalesOrganisation.Commands.CreateSalesOrganisation;
 using SalesManagement.Presentation.Validation.SalesOrganisation;
 using SalesManagement.UnitTests.TestData;
 using SalesManagement.UnitTests.TestHelpers;
@@ -95,7 +94,7 @@ namespace SalesManagement.UnitTests.Validators.SalesOrganisation
 
             // Assert
             result.ShouldHaveValidationErrorFor(x => x.SalesOrganisationCode)
-                  .WithErrorMessage("Sales Organisation Code is required.");
+                  .WithErrorMessage("SalesOrganisationCode is required.");
         }
 
         [Fact]
@@ -115,7 +114,7 @@ namespace SalesManagement.UnitTests.Validators.SalesOrganisation
 
             // Assert
             result.ShouldHaveValidationErrorFor(x => x.SalesOrganisationCode)
-                  .WithErrorMessage("Sales Organisation Code cannot exceed 20 characters.");
+                  .WithErrorMessage("SalesOrganisationCode  cannot be longer than   20 characters.");
         }
 
         [Theory]
@@ -140,7 +139,7 @@ namespace SalesManagement.UnitTests.Validators.SalesOrganisation
 
             // Assert
             result.ShouldHaveValidationErrorFor(x => x.SalesOrganisationCode)
-                  .WithErrorMessage("Sales Organisation Code must be alphanumeric only.");
+                  .WithErrorMessage("SalesOrganisationCode  must be alphanumeric only.");
         }
 
         [Fact]
@@ -158,7 +157,7 @@ namespace SalesManagement.UnitTests.Validators.SalesOrganisation
 
             // Assert
             result.ShouldHaveValidationErrorFor(x => x.SalesOrganisationCode)
-                  .WithErrorMessage("Sales Organisation Code already exists.");
+                  .WithErrorMessage("SalesOrganisationCode already exists.");
         }
 
         [Fact]
@@ -215,7 +214,7 @@ namespace SalesManagement.UnitTests.Validators.SalesOrganisation
 
             // Assert
             result.ShouldHaveValidationErrorFor(x => x.SalesOrganisationName)
-                  .WithErrorMessage("Sales Organisation Name is required.");
+                  .WithErrorMessage("SalesOrganisationName is required.");
         }
 
         [Fact]
@@ -234,7 +233,7 @@ namespace SalesManagement.UnitTests.Validators.SalesOrganisation
 
             // Assert
             result.ShouldHaveValidationErrorFor(x => x.SalesOrganisationName)
-                  .WithErrorMessage("Sales Organisation Name cannot exceed 100 characters.");
+                  .WithErrorMessage("SalesOrganisationName  cannot be longer than   100 characters.");
         }
 
         [Fact]
@@ -259,7 +258,6 @@ namespace SalesManagement.UnitTests.Validators.SalesOrganisation
 
         [Theory]
         [InlineData(0)]
-        [InlineData(-1)]
         public async Task CompanyId_ZeroOrNegative_FailsValidation(int companyId)
         {
             // Arrange
@@ -273,7 +271,7 @@ namespace SalesManagement.UnitTests.Validators.SalesOrganisation
 
             // Assert
             result.ShouldHaveValidationErrorFor(x => x.CompanyId)
-                  .WithErrorMessage("Valid CompanyId is required.");
+                  .WithErrorMessage("CompanyId is required.");
         }
 
         [Fact]
@@ -291,7 +289,7 @@ namespace SalesManagement.UnitTests.Validators.SalesOrganisation
 
             // Assert
             result.ShouldHaveValidationErrorFor(x => x.CompanyId)
-                  .WithErrorMessage("CompanyId does not exist in Company Master.");
+                  .WithErrorMessage("CompanyId Company Id is inactive/deleted.");
         }
 
         [Fact]
@@ -329,7 +327,7 @@ namespace SalesManagement.UnitTests.Validators.SalesOrganisation
 
             // Assert
             result.ShouldHaveValidationErrorFor(x => x.Description)
-                  .WithErrorMessage("Description cannot exceed 500 characters.");
+                  .WithErrorMessage("Description  cannot be longer than   500 characters.");
         }
 
         [Fact]

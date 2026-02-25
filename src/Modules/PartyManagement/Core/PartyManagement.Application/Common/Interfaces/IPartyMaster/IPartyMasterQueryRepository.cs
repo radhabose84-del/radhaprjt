@@ -1,14 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using PartyManagement.Application.PartyMaster.Command.CreatePartyMaster;
 using PartyManagement.Application.PartyMaster.Queries.GetPartMaster;
 using PartyManagement.Application.PartyMaster.Queries.GetPartMasterAutoComplete;
 using PartyManagement.Application.PartyMaster.Queries.GetPartyGroupLoad;
 using PartyManagement.Application.PartyMaster.Queries.GetPartyMasterById;
 using PartyManagement.Application.PartyMaster.Queries.GetPartyMasterPending;
-using PartyManagement.Domain.Entities;
 
 namespace PartyManagement.Application.Common.Interfaces.IPartyMaster
 {

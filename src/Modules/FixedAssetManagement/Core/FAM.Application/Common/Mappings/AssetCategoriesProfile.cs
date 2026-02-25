@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
 using FAM.Application.AssetCategories.Command.CreateAssetCategories;
 using FAM.Application.AssetCategories.Command.DeleteAssetCategories;

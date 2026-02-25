@@ -1,5 +1,3 @@
-
-using Contracts.Common;
 using FAM.Application.DepreciationDetail.Queries.GetDepreciationDetail;
 using MediatR;
 

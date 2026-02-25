@@ -1,8 +1,4 @@
 #nullable disable
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using MaintenanceManagement.Application.ActivityMaster.Command.UpdateActivityMster;
 using MaintenanceManagement.Application.Common.Interfaces.IActivityMaster;
 using FluentValidation;

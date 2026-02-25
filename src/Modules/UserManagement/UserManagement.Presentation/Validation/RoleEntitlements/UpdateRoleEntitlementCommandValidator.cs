@@ -1,9 +1,6 @@
 using FluentValidation;
-using UserManagement.Domain.Entities;
 using UserManagement.Application.RoleEntitlements.Commands.UpdateRoleRntitlement;
 using UserManagement.Presentation.Validation.Common;
-using Serilog;
-using Shared.Validation.Common;
 
 namespace UserManagement.Presentation.Validation.RoleEntitlements
 {

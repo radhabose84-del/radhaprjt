@@ -1,5 +1,4 @@
 #nullable disable
-using Contracts.Common;
 using SalesManagement.Application.Common.Interfaces.ISalesOrganisation;
 using SalesManagement.Application.SalesOrganisation.Dto;
 using SalesManagement.Application.SalesOrganisation.Queries.GetAllSalesOrganisation;

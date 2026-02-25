@@ -1,8 +1,4 @@
 #nullable disable
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IIssueReturn;
 using PurchaseManagement.Application.Common.Interfaces.IMiscMaster;
@@ -12,7 +8,6 @@ using PurchaseManagement.Domain.Entities.IssueReturn;
 using PurchaseManagement.Domain.Entities.MRS;
 using Microsoft.EntityFrameworkCore;
 using PurchaseManagement.Infrastructure.Data;
-using PurchaseManagement.Infrastructure.Services;
 
 namespace PurchaseManagement.Infrastructure.Repositories.IssueReturn
 {

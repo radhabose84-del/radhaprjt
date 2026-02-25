@@ -1,9 +1,5 @@
 using AutoMapper;
 using UserManagement.Application.Departments.Queries.GetDepartments;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using UserManagement.Domain.Entities;
 using UserManagement.Application.Departments.Commands.CreateDepartment;
 using UserManagement.Application.Departments.Commands.DeleteDepartment;

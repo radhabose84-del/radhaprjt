@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using WarehouseManagement.Application.Common;
 using WarehouseManagement.Application.Common.Interfaces.IWarehouseMaster;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;

@@ -1,18 +1,12 @@
 using AutoMapper;
 using Contracts.Interfaces.Lookups.Users; // ✅ lookup contract
 using FAM.Application.AssetMaster.AssetWarranty.Queries.GetAssetWarranty;
-using Contracts.Common;
 using FAM.Application.Common.Interfaces;
 using FAM.Application.Common.Interfaces.IAssetMaster.IAssetMasterGeneral;
 using FAM.Application.Common.Interfaces.IAssetMaster.IAssetWarranty;
 using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using System;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace FAM.Application.AssetMaster.AssetWarranty.Commands.UploadAssetWarranty
 {

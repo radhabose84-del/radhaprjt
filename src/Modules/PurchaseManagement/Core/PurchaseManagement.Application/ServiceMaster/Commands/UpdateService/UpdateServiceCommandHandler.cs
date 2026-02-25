@@ -1,10 +1,5 @@
 #nullable disable
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
-using Contracts.Common;
 using PurchaseManagement.Application.Common.Interfaces.IServiceMaster;
 using PurchaseManagement.Application.ServiceMaster.Queries.GetAllServices;
 using PurchaseManagement.Domain.Events;

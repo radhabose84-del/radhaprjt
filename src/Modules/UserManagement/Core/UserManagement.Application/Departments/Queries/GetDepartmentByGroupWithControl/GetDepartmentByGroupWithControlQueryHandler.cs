@@ -1,12 +1,7 @@
 #nullable disable
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
 using Contracts.Common;
 using UserManagement.Application.Common.Interfaces.IDepartment;
-using UserManagement.Application.Departments.Queries.GetDepartments;
 using MediatR;
 
 namespace UserManagement.Application.Departments.Queries.GetDepartmentByGroupWithControl

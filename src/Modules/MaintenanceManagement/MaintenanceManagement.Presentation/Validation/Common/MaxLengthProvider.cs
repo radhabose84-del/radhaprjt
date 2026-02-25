@@ -1,8 +1,5 @@
 using MaintenanceManagement.Infrastructure.Data;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
-using System;
-using System.Linq;
 
 namespace MaintenanceManagement.Presentation.Validation.Common
 {

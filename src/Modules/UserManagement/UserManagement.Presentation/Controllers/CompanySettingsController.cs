@@ -1,7 +1,6 @@
 using UserManagement.Application.CompanySettings.Commands.CreateCompanySettings;
 using UserManagement.Application.CompanySettings.Commands.UpdateCompanySettings;
 using UserManagement.Application.CompanySettings.Queries.GetCompanySettingsById;
-using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;

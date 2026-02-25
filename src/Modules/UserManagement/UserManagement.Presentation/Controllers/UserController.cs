@@ -2,7 +2,6 @@
 using UserManagement.Infrastructure.Data;
 using FluentValidation;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using UserManagement.Application.Users.Queries.GetUsers;
@@ -15,9 +14,7 @@ using UserManagement.Application.Users.Commands.UpdateFirstTimeUserPassword;
 using UserManagement.Application.Users.Commands.ChangeUserPassword;
 using Microsoft.AspNetCore.Authorization;
 using UserManagement.Application.Users.Commands.ForgotUserPassword;
-using UserManagement.Infrastructure.Services;
 using UserManagement.Application.Users.Commands.ResetUserPassword;
-using Contracts.Events;
 using MassTransit;
 using UserManagement.Application.Users.Commands.RemoveVerificationCode;
 using Microsoft.Extensions.Logging;

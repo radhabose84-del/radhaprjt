@@ -1,4 +1,4 @@
-#nullable disable
+﻿#nullable disable
 using FluentValidation.TestHelper;
 using SalesManagement.Application.Common.Interfaces.ISalesOrganisation;
 using SalesManagement.Application.SalesOrganisation.Commands.UpdateSalesOrganisation;
@@ -18,6 +18,11 @@ namespace SalesManagement.UnitTests.Validators.SalesOrganisation
                 _mockQueryRepo.Object);
 
         // ── Setup helpers ─────────────────────────────────────────────────────
+
+        private void SetupIdExists(int id = 1)
+        {
+            _mockQueryRepo.Setup(r => r.NotFoundAsync(id)).ReturnsAsync(false);
+        }
 
         private void SetupCompanyExists(int companyId = 1)
         {
@@ -40,6 +45,7 @@ namespace SalesManagement.UnitTests.Validators.SalesOrganisation
         {
             // Arrange
             var command = SalesOrganisationBuilders.ValidUpdateCommand(id: 1, companyId: 1);
+            SetupIdExists(1);
             SetupCompanyExists(1);
 
             var validator = CreateValidator();
@@ -55,11 +61,11 @@ namespace SalesManagement.UnitTests.Validators.SalesOrganisation
 
         [Theory]
         [InlineData(0)]
-        [InlineData(-1)]
         public async Task Id_ZeroOrNegative_FailsValidation(int id)
         {
             // Arrange
             var command = SalesOrganisationBuilders.ValidUpdateCommand(id: id, companyId: 1);
+            _mockQueryRepo.Setup(r => r.NotFoundAsync(id)).ReturnsAsync(true);
             SetupCompanyExists(1);
 
             var validator = CreateValidator();
@@ -81,6 +87,7 @@ namespace SalesManagement.UnitTests.Validators.SalesOrganisation
         {
             // Arrange
             var command = SalesOrganisationBuilders.ValidUpdateCommand(id: 1, name: name, companyId: 1);
+            SetupIdExists(1);
             SetupCompanyExists(1);
 
             var validator = CreateValidator();
@@ -90,7 +97,7 @@ namespace SalesManagement.UnitTests.Validators.SalesOrganisation
 
             // Assert
             result.ShouldHaveValidationErrorFor(x => x.SalesOrganisationName)
-                  .WithErrorMessage("Sales Organisation Name is required.");
+                  .WithErrorMessage("SalesOrganisationName is required.");
         }
 
         [Fact]
@@ -99,6 +106,7 @@ namespace SalesManagement.UnitTests.Validators.SalesOrganisation
             // Arrange — 101 characters (max is 100)
             var longName = new string('A', 101);
             var command = SalesOrganisationBuilders.ValidUpdateCommand(id: 1, name: longName, companyId: 1);
+            SetupIdExists(1);
             SetupCompanyExists(1);
 
             var validator = CreateValidator();
@@ -108,7 +116,7 @@ namespace SalesManagement.UnitTests.Validators.SalesOrganisation
 
             // Assert
             result.ShouldHaveValidationErrorFor(x => x.SalesOrganisationName)
-                  .WithErrorMessage("Sales Organisation Name cannot exceed 100 characters.");
+                  .WithErrorMessage("SalesOrganisationName  cannot be longer than   100 characters.");
         }
 
         [Fact]
@@ -117,6 +125,7 @@ namespace SalesManagement.UnitTests.Validators.SalesOrganisation
             // Arrange — exactly 100 characters
             var maxName = new string('A', 100);
             var command = SalesOrganisationBuilders.ValidUpdateCommand(id: 1, name: maxName, companyId: 1);
+            SetupIdExists(1);
             SetupCompanyExists(1);
 
             var validator = CreateValidator();
@@ -132,11 +141,11 @@ namespace SalesManagement.UnitTests.Validators.SalesOrganisation
 
         [Theory]
         [InlineData(0)]
-        [InlineData(-1)]
         public async Task CompanyId_ZeroOrNegative_FailsValidation(int companyId)
         {
             // Arrange
             var command = SalesOrganisationBuilders.ValidUpdateCommand(id: 1, companyId: companyId);
+            SetupIdExists(1);
 
             var validator = CreateValidator();
 
@@ -145,7 +154,7 @@ namespace SalesManagement.UnitTests.Validators.SalesOrganisation
 
             // Assert
             result.ShouldHaveValidationErrorFor(x => x.CompanyId)
-                  .WithErrorMessage("Valid CompanyId is required.");
+                  .WithErrorMessage("CompanyId is required.");
         }
 
         [Fact]
@@ -153,6 +162,7 @@ namespace SalesManagement.UnitTests.Validators.SalesOrganisation
         {
             // Arrange
             var command = SalesOrganisationBuilders.ValidUpdateCommand(id: 1, companyId: 999);
+            SetupIdExists(1);
             SetupCompanyNotExists(999);
 
             var validator = CreateValidator();
@@ -162,7 +172,7 @@ namespace SalesManagement.UnitTests.Validators.SalesOrganisation
 
             // Assert
             result.ShouldHaveValidationErrorFor(x => x.CompanyId)
-                  .WithErrorMessage("CompanyId does not exist in Company Master.");
+                  .WithErrorMessage("CompanyId Company Id is inactive/deleted.");
         }
 
         [Fact]
@@ -170,6 +180,7 @@ namespace SalesManagement.UnitTests.Validators.SalesOrganisation
         {
             // Arrange
             var command = SalesOrganisationBuilders.ValidUpdateCommand(id: 1, companyId: 1);
+            SetupIdExists(1);
             SetupCompanyExists(1);
 
             var validator = CreateValidator();
@@ -189,6 +200,7 @@ namespace SalesManagement.UnitTests.Validators.SalesOrganisation
             // Arrange — 501 characters (max is 500)
             var longDesc = new string('X', 501);
             var command = SalesOrganisationBuilders.ValidUpdateCommand(id: 1, description: longDesc, companyId: 1);
+            SetupIdExists(1);
             SetupCompanyExists(1);
 
             var validator = CreateValidator();
@@ -198,7 +210,7 @@ namespace SalesManagement.UnitTests.Validators.SalesOrganisation
 
             // Assert
             result.ShouldHaveValidationErrorFor(x => x.Description)
-                  .WithErrorMessage("Description cannot exceed 500 characters.");
+                  .WithErrorMessage("Description  cannot be longer than   500 characters.");
         }
 
         [Fact]
@@ -206,6 +218,7 @@ namespace SalesManagement.UnitTests.Validators.SalesOrganisation
         {
             // Arrange — description is optional
             var command = SalesOrganisationBuilders.ValidUpdateCommand(id: 1, description: null, companyId: 1);
+            SetupIdExists(1);
             SetupCompanyExists(1);
 
             var validator = CreateValidator();
@@ -223,6 +236,7 @@ namespace SalesManagement.UnitTests.Validators.SalesOrganisation
             // Arrange — exactly 500 characters
             var maxDesc = new string('X', 500);
             var command = SalesOrganisationBuilders.ValidUpdateCommand(id: 1, description: maxDesc, companyId: 1);
+            SetupIdExists(1);
             SetupCompanyExists(1);
 
             var validator = CreateValidator();

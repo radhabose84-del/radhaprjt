@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using MaintenanceManagement.Application.ActivityMaster.Queries.GetAllActivityMaster;
 using Contracts.Common;
 using MediatR;
 

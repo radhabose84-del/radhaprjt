@@ -4,7 +4,6 @@ using PurchaseManagement.Application.Common.Interfaces.IIssueReturn;
 using PurchaseManagement.Application.IssueReturn.Queries.GetIssueDetailsById;
 using PurchaseManagement.Application.IssueReturn.Queries.GetIssueReturnDetailsById;
 using PurchaseManagement.Domain.Common;
-using PurchaseManagement.Domain.Entities.IssueReturn;
 using Dapper;
 
 namespace PurchaseManagement.Infrastructure.Repositories.IssueReturn

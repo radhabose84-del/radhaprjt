@@ -1,12 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using MaintenanceManagement.Application.ActivityMaster.Command.UpdateActivityMster;
 using MaintenanceManagement.Application.Common.Interfaces.IActivityMaster;
 using MaintenanceManagement.Domain.Entities;
 using MaintenanceManagement.Infrastructure.Data;
-using Microsoft.EntityFrameworkCore;
 using MongoDB.Driver.Linq;
 
 namespace MaintenanceManagement.Infrastructure.Repositories.ActivityMaster

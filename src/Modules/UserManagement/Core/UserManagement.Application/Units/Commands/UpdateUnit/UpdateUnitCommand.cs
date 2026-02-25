@@ -1,4 +1,3 @@
-using Contracts.Common;
 using UserManagement.Application.Units.Queries.GetUnits;
 using MediatR;
 

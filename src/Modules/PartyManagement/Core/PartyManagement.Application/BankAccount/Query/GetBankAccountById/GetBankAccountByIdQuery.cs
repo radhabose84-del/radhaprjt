@@ -1,4 +1,3 @@
-using PartyManagement.Application.BankAccount;
 using MediatR;
 
 

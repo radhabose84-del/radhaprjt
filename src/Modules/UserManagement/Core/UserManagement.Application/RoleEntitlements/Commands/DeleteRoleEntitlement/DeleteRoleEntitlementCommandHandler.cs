@@ -1,13 +1,7 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using AutoMapper;
 using Contracts.Common;
 using UserManagement.Application.Common.Interfaces.IRoleEntitlement;
 using UserManagement.Application.RoleEntitlements.Queries.GetRoleEntitlements;
-using UserManagement.Domain.Entities;
-using UserManagement.Domain.Enums.Common;
-using UserManagement.Domain.Events;
 using MediatR;
 
 namespace UserManagement.Application.RoleEntitlements.Commands.DeleteRoleEntitlement

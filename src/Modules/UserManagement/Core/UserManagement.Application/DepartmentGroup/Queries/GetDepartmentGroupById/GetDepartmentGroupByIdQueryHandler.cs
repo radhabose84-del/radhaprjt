@@ -1,11 +1,5 @@
 #nullable disable
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
-using Contracts.Common;
-using UserManagement.Application.Common.Interfaces.IDepartment;
 using UserManagement.Application.Common.Interfaces.IDepartmentGroup;
 using UserManagement.Domain.Events;
 using FluentValidation;
@@ -13,7 +7,7 @@ using MediatR;
 
 namespace UserManagement.Application.DepartmentGroup.Queries.GetDepartmentGroupById
 {
-  public class GetDepartmentGroupByIdQueryHandler : IRequestHandler<GetDepartmentGroupByIdQuery, DepartmentGroupByIdDto>
+    public class GetDepartmentGroupByIdQueryHandler : IRequestHandler<GetDepartmentGroupByIdQuery, DepartmentGroupByIdDto>
   {
     private readonly IDepartmentGroupQueryRepository _departmentGroupRepository;
     private readonly IMapper _mapper;

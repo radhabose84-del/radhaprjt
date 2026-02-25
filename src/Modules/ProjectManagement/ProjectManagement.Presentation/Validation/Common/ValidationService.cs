@@ -1,4 +1,3 @@
-using ProjectManagement.Presentation.Validation.Common;
 using FluentValidation;
 using ProjectManagement.Application.MiscTypeMaster.Command.CreateMiscTypeMaster;
 using ProjectManagement.Presentation.Validation.MiscTypeMaster;
@@ -8,7 +7,6 @@ using ProjectManagement.Application.MiscMaster.Command.CreateMiscMaster;
 using ProjectManagement.Application.MiscMaster.Command.DeleteMiscMaster;
 using ProjectManagement.Application.MiscMaster.Command.UpdateMiscMaster;
 using ProjectManagement.Presentation.Validation.MiscMaster;
-using ProjectManagement.Application.ProjectMaster.Command.CreateProjectMaster;
 using ProjectManagement.Presentation.Validation.ProjectMaster;
 using ProjectManagement.Application.ProjectMaster.Command.UpdateProjectMaster;
 using ProjectManagement.Application.ProjectWorkBreakdownStructure.Command.CreateProjectWorkBreakdownStructureCommand;

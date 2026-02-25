@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
 using PurchaseManagement.Application.MRS.Command.CreateMrsEntry;
 using PurchaseManagement.Application.MRS.Command.UpdateMrsEntry;

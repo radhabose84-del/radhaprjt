@@ -1,11 +1,8 @@
-#nullable disable
 using SalesManagement.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
-using System.IO;
 using SalesManagement.Application.Common.Interfaces;
-using MongoDB.Driver;
 using Microsoft.AspNetCore.Http;
 using SalesManagement.Infrastructure.Services;
 
@@ -23,7 +20,7 @@ namespace SalesManagement.Infrastructure
                 .AddJsonFile($"appsettings.{environment}.json", optional: false, reloadOnChange: true)
                 .Build();
 
-          var connectionString = configuration.GetConnectionString("DefaultConnection")
+          var connectionString = (configuration.GetConnectionString("DefaultConnection") ?? string.Empty)
                                                 .Replace("{SERVER}","192.168.1.126")
                                                 .Replace("{USER_ID}","Developer")
                                                 .Replace("{ENC_PASSWORD}", "Dev@#$456");

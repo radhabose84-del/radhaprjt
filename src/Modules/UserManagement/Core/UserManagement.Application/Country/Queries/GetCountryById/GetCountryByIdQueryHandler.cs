@@ -1,11 +1,8 @@
 using UserManagement.Application.Country.Queries.GetCountries;
-using UserManagement.Application.Common.Interfaces;
 using MediatR;
 using AutoMapper;
-using UserManagement.Application.Common;
 using UserManagement.Application.Common.Interfaces.ICountry;
 using UserManagement.Domain.Events;
-using Contracts.Common;
 using FluentValidation;
 
 namespace UserManagement.Application.Country.Queries.GetCountryById

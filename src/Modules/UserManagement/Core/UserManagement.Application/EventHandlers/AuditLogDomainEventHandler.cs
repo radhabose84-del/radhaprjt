@@ -1,6 +1,5 @@
 using MediatR;
 using UserManagement.Application.Common.Interfaces;
-using UserManagement.Application.Common;
 using UserManagement.Domain.Events;
 
 namespace UserManagement.Application.EventHandlers

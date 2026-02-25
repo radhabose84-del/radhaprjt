@@ -1,7 +1,5 @@
 using FAM.Application.Common.Interfaces;
 using FAM.Application.Common.Interfaces.IDepreciationDetail;
-using FAM.Domain.Common;
-using FAM.Domain.Entities;
 using FAM.Infrastructure.Data;
 using FAM.Infrastructure.Repositories.Common;
 using Microsoft.EntityFrameworkCore;

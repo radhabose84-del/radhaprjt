@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Azure.Core;
 using FAM.Application.Common.Interfaces.IAssetMaster.IAssetPurchase;
 using FAM.Domain.Entities.AssetPurchase;
 using FAM.Infrastructure.Data;

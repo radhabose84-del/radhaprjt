@@ -1,8 +1,6 @@
 using MaintenanceManagement.Domain.Entities.WorkOrderMaster;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using static MaintenanceManagement.Domain.Common.BaseEntity;
 
 namespace MaintenanceManagement.Infrastructure.Data.Configurations.WorkOrderMaster
 {

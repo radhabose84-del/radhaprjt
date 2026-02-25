@@ -5,7 +5,6 @@ using Contracts.Interfaces.Lookups.Users;
 using Contracts.Interfaces.Lookups.Workflow;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.ImportPO;
-using PurchaseManagement.Application.PurchaseOrder.ImportPO.Queries.GetImportPOPending;
 using PurchaseManagement.Domain.Common;
 using PurchaseManagement.Domain.Events;
 using MediatR;

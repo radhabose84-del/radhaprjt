@@ -1,7 +1,6 @@
 #nullable disable
 using FluentValidation;
 using UserManagement.Application.Units.Commands.CreateUnit;
-using System.Text.RegularExpressions;
 using UserManagement.Application.Units.Queries.GetUnits;
 using UserManagement.Presentation.Validation.Common;
 using Serilog;

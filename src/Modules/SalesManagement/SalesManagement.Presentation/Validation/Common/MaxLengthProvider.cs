@@ -1,8 +1,5 @@
 using SalesManagement.Infrastructure.Data;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
-using System;
-using System.Linq;
 
 namespace SalesManagement.Presentation.Validation.Common
 {

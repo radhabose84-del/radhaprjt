@@ -1,11 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using PurchaseManagement.Application.Common.Interfaces.ITnCTemplateMaster;
 using PurchaseManagement.Application.TnCTemplateMaster.Command.CreateTnCTemplateMasterCommand;
-using PurchaseManagement.Application.TnCTemplateMaster.Queries.GetAllTnCTemplateMaster;
 using FluentValidation;
 
 

@@ -1,11 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http.Json;
-using System.Threading.Tasks;
 // using MaintenanceManagement.Application.Common.Interfaces.IBackgroundService;
-using MaintenanceManagement.Application.PreventiveSchedulers.Commands;
-
 namespace MaintenanceManagement.Infrastructure.Services
 {
     // public class BackgroundServiceClient : IBackgroundServiceClient

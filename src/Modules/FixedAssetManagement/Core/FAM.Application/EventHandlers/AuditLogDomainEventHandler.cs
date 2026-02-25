@@ -1,6 +1,5 @@
 using MediatR;
 using FAM.Application.Common.Interfaces;
-using FAM.Application.Common;
 using FAM.Domain.Events;
 
 namespace FAM.Application.EventHandlers

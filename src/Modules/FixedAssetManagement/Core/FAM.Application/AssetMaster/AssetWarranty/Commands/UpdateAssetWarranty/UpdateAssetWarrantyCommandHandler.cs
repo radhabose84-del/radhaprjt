@@ -1,8 +1,5 @@
 using AutoMapper;
-using FAM.Application.AssetMaster.AssetWarranty.Queries.GetAssetWarranty;
-using Contracts.Common;
 using FAM.Application.Common.Interfaces.IAssetMaster.IAssetWarranty;
-using FAM.Domain.Common;
 using FAM.Domain.Entities.AssetMaster;
 using FAM.Domain.Events;
 using FluentValidation;

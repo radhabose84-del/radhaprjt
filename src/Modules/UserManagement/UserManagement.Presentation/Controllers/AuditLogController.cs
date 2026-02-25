@@ -1,8 +1,6 @@
 using UserManagement.Application.AuditLog.Queries;
 using UserManagement.Application.AuditLog.Queries.GetAuditLog;
-using FluentValidation;
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 

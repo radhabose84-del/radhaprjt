@@ -1,11 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using MaintenanceManagement.Application.Common.Interfaces.IShiftMasterDetail;
 using MaintenanceManagement.Application.ShiftMasterDetails.Commands.UpdateShiftMasterDetail;
 using FluentValidation;
-using MaintenanceManagement.Presentation.Validation.Common;
 using Shared.Validation.Common;
 
 namespace MaintenanceManagement.Presentation.Validation.ShiftMasterDetail

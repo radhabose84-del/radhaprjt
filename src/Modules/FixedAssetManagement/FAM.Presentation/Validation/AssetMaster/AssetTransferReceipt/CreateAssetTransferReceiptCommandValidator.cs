@@ -1,10 +1,5 @@
 #nullable disable
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using FAM.Application.AssetMaster.AssetTransferReceipt.Command.CreateAssetTransferReceipt;
-using Dapper;
 using FluentValidation;
 
 namespace FAM.Presentation.Validation.AssetMaster.AssetTransferReceipt

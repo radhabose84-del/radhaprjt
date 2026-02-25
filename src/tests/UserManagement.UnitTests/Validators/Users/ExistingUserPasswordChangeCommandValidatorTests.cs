@@ -1,12 +1,8 @@
 #nullable disable
-using System.Linq;
-using System.Threading.Tasks;
 using UserManagement.Application.Common.Interfaces;
 using UserManagement.Application.Users.Commands.ChangeUserPassword;
 using FluentValidation.TestHelper;
-using Moq;
 using UserManagement.Presentation.Validation.Users;
-using Xunit;
 
 namespace UserManagement.UnitTests.Validators.Users
 {

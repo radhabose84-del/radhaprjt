@@ -1,13 +1,9 @@
 #nullable disable
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Security.Cryptography;
 using System.Text;
-using System.Text.Json;
 using FAM.Application.Common.Interfaces;
-using FAM.Domain.Common;
 using FAM.Domain.Entities;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 

@@ -1,9 +1,5 @@
 #nullable disable
 
-using System;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
 using Contracts.Interfaces.Lookups.Users;
 using Contracts.Common;
 using MaintenanceManagement.Application.Common.Interfaces;

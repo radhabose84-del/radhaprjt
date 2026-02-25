@@ -17,7 +17,6 @@ using MassTransit;
 // Alias FluentValidation result types to avoid conflicts with MassTransit.ValidationResult
 using FValidationResult = FluentValidation.Results.ValidationResult;
 using FValidationFailure = FluentValidation.Results.ValidationFailure;
-using Moq;
 using UserManagement.Application.Users.Queries.GetUsers;
 using UserManagement.Presentation.Controllers;
 

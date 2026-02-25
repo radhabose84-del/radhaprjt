@@ -1,5 +1,4 @@
-#nullable disable
-
+﻿
 using Contracts.Common;
 using MediatR;
 
@@ -12,6 +11,6 @@ namespace SalesManagement.Application.SalesSegment.Commands.CreateSalesSegment
         public int BusinessUnitId { get; set; }
         public int? CurrencyId { get; set; }
         public DateTime? ValidFrom { get; set; }
-        public string SegmentName { get; set; }
+        public string SegmentName { get; set; } = null!;
     }
 }

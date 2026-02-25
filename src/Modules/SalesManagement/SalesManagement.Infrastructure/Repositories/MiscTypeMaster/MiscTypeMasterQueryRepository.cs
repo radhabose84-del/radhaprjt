@@ -1,4 +1,3 @@
-#nullable disable
 using System.Data;
 using Dapper;
 using SalesManagement.Application.Common.Interfaces.IMiscTypeMaster;
@@ -15,7 +14,7 @@ namespace SalesManagement.Infrastructure.Repositories.MiscTypeMaster
             _dbConnection = dbConnection;
         }
 
-        public async Task<(List<MiscTypeMasterDto>, int)> GetAllAsync(int pageNumber, int pageSize, string searchTerm)
+        public async Task<(List<MiscTypeMasterDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
         {
             var query = $$"""
                 DECLARE @TotalCount INT;
@@ -45,7 +44,7 @@ namespace SalesManagement.Infrastructure.Repositories.MiscTypeMaster
             return (list, totalCount);
         }
 
-        public async Task<MiscTypeMasterDto> GetByIdAsync(int id)
+        public async Task<MiscTypeMasterDto?> GetByIdAsync(int id)
         {
             const string sql = @"
                 SELECT mtm.Id, mtm.MiscTypeCode, mtm.Description,

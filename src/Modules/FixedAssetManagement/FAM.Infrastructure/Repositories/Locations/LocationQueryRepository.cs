@@ -4,7 +4,6 @@ using FAM.Application.Common.Interfaces;
 using FAM.Application.Common.Interfaces.ILocation;
 using FAM.Domain.Entities;
 using Dapper;
-using MediatR;
 using FAM.Application.Location.Queries.GetLocations;
 
 namespace FAM.Infrastructure.Repositories.Locations

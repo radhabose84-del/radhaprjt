@@ -1,9 +1,7 @@
-using System;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using FluentValidation;
-using MediatR;
 using UserManagement.Infrastructure;
 
 
@@ -11,8 +9,6 @@ using UserManagement.Infrastructure;
 using UserManagement.Presentation.Validation.Common;
 
 // AutoMapper profiles
-using UserManagement.Application.Common.Mappings;
-using Shared.Validation.Common;
 
 namespace UserManagement.Module;
 

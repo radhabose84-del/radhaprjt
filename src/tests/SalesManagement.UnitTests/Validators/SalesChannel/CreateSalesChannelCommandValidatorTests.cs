@@ -1,7 +1,6 @@
 #nullable disable
 using FluentValidation.TestHelper;
 using SalesManagement.Application.Common.Interfaces.ISalesChannel;
-using SalesManagement.Application.SalesChannel.Commands.CreateSalesChannel;
 using SalesManagement.Presentation.Validation.SalesChannel;
 using SalesManagement.UnitTests.TestData;
 using SalesManagement.UnitTests.TestHelpers;
@@ -69,7 +68,7 @@ namespace SalesManagement.UnitTests.Validators.SalesChannel
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.SalesChannelCode)
-                  .WithErrorMessage("Sales Channel Code is required.");
+                  .WithErrorMessage("SalesChannelCode is required.");
         }
 
         [Fact]
@@ -83,7 +82,7 @@ namespace SalesManagement.UnitTests.Validators.SalesChannel
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.SalesChannelCode)
-                  .WithErrorMessage("Sales Channel Code cannot exceed 20 characters.");
+                  .WithErrorMessage("SalesChannelCode  cannot be longer than   20 characters.");
         }
 
         [Theory]
@@ -101,7 +100,7 @@ namespace SalesManagement.UnitTests.Validators.SalesChannel
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.SalesChannelCode)
-                  .WithErrorMessage("Sales Channel Code must be alphanumeric only.");
+                  .WithErrorMessage("SalesChannelCode  must be alphanumeric only.");
         }
 
         [Fact]
@@ -113,7 +112,7 @@ namespace SalesManagement.UnitTests.Validators.SalesChannel
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.SalesChannelCode)
-                  .WithErrorMessage("Sales Channel Code already exists.");
+                  .WithErrorMessage("SalesChannelCode already exists.");
         }
 
         [Fact]
@@ -152,7 +151,7 @@ namespace SalesManagement.UnitTests.Validators.SalesChannel
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.SalesChannelName)
-                  .WithErrorMessage("Sales Channel Name is required.");
+                  .WithErrorMessage("SalesChannelName is required.");
         }
 
         [Fact]
@@ -165,7 +164,7 @@ namespace SalesManagement.UnitTests.Validators.SalesChannel
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.SalesChannelName)
-                  .WithErrorMessage("Sales Channel Name cannot exceed 100 characters.");
+                  .WithErrorMessage("SalesChannelName  cannot be longer than   100 characters.");
         }
 
         [Fact]

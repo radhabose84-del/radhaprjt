@@ -1,14 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using MaintenanceManagement.Application.Common.Interfaces.IMiscMaster;
 using MaintenanceManagement.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace MaintenanceManagement.Infrastructure.Repositories.MiscMaster
 {
-  public class MiscMasterCommandRepository : IMiscMasterCommandRepository
+    public class MiscMasterCommandRepository : IMiscMasterCommandRepository
   {
     private readonly ApplicationDbContext _dbContext;
 

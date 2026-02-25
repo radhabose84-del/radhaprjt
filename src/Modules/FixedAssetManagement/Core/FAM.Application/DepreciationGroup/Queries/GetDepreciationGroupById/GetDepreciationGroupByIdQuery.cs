@@ -1,4 +1,3 @@
-using Contracts.Common;
 using FAM.Application.DepreciationGroup.Queries.GetDepreciationGroup;
 using MediatR;
 

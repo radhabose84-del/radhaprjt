@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
 using Contracts.Dtos.Lookups.FixedAssetManagement;
 using Contracts.Dtos.Lookups.Maintenance;
@@ -10,7 +6,6 @@ using Contracts.Interfaces.Lookups.FixedAssetManagement;
 using Contracts.Interfaces.Lookups.Maintenance;
 using Contracts.Interfaces.Lookups.Users;
 using ProjectManagement.Application.Common.Interfaces.IProjectMaster;
-using ProjectManagement.Application.ProjectMaster.Queries.Dtos;
 using ProjectManagement.Application.ProjectMaster.Queries.GetProjectMaster;
 using ProjectManagement.Domain.Events;
 using MediatR;

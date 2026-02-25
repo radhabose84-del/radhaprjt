@@ -1,11 +1,8 @@
 using AutoMapper;
-using UserManagement.Application.Common;
 using UserManagement.Application.Common.Interfaces.IAdminSecuritySettings;
 using UserManagement.Application.AdminSecuritySettings.Queries.GetAdminSecuritySettings;
 using UserManagement.Domain.Events;
 using MediatR;
-using UserManagement.Domain.Entities;
-using Contracts.Common;
 using Microsoft.Extensions.Logging;
 using FluentValidation;
 

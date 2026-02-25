@@ -1,10 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
-using Contracts.Dtos.Lookups.Inventory;
-using Contracts.Dtos.Lookups.Warehouse;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Warehouse;
 using PurchaseManagement.Application.Common.Interfaces.IReports.IStockReport;

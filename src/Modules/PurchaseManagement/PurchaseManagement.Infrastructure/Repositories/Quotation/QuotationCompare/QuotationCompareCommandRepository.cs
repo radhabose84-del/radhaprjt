@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IMiscMaster;
 using PurchaseManagement.Application.Common.Interfaces.IQuotation.IQuotationCompare;
@@ -12,7 +8,6 @@ using PurchaseManagement.Domain.Entities.Quotation.QuotationCompare;
 using PurchaseManagement.Domain.Entities.Quotation.QuotationEntry;
 using Microsoft.EntityFrameworkCore;
 using PurchaseManagement.Infrastructure.Data;
-using PurchaseManagement.Infrastructure.Services;
 
 namespace PurchaseManagement.Infrastructure.Repositories.Quotation.QuotationCompare
 {

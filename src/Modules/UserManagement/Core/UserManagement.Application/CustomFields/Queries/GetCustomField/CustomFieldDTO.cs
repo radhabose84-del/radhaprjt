@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using UserManagement.Application.CustomFields.Commands.CreateCustomField;
 using static UserManagement.Domain.Enums.Common.Enums;
 
 namespace UserManagement.Application.CustomFields.Queries.GetCustomField

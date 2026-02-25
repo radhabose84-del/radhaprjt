@@ -1,11 +1,6 @@
 #nullable disable
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using FAM.Application.AssetMaster.AssetInsurance.Commands.UpdateAssetInsurance;
 using FAM.Application.Common.Interfaces.IAssetMaster.IAssetInsurance;
-using FAM.Presentation.Validation.Common;
 using FluentValidation;
 using Shared.Validation.Common;
 

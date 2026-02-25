@@ -1,16 +1,11 @@
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 using UserManagement.Application.Common.Interfaces;
 using UserManagement.Application.Users.Commands.UpdateFirstTimeUserPassword;
 using FluentValidation.TestHelper;
 using Microsoft.EntityFrameworkCore;
-using Moq;
 using Shared.Validation.Common;
 using UserManagement.Presentation.Validation.Common;
 using UserManagement.Presentation.Validation.Users;
 using UserManagement.Infrastructure.Data;
-using Xunit;
 
 namespace UserManagement.UnitTests.Validators.Users
 {

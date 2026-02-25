@@ -1,9 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
-using MaintenanceManagement.Application.MaintenanceCategory.Command.DeleteMaintenanceCategory;
 using MaintenanceManagement.Application.MaintenanceType.Command.CreateMaintenanceType;
 using MaintenanceManagement.Application.MaintenanceType.Command.DeleteMaintenanceType;
 using MaintenanceManagement.Application.MaintenanceType.Command.UpdateMaintenanceType;

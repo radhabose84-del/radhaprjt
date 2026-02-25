@@ -1,5 +1,4 @@
 using WarehouseManagement.Application.BinMaster.Command.CreateBinMaster;
-using WarehouseManagement.Application.Common.Interfaces.IBinMaster;
 using WarehouseManagement.Application.RackMaster.Command.CreateRackMaster;
 using WarehouseManagement.Application.RackMaster.Command.DeleteRackMaster;
 using WarehouseManagement.Application.RackMaster.Command.UpdateRackMaster;
@@ -10,7 +9,6 @@ using FluentValidation;
 using WarehouseManagement.Presentation.Validation.BinMaster;
 using WarehouseManagement.Presentation.Validation.RackMaster;
 using WarehouseManagement.Presentation.Validation.WarehouseMaster;
-using WarehouseManagement.Infrastructure.Repositories.BinMaster;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace WarehouseManagement.Presentation.Validation.Common

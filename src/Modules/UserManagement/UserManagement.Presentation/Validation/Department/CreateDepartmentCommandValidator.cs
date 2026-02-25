@@ -1,11 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using FluentValidation;
-using UserManagement.Application.Departments.Commands;
 using UserManagement.Application.Departments.Commands.CreateDepartment;
-using UserManagement.Domain.Entities;
 using UserManagement.Presentation.Validation.Common;
 using Serilog;
 using Shared.Validation.Common;

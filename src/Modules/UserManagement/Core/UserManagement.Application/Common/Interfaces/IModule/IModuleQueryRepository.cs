@@ -1,9 +1,3 @@
-using UserManagement.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
 namespace UserManagement.Application.Common.Interfaces.IModule
 {
     public interface IModuleQueryRepository

@@ -1,9 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
-using UserManagement.Infrastructure.Data;
 using UserManagement.Application.Notification.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;

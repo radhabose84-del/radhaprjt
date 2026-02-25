@@ -1,10 +1,5 @@
 #nullable disable
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
-using UserManagement.Application.Companies.Commands.CreateCompany;
 using UserManagement.Application.Companies.Commands.DeleteCompany;
 using UserManagement.Application.Companies.Queries.GetCompanies;
 using UserManagement.Domain.Entities;

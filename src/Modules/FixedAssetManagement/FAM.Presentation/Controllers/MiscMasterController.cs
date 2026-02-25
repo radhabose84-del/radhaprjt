@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using Contracts.Common;
 using FAM.Application.Common.Interfaces.IMiscMaster;
 using FAM.Application.ExcelImport.MiscMaster;
@@ -12,13 +7,9 @@ using FAM.Application.MiscMaster.Command.UpdateMiscMaster;
 using FAM.Application.MiscMaster.Queries.GetMiscMaster;
 using FAM.Application.MiscMaster.Queries.GetMiscMasterAutoComplete;
 using FAM.Application.MiscMaster.Queries.GetMiscMasterById;
-using FAM.Domain.Entities;
-using FAM.Infrastructure.Repositories.MiscMaster;
-using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 
 namespace FAM.Presentation.Controllers
 {

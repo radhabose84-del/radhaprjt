@@ -1,17 +1,10 @@
 #nullable disable
-using UserManagement.Application.Common.Interfaces;
 using UserManagement.Domain.Entities;
 using MediatR;
 using AutoMapper;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using UserManagement.Application.Common.Interfaces.IRoleEntitlement;
 using UserManagement.Domain.Events;
-using Contracts.Common;
 using Microsoft.Extensions.Logging;
-using static UserManagement.Domain.Enums.Common.Enums;
 
 namespace UserManagement.Application.RoleEntitlements.Commands.UpdateRoleRntitlement
 {

@@ -1,4 +1,3 @@
-using FAM.Application.AssetMaster.AssetMasterGeneral.Queries.GetAssetMasterGeneral;
 using FAM.Application.AssetMaster.AssetWarranty.Queries.GetAssetWarranty;
 using FAM.Application.Common.Interfaces.IAssetMaster.IAssetWarranty;
 using FAM.Domain.Common;

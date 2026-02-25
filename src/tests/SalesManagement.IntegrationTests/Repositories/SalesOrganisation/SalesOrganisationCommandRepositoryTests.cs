@@ -42,6 +42,8 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesOrganisation
 
         private async Task ClearTableAsync(ApplicationDbContext ctx)
         {
+            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Sales.SalesItemPriceMaster");
+            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Sales.SalesSegment");
             ctx.SalesOrganisation.RemoveRange(ctx.SalesOrganisation);
             await ctx.SaveChangesAsync();
         }

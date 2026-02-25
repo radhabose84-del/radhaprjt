@@ -7,7 +7,6 @@ using MaintenanceManagement.Application.StockLedger.Queries.GetCurrentStock;
 using MaintenanceManagement.Application.Reports.WorkOderCheckListReport;
 using MaintenanceManagement.Application.Reports.MRS;
 using MaintenanceManagement.Application.Reports.PowerConsumption;
-using MaintenanceManagement.Domain.Entities.Power;
 using MaintenanceManagement.Application.Reports.GeneratorConsumption;
 
 namespace MaintenanceManagement.Application.Common.Interfaces.IReports

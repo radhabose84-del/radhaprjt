@@ -1,12 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
 using Contracts.Common;
 using MaintenanceManagement.Application.Common.Interfaces.IMachineGroupUser;
 using MediatR;
-using MaintenanceManagement.Domain.Entities;
 using MaintenanceManagement.Domain.Events;
 
 namespace MaintenanceManagement.Application.MachineGroupUsers.Command.CreateMachineGroupUser

@@ -1,13 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
-using MaintenanceManagement.Application.ActivityCheckListMaster.Queries.GetActivityCheckListMaster;
 using Contracts.Common;
 using MaintenanceManagement.Application.Common.Interfaces.IActivityCheckListMaster;
 using MaintenanceManagement.Domain.Events;
-using MassTransit;
 using MediatR;
 
 namespace MaintenanceManagement.Application.ActivityCheckListMaster.Command.CreateActivityCheckListMaster

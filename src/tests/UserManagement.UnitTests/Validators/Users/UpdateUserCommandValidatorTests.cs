@@ -1,16 +1,12 @@
 #nullable disable
-using System.Threading.Tasks;
 using UserManagement.Application.Common.Interfaces;
 using UserManagement.Application.Common.Interfaces.IUser;
 using UserManagement.Application.Users.Commands.UpdateUser;
-using UserManagement.Domain.Entities;
 using FluentValidation.TestHelper;
 using Microsoft.EntityFrameworkCore;
-using Moq;
 using UserManagement.Presentation.Validation.Common;
 using UserManagement.Presentation.Validation.Users;
 using UserManagement.Infrastructure.Data;
-using Xunit;
 
 namespace UserManagement.UnitTests.Validation.Users
 {

@@ -1,13 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using FAM.Application.AssetMaster.AssetTransferIssue.Queries.GetAssetTransfered;
 using FAM.Application.AssetMaster.AssetTransferReceipt.Queries.GetAssetReceiptDetails;
 using FAM.Application.AssetMaster.AssetTransferReceipt.Queries.GetAssetReceiptDetailsById;
 using FAM.Application.AssetMaster.AssetTransferReceipt.Queries.GetAssetReceiptPending;
 using FAM.Application.AssetMaster.AssetTransferReceipt.Queries.GetAssetRecieptDtlPending;
-using FAM.Domain.Entities.AssetMaster;
 
 namespace FAM.Application.Common.Interfaces.IAssetTransferReceipt
 {

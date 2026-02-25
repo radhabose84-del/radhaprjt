@@ -1,5 +1,4 @@
 using FAM.Application.AssetMaster.AssetMasterGeneral.Queries.GetAssetMasterGeneral;
-using Contracts.Common;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 

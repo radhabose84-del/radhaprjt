@@ -1,6 +1,4 @@
 using System.Security.Claims;
-using FAM.Domain.Common;
-using FAM.Domain.Entities;
 
 namespace FAM.Application.Common.Interfaces
 {

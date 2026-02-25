@@ -1,7 +1,5 @@
 using AutoMapper;
 using Contracts.Common;
-using Contracts.Interfaces.External.IUser;
-using Contracts.Interfaces.External.IWarehouse;
 using PurchaseManagement.Application.Common.Interfaces.IIssue;
 using PurchaseManagement.Domain.Events;
 using MediatR;

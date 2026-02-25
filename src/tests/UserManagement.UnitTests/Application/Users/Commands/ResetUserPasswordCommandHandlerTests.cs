@@ -1,6 +1,3 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using AutoMapper;
 using Contracts.Common;
 using UserManagement.Application.Common.Interfaces;
@@ -8,9 +5,6 @@ using UserManagement.Application.Common.Interfaces.IUser;
 using UserManagement.Application.Common.Utilities; // ForgotPasswordCache, VerificationCodeDetails
 using UserManagement.Application.Users.Commands.ResetUserPassword;
 using UserManagement.Domain.Entities;
-using FluentAssertions;
-using Moq;
-using Xunit;
 
 // alias for the DTO the handler uses
 using PwdLogDtoQ = UserManagement.Application.Users.Queries.GetUsers.PasswordLogDTO;

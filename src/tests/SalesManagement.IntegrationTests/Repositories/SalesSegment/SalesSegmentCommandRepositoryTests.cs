@@ -80,6 +80,7 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesSegment
                 {
                     BusinessUnitCode = "INTBU01",
                     BusinessUnitName = "Integration Test BU",
+                    Description = "Integration Test BU",
                     IsActive = Status.Active,
                     IsDeleted = IsDelete.NotDeleted
                 };
@@ -92,6 +93,7 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesSegment
 
         private async Task ClearTableAsync(ApplicationDbContext ctx)
         {
+            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Sales.SalesItemPriceMaster");
             await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Sales.SalesSegment");
         }
 

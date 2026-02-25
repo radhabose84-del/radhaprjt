@@ -1,12 +1,8 @@
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Serilog;
 
 namespace UserManagement.Application.Common.Utilities
-{public static class ForgotPasswordCache
+{
+    public static class ForgotPasswordCache
 {
     public static readonly Dictionary<string, VerificationCodeDetails> CodeStorage = new();
 

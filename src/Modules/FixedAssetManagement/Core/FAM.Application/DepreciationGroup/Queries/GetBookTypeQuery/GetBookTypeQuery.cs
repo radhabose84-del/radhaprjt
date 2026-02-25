@@ -1,10 +1,9 @@
-using Contracts.Common;
 using FAM.Application.MiscMaster.Queries.GetMiscMaster;
 using MediatR;
 
 namespace FAM.Application.DepreciationGroup.Queries.GetBookTypeQuery
 {
-   public class GetBookTypeQuery : IRequest<List<GetMiscMasterDto>>
+    public class GetBookTypeQuery : IRequest<List<GetMiscMasterDto>>
     {
         
     }

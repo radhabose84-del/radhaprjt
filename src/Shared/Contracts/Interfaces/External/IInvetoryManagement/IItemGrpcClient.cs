@@ -1,6 +1,3 @@
-using System.Threading;
-using System.Threading.Tasks;
-using System.Collections.Generic;
 using Contracts.Dtos.Inventory;
 
 namespace Contracts.Interfaces.External.IInvetoryManagement

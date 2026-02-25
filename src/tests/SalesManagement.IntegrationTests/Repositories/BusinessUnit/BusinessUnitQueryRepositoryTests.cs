@@ -56,6 +56,8 @@ namespace SalesManagement.IntegrationTests.Repositories.BusinessUnit
         {
             await using var cnn = OpenConnection();
             await cnn.OpenAsync();
+            await cnn.ExecuteAsync("DELETE FROM Sales.SalesItemPriceMaster");
+            await cnn.ExecuteAsync("DELETE FROM Sales.SalesSegment");
             await cnn.ExecuteAsync("DELETE FROM Sales.BusinessUnit");
         }
 
@@ -179,16 +181,16 @@ namespace SalesManagement.IntegrationTests.Repositories.BusinessUnit
         }
 
         [Fact]
-        public async Task GetByIdAsync_Should_Return_Null_Description_When_NotSet()
+        public async Task GetByIdAsync_Should_Return_Empty_Description_WhenEmpty()
         {
             await ClearTableAsync();
-            var id = await SeedEntityAsync(BuildEntity(code: "NODESC01", name: "No Desc Unit", description: null));
+            var id = await SeedEntityAsync(BuildEntity(code: "NODESC01", name: "Empty Desc Unit", description: ""));
 
             var repo = CreateQueryRepo();
             var dto = await repo.GetByIdAsync(id);
 
             dto.Should().NotBeNull();
-            dto!.Description.Should().BeNull();
+            dto!.Description.Should().BeEmpty();
         }
 
         [Fact]

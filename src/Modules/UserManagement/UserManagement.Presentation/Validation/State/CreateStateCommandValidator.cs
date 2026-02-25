@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using FluentValidation;
-using UserManagement.Application.State.Commands;
 using UserManagement.Application.State.Commands.CreateState;
 using UserManagement.Domain.Entities;
 using UserManagement.Presentation.Validation.Common;

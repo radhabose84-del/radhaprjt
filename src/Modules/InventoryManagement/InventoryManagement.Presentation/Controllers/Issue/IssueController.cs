@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using InventoryManagement.Application.Issue.Command.CreateIssueEntry;
 using InventoryManagement.Application.Issue.Queries.GetApprovedMrsById;
 using InventoryManagement.Application.Issue.Queries.GetPendingIssue;
@@ -10,7 +5,6 @@ using InventoryManagement.Application.Issue.Queries.GetPendingIssueHeader;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 
 namespace InventoryManagement.Presentation.Controllers.Issue
 {

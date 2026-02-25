@@ -1,8 +1,6 @@
 using AutoMapper;
 using FAM.Application.AssetMaster.AssetMasterGeneral.Queries.GetAssetMasterGeneral;
-using Contracts.Common;
 using FAM.Application.Common.Interfaces.IAssetMaster.IAssetMasterGeneral;
-using FAM.Application.DepreciationGroup.Queries.GetDepreciationGroup;
 using FAM.Domain.Events;
 using FluentValidation;
 using MediatR;

@@ -1,7 +1,6 @@
 using InventoryManagement.Application.Common.Interfaces.Item.ItemCategory;
 using InventoryManagement.Application.Item.ItemCategory.Commands.DeleteItemCategory;
 using FluentValidation;
-using InventoryManagement.Presentation.Validation.Common;
 using Shared.Validation.Common;
 
 namespace InventoryManagement.Presentation.Validation.Item.ItemCategory

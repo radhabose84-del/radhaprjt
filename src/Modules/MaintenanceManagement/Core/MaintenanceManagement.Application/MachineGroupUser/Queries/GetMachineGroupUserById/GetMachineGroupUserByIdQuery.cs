@@ -1,4 +1,3 @@
-using Contracts.Common;
 using MaintenanceManagement.Application.MachineGroupUser.Queries.GetMachineGroupUser;
 using MediatR;
 

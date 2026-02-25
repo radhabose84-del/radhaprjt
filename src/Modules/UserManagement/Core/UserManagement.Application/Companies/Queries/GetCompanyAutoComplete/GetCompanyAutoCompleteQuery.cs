@@ -1,4 +1,3 @@
-using Contracts.Common;
 using UserManagement.Application.Companies.Queries.GetCompanies;
 using MediatR;
 

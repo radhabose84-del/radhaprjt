@@ -1,5 +1,4 @@
-#nullable disable
-
+﻿
 using Contracts.Common;
 using MediatR;
 
@@ -15,7 +14,7 @@ namespace SalesManagement.Application.SalesSegment.Commands.UpdateSalesSegment
         // Mutable fields
         public int? CurrencyId { get; set; }
         public DateTime? ValidFrom { get; set; }
-        public string SegmentName { get; set; }
+        public string SegmentName { get; set; } = null!;
         public int IsActive { get; set; }  // 1=Active, 0=Inactive
     }
 }

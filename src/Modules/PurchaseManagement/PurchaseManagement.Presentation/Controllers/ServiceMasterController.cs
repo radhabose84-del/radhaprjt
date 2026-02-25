@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using PurchaseManagement.Application.Common.Interfaces.IServiceMaster;
 using PurchaseManagement.Application.ServiceMaster.Commands.CreateService;
 using PurchaseManagement.Application.ServiceMaster.Commands.DeleteService;
@@ -11,7 +6,6 @@ using PurchaseManagement.Application.ServiceMaster.Queries.GetAllServices;
 using PurchaseManagement.Application.ServiceMaster.Queries.GetServiceAutocomplete;
 using PurchaseManagement.Application.ServiceMaster.Queries.GetServiceById;
 using FluentValidation;
-using MassTransit.Futures.Contracts;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;

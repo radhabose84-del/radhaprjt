@@ -1,10 +1,5 @@
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
-using Contracts.Interfaces.External.IInvetoryManagement;
 using WarehouseManagement.Application.BinMaster.Queries.GetAllBinMaster;
 using WarehouseManagement.Application.Common.Interfaces.IBinMaster;
 using WarehouseManagement.Application.Common.Interfaces.IRackMaster;

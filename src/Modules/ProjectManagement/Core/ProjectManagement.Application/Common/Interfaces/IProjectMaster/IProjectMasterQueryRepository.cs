@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using ProjectManagement.Application.ProjectMaster.Queries.Dtos;
 using ProjectManagement.Application.ProjectMaster.Queries.GetProjectMaster;
 using ProjectManagement.Application.ProjectMaster.Queries.GetProjectPendingApprovals;
 using ProjectManagement.Application.ProjectMaster.Queries.ProjectMasterAutoComplete;

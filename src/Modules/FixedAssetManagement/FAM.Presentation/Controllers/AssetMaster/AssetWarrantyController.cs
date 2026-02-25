@@ -9,8 +9,6 @@ using FAM.Application.AssetMaster.AssetWarranty.Queries.GetAssetWarrantyAutoComp
 using FAM.Application.AssetMaster.AssetWarranty.Queries.GetAssetWarrantyById;
 using FAM.Application.AssetMaster.AssetWarranty.Queries.GetWarrantyClaimStatus;
 using FAM.Application.AssetMaster.AssetWarranty.Queries.GetWarrantyType;
-using FAM.Presentation.Validation.AssetMaster.AssetWarranty;
-using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

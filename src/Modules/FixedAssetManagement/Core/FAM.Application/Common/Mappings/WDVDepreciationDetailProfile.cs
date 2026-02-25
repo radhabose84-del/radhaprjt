@@ -2,11 +2,10 @@ using AutoMapper;
 using FAM.Application.WDVDepreciation.Commands.CreateDepreciation;
 using FAM.Application.WDVDepreciation.Commands.DeleteDepreciation;
 using FAM.Application.WDVDepreciation.Commands.LockDepreciation;
-using FAM.Application.WDVDepreciation.Queries.CalculateDepreciation;
 using FAM.Application.WDVDepreciation.Queries.GetDepreciation;
 using FAM.Domain.Entities;
 
-namespace FAM.Application.Common.Mappings 
+namespace FAM.Application.Common.Mappings
 {
     public class WDVDepreciationDetailProfile : Profile    
     {

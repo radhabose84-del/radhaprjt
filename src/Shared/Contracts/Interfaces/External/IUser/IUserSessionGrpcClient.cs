@@ -1,10 +1,8 @@
- using System;
- using System.Threading.Tasks;
- using Contracts.Dtos.Users;
+using Contracts.Dtos.Users;
 
- namespace Contracts.Interfaces.External.IUser
- {
-     public interface IUserSessionGrpcClient
+namespace Contracts.Interfaces.External.IUser
+{
+    public interface IUserSessionGrpcClient
      {
          Task<UserSessionDto?> GetSessionByJwtIdAsync(string jwtId,string token);
          Task<bool> UpdateSessionAsync(string jwtId, DateTimeOffset lastActivity,string token);

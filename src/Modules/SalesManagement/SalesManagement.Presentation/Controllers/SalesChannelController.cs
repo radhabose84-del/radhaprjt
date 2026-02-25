@@ -1,4 +1,3 @@
-#nullable disable
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -20,7 +19,7 @@ namespace SalesManagement.Presentation.Controllers
         public async Task<IActionResult> GetAllSalesChannelAsync(
             [FromQuery] int PageNumber,
             [FromQuery] int PageSize,
-            [FromQuery] string SearchTerm = null)
+            [FromQuery] string? SearchTerm = null)
         {
             var result = await Mediator.Send(new GetAllSalesChannelQuery
             {
@@ -54,7 +53,7 @@ namespace SalesManagement.Presentation.Controllers
         }
 
         [HttpGet("by-name")]
-        public async Task<IActionResult> GetSalesChannelAutoCompleteAsync([FromQuery] string term = null)
+        public async Task<IActionResult> GetSalesChannelAutoCompleteAsync([FromQuery] string? term = null)
         {
             var result = await Mediator.Send(new GetSalesChannelAutoCompleteQuery(term ?? string.Empty));
 

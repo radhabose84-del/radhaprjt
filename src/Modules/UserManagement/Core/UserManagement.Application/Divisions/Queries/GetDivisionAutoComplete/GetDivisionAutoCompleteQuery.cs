@@ -1,10 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Contracts.Common;
 using UserManagement.Application.Divisions.Queries.GetDivisions;
-using UserManagement.Application.Users.Queries.GetUsers;
 using MediatR;
 
 namespace UserManagement.Application.Divisions.Queries.GetDivisionAutoComplete

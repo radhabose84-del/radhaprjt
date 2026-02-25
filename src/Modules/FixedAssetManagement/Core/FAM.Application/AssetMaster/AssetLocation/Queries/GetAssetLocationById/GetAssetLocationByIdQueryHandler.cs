@@ -1,10 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
 using FAM.Application.AssetLocation.Queries.GetAssetLocation;
-using Contracts.Common;
 using FAM.Application.Common.Interfaces.IAssetMaster.IAssetLocation;
 using FAM.Domain.Events;
 using FluentValidation;
@@ -12,7 +7,7 @@ using MediatR;
 
 namespace FAM.Application.AssetLocation.Queries.GetAssetLocationById
 {
- 
+
     public class GetAssetLocationByIdQueryHandler : IRequestHandler<GetAssetLocationByIdQuery, AssetLocationDto>
     {
         private readonly IAssetLocationQueryRepository _assetLocationRepository;

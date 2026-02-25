@@ -5,7 +5,6 @@ using InventoryManagement.Application.Item.ItemDetail.Commands.CreateItem;
 using InventoryManagement.Presentation.Validation.Common;
 using InventoryManagement.Application.Common.Text;
 using InventoryManagement.Application.Common.Interfaces.Item.ItemDetail.Queries;
-using InventoryManagement.Application.Common.Interfaces;
 using InventoryManagement.Application.Item.ItemDetail.Queries.GetAllItems;
 using Shared.Validation.Common;
 

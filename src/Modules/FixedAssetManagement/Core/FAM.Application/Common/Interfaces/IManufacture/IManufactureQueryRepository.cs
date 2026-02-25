@@ -1,5 +1,4 @@
 using FAM.Application.Manufacture.Queries.GetManufacture;
-using FAM.Domain.Entities;
 
 namespace FAM.Application.Common.Interfaces.IManufacture
 {

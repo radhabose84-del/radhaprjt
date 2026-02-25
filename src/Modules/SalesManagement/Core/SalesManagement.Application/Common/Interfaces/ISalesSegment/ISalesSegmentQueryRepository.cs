@@ -1,4 +1,3 @@
-#nullable disable
 
 using SalesManagement.Application.SalesSegment.Dto;
 
@@ -6,8 +5,8 @@ namespace SalesManagement.Application.Common.Interfaces.ISalesSegment
 {
     public interface ISalesSegmentQueryRepository
     {
-        Task<(List<SalesSegmentDto>, int)> GetAllAsync(int pageNumber, int pageSize, string searchTerm);
-        Task<SalesSegmentDto> GetByIdAsync(int id);
+        Task<(List<SalesSegmentDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm);
+        Task<SalesSegmentDto?> GetByIdAsync(int id);
         Task<IReadOnlyList<SalesSegmentLookupDto>> AutocompleteAsync(string term, CancellationToken ct);
 
         // Validation methods

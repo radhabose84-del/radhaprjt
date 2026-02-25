@@ -1,12 +1,6 @@
 #nullable disable
-using Microsoft.EntityFrameworkCore;
-using UserManagement.Infrastructure.Data;
 using UserManagement.Domain.Entities;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using UserManagement.Application.Common.Interfaces.IDivision;
-using UserManagement.Application.Divisions.Queries.GetDivisions;
-using UserManagement.Application.Common;
 using System.Data;
 using Dapper;
 using UserManagement.Application.Common.Interfaces;

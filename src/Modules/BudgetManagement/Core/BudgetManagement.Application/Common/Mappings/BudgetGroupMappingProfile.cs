@@ -2,8 +2,6 @@ using AutoMapper;
 using BudgetManagement.Application.BudgetGroups.Commands.UpdateBudgetGroup;
 using BudgetManagement.Application.BudgetGroups.Commands.CreateBudgetGroup;
 using BudgetManagement.Application.BudgetGroup.Command.DeleteBudgetGroup;
-using BudgetManagement.Domain;
-using BudgetManagement.Domain.Entities;
 using static BudgetManagement.Domain.Common.BaseEntity;
 
 namespace BudgetManagement.Application.Common.Mappings

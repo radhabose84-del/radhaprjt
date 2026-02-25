@@ -1,4 +1,3 @@
-#nullable disable
 using System.Data;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Purchase;
@@ -29,7 +28,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesItemPriceMaster
         }
 
         public async Task<(List<SalesItemPriceMasterDto>, int)> GetAllAsync(
-            int pageNumber, int pageSize, string searchTerm)
+            int pageNumber, int pageSize, string? searchTerm)
         {
             var query = $$"""
                 DECLARE @TotalCount INT;
@@ -107,7 +106,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesItemPriceMaster
             return (list, totalCount);
         }
 
-        public async Task<SalesItemPriceMasterDto> GetByIdAsync(int id)
+        public async Task<SalesItemPriceMasterDto?> GetByIdAsync(int id)
         {
             const string sql = @"
                 SELECT

@@ -1,15 +1,8 @@
-using UserManagement.Domain.Entities;
-using UserManagement.Application.Common.Interfaces;
 using FluentValidation;
 using AutoMapper;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using UserManagement.Application.Common.Interfaces.IModule;
 using UserManagement.Domain.Events;
-using Contracts.Common;
 using Microsoft.Extensions.Logging;
 
 namespace UserManagement.Application.Modules.Commands.CreateModule

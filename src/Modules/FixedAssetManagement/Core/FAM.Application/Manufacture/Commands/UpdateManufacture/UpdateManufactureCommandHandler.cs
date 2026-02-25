@@ -1,8 +1,6 @@
 
 using AutoMapper;
-using Contracts.Common;
 using FAM.Application.Common.Interfaces.IManufacture;
-using FAM.Application.Manufacture.Queries.GetManufacture;
 using FAM.Domain.Common;
 using FAM.Domain.Entities;
 using FAM.Domain.Events;

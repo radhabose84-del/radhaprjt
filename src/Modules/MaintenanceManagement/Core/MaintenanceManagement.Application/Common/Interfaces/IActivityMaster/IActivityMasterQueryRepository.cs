@@ -1,8 +1,4 @@
 #nullable disable
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using MaintenanceManagement.Application.ActivityMaster.Queries.GetActivityByMachinGroupId;
 using MaintenanceManagement.Application.ActivityMaster.Queries.GetAllActivityMaster;
 using MaintenanceManagement.Application.ActivityMaster.Queries.GetMachineGroupById;

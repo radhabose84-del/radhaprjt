@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using FAM.Domain.Entities;
 
 namespace FAM.Application.Common.Interfaces.AuditLog

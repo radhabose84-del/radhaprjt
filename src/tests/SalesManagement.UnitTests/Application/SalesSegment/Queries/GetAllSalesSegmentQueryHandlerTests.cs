@@ -1,5 +1,4 @@
 #nullable disable
-using Contracts.Dtos.Lookups.Users;
 using Contracts.Interfaces.Lookups.Users;
 using SalesManagement.Application.Common.Interfaces.ISalesSegment;
 using SalesManagement.Application.SalesSegment.Dto;

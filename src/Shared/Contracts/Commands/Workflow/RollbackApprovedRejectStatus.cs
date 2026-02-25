@@ -1,9 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Contracts.Dtos.Purchase;
-using Contracts.Dtos.Workflow;
 using MassTransit;
 
 namespace Contracts.Commands.Workflow

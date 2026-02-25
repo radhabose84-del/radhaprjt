@@ -1,22 +1,11 @@
 #nullable disable
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
-using UserManagement.Infrastructure.Data;
-using UserManagement.Application.Common.Interfaces;
-using UserManagement.Application.AuditLog.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using FluentValidation;
 using UserManagement.Application.AdminSecuritySettings.Queries.GetAdminSecuritySettings;
 using UserManagement.Application.AdminSecuritySettings.Commands.CreateAdminSecuritySettings;
 using UserManagement.Application.AdminSecuritySettings.Commands.UpdateAdminSecuritySettings;
 using UserManagement.Application.AdminSecuritySettings.Commands.DeleteAdminSecuritySettings;
-using AutoMapper;
-using UserManagement.Domain.Entities;
 using UserManagement.Application.AdminSecuritySettings.Queries.GetAdminSecuritySettingsById;
 using Microsoft.AspNetCore.Http;
 

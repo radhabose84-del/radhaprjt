@@ -1,5 +1,4 @@
 using InventoryManagement.Domain.Common;
-using InventoryManagement.Domain.Entities;
 using InventoryManagement.Domain.Entities.Item.ItemDetail;
 using InventoryManagement.Domain.Entities.Item.PutAway;
 

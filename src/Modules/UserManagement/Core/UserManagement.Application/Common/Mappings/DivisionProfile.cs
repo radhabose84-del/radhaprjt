@@ -3,7 +3,6 @@ using UserManagement.Application.Divisions.Commands.CreateDivision;
 using UserManagement.Application.Divisions.Commands.DeleteDivision;
 using UserManagement.Application.Divisions.Commands.UpdateDivision;
 using UserManagement.Application.Divisions.Queries.GetDivisions;
-using UserManagement.Application.Users.Queries.GetUsers;
 using UserManagement.Domain.Entities;
 using static UserManagement.Domain.Enums.Common.Enums;
 

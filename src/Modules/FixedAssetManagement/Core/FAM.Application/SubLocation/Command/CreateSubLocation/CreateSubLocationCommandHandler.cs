@@ -1,16 +1,11 @@
 #nullable disable
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
-using Contracts.Common;
 using FAM.Application.Common.Interfaces.ISubLocation;
 using FAM.Application.SubLocation.Queries.GetSubLocations;
 using FAM.Domain.Events;
 using FluentValidation;
 using MediatR;
-using FAM.Domain.Common; 
+using FAM.Domain.Common;
 
 namespace FAM.Application.SubLocation.Command.CreateSubLocation
 {

@@ -1,16 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using PurchaseManagement.Application.Issue.Command.CreateIssueEntry;
 using PurchaseManagement.Application.Issue.Queries.GetApprovedMrsById;
 using PurchaseManagement.Application.Issue.Queries.GetPendingIssue;
 using PurchaseManagement.Application.Issue.Queries.GetPendingIssueHeader;
-using MassTransit.Futures.Contracts;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Http;
 
 namespace PurchaseManagement.Presentation.Controllers.Issue

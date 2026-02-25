@@ -1,10 +1,5 @@
-using Contracts.Common;
 using UserManagement.Application.UserRole.Queries.GetRole;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace UserManagement.Application.UserRole.Commands.CreateRole
 {

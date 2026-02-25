@@ -1,4 +1,3 @@
-#nullable disable
 using Contracts.Common;
 using MediatR;
 using SalesManagement.Application.SalesItemPriceMaster.Dto;
@@ -9,6 +8,6 @@ namespace SalesManagement.Application.SalesItemPriceMaster.Queries.GetAllSalesIt
     {
         public int PageNumber { get; set; }
         public int PageSize { get; set; }
-        public string SearchTerm { get; set; }
+        public string? SearchTerm { get; set; }
     }
 }

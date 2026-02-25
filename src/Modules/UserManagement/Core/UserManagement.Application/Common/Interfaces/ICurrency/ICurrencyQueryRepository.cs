@@ -1,11 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
 namespace UserManagement.Application.Common.Interfaces.ICurrency
 {
-  public interface ICurrencyQueryRepository
+    public interface ICurrencyQueryRepository
   {
 
     Task<(List<UserManagement.Domain.Entities.Currency>, int)> GetAllCurrencyAsync(int PageNumber, int PageSize, string? SearchTerm);

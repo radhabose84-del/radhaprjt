@@ -1,6 +1,5 @@
 using AutoMapper;
 using FAM.Application.AssetMaster.AssetSpecification.Queries.GetAssetSpecification;
-using Contracts.Common;
 using FAM.Application.Common.Interfaces.IAssetMaster.IAssetSpecification;
 using FAM.Domain.Entities.AssetMaster;
 using FAM.Domain.Events;

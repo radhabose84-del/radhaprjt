@@ -1,14 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using FAM.Application.AssetMaster.AssetDisposal.Command.CreateAssetDisposal;
 using FAM.Application.AssetMaster.AssetDisposal.Command.UpdateAssetDisposal;
 using FAM.Application.AssetMaster.AssetDisposal.Queries.GetAssetDisposal;
 using FAM.Application.AssetMaster.AssetDisposal.Queries.GetAssetDisposalById;
 using FAM.Application.AssetMaster.AssetDisposal.Queries.GetDisposalType;
-using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -16,7 +10,7 @@ using Microsoft.Extensions.Logging;
 
 namespace FAM.Presentation.Controllers.AssetMaster
 {
-     [Route("api/[controller]")]
+    [Route("api/[controller]")]
     public class AssetDisposalController : ApiControllerBase
     {
         private readonly ILogger<AssetDisposalController> _logger;

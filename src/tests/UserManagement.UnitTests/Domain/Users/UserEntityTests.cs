@@ -1,7 +1,4 @@
-using System;
 using UserManagement.Domain.Entities;
-using FluentAssertions;
-using Xunit;
 
 namespace UserManagement.UnitTests.Domain.Users
 {

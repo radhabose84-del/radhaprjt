@@ -1,17 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using FluentValidation;
 using UserManagement.Application.UserRole.Commands.CreateRole;
 using UserManagement.Presentation.Validation.Common;
-using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Shared.Validation.Common;
 
 namespace UserManagement.Presentation.Validation.UserRole
 {
 
-     
+
     public class CreateRoleCommandValidator  : AbstractValidator<CreateRoleCommand>
     {
 

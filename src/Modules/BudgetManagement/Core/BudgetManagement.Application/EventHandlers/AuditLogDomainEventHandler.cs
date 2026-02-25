@@ -1,6 +1,5 @@
 using MediatR;
 using BudgetManagement.Application.Common.Interfaces;
-using BudgetManagement.Application.Common;
 using BudgetManagement.Domain.Events;
 
 namespace BudgetManagement.Application.EventHandlers

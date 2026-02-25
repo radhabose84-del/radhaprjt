@@ -1,13 +1,9 @@
 
 using AutoMapper;
-using FAM.Application.AssetLocation.Queries.GetAssetLocation;
 using FAM.Application.AssetMaster.AssetMasterGeneral.Commands.CreateAssetMasterGeneral;
 using FAM.Application.AssetMaster.AssetMasterGeneral.Commands.DeleteAssetMasterGeneral;
 using FAM.Application.AssetMaster.AssetMasterGeneral.Commands.UpdateAssetMasterGeneral;
 using FAM.Application.AssetMaster.AssetMasterGeneral.Queries.GetAssetMasterGeneral;
-using FAM.Application.AssetMaster.AssetMasterGeneral.Queries.GetAssetMasterGeneralById;
-using FAM.Application.AssetMaster.AssetPurchase.Queries.GetAssetPurchase;
-using FAM.Application.AssetMaster.AssetSpecification.Queries.GetAssetSpecification;
 using FAM.Domain.Entities;
 using FAM.Domain.Entities.AssetMaster;
 using FAM.Domain.Entities.AssetPurchase;

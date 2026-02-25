@@ -1,20 +1,10 @@
-using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using System.Threading.Tasks;
 // using Contracts.Interfaces.External.IUser;
 using MaintenanceManagement.Application.Common.Interfaces;
-using MaintenanceManagement.Application.Common.Interfaces.IMachineGroup;
 using MaintenanceManagement.Application.Common.Interfaces.IMaintenanceRequest;
-using MaintenanceManagement.Application.MaintenanceRequest.Queries.GetExistingVendorDetails;
 using MaintenanceManagement.Application.MaintenanceRequest.Queries.GetExternalRequestById;
-using MaintenanceManagement.Application.MaintenanceRequest.Queries.GetMaintenanceRequest;
-using MaintenanceManagement.Application.Reports.MaintenanceRequestReport;
 using MaintenanceManagement.Domain.Common;
-using MaintenanceManagement.Domain.Entities;
 using Dapper;
-using MaintenanceManagement.Infrastructure.Services;
 using Serilog;
 
 namespace MaintenanceManagement.Infrastructure.Repositories.MaintenanceRequest

@@ -1,9 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using PurchaseManagement.Application.PurchaseOrder.Dtos.ServicePO;
-using PurchaseManagement.Application.PurchaseOrder.ServicePO.Command.CreateServiceEntrySheet;
 using PurchaseManagement.Application.PurchaseOrder.ServicePO.Queries.GetServicePOPending;
 using PurchaseManagement.Application.PurchaseOrder.ServicePO.Queries.ServiceEntrySheet;
 using PurchaseManagement.Application.PurchaseOrder.ServicePO.Queries.ServiceEntrySheet.GetAllSES;
@@ -16,7 +11,6 @@ using PurchaseManagement.Application.PurchaseOrder.ServicePO.Queries.ServiceEntr
 using PurchaseManagement.Application.PurchaseOrder.ServicePO.Queries.ServiceEntrySheet.ServiceEntrySheetGetById;
 using PurchaseManagement.Application.ServiceMaster.Queries.GetAllSES;
 using PurchaseManagement.Domain.Entities.PurchaseOrder;
-using PurchaseManagement.Domain.Entities.PurchaseOrder.ServicePO;
 // using MassTransit.Futures.Contracts;
 
 namespace PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.ServicePO

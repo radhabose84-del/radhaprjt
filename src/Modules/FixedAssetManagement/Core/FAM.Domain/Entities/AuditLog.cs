@@ -1,5 +1,3 @@
-
-using System;
 using FAM.Domain.Common;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;

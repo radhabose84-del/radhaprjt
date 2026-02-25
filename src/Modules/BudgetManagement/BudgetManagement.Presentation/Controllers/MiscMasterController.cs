@@ -5,7 +5,6 @@ using BudgetManagement.Application.MiscMaster.Command.UpdateMiscMaster;
 using BudgetManagement.Application.MiscMaster.Queries.GetMiscMaster;
 using BudgetManagement.Application.MiscMaster.Queries.GetMiscMasterAutoComplete;
 using BudgetManagement.Application.MiscMaster.Queries.GetMiscMasterById;
-using BudgetManagement.Domain.Entities;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -13,7 +12,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace BudgetManagement.Presentation.Controllers
 {
-     [Route("api/budget/[controller]")]
+    [Route("api/budget/[controller]")]
 
     public class MiscMasterController  : ApiControllerBase
     {

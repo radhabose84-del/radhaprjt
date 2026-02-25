@@ -2,10 +2,6 @@
 using FluentValidation;
 using UserManagement.Domain.Entities;
 using UserManagement.Application.Users.Commands.CreateUser;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using UserManagement.Presentation.Validation.Common;
 using UserManagement.Application.Common.Interfaces.IUser;
 using UserManagement.Application.Common.Interfaces.ICompany;

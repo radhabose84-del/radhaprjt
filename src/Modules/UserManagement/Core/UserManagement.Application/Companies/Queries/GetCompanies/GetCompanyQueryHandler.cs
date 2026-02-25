@@ -3,7 +3,6 @@ using MediatR;
 using UserManagement.Application.Common.Interfaces.ICompany;
 using Contracts.Common;
 using UserManagement.Domain.Events;
-using UserManagement.Application.Common.Interfaces;
 
 namespace UserManagement.Application.Companies.Queries.GetCompanies
 {

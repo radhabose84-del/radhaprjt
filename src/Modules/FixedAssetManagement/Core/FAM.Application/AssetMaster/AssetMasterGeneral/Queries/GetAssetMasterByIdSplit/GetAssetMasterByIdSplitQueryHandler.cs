@@ -1,7 +1,6 @@
 #nullable disable
 using AutoMapper;
 using FAM.Application.AssetMaster.AssetMasterGeneral.Queries.GetAssetMasterGeneralById;
-using Contracts.Common;
 using FAM.Application.Common.Interfaces.IAssetMaster.IAssetMasterGeneral;
 using FAM.Domain.Events;
 using FluentValidation;

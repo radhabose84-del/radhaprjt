@@ -1,5 +1,4 @@
 using MediatR;
-using UserManagement.Application.Users.Queries.GetUsers;
 using Contracts.Common;
 
 namespace UserManagement.Application.Users.Queries.GetUserAutoComplete

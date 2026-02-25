@@ -5,7 +5,6 @@ using Contracts.Common;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Data.SqlClient;
-using Microsoft.Extensions.Hosting;
 
 /// <summary>
 /// Global MVC action filter that intercepts SQL Server exceptions thrown during

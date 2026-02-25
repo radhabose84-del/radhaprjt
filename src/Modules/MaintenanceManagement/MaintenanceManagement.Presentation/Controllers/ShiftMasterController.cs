@@ -1,15 +1,10 @@
 #nullable disable
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using MaintenanceManagement.Application.ShiftMasters.Commands.CreateShiftMaster;
 using MaintenanceManagement.Application.ShiftMasters.Commands.DeleteShiftMaster;
 using MaintenanceManagement.Application.ShiftMasters.Commands.UpdateShiftMaster;
 using MaintenanceManagement.Application.ShiftMasters.Queries.GetShiftMaster;
 using MaintenanceManagement.Application.ShiftMasters.Queries.GetShiftMasterAutoComplete;
 using MaintenanceManagement.Application.ShiftMasters.Queries.GetShiftMasterById;
-using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

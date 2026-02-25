@@ -1,9 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using FluentValidation;
-using UserManagement.Application.Departments.Commands.CreateDepartment;
 using UserManagement.Application.Departments.Commands.UpdateDepartment;
 using UserManagement.Presentation.Validation.Common;
 using Serilog;

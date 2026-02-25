@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using MediatR;
 
 namespace Contracts.Events.Notifications.Sms

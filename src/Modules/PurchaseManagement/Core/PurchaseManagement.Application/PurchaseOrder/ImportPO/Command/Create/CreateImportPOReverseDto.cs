@@ -1,5 +1,3 @@
-using PurchaseManagement.Application.PurchaseOrder.Local.Commands.Create;
-
 namespace PurchaseManagement.Application.PurchaseOrder.ImportPO.Command.Create
 {
     public class CreateImportPOReverseDto

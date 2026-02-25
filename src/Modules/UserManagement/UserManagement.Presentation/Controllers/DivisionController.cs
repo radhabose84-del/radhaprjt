@@ -1,8 +1,4 @@
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using UserManagement.Application.Divisions.Queries.GetDivisions;
 using UserManagement.Application.Divisions.Commands.CreateDivision;
@@ -10,11 +6,7 @@ using UserManagement.Application.Divisions.Queries.GetDivisionById;
 using UserManagement.Application.Divisions.Commands.UpdateDivision;
 using UserManagement.Application.Divisions.Commands.DeleteDivision;
 using Microsoft.AspNetCore.Http;
-using System.IO;
 using UserManagement.Application.Divisions.Queries.GetDivisionAutoComplete;
-using FluentValidation;
-using Microsoft.AspNetCore.Authorization;
-using System.Text.Json;
 
 namespace UserManagement.Presentation.Controllers
 {

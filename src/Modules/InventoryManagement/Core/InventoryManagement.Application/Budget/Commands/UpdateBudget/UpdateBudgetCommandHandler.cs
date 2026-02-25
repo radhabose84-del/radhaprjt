@@ -1,6 +1,4 @@
-using AutoMapper;
 using InventoryManagement.Application.Common.Interfaces.Budget;
-using InventoryManagement.Domain.Entities.Budget;
 using MediatR;
 
 namespace InventoryManagement.Application.Budget.Commands.UpdateBudget

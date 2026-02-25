@@ -1,5 +1,4 @@
 using FAM.Application.DepreciationGroup.Queries.GetDepreciationGroup;
-using FAM.Domain.Entities;
 
 namespace FAM.Application.Common.Interfaces.IDepreciationGroup
 {

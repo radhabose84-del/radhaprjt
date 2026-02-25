@@ -1,13 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using UserManagement.Application.CustomFields.Commands.CreateCustomField;
 using UserManagement.Application.CustomFields.Commands.DeleteCustomField;
 using UserManagement.Application.CustomFields.Commands.UpdateCustomField;
 using UserManagement.Application.CustomFields.Queries.GetCustomField;
 using UserManagement.Application.CustomFields.Queries.GetCustomFieldById;
-using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;

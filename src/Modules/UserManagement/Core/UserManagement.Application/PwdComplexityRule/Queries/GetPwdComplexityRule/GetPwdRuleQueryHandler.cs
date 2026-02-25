@@ -1,8 +1,5 @@
 using AutoMapper;
-using UserManagement.Application.Common.Interfaces;
 using MediatR;
-using System.Data;
-using UserManagement.Domain.Entities;
 using UserManagement.Application.Common.Interfaces.IPasswordComplexityRule;
 using Microsoft.Extensions.Logging;
 using Contracts.Common;

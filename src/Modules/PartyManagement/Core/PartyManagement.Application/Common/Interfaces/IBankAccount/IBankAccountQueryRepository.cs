@@ -1,7 +1,6 @@
 
 using PartyManagement.Application.BankAccount;
 using PartyManagement.Application.BankAccount.Query.GetBankAutocomplete;
-using PartyManagement.Domain.Entities;
 
 namespace PartyManagement.Application.Common.Interfaces.IBankAccount;
 

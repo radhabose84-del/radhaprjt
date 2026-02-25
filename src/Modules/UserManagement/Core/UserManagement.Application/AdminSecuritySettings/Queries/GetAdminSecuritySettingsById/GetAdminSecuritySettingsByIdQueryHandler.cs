@@ -1,11 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
 using UserManagement.Application.AdminSecuritySettings.Queries.GetAdminSecuritySettings;
-using UserManagement.Application.Common;
-using Contracts.Common;
 using UserManagement.Application.Common.Interfaces.IAdminSecuritySettings;
 using UserManagement.Domain.Events;
 using FluentValidation;

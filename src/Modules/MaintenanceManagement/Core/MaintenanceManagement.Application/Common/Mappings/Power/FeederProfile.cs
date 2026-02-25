@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
 using MaintenanceManagement.Application.Power.Feeder.Command.CreateFeeder;
 using MaintenanceManagement.Application.Power.Feeder.Command.DeleteFeeder;

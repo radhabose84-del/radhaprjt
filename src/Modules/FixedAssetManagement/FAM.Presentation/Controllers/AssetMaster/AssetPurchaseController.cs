@@ -6,7 +6,6 @@ using FAM.Application.AssetMaster.AssetPurchase.Queries.GetAssetGRNItem;
 using FAM.Application.AssetMaster.AssetPurchase.Queries.GetAssetPurchase;
 using FAM.Application.AssetMaster.AssetPurchase.Queries.GetAssetPurchaseById;
 using FAM.Application.AssetMaster.AssetPurchase.Queries.GetAssetSourceAutoComplete;
-using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -15,7 +14,7 @@ using Microsoft.Extensions.Logging;
 
 namespace FAM.Presentation.Controllers.AssetPurchase
 {
-   [Route("api/[controller]")]
+    [Route("api/[controller]")]
     public class AssetPurchaseController : ApiControllerBase
     {
         private readonly ILogger<AssetPurchaseController> _logger;

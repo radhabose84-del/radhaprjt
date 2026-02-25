@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using PurchaseManagement.Application.Common.Interfaces.IMiscMaster;
 using PurchaseManagement.Application.MiscMaster.Command.CreateMiscMaster;
 using PurchaseManagement.Application.MiscMaster.Command.DeleteMiscMaster;
@@ -10,16 +5,14 @@ using PurchaseManagement.Application.MiscMaster.Command.UpdateMiscMaster;
 using PurchaseManagement.Application.MiscMaster.Queries.GetMiscMaster;
 using PurchaseManagement.Application.MiscMaster.Queries.GetMiscMasterAutoComplete;
 using PurchaseManagement.Application.MiscMaster.Queries.GetMiscMasterById;
-using PurchaseManagement.Domain.Entities;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Http;
 
 namespace PurchaseManagement.Presentation.Controllers
 {
-     [Route("api/purchase/[controller]")]
+    [Route("api/purchase/[controller]")]
 
     public class MiscMasterController  : ApiControllerBase
     {

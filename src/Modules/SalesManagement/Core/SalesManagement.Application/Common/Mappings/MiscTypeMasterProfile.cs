@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using SalesManagement.Application.MiscTypeMaster.Commands.CreateMiscTypeMaster;
 using SalesManagement.Application.MiscTypeMaster.Commands.UpdateMiscTypeMaster;

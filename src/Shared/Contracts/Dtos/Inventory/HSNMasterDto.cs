@@ -1,6 +1,4 @@
 // Contracts.Dtos.Inventory/HSNMasterDto.cs
-using System;
-
 namespace Contracts.Dtos.Inventory
 {
     public class HSNMasterDto

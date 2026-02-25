@@ -1,5 +1,3 @@
-using System;
-using System.Threading.Tasks;
 using Contracts.Dtos.Users;
 
 namespace Contracts.Interfaces.External.IUser

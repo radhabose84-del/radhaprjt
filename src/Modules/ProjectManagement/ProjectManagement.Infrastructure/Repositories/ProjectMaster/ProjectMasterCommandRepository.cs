@@ -1,17 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Threading.Tasks;
 using ProjectManagement.Application.Common.Interfaces.IProjectMaster;
 using Microsoft.EntityFrameworkCore;
 using ProjectManagement.Infrastructure.Data;
-using System.Linq;
-using System.Threading;
 using ProjectManagement.Domain.Common;
-using ProjectManagement.Application.Common.Interfaces.IMiscTypeMaster;
 using AutoMapper;
-using ProjectManagement.Application.ProjectMaster.Command.UpdateProjectMaster;
 using ProjectManagement.Application.Common.Interfaces.IMiscMaster;
 
 namespace ProjectManagement.Infrastructure.Repositories.ProjectMaster

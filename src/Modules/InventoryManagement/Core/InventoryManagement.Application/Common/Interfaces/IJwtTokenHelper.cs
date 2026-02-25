@@ -1,6 +1,4 @@
 using System.Security.Claims;
-using InventoryManagement.Domain.Common;
-using InventoryManagement.Domain.Entities;
 
 namespace InventoryManagement.Application.Common.Interfaces
 {

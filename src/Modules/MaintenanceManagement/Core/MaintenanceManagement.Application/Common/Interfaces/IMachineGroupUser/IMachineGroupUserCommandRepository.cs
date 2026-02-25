@@ -1,5 +1,3 @@
-using MaintenanceManagement.Domain.Entities;
-
 namespace MaintenanceManagement.Application.Common.Interfaces.IMachineGroupUser
 {
     public interface IMachineGroupUserCommandRepository

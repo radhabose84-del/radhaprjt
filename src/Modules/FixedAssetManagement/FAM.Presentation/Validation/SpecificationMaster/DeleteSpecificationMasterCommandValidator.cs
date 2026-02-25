@@ -1,6 +1,5 @@
 using FAM.Application.Common.Interfaces.ISpecificationMaster;
 using FAM.Application.SpecificationMaster.Commands.DeleteSpecificationMaster;
-using FAM.Presentation.Validation.Common;
 using FluentValidation;
 using Shared.Validation.Common;
 

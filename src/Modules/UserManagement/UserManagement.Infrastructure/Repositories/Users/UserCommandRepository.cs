@@ -1,21 +1,10 @@
 #nullable disable
-using Dapper;
 using System.Data;
 using Microsoft.EntityFrameworkCore;
 using UserManagement.Infrastructure.Data;
-using UserManagement.Infrastructure.Repositories;
 using UserManagement.Application.Common.Interfaces;
 using UserManagement.Domain.Entities;
-using System.Linq;
-using System.Text;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using UserManagement.Application.Common.Interfaces.IUser;
-using Polly;
-using Polly.Timeout;
-using Serilog;
-using System.Collections.Concurrent;
-using UserManagement.Application.UserLogin.Commands.UserLogin;
 using UserManagement.Application.Common.Utilities;
 
 namespace UserManagement.Infrastructure.Repositories

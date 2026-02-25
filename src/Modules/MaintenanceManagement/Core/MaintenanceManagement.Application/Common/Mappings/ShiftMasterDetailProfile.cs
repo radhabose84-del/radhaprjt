@@ -1,12 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
 using MaintenanceManagement.Application.ShiftMasterDetails.Commands.CreateShiftMasterDetail;
 using MaintenanceManagement.Application.ShiftMasterDetails.Commands.DeleteShiftMasterDetail;
 using MaintenanceManagement.Application.ShiftMasterDetails.Commands.UpdateShiftMasterDetail;
-using MaintenanceManagement.Application.ShiftMasterDetails.Queries.GetShiftMasterDetail;
 using MaintenanceManagement.Application.ShiftMasterDetails.Queries.GetShiftMasterDetailById;
 using MaintenanceManagement.Domain.Entities;
 using static MaintenanceManagement.Domain.Common.BaseEntity;

@@ -1,7 +1,6 @@
 #nullable disable
 using FluentValidation.TestHelper;
 using SalesManagement.Application.Common.Interfaces.IMiscMaster;
-using SalesManagement.Application.MiscMaster.Commands.UpdateMiscMaster;
 using SalesManagement.Presentation.Validation.MiscMaster;
 using SalesManagement.UnitTests.TestData;
 using SalesManagement.UnitTests.TestHelpers;
@@ -46,6 +45,7 @@ namespace SalesManagement.UnitTests.Validators.MiscMaster
         public async Task Id_ZeroOrNegative_FailsValidation(int id)
         {
             var command = MiscMasterBuilders.ValidUpdateCommand(id: id);
+            _mockQueryRepo.Setup(r => r.NotFoundAsync(id)).ReturnsAsync(true);
 
             var result = await CreateValidator().TestValidateAsync(command);
 
@@ -91,7 +91,7 @@ namespace SalesManagement.UnitTests.Validators.MiscMaster
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.Description)
-                  .WithErrorMessage("Description cannot exceed 250 characters.");
+                  .WithErrorMessage("Description  cannot be longer than   250 characters.");
         }
 
         // ── SortOrder Rules ───────────────────────────────────────────────────
@@ -105,7 +105,7 @@ namespace SalesManagement.UnitTests.Validators.MiscMaster
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.SortOrder)
-                  .WithErrorMessage("Sort Order must be 0 or greater.");
+                  .WithErrorMessage("SortOrder must be 0 or greater.");
         }
 
         [Theory]
@@ -135,7 +135,7 @@ namespace SalesManagement.UnitTests.Validators.MiscMaster
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.IsActive)
-                  .WithErrorMessage("IsActive must be 0 or 1.");
+                  .WithErrorMessage("IsActive  must be either 0 or 1.");
         }
 
         [Theory]

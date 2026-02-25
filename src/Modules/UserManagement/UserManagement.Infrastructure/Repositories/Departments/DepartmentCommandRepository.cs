@@ -1,8 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using UserManagement.Infrastructure.Data;
 using UserManagement.Domain.Entities;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using UserManagement.Application.Common.Interfaces.IDepartment;
 
 namespace UserManagement.Infrastructure.Repositories.Departments

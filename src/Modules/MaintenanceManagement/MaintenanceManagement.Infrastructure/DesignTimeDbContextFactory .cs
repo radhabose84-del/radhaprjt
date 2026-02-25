@@ -3,9 +3,7 @@ using MaintenanceManagement.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
-using System.IO;
 using MaintenanceManagement.Application.Common.Interfaces;
-using MongoDB.Driver;
 using Microsoft.AspNetCore.Http;
 using MaintenanceManagement.Infrastructure.Services;
 

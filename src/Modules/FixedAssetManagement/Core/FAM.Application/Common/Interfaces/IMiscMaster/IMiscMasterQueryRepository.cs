@@ -1,12 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using FAM.Domain.Entities;
-
 namespace FAM.Application.Common.Interfaces.IMiscMaster
 {
-  public interface IMiscMasterQueryRepository
+    public interface IMiscMasterQueryRepository
   {
     Task<(List<FAM.Domain.Entities.MiscMaster>, int)> GetAllMiscMasterAsync(int PageNumber, int PageSize, string? SearchTerm);
     Task<FAM.Domain.Entities.MiscMaster> GetByIdAsync(int id);

@@ -1,4 +1,3 @@
-#nullable disable
 namespace SalesManagement.Application.SalesChannel.Dto
 {
     public sealed class SalesChannelLookupDto

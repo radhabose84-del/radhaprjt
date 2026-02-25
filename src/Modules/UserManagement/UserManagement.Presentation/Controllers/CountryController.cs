@@ -5,7 +5,6 @@ using UserManagement.Application.Country.Commands.UpdateCountry;
 using UserManagement.Application.Country.Queries.GetCountries;
 using UserManagement.Application.Country.Queries.GetCountryAutoComplete;
 using UserManagement.Application.Country.Queries.GetCountryById;
-using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;

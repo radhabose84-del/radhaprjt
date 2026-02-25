@@ -1,5 +1,3 @@
-using System;
-
 namespace Contracts.Dtos.Users
 {
     public class UserSessionDto

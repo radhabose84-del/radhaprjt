@@ -1,13 +1,8 @@
 #nullable disable
-using Microsoft.EntityFrameworkCore;
-using UserManagement.Infrastructure.Data;
 using UserManagement.Domain.Entities;
 using UserManagement.Application.Common.Interfaces.IEntity;
 using System.Data;
 using Dapper;
-using UserManagement.Application.Entity.Queries.GetEntityLastCode;
-using Microsoft.Data.SqlClient;
-using UserManagement.Infrastructure.Migrations;
 using UserManagement.Application.Common.Interfaces;
 using UserManagement.Application.Entity.Queries.GetEntityBasedCompany;
 using UserManagement.Application.Entity.Queries.GetCompanyBasedUnit;

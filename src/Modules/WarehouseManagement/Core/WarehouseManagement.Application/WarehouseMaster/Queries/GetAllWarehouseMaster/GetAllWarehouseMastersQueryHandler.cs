@@ -1,17 +1,9 @@
 #nullable disable
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Contracts.Common;
 using AutoMapper;
 using WarehouseManagement.Application.Common.Interfaces.IWarehouseMaster;
 using WarehouseManagement.Domain.Events;
 using MediatR;
-using Microsoft.EntityFrameworkCore.Query;
-using Contracts.Interfaces.External.IInvetoryManagement;
-using Contracts.Interfaces.External.IUser;
-using DnsClient.Protocol;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Users;
 

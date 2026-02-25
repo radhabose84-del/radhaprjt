@@ -1,12 +1,5 @@
-using UserManagement.Application.Common.Interfaces;
-using UserManagement.Application.UserRole.Queries.GetRole;
-using UserManagement.Domain.Entities;
 using MediatR;
 using AutoMapper;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using UserManagement.Application.Common.Interfaces.IUserRoleAllocation;
 using UserManagement.Application.UserRoleAllocation.Queries.GetUserRoleAllocation;
 

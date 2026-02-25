@@ -1,12 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
 using PartyManagement.Application.PartyMaster.Command.CreatePartyMaster;
 using PartyManagement.Application.PartyMaster.Command.DeletePartyMaster;
 using PartyManagement.Application.PartyMaster.Command.UpdatePartyMaster;
-using PartyManagement.Application.PartyMaster.Queries.GetPartyMasterById;
 using PartyManagement.Domain.Entities;
 using static PartyManagement.Application.PartyMaster.Command.CreatePartyMaster.CreatePartyMasterDto;
 using static PartyManagement.Domain.Common.BaseEntity;

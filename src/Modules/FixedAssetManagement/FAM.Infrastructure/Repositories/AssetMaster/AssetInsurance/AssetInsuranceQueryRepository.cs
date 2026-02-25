@@ -1,11 +1,5 @@
 #nullable disable
-using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Threading.Tasks;
-using FAM.Application.AssetMaster.AssetInsurance.Queries.GetAssetInsurance;
 using FAM.Application.Common.Interfaces.IAssetMaster.IAssetInsurance;
 using Dapper;
 

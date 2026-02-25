@@ -1,9 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using FAM.Application.AssetMaster.AssetTransferIssue.Queries.GetAssetTransfered;
-
 namespace FAM.Application.AssetMaster.AssetTransferReceipt.Queries.GetAssetReceiptPending
 {
     public class AssetTransferReceiptHdrDto
