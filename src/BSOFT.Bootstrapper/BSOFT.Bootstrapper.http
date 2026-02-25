@@ -1,6 +1,0 @@
-@BSOFT.Bootstrapper_HostAddress = http://localhost:5239
-
-GET {{BSOFT.Bootstrapper_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###

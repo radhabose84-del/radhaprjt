@@ -1,6 +1,6 @@
 using Hangfire.Dashboard;
 
-namespace BSOFT.Bootstrapper.Filters
+namespace BSOFT.Api.Filters
 {
 
     public class HangfireAuthorizationFilter : IDashboardAuthorizationFilter

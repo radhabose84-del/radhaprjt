@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.IdentityModel.Logging;
 using UserManagement.Domain.Entities;
-namespace BSOFT.Bootstrapper.Configurations
+namespace BSOFT.Api.Configurations
 {
     public static class JwtAuthenticationSetup
     {
