@@ -654,15 +654,18 @@ using Shared.Validation.Common;                         // ValidationRuleLoader,
 
 **Available JSON rule types:**
 
-| Rule Name | Purpose | Error Template |
-|---|---|---|
-| `NotEmpty` | Required field checks | `"is required."` |
-| `Alphanumeric` | Alphanumeric format (code fields) | `"must be alphanumeric only."` |
-| `MaxLength` | Max length (from EF metadata) | `"cannot be longer than"` |
-| `AlreadyExists` | Uniqueness / composite key checks | `"already exists."` |
-| `NotFound` | Entity existence (Update validators) | `"not found."` |
-| `FKColumnDelete` | FK existence (same-module + cross-module) | `"{PropertyName} is inactive/deleted."` |
-| `ByteValue` | IsActive validation (0 or 1) | `"must be either 0 or 1."` |
+| Rule Name | Purpose | Pattern | Error Template |
+|---|---|---|---|
+| `NotEmpty` | Required field checks | — | `"is required."` |
+| `Alphanumeric` | Code field format — **letters and digits only, NO spaces** | `^[A-Za-z0-9]+$` | `"must be alphanumeric only."` |
+| `MaxLength` | Max length (from EF metadata) | — | `"cannot be longer than"` |
+| `AlreadyExists` | Uniqueness / composite key checks | — | `"already exists."` |
+| `NotFound` | Entity existence (Update validators) | — | `"not found."` |
+| `FKColumnDelete` | FK existence (same-module + cross-module) | — | `"{PropertyName} is inactive/deleted."` |
+| `ByteValue` | IsActive validation (0 or 1) | — | `"must be either 0 or 1."` |
+
+> ⚠️ **`Alphanumeric` pattern is `^[A-Za-z0-9]+$` — spaces are NOT alphanumeric.**
+> The shared `validation-rules.json` previously had `^[A-Za-z0-9 ]+$` (with a stray space) which incorrectly allowed spaces in code fields. This was a bug — it has been fixed. Code fields (e.g. `SalesOrganisationCode`, `BusinessUnitCode`) must reject spaces.
 
 ### Create Validator Structure
 
@@ -1702,9 +1705,9 @@ public sealed class Create{EntityName}CommandValidatorTests
     }
 
     [Theory]
-    [InlineData("CODE-01")]   // hyphen
-    [InlineData("CODE 01")]   // space
-    [InlineData("CODE@01")]   // special char
+    [InlineData("CODE-01")]   // hyphen       — not alphanumeric → fails
+    [InlineData("CODE 01")]   // space        — not alphanumeric → fails (pattern is ^[A-Za-z0-9]+$, no spaces)
+    [InlineData("CODE@01")]   // special char — not alphanumeric → fails
     public async Task Validate_NonAlphanumericCode_FailsValidation(string code)
     {
         var command = {EntityName}Builders.ValidCreateCommand(code: code);
@@ -2650,11 +2653,11 @@ Authentication is handled globally by `TokenValidationMiddleware` in the request
 >
 > ❌ **NEVER hardcode the regex pattern in the `Alphanumeric` case — even with a comment:**
 > ```csharp
-> // ❌ WRONG — hardcoded regex, even with a comment explaining the business rule
+> // ❌ WRONG — hardcoded regex; also the pattern with a space was a bug in validation-rules.json (now fixed)
 > case "Alphanumeric":
 >     // SalesGroupName allows alphanumeric + spaces (per business rule)
 >     RuleFor(x => x.SalesGroupName)
->         .Matches(@"^[A-Za-z0-9 ]+$")   // ❌ HARDCODED — must never appear
+>         .Matches(@"^[A-Za-z0-9 ]+$")   // ❌ WRONG — spaces are NOT alphanumeric; correct pattern is ^[A-Za-z0-9]+$
 >         .WithMessage($"{nameof(Command.SalesGroupName)} {rule.Error}")
 >         .When(x => !string.IsNullOrWhiteSpace(x.SalesGroupName));
 >     break;
@@ -2712,7 +2715,7 @@ Authentication is handled globally by `TokenValidationMiddleware` in the request
 3. Null/empty check on loaded rules → `_validationRules.Count == 0` (not `!Any()`) → throw `InvalidOperationException`
 4. `foreach (var rule in _validationRules)` with `switch (rule.Rule)`
 5. Error messages: `$"{nameof(Command.Property)} {rule.Error}"`
-6. **`Alphanumeric` case MUST use `.Matches(rule.Pattern)` — NEVER `.Matches(@"^[A-Za-z0-9 ]+$")` or any hardcoded string**
+6. **`Alphanumeric` case MUST use `.Matches(rule.Pattern)` — NEVER hardcode the regex.** The correct pattern in `validation-rules.json` is `^[A-Za-z0-9]+$` (letters and digits, **no spaces**). A previous version of the JSON had `^[A-Za-z0-9 ]+$` (with a space) — this was a bug that caused space-containing codes to pass validation. It has been fixed.
 
 **Key files:**
 - `src/Shared/Shared.Validation/Common/ValidationRuleLoader.cs` — rule loader
