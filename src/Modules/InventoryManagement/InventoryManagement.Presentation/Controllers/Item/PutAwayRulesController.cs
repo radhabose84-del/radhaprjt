@@ -4,12 +4,11 @@ using InventoryManagement.Application.Item.PutAway.Commands.UpdatePutAwayRule;
 using InventoryManagement.Application.Item.PutAway.Queries.GetPutAwayRuleById;
 using InventoryManagement.Application.Item.PutAway.Queries.GetPutAwayRuleItemId;
 using InventoryManagement.Application.Item.PutAway.Queries.GetPutAwayRules;
-using InventoryManagement.Presentation.Controllers;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 
-namespace InventoryManagement.Presentation.Controller.Item
+namespace InventoryManagement.Presentation.Controllers.Item
 {
     [Route("api/[controller]")]
     public class PutAwayRuleController : ApiControllerBase
