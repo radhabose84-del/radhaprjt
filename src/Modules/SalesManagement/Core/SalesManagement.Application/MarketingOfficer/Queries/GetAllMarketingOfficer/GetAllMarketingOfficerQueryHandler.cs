@@ -23,7 +23,6 @@ namespace SalesManagement.Application.MarketingOfficer.Queries.GetAllMarketingOf
         public async Task<ApiResponseDTO<List<MarketingOfficerDto>>> Handle(GetAllMarketingOfficerQuery request, CancellationToken cancellationToken)
         {
             var (data, totalCount) = await _queryRepository.GetAllAsync(request.PageNumber, request.PageSize, request.SearchTerm);
-            var dtos = _mapper.Map<List<MarketingOfficerDto>>(data);
 
             var domainEvent = new AuditLogsDomainEvent(
                 actionDetail: "GetAllMarketingOfficerQuery",
@@ -38,7 +37,7 @@ namespace SalesManagement.Application.MarketingOfficer.Queries.GetAllMarketingOf
             {
                 IsSuccess = true,
                 Message = "Success",
-                Data = dtos,
+                Data = data,
                 TotalCount = totalCount,
                 PageNumber = request.PageNumber,
                 PageSize = request.PageSize
