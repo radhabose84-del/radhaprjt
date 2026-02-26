@@ -32,6 +32,8 @@ namespace SalesManagement.Infrastructure.Data
   		public DbSet<SalesItemPriceMaster> SalesItemPriceMaster { get; set; }
         public DbSet<MiscTypeMaster> MiscTypeMaster { get; set; }
         public DbSet<MiscMaster> MiscMaster { get; set; }
+        public DbSet<AgentCommissionConfig> AgentCommissionConfig { get; set; }
+        public DbSet<DispatchAddressMaster> DispatchAddressMaster { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -45,6 +47,8 @@ namespace SalesManagement.Infrastructure.Data
 			modelBuilder.ApplyConfiguration(new SalesItemPriceMasterConfiguration());
             modelBuilder.ApplyConfiguration(new MiscTypeMasterConfiguration());
             modelBuilder.ApplyConfiguration(new MiscMasterConfiguration());
+            modelBuilder.ApplyConfiguration(new AgentCommissionConfigConfiguration());
+            modelBuilder.ApplyConfiguration(new DispatchAddressMasterConfiguration());
 
 
             // Global convention: set explicit precision/scale for all decimal properties

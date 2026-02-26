@@ -14,7 +14,7 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetLocation
             _dbConnection = dbConnection;
         }
 
-        public async Task<(List<FAM.Domain.Entities.AssetMaster.AssetLocation>, int)> GetAllAssetLocationAsync(int PageNumber, int PageSize, string SearchTerm)
+        public async Task<(List<FAM.Domain.Entities.AssetMaster.AssetLocation>, int)> GetAllAssetLocationAsync(int PageNumber, int PageSize, string? SearchTerm)
         {
             var query = $$"""
         DECLARE @TotalCount INT;
@@ -55,10 +55,10 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetLocation
                 FROM FixedAsset.AssetLocation 
                 WHERE AssetId = @id   ";
 
-            return  await _dbConnection.QueryFirstOrDefaultAsync<FAM.Domain.Entities.AssetMaster.AssetLocation>(query, new { id });
+            return  (await _dbConnection.QueryFirstOrDefaultAsync<FAM.Domain.Entities.AssetMaster.AssetLocation>(query, new { id }))!;
 
         }
-         public async Task<FAM.Domain.Entities.AssetMaster.AssetLocation> GetByAssetLocationCodeAsync(int? id = null)
+         public async Task<FAM.Domain.Entities.AssetMaster.AssetLocation?> GetByAssetLocationCodeAsync(int? id = null)
         {
               var query = """
                  SELECT Id, AssetId, UnitId, DepartmentId, LocationId, SubLocationId, CustodianId , UserID FROM FixedAsset.AssetLocation
@@ -76,7 +76,7 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetLocation
             return await _dbConnection.QueryFirstOrDefaultAsync<FAM.Domain.Entities.AssetMaster.AssetLocation>(query, parameters);
         } 
 
-         public async Task<(List<FAM.Domain.Entities.AssetMaster.Employee>, int)> GetAllCustodianAsync(string OldUnitId, string SearchEmployee)
+         public async Task<(List<FAM.Domain.Entities.AssetMaster.Employee>, int)> GetAllCustodianAsync(string OldUnitId, string? SearchEmployee)
         {        
 
             var procedureName = "dbo.GetEmployeeByDivision";  // Name of the stored procedure

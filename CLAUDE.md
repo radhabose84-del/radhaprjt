@@ -457,9 +457,50 @@ public interface I{EntityName}QueryRepository
 
 ---
 
-## 🌐 Cross-Module References
+## 🌐 Cross-Module vs Same-Module FK References
 
-### ❌ DO NOT Use Direct SQL JOINs
+### ✅ Same-Module FKs — Use SQL JOINs (No Lookups Needed)
+
+When a FK references another entity **within the same module**, use a direct SQL JOIN in the Dapper query repository to fetch the related name. **Do NOT create a shared lookup interface** for same-module references.
+
+**Example — AgentCommissionConfiguration (SalesManagement module):**
+- `SalesSegmentId` → `Sales.SalesSegment` (same module) → **JOIN**
+- `CommissionTypeId` → `Sales.MiscMaster` (same module) → **JOIN**
+
+```sql
+-- ✅ CORRECT — Same-module JOINs in Dapper query repository
+SELECT
+    acc.Id, acc.AgentId, acc.SalesSegmentId, acc.ItemId,
+    acc.CommissionTypeId, acc.CommissionPercentage,
+    ss.SegmentName,                          -- Same-module JOIN
+    mm.Description AS CommissionTypeName     -- Same-module JOIN
+FROM Sales.AgentCommissionConfig acc
+LEFT JOIN Sales.SalesSegment ss ON acc.SalesSegmentId = ss.Id AND ss.IsDeleted = 0
+LEFT JOIN Sales.MiscMaster mm ON acc.CommissionTypeId = mm.Id AND mm.IsDeleted = 0
+WHERE acc.IsDeleted = 0
+```
+
+**Same-module FK rules:**
+1. **Use `LEFT JOIN`** in Dapper SQL to fetch related names directly
+2. **Always filter** `AND {JoinedTable}.IsDeleted = 0` on the JOIN condition
+3. **Define navigation properties** in the domain entity (e.g., `public SalesSegment SalesSegment { get; set; } = null!;`)
+4. **Create DB FK constraints** in EF Core configuration with `DeleteBehavior.Restrict`
+5. **Validate FK existence** via direct SQL query in the query repository (e.g., `SalesSegmentExistsAsync`)
+6. **No shared lookup interface needed** — the data is in the same schema and DB context
+
+**When to use same-module JOINs vs cross-module lookups:**
+
+| FK Type | Example | Approach | DB Constraint |
+|---|---|---|---|
+| Same-module FK | SalesSegmentId in AgentCommissionConfig | SQL JOIN in Dapper | Yes (`DeleteBehavior.Restrict`) |
+| Same-module FK | CommissionTypeId (MiscMaster) | SQL JOIN in Dapper | Yes (`DeleteBehavior.Restrict`) |
+| Cross-module FK | AgentId (PartyManagement) | Lookup interface (`IPartyLookup`) | No (no DB constraint) |
+| Cross-module FK | ItemId (InventoryManagement) | Lookup interface (`IItemLookup`) | No (no DB constraint) |
+| Cross-module FK | CurrencyId (UserManagement) | Lookup interface (`ICurrencyLookup`) | No (no DB constraint) |
+
+---
+
+### ❌ DO NOT Use Direct SQL JOINs for Cross-Module FKs
 
 **Wrong:**
 ```sql
@@ -468,7 +509,7 @@ FROM Sales.SalesOrganisation o
 INNER JOIN UserManagement.Company c ON o.CompanyId = c.CompanyId  -- ❌ Cross-module JOIN
 ```
 
-### ✅ Use Lookup Services
+### ✅ Use Lookup Services for Cross-Module FKs
 
 **Correct:**
 ```csharp
@@ -613,15 +654,18 @@ using Shared.Validation.Common;                         // ValidationRuleLoader,
 
 **Available JSON rule types:**
 
-| Rule Name | Purpose | Error Template |
-|---|---|---|
-| `NotEmpty` | Required field checks | `"is required."` |
-| `Alphanumeric` | Alphanumeric format (code fields) | `"must be alphanumeric only."` |
-| `MaxLength` | Max length (from EF metadata) | `"cannot be longer than"` |
-| `AlreadyExists` | Uniqueness / composite key checks | `"already exists."` |
-| `NotFound` | Entity existence (Update validators) | `"not found."` |
-| `FKColumnDelete` | FK existence (same-module + cross-module) | `"{PropertyName} is inactive/deleted."` |
-| `ByteValue` | IsActive validation (0 or 1) | `"must be either 0 or 1."` |
+| Rule Name | Purpose | Pattern | Error Template |
+|---|---|---|---|
+| `NotEmpty` | Required field checks | — | `"is required."` |
+| `Alphanumeric` | Code field format — **letters and digits only, NO spaces** | `^[A-Za-z0-9]+$` | `"must be alphanumeric only."` |
+| `MaxLength` | Max length (from EF metadata) | — | `"cannot be longer than"` |
+| `AlreadyExists` | Uniqueness / composite key checks | — | `"already exists."` |
+| `NotFound` | Entity existence (Update validators) | — | `"not found."` |
+| `FKColumnDelete` | FK existence (same-module + cross-module) | — | `"{PropertyName} is inactive/deleted."` |
+| `ByteValue` | IsActive validation (0 or 1) | — | `"must be either 0 or 1."` |
+
+> ⚠️ **`Alphanumeric` pattern is `^[A-Za-z0-9]+$` — spaces are NOT alphanumeric.**
+> The shared `validation-rules.json` previously had `^[A-Za-z0-9 ]+$` (with a stray space) which incorrectly allowed spaces in code fields. This was a bug — it has been fixed. Code fields (e.g. `SalesOrganisationCode`, `BusinessUnitCode`) must reject spaces.
 
 ### Create Validator Structure
 
@@ -772,27 +816,76 @@ public class Update{EntityName}CommandValidator : AbstractValidator<Update{Entit
 }
 ```
 
+### Delete Validator Structure
+
+```csharp
+public class Delete{EntityName}CommandValidator : AbstractValidator<Delete{EntityName}Command>
+{
+    private readonly List<ValidationRule> _validationRules;
+    private readonly I{EntityName}QueryRepository _queryRepository;
+
+    public Delete{EntityName}CommandValidator(I{EntityName}QueryRepository queryRepository)
+    {
+        _queryRepository = queryRepository;
+        _validationRules = ValidationRuleLoader.LoadValidationRules();
+        if (_validationRules == null || _validationRules.Count == 0)
+        {
+            throw new InvalidOperationException("Validation rules could not be loaded.");
+        }
+
+        foreach (var rule in _validationRules)
+        {
+            switch (rule.Rule)
+            {
+                case "NotEmpty":
+                    RuleFor(x => x.Id)
+                        .NotEmpty()
+                        .WithMessage($"{nameof(Delete{EntityName}Command.Id)} {rule.Error}");
+                    break;
+
+                case "NotFound":
+                    RuleFor(x => x.Id)
+                        .MustAsync(async (id, ct) => !await _queryRepository.NotFoundAsync(id))
+                        .WithMessage($"{EntityName} {rule.Error}");
+                    break;
+
+                default:
+                    break;
+            }
+        }
+    }
+}
+```
+
+⚠️ **Delete Validator Notes:**
+- **Only injects `I{EntityName}QueryRepository`** — no `MaxLengthProvider` needed (no string length checks)
+- **`NotEmpty`** ensures `Id` is not zero/default
+- **`NotFound`** ensures the entity exists before attempting delete
+- **`SoftDelete`** case may be added if the entity has FK dependents that must be checked first (add `SoftDeleteValidationAsync` to the query repository interface when needed)
+
 ⚠️ **Validator Rules:**
 - **ALL validation logic lives in validators** — never in controllers or handlers
 - **ALWAYS use `ValidationRuleLoader` + `MaxLengthProvider`** — never hardcode validation rules or max lengths
-- **ALWAYS inject `MaxLengthProvider`** as the first constructor parameter
+- **ALWAYS inject `MaxLengthProvider`** as the first constructor parameter (Create/Update only)
 - Error messages use `$"{nameof(Command.Property)} {rule.Error}"` pattern from shared JSON config
 - Validators can inject **cross-module lookup interfaces** (e.g., `ICurrencyLookup`) for FK validation in `FKColumnDelete` case
 - Handlers assume validation has passed — they only do: map → persist → audit → return
 
 **Switch case mapping:**
 
-| Validation Need | JSON Rule Case | FluentValidation Method |
-|---|---|---|
-| Required fields | `NotEmpty` | `.NotNull().NotEmpty()` |
-| Alphanumeric format | `Alphanumeric` | `.Matches(rule.Pattern)` with `.When()` guard |
-| Max length (from EF) | `MaxLength` | `.MaximumLength(maxLengthVar)` |
-| FK existence | `FKColumnDelete` | `.MustAsync(... ExistsAsync ...)` |
-| Cross-module FK | `FKColumnDelete` (same case) | `.MustAsync(... lookup.GetByIdsAsync ...)` |
-| Uniqueness | `AlreadyExists` | `.MustAsync(... AlreadyExistsAsync ...)` |
-| Composite key unique | `AlreadyExists` (same case) | `.MustAsync(... CompositeKeyExistsAsync ...)` |
-| Entity exists (Update) | `NotFound` | `.MustAsync(... NotFoundAsync ...)` |
-| IsActive range (Update) | `ByteValue` | `.InclusiveBetween(0, 1)` |
+| Validation Need | JSON Rule Case | FluentValidation Method | Validator |
+|---|---|---|---|
+| Required fields | `NotEmpty` | `.NotNull().NotEmpty()` | Create/Update |
+| Id required (Delete) | `NotEmpty` | `.NotEmpty()` | Delete |
+| Alphanumeric format | `Alphanumeric` | `.Matches(rule.Pattern)` with `.When()` guard | Create |
+| Max length (from EF) | `MaxLength` | `.MaximumLength(maxLengthVar)` | Create/Update |
+| FK existence | `FKColumnDelete` | `.MustAsync(... ExistsAsync ...)` | Create/Update |
+| Cross-module FK | `FKColumnDelete` (same case) | `.MustAsync(... lookup.GetByIdsAsync ...)` | Create/Update |
+| Uniqueness | `AlreadyExists` | `.MustAsync(... AlreadyExistsAsync ...)` | Create |
+| Composite key unique | `AlreadyExists` (same case) | `.MustAsync(... CompositeKeyExistsAsync ...)` | Create |
+| Entity exists (Update/Delete) | `NotFound` | `.MustAsync(... NotFoundAsync ...)` | Update/Delete |
+| FK dependent check (Delete) | `SoftDelete` | `.MustAsync(... SoftDeleteValidationAsync ...)` | Delete (optional) |
+| IsActive range (Update) | `ByteValue` | `.InclusiveBetween(0, 1)` | Update |
 
 ### Global Validation Pipeline
 
@@ -1612,9 +1705,9 @@ public sealed class Create{EntityName}CommandValidatorTests
     }
 
     [Theory]
-    [InlineData("CODE-01")]   // hyphen
-    [InlineData("CODE 01")]   // space
-    [InlineData("CODE@01")]   // special char
+    [InlineData("CODE-01")]   // hyphen       — not alphanumeric → fails
+    [InlineData("CODE 01")]   // space        — not alphanumeric → fails (pattern is ^[A-Za-z0-9]+$, no spaces)
+    [InlineData("CODE@01")]   // special char — not alphanumeric → fails
     public async Task Validate_NonAlphanumericCode_FailsValidation(string code)
     {
         var command = {EntityName}Builders.ValidCreateCommand(code: code);
@@ -2207,34 +2300,11 @@ mockCompanyLookup.Setup(c => c.GetAllCompanyAsync())
 - [ ] Create Repository implementations (Command EF Core + Query Dapper)
 - [ ] Register repositories in `DependencyInjection.cs`
 - [ ] Create Controller with standard endpoints (GetAll, GetById, AutoComplete, Create, Update, Delete)
-- [ ] Create FluentValidation validators (Create + Update)
+- [ ] Create FluentValidation validators (Create + Update + **Delete**)
 
 ---
 
-### PHASE 5 — Unit Tests (`src/tests/{Module}.UnitTests/`)
-- [ ] Create `TestData/{EntityName}Builders.cs`
-- [ ] Create `Application/{EntityName}/Commands/Create{EntityName}CommandHandlerTests.cs`
-- [ ] Create `Application/{EntityName}/Commands/Update{EntityName}CommandHandlerTests.cs`
-- [ ] Create `Application/{EntityName}/Commands/Delete{EntityName}CommandHandlerTests.cs`
-- [ ] Create `Application/{EntityName}/Queries/GetAll{EntityName}QueryHandlerTests.cs`
-- [ ] Create `Application/{EntityName}/Queries/Get{EntityName}ByIdQueryHandlerTests.cs`
-- [ ] Create `Application/{EntityName}/Queries/Get{EntityName}AutoCompleteQueryHandlerTests.cs`
-- [ ] Create `Validators/{EntityName}/Create{EntityName}CommandValidatorTests.cs`
-- [ ] Create `Validators/{EntityName}/Update{EntityName}CommandValidatorTests.cs`
-- [ ] Create `Controllers/{EntityName}ControllerTests.cs`
-- [ ] Create `Domain/{EntityName}EntityTests.cs` (one dedicated file per entity — never add to a shared `EntityTests.cs`)
-- [ ] Run: `dotnet test src/tests/{Module}.UnitTests/` ✅ All pass
-
----
-
-### PHASE 6 — Integration Tests (`src/tests/{Module}.IntegrationTests/`)
-- [ ] Create `Repositories/{EntityName}/{EntityName}CommandRepositoryTests.cs`
-- [ ] Create `Repositories/{EntityName}/{EntityName}QueryRepositoryTests.cs`
-- [ ] Run: `dotnet test src/tests/{Module}.IntegrationTests/` ✅ All pass
-
----
-
-### PHASE 7 — Final Verification
+### PHASE 5 — Final Verification
 - [ ] Build solution (0 warnings, 0 errors)
 - [ ] Test all CRUD endpoints via Swagger/Postman
 - [ ] Verify audit logs in MongoDB
@@ -2243,7 +2313,7 @@ mockCompanyLookup.Setup(c => c.GetAllCompanyAsync())
 
 ---
 
-### PHASE 8 — Technical Documentation & Word Export
+### PHASE 6 — Technical Documentation & Word Export
 *(Only after all code and tests are complete and verified)*
 
 #### Step 1 — HLD Document (PDF output — mandatory)
@@ -2583,11 +2653,11 @@ Authentication is handled globally by `TokenValidationMiddleware` in the request
 >
 > ❌ **NEVER hardcode the regex pattern in the `Alphanumeric` case — even with a comment:**
 > ```csharp
-> // ❌ WRONG — hardcoded regex, even with a comment explaining the business rule
+> // ❌ WRONG — hardcoded regex; also the pattern with a space was a bug in validation-rules.json (now fixed)
 > case "Alphanumeric":
 >     // SalesGroupName allows alphanumeric + spaces (per business rule)
 >     RuleFor(x => x.SalesGroupName)
->         .Matches(@"^[A-Za-z0-9 ]+$")   // ❌ HARDCODED — must never appear
+>         .Matches(@"^[A-Za-z0-9 ]+$")   // ❌ WRONG — spaces are NOT alphanumeric; correct pattern is ^[A-Za-z0-9]+$
 >         .WithMessage($"{nameof(Command.SalesGroupName)} {rule.Error}")
 >         .When(x => !string.IsNullOrWhiteSpace(x.SalesGroupName));
 >     break;
@@ -2645,7 +2715,7 @@ Authentication is handled globally by `TokenValidationMiddleware` in the request
 3. Null/empty check on loaded rules → `_validationRules.Count == 0` (not `!Any()`) → throw `InvalidOperationException`
 4. `foreach (var rule in _validationRules)` with `switch (rule.Rule)`
 5. Error messages: `$"{nameof(Command.Property)} {rule.Error}"`
-6. **`Alphanumeric` case MUST use `.Matches(rule.Pattern)` — NEVER `.Matches(@"^[A-Za-z0-9 ]+$")` or any hardcoded string**
+6. **`Alphanumeric` case MUST use `.Matches(rule.Pattern)` — NEVER hardcode the regex.** The correct pattern in `validation-rules.json` is `^[A-Za-z0-9]+$` (letters and digits, **no spaces**). A previous version of the JSON had `^[A-Za-z0-9 ]+$` (with a space) — this was a bug that caused space-containing codes to pass validation. It has been fixed.
 
 **Key files:**
 - `src/Shared/Shared.Validation/Common/ValidationRuleLoader.cs` — rule loader
@@ -3392,3 +3462,4 @@ operations publish `AuditLogsDomainEvent` to MongoDB.
 **Last Updated:** 2026-02-25
 **Maintainer:** Development Team
 **AI Assistant:** Claude Opus 4.6
+

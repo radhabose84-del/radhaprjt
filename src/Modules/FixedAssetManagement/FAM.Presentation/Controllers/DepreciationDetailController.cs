@@ -69,7 +69,7 @@ namespace FAM.Presentation.Controllers
             { 
                 StatusCode = StatusCodes.Status200OK, 
                 message = assetMaster.Message,
-                data = assetMaster.Data.ToList(),                
+                data = assetMaster.Data!.ToList(),                
                 TotalCount = assetMaster.TotalCount,
                 PageNumber = assetMaster.PageNumber,
                 PageSize = assetMaster.PageSize

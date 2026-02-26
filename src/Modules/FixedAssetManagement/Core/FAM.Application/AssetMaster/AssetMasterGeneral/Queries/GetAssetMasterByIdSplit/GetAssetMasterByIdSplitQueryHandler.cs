@@ -26,7 +26,7 @@ namespace FAM.Application.AssetMaster.AssetMasterGeneral.Queries.GetAssetMasterB
           var asset = _mapper.Map<AssetMasterSplitDto>(assetResult);
             if (assetResult == null)
             {                
-                return null;                  
+                return null!;
             }
             if (assetResult?.AssetName != null)
              {

@@ -22,7 +22,7 @@ namespace FAM.Application.UOM.Command.CreateUOM
         }
         public async Task<UOMDto> Handle(CreateUOMCommand request, CancellationToken cancellationToken)
         {
-            var existingUOM = await _uomQueryRepository.GetByUOMNameAsync(request.UOMName);
+            var existingUOM = await _uomQueryRepository.GetByUOMNameAsync(request.UOMName ?? string.Empty);
 
                if (existingUOM != null)
                {

@@ -80,7 +80,7 @@ namespace FAM.Application.AssetMaster.AssetMasterGeneral.Commands.UploadAssetMas
 
             try
             {
-                EnsureDirectoryExists(Path.GetDirectoryName(filePath));
+                EnsureDirectoryExists(Path.GetDirectoryName(filePath) ?? string.Empty);
 
                 // Save the file
                 using (var fileStream = new FileStream(filePath, FileMode.Create))

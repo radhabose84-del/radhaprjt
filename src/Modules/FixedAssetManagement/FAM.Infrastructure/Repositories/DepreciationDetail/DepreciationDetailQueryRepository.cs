@@ -23,7 +23,7 @@ namespace FAM.Infrastructure.Repositories.DepreciationDetail
             _applicationDbContext = applicationDbContext;        
         }
     
-        public async Task<(List<DepreciationDto>, int,bool, string)> CalculateDepreciationAsync(int companyId, int unitId, int finYearId, DateTimeOffset? startDate, DateTimeOffset? endDate,int depreciationType, int PageNumber, int PageSize, string SearchTerm,int depreciationPeriod)
+        public async Task<(List<DepreciationDto>, int,bool, string?)> CalculateDepreciationAsync(int companyId, int unitId, int finYearId, DateTimeOffset? startDate, DateTimeOffset? endDate,int depreciationType, int PageNumber, int PageSize, string? SearchTerm,int depreciationPeriod)
         {
             var parameters = new DynamicParameters();
             parameters.Add("@CompanyId", companyId);
@@ -51,7 +51,7 @@ namespace FAM.Infrastructure.Repositories.DepreciationDetail
         {
             // Read the dummy second result
             await multiResult.ReadAsync(); // SELECT 0
-            string message = dict.TryGetValue("Status", out var statusMessageObj)
+            string? message = dict.TryGetValue("Status", out var statusMessageObj)
                 ? statusMessageObj?.ToString()
                 : "Unknown error";
             return (new List<DepreciationDto>(), 0, false, message ?? "Unknown error");

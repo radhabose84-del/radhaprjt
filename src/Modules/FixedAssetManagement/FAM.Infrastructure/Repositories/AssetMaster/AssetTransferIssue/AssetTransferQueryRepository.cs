@@ -32,7 +32,7 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetTransferIssue
             _departmentLookup = departmentLookup;
         }
 
-        public async Task<(List<AssetTransferDto>, int)> GetAllAsync(int PageNumber, int PageSize, string SearchTerm, DateTimeOffset? FromDate, DateTimeOffset? ToDate)
+        public async Task<(List<AssetTransferDto>, int)> GetAllAsync(int PageNumber, int PageSize, string? SearchTerm, DateTimeOffset? FromDate, DateTimeOffset? ToDate)
         {
             var CompanyId = _iPAddressService.GetCompanyId();
             var UnitId = _iPAddressService.GetUnitId();
@@ -107,7 +107,7 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetTransferIssue
 
             return (assetTransferList, totalCount);
         }
-        public async Task<AssetTransferJsonDto> GetAssetTransferByIdAsync(int assetTransferId)
+        public async Task<AssetTransferJsonDto?> GetAssetTransferByIdAsync(int assetTransferId)
         {
             var CompanyId = _iPAddressService.GetCompanyId();
             var UnitId = _iPAddressService.GetUnitId();
@@ -127,8 +127,8 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetTransferIssue
 
             using var multiQuery = await _dbConnection.QueryMultipleAsync(query, new { AssetTransferId = assetTransferId, UnitId });
 
-            string headerJson = await multiQuery.ReadFirstOrDefaultAsync<string>();
-            string detailsJson = await multiQuery.ReadFirstOrDefaultAsync<string>();
+            string? headerJson = await multiQuery.ReadFirstOrDefaultAsync<string>();
+            string? detailsJson = await multiQuery.ReadFirstOrDefaultAsync<string>();
 
             if (string.IsNullOrWhiteSpace(headerJson))
             {
@@ -227,7 +227,7 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetTransferIssue
             return result.ToList();
         }
 
-        public async Task<GetAssetDetailsToTransferHdrDto> GetAssetDetailsToTransferByIdAsync(int assetId)
+        public async Task<GetAssetDetailsToTransferHdrDto?> GetAssetDetailsToTransferByIdAsync(int assetId)
         {
             var CompanyId = _iPAddressService.GetCompanyId();
             var UnitId = _iPAddressService.GetUnitId();
@@ -277,8 +277,8 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetTransferIssue
 
             using var multiQuery = await _dbConnection.QueryMultipleAsync(query, new { AssetId = assetId, CompanyId, UnitId });
 
-            string assetJson = await multiQuery.ReadFirstOrDefaultAsync<string>();
-            string transferJson = await multiQuery.ReadFirstOrDefaultAsync<string>();
+            string? assetJson = await multiQuery.ReadFirstOrDefaultAsync<string>();
+            string? transferJson = await multiQuery.ReadFirstOrDefaultAsync<string>();
             var location = await multiQuery.ReadFirstOrDefaultAsync<dynamic>();
 
             if (string.IsNullOrWhiteSpace(assetJson))

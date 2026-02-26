@@ -286,7 +286,7 @@ namespace FAM.Infrastructure.Repositories.ExcelImport
         public async Task<bool> CheckFileExistsAsync(string fileName, CancellationToken cancellationToken)
         {
             return await _applicationDbContext.AssetAudit
-            .AnyAsync(x => x.SourceFileName.ToLower() == fileName.ToLower(), cancellationToken);
+            .AnyAsync(x => x.SourceFileName!.ToLower() == fileName.ToLower(), cancellationToken);
         }
 
         public async Task<bool> InsertScannedAssetAsync(AssetAudit entity, CancellationToken cancellationToken)

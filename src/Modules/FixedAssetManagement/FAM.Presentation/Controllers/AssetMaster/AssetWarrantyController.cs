@@ -23,7 +23,7 @@ namespace FAM.Presentation.Controllers.AssetMaster
         {        
         }
         [HttpGet]                
-        public async Task<IActionResult> GetAllAssetWarrantyAsync([FromQuery] int PageNumber,[FromQuery] int PageSize,[FromQuery] string SearchTerm = null)
+        public async Task<IActionResult> GetAllAssetWarrantyAsync([FromQuery] int PageNumber,[FromQuery] int PageSize,[FromQuery] string? SearchTerm = null)
         {            
             var WarrantyMaster = await Mediator.Send(
             new GetAssetWarrantyQuery
@@ -36,7 +36,7 @@ namespace FAM.Presentation.Controllers.AssetMaster
             { 
                 StatusCode=StatusCodes.Status200OK, 
                 message = WarrantyMaster.Message,
-                data = WarrantyMaster.Data.ToList(),
+                data = WarrantyMaster.Data!.ToList(),
                 TotalCount = WarrantyMaster.TotalCount,
                 PageNumber = WarrantyMaster.PageNumber,
                 PageSize = WarrantyMaster.PageSize
