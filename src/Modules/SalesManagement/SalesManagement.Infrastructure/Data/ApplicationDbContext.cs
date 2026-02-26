@@ -34,6 +34,8 @@ namespace SalesManagement.Infrastructure.Data
         public DbSet<MiscMaster> MiscMaster { get; set; }
         public DbSet<AgentCommissionConfig> AgentCommissionConfig { get; set; }
         public DbSet<DispatchAddressMaster> DispatchAddressMaster { get; set; }
+        public DbSet<MarketingOfficer> MarketingOfficer { get; set; }
+        public DbSet<OfficerSalesGroup> OfficerSalesGroup { get; set; }
         public DbSet<DispatchAddressMapping> DispatchAddressMapping { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -50,6 +52,8 @@ namespace SalesManagement.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new MiscMasterConfiguration());
             modelBuilder.ApplyConfiguration(new AgentCommissionConfigConfiguration());
             modelBuilder.ApplyConfiguration(new DispatchAddressMasterConfiguration());
+            modelBuilder.ApplyConfiguration(new MarketingOfficerConfiguration());
+            modelBuilder.ApplyConfiguration(new OfficerSalesGroupConfiguration());
             modelBuilder.ApplyConfiguration(new DispatchAddressMappingConfiguration());
 
 

@@ -31,11 +31,13 @@ using SalesManagement.Application.Common.Interfaces.IAgentCommissionConfig;
 using SalesManagement.Infrastructure.Repositories.AgentCommissionConfig;
 using SalesManagement.Application.Common.Interfaces.IDispatchAddressMaster;
 using SalesManagement.Infrastructure.Repositories.DispatchAddressMaster;
-using SalesManagement.Application.Common.Interfaces.IDispatchAddressMapping;
-using SalesManagement.Infrastructure.Repositories.DispatchAddressMapping;
+using SalesManagement.Application.Common.Interfaces.IMarketingOfficer;
+using SalesManagement.Infrastructure.Repositories.MarketingOfficer;
 using SalesManagement.Infrastructure.Services;
 using Serilog;
 using Microsoft.Extensions.Hosting;
+using SalesManagement.Application.Common.Interfaces.IDispatchAddressMapping;
+using SalesManagement.Infrastructure.Repositories.DispatchAddressMapping;
 
 
 namespace SalesManagement.Infrastructure
@@ -166,7 +168,10 @@ namespace SalesManagement.Infrastructure
             services.AddScoped<IDispatchAddressMasterCommandRepository, DispatchAddressMasterCommandRepository>();
             services.AddScoped<IDispatchAddressMasterQueryRepository, DispatchAddressMasterQueryRepository>();
 
-            // ── Dispatch Address Mapping Repositories ─────────────────────
+            // ── Marketing Officer Repositories ──────────────────────────────
+            services.AddScoped<IMarketingOfficerCommandRepository, MarketingOfficerCommandRepository>();
+            services.AddScoped<IMarketingOfficerQueryRepository, MarketingOfficerQueryRepository>();
+           // ── Dispatch Address Mapping Repositories ─────────────────────
             services.AddScoped<IDispatchAddressMappingCommandRepository, DispatchAddressMappingCommandRepository>();
             services.AddScoped<IDispatchAddressMappingQueryRepository, DispatchAddressMappingQueryRepository>();
 

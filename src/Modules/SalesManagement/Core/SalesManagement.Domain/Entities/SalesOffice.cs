@@ -17,5 +17,6 @@ namespace SalesManagement.Domain.Entities
         // Navigation properties
         public SalesOrganisation SalesOrganisation { get; set; } = null!;
         public ICollection<SalesGroup> SalesGroups { get; set; } = null!;
+        public ICollection<MarketingOfficer> MarketingOfficers { get; set; } = null!;
     }
 }
