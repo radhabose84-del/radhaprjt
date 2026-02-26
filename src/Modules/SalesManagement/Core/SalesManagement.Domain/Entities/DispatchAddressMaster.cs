@@ -17,5 +17,8 @@ namespace SalesManagement.Domain.Entities
         public string? GSTIN { get; set; }
         public decimal? Latitude { get; set; }
         public decimal? Longitude { get; set; }
+
+        // Reverse navigation
+        public ICollection<DispatchAddressMapping>? DispatchAddressMappings { get; set; }
     }
 }

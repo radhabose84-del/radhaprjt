@@ -10,5 +10,8 @@ namespace SalesManagement.Domain.Entities
         public int SortOrder { get; set; }
 
         public MiscTypeMaster MiscTypeMaster { get; set; } = null!;
+
+        // Reverse navigation
+        public ICollection<DispatchAddressMapping>? DispatchAddressMappings { get; set; }
     }
 }

@@ -36,6 +36,8 @@ using SalesManagement.Infrastructure.Repositories.MarketingOfficer;
 using SalesManagement.Infrastructure.Services;
 using Serilog;
 using Microsoft.Extensions.Hosting;
+using SalesManagement.Application.Common.Interfaces.IDispatchAddressMapping;
+using SalesManagement.Infrastructure.Repositories.DispatchAddressMapping;
 
 
 namespace SalesManagement.Infrastructure
@@ -169,6 +171,9 @@ namespace SalesManagement.Infrastructure
             // ── Marketing Officer Repositories ──────────────────────────────
             services.AddScoped<IMarketingOfficerCommandRepository, MarketingOfficerCommandRepository>();
             services.AddScoped<IMarketingOfficerQueryRepository, MarketingOfficerQueryRepository>();
+           // ── Dispatch Address Mapping Repositories ─────────────────────
+            services.AddScoped<IDispatchAddressMappingCommandRepository, DispatchAddressMappingCommandRepository>();
+            services.AddScoped<IDispatchAddressMappingQueryRepository, DispatchAddressMappingQueryRepository>();
 
             return services;
         }
