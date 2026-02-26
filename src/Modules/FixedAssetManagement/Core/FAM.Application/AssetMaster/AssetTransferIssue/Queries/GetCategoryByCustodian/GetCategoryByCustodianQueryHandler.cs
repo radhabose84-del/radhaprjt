@@ -20,7 +20,7 @@ namespace FAM.Application.AssetMaster.AssetTransferIssue.Queries.GetCategoryByCu
         }
           public async Task<List<GetCategoryByCustodianDto>> Handle(GetCategoryByCustodianQuery request, CancellationToken cancellationToken)
         {
-            var CategoryList = await _assetTransferQueryRepository.GetCategoryByCustodianAsync(request.CustodianId,request.DepartmentId);
+            var CategoryList = await _assetTransferQueryRepository.GetCategoryByCustodianAsync(request.CustodianId ?? string.Empty,request.DepartmentId);
 
              
             var AssetTransferList = _mapper.Map<List<GetCategoryByCustodianDto>>(CategoryList);

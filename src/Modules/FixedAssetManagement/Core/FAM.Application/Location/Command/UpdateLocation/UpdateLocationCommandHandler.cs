@@ -38,7 +38,7 @@ namespace FAM.Application.Location.Command.UpdateLocation
 
             // Check for duplicate GroupName or SortOrder
             var (isNameDuplicate, isSortOrderDuplicate) = await _locationCommandRepository
-                                     .CheckForDuplicatesAsync(request.LocationName, request.SortOrder, request.Id);
+                                     .CheckForDuplicatesAsync(request.LocationName ?? string.Empty, request.SortOrder, request.Id);
 
             if (isNameDuplicate || isSortOrderDuplicate)
             {

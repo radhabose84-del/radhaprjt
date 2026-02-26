@@ -23,7 +23,7 @@ namespace FAM.Presentation.Controllers
             
         }
     [HttpGet]
-    public async Task<IActionResult> GetAllUOMAsync([FromQuery] int PageNumber,[FromQuery] int PageSize,[FromQuery] string SearchTerm = null)
+    public async Task<IActionResult> GetAllUOMAsync([FromQuery] int PageNumber,[FromQuery] int PageSize,[FromQuery] string? SearchTerm = null)
     {
         var uom = await Mediator.Send(
             new GetUOMQuery
@@ -36,7 +36,7 @@ namespace FAM.Presentation.Controllers
             return Ok( new 
             { 
                 StatusCode=StatusCodes.Status200OK, 
-                data = uom.Data.ToList(),
+                data = uom.Data!.ToList(),
                 TotalCount = uom.TotalCount,
                 PageNumber = uom.PageNumber,
                 PageSize = uom.PageSize

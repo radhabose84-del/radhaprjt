@@ -29,7 +29,7 @@ namespace FAM.Application.AssetSubCategories.Command.CreateAssetSubCategories
               
             // }
             var assetSubCategories = _imapper.Map<FAM.Domain.Entities.AssetSubCategories>(request);
-			var subcategorycode = await GenerateUniqueCodeAsync(request.SubCategoryName);
+			var subcategorycode = await GenerateUniqueCodeAsync(request.SubCategoryName ?? string.Empty);
             assetSubCategories.Code = subcategorycode;
             
             var result = await _iAssetSubCategoriesCommandRepository.CreateAsync(assetSubCategories);

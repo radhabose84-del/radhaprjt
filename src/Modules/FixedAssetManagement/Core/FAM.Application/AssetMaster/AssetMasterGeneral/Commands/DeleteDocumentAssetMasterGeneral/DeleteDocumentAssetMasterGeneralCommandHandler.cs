@@ -57,7 +57,7 @@ namespace FAM.Application.AssetMaster.AssetMasterGeneral.Commands.DeleteDocument
 
             var result = await _fileUploadService.DeleteFileAsync(filePath);
 
-            await _assetMasterGeneralRepository.RemoveAssetDocumentReferenceAsync(request.assetPath);
+            await _assetMasterGeneralRepository.RemoveAssetDocumentReferenceAsync(request.assetPath ?? string.Empty);
 
             if (result)
             {

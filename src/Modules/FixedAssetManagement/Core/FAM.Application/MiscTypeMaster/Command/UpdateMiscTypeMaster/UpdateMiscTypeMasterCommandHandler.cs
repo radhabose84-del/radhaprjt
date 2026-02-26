@@ -25,7 +25,7 @@ namespace FAM.Application.MiscTypeMaster.Command.UpdateMiscTypeMaster
           public async Task<bool> Handle(UpdateMiscTypeMasterCommand request, CancellationToken cancellationToken)
         {
 
-                var existingMisctype = await _miscTypeMasterQueryRepository.GetByMiscTypeMasterCodeAsync(request.MiscTypeCode,request.Id);
+                var existingMisctype = await _miscTypeMasterQueryRepository.GetByMiscTypeMasterCodeAsync(request.MiscTypeCode ?? string.Empty,request.Id);
 
                 if (existingMisctype != null)
                 {

@@ -108,7 +108,7 @@ namespace FAM.Infrastructure.Repositories.Dashboard
 
             return new ChartDto
             {
-                Categories = result.Select(x => x.GroupName).ToList(),
+                Categories = result.Select(x => x.GroupName ?? string.Empty).ToList(),
                 Series = new List<ChartSeriesDto>
                 {
                     new ChartSeriesDto

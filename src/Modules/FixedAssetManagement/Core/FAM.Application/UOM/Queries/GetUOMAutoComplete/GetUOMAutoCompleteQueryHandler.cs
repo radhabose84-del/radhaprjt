@@ -20,7 +20,7 @@ namespace FAM.Application.UOM.Queries.GetUOMAutoComplete
         }
         public async Task<List<UOMAutoCompleteDto>> Handle(GetUOMAutoCompleteQuery request, CancellationToken cancellationToken)
         {
-            var result = await _uomQueryRepository.GetUOM(request.SearchPattern);
+            var result = await _uomQueryRepository.GetUOM(request.SearchPattern ?? string.Empty);
             if (result is null || result.Count is 0)
             {
                throw new ValidationException("No UOM found matching the search pattern.");

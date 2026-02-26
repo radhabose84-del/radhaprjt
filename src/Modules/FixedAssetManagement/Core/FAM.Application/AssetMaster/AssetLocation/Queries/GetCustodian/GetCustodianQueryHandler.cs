@@ -21,7 +21,7 @@ namespace FAM.Application.AssetMaster.AssetLocation.Queries.GetCustodian
 
         public async Task<ApiResponseDTO<List<GetCustodianDto>>> Handle(GetCustodianQuery request, CancellationToken cancellationToken)
         {           
-            var (assetcustodian, totalCount) = await _assetLocationRepository.GetAllCustodianAsync(request.OldUnitId,  request.SearchEmployee);
+            var (assetcustodian, totalCount) = await _assetLocationRepository.GetAllCustodianAsync(request.OldUnitId ?? string.Empty,  request.SearchEmployee);
             var assetMasterList = _mapper.Map<List<GetCustodianDto>>(assetcustodian);
             //Domain Event
             var domainEvent = new AuditLogsDomainEvent(

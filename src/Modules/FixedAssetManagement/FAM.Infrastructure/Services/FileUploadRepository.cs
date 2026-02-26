@@ -16,7 +16,7 @@ namespace FAM.Infrastructure.Services
             return Task.FromResult(true);
         }
 
-        public async Task<(bool IsSuccess, string FilePath, string logoBase64)> UploadFileAsync(IFormFile file, string uploadPath)
+        public async Task<(bool IsSuccess, string FilePath, string? logoBase64)> UploadFileAsync(IFormFile file, string uploadPath)
         {
             
               string fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
@@ -35,7 +35,7 @@ namespace FAM.Infrastructure.Services
 
             string finalPath = Path.Combine(uploadPath, fileName);
             File.Move(filePath, finalPath);
-             string logoBase64 = null;
+             string? logoBase64 = null;
              if (!string.IsNullOrEmpty(finalPath) && File.Exists(finalPath))
              {
                  byte[] imageBytes = await File.ReadAllBytesAsync(finalPath);

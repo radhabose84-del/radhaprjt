@@ -58,7 +58,7 @@ namespace FAM.Application.AssetMaster.AssetMasterGeneral.Commands.SaveAssetDocum
                 string uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "Resources", baseDirectory, companyName, unitName);    
 
                 string filePath = Path.Combine(uploadPath, tempFilePath);  
-                EnsureDirectoryExists(Path.GetDirectoryName(filePath));           
+                EnsureDirectoryExists(Path.GetDirectoryName(filePath) ?? string.Empty);
 
                 if (!string.IsNullOrEmpty(filePath) && File.Exists(filePath))
                 {

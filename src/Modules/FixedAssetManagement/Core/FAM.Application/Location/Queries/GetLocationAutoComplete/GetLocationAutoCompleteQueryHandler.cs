@@ -21,7 +21,7 @@ namespace FAM.Application.Location.Queries.GetLocationAutoComplete
         }
         public async Task<List<LocationAutoCompleteDto>> Handle(GetLocationAutoCompleteQuery request, CancellationToken cancellationToken)
         {
-            var result = await _locationQueryRepository.GetLocation(request.SearchPattern);
+            var result = await _locationQueryRepository.GetLocation(request.SearchPattern ?? string.Empty);
             if (result is null || result.Count is 0)
             {
                 throw new ValidationException("No Location found matching the search pattern.");

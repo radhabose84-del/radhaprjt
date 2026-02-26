@@ -36,7 +36,7 @@ namespace FAM.Presentation.Controllers.AssetMaster
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllAssetMasterGeneralAsync([FromQuery] int PageNumber, [FromQuery] int PageSize, [FromQuery] string SearchTerm = null)
+        public async Task<IActionResult> GetAllAssetMasterGeneralAsync([FromQuery] int PageNumber, [FromQuery] int PageSize, [FromQuery] string? SearchTerm = null)
 
         {
             var assetMaster = await Mediator.Send(
@@ -51,7 +51,7 @@ namespace FAM.Presentation.Controllers.AssetMaster
             {
                 StatusCode = StatusCodes.Status200OK,
                 message = assetMaster.Message,
-                data = assetMaster.Data.ToList(),
+                data = assetMaster.Data!.ToList(),
                 TotalCount = assetMaster.TotalCount,
                 PageNumber = assetMaster.PageNumber,
                 PageSize = assetMaster.PageSize
