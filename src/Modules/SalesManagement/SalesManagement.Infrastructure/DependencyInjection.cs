@@ -38,6 +38,8 @@ using Serilog;
 using Microsoft.Extensions.Hosting;
 using SalesManagement.Application.Common.Interfaces.IDispatchAddressMapping;
 using SalesManagement.Infrastructure.Repositories.DispatchAddressMapping;
+using SalesManagement.Application.Common.Interfaces.ISalesContact;
+using SalesManagement.Infrastructure.Repositories.SalesContact;
 
 
 namespace SalesManagement.Infrastructure
@@ -174,6 +176,10 @@ namespace SalesManagement.Infrastructure
            // ── Dispatch Address Mapping Repositories ─────────────────────
             services.AddScoped<IDispatchAddressMappingCommandRepository, DispatchAddressMappingCommandRepository>();
             services.AddScoped<IDispatchAddressMappingQueryRepository, DispatchAddressMappingQueryRepository>();
+
+            // ── Sales Contact Repositories ────────────────────────────────
+            services.AddScoped<ISalesContactCommandRepository, SalesContactCommandRepository>();
+            services.AddScoped<ISalesContactQueryRepository, SalesContactQueryRepository>();
 
             return services;
         }

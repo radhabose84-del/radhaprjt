@@ -13,5 +13,6 @@ namespace SalesManagement.Domain.Entities
 
         // Reverse navigation
         public ICollection<DispatchAddressMapping>? DispatchAddressMappings { get; set; }
+        public ICollection<SalesContact>? SalesContacts { get; set; }
     }
 }
