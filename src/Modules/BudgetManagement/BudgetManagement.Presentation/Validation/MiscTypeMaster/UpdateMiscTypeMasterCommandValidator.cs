@@ -1,4 +1,3 @@
-#nullable disable
 using BudgetManagement.Presentation.Validation.Common;
 using BudgetManagement.Application.Common.Interfaces.IMiscTypeMaster;
 using BudgetManagement.Application.MiscTypeMaster.Command.UpdateMiscTypeMaster;
@@ -48,7 +47,7 @@ namespace BudgetManagement.Presentation.Validation.MiscTypeMaster
                         case "AlreadyExists":
                          RuleFor(x => x)
                             .MustAsync(async (command, cancellation) =>
-                                !await _miscTypeMasterQueryRepository.AlreadyExistsAsync(command.MiscTypeCode, command.Id))
+                                !await _miscTypeMasterQueryRepository.AlreadyExistsAsync(command.MiscTypeCode!, command.Id))
                             .WithName(nameof(UpdateMiscTypeMasterCommand.MiscTypeCode))
                             .WithMessage("MiscTypeCode already exists.");  
                         break;

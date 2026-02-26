@@ -13,8 +13,7 @@ using Microsoft.Extensions.Logging;
 
 namespace BackgroundService.API.Controller
 {
-    [ApiController]
-       [Route("api/backgroundservice/[controller]")]
+    [Route("api/backgroundservice/[controller]")]
 
     public class MiscMasterController  : ApiControllerBase
     {

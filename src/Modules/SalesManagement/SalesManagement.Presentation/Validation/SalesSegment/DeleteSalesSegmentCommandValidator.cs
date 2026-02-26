@@ -1,4 +1,3 @@
-#nullable disable
 using FluentValidation;
 using SalesManagement.Application.Common.Interfaces.ISalesSegment;
 using SalesManagement.Application.SalesSegment.Commands.DeleteSalesSegment;

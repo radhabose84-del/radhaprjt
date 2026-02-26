@@ -1,4 +1,3 @@
-#nullable disable
 using System.Data;
 using BudgetManagement.Application.Common.Interfaces;
 using Microsoft.Data.SqlClient;
@@ -36,7 +35,7 @@ namespace BudgetManagement.Infrastructure
             IConfiguration configuration,
             IHostEnvironment env)
         {
-            var connectionString = configuration.GetConnectionString("DefaultConnection")
+            var connectionString = (configuration.GetConnectionString("DefaultConnection") ?? string.Empty)
                                                 .Replace("{SERVER}", Environment.GetEnvironmentVariable("DATABASE_SERVER") ?? "")
                                                 .Replace("{USER_ID}", Environment.GetEnvironmentVariable("DATABASE_USERID") ?? "")
                                                 .Replace("{ENC_PASSWORD}", Environment.GetEnvironmentVariable("DATABASE_PASSWORD") ?? "");

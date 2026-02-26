@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.IMiscTypeMaster;
@@ -134,7 +133,7 @@ namespace SalesManagement.UnitTests.Application.MiscTypeMaster.Commands
         public async Task Handle_ValidCommand_SetsEntityStatusActive()
         {
             var command = MiscTypeMasterBuilders.ValidCreateCommand();
-            SalesManagement.Domain.Entities.MiscTypeMaster capturedEntity = null;
+            SalesManagement.Domain.Entities.MiscTypeMaster? capturedEntity = null;
 
             var entity = new SalesManagement.Domain.Entities.MiscTypeMaster
             {
@@ -156,14 +155,14 @@ namespace SalesManagement.UnitTests.Application.MiscTypeMaster.Commands
             await CreateSut().Handle(command, CancellationToken.None);
 
             capturedEntity.Should().NotBeNull();
-            capturedEntity.IsActive.Should().Be(Status.Active);
+            capturedEntity!.IsActive.Should().Be(Status.Active);
         }
 
         [Fact]
         public async Task Handle_ValidCommand_SetsIsDeletedNotDeleted()
         {
             var command = MiscTypeMasterBuilders.ValidCreateCommand();
-            SalesManagement.Domain.Entities.MiscTypeMaster capturedEntity = null;
+            SalesManagement.Domain.Entities.MiscTypeMaster? capturedEntity = null;
 
             var entity = new SalesManagement.Domain.Entities.MiscTypeMaster
             {
@@ -185,7 +184,7 @@ namespace SalesManagement.UnitTests.Application.MiscTypeMaster.Commands
             await CreateSut().Handle(command, CancellationToken.None);
 
             capturedEntity.Should().NotBeNull();
-            capturedEntity.IsDeleted.Should().Be(IsDelete.NotDeleted);
+            capturedEntity!.IsDeleted.Should().Be(IsDelete.NotDeleted);
         }
     }
 }

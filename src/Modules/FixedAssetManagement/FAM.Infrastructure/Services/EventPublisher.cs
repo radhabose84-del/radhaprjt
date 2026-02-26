@@ -1,4 +1,3 @@
-#nullable disable
 using System.Text.Json;
 // using Contracts.Events.Users;
 using FAM.Application.Common.Interfaces;

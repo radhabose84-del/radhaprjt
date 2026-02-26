@@ -1,4 +1,3 @@
-#nullable disable
 using SalesManagement.Application.SalesOffice.Commands.CreateSalesOffice;
 using SalesManagement.Application.SalesOffice.Commands.UpdateSalesOffice;
 using SalesManagement.Application.SalesOffice.Dto;

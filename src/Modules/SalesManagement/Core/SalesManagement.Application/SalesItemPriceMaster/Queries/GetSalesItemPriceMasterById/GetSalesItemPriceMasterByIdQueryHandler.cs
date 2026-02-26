@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.ISalesItemPriceMaster;
@@ -8,7 +7,7 @@ using SalesManagement.Domain.Events;
 namespace SalesManagement.Application.SalesItemPriceMaster.Queries.GetSalesItemPriceMasterById
 {
     public class GetSalesItemPriceMasterByIdQueryHandler
-        : IRequestHandler<GetSalesItemPriceMasterByIdQuery, SalesItemPriceMasterDto>
+        : IRequestHandler<GetSalesItemPriceMasterByIdQuery, SalesItemPriceMasterDto?>
     {
         private readonly ISalesItemPriceMasterQueryRepository _queryRepository;
         private readonly IMapper _mapper;
@@ -21,7 +20,7 @@ namespace SalesManagement.Application.SalesItemPriceMaster.Queries.GetSalesItemP
             _mediator = mediator;
         }
 
-        public async Task<SalesItemPriceMasterDto> Handle(
+        public async Task<SalesItemPriceMasterDto?> Handle(
             GetSalesItemPriceMasterByIdQuery request,
             CancellationToken cancellationToken)
         {

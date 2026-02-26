@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.ISalesSegment;
@@ -71,13 +70,13 @@ namespace SalesManagement.UnitTests.Application.SalesSegment.Queries
         [Fact]
         public async Task Handle_NullTerm_PassesNullToRepository()
         {
-            var query = new GetSalesSegmentAutoCompleteQuery(null);
-            _mockQueryRepo.Setup(r => r.AutocompleteAsync(null, It.IsAny<CancellationToken>()))
+            var query = new GetSalesSegmentAutoCompleteQuery(null!);
+            _mockQueryRepo.Setup(r => r.AutocompleteAsync(null!, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new List<SalesSegmentLookupDto>());
 
             await CreateSut().Handle(query, CancellationToken.None);
 
-            _mockQueryRepo.Verify(r => r.AutocompleteAsync(null, It.IsAny<CancellationToken>()), Times.Once);
+            _mockQueryRepo.Verify(r => r.AutocompleteAsync(null!, It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]

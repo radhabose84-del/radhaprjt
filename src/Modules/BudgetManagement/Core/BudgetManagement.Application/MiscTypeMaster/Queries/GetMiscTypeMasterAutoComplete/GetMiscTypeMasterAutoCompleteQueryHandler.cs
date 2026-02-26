@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using Contracts.Common;
 using BudgetManagement.Application.Common.Interfaces.IMiscTypeMaster;
@@ -23,7 +22,7 @@ namespace BudgetManagement.Application.MiscTypeMaster.Queries.GetMiscTypeMasterA
 
         public async Task<ApiResponseDTO<List<GetMiscTypeMasterAutocompleteDto>>> Handle(GetMiscTypeMasterAutoCompleteQuery request, CancellationToken cancellationToken)
         {
-            var miscTypeMasters = await _miscTypeMasterQueryRepository.GetMiscTypeMaster(request.SearchPattern);
+            var miscTypeMasters = await _miscTypeMasterQueryRepository.GetMiscTypeMaster(request.SearchPattern ?? string.Empty);
 
             if (miscTypeMasters == null || !miscTypeMasters.Any())
             {

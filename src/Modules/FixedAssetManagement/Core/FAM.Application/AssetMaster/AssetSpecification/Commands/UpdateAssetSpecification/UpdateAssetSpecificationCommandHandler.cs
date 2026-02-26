@@ -1,4 +1,3 @@
-#nullable disable
 using FAM.Application.Common.Interfaces.IAssetMaster.IAssetSpecification;
 using FAM.Domain.Common;
 using FAM.Domain.Entities.AssetMaster;

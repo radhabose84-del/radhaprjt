@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.ISalesOrganisation;
@@ -68,9 +67,9 @@ namespace SalesManagement.UnitTests.Application.SalesOrganisation.Queries
 
             // Assert
             result.Data.Should().NotBeNull();
-            result.Data.Should().HaveCount(2);
-            result.Data[0].SalesOrganisationCode.Should().Be("ORG001");
-            result.Data[1].SalesOrganisationCode.Should().Be("ORG002");
+            result.Data!.Should().HaveCount(2);
+            result.Data![0].SalesOrganisationCode.Should().Be("ORG001");
+            result.Data![1].SalesOrganisationCode.Should().Be("ORG002");
         }
 
         [Fact]

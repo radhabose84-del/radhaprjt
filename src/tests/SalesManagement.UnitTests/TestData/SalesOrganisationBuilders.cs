@@ -1,4 +1,3 @@
-#nullable disable
 using SalesManagement.Application.SalesOrganisation.Commands.CreateSalesOrganisation;
 using SalesManagement.Application.SalesOrganisation.Commands.UpdateSalesOrganisation;
 using SalesManagement.Application.SalesOrganisation.Dto;
@@ -13,32 +12,32 @@ namespace SalesManagement.UnitTests.TestData
         // ── Create Command ────────────────────────────────────────────────────
 
         public static CreateSalesOrganisationCommand ValidCreateCommand(
-            string code = "ORG001",
-            string name = "Test Sales Organisation",
+            string? code = "ORG001",
+            string? name = "Test Sales Organisation",
             int companyId = 1,
-            string description = "Test Description") =>
+            string? description = "Test Description") =>
             new CreateSalesOrganisationCommand
             {
-                SalesOrganisationCode = code,
-                SalesOrganisationName = name,
+                SalesOrganisationCode = code!,
+                SalesOrganisationName = name!,
                 CompanyId = companyId,
-                Description = description
+                Description = description!
             };
 
         // ── Update Command ────────────────────────────────────────────────────
 
         public static UpdateSalesOrganisationCommand ValidUpdateCommand(
             int id = 1,
-            string name = "Updated Sales Organisation",
+            string? name = "Updated Sales Organisation",
             int companyId = 1,
-            string description = "Updated Description",
+            string? description = "Updated Description",
             int isActive = 1) =>
             new UpdateSalesOrganisationCommand
             {
                 Id = id,
-                SalesOrganisationName = name,
+                SalesOrganisationName = name!,
                 CompanyId = companyId,
-                Description = description,
+                Description = description!,
                 IsActive = isActive
             };
 

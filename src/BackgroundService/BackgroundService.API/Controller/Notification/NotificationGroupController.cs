@@ -11,8 +11,7 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BackgroundService.API.Controller.Notification
-{
-    [ApiController]
+{    
     [Route("api/[controller]")]
     public class NotificationGroupController : ApiControllerBase
     {

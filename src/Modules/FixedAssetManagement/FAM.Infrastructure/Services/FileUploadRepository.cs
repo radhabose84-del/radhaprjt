@@ -1,4 +1,3 @@
-#nullable disable
 using FAM.Application.Common.Interfaces;
 using Microsoft.AspNetCore.Http;
 

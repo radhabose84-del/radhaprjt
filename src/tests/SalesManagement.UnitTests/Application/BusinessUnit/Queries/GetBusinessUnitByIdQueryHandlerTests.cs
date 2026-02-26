@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using MediatR;
 using SalesManagement.Application.BusinessUnit.Dto;
@@ -17,7 +16,7 @@ namespace SalesManagement.UnitTests.Application.BusinessUnit.Queries
         private GetBusinessUnitByIdQueryHandler CreateSut()
         {
             _mockMapper.Setup(m => m.Map<BusinessUnitDto>(It.IsAny<object>()))
-                .Returns<object>(o => o as BusinessUnitDto);
+                .Returns<object>(o => (o as BusinessUnitDto)!);
             _mockMediator.Setup(m => m.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);
             return new GetBusinessUnitByIdQueryHandler(_mockQueryRepo.Object, _mockMapper.Object, _mockMediator.Object);
@@ -47,9 +46,9 @@ namespace SalesManagement.UnitTests.Application.BusinessUnit.Queries
             var result = await CreateSut().Handle(query, CancellationToken.None);
 
             result.Should().NotBeNull();
-            result.Id.Should().Be(1);
-            result.BusinessUnitCode.Should().Be("BU001");
-            result.BusinessUnitName.Should().Be("Finance Unit");
+            result!.Id.Should().Be(1);
+            result!.BusinessUnitCode.Should().Be("BU001");
+            result!.BusinessUnitName.Should().Be("Finance Unit");
         }
 
         [Fact]
@@ -67,7 +66,7 @@ namespace SalesManagement.UnitTests.Application.BusinessUnit.Queries
         public async Task Handle_EntityNotFound_ReturnsNull()
         {
             var query = new GetBusinessUnitByIdQuery { Id = 99 };
-            _mockQueryRepo.Setup(r => r.GetByIdAsync(99)).ReturnsAsync((BusinessUnitDto)null);
+            _mockQueryRepo.Setup(r => r.GetByIdAsync(99)).ReturnsAsync((BusinessUnitDto?)null);
 
             var result = await CreateSut().Handle(query, CancellationToken.None);
 

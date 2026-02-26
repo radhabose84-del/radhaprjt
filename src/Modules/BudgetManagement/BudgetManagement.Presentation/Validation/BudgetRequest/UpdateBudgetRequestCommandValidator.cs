@@ -1,4 +1,3 @@
-#nullable disable
 using BudgetManagement.Application.BudgetRequest.Commands.Update;
 using BudgetManagement.Application.Common.Interfaces.IBudgetRequest;
 using BudgetManagement.Application.Common.Interfaces.IMiscMaster;
@@ -183,7 +182,7 @@ public sealed class UpdateBudgetRequestCommandValidator : AbstractValidator<Upda
                 excludeId: cmd.Id,
                 unitId: cmd.UnitId,
                 requestTypeId: cmd.RequestTypeId,
-                projectId: projectId.Value,wbsId:wbsId.Value,
+                projectId: projectId.Value,wbsId:wbsId!.Value,
                 fromDate: cmd.FromDate.Value,
                 toDate: cmd.ToDate.Value,
                 requestById: requestById,

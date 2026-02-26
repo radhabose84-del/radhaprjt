@@ -1,4 +1,3 @@
-#nullable disable
 using FluentValidation.TestHelper;
 using SalesManagement.Application.Common.Interfaces.IMiscMaster;
 using SalesManagement.Presentation.Validation.MiscMaster;
@@ -104,7 +103,7 @@ namespace SalesManagement.UnitTests.Validators.MiscMaster
         [Theory]
         [InlineData(null)]
         [InlineData("")]
-        public async Task Code_Empty_FailsValidation(string code)
+        public async Task Code_Empty_FailsValidation(string? code)
         {
             var command = MiscMasterBuilders.ValidCreateCommand(code: code);
             // AlreadyExistsAsync won't fire (code is empty), only MiscTypeExistsAsync fires
@@ -190,7 +189,7 @@ namespace SalesManagement.UnitTests.Validators.MiscMaster
         [Theory]
         [InlineData(null)]
         [InlineData("")]
-        public async Task Description_Empty_FailsValidation(string description)
+        public async Task Description_Empty_FailsValidation(string? description)
         {
             var command = MiscMasterBuilders.ValidCreateCommand(description: description);
             SetupAllAsyncMocks();

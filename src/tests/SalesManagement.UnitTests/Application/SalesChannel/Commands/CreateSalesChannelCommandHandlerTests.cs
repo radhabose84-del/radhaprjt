@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.ISalesChannel;
@@ -136,7 +135,7 @@ namespace SalesManagement.UnitTests.Application.SalesChannel.Commands
         public async Task Handle_ValidCommand_SetsEntityStatusActive()
         {
             var command = SalesChannelBuilders.ValidCreateCommand();
-            SalesManagement.Domain.Entities.SalesChannel capturedEntity = null;
+            SalesManagement.Domain.Entities.SalesChannel? capturedEntity = null;
 
             var entity = new SalesManagement.Domain.Entities.SalesChannel
             {
@@ -159,14 +158,14 @@ namespace SalesManagement.UnitTests.Application.SalesChannel.Commands
             await sut.Handle(command, CancellationToken.None);
 
             capturedEntity.Should().NotBeNull();
-            capturedEntity.IsActive.Should().Be(Status.Active);
+            capturedEntity!.IsActive.Should().Be(Status.Active);
         }
 
         [Fact]
         public async Task Handle_ValidCommand_SetsIsDeletedNotDeleted()
         {
             var command = SalesChannelBuilders.ValidCreateCommand();
-            SalesManagement.Domain.Entities.SalesChannel capturedEntity = null;
+            SalesManagement.Domain.Entities.SalesChannel? capturedEntity = null;
 
             var entity = new SalesManagement.Domain.Entities.SalesChannel
             {
@@ -189,7 +188,7 @@ namespace SalesManagement.UnitTests.Application.SalesChannel.Commands
             await sut.Handle(command, CancellationToken.None);
 
             capturedEntity.Should().NotBeNull();
-            capturedEntity.IsDeleted.Should().Be(IsDelete.NotDeleted);
+            capturedEntity!.IsDeleted.Should().Be(IsDelete.NotDeleted);
         }
     }
 }

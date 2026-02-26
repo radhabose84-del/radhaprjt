@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.ISalesItemPriceMaster;
@@ -166,7 +165,7 @@ namespace SalesManagement.UnitTests.Application.SalesItemPriceMaster.Commands
             await CreateSut().Handle(command, CancellationToken.None);
 
             capturedEntity.Should().NotBeNull();
-            capturedEntity.IsActive.Should().Be(Status.Active);
+            capturedEntity!.IsActive.Should().Be(Status.Active);
         }
 
         [Fact]
@@ -199,7 +198,7 @@ namespace SalesManagement.UnitTests.Application.SalesItemPriceMaster.Commands
             await CreateSut().Handle(command, CancellationToken.None);
 
             capturedEntity.Should().NotBeNull();
-            capturedEntity.IsDeleted.Should().Be(IsDelete.NotDeleted);
+            capturedEntity!.IsDeleted.Should().Be(IsDelete.NotDeleted);
         }
     }
 }

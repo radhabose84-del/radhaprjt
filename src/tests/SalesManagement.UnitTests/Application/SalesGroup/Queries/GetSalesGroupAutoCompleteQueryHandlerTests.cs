@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.ISalesGroup;
@@ -88,7 +87,7 @@ namespace SalesManagement.UnitTests.Application.SalesGroup.Queries
         public async Task Handle_NullTerm_PassesEmptyStringToRepository()
         {
             // Arrange — handler uses r.Term ?? string.Empty
-            var query = new GetSalesGroupAutoCompleteQuery(null);
+            var query = new GetSalesGroupAutoCompleteQuery(null!);
             var lookupList = new List<SalesGroupLookupDto>();
 
             _mockQueryRepo.Setup(r => r.AutocompleteAsync(string.Empty, It.IsAny<CancellationToken>()))

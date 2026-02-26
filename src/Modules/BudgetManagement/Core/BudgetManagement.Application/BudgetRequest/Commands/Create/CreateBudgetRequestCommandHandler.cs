@@ -1,4 +1,3 @@
-#nullable disable
 using System.Text.Json;
 using AutoMapper;
 using Contracts.Events.Workflow;
@@ -117,7 +116,7 @@ public class CreateBudgetRequestCommandHandler
         if (created.Id > 0)
             {
                  if (!string.IsNullOrWhiteSpace(request.ImagePath))
-                    await TryMoveImageAsync(created.Id, request.ImagePath!, created.RequestCode, cancellationToken);
+                    await TryMoveImageAsync(created.Id, request.ImagePath!, created.RequestCode ?? string.Empty, cancellationToken);
 
                 var correlationId = Guid.NewGuid();
                 var @event = new TransactionCreatedEvent

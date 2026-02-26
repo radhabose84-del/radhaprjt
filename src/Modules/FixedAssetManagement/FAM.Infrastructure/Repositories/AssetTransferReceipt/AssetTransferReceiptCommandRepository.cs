@@ -1,4 +1,3 @@
-#nullable disable
 using FAM.Application.Common.Interfaces.IAssetTransferReceipt;
 using FAM.Domain.Entities.AssetMaster;
 using FAM.Infrastructure.Data;

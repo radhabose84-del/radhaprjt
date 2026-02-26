@@ -1,4 +1,3 @@
-#nullable disable
 using FAM.Application.AssetMaster.AssetPurchase.Commands.CreateAssetPurchaseDetails;
 using FAM.Domain.Entities.AssetPurchase;
 using FAM.Presentation.Validation.Common;

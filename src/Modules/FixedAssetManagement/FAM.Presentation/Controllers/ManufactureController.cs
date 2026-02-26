@@ -1,4 +1,3 @@
-#nullable disable
 using FAM.Application.Manufacture.Commands.CreateManufacture;
 using FAM.Application.Manufacture.Commands.UpdateManufacture;
 using Microsoft.AspNetCore.Mvc;

@@ -1,4 +1,3 @@
-#nullable disable
 using FluentValidation;
 using SalesManagement.Application.Common.Interfaces.ISalesChannel;
 using SalesManagement.Application.SalesChannel.Commands.DeleteSalesChannel;

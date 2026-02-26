@@ -511,7 +511,6 @@ If the entity you are implementing requires a cross-module FK whose lookup inter
 **File:** `src/Shared/Contracts/Interfaces/Lookups/{SourceModule}/{LookupEntity}LookupDto.cs`
 
 ```csharp
-#nullable disable
 namespace Contracts.Interfaces.Lookups.{SourceModule};
 
 public sealed class {LookupEntity}LookupDto
@@ -526,7 +525,6 @@ public sealed class {LookupEntity}LookupDto
 **File:** `src/Shared/Contracts/Interfaces/Lookups/{SourceModule}/I{LookupEntity}Lookup.cs`
 
 ```csharp
-#nullable disable
 namespace Contracts.Interfaces.Lookups.{SourceModule};
 
 public interface I{LookupEntity}Lookup
@@ -539,7 +537,6 @@ public interface I{LookupEntity}Lookup
 **File:** `src/Modules/{SourceModule}/{SourceModule}.Infrastructure/Repositories/Lookups/{SourceModule}/{LookupEntity}LookupRepository.cs`
 
 ```csharp
-#nullable disable
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -1249,7 +1246,8 @@ src/tests/
 ├── Controllers/
 │   └── {EntityName}ControllerTests.cs
 ├── Domain/
-│   └── EntityTests.cs
+│   ├── {EntityName}EntityTests.cs       ← one file per entity
+│   └── BaseEntityAuditFieldsTests.cs
 ├── Validators/
 │   └── {EntityName}/
 │       ├── Create{EntityName}CommandValidatorTests.cs
@@ -1277,7 +1275,6 @@ global using System.Collections.Generic;
 **File:** `TestData/{EntityName}Builders.cs`
 
 ```csharp
-#nullable disable
 public static class {EntityName}Builders
 {
     public static Create{EntityName}Command ValidCreateCommand(
@@ -1345,7 +1342,6 @@ public static class {EntityName}Builders
 **File:** `Application/{EntityName}/Commands/Create{EntityName}CommandHandlerTests.cs`
 
 ```csharp
-#nullable disable
 public sealed class Create{EntityName}CommandHandlerTests
 {
     private readonly Mock<I{EntityName}CommandRepository> _mockCommandRepo = new(MockBehavior.Strict);
@@ -1490,7 +1486,6 @@ public async Task Handle_NonExistentId_DoesNotPublishAuditEvent()
 **File:** `Application/{EntityName}/Queries/GetAll{EntityName}QueryHandlerTests.cs`
 
 ```csharp
-#nullable disable
 public sealed class GetAll{EntityName}QueryHandlerTests
 {
     private readonly Mock<I{EntityName}QueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
@@ -1551,7 +1546,6 @@ public sealed class GetAll{EntityName}QueryHandlerTests
 **File:** `Validators/{EntityName}/Create{EntityName}CommandValidatorTests.cs`
 
 ```csharp
-#nullable disable
 public sealed class Create{EntityName}CommandValidatorTests
 {
     private readonly Mock<I{EntityName}QueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
@@ -1684,7 +1678,6 @@ src/tests/
 **File:** `Common/DbFixture.cs`
 
 ```csharp
-#nullable disable
 [CollectionDefinition("DatabaseCollection", DisableParallelization = true)]
 public class DatabaseCollection : ICollectionFixture<DbFixture> { }
 
@@ -1762,7 +1755,6 @@ public class DbFixture : IAsyncLifetime
 **File:** `Repositories/{EntityName}/{EntityName}CommandRepositoryTests.cs`
 
 ```csharp
-#nullable disable
 [Collection("DatabaseCollection")]
 public sealed class {EntityName}CommandRepositoryTests
 {
@@ -1928,7 +1920,6 @@ public sealed class {EntityName}CommandRepositoryTests
 **File:** `Repositories/{EntityName}/{EntityName}QueryRepositoryTests.cs`
 
 ```csharp
-#nullable disable
 [Collection("DatabaseCollection")]
 public sealed class {EntityName}QueryRepositoryTests
 {
@@ -2231,7 +2222,7 @@ mockCompanyLookup.Setup(c => c.GetAllCompanyAsync())
 - [ ] Create `Validators/{EntityName}/Create{EntityName}CommandValidatorTests.cs`
 - [ ] Create `Validators/{EntityName}/Update{EntityName}CommandValidatorTests.cs`
 - [ ] Create `Controllers/{EntityName}ControllerTests.cs`
-- [ ] Create or update `Domain/EntityTests.cs` (add tests for the new entity)
+- [ ] Create `Domain/{EntityName}EntityTests.cs` (one dedicated file per entity — never add to a shared `EntityTests.cs`)
 - [ ] Run: `dotnet test src/tests/{Module}.UnitTests/` ✅ All pass
 
 ---
@@ -2330,20 +2321,17 @@ Use `AuditLogsDomainEvent` for all audit logging — do NOT create custom event 
 ### 7. **Global ValidationBehavior**
 `ValidationBehavior` is registered globally in `Program.cs` — do NOT re-register in modules.
 
-### 8. **#nullable disable**
-All C# files use `#nullable disable` (legacy project setting) — maintain consistency.
-
-### 9. **Status vs IsActive**
+### 8. **Status vs IsActive**
 - `IsActive = Active (1)` → Available in dropdowns
 - `IsActive = Inactive (0)` → Hidden from dropdowns but retained
 
-### 10. **Autocomplete Filtering**
+### 9. **Autocomplete Filtering**
 Autocomplete MUST filter `WHERE IsActive = 1 AND IsDeleted = 0` — only show active, available records.
 
-### 11. **Document First — Code Never Before Approval**
+### 10. **Document First — Code Never Before Approval**
 ALWAYS generate the specification document first and wait for explicit user confirmation before writing any code. Do NOT generate code speculatively.
 
-### 12. **NEVER Auto-Migrate — ABSOLUTE RULE**
+### 11. **NEVER Auto-Migrate — ABSOLUTE RULE**
 
 > ❌ **STRICTLY FORBIDDEN — AI must NEVER do any of the following automatically:**
 > - `dotnet ef migrations add ...`
@@ -2360,7 +2348,7 @@ ALWAYS generate the specification document first and wait for explicit user conf
 > ```
 > AI must wait for the user to confirm **"Migration done"** or **"Table created"** before writing any further code.
 
-### 13. **Migration Gate — Hard Stop Before Any Code**
+### 12. **Migration Gate — Hard Stop Before Any Code**
 The following code must NEVER be written until the user has manually run the migration:
 - Repository implementations (Command or Query)
 - Controller
@@ -2377,7 +2365,7 @@ The following code must NEVER be written until the user has manually run the mig
 5. User confirms **"Migration done"** ✅
 6. ← Only then does code generation proceed
 
-### 14. **Documentation Format Rule — LLD as Word, Everything Else as PDF**
+### 13. **Documentation Format Rule — LLD as Word, Everything Else as PDF**
 
 After ALL code and tests are complete and passing, the following documentation steps are **MANDATORY** in order:
 
@@ -2400,7 +2388,7 @@ After ALL code and tests are complete and passing, the following documentation s
 > ❌ DO NOT produce HLD as Word. ❌ DO NOT produce LLD as PDF. Formats are fixed by this rule.
 > NEVER mark an entity as "done" if either file is missing.
 
-### 15. **Create Missing Lookup Interfaces Before Entity Implementation**
+### 14. **Create Missing Lookup Interfaces Before Entity Implementation**
 
 When implementing an entity with a cross-module FK, ALWAYS check `src/Shared/Contracts/Interfaces/Lookups/` first.
 
@@ -2418,7 +2406,7 @@ When implementing an entity with a cross-module FK, ALWAYS check `src/Shared/Con
 
 > ❌ DO NOT store a FK as a plain `int` without a lookup interface — cross-module FKs must always have a corresponding lookup for DTO population and FK validation.
 
-### 16. **ALWAYS Use IMapper (AutoMapper) in Command Handlers — Never Manual Mapping**
+### 15. **ALWAYS Use IMapper (AutoMapper) in Command Handlers — Never Manual Mapping**
 
 > ❌ **NEVER manually assign command properties to entity properties in handlers:**
 > ```csharp
@@ -2468,7 +2456,7 @@ When implementing an entity with a cross-module FK, ALWAYS check `src/Shared/Con
 > - Maps `CreateMap<Update{EntityName}Command, {EntityName}>()` with **`ForMember` for `IsActive` from `src.IsActive == 1 ? Status.Active : Status.Inactive`**
 > - Uses `using static {Module}.Domain.Common.BaseEntity;` for clean enum references
 
-### 17. **NO [Authorize] on Controllers — Simple HTTP Verb Routes Only**
+### 16. **NO [Authorize] on Controllers — Simple HTTP Verb Routes Only**
 
 > ❌ **NEVER add `[Authorize]` attribute to controllers:**
 > ```csharp
@@ -2507,7 +2495,7 @@ Authentication is handled globally by `TokenValidationMiddleware` in the request
 > [HttpDelete]             // DELETE api/{Entity}
 > ```
 
-### 18. **NO Validation in Controllers or Handlers — ALL Validation in FluentValidation Validators Only**
+### 17. **NO Validation in Controllers or Handlers — ALL Validation in FluentValidation Validators Only**
 
 > ❌ **NEVER add `ModelState.IsValid` checks in controllers:**
 > ```csharp
@@ -2582,7 +2570,7 @@ Authentication is handled globally by `TokenValidationMiddleware` in the request
 | `ModelState.IsValid` | ❌ NOWHERE | Removed — FluentValidation handles it |
 | `if (existing == null) throw` | ❌ NOWHERE in handlers | Moved to validator `NotFoundAsync` |
 
-### 19. **ALWAYS Use Shared Validation Infrastructure — Never Hardcode Validation Rules**
+### 18. **ALWAYS Use Shared Validation Infrastructure — Never Hardcode Validation Rules**
 
 > ❌ **NEVER hardcode validation rules, regex patterns, or max lengths directly in validators:**
 > ```csharp
@@ -2664,7 +2652,7 @@ Authentication is handled globally by `TokenValidationMiddleware` in the request
 - `src/Shared/Shared.Validation/Common/validation-rules.json` — shared JSON rules (embedded resource)
 - `{Module}.Presentation/Validation/Common/MaxLengthProvider.cs` — per-module EF metadata provider
 
-### 20. **NO Unused Namespaces, Injections, or Variables**
+### 19. **NO Unused Namespaces, Injections, or Variables**
 
 > All projects use `<ImplicitUsings>enable</ImplicitUsings>` (.NET 8), which auto-imports:
 > `System`, `System.Collections.Generic`, `System.IO`, `System.Linq`, `System.Net.Http`, `System.Threading`, `System.Threading.Tasks`
@@ -2698,7 +2686,7 @@ Authentication is handled globally by `TokenValidationMiddleware` in the request
 
 ---
 
-### 21. **Lookup Repository Implementations MUST Be `internal sealed class`**
+### 20. **Lookup Repository Implementations MUST Be `internal sealed class`**
 
 > ❌ **NEVER use `public class` for lookup repository implementations:**
 > ```csharp
@@ -2720,7 +2708,7 @@ Authentication is handled globally by `TokenValidationMiddleware` in the request
 
 **Applies to:** All files in `{Module}.Infrastructure/Repositories/Lookups/` directories.
 
-### 22. **ALL Controllers MUST Extend `ApiControllerBase` — Never `ControllerBase` Directly**
+### 21. **ALL Controllers MUST Extend `ApiControllerBase` — Never `ControllerBase` Directly**
 
 > ❌ **NEVER extend `ControllerBase` directly in any controller:**
 > ```csharp
@@ -2751,7 +2739,7 @@ Authentication is handled globally by `TokenValidationMiddleware` in the request
 - **Consistency:** All controllers follow the same inheritance chain
 - **Maintainability:** Changes to base controller behavior only need to happen in one place
 
-### 23. **Nullable Reference Types (`<Nullable>enable</Nullable>`) — Correct Patterns**
+### 22. **Nullable Reference Types (`<Nullable>enable</Nullable>`) — Correct Patterns**
 
 All module `.csproj` files use `<Nullable>enable</Nullable>`. The following patterns MUST be followed to keep builds at 0 warnings.
 
@@ -2861,7 +2849,7 @@ C# flow analysis does NOT carry `.HasValue` guards across LINQ method chain boun
 
 ---
 
-### 24. **ALWAYS Include Controller Tests and Domain Entity Tests — Not Just Handlers and Validators**
+### 23. **ALWAYS Include Controller Tests and Domain Entity Tests — Not Just Handlers and Validators**
 
 > ❌ **NEVER create a test suite that only covers handlers and validators:**
 > ```
@@ -2890,7 +2878,6 @@ Every controller MUST have a dedicated test file that verifies:
 
 **Pattern:**
 ```csharp
-#nullable disable
 using Contracts.Common;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -3004,7 +2991,6 @@ For EACH entity file, test:
 
 **Pattern (`{EntityName}EntityTests.cs`):**
 ```csharp
-#nullable disable
 using {Module}.Domain.Common;
 using {Module}.Domain.Entities;
 using static {Module}.Domain.Common.BaseEntity;
@@ -3054,7 +3040,6 @@ namespace {Module}.UnitTests.Domain
 
 **Shared audit-field tests (`BaseEntityAuditFieldsTests.cs`):**
 ```csharp
-#nullable disable
 using {Module}.Domain.Common;
 using {Module}.Domain.Entities;
 
@@ -3107,6 +3092,53 @@ namespace {Module}.UnitTests.Domain
 - **Controllers** are the HTTP entry point — testing them verifies that request routing, MediatR dispatch, and response formatting all work correctly
 - **Entity tests** verify that default enum values (`IsActive`, `IsDeleted`) are correct and that property getters/setters work — this catches regressions when entity classes are modified
 - Without these tests, a broken controller or entity default value could pass the build but fail at runtime
+
+---
+
+### 24. **NEVER Use `#nullable disable` — All C# Files Must Be Nullable-Warning-Free**
+
+All module `.csproj` files use `<Nullable>enable</Nullable>`. **No source file or test file may suppress this with `#nullable disable`.**
+
+> ❌ **NEVER add `#nullable disable` to any `.cs` file — source or test:**
+> ```csharp
+> // ❌ WRONG — suppresses compiler null-safety checks
+> #nullable disable
+> namespace SalesManagement.Application.BusinessUnit.Commands.CreateBusinessUnit;
+> ```
+
+> ✅ **ALWAYS write nullable-correct code from the start — no suppression directives:**
+> ```csharp
+> // ✅ CORRECT — no suppression; all nullable warnings resolved explicitly
+> namespace SalesManagement.Application.BusinessUnit.Commands.CreateBusinessUnit;
+> ```
+
+#### Source Files — Common Patterns
+
+| Situation | Fix |
+|---|---|
+| `GetByIdAsync` returns `T` but Dapper returns `T?` | Change interface + handler to `Task<T?>` |
+| DTO property set from cross-module lookup | Declare as `string?` (not `string`) |
+| `data.Count` on possibly-null list | Use `(data?.Count ?? 0)` |
+| `GetConnectionString()` chained call | Null-coalesce: `(config.GetConnectionString("...") ?? string.Empty).Replace(...)` |
+| Nullable `int?` `.Value` across LINQ boundary | Use null-forgiving: `item.NullableId!.Value` |
+
+#### Test Files — Common Patterns
+
+| Situation | Fix |
+|---|---|
+| Callback capture variable: `Entity capturedEntity = null` | `Entity? capturedEntity = null` |
+| Accessing captured variable after callback | `capturedEntity!.Property` |
+| `ReturnsAsync((XDto)null)` for nullable return | `ReturnsAsync((XDto?)null)` |
+| `Returns<object>(o => (o as XDto))` | `Returns<object>(o => (o as XDto)!)` |
+| `result.Property` after `result.Should().NotBeNull()` | `result!.Property` |
+| `[InlineData(null)]` on `string` parameter | Change parameter to `string?` |
+| Passing `null` to `string` parameter in mock Setup/Verify | Use `null!` |
+
+#### Exception: EF Core Migration Files
+
+EF Core auto-generates migration files with lowercase class names that trigger CS8981. Migration `.cs` and `.Designer.cs` files MAY retain `#nullable disable` since they are tool-generated. All hand-written source and test files must be free of it.
+
+**Build target:** `0 Warning(s), 0 Error(s)` — never suppress warnings with pragmas or `#nullable disable`.
 
 ---
 

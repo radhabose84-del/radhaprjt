@@ -1,4 +1,3 @@
-#nullable disable
 using System.Data;
 using BudgetManagement.Application.BudgetRequest;
 using BudgetManagement.Application.BudgetRequest.Queries.GetBudgetRequestPending;
@@ -31,7 +30,7 @@ public class BudgetRequestQueryRepository : IBudgetRequestQueryRepository
     }
 
     public async Task<(List<BudgetRequestListItemDto> Items, int Total)> GetAllAsync(
-    int? statusId, int pageNumber, int pageSize, string searchTerm, CancellationToken ct = default)
+    int? statusId, int pageNumber, int pageSize, string? searchTerm, CancellationToken ct = default)
     {
         var skip = (pageNumber - 1) * pageSize;
         var UnitId = _ipAddressService.GetUnitId();
@@ -247,7 +246,7 @@ public class BudgetRequestQueryRepository : IBudgetRequestQueryRepository
                 IsActive = r.IsActive,
 
                 RequestTypeName = r.RequestTypeName,
-                StatusName = r.StatusName,
+                StatusName = r.StatusName ?? string.Empty,
                 RequestByName = r.RequestByName,
                 RequestMonthName = r.RequestMonthName,
                 BudgetGroupName = r.BudgetGroupName ?? string.Empty,
@@ -258,7 +257,7 @@ public class BudgetRequestQueryRepository : IBudgetRequestQueryRepository
 
         return (items, total);
     }
-    public async Task<BudgetRequestDto> GetByIdAsync(int id, CancellationToken ct = default)
+    public async Task<BudgetRequestDto?> GetByIdAsync(int id, CancellationToken ct = default)
     {
         var sql = @"
         SELECT TOP 1
@@ -292,13 +291,13 @@ public class BudgetRequestQueryRepository : IBudgetRequestQueryRepository
 
         return await _db.QueryFirstOrDefaultAsync<string>(
             sql,
-            new { Code = MiscEnumEntity.ImagePath });
+            new { Code = MiscEnumEntity.ImagePath }) ?? string.Empty;
     }
 
     public async Task<(List<GetBudgetRequestPendingDto> Items, int Total)> GetPendingRequestAsync(
         int pageNumber,
         int pageSize,
-        string search,
+        string? search,
         CancellationToken ct = default)
     {
         var skip = (pageNumber - 1) * pageSize;
@@ -371,7 +370,7 @@ public class BudgetRequestQueryRepository : IBudgetRequestQueryRepository
         var param = new
         {
             UnitId = unitId,
-            PendingStatusId = pending.Id,
+            PendingStatusId = pending!.Id,
             Search = like,
             Skip = skip,
             Take = pageSize

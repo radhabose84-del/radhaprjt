@@ -1,4 +1,3 @@
-#nullable disable
 using FAM.Application.Location.Command.DeleteAubLocation;
 using FAM.Application.Location.Command.UpdateSubLocation;
 using FAM.Application.SubLocation.Command.CreateSubLocation;

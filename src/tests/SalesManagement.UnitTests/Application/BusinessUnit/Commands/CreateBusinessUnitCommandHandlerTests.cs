@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using MediatR;
 using SalesManagement.Application.BusinessUnit.Commands.CreateBusinessUnit;
@@ -21,7 +20,7 @@ namespace SalesManagement.UnitTests.Application.BusinessUnit.Commands
                 _mockMapper.Object);
 
         private void SetupMapper(CreateBusinessUnitCommand cmd,
-            SalesManagement.Domain.Entities.BusinessUnit entity = null)
+            SalesManagement.Domain.Entities.BusinessUnit? entity = null)
         {
             entity ??= new SalesManagement.Domain.Entities.BusinessUnit
             {
@@ -130,7 +129,7 @@ namespace SalesManagement.UnitTests.Application.BusinessUnit.Commands
         public async Task Handle_ValidCommand_SetsEntityActiveAndNotDeleted()
         {
             var command = BusinessUnitBuilders.ValidCreateCommand(code: "BU001");
-            SalesManagement.Domain.Entities.BusinessUnit capturedEntity = null;
+            SalesManagement.Domain.Entities.BusinessUnit? capturedEntity = null;
 
             _mockMapper
                 .Setup(m => m.Map<SalesManagement.Domain.Entities.BusinessUnit>(command))
@@ -147,8 +146,8 @@ namespace SalesManagement.UnitTests.Application.BusinessUnit.Commands
 
             await CreateSut().Handle(command, CancellationToken.None);
 
-            capturedEntity.IsActive.Should().Be(SalesManagement.Domain.Common.BaseEntity.Status.Active);
-            capturedEntity.IsDeleted.Should().Be(SalesManagement.Domain.Common.BaseEntity.IsDelete.NotDeleted);
+            capturedEntity!.IsActive.Should().Be(SalesManagement.Domain.Common.BaseEntity.Status.Active);
+            capturedEntity!.IsDeleted.Should().Be(SalesManagement.Domain.Common.BaseEntity.IsDelete.NotDeleted);
         }
     }
 }

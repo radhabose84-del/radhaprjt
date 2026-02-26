@@ -1,4 +1,3 @@
-#nullable disable
 using FluentValidation;
 using SalesManagement.Application.Common.Interfaces.ISalesItemPriceMaster;
 using SalesManagement.Application.SalesItemPriceMaster.Commands.DeleteSalesItemPriceMaster;

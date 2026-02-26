@@ -1,4 +1,3 @@
-#nullable disable
 using SalesManagement.Application.SalesChannel.Commands.CreateSalesChannel;
 using SalesManagement.Application.SalesChannel.Commands.UpdateSalesChannel;
 using SalesManagement.Application.SalesChannel.Dto;
@@ -14,24 +13,24 @@ namespace SalesManagement.UnitTests.TestData
         // ── Create Command ────────────────────────────────────────────────────
 
         public static CreateSalesChannelCommand ValidCreateCommand(
-            string code = "CH001",
-            string name = "Test Sales Channel") =>
+            string? code = "CH001",
+            string? name = "Test Sales Channel") =>
             new CreateSalesChannelCommand
             {
-                SalesChannelCode = code,
-                SalesChannelName = name
+                SalesChannelCode = code!,
+                SalesChannelName = name!
             };
 
         // ── Update Command ────────────────────────────────────────────────────
 
         public static UpdateSalesChannelCommand ValidUpdateCommand(
             int id = 1,
-            string name = "Updated Sales Channel",
+            string? name = "Updated Sales Channel",
             int isActive = 1) =>
             new UpdateSalesChannelCommand
             {
                 Id = id,
-                SalesChannelName = name,
+                SalesChannelName = name!,
                 IsActive = isActive
             };
 

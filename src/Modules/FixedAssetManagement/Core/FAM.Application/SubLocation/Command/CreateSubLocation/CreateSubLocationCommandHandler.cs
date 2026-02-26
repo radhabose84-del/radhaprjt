@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using FAM.Application.Common.Interfaces.ISubLocation;
 using FAM.Application.SubLocation.Queries.GetSubLocations;

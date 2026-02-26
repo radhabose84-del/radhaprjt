@@ -1,4 +1,3 @@
-#nullable disable
 using System.Data;
 using FAM.Application.AssetMaster.AssetWarranty.Queries.GetAssetWarranty;
 using FAM.Application.Common.Interfaces.IAssetMaster.IAssetWarranty;

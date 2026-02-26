@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.IMiscMaster;
@@ -17,7 +16,7 @@ namespace SalesManagement.UnitTests.Application.MiscMaster.Queries
         private GetMiscMasterByIdQueryHandler CreateSut()
         {
             _mockMapper.Setup(m => m.Map<MiscMasterDto>(It.IsAny<object>()))
-                .Returns<object>(o => o as MiscMasterDto);
+                .Returns<object>(o => (o as MiscMasterDto)!);
             _mockMediator.Setup(m => m.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);
             return new GetMiscMasterByIdQueryHandler(_mockQueryRepo.Object, _mockMapper.Object, _mockMediator.Object);
@@ -49,8 +48,8 @@ namespace SalesManagement.UnitTests.Application.MiscMaster.Queries
                 new GetMiscMasterByIdQuery { Id = 3 },
                 CancellationToken.None);
 
-            result.Id.Should().Be(3);
-            result.Code.Should().Be("CODE003");
+            result!.Id.Should().Be(3);
+            result!.Code.Should().Be("CODE003");
         }
 
         [Fact]
@@ -63,8 +62,8 @@ namespace SalesManagement.UnitTests.Application.MiscMaster.Queries
                 new GetMiscMasterByIdQuery { Id = 1 },
                 CancellationToken.None);
 
-            result.MiscTypeId.Should().Be(2);
-            result.MiscTypeCode.Should().Be("MISC002");
+            result!.MiscTypeId.Should().Be(2);
+            result!.MiscTypeCode.Should().Be("MISC002");
         }
 
         // ── Not Found ─────────────────────────────────────────────────────────
@@ -74,7 +73,7 @@ namespace SalesManagement.UnitTests.Application.MiscMaster.Queries
         {
             _mockQueryRepo
                 .Setup(r => r.GetByIdAsync(999))
-                .ReturnsAsync((MiscMasterDto)null);
+                .ReturnsAsync((MiscMasterDto?)null);
 
             var result = await CreateSut().Handle(
                 new GetMiscMasterByIdQuery { Id = 999 },

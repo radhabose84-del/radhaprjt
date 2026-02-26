@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.ISalesGroup;
@@ -187,7 +186,7 @@ namespace SalesManagement.UnitTests.Application.SalesGroup.Commands
 
             // Assert
             capturedEntity.Should().NotBeNull();
-            capturedEntity.IsActive.Should().Be(Status.Active);
+            capturedEntity!.IsActive.Should().Be(Status.Active);
         }
 
         [Fact]
@@ -225,7 +224,7 @@ namespace SalesManagement.UnitTests.Application.SalesGroup.Commands
 
             // Assert
             capturedEntity.Should().NotBeNull();
-            capturedEntity.IsDeleted.Should().Be(IsDelete.NotDeleted);
+            capturedEntity!.IsDeleted.Should().Be(IsDelete.NotDeleted);
         }
     }
 }

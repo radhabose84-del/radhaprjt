@@ -1,4 +1,3 @@
-#nullable disable
 using MediatR;
 using SalesManagement.Application.BusinessUnit.Commands.DeleteBusinessUnit;
 using SalesManagement.Application.Common.Interfaces.IBusinessUnit;

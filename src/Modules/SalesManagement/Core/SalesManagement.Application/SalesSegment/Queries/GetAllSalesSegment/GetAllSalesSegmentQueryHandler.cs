@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using Contracts.Common;
 using Contracts.Interfaces.Lookups.Users;
@@ -61,7 +60,7 @@ namespace SalesManagement.Application.SalesSegment.Queries.GetAllSalesSegment
             var domainEvent = new AuditLogsDomainEvent(
                 actionDetail: "GetAllSalesSegmentQuery",
                 actionCode: "Get",
-                actionName: data.Count.ToString(),
+                actionName: (data?.Count ?? 0).ToString(),
                 details: "SalesSegment details were fetched.",
                 module: "SalesSegment"
             );

@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using FAM.Application.AssetMaster.AssetTransferIssue.Queries.GetAssetDtlToTransfer;
 using Contracts.Common;

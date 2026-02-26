@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.ISalesGroup;
@@ -68,9 +67,9 @@ namespace SalesManagement.UnitTests.Application.SalesGroup.Queries
 
             // Assert
             result.Data.Should().NotBeNull();
-            result.Data.Should().HaveCount(2);
-            result.Data[0].SalesGroupName.Should().Be("Group One");
-            result.Data[1].SalesGroupName.Should().Be("Group Two");
+            result.Data!.Should().HaveCount(2);
+            result.Data![0].SalesGroupName.Should().Be("Group One");
+            result.Data![1].SalesGroupName.Should().Be("Group Two");
         }
 
         [Fact]

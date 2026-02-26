@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using FAM.Application.AssetMaster.AssetMasterGeneral.Queries.GetAssetMasterGeneralById;
 using FAM.Application.Common.Interfaces.IAssetMaster.IAssetMasterGeneral;

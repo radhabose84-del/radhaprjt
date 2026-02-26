@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.ISalesItemPriceMaster;
@@ -17,7 +16,7 @@ namespace SalesManagement.UnitTests.Application.SalesItemPriceMaster.Queries
         private GetSalesItemPriceMasterByIdQueryHandler CreateSut()
         {
             _mockMapper.Setup(m => m.Map<SalesItemPriceMasterDto>(It.IsAny<object>()))
-                .Returns<object>(o => o as SalesItemPriceMasterDto);
+                .Returns<object>(o => (o as SalesItemPriceMasterDto)!);
             _mockMediator.Setup(m => m.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);
             return new GetSalesItemPriceMasterByIdQueryHandler(_mockQueryRepo.Object, _mockMapper.Object, _mockMediator.Object);
@@ -45,14 +44,14 @@ namespace SalesManagement.UnitTests.Application.SalesItemPriceMaster.Queries
             var result = await CreateSut().Handle(
                 new GetSalesItemPriceMasterByIdQuery { Id = 7 }, CancellationToken.None);
 
-            result.PriceCode.Should().Be("PC777");
+            result!.PriceCode.Should().Be("PC777");
         }
 
         [Fact]
         public async Task Handle_EntityNotFound_ReturnsNull()
         {
             _mockQueryRepo.Setup(r => r.GetByIdAsync(99))
-                .ReturnsAsync((SalesItemPriceMasterDto)null);
+                .ReturnsAsync((SalesItemPriceMasterDto?)null);
 
             var result = await CreateSut().Handle(
                 new GetSalesItemPriceMasterByIdQuery { Id = 99 }, CancellationToken.None);
