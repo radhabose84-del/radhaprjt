@@ -22,18 +22,17 @@ namespace SalesManagement.Application.MarketingOfficer.Queries.GetMarketingOffic
         public async Task<IReadOnlyList<MarketingOfficerLookupDto>> Handle(GetMarketingOfficerAutoCompleteQuery request, CancellationToken cancellationToken)
         {
             var result = await _queryRepository.AutocompleteAsync(request.Term ?? string.Empty, cancellationToken);
-            var dtos = _mapper.Map<List<MarketingOfficerLookupDto>>(result);
 
             var domainEvent = new AuditLogsDomainEvent(
                 actionDetail: "GetAll",
                 actionCode: "GetMarketingOfficerAutoCompleteQuery",
-                actionName: dtos.Count.ToString(),
+                actionName: result.Count.ToString(),
                 details: "MarketingOfficer details was fetched.",
                 module: "MarketingOfficer"
             );
             await _mediator.Publish(domainEvent, cancellationToken);
 
-            return dtos;
+            return result;
         }
     }
 }
