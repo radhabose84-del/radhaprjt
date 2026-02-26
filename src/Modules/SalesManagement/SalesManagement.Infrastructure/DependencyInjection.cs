@@ -29,6 +29,8 @@ using SalesManagement.Application.Common.Interfaces.IMiscMaster;
 using SalesManagement.Infrastructure.Repositories.MiscMaster;
 using SalesManagement.Application.Common.Interfaces.IAgentCommissionConfig;
 using SalesManagement.Infrastructure.Repositories.AgentCommissionConfig;
+using SalesManagement.Application.Common.Interfaces.IDispatchAddressMaster;
+using SalesManagement.Infrastructure.Repositories.DispatchAddressMaster;
 using SalesManagement.Infrastructure.Services;
 using Serilog;
 using Microsoft.Extensions.Hosting;
@@ -158,6 +160,9 @@ namespace SalesManagement.Infrastructure
             // ── Agent Commission Configuration Repositories ─────────────
             services.AddScoped<IAgentCommissionConfigCommandRepository, AgentCommissionConfigCommandRepository>();
             services.AddScoped<IAgentCommissionConfigQueryRepository, AgentCommissionConfigQueryRepository>();
+            // ── Dispatch Address Master Repositories ──────────────────────
+            services.AddScoped<IDispatchAddressMasterCommandRepository, DispatchAddressMasterCommandRepository>();
+            services.AddScoped<IDispatchAddressMasterQueryRepository, DispatchAddressMasterQueryRepository>();
 
             return services;
         }
