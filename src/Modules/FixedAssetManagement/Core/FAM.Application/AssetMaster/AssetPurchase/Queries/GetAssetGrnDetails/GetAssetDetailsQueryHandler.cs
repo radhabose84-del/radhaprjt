@@ -21,7 +21,7 @@ namespace FAM.Application.AssetMaster.AssetPurchase.Queries.GetAssetGrnDetails
 
         public async Task<List<AssetGrnDetails>> Handle(GetAssetDetailsQuery request, CancellationToken cancellationToken)
         {
-            var result = await _iAssetPurchaseQueryRepository.GetAssetGrnItemDetails(request.OldUnitId,request.AssetSourceId ,request.GrnNo,request.GrnSerialNo);
+            var result = await _iAssetPurchaseQueryRepository.GetAssetGrnItemDetails(request.OldUnitId ?? string.Empty,request.AssetSourceId ,request.GrnNo,request.GrnSerialNo);
             var assetunits  = _mapper.Map<List<AssetGrnDetails>>(result);
              //Domain Event
                 var domainEvent = new AuditLogsDomainEvent(

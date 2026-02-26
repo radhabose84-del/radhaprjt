@@ -12,7 +12,7 @@ namespace FAM.Infrastructure.Repositories.SubLocation
         {
             _dbConnection = dbConnection;
         }
-        public async Task<(List<FAM.Domain.Entities.SubLocation>, int)> GetAllSubLocationAsync(int PageNumber, int PageSize, string SearchTerm)
+        public async Task<(List<FAM.Domain.Entities.SubLocation>, int)> GetAllSubLocationAsync(int PageNumber, int PageSize, string? SearchTerm)
         {
             var query = $$"""
              DECLARE @TotalCount INT;
@@ -60,10 +60,10 @@ namespace FAM.Infrastructure.Repositories.SubLocation
         public async Task<FAM.Domain.Entities.SubLocation> GetByIdAsync(int id)
         {
             const string query = "SELECT * FROM FixedAsset.SubLocation WHERE Id = @Id AND IsDeleted = 0";
-            return await _dbConnection.QueryFirstOrDefaultAsync<FAM.Domain.Entities.SubLocation>(query, new { id });
+            return (await _dbConnection.QueryFirstOrDefaultAsync<FAM.Domain.Entities.SubLocation>(query, new { id }))!;
         }
 
-        public async Task<FAM.Domain.Entities.SubLocation> GetBySubLocationNameAsync(string name, int DepartmentId, int LocationId, int UnitId, int? id = null)
+        public async Task<FAM.Domain.Entities.SubLocation?> GetBySubLocationNameAsync(string name, int DepartmentId, int LocationId, int UnitId, int? id = null)
         {
             var query = @"
             SELECT
@@ -122,7 +122,7 @@ namespace FAM.Infrastructure.Repositories.SubLocation
             return isActiveValue.Value == 1;
         }
 
-        public async Task<FAM.Domain.Entities.SubLocation> GetBySubLocationCodeAsync(string code, int DepartmentId, int LocationId, int UnitId, int? id = null)
+        public async Task<FAM.Domain.Entities.SubLocation?> GetBySubLocationCodeAsync(string code, int DepartmentId, int LocationId, int UnitId, int? id = null)
         {
             const string query = @"
           SELECT TOP 1 *

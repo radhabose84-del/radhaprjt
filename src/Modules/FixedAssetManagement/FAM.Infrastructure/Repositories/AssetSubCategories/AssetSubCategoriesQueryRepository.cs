@@ -12,7 +12,7 @@ namespace FAM.Infrastructure.Repositories.AssetSubCategories
         {
             _dbConnection = dbConnection;
         }
-        public async Task<(List<AssetSubCategoriesDto>, int)> GetAllAssetSubCategoriesAsync(int PageNumber, int PageSize, string SearchTerm)
+        public async Task<(List<AssetSubCategoriesDto>, int)> GetAllAssetSubCategoriesAsync(int PageNumber, int PageSize, string? SearchTerm)
         {
               var query = $$"""
              DECLARE @TotalCount INT;
@@ -74,7 +74,7 @@ namespace FAM.Infrastructure.Repositories.AssetSubCategories
             return assetSubCategories.ToList();
         }
 
-        public async Task<AssetSubCategoriesDto> GetByIdAsync(int Id)
+        public async Task<AssetSubCategoriesDto?> GetByIdAsync(int Id)
         {
              const string query = @"
                     SELECT a.*,b.CategoryName as AssetCategoriesName 
@@ -84,7 +84,7 @@ namespace FAM.Infrastructure.Repositories.AssetSubCategories
                     return assetSubCategories;
         }
 
-        public async Task<List<AssetSubCategoriesAutoCompleteDto>> GetSubcategoriesByAssetCategoryIdAsync(int AssetCategoriesId)
+        public async Task<List<AssetSubCategoriesAutoCompleteDto?>> GetSubcategoriesByAssetCategoryIdAsync(int AssetCategoriesId)
         {
              const string query = @"
                     SELECT 
@@ -99,7 +99,7 @@ namespace FAM.Infrastructure.Repositories.AssetSubCategories
 
             var assetsubCategories = await _dbConnection.QueryAsync<AssetSubCategoriesAutoCompleteDto>(query, new { AssetCategoriesId });
 
-            return assetsubCategories.ToList(); // Ensure it returns a List
+            return assetsubCategories.ToList()!; // Ensure it returns a List
         }
 
         public async Task<bool> IsAssetSubCategoryLinkedAsync(int id)

@@ -25,7 +25,7 @@ namespace FAM.Application.AssetGroup.Command.CreateAssetGroup
         {
             _logger.LogInformation($"Starting creation process for AssetGroup: {request}");
              // Check if AssetGroup code already exists
-            var exists = await _iAssetGroupCommandRepository.ExistsByCodeAsync(request.Code);
+            var exists = await _iAssetGroupCommandRepository.ExistsByCodeAsync(request.Code ?? string.Empty);
             if (exists)
             {
                  _logger.LogWarning($"AssetGroup Code {request.Code} already exists.");

@@ -22,7 +22,7 @@ namespace FAM.Presentation.Controllers
             
         }
         [HttpGet]
-        public async Task<IActionResult> GetAllLocationAsync([FromQuery] int PageNumber, [FromQuery] int PageSize, [FromQuery] string SearchTerm = null)
+        public async Task<IActionResult> GetAllLocationAsync([FromQuery] int PageNumber, [FromQuery] int PageSize, [FromQuery] string? SearchTerm = null)
         {
             var locations = await Mediator.Send(
                 new GetLocationQuery
@@ -35,7 +35,7 @@ namespace FAM.Presentation.Controllers
             return Ok(new
             {
                 StatusCode = StatusCodes.Status200OK,
-                data = locations.Data.ToList(),
+                data = locations.Data!.ToList(),
                 TotalCount = locations.TotalCount,
                 PageNumber = locations.PageNumber,
                 PageSize = locations.PageSize

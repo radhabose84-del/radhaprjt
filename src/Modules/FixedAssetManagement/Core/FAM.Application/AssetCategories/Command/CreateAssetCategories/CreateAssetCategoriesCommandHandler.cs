@@ -28,7 +28,7 @@ namespace FAM.Application.AssetCategories.Command.CreateAssetCategories
             //     throw new ValidationException("AssetCategories Code already exists.");
             // }
             var assetCategories = _imapper.Map<FAM.Domain.Entities.AssetCategories>(request);
-			var categorycode = await GenerateUniqueCodeAsync(request.CategoryName);
+			var categorycode = await GenerateUniqueCodeAsync(request.CategoryName ?? string.Empty);
             assetCategories.Code = categorycode;
             
             var result = await _iAssetCategoriesCommandRepository.CreateAsync(assetCategories);

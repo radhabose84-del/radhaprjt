@@ -20,7 +20,7 @@ namespace FAM.Application.UOM.Queries.GetUOMTypeAutoComplete
 
         public async Task<List<UOMTypeAutoCompleteDto>> Handle(GetUOMTypeAutoCompleteQuery request, CancellationToken cancellationToken)
         {
-            var result = await _uomQueryRepository.GetUOMType(request.SearchPattern);
+            var result = await _uomQueryRepository.GetUOMType(request.SearchPattern ?? string.Empty);
 
             if (result is null || result.Count == 0)
             {

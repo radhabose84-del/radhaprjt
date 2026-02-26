@@ -44,8 +44,8 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetTransfer
                 public async Task<bool> UpdateAssetTransferAsync(AssetTransferIssueHdr assetTransferIssueHdr)
                 {
                     // 🔹 Find the existing record
-                    var existingRecord = await _applicationDbContext.AssetTransferIssueHdr   
-                        .FirstOrDefaultAsync(h => h.Id == assetTransferIssueHdr.Id);
+                    var existingRecord = (await _applicationDbContext.AssetTransferIssueHdr
+                        .FirstOrDefaultAsync(h => h.Id == assetTransferIssueHdr.Id))!;
 
                    existingRecord.DocDate = assetTransferIssueHdr.DocDate;
                    existingRecord.TransferType = assetTransferIssueHdr.TransferType;
@@ -69,7 +69,7 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetTransfer
                     _applicationDbContext.AssetTransferIssueDtl.RemoveRange(_applicationDbContext.AssetTransferIssueDtl.Where(x => x.AssetTransferId == assetTransferIssueHdr.Id));
                    await _applicationDbContext.SaveChangesAsync();
                     
-                   await _applicationDbContext.AssetTransferIssueDtl.AddRangeAsync(assetTransferIssueHdr.AssetTransferIssueDtl);
+                   await _applicationDbContext.AssetTransferIssueDtl.AddRangeAsync(assetTransferIssueHdr.AssetTransferIssueDtl ?? new List<AssetTransferIssueDtl>());
                    
                    return await _applicationDbContext.SaveChangesAsync()>0;
 

@@ -31,13 +31,13 @@ namespace FAM.Application.AssetMaster.AssetTransferReceipt.Command.CreateAssetTr
 
             //Asset Location Mapping
             var ToLocationUpdate = await _iassettransferreceiptqueryrepository
-                .GetByAssetTransferId(request.AssetTransferReceiptHdrDto.AssetTransferId);
+                .GetByAssetTransferId(request.AssetTransferReceiptHdrDto!.AssetTransferId);
 
-              var ToCustodianId = ToLocationUpdate.ToCustodianId;
+              var ToCustodianId = ToLocationUpdate!.ToCustodianId;
               var ToUnitId = ToLocationUpdate.ToUnitId;
               var ToDepartmentId = ToLocationUpdate.ToDepartmentId;
 
-                     var assetLocation = request.AssetTransferReceiptHdrDto.AssetTransferReceiptDtl.Select(dto => {
+                     var assetLocation = request.AssetTransferReceiptHdrDto.AssetTransferReceiptDtl!.Select(dto => {
                          var entity = _imapper.Map<FAM.Domain.Entities.AssetMaster.AssetLocation>(dto);
                          entity.CustodianId = ToCustodianId;
                          entity.UnitId = ToUnitId;

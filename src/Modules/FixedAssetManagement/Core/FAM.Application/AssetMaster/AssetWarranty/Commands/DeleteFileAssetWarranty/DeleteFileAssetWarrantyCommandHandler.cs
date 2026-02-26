@@ -60,7 +60,7 @@ namespace FAM.Application.AssetMaster.AssetWarranty.Commands.DeleteFileAssetWarr
 
             var result = await _fileUploadService.DeleteFileAsync(filePath);
 
-            await _assetWarrantyRepository.RemoveAssetWarrantyAsync(request.assetPath);
+            await _assetWarrantyRepository.RemoveAssetWarrantyAsync(request.assetPath ?? string.Empty);
               if (result)
             {
                 return result;

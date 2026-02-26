@@ -16,7 +16,7 @@ namespace FAM.Infrastructure.Repositories.MiscTypeMaster
 
 
 
-          public async Task<(List<FAM.Domain.Entities.MiscTypeMaster>,int)> GetAllMiscTypeMasterAsync(int PageNumber, int PageSize, string SearchTerm)
+          public async Task<(List<FAM.Domain.Entities.MiscTypeMaster>,int)> GetAllMiscTypeMasterAsync(int PageNumber, int PageSize, string? SearchTerm)
         {
                  var query = $$"""
                     DECLARE @TotalCount INT;
@@ -47,7 +47,7 @@ namespace FAM.Infrastructure.Repositories.MiscTypeMaster
              int totalCount = (await misctype.ReadFirstAsync<int>());
             return (misctypemaster, totalCount);
         }
-          public async Task<FAM.Domain.Entities.MiscTypeMaster> GetByMiscTypeMasterCodeAsync(string name, int? id = null)
+          public async Task<FAM.Domain.Entities.MiscTypeMaster?> GetByMiscTypeMasterCodeAsync(string name, int? id = null)
         {
               var query = """
                  SELECT * FROM FixedAsset.MiscTypeMaster
@@ -66,10 +66,10 @@ namespace FAM.Infrastructure.Repositories.MiscTypeMaster
         } 
 
             public async Task<FAM.Domain.Entities.MiscTypeMaster> GetByIdAsync(int id)
-        {            
-           const string query = @" SELECT Id,MiscTypeCode,Description,IsActive  FROM FixedAsset.MiscTypeMaster          
-             WHERE Id = @id AND IsDeleted = 0";                          
-            return await _dbConnection.QueryFirstOrDefaultAsync<FAM.Domain.Entities.MiscTypeMaster>(query, new { id });
+        {
+           const string query = @" SELECT Id,MiscTypeCode,Description,IsActive  FROM FixedAsset.MiscTypeMaster
+             WHERE Id = @id AND IsDeleted = 0";
+            return (await _dbConnection.QueryFirstOrDefaultAsync<FAM.Domain.Entities.MiscTypeMaster>(query, new { id }))!;
         }
           public async Task<List<FAM.Domain.Entities.MiscTypeMaster>>  GetMiscTypeMaster(string searchPattern)
         {

@@ -63,7 +63,7 @@ namespace FAM.Presentation.Validation.AssetMaster.AssetInsurance
                         break;
                     case "AlreadyExists":
                            RuleFor(x => x.PolicyNo)
-                           .MustAsync(async (PolicyNo, cancellation) => !await _assetInsuranceQueryRepository.AlreadyExistsAsync(PolicyNo))
+                           .MustAsync(async (PolicyNo, cancellation) => !await _assetInsuranceQueryRepository.AlreadyExistsAsync(PolicyNo ?? string.Empty))
                            .WithName("PolicyNo")
                             .WithMessage($"{rule.Error}");
                             break;

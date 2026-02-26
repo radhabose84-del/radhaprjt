@@ -40,7 +40,7 @@ namespace FAM.Application.AssetSubCategories.Command.UpdateAssetSubCategories
 
          // Check for duplicate GroupName or SortOrder
             var (isNameDuplicate, isSortOrderDuplicate) = await _iAssetSubCategoriesCommandRepository
-                                .CheckForDuplicatesAsync(request.SubCategoryName, request.SortOrder, request.Id);
+                                .CheckForDuplicatesAsync(request.SubCategoryName ?? string.Empty, request.SortOrder, request.Id);
 
         if (isNameDuplicate || isSortOrderDuplicate)
         {

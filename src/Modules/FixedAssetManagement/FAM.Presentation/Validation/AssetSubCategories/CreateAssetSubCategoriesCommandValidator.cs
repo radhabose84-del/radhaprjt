@@ -74,7 +74,7 @@ namespace FAM.Presentation.Validation.AssetSubCategories
                         break;
                     case "AlreadyExists":
                         RuleFor(x => x.SubCategoryName)
-                       .MustAsync(async (SubCategoryName, cancellation) => !await _iAssetSubCategoriesCommandRepository.ExistsByNameAsync(SubCategoryName))
+                       .MustAsync(async (SubCategoryName, cancellation) => !await _iAssetSubCategoriesCommandRepository.ExistsByNameAsync(SubCategoryName ?? string.Empty))
                        .WithName("SubCategoryName")
                        .WithMessage($"{rule.Error}");
                         break;
