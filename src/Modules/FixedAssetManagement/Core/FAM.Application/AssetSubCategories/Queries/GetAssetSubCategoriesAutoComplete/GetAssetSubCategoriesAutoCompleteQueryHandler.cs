@@ -22,7 +22,7 @@ namespace FAM.Application.AssetSubCategories.Queries.GetAssetSubCategoriesAutoCo
         
         public async Task<List<AssetSubCategoriesAutoCompleteDto>> Handle(GetAssetSubCategoriesAutoCompleteQuery request, CancellationToken cancellationToken)
         {
-            var result = await _iAssetSubCategoriesQueryRepository.GetAssetSubCategories(request.SearchPattern);
+            var result = await _iAssetSubCategoriesQueryRepository.GetAssetSubCategories(request.SearchPattern ?? string.Empty);
             var assetsubcategories  = _mapper.Map<List<AssetSubCategoriesAutoCompleteDto>>(result);
              //Domain Event
                 var domainEvent = new AuditLogsDomainEvent(

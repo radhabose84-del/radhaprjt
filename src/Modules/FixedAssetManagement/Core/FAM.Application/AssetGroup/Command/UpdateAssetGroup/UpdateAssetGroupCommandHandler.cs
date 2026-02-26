@@ -51,7 +51,7 @@ namespace FAM.Application.AssetGroup.Command.UpdateAssetGroup
 
          // Check for duplicate GroupName or SortOrder
             var (isNameDuplicate, isSortOrderDuplicate) = await _iAssetGroupCommandRepository
-                                .CheckForDuplicatesAsync(request.GroupName, request.SortOrder, request.Id, request.GroupPercentage ?? 0);
+                                .CheckForDuplicatesAsync(request.GroupName ?? string.Empty, request.SortOrder, request.Id, request.GroupPercentage ?? 0);
 
             if (isNameDuplicate || isSortOrderDuplicate)
             {

@@ -22,7 +22,7 @@ namespace FAM.Application.Location.Command.CreateLocation
         }
         public async Task<LocationDto> Handle(CreateLocationCommand request, CancellationToken cancellationToken)
         {
-               var existingLocation = await _locationQueryRepository.GetByLocationNameAsync(request.LocationName, request.DepartmentId,request.UnitId);
+               var existingLocation = await _locationQueryRepository.GetByLocationNameAsync(request.LocationName ?? string.Empty, request.DepartmentId,request.UnitId);
 
                if (existingLocation != null)
                {

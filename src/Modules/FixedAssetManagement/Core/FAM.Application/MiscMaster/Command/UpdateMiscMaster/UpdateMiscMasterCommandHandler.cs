@@ -35,7 +35,7 @@ namespace FAM.Application.MiscMaster.Command.UpdateMiscMaster
             }
 
 
-                var existingMisctype = await _miscMasterQueryRepository.GetByMiscMasterCodeAsync(request.Code,request.MiscTypeId,request.Id );
+                var existingMisctype = await _miscMasterQueryRepository.GetByMiscMasterCodeAsync(request.Code ?? string.Empty,request.MiscTypeId,request.Id );
 
                 if (existingMisctype != null)
                 {

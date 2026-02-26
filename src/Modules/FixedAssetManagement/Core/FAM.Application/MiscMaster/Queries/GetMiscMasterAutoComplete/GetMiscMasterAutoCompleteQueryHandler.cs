@@ -22,7 +22,7 @@ namespace FAM.Application.MiscMaster.Queries.GetMiscMasterAutoComplete
 
           public  async Task<List<GetMiscMasterAutoCompleteDto>> Handle(GetMiscMasterAutoCompleteQuery request, CancellationToken cancellationToken)
         {
-            var miscTypeMasters  = await _miscMasterQueryRepository.GetMiscMaster( request.MiscTypeCode,request.MiscTypeName);
+            var miscTypeMasters  = await _miscMasterQueryRepository.GetMiscMaster( request.MiscTypeCode ?? string.Empty,request.MiscTypeName ?? string.Empty);
 
                     if (miscTypeMasters == null )
             {

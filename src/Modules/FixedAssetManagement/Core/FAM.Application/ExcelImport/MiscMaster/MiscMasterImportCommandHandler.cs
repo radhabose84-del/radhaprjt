@@ -113,7 +113,7 @@ namespace FAM.Application.ExcelImport.MiscMaster
             // Save or update
             foreach (var misc in miscMasterDtoList)
             {
-                var existing = await _miscMasterQueryRepository.GetByMiscTypeIdAndCodeAsync(misc.MiscTypeId, misc.Code);
+                var existing = await _miscMasterQueryRepository.GetByMiscTypeIdAndCodeAsync(misc.MiscTypeId, misc.Code ?? string.Empty);
 
                
                   if (existing == null)

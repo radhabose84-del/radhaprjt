@@ -53,7 +53,7 @@ namespace FAM.Application.ExcelImport
             {
                 return assetLocationDto;
             }
-            return null;
+            return null!;
         }
     }
 }

@@ -194,7 +194,7 @@ namespace MaintenanceManagement.Application.PreventiveSchedulers.Commands.Update
                     );
                  
               
-                if(metaDataResponse.Id > 0)
+                if(metaDataResponse?.Id > 0)
                 {
                     return new ApiResponseDTO<bool>
                     {

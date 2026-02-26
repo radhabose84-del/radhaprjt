@@ -7,54 +7,54 @@ namespace FAM.Presentation.Validation.AssetMaster.AssetTransferIssue
     {
         public UpdateAssetTransferIssueCommandValidator()
         {
-            RuleFor(x => x.AssetTransferHdr.Id).NotEmpty().WithMessage("Id is required.");
+            RuleFor(x => x.AssetTransferHdr!.Id).NotEmpty().WithMessage("Id is required.");
 
-           RuleFor(x => x.AssetTransferHdr.DocDate)
+           RuleFor(x => x.AssetTransferHdr!.DocDate)
                 .NotEmpty().WithMessage("Document Date is required.")
                 .LessThanOrEqualTo(DateTime.UtcNow).WithMessage("Document Date cannot be in the future.");
 
-            RuleFor(x => x.AssetTransferHdr.TransferType)
+            RuleFor(x => x.AssetTransferHdr!.TransferType)
                  .NotEmpty().WithMessage("Status is required.");
 
-            RuleFor(x => x.AssetTransferHdr.FromUnitId)
+            RuleFor(x => x.AssetTransferHdr!.FromUnitId)
                 .GreaterThan(0).WithMessage("From Unit ID must be greater than 0.");
 
-            RuleFor(x => x.AssetTransferHdr.ToUnitId)
+            RuleFor(x => x.AssetTransferHdr!.ToUnitId)
                 .GreaterThan(0).WithMessage("To Unit ID must be greater than 0.");
 
-            RuleFor(x => x.AssetTransferHdr.FromDepartmentId)
+            RuleFor(x => x.AssetTransferHdr!.FromDepartmentId)
                 .GreaterThan(0).WithMessage("From Department ID must be greater than 0.");
 
-            RuleFor(x => x.AssetTransferHdr.ToDepartmentId)
+            RuleFor(x => x.AssetTransferHdr!.ToDepartmentId)
                 .GreaterThan(0).WithMessage("To Department ID must be greater than 0.");
 
-            RuleFor(x => x.AssetTransferHdr.FromCustodianId)
+            RuleFor(x => x.AssetTransferHdr!.FromCustodianId)
                 .GreaterThan(0).WithMessage("From Custodian ID must be greater than 0.");
 
-            RuleFor(x => x.AssetTransferHdr.ToCustodianId)
+            RuleFor(x => x.AssetTransferHdr!.ToCustodianId)
                 .GreaterThan(0).WithMessage("To Custodian ID must be greater than 0.");
 
-            RuleFor(x => x.AssetTransferHdr.Status)
+            RuleFor(x => x.AssetTransferHdr!.Status)
                 .NotEmpty().WithMessage("Status is required.")
                 .Must(s => s == "Pending" || s == "Approved" || s == "Rejected")
                 .WithMessage("Status must be 'Pending', 'Approved', or 'Rejected'.");
 
-               
-                    // ✅ Ensure at least one AssetTransferIssueDtl is present
-            RuleFor(x => x.AssetTransferHdr.AssetTransferIssueDtl)
-                .NotEmpty().WithMessage("At least one asset must be included.")
-                .Must(details => details.Count > 0).WithMessage("At least one asset must be included.");
 
-            RuleFor(x => x.AssetTransferHdr.AssetTransferIssueDtl)
-                
+                    // ✅ Ensure at least one AssetTransferIssueDtl is present
+            RuleFor(x => x.AssetTransferHdr!.AssetTransferIssueDtl)
                 .NotEmpty().WithMessage("At least one asset must be included.")
-                .Must(AssetTransferDetails => AssetTransferDetails.All(a => a.AssetId > 0))
+                .Must(details => details!.Count > 0).WithMessage("At least one asset must be included.");
+
+            RuleFor(x => x.AssetTransferHdr!.AssetTransferIssueDtl)
+
+                .NotEmpty().WithMessage("At least one asset must be included.")
+                .Must(AssetTransferDetails => AssetTransferDetails!.All(a => a.AssetId > 0))
                     .WithMessage("All assets must have a valid Asset ID.")
-                    .Must(AssetTransferDetails => AssetTransferDetails.All(a => a.AssetValue > 0))
-                    .WithMessage("All assets must have a valid Asset Value.");    
+                    .Must(AssetTransferDetails => AssetTransferDetails!.All(a => a.AssetValue > 0))
+                    .WithMessage("All assets must have a valid Asset Value.");
 
             RuleFor(x => x)
-                .Must(x => x.AssetTransferHdr.AssetTransferIssueDtl.All(dtl => dtl.AssetTransferId == x.AssetTransferHdr.Id))
+                .Must(x => x.AssetTransferHdr!.AssetTransferIssueDtl!.All(dtl => dtl.AssetTransferId == x.AssetTransferHdr!.Id))
                 .WithMessage("All AssetTransferDtl.AssetTransferId must match AssetTransferHdr.Id.");
         }
     }

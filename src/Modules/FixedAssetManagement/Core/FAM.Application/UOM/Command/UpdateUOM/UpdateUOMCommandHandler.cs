@@ -21,7 +21,7 @@ namespace FAM.Application.UOM.Command.UpdateUOM
         }
         public async Task<bool> Handle(UpdateUOMCommand request, CancellationToken cancellationToken)
         {
-            var existinguom = await _uomQueryRepository.GetByUOMNameAsync(request.UOMName, request.Id);
+            var existinguom = await _uomQueryRepository.GetByUOMNameAsync(request.UOMName ?? string.Empty, request.Id);
 
                 if (existinguom != null)
                 {
@@ -37,7 +37,7 @@ namespace FAM.Application.UOM.Command.UpdateUOM
             }
             // Check for duplicate GroupName or SortOrder
             var (isNameDuplicate, isSortOrderDuplicate) = await _uomCommandRepository
-                                .CheckForDuplicatesAsync(request.UOMName, request.SortOrder, request.Id);
+                                .CheckForDuplicatesAsync(request.UOMName ?? string.Empty, request.SortOrder, request.Id);
 
         if (isNameDuplicate || isSortOrderDuplicate)
         {

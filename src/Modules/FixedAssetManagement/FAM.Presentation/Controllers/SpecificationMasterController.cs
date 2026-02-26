@@ -22,7 +22,7 @@ namespace FAM.Presentation.Controllers
          
         }
         [HttpGet]                
-        public async Task<IActionResult> GetAllSpecificationMasterAsync([FromQuery] int PageNumber,[FromQuery] int PageSize,[FromQuery] string SearchTerm = null)
+        public async Task<IActionResult> GetAllSpecificationMasterAsync([FromQuery] int PageNumber,[FromQuery] int PageSize,[FromQuery] string? SearchTerm = null)
         {            
             var specificationMaster = await Mediator.Send(
             new GetSpecificationMasterQuery
@@ -35,7 +35,7 @@ namespace FAM.Presentation.Controllers
             { 
                 StatusCode=StatusCodes.Status200OK, 
                 message = specificationMaster.Message,
-                data = specificationMaster.Data.ToList(),
+                data = specificationMaster.Data!.ToList(),
                 TotalCount = specificationMaster.TotalCount,
                 PageNumber = specificationMaster.PageNumber,
                 PageSize = specificationMaster.PageSize

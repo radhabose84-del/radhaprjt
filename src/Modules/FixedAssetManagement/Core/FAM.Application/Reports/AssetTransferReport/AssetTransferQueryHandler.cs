@@ -79,7 +79,7 @@ namespace FAM.Application.Reports.AssetTransferReport
                 IsSuccess = true,
                 Message = "Success",
                 Data = assetTransfersReportDtos ?? new List<AssetTransferDetailsDto>(),
-                TotalCount = assetTransfersReportDtos.Count
+                TotalCount = assetTransfersReportDtos?.Count ?? 0
             };
         }
     }

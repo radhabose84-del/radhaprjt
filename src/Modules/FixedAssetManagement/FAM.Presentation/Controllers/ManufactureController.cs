@@ -23,7 +23,7 @@ namespace FAM.Presentation.Controllers
         }
 
         [HttpGet]                
-        public async Task<IActionResult> GetAllCitiesAsync([FromQuery] int PageNumber,[FromQuery] int PageSize,[FromQuery] string SearchTerm = null)
+        public async Task<IActionResult> GetAllCitiesAsync([FromQuery] int PageNumber,[FromQuery] int PageSize,[FromQuery] string? SearchTerm = null)
         {            
             var manufactures = await Mediator.Send(
             new GetManufactureQuery
@@ -36,7 +36,7 @@ namespace FAM.Presentation.Controllers
             { 
                 StatusCode=StatusCodes.Status200OK, 
                 message = manufactures.Message,
-                data = manufactures.Data.ToList(),
+                data = manufactures.Data!.ToList(),
                 TotalCount = manufactures.TotalCount,
                 PageNumber = manufactures.PageNumber,
                 PageSize = manufactures.PageSize

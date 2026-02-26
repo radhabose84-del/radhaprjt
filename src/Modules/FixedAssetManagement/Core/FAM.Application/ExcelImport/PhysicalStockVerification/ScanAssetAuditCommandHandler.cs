@@ -32,7 +32,7 @@ namespace FAM.Application.ExcelImport.PhysicalStockVerification
         var auditDate = new DateTimeOffset(currentTime.Date, currentTime.Offset);
          // ✅ Check for duplicate entry
         var alreadyScanned = await _assetRepository
-            .IsAssetAlreadyScannedAsync(request.AssetCode, request.AuditCycle,GetFinancialYear(currentTime.DateTime),request.DepartmentName,request.UnitName ,cancellationToken);
+            .IsAssetAlreadyScannedAsync(request.AssetCode ?? string.Empty, request.AuditCycle,GetFinancialYear(currentTime.DateTime),request.DepartmentName ?? string.Empty,request.UnitName ?? string.Empty ,cancellationToken);
 
         if (alreadyScanned)
         {

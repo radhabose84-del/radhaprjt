@@ -50,7 +50,7 @@ namespace FAM.Application.WDVDepreciation.Commands.CreateDepreciation
             if (result != null && result.Any())
             {
                 
-                return  null;
+                return  null!;
             }
         throw new Exception("WDV Calculation not created.");
          
