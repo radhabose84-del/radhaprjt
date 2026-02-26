@@ -21,16 +21,18 @@ namespace InventoryManagement.Infrastructure.Repositories.Lookups
                 return new List<ItemLookupDto>();
 
             const string sql = @"
-                SELECT Id,
-                       ItemCode,
-                       ItemName,
-                       TariffNumber,
-                       HSNCode,
-                       GSTPercentage,
-                       IsOnSpot,
-                       SourceOfItem
-                FROM Inventory.ItemMaster
-                WHERE Id IN @ItemIds AND IsDeleted = 0;";
+                SELECT IM.Id,
+                       IM.ItemCode,
+                       IM.ItemName,
+                       IP.TariffNumber,
+                       H.HSNCode,
+                       ISNULL(H.GSTPercentage, 0) AS GSTPercentage,
+                       IM.IsOnSpot,
+                       ISNULL(IP.SourceOfItem, 0) AS SourceOfItem
+                FROM Inventory.ItemMaster IM
+                LEFT JOIN Inventory.ItemPurchase IP ON IP.ItemId = IM.Id
+                LEFT JOIN Inventory.HSNMaster H ON H.Id = IM.HSNId AND H.IsDeleted = 0
+                WHERE IM.Id IN @ItemIds AND IM.IsDeleted = 0;";
 
             var result = await _dbConnection.QueryAsync<ItemLookupDto>(
                 new CommandDefinition(sql, new { ItemIds = ids }, cancellationToken: ct));

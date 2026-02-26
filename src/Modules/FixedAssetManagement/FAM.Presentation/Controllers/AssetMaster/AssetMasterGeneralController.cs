@@ -148,7 +148,7 @@ namespace FAM.Presentation.Controllers.AssetMaster
         // GET: api/AssetMasterGeneral/by-name?name=...
 
         [HttpGet("by-name")]
-        public async Task<IActionResult> GetAssetName([FromQuery] string name)
+        public async Task<IActionResult> GetAssetName([FromQuery] string? name = null)
 
         {
             var result = await Mediator.Send(new GetAssetMasterGeneralAutoCompleteQuery { SearchPattern = name });
