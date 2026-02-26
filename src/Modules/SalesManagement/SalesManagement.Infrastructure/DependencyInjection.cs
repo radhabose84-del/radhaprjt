@@ -27,6 +27,8 @@ using SalesManagement.Application.Common.Interfaces.IMiscTypeMaster;
 using SalesManagement.Infrastructure.Repositories.MiscTypeMaster;
 using SalesManagement.Application.Common.Interfaces.IMiscMaster;
 using SalesManagement.Infrastructure.Repositories.MiscMaster;
+using SalesManagement.Application.Common.Interfaces.IDispatchAddressMaster;
+using SalesManagement.Infrastructure.Repositories.DispatchAddressMaster;
 using SalesManagement.Infrastructure.Services;
 using Serilog;
 using Microsoft.Extensions.Hosting;
@@ -152,6 +154,10 @@ namespace SalesManagement.Infrastructure
             // ── Misc Master Repositories ──────────────────────────────────
             services.AddScoped<IMiscMasterCommandRepository, MiscMasterCommandRepository>();
             services.AddScoped<IMiscMasterQueryRepository, MiscMasterQueryRepository>();
+
+            // ── Dispatch Address Master Repositories ──────────────────────
+            services.AddScoped<IDispatchAddressMasterCommandRepository, DispatchAddressMasterCommandRepository>();
+            services.AddScoped<IDispatchAddressMasterQueryRepository, DispatchAddressMasterQueryRepository>();
 
             return services;
         }

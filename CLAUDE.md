@@ -3,7 +3,7 @@
 **Project:** BSOFT Modular Monolith ERP System
 **Framework:** ASP.NET Core 8.0
 **Architecture:** CQRS + Repository Pattern + Modular Monolith
-**Last Updated:** 2026-02-25
+**Last Updated:** 2026-02-26
 
 ---
 
@@ -454,6 +454,50 @@ public interface I{EntityName}QueryRepository
 - All queries filter `WHERE IsDeleted = 0`
 - Autocomplete filters `WHERE IsActive = 1 AND IsDeleted = 0`
 - Returns DTOs directly (no entity tracking)
+- **`AutocompleteAsync` queries directly into `{EntityName}LookupDto`** — NEVER create a `private sealed class` (e.g. `AutoCompleteRow`) inside the repository as an intermediate mapping type; that duplicates fields already present in the standard LookupDto
+
+**Autocomplete implementation pattern:**
+```csharp
+public async Task<IReadOnlyList<{EntityName}LookupDto>> AutocompleteAsync(string term, CancellationToken ct)
+{
+    const string sql = @"
+        SELECT TOP 20 Id, {EntityName}Name, AddressLine1, CityId   -- ✅ SELECT FK id, not FK name
+        FROM {Schema}.{EntityName}
+        WHERE IsDeleted = 0 AND IsActive = 1
+        AND {EntityName}Name LIKE @Term
+        ORDER BY {EntityName}Name ASC";
+
+    // ✅ Query directly into the standard LookupDto — no private inner class
+    var rows = (await _dbConnection.QueryAsync<{EntityName}LookupDto>(
+        new CommandDefinition(sql, new { Term = $"%{term}%" }, cancellationToken: ct))).ToList();
+
+    // ✅ Populate display-name from lookup dict using the FK id already mapped by Dapper
+    var cities = await _cityLookup.GetAllCityAsync(ct);
+    var cityDict = cities.ToDictionary(c => c.CityId, c => c.CityName);
+
+    foreach (var row in rows)
+        row.CityName = cityDict.TryGetValue(row.CityId, out var cn) ? cn : null;
+
+    return rows;
+}
+```
+
+> ❌ **NEVER do this:**
+> ```csharp
+> // ❌ WRONG — private inner class duplicates LookupDto fields
+> private sealed class AutoCompleteRow
+> {
+>     public int Id { get; set; }
+>     public string EntityName { get; set; } = null!;
+>     public int CityId { get; set; }
+> }
+> var rows = await _dbConnection.QueryAsync<AutoCompleteRow>(...);
+> return rows.Select(r => new {EntityName}LookupDto { Id = r.Id, ... }).ToList();
+> ```
+>
+> ✅ **ALWAYS query directly into `{EntityName}LookupDto`:**
+> - Add FK id properties (e.g. `CityId`) to the LookupDto so Dapper can map them
+> - After the query, populate display-name properties (e.g. `CityName`) using the lookup dict
 
 ---
 
@@ -772,27 +816,86 @@ public class Update{EntityName}CommandValidator : AbstractValidator<Update{Entit
 }
 ```
 
+### Delete Validator Structure
+
+```csharp
+public class Delete{EntityName}CommandValidator : AbstractValidator<Delete{EntityName}Command>
+{
+    private readonly List<ValidationRule> _validationRules;
+    private readonly I{EntityName}QueryRepository _queryRepository;
+
+    // ⚠️ NO MaxLengthProvider — Delete only validates Id; no string properties to measure
+    public Delete{EntityName}CommandValidator(I{EntityName}QueryRepository queryRepository)
+    {
+        _queryRepository = queryRepository;
+        _validationRules = ValidationRuleLoader.LoadValidationRules();
+        if (_validationRules == null || _validationRules.Count == 0)
+        {
+            throw new InvalidOperationException("Validation rules could not be loaded.");
+        }
+
+        foreach (var rule in _validationRules)
+        {
+            switch (rule.Rule)
+            {
+                case "NotEmpty":
+                    RuleFor(x => x.Id)
+                        .NotEmpty()
+                        .WithMessage($"{nameof(Delete{EntityName}Command.Id)} {rule.Error}");
+                    break;
+
+                case "NotFound":
+                    RuleFor(x => x.Id)
+                        .MustAsync(async (id, ct) => !await _queryRepository.NotFoundAsync(id))
+                        .WithMessage($"{EntityName} {rule.Error}");
+                    break;
+
+                case "SoftDelete":
+                    RuleFor(x => x.Id)
+                        .MustAsync(async (id, ct) => !await _queryRepository.SoftDeleteValidationAsync(id))
+                        .WithMessage(rule.Error);
+                    break;
+
+                default:
+                    break;
+            }
+        }
+    }
+}
+```
+
+⚠️ **Key differences from Create/Update validators:**
+- **NO `MaxLengthProvider`** — Delete only validates `Id`; no string properties to measure
+- **Only one constructor parameter** — `I{EntityName}QueryRepository` (no `MaxLengthProvider`)
+- **Three switch cases only:** `NotEmpty`, `NotFound`, `SoftDelete`
+- **ALL three rules are independent `RuleFor(x => x.Id)`** with no `When()` guards — all fire even when `Id = 0`; unit tests must set up ALL three async mocks even for `Id = 0` cases
+- **`SoftDelete` error message** uses `rule.Error` directly (not prefixed with property name): `"Cannot delete the relationship as it is active with another table."`
+
 ⚠️ **Validator Rules:**
 - **ALL validation logic lives in validators** — never in controllers or handlers
 - **ALWAYS use `ValidationRuleLoader` + `MaxLengthProvider`** — never hardcode validation rules or max lengths
-- **ALWAYS inject `MaxLengthProvider`** as the first constructor parameter
+- **Create/Update validators:** `MaxLengthProvider` is always the first constructor parameter
+- **Delete validators:** NO `MaxLengthProvider` — only `I{EntityName}QueryRepository` as the sole constructor parameter
 - Error messages use `$"{nameof(Command.Property)} {rule.Error}"` pattern from shared JSON config
 - Validators can inject **cross-module lookup interfaces** (e.g., `ICurrencyLookup`) for FK validation in `FKColumnDelete` case
 - Handlers assume validation has passed — they only do: map → persist → audit → return
 
 **Switch case mapping:**
 
-| Validation Need | JSON Rule Case | FluentValidation Method |
-|---|---|---|
-| Required fields | `NotEmpty` | `.NotNull().NotEmpty()` |
-| Alphanumeric format | `Alphanumeric` | `.Matches(rule.Pattern)` with `.When()` guard |
-| Max length (from EF) | `MaxLength` | `.MaximumLength(maxLengthVar)` |
-| FK existence | `FKColumnDelete` | `.MustAsync(... ExistsAsync ...)` |
-| Cross-module FK | `FKColumnDelete` (same case) | `.MustAsync(... lookup.GetByIdsAsync ...)` |
-| Uniqueness | `AlreadyExists` | `.MustAsync(... AlreadyExistsAsync ...)` |
-| Composite key unique | `AlreadyExists` (same case) | `.MustAsync(... CompositeKeyExistsAsync ...)` |
-| Entity exists (Update) | `NotFound` | `.MustAsync(... NotFoundAsync ...)` |
-| IsActive range (Update) | `ByteValue` | `.InclusiveBetween(0, 1)` |
+| Validation Need | JSON Rule Case | FluentValidation Method | Validator Type |
+|---|---|---|---|
+| Required fields | `NotEmpty` | `.NotNull().NotEmpty()` | Create / Update |
+| Required Id | `NotEmpty` | `.NotEmpty()` (no `.NotNull()`) | Delete |
+| Alphanumeric format | `Alphanumeric` | `.Matches(rule.Pattern)` with `.When()` guard | Create |
+| Max length (from EF) | `MaxLength` | `.MaximumLength(maxLengthVar)` | Create / Update |
+| FK existence | `FKColumnDelete` | `.MustAsync(... ExistsAsync ...)` | Create / Update |
+| Cross-module FK | `FKColumnDelete` (same case) | `.MustAsync(... lookup.GetByIdsAsync ...)` | Create / Update |
+| Uniqueness | `AlreadyExists` | `.MustAsync(... AlreadyExistsAsync ...)` | Create |
+| Composite key unique | `AlreadyExists` (same case) | `.MustAsync(... CompositeKeyExistsAsync ...)` | Create / Update |
+| Entity exists (Update) | `NotFound` | `.GreaterThan(0)` + `.MustAsync(... NotFoundAsync ...)` | Update |
+| Entity exists (Delete) | `NotFound` | `.MustAsync(... NotFoundAsync ...)` (no `GreaterThan`) | Delete |
+| FK children check | `SoftDelete` | `.MustAsync(... SoftDeleteValidationAsync ...)` | Delete |
+| IsActive range | `ByteValue` | `.InclusiveBetween(0, 1)` | Update |
 
 ### Global Validation Pipeline
 
@@ -1046,7 +1149,7 @@ public class UpdateCustomerCommand : IRequest<ApiResponseDTO<int>>
 
 **Files:**
 - `{EntityName}Dto.cs` - Full DTO with all fields (for GetAll, GetById)
-- `{EntityName}LookupDto.cs` - Lightweight DTO (Id, Code, Name) for autocomplete
+- `{EntityName}LookupDto.cs` - Lightweight DTO for autocomplete — **Dapper maps directly into this** (no intermediate private class)
 
 **Example:**
 ```csharp
@@ -1063,14 +1166,22 @@ public class SalesOrganisationDto
     // ... audit fields
 }
 
-// Lookup DTO
-public sealed class SalesOrganisationLookupDto
+// Lookup DTO — used directly in QueryAsync<DispatchAddressMasterLookupDto>
+// ✅ Include EVERY FK id whose display-name must be resolved via a cross-module lookup
+// ✅ Dapper maps the FK id column; the repo then populates the display-name from a lookup dict
+public sealed class DispatchAddressMasterLookupDto
 {
     public int Id { get; set; }
-    public string SalesOrganisationCode { get; set; }
-    public string SalesOrganisationName { get; set; }
+    public string DispatchAddressName { get; set; } = default!;
+    public string? AddressLine1 { get; set; }
+    public int CityId { get; set; }       // ✅ FK id — mapped by Dapper from SQL SELECT
+    public string? CityName { get; set; } // ✅ Display name — populated from ICityLookup dict
 }
 ```
+
+> ⚠️ **LookupDto must include the FK `int` id for every cross-module name that needs to be displayed.**
+> Dapper maps the raw FK column from the SQL SELECT directly into the DTO.
+> The repository then populates the corresponding `*Name` property using the lookup dictionary — no intermediate private class needed.
 
 **Update All Usings:**
 ```csharp
@@ -1251,7 +1362,8 @@ src/tests/
 ├── Validators/
 │   └── {EntityName}/
 │       ├── Create{EntityName}CommandValidatorTests.cs
-│       └── Update{EntityName}CommandValidatorTests.cs
+│       ├── Update{EntityName}CommandValidatorTests.cs
+│       └── Delete{EntityName}CommandValidatorTests.cs  ← ✨ NEW
 ├── TestData/
 │   └── {EntityName}Builders.cs
 └── Usings.cs
@@ -1627,6 +1739,117 @@ public sealed class Create{EntityName}CommandValidatorTests
     }
 }
 ```
+
+### Delete Validator Unit Test Pattern
+
+**File:** `Validators/{EntityName}/Delete{EntityName}CommandValidatorTests.cs`
+
+> ⚠️ **Critical difference from Create/Update validator tests:**
+> The Delete validator has **no `MaxLengthProvider`** — constructor takes only `I{EntityName}QueryRepository`.
+> All three `RuleFor(x => x.Id)` rules are **independent with no `When()` guards** — they ALL fire regardless of the `Id` value, including `Id = 0`. This means every test (even `Id = 0`) **must set up ALL async mocks** (`NotFoundAsync` AND `SoftDeleteValidationAsync`).
+
+```csharp
+public class Delete{EntityName}CommandValidatorTests
+{
+    private readonly Mock<I{EntityName}QueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
+
+    // ⚠️ NO MaxLengthProvider — Delete validator takes only the query repository
+    private Delete{EntityName}CommandValidator CreateValidator() =>
+        new(_mockQueryRepo.Object);
+
+    // Setup for a valid, existing, soft-delete-safe entity
+    private void SetupHappyPath(int id = 1)
+    {
+        _mockQueryRepo.Setup(r => r.NotFoundAsync(id)).ReturnsAsync(false);
+        _mockQueryRepo.Setup(r => r.SoftDeleteValidationAsync(id)).ReturnsAsync(false);
+    }
+
+    // ── Happy Path ────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task ValidId_ExistingEntity_PassesValidation()
+    {
+        SetupHappyPath(1);
+
+        var result = await CreateValidator().TestValidateAsync(new Delete{EntityName}Command(1));
+
+        result.ShouldNotHaveAnyValidationErrors();
+    }
+
+    // ── Id / NotEmpty Rules ───────────────────────────────────────────────
+
+    [Fact]
+    public async Task Id_Zero_FailsNotEmpty()
+    {
+        // ⚠️ Even for Id = 0, NotFoundAsync and SoftDeleteValidationAsync still fire
+        // (no When guards) — both mocks MUST be set up or MockBehavior.Strict throws
+        _mockQueryRepo.Setup(r => r.NotFoundAsync(0)).ReturnsAsync(true);
+        _mockQueryRepo.Setup(r => r.SoftDeleteValidationAsync(0)).ReturnsAsync(false);
+
+        var result = await CreateValidator().TestValidateAsync(new Delete{EntityName}Command(0));
+
+        result.ShouldHaveValidationErrorFor(x => x.Id)
+              .WithErrorMessage("Id is required.");
+    }
+
+    // ── NotFound Rules ────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task Id_EntityNotFound_FailsValidation()
+    {
+        _mockQueryRepo.Setup(r => r.NotFoundAsync(999)).ReturnsAsync(true);
+        _mockQueryRepo.Setup(r => r.SoftDeleteValidationAsync(999)).ReturnsAsync(false);
+
+        var result = await CreateValidator().TestValidateAsync(new Delete{EntityName}Command(999));
+
+        result.ShouldHaveValidationErrorFor(x => x.Id)
+              .WithErrorMessage("{EntityName} not found.");
+    }
+
+    [Fact]
+    public async Task Id_EntityExists_PassesNotFoundCheck()
+    {
+        SetupHappyPath(1);
+
+        var result = await CreateValidator().TestValidateAsync(new Delete{EntityName}Command(1));
+
+        result.ShouldNotHaveValidationErrorFor(x => x.Id);
+    }
+
+    // ── SoftDelete Rules ──────────────────────────────────────────────────
+
+    [Fact]
+    public async Task Id_ActiveRelationshipsExist_FailsSoftDeleteValidation()
+    {
+        _mockQueryRepo.Setup(r => r.NotFoundAsync(2)).ReturnsAsync(false);
+        _mockQueryRepo.Setup(r => r.SoftDeleteValidationAsync(2)).ReturnsAsync(true);
+
+        var result = await CreateValidator().TestValidateAsync(new Delete{EntityName}Command(2));
+
+        result.ShouldHaveValidationErrorFor(x => x.Id)
+              .WithErrorMessage("Cannot delete the relationship as it is active with another table.");
+    }
+
+    [Fact]
+    public async Task Id_NoActiveRelationships_PassesSoftDeleteCheck()
+    {
+        SetupHappyPath(1);
+
+        var result = await CreateValidator().TestValidateAsync(new Delete{EntityName}Command(1));
+
+        result.ShouldNotHaveAnyValidationErrors();
+    }
+}
+```
+
+**Standard test count:** 6 tests — `ValidId_PassesValidation`, `Id_Zero_FailsNotEmpty`, `Id_EntityNotFound_FailsValidation`, `Id_EntityExists_PassesNotFoundCheck`, `Id_ActiveRelationshipsExist_FailsSoftDeleteValidation`, `Id_NoActiveRelationships_PassesSoftDeleteCheck`
+
+**Key rules for Delete validator tests:**
+1. **Constructor takes only `I{EntityName}QueryRepository`** — never pass `TestMaxLengthProviderFactory.Create()`
+2. **Always set up BOTH async mocks per test** — `NotFoundAsync` and `SoftDeleteValidationAsync` fire on every call (no `When` guards), so `MockBehavior.Strict` will throw if either is unsetup
+3. **`Id = 0` test must still setup both mocks** — FluentValidation does not short-circuit after `NotEmpty` fails; all three `RuleFor(x => x.Id)` blocks execute independently
+4. **`SoftDelete` error message has no property prefix** — `rule.Error` is used directly: `"Cannot delete the relationship as it is active with another table."`
+5. **`NotFound` message format:** `$"{EntityName} {rule.Error}"` → e.g. `"Dispatch Address Master not found."`
 
 ---
 
@@ -2221,6 +2444,7 @@ mockCompanyLookup.Setup(c => c.GetAllCompanyAsync())
 - [ ] Create `Application/{EntityName}/Queries/Get{EntityName}AutoCompleteQueryHandlerTests.cs`
 - [ ] Create `Validators/{EntityName}/Create{EntityName}CommandValidatorTests.cs`
 - [ ] Create `Validators/{EntityName}/Update{EntityName}CommandValidatorTests.cs`
+- [ ] Create `Validators/{EntityName}/Delete{EntityName}CommandValidatorTests.cs` ← no `MaxLengthProvider`; both async mocks required on every test
 - [ ] Create `Controllers/{EntityName}ControllerTests.cs`
 - [ ] Create `Domain/{EntityName}EntityTests.cs` (one dedicated file per entity — never add to a shared `EntityTests.cs`)
 - [ ] Run: `dotnet test src/tests/{Module}.UnitTests/` ✅ All pass
@@ -3139,6 +3363,61 @@ All module `.csproj` files use `<Nullable>enable</Nullable>`. **No source file o
 EF Core auto-generates migration files with lowercase class names that trigger CS8981. Migration `.cs` and `.Designer.cs` files MAY retain `#nullable disable` since they are tool-generated. All hand-written source and test files must be free of it.
 
 **Build target:** `0 Warning(s), 0 Error(s)` — never suppress warnings with pragmas or `#nullable disable`.
+
+---
+
+### 25. **NEVER Create Private Inner Classes in Query Repositories for Autocomplete Mapping**
+
+> ❌ **NEVER define a private `sealed class` inside a repository to act as an intermediate Dapper target:**
+> ```csharp
+> // ❌ WRONG — inner class duplicates LookupDto fields and forces a manual projection
+> private sealed class AutoCompleteRow
+> {
+>     public int Id { get; set; }
+>     public string DispatchAddressName { get; set; } = null!;
+>     public string? AddressLine1 { get; set; }
+>     public int CityId { get; set; }
+> }
+>
+> var rows = await _dbConnection.QueryAsync<AutoCompleteRow>(...);
+> return rows.Select(r => new DispatchAddressMasterLookupDto
+> {
+>     Id = r.Id,
+>     DispatchAddressName = r.DispatchAddressName,
+>     AddressLine1 = r.AddressLine1,
+>     CityName = cityDict.TryGetValue(r.CityId, out var cn) ? cn : null
+> }).ToList();
+> ```
+
+> ✅ **ALWAYS query directly into `{EntityName}LookupDto` — include FK ids in the DTO so Dapper can map them:**
+> ```csharp
+> // In {EntityName}LookupDto.cs — add FK id alongside its display-name
+> public sealed class DispatchAddressMasterLookupDto
+> {
+>     public int Id { get; set; }
+>     public string DispatchAddressName { get; set; } = default!;
+>     public string? AddressLine1 { get; set; }
+>     public int CityId { get; set; }       // ✅ Dapper maps this from SQL SELECT
+>     public string? CityName { get; set; } // ✅ Populated from lookup dict after query
+> }
+>
+> // In the repository — query directly into the standard DTO
+> var rows = (await _dbConnection.QueryAsync<DispatchAddressMasterLookupDto>(
+>     new CommandDefinition(sql, new { Term = $"%{term}%" }, cancellationToken: ct))).ToList();
+>
+> foreach (var row in rows)
+>     row.CityName = cityDict.TryGetValue(row.CityId, out var cn) ? cn : null;
+>
+> return rows;
+> ```
+
+**Why:**
+- **Single Responsibility:** The standard LookupDto is the autocomplete contract — Dapper should map into it directly
+- **No duplication:** A private inner class with the same fields as the LookupDto is pure redundancy
+- **Simpler code:** Eliminates the manual `.Select(r => new LookupDto { ... })` projection
+- **Consistency:** All query repositories follow the same pattern — `QueryAsync<{EntityName}LookupDto>`
+
+**Rule:** If `AutocompleteAsync` needs a FK id to resolve a display-name, **add that FK id property to `{EntityName}LookupDto`** — never introduce a private mapping class.
 
 ---
 
