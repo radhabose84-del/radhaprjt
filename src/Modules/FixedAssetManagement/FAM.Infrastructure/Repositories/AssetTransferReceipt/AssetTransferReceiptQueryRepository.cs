@@ -1,4 +1,3 @@
-#nullable disable
 using System.Data;
 using System.Text.Json;
 using FAM.Application.AssetMaster.AssetTransferIssue.Queries.GetAssetTransfered;

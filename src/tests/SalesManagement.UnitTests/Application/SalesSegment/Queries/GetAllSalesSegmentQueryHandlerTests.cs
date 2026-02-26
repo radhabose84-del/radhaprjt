@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using Contracts.Interfaces.Lookups.Users;
 using MediatR;
@@ -61,9 +60,9 @@ namespace SalesManagement.UnitTests.Application.SalesSegment.Queries
             var query = new GetAllSalesSegmentQuery { PageNumber = 1, PageSize = 10, SearchTerm = null };
             var result = await CreateSut().Handle(query, CancellationToken.None);
 
-            result.Data.Should().HaveCount(2);
-            result.Data[0].SegmentName.Should().Be("Seg Alpha");
-            result.Data[1].SegmentName.Should().Be("Seg Beta");
+            result.Data!.Should().HaveCount(2);
+            result.Data![0].SegmentName.Should().Be("Seg Alpha");
+            result.Data![1].SegmentName.Should().Be("Seg Beta");
         }
 
         [Fact]
@@ -111,7 +110,7 @@ namespace SalesManagement.UnitTests.Application.SalesSegment.Queries
             var query = new GetAllSalesSegmentQuery { PageNumber = 1, PageSize = 10, SearchTerm = null };
             var result = await CreateSut().Handle(query, CancellationToken.None);
 
-            result.Data[0].CurrencyName.Should().Be("US Dollar");
+            result.Data![0].CurrencyName.Should().Be("US Dollar");
         }
 
         [Fact]

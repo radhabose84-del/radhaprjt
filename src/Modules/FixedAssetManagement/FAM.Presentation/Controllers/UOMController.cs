@@ -1,4 +1,3 @@
-#nullable disable
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using FAM.Application.UOM.Command.CreateUOM;

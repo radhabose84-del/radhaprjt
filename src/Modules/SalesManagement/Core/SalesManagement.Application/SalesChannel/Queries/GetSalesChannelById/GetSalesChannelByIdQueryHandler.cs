@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.ISalesChannel;
@@ -7,7 +6,7 @@ using SalesManagement.Domain.Events;
 
 namespace SalesManagement.Application.SalesChannel.Queries.GetSalesChannelById
 {
-    public class GetSalesChannelByIdQueryHandler : IRequestHandler<GetSalesChannelByIdQuery, SalesChannelDto>
+    public class GetSalesChannelByIdQueryHandler : IRequestHandler<GetSalesChannelByIdQuery, SalesChannelDto?>
     {
         private readonly ISalesChannelQueryRepository _queryRepository;
         private readonly IMapper _mapper;
@@ -20,7 +19,7 @@ namespace SalesManagement.Application.SalesChannel.Queries.GetSalesChannelById
             _mediator = mediator;
         }
 
-        public async Task<SalesChannelDto> Handle(GetSalesChannelByIdQuery request, CancellationToken cancellationToken)
+        public async Task<SalesChannelDto?> Handle(GetSalesChannelByIdQuery request, CancellationToken cancellationToken)
         {
             var result = await _queryRepository.GetByIdAsync(request.Id);
 

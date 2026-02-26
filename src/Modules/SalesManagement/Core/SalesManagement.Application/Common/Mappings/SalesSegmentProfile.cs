@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using SalesManagement.Application.SalesSegment.Commands.CreateSalesSegment;
 using SalesManagement.Application.SalesSegment.Commands.UpdateSalesSegment;

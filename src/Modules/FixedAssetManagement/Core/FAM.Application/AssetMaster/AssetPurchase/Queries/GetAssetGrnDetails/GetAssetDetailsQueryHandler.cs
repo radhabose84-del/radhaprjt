@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using FAM.Application.Common.Interfaces.IAssetMaster.IAssetPurchase;
 using FAM.Domain.Entities.AssetPurchase;

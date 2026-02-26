@@ -1,4 +1,3 @@
-#nullable disable
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.ISalesGroup;
 using SalesManagement.Application.SalesGroup.Commands.DeleteSalesGroup;

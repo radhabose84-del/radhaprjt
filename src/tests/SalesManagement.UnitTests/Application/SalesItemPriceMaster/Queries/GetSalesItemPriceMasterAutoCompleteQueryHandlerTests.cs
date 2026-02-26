@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.ISalesItemPriceMaster;
@@ -58,7 +57,7 @@ namespace SalesManagement.UnitTests.Application.SalesItemPriceMaster.Queries
                 .ReturnsAsync(SalesItemPriceMasterBuilders.ValidLookupList());
 
             await CreateSut().Handle(
-                new GetSalesItemPriceMasterAutoCompleteQuery(null), CancellationToken.None);
+                new GetSalesItemPriceMasterAutoCompleteQuery(null!), CancellationToken.None);
 
             _mockQueryRepo.Verify(r => r.AutocompleteAsync(string.Empty, It.IsAny<CancellationToken>()), Times.Once);
         }

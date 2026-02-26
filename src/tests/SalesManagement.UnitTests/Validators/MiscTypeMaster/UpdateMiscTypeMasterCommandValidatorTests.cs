@@ -1,4 +1,3 @@
-#nullable disable
 using FluentValidation.TestHelper;
 using SalesManagement.Application.Common.Interfaces.IMiscTypeMaster;
 using SalesManagement.Presentation.Validation.MiscTypeMaster;
@@ -72,7 +71,7 @@ namespace SalesManagement.UnitTests.Validators.MiscTypeMaster
         [Theory]
         [InlineData(null)]
         [InlineData("")]
-        public async Task Description_Empty_FailsValidation(string description)
+        public async Task Description_Empty_FailsValidation(string? description)
         {
             var command = MiscTypeMasterBuilders.ValidUpdateCommand(description: description);
             SetupEntityExists(1);

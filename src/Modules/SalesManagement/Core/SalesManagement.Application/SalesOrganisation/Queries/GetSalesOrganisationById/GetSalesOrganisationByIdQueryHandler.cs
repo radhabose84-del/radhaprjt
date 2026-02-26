@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.ISalesOrganisation;
@@ -7,7 +6,7 @@ using SalesManagement.Domain.Events;
 
 namespace SalesManagement.Application.SalesOrganisation.Queries.GetSalesOrganisationById
 {
-    public class GetSalesOrganisationByIdQueryHandler : IRequestHandler<GetSalesOrganisationByIdQuery, SalesOrganisationDto>
+    public class GetSalesOrganisationByIdQueryHandler : IRequestHandler<GetSalesOrganisationByIdQuery, SalesOrganisationDto?>
     {
         private readonly ISalesOrganisationQueryRepository _queryRepository;
         private readonly IMapper _mapper;
@@ -20,7 +19,7 @@ namespace SalesManagement.Application.SalesOrganisation.Queries.GetSalesOrganisa
             _mediator = mediator;
         }
 
-        public async Task<SalesOrganisationDto> Handle(GetSalesOrganisationByIdQuery request, CancellationToken cancellationToken)
+        public async Task<SalesOrganisationDto?> Handle(GetSalesOrganisationByIdQuery request, CancellationToken cancellationToken)
         {
             var result = await _queryRepository.GetByIdAsync(request.Id);
 

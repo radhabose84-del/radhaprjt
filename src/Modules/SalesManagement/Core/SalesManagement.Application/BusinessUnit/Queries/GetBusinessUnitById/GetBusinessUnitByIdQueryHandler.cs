@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using MediatR;
 using SalesManagement.Application.BusinessUnit.Dto;
@@ -7,7 +6,7 @@ using SalesManagement.Domain.Events;
 
 namespace SalesManagement.Application.BusinessUnit.Queries.GetBusinessUnitById
 {
-    public class GetBusinessUnitByIdQueryHandler : IRequestHandler<GetBusinessUnitByIdQuery, BusinessUnitDto>
+    public class GetBusinessUnitByIdQueryHandler : IRequestHandler<GetBusinessUnitByIdQuery, BusinessUnitDto?>
     {
         private readonly IBusinessUnitQueryRepository _queryRepository;
         private readonly IMapper _mapper;
@@ -20,7 +19,7 @@ namespace SalesManagement.Application.BusinessUnit.Queries.GetBusinessUnitById
             _mediator = mediator;
         }
 
-        public async Task<BusinessUnitDto> Handle(GetBusinessUnitByIdQuery request, CancellationToken cancellationToken)
+        public async Task<BusinessUnitDto?> Handle(GetBusinessUnitByIdQuery request, CancellationToken cancellationToken)
         {
             var result = await _queryRepository.GetByIdAsync(request.Id);
 

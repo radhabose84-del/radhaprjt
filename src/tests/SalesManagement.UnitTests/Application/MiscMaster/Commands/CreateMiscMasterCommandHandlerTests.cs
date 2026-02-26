@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.IMiscMaster;
@@ -90,7 +89,7 @@ namespace SalesManagement.UnitTests.Application.MiscMaster.Commands
         public async Task Handle_ValidCommand_SetsSortOrderToMaxPlusOne()
         {
             var command = MiscMasterBuilders.ValidCreateCommand();
-            SalesManagement.Domain.Entities.MiscMaster capturedEntity = null;
+            SalesManagement.Domain.Entities.MiscMaster? capturedEntity = null;
 
             _mockCommandRepo
                 .Setup(r => r.GetMaxSortOrderAsync(command.MiscTypeId))
@@ -111,7 +110,7 @@ namespace SalesManagement.UnitTests.Application.MiscMaster.Commands
 
             await CreateSut().Handle(command, CancellationToken.None);
 
-            capturedEntity.SortOrder.Should().Be(5);
+            capturedEntity!.SortOrder.Should().Be(5);
         }
 
         // ── Repository ────────────────────────────────────────────────────────
@@ -135,7 +134,7 @@ namespace SalesManagement.UnitTests.Application.MiscMaster.Commands
         public async Task Handle_ValidCommand_SetsEntityActiveAndNotDeleted()
         {
             var command = MiscMasterBuilders.ValidCreateCommand();
-            SalesManagement.Domain.Entities.MiscMaster capturedEntity = null;
+            SalesManagement.Domain.Entities.MiscMaster? capturedEntity = null;
 
             _mockCommandRepo
                 .Setup(r => r.GetMaxSortOrderAsync(command.MiscTypeId))
@@ -156,8 +155,8 @@ namespace SalesManagement.UnitTests.Application.MiscMaster.Commands
 
             await CreateSut().Handle(command, CancellationToken.None);
 
-            capturedEntity.IsActive.Should().Be(BaseEntity.Status.Active);
-            capturedEntity.IsDeleted.Should().Be(BaseEntity.IsDelete.NotDeleted);
+            capturedEntity!.IsActive.Should().Be(BaseEntity.Status.Active);
+            capturedEntity!.IsDeleted.Should().Be(BaseEntity.IsDelete.NotDeleted);
         }
 
         // ── Audit Event ───────────────────────────────────────────────────────

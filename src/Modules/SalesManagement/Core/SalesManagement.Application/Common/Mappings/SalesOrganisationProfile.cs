@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using SalesManagement.Application.SalesOrganisation.Commands.CreateSalesOrganisation;
 using SalesManagement.Application.SalesOrganisation.Commands.UpdateSalesOrganisation;

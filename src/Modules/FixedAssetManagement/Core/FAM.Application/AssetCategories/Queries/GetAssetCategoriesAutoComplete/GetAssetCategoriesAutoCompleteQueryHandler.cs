@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using FAM.Application.AssetCategories.Queries.GetAssetCategories;
 using FAM.Application.Common.Interfaces.IAssetCategories;

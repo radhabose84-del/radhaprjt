@@ -1,4 +1,3 @@
-#nullable disable
 using System.Data;
 using FAM.Application.Common.Interfaces.IMiscMaster;
 using Dapper;

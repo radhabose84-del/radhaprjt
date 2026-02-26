@@ -1,4 +1,3 @@
-#nullable disable
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.ISalesChannel;
 using SalesManagement.Domain.Events;

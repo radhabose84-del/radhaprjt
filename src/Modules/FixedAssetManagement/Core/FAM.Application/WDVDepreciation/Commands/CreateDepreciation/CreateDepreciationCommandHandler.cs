@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using FAM.Application.Common.Interfaces.IWdvDepreciation;
 using FAM.Application.WDVDepreciation.Queries.GetDepreciation;

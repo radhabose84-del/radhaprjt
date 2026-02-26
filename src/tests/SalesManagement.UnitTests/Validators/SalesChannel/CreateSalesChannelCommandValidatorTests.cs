@@ -1,4 +1,3 @@
-#nullable disable
 using FluentValidation.TestHelper;
 using SalesManagement.Application.Common.Interfaces.ISalesChannel;
 using SalesManagement.Presentation.Validation.SalesChannel;
@@ -61,7 +60,7 @@ namespace SalesManagement.UnitTests.Validators.SalesChannel
         [Theory]
         [InlineData(null)]
         [InlineData("")]
-        public async Task SalesChannelCode_Empty_FailsValidation(string code)
+        public async Task SalesChannelCode_Empty_FailsValidation(string? code)
         {
             var command = SalesChannelBuilders.ValidCreateCommand(code: code);
 
@@ -143,7 +142,7 @@ namespace SalesManagement.UnitTests.Validators.SalesChannel
         [Theory]
         [InlineData(null)]
         [InlineData("")]
-        public async Task SalesChannelName_Empty_FailsValidation(string name)
+        public async Task SalesChannelName_Empty_FailsValidation(string? name)
         {
             var command = SalesChannelBuilders.ValidCreateCommand(name: name);
             SetupCodeNotExists("CH001");

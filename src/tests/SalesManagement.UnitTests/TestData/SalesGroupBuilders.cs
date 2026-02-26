@@ -1,4 +1,3 @@
-#nullable disable
 using SalesManagement.Application.SalesGroup.Commands.CreateSalesGroup;
 using SalesManagement.Application.SalesGroup.Commands.UpdateSalesGroup;
 using SalesManagement.Application.SalesGroup.Dto;
@@ -57,7 +56,7 @@ namespace SalesManagement.UnitTests.TestData
             string salesOfficeName = "Test Sales Office",
             string responsibleManager = "John Doe",
             int? productCategoryId = null,
-            string productCategoryName = null,
+            string? productCategoryName = null,
             string regionTerritory = "North") =>
             new SalesGroupDto
             {

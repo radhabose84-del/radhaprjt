@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using FAM.Application.Common.Interfaces.ILocation;
 using FAM.Domain.Events;

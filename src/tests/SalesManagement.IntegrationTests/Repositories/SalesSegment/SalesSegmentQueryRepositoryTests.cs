@@ -1,4 +1,3 @@
-#nullable disable
 using Dapper;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;

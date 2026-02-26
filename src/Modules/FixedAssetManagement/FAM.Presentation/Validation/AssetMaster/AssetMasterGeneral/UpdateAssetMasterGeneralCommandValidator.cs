@@ -1,4 +1,3 @@
-#nullable disable
 using FAM.Application.AssetMaster.AssetLocation.Commands.UpdateAssetLocation;
 using FAM.Application.AssetMaster.AssetMasterGeneral.Commands.UpdateAssetMasterGeneral;
 using FAM.Application.AssetMaster.AssetPurchase.Commands.UpdateAssetPurchaseDetails;

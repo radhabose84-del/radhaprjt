@@ -1,4 +1,3 @@
-﻿#nullable disable
 using FluentValidation.TestHelper;
 using SalesManagement.Application.Common.Interfaces.ISalesItemPriceMaster;
 using SalesManagement.Presentation.Validation.SalesItemPriceMaster;

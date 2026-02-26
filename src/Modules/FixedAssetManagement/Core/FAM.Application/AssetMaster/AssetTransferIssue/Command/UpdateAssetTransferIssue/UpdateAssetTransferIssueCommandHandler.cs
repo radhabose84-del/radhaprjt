@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using FAM.Application.Common.Interfaces;
 using FAM.Application.Common.Interfaces.IAssetMaster.IAssetTransferIssue;

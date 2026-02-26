@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.ISalesOffice;
@@ -120,7 +119,7 @@ namespace SalesManagement.UnitTests.Application.SalesOffice.Commands
         public async Task Handle_ValidCommand_SetsEntityStatusActive()
         {
             var command = SalesOfficeBuilders.ValidCreateCommand();
-            SalesManagement.Domain.Entities.SalesOffice capturedEntity = null;
+            SalesManagement.Domain.Entities.SalesOffice? capturedEntity = null;
 
             var entity = new SalesManagement.Domain.Entities.SalesOffice
             {
@@ -150,14 +149,14 @@ namespace SalesManagement.UnitTests.Application.SalesOffice.Commands
             await sut.Handle(command, CancellationToken.None);
 
             capturedEntity.Should().NotBeNull();
-            capturedEntity.IsActive.Should().Be(Status.Active);
+            capturedEntity!.IsActive.Should().Be(Status.Active);
         }
 
         [Fact]
         public async Task Handle_ValidCommand_SetsIsDeletedNotDeleted()
         {
             var command = SalesOfficeBuilders.ValidCreateCommand();
-            SalesManagement.Domain.Entities.SalesOffice capturedEntity = null;
+            SalesManagement.Domain.Entities.SalesOffice? capturedEntity = null;
 
             var entity = new SalesManagement.Domain.Entities.SalesOffice
             {
@@ -187,7 +186,7 @@ namespace SalesManagement.UnitTests.Application.SalesOffice.Commands
             await sut.Handle(command, CancellationToken.None);
 
             capturedEntity.Should().NotBeNull();
-            capturedEntity.IsDeleted.Should().Be(IsDelete.NotDeleted);
+            capturedEntity!.IsDeleted.Should().Be(IsDelete.NotDeleted);
         }
     }
 }

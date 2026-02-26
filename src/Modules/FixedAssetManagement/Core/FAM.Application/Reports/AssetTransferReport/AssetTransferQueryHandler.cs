@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using Contracts.Interfaces.Lookups.Users; // ✅ lookup contract
 using Contracts.Common;

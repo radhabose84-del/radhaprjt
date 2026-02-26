@@ -1,4 +1,3 @@
-#nullable disable
 using FluentValidation.TestHelper;
 using SalesManagement.Application.Common.Interfaces.IMiscTypeMaster;
 using SalesManagement.Presentation.Validation.MiscTypeMaster;
@@ -49,7 +48,7 @@ namespace SalesManagement.UnitTests.Validators.MiscTypeMaster
         [Theory]
         [InlineData(null)]
         [InlineData("")]
-        public async Task MiscTypeCode_Empty_FailsValidation(string code)
+        public async Task MiscTypeCode_Empty_FailsValidation(string? code)
         {
             var command = MiscTypeMasterBuilders.ValidCreateCommand(code: code);
 
@@ -128,7 +127,7 @@ namespace SalesManagement.UnitTests.Validators.MiscTypeMaster
         [Theory]
         [InlineData(null)]
         [InlineData("")]
-        public async Task Description_Empty_FailsValidation(string description)
+        public async Task Description_Empty_FailsValidation(string? description)
         {
             var command = MiscTypeMasterBuilders.ValidCreateCommand(description: description);
             SetupCodeNotExists("MISC001");

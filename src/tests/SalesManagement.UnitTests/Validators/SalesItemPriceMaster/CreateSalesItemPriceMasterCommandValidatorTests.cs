@@ -1,4 +1,3 @@
-﻿#nullable disable
 using FluentValidation.TestHelper;
 using SalesManagement.Application.Common.Interfaces.ISalesItemPriceMaster;
 using SalesManagement.Presentation.Validation.SalesItemPriceMaster;
@@ -54,7 +53,7 @@ namespace SalesManagement.UnitTests.Validators.SalesItemPriceMaster
         [Theory]
         [InlineData(null)]
         [InlineData("")]
-        public async Task PriceCode_Empty_FailsValidation(string code)
+        public async Task PriceCode_Empty_FailsValidation(string? code)
         {
             SetupAllValid();
             var command = SalesItemPriceMasterBuilders.ValidCreateCommand(priceCode: code);

@@ -1,4 +1,3 @@
-#nullable disable
 using System.Data;
 using Contracts.Interfaces.Lookups.Users; // ✅ lookup contracts
 using FAM.Application.AssetMaster.AssetMasterGeneral.Queries.GetAssetMasterGeneral;

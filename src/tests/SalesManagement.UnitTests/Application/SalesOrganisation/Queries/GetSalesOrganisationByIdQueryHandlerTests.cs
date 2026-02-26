@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.ISalesOrganisation;
@@ -17,7 +16,7 @@ namespace SalesManagement.UnitTests.Application.SalesOrganisation.Queries
         private GetSalesOrganisationByIdQueryHandler CreateSut()
         {
             _mockMapper.Setup(m => m.Map<SalesOrganisationDto>(It.IsAny<object>()))
-                .Returns<object>(o => o as SalesOrganisationDto);
+                .Returns<object>(o => (o as SalesOrganisationDto)!);
             _mockMediator.Setup(m => m.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);
             return new GetSalesOrganisationByIdQueryHandler(_mockQueryRepo.Object, _mockMapper.Object, _mockMediator.Object);
@@ -49,9 +48,9 @@ namespace SalesManagement.UnitTests.Application.SalesOrganisation.Queries
             var result = await sut.Handle(query, CancellationToken.None);
 
             result.Should().NotBeNull();
-            result.Id.Should().Be(1);
-            result.SalesOrganisationCode.Should().Be("ORG001");
-            result.SalesOrganisationName.Should().Be("Test Organisation");
+            result!.Id.Should().Be(1);
+            result!.SalesOrganisationCode.Should().Be("ORG001");
+            result!.SalesOrganisationName.Should().Be("Test Organisation");
         }
 
         [Fact]
@@ -85,7 +84,7 @@ namespace SalesManagement.UnitTests.Application.SalesOrganisation.Queries
         {
             var query = new GetSalesOrganisationByIdQuery { Id = 99 };
             _mockQueryRepo.Setup(r => r.GetByIdAsync(99))
-                .ReturnsAsync((SalesOrganisationDto)null);
+                .ReturnsAsync((SalesOrganisationDto?)null);
             var sut = CreateSut();
 
             var result = await sut.Handle(query, CancellationToken.None);

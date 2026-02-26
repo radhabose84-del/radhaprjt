@@ -1,4 +1,3 @@
-#nullable disable
 using System.Data;
 using FAM.Application.AssetSubCategories.Queries.GetAssetSubCategories;
 using FAM.Application.Common.Interfaces.IAssetSubCategories;

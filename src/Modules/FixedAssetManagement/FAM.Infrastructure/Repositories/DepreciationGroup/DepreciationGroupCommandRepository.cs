@@ -1,4 +1,3 @@
-#nullable disable
 using FAM.Application.Common.Interfaces.IDepreciationGroup;
 using FAM.Domain.Common;
 using FAM.Domain.Entities;

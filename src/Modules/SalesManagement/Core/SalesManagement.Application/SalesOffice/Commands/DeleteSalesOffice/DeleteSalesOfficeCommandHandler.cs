@@ -1,4 +1,3 @@
-#nullable disable
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.ISalesOffice;
 using SalesManagement.Domain.Events;

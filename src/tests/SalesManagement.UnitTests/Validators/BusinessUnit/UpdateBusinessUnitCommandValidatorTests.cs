@@ -1,4 +1,3 @@
-#nullable disable
 using FluentValidation.TestHelper;
 using SalesManagement.Application.BusinessUnit.Commands.UpdateBusinessUnit;
 using SalesManagement.Application.Common.Interfaces.IBusinessUnit;
@@ -91,7 +90,7 @@ namespace SalesManagement.UnitTests.Validators.BusinessUnit
         [Theory]
         [InlineData(null)]
         [InlineData("")]
-        public async Task BusinessUnitName_Empty_FailsValidation(string name)
+        public async Task BusinessUnitName_Empty_FailsValidation(string? name)
         {
             var command = BusinessUnitBuilders.ValidUpdateCommand(id: 1, name: name);
             SetupIdExists(1);

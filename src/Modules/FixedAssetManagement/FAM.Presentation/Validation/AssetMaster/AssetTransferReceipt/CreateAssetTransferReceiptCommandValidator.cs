@@ -1,4 +1,3 @@
-#nullable disable
 using FAM.Application.AssetMaster.AssetTransferReceipt.Command.CreateAssetTransferReceipt;
 using FluentValidation;
 

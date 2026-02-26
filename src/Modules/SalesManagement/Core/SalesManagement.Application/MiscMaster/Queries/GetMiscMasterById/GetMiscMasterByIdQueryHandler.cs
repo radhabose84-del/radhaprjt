@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.IMiscMaster;
@@ -7,7 +6,7 @@ using SalesManagement.Domain.Events;
 
 namespace SalesManagement.Application.MiscMaster.Queries.GetMiscMasterById
 {
-    public class GetMiscMasterByIdQueryHandler : IRequestHandler<GetMiscMasterByIdQuery, MiscMasterDto>
+    public class GetMiscMasterByIdQueryHandler : IRequestHandler<GetMiscMasterByIdQuery, MiscMasterDto?>
     {
         private readonly IMiscMasterQueryRepository _queryRepository;
         private readonly IMapper _mapper;
@@ -20,7 +19,7 @@ namespace SalesManagement.Application.MiscMaster.Queries.GetMiscMasterById
             _mediator = mediator;
         }
 
-        public async Task<MiscMasterDto> Handle(GetMiscMasterByIdQuery request, CancellationToken cancellationToken)
+        public async Task<MiscMasterDto?> Handle(GetMiscMasterByIdQuery request, CancellationToken cancellationToken)
         {
             var result = await _queryRepository.GetByIdAsync(request.Id);
 

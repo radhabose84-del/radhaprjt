@@ -1,4 +1,3 @@
-#nullable disable
 using FAM.Application.AssetSubCategories.Command.CreateAssetSubCategories;
 using FAM.Application.Common.Interfaces.IAssetSubCategories;
 using FAM.Presentation.Validation.Common;

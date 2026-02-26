@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.IMiscTypeMaster;
@@ -17,7 +16,7 @@ namespace SalesManagement.UnitTests.Application.MiscTypeMaster.Queries
         private GetMiscTypeMasterByIdQueryHandler CreateSut()
         {
             _mockMapper.Setup(m => m.Map<MiscTypeMasterDto>(It.IsAny<object>()))
-                .Returns<object>(o => o as MiscTypeMasterDto);
+                .Returns<object>(o => (o as MiscTypeMasterDto)!);
             _mockMediator.Setup(m => m.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);
             return new GetMiscTypeMasterByIdQueryHandler(_mockQueryRepo.Object, _mockMapper.Object, _mockMediator.Object);
@@ -45,15 +44,15 @@ namespace SalesManagement.UnitTests.Application.MiscTypeMaster.Queries
                 new GetMiscTypeMasterByIdQuery { Id = 1 }, CancellationToken.None);
 
             result.Should().NotBeNull();
-            result.MiscTypeCode.Should().Be("MISC001");
-            result.Id.Should().Be(1);
+            result!.MiscTypeCode.Should().Be("MISC001");
+            result!.Id.Should().Be(1);
         }
 
         [Fact]
         public async Task Handle_EntityNotFound_ReturnsNull()
         {
             _mockQueryRepo.Setup(r => r.GetByIdAsync(99))
-                .ReturnsAsync((MiscTypeMasterDto)null);
+                .ReturnsAsync((MiscTypeMasterDto?)null);
 
             var result = await CreateSut().Handle(
                 new GetMiscTypeMasterByIdQuery { Id = 99 }, CancellationToken.None);

@@ -1,4 +1,3 @@
-#nullable disable
 using FluentValidation.TestHelper;
 using SalesManagement.Application.Common.Interfaces.ISalesChannel;
 using SalesManagement.Application.SalesChannel.Commands.UpdateSalesChannel;
@@ -58,7 +57,7 @@ namespace SalesManagement.UnitTests.Validators.SalesChannel
         [Theory]
         [InlineData(null)]
         [InlineData("")]
-        public async Task SalesChannelName_Empty_FailsValidation(string name)
+        public async Task SalesChannelName_Empty_FailsValidation(string? name)
         {
             SetupIdExists(1);
             var command = SalesChannelBuilders.ValidUpdateCommand(id: 1, name: name);

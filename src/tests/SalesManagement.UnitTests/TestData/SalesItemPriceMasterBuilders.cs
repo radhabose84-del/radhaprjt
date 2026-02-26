@@ -1,4 +1,3 @@
-#nullable disable
 using Contracts.Dtos.Lookups.Inventory;
 using Contracts.Dtos.Lookups.Purchase;
 using Contracts.Dtos.Lookups.Users;
@@ -22,7 +21,7 @@ namespace SalesManagement.UnitTests.TestData
         // ── Create Command ────────────────────────────────────────────────────
 
         public static CreateSalesItemPriceMasterCommand ValidCreateCommand(
-            string priceCode = "PC001",
+            string? priceCode = "PC001",
             int itemId = 10,
             int salesSegmentId = 1,
             int paymentTermsId = 2,
@@ -32,7 +31,7 @@ namespace SalesManagement.UnitTests.TestData
             DateTimeOffset? validTo = null) =>
             new CreateSalesItemPriceMasterCommand
             {
-                PriceCode      = priceCode,
+                PriceCode      = priceCode!,
                 ItemId         = itemId,
                 SalesSegmentId = salesSegmentId,
                 PaymentTermsId = paymentTermsId,

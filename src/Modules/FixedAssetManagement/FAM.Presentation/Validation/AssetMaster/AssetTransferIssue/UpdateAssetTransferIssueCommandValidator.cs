@@ -1,4 +1,3 @@
-#nullable disable
 using FAM.Application.AssetMaster.AssetTransferIssue.Command.UpdateAssetTransferIssue;
 using FluentValidation;
 

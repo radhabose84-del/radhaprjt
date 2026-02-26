@@ -1,4 +1,3 @@
-#nullable disable
 using System.Globalization;
 using FAM.Application.AssetMaster.AssetMasterGeneral.Queries.GetAssetMasterGeneral;
 using FAM.Application.Common.Interfaces;

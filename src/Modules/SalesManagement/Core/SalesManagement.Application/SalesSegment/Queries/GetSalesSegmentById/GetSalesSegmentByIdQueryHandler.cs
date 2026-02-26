@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using Contracts.Interfaces.Lookups.Users;
 using MediatR;
@@ -8,7 +7,7 @@ using SalesManagement.Domain.Events;
 
 namespace SalesManagement.Application.SalesSegment.Queries.GetSalesSegmentById
 {
-    public class GetSalesSegmentByIdQueryHandler : IRequestHandler<GetSalesSegmentByIdQuery, SalesSegmentDto>
+    public class GetSalesSegmentByIdQueryHandler : IRequestHandler<GetSalesSegmentByIdQuery, SalesSegmentDto?>
     {
         private readonly ISalesSegmentQueryRepository _queryRepository;
         private readonly ICurrencyLookup _currencyLookup;
@@ -27,7 +26,7 @@ namespace SalesManagement.Application.SalesSegment.Queries.GetSalesSegmentById
             _mediator = mediator;
         }
 
-        public async Task<SalesSegmentDto> Handle(GetSalesSegmentByIdQuery request, CancellationToken cancellationToken)
+        public async Task<SalesSegmentDto?> Handle(GetSalesSegmentByIdQuery request, CancellationToken cancellationToken)
         {
             var result = await _queryRepository.GetByIdAsync(request.Id);
 

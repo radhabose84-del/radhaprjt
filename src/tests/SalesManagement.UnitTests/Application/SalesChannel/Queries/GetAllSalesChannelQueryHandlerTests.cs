@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.ISalesChannel;
@@ -55,9 +54,9 @@ namespace SalesManagement.UnitTests.Application.SalesChannel.Queries
 
             var result = await CreateSut().Handle(query, CancellationToken.None);
 
-            result.Data.Should().HaveCount(2);
-            result.Data[0].SalesChannelCode.Should().Be("CH001");
-            result.Data[1].SalesChannelCode.Should().Be("CH002");
+            result.Data!.Should().HaveCount(2);
+            result.Data![0].SalesChannelCode.Should().Be("CH001");
+            result.Data![1].SalesChannelCode.Should().Be("CH002");
         }
 
         [Fact]

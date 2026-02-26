@@ -1,4 +1,3 @@
-#nullable disable
 using FAM.Application.AssetMaster.AssetInsurance.Commands.UpdateAssetInsurance;
 using FAM.Application.Common.Interfaces.IAssetMaster.IAssetInsurance;
 using FluentValidation;
