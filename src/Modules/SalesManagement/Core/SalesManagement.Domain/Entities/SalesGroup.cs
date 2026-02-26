@@ -10,7 +10,8 @@ namespace SalesManagement.Domain.Entities
         public int? ProductCategoryId { get; set; }
         public string RegionTerritory { get; set; } = null!;
 
-        // Navigation property
+        // Navigation properties
         public SalesOffice SalesOffice { get; set; } = null!;
+        public ICollection<OfficerSalesGroup> OfficerSalesGroups { get; set; } = null!;
     }
 }
