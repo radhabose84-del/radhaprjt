@@ -4,13 +4,13 @@ namespace SalesManagement.Domain.Entities
 {
     public class DispatchAddressMaster : BaseEntity
     {
-        public string DispatchAddressName { get; set; } = null!;
-        public string AddressLine1 { get; set; } = null!;
+        public string? DispatchAddressName { get; set; }
+        public string? AddressLine1 { get; set; }
         public string? AddressLine2 { get; set; }
         public int CityId { get; set; }
         public int StateId { get; set; }
         public int CountryId { get; set; }
-        public string PinCode { get; set; } = null!;
+        public string? PinCode { get; set; }
         public string? ContactPerson { get; set; }
         public string? MobileNumber { get; set; }
         public string? Email { get; set; }

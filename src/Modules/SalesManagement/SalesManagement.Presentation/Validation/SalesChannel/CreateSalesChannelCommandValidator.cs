@@ -65,7 +65,7 @@ namespace SalesManagement.Presentation.Validation.SalesChannel
                     case "AlreadyExists":
                         RuleFor(x => x.SalesChannelCode)
                             .MustAsync(async (code, ct) =>
-                                !await _queryRepository.AlreadyExistsAsync(code))
+                                !await _queryRepository.AlreadyExistsAsync(code!))
                             .WithMessage($"{nameof(CreateSalesChannelCommand.SalesChannelCode)} {rule.Error}")
                             .When(x => !string.IsNullOrWhiteSpace(x.SalesChannelCode));
                         break;

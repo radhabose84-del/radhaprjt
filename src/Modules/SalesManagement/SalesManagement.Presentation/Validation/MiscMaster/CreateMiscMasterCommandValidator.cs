@@ -79,7 +79,7 @@ namespace SalesManagement.Presentation.Validation.MiscMaster
                     case "AlreadyExists":
                         RuleFor(x => x.Code)
                             .MustAsync(async (command, code, ct) =>
-                                !await _queryRepository.AlreadyExistsAsync(code, command.MiscTypeId))
+                                !await _queryRepository.AlreadyExistsAsync(code!, command.MiscTypeId))
                             .WithMessage($"{nameof(CreateMiscMasterCommand.Code)} {rule.Error}")
                             .When(x => !string.IsNullOrWhiteSpace(x.Code) && x.MiscTypeId > 0);
                         break;

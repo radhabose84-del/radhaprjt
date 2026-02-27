@@ -31,7 +31,7 @@ namespace SalesManagement.Application.DispatchAddressMaster.Commands.CreateDispa
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Create",
                 actionCode: "DISPATCH_ADDRESS_CREATE",
-                actionName: request.DispatchAddressName,
+                actionName: request.DispatchAddressName ?? string.Empty,
                 details: $"Dispatch Address Master '{request.DispatchAddressName}' created successfully with Id {newId}.",
                 module: "DispatchAddressMaster"
             );

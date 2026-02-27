@@ -2813,6 +2813,43 @@ Authentication is handled globally by `TokenValidationMiddleware` in the request
 
 All module `.csproj` files use `<Nullable>enable</Nullable>`. The following patterns MUST be followed to keep builds at 0 warnings.
 
+#### NEVER Use `= null!;` — Always Use `?` Nullable Type Declarations
+
+> ❌ **NEVER initialize a property with `= null!;` in entities, DTOs, commands, or any class:**
+> ```csharp
+> // ❌ WRONG — null-forgiving initializer hides a nullable mismatch; violates nullable semantics
+> public string SalesGroupName { get; set; } = null!;
+> public string? CompanyName { get; set; } = null!;
+> public string Description { get; set; } = null!;
+> ```
+
+> ✅ **ALWAYS declare the type as nullable with `?` and omit any initializer:**
+> ```csharp
+> // ✅ CORRECT — type declaration is honest; compiler tracks nullability properly
+> public string? SalesGroupName { get; set; }
+> public string? CompanyName { get; set; }
+> public string? Description { get; set; }
+> ```
+
+**Why?**
+- `= null!;` tells the compiler "this is null, but trust me it won't be" — this is a lie that suppresses useful warnings
+- `string?` honestly declares that the value may be null, so any consumer must handle it safely
+- Every caller that uses the property without a null-check will get a proper CS8602/CS8604 warning
+
+**The only valid uses of `!` (null-forgiving operator):**
+| Situation | Example |
+|---|---|
+| Validator `MustAsync` lambda guarded by `.When()` | `.MustAsync(async (mobile, ct) => !await _repo.ExistsAsync(mobile!))` |
+| Accessing nullable after explicit null-check | `if (result == null) return; var id = result!.Id;` |
+| Null-forgiving on `int?` `.Value` across LINQ boundary | `item.NullableId!.Value` |
+
+> ⚠️ **After changing `= null!;` to `?`, any validator `MustAsync` lambda that passes the property to a non-nullable parameter will emit CS8604. Fix with `!` on the argument (safe because `.When()` already guards against null).**
+> ```csharp
+> // Before fix_null_bang.ps1: mobile was string, passed to ExistsAsync(string)
+> // After: mobile is string?, requires ! in MustAsync lambda
+> .MustAsync(async (mobile, ct) => !await _repo.ExistsAsync(mobile!))  // ✅ Safe — .When() guards
+> ```
+
 #### DTO Properties Populated from Cross-Module Lookups
 
 > ❌ **NEVER use `= null!` for properties populated from lookups — they can legitimately be null if the FK record is not found:**

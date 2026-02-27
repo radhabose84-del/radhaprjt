@@ -1,13 +1,13 @@
-﻿using SalesManagement.Domain.Common;
+using SalesManagement.Domain.Common;
 
 namespace SalesManagement.Domain.Entities
 {
     public class SalesChannel : BaseEntity
     {
-        public string SalesChannelCode { get; set; } = null!;
-        public string SalesChannelName { get; set; } = null!;
+        public string? SalesChannelCode { get; set; }
+        public string? SalesChannelName { get; set; }
 
         // Navigation property for reverse relationship
-        public ICollection<SalesSegment> SalesSegments { get; set; } = null!;
+        public ICollection<SalesSegment>? SalesSegments { get; set; }
     }
 }

@@ -70,7 +70,7 @@ namespace SalesManagement.Presentation.Validation.BusinessUnit
 
                     case "AlreadyExists":
                         RuleFor(x => x.BusinessUnitCode)
-                            .MustAsync(async (code, ct) => !await _queryRepository.AlreadyExistsAsync(code))
+                            .MustAsync(async (code, ct) => !await _queryRepository.AlreadyExistsAsync(code!))
                             .WithMessage($"{nameof(CreateBusinessUnitCommand.BusinessUnitCode)} {rule.Error}")
                             .When(x => !string.IsNullOrWhiteSpace(x.BusinessUnitCode));
                         break;

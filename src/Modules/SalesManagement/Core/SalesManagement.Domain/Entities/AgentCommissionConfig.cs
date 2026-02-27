@@ -16,7 +16,7 @@ namespace SalesManagement.Domain.Entities
         public DateTimeOffset ValidityTo { get; set; }
 
         // Navigation Properties (Same-Module FKs only)
-        public SalesSegment SalesSegment { get; set; } = null!;
-        public MiscMaster MiscMaster { get; set; } = null!;
+        public SalesSegment? SalesSegment { get; set; }
+        public MiscMaster? MiscMaster { get; set; }
     }
 }

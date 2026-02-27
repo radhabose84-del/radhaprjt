@@ -93,7 +93,7 @@ namespace SalesManagement.Presentation.Validation.MarketingOfficer
 
                     case "AlreadyExists":
                         RuleFor(x => x.EmployeeNo)
-                            .MustAsync(async (code, ct) => !await _queryRepo.AlreadyExistsAsync(code))
+                            .MustAsync(async (code, ct) => !await _queryRepo.AlreadyExistsAsync(code!))
                             .WithMessage($"{nameof(CreateMarketingOfficerCommand.EmployeeNo)} {rule.Error}")
                             .When(x => !string.IsNullOrWhiteSpace(x.EmployeeNo));
                         break;

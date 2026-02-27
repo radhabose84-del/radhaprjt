@@ -40,6 +40,8 @@ using SalesManagement.Application.Common.Interfaces.IDispatchAddressMapping;
 using SalesManagement.Infrastructure.Repositories.DispatchAddressMapping;
 using SalesManagement.Application.Common.Interfaces.ISalesContact;
 using SalesManagement.Infrastructure.Repositories.SalesContact;
+using SalesManagement.Application.Common.Interfaces.ISalesLead;
+using SalesManagement.Infrastructure.Repositories.SalesLead;
 
 
 namespace SalesManagement.Infrastructure
@@ -180,6 +182,10 @@ namespace SalesManagement.Infrastructure
             // ── Sales Contact Repositories ────────────────────────────────
             services.AddScoped<ISalesContactCommandRepository, SalesContactCommandRepository>();
             services.AddScoped<ISalesContactQueryRepository, SalesContactQueryRepository>();
+
+            // ── Sales Lead Repositories ───────────────────────────────────
+            services.AddScoped<ISalesLeadCommandRepository, SalesLeadCommandRepository>();
+            services.AddScoped<ISalesLeadQueryRepository, SalesLeadQueryRepository>();
 
             return services;
         }

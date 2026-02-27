@@ -31,7 +31,7 @@ namespace SalesManagement.Application.BusinessUnit.Commands.CreateBusinessUnit
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Create",
                 actionCode: "BUSINESSUNIT_CREATE",
-                actionName: request.BusinessUnitCode,
+                actionName: request.BusinessUnitCode ?? string.Empty,
                 details: $"Business Unit '{request.BusinessUnitCode}' created successfully with Id {newId}.",
                 module: "BusinessUnit"
             );

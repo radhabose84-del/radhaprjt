@@ -3,8 +3,8 @@ namespace SalesManagement.Application.SalesContact.Dto
     public class SalesContactDto
     {
         public int Id { get; set; }
-        public string ContactName { get; set; } = null!;
-        public string MobileNumber { get; set; } = null!;
+        public string? ContactName { get; set; }
+        public string? MobileNumber { get; set; }
         public int ContactTypeId { get; set; }
         public string? ContactTypeName { get; set; }   // from SQL JOIN (MiscMaster.Description)
         public int? PartyId { get; set; }

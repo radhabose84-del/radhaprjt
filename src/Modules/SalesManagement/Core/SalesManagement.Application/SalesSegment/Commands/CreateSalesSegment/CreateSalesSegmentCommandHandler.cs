@@ -31,7 +31,7 @@ namespace SalesManagement.Application.SalesSegment.Commands.CreateSalesSegment
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Create",
                 actionCode: "SALES_SEGMENT_CREATE",
-                actionName: request.SegmentName,
+                actionName: request.SegmentName ?? string.Empty,
                 details: $"Sales Segment '{request.SegmentName}' created successfully with Id {newId}.",
                 module: "SalesSegment"
             );

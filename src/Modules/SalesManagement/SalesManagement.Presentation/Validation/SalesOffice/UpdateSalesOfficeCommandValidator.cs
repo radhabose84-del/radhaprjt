@@ -116,7 +116,7 @@ namespace SalesManagement.Presentation.Validation.SalesOffice
                     case "AlreadyExists":
                         RuleFor(x => x)
                             .MustAsync(async (cmd, ct) =>
-                                !await _queryRepository.AlreadyExistsAsync(cmd.SalesOfficeName, cmd.SalesOrganisationId, cmd.Id))
+                                !await _queryRepository.AlreadyExistsAsync(cmd.SalesOfficeName!, cmd.SalesOrganisationId, cmd.Id!))
                             .WithMessage($"{nameof(UpdateSalesOfficeCommand.SalesOfficeName)} {rule.Error}")
                             .When(x => !string.IsNullOrWhiteSpace(x.SalesOfficeName) && x.SalesOrganisationId > 0 && x.Id > 0);
                         break;

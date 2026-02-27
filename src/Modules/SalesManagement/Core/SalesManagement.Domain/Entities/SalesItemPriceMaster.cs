@@ -1,10 +1,10 @@
-﻿using SalesManagement.Domain.Common;
+using SalesManagement.Domain.Common;
 
 namespace SalesManagement.Domain.Entities
 {
     public class SalesItemPriceMaster : BaseEntity
     {
-        public string PriceCode { get; set; } = null!;
+        public string? PriceCode { get; set; }
         public int ItemId { get; set; }
         public int SalesSegmentId { get; set; }
         public int PaymentTermsId { get; set; }
@@ -14,6 +14,6 @@ namespace SalesManagement.Domain.Entities
         public DateTimeOffset ValidTo { get; set; }
 
         // Navigation property (same-module FK)
-        public SalesSegment SalesSegment { get; set; } = null!;
+        public SalesSegment? SalesSegment { get; set; }
     }
 }
