@@ -89,22 +89,24 @@ namespace SalesManagement.Presentation.Validation.SalesContact
                             .When(x => !string.IsNullOrWhiteSpace(x.MobileNumber));
                         break;
 
+                    case "MobileNumber":
+                        RuleFor(x => x.MobileNumber)
+                            .Matches(rule.Pattern)
+                            .WithMessage($"{nameof(CreateSalesContactCommand.MobileNumber)}{rule.Error}")
+                            .When(x => !string.IsNullOrWhiteSpace(x.MobileNumber));
+                        break;
+
+                    case "Email":
+                        RuleFor(x => x.Email)
+                            .EmailAddress()
+                            .WithMessage($"{nameof(CreateSalesContactCommand.Email)} {rule.Error}")
+                            .When(x => !string.IsNullOrWhiteSpace(x.Email));
+                        break;
+
                     default:
                         break;
                 }
             }
-
-            // Custom: Mobile number must be 10–15 digits only
-            RuleFor(x => x.MobileNumber)
-                .Matches(@"^\d{10,15}$")
-                .WithMessage($"{nameof(CreateSalesContactCommand.MobileNumber)} must contain only digits and be 10 to 15 characters.")
-                .When(x => !string.IsNullOrWhiteSpace(x.MobileNumber));
-
-            // Custom: Email format validation
-            RuleFor(x => x.Email)
-                .EmailAddress()
-                .WithMessage($"{nameof(CreateSalesContactCommand.Email)} must be a valid email address.")
-                .When(x => !string.IsNullOrWhiteSpace(x.Email));
         }
     }
 }

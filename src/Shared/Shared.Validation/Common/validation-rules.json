@@ -176,5 +176,13 @@
     {
         "rule": "IsFirstime",
         "error": "First time user cannot be update the password."
+    },
+    {
+        "rule": "Latitude",
+        "error": " must be between -90 and 90."
+    },
+    {
+        "rule": "Longitude",
+        "error": " must be between -180 and 180."
     }
 ]
