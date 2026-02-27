@@ -170,7 +170,7 @@ namespace SalesManagement.IntegrationTests.Repositories.ItemPriceMaster
             string priceCode,
             int itemId = 100,
             int paymentTermsId = 10,
-            decimal exMillPrice = 250.00m,
+            decimal exMillRate = 250.00m,
             int currencyId = 5,
             bool isActive = true,
             DateOnly? validFrom = null,
@@ -183,7 +183,7 @@ namespace SalesManagement.IntegrationTests.Repositories.ItemPriceMaster
                 ItemId         = itemId,
                 SalesSegmentId = salesSegmentId,
                 PaymentTermsId = paymentTermsId,
-                ExMillPrice    = exMillPrice,
+                ExMillRate    = exMillRate,
                 CurrencyId     = currencyId,
                 ValidFrom      = validFrom ?? new DateOnly(2025, 1, 1),
                 ValidTo        = validTo   ?? new DateOnly(2025, 12, 31),
@@ -300,7 +300,7 @@ namespace SalesManagement.IntegrationTests.Repositories.ItemPriceMaster
             var segmentId = await EnsurePrerequisitesAsync();
             await ClearPriceMasterAsync();
             var id = await SeedEntityAsync(segmentId, "PC001",
-                itemId: 200, paymentTermsId: 15, exMillPrice: 750.00m, currencyId: 8);
+                itemId: 200, paymentTermsId: 15, exMillRate: 750.00m, currencyId: 8);
 
             var repo = CreateQueryRepo();
             var dto = await repo.GetByIdAsync(id);
@@ -310,7 +310,7 @@ namespace SalesManagement.IntegrationTests.Repositories.ItemPriceMaster
             dto.PriceCode.Should().Be("PC001");
             dto.ItemId.Should().Be(200);
             dto.PaymentTermsId.Should().Be(15);
-            dto.ExMillPrice.Should().Be(750.00m);
+            dto.ExMillRate.Should().Be(750.00m);
             dto.CurrencyId.Should().Be(8);
         }
 

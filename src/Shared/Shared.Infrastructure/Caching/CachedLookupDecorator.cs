@@ -168,15 +168,41 @@ public class CachedLookupDecorator<TLookup> : DispatchProxy where TLookup : clas
     {
         try
         {
-            // Simple serialization for cache key uniqueness
-            // For complex objects, this ensures different arg values = different cache keys
-            var argsJson = JsonSerializer.Serialize(args);
+            // Build a serializable representation that handles non-serializable types
+            // like CancellationToken and correctly expands arrays/enumerables
+            var parts = new List<string>();
+            foreach (var arg in args)
+            {
+                if (arg == null)
+                {
+                    parts.Add("null");
+                }
+                else if (arg is CancellationToken)
+                {
+                    // CancellationToken is not serializable — skip it (it doesn't affect data)
+                    continue;
+                }
+                else if (arg is System.Collections.IEnumerable enumerable and not string)
+                {
+                    // Expand arrays/lists so [155] and [200] produce different keys
+                    var items = new List<string>();
+                    foreach (var item in enumerable)
+                        items.Add(item?.ToString() ?? "null");
+                    parts.Add($"[{string.Join(",", items)}]");
+                }
+                else
+                {
+                    parts.Add(arg.ToString() ?? "null");
+                }
+            }
+
+            var keyString = string.Join("_", parts);
             return Convert.ToBase64String(System.Security.Cryptography.MD5.HashData(
-                System.Text.Encoding.UTF8.GetBytes(argsJson)));
+                System.Text.Encoding.UTF8.GetBytes(keyString)));
         }
         catch
         {
-            // Fallback: use ToString() concatenation
+            // Last-resort fallback
             return string.Join("_", args.Select(a => a?.ToString() ?? "null"));
         }
     }

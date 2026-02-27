@@ -16,5 +16,6 @@ namespace SalesManagement.Application.Common.Interfaces.IItemPriceMaster
         Task<bool> OverlapExistsAsync(int itemId, int salesSegmentId, int paymentTermsId,
             DateOnly validFrom, DateOnly validTo, int? excludeId = null);
         Task<bool> SoftDeleteValidationAsync(int id);
+        Task<List<ItemPriceMasterDto>> GetByItemAndDateAsync(int itemId, DateOnly date);
     }
 }

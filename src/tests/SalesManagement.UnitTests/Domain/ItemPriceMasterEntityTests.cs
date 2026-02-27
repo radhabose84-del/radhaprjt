@@ -39,7 +39,7 @@ namespace SalesManagement.UnitTests.Domain
                 ItemId = 100,
                 SalesSegmentId = 4,
                 PaymentTermsId = 2,
-                ExMillPrice = 1500.50m,
+                ExMillRate = 1500.50m,
                 CurrencyId = 1,
                 ValidFrom = validFrom,
                 ValidTo = validTo
@@ -50,7 +50,7 @@ namespace SalesManagement.UnitTests.Domain
             entity.ItemId.Should().Be(100);
             entity.SalesSegmentId.Should().Be(4);
             entity.PaymentTermsId.Should().Be(2);
-            entity.ExMillPrice.Should().Be(1500.50m);
+            entity.ExMillRate.Should().Be(1500.50m);
             entity.CurrencyId.Should().Be(1);
             entity.ValidFrom.Should().Be(validFrom);
             entity.ValidTo.Should().Be(validTo);
