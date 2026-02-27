@@ -663,6 +663,12 @@ using Shared.Validation.Common;                         // ValidationRuleLoader,
 | `NotFound` | Entity existence (Update validators) | — | `"not found."` |
 | `FKColumnDelete` | FK existence (same-module + cross-module) | — | `"{PropertyName} is inactive/deleted."` |
 | `ByteValue` | IsActive validation (0 or 1) | — | `"must be either 0 or 1."` |
+| `Pincode` | 6-digit pincode format | `^[0-9]{6}$` | `"must be a valid 6-digit pincode."` |
+| `MobileNumber` | 10-digit mobile number format | `^[0-9]{10}$` | `"Mobile number must be exactly 10 digits."` |
+| `Email` | Email address format (FluentValidation built-in) | — | `"Invalid email address format."` |
+| `GstFormat` | 15-character GSTIN format | `^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$` | `"must be in the correct format (e.g., '22AAAAA1234A1Z5')."` |
+| `Latitude` | Decimal latitude range (-90 to 90) | — | `"must be between -90 and 90."` |
+| `Longitude` | Decimal longitude range (-180 to 180) | — | `"must be between -180 and 180."` |
 
 > ⚠️ **`Alphanumeric` pattern is `^[A-Za-z0-9]+$` — spaces are NOT alphanumeric.**
 > The shared `validation-rules.json` previously had `^[A-Za-z0-9 ]+$` (with a stray space) which incorrectly allowed spaces in code fields. This was a bug — it has been fixed. Code fields (e.g. `SalesOrganisationCode`, `BusinessUnitCode`) must reject spaces.
@@ -886,6 +892,12 @@ public class Delete{EntityName}CommandValidator : AbstractValidator<Delete{Entit
 | Entity exists (Update/Delete) | `NotFound` | `.MustAsync(... NotFoundAsync ...)` | Update/Delete |
 | FK dependent check (Delete) | `SoftDelete` | `.MustAsync(... SoftDeleteValidationAsync ...)` | Delete (optional) |
 | IsActive range (Update) | `ByteValue` | `.InclusiveBetween(0, 1)` | Update |
+| 6-digit pincode | `Pincode` | `.Matches(rule.Pattern)` with `.When()` guard | Create/Update |
+| 10-digit mobile number | `MobileNumber` | `.Matches(rule.Pattern)` with `.When()` guard | Create/Update |
+| Email address format | `Email` | `.EmailAddress()` with `.When()` guard | Create/Update |
+| GSTIN format | `GstFormat` | `.Matches(rule.Pattern)` with `.When()` guard | Create/Update |
+| Latitude range (-90 to 90) | `Latitude` | `.InclusiveBetween(-90m, 90m)` with `.When()` guard | Create/Update |
+| Longitude range (-180 to 180) | `Longitude` | `.InclusiveBetween(-180m, 180m)` with `.When()` guard | Create/Update |
 
 ### Global Validation Pipeline
 
