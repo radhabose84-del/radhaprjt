@@ -11,8 +11,8 @@ namespace SalesManagement.Application.SalesItemPriceMaster.Commands.UpdateSalesI
         public int PaymentTermsId { get; set; }
         public decimal ExMillPrice { get; set; }
         public int CurrencyId { get; set; }
-        public DateTimeOffset ValidFrom { get; set; }
-        public DateTimeOffset ValidTo { get; set; }
+        public DateOnly ValidFrom { get; set; }
+        public DateOnly ValidTo { get; set; }
         public int IsActive { get; set; }
     }
 }

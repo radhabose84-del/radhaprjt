@@ -21,8 +21,8 @@ namespace SalesManagement.Application.SalesItemPriceMaster.Dto
         public int CurrencyId { get; set; }
         public string? CurrencyCode { get; set; }
 
-        public DateTimeOffset ValidFrom { get; set; }
-        public DateTimeOffset ValidTo { get; set; }
+        public DateOnly ValidFrom { get; set; }
+        public DateOnly ValidTo { get; set; }
 
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }

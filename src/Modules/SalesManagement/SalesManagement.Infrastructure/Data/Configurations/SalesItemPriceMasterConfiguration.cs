@@ -60,10 +60,12 @@ namespace SalesManagement.Infrastructure.Data.Configurations
 
             builder.Property(t => t.ValidFrom)
                 .HasColumnName("ValidFrom")
+                .HasColumnType("date")
                 .IsRequired();
 
             builder.Property(t => t.ValidTo)
                 .HasColumnName("ValidTo")
+                .HasColumnType("date")
                 .IsRequired();
 
             builder.Property(b => b.IsActive)
