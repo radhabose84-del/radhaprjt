@@ -26,18 +26,16 @@ namespace SalesManagement.Application.MarketingOfficer.Queries.GetMarketingOffic
             if (result == null)
                 return null;
 
-            var dto = _mapper.Map<MarketingOfficerDto>(result);
-
             var domainEvent = new AuditLogsDomainEvent(
                 actionDetail: "GetById",
                 actionCode: "GetMarketingOfficerByIdQuery",
-                actionName: dto.Id.ToString(),
-                details: $"MarketingOfficer details {dto.Id} was fetched.",
+                actionName: result.Id.ToString(),
+                details: $"MarketingOfficer details {result.Id} was fetched.",
                 module: "MarketingOfficer"
             );
             await _mediator.Publish(domainEvent, cancellationToken);
 
-            return dto;
+            return result;
         }
     }
 }
