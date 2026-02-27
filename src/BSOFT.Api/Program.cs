@@ -14,7 +14,9 @@ using SalesManagement.Module;
 using WarehouseManagement.Module;
 using ProjectManagement.Module;
 using BudgetManagement.Module;
+using BackgroundService.Presentation;
 using Contracts.Common;
+using BSOFT.Api.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 var environment = builder.Environment.EnvironmentName;
@@ -50,6 +52,7 @@ builder.Services.AddSalesManagementModule(builder.Configuration, builder.Environ
 builder.Services.AddWarehouseManagementModule(builder.Configuration, builder.Environment);
 builder.Services.AddProjectManagementModule(builder.Configuration, builder.Environment);
 builder.Services.AddBudgetManagementModule(builder.Configuration, builder.Environment);
+builder.Services.AddBackgroundServiceModule(builder.Configuration, builder.Environment);
 
 // ✅ Global lookup caching (MUST be after module registrations)
 builder.Services.AddLookupCaching(options =>
@@ -59,6 +62,9 @@ builder.Services.AddLookupCaching(options =>
     options.SizeLimit            = 2000;
     options.EnableDetailedLogging = false;
 });
+
+// ✅ SignalR hub (clients connect here; BSOFT.Worker pushes via SignalR client)
+builder.Services.AddSignalR();
 
 // ✅ Controllers with filters (registered once)
 builder.Services.AddControllers(o =>
@@ -106,5 +112,7 @@ app.UseMiddleware<TokenValidationMiddleware>();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapHub<NotificationHub>("/notificationHub");
 
 app.Run();

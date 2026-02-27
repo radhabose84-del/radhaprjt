@@ -5,19 +5,15 @@ using System.Threading.Tasks;
 using Contracts.Dtos.Workflow;
 using Contracts.Interfaces.Lookups.Workflow;
 using Dapper;
-using BackgroundService.Application.Common.Interfaces;
-
 namespace BackgroundService.Infrastructure.Repositories.Lookups.Workflow
 {
     internal class WorkflowLookupRepository : IWorkflowLookup
     {
         private readonly IDbConnection _dbConnection;
-        private readonly IIPAddressService _ipAddressService;
 
-        public WorkflowLookupRepository(IDbConnection dbConnection, IIPAddressService ipAddressService)
+        public WorkflowLookupRepository(IDbConnection dbConnection)
         {
             _dbConnection = dbConnection;
-            _ipAddressService = ipAddressService;
         }
 
         public async Task<List<ApprovalRequestStatusDto>> GetAllApprovalRequestStatusAsync(string moduleTypeName)

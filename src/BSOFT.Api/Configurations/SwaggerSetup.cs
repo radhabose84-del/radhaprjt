@@ -17,7 +17,8 @@ namespace BSOFT.Api.Configurations
 			new SwaggerModuleInfo("BudgetManagement", "Budget Management API", "v1", "BudgetManagement.Presentation.Controllers"),
             new SwaggerModuleInfo("WarehouseManagement", "Warehouse Management API", "v1", "WarehouseManagement.Presentation.Controllers"),
             new SwaggerModuleInfo("SalesManagement", "Sales Management API", "v1", "SalesManagement.Presentation.Controllers"),
-            new SwaggerModuleInfo("ProjectManagement", "Project Management API", "v1", "ProjectManagement.Presentation.Controllers")
+            new SwaggerModuleInfo("ProjectManagement", "Project Management API", "v1", "ProjectManagement.Presentation.Controllers"),
+            new SwaggerModuleInfo("BackgroundService", "Background Service API", "v1", "BackgroundService.Presentation.Controllers")
 
 
         };
