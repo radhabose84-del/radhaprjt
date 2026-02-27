@@ -103,41 +103,52 @@ namespace SalesManagement.Presentation.Validation.DispatchAddressMaster
                             .When(x => !string.IsNullOrWhiteSpace(x.DispatchAddressName) && x.CityId > 0 && !string.IsNullOrWhiteSpace(x.PinCode));
                         break;
 
+                    case "Pincode":
+                        RuleFor(x => x.PinCode)
+                            .Matches(rule.Pattern)
+                            .WithMessage($"{nameof(CreateDispatchAddressMasterCommand.PinCode)}{rule.Error}")
+                            .When(x => !string.IsNullOrWhiteSpace(x.PinCode));
+                        break;
+
+                    case "MobileNumber":
+                        RuleFor(x => x.MobileNumber)
+                            .Matches(rule.Pattern)
+                            .WithMessage($"{nameof(CreateDispatchAddressMasterCommand.MobileNumber)}{rule.Error}")
+                            .When(x => !string.IsNullOrWhiteSpace(x.MobileNumber));
+                        break;
+
+                    case "Email":
+                        RuleFor(x => x.Email)
+                            .EmailAddress()
+                            .WithMessage($"{nameof(CreateDispatchAddressMasterCommand.Email)} {rule.Error}")
+                            .When(x => !string.IsNullOrWhiteSpace(x.Email));
+                        break;
+
+                    case "GstFormat":
+                        RuleFor(x => x.GSTIN)
+                            .Matches(rule.Pattern)
+                            .WithMessage($"{nameof(CreateDispatchAddressMasterCommand.GSTIN)}{rule.Error}")
+                            .When(x => !string.IsNullOrWhiteSpace(x.GSTIN));
+                        break;
+
+                    case "Latitude":
+                        RuleFor(x => x.Latitude)
+                            .InclusiveBetween(-90m, 90m)
+                            .WithMessage($"{nameof(CreateDispatchAddressMasterCommand.Latitude)}{rule.Error}")
+                            .When(x => x.Latitude.HasValue);
+                        break;
+
+                    case "Longitude":
+                        RuleFor(x => x.Longitude)
+                            .InclusiveBetween(-180m, 180m)
+                            .WithMessage($"{nameof(CreateDispatchAddressMasterCommand.Longitude)}{rule.Error}")
+                            .When(x => x.Longitude.HasValue);
+                        break;
+
                     default:
                         break;
                 }
             }
-
-            // ── Custom field-specific business rules ────────────────────────
-            RuleFor(x => x.PinCode)
-                .Matches(@"^\d{6}$")
-                .WithMessage($"{nameof(CreateDispatchAddressMasterCommand.PinCode)} must be a 6-digit numeric value.")
-                .When(x => !string.IsNullOrWhiteSpace(x.PinCode));
-
-            RuleFor(x => x.MobileNumber)
-                .Matches(@"^\d{10}$")
-                .WithMessage($"{nameof(CreateDispatchAddressMasterCommand.MobileNumber)} must be a 10-digit numeric value.")
-                .When(x => !string.IsNullOrWhiteSpace(x.MobileNumber));
-
-            RuleFor(x => x.Email)
-                .EmailAddress()
-                .WithMessage($"{nameof(CreateDispatchAddressMasterCommand.Email)} must be a valid email address.")
-                .When(x => !string.IsNullOrWhiteSpace(x.Email));
-
-            RuleFor(x => x.GSTIN)
-                .Matches(@"^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$")
-                .WithMessage($"{nameof(CreateDispatchAddressMasterCommand.GSTIN)} must be a valid 15-character GSTIN format.")
-                .When(x => !string.IsNullOrWhiteSpace(x.GSTIN));
-
-            RuleFor(x => x.Latitude)
-                .InclusiveBetween(-90m, 90m)
-                .WithMessage($"{nameof(CreateDispatchAddressMasterCommand.Latitude)} must be between -90 and 90.")
-                .When(x => x.Latitude.HasValue);
-
-            RuleFor(x => x.Longitude)
-                .InclusiveBetween(-180m, 180m)
-                .WithMessage($"{nameof(CreateDispatchAddressMasterCommand.Longitude)} must be between -180 and 180.")
-                .When(x => x.Longitude.HasValue);
         }
     }
 }
