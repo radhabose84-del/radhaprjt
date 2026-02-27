@@ -241,7 +241,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesItemPriceMaster
 
         public async Task<bool> OverlapExistsAsync(
             int itemId, int salesSegmentId, int paymentTermsId,
-            DateTimeOffset validFrom, DateTimeOffset validTo, int? excludeId = null)
+            DateOnly validFrom, DateOnly validTo, int? excludeId = null)
         {
             var sql = @"
                 SELECT COUNT(1) FROM Sales.SalesItemPriceMaster

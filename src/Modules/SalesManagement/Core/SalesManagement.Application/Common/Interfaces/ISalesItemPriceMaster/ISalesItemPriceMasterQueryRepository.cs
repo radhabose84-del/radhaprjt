@@ -14,7 +14,7 @@ namespace SalesManagement.Application.Common.Interfaces.ISalesItemPriceMaster
         Task<bool> PaymentTermExistsAsync(int paymentTermsId);
         Task<bool> CurrencyExistsAsync(int currencyId, CancellationToken ct = default);
         Task<bool> OverlapExistsAsync(int itemId, int salesSegmentId, int paymentTermsId,
-            DateTimeOffset validFrom, DateTimeOffset validTo, int? excludeId = null);
+            DateOnly validFrom, DateOnly validTo, int? excludeId = null);
         Task<bool> SoftDeleteValidationAsync(int id);
     }
 }

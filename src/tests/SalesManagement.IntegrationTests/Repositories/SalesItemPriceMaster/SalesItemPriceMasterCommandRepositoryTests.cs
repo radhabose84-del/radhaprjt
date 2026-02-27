@@ -128,8 +128,8 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesItemPriceMaster
             int paymentTermsId = 10,
             decimal exMillPrice = 250.00m,
             int currencyId = 5,
-            DateTimeOffset? validFrom = null,
-            DateTimeOffset? validTo = null,
+            DateOnly? validFrom = null,
+            DateOnly? validTo = null,
             bool isActive = true)
             => new Domain.Entities.SalesItemPriceMaster
             {
@@ -139,8 +139,8 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesItemPriceMaster
                 PaymentTermsId = paymentTermsId,
                 ExMillPrice    = exMillPrice,
                 CurrencyId     = currencyId,
-                ValidFrom      = validFrom ?? new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero),
-                ValidTo        = validTo   ?? new DateTimeOffset(2025, 12, 31, 0, 0, 0, TimeSpan.Zero),
+                ValidFrom      = validFrom ?? new DateOnly(2025, 1, 1),
+                ValidTo        = validTo   ?? new DateOnly(2025, 12, 31),
                 IsActive       = isActive ? Status.Active : Status.Inactive,
                 IsDeleted      = IsDelete.NotDeleted
             };
@@ -167,8 +167,8 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesItemPriceMaster
             await using var ctx = _fixture.CreateFreshDbContext();
             await ClearTableAsync(ctx);
 
-            var validFrom = new DateTimeOffset(2025, 3, 1, 0, 0, 0, TimeSpan.Zero);
-            var validTo   = new DateTimeOffset(2025, 9, 30, 0, 0, 0, TimeSpan.Zero);
+            var validFrom = new DateOnly(2025, 3, 1);
+            var validTo   = new DateOnly(2025, 9, 30);
             var entity = BuildEntity(segmentId,
                 priceCode: "INTPC001", itemId: 200, paymentTermsId: 15,
                 exMillPrice: 350.5000m, currencyId: 7,
@@ -226,8 +226,8 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesItemPriceMaster
                 itemId: 100, paymentTermsId: 10, exMillPrice: 100.00m, currencyId: 5));
             ctx.ChangeTracker.Clear();
 
-            var newValidFrom = new DateTimeOffset(2025, 6, 1, 0, 0, 0, TimeSpan.Zero);
-            var newValidTo   = new DateTimeOffset(2025, 12, 31, 0, 0, 0, TimeSpan.Zero);
+            var newValidFrom = new DateOnly(2025, 6, 1);
+            var newValidTo   = new DateOnly(2025, 12, 31);
             var updated = new Domain.Entities.SalesItemPriceMaster
             {
                 Id             = id,
@@ -278,8 +278,8 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesItemPriceMaster
                 PaymentTermsId = 10,
                 ExMillPrice    = 100.00m,
                 CurrencyId     = 5,
-                ValidFrom      = new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero),
-                ValidTo        = new DateTimeOffset(2025, 12, 31, 0, 0, 0, TimeSpan.Zero),
+                ValidFrom      = new DateOnly(2025, 1, 1),
+                ValidTo        = new DateOnly(2025, 12, 31),
                 IsActive       = Status.Active
             };
 
@@ -304,8 +304,8 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesItemPriceMaster
                 PaymentTermsId = 1,
                 ExMillPrice    = 100.00m,
                 CurrencyId     = 1,
-                ValidFrom      = DateTimeOffset.UtcNow,
-                ValidTo        = DateTimeOffset.UtcNow.AddMonths(6),
+                ValidFrom      = DateOnly.FromDateTime(DateTime.UtcNow),
+                ValidTo        = DateOnly.FromDateTime(DateTime.UtcNow).AddMonths(6),
                 IsActive       = Status.Active
             };
 
@@ -333,8 +333,8 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesItemPriceMaster
                 PaymentTermsId = 10,
                 ExMillPrice    = 200.00m,
                 CurrencyId     = 5,
-                ValidFrom      = new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero),
-                ValidTo        = new DateTimeOffset(2025, 12, 31, 0, 0, 0, TimeSpan.Zero),
+                ValidFrom      = new DateOnly(2025, 1, 1),
+                ValidTo        = new DateOnly(2025, 12, 31),
                 IsActive       = Status.Active
             };
 

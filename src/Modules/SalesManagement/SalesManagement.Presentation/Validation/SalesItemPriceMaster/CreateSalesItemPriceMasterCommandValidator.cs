@@ -73,12 +73,12 @@ namespace SalesManagement.Presentation.Validation.SalesItemPriceMaster
 
                         // ValidFrom required
                         RuleFor(x => x.ValidFrom)
-                            .NotEqual(default(DateTimeOffset))
+                            .NotEqual(default(DateOnly))
                             .WithMessage($"{nameof(CreateSalesItemPriceMasterCommand.ValidFrom)} {rule.Error}");
 
                         // ValidTo required + must be after ValidFrom
                         RuleFor(x => x.ValidTo)
-                            .NotEqual(default(DateTimeOffset))
+                            .NotEqual(default(DateOnly))
                             .WithMessage($"{nameof(CreateSalesItemPriceMasterCommand.ValidTo)} {rule.Error}")
                             .GreaterThan(x => x.ValidFrom)
                             .WithMessage("Valid To must be after Valid From.");
