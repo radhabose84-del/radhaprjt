@@ -74,11 +74,11 @@ namespace SalesManagement.UnitTests.Application.MiscMaster.Queries
         {
             var lookupList = MiscMasterBuilders.ValidLookupList();
             _mockQueryRepo
-                .Setup(r => r.AutocompleteAsync("CODE", 2, It.IsAny<CancellationToken>()))
+                .Setup(r => r.AutocompleteAsync("CODE", "TYPE02", It.IsAny<CancellationToken>()))
                 .ReturnsAsync(lookupList);
 
             var result = await CreateSut().Handle(
-                new GetMiscMasterAutoCompleteQuery("CODE", 2),
+                new GetMiscMasterAutoCompleteQuery("CODE", "TYPE02"),
                 CancellationToken.None);
 
             result.Should().NotBeEmpty();
@@ -88,7 +88,7 @@ namespace SalesManagement.UnitTests.Application.MiscMaster.Queries
         public async Task Handle_ReturnsReadOnlyList()
         {
             _mockQueryRepo
-                .Setup(r => r.AutocompleteAsync(It.IsAny<string>(), It.IsAny<int?>(), It.IsAny<CancellationToken>()))
+                .Setup(r => r.AutocompleteAsync(It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(MiscMasterBuilders.ValidLookupList());
 
             var result = await CreateSut().Handle(
