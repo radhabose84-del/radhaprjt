@@ -55,9 +55,9 @@ namespace SalesManagement.Presentation.Controllers
         [HttpGet("by-name")]
         public async Task<IActionResult> GetMiscMasterAutoCompleteAsync(
             [FromQuery] string? term = null,
-            [FromQuery] int? miscTypeId = null)
+            [FromQuery] string? MiscTypeCode = null)
         {
-            var result = await Mediator.Send(new GetMiscMasterAutoCompleteQuery(term ?? string.Empty, miscTypeId));
+            var result = await Mediator.Send(new GetMiscMasterAutoCompleteQuery(term ?? string.Empty, MiscTypeCode ?? string.Empty));
 
             return Ok(new
             {

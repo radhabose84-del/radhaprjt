@@ -1002,6 +1002,132 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.ToTable("SalesContact", "Sales");
                 });
 
+            modelBuilder.Entity("SalesManagement.Domain.Entities.SalesEnquiryDetail", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal?>("Discount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("Discount");
+
+                    b.Property<decimal?>("ExmillRate")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("ExmillRate");
+
+                    b.Property<int>("ItemId")
+                        .HasColumnType("int")
+                        .HasColumnName("ItemId");
+
+                    b.Property<decimal>("Quantity")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("Quantity");
+
+                    b.Property<int>("SalesEnquiryHeaderId")
+                        .HasColumnType("int")
+                        .HasColumnName("SalesEnquiryHeaderId");
+
+                    b.Property<decimal?>("TargetPrice")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("TargetPrice");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ItemId");
+
+                    b.HasIndex("SalesEnquiryHeaderId");
+
+                    b.ToTable("SalesEnquiryDetail", "Sales");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.SalesEnquiryHeader", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ContactPerson")
+                        .HasColumnType("varchar(200)")
+                        .HasColumnName("ContactPerson");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<DateTimeOffset>("EnquiryDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("EnquiryDate");
+
+                    b.Property<DateTimeOffset?>("ExpectedDeliveryDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ExpectedDeliveryDate");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<int>("PartyId")
+                        .HasColumnType("int")
+                        .HasColumnName("PartyId");
+
+                    b.Property<int?>("PaymentTermId")
+                        .HasColumnType("int")
+                        .HasColumnName("PaymentTermId");
+
+                    b.Property<string>("Remarks")
+                        .HasColumnType("varchar(500)")
+                        .HasColumnName("Remarks");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PartyId");
+
+                    b.ToTable("SalesEnquiryHeader", "Sales");
+                });
+
             modelBuilder.Entity("SalesManagement.Domain.Entities.SalesGroup", b =>
                 {
                     b.Property<int>("Id")
@@ -1363,6 +1489,204 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.ToTable("SalesOrganisation", "Sales");
                 });
 
+            modelBuilder.Entity("SalesManagement.Domain.Entities.SalesQuotationDetail", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Discount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("Discount");
+
+                    b.Property<decimal>("ExMillRate")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("ExMillRate");
+
+                    b.Property<int>("HSNId")
+                        .HasColumnType("int")
+                        .HasColumnName("HSNId");
+
+                    b.Property<int>("ItemId")
+                        .HasColumnType("int")
+                        .HasColumnName("ItemId");
+
+                    b.Property<decimal>("NetRate")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("NetRate");
+
+                    b.Property<decimal>("Quantity")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("Quantity");
+
+                    b.Property<int>("SalesQuotationHeaderId")
+                        .HasColumnType("int")
+                        .HasColumnName("SalesQuotationHeaderId");
+
+                    b.Property<decimal>("TaxAmount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("TaxAmount");
+
+                    b.Property<decimal>("TaxPercentage")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("TaxPercentage");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("TotalAmount");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HSNId");
+
+                    b.HasIndex("ItemId");
+
+                    b.HasIndex("SalesQuotationHeaderId");
+
+                    b.ToTable("SalesQuotationDetail", "Sales");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.SalesQuotationHeader", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("ContactPersonId")
+                        .HasColumnType("int")
+                        .HasColumnName("ContactPersonId");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<int>("CustomerId")
+                        .HasColumnType("int")
+                        .HasColumnName("CustomerId");
+
+                    b.Property<int>("DeliveryTermId")
+                        .HasColumnType("int")
+                        .HasColumnName("DeliveryTermId");
+
+                    b.Property<decimal>("FreightCharges")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("FreightCharges");
+
+                    b.Property<decimal>("GrandTotal")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("GrandTotal");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<decimal>("NetTaxableAmount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("NetTaxableAmount");
+
+                    b.Property<decimal>("OtherCharges")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("OtherCharges");
+
+                    b.Property<int>("PaymentTermId")
+                        .HasColumnType("int")
+                        .HasColumnName("PaymentTermId");
+
+                    b.Property<DateOnly>("QuotationDate")
+                        .HasColumnType("date")
+                        .HasColumnName("QuotationDate");
+
+                    b.Property<string>("Remarks")
+                        .HasColumnType("varchar(500)")
+                        .HasColumnName("Remarks");
+
+                    b.Property<int?>("SalesEnquiryId")
+                        .HasColumnType("int")
+                        .HasColumnName("SalesEnquiryId");
+
+                    b.Property<decimal>("TotalBasicAmount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("TotalBasicAmount");
+
+                    b.Property<decimal>("TotalDiscount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("TotalDiscount");
+
+                    b.Property<decimal>("TotalTax")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("TotalTax");
+
+                    b.Property<DateOnly>("ValidityDate")
+                        .HasColumnType("date")
+                        .HasColumnName("ValidityDate");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContactPersonId");
+
+                    b.HasIndex("CustomerId");
+
+                    b.HasIndex("DeliveryTermId");
+
+                    b.HasIndex("PaymentTermId");
+
+                    b.HasIndex("SalesEnquiryId");
+
+                    b.ToTable("SalesQuotationHeader", "Sales");
+                });
+
             modelBuilder.Entity("SalesManagement.Domain.Entities.SalesSegment", b =>
                 {
                     b.Property<int>("Id")
@@ -1549,6 +1873,17 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("ContactType");
                 });
 
+            modelBuilder.Entity("SalesManagement.Domain.Entities.SalesEnquiryDetail", b =>
+                {
+                    b.HasOne("SalesManagement.Domain.Entities.SalesEnquiryHeader", "SalesEnquiryHeader")
+                        .WithMany("SalesEnquiryDetails")
+                        .HasForeignKey("SalesEnquiryHeaderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("SalesEnquiryHeader");
+                });
+
             modelBuilder.Entity("SalesManagement.Domain.Entities.SalesGroup", b =>
                 {
                     b.HasOne("SalesManagement.Domain.Entities.SalesOffice", "SalesOffice")
@@ -1586,6 +1921,42 @@ namespace SalesManagement.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("SalesOrganisation");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.SalesQuotationDetail", b =>
+                {
+                    b.HasOne("SalesManagement.Domain.Entities.SalesQuotationHeader", "SalesQuotationHeader")
+                        .WithMany("SalesQuotationDetails")
+                        .HasForeignKey("SalesQuotationHeaderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("SalesQuotationHeader");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.SalesQuotationHeader", b =>
+                {
+                    b.HasOne("SalesManagement.Domain.Entities.SalesContact", "ContactPerson")
+                        .WithMany()
+                        .HasForeignKey("ContactPersonId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "DeliveryTerm")
+                        .WithMany()
+                        .HasForeignKey("DeliveryTermId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SalesManagement.Domain.Entities.SalesEnquiryHeader", "SalesEnquiryHeader")
+                        .WithMany()
+                        .HasForeignKey("SalesEnquiryId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("ContactPerson");
+
+                    b.Navigation("DeliveryTerm");
+
+                    b.Navigation("SalesEnquiryHeader");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.SalesSegment", b =>
@@ -1647,6 +2018,11 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("SalesSegments");
                 });
 
+            modelBuilder.Entity("SalesManagement.Domain.Entities.SalesEnquiryHeader", b =>
+                {
+                    b.Navigation("SalesEnquiryDetails");
+                });
+
             modelBuilder.Entity("SalesManagement.Domain.Entities.SalesGroup", b =>
                 {
                     b.Navigation("OfficerSalesGroups");
@@ -1664,6 +2040,11 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("SalesOffices");
 
                     b.Navigation("SalesSegments");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.SalesQuotationHeader", b =>
+                {
+                    b.Navigation("SalesQuotationDetails");
                 });
 #pragma warning restore 612, 618
         }

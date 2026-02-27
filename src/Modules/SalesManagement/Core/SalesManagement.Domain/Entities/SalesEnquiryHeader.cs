@@ -1,0 +1,16 @@
+using SalesManagement.Domain.Common;
+
+namespace SalesManagement.Domain.Entities
+{
+    public class SalesEnquiryHeader : BaseEntity
+    {
+        public int PartyId { get; set; }
+        public DateTimeOffset EnquiryDate { get; set; }
+        public string? ContactPerson { get; set; }
+        public DateTimeOffset? ExpectedDeliveryDate { get; set; }
+        public int? PaymentTermId { get; set; }
+        public string? Remarks { get; set; }
+
+        public ICollection<SalesEnquiryDetail>? SalesEnquiryDetails { get; set; }
+    }
+}

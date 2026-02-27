@@ -184,5 +184,17 @@
     {
         "rule": "Longitude",
         "error": " must be between -180 and 180."
+    },
+    {
+        "rule": "GreaterThan",
+        "error": "must be greater than zero."
+    },
+    {
+        "rule": "GreaterThanOrEqualToZero",
+        "error": "must be zero or positive."
+    },
+    {
+        "rule": "DateCompare",
+        "error": "must be greater than or equal to"
     }
 ]

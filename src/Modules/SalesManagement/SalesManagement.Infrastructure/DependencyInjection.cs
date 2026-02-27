@@ -44,6 +44,10 @@ using SalesManagement.Application.Common.Interfaces.ISalesLead;
 using SalesManagement.Infrastructure.Repositories.SalesLead;
 using SalesManagement.Application.Common.Interfaces.IOfficerAgent;
 using SalesManagement.Infrastructure.Repositories.OfficerAgent;
+using SalesManagement.Application.Common.Interfaces.ISalesEnquiry;
+using SalesManagement.Infrastructure.Repositories.SalesEnquiry;
+using SalesManagement.Application.Common.Interfaces.ISalesQuotation;
+using SalesManagement.Infrastructure.Repositories.SalesQuotation;
 
 
 namespace SalesManagement.Infrastructure
@@ -192,6 +196,14 @@ namespace SalesManagement.Infrastructure
             // ── Officer Agent Repositories ────────────────────────────────
             services.AddScoped<IOfficerAgentCommandRepository, OfficerAgentCommandRepository>();
             services.AddScoped<IOfficerAgentQueryRepository, OfficerAgentQueryRepository>();
+
+            // ── Sales Enquiry Repositories ──────────────────────────────
+            services.AddScoped<ISalesEnquiryCommandRepository, SalesEnquiryCommandRepository>();
+            services.AddScoped<ISalesEnquiryQueryRepository, SalesEnquiryQueryRepository>();
+
+            // ── Sales Quotation Repositories ────────────────────────────
+            services.AddScoped<ISalesQuotationCommandRepository, SalesQuotationCommandRepository>();
+            services.AddScoped<ISalesQuotationQueryRepository, SalesQuotationQueryRepository>();
 
             return services;
         }

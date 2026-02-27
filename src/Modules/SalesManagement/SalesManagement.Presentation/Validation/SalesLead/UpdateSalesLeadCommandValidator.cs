@@ -92,6 +92,13 @@ namespace SalesManagement.Presentation.Validation.SalesLead
                                 !await _queryRepository.MobileNumberExistsForProspectAsync(mobile!, cmd.Id!))
                             .WithMessage($"{nameof(UpdateSalesLeadCommand.MobileNumber)} {rule.Error}")
                             .When(x => x.PartyId == null && !string.IsNullOrWhiteSpace(x.MobileNumber));
+
+                        RuleFor(x => x.MobileNumber)
+                            .MustAsync(async (mobile, ct) =>
+                                !await _queryRepository.MobileNumberExistsInSalesContactAsync(mobile!))
+                            .WithMessage("Contact mobile number already exists. Please select correct contact details.")
+                            .When(x => !x.ContactId.HasValue && !string.IsNullOrWhiteSpace(x.ContactName)
+                                    && !string.IsNullOrWhiteSpace(x.MobileNumber));
                         break;
 
                     case "FKColumnDelete":

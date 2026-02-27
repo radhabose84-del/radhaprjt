@@ -669,6 +669,9 @@ using Shared.Validation.Common;                         // ValidationRuleLoader,
 | `GstFormat` | 15-character GSTIN format | `^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$` | `"must be in the correct format (e.g., '22AAAAA1234A1Z5')."` |
 | `Latitude` | Decimal latitude range (-90 to 90) | — | `"must be between -90 and 90."` |
 | `Longitude` | Decimal longitude range (-180 to 180) | — | `"must be between -180 and 180."` |
+| `GreaterThan` | Numeric field must be > 0 (detail-level: ItemId, Quantity, Rate, HSNId) | — | `"must be greater than zero."` |
+| `GreaterThanOrEqualToZero` | Numeric field must be >= 0 (Discount, FreightCharges, OtherCharges) | — | `"must be zero or positive."` |
+| `DateCompare` | Date field must be >= another date (e.g., ValidityDate >= QuotationDate) | — | `"must be greater than or equal to"` |
 
 > ⚠️ **`Alphanumeric` pattern is `^[A-Za-z0-9]+$` — spaces are NOT alphanumeric.**
 > The shared `validation-rules.json` previously had `^[A-Za-z0-9 ]+$` (with a stray space) which incorrectly allowed spaces in code fields. This was a bug — it has been fixed. Code fields (e.g. `SalesOrganisationCode`, `BusinessUnitCode`) must reject spaces.
@@ -898,6 +901,9 @@ public class Delete{EntityName}CommandValidator : AbstractValidator<Delete{Entit
 | GSTIN format | `GstFormat` | `.Matches(rule.Pattern)` with `.When()` guard | Create/Update |
 | Latitude range (-90 to 90) | `Latitude` | `.InclusiveBetween(-90m, 90m)` with `.When()` guard | Create/Update |
 | Longitude range (-180 to 180) | `Longitude` | `.InclusiveBetween(-180m, 180m)` with `.When()` guard | Create/Update |
+| Numeric > 0 (detail-level) | `GreaterThan` | `.GreaterThan(0)` via `RuleForEach` + `ChildRules` | Create/Update |
+| Numeric >= 0 (charges, discount) | `GreaterThanOrEqualToZero` | `.GreaterThanOrEqualTo(0)` | Create/Update |
+| Date >= another date | `DateCompare` | `.GreaterThanOrEqualTo(x => x.OtherDate)` | Create/Update |
 
 ### Global Validation Pipeline
 

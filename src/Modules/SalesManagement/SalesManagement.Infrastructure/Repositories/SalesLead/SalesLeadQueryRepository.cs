@@ -267,5 +267,28 @@ namespace SalesManagement.Infrastructure.Repositories.SalesLead
             var user = await _userLookup.GetByIdAsync(userId);
             return user != null;
         }
+
+        public async Task<bool> MobileNumberExistsInSalesContactAsync(string mobileNumber)
+        {
+            const string sql = @"
+                SELECT COUNT(1)
+                FROM Sales.SalesContact
+                WHERE MobileNumber = @MobileNumber AND IsDeleted = 0";
+
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { MobileNumber = mobileNumber.Trim() });
+            return count > 0;
+        }
+
+        public async Task<int> GetPrimaryContactTypeIdAsync()
+        {
+            const string sql = @"
+                SELECT TOP 1 mm.Id
+                FROM Sales.MiscMaster mm
+                WHERE mm.Description = 'Primary'
+                AND mm.IsActive = 1 AND mm.IsDeleted = 0
+                ORDER BY mm.SortOrder ASC";
+
+            return await _dbConnection.ExecuteScalarAsync<int>(sql);
+        }
     }
 }
