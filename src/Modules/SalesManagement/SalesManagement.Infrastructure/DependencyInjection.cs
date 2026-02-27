@@ -21,8 +21,8 @@ using SalesManagement.Application.Common.Interfaces.ISalesOffice;
 using SalesManagement.Infrastructure.Repositories.SalesOffice;
 using SalesManagement.Application.Common.Interfaces.ISalesGroup;
 using SalesManagement.Infrastructure.Repositories.SalesGroup;
-using SalesManagement.Application.Common.Interfaces.ISalesItemPriceMaster;
-using SalesManagement.Infrastructure.Repositories.SalesItemPriceMaster;
+using SalesManagement.Application.Common.Interfaces.IItemPriceMaster;
+using SalesManagement.Infrastructure.Repositories.ItemPriceMaster;
 using SalesManagement.Application.Common.Interfaces.IMiscTypeMaster;
 using SalesManagement.Infrastructure.Repositories.MiscTypeMaster;
 using SalesManagement.Application.Common.Interfaces.IMiscMaster;
@@ -153,9 +153,9 @@ namespace SalesManagement.Infrastructure
             // ── Sales Group Repositories ─────────────────────────────────
             services.AddScoped<ISalesGroupCommandRepository, SalesGroupCommandRepository>();
             services.AddScoped<ISalesGroupQueryRepository, SalesGroupQueryRepository>();
-  			// ── Sales Item Price Master Repositories ─────────────────────
-            services.AddScoped<ISalesItemPriceMasterCommandRepository, SalesItemPriceMasterCommandRepository>();
-            services.AddScoped<ISalesItemPriceMasterQueryRepository, SalesItemPriceMasterQueryRepository>();
+  			// ── Item Price Master Repositories ─────────────────────
+            services.AddScoped<IItemPriceMasterCommandRepository, ItemPriceMasterCommandRepository>();
+            services.AddScoped<IItemPriceMasterQueryRepository, ItemPriceMasterQueryRepository>();
 
             // ── Misc Type Master Repositories ─────────────────────────────
             services.AddScoped<IMiscTypeMasterCommandRepository, MiscTypeMasterCommandRepository>();

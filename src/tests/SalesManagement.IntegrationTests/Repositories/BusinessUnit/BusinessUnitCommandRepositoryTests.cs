@@ -39,7 +39,7 @@ namespace SalesManagement.IntegrationTests.Repositories.BusinessUnit
 
         private async Task ClearTableAsync(ApplicationDbContext ctx)
         {
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Sales.SalesItemPriceMaster");
+            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Sales.ItemPriceMaster");
             await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Sales.SalesSegment");
             ctx.BusinessUnit.RemoveRange(ctx.BusinessUnit);
             await ctx.SaveChangesAsync();
