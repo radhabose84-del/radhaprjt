@@ -81,7 +81,7 @@ public sealed class MiscMasterControllerTests
             .Setup(m => m.Send(It.IsAny<GetMiscMasterAutoCompleteQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<MiscMasterLookupDto>() as IReadOnlyList<MiscMasterLookupDto>);
 
-        var result = await CreateSut().GetMiscMasterAutoCompleteAsync("test", 3);
+        var result = await CreateSut().GetMiscMasterAutoCompleteAsync("test", "TYPE03");
 
         result.Should().BeOfType<OkObjectResult>();
     }

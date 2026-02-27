@@ -418,7 +418,7 @@ namespace SalesManagement.IntegrationTests.Repositories.MiscMaster
             await SeedMiscMasterAsync(miscTypeId1, "T1A01", "Type1 Item");
             await SeedMiscMasterAsync(miscTypeId2, "T2A01", "Type2 Item");
 
-            var results = await CreateQueryRepo().AutocompleteAsync("Item", miscTypeId1, CancellationToken.None);
+            var results = await CreateQueryRepo().AutocompleteAsync("Item", "QACMF01", CancellationToken.None);
 
             results.Should().HaveCount(1);
             results[0].MiscTypeId.Should().Be(miscTypeId1);
