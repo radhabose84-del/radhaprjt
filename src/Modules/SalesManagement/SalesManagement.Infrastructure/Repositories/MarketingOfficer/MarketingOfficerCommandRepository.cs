@@ -41,9 +41,10 @@ namespace SalesManagement.Infrastructure.Repositories.MarketingOfficer
             existing.IsActive = entity.IsActive;
 
             // Full replacement of child records
-            _dbContext.OfficerSalesGroup.RemoveRange(existing.OfficerSalesGroups);
+            if (existing.OfficerSalesGroups != null)
+                _dbContext.OfficerSalesGroup.RemoveRange(existing.OfficerSalesGroups);
 
-            foreach (var child in entity.OfficerSalesGroups)
+            foreach (var child in entity.OfficerSalesGroups ?? Enumerable.Empty<Domain.Entities.OfficerSalesGroup>())
             {
                 child.MarketingOfficerId = existing.Id;
                 await _dbContext.OfficerSalesGroup.AddAsync(child);
@@ -65,7 +66,7 @@ namespace SalesManagement.Infrastructure.Repositories.MarketingOfficer
 
             existing.IsDeleted = IsDelete.Deleted;
 
-            foreach (var child in existing.OfficerSalesGroups)
+            foreach (var child in existing.OfficerSalesGroups ?? Enumerable.Empty<Domain.Entities.OfficerSalesGroup>())
             {
                 child.IsDeleted = IsDelete.Deleted;
             }

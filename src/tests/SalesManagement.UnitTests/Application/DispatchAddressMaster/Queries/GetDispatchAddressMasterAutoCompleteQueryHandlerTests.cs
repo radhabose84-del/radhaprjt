@@ -46,7 +46,7 @@ namespace SalesManagement.UnitTests.Application.DispatchAddressMaster.Queries
                 .ReturnsAsync(new List<DispatchAddressMasterLookupDto>());
 
             var result = await CreateSut().Handle(
-                new GetDispatchAddressMasterAutoCompleteQuery(null),
+                new GetDispatchAddressMasterAutoCompleteQuery(null!),
                 CancellationToken.None);
 
             result.Should().BeEmpty();

@@ -1,3 +1,4 @@
+#nullable enable
 using Contracts.Dtos.Lookups.Users;
 using Contracts.Interfaces.Lookups.Users;
 using Dapper;
