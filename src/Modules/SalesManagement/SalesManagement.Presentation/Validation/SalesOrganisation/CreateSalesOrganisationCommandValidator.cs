@@ -85,7 +85,7 @@ namespace SalesManagement.Presentation.Validation.SalesOrganisation
                     case "AlreadyExists":
                         RuleFor(x => x.SalesOrganisationCode)
                             .MustAsync(async (code, ct) =>
-                                !await _queryRepository.AlreadyExistsAsync(code))
+                                !await _queryRepository.AlreadyExistsAsync(code!))
                             .WithMessage($"{nameof(CreateSalesOrganisationCommand.SalesOrganisationCode)} {rule.Error}")
                             .When(x => !string.IsNullOrWhiteSpace(x.SalesOrganisationCode));
                         break;

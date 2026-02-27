@@ -171,7 +171,7 @@ namespace WarehouseManagement.Infrastructure.Repositories.BinMaster
                     FROM Warehouse.BinMaster b WITH (NOLOCK)
                     WHERE b.IsDeleted = 0
                     AND b.IsActive = 1
-                    AND (@WarehouseId IS NULL OR b.WarehouseId = @WarehouseId)
+                    AND (@WarehouseId IS NULL OR @WarehouseId = 0 OR b.WarehouseId = @WarehouseId)
                     AND (@RackId      IS NULL OR b.RackId      = @RackId)
                     AND (
                             @Q IS NULL OR @Q = '' 

@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using Contracts.Common;
 using MediatR;
@@ -32,7 +31,7 @@ namespace SalesManagement.Application.SalesOrganisation.Commands.CreateSalesOrga
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Create",
                 actionCode: "SALES_ORG_CREATE",
-                actionName: request.SalesOrganisationCode,
+                actionName: request.SalesOrganisationCode ?? string.Empty,
                 details: $"Sales Organisation '{request.SalesOrganisationCode}' created successfully with Id {newId}.",
                 module: "SalesOrganisation"
             );

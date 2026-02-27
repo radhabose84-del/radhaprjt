@@ -1,4 +1,3 @@
-#nullable disable
 using FAM.Application.Common.Interfaces.IDepreciationGroup;
 using FAM.Domain.Common;
 using FAM.Domain.Entities;
@@ -67,14 +66,14 @@ namespace FAM.Infrastructure.Repositories.DepreciationGroup
        public async Task<DepreciationGroups> CheckForDuplicatesAsync(
         int groupId, int depMethodId, int bookTypeId,int excludeId)
         {
-           return await _applicationDbContext.DepreciationGroups
+           return (await _applicationDbContext.DepreciationGroups
             .FirstOrDefaultAsync(ag =>
             ag.AssetGroupId == groupId &&
             ag.DepreciationMethod == depMethodId &&
             ag.BookType == bookTypeId &&
             ag.IsDeleted == BaseEntity.IsDelete.NotDeleted &&
             ag.Id != excludeId
-        );
+        ))!;
         }
     }
 }

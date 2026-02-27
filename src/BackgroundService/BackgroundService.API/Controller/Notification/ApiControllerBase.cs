@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace BackgroundService.API.Controller.Notification
 {
-
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public abstract class ApiControllerBase : ControllerBase

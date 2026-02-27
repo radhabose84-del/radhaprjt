@@ -1,4 +1,3 @@
-#nullable disable
 using SalesManagement.Application.BusinessUnit.Commands.CreateBusinessUnit;
 using SalesManagement.Application.BusinessUnit.Commands.UpdateBusinessUnit;
 using SalesManagement.Application.BusinessUnit.Dto;
@@ -15,28 +14,28 @@ namespace SalesManagement.UnitTests.TestData
         // ── Create Command ────────────────────────────────────────────────────
 
         public static CreateBusinessUnitCommand ValidCreateCommand(
-            string code = "BU001",
-            string name = "Test Business Unit",
-            string description = "Test Description") =>
+            string? code = "BU001",
+            string? name = "Test Business Unit",
+            string? description = "Test Description") =>
             new CreateBusinessUnitCommand
             {
-                BusinessUnitCode = code,
-                BusinessUnitName = name,
-                Description = description
+                BusinessUnitCode = code!,
+                BusinessUnitName = name!,
+                Description = description!
             };
 
         // ── Update Command ────────────────────────────────────────────────────
 
         public static UpdateBusinessUnitCommand ValidUpdateCommand(
             int id = 1,
-            string name = "Updated Business Unit",
-            string description = "Updated Description",
+            string? name = "Updated Business Unit",
+            string? description = "Updated Description",
             int isActive = 1) =>
             new UpdateBusinessUnitCommand
             {
                 Id = id,
-                BusinessUnitName = name,
-                Description = description,
+                BusinessUnitName = name!,
+                Description = description!,
                 IsActive = isActive
             };
 

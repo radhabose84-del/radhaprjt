@@ -1,4 +1,3 @@
-#nullable disable
 using System.Data;
 using System.Text.Json;
 using FAM.Application.AssetMaster.AssetTransferIssue.Queries.GetAssetTransfered;
@@ -23,7 +22,7 @@ namespace FAM.Infrastructure.Repositories.AssetTransferReceipt
             _ipAddressService = ipAddressService;
         }
 
-         public async Task<(List<AssetReceiptDetailsDto>, int)> GetAllAssetReceiptDetails(int PageNumber, int PageSize, string Receiptno, DateTimeOffset? FromDate, DateTimeOffset? ToDate)
+         public async Task<(List<AssetReceiptDetailsDto>, int)> GetAllAssetReceiptDetails(int PageNumber, int PageSize, string? Receiptno, DateTimeOffset? FromDate, DateTimeOffset? ToDate)
         {
             var UnitId = _ipAddressService.GetUnitId();
              var query = $$"""
@@ -116,7 +115,7 @@ namespace FAM.Infrastructure.Repositories.AssetTransferReceipt
         }
 
         public async Task<(List<AssetTransferReceiptPendingDto>, int)> GetAllPendingAssetTransferAsync(
-            int PageNumber, int PageSize, int? AssetTransferId, string TransferType, DateTimeOffset? FromDate, DateTimeOffset? ToDate)
+            int PageNumber, int PageSize, int? AssetTransferId, string? TransferType, DateTimeOffset? FromDate, DateTimeOffset? ToDate)
         {
             var UnitId = _ipAddressService.GetUnitId();
             var query = $$"""
@@ -231,7 +230,7 @@ namespace FAM.Infrastructure.Repositories.AssetTransferReceipt
         // return header;
     // }
 
-        public async Task<AssetTransferDto> GetByAssetTransferId(int assetTransferId)
+        public async Task<AssetTransferDto?> GetByAssetTransferId(int assetTransferId)
         {
             var UnitId = _ipAddressService.GetUnitId();
              const string query = @"
@@ -246,7 +245,7 @@ namespace FAM.Infrastructure.Repositories.AssetTransferReceipt
             return assetTransfer;
         }
 
-        public async Task<AssetTrasnferReceiptHdrPendingDto> GetAssetTransferByIdAsync(int assetTransferId)
+        public async Task<AssetTrasnferReceiptHdrPendingDto?> GetAssetTransferByIdAsync(int assetTransferId)
         {
             var UnitId = _ipAddressService.GetUnitId();
              const string query = @"
@@ -296,8 +295,8 @@ namespace FAM.Infrastructure.Repositories.AssetTransferReceipt
 
         using var multiQuery = await _dbConnection.QueryMultipleAsync(query, new { assetTransferId, UnitId });
 
-        string headerJson = await multiQuery.ReadFirstOrDefaultAsync<string>();
-        string detailsJson = await multiQuery.ReadFirstOrDefaultAsync<string>();
+        string? headerJson = await multiQuery.ReadFirstOrDefaultAsync<string>();
+        string? detailsJson = await multiQuery.ReadFirstOrDefaultAsync<string>();
 
         if (string.IsNullOrWhiteSpace(headerJson))
         {

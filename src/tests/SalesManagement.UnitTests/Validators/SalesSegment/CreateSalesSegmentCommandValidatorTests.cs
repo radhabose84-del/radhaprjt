@@ -1,4 +1,3 @@
-#nullable disable
 using FluentValidation.TestHelper;
 using SalesManagement.Application.Common.Interfaces.ISalesSegment;
 using SalesManagement.Presentation.Validation.SalesSegment;
@@ -142,7 +141,7 @@ namespace SalesManagement.UnitTests.Validators.SalesSegment
         [Theory]
         [InlineData(null)]
         [InlineData("")]
-        public async Task SegmentName_Empty_FailsValidation(string name)
+        public async Task SegmentName_Empty_FailsValidation(string? name)
         {
             SetupAllValid();
             var command = SalesSegmentBuilders.ValidCreateCommand(segmentName: name);

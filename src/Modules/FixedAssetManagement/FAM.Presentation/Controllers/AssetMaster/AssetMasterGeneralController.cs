@@ -1,4 +1,3 @@
-#nullable disable
 using FAM.Application.AssetMaster.AssetMasterGeneral.Commands.CreateAssetMasterGeneral;
 using FAM.Application.AssetMaster.AssetMasterGeneral.Commands.DeleteAssetMasterGeneral;
 using FAM.Application.AssetMaster.AssetMasterGeneral.Commands.DeleteDocumentAssetMasterGeneral;
@@ -37,7 +36,7 @@ namespace FAM.Presentation.Controllers.AssetMaster
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllAssetMasterGeneralAsync([FromQuery] int PageNumber, [FromQuery] int PageSize, [FromQuery] string SearchTerm = null)
+        public async Task<IActionResult> GetAllAssetMasterGeneralAsync([FromQuery] int PageNumber, [FromQuery] int PageSize, [FromQuery] string? SearchTerm = null)
 
         {
             var assetMaster = await Mediator.Send(
@@ -52,7 +51,7 @@ namespace FAM.Presentation.Controllers.AssetMaster
             {
                 StatusCode = StatusCodes.Status200OK,
                 message = assetMaster.Message,
-                data = assetMaster.Data.ToList(),
+                data = assetMaster.Data!.ToList(),
                 TotalCount = assetMaster.TotalCount,
                 PageNumber = assetMaster.PageNumber,
                 PageSize = assetMaster.PageSize
@@ -149,7 +148,7 @@ namespace FAM.Presentation.Controllers.AssetMaster
         // GET: api/AssetMasterGeneral/by-name?name=...
 
         [HttpGet("by-name")]
-        public async Task<IActionResult> GetAssetName([FromQuery] string name)
+        public async Task<IActionResult> GetAssetName([FromQuery] string? name = null)
 
         {
             var result = await Mediator.Send(new GetAssetMasterGeneralAutoCompleteQuery { SearchPattern = name });

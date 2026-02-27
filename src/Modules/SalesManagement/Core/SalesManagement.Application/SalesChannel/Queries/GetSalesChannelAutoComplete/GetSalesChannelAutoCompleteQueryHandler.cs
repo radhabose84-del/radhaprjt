@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.ISalesChannel;
@@ -39,3 +38,6 @@ namespace SalesManagement.Application.SalesChannel.Queries.GetSalesChannelAutoCo
         }
     }
 }
+
+
+

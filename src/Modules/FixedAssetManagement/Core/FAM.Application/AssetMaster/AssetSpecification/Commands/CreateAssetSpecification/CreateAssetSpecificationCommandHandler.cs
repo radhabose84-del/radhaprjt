@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using FAM.Application.Common.Interfaces.IAssetMaster.IAssetSpecification;
 using FAM.Domain.Entities.AssetMaster;
@@ -25,7 +24,7 @@ namespace FAM.Application.AssetMaster.AssetSpecification.Commands.CreateAssetSpe
         {
              var createdCount = 0;
 
-            foreach (var spec in request.Specifications )
+            foreach (var spec in request.Specifications! )
             {
                 var alreadyExists = await _assetSpecificationRepository.ExistsByAssetSpecIdAsync(request.AssetId, spec.SpecificationId);
                 if (!alreadyExists)

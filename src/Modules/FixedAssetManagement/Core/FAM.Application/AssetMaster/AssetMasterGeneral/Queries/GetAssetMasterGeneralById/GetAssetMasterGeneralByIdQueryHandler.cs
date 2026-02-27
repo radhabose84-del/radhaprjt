@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using FAM.Application.Common.Interfaces.IAssetMaster.IAssetMasterGeneral;
 using FAM.Domain.Events;
@@ -26,7 +25,7 @@ namespace FAM.Application.AssetMaster.AssetMasterGeneral.Queries.GetAssetMasterG
            var asset = _mapper.Map<AssetMasterDTO>(assetResult);
             if (assetResult == null)
             {                
-                return null;                  
+                return null!;
             }
 
             if (assetResult?.AssetName != null)

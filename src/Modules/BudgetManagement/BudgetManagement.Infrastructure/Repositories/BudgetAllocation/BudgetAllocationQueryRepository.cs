@@ -1,4 +1,3 @@
-#nullable disable
 using System.Data;
 using BudgetManagement.Infrastructure.Data;
 using BudgetManagement.Application.BudgetAllocation.Queries.GetBudgetBalanceReport;
@@ -61,12 +60,12 @@ namespace BudgetManagement.Infrastructure.Repositories.BudgetAllocation
 
 
         public async Task<(List<GetSpindleDetailsMonthwiseDto>, int)> GetBudgetGroupDetailSpindlewise(
-        int PageNumber, int PageSize, string SearchTerm)
+        int PageNumber, int PageSize, string? SearchTerm)
         {
             var UnitId = _ipAddressService.GetUnitId();
 
             // Build Search Parameter
-            string search = string.IsNullOrWhiteSpace(SearchTerm) ? null : $"%{SearchTerm}%";
+            string? search = string.IsNullOrWhiteSpace(SearchTerm) ? null : $"%{SearchTerm}%";
 
             // Pagination
             int offset = (PageNumber - 1) * PageSize;

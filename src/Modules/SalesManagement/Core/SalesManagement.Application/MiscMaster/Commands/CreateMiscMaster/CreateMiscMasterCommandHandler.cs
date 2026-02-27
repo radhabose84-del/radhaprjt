@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using Contracts.Common;
 using MediatR;
@@ -33,7 +32,7 @@ namespace SalesManagement.Application.MiscMaster.Commands.CreateMiscMaster
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Create",
                 actionCode: "MISC_MASTER_CREATE",
-                actionName: request.Code,
+                actionName: request.Code ?? string.Empty,
                 details: $"Misc Master '{request.Code}' created successfully with Id {newId}.",
                 module: "MiscMaster"
             );

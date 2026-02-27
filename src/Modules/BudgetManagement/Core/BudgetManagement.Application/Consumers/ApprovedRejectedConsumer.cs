@@ -75,8 +75,8 @@ namespace BudgetManagement.Application.Consumers
                 var rejected = await _miscMasterQueryRepository.GetMiscMasterByName(MiscEnumEntity.ApprovalStatus, MiscEnumEntity.Rejected);
 
                 var finalStatusId = string.Equals(status, MiscEnumEntity.Approved, StringComparison.OrdinalIgnoreCase)
-                    ? approved.Id
-                    : rejected.Id;
+                    ? approved!.Id
+                    : rejected!.Id;
               
                 var updated = await _requestCommand.UpdateRequestApproveAsync(msg.ModuleTransactionId, finalStatusId, context.CancellationToken);
 

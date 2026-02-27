@@ -1,4 +1,3 @@
-#nullable disable
 using Contracts.Interfaces.Lookups.Users;
 using Contracts.Interfaces.Lookups.Maintenance;
 using Contracts.Common;
@@ -67,7 +66,7 @@ namespace BudgetManagement.Application.BudgetGroups.Queries.GetBudgetGroup
             {
                 if (string.IsNullOrWhiteSpace(dto.DepartmentName) &&
                     deptLookupDict.TryGetValue(dto.DepartmentId, out var deptName))
-                    dto.DepartmentName = deptName;
+                    dto.DepartmentName = deptName ?? string.Empty;
 
                 if (string.IsNullOrWhiteSpace(dto.UnitName) &&
                     unitLookupDict.TryGetValue(dto.UnitId, out var unitName))
@@ -83,7 +82,7 @@ namespace BudgetManagement.Application.BudgetGroups.Queries.GetBudgetGroup
                 if (dto.CostCenterId > 0 &&
                     ccLookup.TryGetValue(dto.CostCenterId, out var ccName) &&
                     string.IsNullOrWhiteSpace(dto.CostCenterName))
-                    dto.CostCenterName = ccName;
+                    dto.CostCenterName = ccName ?? string.Empty;
             }
 
             // Currency enrichment

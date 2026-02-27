@@ -1,4 +1,3 @@
-﻿#nullable disable
 using FluentValidation.TestHelper;
 using SalesManagement.Application.Common.Interfaces.ISalesOrganisation;
 using SalesManagement.Application.SalesOrganisation.Commands.UpdateSalesOrganisation;
@@ -83,7 +82,7 @@ namespace SalesManagement.UnitTests.Validators.SalesOrganisation
         [Theory]
         [InlineData(null)]
         [InlineData("")]
-        public async Task SalesOrganisationName_Empty_FailsValidation(string name)
+        public async Task SalesOrganisationName_Empty_FailsValidation(string? name)
         {
             // Arrange
             var command = SalesOrganisationBuilders.ValidUpdateCommand(id: 1, name: name, companyId: 1);

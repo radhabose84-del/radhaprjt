@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using Contracts.Common;
 using MediatR;
@@ -32,7 +31,7 @@ namespace SalesManagement.Application.SalesChannel.Commands.CreateSalesChannel
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Create",
                 actionCode: "SALES_CHANNEL_CREATE",
-                actionName: request.SalesChannelCode,
+                actionName: request.SalesChannelCode ?? string.Empty,
                 details: $"Sales Channel '{request.SalesChannelCode}' created successfully with Id {newId}.",
                 module: "SalesChannel"
             );

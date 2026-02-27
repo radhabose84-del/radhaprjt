@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using Contracts.Interfaces.Lookups.Users;
 using MediatR;
@@ -23,7 +22,7 @@ namespace SalesManagement.UnitTests.Application.SalesSegment.Queries
         private GetSalesSegmentByIdQueryHandler CreateSut()
         {
             _mockMapper.Setup(m => m.Map<SalesSegmentDto>(It.IsAny<object>()))
-                .Returns<object>(o => o as SalesSegmentDto);
+                .Returns<object>(o => (o as SalesSegmentDto)!);
             _mockMediator.Setup(m => m.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);
             return new GetSalesSegmentByIdQueryHandler(_mockQueryRepo.Object, _mockCurrencyLookup.Object, _mockMapper.Object, _mockMediator.Object);
@@ -53,8 +52,8 @@ namespace SalesManagement.UnitTests.Application.SalesSegment.Queries
             var result = await CreateSut().Handle(query, CancellationToken.None);
 
             result.Should().NotBeNull();
-            result.Id.Should().Be(1);
-            result.SegmentName.Should().Be("Finance Segment");
+            result!.Id.Should().Be(1);
+            result!.SegmentName.Should().Be("Finance Segment");
         }
 
         [Fact]
@@ -81,14 +80,14 @@ namespace SalesManagement.UnitTests.Application.SalesSegment.Queries
 
             var result = await CreateSut().Handle(query, CancellationToken.None);
 
-            result.CurrencyName.Should().Be("US Dollar");
+            result!.CurrencyName.Should().Be("US Dollar");
         }
 
         [Fact]
         public async Task Handle_EntityNotFound_ReturnsNull()
         {
             var query = new GetSalesSegmentByIdQuery { Id = 99 };
-            _mockQueryRepo.Setup(r => r.GetByIdAsync(99)).ReturnsAsync((SalesSegmentDto)null);
+            _mockQueryRepo.Setup(r => r.GetByIdAsync(99)).ReturnsAsync((SalesSegmentDto?)null);
 
             var result = await CreateSut().Handle(query, CancellationToken.None);
 
@@ -99,7 +98,7 @@ namespace SalesManagement.UnitTests.Application.SalesSegment.Queries
         public async Task Handle_EntityNotFound_DoesNotCallCurrencyLookup()
         {
             var query = new GetSalesSegmentByIdQuery { Id = 99 };
-            _mockQueryRepo.Setup(r => r.GetByIdAsync(99)).ReturnsAsync((SalesSegmentDto)null);
+            _mockQueryRepo.Setup(r => r.GetByIdAsync(99)).ReturnsAsync((SalesSegmentDto?)null);
 
             await CreateSut().Handle(query, CancellationToken.None);
 

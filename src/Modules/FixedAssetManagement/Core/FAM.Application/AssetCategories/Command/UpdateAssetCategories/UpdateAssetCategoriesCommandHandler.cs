@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using FAM.Application.Common.Interfaces.IAssetCategories;
 using FAM.Domain.Events;
@@ -41,7 +40,7 @@ namespace FAM.Application.AssetCategories.Command.UpdateAssetCategories
 
          // Check for duplicate GroupName or SortOrder
        var (isNameDuplicate, isSortOrderDuplicate) = await _iAssetCategoriesCommandRepository
-                                .CheckForDuplicatesAsync(request.CategoryName, request.SortOrder, request.Id);
+                                .CheckForDuplicatesAsync(request.CategoryName ?? string.Empty, request.SortOrder, request.Id);
 
         if (isNameDuplicate || isSortOrderDuplicate)
         {

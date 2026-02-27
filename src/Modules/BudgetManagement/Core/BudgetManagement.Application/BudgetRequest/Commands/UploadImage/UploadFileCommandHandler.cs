@@ -1,4 +1,3 @@
-#nullable disable
 using System.ComponentModel.DataAnnotations;
 using Contracts.Interfaces.Lookups.Users;
 using BudgetManagement.Application.BudgetRequest.Commands;
@@ -68,7 +67,7 @@ namespace BudgetManagement.Application.Quotation.QuotationEntry.Commands.UploadI
 
             try
             {
-                EnsureDirectoryExists(Path.GetDirectoryName(filePath));
+                EnsureDirectoryExists(Path.GetDirectoryName(filePath) ?? string.Empty);
 
                 // Save the file
                 using (var fileStream = new FileStream(filePath, FileMode.Create))

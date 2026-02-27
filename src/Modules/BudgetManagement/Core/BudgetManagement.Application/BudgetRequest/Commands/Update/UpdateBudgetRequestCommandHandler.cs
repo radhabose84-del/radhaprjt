@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using Contracts.Interfaces.Lookups.Users;
 using BudgetManagement.Application.BudgetRequest.Commands.Update;
@@ -96,7 +95,7 @@ public class UpdateBudgetRequestCommandHandler
         await _mediator.Publish(domainEvent, cancellationToken);
 
         if (!string.IsNullOrWhiteSpace(request.ImagePath))
-            await TryMoveImageAsync(entity.Id, request.ImagePath!, entity.RequestCode, cancellationToken);
+            await TryMoveImageAsync(entity.Id, request.ImagePath!, entity.RequestCode ?? string.Empty, cancellationToken);
     }
 
     private async Task TryMoveImageAsync(int requestId, string tempFileName, string baseCode, CancellationToken ct)

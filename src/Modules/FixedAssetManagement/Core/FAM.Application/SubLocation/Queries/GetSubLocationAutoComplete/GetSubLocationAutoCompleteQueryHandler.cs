@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using FAM.Application.Common.Interfaces.ISubLocation;
 using FAM.Application.Location.Queries.GetSubLocations;
@@ -21,7 +20,7 @@ namespace FAM.Application.SubLocation.Queries.GetSubLocationAutoComplete
         }
         public async Task<List<SubLocationAutoCompleteDto>> Handle(GetSubLocationAutoCompleteQuery request, CancellationToken cancellationToken)
         {
-            var result = await _sublocationQueryRepository.GetSubLocation(request.SearchPattern);
+            var result = await _sublocationQueryRepository.GetSubLocation(request.SearchPattern ?? string.Empty);
             if (result is null || result.Count is 0)
             {
                 throw new ValidationException("No SubLocation found matching the search pattern.");

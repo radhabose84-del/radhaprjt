@@ -1,4 +1,3 @@
-#nullable disable
 using FluentValidation;
 using SalesManagement.Application.Common.Interfaces.ISalesOffice;
 using SalesManagement.Application.SalesOffice.Commands.CreateSalesOffice;
@@ -110,7 +109,7 @@ namespace SalesManagement.Presentation.Validation.SalesOffice
                     case "AlreadyExists":
                         RuleFor(x => x)
                             .MustAsync(async (cmd, ct) =>
-                                !await _queryRepository.AlreadyExistsAsync(cmd.SalesOfficeName, cmd.SalesOrganisationId))
+                                !await _queryRepository.AlreadyExistsAsync(cmd.SalesOfficeName!, cmd.SalesOrganisationId!))
                             .WithMessage($"{nameof(CreateSalesOfficeCommand.SalesOfficeName)} {rule.Error}")
                             .When(x => !string.IsNullOrWhiteSpace(x.SalesOfficeName) && x.SalesOrganisationId > 0);
                         break;

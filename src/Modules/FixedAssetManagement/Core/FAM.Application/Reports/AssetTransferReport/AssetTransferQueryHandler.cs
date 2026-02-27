@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using Contracts.Interfaces.Lookups.Users; // ✅ lookup contract
 using Contracts.Common;
@@ -80,7 +79,7 @@ namespace FAM.Application.Reports.AssetTransferReport
                 IsSuccess = true,
                 Message = "Success",
                 Data = assetTransfersReportDtos ?? new List<AssetTransferDetailsDto>(),
-                TotalCount = assetTransfersReportDtos.Count
+                TotalCount = assetTransfersReportDtos?.Count ?? 0
             };
         }
     }

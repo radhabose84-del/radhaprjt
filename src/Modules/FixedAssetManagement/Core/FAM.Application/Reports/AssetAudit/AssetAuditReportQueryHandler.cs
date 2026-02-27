@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using Contracts.Common;
 using FAM.Application.Common.Interfaces.IReports;
@@ -43,7 +42,7 @@ namespace FAM.Application.Reports.AssetAudit
                 IsSuccess = true,
                 Message = "Success",
                 Data = AssetAuditReportDtos ?? new List<AssetAuditReportDto>(),
-                TotalCount = AssetAuditReportDtos.Count
+                TotalCount = AssetAuditReportDtos?.Count ?? 0
             };
 
         }

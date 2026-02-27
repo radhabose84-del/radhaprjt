@@ -1,11 +1,11 @@
-﻿
+
 namespace SalesManagement.Application.BusinessUnit.Dto
 {
     public class BusinessUnitDto
     {
         public int Id { get; set; }
-        public string BusinessUnitCode { get; set; } = null!;
-        public string BusinessUnitName { get; set; } = null!;
+        public string? BusinessUnitCode { get; set; }
+        public string? BusinessUnitName { get; set; }
         public string? Description { get; set; }
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }

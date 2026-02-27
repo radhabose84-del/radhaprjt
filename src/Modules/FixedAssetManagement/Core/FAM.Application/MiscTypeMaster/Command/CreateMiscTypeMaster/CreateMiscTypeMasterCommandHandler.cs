@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using FAM.Application.Common.Interfaces.IMiscTypeMaster;
 using FAM.Application.MiscTypeMaster.Queries.GetMiscTypeMaster;
@@ -25,7 +24,7 @@ namespace FAM.Application.MiscTypeMaster.Command.CreateMiscTypeMaster
         public async Task<GetMiscTypeMasterDto> Handle(CreateMiscTypeMasterCommand request, CancellationToken cancellationToken)
         {
                // 🔹 Check if a MiscTypeMaster with the same name already exists
-            var existingMiscTypeMaster = await _miscTypeMasterQueryRepository.GetByMiscTypeMasterCodeAsync(request.MiscTypeCode);
+            var existingMiscTypeMaster = await _miscTypeMasterQueryRepository.GetByMiscTypeMasterCodeAsync(request.MiscTypeCode ?? string.Empty);
 
             if (existingMiscTypeMaster != null)
             {

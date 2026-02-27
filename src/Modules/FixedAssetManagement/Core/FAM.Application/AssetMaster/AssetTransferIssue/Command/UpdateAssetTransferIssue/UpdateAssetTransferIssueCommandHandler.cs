@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using FAM.Application.Common.Interfaces;
 using FAM.Application.Common.Interfaces.IAssetMaster.IAssetTransferIssue;
@@ -38,7 +37,7 @@ namespace FAM.Application.AssetMaster.AssetTransferIssue.Command.UpdateAssetTran
             public async Task<bool> Handle(UpdateAssetTransferIssueCommand request, CancellationToken cancellationToken)
         {
                             // 🔹 Retrieve Existing Record from Query Repository
-                var existingRecordDto = await _assetTransferQueryRepository.GetAssetTransferByIdAsync(request.AssetTransferHdr.Id);
+                var existingRecordDto = await _assetTransferQueryRepository.GetAssetTransferByIdAsync(request.AssetTransferHdr!.Id);
                 if (existingRecordDto == null)
                 {
                     throw new ValidationException($"Asset Transfer Issue with ID {request.AssetTransferHdr.Id} not found.");

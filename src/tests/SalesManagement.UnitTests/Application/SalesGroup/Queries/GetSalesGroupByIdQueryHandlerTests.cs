@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.ISalesGroup;
@@ -17,7 +16,7 @@ namespace SalesManagement.UnitTests.Application.SalesGroup.Queries
         private GetSalesGroupByIdQueryHandler CreateSut()
         {
             _mockMapper.Setup(m => m.Map<SalesGroupDto>(It.IsAny<object>()))
-                .Returns<object>(o => o as SalesGroupDto);
+                .Returns<object>(o => (o as SalesGroupDto)!);
             _mockMediator.Setup(m => m.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);
             return new GetSalesGroupByIdQueryHandler(_mockQueryRepo.Object, _mockMapper.Object, _mockMediator.Object);
@@ -49,8 +48,8 @@ namespace SalesManagement.UnitTests.Application.SalesGroup.Queries
             var result = await sut.Handle(query, CancellationToken.None);
 
             result.Should().NotBeNull();
-            result.Id.Should().Be(1);
-            result.SalesGroupName.Should().Be("North Region Group");
+            result!.Id.Should().Be(1);
+            result!.SalesGroupName.Should().Be("North Region Group");
         }
 
         [Fact]
@@ -84,7 +83,7 @@ namespace SalesManagement.UnitTests.Application.SalesGroup.Queries
         {
             var query = new GetSalesGroupByIdQuery { Id = 99 };
             _mockQueryRepo.Setup(r => r.GetByIdAsync(99))
-                .ReturnsAsync((SalesGroupDto)null);
+                .ReturnsAsync((SalesGroupDto?)null);
             var sut = CreateSut();
 
             var result = await sut.Handle(query, CancellationToken.None);

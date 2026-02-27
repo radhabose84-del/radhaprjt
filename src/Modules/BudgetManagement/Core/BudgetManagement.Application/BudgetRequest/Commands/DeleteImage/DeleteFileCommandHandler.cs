@@ -1,4 +1,3 @@
-#nullable disable
 using Contracts.Interfaces.Lookups.Users;
 using BudgetManagement.Application.Common.Interfaces;
 using BudgetManagement.Application.Common.Interfaces.IBudgetRequest;
@@ -60,7 +59,7 @@ namespace BudgetManagement.Application.BudgetRequest.Commands.DeleteImage
 
             var result = await _fileUploadService.DeleteFileAsync(filePath);
 
-            await _budgetRequestCommandRepository.RemoveImageReferenceAsync(request.imagePath);
+            await _budgetRequestCommandRepository.RemoveImageReferenceAsync(request.imagePath ?? string.Empty);
             if (result)
             {
                 return result;

@@ -1,4 +1,3 @@
-#nullable disable
 using Contracts.Dtos.Lookups.Users;
 using SalesManagement.Application.SalesSegment.Commands.CreateSalesSegment;
 using SalesManagement.Application.SalesSegment.Commands.UpdateSalesSegment;
@@ -21,7 +20,7 @@ namespace SalesManagement.UnitTests.TestData
             int salesChannelId = 1,
             int businessUnitId = 1,
             int? currencyId = null,
-            string segmentName = "Test Segment",
+            string? segmentName = "Test Segment",
             DateTime? validFrom = null) =>
             new CreateSalesSegmentCommand
             {
@@ -29,7 +28,7 @@ namespace SalesManagement.UnitTests.TestData
                 SalesChannelId = salesChannelId,
                 BusinessUnitId = businessUnitId,
                 CurrencyId = currencyId,
-                SegmentName = segmentName,
+                SegmentName = segmentName!,
                 ValidFrom = validFrom
             };
 
@@ -37,14 +36,14 @@ namespace SalesManagement.UnitTests.TestData
 
         public static UpdateSalesSegmentCommand ValidUpdateCommand(
             int id = 1,
-            string segmentName = "Updated Segment",
+            string? segmentName = "Updated Segment",
             int? currencyId = null,
             int isActive = 1,
             DateTime? validFrom = null) =>
             new UpdateSalesSegmentCommand
             {
                 Id = id,
-                SegmentName = segmentName,
+                SegmentName = segmentName!,
                 CurrencyId = currencyId,
                 IsActive = isActive,
                 ValidFrom = validFrom
@@ -59,7 +58,7 @@ namespace SalesManagement.UnitTests.TestData
             int businessUnitId = 1,
             string segmentName = "Test Segment",
             int? currencyId = null,
-            string currencyName = null) =>
+            string? currencyName = null) =>
             new SalesSegmentDto
             {
                 Id = id,

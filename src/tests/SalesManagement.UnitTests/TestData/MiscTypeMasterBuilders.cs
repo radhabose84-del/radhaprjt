@@ -1,4 +1,3 @@
-#nullable disable
 using SalesManagement.Application.MiscTypeMaster.Commands.CreateMiscTypeMaster;
 using SalesManagement.Application.MiscTypeMaster.Commands.UpdateMiscTypeMaster;
 using SalesManagement.Application.MiscTypeMaster.Dto;
@@ -8,22 +7,22 @@ namespace SalesManagement.UnitTests.TestData
     public static class MiscTypeMasterBuilders
     {
         public static CreateMiscTypeMasterCommand ValidCreateCommand(
-            string code = "MISC001",
-            string description = "Test Misc Type") =>
+            string? code = "MISC001",
+            string? description = "Test Misc Type") =>
             new CreateMiscTypeMasterCommand
             {
-                MiscTypeCode = code,
-                Description = description
+                MiscTypeCode = code!,
+                Description = description!
             };
 
         public static UpdateMiscTypeMasterCommand ValidUpdateCommand(
             int id = 1,
-            string description = "Updated Misc Type",
+            string? description = "Updated Misc Type",
             int isActive = 1) =>
             new UpdateMiscTypeMasterCommand
             {
                 Id = id,
-                Description = description,
+                Description = description!,
                 IsActive = isActive
             };
 

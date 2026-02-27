@@ -1,4 +1,3 @@
-#nullable disable
 using System.Data;
 using FAM.Application.AssetCategories.Queries.GetAssetCategories;
 using FAM.Application.Common.Interfaces.IAssetCategories;
@@ -15,7 +14,7 @@ namespace FAM.Infrastructure.Repositories.AssetCategories
             _dbConnection = dbConnection;
         }
 
-        public async Task<(List<AssetCategoriesDto>, int)> GetAllAssetCategoriesAsync(int PageNumber, int PageSize, string SearchTerm)
+        public async Task<(List<AssetCategoriesDto>, int)> GetAllAssetCategoriesAsync(int PageNumber, int PageSize, string? SearchTerm)
         {
              var query = $$"""
              DECLARE @TotalCount INT;
@@ -77,7 +76,7 @@ namespace FAM.Infrastructure.Repositories.AssetCategories
             return assetCategories.ToList();
         }
 
-        public async Task<List<AssetCategoriesAutoCompleteDto>> GetByAssetgroupIdAsync(int AssetGroupId)
+        public async Task<List<AssetCategoriesAutoCompleteDto?>> GetByAssetgroupIdAsync(int AssetGroupId)
         {
             const string query = @"
             SELECT 
@@ -91,12 +90,12 @@ namespace FAM.Infrastructure.Repositories.AssetCategories
 
             var assetCategories = await _dbConnection.QueryAsync<AssetCategoriesAutoCompleteDto>(query, new { AssetGroupId });
 
-            return assetCategories.ToList(); // Ensure it returns a List
+            return assetCategories.ToList()!; // Ensure it returns a List
         }
 
     
 
-        public async Task<AssetCategoriesDto> GetByIdAsync(int Id)
+        public async Task<AssetCategoriesDto?> GetByIdAsync(int Id)
         {
             const string query = @"
                     SELECT a.*,b.GroupName as AssetGroupName 

@@ -1,4 +1,3 @@
-#nullable disable
 using FAM.Application.AssetMaster.AssetSpecification.Commands.CreateAssetSpecification;
 using FAM.Application.AssetMaster.AssetSpecification.Commands.DeleteAssetSpecification;
 using FAM.Application.AssetMaster.AssetSpecification.Commands.UpdateAssetSpecification;
@@ -22,7 +21,7 @@ namespace FAM.Presentation.Controllers.AssetMaster
             
         }
         [HttpGet]
-        public async Task<IActionResult> GetAllAssetSpecificationAsync([FromQuery] int PageNumber, [FromQuery] int PageSize, [FromQuery] string SearchTerm = null)
+        public async Task<IActionResult> GetAllAssetSpecificationAsync([FromQuery] int PageNumber, [FromQuery] int PageSize, [FromQuery] string? SearchTerm = null)
         {
             var specificationMaster = await Mediator.Send(
             new GetAssetSpecificationQuery
@@ -35,7 +34,7 @@ namespace FAM.Presentation.Controllers.AssetMaster
             {
                 StatusCode = StatusCodes.Status200OK,
                 message = specificationMaster.Message,
-                data = specificationMaster.Data.ToList(),
+                data = specificationMaster.Data!.ToList(),
                 TotalCount = specificationMaster.TotalCount,
                 PageNumber = specificationMaster.PageNumber,
                 PageSize = specificationMaster.PageSize
@@ -128,7 +127,7 @@ namespace FAM.Presentation.Controllers.AssetMaster
             });
         }
          [HttpGet("GetAllAssetSpecificationBasedOnMachineNo")]                
-        public async Task<IActionResult> GetAllAssetSpecificationBasedOnMachineNo([FromQuery] int PageNumber,[FromQuery] int PageSize,[FromQuery] string SearchTerm = null)
+        public async Task<IActionResult> GetAllAssetSpecificationBasedOnMachineNo([FromQuery] int PageNumber,[FromQuery] int PageSize,[FromQuery] string? SearchTerm = null)
         {            
             var specificationMaster = await Mediator.Send(
             new GetAssetSpecificationBasedMachineNoQuery
@@ -141,7 +140,7 @@ namespace FAM.Presentation.Controllers.AssetMaster
             { 
                 StatusCode=StatusCodes.Status200OK, 
                 message = specificationMaster.Message,
-                data = specificationMaster.Data.ToList(),
+                data = specificationMaster.Data!.ToList(),
                 TotalCount = specificationMaster.TotalCount,
                 PageNumber = specificationMaster.PageNumber,
                 PageSize = specificationMaster.PageSize

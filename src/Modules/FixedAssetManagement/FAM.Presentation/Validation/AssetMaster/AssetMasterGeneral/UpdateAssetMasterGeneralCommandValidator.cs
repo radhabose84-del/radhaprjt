@@ -1,4 +1,3 @@
-#nullable disable
 using FAM.Application.AssetMaster.AssetLocation.Commands.UpdateAssetLocation;
 using FAM.Application.AssetMaster.AssetMasterGeneral.Commands.UpdateAssetMasterGeneral;
 using FAM.Application.AssetMaster.AssetPurchase.Commands.UpdateAssetPurchaseDetails;
@@ -54,58 +53,58 @@ namespace FAM.Presentation.Validation.AssetMaster.AssetMasterGeneral
             {
                 switch (rule.Rule)
                 {
-                    case "NotEmpty":                        
-                        RuleFor(x => x.AssetMaster.AssetName ?? string.Empty)
+                    case "NotEmpty":
+                        RuleFor(x => x.AssetMaster!.AssetName ?? string.Empty)
                             .NotEmpty()
-                            .WithMessage($"{nameof(UpdateAssetMasterGeneralCommand.AssetMaster.AssetName)} {rule.Error}");                       
-                        RuleFor(x => x.AssetMaster.AssetGroupId)
+                            .WithMessage($"{nameof(UpdateAssetMasterGeneralCommand.AssetMaster.AssetName)} {rule.Error}");
+                        RuleFor(x => x.AssetMaster!.AssetGroupId)
                             .NotEmpty()
                             .WithMessage($"{nameof(UpdateAssetMasterGeneralCommand.AssetMaster.AssetGroupId)} {rule.Error}");
-                        RuleFor(x => x.AssetMaster.CompanyId)
+                        RuleFor(x => x.AssetMaster!.CompanyId)
                             .NotEmpty()
                             .WithMessage($"{nameof(UpdateAssetMasterGeneralCommand.AssetMaster.CompanyId)} {rule.Error}");
-                        RuleFor(x => x.AssetMaster.AssetGroupId)
+                        RuleFor(x => x.AssetMaster!.AssetGroupId)
                             .NotEmpty()
                             .WithMessage($"{nameof(UpdateAssetMasterGeneralCommand.AssetMaster.AssetGroupId)} {rule.Error}");
-                        RuleFor(x => x.AssetMaster.AssetCategoryId)
+                        RuleFor(x => x.AssetMaster!.AssetCategoryId)
                             .NotEmpty()
                             .WithMessage($"{nameof(UpdateAssetMasterGeneralCommand.AssetMaster.AssetCategoryId)} {rule.Error}");
-                        RuleFor(x => x.AssetMaster.AssetSubCategoryId)
+                        RuleFor(x => x.AssetMaster!.AssetSubCategoryId)
                             .NotEmpty()
-                            .WithMessage($"{nameof(UpdateAssetMasterGeneralCommand.AssetMaster.AssetSubCategoryId)} {rule.Error}");   
-                        RuleFor(x => x.AssetMaster.AssetType)
-                            .NotEmpty()                            
-                            .WithMessage($"{nameof(UpdateAssetMasterGeneralCommand.AssetMaster.AssetType)} {rule.Error}");   
-                        RuleFor(x => x.AssetMaster.Quantity)
-                            .NotEmpty()                            
-                            .WithMessage($"{nameof(UpdateAssetMasterGeneralCommand.AssetMaster.Quantity)} {rule.Error}");    
-                        RuleFor(x => x.AssetMaster.UOMId)
-                            .NotEmpty()                            
-                            .WithMessage($"{nameof(UpdateAssetMasterGeneralCommand.AssetMaster.UOMId)} {rule.Error}");                             
-                        RuleFor(x => x.AssetMaster.WorkingStatus)
-                            .NotEmpty()                            
-                            .WithMessage($"{nameof(UpdateAssetMasterGeneralCommand.AssetMaster.WorkingStatus)} {rule.Error}");   
+                            .WithMessage($"{nameof(UpdateAssetMasterGeneralCommand.AssetMaster.AssetSubCategoryId)} {rule.Error}");
+                        RuleFor(x => x.AssetMaster!.AssetType)
+                            .NotEmpty()
+                            .WithMessage($"{nameof(UpdateAssetMasterGeneralCommand.AssetMaster.AssetType)} {rule.Error}");
+                        RuleFor(x => x.AssetMaster!.Quantity)
+                            .NotEmpty()
+                            .WithMessage($"{nameof(UpdateAssetMasterGeneralCommand.AssetMaster.Quantity)} {rule.Error}");
+                        RuleFor(x => x.AssetMaster!.UOMId)
+                            .NotEmpty()
+                            .WithMessage($"{nameof(UpdateAssetMasterGeneralCommand.AssetMaster.UOMId)} {rule.Error}");
+                        RuleFor(x => x.AssetMaster!.WorkingStatus)
+                            .NotEmpty()
+                            .WithMessage($"{nameof(UpdateAssetMasterGeneralCommand.AssetMaster.WorkingStatus)} {rule.Error}");
                         //Location
-                      RuleFor(x => x.AssetMaster.AssetLocation.UnitId)
+                      RuleFor(x => x.AssetMaster!.AssetLocation!.UnitId)
                             .NotEmpty()
-                            .WithMessage($"{nameof(UpdateAssetLocationCommand.UnitId)} {rule.Error}")                            
+                            .WithMessage($"{nameof(UpdateAssetLocationCommand.UnitId)} {rule.Error}")
                             .WithMessage($"{nameof(UpdateAssetLocationCommand.UnitId)} must be a valid number.");
-                         RuleFor(x => x.AssetMaster.AssetLocation.DepartmentId)
+                         RuleFor(x => x.AssetMaster!.AssetLocation!.DepartmentId)
                             .NotEmpty()
-                            .WithMessage($"{nameof(UpdateAssetLocationCommand.DepartmentId)} {rule.Error}")                            
-                            .WithMessage($"{nameof(UpdateAssetLocationCommand.DepartmentId)} must be a valid number.");    
-                        RuleFor(x => x.AssetMaster.AssetLocation.LocationId)
+                            .WithMessage($"{nameof(UpdateAssetLocationCommand.DepartmentId)} {rule.Error}")
+                            .WithMessage($"{nameof(UpdateAssetLocationCommand.DepartmentId)} must be a valid number.");
+                        RuleFor(x => x.AssetMaster!.AssetLocation!.LocationId)
                             .NotEmpty()
-                            .WithMessage($"{nameof(UpdateAssetLocationCommand.LocationId)} {rule.Error}")                            
+                            .WithMessage($"{nameof(UpdateAssetLocationCommand.LocationId)} {rule.Error}")
                             .WithMessage($"{nameof(UpdateAssetLocationCommand.LocationId)} must be a valid number.");
-                            RuleFor(x => x.AssetMaster.AssetLocation.SubLocationId)
+                            RuleFor(x => x.AssetMaster!.AssetLocation!.SubLocationId)
                             .NotEmpty()
-                            .WithMessage($"{nameof(UpdateAssetLocationCommand.SubLocationId)} {rule.Error}")                            
+                            .WithMessage($"{nameof(UpdateAssetLocationCommand.SubLocationId)} {rule.Error}")
                             .WithMessage($"{nameof(UpdateAssetLocationCommand.SubLocationId)} must be a valid number.");
                         //Purchase
-                        RuleForEach(x => x.AssetMaster.AssetPurchaseDetails)
+                        RuleForEach(x => x.AssetMaster!.AssetPurchaseDetails)
                             .ChildRules(purchase =>
-                            {                                
+                            {
                                 purchase.RuleFor(x => x.VendorCode)
                                     .NotEmpty()
                                     .WithMessage($"{nameof(UpdateAssetPurchaseDetailCommand.VendorCode)} {rule.Error}");
@@ -150,20 +149,20 @@ namespace FAM.Presentation.Validation.AssetMaster.AssetMasterGeneral
                                     .WithMessage($"{nameof(UpdateAssetPurchaseDetailCommand.PjDocId)} {rule.Error}");
                                 purchase.RuleFor(x => x.PjDocNo)
                                     .NotEmpty()
-                                    .WithMessage($"{nameof(UpdateAssetPurchaseDetailCommand.PjDocNo)} {rule.Error}");                                                           
+                                    .WithMessage($"{nameof(UpdateAssetPurchaseDetailCommand.PjDocNo)} {rule.Error}");
                             });
                         break;
-                    case "MaxLength":                                              
-                        RuleFor(x => x.AssetMaster.AssetName)
-                            .MaximumLength(assetMasterGeneralNameMaxLength) 
-                            .WithMessage($"{nameof(UpdateAssetMasterGeneralCommand.AssetMaster.AssetName)} {rule.Error} {assetMasterGeneralNameMaxLength}");                             
-                        RuleFor(x => x.AssetMaster.AssetDescription)
-                            .MaximumLength(assetMasterGeneralDescriptionMaxLength) 
+                    case "MaxLength":
+                        RuleFor(x => x.AssetMaster!.AssetName)
+                            .MaximumLength(assetMasterGeneralNameMaxLength)
+                            .WithMessage($"{nameof(UpdateAssetMasterGeneralCommand.AssetMaster.AssetName)} {rule.Error} {assetMasterGeneralNameMaxLength}");
+                        RuleFor(x => x.AssetMaster!.AssetDescription)
+                            .MaximumLength(assetMasterGeneralDescriptionMaxLength)
                             .WithMessage($"{nameof(UpdateAssetMasterGeneralCommand.AssetMaster.AssetDescription)} {rule.Error} {assetMasterGeneralDescriptionMaxLength}");
-                        RuleFor(x => x.AssetMaster.MachineCode)
-                            .MaximumLength(assetMasterGeneralMachineCodeMaxLength) 
+                        RuleFor(x => x.AssetMaster!.MachineCode)
+                            .MaximumLength(assetMasterGeneralMachineCodeMaxLength)
                             .WithMessage($"{nameof(UpdateAssetMasterGeneralCommand.AssetMaster.MachineCode)} {rule.Error} {assetMasterGeneralMachineCodeMaxLength}");
-                        RuleForEach(x => x.AssetMaster.AssetPurchaseDetails)
+                        RuleForEach(x => x.AssetMaster!.AssetPurchaseDetails)
                             .ChildRules(purchase =>
                             {
                                 purchase.RuleFor(x => x.VendorCode)
@@ -190,23 +189,23 @@ namespace FAM.Presentation.Validation.AssetMaster.AssetMasterGeneral
                                 purchase.RuleFor(x => x.GrnSno.ToString())
                                      .MaximumLength(GrnSno)
                                     .WithMessage($"{nameof(UpdateAssetPurchaseDetailCommand.GrnSno)} {rule.Error}{GrnSno}");
-                                purchase.RuleFor(x => x.BillNo.ToString())
+                                purchase.RuleFor(x => x.BillNo!.ToString())
                                      .MaximumLength(BillNo)
                                     .WithMessage($"{nameof(UpdateAssetPurchaseDetailCommand.BillNo)} {rule.Error}{BillNo}");
-                     
-                    purchase.RuleFor(x => x.PjYear.ToString())
+
+                    purchase.RuleFor(x => x.PjYear!.ToString())
                                      .MaximumLength(PjYear)
                                     .WithMessage($"{nameof(UpdateAssetPurchaseDetailCommand.PjYear)} {rule.Error}{PjYear}");
-                     purchase.RuleFor(x => x.PjDocId.ToString())
+                     purchase.RuleFor(x => x.PjDocId!.ToString())
                                      .MaximumLength(PjDocId)
                                     .WithMessage($"{nameof(UpdateAssetPurchaseDetailCommand.PjDocId)} {rule.Error}{PjDocId}");
                      purchase.RuleFor(x => x.PjDocNo.ToString())
                                      .MaximumLength(PjDocNo)
-                                    .WithMessage($"{nameof(UpdateAssetPurchaseDetailCommand.PjDocNo)} {rule.Error}{PjDocNo}");                     
-                            });                                          
-                        break;          
-                    case "NumericOnly":       
-                        RuleFor(x => x.AssetMaster.Quantity)
+                                    .WithMessage($"{nameof(UpdateAssetPurchaseDetailCommand.PjDocNo)} {rule.Error}{PjDocNo}");
+                            });
+                        break;
+                    case "NumericOnly":
+                        RuleFor(x => x.AssetMaster!.Quantity)
                         .InclusiveBetween(1, int.MaxValue)
                         .WithMessage($"{nameof(UpdateAssetMasterGeneralCommand.AssetMaster.Quantity)} {rule.Error}");                       
                         break;                  

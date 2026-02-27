@@ -1,4 +1,3 @@
-#nullable disable
 using Microsoft.EntityFrameworkCore;
 using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Infrastructure.Data;
@@ -8,7 +7,7 @@ namespace SalesManagement.UnitTests.TestHelpers
 {
     internal static class TestMaxLengthProviderFactory
     {
-        private static MaxLengthProvider _instance;
+        private static MaxLengthProvider? _instance;
 
         public static MaxLengthProvider Create()
         {

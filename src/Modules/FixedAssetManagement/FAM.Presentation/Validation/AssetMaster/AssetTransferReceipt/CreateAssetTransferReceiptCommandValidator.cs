@@ -1,4 +1,3 @@
-#nullable disable
 using FAM.Application.AssetMaster.AssetTransferReceipt.Command.CreateAssetTransferReceipt;
 using FluentValidation;
 
@@ -8,7 +7,7 @@ namespace FAM.Presentation.Validation.AssetMaster.AssetTransferReceipt
     {
         public CreateAssetTransferReceiptCommandValidator()
         {
-            RuleFor(x => x.AssetTransferReceiptHdrDto.DocDate)
+            RuleFor(x => x.AssetTransferReceiptHdrDto!.DocDate)
                 .NotEmpty().WithMessage("Document Date is required.")
                 .LessThanOrEqualTo(DateTime.UtcNow).WithMessage("Document Date cannot be in the future.");
 
@@ -42,7 +41,7 @@ namespace FAM.Presentation.Validation.AssetMaster.AssetTransferReceipt
             // RuleFor(x => x.AssetTransferReceiptHdrDto.AssetTransferIssueHdr.AssetTransferId)
             //     .GreaterThan(0).WithMessage("AssetTransferId must be greater than 0.");
 
-            RuleForEach(x => x.AssetTransferReceiptHdrDto.AssetTransferReceiptDtl)
+            RuleForEach(x => x.AssetTransferReceiptHdrDto!.AssetTransferReceiptDtl)
                 .ChildRules(asset =>
                 {
                     asset.RuleFor(a => a.AssetId)

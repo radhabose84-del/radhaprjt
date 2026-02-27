@@ -1,4 +1,3 @@
-#nullable disable
 using FAM.Application.Common.Interfaces.IAssetMaster.IAssetSpecification;
 using FAM.Domain.Common;
 using FAM.Domain.Entities.AssetMaster;
@@ -37,7 +36,7 @@ namespace FAM.Application.AssetMaster.AssetSpecification.Commands.UpdateAssetSpe
             int updateCount = 0;
 
             // Iterate through each specification to update
-            foreach (var spec in request.Specifications)
+            foreach (var spec in request.Specifications!)
             {
                 var exists = await _assetSpecificationRepository.ExistsByAssetSpecIdAsync(request.AssetId, spec.SpecificationId);
                 if (exists)

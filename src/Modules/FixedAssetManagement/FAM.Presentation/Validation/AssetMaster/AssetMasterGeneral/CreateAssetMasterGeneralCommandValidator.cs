@@ -1,4 +1,3 @@
-#nullable disable
 using FAM.Application.AssetMaster.AssetMasterGeneral.Commands.CreateAssetMasterGeneral;
 using FAM.Domain.Entities;
 using FAM.Domain.Entities.AssetPurchase;
@@ -46,32 +45,32 @@ namespace FAM.Presentation.Validation.AssetMaster.AssetMasterGeneral
                                ?? throw new InvalidOperationException("Validation rules could not be loaded.");
 
             // ---- Asset master basics ----
-            RuleFor(x => x.AssetMaster.AssetName).NotEmpty().MaximumLength(assetMasterGeneralNameMaxLength);
-            RuleFor(x => x.AssetMaster.AssetGroupId).GreaterThan(0);
-            RuleFor(x => x.AssetMaster.CompanyId).GreaterThan(0);
-            RuleFor(x => x.AssetMaster.AssetCategoryId).GreaterThan(0);
-            RuleFor(x => x.AssetMaster.AssetSubCategoryId).GreaterThan(0);
-            RuleFor(x => x.AssetMaster.Quantity).GreaterThan(0);
-            RuleFor(x => x.AssetMaster.UOMId).GreaterThan(0);
-            RuleFor(x => x.AssetMaster.AssetDescription).MaximumLength(assetMasterGeneralDescriptionMaxLength);
-            RuleFor(x => x.AssetMaster.MachineCode).MaximumLength(assetMasterGeneralMachineCodeMaxLength);
+            RuleFor(x => x.AssetMaster!.AssetName).NotEmpty().MaximumLength(assetMasterGeneralNameMaxLength);
+            RuleFor(x => x.AssetMaster!.AssetGroupId).GreaterThan(0);
+            RuleFor(x => x.AssetMaster!.CompanyId).GreaterThan(0);
+            RuleFor(x => x.AssetMaster!.AssetCategoryId).GreaterThan(0);
+            RuleFor(x => x.AssetMaster!.AssetSubCategoryId).GreaterThan(0);
+            RuleFor(x => x.AssetMaster!.Quantity).GreaterThan(0);
+            RuleFor(x => x.AssetMaster!.UOMId).GreaterThan(0);
+            RuleFor(x => x.AssetMaster!.AssetDescription).MaximumLength(assetMasterGeneralDescriptionMaxLength);
+            RuleFor(x => x.AssetMaster!.MachineCode).MaximumLength(assetMasterGeneralMachineCodeMaxLength);
 
             // ---- Location ----
-            RuleFor(x => x.AssetMaster.AssetLocation.UnitId).GreaterThan(0);
-            RuleFor(x => x.AssetMaster.AssetLocation.DepartmentId).GreaterThan(0);
-            RuleFor(x => x.AssetMaster.AssetLocation.LocationId).GreaterThan(0);
-            RuleFor(x => x.AssetMaster.AssetLocation.SubLocationId).GreaterThan(0);
+            RuleFor(x => x.AssetMaster!.AssetLocation!.UnitId).GreaterThan(0);
+            RuleFor(x => x.AssetMaster!.AssetLocation!.DepartmentId).GreaterThan(0);
+            RuleFor(x => x.AssetMaster!.AssetLocation!.LocationId).GreaterThan(0);
+            RuleFor(x => x.AssetMaster!.AssetLocation!.SubLocationId).GreaterThan(0);
 
             // ---- Additional cost ----
-            RuleForEach(x => x.AssetMaster.AssetAdditionalCost).ChildRules(add =>
+            RuleForEach(x => x.AssetMaster!.AssetAdditionalCost).ChildRules(add =>
             {
                 add.RuleFor(x => x.JournalNo).NotEmpty().MaximumLength(JournalNoMax);
-                // If CostType must be optional, keep it only for max length when provided:                
+                // If CostType must be optional, keep it only for max length when provided:
                 add.RuleFor(x => x.Amount).GreaterThan(0);
             });
 
             // ---- Purchase details (relaxed for blanks) ----
-            RuleForEach(x => x.AssetMaster.AssetPurchaseDetails).ChildRules(p =>
+            RuleForEach(x => x.AssetMaster!.AssetPurchaseDetails).ChildRules(p =>
             {
                 // Keep OldUnitId required (string, but content up to you)
                 p.RuleFor(x => x.OldUnitId).NotEmpty();
@@ -123,7 +122,7 @@ namespace FAM.Presentation.Validation.AssetMaster.AssetMasterGeneral
             });
 
             // (Optional) caps for BudgetType/OldUnitId
-            RuleForEach(x => x.AssetMaster.AssetPurchaseDetails).ChildRules(p =>
+            RuleForEach(x => x.AssetMaster!.AssetPurchaseDetails).ChildRules(p =>
             {
                 p.RuleFor(x => x.BudgetType).MaximumLength(BudgetType).When(x => !string.IsNullOrWhiteSpace(x.BudgetType));
                 p.RuleFor(x => x.OldUnitId).MaximumLength(OldUnitIdMax).When(x => !string.IsNullOrWhiteSpace(x.OldUnitId));

@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.ISalesChannel;
@@ -17,7 +16,7 @@ namespace SalesManagement.UnitTests.Application.SalesChannel.Queries
         private GetSalesChannelByIdQueryHandler CreateSut()
         {
             _mockMapper.Setup(m => m.Map<SalesChannelDto>(It.IsAny<object>()))
-                .Returns<object>(o => o as SalesChannelDto);
+                .Returns<object>(o => (o as SalesChannelDto)!);
             _mockMediator.Setup(m => m.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);
             return new GetSalesChannelByIdQueryHandler(_mockQueryRepo.Object, _mockMapper.Object, _mockMediator.Object);
@@ -47,9 +46,9 @@ namespace SalesManagement.UnitTests.Application.SalesChannel.Queries
             var result = await CreateSut().Handle(query, CancellationToken.None);
 
             result.Should().NotBeNull();
-            result.Id.Should().Be(1);
-            result.SalesChannelCode.Should().Be("CH001");
-            result.SalesChannelName.Should().Be("Test Channel");
+            result!.Id.Should().Be(1);
+            result!.SalesChannelCode.Should().Be("CH001");
+            result!.SalesChannelName.Should().Be("Test Channel");
         }
 
         [Fact]
@@ -78,7 +77,7 @@ namespace SalesManagement.UnitTests.Application.SalesChannel.Queries
         public async Task Handle_EntityNotFound_ReturnsNull()
         {
             var query = new GetSalesChannelByIdQuery { Id = 99 };
-            _mockQueryRepo.Setup(r => r.GetByIdAsync(99)).ReturnsAsync((SalesChannelDto)null);
+            _mockQueryRepo.Setup(r => r.GetByIdAsync(99)).ReturnsAsync((SalesChannelDto?)null);
 
             var result = await CreateSut().Handle(query, CancellationToken.None);
 

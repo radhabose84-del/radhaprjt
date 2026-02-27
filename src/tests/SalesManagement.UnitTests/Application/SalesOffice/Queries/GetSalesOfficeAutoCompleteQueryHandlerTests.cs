@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.ISalesOffice;
@@ -44,7 +43,7 @@ namespace SalesManagement.UnitTests.Application.SalesOffice.Queries
         [Fact]
         public async Task Handle_NullTerm_CallsWithEmptyString()
         {
-            var query = new GetSalesOfficeAutoCompleteQuery(null);
+            var query = new GetSalesOfficeAutoCompleteQuery(null!);
             _mockQueryRepo.Setup(r => r.AutocompleteAsync(string.Empty, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new List<SalesOfficeLookupDto>());
 

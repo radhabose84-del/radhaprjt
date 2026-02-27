@@ -1,4 +1,3 @@
-#nullable disable
 using FAM.Application.AssetMaster.AssetInsurance.Commands.UpdateAssetInsurance;
 using FAM.Application.Common.Interfaces.IAssetMaster.IAssetInsurance;
 using FluentValidation;
@@ -59,7 +58,7 @@ namespace FAM.Presentation.Validation.AssetMaster.AssetInsurance
                         break;
                         case "AlreadyExists":
                            RuleFor(x => new { x.PolicyNo, x.Id })
-                           .MustAsync(async (insurance, cancellation) => !await _assetInsuranceQueryRepository.AlreadyExistsAsync(insurance.PolicyNo , insurance.Id))
+                           .MustAsync(async (insurance, cancellation) => !await _assetInsuranceQueryRepository.AlreadyExistsAsync(insurance.PolicyNo ?? string.Empty, insurance.Id))
                            .WithName("PolicyNo")
                             .WithMessage($"{rule.Error}");
                             break;

@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using FAM.Application.Common.Interfaces;
 using FAM.Application.Common.Interfaces.IAssetTransferIssueApproval;
@@ -29,7 +28,7 @@ namespace FAM.Application.AssetMaster.AssetTranferIssueApproval.Commands.UpdateA
         {
        
 
-            var transfers = await _assetTransferIssueApprovalCommandRepository.GetByIdsAsync(request.Id);
+            var transfers = await _assetTransferIssueApprovalCommandRepository.GetByIdsAsync(request.Id!);
 
             if (!transfers.Any())
             {
@@ -42,7 +41,7 @@ namespace FAM.Application.AssetMaster.AssetTranferIssueApproval.Commands.UpdateA
             var currentTime = _timeZoneService.GetCurrentTime(_timeZoneService.GetSystemTimeZone());
 
             // 🔹 Bulk Update in Single Query
-            var result = await _assetTransferIssueApprovalCommandRepository.ExecuteBulkUpdateAsync(request.Id, request.Status, userId, currentTime, username, currentIp);
+            var result = await _assetTransferIssueApprovalCommandRepository.ExecuteBulkUpdateAsync(request.Id!, request.Status, userId, currentTime, username, currentIp);
 
             if (result <= 0)
             {
@@ -52,9 +51,9 @@ namespace FAM.Application.AssetMaster.AssetTranferIssueApproval.Commands.UpdateA
             // 🔹 Publish Audit Log
             var domainEvent = new AuditLogsDomainEvent(
                 actionDetail: "Update",
-                actionCode: string.Join(",", request.Id),
+                actionCode: string.Join(",", request.Id!),
                 actionName: request.Status,
-                details: $"Asset transfer status updated to {request.Status} for Transfer IDs: {string.Join(",", request.Id)}",
+                details: $"Asset transfer status updated to {request.Status} for Transfer IDs: {string.Join(",", request.Id!)}",
                 module: "AssetTransferIssueApproval"
             );
             await _imediator.Publish(domainEvent, cancellationToken);

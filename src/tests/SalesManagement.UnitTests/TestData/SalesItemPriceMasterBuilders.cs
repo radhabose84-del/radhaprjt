@@ -1,4 +1,3 @@
-#nullable disable
 using Contracts.Dtos.Lookups.Inventory;
 using Contracts.Dtos.Lookups.Purchase;
 using Contracts.Dtos.Lookups.Users;
@@ -16,23 +15,23 @@ namespace SalesManagement.UnitTests.TestData
     /// </summary>
     public static class SalesItemPriceMasterBuilders
     {
-        private static readonly DateTimeOffset DefaultValidFrom = new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero);
-        private static readonly DateTimeOffset DefaultValidTo   = new DateTimeOffset(2025, 12, 31, 0, 0, 0, TimeSpan.Zero);
+        private static readonly DateOnly DefaultValidFrom = new DateOnly(2025, 1, 1);
+        private static readonly DateOnly DefaultValidTo   = new DateOnly(2025, 12, 31);
 
         // ── Create Command ────────────────────────────────────────────────────
 
         public static CreateSalesItemPriceMasterCommand ValidCreateCommand(
-            string priceCode = "PC001",
+            string? priceCode = "PC001",
             int itemId = 10,
             int salesSegmentId = 1,
             int paymentTermsId = 2,
             decimal exMillPrice = 100.00m,
             int currencyId = 5,
-            DateTimeOffset? validFrom = null,
-            DateTimeOffset? validTo = null) =>
+            DateOnly? validFrom = null,
+            DateOnly? validTo = null) =>
             new CreateSalesItemPriceMasterCommand
             {
-                PriceCode      = priceCode,
+                PriceCode      = priceCode!,
                 ItemId         = itemId,
                 SalesSegmentId = salesSegmentId,
                 PaymentTermsId = paymentTermsId,
@@ -51,8 +50,8 @@ namespace SalesManagement.UnitTests.TestData
             int paymentTermsId = 2,
             decimal exMillPrice = 150.00m,
             int currencyId = 5,
-            DateTimeOffset? validFrom = null,
-            DateTimeOffset? validTo = null,
+            DateOnly? validFrom = null,
+            DateOnly? validTo = null,
             int isActive = 1) =>
             new UpdateSalesItemPriceMasterCommand
             {

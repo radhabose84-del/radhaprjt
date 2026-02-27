@@ -1,4 +1,3 @@
-#nullable disable
 using FAM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
@@ -26,7 +25,7 @@ namespace FAM.Infrastructure
           
             //var connectionString = ConnectionStringHelper.GetDefaultConnectionString(configuration);
             
-          var connectionString = configuration.GetConnectionString("DefaultConnection")
+          var connectionString = (configuration.GetConnectionString("DefaultConnection") ?? string.Empty)
                                                 .Replace("{SERVER}","192.168.1.126")
                                                 .Replace("{USER_ID}","Developer")
                                                 .Replace("{ENC_PASSWORD}", "Dev@#$456");

@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using Contracts.Common;
 using BudgetManagement.Application.Common.Interfaces.IMiscTypeMaster;
@@ -26,7 +25,7 @@ namespace BudgetManagement.Application.MiscTypeMaster.Command.UpdateMiscTypeMast
           public async Task<ApiResponseDTO<bool>> Handle(UpdateMiscTypeMasterCommand request, CancellationToken cancellationToken)
         {
 
-                var existingMisctype = await _miscTypeMasterQueryRepository.GetByMiscTypeMasterCodeAsync(request.MiscTypeCode,request.Id);
+                var existingMisctype = await _miscTypeMasterQueryRepository.GetByMiscTypeMasterCodeAsync(request.MiscTypeCode ?? string.Empty, request.Id);
 
                 if (existingMisctype != null)
                 {
@@ -38,8 +37,8 @@ namespace BudgetManagement.Application.MiscTypeMaster.Command.UpdateMiscTypeMast
 
                     var domainEvent = new AuditLogsDomainEvent(
                         actionDetail: "Update",
-                        actionCode: misctype.MiscTypeCode,
-                        actionName: misctype.Description,
+                        actionCode: misctype.MiscTypeCode ?? string.Empty,
+                        actionName: misctype.Description ?? string.Empty,
                         details: $"MiscTypeMaster '{misctype.Id}' was updated.",
                         module:"MiscTypeMaster"
                     );               

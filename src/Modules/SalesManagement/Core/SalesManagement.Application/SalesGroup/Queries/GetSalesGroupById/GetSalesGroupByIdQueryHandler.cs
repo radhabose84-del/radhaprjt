@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.ISalesGroup;
@@ -7,7 +6,7 @@ using SalesManagement.Domain.Events;
 
 namespace SalesManagement.Application.SalesGroup.Queries.GetSalesGroupById
 {
-    public class GetSalesGroupByIdQueryHandler : IRequestHandler<GetSalesGroupByIdQuery, SalesGroupDto>
+    public class GetSalesGroupByIdQueryHandler : IRequestHandler<GetSalesGroupByIdQuery, SalesGroupDto?>
     {
         private readonly ISalesGroupQueryRepository _queryRepository;
         private readonly IMapper _mapper;
@@ -20,7 +19,7 @@ namespace SalesManagement.Application.SalesGroup.Queries.GetSalesGroupById
             _mediator = mediator;
         }
 
-        public async Task<SalesGroupDto> Handle(GetSalesGroupByIdQuery request, CancellationToken cancellationToken)
+        public async Task<SalesGroupDto?> Handle(GetSalesGroupByIdQuery request, CancellationToken cancellationToken)
         {
             var result = await _queryRepository.GetByIdAsync(request.Id);
 

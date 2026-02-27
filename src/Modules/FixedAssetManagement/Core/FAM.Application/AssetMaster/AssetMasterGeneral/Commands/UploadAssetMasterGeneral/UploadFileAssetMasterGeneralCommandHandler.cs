@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using Contracts.Interfaces.Lookups.Users; // ✅ lookup contract
 using FAM.Application.AssetMaster.AssetMasterGeneral.Queries.GetAssetMasterGeneral;
@@ -81,7 +80,7 @@ namespace FAM.Application.AssetMaster.AssetMasterGeneral.Commands.UploadAssetMas
 
             try
             {
-                EnsureDirectoryExists(Path.GetDirectoryName(filePath));
+                EnsureDirectoryExists(Path.GetDirectoryName(filePath) ?? string.Empty);
 
                 // Save the file
                 using (var fileStream = new FileStream(filePath, FileMode.Create))

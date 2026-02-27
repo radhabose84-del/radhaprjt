@@ -1,4 +1,3 @@
-#nullable disable
 using Microsoft.Extensions.Configuration;
 
 namespace FAM.Infrastructure.Helpers
@@ -9,7 +8,7 @@ namespace FAM.Infrastructure.Helpers
         public static string GetDefaultConnectionString(IConfiguration configuration)
         {
            
-            var connectionString = configuration.GetConnectionString("DefaultConnection")
+            var connectionString = (configuration.GetConnectionString("DefaultConnection") ?? string.Empty)
                                                 .Replace("{SERVER}", Environment.GetEnvironmentVariable("DATABASE_SERVER") ?? "")
                                                 .Replace("{USER_ID}", Environment.GetEnvironmentVariable("DATABASE_USERID") ?? "")
                                                 .Replace("{ENC_PASSWORD}", Environment.GetEnvironmentVariable("DATABASE_PASSWORD") ?? "");
@@ -19,7 +18,7 @@ namespace FAM.Infrastructure.Helpers
         public static string GetHangfireConnectionString(IConfiguration configuration)
         {
           
-            var connectionString = configuration.GetConnectionString("HangfireConnection")
+            var connectionString = (configuration.GetConnectionString("HangfireConnection") ?? string.Empty)
                                                 .Replace("{SERVER}", Environment.GetEnvironmentVariable("DATABASE_SERVER") ?? "")
                                                 .Replace("{USER_ID}", Environment.GetEnvironmentVariable("DATABASE_USERID") ?? "")
                                                 .Replace("{ENC_PASSWORD}", Environment.GetEnvironmentVariable("DATABASE_PASSWORD") ?? "");            

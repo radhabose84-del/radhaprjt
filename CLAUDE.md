@@ -457,9 +457,50 @@ public interface I{EntityName}QueryRepository
 
 ---
 
-## 🌐 Cross-Module References
+## 🌐 Cross-Module vs Same-Module FK References
 
-### ❌ DO NOT Use Direct SQL JOINs
+### ✅ Same-Module FKs — Use SQL JOINs (No Lookups Needed)
+
+When a FK references another entity **within the same module**, use a direct SQL JOIN in the Dapper query repository to fetch the related name. **Do NOT create a shared lookup interface** for same-module references.
+
+**Example — AgentCommissionConfiguration (SalesManagement module):**
+- `SalesSegmentId` → `Sales.SalesSegment` (same module) → **JOIN**
+- `CommissionTypeId` → `Sales.MiscMaster` (same module) → **JOIN**
+
+```sql
+-- ✅ CORRECT — Same-module JOINs in Dapper query repository
+SELECT
+    acc.Id, acc.AgentId, acc.SalesSegmentId, acc.ItemId,
+    acc.CommissionTypeId, acc.CommissionPercentage,
+    ss.SegmentName,                          -- Same-module JOIN
+    mm.Description AS CommissionTypeName     -- Same-module JOIN
+FROM Sales.AgentCommissionConfig acc
+LEFT JOIN Sales.SalesSegment ss ON acc.SalesSegmentId = ss.Id AND ss.IsDeleted = 0
+LEFT JOIN Sales.MiscMaster mm ON acc.CommissionTypeId = mm.Id AND mm.IsDeleted = 0
+WHERE acc.IsDeleted = 0
+```
+
+**Same-module FK rules:**
+1. **Use `LEFT JOIN`** in Dapper SQL to fetch related names directly
+2. **Always filter** `AND {JoinedTable}.IsDeleted = 0` on the JOIN condition
+3. **Define navigation properties** in the domain entity (e.g., `public SalesSegment SalesSegment { get; set; } = null!;`)
+4. **Create DB FK constraints** in EF Core configuration with `DeleteBehavior.Restrict`
+5. **Validate FK existence** via direct SQL query in the query repository (e.g., `SalesSegmentExistsAsync`)
+6. **No shared lookup interface needed** — the data is in the same schema and DB context
+
+**When to use same-module JOINs vs cross-module lookups:**
+
+| FK Type | Example | Approach | DB Constraint |
+|---|---|---|---|
+| Same-module FK | SalesSegmentId in AgentCommissionConfig | SQL JOIN in Dapper | Yes (`DeleteBehavior.Restrict`) |
+| Same-module FK | CommissionTypeId (MiscMaster) | SQL JOIN in Dapper | Yes (`DeleteBehavior.Restrict`) |
+| Cross-module FK | AgentId (PartyManagement) | Lookup interface (`IPartyLookup`) | No (no DB constraint) |
+| Cross-module FK | ItemId (InventoryManagement) | Lookup interface (`IItemLookup`) | No (no DB constraint) |
+| Cross-module FK | CurrencyId (UserManagement) | Lookup interface (`ICurrencyLookup`) | No (no DB constraint) |
+
+---
+
+### ❌ DO NOT Use Direct SQL JOINs for Cross-Module FKs
 
 **Wrong:**
 ```sql
@@ -468,7 +509,7 @@ FROM Sales.SalesOrganisation o
 INNER JOIN UserManagement.Company c ON o.CompanyId = c.CompanyId  -- ❌ Cross-module JOIN
 ```
 
-### ✅ Use Lookup Services
+### ✅ Use Lookup Services for Cross-Module FKs
 
 **Correct:**
 ```csharp
@@ -511,7 +552,6 @@ If the entity you are implementing requires a cross-module FK whose lookup inter
 **File:** `src/Shared/Contracts/Interfaces/Lookups/{SourceModule}/{LookupEntity}LookupDto.cs`
 
 ```csharp
-#nullable disable
 namespace Contracts.Interfaces.Lookups.{SourceModule};
 
 public sealed class {LookupEntity}LookupDto
@@ -526,7 +566,6 @@ public sealed class {LookupEntity}LookupDto
 **File:** `src/Shared/Contracts/Interfaces/Lookups/{SourceModule}/I{LookupEntity}Lookup.cs`
 
 ```csharp
-#nullable disable
 namespace Contracts.Interfaces.Lookups.{SourceModule};
 
 public interface I{LookupEntity}Lookup
@@ -539,7 +578,6 @@ public interface I{LookupEntity}Lookup
 **File:** `src/Modules/{SourceModule}/{SourceModule}.Infrastructure/Repositories/Lookups/{SourceModule}/{LookupEntity}LookupRepository.cs`
 
 ```csharp
-#nullable disable
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -616,15 +654,24 @@ using Shared.Validation.Common;                         // ValidationRuleLoader,
 
 **Available JSON rule types:**
 
-| Rule Name | Purpose | Error Template |
-|---|---|---|
-| `NotEmpty` | Required field checks | `"is required."` |
-| `Alphanumeric` | Alphanumeric format (code fields) | `"must be alphanumeric only."` |
-| `MaxLength` | Max length (from EF metadata) | `"cannot be longer than"` |
-| `AlreadyExists` | Uniqueness / composite key checks | `"already exists."` |
-| `NotFound` | Entity existence (Update validators) | `"not found."` |
-| `FKColumnDelete` | FK existence (same-module + cross-module) | `"{PropertyName} is inactive/deleted."` |
-| `ByteValue` | IsActive validation (0 or 1) | `"must be either 0 or 1."` |
+| Rule Name | Purpose | Pattern | Error Template |
+|---|---|---|---|
+| `NotEmpty` | Required field checks | — | `"is required."` |
+| `Alphanumeric` | Code field format — **letters and digits only, NO spaces** | `^[A-Za-z0-9]+$` | `"must be alphanumeric only."` |
+| `MaxLength` | Max length (from EF metadata) | — | `"cannot be longer than"` |
+| `AlreadyExists` | Uniqueness / composite key checks | — | `"already exists."` |
+| `NotFound` | Entity existence (Update validators) | — | `"not found."` |
+| `FKColumnDelete` | FK existence (same-module + cross-module) | — | `"{PropertyName} is inactive/deleted."` |
+| `ByteValue` | IsActive validation (0 or 1) | — | `"must be either 0 or 1."` |
+| `Pincode` | 6-digit pincode format | `^[0-9]{6}$` | `"must be a valid 6-digit pincode."` |
+| `MobileNumber` | 10-digit mobile number format | `^[0-9]{10}$` | `"Mobile number must be exactly 10 digits."` |
+| `Email` | Email address format (FluentValidation built-in) | — | `"Invalid email address format."` |
+| `GstFormat` | 15-character GSTIN format | `^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$` | `"must be in the correct format (e.g., '22AAAAA1234A1Z5')."` |
+| `Latitude` | Decimal latitude range (-90 to 90) | — | `"must be between -90 and 90."` |
+| `Longitude` | Decimal longitude range (-180 to 180) | — | `"must be between -180 and 180."` |
+
+> ⚠️ **`Alphanumeric` pattern is `^[A-Za-z0-9]+$` — spaces are NOT alphanumeric.**
+> The shared `validation-rules.json` previously had `^[A-Za-z0-9 ]+$` (with a stray space) which incorrectly allowed spaces in code fields. This was a bug — it has been fixed. Code fields (e.g. `SalesOrganisationCode`, `BusinessUnitCode`) must reject spaces.
 
 ### Create Validator Structure
 
@@ -775,27 +822,82 @@ public class Update{EntityName}CommandValidator : AbstractValidator<Update{Entit
 }
 ```
 
+### Delete Validator Structure
+
+```csharp
+public class Delete{EntityName}CommandValidator : AbstractValidator<Delete{EntityName}Command>
+{
+    private readonly List<ValidationRule> _validationRules;
+    private readonly I{EntityName}QueryRepository _queryRepository;
+
+    public Delete{EntityName}CommandValidator(I{EntityName}QueryRepository queryRepository)
+    {
+        _queryRepository = queryRepository;
+        _validationRules = ValidationRuleLoader.LoadValidationRules();
+        if (_validationRules == null || _validationRules.Count == 0)
+        {
+            throw new InvalidOperationException("Validation rules could not be loaded.");
+        }
+
+        foreach (var rule in _validationRules)
+        {
+            switch (rule.Rule)
+            {
+                case "NotEmpty":
+                    RuleFor(x => x.Id)
+                        .NotEmpty()
+                        .WithMessage($"{nameof(Delete{EntityName}Command.Id)} {rule.Error}");
+                    break;
+
+                case "NotFound":
+                    RuleFor(x => x.Id)
+                        .MustAsync(async (id, ct) => !await _queryRepository.NotFoundAsync(id))
+                        .WithMessage($"{EntityName} {rule.Error}");
+                    break;
+
+                default:
+                    break;
+            }
+        }
+    }
+}
+```
+
+⚠️ **Delete Validator Notes:**
+- **Only injects `I{EntityName}QueryRepository`** — no `MaxLengthProvider` needed (no string length checks)
+- **`NotEmpty`** ensures `Id` is not zero/default
+- **`NotFound`** ensures the entity exists before attempting delete
+- **`SoftDelete`** case may be added if the entity has FK dependents that must be checked first (add `SoftDeleteValidationAsync` to the query repository interface when needed)
+
 ⚠️ **Validator Rules:**
 - **ALL validation logic lives in validators** — never in controllers or handlers
 - **ALWAYS use `ValidationRuleLoader` + `MaxLengthProvider`** — never hardcode validation rules or max lengths
-- **ALWAYS inject `MaxLengthProvider`** as the first constructor parameter
+- **ALWAYS inject `MaxLengthProvider`** as the first constructor parameter (Create/Update only)
 - Error messages use `$"{nameof(Command.Property)} {rule.Error}"` pattern from shared JSON config
 - Validators can inject **cross-module lookup interfaces** (e.g., `ICurrencyLookup`) for FK validation in `FKColumnDelete` case
 - Handlers assume validation has passed — they only do: map → persist → audit → return
 
 **Switch case mapping:**
 
-| Validation Need | JSON Rule Case | FluentValidation Method |
-|---|---|---|
-| Required fields | `NotEmpty` | `.NotNull().NotEmpty()` |
-| Alphanumeric format | `Alphanumeric` | `.Matches(rule.Pattern)` with `.When()` guard |
-| Max length (from EF) | `MaxLength` | `.MaximumLength(maxLengthVar)` |
-| FK existence | `FKColumnDelete` | `.MustAsync(... ExistsAsync ...)` |
-| Cross-module FK | `FKColumnDelete` (same case) | `.MustAsync(... lookup.GetByIdsAsync ...)` |
-| Uniqueness | `AlreadyExists` | `.MustAsync(... AlreadyExistsAsync ...)` |
-| Composite key unique | `AlreadyExists` (same case) | `.MustAsync(... CompositeKeyExistsAsync ...)` |
-| Entity exists (Update) | `NotFound` | `.MustAsync(... NotFoundAsync ...)` |
-| IsActive range (Update) | `ByteValue` | `.InclusiveBetween(0, 1)` |
+| Validation Need | JSON Rule Case | FluentValidation Method | Validator |
+|---|---|---|---|
+| Required fields | `NotEmpty` | `.NotNull().NotEmpty()` | Create/Update |
+| Id required (Delete) | `NotEmpty` | `.NotEmpty()` | Delete |
+| Alphanumeric format | `Alphanumeric` | `.Matches(rule.Pattern)` with `.When()` guard | Create |
+| Max length (from EF) | `MaxLength` | `.MaximumLength(maxLengthVar)` | Create/Update |
+| FK existence | `FKColumnDelete` | `.MustAsync(... ExistsAsync ...)` | Create/Update |
+| Cross-module FK | `FKColumnDelete` (same case) | `.MustAsync(... lookup.GetByIdsAsync ...)` | Create/Update |
+| Uniqueness | `AlreadyExists` | `.MustAsync(... AlreadyExistsAsync ...)` | Create |
+| Composite key unique | `AlreadyExists` (same case) | `.MustAsync(... CompositeKeyExistsAsync ...)` | Create |
+| Entity exists (Update/Delete) | `NotFound` | `.MustAsync(... NotFoundAsync ...)` | Update/Delete |
+| FK dependent check (Delete) | `SoftDelete` | `.MustAsync(... SoftDeleteValidationAsync ...)` | Delete (optional) |
+| IsActive range (Update) | `ByteValue` | `.InclusiveBetween(0, 1)` | Update |
+| 6-digit pincode | `Pincode` | `.Matches(rule.Pattern)` with `.When()` guard | Create/Update |
+| 10-digit mobile number | `MobileNumber` | `.Matches(rule.Pattern)` with `.When()` guard | Create/Update |
+| Email address format | `Email` | `.EmailAddress()` with `.When()` guard | Create/Update |
+| GSTIN format | `GstFormat` | `.Matches(rule.Pattern)` with `.When()` guard | Create/Update |
+| Latitude range (-90 to 90) | `Latitude` | `.InclusiveBetween(-90m, 90m)` with `.When()` guard | Create/Update |
+| Longitude range (-180 to 180) | `Longitude` | `.InclusiveBetween(-180m, 180m)` with `.When()` guard | Create/Update |
 
 ### Global Validation Pipeline
 
@@ -1249,7 +1351,8 @@ src/tests/
 ├── Controllers/
 │   └── {EntityName}ControllerTests.cs
 ├── Domain/
-│   └── EntityTests.cs
+│   ├── {EntityName}EntityTests.cs       ← one file per entity
+│   └── BaseEntityAuditFieldsTests.cs
 ├── Validators/
 │   └── {EntityName}/
 │       ├── Create{EntityName}CommandValidatorTests.cs
@@ -1277,7 +1380,6 @@ global using System.Collections.Generic;
 **File:** `TestData/{EntityName}Builders.cs`
 
 ```csharp
-#nullable disable
 public static class {EntityName}Builders
 {
     public static Create{EntityName}Command ValidCreateCommand(
@@ -1345,7 +1447,6 @@ public static class {EntityName}Builders
 **File:** `Application/{EntityName}/Commands/Create{EntityName}CommandHandlerTests.cs`
 
 ```csharp
-#nullable disable
 public sealed class Create{EntityName}CommandHandlerTests
 {
     private readonly Mock<I{EntityName}CommandRepository> _mockCommandRepo = new(MockBehavior.Strict);
@@ -1490,7 +1591,6 @@ public async Task Handle_NonExistentId_DoesNotPublishAuditEvent()
 **File:** `Application/{EntityName}/Queries/GetAll{EntityName}QueryHandlerTests.cs`
 
 ```csharp
-#nullable disable
 public sealed class GetAll{EntityName}QueryHandlerTests
 {
     private readonly Mock<I{EntityName}QueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
@@ -1551,7 +1651,6 @@ public sealed class GetAll{EntityName}QueryHandlerTests
 **File:** `Validators/{EntityName}/Create{EntityName}CommandValidatorTests.cs`
 
 ```csharp
-#nullable disable
 public sealed class Create{EntityName}CommandValidatorTests
 {
     private readonly Mock<I{EntityName}QueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
@@ -1618,9 +1717,9 @@ public sealed class Create{EntityName}CommandValidatorTests
     }
 
     [Theory]
-    [InlineData("CODE-01")]   // hyphen
-    [InlineData("CODE 01")]   // space
-    [InlineData("CODE@01")]   // special char
+    [InlineData("CODE-01")]   // hyphen       — not alphanumeric → fails
+    [InlineData("CODE 01")]   // space        — not alphanumeric → fails (pattern is ^[A-Za-z0-9]+$, no spaces)
+    [InlineData("CODE@01")]   // special char — not alphanumeric → fails
     public async Task Validate_NonAlphanumericCode_FailsValidation(string code)
     {
         var command = {EntityName}Builders.ValidCreateCommand(code: code);
@@ -1684,7 +1783,6 @@ src/tests/
 **File:** `Common/DbFixture.cs`
 
 ```csharp
-#nullable disable
 [CollectionDefinition("DatabaseCollection", DisableParallelization = true)]
 public class DatabaseCollection : ICollectionFixture<DbFixture> { }
 
@@ -1762,7 +1860,6 @@ public class DbFixture : IAsyncLifetime
 **File:** `Repositories/{EntityName}/{EntityName}CommandRepositoryTests.cs`
 
 ```csharp
-#nullable disable
 [Collection("DatabaseCollection")]
 public sealed class {EntityName}CommandRepositoryTests
 {
@@ -1928,7 +2025,6 @@ public sealed class {EntityName}CommandRepositoryTests
 **File:** `Repositories/{EntityName}/{EntityName}QueryRepositoryTests.cs`
 
 ```csharp
-#nullable disable
 [Collection("DatabaseCollection")]
 public sealed class {EntityName}QueryRepositoryTests
 {
@@ -2216,34 +2312,11 @@ mockCompanyLookup.Setup(c => c.GetAllCompanyAsync())
 - [ ] Create Repository implementations (Command EF Core + Query Dapper)
 - [ ] Register repositories in `DependencyInjection.cs`
 - [ ] Create Controller with standard endpoints (GetAll, GetById, AutoComplete, Create, Update, Delete)
-- [ ] Create FluentValidation validators (Create + Update)
+- [ ] Create FluentValidation validators (Create + Update + **Delete**)
 
 ---
 
-### PHASE 5 — Unit Tests (`src/tests/{Module}.UnitTests/`)
-- [ ] Create `TestData/{EntityName}Builders.cs`
-- [ ] Create `Application/{EntityName}/Commands/Create{EntityName}CommandHandlerTests.cs`
-- [ ] Create `Application/{EntityName}/Commands/Update{EntityName}CommandHandlerTests.cs`
-- [ ] Create `Application/{EntityName}/Commands/Delete{EntityName}CommandHandlerTests.cs`
-- [ ] Create `Application/{EntityName}/Queries/GetAll{EntityName}QueryHandlerTests.cs`
-- [ ] Create `Application/{EntityName}/Queries/Get{EntityName}ByIdQueryHandlerTests.cs`
-- [ ] Create `Application/{EntityName}/Queries/Get{EntityName}AutoCompleteQueryHandlerTests.cs`
-- [ ] Create `Validators/{EntityName}/Create{EntityName}CommandValidatorTests.cs`
-- [ ] Create `Validators/{EntityName}/Update{EntityName}CommandValidatorTests.cs`
-- [ ] Create `Controllers/{EntityName}ControllerTests.cs`
-- [ ] Create or update `Domain/EntityTests.cs` (add tests for the new entity)
-- [ ] Run: `dotnet test src/tests/{Module}.UnitTests/` ✅ All pass
-
----
-
-### PHASE 6 — Integration Tests (`src/tests/{Module}.IntegrationTests/`)
-- [ ] Create `Repositories/{EntityName}/{EntityName}CommandRepositoryTests.cs`
-- [ ] Create `Repositories/{EntityName}/{EntityName}QueryRepositoryTests.cs`
-- [ ] Run: `dotnet test src/tests/{Module}.IntegrationTests/` ✅ All pass
-
----
-
-### PHASE 7 — Final Verification
+### PHASE 5 — Final Verification
 - [ ] Build solution (0 warnings, 0 errors)
 - [ ] Test all CRUD endpoints via Swagger/Postman
 - [ ] Verify audit logs in MongoDB
@@ -2252,7 +2325,7 @@ mockCompanyLookup.Setup(c => c.GetAllCompanyAsync())
 
 ---
 
-### PHASE 8 — Technical Documentation & Word Export
+### PHASE 6 — Technical Documentation & Word Export
 *(Only after all code and tests are complete and verified)*
 
 #### Step 1 — HLD Document (PDF output — mandatory)
@@ -2330,20 +2403,17 @@ Use `AuditLogsDomainEvent` for all audit logging — do NOT create custom event 
 ### 7. **Global ValidationBehavior**
 `ValidationBehavior` is registered globally in `Program.cs` — do NOT re-register in modules.
 
-### 8. **#nullable disable**
-All C# files use `#nullable disable` (legacy project setting) — maintain consistency.
-
-### 9. **Status vs IsActive**
+### 8. **Status vs IsActive**
 - `IsActive = Active (1)` → Available in dropdowns
 - `IsActive = Inactive (0)` → Hidden from dropdowns but retained
 
-### 10. **Autocomplete Filtering**
+### 9. **Autocomplete Filtering**
 Autocomplete MUST filter `WHERE IsActive = 1 AND IsDeleted = 0` — only show active, available records.
 
-### 11. **Document First — Code Never Before Approval**
+### 10. **Document First — Code Never Before Approval**
 ALWAYS generate the specification document first and wait for explicit user confirmation before writing any code. Do NOT generate code speculatively.
 
-### 12. **NEVER Auto-Migrate — ABSOLUTE RULE**
+### 11. **NEVER Auto-Migrate — ABSOLUTE RULE**
 
 > ❌ **STRICTLY FORBIDDEN — AI must NEVER do any of the following automatically:**
 > - `dotnet ef migrations add ...`
@@ -2360,7 +2430,7 @@ ALWAYS generate the specification document first and wait for explicit user conf
 > ```
 > AI must wait for the user to confirm **"Migration done"** or **"Table created"** before writing any further code.
 
-### 13. **Migration Gate — Hard Stop Before Any Code**
+### 12. **Migration Gate — Hard Stop Before Any Code**
 The following code must NEVER be written until the user has manually run the migration:
 - Repository implementations (Command or Query)
 - Controller
@@ -2377,7 +2447,7 @@ The following code must NEVER be written until the user has manually run the mig
 5. User confirms **"Migration done"** ✅
 6. ← Only then does code generation proceed
 
-### 14. **Documentation Format Rule — LLD as Word, Everything Else as PDF**
+### 13. **Documentation Format Rule — LLD as Word, Everything Else as PDF**
 
 After ALL code and tests are complete and passing, the following documentation steps are **MANDATORY** in order:
 
@@ -2400,7 +2470,7 @@ After ALL code and tests are complete and passing, the following documentation s
 > ❌ DO NOT produce HLD as Word. ❌ DO NOT produce LLD as PDF. Formats are fixed by this rule.
 > NEVER mark an entity as "done" if either file is missing.
 
-### 15. **Create Missing Lookup Interfaces Before Entity Implementation**
+### 14. **Create Missing Lookup Interfaces Before Entity Implementation**
 
 When implementing an entity with a cross-module FK, ALWAYS check `src/Shared/Contracts/Interfaces/Lookups/` first.
 
@@ -2418,7 +2488,7 @@ When implementing an entity with a cross-module FK, ALWAYS check `src/Shared/Con
 
 > ❌ DO NOT store a FK as a plain `int` without a lookup interface — cross-module FKs must always have a corresponding lookup for DTO population and FK validation.
 
-### 16. **ALWAYS Use IMapper (AutoMapper) in Command Handlers — Never Manual Mapping**
+### 15. **ALWAYS Use IMapper (AutoMapper) in Command Handlers — Never Manual Mapping**
 
 > ❌ **NEVER manually assign command properties to entity properties in handlers:**
 > ```csharp
@@ -2468,7 +2538,7 @@ When implementing an entity with a cross-module FK, ALWAYS check `src/Shared/Con
 > - Maps `CreateMap<Update{EntityName}Command, {EntityName}>()` with **`ForMember` for `IsActive` from `src.IsActive == 1 ? Status.Active : Status.Inactive`**
 > - Uses `using static {Module}.Domain.Common.BaseEntity;` for clean enum references
 
-### 17. **NO [Authorize] on Controllers — Simple HTTP Verb Routes Only**
+### 16. **NO [Authorize] on Controllers — Simple HTTP Verb Routes Only**
 
 > ❌ **NEVER add `[Authorize]` attribute to controllers:**
 > ```csharp
@@ -2507,7 +2577,7 @@ Authentication is handled globally by `TokenValidationMiddleware` in the request
 > [HttpDelete]             // DELETE api/{Entity}
 > ```
 
-### 18. **NO Validation in Controllers or Handlers — ALL Validation in FluentValidation Validators Only**
+### 17. **NO Validation in Controllers or Handlers — ALL Validation in FluentValidation Validators Only**
 
 > ❌ **NEVER add `ModelState.IsValid` checks in controllers:**
 > ```csharp
@@ -2582,7 +2652,7 @@ Authentication is handled globally by `TokenValidationMiddleware` in the request
 | `ModelState.IsValid` | ❌ NOWHERE | Removed — FluentValidation handles it |
 | `if (existing == null) throw` | ❌ NOWHERE in handlers | Moved to validator `NotFoundAsync` |
 
-### 19. **ALWAYS Use Shared Validation Infrastructure — Never Hardcode Validation Rules**
+### 18. **ALWAYS Use Shared Validation Infrastructure — Never Hardcode Validation Rules**
 
 > ❌ **NEVER hardcode validation rules, regex patterns, or max lengths directly in validators:**
 > ```csharp
@@ -2595,11 +2665,11 @@ Authentication is handled globally by `TokenValidationMiddleware` in the request
 >
 > ❌ **NEVER hardcode the regex pattern in the `Alphanumeric` case — even with a comment:**
 > ```csharp
-> // ❌ WRONG — hardcoded regex, even with a comment explaining the business rule
+> // ❌ WRONG — hardcoded regex; also the pattern with a space was a bug in validation-rules.json (now fixed)
 > case "Alphanumeric":
 >     // SalesGroupName allows alphanumeric + spaces (per business rule)
 >     RuleFor(x => x.SalesGroupName)
->         .Matches(@"^[A-Za-z0-9 ]+$")   // ❌ HARDCODED — must never appear
+>         .Matches(@"^[A-Za-z0-9 ]+$")   // ❌ WRONG — spaces are NOT alphanumeric; correct pattern is ^[A-Za-z0-9]+$
 >         .WithMessage($"{nameof(Command.SalesGroupName)} {rule.Error}")
 >         .When(x => !string.IsNullOrWhiteSpace(x.SalesGroupName));
 >     break;
@@ -2657,14 +2727,14 @@ Authentication is handled globally by `TokenValidationMiddleware` in the request
 3. Null/empty check on loaded rules → `_validationRules.Count == 0` (not `!Any()`) → throw `InvalidOperationException`
 4. `foreach (var rule in _validationRules)` with `switch (rule.Rule)`
 5. Error messages: `$"{nameof(Command.Property)} {rule.Error}"`
-6. **`Alphanumeric` case MUST use `.Matches(rule.Pattern)` — NEVER `.Matches(@"^[A-Za-z0-9 ]+$")` or any hardcoded string**
+6. **`Alphanumeric` case MUST use `.Matches(rule.Pattern)` — NEVER hardcode the regex.** The correct pattern in `validation-rules.json` is `^[A-Za-z0-9]+$` (letters and digits, **no spaces**). A previous version of the JSON had `^[A-Za-z0-9 ]+$` (with a space) — this was a bug that caused space-containing codes to pass validation. It has been fixed.
 
 **Key files:**
 - `src/Shared/Shared.Validation/Common/ValidationRuleLoader.cs` — rule loader
 - `src/Shared/Shared.Validation/Common/validation-rules.json` — shared JSON rules (embedded resource)
 - `{Module}.Presentation/Validation/Common/MaxLengthProvider.cs` — per-module EF metadata provider
 
-### 20. **NO Unused Namespaces, Injections, or Variables**
+### 19. **NO Unused Namespaces, Injections, or Variables**
 
 > All projects use `<ImplicitUsings>enable</ImplicitUsings>` (.NET 8), which auto-imports:
 > `System`, `System.Collections.Generic`, `System.IO`, `System.Linq`, `System.Net.Http`, `System.Threading`, `System.Threading.Tasks`
@@ -2698,7 +2768,7 @@ Authentication is handled globally by `TokenValidationMiddleware` in the request
 
 ---
 
-### 21. **Lookup Repository Implementations MUST Be `internal sealed class`**
+### 20. **Lookup Repository Implementations MUST Be `internal sealed class`**
 
 > ❌ **NEVER use `public class` for lookup repository implementations:**
 > ```csharp
@@ -2720,7 +2790,7 @@ Authentication is handled globally by `TokenValidationMiddleware` in the request
 
 **Applies to:** All files in `{Module}.Infrastructure/Repositories/Lookups/` directories.
 
-### 22. **ALL Controllers MUST Extend `ApiControllerBase` — Never `ControllerBase` Directly**
+### 21. **ALL Controllers MUST Extend `ApiControllerBase` — Never `ControllerBase` Directly**
 
 > ❌ **NEVER extend `ControllerBase` directly in any controller:**
 > ```csharp
@@ -2751,9 +2821,46 @@ Authentication is handled globally by `TokenValidationMiddleware` in the request
 - **Consistency:** All controllers follow the same inheritance chain
 - **Maintainability:** Changes to base controller behavior only need to happen in one place
 
-### 23. **Nullable Reference Types (`<Nullable>enable</Nullable>`) — Correct Patterns**
+### 22. **Nullable Reference Types (`<Nullable>enable</Nullable>`) — Correct Patterns**
 
 All module `.csproj` files use `<Nullable>enable</Nullable>`. The following patterns MUST be followed to keep builds at 0 warnings.
+
+#### NEVER Use `= null!;` — Always Use `?` Nullable Type Declarations
+
+> ❌ **NEVER initialize a property with `= null!;` in entities, DTOs, commands, or any class:**
+> ```csharp
+> // ❌ WRONG — null-forgiving initializer hides a nullable mismatch; violates nullable semantics
+> public string SalesGroupName { get; set; } = null!;
+> public string? CompanyName { get; set; } = null!;
+> public string Description { get; set; } = null!;
+> ```
+
+> ✅ **ALWAYS declare the type as nullable with `?` and omit any initializer:**
+> ```csharp
+> // ✅ CORRECT — type declaration is honest; compiler tracks nullability properly
+> public string? SalesGroupName { get; set; }
+> public string? CompanyName { get; set; }
+> public string? Description { get; set; }
+> ```
+
+**Why?**
+- `= null!;` tells the compiler "this is null, but trust me it won't be" — this is a lie that suppresses useful warnings
+- `string?` honestly declares that the value may be null, so any consumer must handle it safely
+- Every caller that uses the property without a null-check will get a proper CS8602/CS8604 warning
+
+**The only valid uses of `!` (null-forgiving operator):**
+| Situation | Example |
+|---|---|
+| Validator `MustAsync` lambda guarded by `.When()` | `.MustAsync(async (mobile, ct) => !await _repo.ExistsAsync(mobile!))` |
+| Accessing nullable after explicit null-check | `if (result == null) return; var id = result!.Id;` |
+| Null-forgiving on `int?` `.Value` across LINQ boundary | `item.NullableId!.Value` |
+
+> ⚠️ **After changing `= null!;` to `?`, any validator `MustAsync` lambda that passes the property to a non-nullable parameter will emit CS8604. Fix with `!` on the argument (safe because `.When()` already guards against null).**
+> ```csharp
+> // Before fix_null_bang.ps1: mobile was string, passed to ExistsAsync(string)
+> // After: mobile is string?, requires ! in MustAsync lambda
+> .MustAsync(async (mobile, ct) => !await _repo.ExistsAsync(mobile!))  // ✅ Safe — .When() guards
+> ```
 
 #### DTO Properties Populated from Cross-Module Lookups
 
@@ -2861,7 +2968,7 @@ C# flow analysis does NOT carry `.HasValue` guards across LINQ method chain boun
 
 ---
 
-### 24. **ALWAYS Include Controller Tests and Domain Entity Tests — Not Just Handlers and Validators**
+### 23. **ALWAYS Include Controller Tests and Domain Entity Tests — Not Just Handlers and Validators**
 
 > ❌ **NEVER create a test suite that only covers handlers and validators:**
 > ```
@@ -2890,7 +2997,6 @@ Every controller MUST have a dedicated test file that verifies:
 
 **Pattern:**
 ```csharp
-#nullable disable
 using Contracts.Common;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -3004,7 +3110,6 @@ For EACH entity file, test:
 
 **Pattern (`{EntityName}EntityTests.cs`):**
 ```csharp
-#nullable disable
 using {Module}.Domain.Common;
 using {Module}.Domain.Entities;
 using static {Module}.Domain.Common.BaseEntity;
@@ -3054,7 +3159,6 @@ namespace {Module}.UnitTests.Domain
 
 **Shared audit-field tests (`BaseEntityAuditFieldsTests.cs`):**
 ```csharp
-#nullable disable
 using {Module}.Domain.Common;
 using {Module}.Domain.Entities;
 
@@ -3107,6 +3211,53 @@ namespace {Module}.UnitTests.Domain
 - **Controllers** are the HTTP entry point — testing them verifies that request routing, MediatR dispatch, and response formatting all work correctly
 - **Entity tests** verify that default enum values (`IsActive`, `IsDeleted`) are correct and that property getters/setters work — this catches regressions when entity classes are modified
 - Without these tests, a broken controller or entity default value could pass the build but fail at runtime
+
+---
+
+### 24. **NEVER Use `#nullable disable` — All C# Files Must Be Nullable-Warning-Free**
+
+All module `.csproj` files use `<Nullable>enable</Nullable>`. **No source file or test file may suppress this with `#nullable disable`.**
+
+> ❌ **NEVER add `#nullable disable` to any `.cs` file — source or test:**
+> ```csharp
+> // ❌ WRONG — suppresses compiler null-safety checks
+> #nullable disable
+> namespace SalesManagement.Application.BusinessUnit.Commands.CreateBusinessUnit;
+> ```
+
+> ✅ **ALWAYS write nullable-correct code from the start — no suppression directives:**
+> ```csharp
+> // ✅ CORRECT — no suppression; all nullable warnings resolved explicitly
+> namespace SalesManagement.Application.BusinessUnit.Commands.CreateBusinessUnit;
+> ```
+
+#### Source Files — Common Patterns
+
+| Situation | Fix |
+|---|---|
+| `GetByIdAsync` returns `T` but Dapper returns `T?` | Change interface + handler to `Task<T?>` |
+| DTO property set from cross-module lookup | Declare as `string?` (not `string`) |
+| `data.Count` on possibly-null list | Use `(data?.Count ?? 0)` |
+| `GetConnectionString()` chained call | Null-coalesce: `(config.GetConnectionString("...") ?? string.Empty).Replace(...)` |
+| Nullable `int?` `.Value` across LINQ boundary | Use null-forgiving: `item.NullableId!.Value` |
+
+#### Test Files — Common Patterns
+
+| Situation | Fix |
+|---|---|
+| Callback capture variable: `Entity capturedEntity = null` | `Entity? capturedEntity = null` |
+| Accessing captured variable after callback | `capturedEntity!.Property` |
+| `ReturnsAsync((XDto)null)` for nullable return | `ReturnsAsync((XDto?)null)` |
+| `Returns<object>(o => (o as XDto))` | `Returns<object>(o => (o as XDto)!)` |
+| `result.Property` after `result.Should().NotBeNull()` | `result!.Property` |
+| `[InlineData(null)]` on `string` parameter | Change parameter to `string?` |
+| Passing `null` to `string` parameter in mock Setup/Verify | Use `null!` |
+
+#### Exception: EF Core Migration Files
+
+EF Core auto-generates migration files with lowercase class names that trigger CS8981. Migration `.cs` and `.Designer.cs` files MAY retain `#nullable disable` since they are tool-generated. All hand-written source and test files must be free of it.
+
+**Build target:** `0 Warning(s), 0 Error(s)` — never suppress warnings with pragmas or `#nullable disable`.
 
 ---
 
@@ -3360,3 +3511,4 @@ operations publish `AuditLogsDomainEvent` to MongoDB.
 **Last Updated:** 2026-02-25
 **Maintainer:** Development Team
 **AI Assistant:** Claude Opus 4.6
+

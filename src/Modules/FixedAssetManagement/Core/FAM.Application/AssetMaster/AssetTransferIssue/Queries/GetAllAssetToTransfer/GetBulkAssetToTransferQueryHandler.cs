@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using FAM.Application.AssetMaster.AssetTransferIssue.Queries.GetAssetDtlToTransfer;
 using Contracts.Common;
@@ -31,7 +30,7 @@ namespace FAM.Application.AssetMaster.AssetTransferIssue.Queries.GetBulkAssetToT
                 };
             }
 
-            var asset = await _assetTransferQueryRepository.GetAssetDetailsToTransferByFiltersAsync(request.CustodianId, request.DepartmentId, request.CategoryID);
+            var asset = await _assetTransferQueryRepository.GetAssetDetailsToTransferByFiltersAsync(request.CustodianId, request.DepartmentId, request.CategoryID ?? string.Empty);
 
             var assetList = _mapper.Map<List<GetAssetDetailsToTransferHdrDto>>(asset);  
             return new ApiResponseDTO<List<GetAssetDetailsToTransferHdrDto>>

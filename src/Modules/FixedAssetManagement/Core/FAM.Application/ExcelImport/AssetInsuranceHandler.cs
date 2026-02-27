@@ -1,4 +1,3 @@
-#nullable disable
 using FAM.Application.AssetMaster.AssetMasterGeneral.Queries.GetAssetMasterGeneral;
 using OfficeOpenXml;
 
@@ -17,12 +16,12 @@ namespace FAM.Application.ExcelImport
 
         public List<AssetInsuranceCombineDto> ProcessAssetInsurance()
         {
-            string policyNo = _worksheet.Cells[_row, 48].Value?.ToString()?.Trim();
-            string policyAmountStr = _worksheet.Cells[_row, 51].Value?.ToString()?.Trim();
+            string? policyNo = _worksheet.Cells[_row, 48].Value?.ToString()?.Trim();
+            string? policyAmountStr = _worksheet.Cells[_row, 51].Value?.ToString()?.Trim();
             decimal policyAmount = decimal.TryParse(policyAmountStr, out decimal parsedAmount) ? parsedAmount : 0;
             bool isPolicyValid = policyAmount > 0 && !string.IsNullOrEmpty(policyNo);
 
-            if (!isPolicyValid) return null;
+            if (!isPolicyValid) return null!;
 
             return new List<AssetInsuranceCombineDto>
             {

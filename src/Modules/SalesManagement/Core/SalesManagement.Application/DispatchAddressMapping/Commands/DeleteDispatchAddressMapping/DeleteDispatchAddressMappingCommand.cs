@@ -1,0 +1,6 @@
+using MediatR;
+
+namespace SalesManagement.Application.DispatchAddressMapping.Commands.DeleteDispatchAddressMapping
+{
+    public sealed record DeleteDispatchAddressMappingCommand(int Id) : IRequest<bool>;
+}

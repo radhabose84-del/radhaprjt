@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using FAM.Application.Common.Interfaces.IMiscTypeMaster;
 using FAM.Application.MiscTypeMaster.Queries.GetMiscTypeMaster;
@@ -23,7 +22,7 @@ namespace FAM.Application.MiscTypeMaster.Queries.GetMiscTypeMasterAutoComplete
 
         public  async Task<List<GetMiscTypeMasterAutocompleteDto>> Handle(GetMiscTypeMasterAutoCompleteQuery request, CancellationToken cancellationToken)
         {
-            var miscTypeMasters  = await _miscTypeMasterQueryRepository.GetMiscTypeMaster(request.SearchPattern);
+            var miscTypeMasters  = await _miscTypeMasterQueryRepository.GetMiscTypeMaster(request.SearchPattern ?? string.Empty);
 
                     if (miscTypeMasters == null || !miscTypeMasters.Any())
             {

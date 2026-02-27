@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using Contracts.Interfaces.Lookups.Users; // ✅ lookup contract
 using FAM.Application.AssetMaster.AssetMasterGeneral.Queries.GetAssetMasterGeneral;
@@ -34,7 +33,7 @@ namespace FAM.Application.AssetMaster.AssetMasterGeneral.Commands.CreateAssetMas
         public async Task<AssetMasterDto> Handle(CreateAssetMasterGeneralCommand request, CancellationToken cancellationToken)
         {
             // Get latest AssetCode
-            var latestAssetCode = await _assetMasterGeneralQueryRepository.GetLatestAssetCode( request.AssetMaster.AssetGroupId, request.AssetMaster.AssetCategoryId, request.AssetMaster.AssetLocation.DepartmentId, request.AssetMaster.AssetLocation.LocationId);
+            var latestAssetCode = await _assetMasterGeneralQueryRepository.GetLatestAssetCode( request.AssetMaster!.AssetGroupId, request.AssetMaster.AssetCategoryId, request.AssetMaster.AssetLocation!.DepartmentId, request.AssetMaster.AssetLocation.LocationId);
             var assetCode = latestAssetCode;
             var assetEntity = _mapper.Map<AssetMasterGenerals>(request.AssetMaster);
             assetEntity.AssetCode = assetCode;
@@ -52,7 +51,7 @@ namespace FAM.Application.AssetMaster.AssetMasterGeneral.Commands.CreateAssetMas
             var assetMasterDTO = _mapper.Map<AssetMasterDto>(result);
             if (result.Id > 0)
             {             
-                string tempFilePath = request.AssetMaster.AssetImage;
+                string? tempFilePath = request.AssetMaster.AssetImage;
                 if (tempFilePath != null){
                     // ✅ Get company and unit names using lookup interfaces
                     var companies = await _companyLookup.GetAllCompanyAsync();
@@ -67,7 +66,7 @@ namespace FAM.Application.AssetMaster.AssetMasterGeneral.Commands.CreateAssetMas
 
                     string uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "Resources", baseDirectory, companyName, unitName);   
                     string filePath = Path.Combine(uploadPath, tempFilePath);
-                    EnsureDirectoryExists(Path.GetDirectoryName(filePath));             
+                    EnsureDirectoryExists(Path.GetDirectoryName(filePath) ?? string.Empty);
 
                     if (!string.IsNullOrEmpty(filePath) && File.Exists(filePath))
                     {

@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using FAM.Application.Common.Interfaces.IAssetMaster.IAssetAmc;
 using FAM.Domain.Events;
@@ -20,7 +19,7 @@ namespace FAM.Application.AssetMaster.AssetAmc.Queries.GetExistingVendorDetails
 
         public async Task<List<GetExistingVendorDetailsDto>> Handle(GetExistingVendorDetailsQuery request, CancellationToken cancellationToken)
         {
-            var result = await _iAssetAmcQueryRepository.GetVendorDetails(request.OldUnitCode,request.VendorCode);
+            var result = await _iAssetAmcQueryRepository.GetVendorDetails(request.OldUnitCode ?? string.Empty,request.VendorCode);
             var assetunits  = _mapper.Map<List<GetExistingVendorDetailsDto>>(result);
              //Domain Event
                 var domainEvent = new AuditLogsDomainEvent(

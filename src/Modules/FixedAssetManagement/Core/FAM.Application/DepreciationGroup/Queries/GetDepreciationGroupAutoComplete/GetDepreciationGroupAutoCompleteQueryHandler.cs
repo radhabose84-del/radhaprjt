@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using Contracts.Common;
 using FAM.Application.Common.Interfaces.IDepreciationGroup;
@@ -25,7 +24,7 @@ namespace FAM.Application.DepreciationGroup.Queries.GetDepreciationGroupAutoComp
         {
             var result = await _depreciationGroupRepository.GetByDepreciationNameAsync(request.SearchPattern ?? string.Empty);
             if (result is null)
-                throw new EntityNotFoundException("DepreciationGroup", request.SearchPattern);
+                throw new EntityNotFoundException("DepreciationGroup", request.SearchPattern ?? string.Empty);
           
             var depreciationGroupsDto = _mapper.Map<List<DepreciationGroupAutoCompleteDTO>>(result);
             //Domain Event

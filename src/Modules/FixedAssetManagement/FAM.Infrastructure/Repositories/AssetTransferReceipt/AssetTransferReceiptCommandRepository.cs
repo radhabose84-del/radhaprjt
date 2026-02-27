@@ -1,4 +1,3 @@
-#nullable disable
 using FAM.Application.Common.Interfaces.IAssetTransferReceipt;
 using FAM.Domain.Entities.AssetMaster;
 using FAM.Infrastructure.Data;
@@ -44,7 +43,7 @@ namespace FAM.Infrastructure.Repositories.AssetTransferReceipt
                 .ToListAsync();
 
             // Convert new details to a dictionary using Tuple as key
-            var newDetailsDict = assetTransferReceiptHdr.AssetTransferReceiptDtl
+            var newDetailsDict = (assetTransferReceiptHdr.AssetTransferReceiptDtl ?? new List<AssetTransferReceiptDtl>())
                 .ToDictionary(a => (a.AssetId)); // Use AssetId since AssetReceiptId is already known (existingReceipt.Id)
 
             // Update existing details using LINQ
@@ -69,7 +68,7 @@ namespace FAM.Infrastructure.Repositories.AssetTransferReceipt
             }
 
             // Filter only assets where AckStatus == 1
-           var acknowledgedAssets = assetTransferReceiptHdr.AssetTransferReceiptDtl
+           var acknowledgedAssets = (assetTransferReceiptHdr.AssetTransferReceiptDtl ?? new List<AssetTransferReceiptDtl>())
             .Where(a => a.AckStatus == 1)
             .ToList();
 

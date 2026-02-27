@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using Contracts.Interfaces.Lookups.Users; // ✅ lookup contract
 using FAM.Application.Common.Interfaces.IAssetMaster.IAssetMasterGeneral;
@@ -33,7 +32,7 @@ namespace FAM.Application.AssetMaster.AssetMasterGeneral.Commands.UpdateAssetMas
 
         public async Task<bool> Handle(UpdateAssetMasterGeneralCommand request, CancellationToken cancellationToken)
         {
-            var assetMaster = await _assetMasterGeneralQueryRepository.GetByIdAsync(request.AssetMaster.Id);
+            var assetMaster = await _assetMasterGeneralQueryRepository.GetByIdAsync(request.AssetMaster!.Id);
             if (assetMaster is null)
             throw new ValidationException("Invalid AssetId. The specified AssetName does not exist or is inactive.");
           
@@ -55,8 +54,8 @@ namespace FAM.Application.AssetMaster.AssetMasterGeneral.Commands.UpdateAssetMas
             await _mediator.Publish(domainEvent, cancellationToken);
             if(updateResult)
             {
-                string tempFilePath = request.AssetMaster.AssetImage;
-                string tempDocumentPath = request.AssetMaster.AssetDocument;
+                string? tempFilePath = request.AssetMaster.AssetImage;
+                string? tempDocumentPath = request.AssetMaster.AssetDocument;
 
                 // ✅ Get company and unit names using lookup interfaces
                 var companies = await _companyLookup.GetAllCompanyAsync();
@@ -71,9 +70,9 @@ namespace FAM.Application.AssetMaster.AssetMasterGeneral.Commands.UpdateAssetMas
 
                     string baseDirectory = await _assetMasterGeneralQueryRepository.GetBaseDirectoryAsync();
 
-                    string uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "Resources", baseDirectory, companyName, unitName);     
-                    string filePath = Path.Combine(uploadPath, tempFilePath);  
-                    EnsureDirectoryExists(Path.GetDirectoryName(filePath));           
+                    string uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "Resources", baseDirectory, companyName, unitName);
+                    string filePath = Path.Combine(uploadPath, tempFilePath);
+                    EnsureDirectoryExists(Path.GetDirectoryName(filePath) ?? string.Empty);
 
                     if (!string.IsNullOrEmpty(filePath) && File.Exists(filePath))
                     {
@@ -92,13 +91,13 @@ namespace FAM.Application.AssetMaster.AssetMasterGeneral.Commands.UpdateAssetMas
                             Log.Information(ex, "Failed to rename file.");
                         }
                     }
-                }  
+                }
                 //Document
                 if (tempDocumentPath != null){
                     string baseDirectory = await _assetMasterGeneralQueryRepository.GetDocumentDirectoryAsync();
-                    string uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "Resources", baseDirectory, companyName, unitName);     
-                    string filePath = Path.Combine(uploadPath, tempFilePath);  
-                    EnsureDirectoryExists(Path.GetDirectoryName(filePath));           
+                    string uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "Resources", baseDirectory, companyName, unitName);
+                    string filePath = Path.Combine(uploadPath, tempFilePath ?? string.Empty);
+                    EnsureDirectoryExists(Path.GetDirectoryName(filePath) ?? string.Empty);           
 
                     if (!string.IsNullOrEmpty(filePath) && File.Exists(filePath))
                     {

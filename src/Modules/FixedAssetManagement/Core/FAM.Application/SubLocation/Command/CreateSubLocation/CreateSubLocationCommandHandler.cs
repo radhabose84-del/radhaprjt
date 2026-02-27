@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using FAM.Application.Common.Interfaces.ISubLocation;
 using FAM.Application.SubLocation.Queries.GetSubLocations;
@@ -33,7 +32,7 @@ namespace FAM.Application.SubLocation.Command.CreateSubLocation
             }
 
             var existingsubLocation = await _sublocationQueryRepository
-                .GetBySubLocationNameAsync(request.SubLocationName, request.DepartmentId, request.LocationId, request.UnitId);
+                .GetBySubLocationNameAsync(request.SubLocationName ?? string.Empty, request.DepartmentId, request.LocationId, request.UnitId);
 
             if (existingsubLocation != null)
             {

@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using FAM.Application.Common.Interfaces.IWdvDepreciation;
 using FAM.Application.WDVDepreciation.Queries.GetDepreciation;
@@ -51,7 +50,7 @@ namespace FAM.Application.WDVDepreciation.Commands.CreateDepreciation
             if (result != null && result.Any())
             {
                 
-                return  null;
+                return  null!;
             }
         throw new Exception("WDV Calculation not created.");
          

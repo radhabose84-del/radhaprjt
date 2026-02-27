@@ -1,4 +1,3 @@
-#nullable disable
 using Contracts.Interfaces.Lookups.Users; // ✅ lookup contract
 using FAM.Application.Common.Interfaces;
 using FAM.Application.Common.Interfaces.IAssetMaster.IAssetMasterGeneral;
@@ -61,7 +60,7 @@ namespace FAM.Application.AssetMaster.AssetWarranty.Commands.DeleteFileAssetWarr
 
             var result = await _fileUploadService.DeleteFileAsync(filePath);
 
-            await _assetWarrantyRepository.RemoveAssetWarrantyAsync(request.assetPath);
+            await _assetWarrantyRepository.RemoveAssetWarrantyAsync(request.assetPath ?? string.Empty);
               if (result)
             {
                 return result;

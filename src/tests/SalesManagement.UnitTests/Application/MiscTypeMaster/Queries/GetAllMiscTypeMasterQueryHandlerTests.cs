@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.IMiscTypeMaster;
@@ -46,8 +45,8 @@ namespace SalesManagement.UnitTests.Application.MiscTypeMaster.Queries
                 new GetAllMiscTypeMasterQuery { PageNumber = 1, PageSize = 15 },
                 CancellationToken.None);
 
-            result.Data.Should().HaveCount(1);
-            result.Data[0].MiscTypeCode.Should().Be("MISC001");
+            result.Data!.Should().HaveCount(1);
+            result.Data![0].MiscTypeCode.Should().Be("MISC001");
         }
 
         [Fact]

@@ -1,9 +1,10 @@
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace WarehouseManagement.Presentation.Controllers
 {
-
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public abstract class ApiControllerBase : ControllerBase

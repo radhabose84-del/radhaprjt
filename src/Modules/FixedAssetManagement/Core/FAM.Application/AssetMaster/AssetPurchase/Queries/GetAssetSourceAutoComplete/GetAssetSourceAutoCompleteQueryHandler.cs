@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using FAM.Application.Common.Interfaces.IAssetMaster.IAssetPurchase;
 using FAM.Domain.Events;
@@ -22,7 +21,7 @@ namespace FAM.Application.AssetMaster.AssetPurchase.Queries.GetAssetSourceAutoCo
 
         public async Task<List<AssetSourceAutoCompleteDto>> Handle(GetAssetSourceAutoCompleteQuery request, CancellationToken cancellationToken)
         {
-            var result = await _iAssetPurchaseQueryRepository.GetAssetSources(request.SearchPattern);
+            var result = await _iAssetPurchaseQueryRepository.GetAssetSources(request.SearchPattern ?? string.Empty);
             var assetSources  = _mapper.Map<List<AssetSourceAutoCompleteDto>>(result);
              //Domain Event
                 var domainEvent = new AuditLogsDomainEvent(

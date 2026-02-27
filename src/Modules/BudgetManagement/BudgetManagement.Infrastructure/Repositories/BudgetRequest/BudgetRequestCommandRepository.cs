@@ -29,7 +29,7 @@ public class BudgetRequestCommandRepository : IBudgetRequestCommandRepository
     {
         var pending = await _miscMasterQueryRepository.GetMiscMasterByName(
             MiscEnumEntity.ApprovalStatus, MiscEnumEntity.Pending);
-        entity.StatusId = pending.Id;
+        entity.StatusId = pending!.Id;
         await ApplyRequestMonthPeriodAsync(entity, ct);
 
         _db.BudgetRequests.Add(entity);
@@ -247,7 +247,7 @@ public class BudgetRequestCommandRepository : IBudgetRequestCommandRepository
         var statusMisc = await _miscMasterQueryRepository
             .GetMiscMasterByName(MiscEnumEntity.Status, MiscEnumEntity.Pending);
 
-        existingRequest.StatusId = statusMisc.Id;
+        existingRequest.StatusId = statusMisc!.Id;
         _db.BudgetRequests.Update(existingRequest);
         return await _db.SaveChangesAsync(ct) > 0;
     }

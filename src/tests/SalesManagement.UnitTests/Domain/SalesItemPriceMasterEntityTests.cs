@@ -1,4 +1,3 @@
-#nullable disable
 using SalesManagement.Domain.Common;
 using SalesManagement.Domain.Entities;
 using static SalesManagement.Domain.Common.BaseEntity;
@@ -30,7 +29,7 @@ namespace SalesManagement.UnitTests.Domain
         [Fact]
         public void SalesItemPriceMaster_Properties_ShouldBeAssignable()
         {
-            var validFrom = DateTimeOffset.UtcNow;
+            var validFrom = DateOnly.FromDateTime(DateTime.UtcNow);
             var validTo = validFrom.AddMonths(6);
 
             var entity = new SalesItemPriceMaster

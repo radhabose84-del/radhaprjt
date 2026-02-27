@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using FAM.Application.AssetGroup.Queries.GetAssetGroup;
 using FAM.Application.Common.Interfaces.IAssetGroup;
@@ -22,7 +21,7 @@ namespace FAM.Application.AssetGroup.Queries.GetAssetGroupAutoComplete
 
         public async Task<List<AssetGroupAutoCompleteDTO>> Handle(GetAssetGroupAutoCompleteQuery request, CancellationToken cancellationToken)
         {
-            var result = await _iAssetGroupQueryRepository.GetAssetGroups(request.SearchPattern);
+            var result = await _iAssetGroupQueryRepository.GetAssetGroups(request.SearchPattern ?? string.Empty);
             var assetGroups = _mapper.Map<List<AssetGroupAutoCompleteDTO>>(result);
              //Domain Event
                 var domainEvent = new AuditLogsDomainEvent(

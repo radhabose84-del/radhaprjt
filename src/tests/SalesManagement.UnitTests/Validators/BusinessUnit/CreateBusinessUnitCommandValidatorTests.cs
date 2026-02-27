@@ -1,4 +1,3 @@
-#nullable disable
 using FluentValidation.TestHelper;
 using SalesManagement.Application.Common.Interfaces.IBusinessUnit;
 using SalesManagement.Presentation.Validation.BusinessUnit;
@@ -61,7 +60,7 @@ namespace SalesManagement.UnitTests.Validators.BusinessUnit
         [Theory]
         [InlineData(null)]
         [InlineData("")]
-        public async Task BusinessUnitCode_Empty_FailsValidation(string code)
+        public async Task BusinessUnitCode_Empty_FailsValidation(string? code)
         {
             var command = BusinessUnitBuilders.ValidCreateCommand(code: code);
 
@@ -143,7 +142,7 @@ namespace SalesManagement.UnitTests.Validators.BusinessUnit
         [Theory]
         [InlineData(null)]
         [InlineData("")]
-        public async Task BusinessUnitName_Empty_FailsValidation(string name)
+        public async Task BusinessUnitName_Empty_FailsValidation(string? name)
         {
             var command = BusinessUnitBuilders.ValidCreateCommand(name: name);
             SetupCodeNotExists("BU001");

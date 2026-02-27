@@ -1,4 +1,3 @@
-#nullable disable
 using System.Data;
 using FAM.Application.Common.Interfaces.IMiscMaster;
 using Dapper;
@@ -15,7 +14,7 @@ namespace FAM.Infrastructure.Repositories.MiscMaster
 
         }
 
-        public async Task<(List<FAM.Domain.Entities.MiscMaster>, int)> GetAllMiscMasterAsync(int PageNumber, int PageSize, string SearchTerm)
+        public async Task<(List<FAM.Domain.Entities.MiscMaster>, int)> GetAllMiscMasterAsync(int PageNumber, int PageSize, string? SearchTerm)
         {
             var query = $$"""
                 DECLARE @TotalCount INT;
@@ -58,9 +57,9 @@ namespace FAM.Infrastructure.Repositories.MiscMaster
 
         public async Task<FAM.Domain.Entities.MiscMaster> GetByIdAsync(int id)
         {
-            const string query = @" SELECT Id,MiscTypeId,Code,Description,SortOrder,IsActive  FROM FixedAsset.MiscMaster          
+            const string query = @" SELECT Id,MiscTypeId,Code,Description,SortOrder,IsActive  FROM FixedAsset.MiscMaster
              WHERE Id = @id AND IsDeleted = 0 ";
-            return await _dbConnection.QueryFirstOrDefaultAsync<FAM.Domain.Entities.MiscMaster>(query, new { id });
+            return (await _dbConnection.QueryFirstOrDefaultAsync<FAM.Domain.Entities.MiscMaster>(query, new { id }))!;
         }
 
         public async Task<List<FAM.Domain.Entities.MiscMaster>> GetMiscMaster(string miscTypeCode, string miscTypeName)
@@ -83,7 +82,7 @@ namespace FAM.Infrastructure.Repositories.MiscMaster
 
         }
 
-        public async Task<FAM.Domain.Entities.MiscMaster> GetByMiscMasterCodeAsync(string name, int miscTypeId, int? id = null)
+        public async Task<FAM.Domain.Entities.MiscMaster?> GetByMiscMasterCodeAsync(string name, int miscTypeId, int? id = null)
         {
             var query = """
                  SELECT * FROM FixedAsset.MiscMaster
@@ -127,7 +126,7 @@ namespace FAM.Infrastructure.Repositories.MiscMaster
             return count > 0;
         }    
                     
-        public async Task<FAM.Domain.Entities.MiscMaster> GetByMiscTypeIdAndCodeAsync(int miscTypeId, string code)
+        public async Task<FAM.Domain.Entities.MiscMaster?> GetByMiscTypeIdAndCodeAsync(int miscTypeId, string code)
             {
                 var sql = @"
                     SELECT TOP 1 *

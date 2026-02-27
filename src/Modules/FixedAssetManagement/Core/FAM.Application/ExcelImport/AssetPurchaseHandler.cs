@@ -1,4 +1,3 @@
-#nullable disable
 using System.Globalization;
 using FAM.Application.AssetMaster.AssetMasterGeneral.Queries.GetAssetMasterGeneral;
 using FAM.Application.Common.Interfaces;
@@ -48,7 +47,7 @@ namespace FAM.Application.ExcelImport
                 purchaseVal > 0 || grnDate.HasValue;
 
             if (!anyPurchaseData)
-                return null;
+                return null!;
 
             // DB requires NOT NULL? force safe defaults:
             var safeVendorCode = string.IsNullOrWhiteSpace(vendorCode) ? "NA" : vendorCode.Trim();
@@ -92,7 +91,7 @@ namespace FAM.Application.ExcelImport
                 s = ws.Cells[row, col].Value?.ToString();
 
             s = s?.Trim();
-            return string.IsNullOrWhiteSpace(s) ? null : s;
+            return string.IsNullOrWhiteSpace(s) ? null! : s;
         }
 
         private static int GetInt(ExcelWorksheet ws, int row, int col)
@@ -104,7 +103,7 @@ namespace FAM.Application.ExcelImport
             if (v is int i) return i;
             if (v is double d) return Convert.ToInt32(Math.Truncate(d));
 
-            var s = (cell.Text ?? v.ToString() ?? string.Empty).Trim();
+            var s = (cell!.Text ?? v.ToString() ?? string.Empty).Trim();
             if (string.IsNullOrEmpty(s)) return 0;
 
             // Strip non-digits (commas/currency) then parse
@@ -124,7 +123,7 @@ namespace FAM.Application.ExcelImport
             if (v is double dd) return Convert.ToDecimal(dd);
 
             // Use displayed text (handles Excel number formats)
-            var s = (cell.Text ?? v.ToString() ?? string.Empty).Trim();
+            var s = (cell!.Text ?? v.ToString() ?? string.Empty).Trim();
             if (string.IsNullOrEmpty(s)) return 0m;
 
             // Handle "10,800" or "1,10,000" and currency symbols
@@ -148,7 +147,7 @@ namespace FAM.Application.ExcelImport
             if (v is double d) return ToDto(DateTime.FromOADate(d), offset);
 
             // 3) Use formatted text if present
-            var s = (cell.Text ?? v?.ToString() ?? string.Empty).Trim();
+            var s = (cell!.Text ?? v?.ToString() ?? string.Empty).Trim();
             if (string.IsNullOrEmpty(s)) return null;
 
             // exact formats we commonly see (e.g., "2015-05-08")

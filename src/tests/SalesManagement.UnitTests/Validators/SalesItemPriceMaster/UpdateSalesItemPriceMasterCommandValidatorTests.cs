@@ -1,4 +1,3 @@
-﻿#nullable disable
 using FluentValidation.TestHelper;
 using SalesManagement.Application.Common.Interfaces.ISalesItemPriceMaster;
 using SalesManagement.Presentation.Validation.SalesItemPriceMaster;
@@ -32,7 +31,7 @@ namespace SalesManagement.UnitTests.Validators.SalesItemPriceMaster
             _mockQueryRepo.Setup(r => r.CurrencyExistsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>())).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.OverlapExistsAsync(
                     It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(),
-                    It.IsAny<DateTimeOffset>(), It.IsAny<DateTimeOffset>(), It.IsAny<int?>()))
+                    It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<int?>()))
                 .ReturnsAsync(false);
         }
 
@@ -197,8 +196,8 @@ namespace SalesManagement.UnitTests.Validators.SalesItemPriceMaster
         public async Task ValidTo_BeforeValidFrom_FailsValidation()
         {
             SetupAllValid();
-            var validFrom = new DateTimeOffset(2025, 6, 1, 0, 0, 0, TimeSpan.Zero);
-            var validTo   = new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero);
+            var validFrom = new DateOnly(2025, 6, 1);
+            var validTo   = new DateOnly(2025, 1, 1);
             var command = SalesItemPriceMasterBuilders.ValidUpdateCommand(validFrom: validFrom, validTo: validTo);
 
             var result = await CreateValidator().TestValidateAsync(command);
@@ -243,7 +242,7 @@ namespace SalesManagement.UnitTests.Validators.SalesItemPriceMaster
             SetupAllValid();
             _mockQueryRepo.Setup(r => r.OverlapExistsAsync(
                     It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(),
-                    It.IsAny<DateTimeOffset>(), It.IsAny<DateTimeOffset>(), It.IsAny<int?>()))
+                    It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<int?>()))
                 .ReturnsAsync(true);
 
             var command = SalesItemPriceMasterBuilders.ValidUpdateCommand();

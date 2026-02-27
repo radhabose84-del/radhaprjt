@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using Contracts.Interfaces.Lookups.Users; // ✅ lookup contract
 using FAM.Application.AssetMaster.AssetPurchase.Queries.GetAssetSourceAutoComplete;
@@ -24,7 +23,7 @@ namespace FAM.Application.AssetMaster.AssetPurchase.Queries
         public async Task<List<AssetUnitAutoCompleteDto>> Handle(GetAssetUnitAutoCompleteQuery request, CancellationToken cancellationToken)
         {
             // ✅ Use lookup interface instead of direct database query
-            var result = await _unitLookup.GetUserUnitByUserNameAsync(request.Username);
+            var result = await _unitLookup.GetUserUnitByUserNameAsync(request.Username ?? string.Empty);
             var assetunits = result.Select(u => new AssetUnitAutoCompleteDto
             {
                 OldUnitId = u.OldUnitId,

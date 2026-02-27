@@ -1,4 +1,3 @@
-#nullable disable
 using FAM.Application.AssetMaster.AssetPurchase.Commands.UpdateAssetPurchaseDetails;
 using FAM.Domain.Entities.AssetPurchase;
 using FAM.Presentation.Validation.Common;
@@ -114,13 +113,13 @@ namespace FAM.Presentation.Validation.AssetMaster.AssetPurchase
                         RuleFor(x => x.GrnSno.ToString())
                             .MaximumLength(GrnSno)
                             .WithMessage($"{nameof(UpdateAssetPurchaseDetailCommand.GrnSno)} {rule.Error} {GrnSno}");
-                        RuleFor(x => x.BillNo.ToString())
+                        RuleFor(x => x.BillNo!.ToString())
                             .MaximumLength(BillNo)
                             .WithMessage($"{nameof(UpdateAssetPurchaseDetailCommand.BillNo)} {rule.Error} {BillNo}");
-                        RuleFor(x => x.PjYear.ToString())
+                        RuleFor(x => x.PjYear!.ToString())
                             .MaximumLength(PjYear)
                             .WithMessage($"{nameof(UpdateAssetPurchaseDetailCommand.PjYear)} {rule.Error} {PjYear}");
-                        RuleFor(x => x.PjDocId.ToString())
+                        RuleFor(x => x.PjDocId!.ToString())
                             .MaximumLength(PjDocId)
                             .WithMessage($"{nameof(UpdateAssetPurchaseDetailCommand.PjDocId)} {rule.Error} {PjDocId}");
                         RuleFor(x => x.PjDocNo.ToString())

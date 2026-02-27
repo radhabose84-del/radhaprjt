@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using FAM.Application.Common.Interfaces.IAssetMaster.IAssetPurchase;
 using FAM.Domain.Events;
@@ -21,7 +20,7 @@ namespace FAM.Application.AssetMaster.AssetPurchase.Queries.GetAssetGRN
 
         public async Task<List<GetAssetGrnDto>> Handle(GetAssetGrnQuery request, CancellationToken cancellationToken)
         {
-             var result = await _iAssetPurchaseQueryRepository.GetAssetGrnNo(request.OldUnitId,request.AssetSourceId,request.SearchGrnNo);
+             var result = await _iAssetPurchaseQueryRepository.GetAssetGrnNo(request.OldUnitId ?? string.Empty,request.AssetSourceId,request.SearchGrnNo);
             var assetunits  = _mapper.Map<List<GetAssetGrnDto>>(result);
              //Domain Event
                 var domainEvent = new AuditLogsDomainEvent(

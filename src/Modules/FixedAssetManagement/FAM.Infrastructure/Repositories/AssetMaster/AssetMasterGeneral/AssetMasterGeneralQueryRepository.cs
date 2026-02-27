@@ -1,4 +1,3 @@
-#nullable disable
 using System.Data;
 using Contracts.Interfaces.Lookups.Users; // ✅ lookup contracts
 using FAM.Application.AssetMaster.AssetMasterGeneral.Queries.GetAssetMasterGeneral;
@@ -35,7 +34,7 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetMasterGeneral
             _cityLookup = cityLookup;
             _companyLookup = companyLookup;
         }     
-        public async Task<(List<AssetMasterGeneralDTO>, int)> GetAllAssetAsync(int PageNumber, int PageSize, string SearchTerm)
+        public async Task<(List<AssetMasterGeneralDTO>, int)> GetAllAssetAsync(int PageNumber, int PageSize, string? SearchTerm)
         {
             var parameters = new DynamicParameters();
             parameters.Add("@CompanyId", CompanyId);
@@ -208,7 +207,7 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetMasterGeneral
             return locationExists.HasValue || purchaseExists.HasValue || warrantyExists.HasValue  || specExists.HasValue  || amcExists.HasValue || insuranceExists.HasValue || additionalCostExists.HasValue || depreciationExists.HasValue ; 
         }
 
-        public async Task<string> GetLatestAssetCode( int assetGroupId, int assetCategoryId, int DepartmentId, int LocationId)
+        public async Task<string?> GetLatestAssetCode( int assetGroupId, int assetCategoryId, int DepartmentId, int LocationId)
         {
             var parameters = new DynamicParameters();
             parameters.Add("@CompanyId", CompanyId);
@@ -474,7 +473,7 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetMasterGeneral
                     locationResult.UserName = user.Empname;
             }           
         }
-        return (assetResult, locationResult, purchaseDetails, specDetails, warrantyDetails, amcDetails, disposalResult, insuranceDetails,additionalCost);       
+        return (assetResult!, locationResult!, purchaseDetails, specDetails, warrantyDetails, amcDetails, disposalResult!, insuranceDetails,additionalCost);
         }
 
         public async Task<(dynamic AssetResult, dynamic LocationResult, IEnumerable<dynamic> PurchaseDetails, IEnumerable<dynamic> AdditionalCost)> GetAssetMasterSplitByIdAsync(int assetId)
@@ -594,7 +593,7 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetMasterGeneral
                         locationResult.UserName = user.Empname;
                 }   
             }            
-            return (assetResult, locationResult, purchaseDetails, additionalCost);
+            return (assetResult!, locationResult!, purchaseDetails, additionalCost);
        
         }       
 
@@ -608,7 +607,7 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetMasterGeneral
             ORDER BY ID DESC";    
             var parameters = new { MiscTypeCode = MiscEnumEntity.AssetDocumentImage.MiscCode };        
             var result = await _dbConnection.QueryAsync<string>(query,parameters);
-            return result.FirstOrDefault();  
+            return result.FirstOrDefault() ?? string.Empty;
         }
     }
 }

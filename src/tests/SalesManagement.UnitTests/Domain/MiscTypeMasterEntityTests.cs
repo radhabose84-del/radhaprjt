@@ -1,4 +1,3 @@
-#nullable disable
 using SalesManagement.Domain.Common;
 using SalesManagement.Domain.Entities;
 using static SalesManagement.Domain.Common.BaseEntity;

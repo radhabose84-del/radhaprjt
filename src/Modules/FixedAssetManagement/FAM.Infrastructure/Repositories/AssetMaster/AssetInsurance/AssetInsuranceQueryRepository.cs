@@ -1,4 +1,3 @@
-#nullable disable
 using System.Data;
 using FAM.Application.Common.Interfaces.IAssetMaster.IAssetInsurance;
 using Dapper;
@@ -13,7 +12,7 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetInsurance
             _dbConnection = dbConnection;
         }              
     
-    public async Task<(List<FAM.Domain.Entities.AssetMaster.AssetInsurance>, int)> GetAllAssetInsuranceAsync(int PageNumber, int PageSize, string SearchTerm)
+    public async Task<(List<FAM.Domain.Entities.AssetMaster.AssetInsurance>, int)> GetAllAssetInsuranceAsync(int PageNumber, int PageSize, string? SearchTerm)
         {
                         var query = $$"""
                     DECLARE @TotalCount INT;
@@ -55,7 +54,7 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetInsurance
                         RenewedDate, IsActive  FROM FixedAsset.AssetInsurance 
                     WHERE Id = @id AND IsDeleted = 0";
 
-                return await _dbConnection.QueryFirstOrDefaultAsync<FAM.Domain.Entities.AssetMaster.AssetInsurance>(query, new { id });
+                return (await _dbConnection.QueryFirstOrDefaultAsync<FAM.Domain.Entities.AssetMaster.AssetInsurance>(query, new { id }))!;
             }
 
           public async Task<bool> AlreadyExistsAsync(string PolicyNo, int? id = null)

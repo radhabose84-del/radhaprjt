@@ -11,8 +11,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BackgroundService.API.Controller.Notification
-{
-    [ApiController]
+{    
     [Route("api/[controller]")]
     public class NotificationWhatsAppGroupController : ApiControllerBase
     {

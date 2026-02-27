@@ -1,4 +1,3 @@
-#nullable disable
 using FAM.Application.AssetCategories.Command.CreateAssetCategories;
 using FAM.Application.Common.Interfaces.IAssetCategories;
 using FAM.Presentation.Validation.Common;
@@ -81,7 +80,7 @@ namespace FAM.Presentation.Validation.AssetCategories
                     //     break;
                      case "AlreadyExists":
                         RuleFor(x => x.CategoryName)
-                       .MustAsync(async (CategoryName, cancellation) => !await _iAssetCategoriesCommandRepository.ExistsByNameAsync(CategoryName))
+                       .MustAsync(async (CategoryName, cancellation) => !await _iAssetCategoriesCommandRepository.ExistsByNameAsync(CategoryName ?? string.Empty))
                        .WithName("CategoryName")
                        .WithMessage($"{rule.Error}");
                         break;

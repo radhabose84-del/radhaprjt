@@ -1,4 +1,3 @@
-#nullable disable
 using BudgetManagement.Presentation.Validation.Common;
 using BudgetManagement.Application.Common.Interfaces.IMiscMaster;
 using BudgetManagement.Application.MiscMaster.Command.UpdateMiscMaster;
@@ -59,7 +58,7 @@ namespace BudgetManagement.Presentation.Validation.MiscMaster
                         RuleFor(x => x)
                             .MustAsync(async (command, cancellation) =>
                             {
-                                return !await _miscMasterQuery.AlreadyExistsAsync(command.Code, command.MiscTypeId,command.Id);
+                                return !await _miscMasterQuery.AlreadyExistsAsync(command.Code!, command.MiscTypeId,command.Id);
                             })
                             .WithMessage($"{rule.Error}")
                             .WithName("Misc Code");

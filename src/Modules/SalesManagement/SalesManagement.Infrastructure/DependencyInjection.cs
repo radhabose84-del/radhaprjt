@@ -27,9 +27,21 @@ using SalesManagement.Application.Common.Interfaces.IMiscTypeMaster;
 using SalesManagement.Infrastructure.Repositories.MiscTypeMaster;
 using SalesManagement.Application.Common.Interfaces.IMiscMaster;
 using SalesManagement.Infrastructure.Repositories.MiscMaster;
+using SalesManagement.Application.Common.Interfaces.IAgentCommissionConfig;
+using SalesManagement.Infrastructure.Repositories.AgentCommissionConfig;
+using SalesManagement.Application.Common.Interfaces.IDispatchAddressMaster;
+using SalesManagement.Infrastructure.Repositories.DispatchAddressMaster;
+using SalesManagement.Application.Common.Interfaces.IMarketingOfficer;
+using SalesManagement.Infrastructure.Repositories.MarketingOfficer;
 using SalesManagement.Infrastructure.Services;
 using Serilog;
 using Microsoft.Extensions.Hosting;
+using SalesManagement.Application.Common.Interfaces.IDispatchAddressMapping;
+using SalesManagement.Infrastructure.Repositories.DispatchAddressMapping;
+using SalesManagement.Application.Common.Interfaces.ISalesContact;
+using SalesManagement.Infrastructure.Repositories.SalesContact;
+using SalesManagement.Application.Common.Interfaces.ISalesLead;
+using SalesManagement.Infrastructure.Repositories.SalesLead;
 
 
 namespace SalesManagement.Infrastructure
@@ -152,6 +164,28 @@ namespace SalesManagement.Infrastructure
             // ── Misc Master Repositories ──────────────────────────────────
             services.AddScoped<IMiscMasterCommandRepository, MiscMasterCommandRepository>();
             services.AddScoped<IMiscMasterQueryRepository, MiscMasterQueryRepository>();
+
+            // ── Agent Commission Configuration Repositories ─────────────
+            services.AddScoped<IAgentCommissionConfigCommandRepository, AgentCommissionConfigCommandRepository>();
+            services.AddScoped<IAgentCommissionConfigQueryRepository, AgentCommissionConfigQueryRepository>();
+            // ── Dispatch Address Master Repositories ──────────────────────
+            services.AddScoped<IDispatchAddressMasterCommandRepository, DispatchAddressMasterCommandRepository>();
+            services.AddScoped<IDispatchAddressMasterQueryRepository, DispatchAddressMasterQueryRepository>();
+
+            // ── Marketing Officer Repositories ──────────────────────────────
+            services.AddScoped<IMarketingOfficerCommandRepository, MarketingOfficerCommandRepository>();
+            services.AddScoped<IMarketingOfficerQueryRepository, MarketingOfficerQueryRepository>();
+           // ── Dispatch Address Mapping Repositories ─────────────────────
+            services.AddScoped<IDispatchAddressMappingCommandRepository, DispatchAddressMappingCommandRepository>();
+            services.AddScoped<IDispatchAddressMappingQueryRepository, DispatchAddressMappingQueryRepository>();
+
+            // ── Sales Contact Repositories ────────────────────────────────
+            services.AddScoped<ISalesContactCommandRepository, SalesContactCommandRepository>();
+            services.AddScoped<ISalesContactQueryRepository, SalesContactQueryRepository>();
+
+            // ── Sales Lead Repositories ───────────────────────────────────
+            services.AddScoped<ISalesLeadCommandRepository, SalesLeadCommandRepository>();
+            services.AddScoped<ISalesLeadQueryRepository, SalesLeadQueryRepository>();
 
             return services;
         }

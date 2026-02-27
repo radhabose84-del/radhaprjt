@@ -1,0 +1,112 @@
+using Contracts.Interfaces.Lookups.Party;
+using FluentValidation;
+using SalesManagement.Application.Common.Interfaces.ISalesContact;
+using SalesManagement.Application.SalesContact.Commands.CreateSalesContact;
+using SalesManagement.Presentation.Validation.Common;
+using Shared.Validation.Common;
+
+namespace SalesManagement.Presentation.Validation.SalesContact
+{
+    public class CreateSalesContactCommandValidator : AbstractValidator<CreateSalesContactCommand>
+    {
+        private readonly List<ValidationRule> _validationRules;
+        private readonly ISalesContactQueryRepository _queryRepo;
+        private readonly IPartyLookup _partyLookup;
+
+        public CreateSalesContactCommandValidator(
+            MaxLengthProvider maxLengthProvider,
+            ISalesContactQueryRepository queryRepo,
+            IPartyLookup partyLookup)
+        {
+            _queryRepo = queryRepo;
+            _partyLookup = partyLookup;
+
+            var maxLengthName   = maxLengthProvider.GetMaxLength<Domain.Entities.SalesContact>("ContactName") ?? 100;
+            var maxLengthMobile = maxLengthProvider.GetMaxLength<Domain.Entities.SalesContact>("MobileNumber") ?? 15;
+            var maxLengthEmail  = maxLengthProvider.GetMaxLength<Domain.Entities.SalesContact>("Email") ?? 100;
+            var maxLengthRemark = maxLengthProvider.GetMaxLength<Domain.Entities.SalesContact>("Remarks") ?? 500;
+
+            _validationRules = ValidationRuleLoader.LoadValidationRules();
+            if (_validationRules == null || _validationRules.Count == 0)
+            {
+                throw new InvalidOperationException("Validation rules could not be loaded.");
+            }
+
+            foreach (var rule in _validationRules)
+            {
+                switch (rule.Rule)
+                {
+                    case "NotEmpty":
+                        RuleFor(x => x.ContactName)
+                            .NotNull().WithMessage($"{nameof(CreateSalesContactCommand.ContactName)} {rule.Error}")
+                            .NotEmpty().WithMessage($"{nameof(CreateSalesContactCommand.ContactName)} {rule.Error}");
+
+                        RuleFor(x => x.MobileNumber)
+                            .NotNull().WithMessage($"{nameof(CreateSalesContactCommand.MobileNumber)} {rule.Error}")
+                            .NotEmpty().WithMessage($"{nameof(CreateSalesContactCommand.MobileNumber)} {rule.Error}");
+
+                        RuleFor(x => x.ContactTypeId)
+                            .NotNull().WithMessage($"{nameof(CreateSalesContactCommand.ContactTypeId)} {rule.Error}")
+                            .NotEmpty().WithMessage($"{nameof(CreateSalesContactCommand.ContactTypeId)} {rule.Error}");
+                        break;
+
+                    case "MaxLength":
+                        RuleFor(x => x.ContactName)
+                            .MaximumLength(maxLengthName)
+                            .WithMessage($"{nameof(CreateSalesContactCommand.ContactName)} {rule.Error} {maxLengthName} characters.");
+
+                        RuleFor(x => x.MobileNumber)
+                            .MaximumLength(maxLengthMobile)
+                            .WithMessage($"{nameof(CreateSalesContactCommand.MobileNumber)} {rule.Error} {maxLengthMobile} characters.");
+
+                        RuleFor(x => x.Email)
+                            .MaximumLength(maxLengthEmail)
+                            .WithMessage($"{nameof(CreateSalesContactCommand.Email)} {rule.Error} {maxLengthEmail} characters.")
+                            .When(x => !string.IsNullOrWhiteSpace(x.Email));
+
+                        RuleFor(x => x.Remarks)
+                            .MaximumLength(maxLengthRemark)
+                            .WithMessage($"{nameof(CreateSalesContactCommand.Remarks)} {rule.Error} {maxLengthRemark} characters.")
+                            .When(x => !string.IsNullOrWhiteSpace(x.Remarks));
+                        break;
+
+                    case "FKColumnDelete":
+                        RuleFor(x => x.ContactTypeId)
+                            .MustAsync(async (contactTypeId, ct) => await _queryRepo.ContactTypeExistsAsync(contactTypeId))
+                            .WithMessage($"{nameof(CreateSalesContactCommand.ContactTypeId)} {rule.Error}")
+                            .When(x => x.ContactTypeId > 0);
+
+                        RuleFor(x => x.PartyId)
+                            .MustAsync(async (partyId, ct) => await _partyLookup.GetByIdAsync(partyId!.Value, ct) != null)
+                            .WithMessage($"{nameof(CreateSalesContactCommand.PartyId)} {rule.Error}")
+                            .When(x => x.PartyId.HasValue && x.PartyId.Value > 0);
+                        break;
+
+                    case "AlreadyExists":
+                        RuleFor(x => x.MobileNumber)
+                            .MustAsync(async (mobile, ct) => !await _queryRepo.MobileAlreadyExistsAsync(mobile!))
+                            .WithMessage($"{nameof(CreateSalesContactCommand.MobileNumber)} {rule.Error}")
+                            .When(x => !string.IsNullOrWhiteSpace(x.MobileNumber));
+                        break;
+
+                    case "MobileNumber":
+                        RuleFor(x => x.MobileNumber)
+                            .Matches(rule.Pattern)
+                            .WithMessage($"{nameof(CreateSalesContactCommand.MobileNumber)}{rule.Error}")
+                            .When(x => !string.IsNullOrWhiteSpace(x.MobileNumber));
+                        break;
+
+                    case "Email":
+                        RuleFor(x => x.Email)
+                            .EmailAddress()
+                            .WithMessage($"{nameof(CreateSalesContactCommand.Email)} {rule.Error}")
+                            .When(x => !string.IsNullOrWhiteSpace(x.Email));
+                        break;
+
+                    default:
+                        break;
+                }
+            }
+        }
+    }
+}

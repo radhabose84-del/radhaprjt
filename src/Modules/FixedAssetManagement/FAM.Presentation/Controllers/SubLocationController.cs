@@ -1,4 +1,3 @@
-#nullable disable
 using FAM.Application.Location.Command.DeleteAubLocation;
 using FAM.Application.Location.Command.UpdateSubLocation;
 using FAM.Application.SubLocation.Command.CreateSubLocation;
@@ -23,7 +22,7 @@ namespace FAM.Presentation.Controllers
            
     }
     [HttpGet]
-    public async Task<IActionResult> GetAllSubLocationAsync([FromQuery] int PageNumber,[FromQuery] int PageSize,[FromQuery] string SearchTerm = null)
+    public async Task<IActionResult> GetAllSubLocationAsync([FromQuery] int PageNumber,[FromQuery] int PageSize,[FromQuery] string? SearchTerm = null)
     {
         var sublocations = await Mediator.Send(
             new GetSubLocationQuery
@@ -36,7 +35,7 @@ namespace FAM.Presentation.Controllers
             return Ok( new 
             { 
                 StatusCode=StatusCodes.Status200OK, 
-                data = sublocations.Data.ToList(),
+                data = sublocations.Data!.ToList(),
                 TotalCount = sublocations.TotalCount,
                 PageNumber = sublocations.PageNumber,
                 PageSize = sublocations.PageSize

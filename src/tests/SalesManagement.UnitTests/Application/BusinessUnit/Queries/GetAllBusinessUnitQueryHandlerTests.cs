@@ -1,4 +1,3 @@
-#nullable disable
 using AutoMapper;
 using MediatR;
 using SalesManagement.Application.BusinessUnit.Dto;
@@ -57,9 +56,9 @@ namespace SalesManagement.UnitTests.Application.BusinessUnit.Queries
             var query = new GetAllBusinessUnitQuery { PageNumber = 1, PageSize = 10, SearchTerm = null };
             var result = await CreateSut().Handle(query, CancellationToken.None);
 
-            result.Data.Should().HaveCount(2);
-            result.Data[0].BusinessUnitCode.Should().Be("BU001");
-            result.Data[1].BusinessUnitCode.Should().Be("BU002");
+            result.Data!.Should().HaveCount(2);
+            result.Data![0].BusinessUnitCode.Should().Be("BU001");
+            result.Data![1].BusinessUnitCode.Should().Be("BU002");
         }
 
         [Fact]

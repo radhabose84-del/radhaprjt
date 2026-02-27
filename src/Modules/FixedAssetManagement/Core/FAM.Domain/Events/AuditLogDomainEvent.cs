@@ -9,13 +9,13 @@ namespace FAM.Domain.Events
         public string ActionName { get; }
         public string Details { get; }
         public string Module { get; }
-        public AuditLogsDomainEvent(string actionDetail, string actionCode, string actionName, string details,string module)
+        public AuditLogsDomainEvent(string? actionDetail, string? actionCode, string? actionName, string? details, string? module)
         {
-            ActionDetail = actionDetail;
-            ActionCode = actionCode;
-            ActionName = actionName;
-            Details = details;
-            Module=module;
+            ActionDetail = actionDetail ?? string.Empty;
+            ActionCode = actionCode ?? string.Empty;
+            ActionName = actionName ?? string.Empty;
+            Details = details ?? string.Empty;
+            Module = module ?? string.Empty;
         }
 
     }

@@ -1,4 +1,3 @@
-#nullable disable
 using Contracts.Dtos.Lookups.Inventory;
 using Contracts.Dtos.Lookups.Purchase;
 using Contracts.Dtos.Lookups.Users;
@@ -174,8 +173,8 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesItemPriceMaster
             decimal exMillPrice = 250.00m,
             int currencyId = 5,
             bool isActive = true,
-            DateTimeOffset? validFrom = null,
-            DateTimeOffset? validTo = null)
+            DateOnly? validFrom = null,
+            DateOnly? validTo = null)
         {
             await using var ctx = _fixture.CreateFreshDbContext();
             var entity = new Domain.Entities.SalesItemPriceMaster
@@ -186,8 +185,8 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesItemPriceMaster
                 PaymentTermsId = paymentTermsId,
                 ExMillPrice    = exMillPrice,
                 CurrencyId     = currencyId,
-                ValidFrom      = validFrom ?? new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero),
-                ValidTo        = validTo   ?? new DateTimeOffset(2025, 12, 31, 0, 0, 0, TimeSpan.Zero),
+                ValidFrom      = validFrom ?? new DateOnly(2025, 1, 1),
+                ValidTo        = validTo   ?? new DateOnly(2025, 12, 31),
                 IsActive       = isActive ? Status.Active : Status.Inactive,
                 IsDeleted      = IsDelete.NotDeleted
             };
@@ -531,15 +530,15 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesItemPriceMaster
             var segmentId = await EnsurePrerequisitesAsync();
             await ClearPriceMasterAsync();
 
-            var validFrom = new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero);
-            var validTo   = new DateTimeOffset(2025, 12, 31, 0, 0, 0, TimeSpan.Zero);
+            var validFrom = new DateOnly(2025, 1, 1);
+            var validTo   = new DateOnly(2025, 12, 31);
             await SeedEntityAsync(segmentId, "PC001", itemId: 100, paymentTermsId: 10,
                 validFrom: validFrom, validTo: validTo);
 
             var repo = CreateQueryRepo();
             // Overlapping range
-            var overlapFrom = new DateTimeOffset(2025, 6, 1, 0, 0, 0, TimeSpan.Zero);
-            var overlapTo   = new DateTimeOffset(2026, 3, 31, 0, 0, 0, TimeSpan.Zero);
+            var overlapFrom = new DateOnly(2025, 6, 1);
+            var overlapTo   = new DateOnly(2026, 3, 31);
             var result = await repo.OverlapExistsAsync(100, segmentId, 10, overlapFrom, overlapTo);
 
             result.Should().BeTrue();
@@ -551,15 +550,15 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesItemPriceMaster
             var segmentId = await EnsurePrerequisitesAsync();
             await ClearPriceMasterAsync();
 
-            var validFrom = new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero);
-            var validTo   = new DateTimeOffset(2025, 6, 30, 0, 0, 0, TimeSpan.Zero);
+            var validFrom = new DateOnly(2025, 1, 1);
+            var validTo   = new DateOnly(2025, 6, 30);
             await SeedEntityAsync(segmentId, "PC001", itemId: 100, paymentTermsId: 10,
                 validFrom: validFrom, validTo: validTo);
 
             var repo = CreateQueryRepo();
             // Non-overlapping range (starts after existing record ends)
-            var noOverlapFrom = new DateTimeOffset(2025, 7, 1, 0, 0, 0, TimeSpan.Zero);
-            var noOverlapTo   = new DateTimeOffset(2025, 12, 31, 0, 0, 0, TimeSpan.Zero);
+            var noOverlapFrom = new DateOnly(2025, 7, 1);
+            var noOverlapTo   = new DateOnly(2025, 12, 31);
             var result = await repo.OverlapExistsAsync(100, segmentId, 10, noOverlapFrom, noOverlapTo);
 
             result.Should().BeFalse();
@@ -571,8 +570,8 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesItemPriceMaster
             var segmentId = await EnsurePrerequisitesAsync();
             await ClearPriceMasterAsync();
 
-            var validFrom = new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero);
-            var validTo   = new DateTimeOffset(2025, 12, 31, 0, 0, 0, TimeSpan.Zero);
+            var validFrom = new DateOnly(2025, 1, 1);
+            var validTo   = new DateOnly(2025, 12, 31);
             var id = await SeedEntityAsync(segmentId, "PC001", itemId: 100, paymentTermsId: 10,
                 validFrom: validFrom, validTo: validTo);
 
@@ -589,8 +588,8 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesItemPriceMaster
             var segmentId = await EnsurePrerequisitesAsync();
             await ClearPriceMasterAsync();
 
-            var validFrom = new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero);
-            var validTo   = new DateTimeOffset(2025, 12, 31, 0, 0, 0, TimeSpan.Zero);
+            var validFrom = new DateOnly(2025, 1, 1);
+            var validTo   = new DateOnly(2025, 12, 31);
             await SeedEntityAsync(segmentId, "PC001", itemId: 100, paymentTermsId: 10,
                 validFrom: validFrom, validTo: validTo);
 
