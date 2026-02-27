@@ -42,6 +42,8 @@ namespace SalesManagement.Infrastructure.Data
         public DbSet<OfficerAgent> OfficerAgent { get; set; }
         public DbSet<SalesEnquiryHeader> SalesEnquiryHeader { get; set; }
         public DbSet<SalesEnquiryDetail> SalesEnquiryDetail { get; set; }
+        public DbSet<SalesQuotationHeader> SalesQuotationHeader { get; set; }
+        public DbSet<SalesQuotationDetail> SalesQuotationDetail { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -65,6 +67,8 @@ namespace SalesManagement.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new OfficerAgentConfiguration());
             modelBuilder.ApplyConfiguration(new SalesEnquiryHeaderConfiguration());
             modelBuilder.ApplyConfiguration(new SalesEnquiryDetailConfiguration());
+            modelBuilder.ApplyConfiguration(new SalesQuotationHeaderConfiguration());
+            modelBuilder.ApplyConfiguration(new SalesQuotationDetailConfiguration());
 
 
             // Global convention: set explicit precision/scale for all decimal properties
