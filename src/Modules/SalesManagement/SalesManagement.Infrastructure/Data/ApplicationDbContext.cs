@@ -29,7 +29,7 @@ namespace SalesManagement.Infrastructure.Data
         public DbSet<SalesSegment> SalesSegment { get; set; }
         public DbSet<SalesOffice> SalesOffice { get; set; }
         public DbSet<SalesGroup> SalesGroup { get; set; }
-  		public DbSet<SalesItemPriceMaster> SalesItemPriceMaster { get; set; }
+  		public DbSet<ItemPriceMaster> ItemPriceMaster { get; set; }
         public DbSet<MiscTypeMaster> MiscTypeMaster { get; set; }
         public DbSet<MiscMaster> MiscMaster { get; set; }
         public DbSet<AgentCommissionConfig> AgentCommissionConfig { get; set; }
@@ -39,6 +39,7 @@ namespace SalesManagement.Infrastructure.Data
         public DbSet<DispatchAddressMapping> DispatchAddressMapping { get; set; }
         public DbSet<SalesContact> SalesContact { get; set; }
         public DbSet<SalesLead> SalesLead { get; set; }
+        public DbSet<OfficerAgent> OfficerAgent { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -49,7 +50,7 @@ namespace SalesManagement.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new SalesSegmentConfiguration());
             modelBuilder.ApplyConfiguration(new SalesOfficeConfiguration());
             modelBuilder.ApplyConfiguration(new SalesGroupConfiguration());
-			modelBuilder.ApplyConfiguration(new SalesItemPriceMasterConfiguration());
+			modelBuilder.ApplyConfiguration(new ItemPriceMasterConfiguration());
             modelBuilder.ApplyConfiguration(new MiscTypeMasterConfiguration());
             modelBuilder.ApplyConfiguration(new MiscMasterConfiguration());
             modelBuilder.ApplyConfiguration(new AgentCommissionConfigConfiguration());
@@ -59,6 +60,7 @@ namespace SalesManagement.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new DispatchAddressMappingConfiguration());
             modelBuilder.ApplyConfiguration(new SalesContactConfiguration());
             modelBuilder.ApplyConfiguration(new SalesLeadConfiguration());
+            modelBuilder.ApplyConfiguration(new OfficerAgentConfiguration());
 
 
             // Global convention: set explicit precision/scale for all decimal properties
@@ -112,6 +114,25 @@ namespace SalesManagement.Infrastructure.Data
                     entry.Property("ModifiedDate").CurrentValue = currentTime;
                     entry.Property("ModifiedBy").CurrentValue = userId;
                     entry.Property("ModifiedByName").CurrentValue = username;
+                }
+            }
+
+            // OfficerAgent does not extend BaseEntity — audit fields populated separately
+            foreach (EntityEntry<OfficerAgent> entry in ChangeTracker.Entries<OfficerAgent>())
+            {
+                if (entry.State == EntityState.Added)
+                {
+                    entry.Entity.CreatedIP = currentIp;
+                    entry.Entity.CreatedDate = currentTime;
+                    entry.Entity.CreatedBy = userId;
+                    entry.Entity.CreatedByName = username;
+                }
+                if (entry.State == EntityState.Modified)
+                {
+                    entry.Entity.ModifiedIP = currentIp;
+                    entry.Entity.ModifiedDate = currentTime;
+                    entry.Entity.ModifiedBy = userId;
+                    entry.Entity.ModifiedByName = username;
                 }
             }
         }

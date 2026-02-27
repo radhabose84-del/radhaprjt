@@ -384,6 +384,101 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.ToTable("DispatchAddressMaster", "Sales");
                 });
 
+            modelBuilder.Entity("SalesManagement.Domain.Entities.ItemPriceMaster", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<int>("CurrencyId")
+                        .HasColumnType("int")
+                        .HasColumnName("CurrencyId");
+
+                    b.Property<decimal>("ExMillPrice")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,4)")
+                        .HasColumnName("ExMillPrice");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<int>("ItemId")
+                        .HasColumnType("int")
+                        .HasColumnName("ItemId");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<int>("PaymentTermsId")
+                        .HasColumnType("int")
+                        .HasColumnName("PaymentTermsId");
+
+                    b.Property<string>("PriceCode")
+                        .IsRequired()
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("PriceCode");
+
+                    b.Property<int>("SalesSegmentId")
+                        .HasColumnType("int")
+                        .HasColumnName("SalesSegmentId");
+
+                    b.Property<DateOnly>("ValidFrom")
+                        .HasColumnType("date")
+                        .HasColumnName("ValidFrom");
+
+                    b.Property<DateOnly>("ValidTo")
+                        .HasColumnType("date")
+                        .HasColumnName("ValidTo");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PriceCode")
+                        .IsUnique();
+
+                    b.HasIndex("SalesSegmentId");
+
+                    b.HasIndex("ItemId", "SalesSegmentId", "PaymentTermsId");
+
+                    b.ToTable("ItemPriceMaster", "Sales");
+                });
+
             modelBuilder.Entity("SalesManagement.Domain.Entities.MarketingOfficer", b =>
                 {
                     b.Property<int>("Id")
@@ -622,6 +717,78 @@ namespace SalesManagement.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("MiscTypeMaster", "Sales");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.OfficerAgent", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AgentId")
+                        .HasColumnType("int")
+                        .HasColumnName("AgentId");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<int>("MarketingOfficerId")
+                        .HasColumnType("int")
+                        .HasColumnName("MarketingOfficerId");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<DateOnly>("ValidityFrom")
+                        .HasColumnType("date")
+                        .HasColumnName("ValidityFrom");
+
+                    b.Property<DateOnly>("ValidityTo")
+                        .HasColumnType("date")
+                        .HasColumnName("ValidityTo");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AgentId");
+
+                    b.HasIndex("MarketingOfficerId");
+
+                    b.HasIndex("ValidityFrom", "ValidityTo");
+
+                    b.ToTable("OfficerAgent", "Sales");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.OfficerSalesGroup", b =>
@@ -915,101 +1082,6 @@ namespace SalesManagement.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("SalesGroup", "Sales");
-                });
-
-            modelBuilder.Entity("SalesManagement.Domain.Entities.SalesItemPriceMaster", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("Id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("CreatedBy")
-                        .HasColumnType("int")
-                        .HasColumnName("CreatedBy");
-
-                    b.Property<string>("CreatedByName")
-                        .HasColumnType("varchar(100)")
-                        .HasColumnName("CreatedByName");
-
-                    b.Property<DateTimeOffset?>("CreatedDate")
-                        .HasColumnType("datetimeoffset")
-                        .HasColumnName("CreatedDate");
-
-                    b.Property<string>("CreatedIP")
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("CreatedIP");
-
-                    b.Property<int>("CurrencyId")
-                        .HasColumnType("int")
-                        .HasColumnName("CurrencyId");
-
-                    b.Property<decimal>("ExMillPrice")
-                        .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,4)")
-                        .HasColumnName("ExMillPrice");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit")
-                        .HasColumnName("IsActive");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit")
-                        .HasColumnName("IsDeleted");
-
-                    b.Property<int>("ItemId")
-                        .HasColumnType("int")
-                        .HasColumnName("ItemId");
-
-                    b.Property<int?>("ModifiedBy")
-                        .HasColumnType("int")
-                        .HasColumnName("ModifiedBy");
-
-                    b.Property<string>("ModifiedByName")
-                        .HasColumnType("varchar(100)")
-                        .HasColumnName("ModifiedByName");
-
-                    b.Property<DateTimeOffset?>("ModifiedDate")
-                        .HasColumnType("datetimeoffset")
-                        .HasColumnName("ModifiedDate");
-
-                    b.Property<string>("ModifiedIP")
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("ModifiedIP");
-
-                    b.Property<int>("PaymentTermsId")
-                        .HasColumnType("int")
-                        .HasColumnName("PaymentTermsId");
-
-                    b.Property<string>("PriceCode")
-                        .IsRequired()
-                        .HasColumnType("varchar(20)")
-                        .HasColumnName("PriceCode");
-
-                    b.Property<int>("SalesSegmentId")
-                        .HasColumnType("int")
-                        .HasColumnName("SalesSegmentId");
-
-                    b.Property<DateOnly>("ValidFrom")
-                        .HasColumnType("date")
-                        .HasColumnName("ValidFrom");
-
-                    b.Property<DateOnly>("ValidTo")
-                        .HasColumnType("date")
-                        .HasColumnName("ValidTo");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PriceCode")
-                        .IsUnique();
-
-                    b.HasIndex("SalesSegmentId");
-
-                    b.HasIndex("ItemId", "SalesSegmentId", "PaymentTermsId");
-
-                    b.ToTable("SalesItemPriceMaster", "Sales");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.SalesLead", b =>
@@ -1403,6 +1475,17 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("UsageType");
                 });
 
+            modelBuilder.Entity("SalesManagement.Domain.Entities.ItemPriceMaster", b =>
+                {
+                    b.HasOne("SalesManagement.Domain.Entities.SalesSegment", "SalesSegment")
+                        .WithMany()
+                        .HasForeignKey("SalesSegmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("SalesSegment");
+                });
+
             modelBuilder.Entity("SalesManagement.Domain.Entities.MarketingOfficer", b =>
                 {
                     b.HasOne("SalesManagement.Domain.Entities.SalesOffice", "SalesOffice")
@@ -1423,6 +1506,17 @@ namespace SalesManagement.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("MiscTypeMaster");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.OfficerAgent", b =>
+                {
+                    b.HasOne("SalesManagement.Domain.Entities.MarketingOfficer", "MarketingOfficer")
+                        .WithMany()
+                        .HasForeignKey("MarketingOfficerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("MarketingOfficer");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.OfficerSalesGroup", b =>
@@ -1464,17 +1558,6 @@ namespace SalesManagement.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("SalesOffice");
-                });
-
-            modelBuilder.Entity("SalesManagement.Domain.Entities.SalesItemPriceMaster", b =>
-                {
-                    b.HasOne("SalesManagement.Domain.Entities.SalesSegment", "SalesSegment")
-                        .WithMany()
-                        .HasForeignKey("SalesSegmentId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("SalesSegment");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.SalesLead", b =>
