@@ -88,7 +88,7 @@ namespace SalesManagement.Presentation.Validation.SalesGroup
                     case "AlreadyExists":
                         RuleFor(x => x)
                             .MustAsync(async (cmd, ct) =>
-                                !await _queryRepository.AlreadyExistsAsync(cmd.SalesGroupName, cmd.SalesOfficeId, cmd.Id))
+                                !await _queryRepository.AlreadyExistsAsync(cmd.SalesGroupName!, cmd.SalesOfficeId, cmd.Id!))
                             .WithMessage($"{nameof(UpdateSalesGroupCommand.SalesGroupName)} {rule.Error}")
                             .When(x => !string.IsNullOrWhiteSpace(x.SalesGroupName) && x.SalesOfficeId > 0 && x.Id > 0);
                         break;

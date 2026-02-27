@@ -1,4 +1,4 @@
-﻿
+
 using SalesManagement.Domain.Common;
 
 namespace SalesManagement.Domain.Entities
@@ -12,12 +12,12 @@ namespace SalesManagement.Domain.Entities
         public int? CurrencyId { get; set; }  // Cross-module FK (no navigation)
 
         // Navigation Properties (Same-Module FKs)
-        public SalesOrganisation SalesOrganisation { get; set; } = null!;
-        public SalesChannel SalesChannel { get; set; } = null!;
-        public BusinessUnit BusinessUnit { get; set; } = null!;
+        public SalesOrganisation? SalesOrganisation { get; set; }
+        public SalesChannel? SalesChannel { get; set; }
+        public BusinessUnit? BusinessUnit { get; set; }
 
         // Other Properties
         public DateTime? ValidFrom { get; set; }
-        public string SegmentName { get; set; } = null!;
+        public string? SegmentName { get; set; }
     }
 }

@@ -84,7 +84,7 @@ namespace SalesManagement.Presentation.Validation.SalesContact
 
                     case "AlreadyExists":
                         RuleFor(x => x.MobileNumber)
-                            .MustAsync(async (mobile, ct) => !await _queryRepo.MobileAlreadyExistsAsync(mobile))
+                            .MustAsync(async (mobile, ct) => !await _queryRepo.MobileAlreadyExistsAsync(mobile!))
                             .WithMessage($"{nameof(CreateSalesContactCommand.MobileNumber)} {rule.Error}")
                             .When(x => !string.IsNullOrWhiteSpace(x.MobileNumber));
                         break;

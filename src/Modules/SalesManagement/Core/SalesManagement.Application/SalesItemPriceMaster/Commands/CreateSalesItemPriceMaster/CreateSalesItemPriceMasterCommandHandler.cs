@@ -34,7 +34,7 @@ namespace SalesManagement.Application.SalesItemPriceMaster.Commands.CreateSalesI
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Create",
                 actionCode: "SALES_ITEM_PRICE_CREATE",
-                actionName: request.PriceCode,
+                actionName: request.PriceCode ?? string.Empty,
                 details: $"Sales Item Price Master '{request.PriceCode}' created successfully with Id {newId}.",
                 module: "SalesItemPriceMaster"
             );

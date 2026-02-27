@@ -31,7 +31,7 @@ namespace SalesManagement.Application.SalesOffice.Commands.CreateSalesOffice
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Create",
                 actionCode: "SALES_OFFICE_CREATE",
-                actionName: request.SalesOfficeName,
+                actionName: request.SalesOfficeName ?? string.Empty,
                 details: $"Sales Office '{request.SalesOfficeName}' created successfully with Id {newId}.",
                 module: "SalesOffice"
             );

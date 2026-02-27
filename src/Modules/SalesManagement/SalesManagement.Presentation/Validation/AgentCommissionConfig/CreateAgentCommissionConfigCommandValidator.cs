@@ -126,7 +126,7 @@ namespace SalesManagement.Presentation.Validation.AgentCommissionConfig
                                     cmd.SalesSegmentId,
                                     cmd.ItemId,
                                     cmd.ValidityFrom,
-                                    cmd.ValidityTo))
+                                    cmd.ValidityTo!))
                             .WithMessage("An active commission rule already exists for this Agent, Sales Segment, and Item within the specified validity period.")
                             .When(x => x.AgentId > 0 && x.SalesSegmentId > 0 && x.ItemId > 0
                                         && x.ValidityFrom != default && x.ValidityTo != default

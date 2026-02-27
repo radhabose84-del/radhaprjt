@@ -1,4 +1,4 @@
-﻿using Contracts.Common;
+using Contracts.Common;
 using MediatR;
 
 namespace SalesManagement.Application.SalesOrganisation.Commands.UpdateSalesOrganisation
@@ -6,9 +6,9 @@ namespace SalesManagement.Application.SalesOrganisation.Commands.UpdateSalesOrga
     public class UpdateSalesOrganisationCommand : IRequest<ApiResponseDTO<int>>
     {
         public int Id { get; set; }
-        public string SalesOrganisationName { get; set; } = null!;
+        public string? SalesOrganisationName { get; set; }
         public int CompanyId { get; set; }
-        public string Description { get; set; } = null!;
+        public string? Description { get; set; }
         public int IsActive { get; set; }
     }
 }

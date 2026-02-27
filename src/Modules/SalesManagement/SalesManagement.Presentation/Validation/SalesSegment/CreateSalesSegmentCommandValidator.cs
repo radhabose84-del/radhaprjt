@@ -107,7 +107,7 @@ namespace SalesManagement.Presentation.Validation.SalesSegment
                                 !await _queryRepository.CompositeKeyExistsAsync(
                                     cmd.SalesOrganisationId,
                                     cmd.SalesChannelId,
-                                    cmd.BusinessUnitId))
+                                    cmd.BusinessUnitId!))
                             .WithMessage($"This combination of Sales Organisation, Sales Channel, and Business Unit {rule.Error}");
                         break;
 

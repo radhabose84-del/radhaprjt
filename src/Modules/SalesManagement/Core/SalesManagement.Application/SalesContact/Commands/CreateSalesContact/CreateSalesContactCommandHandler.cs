@@ -34,7 +34,7 @@ namespace SalesManagement.Application.SalesContact.Commands.CreateSalesContact
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Create",
                 actionCode: "SALES_CONTACT_CREATE",
-                actionName: request.ContactName,
+                actionName: request.ContactName ?? string.Empty,
                 details: $"Sales Contact '{request.ContactName}' created successfully with Id {newId}.",
                 module: "SalesContact"
             );

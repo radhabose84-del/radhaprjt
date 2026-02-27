@@ -8,7 +8,7 @@ namespace SalesManagement.Domain.Entities
         public int SalesGroupId { get; set; }
 
         // Navigation properties
-        public MarketingOfficer MarketingOfficer { get; set; } = null!;
-        public SalesGroup SalesGroup { get; set; } = null!;
+        public MarketingOfficer? MarketingOfficer { get; set; }
+        public SalesGroup? SalesGroup { get; set; }
     }
 }

@@ -31,7 +31,7 @@ namespace SalesManagement.Application.SalesGroup.Commands.CreateSalesGroup
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Create",
                 actionCode: "SALES_GROUP_CREATE",
-                actionName: request.SalesGroupName,
+                actionName: request.SalesGroupName ?? string.Empty,
                 details: $"Sales Group '{request.SalesGroupName}' created successfully with Id {newId}.",
                 module: "SalesGroup"
             );

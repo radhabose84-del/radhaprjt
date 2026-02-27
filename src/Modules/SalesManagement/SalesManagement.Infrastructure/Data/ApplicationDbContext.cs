@@ -38,6 +38,7 @@ namespace SalesManagement.Infrastructure.Data
         public DbSet<OfficerSalesGroup> OfficerSalesGroup { get; set; }
         public DbSet<DispatchAddressMapping> DispatchAddressMapping { get; set; }
         public DbSet<SalesContact> SalesContact { get; set; }
+        public DbSet<SalesLead> SalesLead { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -57,6 +58,7 @@ namespace SalesManagement.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new OfficerSalesGroupConfiguration());
             modelBuilder.ApplyConfiguration(new DispatchAddressMappingConfiguration());
             modelBuilder.ApplyConfiguration(new SalesContactConfiguration());
+            modelBuilder.ApplyConfiguration(new SalesLeadConfiguration());
 
 
             // Global convention: set explicit precision/scale for all decimal properties

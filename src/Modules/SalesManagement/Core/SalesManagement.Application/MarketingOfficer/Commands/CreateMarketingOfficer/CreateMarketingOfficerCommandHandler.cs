@@ -43,7 +43,7 @@ namespace SalesManagement.Application.MarketingOfficer.Commands.CreateMarketingO
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Create",
                 actionCode: "MARKETING_OFFICER_CREATE",
-                actionName: request.EmployeeNo,
+                actionName: request.EmployeeNo ?? string.Empty,
                 details: $"Marketing Officer '{request.EmployeeNo}' created successfully with Id {newId}.",
                 module: "MarketingOfficer"
             );

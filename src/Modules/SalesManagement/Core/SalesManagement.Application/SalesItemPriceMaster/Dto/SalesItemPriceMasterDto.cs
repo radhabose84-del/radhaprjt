@@ -3,18 +3,18 @@ namespace SalesManagement.Application.SalesItemPriceMaster.Dto
     public class SalesItemPriceMasterDto
     {
         public int Id { get; set; }
-        public string PriceCode { get; set; } = null!;
+        public string? PriceCode { get; set; }
 
         public int ItemId { get; set; }
-        public string ItemCode { get; set; } = null!;
-        public string ItemName { get; set; } = null!;
+        public string? ItemCode { get; set; }
+        public string? ItemName { get; set; }
 
         public int SalesSegmentId { get; set; }
-        public string SalesSegmentName { get; set; } = null!;
+        public string? SalesSegmentName { get; set; }
 
         public int PaymentTermsId { get; set; }
-        public string PaymentTermsCode { get; set; } = null!;
-        public string PaymentTermsDescription { get; set; } = null!;
+        public string? PaymentTermsCode { get; set; }
+        public string? PaymentTermsDescription { get; set; }
 
         public decimal ExMillPrice { get; set; }
 
@@ -29,11 +29,11 @@ namespace SalesManagement.Application.SalesItemPriceMaster.Dto
 
         public int CreatedBy { get; set; }
         public DateTimeOffset? CreatedDate { get; set; }
-        public string CreatedByName { get; set; } = null!;
-        public string CreatedIP { get; set; } = null!;
+        public string? CreatedByName { get; set; }
+        public string? CreatedIP { get; set; }
         public int? ModifiedBy { get; set; }
         public DateTimeOffset? ModifiedDate { get; set; }
-        public string ModifiedByName { get; set; } = null!;
-        public string ModifiedIP { get; set; } = null!;
+        public string? ModifiedByName { get; set; }
+        public string? ModifiedIP { get; set; }
     }
 }

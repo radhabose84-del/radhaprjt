@@ -122,7 +122,7 @@ namespace SalesManagement.Presentation.Validation.SalesItemPriceMaster
                     case "AlreadyExists":
                         // PriceCode uniqueness
                         RuleFor(x => x.PriceCode)
-                            .MustAsync(async (code, ct) => !await _queryRepository.AlreadyExistsAsync(code))
+                            .MustAsync(async (code, ct) => !await _queryRepository.AlreadyExistsAsync(code!))
                             .WithMessage($"{nameof(CreateSalesItemPriceMasterCommand.PriceCode)} {rule.Error}")
                             .When(x => !string.IsNullOrWhiteSpace(x.PriceCode));
 
@@ -134,7 +134,7 @@ namespace SalesManagement.Presentation.Validation.SalesItemPriceMaster
                                     cmd.SalesSegmentId,
                                     cmd.PaymentTermsId,
                                     cmd.ValidFrom,
-                                    cmd.ValidTo))
+                                    cmd.ValidTo!))
                             .WithMessage($"An active price record {rule.Error}")
                             .When(x => x.ItemId > 0 && x.SalesSegmentId > 0 && x.PaymentTermsId > 0
                                         && x.ValidFrom != default && x.ValidTo != default

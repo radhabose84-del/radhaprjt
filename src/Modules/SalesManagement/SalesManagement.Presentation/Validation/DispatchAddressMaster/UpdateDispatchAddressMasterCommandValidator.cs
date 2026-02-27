@@ -105,7 +105,7 @@ namespace SalesManagement.Presentation.Validation.DispatchAddressMaster
                     case "AlreadyExists":
                         RuleFor(x => x.DispatchAddressName)
                             .MustAsync(async (command, name, ct) =>
-                                !await _queryRepo.CompositeKeyExistsAsync(command.DispatchAddressName, command.CityId, command.PinCode, command.Id))
+                                !await _queryRepo.CompositeKeyExistsAsync(command.DispatchAddressName!, command.CityId, command.PinCode!, command.Id))
                             .WithMessage($"{nameof(UpdateDispatchAddressMasterCommand.DispatchAddressName)} {rule.Error}")
                             .When(x => !string.IsNullOrWhiteSpace(x.DispatchAddressName) && x.CityId > 0 && !string.IsNullOrWhiteSpace(x.PinCode));
                         break;

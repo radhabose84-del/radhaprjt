@@ -31,7 +31,7 @@ namespace SalesManagement.Application.MiscTypeMaster.Commands.CreateMiscTypeMast
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Create",
                 actionCode: "MISC_TYPE_CREATE",
-                actionName: request.MiscTypeCode,
+                actionName: request.MiscTypeCode ?? string.Empty,
                 details: $"Misc Type Master '{request.MiscTypeCode}' created successfully with Id {newId}.",
                 module: "MiscTypeMaster"
             );
