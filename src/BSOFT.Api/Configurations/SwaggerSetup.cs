@@ -33,6 +33,19 @@ namespace BSOFT.Api.Configurations
 
             services.AddSwaggerGen(options =>
             {
+                // Map DateOnly/TimeOnly so Swagger generates "string" + "date"/"time" format
+                // instead of a complex object with year/month/day properties
+                options.MapType<DateOnly>(() => new OpenApiSchema
+                {
+                    Type = "string",
+                    Format = "date"
+                });
+                options.MapType<TimeOnly>(() => new OpenApiSchema
+                {
+                    Type = "string",
+                    Format = "time"
+                });
+
                 // Fix schema ID conflicts for duplicate type names
                 options.CustomSchemaIds(type => type.FullName?.Replace("+", "."));
 

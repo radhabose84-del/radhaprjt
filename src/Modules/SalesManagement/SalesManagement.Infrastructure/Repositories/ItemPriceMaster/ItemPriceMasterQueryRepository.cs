@@ -40,7 +40,7 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
                 SELECT
                     sipm.Id, sipm.PriceCode,
                     sipm.ItemId, sipm.SalesSegmentId, sipm.PaymentTermsId,
-                    sipm.ExMillPrice, sipm.CurrencyId,
+                    sipm.ExMillPrice AS ExMillRate, sipm.CurrencyId,
                     sipm.ValidFrom, sipm.ValidTo,
                     sipm.IsActive, sipm.IsDeleted,
                     sipm.CreatedBy, sipm.CreatedDate, sipm.CreatedByName, sipm.CreatedIP,
@@ -112,7 +112,7 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
                 SELECT
                     sipm.Id, sipm.PriceCode,
                     sipm.ItemId, sipm.SalesSegmentId, sipm.PaymentTermsId,
-                    sipm.ExMillPrice, sipm.CurrencyId,
+                    sipm.ExMillPrice AS ExMillRate, sipm.CurrencyId,
                     sipm.ValidFrom, sipm.ValidTo,
                     sipm.IsActive, sipm.IsDeleted,
                     sipm.CreatedBy, sipm.CreatedDate, sipm.CreatedByName, sipm.CreatedIP,
@@ -158,7 +158,7 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
             string term, CancellationToken ct)
         {
             const string sql = @"
-                SELECT TOP 20 Id, PriceCode, ItemId
+                SELECT TOP 20 Id, PriceCode, ItemId, ExMillPrice AS ExMillRate, ValidFrom, ValidTo
                 FROM Sales.ItemPriceMaster
                 WHERE IsDeleted = 0 AND IsActive = 1
                   AND PriceCode LIKE @Term
@@ -182,7 +182,10 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
                 {
                     Id = (int)r.Id,
                     PriceCode = (string)r.PriceCode,
-                    ItemName = itemData?.ItemName
+                    ItemName = itemData?.ItemName,
+                    ExMillRate = (decimal)r.ExMillRate,
+                    ValidFrom = DateOnly.FromDateTime((DateTime)r.ValidFrom),
+                    ValidTo = DateOnly.FromDateTime((DateTime)r.ValidTo)
                 };
             }).ToList();
         }
@@ -274,6 +277,68 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
             // Currently ItemPriceMaster has no FK children — always returns false (safe to delete).
             await Task.CompletedTask;
             return false;
+        }
+
+        public async Task<List<ItemPriceMasterDto>> GetByItemAndDateAsync(int itemId, DateOnly date)
+        {
+            const string sql = @"
+                SELECT
+                    sipm.Id, sipm.PriceCode,
+                    sipm.ItemId, sipm.SalesSegmentId, sipm.PaymentTermsId,
+                    sipm.ExMillPrice AS ExMillRate, sipm.CurrencyId,
+                    sipm.ValidFrom, sipm.ValidTo,
+                    sipm.IsActive, sipm.IsDeleted,
+                    sipm.CreatedBy, sipm.CreatedDate, sipm.CreatedByName, sipm.CreatedIP,
+                    sipm.ModifiedBy, sipm.ModifiedDate, sipm.ModifiedByName, sipm.ModifiedIP,
+                    ss.SegmentName AS SalesSegmentName
+                FROM Sales.ItemPriceMaster sipm
+                LEFT JOIN Sales.SalesSegment ss ON sipm.SalesSegmentId = ss.Id AND ss.IsDeleted = 0
+                WHERE sipm.ItemId = @ItemId
+                  AND sipm.IsDeleted = 0
+                  AND sipm.IsActive = 1
+                  AND sipm.ValidFrom <= @Date
+                  AND sipm.ValidTo >= @Date
+                ORDER BY sipm.ExMillPrice ASC";
+
+            var list = (await _dbConnection.QueryAsync<ItemPriceMasterDto>(
+                sql, new { ItemId = itemId, Date = date })).ToList();
+
+            if (list.Any())
+            {
+                var currencyIds = list.Select(x => x.CurrencyId).Distinct();
+                var paymentTermIds = list.Select(x => x.PaymentTermsId).Distinct().ToList();
+
+                var items = await _itemLookup.GetByIdsAsync(new[] { itemId });
+                var itemData = items.FirstOrDefault();
+
+                var currencies = await _currencyLookup.GetByIdsAsync(currencyIds);
+                var currencyDict = currencies.ToDictionary(x => x.CurrencyId);
+
+                var paymentTerms = await _paymentTermLookup.GetAllPaymentTermAsync();
+                var paymentTermDict = paymentTerms
+                    .Where(x => paymentTermIds.Contains(x.Id))
+                    .ToDictionary(x => x.Id);
+
+                foreach (var item in list)
+                {
+                    if (itemData != null)
+                    {
+                        item.ItemCode = itemData.ItemCode;
+                        item.ItemName = itemData.ItemName;
+                    }
+                    if (currencyDict.TryGetValue(item.CurrencyId, out var currencyData))
+                    {
+                        item.CurrencyCode = currencyData.Code;
+                    }
+                    if (paymentTermDict.TryGetValue(item.PaymentTermsId, out var ptData))
+                    {
+                        item.PaymentTermsCode = ptData.Code;
+                        item.PaymentTermsDescription = ptData.Description;
+                    }
+                }
+            }
+
+            return list;
         }
     }
 }

@@ -48,7 +48,7 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("int")
                 .IsRequired();
 
-            builder.Property(t => t.ExMillPrice)
+            builder.Property(t => t.ExMillRate)
                 .HasColumnName("ExMillPrice")
                 .HasColumnType("decimal(18,4)")
                 .IsRequired();

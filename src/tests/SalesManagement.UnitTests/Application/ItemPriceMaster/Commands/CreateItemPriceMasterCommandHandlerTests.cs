@@ -146,7 +146,7 @@ namespace SalesManagement.UnitTests.Application.ItemPriceMaster.Commands
                 PriceCode = command.PriceCode,
                 ItemId = command.ItemId,
                 SalesSegmentId = command.SalesSegmentId,
-                ExMillPrice = command.ExMillPrice
+                ExMillRate = command.ExMillRate
             };
 
             _mockMapper
@@ -179,7 +179,7 @@ namespace SalesManagement.UnitTests.Application.ItemPriceMaster.Commands
                 PriceCode = command.PriceCode,
                 ItemId = command.ItemId,
                 SalesSegmentId = command.SalesSegmentId,
-                ExMillPrice = command.ExMillPrice
+                ExMillRate = command.ExMillRate
             };
 
             _mockMapper

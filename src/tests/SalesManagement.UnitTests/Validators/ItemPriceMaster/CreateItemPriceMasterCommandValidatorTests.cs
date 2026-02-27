@@ -201,19 +201,19 @@ namespace SalesManagement.UnitTests.Validators.ItemPriceMaster
                   .WithErrorMessage("PaymentTermsId Payment Terms Id is inactive/deleted.");
         }
 
-        // ── ExMillPrice Rules ─────────────────────────────────────────────────
+        // ── ExMillRate Rules ─────────────────────────────────────────────────
 
         [Theory]
         [InlineData(0)]
-        public async Task ExMillPrice_ZeroOrNegative_FailsValidation(decimal price)
+        public async Task ExMillRate_ZeroOrNegative_FailsValidation(decimal price)
         {
             SetupAllValid();
-            var command = ItemPriceMasterBuilders.ValidCreateCommand(exMillPrice: price);
+            var command = ItemPriceMasterBuilders.ValidCreateCommand(exMillRate: price);
 
             var result = await CreateValidator().TestValidateAsync(command);
 
-            result.ShouldHaveValidationErrorFor(x => x.ExMillPrice)
-                  .WithErrorMessage("ExMillPrice must be greater than zero.");
+            result.ShouldHaveValidationErrorFor(x => x.ExMillRate)
+                  .WithErrorMessage("ExMillRate must be greater than zero.");
         }
 
         // ── CurrencyId Rules ──────────────────────────────────────────────────

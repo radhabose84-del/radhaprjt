@@ -25,7 +25,7 @@ namespace SalesManagement.UnitTests.TestData
             int itemId = 10,
             int salesSegmentId = 1,
             int paymentTermsId = 2,
-            decimal exMillPrice = 100.00m,
+            decimal exMillRate = 100.00m,
             int currencyId = 5,
             DateOnly? validFrom = null,
             DateOnly? validTo = null) =>
@@ -35,7 +35,7 @@ namespace SalesManagement.UnitTests.TestData
                 ItemId         = itemId,
                 SalesSegmentId = salesSegmentId,
                 PaymentTermsId = paymentTermsId,
-                ExMillPrice    = exMillPrice,
+                ExMillRate    = exMillRate,
                 CurrencyId     = currencyId,
                 ValidFrom      = validFrom ?? DefaultValidFrom,
                 ValidTo        = validTo   ?? DefaultValidTo
@@ -48,7 +48,7 @@ namespace SalesManagement.UnitTests.TestData
             int itemId = 10,
             int salesSegmentId = 1,
             int paymentTermsId = 2,
-            decimal exMillPrice = 150.00m,
+            decimal exMillRate = 150.00m,
             int currencyId = 5,
             DateOnly? validFrom = null,
             DateOnly? validTo = null,
@@ -59,7 +59,7 @@ namespace SalesManagement.UnitTests.TestData
                 ItemId         = itemId,
                 SalesSegmentId = salesSegmentId,
                 PaymentTermsId = paymentTermsId,
-                ExMillPrice    = exMillPrice,
+                ExMillRate    = exMillRate,
                 CurrencyId     = currencyId,
                 ValidFrom      = validFrom ?? DefaultValidFrom,
                 ValidTo        = validTo   ?? DefaultValidTo,
@@ -74,7 +74,7 @@ namespace SalesManagement.UnitTests.TestData
             int itemId = 10,
             int salesSegmentId = 1,
             int paymentTermsId = 2,
-            decimal exMillPrice = 100.00m,
+            decimal exMillRate = 100.00m,
             int currencyId = 5) =>
             new ItemPriceMasterDto
             {
@@ -88,7 +88,7 @@ namespace SalesManagement.UnitTests.TestData
                 PaymentTermsId         = paymentTermsId,
                 PaymentTermsCode       = "NET30",
                 PaymentTermsDescription = "Net 30 Days",
-                ExMillPrice            = exMillPrice,
+                ExMillRate            = exMillRate,
                 CurrencyId             = currencyId,
                 CurrencyCode           = "USD",
                 ValidFrom              = DefaultValidFrom,
@@ -152,7 +152,7 @@ namespace SalesManagement.UnitTests.TestData
                 ItemId         = 10,
                 SalesSegmentId = 1,
                 PaymentTermsId = 2,
-                ExMillPrice    = 100.00m,
+                ExMillRate    = 100.00m,
                 CurrencyId     = 5,
                 ValidFrom      = DefaultValidFrom,
                 ValidTo        = DefaultValidTo,

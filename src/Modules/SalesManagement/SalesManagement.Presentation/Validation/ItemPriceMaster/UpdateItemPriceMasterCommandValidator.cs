@@ -50,10 +50,10 @@ namespace SalesManagement.Presentation.Validation.ItemPriceMaster
                             .NotEmpty()
                             .WithMessage($"{nameof(UpdateItemPriceMasterCommand.PaymentTermsId)} {rule.Error}");
 
-                        // ExMillPrice must be greater than zero
-                        RuleFor(x => x.ExMillPrice)
+                        // ExMillRate must be greater than zero
+                        RuleFor(x => x.ExMillRate)
                             .GreaterThan(0)
-                            .WithMessage($"{nameof(UpdateItemPriceMasterCommand.ExMillPrice)} must be greater than zero.");
+                            .WithMessage($"{nameof(UpdateItemPriceMasterCommand.ExMillRate)} must be greater than zero.");
 
                         // CurrencyId required
                         RuleFor(x => x.CurrencyId)
