@@ -29,7 +29,7 @@ namespace SalesManagement.Infrastructure.Data
         public DbSet<SalesSegment> SalesSegment { get; set; }
         public DbSet<SalesOffice> SalesOffice { get; set; }
         public DbSet<SalesGroup> SalesGroup { get; set; }
-  		public DbSet<SalesItemPriceMaster> SalesItemPriceMaster { get; set; }
+  		public DbSet<ItemPriceMaster> ItemPriceMaster { get; set; }
         public DbSet<MiscTypeMaster> MiscTypeMaster { get; set; }
         public DbSet<MiscMaster> MiscMaster { get; set; }
         public DbSet<AgentCommissionConfig> AgentCommissionConfig { get; set; }
@@ -49,7 +49,7 @@ namespace SalesManagement.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new SalesSegmentConfiguration());
             modelBuilder.ApplyConfiguration(new SalesOfficeConfiguration());
             modelBuilder.ApplyConfiguration(new SalesGroupConfiguration());
-			modelBuilder.ApplyConfiguration(new SalesItemPriceMasterConfiguration());
+			modelBuilder.ApplyConfiguration(new ItemPriceMasterConfiguration());
             modelBuilder.ApplyConfiguration(new MiscTypeMasterConfiguration());
             modelBuilder.ApplyConfiguration(new MiscMasterConfiguration());
             modelBuilder.ApplyConfiguration(new AgentCommissionConfigConfiguration());
