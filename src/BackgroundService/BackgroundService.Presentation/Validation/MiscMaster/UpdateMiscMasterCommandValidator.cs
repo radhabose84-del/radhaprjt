@@ -28,20 +28,20 @@ namespace BackgroundService.Presentation.Validation.MiscMaster
             {
              switch (rule.Rule)
                 {
-                    case "Notempty": 
-                     // Apply NotEmpty validation
+                    case "NotEmpty":
                         RuleFor(x => x.Code)
+                            .NotNull()
+                            .WithMessage($"{nameof(UpdateMiscMasterCommand.Code)} {rule.Error}")
                             .NotEmpty()
                             .WithMessage($"{nameof(UpdateMiscMasterCommand.Code)} {rule.Error}");
                         RuleFor(x => x.Description)
+                            .NotNull()
+                            .WithMessage($"{nameof(UpdateMiscMasterCommand.Description)} {rule.Error}")
                             .NotEmpty()
                             .WithMessage($"{nameof(UpdateMiscMasterCommand.Description)} {rule.Error}");
                         RuleFor(x => x.MiscTypeId)
-                            .NotEmpty()
+                            .GreaterThan(0)
                             .WithMessage($"{nameof(UpdateMiscMasterCommand.MiscTypeId)} {rule.Error}");
-                       
-
-
                         break;
                         case "MaxLength" :
                         RuleFor(x => x.Code)

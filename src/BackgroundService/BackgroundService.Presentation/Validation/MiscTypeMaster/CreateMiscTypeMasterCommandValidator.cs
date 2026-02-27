@@ -24,12 +24,15 @@ namespace BackgroundService.Presentation.Validation.MiscTypeMaster
             {
              switch (rule.Rule)
                 {
-                    case "NotFound" :
-                     // Apply NotEmpty validation
+                    case "NotEmpty":
                         RuleFor(x => x.MiscTypeCode)
+                            .NotNull()
+                            .WithMessage($"{nameof(CreateMiscTypeMasterCommand.MiscTypeCode)} {rule.Error}")
                             .NotEmpty()
                             .WithMessage($"{nameof(CreateMiscTypeMasterCommand.MiscTypeCode)} {rule.Error}");
                         RuleFor(x => x.Description)
+                            .NotNull()
+                            .WithMessage($"{nameof(CreateMiscTypeMasterCommand.Description)} {rule.Error}")
                             .NotEmpty()
                             .WithMessage($"{nameof(CreateMiscTypeMasterCommand.Description)} {rule.Error}");
                         break;

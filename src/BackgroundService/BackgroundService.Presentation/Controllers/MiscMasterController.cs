@@ -59,7 +59,7 @@ namespace BackgroundService.Presentation.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateAsync(CreateMiscMasterCommand command)
+        public async Task<IActionResult> CreateAsync([FromBody] CreateMiscMasterCommand command)
         {
 
            
@@ -74,8 +74,8 @@ namespace BackgroundService.Presentation.Controllers
             });
             
         } 
-        [HttpPut] 
-         public async Task<IActionResult> Update(UpdateMiscMasterCommand command)
+        [HttpPut]
+        public async Task<IActionResult> Update([FromBody] UpdateMiscMasterCommand command)
         {
           
 

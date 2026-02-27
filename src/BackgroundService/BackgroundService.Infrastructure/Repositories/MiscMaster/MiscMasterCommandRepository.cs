@@ -16,9 +16,14 @@ namespace BackgroundService.Infrastructure.Repositories.MiscMaster
 
         public async Task<Domain.Entities.Notification.MiscMaster> CreateAsync(Domain.Entities.Notification.MiscMaster miscMaster)
         {
-
         // Auto-generate SortOrder
         miscMaster.SortOrder = await GetMaxSortOrderAsync() + 1;
+
+        // Prevent EF Core from cascade-inserting the reference navigation property.
+        // The entity initializer sets MiscType = new MiscTypeMaster(), which EF Core
+        // would treat as a new entity to INSERT. Null it out — MiscTypeId (FK) is enough.
+        miscMaster.MiscType = null!;
+
         await _dbContext.MiscMaster.AddAsync(miscMaster);
         await _dbContext.SaveChangesAsync();
         return miscMaster;
