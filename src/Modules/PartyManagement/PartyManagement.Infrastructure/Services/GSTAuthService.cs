@@ -1,5 +1,7 @@
 #nullable disable
 using System.Text;
+using System.Text.RegularExpressions;
+using Contracts.Common;
 using PartyManagement.Application.GST.DTOs;
 using PartyManagement.Application.Interfaces.GST;
 using Microsoft.Extensions.Configuration;
@@ -9,6 +11,10 @@ namespace PartyManagement.Infrastructure.Services
 {
     public class GSTAuthService : IGSTAuthService
     {
+        private static readonly Regex GstinRegex = new(
+            "^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$",
+            RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _config;
 
@@ -20,45 +26,62 @@ namespace PartyManagement.Infrastructure.Services
 
         public async Task<GSTAuthResponseDto> GetAuthTokenAsync()
         {
-         /*    var payload = new
-            {
-                username = _config["GSTApi:UserName"],
-                password = _config["GSTApi:Password"],
-                AppKey = _config["GSTApi:AppKey"],
-                ForceRefreshAccessToken = false
-            }; */
-
             var encrypted = "F+d1cLTFFM3PY/dt/U4flmc718WopRlemfg/DXCPWefDU33Z5icEC+Rdbx7vBDUvX7Ht0dnuxy0ILSiOcqBSHB9y0mqmQ1T+eFx1k+0+BkZHb0B17A5s5Ct+DgXfzWWLEyeN+YVfUxHFD6CADiRvW9Qm9rgjkjxVft+zEe/aU0vT19cxhdmkoZvb/0RcG1Oj/pDUxvtjvBZ0wFcK3HCgfyM5DhwkzQ5v7jU2sVLNzwoP4+Qd6EIPhcAsrLCCJB8V6QS7T1dMMj6KHLdNVTuXdoQY7HR7HmFEun2AMptjA3zBdYv2W0evUgXbIXQZr3nvRBOQok2BFZaqC228KOn4AQ==";
             var body = new { Data = encrypted };
 
-            var request = new HttpRequestMessage(HttpMethod.Post, $"{_config["GSTApi:BaseUrl"]}/auth")
+            var baseUrl = GetRequiredConfig("GSTApi:BaseUrl");
+            var clientId = GetRequiredConfig("GSTApi:ClientId");
+            var clientSecret = GetRequiredConfig("GSTApi:ClientSecret");
+            var companyGstin = GetRequiredConfig("GSTApi:Gstin");
+
+            var request = new HttpRequestMessage(HttpMethod.Post, $"{baseUrl}/auth")
             {
                 Content = new StringContent(JsonConvert.SerializeObject(body), Encoding.UTF8, "application/json")
             };
 
-            request.Headers.Add("client_id", _config["GSTApi:ClientId"]);
-            request.Headers.Add("client_secret", _config["GSTApi:ClientSecret"]);
-            request.Headers.Add("gstin", _config["GSTApi:Gstin"]);
+            request.Headers.Add("client_id", clientId);
+            request.Headers.Add("client_secret", clientSecret);
+            request.Headers.Add("gstin", companyGstin);
 
             var response = await _httpClient.SendAsync(request);
             string content = await response.Content.ReadAsStringAsync();
 
             if (!response.IsSuccessStatusCode)
-                throw new Exception($"NIC Auth API failed: {content}");
+                throw new ExceptionRules("GST authentication failed. Please try again later.");
 
-            return JsonConvert.DeserializeObject<GSTAuthResponseDto>(content);
+            var auth = JsonConvert.DeserializeObject<GSTAuthResponseDto>(content);
+            if (auth?.Data == null ||
+                string.IsNullOrWhiteSpace(auth.Data.ClientId) ||
+                string.IsNullOrWhiteSpace(auth.Data.UserName) ||
+                string.IsNullOrWhiteSpace(auth.Data.AuthToken) ||
+                string.IsNullOrWhiteSpace(auth.Data.Sek))
+            {
+                throw new ExceptionRules("Unable to authenticate GST service. Please try again later.");
+            }
+
+            return auth;
         }
 
         public async Task<GSTINDetailsDto> GetGSTINDetailsAsync(string gstin)
         {
-            var auth = await GetAuthTokenAsync();
-            string appKey = _config["GSTApi:AppKey"];
+            if (string.IsNullOrWhiteSpace(gstin))
+                throw new ExceptionRules("GSTIN is required.");
 
-            var request = new HttpRequestMessage(HttpMethod.Get, $"{_config["GSTApi:BaseUrl"]}/Master/gstin/{gstin}");
+            gstin = gstin.Trim().ToUpperInvariant();
+            if (!GstinRegex.IsMatch(gstin))
+                throw new ExceptionRules("Invalid GSTIN format.");
+
+            var auth = await GetAuthTokenAsync();
+            string appKey = GetRequiredConfig("GSTApi:AppKey");
+            var baseUrl = GetRequiredConfig("GSTApi:BaseUrl");
+            var clientSecret = GetRequiredConfig("GSTApi:ClientSecret");
+            var companyGstin = GetRequiredConfig("GSTApi:Gstin");
+
+            var request = new HttpRequestMessage(HttpMethod.Get, $"{baseUrl}/Master/gstin/{gstin}");
             request.Headers.Add("client_id", auth.Data.ClientId);
-            request.Headers.Add("client_secret", _config["GSTApi:ClientSecret"]);
-            request.Headers.Add("gstin", _config["GSTApi:Gstin"]);
-            request.Headers.Add("user_name", auth.Data.UserName);   // ✅ must be user_name
+            request.Headers.Add("client_secret", clientSecret);
+            request.Headers.Add("gstin", companyGstin);
+            request.Headers.Add("user_name", auth.Data.UserName);
             request.Headers.Add("AuthToken", auth.Data.AuthToken);
             request.Headers.Add("Sek", auth.Data.Sek);
 
@@ -66,20 +89,47 @@ namespace PartyManagement.Infrastructure.Services
             string content = await response.Content.ReadAsStringAsync();
 
             if (!response.IsSuccessStatusCode)
-                throw new Exception($"NIC GSTIN API failed: {content}");
+            {
+                if ((int)response.StatusCode == 404)
+                    throw new ExceptionRules("No records found for the given GSTIN.");
 
-            // Deserialize first
+                if ((int)response.StatusCode == 400 || (int)response.StatusCode == 422)
+                    throw new ExceptionRules("Invalid GSTIN. Please enter a valid GSTIN.");
+
+                throw new ExceptionRules("Unable to fetch GST details from GST provider. Please try again later.");
+            }
+
             var rawResponse = JsonConvert.DeserializeObject<dynamic>(content);
             string encryptedData = rawResponse?.Data;
+            if (string.IsNullOrWhiteSpace(encryptedData))
+                throw new ExceptionRules("No records found for the given GSTIN.");
 
-            // ✅ Step 1: Decrypt Sek
-            string decryptedSek = GstDecryptionHelper.DecryptSek(auth.Data.Sek, appKey);
+            string decryptedSek;
+            string decryptedJson;
+            try
+            {
+                decryptedSek = GstDecryptionHelper.DecryptSek(auth.Data.Sek, appKey);
+                decryptedJson = GstDecryptionHelper.DecryptData(encryptedData, decryptedSek);
+            }
+            catch
+            {
+                throw new ExceptionRules("Unable to process GST provider response. Please try again later.");
+            }
 
-            // ✅ Step 2: Decrypt Data
-            string decryptedJson = GstDecryptionHelper.DecryptData(encryptedData, decryptedSek);
+            if (string.IsNullOrWhiteSpace(decryptedJson))
+                throw new ExceptionRules("No records found for the given GSTIN.");
 
-            // ✅ Step 3: Map to DTO
-            return JsonConvert.DeserializeObject<GSTINDetailsDto>(decryptedJson);
+            var details = JsonConvert.DeserializeObject<GSTINDetailsDto>(decryptedJson);
+            return details ?? throw new ExceptionRules("No records found for the given GSTIN.");
+        }
+
+        private string GetRequiredConfig(string key)
+        {
+            var value = _config[key];
+            if (string.IsNullOrWhiteSpace(value))
+                throw new ExceptionRules($"Missing configuration: {key}");
+
+            return value;
         }
     }
 }

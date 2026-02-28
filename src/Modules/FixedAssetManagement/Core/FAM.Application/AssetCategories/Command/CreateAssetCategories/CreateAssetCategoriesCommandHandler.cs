@@ -21,12 +21,12 @@ namespace FAM.Application.AssetCategories.Command.CreateAssetCategories
 
         public async Task<int> Handle(CreateAssetCategoriesCommand request, CancellationToken cancellationToken)
         {
-           // Check if AssetGroup code already exists
-            // var exists = await _iAssetCategoriesCommandRepository.ExistsByCodeAsync(request.Code);
-            // if (exists)
-            // {
-            //     throw new ValidationException("AssetCategories Code already exists.");
-            // }
+            var nameExists = await _iAssetCategoriesCommandRepository.ExistsByNameAsync(request.CategoryName ?? string.Empty, null);
+            if (nameExists)
+            {
+                throw new ValidationException("Asset Category name already exists.");
+            }
+
             var assetCategories = _imapper.Map<FAM.Domain.Entities.AssetCategories>(request);
 			var categorycode = await GenerateUniqueCodeAsync(request.CategoryName ?? string.Empty);
             assetCategories.Code = categorycode;
