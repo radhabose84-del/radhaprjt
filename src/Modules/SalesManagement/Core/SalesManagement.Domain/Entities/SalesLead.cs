@@ -23,11 +23,12 @@ namespace SalesManagement.Domain.Entities
 
         // Ownership & source
         public int? LeadSourceId { get; set; }          // same-module FK → Sales.MiscMaster
-        public int MarketingPersonId { get; set; }      // cross-module FK → UserManagement User (no DB constraint)
+        public int MarketingOfficerId { get; set; }     // same-module FK → Sales.MarketingOfficer
         public DateTimeOffset InteractionDate { get; set; }
 
         // Same-module navigation properties
         public SalesContact? Contact { get; set; }
         public MiscMaster? LeadSource { get; set; }
+        public MarketingOfficer? MarketingOfficer { get; set; }
     }
 }
