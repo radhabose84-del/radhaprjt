@@ -1,4 +1,5 @@
 using FAM.Application.AssetCategories.Command.UpdateAssetCategories;
+using FAM.Application.Common.Interfaces.IAssetCategories;
 using FAM.Presentation.Validation.Common;
 using FluentValidation;
 using Serilog;
@@ -9,8 +10,11 @@ namespace FAM.Presentation.Validation.AssetCategories
     public class UpdateAssetCategoriesCommandValidator: AbstractValidator<UpdateAssetCategoriesCommand>
     {
         private readonly List<ValidationRule> _validationRules;
-        public UpdateAssetCategoriesCommandValidator(MaxLengthProvider maxLengthProvider)
+        private readonly IAssetCategoriesCommandRepository _assetCategoriesCommandRepository;
+
+        public UpdateAssetCategoriesCommandValidator(MaxLengthProvider maxLengthProvider, IAssetCategoriesCommandRepository assetCategoriesCommandRepository)
         {
+            _assetCategoriesCommandRepository = assetCategoriesCommandRepository;
             var SortOrderMaxLength = maxLengthProvider.GetMaxLength<FAM.Domain.Entities.AssetCategories>("SortOrder") ?? 4;
             var CategoryNameMaxLength = maxLengthProvider.GetMaxLength<FAM.Domain.Entities.AssetCategories>("CategoryName") ?? 50;
             var CategoryDescriptionMaxLength = maxLengthProvider.GetMaxLength<FAM.Domain.Entities.AssetCategories>("Description") ?? 250;
@@ -71,6 +75,13 @@ namespace FAM.Presentation.Validation.AssetCategories
                              .Matches(new System.Text.RegularExpressions.Regex(rule.Pattern))
                             .WithMessage($"{nameof(UpdateAssetCategoriesCommand.SortOrder)} {rule.Error}");
                         break;
+                    case "AlreadyExists":
+                        RuleFor(x => x.CategoryName)
+                            .MustAsync(async (command, categoryName, cancellation) =>
+                                !await _assetCategoriesCommandRepository.ExistsByNameAsync(categoryName ?? string.Empty, command.Id))
+                            .WithName("CategoryName")
+                            .WithMessage("Asset Category name already exists.");
+                        break;
                     // case "Percentage":
                     //     RuleFor(x => x.GroupPercentage.ToString())
                     //         .Matches(new Regex(rule.Pattern))
@@ -80,8 +91,8 @@ namespace FAM.Presentation.Validation.AssetCategories
                           // Handle unknown rule (log or throw)
                         Log.Information("Warning: Unknown rule '{Rule}' encountered.", rule.Rule);
                         break;
+                }
             }
         }
     }
-}
 }

@@ -106,7 +106,7 @@ namespace WarehouseManagement.Infrastructure
             services.AddScoped<IWarehouseCodeGenerator, WarehouseCodeGenerator>();
             services.AddScoped<IRackMasterQueryRepository, RackMasterQueryRepository>();
             services.AddScoped<IRackMasterCommandRepository, RackMasterCommandRepository>();
-            // services.AddScoped<IRackCodeGenerator, RackCodeGenerator>();
+            services.AddScoped<IRackCodeGenerator, RackCodeGenerator>();
             services.AddScoped<IBinMasterQueryRepository, BinMasterQueryRepository>();
             services.AddScoped<IBinMasterCommandRepository, BinMasterCommandRepository>();
             services.AddScoped<IBinCodeGenerator, BinCodeGenerator>();
