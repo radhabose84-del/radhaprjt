@@ -57,7 +57,7 @@ namespace SalesManagement.Application.SalesLead.Commands.CreateSalesLead
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Create",
                 actionCode: "SALES_LEAD_CREATE",
-                actionName: request.ContactName ?? request.MarketingPersonId.ToString(),
+                actionName: request.ContactName ?? request.MarketingOfficerId.ToString(),
                 details: $"Sales Lead created successfully with Id {newId}.",
                 module: "SalesLead"
             );

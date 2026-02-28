@@ -41,7 +41,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesLead
             existingEntity.ExpectedDate = entity.ExpectedDate;
             existingEntity.Remarks = entity.Remarks;
             existingEntity.LeadSourceId = entity.LeadSourceId;
-            existingEntity.MarketingPersonId = entity.MarketingPersonId;
+            existingEntity.MarketingOfficerId = entity.MarketingOfficerId;
             existingEntity.InteractionDate = entity.InteractionDate;
             existingEntity.IsActive = entity.IsActive;
 

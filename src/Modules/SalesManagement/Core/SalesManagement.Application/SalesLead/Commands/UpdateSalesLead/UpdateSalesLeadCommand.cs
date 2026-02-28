@@ -18,7 +18,7 @@ namespace SalesManagement.Application.SalesLead.Commands.UpdateSalesLead
         public DateOnly? ExpectedDate { get; set; }
         public string? Remarks { get; set; }
         public int? LeadSourceId { get; set; }
-        public int MarketingPersonId { get; set; }
+        public int MarketingOfficerId { get; set; }
         public DateTimeOffset InteractionDate { get; set; }
         public int IsActive { get; set; }
     }

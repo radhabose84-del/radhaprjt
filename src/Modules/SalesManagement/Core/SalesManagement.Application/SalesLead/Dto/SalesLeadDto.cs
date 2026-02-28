@@ -28,8 +28,8 @@ namespace SalesManagement.Application.SalesLead.Dto
         // Ownership & source
         public int? LeadSourceId { get; set; }
         public string? LeadSourceName { get; set; }     // populated via SQL JOIN → MiscMaster
-        public int MarketingPersonId { get; set; }
-        public string? MarketingPersonName { get; set; } // populated via IUserLookup
+        public int MarketingOfficerId { get; set; }
+        public string? MarketingOfficerName { get; set; } // populated via SQL JOIN → MarketingOfficer
         public DateTimeOffset InteractionDate { get; set; }
 
         // Status

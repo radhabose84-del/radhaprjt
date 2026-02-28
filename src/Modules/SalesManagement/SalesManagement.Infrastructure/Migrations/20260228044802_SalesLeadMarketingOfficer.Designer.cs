@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SalesManagement.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using SalesManagement.Infrastructure.Data;
 namespace SalesManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260228044802_SalesLeadMarketingOfficer")]
+    partial class SalesLeadMarketingOfficer
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -189,112 +192,6 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.HasIndex("IsDeleted");
 
                     b.ToTable("BusinessUnit", "Sales");
-                });
-
-            modelBuilder.Entity("SalesManagement.Domain.Entities.CustomerVisit", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("CreatedBy")
-                        .HasColumnType("int");
-
-                    b.Property<string>("CreatedByName")
-                        .HasColumnType("varchar(100)");
-
-                    b.Property<DateTimeOffset?>("CreatedDate")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("CreatedIP")
-                        .HasColumnType("varchar(50)");
-
-                    b.Property<int>("CustomerId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ImageName")
-                        .HasColumnType("varchar(500)");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
-                    b.Property<decimal?>("Latitude")
-                        .HasPrecision(18, 6)
-                        .HasColumnType("decimal(10,7)");
-
-                    b.Property<decimal?>("Longitude")
-                        .HasPrecision(18, 6)
-                        .HasColumnType("decimal(10,7)");
-
-                    b.Property<int>("MarketingOfficerId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("ModifiedBy")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ModifiedByName")
-                        .HasColumnType("varchar(100)");
-
-                    b.Property<DateTimeOffset?>("ModifiedDate")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("ModifiedIP")
-                        .HasColumnType("varchar(50)");
-
-                    b.Property<string>("Remarks")
-                        .HasColumnType("varchar(500)");
-
-                    b.Property<DateTimeOffset>("VisitDateTime")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<int>("VisitTypeId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CustomerId")
-                        .HasDatabaseName("IX_CustomerVisit_CustomerId");
-
-                    b.HasIndex("MarketingOfficerId")
-                        .HasDatabaseName("IX_CustomerVisit_MarketingOfficerId");
-
-                    b.HasIndex("VisitDateTime")
-                        .HasDatabaseName("IX_CustomerVisit_VisitDateTime");
-
-                    b.HasIndex("VisitTypeId")
-                        .HasDatabaseName("IX_CustomerVisit_VisitTypeId");
-
-                    b.ToTable("CustomerVisit", "Sales");
-                });
-
-            modelBuilder.Entity("SalesManagement.Domain.Entities.CustomerVisitProduct", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("CustomerVisitId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ItemId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CustomerVisitId")
-                        .HasDatabaseName("IX_CustomerVisitProduct_CustomerVisitId");
-
-                    b.HasIndex("ItemId")
-                        .HasDatabaseName("IX_CustomerVisitProduct_ItemId");
-
-                    b.ToTable("CustomerVisitProduct", "Sales");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.DispatchAddressMapping", b =>
@@ -1887,36 +1784,6 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("SalesSegment");
                 });
 
-            modelBuilder.Entity("SalesManagement.Domain.Entities.CustomerVisit", b =>
-                {
-                    b.HasOne("SalesManagement.Domain.Entities.MarketingOfficer", "MarketingOfficer")
-                        .WithMany()
-                        .HasForeignKey("MarketingOfficerId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "VisitType")
-                        .WithMany()
-                        .HasForeignKey("VisitTypeId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("MarketingOfficer");
-
-                    b.Navigation("VisitType");
-                });
-
-            modelBuilder.Entity("SalesManagement.Domain.Entities.CustomerVisitProduct", b =>
-                {
-                    b.HasOne("SalesManagement.Domain.Entities.CustomerVisit", "CustomerVisit")
-                        .WithMany("CustomerVisitProducts")
-                        .HasForeignKey("CustomerVisitId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("CustomerVisit");
-                });
-
             modelBuilder.Entity("SalesManagement.Domain.Entities.DispatchAddressMapping", b =>
                 {
                     b.HasOne("SalesManagement.Domain.Entities.DispatchAddressMaster", "DispatchAddress")
@@ -2134,11 +2001,6 @@ namespace SalesManagement.Infrastructure.Migrations
             modelBuilder.Entity("SalesManagement.Domain.Entities.BusinessUnit", b =>
                 {
                     b.Navigation("SalesSegments");
-                });
-
-            modelBuilder.Entity("SalesManagement.Domain.Entities.CustomerVisit", b =>
-                {
-                    b.Navigation("CustomerVisitProducts");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.DispatchAddressMaster", b =>
