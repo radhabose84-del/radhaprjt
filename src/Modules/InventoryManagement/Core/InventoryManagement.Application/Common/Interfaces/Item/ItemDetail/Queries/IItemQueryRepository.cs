@@ -14,6 +14,7 @@ namespace InventoryManagement.Application.Common.Interfaces.Item.ItemDetail.Quer
         Task<List<GetItemAutoCompleteDto>> GetItemAutoCompleteAsync(string searchPattern,int? itemGroupId, int? itemCategoryId,int? sourceId,int? issueRuleId, CancellationToken ct = default);
         Task<List<GetItemAutoCompleteDto>> GetItemsMasterByIdsAsync(IEnumerable<int> ids);          
         Task <List<ItemPurchaseToleranceDto?>> GetItemPurchaseToleranceAsync(IEnumerable<int> itemIds, CancellationToken ct = default);
-    
+        Task<List<GetItemAutoCompleteDto>> GetItemsByVariantFilterAsync(bool? hasVariant, int? parentItemId, CancellationToken ct = default);
+
     }
 }

@@ -129,5 +129,19 @@ namespace SalesManagement.Infrastructure.Repositories.MiscMaster
             await Task.CompletedTask;
             return false;
         }
+
+        public async Task<SalesManagement.Domain.Entities.MiscMaster?> GetMiscMasterByName(string miscTypeCode, string miscTypeName)
+        {
+            const string sql = @"
+                SELECT M.Id, M.Code, M.Description
+                FROM Sales.MiscMaster AS M
+                INNER JOIN Sales.MiscTypeMaster AS MT ON MT.Id = M.MiscTypeId
+                WHERE M.IsDeleted = 0 AND M.IsActive = 1
+                AND MT.IsDeleted = 0
+                AND LOWER(MT.MiscTypeCode) = LOWER(@MiscTypeCode)
+                AND LOWER(M.Code) = LOWER(@MiscTypeName);";
+
+            return await _dbConnection.QueryFirstOrDefaultAsync<SalesManagement.Domain.Entities.MiscMaster>(sql, new { MiscTypeCode = miscTypeCode, MiscTypeName = miscTypeName });
+        }
     }
 }
