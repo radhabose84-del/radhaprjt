@@ -6,22 +6,22 @@ using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Application.SalesOrder.Dto;
 using SalesManagement.Domain.Events;
 
-namespace SalesManagement.Application.SalesOrder.Commands.UploadSalesOrderDocument
+namespace SalesManagement.Application.SalesOrder.Commands.UploadSalesOrderImage
 {
-    public class UploadSalesOrderDocumentCommandHandler : IRequestHandler<UploadSalesOrderDocumentCommand, SalesOrderDocumentDto>
+    public class UploadSalesOrderImageCommandHandler : IRequestHandler<UploadSalesOrderImageCommand, SalesOrderDocumentDto>
     {
         private readonly IMediator _mediator;
         private readonly IIPAddressService _ipAddressService;
         private readonly ICompanyLookup _companyLookup;
         private readonly IUnitLookup _unitLookup;
-        private readonly ILogger<UploadSalesOrderDocumentCommandHandler> _logger;
+        private readonly ILogger<UploadSalesOrderImageCommandHandler> _logger;
 
-        public UploadSalesOrderDocumentCommandHandler(
+        public UploadSalesOrderImageCommandHandler(
             IMediator mediator,
             IIPAddressService ipAddressService,
             ICompanyLookup companyLookup,
             IUnitLookup unitLookup,
-            ILogger<UploadSalesOrderDocumentCommandHandler> logger)
+            ILogger<UploadSalesOrderImageCommandHandler> logger)
         {
             _mediator = mediator;
             _ipAddressService = ipAddressService;
@@ -30,7 +30,7 @@ namespace SalesManagement.Application.SalesOrder.Commands.UploadSalesOrderDocume
             _logger = logger;
         }
 
-        public async Task<SalesOrderDocumentDto> Handle(UploadSalesOrderDocumentCommand request, CancellationToken cancellationToken)
+        public async Task<SalesOrderDocumentDto> Handle(UploadSalesOrderImageCommand request, CancellationToken cancellationToken)
         {
             if (request.File == null || request.File.Length == 0)
                 throw new ExceptionRules("File is required.");
@@ -46,7 +46,7 @@ namespace SalesManagement.Application.SalesOrder.Commands.UploadSalesOrderDocume
             var unitName = units.FirstOrDefault(u => u.UnitId == unitId)?.UnitName ?? "Default";
 
             // Construct upload path
-            var uploadPath = Path.Combine("Resources", "SalesOrder","AgentPoDocument", companyName, unitName);
+            var uploadPath = Path.Combine("Resources", "SalesOrder", "SalesOrderVisitPath", companyName, unitName);
 
             if (!Directory.Exists(uploadPath))
             {
@@ -72,13 +72,13 @@ namespace SalesManagement.Application.SalesOrder.Commands.UploadSalesOrderDocume
                 imageBase64 = Convert.ToBase64String(fileBytes);
             }
 
-            _logger.LogInformation("SalesOrder document uploaded: {FileName} at {FilePath}", fileName, filePath);
+            _logger.LogInformation("SalesOrder image uploaded: {FileName} at {FilePath}", fileName, filePath);
 
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Upload",
-                actionCode: "SALESORDER_UPLOAD",
+                actionCode: "SALESORDER_IMAGE_UPLOAD",
                 actionName: fileName,
-                details: $"Sales Order document uploaded: {filePath}",
+                details: $"Sales Order image uploaded: {filePath}",
                 module: "SalesOrder");
             await _mediator.Publish(auditEvent, cancellationToken);
 

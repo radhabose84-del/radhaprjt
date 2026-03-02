@@ -188,6 +188,12 @@ namespace SalesManagement.Presentation.Validation.SalesOrder
                             .WithMessage($"PaymentTermsId {rule.Error}")
                             .When(x => x.PaymentTermsId > 0);
 
+                        RuleFor(x => x.EnquiryType)
+                            .MustAsync(async (enquiryType, ct) =>
+                                await _queryRepository.MiscMasterExistsAsync(enquiryType))
+                            .WithMessage($"EnquiryType {rule.Error}")
+                            .When(x => x.EnquiryType > 0);
+
                         RuleFor(x => x.FreightTypeId)
                             .MustAsync(async (freightTypeId, ct) =>
                                 await _queryRepository.MiscMasterExistsAsync(freightTypeId))

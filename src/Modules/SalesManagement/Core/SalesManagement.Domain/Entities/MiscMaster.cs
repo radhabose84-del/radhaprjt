@@ -20,6 +20,7 @@ namespace SalesManagement.Domain.Entities
         public ICollection<SalesOrderHeader>? SalesOrderHeadersAsPaymentType { get; set; }
         public ICollection<SalesOrderHeader>? SalesOrderHeadersAsFreightType { get; set; }
         public ICollection<SalesOrderHeader>? SalesOrderHeadersAsCountList { get; set; }
+        public ICollection<SalesOrderHeader>? SalesOrderHeadersAsEnquiryType { get; set; }
         public ICollection<SalesOrderDetail>? SalesOrderDetailsAsLineItemStatus { get; set; }
     }
 }
