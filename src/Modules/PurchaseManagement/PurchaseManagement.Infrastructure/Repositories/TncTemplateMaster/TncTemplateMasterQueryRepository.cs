@@ -113,13 +113,13 @@ FROM (
             tt.Code        LIKE @Search OR
             tt.[Description] LIKE @Search
           )
-    ORDER BY t.TemplateName ASC, t.Id ASC
+    ORDER BY t.CreatedDate DESC, t.Id DESC
     OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY
 ) p
 LEFT JOIN [Purchase].[Purchase].[TnCTemplateApplicability] ta 
        ON ta.TnCTemplateMasterId = p.Id AND ta.IsDeleted = 0
 LEFT JOIN [Purchase].[MiscMaster] mm ON mm.Id = ta.ApplicabilityId
-ORDER BY p.TemplateName ASC, p.Id ASC, ta.Id ASC;";
+ORDER BY p.CreatedDate DESC, p.Id DESC, ta.Id ASC;";
 
             var byId = new Dictionary<int, TncTemplateMasterDto>();
 
@@ -153,8 +153,8 @@ ORDER BY p.TemplateName ASC, p.Id ASC, ta.Id ASC;";
 
             // Materialize in stable order
             var items = byId.Values
-                            .OrderBy(x => x.TemplateName)
-                            .ThenBy(x => x.Id)
+                            .OrderByDescending(x => x.CreatedDate ?? DateTimeOffset.MinValue)
+                            .ThenByDescending(x => x.Id)
                             .ToList();
 
             return (items, totalCount);
