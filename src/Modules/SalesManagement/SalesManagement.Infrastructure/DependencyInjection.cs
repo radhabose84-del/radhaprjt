@@ -50,6 +50,8 @@ using SalesManagement.Application.Common.Interfaces.ISalesQuotation;
 using SalesManagement.Infrastructure.Repositories.SalesQuotation;
 using SalesManagement.Application.Common.Interfaces.ICustomerVisit;
 using SalesManagement.Infrastructure.Repositories.CustomerVisit;
+using SalesManagement.Application.Common.Interfaces.ISalesOrder;
+using SalesManagement.Infrastructure.Repositories.SalesOrder;
 
 
 namespace SalesManagement.Infrastructure
@@ -210,6 +212,10 @@ namespace SalesManagement.Infrastructure
             // ── Customer Visit Repositories ─────────────────────────────
             services.AddScoped<ICustomerVisitCommandRepository, CustomerVisitCommandRepository>();
             services.AddScoped<ICustomerVisitQueryRepository, CustomerVisitQueryRepository>();
+
+            // ── Sales Order Repositories ──────────────────────────────────
+            services.AddScoped<ISalesOrderCommandRepository, SalesOrderCommandRepository>();
+            services.AddScoped<ISalesOrderQueryRepository, SalesOrderQueryRepository>();
 
             return services;
         }

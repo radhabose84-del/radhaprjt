@@ -19,5 +19,8 @@ namespace SalesManagement.Domain.Entities
         // Other Properties
         public DateTime? ValidFrom { get; set; }
         public string? SegmentName { get; set; }
+
+        // Reverse navigation
+        public ICollection<SalesOrderHeader>? SalesOrderHeaders { get; set; }
     }
 }
