@@ -74,5 +74,14 @@ namespace SalesManagement.Infrastructure.Repositories.CustomerVisit
             await _dbContext.SaveChangesAsync(ct);
             return true;
         }
+
+        public async Task<bool> UpdateImageNameAsync(int id, string imageName, CancellationToken ct)
+        {
+            var existing = await _dbContext.CustomerVisit.FindAsync(new object[] { id }, ct);
+            if (existing == null) return false;
+            existing.ImageName = imageName;
+            await _dbContext.SaveChangesAsync(ct);
+            return true;
+        }
     }
 }
