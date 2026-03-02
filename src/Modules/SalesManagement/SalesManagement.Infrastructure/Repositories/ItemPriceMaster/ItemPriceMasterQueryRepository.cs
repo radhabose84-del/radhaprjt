@@ -40,7 +40,7 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
                 SELECT
                     sipm.Id, sipm.PriceCode,
                     sipm.ItemId, sipm.SalesSegmentId, sipm.PaymentTermsId,
-                    sipm.ExMillPrice AS ExMillRate, sipm.CurrencyId,
+                    sipm.ExMillRate, sipm.CurrencyId,
                     sipm.ValidFrom, sipm.ValidTo,
                     sipm.IsActive, sipm.IsDeleted,
                     sipm.CreatedBy, sipm.CreatedDate, sipm.CreatedByName, sipm.CreatedIP,
@@ -112,7 +112,7 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
                 SELECT
                     sipm.Id, sipm.PriceCode,
                     sipm.ItemId, sipm.SalesSegmentId, sipm.PaymentTermsId,
-                    sipm.ExMillPrice AS ExMillRate, sipm.CurrencyId,
+                    sipm.ExMillRate, sipm.CurrencyId,
                     sipm.ValidFrom, sipm.ValidTo,
                     sipm.IsActive, sipm.IsDeleted,
                     sipm.CreatedBy, sipm.CreatedDate, sipm.CreatedByName, sipm.CreatedIP,
@@ -158,7 +158,7 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
             string term, CancellationToken ct)
         {
             const string sql = @"
-                SELECT TOP 20 Id, PriceCode, ItemId, ExMillPrice AS ExMillRate, ValidFrom, ValidTo
+                SELECT TOP 20 Id, PriceCode, ItemId, ExMillRate, ValidFrom, ValidTo
                 FROM Sales.ItemPriceMaster
                 WHERE IsDeleted = 0 AND IsActive = 1
                   AND PriceCode LIKE @Term
@@ -285,7 +285,7 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
                 SELECT
                     sipm.Id, sipm.PriceCode,
                     sipm.ItemId, sipm.SalesSegmentId, sipm.PaymentTermsId,
-                    sipm.ExMillPrice AS ExMillRate, sipm.CurrencyId,
+                    sipm.ExMillRate, sipm.CurrencyId,
                     sipm.ValidFrom, sipm.ValidTo,
                     sipm.IsActive, sipm.IsDeleted,
                     sipm.CreatedBy, sipm.CreatedDate, sipm.CreatedByName, sipm.CreatedIP,
@@ -298,7 +298,7 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
                   AND sipm.IsActive = 1
                   AND sipm.ValidFrom <= @Date
                   AND sipm.ValidTo >= @Date
-                ORDER BY sipm.ExMillPrice ASC";
+                ORDER BY sipm.ExMillRate ASC";
 
             var list = (await _dbConnection.QueryAsync<ItemPriceMasterDto>(
                 sql, new { ItemId = itemId, Date = date })).ToList();
