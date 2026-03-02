@@ -11,6 +11,7 @@ using InventoryManagement.Application.Item.ItemDetail.Queries.GetItemById;
 using InventoryManagement.Application.Item.ItemDetail.Queries.GetItemLogById;
 using InventoryManagement.Application.Item.ItemDetail.Queries.GetItemLogs;
 using InventoryManagement.Application.Item.ItemDetail.Queries.GetItemsByIds;
+using InventoryManagement.Application.Item.ItemDetail.Queries.GetItemsByVariantFilter;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -166,6 +167,26 @@ namespace InventoryManagement.Presentation.Controllers.Item
                 ItemCategoryId = itemCategoryId,
                 SourceId = sourceId,
                 IssueRuleId = issueRuleId
+            }, ct);
+
+            return Ok(new ApiResponseDTO<List<GetItemAutoCompleteDto>>
+            {
+                StatusCode = StatusCodes.Status200OK,
+                Data = items
+            });
+        }
+
+        // GET: /api/ItemMaster/variant-filter
+        [HttpGet("variantFilter")]
+        public async Task<ActionResult<ApiResponseDTO<List<GetItemAutoCompleteDto>>>> GetItemsByVariantFilter(
+            [FromQuery] bool? hasVariant = null,
+            [FromQuery] int? parentItemId = null,
+            CancellationToken ct = default)
+        {
+            var items = await _mediator.Send(new GetItemsByVariantFilterQuery
+            {
+                HasVariant = hasVariant,
+                ParentItemId = parentItemId
             }, ct);
 
             return Ok(new ApiResponseDTO<List<GetItemAutoCompleteDto>>

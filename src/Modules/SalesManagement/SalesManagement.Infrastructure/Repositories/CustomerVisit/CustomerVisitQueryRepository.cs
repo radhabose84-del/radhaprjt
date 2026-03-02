@@ -6,6 +6,7 @@ using Dapper;
 using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Application.Common.Interfaces.ICustomerVisit;
 using SalesManagement.Application.CustomerVisit.Dto;
+using SalesManagement.Domain.Common;
 
 namespace SalesManagement.Infrastructure.Repositories.CustomerVisit
 {
@@ -46,7 +47,7 @@ namespace SalesManagement.Infrastructure.Repositories.CustomerVisit
                 WHERE cv.IsDeleted = 0
                 AND (@SearchTerm IS NULL OR @SearchTerm = ''
                      OR mm.Description LIKE '%' + @SearchTerm + '%'
-                     OR mo.OfficerName LIKE '%' + @SearchTerm + '%'
+                     OR mo.EmployeeName LIKE '%' + @SearchTerm + '%'
                      OR cv.Remarks LIKE '%' + @SearchTerm + '%');";
 
             const string dataSql = @"
@@ -58,14 +59,14 @@ namespace SalesManagement.Infrastructure.Repositories.CustomerVisit
                     cv.CreatedBy, cv.CreatedDate, cv.CreatedByName, cv.CreatedIP,
                     cv.ModifiedBy, cv.ModifiedDate, cv.ModifiedByName, cv.ModifiedIP,
                     mm.Description AS VisitTypeName,
-                    mo.OfficerName AS MarketingOfficerName
+                    mo.EmployeeName AS MarketingOfficerName
                 FROM Sales.CustomerVisit cv
                 LEFT JOIN Sales.MiscMaster mm ON cv.VisitTypeId = mm.Id AND mm.IsDeleted = 0
                 LEFT JOIN Sales.MarketingOfficer mo ON cv.MarketingOfficerId = mo.Id AND mo.IsDeleted = 0
                 WHERE cv.IsDeleted = 0
                 AND (@SearchTerm IS NULL OR @SearchTerm = ''
                      OR mm.Description LIKE '%' + @SearchTerm + '%'
-                     OR mo.OfficerName LIKE '%' + @SearchTerm + '%'
+                     OR mo.EmployeeName LIKE '%' + @SearchTerm + '%'
                      OR cv.Remarks LIKE '%' + @SearchTerm + '%')
                 ORDER BY cv.VisitDateTime DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;";
@@ -111,7 +112,7 @@ namespace SalesManagement.Infrastructure.Repositories.CustomerVisit
                     cv.CreatedBy, cv.CreatedDate, cv.CreatedByName, cv.CreatedIP,
                     cv.ModifiedBy, cv.ModifiedDate, cv.ModifiedByName, cv.ModifiedIP,
                     mm.Description AS VisitTypeName,
-                    mo.OfficerName AS MarketingOfficerName
+                    mo.EmployeeName AS MarketingOfficerName
                 FROM Sales.CustomerVisit cv
                 LEFT JOIN Sales.MiscMaster mm ON cv.VisitTypeId = mm.Id AND mm.IsDeleted = 0
                 LEFT JOIN Sales.MarketingOfficer mo ON cv.MarketingOfficerId = mo.Id AND mo.IsDeleted = 0
@@ -222,18 +223,38 @@ namespace SalesManagement.Infrastructure.Repositories.CustomerVisit
             return items.Any();
         }
 
+/*************  ✨ Windsurf Command ⭐  *************/
+/// <summary>
+/// Gets the base path for the CustomerVisit image.
+/// </summary>
+/// <param name="MiscTypeCode">The MiscTypeCode of the CustomerVisit image (CustomerVisitPath).</param>
+/// <returns>The base path for the CustomerVisit image.</returns>
+/// <remarks>
+/// The base path is in the format { basePath.TrimEnd('/',\\')}/{companyName}/{unitName}.
+/// It will return an empty string if the base path is null or empty.
+/// </remarks>
+/*******  5289d0bc-4159-4a38-a8d9-1da623733b8a  *******/
+
         private async Task<string> GetImageBasePathAsync()
         {
-            var companyId = _ipAddressService.GetCompanyId();
-            var unitId = _ipAddressService.GetUnitId();
+            const string sql = @"
+                SELECT Description
+                FROM Sales.MiscTypeMaster
+                WHERE MiscTypeCode = @MiscTypeCode AND IsDeleted = 0;";
+
+            var basePath = await _dbConnection.QueryFirstOrDefaultAsync<string>(
+                sql, new { MiscTypeCode = MiscEnumEntity.CustomerVisitPath });
+
+            if (string.IsNullOrWhiteSpace(basePath))
+                return string.Empty;
 
             var companies = await _companyLookup.GetAllCompanyAsync();
-            var companyName = companies.FirstOrDefault(c => c.CompanyId == companyId)?.CompanyName ?? "Default";
-
             var units = await _unitLookup.GetAllUnitAsync();
-            var unitName = units.FirstOrDefault(u => u.UnitId == unitId)?.UnitName ?? "Default";
 
-            return Path.Combine("Resources", "CustomerVisit", companyName, unitName);
+            var companyName = companies.FirstOrDefault(c => c.CompanyId == _ipAddressService.GetCompanyId())?.CompanyName ?? string.Empty;
+            var unitName = units.FirstOrDefault(u => u.UnitId == _ipAddressService.GetUnitId())?.UnitName ?? string.Empty;
+
+            return $"{basePath.TrimEnd('/', '\\')}/{companyName}/{unitName}";
         }
     }
 }
