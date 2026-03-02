@@ -46,7 +46,7 @@ namespace SalesManagement.Infrastructure.Repositories.CustomerVisit
                 WHERE cv.IsDeleted = 0
                 AND (@SearchTerm IS NULL OR @SearchTerm = ''
                      OR mm.Description LIKE '%' + @SearchTerm + '%'
-                     OR mo.OfficerName LIKE '%' + @SearchTerm + '%'
+                     OR mo.EmployeeName LIKE '%' + @SearchTerm + '%'
                      OR cv.Remarks LIKE '%' + @SearchTerm + '%');";
 
             const string dataSql = @"
@@ -58,14 +58,14 @@ namespace SalesManagement.Infrastructure.Repositories.CustomerVisit
                     cv.CreatedBy, cv.CreatedDate, cv.CreatedByName, cv.CreatedIP,
                     cv.ModifiedBy, cv.ModifiedDate, cv.ModifiedByName, cv.ModifiedIP,
                     mm.Description AS VisitTypeName,
-                    mo.OfficerName AS MarketingOfficerName
+                    mo.EmployeeName AS MarketingOfficerName
                 FROM Sales.CustomerVisit cv
                 LEFT JOIN Sales.MiscMaster mm ON cv.VisitTypeId = mm.Id AND mm.IsDeleted = 0
                 LEFT JOIN Sales.MarketingOfficer mo ON cv.MarketingOfficerId = mo.Id AND mo.IsDeleted = 0
                 WHERE cv.IsDeleted = 0
                 AND (@SearchTerm IS NULL OR @SearchTerm = ''
                      OR mm.Description LIKE '%' + @SearchTerm + '%'
-                     OR mo.OfficerName LIKE '%' + @SearchTerm + '%'
+                     OR mo.EmployeeName LIKE '%' + @SearchTerm + '%'
                      OR cv.Remarks LIKE '%' + @SearchTerm + '%')
                 ORDER BY cv.VisitDateTime DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;";
@@ -111,7 +111,7 @@ namespace SalesManagement.Infrastructure.Repositories.CustomerVisit
                     cv.CreatedBy, cv.CreatedDate, cv.CreatedByName, cv.CreatedIP,
                     cv.ModifiedBy, cv.ModifiedDate, cv.ModifiedByName, cv.ModifiedIP,
                     mm.Description AS VisitTypeName,
-                    mo.OfficerName AS MarketingOfficerName
+                    mo.EmployeeName AS MarketingOfficerName
                 FROM Sales.CustomerVisit cv
                 LEFT JOIN Sales.MiscMaster mm ON cv.VisitTypeId = mm.Id AND mm.IsDeleted = 0
                 LEFT JOIN Sales.MarketingOfficer mo ON cv.MarketingOfficerId = mo.Id AND mo.IsDeleted = 0
