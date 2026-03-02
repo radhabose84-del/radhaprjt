@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.Extensions.Logging;
 using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Application.Common.Interfaces.ICustomerVisit;
+using SalesManagement.Domain.Common;
 using SalesManagement.Domain.Events;
 
 namespace SalesManagement.Application.CustomerVisit.Commands.UpdateCustomerVisit
@@ -107,7 +108,7 @@ namespace SalesManagement.Application.CustomerVisit.Commands.UpdateCustomerVisit
             return Path.Combine(
                 Directory.GetCurrentDirectory(),
                 "Resources",
-                "CustomerVisit",
+                MiscEnumEntity.CustomerVisit,
                 companyName,
                 unitName);
         }
