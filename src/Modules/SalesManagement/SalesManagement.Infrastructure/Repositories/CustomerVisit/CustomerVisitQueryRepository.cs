@@ -223,17 +223,17 @@ namespace SalesManagement.Infrastructure.Repositories.CustomerVisit
             return items.Any();
         }
 
-/*************  ✨ Windsurf Command ⭐  *************/
-/// <summary>
-/// Gets the base path for the CustomerVisit image.
-/// </summary>
-/// <param name="MiscTypeCode">The MiscTypeCode of the CustomerVisit image (CustomerVisitPath).</param>
-/// <returns>The base path for the CustomerVisit image.</returns>
-/// <remarks>
-/// The base path is in the format { basePath.TrimEnd('/',\\')}/{companyName}/{unitName}.
-/// It will return an empty string if the base path is null or empty.
-/// </remarks>
-/*******  5289d0bc-4159-4a38-a8d9-1da623733b8a  *******/
+        public async Task<string> GetImageFolderAsync()
+        {
+            const string sql = @"
+                SELECT Description
+                FROM Sales.MiscTypeMaster
+                WHERE MiscTypeCode = @MiscTypeCode AND IsDeleted = 0;";
+
+            var result = await _dbConnection.QueryFirstOrDefaultAsync<string>(
+                sql, new { MiscTypeCode = MiscEnumEntity.CustomerVisitPath });
+            return result ?? "CustomerVisit";
+        }
 
         private async Task<string> GetImageBasePathAsync()
         {
