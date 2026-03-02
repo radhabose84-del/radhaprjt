@@ -1,9 +1,7 @@
 using AutoMapper;
 using Contracts.Common;
-using Contracts.Interfaces.Lookups.Users;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Application.Common.Interfaces.ICustomerVisit;
 using SalesManagement.Domain.Common;
 using SalesManagement.Domain.Events;
@@ -16,9 +14,6 @@ namespace SalesManagement.Application.CustomerVisit.Commands.UpdateCustomerVisit
         private readonly ICustomerVisitQueryRepository _queryRepository;
         private readonly IMediator _mediator;
         private readonly IMapper _mapper;
-        private readonly IIPAddressService _ipAddressService;
-        private readonly ICompanyLookup _companyLookup;
-        private readonly IUnitLookup _unitLookup;
         private readonly ILogger<UpdateCustomerVisitCommandHandler> _logger;
 
         public UpdateCustomerVisitCommandHandler(
@@ -26,18 +21,12 @@ namespace SalesManagement.Application.CustomerVisit.Commands.UpdateCustomerVisit
             ICustomerVisitQueryRepository queryRepository,
             IMediator mediator,
             IMapper mapper,
-            IIPAddressService ipAddressService,
-            ICompanyLookup companyLookup,
-            IUnitLookup unitLookup,
             ILogger<UpdateCustomerVisitCommandHandler> logger)
         {
             _commandRepository = commandRepository;
             _queryRepository = queryRepository;
             _mediator = mediator;
             _mapper = mapper;
-            _ipAddressService = ipAddressService;
-            _companyLookup = companyLookup;
-            _unitLookup = unitLookup;
             _logger = logger;
         }
 
@@ -47,7 +36,7 @@ namespace SalesManagement.Application.CustomerVisit.Commands.UpdateCustomerVisit
             string? uploadPath = null;
             if (!string.IsNullOrWhiteSpace(request.ImageName))
             {
-                uploadPath = await BuildImageUploadPathAsync();
+                uploadPath = BuildImageUploadPath();
                 var filePath = Path.Combine(uploadPath, request.ImageName);
 
                 if (!File.Exists(filePath))
@@ -65,12 +54,12 @@ namespace SalesManagement.Application.CustomerVisit.Commands.UpdateCustomerVisit
 
             var result = await _commandRepository.UpdateAsync(entity);
 
-            // Post-save: rename image to {companyName}-{unitName}-{customerVisitId}.ext
+            // Post-save: rename image to {marketingOfficerName}-{customerVisitId}.ext
             if (!string.IsNullOrWhiteSpace(request.ImageName) && uploadPath != null)
             {
                 try
                 {
-                    await RenameCustomerVisitImageAsync(request.Id, request.ImageName!, uploadPath, cancellationToken);
+                    await RenameCustomerVisitImageAsync(request.Id, request.MarketingOfficerId, request.ImageName!, uploadPath, cancellationToken);
                 }
                 catch (Exception ex)
                 {
@@ -95,38 +84,24 @@ namespace SalesManagement.Application.CustomerVisit.Commands.UpdateCustomerVisit
             };
         }
 
-        private async Task<string> BuildImageUploadPathAsync()
+        private static string BuildImageUploadPath()
         {
-            //var baseDirectory = await _queryRepository.GetImageFolderAsync();
-
-            var companies = await _companyLookup.GetAllCompanyAsync();
-            var units = await _unitLookup.GetAllUnitAsync();
-
-            var companyName = companies.FirstOrDefault(c => c.CompanyId == _ipAddressService.GetCompanyId())?.CompanyName ?? string.Empty;
-            var unitName = units.FirstOrDefault(u => u.UnitId == _ipAddressService.GetUnitId())?.UnitName ?? string.Empty;
-
             return Path.Combine(
                 Directory.GetCurrentDirectory(),
                 "Resources",
-                MiscEnumEntity.CustomerVisit,
-                companyName,
-                unitName);
+                MiscEnumEntity.CustomerVisit);
         }
 
-        private async Task RenameCustomerVisitImageAsync(int customerVisitId, string originalFileName, string uploadPath, CancellationToken ct)
+        private async Task RenameCustomerVisitImageAsync(int customerVisitId, int marketingOfficerId, string originalFileName, string uploadPath, CancellationToken ct)
         {
             var filePath = Path.Combine(uploadPath, originalFileName);
             if (!File.Exists(filePath))
                 return;
 
-            var companies = await _companyLookup.GetAllCompanyAsync();
-            var units = await _unitLookup.GetAllUnitAsync();
-
-            var companyName = companies.FirstOrDefault(c => c.CompanyId == _ipAddressService.GetCompanyId())?.CompanyName ?? "comp";
-            var unitName = units.FirstOrDefault(u => u.UnitId == _ipAddressService.GetUnitId())?.UnitName ?? "unit";
+            var moName = await _queryRepository.GetMarketingOfficerNameAsync(marketingOfficerId) ?? "officer";
 
             var extension = Path.GetExtension(filePath);
-            var newFileName = $"{companyName}-{unitName}-{customerVisitId}{extension}";
+            var newFileName = $"{moName}-{customerVisitId}{extension}";
             var newPath = Path.Combine(uploadPath, newFileName);
 
             File.Move(filePath, newPath, overwrite: true);
