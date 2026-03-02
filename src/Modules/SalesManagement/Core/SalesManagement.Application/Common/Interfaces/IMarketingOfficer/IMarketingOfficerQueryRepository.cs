@@ -12,5 +12,6 @@ namespace SalesManagement.Application.Common.Interfaces.IMarketingOfficer
         Task<bool> SalesOfficeExistsAsync(int salesOfficeId);
         Task<bool> SalesGroupExistsAsync(int salesGroupId);
         Task<bool> SalesGroupsAllExistAsync(List<int> salesGroupIds);
+        Task<List<EmployeeLookupDto>> GetEmployeeLookupAsync(string oldUnitId, string? empNo);
     }
 }

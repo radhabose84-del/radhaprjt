@@ -6,6 +6,7 @@ using SalesManagement.Application.MarketingOfficer.Commands.DeleteMarketingOffic
 using SalesManagement.Application.MarketingOfficer.Commands.UpdateMarketingOfficer;
 using SalesManagement.Application.MarketingOfficer.Queries.GetAllMarketingOfficer;
 using SalesManagement.Application.MarketingOfficer.Queries.GetMarketingOfficerAutoComplete;
+using SalesManagement.Application.MarketingOfficer.Queries.GetEmployeeLookup;
 using SalesManagement.Application.MarketingOfficer.Queries.GetMarketingOfficerById;
 
 namespace SalesManagement.Presentation.Controllers
@@ -54,6 +55,20 @@ namespace SalesManagement.Presentation.Controllers
         public async Task<IActionResult> GetMarketingOfficerAutoCompleteAsync([FromQuery] string? term = null)
         {
             var result = await Mediator.Send(new GetMarketingOfficerAutoCompleteQuery(term ?? string.Empty));
+
+            return Ok(new { StatusCode = StatusCodes.Status200OK, data = result });
+        }
+
+        [HttpGet("employee-lookup")]
+        public async Task<IActionResult> GetEmployeeLookupAsync([FromQuery] string? empNo = null)
+        {
+            var oldUnitId = User.FindFirst("OldUnitId")?.Value;
+
+            var result = await Mediator.Send(new GetEmployeeLookupQuery
+            {
+                OldUnitId = oldUnitId,
+                EmpNo = empNo
+            });
 
             return Ok(new { StatusCode = StatusCodes.Status200OK, data = result });
         }
