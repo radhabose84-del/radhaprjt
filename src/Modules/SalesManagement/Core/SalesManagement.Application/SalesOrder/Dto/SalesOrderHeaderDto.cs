@@ -6,12 +6,16 @@ namespace SalesManagement.Application.SalesOrder.Dto
         public string? SalesOrderNo { get; set; }
         public DateOnly OrderDate { get; set; }
 
+        // Quotation Reference
+        public int? SalesQuotationHeaderId { get; set; }
+
         // Customer & Unit Details
         public int SalesGroupId { get; set; }
         public string? SalesGroupName { get; set; }
         public int? SalesSegmentId { get; set; }
         public string? SegmentName { get; set; }
         public int EnquiryType { get; set; }
+        public string? EnquiryTypeName { get; set; }
         public int UnitId { get; set; }
         public string? UnitName { get; set; }
         public int PartyId { get; set; }

@@ -7,6 +7,5 @@ namespace SalesManagement.Application.SalesOrder.Commands.UploadSalesOrderDocume
     public class UploadSalesOrderDocumentCommand : IRequest<SalesOrderDocumentDto>
     {
         public IFormFile? File { get; set; }
-        public string? DocumentType { get; set; }
     }
 }

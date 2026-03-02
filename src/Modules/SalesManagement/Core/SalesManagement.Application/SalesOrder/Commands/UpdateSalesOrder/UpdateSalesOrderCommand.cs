@@ -9,6 +9,9 @@ namespace SalesManagement.Application.SalesOrder.Commands.UpdateSalesOrder
         public int Id { get; set; }
         public int IsActive { get; set; }
 
+        // Quotation Reference (optional)
+        public int? SalesQuotationHeaderId { get; set; }
+
         // Customer & Unit Details
         public int SalesGroupId { get; set; }
         public int? SalesSegmentId { get; set; }

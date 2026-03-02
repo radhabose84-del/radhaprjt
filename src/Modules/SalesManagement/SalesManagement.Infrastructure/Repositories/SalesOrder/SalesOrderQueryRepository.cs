@@ -54,11 +54,14 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 WHERE h.IsDeleted = 0 {searchFilter};
 
                 SELECT h.Id, h.SalesOrderNo, h.OrderDate,
+                    h.SalesQuotationHeaderId,
                     h.SalesGroupId,
                     sg.SalesGroupName AS SalesGroupName,
                     h.SalesSegmentId,
                     ss.SegmentName AS SegmentName,
-                    h.EnquiryType, h.UnitId, h.PartyId,
+                    h.EnquiryType,
+                    et.Description AS EnquiryTypeName,
+                    h.UnitId, h.PartyId,
                     h.DiscountPlanId,
                     dp.Description AS DiscountPlanName,
                     h.PaymentTermsId,
@@ -80,6 +83,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 FROM Sales.SalesOrderHeader h
                 LEFT JOIN Sales.SalesGroup sg ON h.SalesGroupId = sg.Id AND sg.IsDeleted = 0
                 LEFT JOIN Sales.SalesSegment ss ON h.SalesSegmentId = ss.Id AND ss.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster et ON h.EnquiryType = et.Id AND et.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster dp ON h.DiscountPlanId = dp.Id AND dp.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster pt ON h.PaymentTypeId = pt.Id AND pt.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster ft ON h.FreightTypeId = ft.Id AND ft.IsDeleted = 0
@@ -140,11 +144,14 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
         {
             const string headerSql = @"
                 SELECT h.Id, h.SalesOrderNo, h.OrderDate,
+                    h.SalesQuotationHeaderId,
                     h.SalesGroupId,
                     sg.SalesGroupName AS SalesGroupName,
                     h.SalesSegmentId,
                     ss.SegmentName AS SegmentName,
-                    h.EnquiryType, h.UnitId, h.PartyId,
+                    h.EnquiryType,
+                    et.Description AS EnquiryTypeName,
+                    h.UnitId, h.PartyId,
                     h.DiscountPlanId,
                     dp.Description AS DiscountPlanName,
                     h.PaymentTermsId,
@@ -166,6 +173,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 FROM Sales.SalesOrderHeader h
                 LEFT JOIN Sales.SalesGroup sg ON h.SalesGroupId = sg.Id AND sg.IsDeleted = 0
                 LEFT JOIN Sales.SalesSegment ss ON h.SalesSegmentId = ss.Id AND ss.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster et ON h.EnquiryType = et.Id AND et.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster dp ON h.DiscountPlanId = dp.Id AND dp.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster pt ON h.PaymentTypeId = pt.Id AND pt.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster ft ON h.FreightTypeId = ft.Id AND ft.IsDeleted = 0
@@ -329,6 +337,17 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
         {
             var uomList = await _uomLookup.GetByIdsAsync(new[] { uomId });
             return uomList.Any();
+        }
+
+        public async Task<bool> SalesQuotationHeaderExistsAsync(int id)
+        {
+            const string sql = @"
+                SELECT COUNT(1)
+                FROM Sales.SalesQuotationHeader
+                WHERE Id = @Id AND IsDeleted = 0";
+
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = id });
+            return count > 0;
         }
     }
 }

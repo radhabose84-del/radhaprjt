@@ -45,9 +45,14 @@ namespace SalesManagement.Domain.Entities
         public decimal TotalTCS { get; set; }
         public decimal FinalAmount { get; set; }
 
+        // Quotation Reference (nullable - same-module FK)
+        public int? SalesQuotationHeaderId { get; set; }
+
         // Navigation Properties (Same-Module FKs only)
+        public SalesQuotationHeader? SalesQuotation { get; set; }
         public SalesGroup? SalesGroup { get; set; }
         public SalesSegment? SalesSegment { get; set; }
+        public MiscMaster? EnquiryTypeMisc { get; set; }
         public MiscMaster? DiscountPlan { get; set; }
         public MiscMaster? PaymentType { get; set; }
         public MiscMaster? FreightType { get; set; }

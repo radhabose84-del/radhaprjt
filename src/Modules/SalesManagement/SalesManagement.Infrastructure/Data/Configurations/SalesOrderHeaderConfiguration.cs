@@ -205,6 +205,12 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             builder.Property(t => t.ModifiedByName).HasColumnName("ModifiedByName").HasColumnType("varchar(100)");
             builder.Property(t => t.ModifiedIP).HasColumnName("ModifiedIP").HasColumnType("varchar(50)");
 
+            // Quotation Reference
+            builder.Property(t => t.SalesQuotationHeaderId)
+                .HasColumnName("SalesQuotationHeaderId")
+                .HasColumnType("int")
+                .IsRequired(false);
+
             // Same-module FK constraints
             builder.HasOne(t => t.SalesGroup)
                 .WithMany(g => g.SalesOrderHeaders)
@@ -236,6 +242,16 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasForeignKey(t => t.CountListId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            builder.HasOne(t => t.EnquiryTypeMisc)
+                .WithMany(m => m.SalesOrderHeadersAsEnquiryType)
+                .HasForeignKey(t => t.EnquiryType)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasOne(t => t.SalesQuotation)
+                .WithMany(q => q.SalesOrderHeaders)
+                .HasForeignKey(t => t.SalesQuotationHeaderId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             // Child collection — reverse navigation (Header → Details)
             builder.HasMany(t => t.SalesOrderDetails)
                 .WithOne(d => d.SalesOrderHeader)
@@ -247,6 +263,7 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             builder.HasIndex(t => t.PartyId);
             builder.HasIndex(t => t.SalesGroupId);
             builder.HasIndex(t => t.OrderDate);
+            builder.HasIndex(t => t.SalesQuotationHeaderId);
         }
     }
 }
