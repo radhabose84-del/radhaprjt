@@ -12,6 +12,7 @@ namespace SalesManagement.Application.Common.Interfaces.ICustomerVisit
         Task<bool> VisitTypeExistsAsync(int visitTypeId);
         Task<bool> MarketingOfficerExistsAsync(int marketingOfficerId);
         Task<bool> ItemExistsAsync(int itemId);
+        Task<string?> GetMarketingOfficerNameAsync(int marketingOfficerId);
         Task<string> GetImageFolderAsync();
     }
 }

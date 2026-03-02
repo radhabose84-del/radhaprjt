@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SalesManagement.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using SalesManagement.Infrastructure.Data;
 namespace SalesManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260302105642_PackTypeMaster")]
+    partial class PackTypeMaster
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1117,7 +1120,7 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     b.Property<decimal>("GrossWeight")
                         .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,2)")
+                        .HasColumnType("decimal(18,6)")
                         .HasColumnName("GrossWeight");
 
                     b.Property<bool>("IsActive")
@@ -1146,7 +1149,7 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     b.Property<decimal>("NetWeight")
                         .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,2)")
+                        .HasColumnType("decimal(18,6)")
                         .HasColumnName("NetWeight");
 
                     b.Property<string>("PackTypeCode")
@@ -1167,7 +1170,7 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     b.Property<decimal>("TareWeight")
                         .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,2)")
+                        .HasColumnType("decimal(18,6)")
                         .HasColumnName("TareWeight");
 
                     b.HasKey("Id");
@@ -1610,7 +1613,7 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     b.Property<decimal?>("RequirementQty")
                         .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("decimal(18,6)");
 
                     b.HasKey("Id");
 
@@ -2159,12 +2162,12 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     b.Property<decimal>("Discount")
                         .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,2)")
+                        .HasColumnType("decimal(18,6)")
                         .HasColumnName("Discount");
 
                     b.Property<decimal>("ExMillRate")
                         .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,4)")
+                        .HasColumnType("decimal(18,6)")
                         .HasColumnName("ExMillRate");
 
                     b.Property<int>("HSNId")
@@ -2177,12 +2180,12 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     b.Property<decimal>("NetRate")
                         .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,4)")
+                        .HasColumnType("decimal(18,6)")
                         .HasColumnName("NetRate");
 
                     b.Property<decimal>("Quantity")
                         .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,2)")
+                        .HasColumnType("decimal(18,6)")
                         .HasColumnName("Quantity");
 
                     b.Property<int>("SalesQuotationHeaderId")
@@ -2191,17 +2194,17 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     b.Property<decimal>("TaxAmount")
                         .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,2)")
+                        .HasColumnType("decimal(18,6)")
                         .HasColumnName("TaxAmount");
 
                     b.Property<decimal>("TaxPercentage")
                         .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,2)")
+                        .HasColumnType("decimal(18,6)")
                         .HasColumnName("TaxPercentage");
 
                     b.Property<decimal>("TotalAmount")
                         .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,2)")
+                        .HasColumnType("decimal(18,6)")
                         .HasColumnName("TotalAmount");
 
                     b.HasKey("Id");
@@ -2254,12 +2257,12 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     b.Property<decimal>("FreightCharges")
                         .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,2)")
+                        .HasColumnType("decimal(18,6)")
                         .HasColumnName("FreightCharges");
 
                     b.Property<decimal>("GrandTotal")
                         .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,2)")
+                        .HasColumnType("decimal(18,6)")
                         .HasColumnName("GrandTotal");
 
                     b.Property<bool>("IsActive")
@@ -2288,12 +2291,12 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     b.Property<decimal>("NetTaxableAmount")
                         .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,2)")
+                        .HasColumnType("decimal(18,6)")
                         .HasColumnName("NetTaxableAmount");
 
                     b.Property<decimal>("OtherCharges")
                         .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,2)")
+                        .HasColumnType("decimal(18,6)")
                         .HasColumnName("OtherCharges");
 
                     b.Property<int>("PaymentTermId")
@@ -2314,17 +2317,17 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     b.Property<decimal>("TotalBasicAmount")
                         .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,2)")
+                        .HasColumnType("decimal(18,6)")
                         .HasColumnName("TotalBasicAmount");
 
                     b.Property<decimal>("TotalDiscount")
                         .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,2)")
+                        .HasColumnType("decimal(18,6)")
                         .HasColumnName("TotalDiscount");
 
                     b.Property<decimal>("TotalTax")
                         .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,2)")
+                        .HasColumnType("decimal(18,6)")
                         .HasColumnName("TotalTax");
 
                     b.Property<DateOnly>("ValidityDate")

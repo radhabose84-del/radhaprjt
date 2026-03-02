@@ -70,37 +70,37 @@ namespace SalesManagement.Infrastructure.Data.Configurations
 
             builder.Property(t => t.FreightCharges)
                 .HasColumnName("FreightCharges")
-                .HasColumnType("decimal(18,6)")
+                .HasColumnType("decimal(18,2)")
                 .IsRequired();
 
             builder.Property(t => t.OtherCharges)
                 .HasColumnName("OtherCharges")
-                .HasColumnType("decimal(18,6)")
+                .HasColumnType("decimal(18,2)")
                 .IsRequired();
 
             builder.Property(t => t.TotalBasicAmount)
                 .HasColumnName("TotalBasicAmount")
-                .HasColumnType("decimal(18,6)")
+                .HasColumnType("decimal(18,2)")
                 .IsRequired();
 
             builder.Property(t => t.TotalDiscount)
                 .HasColumnName("TotalDiscount")
-                .HasColumnType("decimal(18,6)")
+                .HasColumnType("decimal(18,2)")
                 .IsRequired();
 
             builder.Property(t => t.NetTaxableAmount)
                 .HasColumnName("NetTaxableAmount")
-                .HasColumnType("decimal(18,6)")
+                .HasColumnType("decimal(18,2)")
                 .IsRequired();
 
             builder.Property(t => t.TotalTax)
                 .HasColumnName("TotalTax")
-                .HasColumnType("decimal(18,6)")
+                .HasColumnType("decimal(18,2)")
                 .IsRequired();
 
             builder.Property(t => t.GrandTotal)
                 .HasColumnName("GrandTotal")
-                .HasColumnType("decimal(18,6)")
+                .HasColumnType("decimal(18,2)")
                 .IsRequired();
 
             builder.Property(b => b.IsActive)

@@ -33,27 +33,27 @@ namespace SalesManagement.Infrastructure.Data.Configurations
 
             builder.Property(t => t.Quantity)
                 .HasColumnName("Quantity")
-                .HasColumnType("decimal(18,6)")
+                .HasColumnType("decimal(18,2)")
                 .IsRequired();
 
             builder.Property(t => t.ExMillRate)
                 .HasColumnName("ExMillRate")
-                .HasColumnType("decimal(18,6)")
+                .HasColumnType("decimal(18,4)")
                 .IsRequired();
 
             builder.Property(t => t.Discount)
                 .HasColumnName("Discount")
-                .HasColumnType("decimal(18,6)")
+                .HasColumnType("decimal(18,2)")
                 .IsRequired();
 
             builder.Property(t => t.NetRate)
                 .HasColumnName("NetRate")
-                .HasColumnType("decimal(18,6)")
+                .HasColumnType("decimal(18,4)")
                 .IsRequired();
 
             builder.Property(t => t.TotalAmount)
                 .HasColumnName("TotalAmount")
-                .HasColumnType("decimal(18,6)")
+                .HasColumnType("decimal(18,2)")
                 .IsRequired();
 
             builder.Property(t => t.HSNId)
@@ -63,12 +63,12 @@ namespace SalesManagement.Infrastructure.Data.Configurations
 
             builder.Property(t => t.TaxPercentage)
                 .HasColumnName("TaxPercentage")
-                .HasColumnType("decimal(18,6)")
+                .HasColumnType("decimal(18,2)")
                 .IsRequired();
 
             builder.Property(t => t.TaxAmount)
                 .HasColumnName("TaxAmount")
-                .HasColumnType("decimal(18,6)")
+                .HasColumnType("decimal(18,2)")
                 .IsRequired();
 
             // Indexes

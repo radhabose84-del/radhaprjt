@@ -49,6 +49,7 @@ namespace SalesManagement.Infrastructure.Data
         public DbSet<SalesOrderHeader> SalesOrderHeader { get; set; }
         public DbSet<SalesOrderDetail> SalesOrderDetail { get; set; }
         public DbSet<LotMaster> LotMaster { get; set; }
+        public DbSet<PackType> PackType { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -79,6 +80,7 @@ namespace SalesManagement.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new SalesOrderHeaderConfiguration());
             modelBuilder.ApplyConfiguration(new SalesOrderDetailConfiguration());
             modelBuilder.ApplyConfiguration(new LotMasterConfiguration());
+            modelBuilder.ApplyConfiguration(new PackTypeConfiguration());
 
 
             // Global convention: set explicit precision/scale for all decimal properties
