@@ -1,74 +1,66 @@
-// using System;
-// using System.Collections.Generic;
-// using System.ComponentModel.DataAnnotations;
-// using System.Linq;
-// using System.Threading.Tasks;
-// using AutoMapper;
-// using WarehouseManagement.Application.Common.Interfaces.IRackMaster;
-// using WarehouseManagement.Domain.Events;
-// using MediatR;
+using System.ComponentModel.DataAnnotations;
+using AutoMapper;
+using WarehouseManagement.Application.Common.Interfaces.IRackMaster;
+using WarehouseManagement.Domain.Events;
+using MediatR;
 
-// namespace WarehouseManagement.Application.RackMaster.Command.UpdateRackMaster
-// {
-//     public class UpdateRackMasterCommandHandler : IRequestHandler<UpdateRackMasterCommand, int>
-//     {
+namespace WarehouseManagement.Application.RackMaster.Command.UpdateRackMaster
+{
+    public class UpdateRackMasterCommandHandler : IRequestHandler<UpdateRackMasterCommand, int>
+    {
+        private readonly IRackMasterCommandRepository _rackMasterCommandRepository;
+        private readonly IRackCodeGenerator _rackCodeGenerator;
+        private readonly IMediator _mediator;
+        private readonly IMapper _mapper;
 
-//         private readonly IRackMasterQueryRepository _rackMasterQueryRepository;
+        public UpdateRackMasterCommandHandler(
+            IRackMasterCommandRepository rackMasterCommandRepository,
+            IMapper mapper,
+            IMediator mediator,
+            IRackCodeGenerator rackCodeGenerator)
+        {
+            _rackMasterCommandRepository = rackMasterCommandRepository;
+            _mapper = mapper;
+            _mediator = mediator;
+            _rackCodeGenerator = rackCodeGenerator;
+        }
 
-//         private readonly IRackMasterCommandRepository _rackMasterCommandRepository;
-//         private readonly IRackCodeGenerator _rackCodeGenerator; // your generator that reads misc codes
-//         private readonly IMediator _mediator;
-//         private readonly IMapper _mapper;
+        public async Task<int> Handle(UpdateRackMasterCommand request, CancellationToken cancellationToken)
+        {
+            var entity = await _rackMasterCommandRepository.GetByIdAsync(request.Id);
+            if (entity is null)
+            {
+                throw new ValidationException($"RackMaster with Id {request.Id} not found.");
+            }
 
-//         public UpdateRackMasterCommandHandler(IRackMasterQueryRepository rackMasterQueryRepository, IRackMasterCommandRepository rackMasterCommandRepository, IMapper mapper, IMediator mediator, IRackCodeGenerator rackCodeGenerator)
-//         {
-//             _rackMasterQueryRepository = rackMasterQueryRepository;
-//             _rackMasterCommandRepository = rackMasterCommandRepository;
-//             _mapper = mapper;
-//             _mediator = mediator;
-//             _rackCodeGenerator = rackCodeGenerator;
-            
-            
-//         }
+            bool codeDriversChanged =
+                entity.FloorId != request.FloorId ||
+                entity.AisleId != request.AisleId ||
+                entity.RackLevelId != request.RackLevelId;
 
-//         public async Task<int> Handle(UpdateRackMasterCommand request, CancellationToken cancellationToken)
-//         {
-               
-//             var entity = await _rackMasterCommandRepository.GetByIdAsync(request.Id);
-//             if (entity is null)
-//                 throw new ValidationException($"RackMaster with Id {request.Id} not found.");
+            _mapper.Map(request, entity);
 
-            
-//             bool codeDriversChanged =
-//                 entity.FloorId     != request.FloorId ||
-//                 entity.AisleId     != request.AisleId ||
-//                 entity.RackLevelId != request.RackLevelId;
+            if (codeDriversChanged &&
+                entity.FloorId.HasValue &&
+                entity.AisleId.HasValue &&
+                entity.RackLevelId.HasValue)
+            {
+                entity.RackCode = await _rackCodeGenerator.GenerateAsync(
+                    entity.WarehouseId, entity.FloorId, entity.AisleId, entity.RackLevelId);
+            }
 
-         
-//             _mapper.Map(request, entity);
+            entity.ModifiedDate = DateTimeOffset.UtcNow;
 
-          
-//             if (codeDriversChanged &&
-//                 entity.FloorId.HasValue &&
-//                 entity.AisleId.HasValue &&
-//                 entity.RackLevelId.HasValue)
-//             {
-//                 entity.RackCode = await _rackCodeGenerator.GenerateAsync(
-//                     entity.WarehouseId, entity.FloorId, entity.AisleId, entity.RackLevelId);
-//             }
+            await _rackMasterCommandRepository.UpdateAsync(entity);
 
-//             entity.ModifiedDate = DateTimeOffset.UtcNow;
+            await _mediator.Publish(new AuditLogsDomainEvent(
+                actionDetail: "Update",
+                actionCode: "RACK_UPDATE",
+                actionName: entity.RackCode ?? entity.RackName ?? string.Empty,
+                details: $"RackMaster '{entity.RackCode ?? entity.RackName}' updated.",
+                module: "RackMaster"), cancellationToken);
 
-//             await _rackMasterCommandRepository.UpdateAsync(entity);
-
-//             await _mediator.Publish(new AuditLogsDomainEvent(
-//                 actionDetail: "Update",
-//                 actionCode:   "RACK_UPDATE",
-//                 actionName:   entity.RackCode ?? entity.RackName ?? string.Empty,
-//                 details:      $"RackMaster '{entity.RackCode ?? entity.RackName}' updated.",
-//                 module:       "RackMaster"), cancellationToken);
-
-//             return entity.Id;
-//         }
-//     }
-// }
+            return entity.Id;
+        }
+    }
+}

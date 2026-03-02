@@ -80,9 +80,9 @@ namespace FAM.Presentation.Validation.AssetCategories
                     //     break;
                      case "AlreadyExists":
                         RuleFor(x => x.CategoryName)
-                       .MustAsync(async (CategoryName, cancellation) => !await _iAssetCategoriesCommandRepository.ExistsByNameAsync(CategoryName ?? string.Empty))
+                       .MustAsync(async (CategoryName, cancellation) => !await _iAssetCategoriesCommandRepository.ExistsByNameAsync(CategoryName ?? string.Empty, null))
                        .WithName("CategoryName")
-                       .WithMessage($"{rule.Error}");
+                       .WithMessage("Asset Category name already exists.");
                         break;
 
                     default:

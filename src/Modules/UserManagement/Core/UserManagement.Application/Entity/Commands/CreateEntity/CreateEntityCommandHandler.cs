@@ -7,6 +7,7 @@ using UserManagement.Application.Common.Interfaces.IEntity;
 using Microsoft.Extensions.Logging;
 using UserManagement.Domain.Events;
 using FluentValidation;
+using UserManagement.Domain.Enums.Common;
 
 
 
@@ -34,11 +35,15 @@ namespace UserManagement.Application.Entity.Commands.CreateEntity
 
   public async Task<int> Handle(CreateEntityCommand request, CancellationToken cancellationToken)
 {
-         // Check if Entity Name already exists
-        var exists = await _IentityRepository.ExistsByCodeAsync(request.EntityName);
-            if (exists)
+        var existingEntity = await _IentityRepository.GetByNameAsync(request.EntityName);
+            if (existingEntity is not null)
             {
                  _logger.LogWarning($"Entity Name {request.EntityName} already exists.");
+                 if (existingEntity.IsActive == Enums.Status.Inactive)
+                 {
+                     throw new ValidationException("This record already exists in inactive status. Please activate the existing record instead of creating a new one.");
+                 }
+
                  throw new ValidationException("Entity Name already exists.");
                
             }

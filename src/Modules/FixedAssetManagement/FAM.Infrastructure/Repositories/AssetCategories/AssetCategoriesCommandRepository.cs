@@ -16,11 +16,19 @@ namespace FAM.Infrastructure.Repositories.AssetCategories
 
         public async Task<(bool IsNameDuplicate, bool IsSortOrderDuplicate)> CheckForDuplicatesAsync(string name, int sortOrder, int excludeId)
         {
+            var normalizedName = (name ?? string.Empty).Trim().ToUpper();
+
             var isNameDuplicate = await _applicationDbContext.AssetCategories
-            .AnyAsync(ag => ag.CategoryName == name && ag.Id != excludeId);
+            .AnyAsync(ag =>
+                ag.Id != excludeId &&
+                ag.IsDeleted == BaseEntity.IsDelete.NotDeleted &&
+                ((ag.CategoryName ?? string.Empty).Trim().ToUpper() == normalizedName));
 
         var isSortOrderDuplicate = await _applicationDbContext.AssetCategories
-            .AnyAsync(ag => ag.SortOrder == sortOrder && ag.Id != excludeId);
+            .AnyAsync(ag =>
+                ag.SortOrder == sortOrder &&
+                ag.Id != excludeId &&
+                ag.IsDeleted == BaseEntity.IsDelete.NotDeleted);
 
         return (isNameDuplicate, isSortOrderDuplicate);
         }
@@ -64,9 +72,25 @@ namespace FAM.Infrastructure.Repositories.AssetCategories
             return await _applicationDbContext.AssetCategories.AnyAsync(c => c.Code == code);
         }
 
-        public async Task<bool> ExistsByNameAsync(string categoryName)
+        public async Task<bool> ExistsByNameAsync(string categoryName, int? excludeId)
         {
-           return await _applicationDbContext.AssetCategories.AnyAsync(c => c.CategoryName == categoryName && c.IsDeleted == BaseEntity.IsDelete.NotDeleted && c.IsActive == BaseEntity.Status.Active);
+            categoryName = (categoryName ?? string.Empty).Trim();
+
+            if (string.IsNullOrWhiteSpace(categoryName))
+            {
+                return false;
+            }
+
+            var normalizedName = categoryName.ToUpper();
+            var query = _applicationDbContext.AssetCategories
+                .Where(c => c.IsDeleted == BaseEntity.IsDelete.NotDeleted);
+
+            if (excludeId.HasValue)
+            {
+                query = query.Where(c => c.Id != excludeId.Value);
+            }
+
+            return await query.AnyAsync(c => ((c.CategoryName ?? string.Empty).Trim().ToUpper()) == normalizedName);
         }
 
         public async Task<int> GetMaxSortOrderAsync()
