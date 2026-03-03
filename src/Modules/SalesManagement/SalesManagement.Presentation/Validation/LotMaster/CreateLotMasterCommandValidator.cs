@@ -55,13 +55,6 @@ namespace SalesManagement.Presentation.Validation.LotMaster
                             .WithMessage($"{nameof(CreateLotMasterCommand.StartDate)} {rule.Error}");
                         break;
 
-                    case "Alphanumeric":
-                        RuleFor(x => x.LotCode)
-                            .Matches(rule.Pattern)
-                            .WithMessage($"{nameof(CreateLotMasterCommand.LotCode)} {rule.Error}")
-                            .When(x => !string.IsNullOrWhiteSpace(x.LotCode));
-                        break;
-
                     case "MaxLength":
                         RuleFor(x => x.LotCode)
                             .MaximumLength(maxLengthCode)
