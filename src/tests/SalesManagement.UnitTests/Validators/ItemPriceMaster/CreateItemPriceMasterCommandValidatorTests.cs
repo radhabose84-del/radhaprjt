@@ -2,7 +2,6 @@ using FluentValidation.TestHelper;
 using SalesManagement.Application.Common.Interfaces.IItemPriceMaster;
 using SalesManagement.Presentation.Validation.ItemPriceMaster;
 using SalesManagement.UnitTests.TestData;
-using SalesManagement.UnitTests.TestHelpers;
 
 namespace SalesManagement.UnitTests.Validators.ItemPriceMaster
 {
@@ -10,6 +9,7 @@ namespace SalesManagement.UnitTests.Validators.ItemPriceMaster
     /// FluentValidation runs ALL rules regardless of earlier failures.
     /// SetupAllValid() must be called as a baseline in every test to satisfy MockBehavior.Strict.
     /// Individual tests then override specific setups to trigger the desired failure.
+    /// PriceCode is auto-generated in the handler — no PriceCode validation rules exist.
     /// </summary>
     public class CreateItemPriceMasterCommandValidatorTests
     {
@@ -17,14 +17,12 @@ namespace SalesManagement.UnitTests.Validators.ItemPriceMaster
 
         private CreateItemPriceMasterCommandValidator CreateValidator()
             => new CreateItemPriceMasterCommandValidator(
-                TestMaxLengthProviderFactory.Create(),
                 _mockQueryRepo.Object);
 
         // ── Setup helpers ─────────────────────────────────────────────────────
 
         private void SetupAllValid()
         {
-            _mockQueryRepo.Setup(r => r.AlreadyExistsAsync(It.IsAny<string>(), It.IsAny<int?>())).ReturnsAsync(false);
             _mockQueryRepo.Setup(r => r.ItemExistsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>())).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.SalesSegmentExistsAsync(It.IsAny<int>())).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.PaymentTermExistsAsync(It.IsAny<int>())).ReturnsAsync(true);
@@ -46,75 +44,6 @@ namespace SalesManagement.UnitTests.Validators.ItemPriceMaster
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldNotHaveAnyValidationErrors();
-        }
-
-        // ── PriceCode Rules ───────────────────────────────────────────────────
-
-        [Theory]
-        [InlineData(null)]
-        [InlineData("")]
-        public async Task PriceCode_Empty_FailsValidation(string? code)
-        {
-            SetupAllValid();
-            var command = ItemPriceMasterBuilders.ValidCreateCommand(priceCode: code);
-
-            var result = await CreateValidator().TestValidateAsync(command);
-
-            result.ShouldHaveValidationErrorFor(x => x.PriceCode)
-                  .WithErrorMessage("PriceCode is required.");
-        }
-
-        [Fact]
-        public async Task PriceCode_TooLong_FailsValidation()
-        {
-            SetupAllValid();
-            var longCode = new string('A', 21);
-            var command = ItemPriceMasterBuilders.ValidCreateCommand(priceCode: longCode);
-
-            var result = await CreateValidator().TestValidateAsync(command);
-
-            result.ShouldHaveValidationErrorFor(x => x.PriceCode)
-                  .WithErrorMessage("PriceCode  cannot be longer than   20 characters.");
-        }
-
-        [Fact]
-        public async Task PriceCode_MaxLength20_PassesValidation()
-        {
-            SetupAllValid();
-            var maxCode = new string('A', 20);
-            var command = ItemPriceMasterBuilders.ValidCreateCommand(priceCode: maxCode);
-
-            var result = await CreateValidator().TestValidateAsync(command);
-
-            result.ShouldNotHaveValidationErrorFor(x => x.PriceCode);
-        }
-
-        [Theory]
-        [InlineData("PC 001")]
-        [InlineData("PC-001")]
-        [InlineData("PC@001")]
-        public async Task PriceCode_NonAlphanumeric_FailsValidation(string code)
-        {
-            SetupAllValid();
-            var command = ItemPriceMasterBuilders.ValidCreateCommand(priceCode: code);
-
-            var result = await CreateValidator().TestValidateAsync(command);
-
-            result.ShouldHaveValidationErrorFor(x => x.PriceCode)
-                  .WithErrorMessage("PriceCode  must be alphanumeric only.");
-        }
-
-        [Fact]
-        public async Task PriceCode_AlreadyExists_FailsValidation()
-        {
-            SetupAllValid();
-            _mockQueryRepo.Setup(r => r.AlreadyExistsAsync("PC001", It.IsAny<int?>())).ReturnsAsync(true);
-            var command = ItemPriceMasterBuilders.ValidCreateCommand(priceCode: "PC001");
-
-            var result = await CreateValidator().TestValidateAsync(command);
-
-            result.ShouldHaveValidationErrorFor(x => x.PriceCode)
-                  .WithErrorMessage("PriceCode already exists.");
         }
 
         // ── ItemId Rules ──────────────────────────────────────────────────────
