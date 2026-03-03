@@ -1,9 +1,7 @@
 using System.Data;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Party;
-using Contracts.Interfaces.Lookups.Users;
 using Dapper;
-using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Application.Common.Interfaces.ICustomerVisit;
 using SalesManagement.Application.CustomerVisit.Dto;
 using SalesManagement.Domain.Common;
@@ -15,24 +13,15 @@ namespace SalesManagement.Infrastructure.Repositories.CustomerVisit
         private readonly IDbConnection _dbConnection;
         private readonly IPartyLookup _partyLookup;
         private readonly IItemLookup _itemLookup;
-        private readonly IIPAddressService _ipAddressService;
-        private readonly ICompanyLookup _companyLookup;
-        private readonly IUnitLookup _unitLookup;
 
         public CustomerVisitQueryRepository(
             IDbConnection dbConnection,
             IPartyLookup partyLookup,
-            IItemLookup itemLookup,
-            IIPAddressService ipAddressService,
-            ICompanyLookup companyLookup,
-            IUnitLookup unitLookup)
+            IItemLookup itemLookup)
         {
             _dbConnection = dbConnection;
             _partyLookup = partyLookup;
             _itemLookup = itemLookup;
-            _ipAddressService = ipAddressService;
-            _companyLookup = companyLookup;
-            _unitLookup = unitLookup;
         }
 
         public async Task<(List<CustomerVisitDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
@@ -223,6 +212,12 @@ namespace SalesManagement.Infrastructure.Repositories.CustomerVisit
             return items.Any();
         }
 
+        public async Task<string?> GetMarketingOfficerNameAsync(int marketingOfficerId)
+        {
+            const string sql = "SELECT EmployeeName FROM Sales.MarketingOfficer WHERE Id = @Id AND IsActive = 1 AND IsDeleted = 0;";
+            return await _dbConnection.QueryFirstOrDefaultAsync<string>(sql, new { Id = marketingOfficerId });
+        }
+
         public async Task<string> GetImageFolderAsync()
         {
             const string sql = @"
@@ -248,13 +243,7 @@ namespace SalesManagement.Infrastructure.Repositories.CustomerVisit
             if (string.IsNullOrWhiteSpace(basePath))
                 return string.Empty;
 
-            var companies = await _companyLookup.GetAllCompanyAsync();
-            var units = await _unitLookup.GetAllUnitAsync();
-
-            var companyName = companies.FirstOrDefault(c => c.CompanyId == _ipAddressService.GetCompanyId())?.CompanyName ?? string.Empty;
-            var unitName = units.FirstOrDefault(u => u.UnitId == _ipAddressService.GetUnitId())?.UnitName ?? string.Empty;
-
-            return $"{basePath.TrimEnd('/', '\\')}/{companyName}/{unitName}";
+            return basePath.TrimEnd('/', '\\');
         }
     }
 }

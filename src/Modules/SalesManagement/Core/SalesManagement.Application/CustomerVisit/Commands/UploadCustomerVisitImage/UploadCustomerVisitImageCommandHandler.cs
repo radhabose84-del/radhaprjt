@@ -1,31 +1,18 @@
-using Contracts.Interfaces.Lookups.Users;
 using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Application.CustomerVisit.Dto;
+using SalesManagement.Domain.Common;
 
 namespace SalesManagement.Application.CustomerVisit.Commands.UploadCustomerVisitImage
 {
     public class UploadCustomerVisitImageCommandHandler : IRequestHandler<UploadCustomerVisitImageCommand, CustomerVisitImageDto>
     {
-        private readonly IFileUploadService _fileUploadService;
-        private readonly IIPAddressService _ipAddressService;
-        private readonly ICompanyLookup _companyLookup;
-        private readonly IUnitLookup _unitLookup;
         private readonly ILogger<UploadCustomerVisitImageCommandHandler> _logger;
 
         public UploadCustomerVisitImageCommandHandler(
-            IFileUploadService fileUploadService,
-            IIPAddressService ipAddressService,
-            ICompanyLookup companyLookup,
-            IUnitLookup unitLookup,
             ILogger<UploadCustomerVisitImageCommandHandler> logger)
         {
-            _fileUploadService = fileUploadService;
-            _ipAddressService = ipAddressService;
-            _companyLookup = companyLookup;
-            _unitLookup = unitLookup;
             _logger = logger;
         }
 
@@ -36,18 +23,8 @@ namespace SalesManagement.Application.CustomerVisit.Commands.UploadCustomerVisit
                 throw new ValidationException("File is required.");
             }
 
-            // Get company and unit context
-            var companyId = _ipAddressService.GetCompanyId();
-            var unitId = _ipAddressService.GetUnitId();
-
-            var companies = await _companyLookup.GetAllCompanyAsync();
-            var companyName = companies.FirstOrDefault(c => c.CompanyId == companyId)?.CompanyName ?? "Default";
-
-            var units = await _unitLookup.GetAllUnitAsync();
-            var unitName = units.FirstOrDefault(u => u.UnitId == unitId)?.UnitName ?? "Default";
-
             // Construct upload path
-            var uploadPath = Path.Combine("Resources", "CustomerVisit", companyName, unitName);
+            var uploadPath = Path.Combine("Resources", MiscEnumEntity.CustomerVisit);
 
             if (!Directory.Exists(uploadPath))
             {
