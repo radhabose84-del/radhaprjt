@@ -151,5 +151,33 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             await _applicationDbContext.SaveChangesAsync(ct);
             return true;
         }
+
+        public async Task<bool> UpdateVisitNotesAttachmentAsync(int id, string fileName, CancellationToken ct)
+        {
+            var existing = await _applicationDbContext.SalesOrderHeader
+                .FirstOrDefaultAsync(x => x.Id == id && x.IsDeleted == IsDelete.NotDeleted, ct);
+
+            if (existing == null)
+                return false;
+
+            existing.VisitNotesAttachment = fileName;
+            _applicationDbContext.SalesOrderHeader.Update(existing);
+            await _applicationDbContext.SaveChangesAsync(ct);
+            return true;
+        }
+
+        public async Task<bool> UpdateAgentPOAttachmentAsync(int id, string fileName, CancellationToken ct)
+        {
+            var existing = await _applicationDbContext.SalesOrderHeader
+                .FirstOrDefaultAsync(x => x.Id == id && x.IsDeleted == IsDelete.NotDeleted, ct);
+
+            if (existing == null)
+                return false;
+
+            existing.AgentPOAttachment = fileName;
+            _applicationDbContext.SalesOrderHeader.Update(existing);
+            await _applicationDbContext.SaveChangesAsync(ct);
+            return true;
+        }
     }
 }

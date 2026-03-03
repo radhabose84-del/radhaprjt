@@ -32,6 +32,9 @@ namespace SalesManagement.Application.Common.Mappings
 
             // Update: Detail DTO → Detail entity
             CreateMap<UpdateSalesOrderDetailDto, SalesOrderDetail>();
+
+            // Autocomplete: LookupDto → LookupDto (collection type conversion)
+            CreateMap<SalesOrderLookupDto, SalesOrderLookupDto>();
         }
     }
 }
