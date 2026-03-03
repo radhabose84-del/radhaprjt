@@ -5,8 +5,10 @@ using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Purchase;
 using Contracts.Interfaces.Lookups.Warehouse;
 using Contracts.Interfaces.Lookups.Inventory;
+using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Application.Common.Interfaces.ISalesOrder;
 using SalesManagement.Application.SalesOrder.Dto;
+using SalesManagement.Domain.Common;
 
 namespace SalesManagement.Infrastructure.Repositories.SalesOrder
 {
@@ -20,6 +22,8 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
         private readonly IItemLookup _itemLookup;
         private readonly IHSNLookup _hsnLookup;
         private readonly IUOMLookup _uomLookup;
+        private readonly IIPAddressService _ipAddressService;
+        private readonly ICompanyLookup _companyLookup;
 
         public SalesOrderQueryRepository(
             IDbConnection dbConnection,
@@ -29,7 +33,9 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             IWarehouseLookup warehouseLookup,
             IItemLookup itemLookup,
             IHSNLookup hsnLookup,
-            IUOMLookup uomLookup)
+            IUOMLookup uomLookup,
+            IIPAddressService ipAddressService,
+            ICompanyLookup companyLookup)
         {
             _dbConnection = dbConnection;
             _unitLookup = unitLookup;
@@ -39,6 +45,8 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             _itemLookup = itemLookup;
             _hsnLookup = hsnLookup;
             _uomLookup = uomLookup;
+            _ipAddressService = ipAddressService;
+            _companyLookup = companyLookup;
         }
 
         public async Task<(List<SalesOrderHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
@@ -73,7 +81,9 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     cl.Description AS CountListName,
                     h.Remarks,
                     h.VisitNotesAttachment, h.AgentPOAttachment,
-                    h.DispatchLocationType, h.DispatchDepotId, h.DispatchUnitId,
+                    h.DispatchLocationType,
+                    dlt.Description AS DispatchLocationTypeName,
+                    h.DispatchDepotId, h.DispatchUnitId,
                     h.TotalBags, h.TotalWeightKgs, h.TotalDiscountPerKg,
                     h.ItemValue, h.TotalFreight, h.TaxableAmount,
                     h.GSTPercentage, h.TotalGST, h.TotalWithGST,
@@ -88,6 +98,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 LEFT JOIN Sales.MiscMaster pt ON h.PaymentTypeId = pt.Id AND pt.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster ft ON h.FreightTypeId = ft.Id AND ft.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster cl ON h.CountListId = cl.Id AND cl.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster dlt ON h.DispatchLocationType = dlt.Id AND dlt.IsDeleted = 0
                 WHERE h.IsDeleted = 0 {searchFilter}
                 ORDER BY h.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
@@ -135,6 +146,18 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     if (item.DispatchUnitId.HasValue)
                         item.DispatchUnitName = dispUnitDict.TryGetValue(item.DispatchUnitId.Value, out var duName) ? duName : null;
                 }
+
+                // Construct full attachment paths
+                var visitNotesBasePath = await GetDocumentBasePathAsync(MiscEnumEntity.SalesOrderVisitPath);
+                var agentPOBasePath = await GetDocumentBasePathAsync(MiscEnumEntity.AgentPoDocument);
+                foreach (var item in list)
+                {
+                    if (!string.IsNullOrWhiteSpace(item.VisitNotesAttachment))
+                        item.VisitNotesAttachmentPath = $"{visitNotesBasePath}/{item.VisitNotesAttachment}";
+
+                    if (!string.IsNullOrWhiteSpace(item.AgentPOAttachment))
+                        item.AgentPOAttachmentPath = $"{agentPOBasePath}/{item.AgentPOAttachment}";
+                }
             }
 
             return (list, totalCount);
@@ -163,7 +186,9 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     cl.Description AS CountListName,
                     h.Remarks,
                     h.VisitNotesAttachment, h.AgentPOAttachment,
-                    h.DispatchLocationType, h.DispatchDepotId, h.DispatchUnitId,
+                    h.DispatchLocationType,
+                    dlt.Description AS DispatchLocationTypeName,
+                    h.DispatchDepotId, h.DispatchUnitId,
                     h.TotalBags, h.TotalWeightKgs, h.TotalDiscountPerKg,
                     h.ItemValue, h.TotalFreight, h.TaxableAmount,
                     h.GSTPercentage, h.TotalGST, h.TotalWithGST,
@@ -178,6 +203,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 LEFT JOIN Sales.MiscMaster pt ON h.PaymentTypeId = pt.Id AND pt.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster ft ON h.FreightTypeId = ft.Id AND ft.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster cl ON h.CountListId = cl.Id AND cl.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster dlt ON h.DispatchLocationType = dlt.Id AND dlt.IsDeleted = 0
                 WHERE h.Id = @Id AND h.IsDeleted = 0";
 
             var header = await _dbConnection.QueryFirstOrDefaultAsync<SalesOrderHeaderDto>(headerSql, new { Id = id });
@@ -226,6 +252,19 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 header.DispatchUnitName = dispUnit?.UnitName;
             }
 
+            // Construct full attachment paths
+            if (!string.IsNullOrWhiteSpace(header.VisitNotesAttachment))
+            {
+                var visitNotesBasePath = await GetDocumentBasePathAsync(MiscEnumEntity.SalesOrderVisitPath);
+                header.VisitNotesAttachmentPath = $"{visitNotesBasePath}/{header.VisitNotesAttachment}";
+            }
+
+            if (!string.IsNullOrWhiteSpace(header.AgentPOAttachment))
+            {
+                var agentPOBasePath = await GetDocumentBasePathAsync(MiscEnumEntity.AgentPoDocument);
+                header.AgentPOAttachmentPath = $"{agentPOBasePath}/{header.AgentPOAttachment}";
+            }
+
             // Populate cross-module detail lookups
             if (details.Count > 0)
             {
@@ -251,6 +290,32 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
 
             header.SalesOrderDetails = details;
             return header;
+        }
+
+        public async Task<IReadOnlyList<SalesOrderLookupDto>> AutocompleteAsync(string term, CancellationToken ct)
+        {
+            const string sql = @"
+                SELECT h.Id, h.SalesOrderNo, h.OrderDate, h.PartyId
+                FROM Sales.SalesOrderHeader h
+                WHERE h.IsActive = 1 AND h.IsDeleted = 0
+                AND (@Term = '' OR h.SalesOrderNo LIKE '%' + @Term + '%')
+                ORDER BY h.Id DESC;";
+
+            var command = new CommandDefinition(sql, new { Term = term }, cancellationToken: ct);
+            var list = (await _dbConnection.QueryAsync<SalesOrderLookupDto>(command)).ToList();
+
+            if (list.Count > 0)
+            {
+                var partyIds = list.Select(x => x.PartyId).Distinct();
+                var parties = await _partyLookup.GetByIdsAsync(partyIds, CancellationToken.None);
+                var partyDict = parties.ToDictionary(p => p.Id, p => p.PartyName);
+                foreach (var item in list)
+                {
+                    item.PartyName = partyDict.TryGetValue(item.PartyId, out var name) ? name : null;
+                }
+            }
+
+            return list;
         }
 
         public async Task<bool> NotFoundAsync(int id)
@@ -348,6 +413,28 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
 
             var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = id });
             return count > 0;
+        }
+
+        private async Task<string> GetDocumentBasePathAsync(string miscTypeCode)
+        {
+            const string sql = @"
+                SELECT Description
+                FROM Sales.MiscTypeMaster
+                WHERE MiscTypeCode = @MiscTypeCode AND IsDeleted = 0;";
+
+            var basePath = await _dbConnection.QueryFirstOrDefaultAsync<string>(
+                sql, new { MiscTypeCode = miscTypeCode });
+
+            if (string.IsNullOrWhiteSpace(basePath))
+                return string.Empty;
+
+            var companies = await _companyLookup.GetAllCompanyAsync();
+            var units = await _unitLookup.GetAllUnitAsync();
+
+            var companyName = companies.FirstOrDefault(c => c.CompanyId == _ipAddressService.GetCompanyId())?.CompanyName ?? string.Empty;
+            var unitName = units.FirstOrDefault(u => u.UnitId == _ipAddressService.GetUnitId())?.UnitName ?? string.Empty;
+
+            return $"{basePath.TrimEnd('/', '\\')}/{companyName}/{unitName}";
         }
     }
 }

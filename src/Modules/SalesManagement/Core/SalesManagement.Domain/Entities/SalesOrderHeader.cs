@@ -57,6 +57,7 @@ namespace SalesManagement.Domain.Entities
         public MiscMaster? PaymentType { get; set; }
         public MiscMaster? FreightType { get; set; }
         public MiscMaster? CountList { get; set; }
+        public MiscMaster? DispatchLocationTypeMisc { get; set; }
 
         // Child collection
         public ICollection<SalesOrderDetail>? SalesOrderDetails { get; set; }

@@ -247,6 +247,11 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasForeignKey(t => t.EnquiryType)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            builder.HasOne(t => t.DispatchLocationTypeMisc)
+                .WithMany(m => m.SalesOrderHeadersAsDispatchLocationType)
+                .HasForeignKey(t => t.DispatchLocationType)
+                .OnDelete(DeleteBehavior.Restrict);
+
             builder.HasOne(t => t.SalesQuotation)
                 .WithMany(q => q.SalesOrderHeaders)
                 .HasForeignKey(t => t.SalesQuotationHeaderId)
