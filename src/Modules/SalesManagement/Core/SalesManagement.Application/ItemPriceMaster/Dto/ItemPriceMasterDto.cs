@@ -8,6 +8,7 @@ namespace SalesManagement.Application.ItemPriceMaster.Dto
         public int ItemId { get; set; }
         public string? ItemCode { get; set; }
         public string? ItemName { get; set; }
+        public string? VariantName { get; set; }
 
         public int SalesSegmentId { get; set; }
         public string? SalesSegmentName { get; set; }

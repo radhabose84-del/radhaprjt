@@ -1,5 +1,6 @@
 using AutoMapper;
 using Contracts.Common;
+using Contracts.Interfaces.Lookups.Inventory;
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.IItemPriceMaster;
 using SalesManagement.Domain.Events;
@@ -10,17 +11,23 @@ namespace SalesManagement.Application.ItemPriceMaster.Commands.CreateItemPriceMa
         : IRequestHandler<CreateItemPriceMasterCommand, ApiResponseDTO<int>>
     {
         private readonly IItemPriceMasterCommandRepository _commandRepository;
+        private readonly IItemPriceMasterQueryRepository _queryRepository;
         private readonly IMediator _mediator;
         private readonly IMapper _mapper;
+        private readonly IItemLookup _itemLookup;
 
         public CreateItemPriceMasterCommandHandler(
             IItemPriceMasterCommandRepository commandRepository,
+            IItemPriceMasterQueryRepository queryRepository,
             IMediator mediator,
-            IMapper mapper)
+            IMapper mapper,
+            IItemLookup itemLookup)
         {
             _commandRepository = commandRepository;
+            _queryRepository = queryRepository;
             _mediator = mediator;
             _mapper = mapper;
+            _itemLookup = itemLookup;
         }
 
         public async Task<ApiResponseDTO<int>> Handle(
@@ -29,13 +36,24 @@ namespace SalesManagement.Application.ItemPriceMaster.Commands.CreateItemPriceMa
         {
             var entity = _mapper.Map<Domain.Entities.ItemPriceMaster>(request);
 
+            // Auto-generate PriceCode: first 3 chars of ItemName (uppercase) + "-" + 3-digit serial
+            var items = await _itemLookup.GetByIdsAsync(new[] { request.ItemId }, cancellationToken);
+            var itemData = items.FirstOrDefault();
+            var itemName = itemData?.ItemName ?? "UNK";
+            var prefix = itemName.Length >= 3
+                ? itemName[..3].ToUpperInvariant()
+                : itemName.ToUpperInvariant().PadRight(3, 'X');
+
+            var nextSerial = await _queryRepository.GetNextPriceCodeSerialAsync(prefix);
+            entity.PriceCode = $"{prefix}-{nextSerial:D3}";
+
             var newId = await _commandRepository.CreateAsync(entity);
 
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Create",
                 actionCode: "ITEM_PRICE_CREATE",
-                actionName: request.PriceCode ?? string.Empty,
-                details: $"Item Price Master '{request.PriceCode}' created successfully with Id {newId}.",
+                actionName: entity.PriceCode,
+                details: $"Item Price Master '{entity.PriceCode}' created successfully with Id {newId}.",
                 module: "ItemPriceMaster"
             );
             await _mediator.Publish(auditEvent, cancellationToken);

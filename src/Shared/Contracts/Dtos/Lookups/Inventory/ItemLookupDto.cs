@@ -7,6 +7,8 @@ namespace Contracts.Dtos.Lookups.Inventory
         public int Id { get; set; }
         public string ItemCode { get; set; } = string.Empty;
         public string ItemName { get; set; } = string.Empty;
+        public int? ParentItemId { get; set; }
+        public string? ParentItemName { get; set; }
         public string? TariffNumber { get; set; }
         public string? HSNCode { get; set; }
         public decimal GSTPercentage { get; set; }
