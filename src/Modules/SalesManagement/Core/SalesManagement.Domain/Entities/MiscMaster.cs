@@ -27,5 +27,9 @@ namespace SalesManagement.Domain.Entities
         // Reverse navigation (LotMaster)
         public ICollection<LotMaster>? LotMastersAsLotType { get; set; }
         public ICollection<LotMaster>? LotMastersAsStatus { get; set; }
+
+        // Reverse navigation (Production)
+        public ICollection<ProductionPackHeader>? ProductionPackHeadersAsStatus { get; set; }
+        public ICollection<ProductionPackDetail>? ProductionPackDetailsAsQualityStatus { get; set; }
     }
 }

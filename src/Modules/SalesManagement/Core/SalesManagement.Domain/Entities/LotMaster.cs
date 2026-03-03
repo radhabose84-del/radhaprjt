@@ -20,5 +20,8 @@ namespace SalesManagement.Domain.Entities
         // Same-module navigation properties
         public MiscMaster? LotTypeMisc { get; set; }
         public MiscMaster? StatusMisc { get; set; }
+
+        // Reverse navigation (Production)
+        public ICollection<ProductionPackDetail>? ProductionPackDetails { get; set; }
     }
 }
