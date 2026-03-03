@@ -52,6 +52,10 @@ using SalesManagement.Application.Common.Interfaces.ICustomerVisit;
 using SalesManagement.Infrastructure.Repositories.CustomerVisit;
 using SalesManagement.Application.Common.Interfaces.ISalesOrder;
 using SalesManagement.Infrastructure.Repositories.SalesOrder;
+using SalesManagement.Application.Common.Interfaces.ILotMaster;
+using SalesManagement.Infrastructure.Repositories.LotMaster;
+using SalesManagement.Application.Common.Interfaces.IPackType;
+using SalesManagement.Infrastructure.Repositories.PackType;
 
 
 namespace SalesManagement.Infrastructure
@@ -216,6 +220,14 @@ namespace SalesManagement.Infrastructure
             // ── Sales Order Repositories ──────────────────────────────────
             services.AddScoped<ISalesOrderCommandRepository, SalesOrderCommandRepository>();
             services.AddScoped<ISalesOrderQueryRepository, SalesOrderQueryRepository>();
+
+            // ── Lot Master Repositories ───────────────────────────────────
+            services.AddScoped<ILotMasterCommandRepository, LotMasterCommandRepository>();
+            services.AddScoped<ILotMasterQueryRepository, LotMasterQueryRepository>();
+
+            // ── Pack Type Repositories ──────────────────────────────────────
+            services.AddScoped<IPackTypeCommandRepository, PackTypeCommandRepository>();
+            services.AddScoped<IPackTypeQueryRepository, PackTypeQueryRepository>();
 
             return services;
         }

@@ -6,7 +6,10 @@ using SalesManagement.Application.SalesOrder.Commands.UpdateSalesOrder;
 using SalesManagement.Application.SalesOrder.Commands.DeleteSalesOrder;
 using SalesManagement.Application.SalesOrder.Commands.UploadSalesOrderDocument;
 using SalesManagement.Application.SalesOrder.Commands.DeleteSalesOrderDocument;
+using SalesManagement.Application.SalesOrder.Commands.UploadSalesOrderImage;
+using SalesManagement.Application.SalesOrder.Commands.DeleteSalesOrderImage;
 using SalesManagement.Application.SalesOrder.Queries.GetAllSalesOrder;
+using SalesManagement.Application.SalesOrder.Queries.GetSalesOrderAutoComplete;
 using SalesManagement.Application.SalesOrder.Queries.GetSalesOrderById;
 
 namespace SalesManagement.Presentation.Controllers
@@ -36,6 +39,18 @@ namespace SalesManagement.Presentation.Controllers
                 TotalCount = result.TotalCount,
                 PageNumber = result.PageNumber,
                 PageSize = result.PageSize
+            });
+        }
+
+        [HttpGet("by-name")]
+        public async Task<IActionResult> GetSalesOrderAutoCompleteAsync([FromQuery] string? term = null)
+        {
+            var result = await Mediator.Send(new GetSalesOrderAutoCompleteQuery(term));
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result
             });
         }
 
@@ -116,6 +131,33 @@ namespace SalesManagement.Presentation.Controllers
                 StatusCode = StatusCodes.Status200OK,
                 isSuccess = result,
                 message = result ? "Document deleted successfully." : "Failed to delete document."
+            });
+        }
+
+        [HttpPost("upload-image")]
+        public async Task<IActionResult> UploadSalesOrderImage([FromForm] UploadSalesOrderImageCommand command)
+        {
+            var result = await Mediator.Send(command);
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                isSuccess = true,
+                message = "Image uploaded successfully.",
+                data = result
+            });
+        }
+
+        [HttpDelete("delete-image")]
+        public async Task<IActionResult> DeleteSalesOrderImage([FromQuery] string filePath)
+        {
+            var result = await Mediator.Send(new DeleteSalesOrderImageCommand { FilePath = filePath });
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                isSuccess = result,
+                message = result ? "Image deleted successfully." : "Failed to delete image."
             });
         }
     }

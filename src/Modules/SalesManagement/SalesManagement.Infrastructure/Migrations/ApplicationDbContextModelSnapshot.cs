@@ -522,7 +522,7 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Property<decimal>("ExMillRate")
                         .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,4)")
-                        .HasColumnName("ExMillPrice");
+                        .HasColumnName("ExMillRate");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit")
@@ -583,6 +583,126 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.HasIndex("ItemId", "SalesSegmentId", "PaymentTermsId");
 
                     b.ToTable("ItemPriceMaster", "Sales");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.LotMaster", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("AvailableQty")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,2)")
+                        .HasDefaultValue(0m)
+                        .HasColumnName("AvailableQty");
+
+                    b.Property<string>("BatchNumber")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("BatchNumber");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<int>("ItemId")
+                        .HasColumnType("int")
+                        .HasColumnName("ItemId");
+
+                    b.Property<string>("LotCode")
+                        .IsRequired()
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("LotCode");
+
+                    b.Property<int>("LotTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("LotTypeId");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<string>("ProductionOrderRef")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ProductionOrderRef");
+
+                    b.Property<string>("Remarks")
+                        .HasColumnType("varchar(500)")
+                        .HasColumnName("Remarks");
+
+                    b.Property<DateOnly?>("RunOutDate")
+                        .HasColumnType("date")
+                        .HasColumnName("RunOutDate");
+
+                    b.Property<DateOnly>("StartDate")
+                        .HasColumnType("date")
+                        .HasColumnName("StartDate");
+
+                    b.Property<int>("StatusId")
+                        .HasColumnType("int")
+                        .HasColumnName("StatusId");
+
+                    b.Property<decimal>("TotalProducedQty")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,2)")
+                        .HasDefaultValue(0m)
+                        .HasColumnName("TotalProducedQty");
+
+                    b.Property<int>("UnitId")
+                        .HasColumnType("int")
+                        .HasColumnName("UnitId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ItemId");
+
+                    b.HasIndex("LotCode")
+                        .IsUnique()
+                        .HasFilter("[IsDeleted] = 0");
+
+                    b.HasIndex("LotTypeId");
+
+                    b.HasIndex("StatusId");
+
+                    b.ToTable("LotMaster", "Sales");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.MarketingOfficer", b =>
@@ -964,6 +1084,98 @@ namespace SalesManagement.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("OfficerSalesGroup", "Sales");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.PackType", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("ConesPerBag")
+                        .HasColumnType("int")
+                        .HasColumnName("ConesPerBag");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<decimal>("GrossWeight")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("GrossWeight");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<decimal>("NetWeight")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("NetWeight");
+
+                    b.Property<string>("PackTypeCode")
+                        .IsRequired()
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("PackTypeCode");
+
+                    b.Property<string>("PackTypeName")
+                        .IsRequired()
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("PackTypeName");
+
+                    b.Property<bool>("ProductionAllowed")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true)
+                        .HasColumnName("ProductionAllowed");
+
+                    b.Property<decimal>("TareWeight")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("TareWeight");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PackTypeCode")
+                        .IsUnique();
+
+                    b.ToTable("PackType", "Sales");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.SalesChannel", b =>
@@ -1398,7 +1610,7 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     b.Property<decimal?>("RequirementQty")
                         .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,6)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
 
@@ -1771,6 +1983,10 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("varchar(30)")
                         .HasColumnName("SalesOrderNo");
 
+                    b.Property<int?>("SalesQuotationHeaderId")
+                        .HasColumnType("int")
+                        .HasColumnName("SalesQuotationHeaderId");
+
                     b.Property<int?>("SalesSegmentId")
                         .HasColumnType("int")
                         .HasColumnName("SalesSegmentId");
@@ -1833,6 +2049,10 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     b.HasIndex("DiscountPlanId");
 
+                    b.HasIndex("DispatchLocationType");
+
+                    b.HasIndex("EnquiryType");
+
                     b.HasIndex("FreightTypeId");
 
                     b.HasIndex("OrderDate");
@@ -1845,6 +2065,8 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     b.HasIndex("SalesOrderNo")
                         .IsUnique();
+
+                    b.HasIndex("SalesQuotationHeaderId");
 
                     b.HasIndex("SalesSegmentId");
 
@@ -1939,12 +2161,12 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     b.Property<decimal>("Discount")
                         .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,6)")
+                        .HasColumnType("decimal(18,2)")
                         .HasColumnName("Discount");
 
                     b.Property<decimal>("ExMillRate")
                         .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,6)")
+                        .HasColumnType("decimal(18,4)")
                         .HasColumnName("ExMillRate");
 
                     b.Property<int>("HSNId")
@@ -1957,12 +2179,12 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     b.Property<decimal>("NetRate")
                         .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,6)")
+                        .HasColumnType("decimal(18,4)")
                         .HasColumnName("NetRate");
 
                     b.Property<decimal>("Quantity")
                         .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,6)")
+                        .HasColumnType("decimal(18,2)")
                         .HasColumnName("Quantity");
 
                     b.Property<int>("SalesQuotationHeaderId")
@@ -1971,17 +2193,17 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     b.Property<decimal>("TaxAmount")
                         .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,6)")
+                        .HasColumnType("decimal(18,2)")
                         .HasColumnName("TaxAmount");
 
                     b.Property<decimal>("TaxPercentage")
                         .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,6)")
+                        .HasColumnType("decimal(18,2)")
                         .HasColumnName("TaxPercentage");
 
                     b.Property<decimal>("TotalAmount")
                         .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,6)")
+                        .HasColumnType("decimal(18,2)")
                         .HasColumnName("TotalAmount");
 
                     b.HasKey("Id");
@@ -2034,12 +2256,12 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     b.Property<decimal>("FreightCharges")
                         .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,6)")
+                        .HasColumnType("decimal(18,2)")
                         .HasColumnName("FreightCharges");
 
                     b.Property<decimal>("GrandTotal")
                         .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,6)")
+                        .HasColumnType("decimal(18,2)")
                         .HasColumnName("GrandTotal");
 
                     b.Property<bool>("IsActive")
@@ -2068,12 +2290,12 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     b.Property<decimal>("NetTaxableAmount")
                         .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,6)")
+                        .HasColumnType("decimal(18,2)")
                         .HasColumnName("NetTaxableAmount");
 
                     b.Property<decimal>("OtherCharges")
                         .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,6)")
+                        .HasColumnType("decimal(18,2)")
                         .HasColumnName("OtherCharges");
 
                     b.Property<int>("PaymentTermId")
@@ -2094,17 +2316,17 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     b.Property<decimal>("TotalBasicAmount")
                         .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,6)")
+                        .HasColumnType("decimal(18,2)")
                         .HasColumnName("TotalBasicAmount");
 
                     b.Property<decimal>("TotalDiscount")
                         .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,6)")
+                        .HasColumnType("decimal(18,2)")
                         .HasColumnName("TotalDiscount");
 
                     b.Property<decimal>("TotalTax")
                         .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,6)")
+                        .HasColumnType("decimal(18,2)")
                         .HasColumnName("TotalTax");
 
                     b.Property<DateOnly>("ValidityDate")
@@ -2279,6 +2501,25 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("SalesSegment");
                 });
 
+            modelBuilder.Entity("SalesManagement.Domain.Entities.LotMaster", b =>
+                {
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "LotTypeMisc")
+                        .WithMany("LotMastersAsLotType")
+                        .HasForeignKey("LotTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "StatusMisc")
+                        .WithMany("LotMastersAsStatus")
+                        .HasForeignKey("StatusId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("LotTypeMisc");
+
+                    b.Navigation("StatusMisc");
+                });
+
             modelBuilder.Entity("SalesManagement.Domain.Entities.MarketingOfficer", b =>
                 {
                     b.HasOne("SalesManagement.Domain.Entities.SalesOffice", "SalesOffice")
@@ -2430,6 +2671,18 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasForeignKey("DiscountPlanId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "DispatchLocationTypeMisc")
+                        .WithMany("SalesOrderHeadersAsDispatchLocationType")
+                        .HasForeignKey("DispatchLocationType")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "EnquiryTypeMisc")
+                        .WithMany("SalesOrderHeadersAsEnquiryType")
+                        .HasForeignKey("EnquiryType")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "FreightType")
                         .WithMany("SalesOrderHeadersAsFreightType")
                         .HasForeignKey("FreightTypeId")
@@ -2447,6 +2700,11 @@ namespace SalesManagement.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("SalesManagement.Domain.Entities.SalesQuotationHeader", "SalesQuotation")
+                        .WithMany("SalesOrderHeaders")
+                        .HasForeignKey("SalesQuotationHeaderId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("SalesManagement.Domain.Entities.SalesSegment", "SalesSegment")
                         .WithMany("SalesOrderHeaders")
                         .HasForeignKey("SalesSegmentId")
@@ -2456,11 +2714,17 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     b.Navigation("DiscountPlan");
 
+                    b.Navigation("DispatchLocationTypeMisc");
+
+                    b.Navigation("EnquiryTypeMisc");
+
                     b.Navigation("FreightType");
 
                     b.Navigation("PaymentType");
 
                     b.Navigation("SalesGroup");
+
+                    b.Navigation("SalesQuotation");
 
                     b.Navigation("SalesSegment");
                 });
@@ -2552,6 +2816,10 @@ namespace SalesManagement.Infrastructure.Migrations
                 {
                     b.Navigation("DispatchAddressMappings");
 
+                    b.Navigation("LotMastersAsLotType");
+
+                    b.Navigation("LotMastersAsStatus");
+
                     b.Navigation("SalesContacts");
 
                     b.Navigation("SalesOrderDetailsAsLineItemStatus");
@@ -2559,6 +2827,10 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("SalesOrderHeadersAsCountList");
 
                     b.Navigation("SalesOrderHeadersAsDiscountPlan");
+
+                    b.Navigation("SalesOrderHeadersAsDispatchLocationType");
+
+                    b.Navigation("SalesOrderHeadersAsEnquiryType");
 
                     b.Navigation("SalesOrderHeadersAsFreightType");
 
@@ -2608,6 +2880,8 @@ namespace SalesManagement.Infrastructure.Migrations
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.SalesQuotationHeader", b =>
                 {
+                    b.Navigation("SalesOrderHeaders");
+
                     b.Navigation("SalesQuotationDetails");
                 });
 

@@ -59,7 +59,7 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .IsRequired(false);
 
             builder.Property(t => t.RequirementQty)
-                .HasColumnType("decimal(18,6)")
+                .HasColumnType("decimal(18,2)")
                 .IsRequired(false);
 
             builder.Property(t => t.ExpectedDate)

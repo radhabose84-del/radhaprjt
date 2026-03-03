@@ -2,6 +2,9 @@ namespace SalesManagement.Application.SalesOrder.Dto
 {
     public class CreateSalesOrderDto
     {
+        // Quotation Reference (optional)
+        public int? SalesQuotationHeaderId { get; set; }
+
         // Customer & Unit Details
         public int SalesGroupId { get; set; }
         public int? SalesSegmentId { get; set; }

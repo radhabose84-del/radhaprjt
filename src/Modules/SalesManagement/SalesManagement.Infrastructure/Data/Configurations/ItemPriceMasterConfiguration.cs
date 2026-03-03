@@ -49,7 +49,7 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .IsRequired();
 
             builder.Property(t => t.ExMillRate)
-                .HasColumnName("ExMillPrice")
+                .HasColumnName("ExMillRate")
                 .HasColumnType("decimal(18,4)")
                 .IsRequired();
 

@@ -6,6 +6,7 @@ namespace SalesManagement.Application.Common.Interfaces.ISalesEnquiry
     {
         Task<(List<SalesEnquiryHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm);
         Task<SalesEnquiryHeaderDto?> GetByIdAsync(int id);
+        Task<IReadOnlyList<SalesEnquiryLookupDto>> AutocompleteAsync(string term, CancellationToken ct);
         Task<bool> NotFoundAsync(int id);
         Task<bool> PartyExistsAsync(int partyId);
         Task<bool> PaymentTermExistsAsync(int paymentTermId);

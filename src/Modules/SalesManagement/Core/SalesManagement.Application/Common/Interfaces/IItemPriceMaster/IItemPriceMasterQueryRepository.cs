@@ -17,5 +17,6 @@ namespace SalesManagement.Application.Common.Interfaces.IItemPriceMaster
             DateOnly validFrom, DateOnly validTo, int? excludeId = null);
         Task<bool> SoftDeleteValidationAsync(int id);
         Task<List<ItemPriceMasterDto>> GetByItemAndDateAsync(int itemId, DateOnly date);
+        Task<int> GetNextPriceCodeSerialAsync(string prefix);
     }
 }

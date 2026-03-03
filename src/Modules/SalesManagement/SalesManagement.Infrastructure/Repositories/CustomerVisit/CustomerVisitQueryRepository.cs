@@ -1,11 +1,10 @@
 using System.Data;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Party;
-using Contracts.Interfaces.Lookups.Users;
 using Dapper;
-using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Application.Common.Interfaces.ICustomerVisit;
 using SalesManagement.Application.CustomerVisit.Dto;
+using SalesManagement.Domain.Common;
 
 namespace SalesManagement.Infrastructure.Repositories.CustomerVisit
 {
@@ -14,24 +13,15 @@ namespace SalesManagement.Infrastructure.Repositories.CustomerVisit
         private readonly IDbConnection _dbConnection;
         private readonly IPartyLookup _partyLookup;
         private readonly IItemLookup _itemLookup;
-        private readonly IIPAddressService _ipAddressService;
-        private readonly ICompanyLookup _companyLookup;
-        private readonly IUnitLookup _unitLookup;
 
         public CustomerVisitQueryRepository(
             IDbConnection dbConnection,
             IPartyLookup partyLookup,
-            IItemLookup itemLookup,
-            IIPAddressService ipAddressService,
-            ICompanyLookup companyLookup,
-            IUnitLookup unitLookup)
+            IItemLookup itemLookup)
         {
             _dbConnection = dbConnection;
             _partyLookup = partyLookup;
             _itemLookup = itemLookup;
-            _ipAddressService = ipAddressService;
-            _companyLookup = companyLookup;
-            _unitLookup = unitLookup;
         }
 
         public async Task<(List<CustomerVisitDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
@@ -46,7 +36,7 @@ namespace SalesManagement.Infrastructure.Repositories.CustomerVisit
                 WHERE cv.IsDeleted = 0
                 AND (@SearchTerm IS NULL OR @SearchTerm = ''
                      OR mm.Description LIKE '%' + @SearchTerm + '%'
-                     OR mo.OfficerName LIKE '%' + @SearchTerm + '%'
+                     OR mo.EmployeeName LIKE '%' + @SearchTerm + '%'
                      OR cv.Remarks LIKE '%' + @SearchTerm + '%');";
 
             const string dataSql = @"
@@ -58,14 +48,14 @@ namespace SalesManagement.Infrastructure.Repositories.CustomerVisit
                     cv.CreatedBy, cv.CreatedDate, cv.CreatedByName, cv.CreatedIP,
                     cv.ModifiedBy, cv.ModifiedDate, cv.ModifiedByName, cv.ModifiedIP,
                     mm.Description AS VisitTypeName,
-                    mo.OfficerName AS MarketingOfficerName
+                    mo.EmployeeName AS MarketingOfficerName
                 FROM Sales.CustomerVisit cv
                 LEFT JOIN Sales.MiscMaster mm ON cv.VisitTypeId = mm.Id AND mm.IsDeleted = 0
                 LEFT JOIN Sales.MarketingOfficer mo ON cv.MarketingOfficerId = mo.Id AND mo.IsDeleted = 0
                 WHERE cv.IsDeleted = 0
                 AND (@SearchTerm IS NULL OR @SearchTerm = ''
                      OR mm.Description LIKE '%' + @SearchTerm + '%'
-                     OR mo.OfficerName LIKE '%' + @SearchTerm + '%'
+                     OR mo.EmployeeName LIKE '%' + @SearchTerm + '%'
                      OR cv.Remarks LIKE '%' + @SearchTerm + '%')
                 ORDER BY cv.VisitDateTime DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;";
@@ -111,7 +101,7 @@ namespace SalesManagement.Infrastructure.Repositories.CustomerVisit
                     cv.CreatedBy, cv.CreatedDate, cv.CreatedByName, cv.CreatedIP,
                     cv.ModifiedBy, cv.ModifiedDate, cv.ModifiedByName, cv.ModifiedIP,
                     mm.Description AS VisitTypeName,
-                    mo.OfficerName AS MarketingOfficerName
+                    mo.EmployeeName AS MarketingOfficerName
                 FROM Sales.CustomerVisit cv
                 LEFT JOIN Sales.MiscMaster mm ON cv.VisitTypeId = mm.Id AND mm.IsDeleted = 0
                 LEFT JOIN Sales.MarketingOfficer mo ON cv.MarketingOfficerId = mo.Id AND mo.IsDeleted = 0
@@ -222,18 +212,38 @@ namespace SalesManagement.Infrastructure.Repositories.CustomerVisit
             return items.Any();
         }
 
+        public async Task<string?> GetMarketingOfficerNameAsync(int marketingOfficerId)
+        {
+            const string sql = "SELECT EmployeeName FROM Sales.MarketingOfficer WHERE Id = @Id AND IsActive = 1 AND IsDeleted = 0;";
+            return await _dbConnection.QueryFirstOrDefaultAsync<string>(sql, new { Id = marketingOfficerId });
+        }
+
+        public async Task<string> GetImageFolderAsync()
+        {
+            const string sql = @"
+                SELECT Description
+                FROM Sales.MiscTypeMaster
+                WHERE MiscTypeCode = @MiscTypeCode AND IsDeleted = 0;";
+
+            var result = await _dbConnection.QueryFirstOrDefaultAsync<string>(
+                sql, new { MiscTypeCode = MiscEnumEntity.CustomerVisitPath });
+            return result ?? "CustomerVisit";
+        }
+
         private async Task<string> GetImageBasePathAsync()
         {
-            var companyId = _ipAddressService.GetCompanyId();
-            var unitId = _ipAddressService.GetUnitId();
+            const string sql = @"
+                SELECT Description
+                FROM Sales.MiscTypeMaster
+                WHERE MiscTypeCode = @MiscTypeCode AND IsDeleted = 0;";
 
-            var companies = await _companyLookup.GetAllCompanyAsync();
-            var companyName = companies.FirstOrDefault(c => c.CompanyId == companyId)?.CompanyName ?? "Default";
+            var basePath = await _dbConnection.QueryFirstOrDefaultAsync<string>(
+                sql, new { MiscTypeCode = MiscEnumEntity.CustomerVisitPath });
 
-            var units = await _unitLookup.GetAllUnitAsync();
-            var unitName = units.FirstOrDefault(u => u.UnitId == unitId)?.UnitName ?? "Default";
+            if (string.IsNullOrWhiteSpace(basePath))
+                return string.Empty;
 
-            return Path.Combine("Resources", "CustomerVisit", companyName, unitName);
+            return basePath.TrimEnd('/', '\\');
         }
     }
 }

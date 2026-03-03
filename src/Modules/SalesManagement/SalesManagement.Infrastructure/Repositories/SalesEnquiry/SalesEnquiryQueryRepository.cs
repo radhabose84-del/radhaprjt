@@ -135,6 +135,37 @@ namespace SalesManagement.Infrastructure.Repositories.SalesEnquiry
             return header;
         }
 
+        public async Task<IReadOnlyList<SalesEnquiryLookupDto>> AutocompleteAsync(string term, CancellationToken ct)
+        {
+            var searchFilter = string.IsNullOrWhiteSpace(term)
+                ? ""
+                : "AND (h.ContactPerson LIKE @Term OR h.Remarks LIKE @Term)";
+
+            var sql = $@"
+                SELECT h.Id, h.PartyId, h.EnquiryDate,
+                    (SELECT COUNT(*) FROM Sales.SalesEnquiryDetail d
+                     WHERE d.SalesEnquiryHeaderId = h.Id) AS TotalItems
+                FROM Sales.SalesEnquiryHeader h
+                WHERE h.IsActive = 1 AND h.IsDeleted = 0
+                {searchFilter}
+                ORDER BY h.EnquiryDate DESC";
+
+            var list = (await _dbConnection.QueryAsync<SalesEnquiryLookupDto>(
+                sql, new { Term = $"%{term}%" })).ToList();
+
+            if (list.Count > 0)
+            {
+                var partyIds = list.Select(x => x.PartyId).Distinct();
+                var parties = await _partyLookup.GetByIdsAsync(partyIds);
+                var partyDict = parties.ToDictionary(p => p.Id, p => p.PartyName);
+
+                foreach (var item in list)
+                    item.PartyName = partyDict.TryGetValue(item.PartyId, out var name) ? name : null;
+            }
+
+            return list;
+        }
+
         public async Task<bool> NotFoundAsync(int id)
         {
             const string sql = @"

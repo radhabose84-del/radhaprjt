@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
+using SalesManagement.Application.Common.Interfaces.IMiscMaster;
 using SalesManagement.Application.Common.Interfaces.ISalesOrder;
+using SalesManagement.Domain.Common;
 using SalesManagement.Domain.Entities;
 using SalesManagement.Infrastructure.Data;
 using static SalesManagement.Domain.Common.BaseEntity;
@@ -9,10 +11,14 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
     public class SalesOrderCommandRepository : ISalesOrderCommandRepository
     {
         private readonly ApplicationDbContext _applicationDbContext;
+        private readonly IMiscMasterQueryRepository _miscMasterQueryRepository;
 
-        public SalesOrderCommandRepository(ApplicationDbContext applicationDbContext)
+        public SalesOrderCommandRepository(
+            ApplicationDbContext applicationDbContext,
+            IMiscMasterQueryRepository miscMasterQueryRepository)
         {
             _applicationDbContext = applicationDbContext;
+            _miscMasterQueryRepository = miscMasterQueryRepository;
         }
 
         public async Task<string> GenerateNextSalesOrderNoAsync(int unitId, CancellationToken ct = default)
@@ -44,6 +50,10 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             var details = entity.SalesOrderDetails?.ToList();
             entity.SalesOrderDetails = null;
 
+            // Fetch "Open" line item status id
+            var openStatus = await _miscMasterQueryRepository.GetMiscMasterByName(
+                MiscEnumEntity.LineItemApprovalStatus, MiscEnumEntity.LineStatusOpen);
+
             // Insert header into SalesOrderHeader table
             await _applicationDbContext.SalesOrderHeader.AddAsync(entity);
             await _applicationDbContext.SaveChangesAsync();
@@ -54,6 +64,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 foreach (var detail in details)
                 {
                     detail.SalesOrderHeaderId = entity.Id;
+                    detail.LineItemStatusId = openStatus?.Id;
                     await _applicationDbContext.SalesOrderDetail.AddAsync(detail);
                 }
                 await _applicationDbContext.SaveChangesAsync();
@@ -111,9 +122,13 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             // Insert new details into SalesOrderDetail table
             if (entity.SalesOrderDetails != null && entity.SalesOrderDetails.Any())
             {
+                var openStatus = await _miscMasterQueryRepository.GetMiscMasterByName(
+                    MiscEnumEntity.LineItemApprovalStatus, MiscEnumEntity.LineStatusOpen);
+
                 foreach (var detail in entity.SalesOrderDetails)
                 {
                     detail.SalesOrderHeaderId = existingEntity.Id;
+                    detail.LineItemStatusId = openStatus?.Id;
                     await _applicationDbContext.SalesOrderDetail.AddAsync(detail);
                 }
             }
@@ -132,6 +147,34 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 return false;
 
             existing.IsDeleted = IsDelete.Deleted;
+            _applicationDbContext.SalesOrderHeader.Update(existing);
+            await _applicationDbContext.SaveChangesAsync(ct);
+            return true;
+        }
+
+        public async Task<bool> UpdateVisitNotesAttachmentAsync(int id, string fileName, CancellationToken ct)
+        {
+            var existing = await _applicationDbContext.SalesOrderHeader
+                .FirstOrDefaultAsync(x => x.Id == id && x.IsDeleted == IsDelete.NotDeleted, ct);
+
+            if (existing == null)
+                return false;
+
+            existing.VisitNotesAttachment = fileName;
+            _applicationDbContext.SalesOrderHeader.Update(existing);
+            await _applicationDbContext.SaveChangesAsync(ct);
+            return true;
+        }
+
+        public async Task<bool> UpdateAgentPOAttachmentAsync(int id, string fileName, CancellationToken ct)
+        {
+            var existing = await _applicationDbContext.SalesOrderHeader
+                .FirstOrDefaultAsync(x => x.Id == id && x.IsDeleted == IsDelete.NotDeleted, ct);
+
+            if (existing == null)
+                return false;
+
+            existing.AgentPOAttachment = fileName;
             _applicationDbContext.SalesOrderHeader.Update(existing);
             await _applicationDbContext.SaveChangesAsync(ct);
             return true;

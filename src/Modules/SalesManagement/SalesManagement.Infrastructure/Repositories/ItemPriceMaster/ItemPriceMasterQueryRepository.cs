@@ -40,7 +40,7 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
                 SELECT
                     sipm.Id, sipm.PriceCode,
                     sipm.ItemId, sipm.SalesSegmentId, sipm.PaymentTermsId,
-                    sipm.ExMillPrice AS ExMillRate, sipm.CurrencyId,
+                    sipm.ExMillRate, sipm.CurrencyId,
                     sipm.ValidFrom, sipm.ValidTo,
                     sipm.IsActive, sipm.IsDeleted,
                     sipm.CreatedBy, sipm.CreatedDate, sipm.CreatedByName, sipm.CreatedIP,
@@ -90,6 +90,7 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
                     {
                         item.ItemCode = itemData.ItemCode;
                         item.ItemName = itemData.ItemName;
+                        item.VariantName = itemData.ParentItemName;
                     }
                     if (currencyDict.TryGetValue(item.CurrencyId, out var currencyData))
                     {
@@ -112,7 +113,7 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
                 SELECT
                     sipm.Id, sipm.PriceCode,
                     sipm.ItemId, sipm.SalesSegmentId, sipm.PaymentTermsId,
-                    sipm.ExMillPrice AS ExMillRate, sipm.CurrencyId,
+                    sipm.ExMillRate, sipm.CurrencyId,
                     sipm.ValidFrom, sipm.ValidTo,
                     sipm.IsActive, sipm.IsDeleted,
                     sipm.CreatedBy, sipm.CreatedDate, sipm.CreatedByName, sipm.CreatedIP,
@@ -133,6 +134,7 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
                 {
                     dto.ItemCode = itemData.ItemCode;
                     dto.ItemName = itemData.ItemName;
+                    dto.VariantName = itemData.ParentItemName;
                 }
 
                 var currencies = await _currencyLookup.GetByIdsAsync(new[] { dto.CurrencyId });
@@ -158,7 +160,7 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
             string term, CancellationToken ct)
         {
             const string sql = @"
-                SELECT TOP 20 Id, PriceCode, ItemId, ExMillPrice AS ExMillRate, ValidFrom, ValidTo
+                SELECT TOP 20 Id, PriceCode, ItemId, ExMillRate, ValidFrom, ValidTo
                 FROM Sales.ItemPriceMaster
                 WHERE IsDeleted = 0 AND IsActive = 1
                   AND PriceCode LIKE @Term
@@ -279,13 +281,30 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
             return false;
         }
 
+        public async Task<int> GetNextPriceCodeSerialAsync(string prefix)
+        {
+            const string sql = @"
+                SELECT ISNULL(MAX(
+                    CASE WHEN ISNUMERIC(RIGHT(PriceCode, LEN(PriceCode) - LEN(@Prefix) - 1)) = 1
+                         THEN CAST(RIGHT(PriceCode, LEN(PriceCode) - LEN(@Prefix) - 1) AS INT)
+                         ELSE 0
+                    END), 0)
+                FROM Sales.ItemPriceMaster
+                WHERE PriceCode LIKE @Pattern AND IsDeleted = 0";
+
+            var maxSerial = await _dbConnection.ExecuteScalarAsync<int>(
+                sql, new { Prefix = prefix, Pattern = $"{prefix}-%" });
+
+            return maxSerial + 1;
+        }
+
         public async Task<List<ItemPriceMasterDto>> GetByItemAndDateAsync(int itemId, DateOnly date)
         {
             const string sql = @"
                 SELECT
                     sipm.Id, sipm.PriceCode,
                     sipm.ItemId, sipm.SalesSegmentId, sipm.PaymentTermsId,
-                    sipm.ExMillPrice AS ExMillRate, sipm.CurrencyId,
+                    sipm.ExMillRate, sipm.CurrencyId,
                     sipm.ValidFrom, sipm.ValidTo,
                     sipm.IsActive, sipm.IsDeleted,
                     sipm.CreatedBy, sipm.CreatedDate, sipm.CreatedByName, sipm.CreatedIP,
@@ -298,7 +317,7 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
                   AND sipm.IsActive = 1
                   AND sipm.ValidFrom <= @Date
                   AND sipm.ValidTo >= @Date
-                ORDER BY sipm.ExMillPrice ASC";
+                ORDER BY sipm.ExMillRate ASC";
 
             var list = (await _dbConnection.QueryAsync<ItemPriceMasterDto>(
                 sql, new { ItemId = itemId, Date = date })).ToList();
@@ -325,6 +344,7 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
                     {
                         item.ItemCode = itemData.ItemCode;
                         item.ItemName = itemData.ItemName;
+                        item.VariantName = itemData.ParentItemName;
                     }
                     if (currencyDict.TryGetValue(item.CurrencyId, out var currencyData))
                     {

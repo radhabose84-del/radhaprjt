@@ -5,7 +5,6 @@ namespace SalesManagement.Application.ItemPriceMaster.Commands.CreateItemPriceMa
 {
     public class CreateItemPriceMasterCommand : IRequest<ApiResponseDTO<int>>
     {
-        public string? PriceCode { get; set; }
         public int ItemId { get; set; }
         public int SalesSegmentId { get; set; }
         public int PaymentTermsId { get; set; }

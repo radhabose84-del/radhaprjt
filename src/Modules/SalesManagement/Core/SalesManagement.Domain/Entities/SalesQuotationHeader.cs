@@ -27,5 +27,8 @@ namespace SalesManagement.Domain.Entities
 
         // Child collection
         public ICollection<SalesQuotationDetail>? SalesQuotationDetails { get; set; }
+
+        // Reverse navigation from SalesOrderHeader
+        public ICollection<SalesOrderHeader>? SalesOrderHeaders { get; set; }
     }
 }

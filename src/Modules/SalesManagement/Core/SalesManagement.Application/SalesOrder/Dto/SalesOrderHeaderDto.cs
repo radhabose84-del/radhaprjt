@@ -6,12 +6,16 @@ namespace SalesManagement.Application.SalesOrder.Dto
         public string? SalesOrderNo { get; set; }
         public DateOnly OrderDate { get; set; }
 
+        // Quotation Reference
+        public int? SalesQuotationHeaderId { get; set; }
+
         // Customer & Unit Details
         public int SalesGroupId { get; set; }
         public string? SalesGroupName { get; set; }
         public int? SalesSegmentId { get; set; }
         public string? SegmentName { get; set; }
         public int EnquiryType { get; set; }
+        public string? EnquiryTypeName { get; set; }
         public int UnitId { get; set; }
         public string? UnitName { get; set; }
         public int PartyId { get; set; }
@@ -32,10 +36,13 @@ namespace SalesManagement.Application.SalesOrder.Dto
 
         // File Attachments
         public string? VisitNotesAttachment { get; set; }
+        public string? VisitNotesAttachmentPath { get; set; }
         public string? AgentPOAttachment { get; set; }
+        public string? AgentPOAttachmentPath { get; set; }
 
         // Dispatch Location
         public int DispatchLocationType { get; set; }
+        public string? DispatchLocationTypeName { get; set; }
         public int? DispatchDepotId { get; set; }
         public string? DispatchDepotName { get; set; }
         public int? DispatchUnitId { get; set; }
