@@ -36,10 +36,13 @@ namespace SalesManagement.Application.SalesOrder.Dto
 
         // File Attachments
         public string? VisitNotesAttachment { get; set; }
+        public string? VisitNotesAttachmentPath { get; set; }
         public string? AgentPOAttachment { get; set; }
+        public string? AgentPOAttachmentPath { get; set; }
 
         // Dispatch Location
         public int DispatchLocationType { get; set; }
+        public string? DispatchLocationTypeName { get; set; }
         public int? DispatchDepotId { get; set; }
         public string? DispatchDepotName { get; set; }
         public int? DispatchUnitId { get; set; }

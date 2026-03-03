@@ -21,6 +21,7 @@ namespace SalesManagement.Domain.Entities
         public ICollection<SalesOrderHeader>? SalesOrderHeadersAsFreightType { get; set; }
         public ICollection<SalesOrderHeader>? SalesOrderHeadersAsCountList { get; set; }
         public ICollection<SalesOrderHeader>? SalesOrderHeadersAsEnquiryType { get; set; }
+        public ICollection<SalesOrderHeader>? SalesOrderHeadersAsDispatchLocationType { get; set; }
         public ICollection<SalesOrderDetail>? SalesOrderDetailsAsLineItemStatus { get; set; }
 
         // Reverse navigation (LotMaster)

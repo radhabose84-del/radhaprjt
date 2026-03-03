@@ -9,6 +9,7 @@ using SalesManagement.Application.SalesOrder.Commands.DeleteSalesOrderDocument;
 using SalesManagement.Application.SalesOrder.Commands.UploadSalesOrderImage;
 using SalesManagement.Application.SalesOrder.Commands.DeleteSalesOrderImage;
 using SalesManagement.Application.SalesOrder.Queries.GetAllSalesOrder;
+using SalesManagement.Application.SalesOrder.Queries.GetSalesOrderAutoComplete;
 using SalesManagement.Application.SalesOrder.Queries.GetSalesOrderById;
 
 namespace SalesManagement.Presentation.Controllers
@@ -38,6 +39,18 @@ namespace SalesManagement.Presentation.Controllers
                 TotalCount = result.TotalCount,
                 PageNumber = result.PageNumber,
                 PageSize = result.PageSize
+            });
+        }
+
+        [HttpGet("by-name")]
+        public async Task<IActionResult> GetSalesOrderAutoCompleteAsync([FromQuery] string? term = null)
+        {
+            var result = await Mediator.Send(new GetSalesOrderAutoCompleteQuery(term));
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result
             });
         }
 
