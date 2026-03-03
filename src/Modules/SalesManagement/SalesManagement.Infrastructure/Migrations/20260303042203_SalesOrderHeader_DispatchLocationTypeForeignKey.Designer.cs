@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SalesManagement.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using SalesManagement.Infrastructure.Data;
 namespace SalesManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260303042203_SalesOrderHeader_DispatchLocationTypeForeignKey")]
+    partial class SalesOrderHeader_DispatchLocationTypeForeignKey
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1086,98 +1089,6 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.ToTable("OfficerSalesGroup", "Sales");
                 });
 
-            modelBuilder.Entity("SalesManagement.Domain.Entities.PackType", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("Id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int?>("ConesPerBag")
-                        .HasColumnType("int")
-                        .HasColumnName("ConesPerBag");
-
-                    b.Property<int>("CreatedBy")
-                        .HasColumnType("int")
-                        .HasColumnName("CreatedBy");
-
-                    b.Property<string>("CreatedByName")
-                        .HasColumnType("varchar(100)")
-                        .HasColumnName("CreatedByName");
-
-                    b.Property<DateTimeOffset?>("CreatedDate")
-                        .HasColumnType("datetimeoffset")
-                        .HasColumnName("CreatedDate");
-
-                    b.Property<string>("CreatedIP")
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("CreatedIP");
-
-                    b.Property<decimal>("GrossWeight")
-                        .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,2)")
-                        .HasColumnName("GrossWeight");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit")
-                        .HasColumnName("IsActive");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit")
-                        .HasColumnName("IsDeleted");
-
-                    b.Property<int?>("ModifiedBy")
-                        .HasColumnType("int")
-                        .HasColumnName("ModifiedBy");
-
-                    b.Property<string>("ModifiedByName")
-                        .HasColumnType("varchar(100)")
-                        .HasColumnName("ModifiedByName");
-
-                    b.Property<DateTimeOffset?>("ModifiedDate")
-                        .HasColumnType("datetimeoffset")
-                        .HasColumnName("ModifiedDate");
-
-                    b.Property<string>("ModifiedIP")
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("ModifiedIP");
-
-                    b.Property<decimal>("NetWeight")
-                        .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,2)")
-                        .HasColumnName("NetWeight");
-
-                    b.Property<string>("PackTypeCode")
-                        .IsRequired()
-                        .HasColumnType("varchar(20)")
-                        .HasColumnName("PackTypeCode");
-
-                    b.Property<string>("PackTypeName")
-                        .IsRequired()
-                        .HasColumnType("varchar(100)")
-                        .HasColumnName("PackTypeName");
-
-                    b.Property<bool>("ProductionAllowed")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(true)
-                        .HasColumnName("ProductionAllowed");
-
-                    b.Property<decimal>("TareWeight")
-                        .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,2)")
-                        .HasColumnName("TareWeight");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PackTypeCode")
-                        .IsUnique();
-
-                    b.ToTable("PackType", "Sales");
-                });
-
             modelBuilder.Entity("SalesManagement.Domain.Entities.SalesChannel", b =>
                 {
                     b.Property<int>("Id")
@@ -1610,7 +1521,7 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     b.Property<decimal?>("RequirementQty")
                         .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("decimal(18,6)");
 
                     b.HasKey("Id");
 
@@ -2161,12 +2072,12 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     b.Property<decimal>("Discount")
                         .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,2)")
+                        .HasColumnType("decimal(18,6)")
                         .HasColumnName("Discount");
 
                     b.Property<decimal>("ExMillRate")
                         .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,4)")
+                        .HasColumnType("decimal(18,6)")
                         .HasColumnName("ExMillRate");
 
                     b.Property<int>("HSNId")
@@ -2179,12 +2090,12 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     b.Property<decimal>("NetRate")
                         .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,4)")
+                        .HasColumnType("decimal(18,6)")
                         .HasColumnName("NetRate");
 
                     b.Property<decimal>("Quantity")
                         .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,2)")
+                        .HasColumnType("decimal(18,6)")
                         .HasColumnName("Quantity");
 
                     b.Property<int>("SalesQuotationHeaderId")
@@ -2193,17 +2104,17 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     b.Property<decimal>("TaxAmount")
                         .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,2)")
+                        .HasColumnType("decimal(18,6)")
                         .HasColumnName("TaxAmount");
 
                     b.Property<decimal>("TaxPercentage")
                         .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,2)")
+                        .HasColumnType("decimal(18,6)")
                         .HasColumnName("TaxPercentage");
 
                     b.Property<decimal>("TotalAmount")
                         .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,2)")
+                        .HasColumnType("decimal(18,6)")
                         .HasColumnName("TotalAmount");
 
                     b.HasKey("Id");
@@ -2256,12 +2167,12 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     b.Property<decimal>("FreightCharges")
                         .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,2)")
+                        .HasColumnType("decimal(18,6)")
                         .HasColumnName("FreightCharges");
 
                     b.Property<decimal>("GrandTotal")
                         .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,2)")
+                        .HasColumnType("decimal(18,6)")
                         .HasColumnName("GrandTotal");
 
                     b.Property<bool>("IsActive")
@@ -2290,12 +2201,12 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     b.Property<decimal>("NetTaxableAmount")
                         .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,2)")
+                        .HasColumnType("decimal(18,6)")
                         .HasColumnName("NetTaxableAmount");
 
                     b.Property<decimal>("OtherCharges")
                         .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,2)")
+                        .HasColumnType("decimal(18,6)")
                         .HasColumnName("OtherCharges");
 
                     b.Property<int>("PaymentTermId")
@@ -2316,17 +2227,17 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     b.Property<decimal>("TotalBasicAmount")
                         .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,2)")
+                        .HasColumnType("decimal(18,6)")
                         .HasColumnName("TotalBasicAmount");
 
                     b.Property<decimal>("TotalDiscount")
                         .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,2)")
+                        .HasColumnType("decimal(18,6)")
                         .HasColumnName("TotalDiscount");
 
                     b.Property<decimal>("TotalTax")
                         .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,2)")
+                        .HasColumnType("decimal(18,6)")
                         .HasColumnName("TotalTax");
 
                     b.Property<DateOnly>("ValidityDate")

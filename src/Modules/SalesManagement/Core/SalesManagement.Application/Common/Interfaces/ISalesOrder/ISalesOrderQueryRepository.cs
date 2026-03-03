@@ -6,6 +6,7 @@ namespace SalesManagement.Application.Common.Interfaces.ISalesOrder
     {
         Task<(List<SalesOrderHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm);
         Task<SalesOrderHeaderDto?> GetByIdAsync(int id);
+        Task<IReadOnlyList<SalesOrderLookupDto>> AutocompleteAsync(string term, CancellationToken ct);
         Task<bool> NotFoundAsync(int id);
         Task<bool> SalesGroupExistsAsync(int salesGroupId);
         Task<bool> SalesSegmentExistsAsync(int salesSegmentId);
