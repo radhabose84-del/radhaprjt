@@ -90,6 +90,7 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
                     {
                         item.ItemCode = itemData.ItemCode;
                         item.ItemName = itemData.ItemName;
+                        item.VariantName = itemData.ParentItemName;
                     }
                     if (currencyDict.TryGetValue(item.CurrencyId, out var currencyData))
                     {
@@ -133,6 +134,7 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
                 {
                     dto.ItemCode = itemData.ItemCode;
                     dto.ItemName = itemData.ItemName;
+                    dto.VariantName = itemData.ParentItemName;
                 }
 
                 var currencies = await _currencyLookup.GetByIdsAsync(new[] { dto.CurrencyId });
@@ -279,6 +281,23 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
             return false;
         }
 
+        public async Task<int> GetNextPriceCodeSerialAsync(string prefix)
+        {
+            const string sql = @"
+                SELECT ISNULL(MAX(
+                    CASE WHEN ISNUMERIC(RIGHT(PriceCode, LEN(PriceCode) - LEN(@Prefix) - 1)) = 1
+                         THEN CAST(RIGHT(PriceCode, LEN(PriceCode) - LEN(@Prefix) - 1) AS INT)
+                         ELSE 0
+                    END), 0)
+                FROM Sales.ItemPriceMaster
+                WHERE PriceCode LIKE @Pattern AND IsDeleted = 0";
+
+            var maxSerial = await _dbConnection.ExecuteScalarAsync<int>(
+                sql, new { Prefix = prefix, Pattern = $"{prefix}-%" });
+
+            return maxSerial + 1;
+        }
+
         public async Task<List<ItemPriceMasterDto>> GetByItemAndDateAsync(int itemId, DateOnly date)
         {
             const string sql = @"
@@ -325,6 +344,7 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
                     {
                         item.ItemCode = itemData.ItemCode;
                         item.ItemName = itemData.ItemName;
+                        item.VariantName = itemData.ParentItemName;
                     }
                     if (currencyDict.TryGetValue(item.CurrencyId, out var currencyData))
                     {

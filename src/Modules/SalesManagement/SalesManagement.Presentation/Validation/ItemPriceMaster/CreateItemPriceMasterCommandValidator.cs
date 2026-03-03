@@ -2,7 +2,6 @@
 using FluentValidation;
 using SalesManagement.Application.Common.Interfaces.IItemPriceMaster;
 using SalesManagement.Application.ItemPriceMaster.Commands.CreateItemPriceMaster;
-using SalesManagement.Presentation.Validation.Common;
 using Shared.Validation.Common;
 
 namespace SalesManagement.Presentation.Validation.ItemPriceMaster
@@ -13,12 +12,9 @@ namespace SalesManagement.Presentation.Validation.ItemPriceMaster
         private readonly IItemPriceMasterQueryRepository _queryRepository;
 
         public CreateItemPriceMasterCommandValidator(
-            MaxLengthProvider maxLengthProvider,
             IItemPriceMasterQueryRepository queryRepository)
         {
             _queryRepository = queryRepository;
-
-            var maxLengthPriceCode = maxLengthProvider.GetMaxLength<SalesManagement.Domain.Entities.ItemPriceMaster>("PriceCode") ?? 20;
 
             _validationRules = ValidationRuleLoader.LoadValidationRules();
             if (_validationRules == null || !_validationRules.Any())
@@ -31,13 +27,6 @@ namespace SalesManagement.Presentation.Validation.ItemPriceMaster
                 switch (rule.Rule)
                 {
                     case "NotEmpty":
-                        // PriceCode required
-                        RuleFor(x => x.PriceCode)
-                            .NotNull()
-                            .WithMessage($"{nameof(CreateItemPriceMasterCommand.PriceCode)} {rule.Error}")
-                            .NotEmpty()
-                            .WithMessage($"{nameof(CreateItemPriceMasterCommand.PriceCode)} {rule.Error}");
-
                         // ItemId required
                         RuleFor(x => x.ItemId)
                             .NotNull()
@@ -84,19 +73,6 @@ namespace SalesManagement.Presentation.Validation.ItemPriceMaster
                             .WithMessage("Valid To must be after Valid From.");
                         break;
 
-                    case "Alphanumeric":
-                        RuleFor(x => x.PriceCode)
-                            .Matches(rule.Pattern)
-                            .WithMessage($"{nameof(CreateItemPriceMasterCommand.PriceCode)} {rule.Error}")
-                            .When(x => !string.IsNullOrWhiteSpace(x.PriceCode));
-                        break;
-
-                    case "MaxLength":
-                        RuleFor(x => x.PriceCode)
-                            .MaximumLength(maxLengthPriceCode)
-                            .WithMessage($"{nameof(CreateItemPriceMasterCommand.PriceCode)} {rule.Error} {maxLengthPriceCode} characters.");
-                        break;
-
                     case "FKColumnDelete":
                         // ItemId FK exists
                         RuleFor(x => x.ItemId)
@@ -120,12 +96,6 @@ namespace SalesManagement.Presentation.Validation.ItemPriceMaster
                         break;
 
                     case "AlreadyExists":
-                        // PriceCode uniqueness
-                        RuleFor(x => x.PriceCode)
-                            .MustAsync(async (code, ct) => !await _queryRepository.AlreadyExistsAsync(code!))
-                            .WithMessage($"{nameof(CreateItemPriceMasterCommand.PriceCode)} {rule.Error}")
-                            .When(x => !string.IsNullOrWhiteSpace(x.PriceCode));
-
                         // Overlap check (same Item + Segment + PaymentTerms with overlapping dates)
                         RuleFor(x => x)
                             .MustAsync(async (cmd, ct) =>

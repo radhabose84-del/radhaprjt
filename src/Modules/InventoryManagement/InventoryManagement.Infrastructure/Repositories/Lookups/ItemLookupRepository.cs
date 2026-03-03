@@ -24,12 +24,15 @@ namespace InventoryManagement.Infrastructure.Repositories.Lookups
                 SELECT IM.Id,
                        IM.ItemCode,
                        IM.ItemName,
+                       IM.ParentItemId,
+                       PIM.ItemName AS ParentItemName,
                        IP.TariffNumber,
                        H.HSNCode,
                        ISNULL(H.GSTPercentage, 0) AS GSTPercentage,
                        IM.IsOnSpot,
                        ISNULL(IP.SourceOfItem, 0) AS SourceOfItem
                 FROM Inventory.ItemMaster IM
+                LEFT JOIN Inventory.ItemMaster PIM ON PIM.Id = IM.ParentItemId AND PIM.IsDeleted = 0
                 LEFT JOIN Inventory.ItemPurchase IP ON IP.ItemId = IM.Id
                 LEFT JOIN Inventory.HSNMaster H ON H.Id = IM.HSNId AND H.IsDeleted = 0
                 WHERE IM.Id IN @ItemIds AND IM.IsDeleted = 0;";
