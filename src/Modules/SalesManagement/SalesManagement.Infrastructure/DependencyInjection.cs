@@ -48,6 +48,14 @@ using SalesManagement.Application.Common.Interfaces.ISalesEnquiry;
 using SalesManagement.Infrastructure.Repositories.SalesEnquiry;
 using SalesManagement.Application.Common.Interfaces.ISalesQuotation;
 using SalesManagement.Infrastructure.Repositories.SalesQuotation;
+using SalesManagement.Application.Common.Interfaces.ICustomerVisit;
+using SalesManagement.Infrastructure.Repositories.CustomerVisit;
+using SalesManagement.Application.Common.Interfaces.ISalesOrder;
+using SalesManagement.Infrastructure.Repositories.SalesOrder;
+using SalesManagement.Application.Common.Interfaces.ILotMaster;
+using SalesManagement.Infrastructure.Repositories.LotMaster;
+using SalesManagement.Application.Common.Interfaces.IPackType;
+using SalesManagement.Infrastructure.Repositories.PackType;
 
 
 namespace SalesManagement.Infrastructure
@@ -204,6 +212,22 @@ namespace SalesManagement.Infrastructure
             // ── Sales Quotation Repositories ────────────────────────────
             services.AddScoped<ISalesQuotationCommandRepository, SalesQuotationCommandRepository>();
             services.AddScoped<ISalesQuotationQueryRepository, SalesQuotationQueryRepository>();
+
+            // ── Customer Visit Repositories ─────────────────────────────
+            services.AddScoped<ICustomerVisitCommandRepository, CustomerVisitCommandRepository>();
+            services.AddScoped<ICustomerVisitQueryRepository, CustomerVisitQueryRepository>();
+
+            // ── Sales Order Repositories ──────────────────────────────────
+            services.AddScoped<ISalesOrderCommandRepository, SalesOrderCommandRepository>();
+            services.AddScoped<ISalesOrderQueryRepository, SalesOrderQueryRepository>();
+
+            // ── Lot Master Repositories ───────────────────────────────────
+            services.AddScoped<ILotMasterCommandRepository, LotMasterCommandRepository>();
+            services.AddScoped<ILotMasterQueryRepository, LotMasterQueryRepository>();
+
+            // ── Pack Type Repositories ──────────────────────────────────────
+            services.AddScoped<IPackTypeCommandRepository, PackTypeCommandRepository>();
+            services.AddScoped<IPackTypeQueryRepository, PackTypeQueryRepository>();
 
             return services;
         }

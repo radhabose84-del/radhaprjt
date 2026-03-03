@@ -47,7 +47,7 @@ namespace FAM.Application.AssetCategories.Command.UpdateAssetCategories
             string errorMessage = isNameDuplicate && isSortOrderDuplicate
             ? "Both Category Name and Sort Order already exist."
             : isNameDuplicate
-            ? "AssetCategory with the same CategoryName already exists."
+            ? "Asset Category name already exists."
             : "AssetCategory with the same Sort Order already exists.";
 
             throw new ValidationException(errorMessage);

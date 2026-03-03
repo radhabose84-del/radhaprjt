@@ -46,11 +46,11 @@ namespace SalesManagement.Presentation.Validation.SalesLead
                             .NotEmpty()
                             .WithMessage($"{nameof(CreateSalesLeadCommand.MobileNumber)} {rule.Error}");
 
-                        RuleFor(x => x.MarketingPersonId)
+                        RuleFor(x => x.MarketingOfficerId)
                             .NotNull()
-                            .WithMessage($"{nameof(CreateSalesLeadCommand.MarketingPersonId)} {rule.Error}")
+                            .WithMessage($"{nameof(CreateSalesLeadCommand.MarketingOfficerId)} {rule.Error}")
                             .NotEmpty()
-                            .WithMessage($"{nameof(CreateSalesLeadCommand.MarketingPersonId)} {rule.Error}");
+                            .WithMessage($"{nameof(CreateSalesLeadCommand.MarketingOfficerId)} {rule.Error}");
                         break;
 
                     case "MaxLength":
@@ -124,11 +124,11 @@ namespace SalesManagement.Presentation.Validation.SalesLead
                             .WithMessage($"{nameof(CreateSalesLeadCommand.ItemId)} {rule.Error}")
                             .When(x => x.ItemId.HasValue && x.ItemId > 0);
 
-                        RuleFor(x => x.MarketingPersonId)
+                        RuleFor(x => x.MarketingOfficerId)
                             .MustAsync(async (id, ct) =>
-                                await _queryRepository.MarketingPersonExistsAsync(id))
-                            .WithMessage($"{nameof(CreateSalesLeadCommand.MarketingPersonId)} {rule.Error}")
-                            .When(x => x.MarketingPersonId > 0);
+                                await _queryRepository.MarketingOfficerExistsAsync(id))
+                            .WithMessage($"{nameof(CreateSalesLeadCommand.MarketingOfficerId)} {rule.Error}")
+                            .When(x => x.MarketingOfficerId > 0);
                         break;
 
                     default:

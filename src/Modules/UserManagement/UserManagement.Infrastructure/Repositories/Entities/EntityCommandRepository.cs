@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using UserManagement.Infrastructure.Data;
 using UserManagement.Domain.Entities;
 using UserManagement.Application.Common.Interfaces.IEntity;
+using UserManagement.Domain.Enums.Common;
 
 
 namespace UserManagement.Infrastructure.Repositories.Entities
@@ -87,6 +88,14 @@ public async Task<int> DeleteEntityAsync(int id, Entity entity)
     public async Task<bool> ExistsByCodeAsync(string entity)
     {
         return await _applicationDbContext.Entity.AnyAsync(c => c.EntityName == entity);
+    }
+
+    public async Task<Entity?> GetByNameAsync(string name)
+    {
+        return await _applicationDbContext.Entity
+            .FirstOrDefaultAsync(c =>
+                c.EntityName == name &&
+                c.IsDeleted == Enums.IsDelete.NotDeleted);
     }
 
     public async Task<bool> ExistsByNameupdateAsync(string name, int id)

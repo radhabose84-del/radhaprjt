@@ -13,5 +13,8 @@ namespace SalesManagement.Domain.Entities
         // Navigation properties
         public SalesOffice? SalesOffice { get; set; }
         public ICollection<OfficerSalesGroup>? OfficerSalesGroups { get; set; }
+
+        // Reverse navigation
+        public ICollection<SalesOrderHeader>? SalesOrderHeaders { get; set; }
     }
 }

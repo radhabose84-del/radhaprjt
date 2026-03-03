@@ -125,9 +125,9 @@ namespace FAM.Presentation.Controllers
         }
 
         [HttpGet("by-name")]
-        public async Task<IActionResult> GetLocation([FromQuery] string name)
+        public async Task<IActionResult> GetLocation([FromQuery] string? name)
         {
-            var result = await Mediator.Send(new GetLocationAutoCompleteQuery { SearchPattern = name });
+            var result = await Mediator.Send(new GetLocationAutoCompleteQuery { SearchPattern = name ?? string.Empty });
          
             return Ok(new
             {

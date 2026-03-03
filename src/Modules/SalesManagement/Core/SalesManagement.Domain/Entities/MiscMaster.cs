@@ -14,5 +14,17 @@ namespace SalesManagement.Domain.Entities
         // Reverse navigation
         public ICollection<DispatchAddressMapping>? DispatchAddressMappings { get; set; }
         public ICollection<SalesContact>? SalesContacts { get; set; }
+
+        // Reverse navigation (SalesOrder)
+        public ICollection<SalesOrderHeader>? SalesOrderHeadersAsDiscountPlan { get; set; }
+        public ICollection<SalesOrderHeader>? SalesOrderHeadersAsPaymentType { get; set; }
+        public ICollection<SalesOrderHeader>? SalesOrderHeadersAsFreightType { get; set; }
+        public ICollection<SalesOrderHeader>? SalesOrderHeadersAsCountList { get; set; }
+        public ICollection<SalesOrderHeader>? SalesOrderHeadersAsEnquiryType { get; set; }
+        public ICollection<SalesOrderDetail>? SalesOrderDetailsAsLineItemStatus { get; set; }
+
+        // Reverse navigation (LotMaster)
+        public ICollection<LotMaster>? LotMastersAsLotType { get; set; }
+        public ICollection<LotMaster>? LotMastersAsStatus { get; set; }
     }
 }

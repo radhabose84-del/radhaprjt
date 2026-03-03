@@ -4,7 +4,7 @@ namespace FAM.Application.Common.Interfaces.IAssetCategories
     {
          Task<int> CreateAsync(FAM.Domain.Entities.AssetCategories assetCategories);
          Task<bool> ExistsByCodeAsync(string code );
-         Task<bool> ExistsByNameAsync(string categoryName );
+         Task<bool> ExistsByNameAsync(string categoryName, int? excludeId);
          Task<int> GetMaxSortOrderAsync();
          Task<int> UpdateAsync(int Id,FAM.Domain.Entities.AssetCategories assetCategories);
          Task<(bool IsNameDuplicate, bool IsSortOrderDuplicate)> CheckForDuplicatesAsync(string name, int sortOrder, int excludeId);   

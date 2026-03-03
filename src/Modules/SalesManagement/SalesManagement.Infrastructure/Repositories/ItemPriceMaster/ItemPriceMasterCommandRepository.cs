@@ -32,7 +32,7 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
             existingEntity.ItemId = entity.ItemId;
             existingEntity.SalesSegmentId = entity.SalesSegmentId;
             existingEntity.PaymentTermsId = entity.PaymentTermsId;
-            existingEntity.ExMillPrice = entity.ExMillPrice;
+            existingEntity.ExMillRate = entity.ExMillRate;
             existingEntity.CurrencyId = entity.CurrencyId;
             existingEntity.ValidFrom = entity.ValidFrom;
             existingEntity.ValidTo = entity.ValidTo;

@@ -6,6 +6,7 @@ using SalesManagement.Application.ItemPriceMaster.Commands.UpdateItemPriceMaster
 using SalesManagement.Application.ItemPriceMaster.Commands.DeleteItemPriceMaster;
 using SalesManagement.Application.ItemPriceMaster.Queries.GetAllItemPriceMaster;
 using SalesManagement.Application.ItemPriceMaster.Queries.GetItemPriceMasterById;
+using SalesManagement.Application.ItemPriceMaster.Queries.GetItemPriceByItemAndDate;
 using SalesManagement.Application.ItemPriceMaster.Queries.GetItemPriceMasterAutoComplete;
 
 namespace SalesManagement.Presentation.Controllers
@@ -47,6 +48,25 @@ namespace SalesManagement.Presentation.Controllers
             {
                 StatusCode = StatusCodes.Status200OK,
                 data = result
+            });
+        }
+
+        [HttpGet("by-item-date")]
+        public async Task<IActionResult> GetItemPriceByItemAndDateAsync(
+            [FromQuery] int ItemId,
+            [FromQuery] DateOnly Date)
+        {
+            var result = await Mediator.Send(new GetItemPriceByItemAndDateQuery
+            {
+                ItemId = ItemId,
+                Date = Date
+            });
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result.Data,
+                TotalCount = result.TotalCount
             });
         }
 

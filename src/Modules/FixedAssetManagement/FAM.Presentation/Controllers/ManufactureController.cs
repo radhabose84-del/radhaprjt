@@ -114,10 +114,10 @@ namespace FAM.Presentation.Controllers
         }
              
         [HttpGet("by-name")]  
-        public async Task<IActionResult> GetManufacture([FromQuery] string name)
+        public async Task<IActionResult> GetManufacture([FromQuery] string? name)
         {          
-            var result = await Mediator.Send(new GetManufactureAutoCompleteQuery {SearchPattern = name}); // Pass `searchPattern` to the constructor
-          
+            var result = await Mediator.Send(new GetManufactureAutoCompleteQuery { SearchPattern = name ?? string.Empty });
+           
             return Ok(new
             {
                 StatusCode = StatusCodes.Status200OK,

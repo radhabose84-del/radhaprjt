@@ -163,8 +163,8 @@ namespace UserManagement.Presentation.Validation.Companies
 
                     case "Email":
                         RuleFor(x => x.Company.CompanyContact.Email)
-                        .EmailAddress()
-                        .WithMessage($"{nameof(UpdateCompanyCommand.Company.CompanyContact.Email)} {rule.Error}");
+                        .Matches(new System.Text.RegularExpressions.Regex(rule.Pattern))
+                        .WithMessage("Please enter a valid email address.");
                         break;
 
                     default:

@@ -59,7 +59,7 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .IsRequired(false);
 
             builder.Property(t => t.RequirementQty)
-                .HasColumnType("decimal(18,6)")
+                .HasColumnType("decimal(18,2)")
                 .IsRequired(false);
 
             builder.Property(t => t.ExpectedDate)
@@ -75,7 +75,8 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("int")
                 .IsRequired(false);
 
-            builder.Property(t => t.MarketingPersonId)
+            builder.Property(t => t.MarketingOfficerId)
+                .HasColumnName("MarketingOfficerId")
                 .HasColumnType("int")
                 .IsRequired();
 
@@ -108,7 +109,7 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             builder.HasIndex(t => t.PartyId)
                 .HasDatabaseName("IX_SalesLead_PartyId");
 
-            builder.HasIndex(t => t.MarketingPersonId)
+            builder.HasIndex(t => t.MarketingOfficerId)
                 .HasDatabaseName("IX_SalesLead_MarketingPersonId");
 
             builder.HasIndex(t => t.InteractionDate)
@@ -133,7 +134,13 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Cross-module FKs (PartyId, CityId, ItemId, MarketingPersonId) — no DB constraint
+            // Same-module FK: MarketingOfficerId → Sales.MarketingOfficer
+            builder.HasOne(t => t.MarketingOfficer)
+                .WithMany()
+                .HasForeignKey(t => t.MarketingOfficerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Cross-module FKs (PartyId, CityId, ItemId) — no DB constraint
         }
     }
 }

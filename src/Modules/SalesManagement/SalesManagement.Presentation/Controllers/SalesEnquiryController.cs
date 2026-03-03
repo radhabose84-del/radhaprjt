@@ -5,6 +5,7 @@ using SalesManagement.Application.SalesEnquiry.Commands.CreateSalesEnquiry;
 using SalesManagement.Application.SalesEnquiry.Commands.UpdateSalesEnquiry;
 using SalesManagement.Application.SalesEnquiry.Commands.DeleteSalesEnquiry;
 using SalesManagement.Application.SalesEnquiry.Queries.GetAllSalesEnquiry;
+using SalesManagement.Application.SalesEnquiry.Queries.GetSalesEnquiryAutoComplete;
 using SalesManagement.Application.SalesEnquiry.Queries.GetSalesEnquiryById;
 
 namespace SalesManagement.Presentation.Controllers
@@ -34,6 +35,17 @@ namespace SalesManagement.Presentation.Controllers
                 TotalCount = result.TotalCount,
                 PageNumber = result.PageNumber,
                 PageSize = result.PageSize
+            });
+        }
+
+        [HttpGet("by-name")]
+        public async Task<IActionResult> GetSalesEnquiryAutoCompleteAsync([FromQuery] string? term = null)
+        {
+            var result = await Mediator.Send(new GetSalesEnquiryAutoCompleteQuery(term));
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result
             });
         }
 

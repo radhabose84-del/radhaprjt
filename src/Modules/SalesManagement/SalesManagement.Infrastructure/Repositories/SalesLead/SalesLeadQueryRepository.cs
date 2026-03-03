@@ -14,20 +14,17 @@ namespace SalesManagement.Infrastructure.Repositories.SalesLead
         private readonly IPartyLookup _partyLookup;
         private readonly ICityLookup _cityLookup;
         private readonly IItemLookup _itemLookup;
-        private readonly IUserLookup _userLookup;
 
         public SalesLeadQueryRepository(
             IDbConnection dbConnection,
             IPartyLookup partyLookup,
             ICityLookup cityLookup,
-            IItemLookup itemLookup,
-            IUserLookup userLookup)
+            IItemLookup itemLookup)
         {
             _dbConnection = dbConnection;
             _partyLookup = partyLookup;
             _cityLookup = cityLookup;
             _itemLookup = itemLookup;
-            _userLookup = userLookup;
         }
 
         public async Task<(List<SalesLeadDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
@@ -47,13 +44,16 @@ namespace SalesManagement.Infrastructure.Repositories.SalesLead
                     sc.ContactName AS ExistingContactName,
                     sl.ItemId, sl.RequirementQty, sl.ExpectedDate, sl.Remarks,
                     sl.LeadSourceId, mm.Description AS LeadSourceName,
-                    sl.MarketingPersonId, sl.InteractionDate,
+                    sl.MarketingOfficerId,
+                    mo.EmployeeName AS MarketingOfficerName,
+                    sl.InteractionDate,
                     sl.IsActive, sl.IsDeleted,
                     sl.CreatedBy, sl.CreatedDate, sl.CreatedByName, sl.CreatedIP,
                     sl.ModifiedBy, sl.ModifiedDate, sl.ModifiedByName, sl.ModifiedIP
                 FROM Sales.SalesLead sl
                 LEFT JOIN Sales.SalesContact sc ON sl.ContactId = sc.Id AND sc.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster mm ON sl.LeadSourceId = mm.Id AND mm.IsDeleted = 0
+                LEFT JOIN Sales.MarketingOfficer mo ON sl.MarketingOfficerId = mo.Id AND mo.IsDeleted = 0
                 WHERE {whereClause}
                 ORDER BY sl.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
@@ -112,18 +112,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesLead
                         item.ItemName = itemDict.TryGetValue(item.ItemId!.Value, out var name) ? name : null;
                 }
 
-                // Cross-module: Marketing person names
-                var personIds = list
-                    .Select(x => x.MarketingPersonId)
-                    .Distinct();
-                var users = await _userLookup.GetByIdsAsync(personIds);
-                var userDict = users.ToDictionary(
-                    u => u.UserId,
-                    u => ($"{u.FirstName} {u.LastName}").Trim() is { Length: > 0 } fullName
-                        ? fullName
-                        : u.UserName ?? string.Empty);
-                foreach (var item in list)
-                    item.MarketingPersonName = userDict.TryGetValue(item.MarketingPersonId, out var uName) ? uName : null;
+                // MarketingOfficerName is populated via SQL JOIN — no cross-module lookup needed
             }
 
             return (list, totalCount);
@@ -137,13 +126,16 @@ namespace SalesManagement.Infrastructure.Repositories.SalesLead
                     sc.ContactName AS ExistingContactName,
                     sl.ItemId, sl.RequirementQty, sl.ExpectedDate, sl.Remarks,
                     sl.LeadSourceId, mm.Description AS LeadSourceName,
-                    sl.MarketingPersonId, sl.InteractionDate,
+                    sl.MarketingOfficerId,
+                    mo.EmployeeName AS MarketingOfficerName,
+                    sl.InteractionDate,
                     sl.IsActive, sl.IsDeleted,
                     sl.CreatedBy, sl.CreatedDate, sl.CreatedByName, sl.CreatedIP,
                     sl.ModifiedBy, sl.ModifiedDate, sl.ModifiedByName, sl.ModifiedIP
                 FROM Sales.SalesLead sl
                 LEFT JOIN Sales.SalesContact sc ON sl.ContactId = sc.Id AND sc.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster mm ON sl.LeadSourceId = mm.Id AND mm.IsDeleted = 0
+                LEFT JOIN Sales.MarketingOfficer mo ON sl.MarketingOfficerId = mo.Id AND mo.IsDeleted = 0
                 WHERE sl.Id = @Id AND sl.IsDeleted = 0";
 
             var dto = await _dbConnection.QueryFirstOrDefaultAsync<SalesLeadDto>(sql, new { Id = id });
@@ -168,12 +160,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesLead
                     dto.ItemName = items.FirstOrDefault()?.ItemName;
                 }
 
-                var user = await _userLookup.GetByIdAsync(dto.MarketingPersonId);
-                if (user != null)
-                {
-                    var fullName = ($"{user.FirstName} {user.LastName}").Trim();
-                    dto.MarketingPersonName = fullName.Length > 0 ? fullName : user.UserName;
-                }
+                // MarketingOfficerName is populated via SQL JOIN — no cross-module lookup needed
             }
 
             return dto;
@@ -262,10 +249,15 @@ namespace SalesManagement.Infrastructure.Repositories.SalesLead
             return items.Any();
         }
 
-        public async Task<bool> MarketingPersonExistsAsync(int userId)
+        public async Task<bool> MarketingOfficerExistsAsync(int marketingOfficerId)
         {
-            var user = await _userLookup.GetByIdAsync(userId);
-            return user != null;
+            const string sql = @"
+                SELECT COUNT(1)
+                FROM Sales.MarketingOfficer
+                WHERE Id = @Id AND IsActive = 1 AND IsDeleted = 0";
+
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = marketingOfficerId });
+            return count > 0;
         }
 
         public async Task<bool> MobileNumberExistsInSalesContactAsync(string mobileNumber)
