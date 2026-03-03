@@ -56,6 +56,8 @@ using SalesManagement.Application.Common.Interfaces.ILotMaster;
 using SalesManagement.Infrastructure.Repositories.LotMaster;
 using SalesManagement.Application.Common.Interfaces.IPackType;
 using SalesManagement.Infrastructure.Repositories.PackType;
+using SalesManagement.Application.Common.Interfaces.IProduction;
+using SalesManagement.Infrastructure.Repositories.Production;
 
 
 namespace SalesManagement.Infrastructure
@@ -228,6 +230,10 @@ namespace SalesManagement.Infrastructure
             // ── Pack Type Repositories ──────────────────────────────────────
             services.AddScoped<IPackTypeCommandRepository, PackTypeCommandRepository>();
             services.AddScoped<IPackTypeQueryRepository, PackTypeQueryRepository>();
+
+            // ── Pack Allocation Repositories ────────────────────────────────
+            services.AddScoped<IProductionCommandRepository, ProductionCommandRepository>();
+            services.AddScoped<IProductionQueryRepository, ProductionQueryRepository>();
 
             return services;
         }

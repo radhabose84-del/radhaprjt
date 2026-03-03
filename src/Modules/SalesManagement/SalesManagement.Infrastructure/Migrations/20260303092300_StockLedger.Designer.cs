@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SalesManagement.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using SalesManagement.Infrastructure.Data;
 namespace SalesManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260303092300_StockLedger")]
+    partial class StockLedger
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1178,7 +1181,7 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.ToTable("PackType", "Sales");
                 });
 
-            modelBuilder.Entity("SalesManagement.Domain.Entities.ProductionPackDetail", b =>
+            modelBuilder.Entity("SalesManagement.Domain.Entities.ProductionDetail", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1220,9 +1223,9 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("PackTypeId");
 
-                    b.Property<int>("ProductionPackHeaderId")
+                    b.Property<int>("ProductionHeaderId")
                         .HasColumnType("int")
-                        .HasColumnName("ProductionPackHeaderId");
+                        .HasColumnName("ProductionHeaderId");
 
                     b.Property<int>("QualityStatusId")
                         .HasColumnType("int")
@@ -1249,14 +1252,14 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     b.HasIndex("PackTypeId");
 
-                    b.HasIndex("ProductionPackHeaderId");
+                    b.HasIndex("ProductionHeaderId");
 
                     b.HasIndex("QualityStatusId");
 
-                    b.ToTable("ProductionPackDetail", "Production");
+                    b.ToTable("ProductionDetail", "Production");
                 });
 
-            modelBuilder.Entity("SalesManagement.Domain.Entities.ProductionPackHeader", b =>
+            modelBuilder.Entity("SalesManagement.Domain.Entities.ProductionHeader", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1309,10 +1312,10 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("date")
                         .HasColumnName("PackDate");
 
-                    b.Property<string>("PackNo")
+                    b.Property<string>("ProductionNo")
                         .IsRequired()
                         .HasColumnType("varchar(30)")
-                        .HasColumnName("PackNo");
+                        .HasColumnName("ProductionNo");
 
                     b.Property<string>("Remarks")
                         .HasColumnType("nvarchar(500)")
@@ -1343,14 +1346,14 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     b.HasIndex("PackDate");
 
-                    b.HasIndex("PackNo")
+                    b.HasIndex("ProductionNo")
                         .IsUnique();
 
                     b.HasIndex("StatusId");
 
                     b.HasIndex("WarehouseId");
 
-                    b.ToTable("ProductionPackHeader", "Production");
+                    b.ToTable("ProductionHeader", "Production");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.SalesChannel", b =>
@@ -2820,28 +2823,28 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("SalesGroup");
                 });
 
-            modelBuilder.Entity("SalesManagement.Domain.Entities.ProductionPackDetail", b =>
+            modelBuilder.Entity("SalesManagement.Domain.Entities.ProductionDetail", b =>
                 {
                     b.HasOne("SalesManagement.Domain.Entities.LotMaster", "LotMaster")
-                        .WithMany("ProductionPackDetails")
+                        .WithMany("ProductionDetails")
                         .HasForeignKey("LotId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("SalesManagement.Domain.Entities.PackType", "PackType")
-                        .WithMany("ProductionPackDetails")
+                        .WithMany("ProductionDetails")
                         .HasForeignKey("PackTypeId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("SalesManagement.Domain.Entities.ProductionPackHeader", "ProductionPackHeader")
-                        .WithMany("ProductionPackDetails")
-                        .HasForeignKey("ProductionPackHeaderId")
+                    b.HasOne("SalesManagement.Domain.Entities.ProductionHeader", "ProductionHeader")
+                        .WithMany("ProductionDetails")
+                        .HasForeignKey("ProductionHeaderId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "QualityStatusMisc")
-                        .WithMany("ProductionPackDetailsAsQualityStatus")
+                        .WithMany("ProductionDetailsAsQualityStatus")
                         .HasForeignKey("QualityStatusId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -2850,15 +2853,15 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     b.Navigation("PackType");
 
-                    b.Navigation("ProductionPackHeader");
+                    b.Navigation("ProductionHeader");
 
                     b.Navigation("QualityStatusMisc");
                 });
 
-            modelBuilder.Entity("SalesManagement.Domain.Entities.ProductionPackHeader", b =>
+            modelBuilder.Entity("SalesManagement.Domain.Entities.ProductionHeader", b =>
                 {
                     b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "StatusMisc")
-                        .WithMany("ProductionPackHeadersAsStatus")
+                        .WithMany("ProductionHeadersAsStatus")
                         .HasForeignKey("StatusId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -3103,7 +3106,7 @@ namespace SalesManagement.Infrastructure.Migrations
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.LotMaster", b =>
                 {
-                    b.Navigation("ProductionPackDetails");
+                    b.Navigation("ProductionDetails");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.MarketingOfficer", b =>
@@ -3119,9 +3122,9 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     b.Navigation("LotMastersAsStatus");
 
-                    b.Navigation("ProductionPackDetailsAsQualityStatus");
+                    b.Navigation("ProductionDetailsAsQualityStatus");
 
-                    b.Navigation("ProductionPackHeadersAsStatus");
+                    b.Navigation("ProductionHeadersAsStatus");
 
                     b.Navigation("SalesContacts");
 
@@ -3147,12 +3150,12 @@ namespace SalesManagement.Infrastructure.Migrations
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.PackType", b =>
                 {
-                    b.Navigation("ProductionPackDetails");
+                    b.Navigation("ProductionDetails");
                 });
 
-            modelBuilder.Entity("SalesManagement.Domain.Entities.ProductionPackHeader", b =>
+            modelBuilder.Entity("SalesManagement.Domain.Entities.ProductionHeader", b =>
                 {
-                    b.Navigation("ProductionPackDetails");
+                    b.Navigation("ProductionDetails");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.SalesChannel", b =>

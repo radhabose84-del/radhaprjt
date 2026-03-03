@@ -11,5 +11,8 @@ namespace SalesManagement.Domain.Entities
         public decimal GrossWeight { get; set; }
         public int? ConesPerBag { get; set; }
         public bool ProductionAllowed { get; set; } = true;
+
+        // Reverse navigation (Production)
+        public ICollection<ProductionPackDetail>? ProductionPackDetails { get; set; }
     }
 }

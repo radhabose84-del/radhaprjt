@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SalesManagement.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using SalesManagement.Infrastructure.Data;
 namespace SalesManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260303090245_PackAllocation")]
+    partial class PackAllocation
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1086,6 +1089,181 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.ToTable("OfficerSalesGroup", "Sales");
                 });
 
+            modelBuilder.Entity("SalesManagement.Domain.Entities.PackAllocationDetail", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BinId")
+                        .HasColumnType("int")
+                        .HasColumnName("BinId");
+
+                    b.Property<int>("EndPackNo")
+                        .HasColumnType("int")
+                        .HasColumnName("EndPackNo");
+
+                    b.Property<int>("ItemId")
+                        .HasColumnType("int")
+                        .HasColumnName("ItemId");
+
+                    b.Property<int>("ItemSno")
+                        .HasColumnType("int")
+                        .HasColumnName("ItemSno");
+
+                    b.Property<string>("LineRemarks")
+                        .HasColumnType("nvarchar(250)")
+                        .HasColumnName("LineRemarks");
+
+                    b.Property<int>("LotId")
+                        .HasColumnType("int")
+                        .HasColumnName("LotId");
+
+                    b.Property<decimal>("NetWeightPerPack")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,3)")
+                        .HasColumnName("NetWeightPerPack");
+
+                    b.Property<int>("PackAllocationHeaderId")
+                        .HasColumnType("int")
+                        .HasColumnName("PackAllocationHeaderId");
+
+                    b.Property<int>("PackTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("PackTypeId");
+
+                    b.Property<int>("QualityStatusId")
+                        .HasColumnType("int")
+                        .HasColumnName("QualityStatusId");
+
+                    b.Property<int>("StartPackNo")
+                        .HasColumnType("int")
+                        .HasColumnName("StartPackNo");
+
+                    b.Property<int>("TotalBags")
+                        .HasColumnType("int")
+                        .HasColumnName("TotalBags");
+
+                    b.Property<decimal>("TotalNetWeight")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,3)")
+                        .HasColumnName("TotalNetWeight");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BinId");
+
+                    b.HasIndex("LotId");
+
+                    b.HasIndex("PackAllocationHeaderId");
+
+                    b.HasIndex("PackTypeId");
+
+                    b.HasIndex("QualityStatusId");
+
+                    b.ToTable("PackAllocationDetail", "Sales");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.PackAllocationHeader", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<string>("PackAllocationNo")
+                        .IsRequired()
+                        .HasColumnType("varchar(30)")
+                        .HasColumnName("PackAllocationNo");
+
+                    b.Property<DateOnly>("PackDate")
+                        .HasColumnType("date")
+                        .HasColumnName("PackDate");
+
+                    b.Property<string>("Remarks")
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("Remarks");
+
+                    b.Property<int>("StatusId")
+                        .HasColumnType("int")
+                        .HasColumnName("StatusId");
+
+                    b.Property<int>("TotalBags")
+                        .HasColumnType("int")
+                        .HasColumnName("TotalBags");
+
+                    b.Property<decimal>("TotalNetWeight")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,3)")
+                        .HasColumnName("TotalNetWeight");
+
+                    b.Property<int>("UnitId")
+                        .HasColumnType("int")
+                        .HasColumnName("UnitId");
+
+                    b.Property<int>("WarehouseId")
+                        .HasColumnType("int")
+                        .HasColumnName("WarehouseId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PackAllocationNo")
+                        .IsUnique();
+
+                    b.HasIndex("PackDate");
+
+                    b.HasIndex("StatusId");
+
+                    b.HasIndex("WarehouseId");
+
+                    b.ToTable("PackAllocationHeader", "Sales");
+                });
+
             modelBuilder.Entity("SalesManagement.Domain.Entities.PackType", b =>
                 {
                     b.Property<int>("Id")
@@ -1176,181 +1354,6 @@ namespace SalesManagement.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("PackType", "Sales");
-                });
-
-            modelBuilder.Entity("SalesManagement.Domain.Entities.ProductionPackDetail", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("Id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("BinId")
-                        .HasColumnType("int")
-                        .HasColumnName("BinId");
-
-                    b.Property<int>("EndPackNo")
-                        .HasColumnType("int")
-                        .HasColumnName("EndPackNo");
-
-                    b.Property<int>("ItemId")
-                        .HasColumnType("int")
-                        .HasColumnName("ItemId");
-
-                    b.Property<int>("ItemSno")
-                        .HasColumnType("int")
-                        .HasColumnName("ItemSno");
-
-                    b.Property<string>("LineRemarks")
-                        .HasColumnType("nvarchar(250)")
-                        .HasColumnName("LineRemarks");
-
-                    b.Property<int>("LotId")
-                        .HasColumnType("int")
-                        .HasColumnName("LotId");
-
-                    b.Property<decimal>("NetWeightPerPack")
-                        .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,3)")
-                        .HasColumnName("NetWeightPerPack");
-
-                    b.Property<int>("PackTypeId")
-                        .HasColumnType("int")
-                        .HasColumnName("PackTypeId");
-
-                    b.Property<int>("ProductionPackHeaderId")
-                        .HasColumnType("int")
-                        .HasColumnName("ProductionPackHeaderId");
-
-                    b.Property<int>("QualityStatusId")
-                        .HasColumnType("int")
-                        .HasColumnName("QualityStatusId");
-
-                    b.Property<int>("StartPackNo")
-                        .HasColumnType("int")
-                        .HasColumnName("StartPackNo");
-
-                    b.Property<int>("TotalBags")
-                        .HasColumnType("int")
-                        .HasColumnName("TotalBags");
-
-                    b.Property<decimal>("TotalNetWeight")
-                        .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,3)")
-                        .HasColumnName("TotalNetWeight");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("BinId");
-
-                    b.HasIndex("LotId");
-
-                    b.HasIndex("PackTypeId");
-
-                    b.HasIndex("ProductionPackHeaderId");
-
-                    b.HasIndex("QualityStatusId");
-
-                    b.ToTable("ProductionPackDetail", "Production");
-                });
-
-            modelBuilder.Entity("SalesManagement.Domain.Entities.ProductionPackHeader", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("Id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("CreatedBy")
-                        .HasColumnType("int")
-                        .HasColumnName("CreatedBy");
-
-                    b.Property<string>("CreatedByName")
-                        .HasColumnType("varchar(100)")
-                        .HasColumnName("CreatedByName");
-
-                    b.Property<DateTimeOffset?>("CreatedDate")
-                        .HasColumnType("datetimeoffset")
-                        .HasColumnName("CreatedDate");
-
-                    b.Property<string>("CreatedIP")
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("CreatedIP");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit")
-                        .HasColumnName("IsActive");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit")
-                        .HasColumnName("IsDeleted");
-
-                    b.Property<int?>("ModifiedBy")
-                        .HasColumnType("int")
-                        .HasColumnName("ModifiedBy");
-
-                    b.Property<string>("ModifiedByName")
-                        .HasColumnType("varchar(100)")
-                        .HasColumnName("ModifiedByName");
-
-                    b.Property<DateTimeOffset?>("ModifiedDate")
-                        .HasColumnType("datetimeoffset")
-                        .HasColumnName("ModifiedDate");
-
-                    b.Property<string>("ModifiedIP")
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("ModifiedIP");
-
-                    b.Property<DateOnly>("PackDate")
-                        .HasColumnType("date")
-                        .HasColumnName("PackDate");
-
-                    b.Property<string>("PackNo")
-                        .IsRequired()
-                        .HasColumnType("varchar(30)")
-                        .HasColumnName("PackNo");
-
-                    b.Property<string>("Remarks")
-                        .HasColumnType("nvarchar(500)")
-                        .HasColumnName("Remarks");
-
-                    b.Property<int>("StatusId")
-                        .HasColumnType("int")
-                        .HasColumnName("StatusId");
-
-                    b.Property<int>("TotalBags")
-                        .HasColumnType("int")
-                        .HasColumnName("TotalBags");
-
-                    b.Property<decimal>("TotalNetWeight")
-                        .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,3)")
-                        .HasColumnName("TotalNetWeight");
-
-                    b.Property<int>("UnitId")
-                        .HasColumnType("int")
-                        .HasColumnName("UnitId");
-
-                    b.Property<int>("WarehouseId")
-                        .HasColumnType("int")
-                        .HasColumnName("WarehouseId");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PackDate");
-
-                    b.HasIndex("PackNo")
-                        .IsUnique();
-
-                    b.HasIndex("StatusId");
-
-                    b.HasIndex("WarehouseId");
-
-                    b.ToTable("ProductionPackHeader", "Production");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.SalesChannel", b =>
@@ -2820,45 +2823,45 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("SalesGroup");
                 });
 
-            modelBuilder.Entity("SalesManagement.Domain.Entities.ProductionPackDetail", b =>
+            modelBuilder.Entity("SalesManagement.Domain.Entities.PackAllocationDetail", b =>
                 {
                     b.HasOne("SalesManagement.Domain.Entities.LotMaster", "LotMaster")
-                        .WithMany("ProductionPackDetails")
+                        .WithMany("PackAllocationDetails")
                         .HasForeignKey("LotId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("SalesManagement.Domain.Entities.PackAllocationHeader", "PackAllocationHeader")
+                        .WithMany("PackAllocationDetails")
+                        .HasForeignKey("PackAllocationHeaderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("SalesManagement.Domain.Entities.PackType", "PackType")
-                        .WithMany("ProductionPackDetails")
+                        .WithMany("PackAllocationDetails")
                         .HasForeignKey("PackTypeId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("SalesManagement.Domain.Entities.ProductionPackHeader", "ProductionPackHeader")
-                        .WithMany("ProductionPackDetails")
-                        .HasForeignKey("ProductionPackHeaderId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "QualityStatusMisc")
-                        .WithMany("ProductionPackDetailsAsQualityStatus")
+                        .WithMany("PackAllocationDetailsAsQualityStatus")
                         .HasForeignKey("QualityStatusId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("LotMaster");
 
-                    b.Navigation("PackType");
+                    b.Navigation("PackAllocationHeader");
 
-                    b.Navigation("ProductionPackHeader");
+                    b.Navigation("PackType");
 
                     b.Navigation("QualityStatusMisc");
                 });
 
-            modelBuilder.Entity("SalesManagement.Domain.Entities.ProductionPackHeader", b =>
+            modelBuilder.Entity("SalesManagement.Domain.Entities.PackAllocationHeader", b =>
                 {
                     b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "StatusMisc")
-                        .WithMany("ProductionPackHeadersAsStatus")
+                        .WithMany("PackAllocationHeadersAsStatus")
                         .HasForeignKey("StatusId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -3103,7 +3106,7 @@ namespace SalesManagement.Infrastructure.Migrations
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.LotMaster", b =>
                 {
-                    b.Navigation("ProductionPackDetails");
+                    b.Navigation("PackAllocationDetails");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.MarketingOfficer", b =>
@@ -3119,9 +3122,9 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     b.Navigation("LotMastersAsStatus");
 
-                    b.Navigation("ProductionPackDetailsAsQualityStatus");
+                    b.Navigation("PackAllocationDetailsAsQualityStatus");
 
-                    b.Navigation("ProductionPackHeadersAsStatus");
+                    b.Navigation("PackAllocationHeadersAsStatus");
 
                     b.Navigation("SalesContacts");
 
@@ -3145,14 +3148,14 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("MiscMasters");
                 });
 
-            modelBuilder.Entity("SalesManagement.Domain.Entities.PackType", b =>
+            modelBuilder.Entity("SalesManagement.Domain.Entities.PackAllocationHeader", b =>
                 {
-                    b.Navigation("ProductionPackDetails");
+                    b.Navigation("PackAllocationDetails");
                 });
 
-            modelBuilder.Entity("SalesManagement.Domain.Entities.ProductionPackHeader", b =>
+            modelBuilder.Entity("SalesManagement.Domain.Entities.PackType", b =>
                 {
-                    b.Navigation("ProductionPackDetails");
+                    b.Navigation("PackAllocationDetails");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.SalesChannel", b =>
