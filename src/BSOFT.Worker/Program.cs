@@ -2,7 +2,6 @@
 using BackgroundService.Application;
 using BackgroundService.Application.Interfaces.Notification;
 using BackgroundService.Infrastructure;
-using BSOFT.Worker.BackgroundServices;
 using BSOFT.Worker.Configurations;
 using BSOFT.Worker.Services;
 using Serilog;
@@ -52,9 +51,6 @@ builder.Services.AddSingleton<IWorkerNotificationService, SignalRWorkerNotificat
 //    not the Worker). WorkerInAppNotifier uses IWorkerNotificationService (SignalR client) instead.
 //    Last registration wins in ASP.NET Core DI, so this override must come AFTER AddInfrastructureServices().
 builder.Services.AddScoped<IInAppNotifier, WorkerInAppNotifier>();
-
-// ── Outbox processor ─────────────────────────────────────────────────────────
-builder.Services.AddHostedService<OutboxProcessor>();
 
 // ── Build and run ─────────────────────────────────────────────────────────────
 var host = builder.Build();

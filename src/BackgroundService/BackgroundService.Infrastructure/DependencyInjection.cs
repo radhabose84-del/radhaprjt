@@ -68,7 +68,13 @@ namespace BackgroundService.Infrastructure
 {
     public static class DependencyInjection
     {
-        private static readonly string[] HangfireQueues = ["schedule_work_order_queue","forgot_password_queue","user_unlock_queue"];
+        private static readonly string[] HangfireQueues =
+        [
+            "schedule_work_order_queue",
+            "forgot_password_queue",
+            "user_unlock_queue",
+            "sql-outbox-queue",    // centralized SQL outbox processor (SqlOutboxProcessorJob)
+        ];
 
         public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration, IServiceCollection builder)
         {
@@ -396,7 +402,8 @@ namespace BackgroundService.Infrastructure
                 return database.GetCollection<OutboxMessage>(collectionName);
             });
             services.AddScoped<IFileStorageService, FileStorageService>();
-            services.AddScoped<IHangfireQuery, HangfireQueryRepository>();           
+            services.AddScoped<IHangfireQuery, HangfireQueryRepository>();
+            services.AddScoped<SqlOutboxProcessorJob>();
             return services;
         }
     }

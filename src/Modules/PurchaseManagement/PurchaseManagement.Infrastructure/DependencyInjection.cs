@@ -81,6 +81,7 @@ using PurchaseManagement.Infrastructure.Persistence;
 using PurchaseManagement.Application.Common.Interfaces.IOutbox;
 using PurchaseManagement.Infrastructure.Repositories.Outbox;
 using PurchaseManagement.Infrastructure.Services.Outbox;
+
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Purchase;
 using PurchaseManagement.Infrastructure.Repositories.Lookups;
@@ -330,12 +331,6 @@ namespace PurchaseManagement.Infrastructure
             services.AddScoped<IOutboxEventPublisher, OutboxEventPublisher>();
 
             services.AddScoped<IEventPublisher, EventPublisher>();
-
-            // Configure outbox options from appsettings
-            services.Configure<OutboxOptions>(configuration.GetSection(OutboxOptions.SectionName));
-
-            // Background service for publishing outbox messages
-            services.AddHostedService<OutboxPublisherBackgroundService>();
 
             return services;
         }

@@ -1,6 +1,8 @@
 using FluentValidation;
+using Hangfire;
 using MediatR;
 using BSOFT.Api.Configurations;
+using BSOFT.Api.Filters;
 using BSOFT.Api.Middleware;
 using Shared.Validation.Common;
 using Shared.Infrastructure.Caching;
@@ -106,6 +108,17 @@ app.UseCors("AllowAll");         // Must be after UseRouting, before UseAuthenti
 app.UseAuthentication();
 
 app.UseMiddleware<Shared.Infrastructure.Middleware.GlobalExceptionMiddleware>();
+
+// ✅ Hangfire dashboard — placed before TokenValidationMiddleware so Basic Auth
+//    handles /hangfire/** requests before the JWT check can block them.
+var hangfireUser = app.Configuration["HangfireServer:DashboardUser"] ?? "admin";
+var hangfirePass = app.Configuration["HangfireServer:DashboardPassword"] ?? "admin";
+app.UseHangfireDashboard("/hangfire", new DashboardOptions
+{
+    Authorization = [new HangfireAuthorizationFilter(hangfireUser, hangfirePass)],
+    DashboardTitle = "BSOFT Hangfire Dashboard"
+});
+
 app.UseMiddleware<TokenValidationMiddleware>();
 
 
