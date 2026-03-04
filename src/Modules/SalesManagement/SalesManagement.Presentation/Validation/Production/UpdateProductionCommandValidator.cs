@@ -1,6 +1,6 @@
 using FluentValidation;
-using SalesManagement.Application.Common.Interfaces.IProduction;
-using SalesManagement.Application.Production.Commands.UpdateProduction;
+using SalesManagement.Application.Common.Interfaces.IProductionPack;
+using SalesManagement.Application.ProductionPack.Commands.UpdateProduction;
 using SalesManagement.Presentation.Validation.Common;
 using Shared.Validation.Common;
 
@@ -47,13 +47,6 @@ namespace SalesManagement.Presentation.Validation.Production
                             .WithMessage($"UnitId {rule.Error}")
                             .NotEmpty()
                             .WithMessage($"UnitId {rule.Error}")
-                            .When(x => x.ProductionPackDetails != null);
-
-                        RuleFor(x => x.ProductionPackDetails!.StatusId)
-                            .NotNull()
-                            .WithMessage($"StatusId {rule.Error}")
-                            .NotEmpty()
-                            .WithMessage($"StatusId {rule.Error}")
                             .When(x => x.ProductionPackDetails != null);
 
                         RuleFor(x => x.ProductionPackDetails!.ProductionPackDetails)
@@ -155,12 +148,6 @@ namespace SalesManagement.Presentation.Validation.Production
                                 await _queryRepository.WarehouseExistsAsync(warehouseId))
                             .WithMessage($"WarehouseId {rule.Error}")
                             .When(x => x.ProductionPackDetails != null && x.ProductionPackDetails.WarehouseId > 0);
-
-                        RuleFor(x => x.ProductionPackDetails!.StatusId)
-                            .MustAsync(async (statusId, ct) =>
-                                await _queryRepository.StatusExistsAsync(statusId))
-                            .WithMessage($"StatusId {rule.Error}")
-                            .When(x => x.ProductionPackDetails != null && x.ProductionPackDetails.StatusId > 0);
 
                         // Detail-level FK validation
                         RuleForEach(x => x.ProductionPackDetails!.ProductionPackDetails)

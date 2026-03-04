@@ -56,8 +56,8 @@ using SalesManagement.Application.Common.Interfaces.ILotMaster;
 using SalesManagement.Infrastructure.Repositories.LotMaster;
 using SalesManagement.Application.Common.Interfaces.IPackType;
 using SalesManagement.Infrastructure.Repositories.PackType;
-using SalesManagement.Application.Common.Interfaces.IProduction;
-using SalesManagement.Infrastructure.Repositories.Production;
+using SalesManagement.Application.Common.Interfaces.IProductionPack;
+using SalesManagement.Infrastructure.Repositories.ProductionPack;
 using SalesManagement.Application.Common.Interfaces.IMovementTypeConfig;
 using SalesManagement.Infrastructure.Repositories.MovementTypeConfig;
 
@@ -240,7 +240,6 @@ namespace SalesManagement.Infrastructure
             // ── Movement Type Config Repositories ─────────────────────────────
             services.AddScoped<IMovementTypeConfigCommandRepository, MovementTypeConfigCommandRepository>();
             services.AddScoped<IMovementTypeConfigQueryRepository, MovementTypeConfigQueryRepository>();
-
             return services;
         }
     }
