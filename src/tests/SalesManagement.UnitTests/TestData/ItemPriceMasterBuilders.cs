@@ -21,7 +21,6 @@ namespace SalesManagement.UnitTests.TestData
         // ── Create Command ────────────────────────────────────────────────────
 
         public static CreateItemPriceMasterCommand ValidCreateCommand(
-            string? priceCode = "PC001",
             int itemId = 10,
             int salesSegmentId = 1,
             int paymentTermsId = 2,
@@ -31,7 +30,6 @@ namespace SalesManagement.UnitTests.TestData
             DateOnly? validTo = null) =>
             new CreateItemPriceMasterCommand
             {
-                PriceCode      = priceCode!,
                 ItemId         = itemId,
                 SalesSegmentId = salesSegmentId,
                 PaymentTermsId = paymentTermsId,

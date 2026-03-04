@@ -43,13 +43,6 @@ namespace SalesManagement.Presentation.Validation.SalesGroup
                             .WithMessage($"{nameof(UpdateSalesGroupCommand.SalesOfficeId)} {rule.Error}");
                         break;
 
-                    case "Alphanumeric":
-                        RuleFor(x => x.SalesGroupName)
-                            .Matches(rule.Pattern)
-                            .WithMessage($"{nameof(UpdateSalesGroupCommand.SalesGroupName)} {rule.Error}")
-                            .When(x => !string.IsNullOrWhiteSpace(x.SalesGroupName));
-                        break;
-
                     case "MaxLength":
                         RuleFor(x => x.SalesGroupName)
                             .MaximumLength(maxLengthName)

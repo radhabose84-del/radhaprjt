@@ -155,5 +155,24 @@ namespace SalesManagement.Infrastructure.Repositories.MarketingOfficer
             var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Ids = salesGroupIds });
             return count == salesGroupIds.Distinct().Count();
         }
+
+        public async Task<List<EmployeeLookupDto>> GetEmployeeLookupAsync(string oldUnitId, string? empNo)
+        {
+            var tvp = new DataTable();
+            tvp.Columns.Add("DivCode", typeof(string));
+            tvp.Columns.Add("EmpNo", typeof(string));
+            tvp.Rows.Add(oldUnitId, string.IsNullOrWhiteSpace(empNo) ? DBNull.Value : empNo);
+
+            var parameters = new DynamicParameters();
+            parameters.Add("@EmployeeKeys", tvp.AsTableValuedParameter("dbo.EmployeeKeyType"));
+
+            var result = await _dbConnection.QueryAsync<EmployeeLookupDto>(
+                "dbo.GetEmployeeByDivision_TVP_salesofficers",
+                parameters,
+                commandType: CommandType.StoredProcedure,
+                commandTimeout: 120);
+
+            return result.ToList();
+        }
     }
 }
