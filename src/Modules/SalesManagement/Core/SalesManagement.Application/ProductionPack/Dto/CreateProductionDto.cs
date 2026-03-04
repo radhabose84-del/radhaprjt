@@ -12,3 +12,4 @@ namespace SalesManagement.Application.ProductionPack.Dto
         public List<CreateProductionPackDetailDto>? ProductionPackDetails { get; set; }
     }
 }
+
