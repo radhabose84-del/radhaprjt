@@ -1,5 +1,5 @@
 using AutoMapper;
-using SalesManagement.Application.Production.Dto;
+using SalesManagement.Application.ProductionPack.Dto;
 using SalesManagement.Domain.Entities;
 using static SalesManagement.Domain.Common.BaseEntity;
 

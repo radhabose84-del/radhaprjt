@@ -15,5 +15,6 @@ namespace SalesManagement.Domain.Entities
         public int BinId { get; set; }
         public int TotalQty { get; set; }
         public decimal TotalValue { get; set; }
+        public int StatusId { get; set; }
     }
 }

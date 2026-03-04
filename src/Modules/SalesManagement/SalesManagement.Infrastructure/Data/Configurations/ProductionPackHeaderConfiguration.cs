@@ -48,11 +48,6 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("int")
                 .IsRequired();
 
-            builder.Property(t => t.StatusId)
-                .HasColumnName("StatusId")
-                .HasColumnType("int")
-                .IsRequired();
-
             builder.Property(t => t.TotalBags)
                 .HasColumnName("TotalBags")
                 .HasColumnType("int")
@@ -90,12 +85,6 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             builder.Property(t => t.ModifiedByName).HasColumnName("ModifiedByName").HasColumnType("varchar(100)");
             builder.Property(t => t.ModifiedIP).HasColumnName("ModifiedIP").HasColumnType("varchar(50)");
 
-            // Same-module FK constraints
-            builder.HasOne(t => t.StatusMisc)
-                .WithMany(m => m.ProductionPackHeadersAsStatus)
-                .HasForeignKey(t => t.StatusId)
-                .OnDelete(DeleteBehavior.Restrict);
-
             // Child collection — Header → Details
             builder.HasMany(t => t.ProductionPackDetails)
                 .WithOne(d => d.ProductionPackHeader)
@@ -106,7 +95,6 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             builder.HasIndex(t => t.PackNo).IsUnique();
             builder.HasIndex(t => t.WarehouseId);
             builder.HasIndex(t => t.PackDate);
-            builder.HasIndex(t => t.StatusId);
         }
     }
 }
