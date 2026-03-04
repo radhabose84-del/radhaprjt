@@ -1,10 +1,7 @@
-using SalesManagement.Domain.Common;
-
-namespace SalesManagement.Domain.Entities
+namespace SalesManagement.Application.ProductionPack.Dto
 {
-    public class ProductionPackHeader : BaseEntity
+    public class CreateProductionDto
     {
-        public string? PackNo { get; set; }
         public DateOnly PackDate { get; set; }
         public int UnitId { get; set; }
         public int WarehouseId { get; set; }
@@ -12,7 +9,6 @@ namespace SalesManagement.Domain.Entities
         public decimal TotalNetWeight { get; set; }
         public string? Remarks { get; set; }
 
-        // Child collection
-        public ICollection<ProductionPackDetail>? ProductionPackDetails { get; set; }
+        public List<CreateProductionPackDetailDto>? ProductionPackDetails { get; set; }
     }
 }

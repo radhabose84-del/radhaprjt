@@ -76,6 +76,11 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("decimal(18,3)")
                 .IsRequired();
 
+            builder.Property(t => t.StatusId)
+                .HasColumnName("StatusId")
+                .HasColumnType("int")
+                .IsRequired();
+
             // Unique composite index — prevents duplicate pack entries
             builder.HasIndex(t => new { t.DocType, t.DocNo, t.PackNo }).IsUnique();
 
