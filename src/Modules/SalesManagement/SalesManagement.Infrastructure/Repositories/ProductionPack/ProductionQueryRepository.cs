@@ -308,7 +308,7 @@ namespace SalesManagement.Infrastructure.Repositories.ProductionPack
         }
 
         public async Task<bool> PackOverlapExistsAsync(
-            int lotId, int packTypeId, int startPackNo, int endPackNo, int? excludeDetailId = null)
+            int lotId, int startPackNo, int endPackNo, int? excludeDetailId = null)
         {
             var excludeFilter = excludeDetailId.HasValue
                 ? "AND d.Id != @ExcludeDetailId"
@@ -329,7 +329,7 @@ namespace SalesManagement.Infrastructure.Repositories.ProductionPack
             return await _dbConnection.ExecuteScalarAsync<bool>(sql, new
             {
                 LotId = lotId,
-                PackTypeId = packTypeId,
+                //PackTypeId = packTypeId,
                 StartPackNo = startPackNo,
                 EndPackNo = endPackNo,
                 ExcludeDetailId = excludeDetailId

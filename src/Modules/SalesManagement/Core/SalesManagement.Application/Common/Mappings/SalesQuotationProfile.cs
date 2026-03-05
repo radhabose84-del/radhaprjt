@@ -1,4 +1,5 @@
 using AutoMapper;
+using SalesManagement.Application.SalesQuotation.Commands.CreateSalesQuotation;
 using SalesManagement.Application.SalesQuotation.Commands.UpdateSalesQuotation;
 using SalesManagement.Application.SalesQuotation.Dto;
 using SalesManagement.Domain.Entities;
@@ -10,8 +11,8 @@ namespace SalesManagement.Application.Common.Mappings
     {
         public SalesQuotationProfile()
         {
-            // Create: DTO → Header entity (with nested details)
-            CreateMap<CreateSalesQuotationDto, SalesQuotationHeader>()
+            // Create: Command → Header entity (with nested details)
+            CreateMap<CreateSalesQuotationCommand, SalesQuotationHeader>()
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
                 .ForMember(dest => dest.SalesQuotationDetails, opt => opt.MapFrom(src => src.SalesQuotationDetails))
                 .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => Status.Active))

@@ -181,9 +181,9 @@ namespace SalesManagement.Presentation.Validation.Production
                     detail.RuleFor(d => d)
                         .MustAsync(async (d, ct) =>
                             !await _queryRepository.PackOverlapExistsAsync(
-                                d.LotId, d.PackTypeId, d.StartPackNo, d.EndPackNo))
+                                d.LotId,d.StartPackNo, d.EndPackNo))
                         .WithMessage("Pack range overlaps with an existing allocation for the same Lot and PackType.")
-                        .When(d => d.LotId > 0 && d.PackTypeId > 0 && d.StartPackNo > 0 && d.EndPackNo > 0);
+                        .When(d => d.LotId > 0  && d.StartPackNo > 0 && d.EndPackNo > 0);
                 })
                 .When(x => x.ProductionPackDetails?.ProductionPackDetails != null && x.ProductionPackDetails.ProductionPackDetails.Any());
 

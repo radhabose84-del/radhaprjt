@@ -28,7 +28,7 @@ namespace SalesManagement.Application.SalesQuotation.Commands.CreateSalesQuotati
 
         public async Task<int> Handle(CreateSalesQuotationCommand request, CancellationToken cancellationToken)
         {
-            var entity = _mapper.Map<SalesQuotationHeader>(request.SalesQuotationDetails);
+            var entity = _mapper.Map<SalesQuotationHeader>(request);
 
             var newId = await _commandRepository.CreateAsync(entity);
 

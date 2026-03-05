@@ -30,90 +30,77 @@ namespace SalesManagement.Presentation.Validation.SalesQuotation
                 switch (rule.Rule)
                 {
                     case "NotEmpty":
+                        RuleFor(x => x.CustomerId)
+                            .NotNull()
+                            .WithMessage($"CustomerId {rule.Error}")
+                            .NotEmpty()
+                            .WithMessage($"CustomerId {rule.Error}");
+
+                        RuleFor(x => x.QuotationDate)
+                            .NotNull()
+                            .WithMessage($"QuotationDate {rule.Error}")
+                            .NotEmpty()
+                            .WithMessage($"QuotationDate {rule.Error}");
+
+                        RuleFor(x => x.ValidityDate)
+                            .NotNull()
+                            .WithMessage($"ValidityDate {rule.Error}")
+                            .NotEmpty()
+                            .WithMessage($"ValidityDate {rule.Error}");
+
+                        RuleFor(x => x.PaymentTermId)
+                            .NotNull()
+                            .WithMessage($"PaymentTermId {rule.Error}")
+                            .NotEmpty()
+                            .WithMessage($"PaymentTermId {rule.Error}");
+
+                        RuleFor(x => x.DeliveryTermId)
+                            .NotNull()
+                            .WithMessage($"DeliveryTermId {rule.Error}")
+                            .NotEmpty()
+                            .WithMessage($"DeliveryTermId {rule.Error}");
+
                         RuleFor(x => x.SalesQuotationDetails)
                             .NotNull()
+                            .WithMessage($"SalesQuotationDetails {rule.Error}")
+                            .NotEmpty()
                             .WithMessage($"SalesQuotationDetails {rule.Error}");
-
-                        RuleFor(x => x.SalesQuotationDetails!.CustomerId)
-                            .NotNull()
-                            .WithMessage($"CustomerId {rule.Error}")
-                            .NotEmpty()
-                            .WithMessage($"CustomerId {rule.Error}")
-                            .When(x => x.SalesQuotationDetails != null);
-
-                        RuleFor(x => x.SalesQuotationDetails!.QuotationDate)
-                            .NotNull()
-                            .WithMessage($"QuotationDate {rule.Error}")
-                            .NotEmpty()
-                            .WithMessage($"QuotationDate {rule.Error}")
-                            .When(x => x.SalesQuotationDetails != null);
-
-                        RuleFor(x => x.SalesQuotationDetails!.ValidityDate)
-                            .NotNull()
-                            .WithMessage($"ValidityDate {rule.Error}")
-                            .NotEmpty()
-                            .WithMessage($"ValidityDate {rule.Error}")
-                            .When(x => x.SalesQuotationDetails != null);
-
-                        RuleFor(x => x.SalesQuotationDetails!.PaymentTermId)
-                            .NotNull()
-                            .WithMessage($"PaymentTermId {rule.Error}")
-                            .NotEmpty()
-                            .WithMessage($"PaymentTermId {rule.Error}")
-                            .When(x => x.SalesQuotationDetails != null);
-
-                        RuleFor(x => x.SalesQuotationDetails!.DeliveryTermId)
-                            .NotNull()
-                            .WithMessage($"DeliveryTermId {rule.Error}")
-                            .NotEmpty()
-                            .WithMessage($"DeliveryTermId {rule.Error}")
-                            .When(x => x.SalesQuotationDetails != null);
-
-                        RuleFor(x => x.SalesQuotationDetails!.SalesQuotationDetails)
-                            .NotNull()
-                            .WithMessage($"SalesQuotationDetails {rule.Error}")
-                            .NotEmpty()
-                            .WithMessage($"SalesQuotationDetails {rule.Error}")
-                            .When(x => x.SalesQuotationDetails != null);
                         break;
 
                     case "MaxLength":
-                        RuleFor(x => x.SalesQuotationDetails!.Remarks)
+                        RuleFor(x => x.Remarks)
                             .MaximumLength(maxLengthRemarks)
                             .WithMessage($"Remarks {rule.Error} {maxLengthRemarks} characters.")
-                            .When(x => x.SalesQuotationDetails != null && !string.IsNullOrWhiteSpace(x.SalesQuotationDetails.Remarks));
+                            .When(x => !string.IsNullOrWhiteSpace(x.Remarks));
                         break;
 
                     case "DateCompare":
-                        RuleFor(x => x.SalesQuotationDetails!.ValidityDate)
-                            .GreaterThanOrEqualTo(x => x.SalesQuotationDetails!.QuotationDate)
-                            .WithMessage($"ValidityDate {rule.Error} QuotationDate.")
-                            .When(x => x.SalesQuotationDetails != null);
+                        RuleFor(x => x.ValidityDate)
+                            .GreaterThanOrEqualTo(x => x.QuotationDate)
+                            .WithMessage($"ValidityDate {rule.Error} QuotationDate.");
                         break;
 
                     case "GreaterThanOrEqualToZero":
-                        RuleFor(x => x.SalesQuotationDetails!.FreightCharges)
+                        RuleFor(x => x.FreightCharges)
                             .GreaterThanOrEqualTo(0)
-                            .WithMessage($"FreightCharges {rule.Error}")
-                            .When(x => x.SalesQuotationDetails != null);
+                            .WithMessage($"FreightCharges {rule.Error}");
 
-                        RuleFor(x => x.SalesQuotationDetails!.OtherCharges)
+                        RuleFor(x => x.OtherCharges)
                             .GreaterThanOrEqualTo(0)
-                            .WithMessage($"OtherCharges {rule.Error}")
-                            .When(x => x.SalesQuotationDetails != null);
+                            .WithMessage($"OtherCharges {rule.Error}");
 
-                        RuleForEach(x => x.SalesQuotationDetails!.SalesQuotationDetails)
+                        RuleForEach(x => x.SalesQuotationDetails)
                             .ChildRules(detail =>
                             {
                                 detail.RuleFor(d => d.Discount)
                                     .GreaterThanOrEqualTo(0)
                                     .WithMessage($"Discount {rule.Error}");
                             })
-                            .When(x => x.SalesQuotationDetails?.SalesQuotationDetails != null && x.SalesQuotationDetails.SalesQuotationDetails.Any());
+                            .When(x => x.SalesQuotationDetails != null && x.SalesQuotationDetails.Any());
                         break;
 
                     case "GreaterThan":
-                        RuleForEach(x => x.SalesQuotationDetails!.SalesQuotationDetails)
+                        RuleForEach(x => x.SalesQuotationDetails)
                             .ChildRules(detail =>
                             {
                                 detail.RuleFor(d => d.ItemId)
@@ -132,42 +119,42 @@ namespace SalesManagement.Presentation.Validation.SalesQuotation
                                     .GreaterThan(0)
                                     .WithMessage($"HSNId {rule.Error}");
                             })
-                            .When(x => x.SalesQuotationDetails?.SalesQuotationDetails != null && x.SalesQuotationDetails.SalesQuotationDetails.Any());
+                            .When(x => x.SalesQuotationDetails != null && x.SalesQuotationDetails.Any());
                         break;
 
                     case "FKColumnDelete":
-                        RuleFor(x => x.SalesQuotationDetails!.CustomerId)
+                        RuleFor(x => x.CustomerId)
                             .MustAsync(async (customerId, ct) =>
                                 await _queryRepository.CustomerExistsAsync(customerId))
                             .WithMessage($"CustomerId {rule.Error}")
-                            .When(x => x.SalesQuotationDetails != null && x.SalesQuotationDetails.CustomerId > 0);
+                            .When(x => x.CustomerId > 0);
 
-                        RuleFor(x => x.SalesQuotationDetails!.PaymentTermId)
+                        RuleFor(x => x.PaymentTermId)
                             .MustAsync(async (paymentTermId, ct) =>
                                 await _queryRepository.PaymentTermExistsAsync(paymentTermId))
                             .WithMessage($"PaymentTermId {rule.Error}")
-                            .When(x => x.SalesQuotationDetails != null && x.SalesQuotationDetails.PaymentTermId > 0);
+                            .When(x => x.PaymentTermId > 0);
 
-                        RuleFor(x => x.SalesQuotationDetails!.DeliveryTermId)
+                        RuleFor(x => x.DeliveryTermId)
                             .MustAsync(async (deliveryTermId, ct) =>
                                 await _queryRepository.DeliveryTermExistsAsync(deliveryTermId))
                             .WithMessage($"DeliveryTermId {rule.Error}")
-                            .When(x => x.SalesQuotationDetails != null && x.SalesQuotationDetails.DeliveryTermId > 0);
+                            .When(x => x.DeliveryTermId > 0);
 
-                        RuleFor(x => x.SalesQuotationDetails!.SalesEnquiryId)
+                        RuleFor(x => x.SalesEnquiryId)
                             .MustAsync(async (salesEnquiryId, ct) =>
                                 await _queryRepository.SalesEnquiryExistsAsync(salesEnquiryId!.Value))
                             .WithMessage($"SalesEnquiryId {rule.Error}")
-                            .When(x => x.SalesQuotationDetails != null && x.SalesQuotationDetails.SalesEnquiryId.HasValue && x.SalesQuotationDetails.SalesEnquiryId > 0);
+                            .When(x => x.SalesEnquiryId.HasValue && x.SalesEnquiryId > 0);
 
-                        RuleFor(x => x.SalesQuotationDetails!.ContactPersonId)
+                        RuleFor(x => x.ContactPersonId)
                             .MustAsync(async (contactPersonId, ct) =>
                                 await _queryRepository.ContactPersonExistsAsync(contactPersonId!.Value))
                             .WithMessage($"ContactPersonId {rule.Error}")
-                            .When(x => x.SalesQuotationDetails != null && x.SalesQuotationDetails.ContactPersonId.HasValue && x.SalesQuotationDetails.ContactPersonId > 0);
+                            .When(x => x.ContactPersonId.HasValue && x.ContactPersonId > 0);
 
                         // Detail-level FK validation
-                        RuleForEach(x => x.SalesQuotationDetails!.SalesQuotationDetails)
+                        RuleForEach(x => x.SalesQuotationDetails)
                             .ChildRules(detail =>
                             {
                                 detail.RuleFor(d => d.ItemId)
@@ -182,7 +169,7 @@ namespace SalesManagement.Presentation.Validation.SalesQuotation
                                     .WithMessage($"HSNId {rule.Error}")
                                     .When(d => d.HSNId > 0);
                             })
-                            .When(x => x.SalesQuotationDetails?.SalesQuotationDetails != null && x.SalesQuotationDetails.SalesQuotationDetails.Any());
+                            .When(x => x.SalesQuotationDetails != null && x.SalesQuotationDetails.Any());
                         break;
 
                     default:
