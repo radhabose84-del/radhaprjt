@@ -35,5 +35,8 @@ namespace SalesManagement.Domain.Entities
         public ICollection<MovementTypeConfig>? MovementTypeConfigsAsMovementCategory { get; set; }
         public ICollection<MovementTypeConfig>? MovementTypeConfigsAsFromStockType { get; set; }
         public ICollection<MovementTypeConfig>? MovementTypeConfigsAsToStockType { get; set; }
+
+        // Reverse navigation (DispatchAdvice)
+        public ICollection<DispatchAdviceHeader>? DispatchAdviceHeadersAsStatus { get; set; }
     }
 }
