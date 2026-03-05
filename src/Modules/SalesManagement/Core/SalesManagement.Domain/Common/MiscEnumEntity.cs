@@ -14,5 +14,9 @@ namespace SalesManagement.Domain.Common
         public const string QualityStatus = "QualityStatus";
         public const string Packed = "Packed";
 
+        // Dispatch Advice Status
+        public const string DispatchAdviceStatus = "DispatchAdviceStatus";
+        public const string DispatchStatusDraft = "Draft";
+
     }
 }

@@ -61,5 +61,8 @@ namespace SalesManagement.Domain.Entities
 
         // Child collection
         public ICollection<SalesOrderDetail>? SalesOrderDetails { get; set; }
+
+        // Reverse navigation (DispatchAdvice)
+        public ICollection<DispatchAdviceHeader>? DispatchAdviceHeaders { get; set; }
     }
 }
