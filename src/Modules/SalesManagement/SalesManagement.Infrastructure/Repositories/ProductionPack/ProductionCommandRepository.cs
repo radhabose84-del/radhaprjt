@@ -96,7 +96,7 @@ namespace SalesManagement.Infrastructure.Repositories.ProductionPack
                         {
                             UnitId = entity.UnitId,
                             DocType = "PROD",
-                            ProductionPackHeaderId = entity.Id,
+                            DocNo = entity.Id,
                             DetailDocNo = detail.Id,
                             DocDate = entity.PackDate,
                             ItemId = detail.ItemId,
@@ -143,7 +143,7 @@ namespace SalesManagement.Infrastructure.Repositories.ProductionPack
             if (existingEntity.ProductionPackDetails != null && existingEntity.ProductionPackDetails.Any())
             {
                 var oldStockLedger = await _applicationDbContext.StockLedger
-                    .Where(sl => sl.DocType == "PROD" && sl.ProductionPackHeaderId == existingEntity.Id)
+                    .Where(sl => sl.DocType == "PROD" && sl.DocNo == existingEntity.Id)
                     .ToListAsync();
 
                 if (oldStockLedger.Count > 0)
@@ -181,7 +181,7 @@ namespace SalesManagement.Infrastructure.Repositories.ProductionPack
                         {
                             UnitId = existingEntity.UnitId,
                             DocType = "PROD",
-                            ProductionPackHeaderId = existingEntity.Id,
+                            DocNo = existingEntity.Id,
                             DetailDocNo = detail.Id,
                             DocDate = existingEntity.PackDate,
                             ItemId = detail.ItemId,
