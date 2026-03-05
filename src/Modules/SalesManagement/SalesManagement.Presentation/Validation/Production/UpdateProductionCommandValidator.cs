@@ -202,7 +202,7 @@ namespace SalesManagement.Presentation.Validation.Production
                 })
                 .When(x => x.ProductionPackDetails?.ProductionPackDetails != null && x.ProductionPackDetails.ProductionPackDetails.Any());
 
-            // Custom validation: Pack range overlap check (exclude current detail Id)
+            // Custom validation: Pack range overlap check against DB (exclude current detail Id)
             RuleForEach(x => x.ProductionPackDetails!.ProductionPackDetails)
                 .ChildRules(detail =>
                 {
@@ -214,6 +214,31 @@ namespace SalesManagement.Presentation.Validation.Production
                         .When(d => d.LotId > 0 && d.PackTypeId > 0 && d.StartPackNo > 0 && d.EndPackNo > 0);
                 })
                 .When(x => x.ProductionPackDetails?.ProductionPackDetails != null && x.ProductionPackDetails.ProductionPackDetails.Any());
+
+            // Custom validation: Duplicate pack range within same request (same Lot + overlapping StartPackNo/EndPackNo)
+            RuleFor(x => x.ProductionPackDetails!.ProductionPackDetails)
+                .Must(details =>
+                {
+                    if (details == null || details.Count < 2)
+                        return true;
+
+                    for (int i = 0; i < details.Count; i++)
+                    {
+                        for (int j = i + 1; j < details.Count; j++)
+                        {
+                            if (details[i].LotId == details[j].LotId
+                                && details[i].LotId > 0
+                                && details[i].StartPackNo <= details[j].EndPackNo
+                                && details[i].EndPackNo >= details[j].StartPackNo)
+                            {
+                                return false;
+                            }
+                        }
+                    }
+                    return true;
+                })
+                .WithMessage("Duplicate or overlapping pack ranges found within the same Lot in detail lines.")
+                .When(x => x.ProductionPackDetails?.ProductionPackDetails != null && x.ProductionPackDetails.ProductionPackDetails.Count > 1);
         }
     }
 }

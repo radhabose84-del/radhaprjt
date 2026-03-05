@@ -53,6 +53,7 @@ namespace SalesManagement.Infrastructure.Data
         public DbSet<ProductionPackHeader> ProductionPackHeader { get; set; }
         public DbSet<ProductionPackDetail> ProductionPackDetail { get; set; }
         public DbSet<StockLedger> StockLedger { get; set; }
+        public DbSet<MovementTypeConfig> MovementTypeConfig { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -87,6 +88,7 @@ namespace SalesManagement.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new ProductionPackHeaderConfiguration());
             modelBuilder.ApplyConfiguration(new ProductionPackDetailConfiguration());
             modelBuilder.ApplyConfiguration(new StockLedgerConfiguration());
+            modelBuilder.ApplyConfiguration(new MovementTypeConfigConfiguration());
 
 
             // Global convention: set explicit precision/scale for all decimal properties

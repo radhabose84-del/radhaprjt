@@ -143,5 +143,16 @@ namespace SalesManagement.Infrastructure.Repositories.MiscMaster
 
             return await _dbConnection.QueryFirstOrDefaultAsync<SalesManagement.Domain.Entities.MiscMaster>(sql, new { MiscTypeCode = miscTypeCode, MiscTypeName = miscTypeName });
         }
+
+        public async Task<Domain.Entities.MiscMaster?> GetMiscMasterByCode(string code)
+        {
+            const string sql = @"
+                SELECT M.Id, M.Code, M.Description
+                FROM Sales.MiscMaster AS M
+                WHERE M.IsDeleted = 0 AND M.IsActive = 1
+                AND LOWER(M.Code) = LOWER(@Code);";
+
+            return await _dbConnection.QueryFirstOrDefaultAsync<SalesManagement.Domain.Entities.MiscMaster>(sql, new { Code = code });
+        }
     }
 }

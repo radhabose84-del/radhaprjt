@@ -11,6 +11,8 @@ namespace SalesManagement.Domain.Common
         public const string LineStatusClosed = "Closed";
         public const string SalesOrderVisitPath = "SalesOrderVisitPath";
         public const string AgentPoDocument = "AgentPoDocument";
-        
+        public const string QualityStatus = "QualityStatus";
+        public const string Packed = "Packed";
+
     }
 }

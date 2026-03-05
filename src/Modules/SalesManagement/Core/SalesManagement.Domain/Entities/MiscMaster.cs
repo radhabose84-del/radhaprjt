@@ -30,5 +30,10 @@ namespace SalesManagement.Domain.Entities
 
         // Reverse navigation (Production)
         public ICollection<ProductionPackDetail>? ProductionPackDetailsAsQualityStatus { get; set; }
+
+        // Reverse navigation (MovementTypeConfig)
+        public ICollection<MovementTypeConfig>? MovementTypeConfigsAsMovementCategory { get; set; }
+        public ICollection<MovementTypeConfig>? MovementTypeConfigsAsFromStockType { get; set; }
+        public ICollection<MovementTypeConfig>? MovementTypeConfigsAsToStockType { get; set; }
     }
 }

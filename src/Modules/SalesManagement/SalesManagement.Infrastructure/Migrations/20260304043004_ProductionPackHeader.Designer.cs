@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SalesManagement.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using SalesManagement.Infrastructure.Data;
 namespace SalesManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260304043004_ProductionPackHeader")]
+    partial class ProductionPackHeader
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -943,119 +946,6 @@ namespace SalesManagement.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("MiscTypeMaster", "Sales");
-                });
-
-            modelBuilder.Entity("SalesManagement.Domain.Entities.MovementTypeConfig", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("Id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("AccountModifier")
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("AccountModifier");
-
-                    b.Property<bool>("BatchRequiredFlag")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false)
-                        .HasColumnName("BatchRequiredFlag");
-
-                    b.Property<int>("CreatedBy")
-                        .HasColumnType("int")
-                        .HasColumnName("CreatedBy");
-
-                    b.Property<string>("CreatedByName")
-                        .HasColumnType("varchar(100)")
-                        .HasColumnName("CreatedByName");
-
-                    b.Property<DateTimeOffset?>("CreatedDate")
-                        .HasColumnType("datetimeoffset")
-                        .HasColumnName("CreatedDate");
-
-                    b.Property<string>("CreatedIP")
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("CreatedIP");
-
-                    b.Property<int>("FromStockTypeId")
-                        .HasColumnType("int")
-                        .HasColumnName("FromStockTypeId");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit")
-                        .HasColumnName("IsActive");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit")
-                        .HasColumnName("IsDeleted");
-
-                    b.Property<int?>("ModifiedBy")
-                        .HasColumnType("int")
-                        .HasColumnName("ModifiedBy");
-
-                    b.Property<string>("ModifiedByName")
-                        .HasColumnType("varchar(100)")
-                        .HasColumnName("ModifiedByName");
-
-                    b.Property<DateTimeOffset?>("ModifiedDate")
-                        .HasColumnType("datetimeoffset")
-                        .HasColumnName("ModifiedDate");
-
-                    b.Property<string>("ModifiedIP")
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("ModifiedIP");
-
-                    b.Property<int>("MovementCategoryId")
-                        .HasColumnType("int")
-                        .HasColumnName("MovementCategoryId");
-
-                    b.Property<string>("MovementCode")
-                        .IsRequired()
-                        .HasColumnType("varchar(4)")
-                        .HasColumnName("MovementCode");
-
-                    b.Property<string>("MovementDescription")
-                        .IsRequired()
-                        .HasColumnType("varchar(100)")
-                        .HasColumnName("MovementDescription");
-
-                    b.Property<bool>("NegativeStockAllowed")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false)
-                        .HasColumnName("NegativeStockAllowed");
-
-                    b.Property<bool>("QuantityUpdateFlag")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(true)
-                        .HasColumnName("QuantityUpdateFlag");
-
-                    b.Property<int>("ToStockTypeId")
-                        .HasColumnType("int")
-                        .HasColumnName("ToStockTypeId");
-
-                    b.Property<bool>("ValueUpdateFlag")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false)
-                        .HasColumnName("ValueUpdateFlag");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("FromStockTypeId");
-
-                    b.HasIndex("MovementCategoryId");
-
-                    b.HasIndex("MovementCode")
-                        .IsUnique();
-
-                    b.HasIndex("ToStockTypeId");
-
-                    b.ToTable("MovementTypeConfig", "Sales");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.OfficerAgent", b =>
@@ -2901,33 +2791,6 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("MiscTypeMaster");
                 });
 
-            modelBuilder.Entity("SalesManagement.Domain.Entities.MovementTypeConfig", b =>
-                {
-                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "FromStockType")
-                        .WithMany("MovementTypeConfigsAsFromStockType")
-                        .HasForeignKey("FromStockTypeId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "MovementCategory")
-                        .WithMany("MovementTypeConfigsAsMovementCategory")
-                        .HasForeignKey("MovementCategoryId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "ToStockType")
-                        .WithMany("MovementTypeConfigsAsToStockType")
-                        .HasForeignKey("ToStockTypeId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("FromStockType");
-
-                    b.Navigation("MovementCategory");
-
-                    b.Navigation("ToStockType");
-                });
-
             modelBuilder.Entity("SalesManagement.Domain.Entities.OfficerAgent", b =>
                 {
                     b.HasOne("SalesManagement.Domain.Entities.MarketingOfficer", "MarketingOfficer")
@@ -3245,12 +3108,6 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("LotMastersAsLotType");
 
                     b.Navigation("LotMastersAsStatus");
-
-                    b.Navigation("MovementTypeConfigsAsFromStockType");
-
-                    b.Navigation("MovementTypeConfigsAsMovementCategory");
-
-                    b.Navigation("MovementTypeConfigsAsToStockType");
 
                     b.Navigation("ProductionPackDetailsAsQualityStatus");
 

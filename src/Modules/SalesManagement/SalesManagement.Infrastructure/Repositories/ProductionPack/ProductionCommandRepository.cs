@@ -1,6 +1,8 @@
 using Contracts.Interfaces.Lookups.Warehouse;
 using Microsoft.EntityFrameworkCore;
+using SalesManagement.Application.Common.Interfaces.IMiscMaster;
 using SalesManagement.Application.Common.Interfaces.IProductionPack;
+using SalesManagement.Domain.Common;
 using SalesManagement.Domain.Entities;
 using SalesManagement.Infrastructure.Data;
 using static SalesManagement.Domain.Common.BaseEntity;
@@ -12,28 +14,31 @@ namespace SalesManagement.Infrastructure.Repositories.ProductionPack
         private readonly ApplicationDbContext _applicationDbContext;
         private readonly IWarehouseLookup _warehouseLookup;
         private readonly IBinLookup _binLookup;
+        private readonly IMiscMasterQueryRepository _miscMasterQueryRepository;
 
         public ProductionCommandRepository(
             ApplicationDbContext applicationDbContext,
             IWarehouseLookup warehouseLookup,
-            IBinLookup binLookup)
+            IBinLookup binLookup,
+            IMiscMasterQueryRepository miscMasterQueryRepository)
         {
             _applicationDbContext = applicationDbContext;
             _warehouseLookup = warehouseLookup;
             _binLookup = binLookup;
+            _miscMasterQueryRepository = miscMasterQueryRepository;
         }
 
         public async Task<string> GenerateNextPackNoAsync(int warehouseId, int binId, CancellationToken ct = default)
         {
             // Get first 3 characters of warehouse code
             var warehouses = await _warehouseLookup.GetByIdsAsync(new[] { warehouseId }, ct);
-            var whCode = warehouses.FirstOrDefault()?.WarehouseCode ?? "WH";
-            var whPrefix = whCode.Length >= 3 ? whCode[..3] : whCode;
+            var whName = warehouses.FirstOrDefault()?.WarehouseName ?? "WH";
+            var whPrefix = (whName.Length >= 3 ? whName[..3] : whName).ToUpper();
 
             // Get first 3 characters of bin code
             var bins = await _binLookup.GetByIdsAsync(new[] { binId }, ct);
-            var binCode = bins.FirstOrDefault()?.BinCode ?? "BIN";
-            var binPrefix = binCode.Length >= 3 ? binCode[..3] : binCode;
+            var binName = bins.FirstOrDefault()?.BinName ?? "BIN";
+            var binPrefix = (binName.Length >= 3 ? binName[..3] : binName).ToUpper();
 
             var prefix = $"PA-{whPrefix}-{binPrefix}-";
 
@@ -76,7 +81,12 @@ namespace SalesManagement.Infrastructure.Repositories.ProductionPack
                 await _applicationDbContext.ProductionPackDetail.AddRangeAsync(details);
                 await _applicationDbContext.SaveChangesAsync();
 
-                // Step 4: Generate StockLedger rows from each detail's pack range
+                // Step 4: Fetch "Packed" status from MiscMaster
+                var packedStatus = await _miscMasterQueryRepository.GetMiscMasterByCode(                    
+                     MiscEnumEntity.Packed);
+                var packedStatusId = packedStatus?.Id ?? 0;
+
+                // Step 5: Generate StockLedger rows from each detail's pack range
                 var stockLedgerEntries = new List<StockLedger>();
                 foreach (var detail in details)
                 {
@@ -96,7 +106,7 @@ namespace SalesManagement.Infrastructure.Repositories.ProductionPack
                             BinId = detail.BinId,
                             TotalQty = 1,
                             TotalValue = detail.NetWeightPerPack,
-                            StatusId = detail.QualityStatusId
+                            StatusId = packedStatusId
                         });
                     }
                 }
@@ -158,6 +168,11 @@ namespace SalesManagement.Infrastructure.Repositories.ProductionPack
                 await _applicationDbContext.ProductionPackDetail.AddRangeAsync(newDetails);
                 await _applicationDbContext.SaveChangesAsync();
 
+                // Fetch "Packed" status from MiscMaster
+                var packedStatus = await _miscMasterQueryRepository.GetMiscMasterByCode(
+                                        MiscEnumEntity.Packed);
+                var packedStatusId = packedStatus?.Id ?? 0;
+
                 // Generate new StockLedger rows
                 var stockLedgerEntries = new List<StockLedger>();
                 foreach (var detail in newDetails)
@@ -178,7 +193,7 @@ namespace SalesManagement.Infrastructure.Repositories.ProductionPack
                             BinId = detail.BinId,
                             TotalQty = 1,
                             TotalValue = detail.NetWeightPerPack,
-                            StatusId = detail.QualityStatusId
+                            StatusId = packedStatusId
                         });
                     }
                 }
