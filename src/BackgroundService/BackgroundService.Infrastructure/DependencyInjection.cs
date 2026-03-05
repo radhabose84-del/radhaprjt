@@ -68,14 +68,6 @@ namespace BackgroundService.Infrastructure
 {
     public static class DependencyInjection
     {
-        private static readonly string[] HangfireQueues =
-        [
-            "schedule_work_order_queue",
-            "forgot_password_queue",
-            "user_unlock_queue",
-            "sql-outbox-queue",    // centralized SQL outbox processor (SqlOutboxProcessorJob)
-        ];
-
         public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration, IServiceCollection builder)
         {
             // Register Dapper type handlers once so every Dapper query in this module
@@ -163,12 +155,9 @@ namespace BackgroundService.Infrastructure
             services.AddDbContext<NotificationDbContext>(options =>
                 options.UseSqlServer(NotificationConnectionString));
 
-            // Add the Hangfire server
-            services.AddHangfireServer(options =>
-            {
-                options.ServerName = configuration["HangfireServer:Server"];
-                options.Queues = HangfireQueues;
-            });
+            // NOTE: AddHangfireServer() is NOT called here.
+            // Only BSOFT.Worker registers a Hangfire server (in its Program.cs).
+            // BSOFT.Api uses Hangfire storage for the dashboard and job enqueueing only.
             // MassTransit consumers are only registered when no other module has already called
             // AddMassTransit() — in BSOFT.Api, business modules register MassTransit first, so
             // this block is intentionally skipped (consumers run in BSOFT.Worker).

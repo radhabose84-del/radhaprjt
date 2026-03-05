@@ -4,6 +4,7 @@ using BackgroundService.Application.Interfaces.Notification;
 using BackgroundService.Infrastructure;
 using BSOFT.Worker.Configurations;
 using BSOFT.Worker.Services;
+using Hangfire;
 using Serilog;
 
 var builder = Host.CreateApplicationBuilder(args);
@@ -42,6 +43,20 @@ builder.Services.AddApplicationServices();
 
 // ── Infrastructure layer: Hangfire + MassTransit + all repositories ───────────
 builder.Services.AddInfrastructureServices(builder.Configuration, builder.Services);
+
+// ── Hangfire server — BSOFT.Worker is the sole job executor ──────────────────
+//    BSOFT.Api only uses Hangfire for the dashboard + job enqueueing (no server there).
+builder.Services.AddHangfireServer(options =>
+{
+    options.ServerName = builder.Configuration["HangfireServer:Server"] ?? "BSOFT-Worker";
+    options.Queues = new[]
+    {
+        "schedule_work_order_queue",
+        "forgot_password_queue",
+        "user_unlock_queue",
+        "sql-outbox-queue",    // SqlOutboxProcessorJob — polls purchase/maintenance outbox tables
+    };
+});
 
 // ── SignalR client – pushes from Worker to the hub hosted in BSOFT.Api ────────
 builder.Services.AddSingleton<IWorkerNotificationService, SignalRWorkerNotificationService>();
