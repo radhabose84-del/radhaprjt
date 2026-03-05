@@ -147,11 +147,11 @@ namespace SalesManagement.Presentation.Validation.SalesQuotation
                             .WithMessage($"SalesEnquiryId {rule.Error}")
                             .When(x => x.SalesEnquiryId.HasValue && x.SalesEnquiryId > 0);
 
-                        RuleFor(x => x.ContactPersonId)
+                      /*   RuleFor(x => x.ContactPersonId)
                             .MustAsync(async (contactPersonId, ct) =>
                                 await _queryRepository.ContactPersonExistsAsync(contactPersonId!.Value))
                             .WithMessage($"ContactPersonId {rule.Error}")
-                            .When(x => x.ContactPersonId.HasValue && x.ContactPersonId > 0);
+                            .When(x => x.ContactPersonId.HasValue && x.ContactPersonId > 0); */
 
                         // Detail-level FK validation
                         RuleForEach(x => x.SalesQuotationDetails)
