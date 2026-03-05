@@ -1,22 +1,16 @@
 namespace SalesManagement.Application.OfficerAgent.Dto
 {
-    public class OfficerAgentDto
+    public class OfficerAgentItemDto
     {
-        public int Id { get; set; }
-
+        public int AssignmentId { get; set; }
         public int AgentId { get; set; }
-        public string? AgentName { get; set; }          // Populated via IPartyLookup
-        public string? AgentMobile { get; set; }        // Populated via IPartyLookup → Mobile
-
-        public int MarketingOfficerId { get; set; }
-        public string? OfficerName { get; set; }        // Populated via SQL JOIN Sales.MarketingOfficer
+        public string? AgentName { get; set; }
+        public string? AgentMobile { get; set; }
 
         public DateOnly ValidityFrom { get; set; }
         public DateOnly ValidityTo { get; set; }
-
         public bool IsActive { get; set; }
 
-        // Audit fields
         public int CreatedBy { get; set; }
         public DateTimeOffset? CreatedDate { get; set; }
         public string? CreatedByName { get; set; }

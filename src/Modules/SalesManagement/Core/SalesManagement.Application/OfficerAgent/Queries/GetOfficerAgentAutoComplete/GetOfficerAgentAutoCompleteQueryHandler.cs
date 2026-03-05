@@ -7,7 +7,7 @@ using SalesManagement.Domain.Events;
 namespace SalesManagement.Application.OfficerAgent.Queries.GetOfficerAgentAutoComplete
 {
     public class GetOfficerAgentAutoCompleteQueryHandler
-        : IRequestHandler<GetOfficerAgentAutoCompleteQuery, IReadOnlyList<OfficerAgentLookupDto>>
+        : IRequestHandler<GetOfficerAgentAutoCompleteQuery, IReadOnlyList<OfficerAgentGroupedDto>>
     {
         private readonly IOfficerAgentQueryRepository _queryRepository;
         private readonly IMapper _mapper;
@@ -23,20 +23,20 @@ namespace SalesManagement.Application.OfficerAgent.Queries.GetOfficerAgentAutoCo
             _mediator = mediator;
         }
 
-        public async Task<IReadOnlyList<OfficerAgentLookupDto>> Handle(
+        public async Task<IReadOnlyList<OfficerAgentGroupedDto>> Handle(
             GetOfficerAgentAutoCompleteQuery request,
             CancellationToken cancellationToken)
         {
             var result = await _queryRepository.AutocompleteAsync(
                 request.Term ?? string.Empty, cancellationToken);
 
-            var dtos = _mapper.Map<List<OfficerAgentLookupDto>>(result);
+            var dtos = _mapper.Map<List<OfficerAgentGroupedDto>>(result);
 
             var domainEvent = new AuditLogsDomainEvent(
                 actionDetail: "GetAll",
                 actionCode: "GetOfficerAgentAutoCompleteQuery",
                 actionName: dtos.Count.ToString(),
-                details: "OfficerAgent details was fetched.",
+                details: "OfficerAgent autocomplete details were fetched.",
                 module: "OfficerAgent"
             );
             await _mediator.Publish(domainEvent, cancellationToken);
