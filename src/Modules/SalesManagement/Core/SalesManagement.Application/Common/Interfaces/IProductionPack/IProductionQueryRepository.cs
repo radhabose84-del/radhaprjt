@@ -20,6 +20,6 @@ namespace SalesManagement.Application.Common.Interfaces.IProductionPack
         Task<bool> QualityStatusExistsAsync(int qualityStatusId);
 
         // Pack overlap validation
-        Task<bool> PackOverlapExistsAsync(int lotId, int packTypeId, int startPackNo, int endPackNo, int? excludeDetailId = null);
+        Task<bool> PackOverlapExistsAsync(int lotId,  int startPackNo, int endPackNo, int? excludeDetailId = null);
     }
 }
