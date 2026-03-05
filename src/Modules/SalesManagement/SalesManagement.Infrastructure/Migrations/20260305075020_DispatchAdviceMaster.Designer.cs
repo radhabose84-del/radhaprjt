@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SalesManagement.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using SalesManagement.Infrastructure.Data;
 namespace SalesManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260305075020_DispatchAdviceMaster")]
+    partial class DispatchAdviceMaster
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -2899,10 +2902,6 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("date")
                         .HasColumnName("DocDate");
 
-                    b.Property<int>("DocNo")
-                        .HasColumnType("int")
-                        .HasColumnName("DocNo");
-
                     b.Property<string>("DocType")
                         .IsRequired()
                         .HasColumnType("varchar(10)")
@@ -2919,6 +2918,10 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Property<int>("PackTypeId")
                         .HasColumnType("int")
                         .HasColumnName("PackTypeId");
+
+                    b.Property<int>("ProductionPackHeaderId")
+                        .HasColumnType("int")
+                        .HasColumnName("ProductionPackHeaderId");
 
                     b.Property<int>("StatusId")
                         .HasColumnType("int")
@@ -2949,7 +2952,7 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     b.HasIndex("WarehouseId");
 
-                    b.HasIndex("DocType", "DocNo", "PackNo")
+                    b.HasIndex("DocType", "ProductionPackHeaderId", "PackNo")
                         .IsUnique();
 
                     b.ToTable("StockLedger", "Sales");
