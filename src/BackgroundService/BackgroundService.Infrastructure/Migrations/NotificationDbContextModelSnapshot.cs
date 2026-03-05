@@ -1446,6 +1446,36 @@ namespace BackgroundService.Infrastructure.Migrations
                     b.ToTable("WorkflowType", "AppData");
                 });
 
+            modelBuilder.Entity("BackgroundService.Infrastructure.Persistence.InboxMessage", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("ConsumerName")
+                        .IsRequired()
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<Guid?>("CorrelationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("MessageId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("ProcessedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ConsumerName", "MessageId")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_InboxMessages_Consumer_MessageId");
+
+                    b.ToTable("InboxMessages", "AppNotification");
+                });
+
             modelBuilder.Entity("BackgroundService.Domain.Entities.Notification.MiscMaster", b =>
                 {
                     b.HasOne("BackgroundService.Domain.Entities.Notification.MiscTypeMaster", "MiscType")

@@ -2878,6 +2878,89 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.ToTable("SalesSegment", "Sales");
                 });
 
+            modelBuilder.Entity("SalesManagement.Domain.Entities.StoTypeMaster", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("varchar(250)")
+                        .HasColumnName("Description");
+
+                    b.Property<int>("GrMovementTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("GrMovementTypeId");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<int>("PgiMovementTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("PgiMovementTypeId");
+
+                    b.Property<string>("StoTypeCode")
+                        .IsRequired()
+                        .HasColumnType("varchar(10)")
+                        .HasColumnName("StoTypeCode");
+
+                    b.Property<string>("StoTypeName")
+                        .IsRequired()
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("StoTypeName");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GrMovementTypeId");
+
+                    b.HasIndex("PgiMovementTypeId");
+
+                    b.HasIndex("StoTypeCode")
+                        .IsUnique();
+
+                    b.ToTable("StoTypeMaster", "Sales");
+                });
+
             modelBuilder.Entity("SalesManagement.Domain.Entities.StockLedger", b =>
                 {
                     b.Property<int>("Id")
@@ -2911,6 +2994,10 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Property<int>("ItemId")
                         .HasColumnType("int")
                         .HasColumnName("ItemId");
+
+                    b.Property<int>("LotId")
+                        .HasColumnType("int")
+                        .HasColumnName("LotId");
 
                     b.Property<int>("PackNo")
                         .HasColumnType("int")
@@ -3441,6 +3528,25 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("SalesOrganisation");
                 });
 
+            modelBuilder.Entity("SalesManagement.Domain.Entities.StoTypeMaster", b =>
+                {
+                    b.HasOne("SalesManagement.Domain.Entities.MovementTypeConfig", "GrMovementType")
+                        .WithMany("StoTypeMastersAsGr")
+                        .HasForeignKey("GrMovementTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SalesManagement.Domain.Entities.MovementTypeConfig", "PgiMovementType")
+                        .WithMany("StoTypeMastersAsPgi")
+                        .HasForeignKey("PgiMovementTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("GrMovementType");
+
+                    b.Navigation("PgiMovementType");
+                });
+
             modelBuilder.Entity("SalesManagement.Domain.Entities.BusinessUnit", b =>
                 {
                     b.Navigation("SalesSegments");
@@ -3513,6 +3619,13 @@ namespace SalesManagement.Infrastructure.Migrations
             modelBuilder.Entity("SalesManagement.Domain.Entities.MiscTypeMaster", b =>
                 {
                     b.Navigation("MiscMasters");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.MovementTypeConfig", b =>
+                {
+                    b.Navigation("StoTypeMastersAsGr");
+
+                    b.Navigation("StoTypeMastersAsPgi");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.PackType", b =>

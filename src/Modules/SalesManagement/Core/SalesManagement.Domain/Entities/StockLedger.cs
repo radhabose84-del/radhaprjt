@@ -9,6 +9,7 @@ namespace SalesManagement.Domain.Entities
         public int DetailDocNo { get; set; }
         public DateOnly DocDate { get; set; }
         public int ItemId { get; set; }
+        public int LotId { get; set; }
         public int PackNo { get; set; }
         public int PackTypeId { get; set; }
         public int WarehouseId { get; set; }

@@ -81,6 +81,7 @@ using PurchaseManagement.Infrastructure.Persistence;
 using PurchaseManagement.Application.Common.Interfaces.IOutbox;
 using PurchaseManagement.Infrastructure.Repositories.Outbox;
 using PurchaseManagement.Infrastructure.Services.Outbox;
+
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Purchase;
 using PurchaseManagement.Infrastructure.Repositories.Lookups;
@@ -161,7 +162,7 @@ namespace PurchaseManagement.Infrastructure
             services.AddHttpContextAccessor();
             services.AddTransient<AuthTokenHandler>();
 
-             // Register the OutboxMessage collection
+            // Register the OutboxMessage collection
             services.AddScoped<IMongoCollection<OutboxMessage>>(sp =>
             {
                 var database = sp.GetRequiredService<IMongoDatabase>();
@@ -225,7 +226,7 @@ namespace PurchaseManagement.Infrastructure
             services.AddScoped<IServicePurchaseOrderQueryRepository, ServicePurchaseOrderQueryRepository>();
 
             services.AddScoped<IImportPOQueryRepository, ImportPOQueryRepository>();
-            services.AddScoped<IImportPOCommandRepository, ImportPOCommandRepository>();   
+            services.AddScoped<IImportPOCommandRepository, ImportPOCommandRepository>();
             services.AddScoped<IDutyMasterQueryRepository, DutyMasterQueryRepository>();
             services.AddScoped<IDutyMasterCommandRepository, DutyMasterCommandRepository>();
             services.AddScoped<IWorkflowLookup, WorkflowLookupRepository>();
@@ -269,19 +270,6 @@ namespace PurchaseManagement.Infrastructure
                     return h;
                 });
             services.AddHttpClient<IFrankfurterClient, FrankfurterClient>();
-
-            // ============= Stub gRPC clients (no gRPC needed) =============
-            services.AddScoped<Contracts.Interfaces.External.IUser.IUnitGrpcClient>(sp => null!);
-            services.AddScoped<Contracts.Interfaces.External.IUser.ICurrencyGrpcClient>(sp => null!);
-            services.AddScoped<Contracts.Interfaces.External.IUser.ICompanyGrpcClient>(sp => null!);
-            services.AddScoped<Contracts.Interfaces.External.IUser.IDepartmentAllGrpcClient>(sp => null!);
-            services.AddScoped<Contracts.Interfaces.External.IParty.IPartyGrpcClient>(sp => null!);
-            services.AddScoped<Contracts.Interfaces.External.IInvetoryManagement.IItemGrpcClient>(sp => null!);
-            services.AddScoped<Contracts.Interfaces.External.IInvetoryManagement.IUOMGrpcClient>(sp => null!);
-            services.AddScoped<Contracts.Interfaces.External.IWorkflow.IWorkflowGrpcClient>(sp => null!);
-            services.AddScoped<Contracts.Interfaces.External.IUser.IUsersAllGrpcClient>(sp => null!);
-            // ============= End stub clients =============
-
             services.AddScoped<IExchangeRateCommandRepository, ExchangeRateCommandRepository>();
             services.AddScoped<IExchangeRateQueryRepository, ExchangeRateQueryRepository>();
 
@@ -330,12 +318,6 @@ namespace PurchaseManagement.Infrastructure
             services.AddScoped<IOutboxEventPublisher, OutboxEventPublisher>();
 
             services.AddScoped<IEventPublisher, EventPublisher>();
-
-            // Configure outbox options from appsettings
-            services.Configure<OutboxOptions>(configuration.GetSection(OutboxOptions.SectionName));
-
-            // Background service for publishing outbox messages
-            services.AddHostedService<OutboxPublisherBackgroundService>();
 
             return services;
         }

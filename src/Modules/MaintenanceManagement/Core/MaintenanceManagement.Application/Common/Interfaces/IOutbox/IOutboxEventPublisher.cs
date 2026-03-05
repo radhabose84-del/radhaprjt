@@ -28,5 +28,23 @@ namespace MaintenanceManagement.Application.Common.Interfaces.IOutbox
             IEnumerable<TEvent> events,
             Guid correlationId,
             CancellationToken cancellationToken = default) where TEvent : class;
+
+        /// <summary>
+        /// Schedules an event WITHOUT saving — participates in caller's transaction.
+        /// Use this when outbox must be atomic with other domain operations.
+        /// Caller must call SaveChangesAsync() to persist.
+        /// </summary>
+        Task ScheduleWithoutSaveAsync<TEvent>(
+            TEvent @event,
+            Guid correlationId,
+            CancellationToken cancellationToken = default) where TEvent : class;
+
+        /// <summary>
+        /// Schedules multiple events WITHOUT saving — participates in caller's transaction.
+        /// </summary>
+        Task ScheduleBatchWithoutSaveAsync<TEvent>(
+            IEnumerable<TEvent> events,
+            Guid correlationId,
+            CancellationToken cancellationToken = default) where TEvent : class;
     }
 }

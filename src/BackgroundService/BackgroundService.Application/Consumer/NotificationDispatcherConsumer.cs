@@ -1,3 +1,4 @@
+using BackgroundService.Application.Interfaces.IInbox;
 using BackgroundService.Application.Interfaces.Notification;
 using Contracts.Events.Notifications;
 using Contracts.Events.Notifications.Email;
@@ -19,21 +20,33 @@ namespace BackgroundService.Application.Consumers
         private readonly INotificationResolverHandler _resolverHandler;
         private readonly IPublishEndpoint _publishEndpoint;
         private readonly ILogger<NotificationDispatcherConsumer> _logger;
+        private readonly IInboxRepository _inbox;
 
         public NotificationDispatcherConsumer(
             INotificationResolverHandler resolverHandler,
             IPublishEndpoint publishEndpoint,
-            ILogger<NotificationDispatcherConsumer> logger)
+            ILogger<NotificationDispatcherConsumer> logger,
+            IInboxRepository inbox)
         {
             _resolverHandler = resolverHandler;
             _publishEndpoint = publishEndpoint;
             _logger = logger;
+            _inbox = inbox;
         }
 
         public async Task Consume(ConsumeContext<NotificationCreatedEvent> context)
         {
-            
             var msg = context.Message;
+            var messageId = context.MessageId ?? Guid.NewGuid();
+            const string consumerName = nameof(NotificationDispatcherConsumer);
+
+            if (await _inbox.IsAlreadyProcessedAsync(consumerName, messageId, context.CancellationToken))
+            {
+                _logger.LogInformation(
+                    "Inbox dedup: duplicate skipped. Consumer={Consumer}, MessageId={MessageId}, CorrelationId={CorrelationId}",
+                    consumerName, messageId, msg.CorrelationId);
+                return;
+            }
 
             _logger.LogInformation(
                 "NotificationDispatcher received event. CorrelationId: {CorrelationId}, Module: {Module}, EventType: {EventType}",
@@ -107,6 +120,8 @@ namespace BackgroundService.Application.Consumers
                 _logger.LogInformation(
                     "NotificationDispatcher completed. CorrelationId: {CorrelationId}, Channels dispatched: {Count}",
                     msg.CorrelationId, dispatchTasks.Count);
+
+                await _inbox.MarkAsProcessedAsync(consumerName, messageId, msg.CorrelationId, context.CancellationToken);
             }
             catch (Exception ex)
             {

@@ -152,6 +152,18 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SalesManagement.UnitTests",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SalesManagement.IntegrationTests", "src\tests\SalesManagement.IntegrationTests\SalesManagement.IntegrationTests.csproj", "{6170E121-758B-43FC-9740-2C911338B195}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BackgroundService", "BackgroundService", "{DB2FB956-4A8E-411A-81DB-657A4B974D19}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BackgroundService.Domain", "src\BackgroundService\BackgroundService.Domain\BackgroundService.Domain.csproj", "{873906AA-B22C-4B1B-B9DD-C665818B7FD9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BackgroundService.Application", "src\BackgroundService\BackgroundService.Application\BackgroundService.Application.csproj", "{D43CAFDE-A9AE-47A8-92F4-EEE3C699CAEC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BackgroundService.Infrastructure", "src\BackgroundService\BackgroundService.Infrastructure\BackgroundService.Infrastructure.csproj", "{F15148CB-13FE-48EC-A210-F32F36033013}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BackgroundService.Presentation", "src\BackgroundService\BackgroundService.Presentation\BackgroundService.Presentation.csproj", "{7ADB3398-87C6-4E77-AC3D-439CF654785C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BSOFT.Worker", "src\BSOFT.Worker\BSOFT.Worker.csproj", "{57E150EB-4AE8-41E8-B797-435EA99541B2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -374,6 +386,26 @@ Global
 		{6170E121-758B-43FC-9740-2C911338B195}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6170E121-758B-43FC-9740-2C911338B195}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6170E121-758B-43FC-9740-2C911338B195}.Release|Any CPU.Build.0 = Release|Any CPU
+		{873906AA-B22C-4B1B-B9DD-C665818B7FD9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{873906AA-B22C-4B1B-B9DD-C665818B7FD9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{873906AA-B22C-4B1B-B9DD-C665818B7FD9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{873906AA-B22C-4B1B-B9DD-C665818B7FD9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D43CAFDE-A9AE-47A8-92F4-EEE3C699CAEC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D43CAFDE-A9AE-47A8-92F4-EEE3C699CAEC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D43CAFDE-A9AE-47A8-92F4-EEE3C699CAEC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D43CAFDE-A9AE-47A8-92F4-EEE3C699CAEC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F15148CB-13FE-48EC-A210-F32F36033013}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F15148CB-13FE-48EC-A210-F32F36033013}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F15148CB-13FE-48EC-A210-F32F36033013}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F15148CB-13FE-48EC-A210-F32F36033013}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7ADB3398-87C6-4E77-AC3D-439CF654785C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7ADB3398-87C6-4E77-AC3D-439CF654785C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7ADB3398-87C6-4E77-AC3D-439CF654785C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7ADB3398-87C6-4E77-AC3D-439CF654785C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{57E150EB-4AE8-41E8-B797-435EA99541B2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{57E150EB-4AE8-41E8-B797-435EA99541B2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{57E150EB-4AE8-41E8-B797-435EA99541B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{57E150EB-4AE8-41E8-B797-435EA99541B2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{797F6419-CC8D-46D7-AEB3-334FCBA111E0} = {20F0B297-DD7E-436B-A300-D487885AEA89}
@@ -446,6 +478,11 @@ Global
 		{64D09F85-7AA6-420E-B2A7-D79253998E18} = {20F0B297-DD7E-436B-A300-D487885AEA89}
 		{5D5784FF-90C8-49B0-8CDC-B094C2A35EA5} = {64D09F85-7AA6-420E-B2A7-D79253998E18}
 		{6170E121-758B-43FC-9740-2C911338B195} = {64D09F85-7AA6-420E-B2A7-D79253998E18}
+		{873906AA-B22C-4B1B-B9DD-C665818B7FD9} = {DB2FB956-4A8E-411A-81DB-657A4B974D19}
+		{D43CAFDE-A9AE-47A8-92F4-EEE3C699CAEC} = {DB2FB956-4A8E-411A-81DB-657A4B974D19}
+		{F15148CB-13FE-48EC-A210-F32F36033013} = {DB2FB956-4A8E-411A-81DB-657A4B974D19}
+		{7ADB3398-87C6-4E77-AC3D-439CF654785C} = {DB2FB956-4A8E-411A-81DB-657A4B974D19}
+		{57E150EB-4AE8-41E8-B797-435EA99541B2} = {20F0B297-DD7E-436B-A300-D487885AEA89}
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

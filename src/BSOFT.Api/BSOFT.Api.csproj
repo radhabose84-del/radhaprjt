@@ -84,6 +84,9 @@
     <ProjectReference Include="..\Modules\ProjectManagement\ProjectManagement.Module\ProjectManagement.Module.csproj" />
     <ProjectReference Include="..\Modules\ProjectManagement\ProjectManagement.Infrastructure\ProjectManagement.Infrastructure.csproj" />
 
+    <!-- ✅ Add BackgroundService module -->
+    <ProjectReference Include="..\BackgroundService\BackgroundService.Presentation\BackgroundService.Presentation.csproj" />
+
     <ProjectReference Include="..\Shared\Contracts\Contracts.csproj" />
     <ProjectReference Include="..\Shared\Shared.Infrastructure\Shared.Infrastructure.csproj" />
     <ProjectReference Include="..\Shared\Shared.Validation\Shared.Validation.csproj" />

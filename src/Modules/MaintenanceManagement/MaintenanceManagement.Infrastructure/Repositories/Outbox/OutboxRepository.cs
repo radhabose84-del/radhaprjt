@@ -25,6 +25,13 @@ namespace MaintenanceManagement.Infrastructure.Repositories.Outbox
             await _context.SaveChangesAsync(cancellationToken);
         }
 
+        public async Task AddWithoutSaveAsync(OutboxMessage message, CancellationToken cancellationToken = default)
+        {
+            await _context.OutboxMessages.AddAsync(message, cancellationToken);
+            // Do NOT save — caller is responsible for transaction management.
+            // This allows the outbox message to participate in the same transaction as other operations.
+        }
+
         public async Task<IReadOnlyList<OutboxMessage>> GetPendingMessagesAsync(
             int batchSize = 100,
             CancellationToken cancellationToken = default)

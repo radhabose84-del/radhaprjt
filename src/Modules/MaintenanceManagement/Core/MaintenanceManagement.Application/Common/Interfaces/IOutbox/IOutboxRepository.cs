@@ -9,9 +9,15 @@ namespace MaintenanceManagement.Application.Common.Interfaces.IOutbox
     public interface IOutboxRepository
     {
         /// <summary>
-        /// Adds an outbox message to the current DbContext (participates in transaction)
+        /// Adds an outbox message and saves immediately (standalone operation).
         /// </summary>
         Task AddAsync(OutboxMessage message, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Adds an outbox message WITHOUT saving — participates in caller's transaction.
+        /// Caller must call SaveChangesAsync() to persist.
+        /// </summary>
+        Task AddWithoutSaveAsync(OutboxMessage message, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Gets pending messages ready for publishing (Status=Pending, NextRetryAt <= now)

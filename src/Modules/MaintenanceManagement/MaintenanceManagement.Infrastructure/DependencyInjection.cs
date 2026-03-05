@@ -72,6 +72,7 @@ using MaintenanceManagement.Infrastructure.Repositories.Lookups.Maintenance;
 using MaintenanceManagement.Application.Common.Interfaces.IOutbox;
 using MaintenanceManagement.Infrastructure.Repositories.Outbox;
 using MaintenanceManagement.Infrastructure.Services.Outbox;
+
 using MassTransit;
 
 namespace MaintenanceManagement.Infrastructure
@@ -275,12 +276,6 @@ namespace MaintenanceManagement.Infrastructure
 
             // Outbox event publisher (saves events to outbox table)
             services.AddScoped<IOutboxEventPublisher, OutboxEventPublisher>();
-
-            // Configure outbox options from appsettings
-            services.Configure<OutboxOptions>(configuration.GetSection(OutboxOptions.SectionName));
-
-            // Background service for publishing outbox messages
-            services.AddHostedService<OutboxPublisherBackgroundService>();
 
             return services;
         }
