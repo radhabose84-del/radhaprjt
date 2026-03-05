@@ -1,17 +1,17 @@
 using BackgroundService.Application.Workflow.Common;
 using BackgroundService.Application.Workflow.Common.Interfaces;
 using BackgroundService.Domain.Common;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.StaticFiles;
+using Microsoft.Extensions.Hosting;
 
 namespace BackgroundService.Infrastructure
 {
     public class FileStorageService : IFileStorageService
     {
-        private readonly IWebHostEnvironment _env;
+        private readonly IHostEnvironment _env;
          private readonly IHttpContextAccessor _httpContext;
-         public FileStorageService(IWebHostEnvironment env, IHttpContextAccessor httpContext)
+         public FileStorageService(IHostEnvironment env, IHttpContextAccessor httpContext)
          {
              _env = env;
             _httpContext = httpContext;
@@ -30,7 +30,7 @@ namespace BackgroundService.Infrastructure
         public async Task<FileUploadResult> SaveFileAsync(IFormFile file, string subDirectory)
         {
              var fileName = Guid.NewGuid() + Path.GetExtension(file.FileName);
-              var folderPath = Path.Combine(_env.WebRootPath ?? Path.Combine(_env.ContentRootPath, MiscEnumEntity.wwwroot), subDirectory);
+              var folderPath = Path.Combine(Path.Combine(_env.ContentRootPath, MiscEnumEntity.wwwroot), subDirectory);
               Directory.CreateDirectory(folderPath);
         
               var relativePath = Path.Combine(subDirectory, fileName);

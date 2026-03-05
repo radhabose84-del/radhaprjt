@@ -40,29 +40,25 @@ namespace MaintenanceManagement.Infrastructure.Services.Outbox
             Guid correlationId,
             CancellationToken cancellationToken = default) where TEvent : class
         {
-            var eventType = typeof(TEvent);
-            var systemTimeZone = _timeZoneService.GetSystemTimeZone();
-            var currentTime = _timeZoneService.GetCurrentTime(systemTimeZone);
-
-            var outboxMessage = new OutboxMessage
-            {
-                CorrelationId = correlationId,
-                EventType = eventType.AssemblyQualifiedName ?? eventType.FullName ?? eventType.Name,
-                EventData = JsonSerializer.Serialize(@event, eventType, JsonOptions),
-                Status = OutboxMessageStatus.Pending,
-                CreatedAt = currentTime,
-                RetryCount = 0,
-                MaxRetries = 5,
-                NextRetryAt = null, // Ready for immediate processing
-                ModuleName = "MaintenanceManagement",
-                CreatedBy = _ipAddressService.GetUserId()
-            };
-
+            var outboxMessage = CreateOutboxMessage(@event, correlationId);
             await _outboxRepository.AddAsync(outboxMessage, cancellationToken);
 
             _logger.LogDebug(
-                "Scheduled outbox event. Type: {EventType}, CorrelationId: {CorrelationId}",
-                eventType.Name, correlationId);
+                "Scheduled outbox event (with save). Type: {EventType}, CorrelationId: {CorrelationId}",
+                typeof(TEvent).Name, correlationId);
+        }
+
+        public async Task ScheduleWithoutSaveAsync<TEvent>(
+            TEvent @event,
+            Guid correlationId,
+            CancellationToken cancellationToken = default) where TEvent : class
+        {
+            var outboxMessage = CreateOutboxMessage(@event, correlationId);
+            await _outboxRepository.AddWithoutSaveAsync(outboxMessage, cancellationToken);
+
+            _logger.LogDebug(
+                "Scheduled outbox event (without save - participates in caller's transaction). Type: {EventType}, CorrelationId: {CorrelationId}",
+                typeof(TEvent).Name, correlationId);
         }
 
         public async Task ScheduleBatchAsync<TEvent>(
@@ -74,6 +70,38 @@ namespace MaintenanceManagement.Infrastructure.Services.Outbox
             {
                 await ScheduleAsync(@event, correlationId, cancellationToken);
             }
+        }
+
+        public async Task ScheduleBatchWithoutSaveAsync<TEvent>(
+            IEnumerable<TEvent> events,
+            Guid correlationId,
+            CancellationToken cancellationToken = default) where TEvent : class
+        {
+            foreach (var @event in events)
+            {
+                await ScheduleWithoutSaveAsync(@event, correlationId, cancellationToken);
+            }
+        }
+
+        private OutboxMessage CreateOutboxMessage<TEvent>(TEvent @event, Guid correlationId) where TEvent : class
+        {
+            var eventType = typeof(TEvent);
+            var systemTimeZone = _timeZoneService.GetSystemTimeZone();
+            var currentTime = _timeZoneService.GetCurrentTime(systemTimeZone);
+
+            return new OutboxMessage
+            {
+                CorrelationId = correlationId,
+                EventType = eventType.AssemblyQualifiedName ?? eventType.FullName ?? eventType.Name,
+                EventData = JsonSerializer.Serialize(@event, eventType, JsonOptions),
+                Status = OutboxMessageStatus.Pending,
+                CreatedAt = currentTime,
+                RetryCount = 0,
+                MaxRetries = 5,
+                NextRetryAt = null,
+                ModuleName = "MaintenanceManagement",
+                CreatedBy = _ipAddressService.GetUserId()
+            };
         }
     }
 }

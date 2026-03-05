@@ -1,5 +1,6 @@
 using BackgroundService.Application.DTO;
 using BackgroundService.Application.Helpers;
+using BackgroundService.Application.Interfaces.IInbox;
 using BackgroundService.Application.Interfaces.Notification;
 using BackgroundService.Application.Notification.Common.Interfaces;
 using Contracts.Events.Notifications;
@@ -19,22 +20,35 @@ namespace BackgroundService.Application.Consumers
         private readonly ILogger<SendInAppNotificationConsumer> _logger;
         private readonly INotificationResolverHandler _resolverHandler;
         private readonly IIPAddressService _ipAddressService;
+        private readonly IInboxRepository _inbox;
 
         public SendInAppNotificationConsumer(
             IInAppNotifier notifier,
             ILogger<SendInAppNotificationConsumer> logger,
             INotificationResolverHandler resolverHandler,
-            IIPAddressService ipAddressService)
+            IIPAddressService ipAddressService,
+            IInboxRepository inbox)
         {
             _notifier = notifier;
             _logger = logger;
             _resolverHandler = resolverHandler;
             _ipAddressService = ipAddressService;
+            _inbox = inbox;
         }
 
         public async Task Consume(ConsumeContext<SendInAppNotificationInternalCommand> context)
         {
             var msg = context.Message;
+            var messageId = context.MessageId ?? Guid.NewGuid();
+            const string consumerName = nameof(SendInAppNotificationConsumer);
+
+            if (await _inbox.IsAlreadyProcessedAsync(consumerName, messageId, context.CancellationToken))
+            {
+                _logger.LogInformation(
+                    "Inbox dedup: duplicate skipped. Consumer={Consumer}, MessageId={MessageId}, CorrelationId={CorrelationId}",
+                    consumerName, messageId, msg.CorrelationId);
+                return;
+            }
 
             try
             {
@@ -101,6 +115,7 @@ namespace BackgroundService.Application.Consumers
                     {
                         CorrelationId = msg.CorrelationId
                     });
+                    await _inbox.MarkAsProcessedAsync(consumerName, messageId, msg.CorrelationId, context.CancellationToken);
                 }
                 else
                 {

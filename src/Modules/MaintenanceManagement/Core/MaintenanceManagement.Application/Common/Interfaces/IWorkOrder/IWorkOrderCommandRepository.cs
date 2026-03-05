@@ -5,6 +5,9 @@ namespace MaintenanceManagement.Application.Common.Interfaces.IWorkOrder
     {
 
         public Task<MaintenanceManagement.Domain.Entities.WorkOrderMaster.WorkOrder> CreateAsync(MaintenanceManagement.Domain.Entities.WorkOrderMaster.WorkOrder workOrder, int requestTypeId, CancellationToken cancellationToken);
+
+        /// <summary>Prepares DocNo + adds entity to DbContext without saving — participates in caller's transaction.</summary>
+        public Task<MaintenanceManagement.Domain.Entities.WorkOrderMaster.WorkOrder> CreateWithoutSaveAsync(MaintenanceManagement.Domain.Entities.WorkOrderMaster.WorkOrder workOrder, int requestTypeId, CancellationToken cancellationToken);
         public Task<bool> UpdateAsync(int workOrderId, MaintenanceManagement.Domain.Entities.WorkOrderMaster.WorkOrder workOrder);
         Task<int> CreateScheduleAsync(int workOrderId, MaintenanceManagement.Domain.Entities.WorkOrderMaster.WorkOrderSchedule workOrderSchedule);
         Task<bool> UpdateScheduleAsync(int workOrderId, MaintenanceManagement.Domain.Entities.WorkOrderMaster.WorkOrderSchedule workOrderSchedule);

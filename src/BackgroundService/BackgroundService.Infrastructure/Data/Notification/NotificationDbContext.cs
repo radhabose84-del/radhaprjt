@@ -4,6 +4,7 @@ using BackgroundService.Domain.Entities.Notification;
 using BackgroundService.Domain.Entities.Workflow;
 using BackgroundService.Infrastructure.Data.Notification.Configurations;
 using BackgroundService.Infrastructure.Data.Workflow.Configurations;
+using BackgroundService.Infrastructure.Persistence;
 using BackgroundService.Infrastructure.Persistence.Configurations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
@@ -44,6 +45,7 @@ namespace BackgroundService.Infrastructure.Data.Notification
         public DbSet<ApprovalDataField> ApprovalDataField { get; set; }
         public DbSet<NotificationTablePreset> NotificationTablePreset { get; set; }
         public DbSet<NotificationWhatsAppGroup> NotificationWhatsAppGroup { get; set; }
+        public DbSet<InboxMessage> InboxMessages { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -69,6 +71,7 @@ namespace BackgroundService.Infrastructure.Data.Notification
             modelBuilder.ApplyConfiguration(new ApprovalDataFieldConfiguration());
             modelBuilder.ApplyConfiguration(new NotificationTablePresetConfiguration());
             modelBuilder.ApplyConfiguration(new NotificationWhatsAppGroupConfiguration());
+            modelBuilder.ApplyConfiguration(new InboxMessageConfiguration());
         }
           public override int SaveChanges()
         {

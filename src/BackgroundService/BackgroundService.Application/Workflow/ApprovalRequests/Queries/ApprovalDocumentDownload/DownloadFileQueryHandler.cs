@@ -6,15 +6,15 @@ using BackgroundService.Application.Workflow.Common;
 using BackgroundService.Application.Workflow.Common.Interfaces;
 using BackgroundService.Domain.Common;
 using MediatR;
-using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 
 namespace BackgroundService.Application.Workflow.ApprovalRequests.Queries.ApprovalDocumentDownload
 {
     public class DownloadFileQueryHandler : IRequestHandler<DownloadFileQuery, DownloadFileResult>
     {
-        private readonly IWebHostEnvironment _env;
+        private readonly IHostEnvironment _env;
         private readonly IFileStorageService _fileStorageService;
-        public DownloadFileQueryHandler(IWebHostEnvironment env, IFileStorageService fileStorageService)
+        public DownloadFileQueryHandler(IHostEnvironment env, IFileStorageService fileStorageService)
         {
             _env = env;
             _fileStorageService = fileStorageService;
@@ -22,7 +22,7 @@ namespace BackgroundService.Application.Workflow.ApprovalRequests.Queries.Approv
         public async Task<DownloadFileResult> Handle(DownloadFileQuery request, CancellationToken cancellationToken)
         {
                 var fullPath = Path.Combine(
-                _env.WebRootPath ?? Path.Combine(_env.ContentRootPath, MiscEnumEntity.wwwroot),
+                Path.Combine(_env.ContentRootPath, MiscEnumEntity.wwwroot),
                 request.RelativePath
             );
 
