@@ -62,6 +62,8 @@ using SalesManagement.Application.Common.Interfaces.IMovementTypeConfig;
 using SalesManagement.Infrastructure.Repositories.MovementTypeConfig;
 using SalesManagement.Application.Common.Interfaces.IDispatchAdvice;
 using SalesManagement.Infrastructure.Repositories.DispatchAdvice;
+using SalesManagement.Application.Common.Interfaces.IStoTypeMaster;
+using SalesManagement.Infrastructure.Repositories.StoTypeMaster;
 
 
 namespace SalesManagement.Infrastructure
@@ -246,6 +248,10 @@ namespace SalesManagement.Infrastructure
             // ── Dispatch Advice Repositories ────────────────────────────────
             services.AddScoped<IDispatchAdviceCommandRepository, DispatchAdviceCommandRepository>();
             services.AddScoped<IDispatchAdviceQueryRepository, DispatchAdviceQueryRepository>();
+
+            // ── STO Type Master Repositories ────────────────────────────────
+            services.AddScoped<IStoTypeMasterCommandRepository, StoTypeMasterCommandRepository>();
+            services.AddScoped<IStoTypeMasterQueryRepository, StoTypeMasterQueryRepository>();
             return services;
         }
     }

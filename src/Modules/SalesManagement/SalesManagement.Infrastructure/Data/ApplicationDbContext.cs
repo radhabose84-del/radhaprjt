@@ -56,6 +56,7 @@ namespace SalesManagement.Infrastructure.Data
         public DbSet<MovementTypeConfig> MovementTypeConfig { get; set; }
         public DbSet<DispatchAdviceHeader> DispatchAdviceHeader { get; set; }
         public DbSet<DispatchAdviceDetail> DispatchAdviceDetail { get; set; }
+        public DbSet<StoTypeMaster> StoTypeMaster { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -93,6 +94,7 @@ namespace SalesManagement.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new MovementTypeConfigConfiguration());
             modelBuilder.ApplyConfiguration(new DispatchAdviceHeaderConfiguration());
             modelBuilder.ApplyConfiguration(new DispatchAdviceDetailConfiguration());
+            modelBuilder.ApplyConfiguration(new StoTypeMasterConfiguration());
 
 
             // Global convention: set explicit precision/scale for all decimal properties
