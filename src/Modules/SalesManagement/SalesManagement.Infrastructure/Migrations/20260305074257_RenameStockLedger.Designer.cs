@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SalesManagement.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using SalesManagement.Infrastructure.Data;
 namespace SalesManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260305074257_RenameStockLedger")]
+    partial class RenameStockLedger
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -488,180 +491,6 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasDatabaseName("IX_DispatchAddressMaster_Composite");
 
                     b.ToTable("DispatchAddressMaster", "Sales");
-                });
-
-            modelBuilder.Entity("SalesManagement.Domain.Entities.DispatchAdviceDetail", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("Id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("DispatchAdviceHeaderId")
-                        .HasColumnType("int")
-                        .HasColumnName("DispatchAdviceHeaderId");
-
-                    b.Property<decimal>("DispatchQty")
-                        .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,3)")
-                        .HasColumnName("DispatchQty");
-
-                    b.Property<int>("EndPackNo")
-                        .HasColumnType("int")
-                        .HasColumnName("EndPackNo");
-
-                    b.Property<int>("ItemId")
-                        .HasColumnType("int")
-                        .HasColumnName("ItemId");
-
-                    b.Property<int>("LotId")
-                        .HasColumnType("int")
-                        .HasColumnName("LotId");
-
-                    b.Property<int>("SalesOrderDetailId")
-                        .HasColumnType("int")
-                        .HasColumnName("SalesOrderDetailId");
-
-                    b.Property<int>("StartPackNo")
-                        .HasColumnType("int")
-                        .HasColumnName("StartPackNo");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DispatchAdviceHeaderId");
-
-                    b.HasIndex("ItemId");
-
-                    b.HasIndex("LotId");
-
-                    b.HasIndex("SalesOrderDetailId");
-
-                    b.ToTable("DispatchAdviceDetail", "Sales");
-                });
-
-            modelBuilder.Entity("SalesManagement.Domain.Entities.DispatchAdviceHeader", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("Id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("CreatedBy")
-                        .HasColumnType("int")
-                        .HasColumnName("CreatedBy");
-
-                    b.Property<string>("CreatedByName")
-                        .HasColumnType("varchar(100)")
-                        .HasColumnName("CreatedByName");
-
-                    b.Property<DateTimeOffset?>("CreatedDate")
-                        .HasColumnType("datetimeoffset")
-                        .HasColumnName("CreatedDate");
-
-                    b.Property<string>("CreatedIP")
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("CreatedIP");
-
-                    b.Property<int>("DispatchAddressId")
-                        .HasColumnType("int")
-                        .HasColumnName("DispatchAddressId");
-
-                    b.Property<DateOnly>("DispatchDate")
-                        .HasColumnType("date")
-                        .HasColumnName("DispatchDate");
-
-                    b.Property<string>("DispatchNo")
-                        .IsRequired()
-                        .HasColumnType("varchar(30)")
-                        .HasColumnName("DispatchNo");
-
-                    b.Property<string>("DriverName")
-                        .HasColumnType("varchar(100)")
-                        .HasColumnName("DriverName");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit")
-                        .HasColumnName("IsActive");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit")
-                        .HasColumnName("IsDeleted");
-
-                    b.Property<string>("LRNo")
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("LRNo");
-
-                    b.Property<int?>("ModifiedBy")
-                        .HasColumnType("int")
-                        .HasColumnName("ModifiedBy");
-
-                    b.Property<string>("ModifiedByName")
-                        .HasColumnType("varchar(100)")
-                        .HasColumnName("ModifiedByName");
-
-                    b.Property<DateTimeOffset?>("ModifiedDate")
-                        .HasColumnType("datetimeoffset")
-                        .HasColumnName("ModifiedDate");
-
-                    b.Property<string>("ModifiedIP")
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("ModifiedIP");
-
-                    b.Property<int>("PartyId")
-                        .HasColumnType("int")
-                        .HasColumnName("PartyId");
-
-                    b.Property<int>("SalesOrderId")
-                        .HasColumnType("int")
-                        .HasColumnName("SalesOrderId");
-
-                    b.Property<int>("StatusId")
-                        .HasColumnType("int")
-                        .HasColumnName("StatusId");
-
-                    b.Property<decimal>("TotDispatchedQty")
-                        .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,3)")
-                        .HasColumnName("TotDispatchedQty");
-
-                    b.Property<decimal>("TotOrderQty")
-                        .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,3)")
-                        .HasColumnName("TotOrderQty");
-
-                    b.Property<decimal>("TotPendingQty")
-                        .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,3)")
-                        .HasColumnName("TotPendingQty");
-
-                    b.Property<int?>("TransporterId")
-                        .HasColumnType("int")
-                        .HasColumnName("TransporterId");
-
-                    b.Property<string>("VehicleNo")
-                        .HasColumnType("varchar(20)")
-                        .HasColumnName("VehicleNo");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DispatchAddressId");
-
-                    b.HasIndex("DispatchDate");
-
-                    b.HasIndex("DispatchNo")
-                        .IsUnique();
-
-                    b.HasIndex("PartyId");
-
-                    b.HasIndex("SalesOrderId");
-
-                    b.HasIndex("StatusId");
-
-                    b.ToTable("DispatchAdviceHeader", "Sales");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.ItemPriceMaster", b =>
@@ -3023,60 +2852,6 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("UsageType");
                 });
 
-            modelBuilder.Entity("SalesManagement.Domain.Entities.DispatchAdviceDetail", b =>
-                {
-                    b.HasOne("SalesManagement.Domain.Entities.DispatchAdviceHeader", "DispatchAdviceHeader")
-                        .WithMany("DispatchAdviceDetails")
-                        .HasForeignKey("DispatchAdviceHeaderId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("SalesManagement.Domain.Entities.LotMaster", "LotMaster")
-                        .WithMany("DispatchAdviceDetails")
-                        .HasForeignKey("LotId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("SalesManagement.Domain.Entities.SalesOrderDetail", "SalesOrderDetail")
-                        .WithMany("DispatchAdviceDetails")
-                        .HasForeignKey("SalesOrderDetailId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("DispatchAdviceHeader");
-
-                    b.Navigation("LotMaster");
-
-                    b.Navigation("SalesOrderDetail");
-                });
-
-            modelBuilder.Entity("SalesManagement.Domain.Entities.DispatchAdviceHeader", b =>
-                {
-                    b.HasOne("SalesManagement.Domain.Entities.DispatchAddressMaster", "DispatchAddress")
-                        .WithMany("DispatchAdviceHeaders")
-                        .HasForeignKey("DispatchAddressId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("SalesManagement.Domain.Entities.SalesOrderHeader", "SalesOrderHeader")
-                        .WithMany("DispatchAdviceHeaders")
-                        .HasForeignKey("SalesOrderId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "StatusMisc")
-                        .WithMany("DispatchAdviceHeadersAsStatus")
-                        .HasForeignKey("StatusId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("DispatchAddress");
-
-                    b.Navigation("SalesOrderHeader");
-
-                    b.Navigation("StatusMisc");
-                });
-
             modelBuilder.Entity("SalesManagement.Domain.Entities.ItemPriceMaster", b =>
                 {
                     b.HasOne("SalesManagement.Domain.Entities.SalesSegment", "SalesSegment")
@@ -3454,19 +3229,10 @@ namespace SalesManagement.Infrastructure.Migrations
             modelBuilder.Entity("SalesManagement.Domain.Entities.DispatchAddressMaster", b =>
                 {
                     b.Navigation("DispatchAddressMappings");
-
-                    b.Navigation("DispatchAdviceHeaders");
-                });
-
-            modelBuilder.Entity("SalesManagement.Domain.Entities.DispatchAdviceHeader", b =>
-                {
-                    b.Navigation("DispatchAdviceDetails");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.LotMaster", b =>
                 {
-                    b.Navigation("DispatchAdviceDetails");
-
                     b.Navigation("ProductionPackDetails");
                 });
 
@@ -3478,8 +3244,6 @@ namespace SalesManagement.Infrastructure.Migrations
             modelBuilder.Entity("SalesManagement.Domain.Entities.MiscMaster", b =>
                 {
                     b.Navigation("DispatchAddressMappings");
-
-                    b.Navigation("DispatchAdviceHeadersAsStatus");
 
                     b.Navigation("LotMastersAsLotType");
 
@@ -3549,15 +3313,8 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("SalesGroups");
                 });
 
-            modelBuilder.Entity("SalesManagement.Domain.Entities.SalesOrderDetail", b =>
-                {
-                    b.Navigation("DispatchAdviceDetails");
-                });
-
             modelBuilder.Entity("SalesManagement.Domain.Entities.SalesOrderHeader", b =>
                 {
-                    b.Navigation("DispatchAdviceHeaders");
-
                     b.Navigation("SalesOrderDetails");
                 });
 
