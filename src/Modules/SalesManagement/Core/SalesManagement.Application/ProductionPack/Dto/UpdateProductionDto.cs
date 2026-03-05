@@ -4,7 +4,6 @@ namespace SalesManagement.Application.ProductionPack.Dto
     {
         public int Id { get; set; }
         public DateOnly PackDate { get; set; }
-        public int UnitId { get; set; }
         public int WarehouseId { get; set; }
         public int TotalBags { get; set; }
         public decimal TotalNetWeight { get; set; }

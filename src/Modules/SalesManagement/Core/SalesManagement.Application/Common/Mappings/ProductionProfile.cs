@@ -13,6 +13,7 @@ namespace SalesManagement.Application.Common.Mappings
             CreateMap<CreateProductionDto, ProductionPackHeader>()
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
                 .ForMember(dest => dest.PackNo, opt => opt.Ignore())
+                .ForMember(dest => dest.UnitId, opt => opt.Ignore())
                 .ForMember(dest => dest.ProductionPackDetails, opt => opt.MapFrom(src => src.ProductionPackDetails))
                 .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => Status.Active))
                 .ForMember(dest => dest.IsDeleted, opt => opt.MapFrom(src => IsDelete.NotDeleted));
@@ -23,6 +24,7 @@ namespace SalesManagement.Application.Common.Mappings
             // Update: DTO → Header entity
             CreateMap<UpdateProductionDto, ProductionPackHeader>()
                 .ForMember(dest => dest.PackNo, opt => opt.Ignore())
+                .ForMember(dest => dest.UnitId, opt => opt.Ignore())
                 .ForMember(dest => dest.ProductionPackDetails, opt => opt.MapFrom(src => src.ProductionPackDetails))
                 .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src =>
                     src.IsActive == 1 ? Status.Active : Status.Inactive));

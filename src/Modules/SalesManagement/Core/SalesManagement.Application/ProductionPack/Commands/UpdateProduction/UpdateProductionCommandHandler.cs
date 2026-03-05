@@ -1,6 +1,7 @@
 using AutoMapper;
 using Contracts.Common;
 using MediatR;
+using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Application.Common.Interfaces.IProductionPack;
 using SalesManagement.Domain.Entities;
 using SalesManagement.Domain.Events;
@@ -14,17 +15,20 @@ namespace SalesManagement.Application.ProductionPack.Commands.UpdateProduction
         private readonly IProductionQueryRepository _queryRepository;
         private readonly IMediator _mediator;
         private readonly IMapper _mapper;
+        private readonly IIPAddressService _ipAddressService;
 
         public UpdateProductionCommandHandler(
             IProductionCommandRepository commandRepository,
             IProductionQueryRepository queryRepository,
             IMediator mediator,
-            IMapper mapper)
+            IMapper mapper,
+            IIPAddressService ipAddressService)
         {
             _commandRepository = commandRepository;
             _queryRepository = queryRepository;
             _mediator = mediator;
             _mapper = mapper;
+            _ipAddressService = ipAddressService;
         }
 
         public async Task<ApiResponseDTO<int>> Handle(
@@ -32,6 +36,7 @@ namespace SalesManagement.Application.ProductionPack.Commands.UpdateProduction
             CancellationToken cancellationToken)
         {
             var entity = _mapper.Map<ProductionPackHeader>(request.ProductionPackDetails!);
+            entity.UnitId = _ipAddressService.GetUnitId();
 
             var result = await _commandRepository.UpdateAsync(entity);
 
