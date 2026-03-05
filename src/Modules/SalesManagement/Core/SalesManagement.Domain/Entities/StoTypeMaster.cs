@@ -17,5 +17,8 @@ namespace SalesManagement.Domain.Entities
         // Navigation properties
         public MovementTypeConfig? PgiMovementType { get; set; }
         public MovementTypeConfig? GrMovementType { get; set; }
+
+        // Reverse navigation (StoHeader)
+        public ICollection<StoHeader>? StoHeaders { get; set; }
     }
 }

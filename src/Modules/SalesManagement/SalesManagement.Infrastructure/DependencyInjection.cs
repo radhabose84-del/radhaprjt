@@ -64,6 +64,8 @@ using SalesManagement.Application.Common.Interfaces.IDispatchAdvice;
 using SalesManagement.Infrastructure.Repositories.DispatchAdvice;
 using SalesManagement.Application.Common.Interfaces.IStoTypeMaster;
 using SalesManagement.Infrastructure.Repositories.StoTypeMaster;
+using SalesManagement.Application.Common.Interfaces.IStoHeader;
+using SalesManagement.Infrastructure.Repositories.StoHeader;
 
 
 namespace SalesManagement.Infrastructure
@@ -252,6 +254,10 @@ namespace SalesManagement.Infrastructure
             // ── STO Type Master Repositories ────────────────────────────────
             services.AddScoped<IStoTypeMasterCommandRepository, StoTypeMasterCommandRepository>();
             services.AddScoped<IStoTypeMasterQueryRepository, StoTypeMasterQueryRepository>();
+
+            // ── STO Header Repositories ─────────────────────────────────────
+            services.AddScoped<IStoHeaderCommandRepository, StoHeaderCommandRepository>();
+            services.AddScoped<IStoHeaderQueryRepository, StoHeaderQueryRepository>();
             return services;
         }
     }

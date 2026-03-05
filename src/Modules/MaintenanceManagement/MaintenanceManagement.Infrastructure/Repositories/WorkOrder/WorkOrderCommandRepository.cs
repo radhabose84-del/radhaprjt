@@ -47,6 +47,14 @@ namespace MaintenanceManagement.Infrastructure.Repositories.WorkOrder
             await _applicationDbContext.SaveChangesAsync();
             return workOrder;
         }
+
+        public async Task<MaintenanceManagement.Domain.Entities.WorkOrderMaster.WorkOrder> CreateWithoutSaveAsync(MaintenanceManagement.Domain.Entities.WorkOrderMaster.WorkOrder workOrder, int requestTypeId, CancellationToken cancellationToken)
+        {
+            workOrder.WorkOrderDocNo = await GetLatestWorkOrderDocNo(requestTypeId);
+            await _applicationDbContext.WorkOrder.AddAsync(workOrder, cancellationToken);
+            // No SaveChangesAsync — caller commits atomically via CommitAsync
+            return workOrder;
+        }
         public async Task<string> GetLatestWorkOrderDocNo(int TypeId)
         {
             var companyId = _ipAddressService.GetCompanyId();

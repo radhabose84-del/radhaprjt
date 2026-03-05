@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using BackgroundService.Application.Helpers;
 using BackgroundService.Application.Interfaces.Files;
+using BackgroundService.Application.Interfaces.IInbox;
 using BackgroundService.Application.Interfaces.Notification;
 using BackgroundService.Application.Notification.Common.Interfaces;
 using BackgroundService.Domain.Entities.Notification;
@@ -32,6 +33,7 @@ namespace BackgroundService.Application.Consumers
         // SQL-based renderer
         private readonly IHtmlTableRenderer _htmlTableRenderer;
         private readonly IFileFetcher _fileFetcher;
+        private readonly IInboxRepository _inbox;
 
         public SendEmailNotificationConsumer(
             INotificationResolverHandler resolverHandler,
@@ -41,7 +43,9 @@ namespace BackgroundService.Application.Consumers
             IIPAddressService ipAddressService,
             IBackgroundJobClient jobClient,
             ITimeZoneService timeZoneService,
-            IHtmlTableRenderer htmlTableRenderer, IFileFetcher fileFetcher)
+            IHtmlTableRenderer htmlTableRenderer,
+            IFileFetcher fileFetcher,
+            IInboxRepository inbox)
         {
             _resolverHandler = resolverHandler;
             _emailSender = emailSender;
@@ -50,12 +54,25 @@ namespace BackgroundService.Application.Consumers
             _ipAddressService = ipAddressService;
             _jobClient = jobClient;
             _timeZoneService = timeZoneService;
-            _htmlTableRenderer = htmlTableRenderer;  _fileFetcher = fileFetcher;   
+            _htmlTableRenderer = htmlTableRenderer;
+            _fileFetcher = fileFetcher;
+            _inbox = inbox;
         }
 
         public async Task Consume(ConsumeContext<SendEmailNotificationInternalCommand> context)
         {
             var msg = context.Message;
+            var messageId = context.MessageId ?? Guid.NewGuid();
+            const string consumerName = nameof(SendEmailNotificationConsumer);
+
+            if (await _inbox.IsAlreadyProcessedAsync(consumerName, messageId, context.CancellationToken))
+            {
+                _logger.LogInformation(
+                    "Inbox dedup: duplicate skipped. Consumer={Consumer}, MessageId={MessageId}, CorrelationId={CorrelationId}",
+                    consumerName, messageId, msg.CorrelationId);
+                return;
+            }
+
             try
             {
                 var systemTimeZoneId = _timeZoneService.GetSystemTimeZone();
@@ -199,6 +216,8 @@ namespace BackgroundService.Application.Consumers
                     {
                         _logger.LogWarning(logEx, "Message logged as sent, but NotificationEventLog write failed.");
                     }
+
+                    await _inbox.MarkAsProcessedAsync(consumerName, messageId, msg.CorrelationId, context.CancellationToken);
                 }
                 else
                 {

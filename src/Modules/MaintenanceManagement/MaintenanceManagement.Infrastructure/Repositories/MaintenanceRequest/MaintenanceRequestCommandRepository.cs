@@ -33,6 +33,17 @@ namespace MaintenanceManagement.Infrastructure.Repositories.MaintenanceRequest
                 return maintenanceRequest.Id;
         }
 
+        public async Task AddWithoutSaveAsync(MaintenanceManagement.Domain.Entities.MaintenanceRequest maintenanceRequest)
+        {
+            await _dbContext.MaintenanceRequest.AddAsync(maintenanceRequest);
+            // No SaveChangesAsync — caller commits atomically via CommitAsync
+        }
+
+        public async Task<int> CommitAsync(CancellationToken cancellationToken = default)
+        {
+            return await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+
         public async Task<int> CreateAsync(MaintenanceManagement.Domain.Entities.WorkOrderMaster.WorkOrder workOrder, CancellationToken cancellationToken)
         {
             _dbContext.WorkOrder.Add(workOrder);

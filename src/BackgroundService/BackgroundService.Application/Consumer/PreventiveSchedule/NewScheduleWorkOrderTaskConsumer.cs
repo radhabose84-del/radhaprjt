@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using BackgroundService.Application.Interfaces;
 using BackgroundService.Application.Interfaces.IHangfire;
+using BackgroundService.Application.Interfaces.IInbox;
 using Contracts.Commands.Maintenance.PreventiveScheduler;
 using Contracts.Events.Maintenance.PreventiveScheduler;
 using Hangfire;
@@ -17,14 +18,29 @@ namespace BackgroundService.Application.Consumer.PreventiveSchedule
         private readonly ILogger<NewScheduleWorkOrderTaskConsumer> _logger;
         private readonly IHangfireQuery _hangfireQuery;
         private readonly IMaintenance _maintenance;
-        public NewScheduleWorkOrderTaskConsumer(ILogger<NewScheduleWorkOrderTaskConsumer> logger, IHangfireQuery hangfireQuery, IMaintenance maintenance)
+        private readonly IInboxRepository _inbox;
+
+        public NewScheduleWorkOrderTaskConsumer(ILogger<NewScheduleWorkOrderTaskConsumer> logger, IHangfireQuery hangfireQuery, IMaintenance maintenance, IInboxRepository inbox)
         {
             _logger = logger;
             _hangfireQuery = hangfireQuery;
             _maintenance = maintenance;
+            _inbox = inbox;
         }
+
         public async Task Consume(ConsumeContext<SheduleWorkOrderCommand> context)
         {
+            var messageId = context.MessageId ?? Guid.NewGuid();
+            const string consumerName = nameof(NewScheduleWorkOrderTaskConsumer);
+
+            if (await _inbox.IsAlreadyProcessedAsync(consumerName, messageId, context.CancellationToken))
+            {
+                _logger.LogInformation(
+                    "Inbox dedup: duplicate skipped. Consumer={Consumer}, MessageId={MessageId}",
+                    consumerName, messageId);
+                return;
+            }
+
             try
             {
 
@@ -46,11 +62,11 @@ namespace BackgroundService.Application.Consumer.PreventiveSchedule
                 var headerId = context.Message.PreventiveSchedulerHeaderId;
                 if (context.Message.ScheduleDetail.Count > 0)
                 {
-
                     await context.Publish(new ScheduleWorkOrderCreationEvent
                     {
                         CorrelationId = context.Message.CorrelationId
                     });
+                    await _inbox.MarkAsProcessedAsync(consumerName, messageId, context.Message.CorrelationId, context.CancellationToken);
                 }
 
                 else

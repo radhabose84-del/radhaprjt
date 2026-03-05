@@ -2878,6 +2878,160 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.ToTable("SalesSegment", "Sales");
                 });
 
+            modelBuilder.Entity("SalesManagement.Domain.Entities.StoDetail", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ItemId")
+                        .HasColumnType("int")
+                        .HasColumnName("ItemId");
+
+                    b.Property<int?>("LineStatusId")
+                        .HasColumnType("int")
+                        .HasColumnName("LineStatusId");
+
+                    b.Property<decimal>("Quantity")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,3)")
+                        .HasColumnName("Quantity");
+
+                    b.Property<int>("StoHeaderId")
+                        .HasColumnType("int")
+                        .HasColumnName("StoHeaderId");
+
+                    b.Property<decimal>("TransferPrice")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,3)")
+                        .HasColumnName("TransferPrice");
+
+                    b.Property<int>("UOMId")
+                        .HasColumnType("int")
+                        .HasColumnName("UOMId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ItemId");
+
+                    b.HasIndex("LineStatusId");
+
+                    b.HasIndex("StoHeaderId");
+
+                    b.ToTable("StoDetail", "Sales");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.StoHeader", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<DateOnly>("DocumentDate")
+                        .HasColumnType("date")
+                        .HasColumnName("DocumentDate");
+
+                    b.Property<DateOnly>("ExpectedDeliveryDate")
+                        .HasColumnType("date")
+                        .HasColumnName("ExpectedDeliveryDate");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<int>("MovementTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("MovementTypeId");
+
+                    b.Property<int>("ReceivingPlantId")
+                        .HasColumnType("int")
+                        .HasColumnName("ReceivingPlantId");
+
+                    b.Property<int>("ReceivingStorageLocationId")
+                        .HasColumnType("int")
+                        .HasColumnName("ReceivingStorageLocationId");
+
+                    b.Property<string>("Remarks")
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("Remarks");
+
+                    b.Property<string>("StoNumber")
+                        .IsRequired()
+                        .HasColumnType("varchar(30)")
+                        .HasColumnName("StoNumber");
+
+                    b.Property<int>("StoTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("StoTypeId");
+
+                    b.Property<int>("SupplyingPlantId")
+                        .HasColumnType("int")
+                        .HasColumnName("SupplyingPlantId");
+
+                    b.Property<int>("SupplyingStorageLocationId")
+                        .HasColumnType("int")
+                        .HasColumnName("SupplyingStorageLocationId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DocumentDate");
+
+                    b.HasIndex("MovementTypeId");
+
+                    b.HasIndex("ReceivingPlantId");
+
+                    b.HasIndex("StoNumber")
+                        .IsUnique();
+
+                    b.HasIndex("StoTypeId");
+
+                    b.HasIndex("SupplyingPlantId");
+
+                    b.ToTable("StoHeader", "Sales");
+                });
+
             modelBuilder.Entity("SalesManagement.Domain.Entities.StoTypeMaster", b =>
                 {
                     b.Property<int>("Id")
@@ -3528,6 +3682,43 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("SalesOrganisation");
                 });
 
+            modelBuilder.Entity("SalesManagement.Domain.Entities.StoDetail", b =>
+                {
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "LineStatus")
+                        .WithMany("StoDetailsAsLineStatus")
+                        .HasForeignKey("LineStatusId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("SalesManagement.Domain.Entities.StoHeader", "StoHeader")
+                        .WithMany("StoDetails")
+                        .HasForeignKey("StoHeaderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("LineStatus");
+
+                    b.Navigation("StoHeader");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.StoHeader", b =>
+                {
+                    b.HasOne("SalesManagement.Domain.Entities.MovementTypeConfig", "MovementType")
+                        .WithMany("StoHeaders")
+                        .HasForeignKey("MovementTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SalesManagement.Domain.Entities.StoTypeMaster", "StoType")
+                        .WithMany("StoHeaders")
+                        .HasForeignKey("StoTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("MovementType");
+
+                    b.Navigation("StoType");
+                });
+
             modelBuilder.Entity("SalesManagement.Domain.Entities.StoTypeMaster", b =>
                 {
                     b.HasOne("SalesManagement.Domain.Entities.MovementTypeConfig", "GrMovementType")
@@ -3614,6 +3805,8 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("SalesOrderHeadersAsFreightType");
 
                     b.Navigation("SalesOrderHeadersAsPaymentType");
+
+                    b.Navigation("StoDetailsAsLineStatus");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.MiscTypeMaster", b =>
@@ -3623,6 +3816,8 @@ namespace SalesManagement.Infrastructure.Migrations
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.MovementTypeConfig", b =>
                 {
+                    b.Navigation("StoHeaders");
+
                     b.Navigation("StoTypeMastersAsGr");
 
                     b.Navigation("StoTypeMastersAsPgi");
@@ -3691,6 +3886,16 @@ namespace SalesManagement.Infrastructure.Migrations
             modelBuilder.Entity("SalesManagement.Domain.Entities.SalesSegment", b =>
                 {
                     b.Navigation("SalesOrderHeaders");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.StoHeader", b =>
+                {
+                    b.Navigation("StoDetails");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.StoTypeMaster", b =>
+                {
+                    b.Navigation("StoHeaders");
                 });
 #pragma warning restore 612, 618
         }

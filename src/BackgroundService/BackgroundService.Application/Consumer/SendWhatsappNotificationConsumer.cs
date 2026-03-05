@@ -5,6 +5,7 @@ using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using BackgroundService.Application.Helpers;
+using BackgroundService.Application.Interfaces.IInbox;
 using BackgroundService.Application.Interfaces.Notification;
 using BackgroundService.Application.Notification.Common.Interfaces;
 using BackgroundService.Domain.Entities.Notification;
@@ -27,6 +28,7 @@ namespace BackgroundService.Application.Consumers
         private readonly INotificationLogger _loggerNotification;
         private readonly IIPAddressService _ipAddressService;
         private readonly ITimeZoneService _timeZoneService;
+        private readonly IInboxRepository _inbox;
 
         public SendWhatsappNotificationConsumer(
             IWhatsAppSender waSender,
@@ -34,7 +36,8 @@ namespace BackgroundService.Application.Consumers
             INotificationResolverHandler resolverHandler,
             INotificationLogger loggerNotification,
             IIPAddressService ipAddressService,
-            ITimeZoneService timeZoneService)
+            ITimeZoneService timeZoneService,
+            IInboxRepository inbox)
         {
             _waSender = waSender;
             _logger = logger;
@@ -42,11 +45,23 @@ namespace BackgroundService.Application.Consumers
             _loggerNotification = loggerNotification;
             _ipAddressService = ipAddressService;
             _timeZoneService = timeZoneService;
+            _inbox = inbox;
         }
 
         public async Task Consume(ConsumeContext<SendWhatsappNotificationInternalCommand> context)
         {
             var msg = context.Message;
+            var messageId = context.MessageId ?? Guid.NewGuid();
+            const string consumerName = nameof(SendWhatsappNotificationConsumer);
+
+            if (await _inbox.IsAlreadyProcessedAsync(consumerName, messageId, context.CancellationToken))
+            {
+                _logger.LogInformation(
+                    "Inbox dedup: duplicate skipped. Consumer={Consumer}, MessageId={MessageId}, CorrelationId={CorrelationId}",
+                    consumerName, messageId, msg.CorrelationId);
+                return;
+            }
+
 
             try
             {
@@ -161,6 +176,8 @@ namespace BackgroundService.Application.Consumers
                         _logger.LogWarning(logEx,
                             "WhatsApp sent but NotificationEventLog write failed (ignored).");
                     }
+
+                    await _inbox.MarkAsProcessedAsync(consumerName, messageId, msg.CorrelationId, context.CancellationToken);
                 }
                 else
                 {
