@@ -31,8 +31,8 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("int")
                 .IsRequired();
 
-            builder.Property(t => t.DocSno)
-                .HasColumnName("DocSno")
+            builder.Property(t => t.DetailDocNo)
+                .HasColumnName("DetailDocNo")
                 .HasColumnType("int")
                 .IsRequired();
 

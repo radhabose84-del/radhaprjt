@@ -20,5 +20,8 @@ namespace SalesManagement.Domain.Entities
 
         // Reverse navigation
         public ICollection<DispatchAddressMapping>? DispatchAddressMappings { get; set; }
+
+        // Reverse navigation (DispatchAdvice)
+        public ICollection<DispatchAdviceHeader>? DispatchAdviceHeaders { get; set; }
     }
 }

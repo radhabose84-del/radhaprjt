@@ -60,6 +60,8 @@ using SalesManagement.Application.Common.Interfaces.IProductionPack;
 using SalesManagement.Infrastructure.Repositories.ProductionPack;
 using SalesManagement.Application.Common.Interfaces.IMovementTypeConfig;
 using SalesManagement.Infrastructure.Repositories.MovementTypeConfig;
+using SalesManagement.Application.Common.Interfaces.IDispatchAdvice;
+using SalesManagement.Infrastructure.Repositories.DispatchAdvice;
 
 
 namespace SalesManagement.Infrastructure
@@ -240,6 +242,10 @@ namespace SalesManagement.Infrastructure
             // ── Movement Type Config Repositories ─────────────────────────────
             services.AddScoped<IMovementTypeConfigCommandRepository, MovementTypeConfigCommandRepository>();
             services.AddScoped<IMovementTypeConfigQueryRepository, MovementTypeConfigQueryRepository>();
+
+            // ── Dispatch Advice Repositories ────────────────────────────────
+            services.AddScoped<IDispatchAdviceCommandRepository, DispatchAdviceCommandRepository>();
+            services.AddScoped<IDispatchAdviceQueryRepository, DispatchAdviceQueryRepository>();
             return services;
         }
     }

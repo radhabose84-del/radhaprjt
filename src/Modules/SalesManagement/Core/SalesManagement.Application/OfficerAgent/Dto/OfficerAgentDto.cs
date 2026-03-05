@@ -6,6 +6,7 @@ namespace SalesManagement.Application.OfficerAgent.Dto
 
         public int AgentId { get; set; }
         public string? AgentName { get; set; }          // Populated via IPartyLookup
+        public string? AgentMobile { get; set; }        // Populated via IPartyLookup → Mobile
 
         public int MarketingOfficerId { get; set; }
         public string? OfficerName { get; set; }        // Populated via SQL JOIN Sales.MarketingOfficer

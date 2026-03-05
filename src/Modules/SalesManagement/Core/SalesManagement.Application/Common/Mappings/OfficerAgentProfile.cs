@@ -8,12 +8,30 @@ namespace SalesManagement.Application.Common.Mappings
     {
         public OfficerAgentProfile()
         {
-            // OfficerAgent does not extend BaseEntity — IsActive is a plain bool
-            CreateMap<CreateOfficerAgentCommand, Domain.Entities.OfficerAgent>()
-                .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => true));
+            // Batch create — maps the whole command to a list of entities
+            CreateMap<CreateOfficerAgentCommand, List<Domain.Entities.OfficerAgent>>()
+                .ConvertUsing((src, dest, ctx) => src.Agents.Select(item =>
+                    new Domain.Entities.OfficerAgent
+                    {
+                        AgentId = item.AgentId,
+                        MarketingOfficerId = src.MarketingOfficerId,
+                        ValidityFrom = item.ValidityFrom,
+                        ValidityTo = item.ValidityTo,
+                        IsActive = item.IsActive == 1
+                    }).ToList());
 
-            CreateMap<UpdateOfficerAgentCommand, Domain.Entities.OfficerAgent>()
-                .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive == 1));
+            // Batch update — maps each item, preserving Id and mapping IsActive from int
+            CreateMap<UpdateOfficerAgentCommand, List<Domain.Entities.OfficerAgent>>()
+                .ConvertUsing((src, dest, ctx) => src.Agents.Select(item =>
+                    new Domain.Entities.OfficerAgent
+                    {
+                        Id = item.Id,
+                        AgentId = item.AgentId,
+                        MarketingOfficerId = src.MarketingOfficerId,
+                        ValidityFrom = item.ValidityFrom,
+                        ValidityTo = item.ValidityTo,
+                        IsActive = item.IsActive == 1
+                    }).ToList());
         }
     }
 }

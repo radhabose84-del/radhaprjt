@@ -96,8 +96,8 @@ namespace SalesManagement.Infrastructure.Repositories.ProductionPack
                         {
                             UnitId = entity.UnitId,
                             DocType = "PROD",
-                            DocNo = detail.Id,
-                            DocSno = detail.ItemSno,
+                            DocNo = entity.Id,
+                            DetailDocNo = detail.Id,
                             DocDate = entity.PackDate,
                             ItemId = detail.ItemId,
                             PackNo = packNo,
@@ -142,10 +142,8 @@ namespace SalesManagement.Infrastructure.Repositories.ProductionPack
             // Remove old StockLedger entries for existing details
             if (existingEntity.ProductionPackDetails != null && existingEntity.ProductionPackDetails.Any())
             {
-                var existingDetailIds = existingEntity.ProductionPackDetails.Select(d => d.Id).ToList();
-
                 var oldStockLedger = await _applicationDbContext.StockLedger
-                    .Where(sl => sl.DocType == "PROD" && existingDetailIds.Contains(sl.DocNo))
+                    .Where(sl => sl.DocType == "PROD" && sl.DocNo == existingEntity.Id)
                     .ToListAsync();
 
                 if (oldStockLedger.Count > 0)
@@ -183,8 +181,8 @@ namespace SalesManagement.Infrastructure.Repositories.ProductionPack
                         {
                             UnitId = existingEntity.UnitId,
                             DocType = "PROD",
-                            DocNo = detail.Id,
-                            DocSno = detail.ItemSno,
+                            DocNo = existingEntity.Id,
+                            DetailDocNo = detail.Id,
                             DocDate = existingEntity.PackDate,
                             ItemId = detail.ItemId,
                             PackNo = packNo,
