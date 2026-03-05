@@ -38,5 +38,8 @@ namespace SalesManagement.Domain.Entities
 
         // Reverse navigation (DispatchAdvice)
         public ICollection<DispatchAdviceHeader>? DispatchAdviceHeadersAsStatus { get; set; }
+
+        // Reverse navigation (StoDetail)
+        public ICollection<StoDetail>? StoDetailsAsLineStatus { get; set; }
     }
 }
