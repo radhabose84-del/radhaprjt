@@ -42,5 +42,8 @@ namespace SalesManagement.Domain.Entities
         // Status
         public int? LineItemStatusId { get; set; }             // FK → Sales.MiscMaster
         public MiscMaster? LineItemStatus { get; set; }
+
+        // Reverse navigation (DispatchAdvice)
+        public ICollection<DispatchAdviceDetail>? DispatchAdviceDetails { get; set; }
     }
 }
