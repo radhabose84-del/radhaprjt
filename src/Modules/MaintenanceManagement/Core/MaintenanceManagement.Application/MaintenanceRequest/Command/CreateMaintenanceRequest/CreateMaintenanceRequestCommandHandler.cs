@@ -112,11 +112,14 @@ namespace MaintenanceManagement.Application.MaintenanceRequest.Command.CreateMai
             maintenanceRequest.UnitId = _ipAddressService.GetUnitId();
 
             // ═══════════════════════════════════════════════════════════════════
-            // BEGIN TRANSACTION (implicitly via EF Core DbContext)
-            // All operations below participate in the same transaction
+            // ATOMIC PATTERN:
+            //   Step 1: CreateAsync(MaintenanceRequest) — saved immediately (Id needed for FK)
+            //   Step 2: CreateWithoutSaveAsync(WorkOrder)   — tracked only
+            //   Step 3: ScheduleWithoutSaveAsync(Outbox)    — tracked only
+            //   CommitAsync() — one SaveChangesAsync atomically commits WorkOrder + OutboxMessage
             // ═══════════════════════════════════════════════════════════════════
 
-            // Step 1: Create Maintenance Request
+            // Step 1: Save MaintenanceRequest to obtain its generated Id (required as FK for WorkOrder)
             var result = await _maintenanceRequestCommandRepository.CreateAsync(maintenanceRequest);
             if (result <= 0)
             {
@@ -145,19 +148,19 @@ namespace MaintenanceManagement.Application.MaintenanceRequest.Command.CreateMai
             var machineName = machineInfo.Value.MachineName;
             var departmentId = machineInfo.Value.DepartmentId;
 
-            // Step 2: Create WorkOrder (only for internal type)
+            // Step 2: Track WorkOrder (only for internal type, no save yet)
             if (internalTypeId.HasValue && maintenanceRequest.RequestTypeId == internalTypeId.Value)
             {
                 var workOrder = _imapper.Map<Domain.Entities.WorkOrderMaster.WorkOrder>(maintenanceRequest);
-                workOrder.RequestId = result;
+                workOrder.RequestId = maintenanceRequest.Id; // Real Id — MaintenanceRequest was saved in Step 1
                 workOrder.CompanyId = _ipAddressService.GetCompanyId();
                 workOrder.UnitId = _ipAddressService.GetUnitId();
                 workOrder.Remarks = string.Empty;
 
-                await _workOrderCommandRepository.CreateAsync(
+                await _workOrderCommandRepository.CreateWithoutSaveAsync(
                     workOrder, request.MaintenanceTypeId, cancellationToken);
 
-                // Get workflow event type 
+                // Get workflow event type
                 var wfCreate = await _miscMasterQueryRepository.GetByWFMiscMasterCodeAsync(
                     MiscEnumEntity.WorkFlowCreate);
 
@@ -180,7 +183,7 @@ namespace MaintenanceManagement.Application.MaintenanceRequest.Command.CreateMai
                 var createdDate = workOrder.CreatedDate ?? DateTimeOffset.UtcNow;
                 var createdBy = workOrder.CreatedByName ?? string.Empty;
 
-                // Step 3: Schedule notification via Outbox (participates in same transaction)
+                // Step 3: Track OutboxMessage (no save yet — participates in same transaction)
                 var notificationEvent = CreateNotificationEvent(
                     correlationId: correlationId,
                     workOrder: workOrder,
@@ -194,18 +197,18 @@ namespace MaintenanceManagement.Application.MaintenanceRequest.Command.CreateMai
                     createdDate: createdDate,
                     createdBy: createdBy);
 
-                // This saves to OutboxMessages table (within same transaction)
-                await _outboxEventPublisher.ScheduleAsync(notificationEvent, correlationId, cancellationToken);
-
-                _logger.LogInformation(
-                    "Scheduled notification via outbox. CorrelationId: {CorrelationId}, WorkOrderId: {WorkOrderId}, IsBreakdown: {IsBreakdown}",
-                    correlationId, workOrder.Id, request.MaintenanceTypeId == breakDownCode.Id);
+                await _outboxEventPublisher.ScheduleWithoutSaveAsync(notificationEvent, correlationId, cancellationToken);
             }
 
             // ═══════════════════════════════════════════════════════════════════
-            // COMMIT TRANSACTION (SaveChangesAsync commits all changes atomically)
-            // MaintenanceRequest + WorkOrder + OutboxMessage all committed together
+            // COMMIT — single SaveChangesAsync atomically persists:
+            //   WorkOrder + OutboxMessage (MaintenanceRequest already saved in Step 1)
             // ═══════════════════════════════════════════════════════════════════
+            await _maintenanceRequestCommandRepository.CommitAsync(cancellationToken);
+
+            _logger.LogInformation(
+                "Outbox event tracked. CorrelationId: {CorrelationId}, MaintenanceRequestId: {Id}",
+                correlationId, result);
 
             // Publish domain event for auditing (in-process, no message broker)
             var domainEvent = new AuditLogsDomainEvent(
