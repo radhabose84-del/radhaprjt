@@ -61,6 +61,8 @@ using BackgroundService.Application.Consumer.PreventiveSchedule;
 using BackgroundService.Application.Consumer.PreventiveSchedule.Update;
 using BackgroundService.Application.Interfaces.Files;
 using BackgroundService.Infrastructure.Files;
+using BackgroundService.Application.Interfaces.IInbox;
+using BackgroundService.Infrastructure.Repositories.Inbox;
 
 
 
@@ -393,6 +395,10 @@ namespace BackgroundService.Infrastructure
             services.AddScoped<IFileStorageService, FileStorageService>();
             services.AddScoped<IHangfireQuery, HangfireQueryRepository>();
             services.AddScoped<SqlOutboxProcessorJob>();
+
+            // Inbox/Dedup — prevents duplicate message processing on MassTransit redelivery
+            services.AddScoped<IInboxRepository, InboxRepository>();
+
             return services;
         }
     }
