@@ -24,10 +24,10 @@ namespace PartyManagement.Infrastructure.Repositories.Lookups
                         pc.EmailID AS Email,
                         pc.MobileNo AS Mobile
                     FROM Party.PartyContact pc
-                    LEFT JOIN Party.MiscMaster ct
-                        ON ct.Id = pc.ContactTypeId AND ct.IsDeleted = 0
-                WHERE pc.PartyId = p.Id
-                    AND LTRIM(RTRIM(ct.Code)) = 'Primary'
+                    WHERE pc.PartyId = p.Id
+                      AND pc.MobileNo IS NOT NULL
+                      AND pc.MobileNo <> ''
+                    ORDER BY pc.Id
                 ) c
                 WHERE p.Id = @PartyId;";
 
@@ -49,10 +49,10 @@ namespace PartyManagement.Infrastructure.Repositories.Lookups
                         pc.EmailID AS Email,
                         pc.MobileNo AS Mobile
                     FROM Party.PartyContact pc
-                    LEFT JOIN Party.MiscMaster ct
-                        ON ct.Id = pc.ContactTypeId AND ct.IsDeleted = 0
-                WHERE pc.PartyId = p.Id
-                    AND LTRIM(RTRIM(ct.Code)) = 'Primary'
+                    WHERE pc.PartyId = p.Id
+                      AND pc.MobileNo IS NOT NULL
+                      AND pc.MobileNo <> ''
+                    ORDER BY pc.Id
                 ) c
                 WHERE p.Id IN @PartyIds;";
 
