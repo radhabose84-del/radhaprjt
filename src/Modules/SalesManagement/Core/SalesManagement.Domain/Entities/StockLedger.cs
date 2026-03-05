@@ -5,8 +5,8 @@ namespace SalesManagement.Domain.Entities
         public int Id { get; set; }
         public int UnitId { get; set; }
         public string? DocType { get; set; }
-        public int DocNo { get; set; }
-        public int DocSno { get; set; }
+        public int ProductionPackHeaderId { get; set; }
+        public int DetailDocNo { get; set; }
         public DateOnly DocDate { get; set; }
         public int ItemId { get; set; }
         public int PackNo { get; set; }

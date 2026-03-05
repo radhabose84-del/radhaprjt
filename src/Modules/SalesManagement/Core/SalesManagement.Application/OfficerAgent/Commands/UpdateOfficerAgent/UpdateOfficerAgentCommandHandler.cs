@@ -30,15 +30,15 @@ namespace SalesManagement.Application.OfficerAgent.Commands.UpdateOfficerAgent
             UpdateOfficerAgentCommand request,
             CancellationToken cancellationToken)
         {
-            var entity = _mapper.Map<Domain.Entities.OfficerAgent>(request);
+            var entities = _mapper.Map<List<Domain.Entities.OfficerAgent>>(request);
 
-            var result = await _commandRepository.UpdateAsync(entity);
+            var result = await _commandRepository.UpdateBatchAsync(entities);
 
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Update",
                 actionCode: "OFFICER_AGENT_UPDATE",
-                actionName: request.Id.ToString(),
-                details: $"Officer Agent assignment with Id {request.Id} updated successfully.",
+                actionName: request.MarketingOfficerId.ToString(),
+                details: $"{result} Officer Agent assignment(s) for officer {request.MarketingOfficerId} updated successfully.",
                 module: "OfficerAgent"
             );
             await _mediator.Publish(auditEvent, cancellationToken);
@@ -46,7 +46,7 @@ namespace SalesManagement.Application.OfficerAgent.Commands.UpdateOfficerAgent
             return new ApiResponseDTO<int>
             {
                 IsSuccess = true,
-                Message = "Officer Agent assignment updated successfully.",
+                Message = "Officer Agent assignments updated successfully.",
                 Data = result
             };
         }

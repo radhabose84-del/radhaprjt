@@ -13,30 +13,37 @@ namespace SalesManagement.Infrastructure.Repositories.OfficerAgent
             _applicationDbContext = applicationDbContext;
         }
 
-        public async Task<int> CreateAsync(Domain.Entities.OfficerAgent entity)
+        public async Task<int> CreateBatchAsync(List<Domain.Entities.OfficerAgent> entities)
         {
-            await _applicationDbContext.OfficerAgent.AddAsync(entity);
+            await _applicationDbContext.OfficerAgent.AddRangeAsync(entities);
             await _applicationDbContext.SaveChangesAsync();
-            return entity.Id;
+            return entities.Count;
         }
 
-        public async Task<int> UpdateAsync(Domain.Entities.OfficerAgent entity)
+        public async Task<int> UpdateBatchAsync(List<Domain.Entities.OfficerAgent> entities)
         {
-            var existing = await _applicationDbContext.OfficerAgent
-                .FirstOrDefaultAsync(x => x.Id == entity.Id);
+            var ids = entities.Select(e => e.Id).ToList();
 
-            if (existing == null)
-                return 0;
+            var existingList = await _applicationDbContext.OfficerAgent
+                .Where(x => ids.Contains(x.Id))
+                .ToListAsync();
 
-            existing.AgentId = entity.AgentId;
-            existing.MarketingOfficerId = entity.MarketingOfficerId;
-            existing.ValidityFrom = entity.ValidityFrom;
-            existing.ValidityTo = entity.ValidityTo;
-            existing.IsActive = entity.IsActive;
+            var existingDict = existingList.ToDictionary(x => x.Id);
 
-            _applicationDbContext.OfficerAgent.Update(existing);
+            foreach (var entity in entities)
+            {
+                if (!existingDict.TryGetValue(entity.Id, out var existing))
+                    continue;
+
+                existing.AgentId = entity.AgentId;
+                existing.MarketingOfficerId = entity.MarketingOfficerId;
+                existing.ValidityFrom = entity.ValidityFrom;
+                existing.ValidityTo = entity.ValidityTo;
+                existing.IsActive = entity.IsActive;
+            }
+
             await _applicationDbContext.SaveChangesAsync();
-            return existing.Id;
+            return existingList.Count;
         }
 
         public async Task<bool> DeleteAsync(int id, CancellationToken ct)

@@ -30,15 +30,15 @@ namespace SalesManagement.Application.OfficerAgent.Commands.CreateOfficerAgent
             CreateOfficerAgentCommand request,
             CancellationToken cancellationToken)
         {
-            var entity = _mapper.Map<Domain.Entities.OfficerAgent>(request);
+            var entities = _mapper.Map<List<Domain.Entities.OfficerAgent>>(request);
 
-            var newId = await _commandRepository.CreateAsync(entity);
+            var count = await _commandRepository.CreateBatchAsync(entities);
 
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Create",
                 actionCode: "OFFICER_AGENT_CREATE",
-                actionName: newId.ToString(),
-                details: $"Officer Agent assignment created successfully with Id {newId}.",
+                actionName: request.MarketingOfficerId.ToString(),
+                details: $"{count} Officer Agent assignment(s) created for officer Id {request.MarketingOfficerId}.",
                 module: "OfficerAgent"
             );
             await _mediator.Publish(auditEvent, cancellationToken);
@@ -46,8 +46,8 @@ namespace SalesManagement.Application.OfficerAgent.Commands.CreateOfficerAgent
             return new ApiResponseDTO<int>
             {
                 IsSuccess = true,
-                Message = "Officer Agent assignment created successfully.",
-                Data = newId
+                Message = $"{count} Officer Agent assignment(s) created successfully.",
+                Data = count
             };
         }
     }

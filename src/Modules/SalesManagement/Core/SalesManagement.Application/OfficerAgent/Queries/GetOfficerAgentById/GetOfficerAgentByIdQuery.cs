@@ -4,8 +4,8 @@ using SalesManagement.Application.OfficerAgent.Dto;
 
 namespace SalesManagement.Application.OfficerAgent.Queries.GetOfficerAgentById
 {
-    public class GetOfficerAgentByIdQuery : IRequest<ApiResponseDTO<OfficerAgentDto>>
+    public class GetOfficerAgentByIdQuery : IRequest<ApiResponseDTO<OfficerAgentGroupedDto>>
     {
-        public int Id { get; set; }
+        public int Id { get; set; }  // marketingOfficerId
     }
 }

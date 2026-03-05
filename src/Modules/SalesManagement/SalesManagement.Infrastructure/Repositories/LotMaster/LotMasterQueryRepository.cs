@@ -145,16 +145,29 @@ namespace SalesManagement.Infrastructure.Repositories.LotMaster
         {
             const string sql = @"
                 SELECT TOP 20
-                    lm.Id, lm.LotCode, lm.BatchNumber
+                    lm.Id, lm.LotCode, lm.BatchNumber, lm.ItemId
                 FROM Sales.LotMaster lm
                 WHERE lm.IsDeleted = 0 AND lm.IsActive = 1
                   AND (lm.LotCode LIKE @Term OR lm.BatchNumber LIKE @Term)
                 ORDER BY lm.LotCode ASC";
 
-            var result = await _dbConnection.QueryAsync<LotMasterLookupDto>(
-                new CommandDefinition(sql, new { Term = $"%{term}%" }, cancellationToken: ct));
+            var result = (await _dbConnection.QueryAsync<LotMasterLookupDto>(
+                new CommandDefinition(sql, new { Term = $"%{term}%" }, cancellationToken: ct))).ToList();
 
-            return result.ToList();
+            if (result.Count > 0)
+            {
+                var itemIds = result.Select(x => x.ItemId).Distinct();
+                var items = await _itemLookup.GetByIdsAsync(itemIds, ct);
+                var itemDict = items.ToDictionary(x => x.Id);
+
+                foreach (var dto in result)
+                {
+                    if (itemDict.TryGetValue(dto.ItemId, out var itemData))
+                        dto.ItemName = itemData.ItemName;
+                }
+            }
+
+            return result;
         }
 
         public async Task<bool> AlreadyExistsAsync(string lotCode)

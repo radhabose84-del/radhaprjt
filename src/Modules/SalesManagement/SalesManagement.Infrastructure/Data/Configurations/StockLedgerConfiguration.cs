@@ -26,13 +26,13 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("varchar(10)")
                 .IsRequired();
 
-            builder.Property(t => t.DocNo)
-                .HasColumnName("DocNo")
+            builder.Property(t => t.ProductionPackHeaderId)
+                .HasColumnName("ProductionPackHeaderId")
                 .HasColumnType("int")
                 .IsRequired();
 
-            builder.Property(t => t.DocSno)
-                .HasColumnName("DocSno")
+            builder.Property(t => t.DetailDocNo)
+                .HasColumnName("DetailDocNo")
                 .HasColumnType("int")
                 .IsRequired();
 
@@ -82,7 +82,7 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .IsRequired();
 
             // Unique composite index — prevents duplicate pack entries
-            builder.HasIndex(t => new { t.DocType, t.DocNo, t.PackNo }).IsUnique();
+            builder.HasIndex(t => new { t.DocType, t.ProductionPackHeaderId, t.PackNo }).IsUnique();
 
             // Indexes
             builder.HasIndex(t => t.ItemId);

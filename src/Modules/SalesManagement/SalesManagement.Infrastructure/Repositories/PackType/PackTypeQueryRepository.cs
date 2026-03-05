@@ -64,7 +64,7 @@ namespace SalesManagement.Infrastructure.Repositories.PackType
         public async Task<IReadOnlyList<PackTypeLookupDto>> AutocompleteAsync(string term, CancellationToken ct)
         {
             const string sql = @"
-                SELECT TOP 20 Id, PackTypeCode, PackTypeName
+                SELECT TOP 20 Id, PackTypeCode, PackTypeName,NetWeight,TareWeight,GrossWeight,ConesPerBag
                 FROM Sales.PackType
                 WHERE IsDeleted = 0 AND IsActive = 1
                 AND (PackTypeCode LIKE @Term OR PackTypeName LIKE @Term)
@@ -103,10 +103,13 @@ namespace SalesManagement.Infrastructure.Repositories.PackType
 
         public async Task<bool> SoftDeleteValidationAsync(int id)
         {
-            // Returns true if PackType is linked to active dependent records (blocking deletion).
-            // Currently PackType has no FK children — always returns false (safe to delete).
-            await Task.CompletedTask;
-            return false;
+            const string sql = @"
+                SELECT COUNT(1)
+                FROM Production.ProductionPackDetail
+                WHERE Id = @Id ";
+
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = id });
+            return count == 0;           
         }
     }
 }
