@@ -46,6 +46,11 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("int")
                 .IsRequired();
 
+            builder.Property(t => t.LotId)
+                .HasColumnName("LotId")
+                .HasColumnType("int")
+                .IsRequired();
+
             builder.Property(t => t.PackNo)
                 .HasColumnName("PackNo")
                 .HasColumnType("int")
