@@ -1,6 +1,7 @@
 using AutoMapper;
 using Contracts.Common;
 using MediatR;
+using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Application.Common.Interfaces.IProductionPack;
 using SalesManagement.Application.ProductionPack.Dto;
 using SalesManagement.Domain.Entities;
@@ -15,17 +16,20 @@ namespace SalesManagement.Application.ProductionPack.Commands.CreateProduction
         private readonly IProductionQueryRepository _queryRepository;
         private readonly IMediator _mediator;
         private readonly IMapper _mapper;
+        private readonly IIPAddressService _ipAddressService;
 
         public CreateProductionCommandHandler(
             IProductionCommandRepository commandRepository,
             IProductionQueryRepository queryRepository,
             IMediator mediator,
-            IMapper mapper)
+            IMapper mapper,
+            IIPAddressService ipAddressService)
         {
             _commandRepository = commandRepository;
             _queryRepository = queryRepository;
             _mediator = mediator;
             _mapper = mapper;
+            _ipAddressService = ipAddressService;
         }
 
         public async Task<ApiResponseDTO<int>> Handle(
@@ -35,6 +39,7 @@ namespace SalesManagement.Application.ProductionPack.Commands.CreateProduction
             var details = request.ProductionPackDetails!;
 
             var entity = _mapper.Map<ProductionPackHeader>(details);
+            entity.UnitId = _ipAddressService.GetUnitId();
 
             // Auto-generate PackNo: PA-{First3Warehouse}-{First3Bin}-{seq}
             var firstBinId = details.ProductionPackDetails?.FirstOrDefault()?.BinId ?? 0;

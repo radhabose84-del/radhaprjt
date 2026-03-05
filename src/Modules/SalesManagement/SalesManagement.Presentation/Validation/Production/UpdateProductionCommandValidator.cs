@@ -42,13 +42,6 @@ namespace SalesManagement.Presentation.Validation.Production
                             .WithMessage($"WarehouseId {rule.Error}")
                             .When(x => x.ProductionPackDetails != null);
 
-                        RuleFor(x => x.ProductionPackDetails!.UnitId)
-                            .NotNull()
-                            .WithMessage($"UnitId {rule.Error}")
-                            .NotEmpty()
-                            .WithMessage($"UnitId {rule.Error}")
-                            .When(x => x.ProductionPackDetails != null);
-
                         RuleFor(x => x.ProductionPackDetails!.ProductionPackDetails)
                             .NotNull()
                             .WithMessage($"ProductionPackDetails {rule.Error}")
@@ -137,12 +130,6 @@ namespace SalesManagement.Presentation.Validation.Production
                         break;
 
                     case "FKColumnDelete":
-                        RuleFor(x => x.ProductionPackDetails!.UnitId)
-                            .MustAsync(async (unitId, ct) =>
-                                await _queryRepository.UnitExistsAsync(unitId))
-                            .WithMessage($"UnitId {rule.Error}")
-                            .When(x => x.ProductionPackDetails != null && x.ProductionPackDetails.UnitId > 0);
-
                         RuleFor(x => x.ProductionPackDetails!.WarehouseId)
                             .MustAsync(async (warehouseId, ct) =>
                                 await _queryRepository.WarehouseExistsAsync(warehouseId))
