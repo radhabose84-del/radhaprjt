@@ -26,5 +26,9 @@ namespace SalesManagement.Domain.Entities
         public MiscMaster? MovementCategory { get; set; }
         public MiscMaster? FromStockType { get; set; }
         public MiscMaster? ToStockType { get; set; }
+
+        // Reverse navigation — StoTypeMaster references this entity twice
+        public ICollection<StoTypeMaster> StoTypeMastersAsPgi { get; set; } = new List<StoTypeMaster>();
+        public ICollection<StoTypeMaster> StoTypeMastersAsGr { get; set; } = new List<StoTypeMaster>();
     }
 }
