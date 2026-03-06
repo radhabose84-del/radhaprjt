@@ -30,5 +30,8 @@ namespace SalesManagement.Domain.Entities
         // Reverse navigation — StoTypeMaster references this entity twice
         public ICollection<StoTypeMaster> StoTypeMastersAsPgi { get; set; } = new List<StoTypeMaster>();
         public ICollection<StoTypeMaster> StoTypeMastersAsGr { get; set; } = new List<StoTypeMaster>();
+
+        // Reverse navigation (StoHeader)
+        public ICollection<StoHeader>? StoHeaders { get; set; }
     }
 }
