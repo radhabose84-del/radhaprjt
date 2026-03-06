@@ -8,8 +8,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BackgroundService.Domain\BackgroundService.Domain.csproj" />
-    <ProjectReference Include="..\..\Shared\Contracts\Contracts.csproj" />
-    <ProjectReference Include="..\..\Shared\Shared.Infrastructure\Shared.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\Shared\Contracts\Contracts.csproj" />
+    <ProjectReference Include="..\..\..\Shared\Shared.Infrastructure\Shared.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>
