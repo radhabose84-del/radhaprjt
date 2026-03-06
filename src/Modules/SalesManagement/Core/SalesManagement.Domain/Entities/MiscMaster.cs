@@ -41,5 +41,8 @@ namespace SalesManagement.Domain.Entities
 
         // Reverse navigation (StoDetail)
         public ICollection<StoDetail>? StoDetailsAsLineStatus { get; set; }
+
+        // Reverse navigation (StoHeader)
+        public ICollection<StoHeader>? StoHeadersAsHeaderStatus { get; set; }
     }
 }

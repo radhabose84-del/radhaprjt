@@ -20,5 +20,12 @@ namespace SalesManagement.Domain.Common
         public const string Invoiced = "Invoiced";
         public const string Pending = "Pending";
 
+        // STO Line Item Status
+        public const string StoLineItemStatus = "StoLineItemStatus";
+        public const string StoLineStatusDraft = "Draft";
+
+        // STO Header Status
+        public const string StoHeaderStatus = "StoHeaderStatus";
+
     }
 }

@@ -24,9 +24,13 @@ namespace SalesManagement.Domain.Entities
 
         public string? Remarks { get; set; }
 
+        // Header Status (same-module FK → Sales.MiscMaster)
+        public int? HeaderStatusId { get; set; }
+
         // Navigation properties (same-module FKs only)
         public StoTypeMaster? StoType { get; set; }
         public MovementTypeConfig? MovementType { get; set; }
+        public MiscMaster? HeaderStatus { get; set; }
 
         // Child collection
         public ICollection<StoDetail>? StoDetails { get; set; }

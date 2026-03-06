@@ -78,6 +78,11 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("nvarchar(500)")
                 .IsRequired(false);
 
+            builder.Property(t => t.HeaderStatusId)
+                .HasColumnName("HeaderStatusId")
+                .HasColumnType("int")
+                .IsRequired(false);
+
             // Status & Audit
             builder.Property(b => b.IsActive)
                 .HasColumnName("IsActive")
@@ -112,6 +117,12 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasForeignKey(t => t.MovementTypeId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // Same-module FK: StoHeader → MiscMaster (HeaderStatus)
+            builder.HasOne(t => t.HeaderStatus)
+                .WithMany(m => m.StoHeadersAsHeaderStatus)
+                .HasForeignKey(t => t.HeaderStatusId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             // Child collection: StoHeader → StoDetails
             builder.HasMany(t => t.StoDetails)
                 .WithOne(d => d.StoHeader)
@@ -124,6 +135,7 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             builder.HasIndex(t => t.MovementTypeId);
             builder.HasIndex(t => t.SupplyingPlantId);
             builder.HasIndex(t => t.ReceivingPlantId);
+            builder.HasIndex(t => t.HeaderStatusId);
             builder.HasIndex(t => t.DocumentDate);
         }
     }

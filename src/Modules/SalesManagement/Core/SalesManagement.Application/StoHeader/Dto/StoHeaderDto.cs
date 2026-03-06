@@ -31,6 +31,10 @@ namespace SalesManagement.Application.StoHeader.Dto
 
         public string? Remarks { get; set; }
 
+        // Header Status (same-module JOIN)
+        public int? HeaderStatusId { get; set; }
+        public string? HeaderStatusName { get; set; }
+
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }
 
