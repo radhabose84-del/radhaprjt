@@ -45,7 +45,17 @@ namespace SalesManagement.Application.DispatchAdvice.Commands.CreateDispatchAdvi
             var dispatchNo = await _commandRepository.GenerateNextDispatchNoAsync(unitId, cancellationToken);
             entity.DispatchNo = dispatchNo;
 
-            var newId = await _commandRepository.CreateAsync(entity);
+            // Resolve Packed and Dispatched status IDs for StockLedger update
+            var packedStatus = await _miscMasterQueryRepository.GetMiscMasterByName(
+                MiscEnumEntity.StockStatus, MiscEnumEntity.Packed);
+            var packedStatusId = packedStatus?.Id ?? 0;
+
+            var dispatchedStatus = await _miscMasterQueryRepository.GetMiscMasterByName(
+                MiscEnumEntity.StockStatus, MiscEnumEntity.Dispatched);
+            var dispatchedStatusId = dispatchedStatus?.Id ?? 0;
+
+            // CreateAsync inserts header + details and updates StockLedger per PackNo
+            var newId = await _commandRepository.CreateAsync(entity, unitId, packedStatusId, dispatchedStatusId);
 
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Create",

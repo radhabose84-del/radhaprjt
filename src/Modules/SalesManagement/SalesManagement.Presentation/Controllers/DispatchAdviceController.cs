@@ -2,12 +2,12 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SalesManagement.Application.DispatchAdvice.Commands.CreateDispatchAdvice;
-using SalesManagement.Application.DispatchAdvice.Commands.UpdateDispatchAdvice;
 using SalesManagement.Application.DispatchAdvice.Queries.GetAllDispatchAdvice;
 using SalesManagement.Application.DispatchAdvice.Queries.GetDispatchAdviceById;
 using SalesManagement.Application.DispatchAdvice.Queries.GetDispatchAdviceStock;
 using SalesManagement.Application.DispatchAdvice.Queries.GetDispatchAdvicePackNoValidation;
 using SalesManagement.Application.DispatchAdvice.Queries.GetDispatchAdviceAutoComplete;
+using SalesManagement.Application.DispatchAdvice.Commands.DeleteDispatchAdvice;
 
 namespace SalesManagement.Presentation.Controllers
 {
@@ -77,20 +77,6 @@ namespace SalesManagement.Presentation.Controllers
             });
         }
 
-        [HttpPut]
-        public async Task<IActionResult> UpdateDispatchAdvice([FromBody] UpdateDispatchAdviceCommand command)
-        {
-            var result = await Mediator.Send(command);
-
-            return Ok(new
-            {
-                StatusCode = StatusCodes.Status200OK,
-                isSuccess = result.IsSuccess,
-                message = result.Message,
-                data = result.Data
-            });
-        }
-
         [HttpGet("stock")]
         public async Task<IActionResult> GetDispatchAdviceStockAsync(
             [FromQuery] int itemId,
@@ -128,6 +114,19 @@ namespace SalesManagement.Presentation.Controllers
             {
                 StatusCode = StatusCodes.Status200OK,
                 data = result
+            });
+        }
+
+        [HttpDelete]
+        public async Task<IActionResult> DeleteDispatchAdvice(int id)
+        {
+            var result = await Mediator.Send(new DeleteDispatchAdviceCommand(id));
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                isSuccess = result,
+                message = "Dispatch Advice deleted successfully."
             });
         }
 
