@@ -5,6 +5,9 @@ using SalesManagement.Application.DispatchAdvice.Commands.CreateDispatchAdvice;
 using SalesManagement.Application.DispatchAdvice.Commands.UpdateDispatchAdvice;
 using SalesManagement.Application.DispatchAdvice.Queries.GetAllDispatchAdvice;
 using SalesManagement.Application.DispatchAdvice.Queries.GetDispatchAdviceById;
+using SalesManagement.Application.DispatchAdvice.Queries.GetDispatchAdviceStock;
+using SalesManagement.Application.DispatchAdvice.Queries.GetDispatchAdvicePackNoValidation;
+using SalesManagement.Application.DispatchAdvice.Queries.GetDispatchAdviceAutoComplete;
 
 namespace SalesManagement.Presentation.Controllers
 {
@@ -33,6 +36,18 @@ namespace SalesManagement.Presentation.Controllers
                 TotalCount = result.TotalCount,
                 PageNumber = result.PageNumber,
                 PageSize = result.PageSize
+            });
+        }
+
+        [HttpGet("by-name")]
+        public async Task<IActionResult> GetDispatchAdviceAutoCompleteAsync([FromQuery] string? term = null)
+        {
+            var result = await Mediator.Send(new GetDispatchAdviceAutoCompleteQuery(term ?? string.Empty));
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result
             });
         }
 
@@ -73,6 +88,46 @@ namespace SalesManagement.Presentation.Controllers
                 isSuccess = result.IsSuccess,
                 message = result.Message,
                 data = result.Data
+            });
+        }
+
+        [HttpGet("stock")]
+        public async Task<IActionResult> GetDispatchAdviceStockAsync(
+            [FromQuery] int itemId,
+            [FromQuery] int lotId)
+        {
+            var result = await Mediator.Send(new GetDispatchAdviceStockQuery
+            {
+                ItemId = itemId,
+                LotId = lotId
+            });
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result
+            });
+        }
+
+        [HttpGet("validate-packno")]
+        public async Task<IActionResult> ValidatePackNoAsync(
+            [FromQuery] int itemId,
+            [FromQuery] int lotId,
+            [FromQuery] int startPackNo,
+            [FromQuery] int endPackNo)
+        {
+            var result = await Mediator.Send(new GetDispatchAdvicePackNoValidationQuery
+            {
+                ItemId = itemId,
+                LotId = lotId,
+                StartPackNo = startPackNo,
+                EndPackNo = endPackNo
+            });
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result
             });
         }
 
