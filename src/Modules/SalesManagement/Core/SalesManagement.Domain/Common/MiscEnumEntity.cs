@@ -18,5 +18,9 @@ namespace SalesManagement.Domain.Common
         public const string DispatchAdviceStatus = "DispatchAdviceStatus";
         public const string DispatchStatusDraft = "Draft";
 
+        // STO Line Item Status
+        public const string StoLineItemStatus = "StoLineItemStatus";
+        public const string StoLineStatusDraft = "Draft";
+
     }
 }

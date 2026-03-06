@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using SalesManagement.Application.Common.Interfaces.IStoHeader;
+using SalesManagement.Domain.Common;
 using SalesManagement.Infrastructure.Data;
 using static SalesManagement.Domain.Common.BaseEntity;
 
@@ -50,21 +51,22 @@ namespace SalesManagement.Infrastructure.Repositories.StoHeader
             // Insert details with header FK and default LineStatus
             if (details != null && details.Count > 0)
             {
-                // Fetch "Open" line status from MiscMaster (MiscType = "StoLineItemStatus")
-                var openStatus = await _dbContext.MiscMaster
-                    .Include(m => m.MiscTypeMaster)
-                    .FirstOrDefaultAsync(m =>
-                        m.MiscTypeMaster != null &&
-                        m.MiscTypeMaster.MiscTypeCode == "StoLineItemStatus" &&
-                        m.Code == "Open" &&
-                        m.IsActive == Status.Active &&
-                        m.IsDeleted == IsDelete.NotDeleted);
+                // Fetch default line status ID via direct Dapper scalar query
+                var draftStatusId = await GetDraftLineStatusIdAsync();
 
                 foreach (var detail in details)
                 {
-                    detail.StoHeaderId = entity.Id;
-                    detail.LineStatusId = openStatus?.Id;
-                    await _dbContext.StoDetail.AddAsync(detail);
+                    // Create fresh entity to avoid EF change-tracker interference
+                    var newDetail = new Domain.Entities.StoDetail
+                    {
+                        StoHeaderId = entity.Id,
+                        ItemId = detail.ItemId,
+                        Quantity = detail.Quantity,
+                        UOMId = detail.UOMId,
+                        TransferPrice = detail.TransferPrice,
+                        LineStatusId = draftStatusId
+                    };
+                    await _dbContext.StoDetail.AddAsync(newDetail);
                 }
 
                 await _dbContext.SaveChangesAsync();
@@ -102,27 +104,40 @@ namespace SalesManagement.Infrastructure.Repositories.StoHeader
 
             if (entity.StoDetails != null && entity.StoDetails.Count > 0)
             {
-                // Fetch "Open" line status
-                var openStatus = await _dbContext.MiscMaster
-                    .Include(m => m.MiscTypeMaster)
-                    .FirstOrDefaultAsync(m =>
-                        m.MiscTypeMaster != null &&
-                        m.MiscTypeMaster.MiscTypeCode == "StoLineItemStatus" &&
-                        m.Code == "Open" &&
-                        m.IsActive == Status.Active &&
-                        m.IsDeleted == IsDelete.NotDeleted);
+                // Fetch default line status ID via direct Dapper scalar query
+                var draftStatusId = await GetDraftLineStatusIdAsync();
 
                 foreach (var detail in entity.StoDetails)
                 {
-                    detail.StoHeaderId = existing.Id;
-                    detail.LineStatusId = openStatus?.Id;
-                    await _dbContext.StoDetail.AddAsync(detail);
+                    var newDetail = new Domain.Entities.StoDetail
+                    {
+                        StoHeaderId = existing.Id,
+                        ItemId = detail.ItemId,
+                        Quantity = detail.Quantity,
+                        UOMId = detail.UOMId,
+                        TransferPrice = detail.TransferPrice,
+                        LineStatusId = draftStatusId
+                    };
+                    await _dbContext.StoDetail.AddAsync(newDetail);
                 }
             }
 
             _dbContext.StoHeader.Update(existing);
             await _dbContext.SaveChangesAsync();
             return existing.Id;
+        }
+
+        private async Task<int?> GetDraftLineStatusIdAsync()
+        {
+            return await _dbContext.MiscMaster
+                .Where(m => m.IsDeleted == IsDelete.NotDeleted
+                    && m.IsActive == Status.Active
+                    && m.MiscTypeMaster != null
+                    && m.MiscTypeMaster.IsDeleted == IsDelete.NotDeleted
+                    && m.MiscTypeMaster.MiscTypeCode == MiscEnumEntity.StoLineItemStatus
+                    && m.Code == MiscEnumEntity.StoLineStatusDraft)
+                .Select(m => (int?)m.Id)
+                .FirstOrDefaultAsync();
         }
 
         public async Task<bool> SoftDeleteAsync(int id, CancellationToken ct)
