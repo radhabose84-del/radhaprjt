@@ -38,7 +38,7 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
             return $"{prefix}{nextSeq:D5}";
         }
 
-        public async Task<int> CreateAsync(DispatchAdviceHeader entity)
+        public async Task<int> CreateAsync(DispatchAdviceHeader entity, int unitId, int packedStatusId, int dispatchedStatusId)
         {
             // Separate details from header
             var details = entity.DispatchAdviceDetails?.ToList();
@@ -48,13 +48,30 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
             await _applicationDbContext.DispatchAdviceHeader.AddAsync(entity);
             await _applicationDbContext.SaveChangesAsync();
 
-            // Insert details
+            // Insert details and update StockLedger per detail line
             if (details != null && details.Count > 0)
             {
                 foreach (var detail in details)
                 {
                     detail.DispatchAdviceHeaderId = entity.Id;
                     await _applicationDbContext.DispatchAdviceDetail.AddAsync(detail);
+
+                    // Update StockLedger: change each PackNo from Packed to Dispatched
+                    // No BETWEEN — update only records whose StatusId is still Packed (skip already invoiced)
+                    for (int packNo = detail.StartPackNo; packNo <= detail.EndPackNo; packNo++)
+                    {
+                        var stockRecord = await _applicationDbContext.StockLedger
+                            .FirstOrDefaultAsync(s => s.UnitId == unitId
+                                && s.ItemId == detail.ItemId
+                                && s.LotId == detail.LotId
+                                && s.PackNo == packNo
+                                && s.StatusId == packedStatusId);
+
+                        if (stockRecord != null)
+                        {
+                            stockRecord.StatusId = dispatchedStatusId;
+                        }
+                    }
                 }
                 await _applicationDbContext.SaveChangesAsync();
             }
@@ -62,48 +79,48 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
             return entity.Id;
         }
 
-        public async Task<int> UpdateAsync(DispatchAdviceHeader entity)
+        public async Task<bool> SoftDeleteAsync(int id, int dispatchedStatusId, int packedStatusId, CancellationToken ct)
         {
-            var existingEntity = await _applicationDbContext.DispatchAdviceHeader
+            var existing = await _applicationDbContext.DispatchAdviceHeader
                 .Include(h => h.DispatchAdviceDetails)
-                .FirstOrDefaultAsync(x => x.Id == entity.Id && x.IsDeleted == IsDelete.NotDeleted);
+                .FirstOrDefaultAsync(x => x.Id == id && x.IsDeleted == IsDelete.NotDeleted, ct);
 
-            if (existingEntity == null)
-                return 0;
+            if (existing == null)
+                return false;
 
-            // Update header fields (DispatchNo and StatusId are immutable via update)
-            existingEntity.DispatchDate = entity.DispatchDate;
-            existingEntity.SalesOrderId = entity.SalesOrderId;
-            existingEntity.PartyId = entity.PartyId;
-            existingEntity.TotOrderQty = entity.TotOrderQty;
-            existingEntity.TotDispatchedQty = entity.TotDispatchedQty;
-            existingEntity.TotPendingQty = entity.TotPendingQty;
-            existingEntity.DispatchAddressId = entity.DispatchAddressId;
-            existingEntity.TransporterId = entity.TransporterId;
-            existingEntity.VehicleNo = entity.VehicleNo;
-            existingEntity.DriverName = entity.DriverName;
-            existingEntity.LRNo = entity.LRNo;
-            existingEntity.IsActive = entity.IsActive;
+            // Get UnitId from the linked SalesOrder
+            var unitId = await _applicationDbContext.SalesOrderHeader
+                .Where(s => s.Id == existing.SalesOrderId && s.IsDeleted == IsDelete.NotDeleted)
+                .Select(s => s.UnitId)
+                .FirstOrDefaultAsync(ct);
 
-            // Remove existing details
-            if (existingEntity.DispatchAdviceDetails != null && existingEntity.DispatchAdviceDetails.Any())
+            // Reverse StockLedger: change each PackNo from Dispatched back to Packed
+            if (existing.DispatchAdviceDetails != null && existing.DispatchAdviceDetails.Count > 0)
             {
-                _applicationDbContext.DispatchAdviceDetail.RemoveRange(existingEntity.DispatchAdviceDetails);
-            }
-
-            // Insert new details
-            if (entity.DispatchAdviceDetails != null && entity.DispatchAdviceDetails.Any())
-            {
-                foreach (var detail in entity.DispatchAdviceDetails)
+                foreach (var detail in existing.DispatchAdviceDetails)
                 {
-                    detail.DispatchAdviceHeaderId = existingEntity.Id;
-                    await _applicationDbContext.DispatchAdviceDetail.AddAsync(detail);
+                    for (int packNo = detail.StartPackNo; packNo <= detail.EndPackNo; packNo++)
+                    {
+                        var stockRecord = await _applicationDbContext.StockLedger
+                            .FirstOrDefaultAsync(s => s.UnitId == unitId
+                                && s.ItemId == detail.ItemId
+                                && s.LotId == detail.LotId
+                                && s.PackNo == packNo
+                                && s.StatusId == dispatchedStatusId, ct);
+
+                        if (stockRecord != null)
+                        {
+                            stockRecord.StatusId = packedStatusId;
+                        }
+                    }
                 }
             }
 
-            _applicationDbContext.DispatchAdviceHeader.Update(existingEntity);
-            await _applicationDbContext.SaveChangesAsync();
-            return existingEntity.Id;
+            // Soft delete header
+            existing.IsDeleted = IsDelete.Deleted;
+            _applicationDbContext.DispatchAdviceHeader.Update(existing);
+            await _applicationDbContext.SaveChangesAsync(ct);
+            return true;
         }
 
     }
