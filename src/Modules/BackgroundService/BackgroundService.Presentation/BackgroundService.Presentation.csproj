@@ -18,8 +18,8 @@
   <ItemGroup>
     <ProjectReference Include="..\BackgroundService.Application\BackgroundService.Application.csproj" />
     <ProjectReference Include="..\BackgroundService.Infrastructure\BackgroundService.Infrastructure.csproj" />
-    <ProjectReference Include="..\..\Shared\Shared.Validation\Shared.Validation.csproj" />
-    <ProjectReference Include="..\..\Shared\Contracts\Contracts.csproj" />
+    <ProjectReference Include="..\..\..\Shared\Shared.Validation\Shared.Validation.csproj" />
+    <ProjectReference Include="..\..\..\Shared\Contracts\Contracts.csproj" />
   </ItemGroup>
 
 </Project>
