@@ -44,6 +44,9 @@ namespace SalesManagement.Infrastructure.Repositories.StoHeader
             var details = entity.StoDetails?.ToList();
             entity.StoDetails = null;
 
+            // Set default header status to Draft
+            entity.HeaderStatusId = await GetDraftHeaderStatusIdAsync();
+
             // Save header first to get auto-generated Id
             await _dbContext.StoHeader.AddAsync(entity);
             await _dbContext.SaveChangesAsync();
@@ -135,6 +138,19 @@ namespace SalesManagement.Infrastructure.Repositories.StoHeader
                     && m.MiscTypeMaster != null
                     && m.MiscTypeMaster.IsDeleted == IsDelete.NotDeleted
                     && m.MiscTypeMaster.MiscTypeCode == MiscEnumEntity.StoLineItemStatus
+                    && m.Code == MiscEnumEntity.StoLineStatusDraft)
+                .Select(m => (int?)m.Id)
+                .FirstOrDefaultAsync();
+        }
+
+        private async Task<int?> GetDraftHeaderStatusIdAsync()
+        {
+            return await _dbContext.MiscMaster
+                .Where(m => m.IsDeleted == IsDelete.NotDeleted
+                    && m.IsActive == Status.Active
+                    && m.MiscTypeMaster != null
+                    && m.MiscTypeMaster.IsDeleted == IsDelete.NotDeleted
+                    && m.MiscTypeMaster.MiscTypeCode == MiscEnumEntity.StoHeaderStatus
                     && m.Code == MiscEnumEntity.StoLineStatusDraft)
                 .Select(m => (int?)m.Id)
                 .FirstOrDefaultAsync();

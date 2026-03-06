@@ -24,5 +24,8 @@ namespace SalesManagement.Domain.Common
         public const string StoLineItemStatus = "StoLineItemStatus";
         public const string StoLineStatusDraft = "Draft";
 
+        // STO Header Status
+        public const string StoHeaderStatus = "StoHeaderStatus";
+
     }
 }
