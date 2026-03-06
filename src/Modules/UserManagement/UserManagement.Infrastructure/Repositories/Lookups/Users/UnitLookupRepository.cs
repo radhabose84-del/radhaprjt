@@ -29,8 +29,15 @@ namespace UserManagement.Infrastructure.Repositories.Lookups.Users
             const string sql = @"
                 SELECT TOP 1
                     U.Id       AS UnitId,
-                    U.UnitName AS UnitName,ShortName,UnitHeadName,OldUnitId,SpindlesCapacity
+                    U.UnitName AS UnitName,
+                    U.ShortName,
+                    U.UnitHeadName,
+                    U.OldUnitId,
+                    U.SpindlesCapacity,
+                    U.UnitTypeId,
+                    MM.Description AS UnitTypeName
                 FROM [AppData].[Unit] U
+                LEFT JOIN [AppData].[MiscMaster] MM ON MM.Id = U.UnitTypeId AND MM.IsDeleted = 0
                 WHERE U.IsDeleted = 0
                   AND U.Id = @UnitId;
             ";
@@ -60,8 +67,15 @@ namespace UserManagement.Infrastructure.Repositories.Lookups.Users
             const string sql = @"
                 SELECT
                     U.Id       AS UnitId,
-                    U.UnitName AS UnitName,ShortName,UnitHeadName,OldUnitId,SpindlesCapacity
+                    U.UnitName AS UnitName,
+                    U.ShortName,
+                    U.UnitHeadName,
+                    U.OldUnitId,
+                    U.SpindlesCapacity,
+                    U.UnitTypeId,
+                    MM.Description AS UnitTypeName
                 FROM [AppData].[Unit] U
+                LEFT JOIN [AppData].[MiscMaster] MM ON MM.Id = U.UnitTypeId AND MM.IsDeleted = 0
                 WHERE U.IsDeleted = 0
                   AND U.Id IN @UnitIds;
             ";
@@ -85,8 +99,12 @@ namespace UserManagement.Infrastructure.Repositories.Lookups.Users
                     U.Id        AS UnitId,
                     U.UnitName  AS UnitName,
                     U.ShortName AS ShortName,
-                    U.OldUnitId AS OldUnitId,SpindlesCapacity
+                    U.OldUnitId AS OldUnitId,
+                    U.SpindlesCapacity,
+                    U.UnitTypeId,
+                    MM.Description AS UnitTypeName
                 FROM [AppData].[Unit] U
+                LEFT JOIN [AppData].[MiscMaster] MM ON MM.Id = U.UnitTypeId AND MM.IsDeleted = 0
                 WHERE U.IsDeleted = 0
                 ORDER BY U.UnitName ASC;
             ";
@@ -105,9 +123,13 @@ namespace UserManagement.Infrastructure.Repositories.Lookups.Users
                     C.Id        AS UnitId,
                     C.UnitName  AS UnitName,
                     C.ShortName AS ShortName,
-                    C.OldUnitId AS OldUnitId,SpindlesCapacity
+                    C.OldUnitId AS OldUnitId,
+                    C.SpindlesCapacity,
+                    C.UnitTypeId,
+                    MM.Description AS UnitTypeName
                 FROM [AppSecurity].[UserUnit] B
                 INNER JOIN [AppData].[Unit] C ON B.UnitId = C.Id
+                LEFT JOIN [AppData].[MiscMaster] MM ON MM.Id = C.UnitTypeId AND MM.IsDeleted = 0
                 WHERE B.IsActive = 1
                   AND C.IsDeleted = 0
                   AND B.UserId = @UserId
@@ -128,10 +150,14 @@ namespace UserManagement.Infrastructure.Repositories.Lookups.Users
                     C.Id        AS UnitId,
                     C.UnitName  AS UnitName,
                     C.ShortName AS ShortName,
-                    C.OldUnitId AS OldUnitId,SpindlesCapacity
+                    C.OldUnitId AS OldUnitId,
+                    C.SpindlesCapacity,
+                    C.UnitTypeId,
+                    MM.Description AS UnitTypeName
                 FROM [AppSecurity].[Users] A
                 INNER JOIN [AppSecurity].[UserUnit] B ON A.UserId = B.UserId
                 INNER JOIN [AppData].[Unit] C ON B.UnitId = C.Id
+                LEFT JOIN [AppData].[MiscMaster] MM ON MM.Id = C.UnitTypeId AND MM.IsDeleted = 0
                 WHERE B.IsActive = 1
                   AND A.IsActive = 1
                   AND C.IsDeleted = 0

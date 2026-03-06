@@ -53,6 +53,7 @@ namespace UserManagement.Infrastructure.Repositories.Units
     existingUnit.OldUnitId=unit.OldUnitId;
     existingUnit.IsMaintenanceStopStart=unit.IsMaintenanceStopStart;
     existingUnit.SpindlesCapacity=unit.SpindlesCapacity;
+    existingUnit.UnitTypeId=unit.UnitTypeId;
 
 
     // Update the UnitAddress

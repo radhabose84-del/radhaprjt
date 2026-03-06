@@ -122,8 +122,18 @@ namespace UserManagement.Infrastructure.Data.Configurations
                 .HasColumnName("SpindlesCapacity")
                 .HasColumnType("int")
                 .IsRequired(false);
-                
 
+            builder.Property(u => u.UnitTypeId)
+                .HasColumnName("UnitTypeId")
+                .HasColumnType("int")
+                .IsRequired();
+
+            builder.HasOne(u => u.UnitType)
+                .WithMany(m => m.Units)
+                .HasForeignKey(u => u.UnitTypeId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Ignore(u => u.UnitTypeName);
 
         }
     }

@@ -2,6 +2,7 @@
 using FluentValidation;
 using UserManagement.Application.Units.Commands.CreateUnit;
 using UserManagement.Application.Units.Queries.GetUnits;
+using UserManagement.Application.Common.Interfaces.IUnit;
 using UserManagement.Presentation.Validation.Common;
 using Serilog;
 using Shared.Validation.Common;
@@ -11,9 +12,11 @@ namespace UserManagement.Presentation.Validation.Unit
     public class CreateUnitCommandValidator : AbstractValidator<CreateUnitCommand>
     {
          private readonly List<ValidationRule> _validationRules;
-      
-        public CreateUnitCommandValidator(MaxLengthProvider maxLengthProvider)
+         private readonly IUnitQueryRepository _queryRepo;
+
+        public CreateUnitCommandValidator(MaxLengthProvider maxLengthProvider, IUnitQueryRepository queryRepo)
         {
+            _queryRepo = queryRepo;
               _validationRules = ValidationRuleLoader.LoadValidationRules();
                if (_validationRules == null || !_validationRules.Any())
             {
@@ -73,6 +76,15 @@ namespace UserManagement.Presentation.Validation.Unit
                         RuleFor(x => x.UnitContactsDto.PhoneNo)
                             .NotEmpty()
                             .WithMessage($"{nameof(UnitContactsDto.PhoneNo)} {rule.Error}");
+                        RuleFor(x => x.UnitTypeId)
+                            .GreaterThan(0)
+                            .WithMessage($"{nameof(CreateUnitCommand.UnitTypeId)} {rule.Error}");
+                        break;
+                    case "FKColumnDelete":
+                        RuleFor(x => x.UnitTypeId)
+                            .MustAsync(async (id, ct) => await _queryRepo.MiscMasterExistsAsync(id))
+                            .WithMessage($"{nameof(CreateUnitCommand.UnitTypeId)} is inactive or deleted.")
+                            .When(x => x.UnitTypeId > 0);
                         break;
                     case "MaxLength":
                         // Apply MaxLength validation using dynamic max length values

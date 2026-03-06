@@ -67,14 +67,16 @@ namespace UserManagement.Application.Common.Mappings
 
             CreateMap<Unit, UnitsDto>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())
-            .ForMember(dest => dest.UnitName, opt => opt.MapFrom(src => src.UnitName));
+            .ForMember(dest => dest.UnitName, opt => opt.MapFrom(src => src.UnitName))
+            .ForMember(dest => dest.UnitTypeId, opt => opt.MapFrom(src => src.UnitTypeId));
 
             CreateMap<UpdateUnitsDto, Unit>()
                  .ForMember(dest => dest.UnitAddress, opt => opt.MapFrom(src => src.UnitAddressDto))
                  .ForMember(dest => dest.UnitContacts, opt => opt.MapFrom(src => src.UnitContactsDto))
                  .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive == 1 ? Status.Active : Status.Inactive));
 
-            CreateMap<Unit, GetUnitsDTO>();
+            CreateMap<Unit, GetUnitsDTO>()
+            .ForMember(dest => dest.UnitTypeId, opt => opt.MapFrom(src => src.UnitTypeId));
             // .ForMember(dest => dest.UnitAddressDto, opt => opt.MapFrom(src => src.UnitAddress))
             // .ForMember(dest => dest.UnitContactsDto, opt => opt.MapFrom(src => src.UnitContacts));
 
@@ -85,7 +87,8 @@ namespace UserManagement.Application.Common.Mappings
 
             CreateMap<Unit, UnitAutoCompleteDTO>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
-            .ForMember(dest => dest.UnitName, opt => opt.MapFrom(src => src.UnitName));
+            .ForMember(dest => dest.UnitName, opt => opt.MapFrom(src => src.UnitName))
+            .ForMember(dest => dest.UnitTypeId, opt => opt.MapFrom(src => src.UnitTypeId));
 
 
             CreateMap<Unit, GetUnitsByIdDto>()

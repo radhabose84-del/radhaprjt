@@ -15,7 +15,8 @@ namespace UserManagement.Application.Common.Interfaces.IUnit
         Task<bool> FKColumnExistValidation(int Id);
         Task<List<Unit>> GetUnit_SuperAdmin(string searchPattern);
         Task<bool> IsUnitUsedByAnyUserAsync(int unitId);
-         
+        Task<bool> MiscMasterExistsAsync(int id);
+
     }
     
    
