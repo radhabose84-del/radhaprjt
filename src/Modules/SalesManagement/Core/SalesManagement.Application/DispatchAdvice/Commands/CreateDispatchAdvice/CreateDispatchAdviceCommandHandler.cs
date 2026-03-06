@@ -37,7 +37,7 @@ namespace SalesManagement.Application.DispatchAdvice.Commands.CreateDispatchAdvi
 
             // Set Draft status
             var draftStatus = await _miscMasterQueryRepository.GetMiscMasterByName(
-                MiscEnumEntity.DispatchAdviceStatus, MiscEnumEntity.DispatchStatusDraft);
+                MiscEnumEntity.StockStatus, MiscEnumEntity.Pending);
             entity.StatusId = draftStatus?.Id ?? 0;
 
             // Generate auto-number (unit-based from SalesOrder)
