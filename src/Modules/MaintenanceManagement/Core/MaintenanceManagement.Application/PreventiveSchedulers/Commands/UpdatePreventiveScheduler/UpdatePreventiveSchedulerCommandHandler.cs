@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using AutoMapper;
 using Contracts.Dtos.Maintenance.Preventive;
 using Contracts.Events.Maintenance.PreventiveScheduler.PreventiveSchedulerUpdate;
-using Contracts.Interfaces.External.IMaintenance;
 using MaintenanceManagement.Application.Common;
 using Contracts.Common;
 using MaintenanceManagement.Application.Common.Interfaces;

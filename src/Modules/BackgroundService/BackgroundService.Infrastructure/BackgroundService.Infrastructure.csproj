@@ -29,14 +29,6 @@
     <PackageReference Include="Hangfire.Core" Version="1.8.17" />
     <PackageReference Include="Hangfire.SqlServer" Version="1.8.17" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="6.0.2" />
-         <PackageReference Include="Google.Protobuf" Version="3.30.2" />
-    <PackageReference Include="Grpc.AspNetCore" Version="2.71.0" />
-    <PackageReference Include="Grpc.Net.Client" Version="2.71.0" />
-    <PackageReference Include="Grpc.Tools" Version="2.72.0">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="Grpc.AspNetCore.Web" Version="2.71.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\BackgroundService.Domain\BackgroundService.Domain.csproj" />
@@ -44,12 +36,4 @@
      <ProjectReference Include="..\..\..\Shared\Contracts\Contracts.csproj" />
      
   </ItemGroup>
-   <ItemGroup>
-  <Protobuf Include="..\..\..\Shared\Contracts\Protos\session.proto" GrpcServices="Client" />
-  <Protobuf Include="..\..\..\Shared\Contracts\Protos\allusers.proto" GrpcServices="Client" />
-  <Protobuf Include="..\..\..\Shared\Contracts\Protos\unit.proto" GrpcServices="Client" />
-  <Protobuf Include="..\..\..\Shared\Contracts\Protos\menu.proto" GrpcServices="Client" />
-  <Protobuf Include="..\..\..\Shared\Contracts\Protos\department.proto" GrpcServices="Client" />
-
-</ItemGroup> 
 </Project>
