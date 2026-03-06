@@ -2,6 +2,7 @@ using System.Data;
 using Dapper;
 using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Inventory;
+using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Application.Common.Interfaces.IDispatchAdvice;
 using SalesManagement.Application.DispatchAdvice.Dto;
 
@@ -12,15 +13,18 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
         private readonly IDbConnection _dbConnection;
         private readonly IPartyLookup _partyLookup;
         private readonly IItemLookup _itemLookup;
+        private readonly IIPAddressService _ipAddressService;
 
         public DispatchAdviceQueryRepository(
             IDbConnection dbConnection,
             IPartyLookup partyLookup,
-            IItemLookup itemLookup)
+            IItemLookup itemLookup,
+            IIPAddressService ipAddressService)
         {
             _dbConnection = dbConnection;
             _partyLookup = partyLookup;
             _itemLookup = itemLookup;
+            _ipAddressService = ipAddressService;
         }
 
         public async Task<(List<DispatchAdviceHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
@@ -190,6 +194,47 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
                 WHERE Id = @Id AND IsDeleted = 0";
 
             return await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = salesOrderId });
+        }
+
+        public async Task<DispatchAdviceStockDto?> GetStockAsync(int itemId, int lotId, int statusId)
+        {
+            var unitId = _ipAddressService.GetUnitId();
+
+            const string sql = @"
+                SELECT Sum(TotalQty) AS Qty, Sum(TotalValue) AS Value
+                FROM Sales.StockLedger
+                WHERE UnitId = @UnitId AND ItemId = @ItemId AND StatusId = @StatusId AND LotId = @LotId";
+
+            return await _dbConnection.QueryFirstOrDefaultAsync<DispatchAdviceStockDto>(sql,
+                new { UnitId = unitId, ItemId = itemId, StatusId = statusId, LotId = lotId });
+        }
+
+        public async Task<List<int>> GetAvailablePackNosAsync(int itemId, int lotId, int statusId, int startPackNo, int endPackNo)
+        {
+            var unitId = _ipAddressService.GetUnitId();
+
+            const string sql = @"
+                SELECT PackNo
+                FROM Sales.StockLedger
+                WHERE UnitId = @UnitId AND ItemId = @ItemId AND StatusId = @StatusId AND LotId = @LotId
+                AND PackNo BETWEEN @StartPackNo AND @EndPackNo";
+
+            var result = await _dbConnection.QueryAsync<int>(sql,
+                new { UnitId = unitId, ItemId = itemId, StatusId = statusId, LotId = lotId, StartPackNo = startPackNo, EndPackNo = endPackNo });
+            return result.ToList();
+        }
+
+        public async Task<IReadOnlyList<DispatchAdviceLookupDto>> AutocompleteAsync(string term, CancellationToken ct)
+        {
+            const string sql = @"
+                SELECT TOP 20 Id, DispatchNo, DispatchDate
+                FROM Sales.DispatchAdviceHeader
+                WHERE IsActive = 1 AND IsDeleted = 0
+                AND DispatchNo LIKE @Term
+                ORDER BY DispatchNo ASC";
+
+            var result = await _dbConnection.QueryAsync<DispatchAdviceLookupDto>(sql, new { Term = $"%{term}%" });
+            return result.ToList();
         }
     }
 }
