@@ -15,8 +15,10 @@ namespace SalesManagement.Domain.Common
         public const string Packed = "Packed";
 
         // Dispatch Advice Status
-        public const string DispatchAdviceStatus = "DispatchAdviceStatus";
-        public const string DispatchStatusDraft = "Draft";
+        public const string StockStatus = "StockStatus";
+        public const string Dispatched = "Dispatched";
+        public const string Invoiced = "Invoiced";
+        public const string Pending = "Pending";
 
         // STO Line Item Status
         public const string StoLineItemStatus = "StoLineItemStatus";

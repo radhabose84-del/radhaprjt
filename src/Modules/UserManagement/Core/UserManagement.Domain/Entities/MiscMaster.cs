@@ -14,6 +14,7 @@ namespace UserManagement.Domain.Entities
         public MiscTypeMaster? MiscTypeMaster { get; set; }
         public IList<CustomField> CustomFieldDataTypes { get; set; } = new List<CustomField>();
         public IList<CustomField> CustomFieldLabelTypes { get; set; } = new List<CustomField>();
+        public IList<Unit>? Units { get; set; }
         // public IList<CustomField> CustomFieldDataTypes { get; set; }
         // public IList<CustomField> CustomFieldLabelTypes { get; set; }
 

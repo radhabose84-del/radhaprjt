@@ -17,7 +17,9 @@ namespace UserManagement.Application.Units.Queries.GetUnits
     public IsDelete IsDeleted { get; set; }
     public bool IsMaintenanceStopStart { get; set; }
     public int? SpindlesCapacity { get; set; }
-    public UnitAddressDto? UnitAddressDto { get; set; } 
-    public UnitContactsDto? UnitContactsDto { get; set;} 
+    public int UnitTypeId { get; set; }
+    public string? UnitTypeName { get; set; }
+    public UnitAddressDto? UnitAddressDto { get; set; }
+    public UnitContactsDto? UnitContactsDto { get; set;}
     }
 }

@@ -2,9 +2,12 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SalesManagement.Application.DispatchAdvice.Commands.CreateDispatchAdvice;
-using SalesManagement.Application.DispatchAdvice.Commands.UpdateDispatchAdvice;
 using SalesManagement.Application.DispatchAdvice.Queries.GetAllDispatchAdvice;
 using SalesManagement.Application.DispatchAdvice.Queries.GetDispatchAdviceById;
+using SalesManagement.Application.DispatchAdvice.Queries.GetDispatchAdviceStock;
+using SalesManagement.Application.DispatchAdvice.Queries.GetDispatchAdvicePackNoValidation;
+using SalesManagement.Application.DispatchAdvice.Queries.GetDispatchAdviceAutoComplete;
+using SalesManagement.Application.DispatchAdvice.Commands.DeleteDispatchAdvice;
 
 namespace SalesManagement.Presentation.Controllers
 {
@@ -36,6 +39,18 @@ namespace SalesManagement.Presentation.Controllers
             });
         }
 
+        [HttpGet("by-name")]
+        public async Task<IActionResult> GetDispatchAdviceAutoCompleteAsync([FromQuery] string? term = null)
+        {
+            var result = await Mediator.Send(new GetDispatchAdviceAutoCompleteQuery(term ?? string.Empty));
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result
+            });
+        }
+
         [HttpGet("{id}")]
         public async Task<IActionResult> GetDispatchAdviceByIdAsync(int id)
         {
@@ -62,17 +77,56 @@ namespace SalesManagement.Presentation.Controllers
             });
         }
 
-        [HttpPut]
-        public async Task<IActionResult> UpdateDispatchAdvice([FromBody] UpdateDispatchAdviceCommand command)
+        [HttpGet("stock")]
+        public async Task<IActionResult> GetDispatchAdviceStockAsync(
+            [FromQuery] int itemId,
+            [FromQuery] int lotId)
         {
-            var result = await Mediator.Send(command);
+            var result = await Mediator.Send(new GetDispatchAdviceStockQuery
+            {
+                ItemId = itemId,
+                LotId = lotId
+            });
 
             return Ok(new
             {
                 StatusCode = StatusCodes.Status200OK,
-                isSuccess = result.IsSuccess,
-                message = result.Message,
-                data = result.Data
+                data = result
+            });
+        }
+
+        [HttpGet("validate-packno")]
+        public async Task<IActionResult> ValidatePackNoAsync(
+            [FromQuery] int itemId,
+            [FromQuery] int lotId,
+            [FromQuery] int startPackNo,
+            [FromQuery] int endPackNo)
+        {
+            var result = await Mediator.Send(new GetDispatchAdvicePackNoValidationQuery
+            {
+                ItemId = itemId,
+                LotId = lotId,
+                StartPackNo = startPackNo,
+                EndPackNo = endPackNo
+            });
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result
+            });
+        }
+
+        [HttpDelete]
+        public async Task<IActionResult> DeleteDispatchAdvice(int id)
+        {
+            var result = await Mediator.Send(new DeleteDispatchAdviceCommand(id));
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                isSuccess = result,
+                message = "Dispatch Advice deleted successfully."
             });
         }
 
