@@ -66,6 +66,8 @@ using SalesManagement.Application.Common.Interfaces.IStoTypeMaster;
 using SalesManagement.Infrastructure.Repositories.StoTypeMaster;
 using SalesManagement.Application.Common.Interfaces.IStoHeader;
 using SalesManagement.Infrastructure.Repositories.StoHeader;
+using SalesManagement.Application.Common.Interfaces.IDeliveryChallan;
+using SalesManagement.Infrastructure.Repositories.DeliveryChallan;
 
 
 namespace SalesManagement.Infrastructure
@@ -258,6 +260,10 @@ namespace SalesManagement.Infrastructure
             // ── STO Header Repositories ─────────────────────────────────────
             services.AddScoped<IStoHeaderCommandRepository, StoHeaderCommandRepository>();
             services.AddScoped<IStoHeaderQueryRepository, StoHeaderQueryRepository>();
+
+            // ── Delivery Challan Repositories ─────────────────────────────────
+            services.AddScoped<IDeliveryChallanCommandRepository, DeliveryChallanCommandRepository>();
+            services.AddScoped<IDeliveryChallanQueryRepository, DeliveryChallanQueryRepository>();
             return services;
         }
     }

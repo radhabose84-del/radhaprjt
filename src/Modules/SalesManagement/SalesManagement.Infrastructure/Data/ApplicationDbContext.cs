@@ -59,6 +59,8 @@ namespace SalesManagement.Infrastructure.Data
         public DbSet<StoTypeMaster> StoTypeMaster { get; set; }
         public DbSet<StoHeader> StoHeader { get; set; }
         public DbSet<StoDetail> StoDetail { get; set; }
+        public DbSet<DeliveryChallanHeader> DeliveryChallanHeader { get; set; }
+        public DbSet<DeliveryChallanDetail> DeliveryChallanDetail { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -99,6 +101,8 @@ namespace SalesManagement.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new StoTypeMasterConfiguration());
             modelBuilder.ApplyConfiguration(new StoHeaderConfiguration());
             modelBuilder.ApplyConfiguration(new StoDetailConfiguration());
+            modelBuilder.ApplyConfiguration(new DeliveryChallanHeaderConfiguration());
+            modelBuilder.ApplyConfiguration(new DeliveryChallanDetailConfiguration());
 
 
             // Global convention: set explicit precision/scale for all decimal properties

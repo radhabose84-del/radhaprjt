@@ -34,5 +34,8 @@ namespace SalesManagement.Domain.Entities
 
         // Child collection
         public ICollection<StoDetail>? StoDetails { get; set; }
+
+        // Reverse navigation (DeliveryChallan)
+        public ICollection<DeliveryChallanHeader>? DeliveryChallanHeaders { get; set; }
     }
 }
