@@ -10,6 +10,8 @@ namespace SalesManagement.Application.SalesEnquiry.Dto
         public DateTimeOffset? ExpectedDeliveryDate { get; set; }
         public int? PaymentTermId { get; set; }
         public string? PaymentTermDescription { get; set; }
+        public int? SalesLeadId { get; set; }
+        public string? SalesLeadProspectName { get; set; }
         public string? Remarks { get; set; }
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }

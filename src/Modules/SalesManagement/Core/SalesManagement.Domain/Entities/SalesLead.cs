@@ -30,5 +30,6 @@ namespace SalesManagement.Domain.Entities
         public SalesContact? Contact { get; set; }
         public MiscMaster? LeadSource { get; set; }
         public MarketingOfficer? MarketingOfficer { get; set; }
+        public ICollection<SalesEnquiryHeader>? SalesEnquiryHeaders { get; set; }
     }
 }

@@ -79,7 +79,19 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             builder.Property(t => t.ModifiedByName).HasColumnName("ModifiedByName").HasColumnType("varchar(100)");
             builder.Property(t => t.ModifiedIP).HasColumnName("ModifiedIP").HasColumnType("varchar(50)");
 
+            builder.Property(t => t.SalesLeadId)
+                .HasColumnName("SalesLeadId")
+                .HasColumnType("int")
+                .IsRequired(false);
+
+            builder.HasOne(t => t.SalesLead)
+                .WithMany(sl => sl.SalesEnquiryHeaders)
+                .HasForeignKey(t => t.SalesLeadId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired(false);
+
             builder.HasIndex(t => t.PartyId);
+            builder.HasIndex(t => t.SalesLeadId);
         }
     }
 }
