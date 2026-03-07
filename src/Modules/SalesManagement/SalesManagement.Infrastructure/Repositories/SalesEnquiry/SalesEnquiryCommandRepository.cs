@@ -36,6 +36,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesEnquiry
             existingEntity.ContactPerson = entity.ContactPerson;
             existingEntity.ExpectedDeliveryDate = entity.ExpectedDeliveryDate;
             existingEntity.PaymentTermId = entity.PaymentTermId;
+            existingEntity.SalesLeadId = entity.SalesLeadId;
             existingEntity.Remarks = entity.Remarks;
             existingEntity.IsActive = entity.IsActive;
 

@@ -7,6 +7,7 @@ using UserManagement.Application.Divisions.Commands.UpdateDivision;
 using UserManagement.Application.Divisions.Commands.DeleteDivision;
 using Microsoft.AspNetCore.Http;
 using UserManagement.Application.Divisions.Queries.GetDivisionAutoComplete;
+using UserManagement.Application.Divisions.Queries.GetUnitsByDivision;
 
 namespace UserManagement.Presentation.Controllers
 {
@@ -100,13 +101,28 @@ namespace UserManagement.Presentation.Controllers
          [HttpGet("by-name")]
         public async Task<IActionResult> GetDivision([FromQuery] string? name)
         {
-           
-           var companiesClaim = User.FindFirst("companyId")?.Value; 
-           
+
+           var companiesClaim = User.FindFirst("companyId")?.Value;
+
             var divisions = await Mediator.Send(new GetDivisionAutoCompleteQuery {SearchPattern = name,Companies = companiesClaim});
             return Ok( new { StatusCode=StatusCodes.Status200OK, data = divisions });
         }
-      
-      
+
+        [HttpGet("units-by-division")]
+        public async Task<IActionResult> GetUnitsByDivisionAsync([FromQuery] int divisionId)
+        {
+            var companyIdClaim = User.FindFirst("CompanyId")?.Value;
+            var companyId = int.TryParse(companyIdClaim, out var cid) ? cid : 0;
+
+            var result = await Mediator.Send(new GetUnitsByDivisionQuery
+            {
+                CompanyId  = companyId,
+                DivisionId = divisionId
+            });
+
+            return Ok(new { StatusCode = StatusCodes.Status200OK, data = result });
+        }
+
+
     }
 }

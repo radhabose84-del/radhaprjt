@@ -11,5 +11,6 @@ namespace SalesManagement.Application.Common.Interfaces.ISalesEnquiry
         Task<bool> PartyExistsAsync(int partyId);
         Task<bool> PaymentTermExistsAsync(int paymentTermId);
         Task<bool> ItemExistsAsync(int itemId);
+        Task<bool> SalesLeadExistsAsync(int salesLeadId);
     }
 }

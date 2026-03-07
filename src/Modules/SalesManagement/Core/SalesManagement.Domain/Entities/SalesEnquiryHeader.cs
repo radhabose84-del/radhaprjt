@@ -11,6 +11,9 @@ namespace SalesManagement.Domain.Entities
         public int? PaymentTermId { get; set; }
         public string? Remarks { get; set; }
 
+        public int? SalesLeadId { get; set; }
+
+        public SalesLead? SalesLead { get; set; }
         public ICollection<SalesEnquiryDetail>? SalesEnquiryDetails { get; set; }
     }
 }
