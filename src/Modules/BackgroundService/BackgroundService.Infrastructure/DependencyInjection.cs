@@ -184,6 +184,12 @@ namespace BackgroundService.Infrastructure
                     x.AddConsumer<RollBackScheduleWorkOrderConsumer>();
                     x.AddConsumer<ScheduleWorkOrderUpdateConsumer>();
 
+                    // Outbox event bridge consumers — receive events from SqlOutboxProcessorJob
+                    // and translate them into the appropriate Hangfire scheduling commands.
+                    x.AddConsumer<MachineWiseScheduleCreationConsumer>();
+                    x.AddConsumer<HeaderUpdateEventConsumer>();
+                    x.AddConsumer<NextSchedulerCreatedEventConsumer>();
+
                     x.UsingRabbitMq((context, cfg) =>
                     {
                         cfg.Host("localhost", "/", h =>
@@ -275,6 +281,20 @@ namespace BackgroundService.Infrastructure
                         cfg.ReceiveEndpoint("update-scheduleWorkOrder-task-queue", e =>
                         {
                             e.ConfigureConsumer<ScheduleWorkOrderUpdateConsumer>(context);
+                        });
+
+                        // Outbox event bridge endpoints
+                        cfg.ReceiveEndpoint("machine-wise-schedule-creation-queue", e =>
+                        {
+                            e.ConfigureConsumer<MachineWiseScheduleCreationConsumer>(context);
+                        });
+                        cfg.ReceiveEndpoint("header-update-event-queue", e =>
+                        {
+                            e.ConfigureConsumer<HeaderUpdateEventConsumer>(context);
+                        });
+                        cfg.ReceiveEndpoint("next-scheduler-created-queue", e =>
+                        {
+                            e.ConfigureConsumer<NextSchedulerCreatedEventConsumer>(context);
                         });
                     });
                 });

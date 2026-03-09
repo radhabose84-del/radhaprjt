@@ -10,6 +10,7 @@ using PurchaseManagement.Domain.Common;
 using PurchaseManagement.Domain.Entities.PurchaseOrder;
 using PurchaseManagement.Domain.PurchaseOrder;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace PurchaseManagement.Application.PurchaseOrder.ImportPO.Command.Create;
@@ -119,77 +120,52 @@ public class CreateImportPOCommandHandler : IRequestHandler<CreateImportPOComman
             }
         }
 
-        var result = await _repo.CreateAsync(entity, dto, ct);
-      /*   if (result > 0)
+        // ── Shared Transaction Pattern ────────────────────────────────────────────
+        // Both the Import PO EF Core write and the Budget Dapper UPDATE must commit
+        // or roll back together. We open the transaction here (handler level), pass
+        // the underlying ADO.NET connection + transaction to the Budget lookup so it
+        // joins the same SQL transaction, then commit once both succeed.
+        // ─────────────────────────────────────────────────────────────────────────
+        var strategy = _repo.CreateExecutionStrategy();
+        var result = await strategy.ExecuteAsync(async () =>
         {
-            // ---- Reload aggregate with details for payload
-            var agg = await _purchaseOrderQueryRepository.GetByIdAsync(result, ct)
-                      ?? throw new InvalidOperationException($"Purchase Order - Import {result} not found after create.");
+            var (transaction, dbConn, dbTx) = await _repo.BeginTransactionWithConnectionAsync(ct);
+            await using var _ = transaction;
 
-            // ---- Map to payload and publish workflow event
-            var reversePayload = _mapper.Map<CreateImportPOReverseDto>(agg);
-            var serializedPayload = JsonSerializer.Serialize(reversePayload);
-            var correlationId = Guid.NewGuid();
+            var poId = await _repo.CreateWithoutTransactionAsync(entity, dto, ct);
 
-            var evt = new TransactionCreatedEvent
+            if (poId > 0 && entity.BudgetGroupId.HasValue && entity.BudgetGroupId.Value > 0 && entity.PurchaseValue > 0)
             {
-                CorrelationId = correlationId,
-                ModuleTypeName = MiscEnumEntity.POLocal,
-                ModuleTransactionId = result,
-                Payload = serializedPayload
-            };
+                var budgetMonthDate = new DateOnly(entity.PODate.Year, entity.PODate.Month, 1);
 
-            var notification = new NotificationCreatedEvent
-            {
-                CorrelationId = correlationId,
-                CreatedByName = entity.CreatedByName,
-                UnitId = _ip.GetUnitId(),
-                ModuleName = "Purchase Order",
-                EventTypeId = (int)NotificationEnum.NotificationEvent.Create,
-                param1 = entity.PONumber,
-                param2 = entity.PONumber,
-                param3 = entity.PODate,
-                param4 = entity.PurchaseValue.ToString()
-            };
+                var ok = await _budgetAllocationLookup.ApplyRemainingBalanceDeltaAsync(
+                    entity.BudgetGroupId.Value,
+                    budgetMonthDate,
+                    entity.BudgetMonthId ?? 0,
+                    entity.BudgetRequestById ?? 0,
+                    entity.PurchaseValue,
+                    entity.ProjectId,
+                    entity.WBSId,
+                    entity.FinancialYearId,
+                    dbConn,
+                    dbTx,
+                    ct);
 
-            await _eventPublisher.SaveEventAsync(evt);
-            await _eventPublisher.SaveEventAsync(notification);
-            await _eventPublisher.PublishPendingEventsAsync();
-        } */
+                if (!ok)
+                {
+                    _logger.LogWarning(
+                        "Import PO: Budget consume failed. PO {PoId}, BG {BgId}, Delta {Delta}",
+                        poId,
+                        entity.BudgetGroupId,
+                        entity.PurchaseValue);
+                }
+            }
 
-        if (result > 0)
-            await ApplyBudgetDeltaAsync(entity, result, ct);
+            await transaction.CommitAsync(ct);
+            return poId;
+        });
 
         return result;
-    }
-
-    private async Task ApplyBudgetDeltaAsync(PurchaseOrderHeader entity, int poId, CancellationToken ct)
-    {
-        if (!entity.BudgetGroupId.HasValue || entity.BudgetGroupId.Value <= 0 || entity.PurchaseValue <= 0)
-            return;
-
-        var budgetMonthDate = new DateOnly(entity.PODate.Year, entity.PODate.Month, 1);
-        var deltaAmount = entity.PurchaseValue;
-
-        var ok = await _budgetAllocationLookup.ApplyRemainingBalanceDeltaAsync(
-            entity.BudgetGroupId.Value,
-            budgetMonthDate,
-            entity.BudgetMonthId ?? 0,
-            entity.BudgetRequestById ?? 0,
-            deltaAmount,
-            entity.ProjectId,
-            entity.WBSId,
-            entity.FinancialYearId,
-            ct);
-
-        if (!ok)
-        {
-            _logger.LogWarning(
-                "Import PO: Budget consume failed. PO {PoId}, BG {BgId}, Delta {Delta}",
-                poId,
-                entity.BudgetGroupId,
-                deltaAmount);
-        }
     }
 
     private static void EnsureDirectoryExists(string path)

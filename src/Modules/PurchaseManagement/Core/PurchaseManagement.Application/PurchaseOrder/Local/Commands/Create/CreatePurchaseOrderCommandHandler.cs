@@ -200,7 +200,11 @@ namespace PurchaseManagement.Application.PurchaseOrder.Local.Commands.Create
 
             return await strategy.ExecuteAsync(async () =>
             {
-                await using var transaction = await _repo.BeginTransactionAsync(ct);
+                // Shared Transaction pattern: open the EF Core transaction and obtain the
+                // underlying ADO.NET connection + transaction so the Budget Dapper UPDATE
+                // participates in the same SQL transaction as the PO write.
+                var (transaction, dbConn, dbTx) = await _repo.BeginTransactionWithConnectionAsync(ct);
+                await using var _ = transaction;;
 
                 try
                 {
@@ -230,6 +234,8 @@ namespace PurchaseManagement.Application.PurchaseOrder.Local.Commands.Create
                             projectId: entity.ProjectId,
                             wbsId: entity.WBSId,
                             financialYearId: entity.FinancialYearId,
+                            connection: dbConn,
+                            transaction: dbTx,
                             ct: ct);
 
                         if (!deltaApplied)
@@ -247,7 +253,7 @@ namespace PurchaseManagement.Application.PurchaseOrder.Local.Commands.Create
                                 IsSuccess = false,
                                 Message = "Budget allocation failed. Purchase order creation rolled back.",
                                 Data = 0
-                                
+
                             };
                         }
                     }
