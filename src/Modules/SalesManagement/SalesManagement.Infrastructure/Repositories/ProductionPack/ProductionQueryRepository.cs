@@ -219,7 +219,7 @@ namespace SalesManagement.Infrastructure.Repositories.ProductionPack
             string term, CancellationToken ct)
         {
             const string sql = @"
-                SELECT TOP 20 Id, PackNo, PackDate
+                SELECT Id, PackNo, PackDate
                 FROM Production.ProductionPackHeader
                 WHERE IsActive = 1 AND IsDeleted = 0
                     AND PackNo LIKE @Search

@@ -49,7 +49,8 @@ namespace SalesManagement.Application.Common.Mappings
 
             CreateMap<InvoiceDetail, InvoiceDetailDto>()
                 .ForMember(dest => dest.ItemName,     opt => opt.Ignore())
-                .ForMember(dest => dest.PackTypeName, opt => opt.Ignore());
+                .ForMember(dest => dest.PackTypeName, opt => opt.Ignore())
+                .ForMember(dest => dest.UOMName,      opt => opt.Ignore());   // populated via IUOMLookup
 
             CreateMap<EInvoiceHeader, EInvoiceHeaderDto>()
                 .ForMember(dest => dest.IsActive,    opt => opt.MapFrom(src => src.IsActive == Status.Active))

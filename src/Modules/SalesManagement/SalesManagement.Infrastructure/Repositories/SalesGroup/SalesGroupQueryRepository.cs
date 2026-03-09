@@ -98,7 +98,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesGroup
         public async Task<IReadOnlyList<SalesGroupLookupDto>> AutocompleteAsync(string term, CancellationToken ct)
         {
             const string sql = @"
-                SELECT TOP 20 Id, SalesGroupName, SalesOfficeId
+                SELECT  Id, SalesGroupName, SalesOfficeId
                 FROM Sales.SalesGroup
                 WHERE IsDeleted = 0 AND IsActive = 1
                 AND SalesGroupName LIKE @Term

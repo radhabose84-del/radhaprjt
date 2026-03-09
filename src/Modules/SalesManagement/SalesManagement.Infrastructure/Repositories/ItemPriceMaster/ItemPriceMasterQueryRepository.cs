@@ -160,7 +160,7 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
             string term, CancellationToken ct)
         {
             const string sql = @"
-                SELECT TOP 20 Id, PriceCode, ItemId, ExMillRate, ValidFrom, ValidTo
+                SELECT Id, PriceCode, ItemId, ExMillRate, ValidFrom, ValidTo
                 FROM Sales.ItemPriceMaster
                 WHERE IsDeleted = 0 AND IsActive = 1
                   AND PriceCode LIKE @Term

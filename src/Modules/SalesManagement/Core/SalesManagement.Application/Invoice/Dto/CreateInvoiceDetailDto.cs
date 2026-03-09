@@ -20,7 +20,7 @@ namespace SalesManagement.Application.Invoice.Dto
         public decimal IGST { get; set; }
         public decimal TaxAmount { get; set; }
         public int? PackTypeId { get; set; }
-        public string? UOM { get; set; }
+        public int? UOMId { get; set; }
         public decimal TotalAmount { get; set; }
     }
 }

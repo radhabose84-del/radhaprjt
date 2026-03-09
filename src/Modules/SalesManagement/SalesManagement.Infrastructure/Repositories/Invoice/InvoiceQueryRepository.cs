@@ -14,17 +14,20 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
         private readonly IPartyLookup _partyLookup;
         private readonly IUnitLookup _unitLookup;
         private readonly IItemLookup _itemLookup;
+        private readonly IUOMLookup _uomLookup;
 
         public InvoiceQueryRepository(
             IDbConnection dbConnection,
             IPartyLookup partyLookup,
             IUnitLookup unitLookup,
-            IItemLookup itemLookup)
+            IItemLookup itemLookup,
+            IUOMLookup uomLookup)
         {
             _dbConnection = dbConnection;
             _partyLookup = partyLookup;
             _unitLookup = unitLookup;
             _itemLookup = itemLookup;
+            _uomLookup = uomLookup;
         }
 
         public async Task<(List<InvoiceHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
@@ -132,7 +135,7 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                     d.CGST, d.SGST, d.IGST, d.TaxAmount,
                     d.PackTypeId,
                     pt.PackTypeName,
-                    d.UOM, d.TotalAmount
+                    d.UOMId, d.TotalAmount
                 FROM Sales.InvoiceDetail d
                 LEFT JOIN Sales.PackType pt ON d.PackTypeId = pt.Id AND pt.IsDeleted = 0
                 WHERE d.InvoiceHeaderId = @HeaderId
@@ -153,34 +156,25 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                 var items = await _itemLookup.GetByIdsAsync(itemIds);
                 var itemDict = items.ToDictionary(i => i.Id, i => i.ItemName);
 
+                var uomIds = details.Where(d => d.UOMId.HasValue).Select(d => d.UOMId!.Value).Distinct();
+                var uoms = await _uomLookup.GetByIdsAsync(uomIds);
+                var uomDict = uoms.ToDictionary(u => u.Id, u => u.UOMName);
+
                 foreach (var detail in details)
+                {
                     detail.ItemName = itemDict.TryGetValue(detail.ItemId, out var iName) ? iName : null;
+                    detail.UOMName  = detail.UOMId.HasValue && uomDict.TryGetValue(detail.UOMId.Value, out var uName) ? uName : null;
+                }
             }
 
             header.InvoiceDetails = details;
             return header;
         }
 
-        public async Task<List<InvoiceHeaderDto>> GetByDispatchAdviceAsync(int dispatchAdviceId)
+public async Task<IReadOnlyList<InvoiceLookupDto>> AutocompleteAsync(string term, CancellationToken ct)
         {
             const string sql = @"
-                SELECT h.Id, h.InvoiceNo, h.InvoiceDate,
-                    h.InvoiceType, mm.Description AS InvoiceTypeName,
-                    h.DispatchAdviceId, h.PartyId, h.UnitId,
-                    h.TotalBags, h.TotalWeight, h.InvoiceAmount,
-                    h.IsActive, h.IsDeleted, h.CreatedDate
-                FROM Sales.InvoiceHeader h
-                LEFT JOIN Sales.MiscMaster mm ON h.InvoiceType = mm.Id AND mm.IsDeleted = 0
-                WHERE h.DispatchAdviceId = @DispatchAdviceId AND h.IsDeleted = 0
-                ORDER BY h.Id DESC";
-
-            return (await _dbConnection.QueryAsync<InvoiceHeaderDto>(sql, new { DispatchAdviceId = dispatchAdviceId })).ToList();
-        }
-
-        public async Task<IReadOnlyList<InvoiceLookupDto>> AutocompleteAsync(string term, CancellationToken ct)
-        {
-            const string sql = @"
-                SELECT TOP 20 h.Id, h.InvoiceNo, h.InvoiceDate
+                SELECT  h.Id, h.InvoiceNo, h.InvoiceDate
                 FROM Sales.InvoiceHeader h
                 WHERE h.IsActive = 1 AND h.IsDeleted = 0
                 AND h.InvoiceNo LIKE @Term

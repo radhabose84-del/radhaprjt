@@ -88,7 +88,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesChannel
         public async Task<IReadOnlyList<SalesChannelLookupDto>> AutocompleteAsync(string term, CancellationToken ct)
         {
             const string sql = @"
-                SELECT TOP 20 Id, SalesChannelCode, SalesChannelName
+                SELECT  Id, SalesChannelCode, SalesChannelName
                 FROM Sales.SalesChannel
                 WHERE IsDeleted = 0 AND IsActive = 1
                 AND (SalesChannelCode LIKE @Term OR SalesChannelName LIKE @Term)

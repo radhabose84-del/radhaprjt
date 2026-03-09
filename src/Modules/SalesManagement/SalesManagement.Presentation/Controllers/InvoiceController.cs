@@ -5,7 +5,6 @@ using SalesManagement.Application.Invoice.Commands.CreateInvoice;
 using SalesManagement.Application.Invoice.Commands.UpdateInvoice;
 using SalesManagement.Application.Invoice.Queries.GetAllInvoice;
 using SalesManagement.Application.Invoice.Queries.GetInvoiceAutoComplete;
-using SalesManagement.Application.Invoice.Queries.GetInvoiceByDispatchAdvice;
 using SalesManagement.Application.Invoice.Queries.GetInvoiceById;
 
 namespace SalesManagement.Presentation.Controllers
@@ -59,22 +58,6 @@ namespace SalesManagement.Presentation.Controllers
             {
                 StatusCode = StatusCodes.Status200OK,
                 data = result
-            });
-        }
-
-        [HttpGet("by-dispatch/{dispatchAdviceId}")]
-        public async Task<IActionResult> GetInvoiceByDispatchAdviceAsync(int dispatchAdviceId)
-        {
-            var result = await Mediator.Send(new GetInvoiceByDispatchAdviceQuery
-            {
-                DispatchAdviceId = dispatchAdviceId
-            });
-
-            return Ok(new
-            {
-                StatusCode = StatusCodes.Status200OK,
-                data = result.Data,
-                TotalCount = result.TotalCount
             });
         }
 

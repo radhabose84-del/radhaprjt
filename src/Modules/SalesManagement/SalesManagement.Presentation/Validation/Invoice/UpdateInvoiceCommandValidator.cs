@@ -1,3 +1,4 @@
+using Contracts.Interfaces.Lookups.Inventory;
 using FluentValidation;
 using SalesManagement.Application.Common.Interfaces.IInvoice;
 using SalesManagement.Application.Invoice.Commands.UpdateInvoice;
@@ -9,13 +10,13 @@ namespace SalesManagement.Presentation.Validation.Invoice
     public class UpdateInvoiceCommandValidator : AbstractValidator<UpdateInvoiceCommand>
     {
         private readonly List<ValidationRule> _validationRules;
-        private readonly IInvoiceQueryRepository _queryRepository;
+        private readonly IInvoiceQueryRepository _queryRepository;        
 
         public UpdateInvoiceCommandValidator(
             MaxLengthProvider maxLengthProvider,
-            IInvoiceQueryRepository queryRepository)
+            IInvoiceQueryRepository queryRepository            )
         {
-            _queryRepository = queryRepository;
+            _queryRepository = queryRepository;            
 
             var maxLengthVehicleNumber   = maxLengthProvider.GetMaxLength<Domain.Entities.InvoiceHeader>("VehicleNumber")   ?? 20;
             var maxLengthTransporterName = maxLengthProvider.GetMaxLength<Domain.Entities.InvoiceHeader>("TransporterName") ?? 100;
@@ -73,6 +74,7 @@ namespace SalesManagement.Presentation.Validation.Invoice
                             .MustAsync(async (id, ct) => await _queryRepository.InvoiceTypeExistsAsync(id))
                             .WithMessage($"{nameof(UpdateInvoiceCommand.InvoiceType)} {rule.Error}")
                             .When(x => x.InvoiceType > 0);
+                     
                         break;
 
                     case "NotFound":

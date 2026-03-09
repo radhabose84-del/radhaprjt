@@ -6,8 +6,7 @@ namespace SalesManagement.Application.Common.Interfaces.IInvoice
     {
         Task<(List<InvoiceHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm);
         Task<InvoiceHeaderDto?> GetByIdAsync(int id);
-        Task<List<InvoiceHeaderDto>> GetByDispatchAdviceAsync(int dispatchAdviceId);
-        Task<IReadOnlyList<InvoiceLookupDto>> AutocompleteAsync(string term, CancellationToken ct);
+Task<IReadOnlyList<InvoiceLookupDto>> AutocompleteAsync(string term, CancellationToken ct);
         Task<bool> NotFoundAsync(int id);
         Task<bool> DispatchAdviceExistsAsync(int dispatchAdviceId);
         Task<bool> IsAlreadyInvoicedAsync(int dispatchAdviceId);
