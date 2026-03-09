@@ -171,7 +171,7 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
             return header;
         }
 
-public async Task<IReadOnlyList<InvoiceLookupDto>> AutocompleteAsync(string term, CancellationToken ct)
+        public async Task<IReadOnlyList<InvoiceLookupDto>> AutocompleteAsync(string term, CancellationToken ct)
         {
             const string sql = @"
                 SELECT  h.Id, h.InvoiceNo, h.InvoiceDate
