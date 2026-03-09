@@ -15,19 +15,22 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
         private readonly IUnitLookup _unitLookup;
         private readonly IItemLookup _itemLookup;
         private readonly IUOMLookup _uomLookup;
+        private readonly IFinancialYearLookup _financialYearLookup;
 
         public InvoiceQueryRepository(
             IDbConnection dbConnection,
             IPartyLookup partyLookup,
             IUnitLookup unitLookup,
             IItemLookup itemLookup,
-            IUOMLookup uomLookup)
+            IUOMLookup uomLookup,
+            IFinancialYearLookup financialYearLookup)
         {
             _dbConnection = dbConnection;
             _partyLookup = partyLookup;
             _unitLookup = unitLookup;
             _itemLookup = itemLookup;
             _uomLookup = uomLookup;
+            _financialYearLookup = financialYearLookup;
         }
 
         public async Task<(List<InvoiceHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
@@ -50,6 +53,8 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                     h.PartyId, h.AgentId, h.UnitId, h.FinancialYearId,
                     h.TransportMode,
                     tm.Description AS TransportModeName,
+                    h.StatusId,
+                    sm.Description AS StatusName,
                     h.VehicleNumber, h.TransporterName, h.LRNumber, h.LRDate,
                     h.TotalBags, h.TotalWeight, h.TaxableValue, h.Discount,
                     h.Freight, h.Insurance, h.HandlingCharge, h.OtherCharges,
@@ -61,6 +66,7 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                 FROM Sales.InvoiceHeader h
                 LEFT JOIN Sales.MiscMaster mm  ON h.InvoiceType   = mm.Id  AND mm.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster tm  ON h.TransportMode = tm.Id  AND tm.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster sm  ON h.StatusId      = sm.Id  AND sm.IsDeleted = 0
                 LEFT JOIN Sales.DispatchAdviceHeader da ON h.DispatchAdviceId = da.Id AND da.IsDeleted = 0
                 WHERE h.IsDeleted = 0 {searchFilter}
                 ORDER BY h.Id DESC
@@ -82,16 +88,25 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
             if (list.Count > 0)
             {
                 var partyIds = list.Select(h => h.PartyId).Distinct();
-                var parties = await _partyLookup.GetByIdsAsync(partyIds);
+                var agentIds = list.Where(h => h.AgentId.HasValue).Select(h => h.AgentId!.Value).Distinct();
+                var allPartyIds = partyIds.Union(agentIds);
+
+                var parties = await _partyLookup.GetByIdsAsync(allPartyIds);
                 var partyDict = parties.ToDictionary(p => p.Id, p => p.PartyName);
 
                 var units = await _unitLookup.GetAllUnitAsync();
                 var unitDict = units.ToDictionary(u => u.UnitId, u => u.UnitName);
 
+                var finYearIds = list.Select(h => h.FinancialYearId).Distinct();
+                var finYears = await _financialYearLookup.GetByIdsAsync(finYearIds);
+                var finYearDict = finYears.ToDictionary(f => f.FinancialYearId, f => f.FinancialYearName);
+
                 foreach (var item in list)
                 {
-                    item.PartyName = partyDict.TryGetValue(item.PartyId, out var pn) ? pn : null;
-                    item.UnitName  = unitDict.TryGetValue(item.UnitId,  out var un) ? un : null;
+                    item.PartyName          = partyDict.TryGetValue(item.PartyId, out var pn) ? pn : null;
+                    item.AgentName          = item.AgentId.HasValue && partyDict.TryGetValue(item.AgentId.Value, out var an) ? an : null;
+                    item.UnitName           = unitDict.TryGetValue(item.UnitId, out var un) ? un : null;
+                    item.FinancialYearName  = finYearDict.TryGetValue(item.FinancialYearId, out var fy) ? fy : null;
                 }
             }
 
@@ -109,6 +124,8 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                     h.PartyId, h.AgentId, h.UnitId, h.FinancialYearId,
                     h.TransportMode,
                     tm.Description AS TransportModeName,
+                    h.StatusId,
+                    sm.Description AS StatusName,
                     h.VehicleNumber, h.TransporterName, h.LRNumber, h.LRDate,
                     h.TotalBags, h.TotalWeight, h.TaxableValue, h.Discount,
                     h.Freight, h.Insurance, h.HandlingCharge, h.OtherCharges,
@@ -120,6 +137,7 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                 FROM Sales.InvoiceHeader h
                 LEFT JOIN Sales.MiscMaster mm  ON h.InvoiceType   = mm.Id  AND mm.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster tm  ON h.TransportMode = tm.Id  AND tm.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster sm  ON h.StatusId      = sm.Id  AND sm.IsDeleted = 0
                 LEFT JOIN Sales.DispatchAdviceHeader da ON h.DispatchAdviceId = da.Id AND da.IsDeleted = 0
                 WHERE h.Id = @Id AND h.IsDeleted = 0";
 
@@ -149,8 +167,17 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
             var party = await _partyLookup.GetByIdAsync(header.PartyId);
             header.PartyName = party?.PartyName;
 
+            if (header.AgentId.HasValue)
+            {
+                var agent = await _partyLookup.GetByIdAsync(header.AgentId.Value);
+                header.AgentName = agent?.PartyName;
+            }
+
             var units = await _unitLookup.GetAllUnitAsync();
             header.UnitName = units.FirstOrDefault(u => u.UnitId == header.UnitId)?.UnitName;
+
+            var finYear = await _financialYearLookup.GetByIdAsync(header.FinancialYearId);
+            header.FinancialYearName = finYear?.FinancialYearName;
 
             if (details.Count > 0)
             {
@@ -176,14 +203,24 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
         public async Task<IReadOnlyList<InvoiceLookupDto>> AutocompleteAsync(string term, CancellationToken ct)
         {
             const string sql = @"
-                SELECT  h.Id, h.InvoiceNo, h.InvoiceDate
+                SELECT  h.Id, h.InvoiceNo, h.InvoiceDate, h.PartyId
                 FROM Sales.InvoiceHeader h
                 WHERE h.IsActive = 1 AND h.IsDeleted = 0
                 AND h.InvoiceNo LIKE @Term
                 ORDER BY h.InvoiceNo ASC";
 
-            var result = await _dbConnection.QueryAsync<InvoiceLookupDto>(sql, new { Term = $"%{term}%" });
-            return result.ToList();
+            var result = (await _dbConnection.QueryAsync<InvoiceLookupDto>(sql, new { Term = $"%{term}%" })).ToList();
+
+            if (result.Count > 0)
+            {
+                var partyIds = result.Select(r => r.PartyId).Distinct();
+                var parties = await _partyLookup.GetByIdsAsync(partyIds, ct);
+                var partyDict = parties.ToDictionary(p => p.Id, p => p.PartyName);
+                foreach (var item in result)
+                    item.PartyName = partyDict.TryGetValue(item.PartyId, out var pn) ? pn : null;
+            }
+
+            return result;
         }
 
         public async Task<bool> NotFoundAsync(int id)
@@ -248,7 +285,8 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                 FROM Sales.DispatchAdviceHeader
                 WHERE Id = @Id AND IsDeleted = 0";
 
-            return await _dbConnection.ExecuteScalarAsync<DateOnly>(sql, new { Id = dispatchAdviceId });
+            var dt = await _dbConnection.ExecuteScalarAsync<DateTime>(sql, new { Id = dispatchAdviceId });
+            return DateOnly.FromDateTime(dt);
         }
     }
 }

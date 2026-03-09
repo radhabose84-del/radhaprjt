@@ -70,11 +70,13 @@ public sealed class DbUniqueToValidationFilter : IExceptionFilter
                     fieldLabel = string.Join(", ", parts.Skip(2).Select(Humanize));
             }
 
-            var detail = $"Duplicate {fieldLabel}. This combination must be unique.";
+            string detail;
             if (!string.IsNullOrWhiteSpace(tupleValues))
-                detail += $" (Existing value: {tupleValues})";
+                detail = $"'{fieldLabel}' with value ({tupleValues}) already exists. Please use a unique value.";
+            else
+                detail = $"'{fieldLabel}' already exists. Please use a unique value.";
 
-            return (400, new List<string> { detail }, "Duplicate record detected.");
+            return (400, new List<string> { detail }, $"Duplicate '{fieldLabel}' detected.");
         }
 
         // 2. NOT NULL constraint

@@ -14,6 +14,7 @@ namespace SalesManagement.Application.Invoice.Commands.CreateInvoice
         public int UnitId { get; set; }
         public int FinancialYearId { get; set; }
         public int? TransportMode { get; set; }
+        public int? StatusId { get; set; }
         public string? VehicleNumber { get; set; }
         public string? TransporterName { get; set; }
         public string? LRNumber { get; set; }

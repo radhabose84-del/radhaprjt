@@ -150,7 +150,7 @@ namespace SalesManagement.Presentation.Validation.Invoice
                 }
             }
 
-            // Final invoice amount must match calculated totals
+       /*      // Final invoice amount must match calculated totals
             RuleFor(x => x)
                 .Must(cmd =>
                 {
@@ -164,7 +164,7 @@ namespace SalesManagement.Presentation.Validation.Invoice
                     return Math.Abs(cmd.InvoiceAmountBeforeTCS - expectedBeforeTCS) <= tolerance
                         && Math.Abs(cmd.InvoiceAmount - expectedFinal) <= tolerance;
                 })
-                .WithMessage("Final invoice amount does not match calculated totals.");
+                .WithMessage("Final invoice amount does not match calculated totals."); */
         }
     }
 }

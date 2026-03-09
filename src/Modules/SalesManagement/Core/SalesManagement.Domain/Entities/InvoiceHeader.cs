@@ -13,6 +13,7 @@ namespace SalesManagement.Domain.Entities
         public int UnitId { get; set; }                   // Cross-module FK → UserManagement
         public int FinancialYearId { get; set; }          // Cross-module FK → UserManagement
         public int? TransportMode { get; set; }           // FK → Sales.MiscMaster
+        public int? StatusId { get; set; }                // FK → Sales.MiscMaster
         public string? VehicleNumber { get; set; }
         public string? TransporterName { get; set; }
         public string? LRNumber { get; set; }
@@ -39,6 +40,7 @@ namespace SalesManagement.Domain.Entities
         // Same-module navigation properties
         public MiscMaster? InvoiceTypeMisc { get; set; }
         public MiscMaster? TransportModeMisc { get; set; }
+        public MiscMaster? StatusMisc { get; set; }
         public DispatchAdviceHeader? DispatchAdviceHeader { get; set; }
 
         // Child collection

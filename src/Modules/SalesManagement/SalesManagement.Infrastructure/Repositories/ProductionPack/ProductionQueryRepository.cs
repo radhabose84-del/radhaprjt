@@ -85,59 +85,6 @@ namespace SalesManagement.Infrastructure.Repositories.ProductionPack
                     item.WarehouseName = whDict.TryGetValue(item.WarehouseId, out var wName) ? wName : null;
                 }
 
-                // Fetch detail rows for all headers with same-module JOINs
-                var headerIds = list.Select(x => x.Id).ToList();
-                const string detailSql = @"
-                    SELECT d.Id, d.ProductionPackHeaderId, d.ItemSno,
-                        d.LotId,
-                        lm.LotCode,
-                        d.ItemId,
-                        d.PackTypeId,
-                        pt.PackTypeName,
-                        d.NetWeightPerPack,
-                        d.StartPackNo, d.EndPackNo,
-                        d.TotalBags, d.TotalNetWeight,
-                        d.BinId,
-                        d.QualityStatusId,
-                        qs.Description AS QualityStatusName,
-                        d.LineRemarks
-                    FROM Production.ProductionPackDetail d
-                    LEFT JOIN Sales.LotMaster lm ON d.LotId = lm.Id AND lm.IsDeleted = 0
-                    LEFT JOIN Sales.PackType pt ON d.PackTypeId = pt.Id AND pt.IsDeleted = 0
-                    LEFT JOIN Sales.MiscMaster qs ON d.QualityStatusId = qs.Id AND qs.IsDeleted = 0
-                    WHERE d.ProductionPackHeaderId IN @HeaderIds";
-
-                var allDetails = (await _dbConnection.QueryAsync<ProductionPackDetailDto>(
-                    detailSql, new { HeaderIds = headerIds })).ToList();
-
-                // Populate cross-module detail lookup names (ItemName, BinName)
-                if (allDetails.Count > 0)
-                {
-                    var itemIds = allDetails.Select(d => d.ItemId).Distinct();
-                    var items = await _itemLookup.GetByIdsAsync(itemIds);
-                    var itemDict = items.ToDictionary(i => i.Id, i => i.ItemName);
-
-                    var binIds = allDetails.Select(d => d.BinId).Distinct();
-                    var bins = await _binLookup.GetByIdsAsync(binIds);
-                    var binDict = bins.ToDictionary(b => b.Id, b => b.BinName);
-
-                    foreach (var detail in allDetails)
-                    {
-                        detail.ItemName = itemDict.TryGetValue(detail.ItemId, out var iName) ? iName : null;
-                        detail.BinName = binDict.TryGetValue(detail.BinId, out var bName) ? bName : null;
-                    }
-                }
-
-                // Group details by header and assign
-                var detailsByHeader = allDetails.GroupBy(d => d.ProductionPackHeaderId)
-                    .ToDictionary(g => g.Key, g => g.ToList());
-
-                foreach (var item in list)
-                {
-                    item.ProductionPackDetails = detailsByHeader.TryGetValue(item.Id, out var details)
-                        ? details
-                        : new List<ProductionPackDetailDto>();
-                }
             }
 
             return (list, totalCount);
