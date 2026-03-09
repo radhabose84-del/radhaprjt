@@ -38,7 +38,7 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
             return $"{prefix}{nextSeq:D5}";
         }
 
-        public async Task<int> CreateAsync(DispatchAdviceHeader entity, int unitId, int packedStatusId, int dispatchedStatusId)
+        public async Task<int> CreateAsync(DispatchAdviceHeader entity, int unitId, int packedStatusId, int reservedStatusId)
         {
             // Separate details from header
             var details = entity.DispatchAdviceDetails?.ToList();
@@ -56,7 +56,7 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
                     detail.DispatchAdviceHeaderId = entity.Id;
                     await _applicationDbContext.DispatchAdviceDetail.AddAsync(detail);
 
-                    // Update StockLedger: change each PackNo from Packed to Dispatched
+                    // Update StockLedger: change each PackNo from Packed to Reserved
                     // No BETWEEN — update only records whose StatusId is still Packed (skip already invoiced)
                     for (int packNo = detail.StartPackNo; packNo <= detail.EndPackNo; packNo++)
                     {
@@ -69,7 +69,7 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
 
                         if (stockRecord != null)
                         {
-                            stockRecord.StatusId = dispatchedStatusId;
+                            stockRecord.StatusId = reservedStatusId;
                         }
                     }
                 }
@@ -79,7 +79,7 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
             return entity.Id;
         }
 
-        public async Task<bool> SoftDeleteAsync(int id, int dispatchedStatusId, int packedStatusId, CancellationToken ct)
+        public async Task<bool> SoftDeleteAsync(int id, int reservedStatusId, int packedStatusId, CancellationToken ct)
         {
             var existing = await _applicationDbContext.DispatchAdviceHeader
                 .Include(h => h.DispatchAdviceDetails)
@@ -94,7 +94,7 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
                 .Select(s => s.UnitId)
                 .FirstOrDefaultAsync(ct);
 
-            // Reverse StockLedger: change each PackNo from Dispatched back to Packed
+            // Reverse StockLedger: change each PackNo from Reserved back to Packed
             if (existing.DispatchAdviceDetails != null && existing.DispatchAdviceDetails.Count > 0)
             {
                 foreach (var detail in existing.DispatchAdviceDetails)
@@ -106,7 +106,7 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
                                 && s.ItemId == detail.ItemId
                                 && s.LotId == detail.LotId
                                 && s.PackNo == packNo
-                                && s.StatusId == dispatchedStatusId, ct);
+                                && s.StatusId == reservedStatusId, ct);
 
                         if (stockRecord != null)
                         {
