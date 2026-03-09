@@ -19,8 +19,10 @@ namespace SalesManagement.Domain.Entities
         public decimal NetTaxableAmount { get; set; }
         public decimal TotalTax { get; set; }
         public decimal GrandTotal { get; set; }
+        public int? StatusId { get; set; }                // FK → Sales.MiscMaster
 
         // Same-module navigation properties
+        public MiscMaster? StatusMisc { get; set; }
         public SalesEnquiryHeader? SalesEnquiryHeader { get; set; }
         public SalesContact? ContactPerson { get; set; }
         public MiscMaster? DeliveryTerm { get; set; }

@@ -25,6 +25,9 @@ namespace SalesManagement.Application.ItemPriceMaster.Dto
         public DateOnly ValidFrom { get; set; }
         public DateOnly ValidTo { get; set; }
 
+        public int? StatusId { get; set; }
+        public string? StatusName { get; set; }
+
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }
 

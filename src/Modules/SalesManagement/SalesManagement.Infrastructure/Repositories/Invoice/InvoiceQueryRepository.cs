@@ -5,6 +5,7 @@ using Contracts.Interfaces.Lookups.Users;
 using Dapper;
 using SalesManagement.Application.Common.Interfaces.IInvoice;
 using SalesManagement.Application.Invoice.Dto;
+using SalesManagement.Domain.Common;
 
 namespace SalesManagement.Infrastructure.Repositories.Invoice
 {
@@ -287,6 +288,26 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
 
             var dt = await _dbConnection.ExecuteScalarAsync<DateTime>(sql, new { Id = dispatchAdviceId });
             return DateOnly.FromDateTime(dt);
+        }
+
+        public async Task<bool> IsInvoicePendingAsync(int invoiceId)
+        {
+            const string sql = @"
+                SELECT COUNT(1)
+                FROM Sales.InvoiceHeader h
+                INNER JOIN Sales.MiscMaster mm ON h.StatusId = mm.Id AND mm.IsDeleted = 0
+                INNER JOIN Sales.MiscTypeMaster mt ON mm.MiscTypeId = mt.Id AND mt.IsDeleted = 0
+                WHERE h.Id = @Id AND h.IsDeleted = 0
+                  AND mt.Description = @MiscType
+                  AND mm.Code = @StatusCode";
+
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new
+            {
+                Id = invoiceId,
+                MiscType = MiscEnumEntity.InvoiceApprovalStatus,
+                StatusCode = MiscEnumEntity.InvoiceStatusPending
+            });
+            return count > 0;
         }
     }
 }

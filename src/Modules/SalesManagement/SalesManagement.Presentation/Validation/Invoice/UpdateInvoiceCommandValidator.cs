@@ -82,7 +82,9 @@ namespace SalesManagement.Presentation.Validation.Invoice
                             .GreaterThan(0)
                             .WithMessage("Valid Id is required.")
                             .MustAsync(async (id, ct) => !await _queryRepository.NotFoundAsync(id))
-                            .WithMessage($"Invoice {rule.Error}");
+                            .WithMessage($"Invoice {rule.Error}")
+                            .MustAsync(async (id, ct) => await _queryRepository.IsInvoicePendingAsync(id))
+                            .WithMessage("Only invoices with 'Pending' status can be updated.");
                         break;
 
                     case "ByteValue":

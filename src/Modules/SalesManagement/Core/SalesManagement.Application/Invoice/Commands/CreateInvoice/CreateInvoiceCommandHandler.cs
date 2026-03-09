@@ -35,6 +35,11 @@ namespace SalesManagement.Application.Invoice.Commands.CreateInvoice
         {
             var entity = _mapper.Map<InvoiceHeader>(request);
 
+            // Set default StatusId to 'Pending'
+            var pendingStatus = await _miscMasterQueryRepository.GetMiscMasterByName(
+                MiscEnumEntity.InvoiceApprovalStatus, MiscEnumEntity.InvoiceStatusPending);
+            entity.StatusId = pendingStatus?.Id;
+
             // Generate auto invoice number
             var invoiceNo = await _commandRepository.GenerateNextInvoiceNoAsync(request.UnitId, cancellationToken);
             entity.InvoiceNo = invoiceNo;

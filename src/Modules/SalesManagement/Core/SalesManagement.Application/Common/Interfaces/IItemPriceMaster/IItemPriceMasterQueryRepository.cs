@@ -18,5 +18,6 @@ namespace SalesManagement.Application.Common.Interfaces.IItemPriceMaster
         Task<bool> SoftDeleteValidationAsync(int id);
         Task<List<ItemPriceMasterDto>> GetByItemAndDateAsync(int itemId, DateOnly date);
         Task<int> GetNextPriceCodeSerialAsync(string prefix);
+        Task<bool> IsItemPriceMasterPendingAsync(int id);
     }
 }

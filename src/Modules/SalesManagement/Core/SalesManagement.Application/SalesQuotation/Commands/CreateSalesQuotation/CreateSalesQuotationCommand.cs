@@ -20,6 +20,7 @@ namespace SalesManagement.Application.SalesQuotation.Commands.CreateSalesQuotati
         public decimal NetTaxableAmount { get; set; }
         public decimal TotalTax { get; set; }
         public decimal GrandTotal { get; set; }
+        public int? StatusId { get; set; }
         public List<CreateSalesQuotationDetailDto>? SalesQuotationDetails { get; set; }
     }
 }

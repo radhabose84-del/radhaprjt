@@ -21,6 +21,10 @@ namespace SalesManagement.Domain.Common
         public const string Dispatched = "Dispatched";
         public const string Pending = "Pending";
 
+        // Invoice Approval Status
+        public const string InvoiceApprovalStatus = "ApprovalStatus";
+        public const string InvoiceStatusPending = "Pending";
+
         // STO Line Item Status
         public const string StoLineItemStatus = "StoLineItemStatus";
         public const string StoLineStatusDraft = "Draft";

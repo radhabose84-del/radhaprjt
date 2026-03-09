@@ -5,6 +5,7 @@ using Contracts.Interfaces.Lookups.Purchase;
 using Contracts.Interfaces.Lookups.Inventory;
 using SalesManagement.Application.Common.Interfaces.ISalesQuotation;
 using SalesManagement.Application.SalesQuotation.Dto;
+using SalesManagement.Domain.Common;
 
 namespace SalesManagement.Infrastructure.Repositories.SalesQuotation
 {
@@ -42,6 +43,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesQuotation
                 FROM Sales.SalesQuotationHeader h
                 LEFT JOIN Sales.SalesContact sc ON h.ContactPersonId = sc.Id AND sc.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster mm ON h.DeliveryTermId = mm.Id AND mm.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster sm ON h.StatusId = sm.Id AND sm.IsDeleted = 0
                 WHERE h.IsDeleted = 0 {searchFilter};
 
                 SELECT h.Id, h.CustomerId, h.QuotationDate,
@@ -50,6 +52,8 @@ namespace SalesManagement.Infrastructure.Repositories.SalesQuotation
                     h.ValidityDate, h.PaymentTermId, h.Remarks,
                     h.DeliveryTermId,
                     mm.Description AS DeliveryTermDescription,
+                    h.StatusId,
+                    sm.Description AS StatusName,
                     h.FreightCharges, h.OtherCharges,
                     h.TotalBasicAmount, h.TotalDiscount,
                     h.NetTaxableAmount, h.TotalTax, h.GrandTotal,
@@ -59,6 +63,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesQuotation
                 FROM Sales.SalesQuotationHeader h
                 LEFT JOIN Sales.SalesContact sc ON h.ContactPersonId = sc.Id AND sc.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster mm ON h.DeliveryTermId = mm.Id AND mm.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster sm ON h.StatusId = sm.Id AND sm.IsDeleted = 0
                 WHERE h.IsDeleted = 0 {searchFilter}
                 ORDER BY h.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
@@ -143,6 +148,8 @@ namespace SalesManagement.Infrastructure.Repositories.SalesQuotation
                     h.ValidityDate, h.PaymentTermId, h.Remarks,
                     h.DeliveryTermId,
                     mm.Description AS DeliveryTermDescription,
+                    h.StatusId,
+                    sm.Description AS StatusName,
                     h.FreightCharges, h.OtherCharges,
                     h.TotalBasicAmount, h.TotalDiscount,
                     h.NetTaxableAmount, h.TotalTax, h.GrandTotal,
@@ -152,6 +159,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesQuotation
                 FROM Sales.SalesQuotationHeader h
                 LEFT JOIN Sales.SalesContact sc ON h.ContactPersonId = sc.Id AND sc.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster mm ON h.DeliveryTermId = mm.Id AND mm.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster sm ON h.StatusId = sm.Id AND sm.IsDeleted = 0
                 WHERE h.Id = @Id AND h.IsDeleted = 0";
 
             var header = await _dbConnection.QueryFirstOrDefaultAsync<SalesQuotationHeaderDto>(headerSql, new { Id = id });
@@ -317,6 +325,26 @@ namespace SalesManagement.Infrastructure.Repositories.SalesQuotation
                 WHERE Id = @Id AND IsDeleted = 0";
 
             var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = salesEnquiryId });
+            return count > 0;
+        }
+
+        public async Task<bool> IsSalesQuotationPendingAsync(int id)
+        {
+            const string sql = @"
+                SELECT COUNT(1)
+                FROM Sales.SalesQuotationHeader h
+                INNER JOIN Sales.MiscMaster mm ON h.StatusId = mm.Id AND mm.IsDeleted = 0
+                INNER JOIN Sales.MiscTypeMaster mt ON mm.MiscTypeId = mt.Id AND mt.IsDeleted = 0
+                WHERE h.Id = @Id AND h.IsDeleted = 0
+                  AND mt.Description = @MiscType
+                  AND mm.Code = @StatusCode";
+
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new
+            {
+                Id = id,
+                MiscType = MiscEnumEntity.InvoiceApprovalStatus,
+                StatusCode = MiscEnumEntity.InvoiceStatusPending
+            });
             return count > 0;
         }
     }
