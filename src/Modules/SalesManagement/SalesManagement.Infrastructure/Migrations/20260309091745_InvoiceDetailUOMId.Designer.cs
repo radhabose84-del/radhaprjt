@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SalesManagement.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using SalesManagement.Infrastructure.Data;
 namespace SalesManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260309091745_InvoiceDetailUOMId")]
+    partial class InvoiceDetailUOMId
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -733,10 +736,6 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("LotId");
 
-                    b.Property<int>("PackTypeId")
-                        .HasColumnType("int")
-                        .HasColumnName("PackTypeId");
-
                     b.Property<int>("SalesOrderDetailId")
                         .HasColumnType("int")
                         .HasColumnName("SalesOrderDetailId");
@@ -752,8 +751,6 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.HasIndex("ItemId");
 
                     b.HasIndex("LotId");
-
-                    b.HasIndex("PackTypeId");
 
                     b.HasIndex("SalesOrderDetailId");
 
@@ -4248,12 +4245,6 @@ namespace SalesManagement.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("SalesManagement.Domain.Entities.PackType", "PackType")
-                        .WithMany("DispatchAdviceDetails")
-                        .HasForeignKey("PackTypeId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("SalesManagement.Domain.Entities.SalesOrderDetail", "SalesOrderDetail")
                         .WithMany("DispatchAdviceDetails")
                         .HasForeignKey("SalesOrderDetailId")
@@ -4263,8 +4254,6 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("DispatchAdviceHeader");
 
                     b.Navigation("LotMaster");
-
-                    b.Navigation("PackType");
 
                     b.Navigation("SalesOrderDetail");
                 });
@@ -4914,8 +4903,6 @@ namespace SalesManagement.Infrastructure.Migrations
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.PackType", b =>
                 {
-                    b.Navigation("DispatchAdviceDetails");
-
                     b.Navigation("ProductionPackDetails");
                 });
 

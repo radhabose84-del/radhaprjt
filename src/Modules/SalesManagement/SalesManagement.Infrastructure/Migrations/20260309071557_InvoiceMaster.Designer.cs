@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SalesManagement.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using SalesManagement.Infrastructure.Data;
 namespace SalesManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260309071557_InvoiceMaster")]
+    partial class InvoiceMaster
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -733,10 +736,6 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("LotId");
 
-                    b.Property<int>("PackTypeId")
-                        .HasColumnType("int")
-                        .HasColumnName("PackTypeId");
-
                     b.Property<int>("SalesOrderDetailId")
                         .HasColumnType("int")
                         .HasColumnName("SalesOrderDetailId");
@@ -752,8 +751,6 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.HasIndex("ItemId");
 
                     b.HasIndex("LotId");
-
-                    b.HasIndex("PackTypeId");
 
                     b.HasIndex("SalesOrderDetailId");
 
@@ -1263,9 +1260,9 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("decimal(18,6)")
                         .HasColumnName("TotalAmount");
 
-                    b.Property<int?>("UOMId")
-                        .HasColumnType("int")
-                        .HasColumnName("UOMId");
+                    b.Property<string>("UOM")
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("UOM");
 
                     b.HasKey("Id");
 
@@ -4034,92 +4031,6 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.ToTable("StockLedger", "Sales");
                 });
 
-            modelBuilder.Entity("SalesManagement.Domain.Entities.TransactionTypeMaster", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("Id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("CreatedBy")
-                        .HasColumnType("int")
-                        .HasColumnName("CreatedBy");
-
-                    b.Property<string>("CreatedByName")
-                        .HasColumnType("varchar(100)")
-                        .HasColumnName("CreatedByName");
-
-                    b.Property<DateTimeOffset?>("CreatedDate")
-                        .HasColumnType("datetimeoffset")
-                        .HasColumnName("CreatedDate");
-
-                    b.Property<string>("CreatedIP")
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("CreatedIP");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("varchar(255)")
-                        .HasColumnName("Description");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit")
-                        .HasColumnName("IsActive");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit")
-                        .HasColumnName("IsDeleted");
-
-                    b.Property<int?>("ModifiedBy")
-                        .HasColumnType("int")
-                        .HasColumnName("ModifiedBy");
-
-                    b.Property<string>("ModifiedByName")
-                        .HasColumnType("varchar(100)")
-                        .HasColumnName("ModifiedByName");
-
-                    b.Property<DateTimeOffset?>("ModifiedDate")
-                        .HasColumnType("datetimeoffset")
-                        .HasColumnName("ModifiedDate");
-
-                    b.Property<string>("ModifiedIP")
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("ModifiedIP");
-
-                    b.Property<int>("ModuleId")
-                        .HasColumnType("int")
-                        .HasColumnName("ModuleId");
-
-                    b.Property<string>("ShortName")
-                        .IsRequired()
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("ShortName");
-
-                    b.Property<string>("TypeName")
-                        .IsRequired()
-                        .HasColumnType("varchar(100)")
-                        .HasColumnName("TypeName");
-
-                    b.Property<int>("UnitId")
-                        .HasColumnType("int")
-                        .HasColumnName("UnitId");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ModuleId");
-
-                    b.HasIndex("ShortName")
-                        .IsUnique();
-
-                    b.HasIndex("TypeName")
-                        .IsUnique();
-
-                    b.HasIndex("UnitId");
-
-                    b.ToTable("TransactionTypeMaster", "Finance");
-                });
-
             modelBuilder.Entity("SalesManagement.Domain.Entities.AgentCommissionConfig", b =>
                 {
                     b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "MiscMaster")
@@ -4248,12 +4159,6 @@ namespace SalesManagement.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("SalesManagement.Domain.Entities.PackType", "PackType")
-                        .WithMany("DispatchAdviceDetails")
-                        .HasForeignKey("PackTypeId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("SalesManagement.Domain.Entities.SalesOrderDetail", "SalesOrderDetail")
                         .WithMany("DispatchAdviceDetails")
                         .HasForeignKey("SalesOrderDetailId")
@@ -4263,8 +4168,6 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("DispatchAdviceHeader");
 
                     b.Navigation("LotMaster");
-
-                    b.Navigation("PackType");
 
                     b.Navigation("SalesOrderDetail");
                 });
@@ -4914,8 +4817,6 @@ namespace SalesManagement.Infrastructure.Migrations
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.PackType", b =>
                 {
-                    b.Navigation("DispatchAdviceDetails");
-
                     b.Navigation("ProductionPackDetails");
                 });
 
