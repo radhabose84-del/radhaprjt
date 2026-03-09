@@ -1,0 +1,75 @@
+using FluentValidation;
+using SalesManagement.Application.Common.Interfaces.IDocumentSequence;
+using SalesManagement.Application.DocumentSequence.Commands.CreateDocumentSequence;
+using Shared.Validation.Common;
+
+namespace SalesManagement.Presentation.Validation.DocumentSequence
+{
+    public class CreateDocumentSequenceCommandValidator : AbstractValidator<CreateDocumentSequenceCommand>
+    {
+        private readonly List<ValidationRule> _validationRules;
+        private readonly IDocumentSequenceQueryRepository _queryRepository;
+
+        public CreateDocumentSequenceCommandValidator(IDocumentSequenceQueryRepository queryRepository)
+        {
+            _queryRepository = queryRepository;
+
+            _validationRules = ValidationRuleLoader.LoadValidationRules();
+            if (_validationRules == null || _validationRules.Count == 0)
+            {
+                throw new InvalidOperationException("Validation rules could not be loaded.");
+            }
+
+            foreach (var rule in _validationRules)
+            {
+                switch (rule.Rule)
+                {
+                    case "NotEmpty":
+                        RuleFor(x => x.TypeId)
+                            .NotEmpty()
+                            .WithMessage($"{nameof(CreateDocumentSequenceCommand.TypeId)} {rule.Error}");
+
+                        RuleFor(x => x.FinancialYearId)
+                            .NotEmpty()
+                            .WithMessage($"{nameof(CreateDocumentSequenceCommand.FinancialYearId)} {rule.Error}");
+
+                        RuleFor(x => x.DocNo)
+                            .NotEmpty()
+                            .WithMessage($"{nameof(CreateDocumentSequenceCommand.DocNo)} {rule.Error}");
+                        break;
+
+                    case "GreaterThan":
+                        RuleFor(x => x.DocNo)
+                            .GreaterThan(0)
+                            .WithMessage($"{nameof(CreateDocumentSequenceCommand.DocNo)} {rule.Error}");
+                        break;
+
+                    case "FKColumnDelete":
+                        RuleFor(x => x.TypeId)
+                            .MustAsync(async (typeId, ct) =>
+                                await _queryRepository.TypeIdExistsAsync(typeId))
+                            .WithMessage($"{nameof(CreateDocumentSequenceCommand.TypeId)} {rule.Error}")
+                            .When(x => x.TypeId > 0);
+
+                        RuleFor(x => x.FinancialYearId)
+                            .MustAsync(async (financialYearId, ct) =>
+                                await _queryRepository.FinancialYearExistsAsync(financialYearId))
+                            .WithMessage($"{nameof(CreateDocumentSequenceCommand.FinancialYearId)} {rule.Error}")
+                            .When(x => x.FinancialYearId > 0);
+                        break;
+
+                    case "AlreadyExists":
+                        RuleFor(x => x.DocNo)
+                            .MustAsync(async (command, docNo, ct) =>
+                                !await _queryRepository.CompositeKeyExistsAsync(command.TypeId, command.FinancialYearId, docNo))
+                            .WithMessage($"Document Sequence for this Type, Financial Year and DocNo {rule.Error}")
+                            .When(x => x.TypeId > 0 && x.FinancialYearId > 0 && x.DocNo > 0);
+                        break;
+
+                    default:
+                        break;
+                }
+            }
+        }
+    }
+}
