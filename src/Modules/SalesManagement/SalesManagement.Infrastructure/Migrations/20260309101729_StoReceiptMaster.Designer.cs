@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SalesManagement.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using SalesManagement.Infrastructure.Data;
 namespace SalesManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260309101729_StoReceiptMaster")]
+    partial class StoReceiptMaster
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1216,9 +1219,9 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("ItemSno");
 
-                    b.Property<int?>("LotId")
-                        .HasColumnType("int")
-                        .HasColumnName("LotId");
+                    b.Property<string>("LotNo")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("LotNo");
 
                     b.Property<int>("NoOfBags")
                         .HasColumnType("int")
@@ -1272,8 +1275,6 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.HasIndex("InvoiceHeaderId");
 
                     b.HasIndex("ItemId");
-
-                    b.HasIndex("LotId");
 
                     b.HasIndex("PackTypeId");
 
@@ -4515,19 +4516,12 @@ namespace SalesManagement.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("SalesManagement.Domain.Entities.LotMaster", "LotMaster")
-                        .WithMany()
-                        .HasForeignKey("LotId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("SalesManagement.Domain.Entities.PackType", "PackType")
                         .WithMany()
                         .HasForeignKey("PackTypeId")
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("InvoiceHeader");
-
-                    b.Navigation("LotMaster");
 
                     b.Navigation("PackType");
                 });

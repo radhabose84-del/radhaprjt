@@ -35,5 +35,12 @@ namespace SalesManagement.Domain.Common
         public const string DCStatusCancelled = "Cancelled";
         public const string DCStatusDelivered = "Delivered";
 
+        // STO Receipt Status
+        public const string StoReceiptLineStatus = "StoReceiptLineStatus";
+        public const string StoReceiptStatusPending = "Pending";
+        public const string StoReceiptStatusPartiallyReceived = "Partially Received";
+        public const string StoReceiptStatusFullyReceived = "Fully Received";
+        public const string StoReceiptStatusCancelled = "Cancelled";
+
     }
 }

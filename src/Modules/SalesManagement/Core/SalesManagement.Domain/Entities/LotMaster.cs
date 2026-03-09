@@ -29,5 +29,8 @@ namespace SalesManagement.Domain.Entities
 
         // Reverse navigation (DeliveryChallan)
         public ICollection<DeliveryChallanDetail>? DeliveryChallanDetails { get; set; }
+
+        // Reverse navigation (StoReceipt)
+        public ICollection<StoReceiptDetail>? StoReceiptDetails { get; set; }
     }
 }
