@@ -68,6 +68,8 @@ using SalesManagement.Application.Common.Interfaces.IStoHeader;
 using SalesManagement.Infrastructure.Repositories.StoHeader;
 using SalesManagement.Application.Common.Interfaces.IDeliveryChallan;
 using SalesManagement.Infrastructure.Repositories.DeliveryChallan;
+using SalesManagement.Application.Common.Interfaces.ITransactionTypeMaster;
+using SalesManagement.Infrastructure.Repositories.TransactionTypeMaster;
 
 
 namespace SalesManagement.Infrastructure
@@ -264,6 +266,11 @@ namespace SalesManagement.Infrastructure
             // ── Delivery Challan Repositories ─────────────────────────────────
             services.AddScoped<IDeliveryChallanCommandRepository, DeliveryChallanCommandRepository>();
             services.AddScoped<IDeliveryChallanQueryRepository, DeliveryChallanQueryRepository>();
+
+            // ── Transaction Type Master Repositories ───────────────────────────
+            services.AddScoped<ITransactionTypeMasterCommandRepository, TransactionTypeMasterCommandRepository>();
+            services.AddScoped<ITransactionTypeMasterQueryRepository, TransactionTypeMasterQueryRepository>();
+
             return services;
         }
     }

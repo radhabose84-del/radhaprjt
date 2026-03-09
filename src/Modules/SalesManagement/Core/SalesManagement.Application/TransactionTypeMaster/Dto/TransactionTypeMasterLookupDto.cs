@@ -1,0 +1,9 @@
+namespace SalesManagement.Application.TransactionTypeMaster.Dto
+{
+    public sealed class TransactionTypeMasterLookupDto
+    {
+        public int Id { get; set; }
+        public string? TypeName { get; set; }
+        public string? ShortName { get; set; }
+    }
+}

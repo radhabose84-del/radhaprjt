@@ -61,6 +61,7 @@ namespace SalesManagement.Infrastructure.Data
         public DbSet<StoDetail> StoDetail { get; set; }
         public DbSet<DeliveryChallanHeader> DeliveryChallanHeader { get; set; }
         public DbSet<DeliveryChallanDetail> DeliveryChallanDetail { get; set; }
+        public DbSet<TransactionTypeMaster> TransactionTypeMaster { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -103,7 +104,7 @@ namespace SalesManagement.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new StoDetailConfiguration());
             modelBuilder.ApplyConfiguration(new DeliveryChallanHeaderConfiguration());
             modelBuilder.ApplyConfiguration(new DeliveryChallanDetailConfiguration());
-
+            modelBuilder.ApplyConfiguration(new TransactionTypeMasterConfiguration());
 
             // Global convention: set explicit precision/scale for all decimal properties
             // This prevents EF Core runtime warnings about silent truncation
