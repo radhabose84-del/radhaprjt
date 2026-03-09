@@ -38,5 +38,8 @@ namespace SalesManagement.Domain.Entities
         public DeliveryChallanHeader DeliveryChallanHeader { get; set; } = null!;
         public StoDetail? StoDetail { get; set; }
         public LotMaster? LotMaster { get; set; }
+
+        // Reverse navigation (StoReceipt)
+        public ICollection<StoReceiptDetail>? StoReceiptDetails { get; set; }
     }
 }
