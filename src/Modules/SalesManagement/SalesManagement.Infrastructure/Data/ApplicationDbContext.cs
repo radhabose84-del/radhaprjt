@@ -61,6 +61,10 @@ namespace SalesManagement.Infrastructure.Data
         public DbSet<StoDetail> StoDetail { get; set; }
         public DbSet<DeliveryChallanHeader> DeliveryChallanHeader { get; set; }
         public DbSet<DeliveryChallanDetail> DeliveryChallanDetail { get; set; }
+        public DbSet<InvoiceHeader> InvoiceHeader { get; set; }
+        public DbSet<InvoiceDetail> InvoiceDetail { get; set; }
+        public DbSet<EInvoiceHeader> EInvoiceHeader { get; set; }
+        public DbSet<EInvoiceDetail> EInvoiceDetail { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -103,6 +107,10 @@ namespace SalesManagement.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new StoDetailConfiguration());
             modelBuilder.ApplyConfiguration(new DeliveryChallanHeaderConfiguration());
             modelBuilder.ApplyConfiguration(new DeliveryChallanDetailConfiguration());
+            modelBuilder.ApplyConfiguration(new InvoiceHeaderConfiguration());
+            modelBuilder.ApplyConfiguration(new InvoiceDetailConfiguration());
+            modelBuilder.ApplyConfiguration(new EInvoiceHeaderConfiguration());
+            modelBuilder.ApplyConfiguration(new EInvoiceDetailConfiguration());
 
 
             // Global convention: set explicit precision/scale for all decimal properties
