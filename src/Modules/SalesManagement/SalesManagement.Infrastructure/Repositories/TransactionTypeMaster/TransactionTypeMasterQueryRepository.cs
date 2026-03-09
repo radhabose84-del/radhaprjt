@@ -1,0 +1,162 @@
+using System.Data;
+using Dapper;
+using Contracts.Interfaces.Lookups.Users;
+using SalesManagement.Application.Common.Interfaces.ITransactionTypeMaster;
+using SalesManagement.Application.TransactionTypeMaster.Dto;
+
+namespace SalesManagement.Infrastructure.Repositories.TransactionTypeMaster
+{
+    public class TransactionTypeMasterQueryRepository : ITransactionTypeMasterQueryRepository
+    {
+        private readonly IDbConnection _dbConnection;
+        private readonly IUnitLookup _unitLookup;
+        private readonly IModuleLookup _moduleLookup;
+
+        public TransactionTypeMasterQueryRepository(
+            IDbConnection dbConnection,
+            IUnitLookup unitLookup,
+            IModuleLookup moduleLookup)
+        {
+            _dbConnection = dbConnection;
+            _unitLookup = unitLookup;
+            _moduleLookup = moduleLookup;
+        }
+
+        public async Task<(List<TransactionTypeMasterDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
+        {
+            var units = await _unitLookup.GetAllUnitAsync();
+            var unitDict = units.ToDictionary(u => u.UnitId, u => u.UnitName);
+
+            var modules = await _moduleLookup.GetAllModuleAsync();
+            var moduleDict = modules.ToDictionary(m => m.ModuleId, m => m.ModuleName);
+
+            var query = $$"""
+                DECLARE @TotalCount INT;
+                SELECT @TotalCount = COUNT(*)
+                FROM [Finance].[TransactionTypeMaster]
+                WHERE IsDeleted = 0
+                {{(string.IsNullOrWhiteSpace(searchTerm) ? "" : "AND (TypeName LIKE @Search OR ShortName LIKE @Search)")}};
+
+                SELECT Id, UnitId, ModuleId, TypeName, ShortName, Description,
+                       IsActive, IsDeleted,
+                       CreatedBy, CreatedDate, CreatedByName, CreatedIP,
+                       ModifiedBy, ModifiedDate, ModifiedByName, ModifiedIP
+                FROM [Finance].[TransactionTypeMaster]
+                WHERE IsDeleted = 0
+                {{(string.IsNullOrWhiteSpace(searchTerm) ? "" : "AND (TypeName LIKE @Search OR ShortName LIKE @Search)")}}
+                ORDER BY Id DESC
+                OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
+
+                SELECT @TotalCount AS TotalCount;
+            """;
+
+            var parameters = new
+            {
+                Search = $"%{searchTerm}%",
+                Offset = (pageNumber - 1) * pageSize,
+                PageSize = pageSize
+            };
+
+            var result = await _dbConnection.QueryMultipleAsync(query, parameters);
+            var list = (await result.ReadAsync<TransactionTypeMasterDto>()).ToList();
+            var totalCount = await result.ReadFirstAsync<int>();
+
+            foreach (var item in list)
+            {
+                item.UnitName   = unitDict.TryGetValue(item.UnitId,   out var uName) ? uName   : null;
+                item.ModuleName = moduleDict.TryGetValue(item.ModuleId, out var mName) ? mName : null;
+            }
+
+            return (list, totalCount);
+        }
+
+        public async Task<TransactionTypeMasterDto?> GetByIdAsync(int id)
+        {
+            const string sql = @"
+                SELECT Id, UnitId, ModuleId, TypeName, ShortName, Description,
+                       IsActive, IsDeleted,
+                       CreatedBy, CreatedDate, CreatedByName, CreatedIP,
+                       ModifiedBy, ModifiedDate, ModifiedByName, ModifiedIP
+                FROM [Finance].[TransactionTypeMaster]
+                WHERE Id = @Id AND IsDeleted = 0";
+
+            var dto = await _dbConnection.QueryFirstOrDefaultAsync<TransactionTypeMasterDto>(sql, new { Id = id });
+
+            if (dto != null)
+            {
+                var units = await _unitLookup.GetAllUnitAsync();
+                dto.UnitName = units.FirstOrDefault(u => u.UnitId == dto.UnitId)?.UnitName;
+
+                var modules = await _moduleLookup.GetAllModuleAsync();
+                dto.ModuleName = modules.FirstOrDefault(m => m.ModuleId == dto.ModuleId)?.ModuleName;
+            }
+
+            return dto;
+        }
+
+        public async Task<IReadOnlyList<TransactionTypeMasterLookupDto>> AutocompleteAsync(string term, CancellationToken ct)
+        {
+            const string sql = @"
+                SELECT TOP 20 Id, TypeName, ShortName
+                FROM [Finance].[TransactionTypeMaster]
+                WHERE IsDeleted = 0 AND IsActive = 1
+                AND (TypeName LIKE @Term OR ShortName LIKE @Term)
+                ORDER BY TypeName ASC";
+
+            var result = await _dbConnection.QueryAsync<TransactionTypeMasterLookupDto>(
+                new CommandDefinition(sql, new { Term = $"%{term}%" }, cancellationToken: ct));
+            return result.ToList();
+        }
+
+        public async Task<bool> TypeNameExistsAsync(string typeName, int? id = null)
+        {
+            var sql = @"
+                SELECT COUNT(1)
+                FROM [Finance].[TransactionTypeMaster]
+                WHERE TypeName = @TypeName AND IsDeleted = 0";
+
+            if (id.HasValue && id.Value > 0)
+                sql += " AND Id != @Id";
+
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { TypeName = typeName.Trim(), Id = id });
+            return count > 0;
+        }
+
+        public async Task<bool> ShortNameExistsAsync(string shortName, int? id = null)
+        {
+            var sql = @"
+                SELECT COUNT(1)
+                FROM [Finance].[TransactionTypeMaster]
+                WHERE ShortName = @ShortName AND IsDeleted = 0";
+
+            if (id.HasValue && id.Value > 0)
+                sql += " AND Id != @Id";
+
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { ShortName = shortName.Trim(), Id = id });
+            return count > 0;
+        }
+
+        public async Task<bool> NotFoundAsync(int id)
+        {
+            const string sql = @"
+                SELECT COUNT(1)
+                FROM [Finance].[TransactionTypeMaster]
+                WHERE Id = @Id AND IsDeleted = 0";
+
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = id });
+            return count == 0;
+        }
+
+        public async Task<bool> UnitExistsAsync(int unitId)
+        {
+            var units = await _unitLookup.GetAllUnitAsync();
+            return units.Any(u => u.UnitId == unitId);
+        }
+
+        public async Task<bool> ModuleExistsAsync(int moduleId)
+        {
+            var modules = await _moduleLookup.GetAllModuleAsync();
+            return modules.Any(m => m.ModuleId == moduleId);
+        }
+    }
+}
