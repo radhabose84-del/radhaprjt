@@ -37,7 +37,7 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
             return $"{prefix}{nextSeq:D5}";
         }
 
-        public async Task<int> CreateAsync(Domain.Entities.DeliveryChallanHeader entity)
+        public async Task<int> CreateAsync(Domain.Entities.DeliveryChallanHeader entity, int fromPlantId, int packedStatusId, int reservedStatusId)
         {
             using var transaction = await _dbContext.Database.BeginTransactionAsync();
 
@@ -49,7 +49,7 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
             await _dbContext.DeliveryChallanHeader.AddAsync(entity);
             await _dbContext.SaveChangesAsync();
 
-            // Insert details with header FK
+            // Insert details and update StockLedger per detail line
             if (details != null && details.Count > 0)
             {
                 foreach (var detail in details)
@@ -72,6 +72,22 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
                         LineMovementValue = detail.LineMovementValue
                     };
                     await _dbContext.DeliveryChallanDetail.AddAsync(newDetail);
+
+                    // Update StockLedger: change each PackNo from Packed to Reserved
+                    for (int packNo = detail.StartPackNo; packNo <= detail.EndPackNo; packNo++)
+                    {
+                        var stockRecord = await _dbContext.StockLedger
+                            .FirstOrDefaultAsync(s => s.UnitId == fromPlantId
+                                && s.ItemId == detail.ItemId
+                                && s.LotId == detail.LotId
+                                && s.PackNo == packNo
+                                && s.StatusId == packedStatusId);
+
+                        if (stockRecord != null)
+                        {
+                            stockRecord.StatusId = reservedStatusId;
+                        }
+                    }
                 }
 
                 await _dbContext.SaveChangesAsync();
@@ -81,17 +97,45 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
             return entity.Id;
         }
 
-        public async Task<bool> SoftDeleteAsync(int id, CancellationToken ct)
+        public async Task<bool> SoftDeleteAsync(int id, int reservedStatusId, int packedStatusId, CancellationToken ct)
         {
+            using var transaction = await _dbContext.Database.BeginTransactionAsync(ct);
+
             var existing = await _dbContext.DeliveryChallanHeader
+                .Include(h => h.DeliveryChallanDetails)
                 .FirstOrDefaultAsync(x => x.Id == id && x.IsDeleted == IsDelete.NotDeleted, ct);
 
             if (existing == null)
                 return false;
 
+            // Reverse StockLedger: change each PackNo from Reserved back to Packed
+            if (existing.DeliveryChallanDetails != null && existing.DeliveryChallanDetails.Count > 0)
+            {
+                foreach (var detail in existing.DeliveryChallanDetails)
+                {
+                    for (int packNo = detail.StartPackNo; packNo <= detail.EndPackNo; packNo++)
+                    {
+                        var stockRecord = await _dbContext.StockLedger
+                            .FirstOrDefaultAsync(s => s.UnitId == existing.FromPlantId
+                                && s.ItemId == detail.ItemId
+                                && s.LotId == detail.LotId
+                                && s.PackNo == packNo
+                                && s.StatusId == reservedStatusId, ct);
+
+                        if (stockRecord != null)
+                        {
+                            stockRecord.StatusId = packedStatusId;
+                        }
+                    }
+                }
+            }
+
+            // Soft delete header
             existing.IsDeleted = IsDelete.Deleted;
             _dbContext.DeliveryChallanHeader.Update(existing);
             await _dbContext.SaveChangesAsync(ct);
+
+            await transaction.CommitAsync(ct);
             return true;
         }
     }

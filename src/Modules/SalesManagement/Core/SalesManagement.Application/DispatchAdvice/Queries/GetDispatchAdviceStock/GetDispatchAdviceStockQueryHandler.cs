@@ -8,7 +8,7 @@ using SalesManagement.Domain.Events;
 
 namespace SalesManagement.Application.DispatchAdvice.Queries.GetDispatchAdviceStock
 {
-    public class GetDispatchAdviceStockQueryHandler : IRequestHandler<GetDispatchAdviceStockQuery, DispatchAdviceStockDto?>
+    public class GetDispatchAdviceStockQueryHandler : IRequestHandler<GetDispatchAdviceStockQuery, List<DispatchAdviceStockDto>>
     {
         private readonly IDispatchAdviceQueryRepository _queryRepository;
         private readonly IMiscMasterQueryRepository _miscMasterQueryRepository;
@@ -27,7 +27,7 @@ namespace SalesManagement.Application.DispatchAdvice.Queries.GetDispatchAdviceSt
             _mediator = mediator;
         }
 
-        public async Task<DispatchAdviceStockDto?> Handle(GetDispatchAdviceStockQuery request, CancellationToken cancellationToken)
+        public async Task<List<DispatchAdviceStockDto>> Handle(GetDispatchAdviceStockQuery request, CancellationToken cancellationToken)
         {
             var packedStatus = await _miscMasterQueryRepository.GetMiscMasterByName(
                 MiscEnumEntity.StockStatus, MiscEnumEntity.Packed);
