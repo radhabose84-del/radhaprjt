@@ -129,7 +129,8 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
 
             const string detailSql = @"
                 SELECT d.Id, d.InvoiceHeaderId, d.ItemSno, d.ItemId,
-                    d.HsnCode, d.GstPercentage, d.LotNo, d.NoOfBags, d.Quantity,
+                    d.HsnCode, d.GstPercentage, d.LotId, lm.LotCode AS LotNo,
+                    d.NoOfBags, d.Quantity,
                     d.RatePerKg, d.Discount, d.TaxableAmount,
                     d.CgstPercentage, d.SgstPercentage, d.IgstPercentage,
                     d.CGST, d.SGST, d.IGST, d.TaxAmount,
@@ -137,7 +138,8 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                     pt.PackTypeName,
                     d.UOMId, d.TotalAmount
                 FROM Sales.InvoiceDetail d
-                LEFT JOIN Sales.PackType pt ON d.PackTypeId = pt.Id AND pt.IsDeleted = 0
+                LEFT JOIN Sales.PackType  pt ON d.PackTypeId = pt.Id  AND pt.IsDeleted = 0
+                LEFT JOIN Sales.LotMaster lm ON d.LotId      = lm.Id  AND lm.IsDeleted = 0
                 WHERE d.InvoiceHeaderId = @HeaderId
                 ORDER BY d.ItemSno";
 
