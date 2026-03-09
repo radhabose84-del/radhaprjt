@@ -169,7 +169,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesLead
         public async Task<IReadOnlyList<SalesLeadLookupDto>> AutocompleteAsync(string term, CancellationToken ct)
         {
             const string sql = @"
-                SELECT TOP 20 sl.Id, sl.ContactName, sl.MobileNumber
+                SELECT  sl.Id, sl.ContactName, sl.MobileNumber
                 FROM Sales.SalesLead sl
                 WHERE sl.IsDeleted = 0 AND sl.IsActive = 1
                 AND (sl.ContactName LIKE @Term OR sl.MobileNumber LIKE @Term)

@@ -16,8 +16,9 @@ namespace SalesManagement.Domain.Common
 
         // Dispatch Advice Status
         public const string StockStatus = "StockStatus";
-        public const string Dispatched = "Dispatched";
+        public const string Reserved = "Reserved";
         public const string Invoiced = "Invoiced";
+        public const string Dispatched = "Dispatched";
         public const string Pending = "Pending";
 
         // STO Line Item Status
@@ -33,6 +34,13 @@ namespace SalesManagement.Domain.Common
         public const string DCStatusDispatched = "Dispatched";
         public const string DCStatusCancelled = "Cancelled";
         public const string DCStatusDelivered = "Delivered";
+
+        // STO Receipt Status
+        public const string StoReceiptLineStatus = "StoReceiptLineStatus";
+        public const string StoReceiptStatusPending = "Pending";
+        public const string StoReceiptStatusPartiallyReceived = "Partially Received";
+        public const string StoReceiptStatusFullyReceived = "Fully Received";
+        public const string StoReceiptStatusCancelled = "Cancelled";
 
     }
 }

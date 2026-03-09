@@ -107,7 +107,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesSegment
         public async Task<IReadOnlyList<SalesSegmentLookupDto>> AutocompleteAsync(string term, CancellationToken ct)
         {
             const string sql = @"
-                SELECT TOP 20
+                SELECT 
                     Id,
                     SegmentName,
                     SalesOrganisationId,

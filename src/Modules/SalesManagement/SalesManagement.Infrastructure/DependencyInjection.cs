@@ -68,7 +68,12 @@ using SalesManagement.Application.Common.Interfaces.IStoHeader;
 using SalesManagement.Infrastructure.Repositories.StoHeader;
 using SalesManagement.Application.Common.Interfaces.IDeliveryChallan;
 using SalesManagement.Infrastructure.Repositories.DeliveryChallan;
-
+using SalesManagement.Application.Common.Interfaces.ITransactionTypeMaster;
+using SalesManagement.Infrastructure.Repositories.TransactionTypeMaster;
+using SalesManagement.Application.Common.Interfaces.IInvoice;
+using SalesManagement.Infrastructure.Repositories.Invoice;
+using SalesManagement.Application.Common.Interfaces.IStoReceipt;
+using SalesManagement.Infrastructure.Repositories.StoReceipt;
 
 namespace SalesManagement.Infrastructure
 {
@@ -264,6 +269,18 @@ namespace SalesManagement.Infrastructure
             // ── Delivery Challan Repositories ─────────────────────────────────
             services.AddScoped<IDeliveryChallanCommandRepository, DeliveryChallanCommandRepository>();
             services.AddScoped<IDeliveryChallanQueryRepository, DeliveryChallanQueryRepository>();
+
+            // ── Transaction Type Master Repositories ───────────────────────────
+            services.AddScoped<ITransactionTypeMasterCommandRepository, TransactionTypeMasterCommandRepository>();
+            services.AddScoped<ITransactionTypeMasterQueryRepository, TransactionTypeMasterQueryRepository>();
+           // ── Invoice Repositories ───────────────────────────────────────────
+            services.AddScoped<IInvoiceCommandRepository, InvoiceCommandRepository>();
+            services.AddScoped<IInvoiceQueryRepository, InvoiceQueryRepository>();
+
+            // ── STO Receipt Repositories ────────────────────────────────────────
+            services.AddScoped<IStoReceiptCommandRepository, StoReceiptCommandRepository>();
+            services.AddScoped<IStoReceiptQueryRepository, StoReceiptQueryRepository>();
+
             return services;
         }
     }

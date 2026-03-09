@@ -25,18 +25,18 @@ namespace SalesManagement.Application.DispatchAdvice.Commands.DeleteDispatchAdvi
 
         public async Task<bool> Handle(DeleteDispatchAdviceCommand request, CancellationToken cancellationToken)
         {
-            // Resolve Dispatched and Packed status IDs for StockLedger reversal
-            var dispatchedStatus = await _miscMasterQueryRepository.GetMiscMasterByName(
-                MiscEnumEntity.StockStatus, MiscEnumEntity.Dispatched);
-            var dispatchedStatusId = dispatchedStatus?.Id ?? 0;
+            // Resolve Reserved and Packed status IDs for StockLedger reversal
+            var reservedStatus = await _miscMasterQueryRepository.GetMiscMasterByName(
+                MiscEnumEntity.StockStatus, MiscEnumEntity.Reserved);
+            var reservedStatusId = reservedStatus?.Id ?? 0;
 
             var packedStatus = await _miscMasterQueryRepository.GetMiscMasterByName(
                 MiscEnumEntity.StockStatus, MiscEnumEntity.Packed);
             var packedStatusId = packedStatus?.Id ?? 0;
 
-            // SoftDelete header (IsDeleted=1) and reverse StockLedger (Dispatched -> Packed)
+            // SoftDelete header (IsDeleted=1) and reverse StockLedger (Reserved -> Packed)
             var result = await _commandRepository.SoftDeleteAsync(
-                request.Id, dispatchedStatusId, packedStatusId, cancellationToken);
+                request.Id, reservedStatusId, packedStatusId, cancellationToken);
 
             if (!result)
                 throw new ExceptionRules("Dispatch Advice not found.");
@@ -45,7 +45,7 @@ namespace SalesManagement.Application.DispatchAdvice.Commands.DeleteDispatchAdvi
                 actionDetail: "SoftDelete",
                 actionCode: "DISPATCHADVICE_DELETE",
                 actionName: request.Id.ToString(),
-                details: $"Dispatch Advice with Id {request.Id} soft deleted. StockLedger reverted from Dispatched to Packed.",
+                details: $"Dispatch Advice with Id {request.Id} soft deleted. StockLedger reverted from Reserved to Packed.",
                 module: "DispatchAdvice");
             await _mediator.Publish(auditEvent, cancellationToken);
 

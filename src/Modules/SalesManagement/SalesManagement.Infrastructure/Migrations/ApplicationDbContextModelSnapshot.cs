@@ -733,6 +733,10 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("LotId");
 
+                    b.Property<int>("PackTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("PackTypeId");
+
                     b.Property<int>("SalesOrderDetailId")
                         .HasColumnType("int")
                         .HasColumnName("SalesOrderDetailId");
@@ -748,6 +752,8 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.HasIndex("ItemId");
 
                     b.HasIndex("LotId");
+
+                    b.HasIndex("PackTypeId");
 
                     b.HasIndex("SalesOrderDetailId");
 
@@ -875,6 +881,615 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.HasIndex("StatusId");
 
                     b.ToTable("DispatchAdviceHeader", "Sales");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.EInvoiceDetail", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("CGST")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("CGST");
+
+                    b.Property<decimal>("Discount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("Discount");
+
+                    b.Property<int>("EInvoiceHeaderId")
+                        .HasColumnType("int")
+                        .HasColumnName("EInvoiceHeaderId");
+
+                    b.Property<decimal>("GstPercentage")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("GstPercentage");
+
+                    b.Property<string>("HsnNo")
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("HsnNo");
+
+                    b.Property<decimal>("IGST")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("IGST");
+
+                    b.Property<int>("ItemId")
+                        .HasColumnType("int")
+                        .HasColumnName("ItemId");
+
+                    b.Property<string>("ItemName")
+                        .HasColumnType("varchar(200)")
+                        .HasColumnName("ItemName");
+
+                    b.Property<int>("ItemSno")
+                        .HasColumnType("int")
+                        .HasColumnName("ItemSno");
+
+                    b.Property<int>("NoOfBags")
+                        .HasColumnType("int")
+                        .HasColumnName("NoOfBags");
+
+                    b.Property<decimal>("OtherCharges")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("OtherCharges");
+
+                    b.Property<int?>("PackTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("PackTypeId");
+
+                    b.Property<decimal>("Qty")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("Qty");
+
+                    b.Property<decimal>("Rate")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("Rate");
+
+                    b.Property<decimal>("SGST")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("SGST");
+
+                    b.Property<decimal>("TaxableAmount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("TaxableAmount");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("TotalAmount");
+
+                    b.Property<string>("UOM")
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("UOM");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("UnitPrice");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EInvoiceHeaderId");
+
+                    b.HasIndex("ItemId");
+
+                    b.ToTable("EInvoiceDetail", "Sales");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.EInvoiceHeader", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTimeOffset?>("AckDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("AckDate");
+
+                    b.Property<string>("AckNo")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("AckNo");
+
+                    b.Property<decimal>("CGST")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("CGST");
+
+                    b.Property<decimal>("Cess")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("Cess");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<decimal>("Discount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("Discount");
+
+                    b.Property<DateTimeOffset?>("EwbDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("EwbDate");
+
+                    b.Property<string>("EwbNo")
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("EwbNo");
+
+                    b.Property<DateTimeOffset?>("EwbValidTill")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("EwbValidTill");
+
+                    b.Property<string>("GstNo")
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("GstNo");
+
+                    b.Property<decimal>("IGST")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("IGST");
+
+                    b.Property<decimal>("InvoiceAmount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("InvoiceAmount");
+
+                    b.Property<DateOnly>("InvoiceDate")
+                        .HasColumnType("date")
+                        .HasColumnName("InvoiceDate");
+
+                    b.Property<string>("InvoiceNo")
+                        .HasColumnType("varchar(30)")
+                        .HasColumnName("InvoiceNo");
+
+                    b.Property<string>("IrnNumber")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("IrnNumber");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<decimal>("OtherCharges")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("OtherCharges");
+
+                    b.Property<int>("PartyId")
+                        .HasColumnType("int")
+                        .HasColumnName("PartyId");
+
+                    b.Property<bool>("ReverseCharge")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false)
+                        .HasColumnName("ReverseCharge");
+
+                    b.Property<decimal>("RoundOff")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("RoundOff");
+
+                    b.Property<decimal>("SGST")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("SGST");
+
+                    b.Property<string>("SignInvoice")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("SignInvoice");
+
+                    b.Property<string>("SignQrCode")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("SignQrCode");
+
+                    b.Property<int?>("StatusId")
+                        .HasColumnType("int")
+                        .HasColumnName("StatusId");
+
+                    b.Property<decimal>("TCS")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("TCS");
+
+                    b.Property<int>("UnitId")
+                        .HasColumnType("int")
+                        .HasColumnName("UnitId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InvoiceNo");
+
+                    b.HasIndex("IrnNumber")
+                        .IsUnique()
+                        .HasFilter("[IrnNumber] IS NOT NULL");
+
+                    b.HasIndex("PartyId");
+
+                    b.HasIndex("StatusId");
+
+                    b.HasIndex("UnitId");
+
+                    b.ToTable("EInvoiceHeader", "Sales");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.InvoiceDetail", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("CGST")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("CGST");
+
+                    b.Property<decimal>("CgstPercentage")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("CgstPercentage");
+
+                    b.Property<decimal>("Discount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("Discount");
+
+                    b.Property<decimal>("GstPercentage")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("GstPercentage");
+
+                    b.Property<string>("HsnCode")
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("HsnCode");
+
+                    b.Property<decimal>("IGST")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("IGST");
+
+                    b.Property<decimal>("IgstPercentage")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("IgstPercentage");
+
+                    b.Property<int>("InvoiceHeaderId")
+                        .HasColumnType("int")
+                        .HasColumnName("InvoiceHeaderId");
+
+                    b.Property<int>("ItemId")
+                        .HasColumnType("int")
+                        .HasColumnName("ItemId");
+
+                    b.Property<int>("ItemSno")
+                        .HasColumnType("int")
+                        .HasColumnName("ItemSno");
+
+                    b.Property<int?>("LotId")
+                        .HasColumnType("int")
+                        .HasColumnName("LotId");
+
+                    b.Property<int>("NoOfBags")
+                        .HasColumnType("int")
+                        .HasColumnName("NoOfBags");
+
+                    b.Property<int?>("PackTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("PackTypeId");
+
+                    b.Property<decimal>("Quantity")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("Quantity");
+
+                    b.Property<decimal>("RatePerKg")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("RatePerKg");
+
+                    b.Property<decimal>("SGST")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("SGST");
+
+                    b.Property<decimal>("SgstPercentage")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("SgstPercentage");
+
+                    b.Property<decimal>("TaxAmount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("TaxAmount");
+
+                    b.Property<decimal>("TaxableAmount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("TaxableAmount");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("TotalAmount");
+
+                    b.Property<int?>("UOMId")
+                        .HasColumnType("int")
+                        .HasColumnName("UOMId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InvoiceHeaderId");
+
+                    b.HasIndex("ItemId");
+
+                    b.HasIndex("LotId");
+
+                    b.HasIndex("PackTypeId");
+
+                    b.ToTable("InvoiceDetail", "Sales");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.InvoiceHeader", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("AgentId")
+                        .HasColumnType("int")
+                        .HasColumnName("AgentId");
+
+                    b.Property<decimal>("CGST")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("CGST");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<decimal>("Discount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("Discount");
+
+                    b.Property<int>("DispatchAdviceId")
+                        .HasColumnType("int")
+                        .HasColumnName("DispatchAdviceId");
+
+                    b.Property<int>("FinancialYearId")
+                        .HasColumnType("int")
+                        .HasColumnName("FinancialYearId");
+
+                    b.Property<decimal>("Freight")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("Freight");
+
+                    b.Property<decimal>("HandlingCharge")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("HandlingCharge");
+
+                    b.Property<decimal>("IGST")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("IGST");
+
+                    b.Property<decimal>("Insurance")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("Insurance");
+
+                    b.Property<decimal>("InvoiceAmount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("InvoiceAmount");
+
+                    b.Property<decimal>("InvoiceAmountBeforeTCS")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("InvoiceAmountBeforeTCS");
+
+                    b.Property<DateOnly>("InvoiceDate")
+                        .HasColumnType("date")
+                        .HasColumnName("InvoiceDate");
+
+                    b.Property<string>("InvoiceNo")
+                        .HasColumnType("varchar(30)")
+                        .HasColumnName("InvoiceNo");
+
+                    b.Property<int>("InvoiceType")
+                        .HasColumnType("int")
+                        .HasColumnName("InvoiceType");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<DateOnly?>("LRDate")
+                        .HasColumnType("date")
+                        .HasColumnName("LRDate");
+
+                    b.Property<string>("LRNumber")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("LRNumber");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<decimal>("OtherCharges")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("OtherCharges");
+
+                    b.Property<int>("PartyId")
+                        .HasColumnType("int")
+                        .HasColumnName("PartyId");
+
+                    b.Property<string>("Remarks")
+                        .HasColumnType("varchar(500)")
+                        .HasColumnName("Remarks");
+
+                    b.Property<decimal>("RoundOff")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("RoundOff");
+
+                    b.Property<decimal>("SGST")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("SGST");
+
+                    b.Property<decimal>("TCS")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("TCS");
+
+                    b.Property<decimal>("TCSPercentage")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("TCSPercentage");
+
+                    b.Property<decimal>("TaxAmount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("TaxAmount");
+
+                    b.Property<decimal>("TaxableValue")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("TaxableValue");
+
+                    b.Property<int>("TotalBags")
+                        .HasColumnType("int")
+                        .HasColumnName("TotalBags");
+
+                    b.Property<decimal>("TotalWeight")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("TotalWeight");
+
+                    b.Property<int?>("TransportMode")
+                        .HasColumnType("int")
+                        .HasColumnName("TransportMode");
+
+                    b.Property<string>("TransporterName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("TransporterName");
+
+                    b.Property<int>("UnitId")
+                        .HasColumnType("int")
+                        .HasColumnName("UnitId");
+
+                    b.Property<string>("VehicleNumber")
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("VehicleNumber");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DispatchAdviceId");
+
+                    b.HasIndex("FinancialYearId");
+
+                    b.HasIndex("InvoiceDate");
+
+                    b.HasIndex("InvoiceNo")
+                        .IsUnique()
+                        .HasFilter("[InvoiceNo] IS NOT NULL");
+
+                    b.HasIndex("InvoiceType");
+
+                    b.HasIndex("PartyId");
+
+                    b.HasIndex("TransportMode");
+
+                    b.HasIndex("UnitId");
+
+                    b.ToTable("InvoiceHeader", "Sales");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.ItemPriceMaster", b =>
@@ -3257,6 +3872,194 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.ToTable("StoHeader", "Sales");
                 });
 
+            modelBuilder.Entity("SalesManagement.Domain.Entities.StoReceiptDetail", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("AcceptedQuantity")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,3)")
+                        .HasColumnName("AcceptedQuantity");
+
+                    b.Property<int?>("BagCount")
+                        .HasColumnType("int")
+                        .HasColumnName("BagCount");
+
+                    b.Property<decimal>("DamageQuantity")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,3)")
+                        .HasColumnName("DamageQuantity");
+
+                    b.Property<int>("DeliveryChallanDetailId")
+                        .HasColumnType("int")
+                        .HasColumnName("DeliveryChallanDetailId");
+
+                    b.Property<decimal>("DispatchQuantity")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,3)")
+                        .HasColumnName("DispatchQuantity");
+
+                    b.Property<int>("EndPackNo")
+                        .HasColumnType("int")
+                        .HasColumnName("EndPackNo");
+
+                    b.Property<decimal?>("GrossWeight")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,3)")
+                        .HasColumnName("GrossWeight");
+
+                    b.Property<int>("ItemId")
+                        .HasColumnType("int")
+                        .HasColumnName("ItemId");
+
+                    b.Property<int>("LineStatusId")
+                        .HasColumnType("int")
+                        .HasColumnName("LineStatusId");
+
+                    b.Property<int>("LotId")
+                        .HasColumnType("int")
+                        .HasColumnName("LotId");
+
+                    b.Property<decimal>("NetWeight")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,3)")
+                        .HasColumnName("NetWeight");
+
+                    b.Property<decimal>("ReceivedQuantity")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,3)")
+                        .HasColumnName("ReceivedQuantity");
+
+                    b.Property<int>("StartPackNo")
+                        .HasColumnType("int")
+                        .HasColumnName("StartPackNo");
+
+                    b.Property<int>("StoReceiptHeaderId")
+                        .HasColumnType("int")
+                        .HasColumnName("StoReceiptHeaderId");
+
+                    b.Property<int>("UOMId")
+                        .HasColumnType("int")
+                        .HasColumnName("UOMId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DeliveryChallanDetailId");
+
+                    b.HasIndex("ItemId");
+
+                    b.HasIndex("LineStatusId");
+
+                    b.HasIndex("LotId");
+
+                    b.HasIndex("StoReceiptHeaderId");
+
+                    b.ToTable("StoReceiptDetail", "Sales");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.StoReceiptHeader", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<int>("DeliveryChallanHeaderId")
+                        .HasColumnType("int")
+                        .HasColumnName("DeliveryChallanHeaderId");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<int>("ReceivingPlantId")
+                        .HasColumnType("int")
+                        .HasColumnName("ReceivingPlantId");
+
+                    b.Property<int>("ReceivingStorageLocationId")
+                        .HasColumnType("int")
+                        .HasColumnName("ReceivingStorageLocationId");
+
+                    b.Property<string>("Remarks")
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("Remarks");
+
+                    b.Property<int>("StatusId")
+                        .HasColumnType("int")
+                        .HasColumnName("StatusId");
+
+                    b.Property<DateOnly>("StoReceiptDate")
+                        .HasColumnType("date")
+                        .HasColumnName("StoReceiptDate");
+
+                    b.Property<string>("StoReceiptNumber")
+                        .IsRequired()
+                        .HasColumnType("varchar(30)")
+                        .HasColumnName("StoReceiptNumber");
+
+                    b.Property<string>("VehicleNumber")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("VehicleNumber");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DeliveryChallanHeaderId");
+
+                    b.HasIndex("ReceivingPlantId");
+
+                    b.HasIndex("StatusId");
+
+                    b.HasIndex("StoReceiptDate");
+
+                    b.HasIndex("StoReceiptNumber")
+                        .IsUnique();
+
+                    b.ToTable("StoReceiptHeader", "Sales");
+                });
+
             modelBuilder.Entity("SalesManagement.Domain.Entities.StoTypeMaster", b =>
                 {
                     b.Property<int>("Id")
@@ -3421,6 +4224,92 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.ToTable("StockLedger", "Sales");
                 });
 
+            modelBuilder.Entity("SalesManagement.Domain.Entities.TransactionTypeMaster", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("Description");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<int>("ModuleId")
+                        .HasColumnType("int")
+                        .HasColumnName("ModuleId");
+
+                    b.Property<string>("ShortName")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ShortName");
+
+                    b.Property<string>("TypeName")
+                        .IsRequired()
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("TypeName");
+
+                    b.Property<int>("UnitId")
+                        .HasColumnType("int")
+                        .HasColumnName("UnitId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ModuleId");
+
+                    b.HasIndex("ShortName")
+                        .IsUnique();
+
+                    b.HasIndex("TypeName")
+                        .IsUnique();
+
+                    b.HasIndex("UnitId");
+
+                    b.ToTable("TransactionTypeMaster", "Finance");
+                });
+
             modelBuilder.Entity("SalesManagement.Domain.Entities.AgentCommissionConfig", b =>
                 {
                     b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "MiscMaster")
@@ -3549,6 +4438,12 @@ namespace SalesManagement.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("SalesManagement.Domain.Entities.PackType", "PackType")
+                        .WithMany("DispatchAdviceDetails")
+                        .HasForeignKey("PackTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("SalesManagement.Domain.Entities.SalesOrderDetail", "SalesOrderDetail")
                         .WithMany("DispatchAdviceDetails")
                         .HasForeignKey("SalesOrderDetailId")
@@ -3558,6 +4453,8 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("DispatchAdviceHeader");
 
                     b.Navigation("LotMaster");
+
+                    b.Navigation("PackType");
 
                     b.Navigation("SalesOrderDetail");
                 });
@@ -3587,6 +4484,78 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("SalesOrderHeader");
 
                     b.Navigation("StatusMisc");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.EInvoiceDetail", b =>
+                {
+                    b.HasOne("SalesManagement.Domain.Entities.EInvoiceHeader", "EInvoiceHeader")
+                        .WithMany("EInvoiceDetails")
+                        .HasForeignKey("EInvoiceHeaderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("EInvoiceHeader");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.EInvoiceHeader", b =>
+                {
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "StatusMisc")
+                        .WithMany("EInvoiceHeadersAsStatus")
+                        .HasForeignKey("StatusId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("StatusMisc");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.InvoiceDetail", b =>
+                {
+                    b.HasOne("SalesManagement.Domain.Entities.InvoiceHeader", "InvoiceHeader")
+                        .WithMany("InvoiceDetails")
+                        .HasForeignKey("InvoiceHeaderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SalesManagement.Domain.Entities.LotMaster", "LotMaster")
+                        .WithMany()
+                        .HasForeignKey("LotId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("SalesManagement.Domain.Entities.PackType", "PackType")
+                        .WithMany()
+                        .HasForeignKey("PackTypeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("InvoiceHeader");
+
+                    b.Navigation("LotMaster");
+
+                    b.Navigation("PackType");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.InvoiceHeader", b =>
+                {
+                    b.HasOne("SalesManagement.Domain.Entities.DispatchAdviceHeader", "DispatchAdviceHeader")
+                        .WithMany("InvoiceHeaders")
+                        .HasForeignKey("DispatchAdviceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "InvoiceTypeMisc")
+                        .WithMany("InvoiceHeadersAsInvoiceType")
+                        .HasForeignKey("InvoiceType")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "TransportModeMisc")
+                        .WithMany("InvoiceHeadersAsTransportMode")
+                        .HasForeignKey("TransportMode")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("DispatchAdviceHeader");
+
+                    b.Navigation("InvoiceTypeMisc");
+
+                    b.Navigation("TransportModeMisc");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.ItemPriceMaster", b =>
@@ -4007,6 +4976,60 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("StoType");
                 });
 
+            modelBuilder.Entity("SalesManagement.Domain.Entities.StoReceiptDetail", b =>
+                {
+                    b.HasOne("SalesManagement.Domain.Entities.DeliveryChallanDetail", "DeliveryChallanDetail")
+                        .WithMany("StoReceiptDetails")
+                        .HasForeignKey("DeliveryChallanDetailId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "LineStatus")
+                        .WithMany("StoReceiptDetailsAsLineStatus")
+                        .HasForeignKey("LineStatusId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SalesManagement.Domain.Entities.LotMaster", "LotMaster")
+                        .WithMany("StoReceiptDetails")
+                        .HasForeignKey("LotId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SalesManagement.Domain.Entities.StoReceiptHeader", "StoReceiptHeader")
+                        .WithMany("StoReceiptDetails")
+                        .HasForeignKey("StoReceiptHeaderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("DeliveryChallanDetail");
+
+                    b.Navigation("LineStatus");
+
+                    b.Navigation("LotMaster");
+
+                    b.Navigation("StoReceiptHeader");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.StoReceiptHeader", b =>
+                {
+                    b.HasOne("SalesManagement.Domain.Entities.DeliveryChallanHeader", "DeliveryChallanHeader")
+                        .WithMany("StoReceiptHeaders")
+                        .HasForeignKey("DeliveryChallanHeaderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "Status")
+                        .WithMany("StoReceiptHeadersAsStatus")
+                        .HasForeignKey("StatusId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("DeliveryChallanHeader");
+
+                    b.Navigation("Status");
+                });
+
             modelBuilder.Entity("SalesManagement.Domain.Entities.StoTypeMaster", b =>
                 {
                     b.HasOne("SalesManagement.Domain.Entities.MovementTypeConfig", "GrMovementType")
@@ -4036,9 +5059,16 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("CustomerVisitProducts");
                 });
 
+            modelBuilder.Entity("SalesManagement.Domain.Entities.DeliveryChallanDetail", b =>
+                {
+                    b.Navigation("StoReceiptDetails");
+                });
+
             modelBuilder.Entity("SalesManagement.Domain.Entities.DeliveryChallanHeader", b =>
                 {
                     b.Navigation("DeliveryChallanDetails");
+
+                    b.Navigation("StoReceiptHeaders");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.DispatchAddressMaster", b =>
@@ -4051,6 +5081,18 @@ namespace SalesManagement.Infrastructure.Migrations
             modelBuilder.Entity("SalesManagement.Domain.Entities.DispatchAdviceHeader", b =>
                 {
                     b.Navigation("DispatchAdviceDetails");
+
+                    b.Navigation("InvoiceHeaders");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.EInvoiceHeader", b =>
+                {
+                    b.Navigation("EInvoiceDetails");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.InvoiceHeader", b =>
+                {
+                    b.Navigation("InvoiceDetails");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.LotMaster", b =>
@@ -4060,6 +5102,8 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("DispatchAdviceDetails");
 
                     b.Navigation("ProductionPackDetails");
+
+                    b.Navigation("StoReceiptDetails");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.MarketingOfficer", b =>
@@ -4074,6 +5118,12 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("DispatchAddressMappings");
 
                     b.Navigation("DispatchAdviceHeadersAsStatus");
+
+                    b.Navigation("EInvoiceHeadersAsStatus");
+
+                    b.Navigation("InvoiceHeadersAsInvoiceType");
+
+                    b.Navigation("InvoiceHeadersAsTransportMode");
 
                     b.Navigation("LotMastersAsLotType");
 
@@ -4106,6 +5156,10 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("StoDetailsAsLineStatus");
 
                     b.Navigation("StoHeadersAsHeaderStatus");
+
+                    b.Navigation("StoReceiptDetailsAsLineStatus");
+
+                    b.Navigation("StoReceiptHeadersAsStatus");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.MiscTypeMaster", b =>
@@ -4124,6 +5178,8 @@ namespace SalesManagement.Infrastructure.Migrations
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.PackType", b =>
                 {
+                    b.Navigation("DispatchAdviceDetails");
+
                     b.Navigation("ProductionPackDetails");
                 });
 
@@ -4202,6 +5258,11 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("DeliveryChallanHeaders");
 
                     b.Navigation("StoDetails");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.StoReceiptHeader", b =>
+                {
+                    b.Navigation("StoReceiptDetails");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.StoTypeMaster", b =>

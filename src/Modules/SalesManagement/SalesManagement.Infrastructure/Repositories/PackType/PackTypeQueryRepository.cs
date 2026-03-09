@@ -64,7 +64,7 @@ namespace SalesManagement.Infrastructure.Repositories.PackType
         public async Task<IReadOnlyList<PackTypeLookupDto>> AutocompleteAsync(string term, CancellationToken ct)
         {
             const string sql = @"
-                SELECT TOP 20 Id, PackTypeCode, PackTypeName,NetWeight,TareWeight,GrossWeight,ConesPerBag
+                SELECT Id, PackTypeCode, PackTypeName,NetWeight,TareWeight,GrossWeight,ConesPerBag
                 FROM Sales.PackType
                 WHERE IsDeleted = 0 AND IsActive = 1
                 AND (PackTypeCode LIKE @Term OR PackTypeName LIKE @Term)

@@ -129,9 +129,12 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
                     d.ItemId,
                     d.LotId,
                     lm.LotCode,
-                    d.StartPackNo, d.EndPackNo, d.DispatchQty
+                    d.StartPackNo, d.EndPackNo, d.DispatchQty,
+                    d.PackTypeId,
+                    pt.PackTypeName
                 FROM Sales.DispatchAdviceDetail d
                 LEFT JOIN Sales.LotMaster lm ON d.LotId = lm.Id AND lm.IsDeleted = 0
+                LEFT JOIN Sales.PackType pt ON d.PackTypeId = pt.Id AND pt.IsDeleted = 0
                 WHERE d.DispatchAdviceHeaderId = @HeaderId";
 
             var details = (await _dbConnection.QueryAsync<DispatchAdviceDetailDto>(detailSql, new { HeaderId = id })).ToList();
@@ -196,20 +199,27 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
             return await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = salesOrderId });
         }
 
-        public async Task<DispatchAdviceStockDto?> GetStockAsync(int itemId, int lotId, int statusId)
+        public async Task<List<DispatchAdviceStockDto>> GetStockAsync(int itemId, int lotId, int statusId)
         {
             var unitId = _ipAddressService.GetUnitId();
 
             const string sql = @"
-                SELECT Sum(TotalQty) AS Qty, Sum(TotalValue) AS Value
-                FROM Sales.StockLedger
-                WHERE UnitId = @UnitId AND ItemId = @ItemId AND StatusId = @StatusId AND LotId = @LotId";
+                SELECT Sum(S.TotalQty) AS Qty, Sum(S.TotalValue) AS Value,
+                    S.PackTypeId, P.PackTypeCode, P.PackTypeName,
+                    P.NetWeight, P.TareWeight, P.GrossWeight, P.ConesPerBag
+                FROM Sales.StockLedger S
+                INNER JOIN Sales.PackType P ON S.PackTypeId = P.Id
+                WHERE S.UnitId = @UnitId AND S.ItemId = @ItemId AND S.StatusId = @StatusId AND S.LotId = @LotId
+                GROUP BY S.PackTypeId, P.PackTypeCode, P.PackTypeName,
+                    P.NetWeight, P.TareWeight, P.GrossWeight, P.ConesPerBag";
 
-            return await _dbConnection.QueryFirstOrDefaultAsync<DispatchAdviceStockDto>(sql,
+            var result = await _dbConnection.QueryAsync<DispatchAdviceStockDto>(sql,
                 new { UnitId = unitId, ItemId = itemId, StatusId = statusId, LotId = lotId });
+            return result.ToList();
         }
 
-        public async Task<List<int>> GetAvailablePackNosAsync(int itemId, int lotId, int statusId, int startPackNo, int endPackNo)
+
+        public async Task<List<int>> GetAvailablePackNosAsync(int itemId, int lotId, int statusId, int startPackNo, int endPackNo, int packTypeId)
         {
             var unitId = _ipAddressService.GetUnitId();
 
@@ -217,10 +227,10 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
                 SELECT PackNo
                 FROM Sales.StockLedger
                 WHERE UnitId = @UnitId AND ItemId = @ItemId AND StatusId = @StatusId AND LotId = @LotId
-                AND PackNo BETWEEN @StartPackNo AND @EndPackNo";
+                AND PackNo BETWEEN @StartPackNo AND @EndPackNo AND PackTypeId = @PackTypeId";
 
             var result = await _dbConnection.QueryAsync<int>(sql,
-                new { UnitId = unitId, ItemId = itemId, StatusId = statusId, LotId = lotId, StartPackNo = startPackNo, EndPackNo = endPackNo });
+                new { UnitId = unitId, ItemId = itemId, StatusId = statusId, LotId = lotId, StartPackNo = startPackNo, EndPackNo = endPackNo, PackTypeId = packTypeId });
             return result.ToList();
         }
 

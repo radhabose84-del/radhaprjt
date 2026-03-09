@@ -74,7 +74,7 @@ namespace SalesManagement.Infrastructure.Repositories.MiscMaster
                 whereClause += " AND mtm.MiscTypeCode = @MiscTypeCode";                
 
             var sql = $@"
-                SELECT TOP 20 mm.Id, mm.MiscTypeId, mtm.MiscTypeCode, mm.Code, mm.Description
+                SELECT  mm.Id, mm.MiscTypeId, mtm.MiscTypeCode, mm.Code, mm.Description
                 FROM Sales.MiscMaster mm
                 INNER JOIN Sales.MiscTypeMaster mtm ON mm.MiscTypeId = mtm.Id AND mtm.IsDeleted = 0
                 WHERE {whereClause}

@@ -34,7 +34,7 @@ namespace SalesManagement.Application.DispatchAdvice.Queries.GetDispatchAdvicePa
             var statusId = packedStatus?.Id ?? 0;
 
             var availablePackNos = await _queryRepository.GetAvailablePackNosAsync(
-                request.ItemId, request.LotId, statusId, request.StartPackNo, request.EndPackNo);
+                request.ItemId, request.LotId, statusId, request.StartPackNo, request.EndPackNo, request.PackTypeId);
 
             var requestedPackNos = Enumerable.Range(request.StartPackNo, request.EndPackNo - request.StartPackNo + 1).ToList();
             var missingPackNos = requestedPackNos.Except(availablePackNos).ToList();

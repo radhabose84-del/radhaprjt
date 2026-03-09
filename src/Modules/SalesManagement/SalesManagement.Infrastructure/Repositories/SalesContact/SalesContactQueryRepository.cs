@@ -101,7 +101,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesContact
         public async Task<IReadOnlyList<SalesContactLookupDto>> AutocompleteAsync(string term, CancellationToken ct)
         {
             const string sql = @"
-                SELECT TOP 20 sc.Id, sc.ContactName, sc.MobileNumber,
+                SELECT  sc.Id, sc.ContactName, sc.MobileNumber,
                     mm.Description AS ContactTypeName
                 FROM Sales.SalesContact sc
                 LEFT JOIN Sales.MiscMaster mm ON sc.ContactTypeId = mm.Id AND mm.IsDeleted = 0

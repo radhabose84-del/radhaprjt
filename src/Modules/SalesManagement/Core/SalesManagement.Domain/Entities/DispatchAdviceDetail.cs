@@ -10,10 +10,12 @@ namespace SalesManagement.Domain.Entities
         public int StartPackNo { get; set; }
         public int EndPackNo { get; set; }
         public decimal DispatchQty { get; set; }
+        public int PackTypeId { get; set; }                    // FK → Sales.PackType
 
         // Navigation properties
         public DispatchAdviceHeader? DispatchAdviceHeader { get; set; }
         public SalesOrderDetail? SalesOrderDetail { get; set; }
         public LotMaster? LotMaster { get; set; }
+        public PackType? PackType { get; set; }
     }
 }

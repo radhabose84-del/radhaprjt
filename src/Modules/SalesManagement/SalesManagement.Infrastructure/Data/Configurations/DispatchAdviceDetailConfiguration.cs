@@ -51,7 +51,17 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("decimal(18,3)")
                 .IsRequired();
 
+            builder.Property(t => t.PackTypeId)
+                .HasColumnName("PackTypeId")
+                .HasColumnType("int")
+                .IsRequired();
+
             // Same-module FK constraints
+            builder.HasOne(t => t.PackType)
+                .WithMany(p => p.DispatchAdviceDetails)
+                .HasForeignKey(t => t.PackTypeId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             builder.HasOne(t => t.SalesOrderDetail)
                 .WithMany(d => d.DispatchAdviceDetails)
                 .HasForeignKey(t => t.SalesOrderDetailId)
@@ -67,6 +77,7 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             builder.HasIndex(t => t.SalesOrderDetailId);
             builder.HasIndex(t => t.ItemId);
             builder.HasIndex(t => t.LotId);
+            builder.HasIndex(t => t.PackTypeId);
         }
     }
 }
