@@ -9,8 +9,8 @@ namespace SalesManagement.Application.Common.Interfaces.IDispatchAdvice
         Task<bool> SalesOrderExistsAsync(int salesOrderId);
         Task<bool> DispatchAddressExistsAsync(int dispatchAddressId);
         Task<int> GetSalesOrderUnitIdAsync(int salesOrderId);
-        Task<DispatchAdviceStockDto?> GetStockAsync(int itemId, int lotId, int statusId);
-        Task<List<int>> GetAvailablePackNosAsync(int itemId, int lotId, int statusId, int startPackNo, int endPackNo);
+        Task<List<DispatchAdviceStockDto>> GetStockAsync(int itemId, int lotId, int statusId);
+        Task<List<int>> GetAvailablePackNosAsync(int itemId, int lotId, int statusId, int startPackNo, int endPackNo, int packTypeId);
         Task<IReadOnlyList<DispatchAdviceLookupDto>> AutocompleteAsync(string term, CancellationToken ct);
     }
 }

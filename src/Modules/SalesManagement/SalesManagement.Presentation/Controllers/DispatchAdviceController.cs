@@ -100,14 +100,16 @@ namespace SalesManagement.Presentation.Controllers
             [FromQuery] int itemId,
             [FromQuery] int lotId,
             [FromQuery] int startPackNo,
-            [FromQuery] int endPackNo)
+            [FromQuery] int endPackNo,
+            [FromQuery] int packTypeId)
         {
             var result = await Mediator.Send(new GetDispatchAdvicePackNoValidationQuery
             {
                 ItemId = itemId,
                 LotId = lotId,
                 StartPackNo = startPackNo,
-                EndPackNo = endPackNo
+                EndPackNo = endPackNo,
+                PackTypeId = packTypeId
             });
 
             return Ok(new

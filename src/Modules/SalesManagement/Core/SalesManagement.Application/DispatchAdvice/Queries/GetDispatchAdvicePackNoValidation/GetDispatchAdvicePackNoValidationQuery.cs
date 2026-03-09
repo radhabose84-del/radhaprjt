@@ -9,5 +9,6 @@ namespace SalesManagement.Application.DispatchAdvice.Queries.GetDispatchAdvicePa
         public int LotId { get; set; }
         public int StartPackNo { get; set; }
         public int EndPackNo { get; set; }
+        public int PackTypeId { get; set; }
     }
 }
