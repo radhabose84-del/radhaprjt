@@ -1893,11 +1893,17 @@ namespace UserManagement.Infrastructure.Migrations
                         .HasColumnType("varchar(50)")
                         .HasColumnName("UnitName");
 
+                    b.Property<int>("UnitTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("UnitTypeId");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CompanyId");
 
                     b.HasIndex("DivisionId");
+
+                    b.HasIndex("UnitTypeId");
 
                     b.ToTable("Unit", "AppData");
                 });
@@ -2761,9 +2767,17 @@ namespace UserManagement.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("UserManagement.Domain.Entities.MiscMaster", "UnitType")
+                        .WithMany("Units")
+                        .HasForeignKey("UnitTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("Company");
 
                     b.Navigation("Division");
+
+                    b.Navigation("UnitType");
                 });
 
             modelBuilder.Entity("UserManagement.Domain.Entities.UnitAddress", b =>
@@ -3000,6 +3014,8 @@ namespace UserManagement.Infrastructure.Migrations
                     b.Navigation("CustomFieldDataTypes");
 
                     b.Navigation("CustomFieldLabelTypes");
+
+                    b.Navigation("Units");
                 });
 
             modelBuilder.Entity("UserManagement.Domain.Entities.MiscTypeMaster", b =>

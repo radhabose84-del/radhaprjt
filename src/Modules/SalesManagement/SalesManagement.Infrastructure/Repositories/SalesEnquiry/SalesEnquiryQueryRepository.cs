@@ -40,11 +40,13 @@ namespace SalesManagement.Infrastructure.Repositories.SalesEnquiry
                 WHERE h.IsDeleted = 0 {searchFilter};
 
                 SELECT h.Id, h.PartyId, h.EnquiryDate, h.ContactPerson,
-                    h.ExpectedDeliveryDate, h.PaymentTermId, h.Remarks,
-                    h.IsActive, h.IsDeleted,
+                    h.ExpectedDeliveryDate, h.PaymentTermId, h.SalesLeadId,
+                    SL.ProspectCompanyName AS SalesLeadProspectName,
+                    h.Remarks, h.IsActive, h.IsDeleted,
                     h.CreatedBy, h.CreatedDate, h.CreatedByName,
                     h.ModifiedBy, h.ModifiedDate, h.ModifiedByName
                 FROM Sales.SalesEnquiryHeader h
+                LEFT JOIN Sales.SalesLead SL ON SL.Id = h.SalesLeadId AND SL.IsDeleted = 0
                 WHERE h.IsDeleted = 0 {searchFilter}
                 ORDER BY h.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
@@ -81,11 +83,13 @@ namespace SalesManagement.Infrastructure.Repositories.SalesEnquiry
         {
             const string headerSql = @"
                 SELECT h.Id, h.PartyId, h.EnquiryDate, h.ContactPerson,
-                    h.ExpectedDeliveryDate, h.PaymentTermId, h.Remarks,
-                    h.IsActive, h.IsDeleted,
+                    h.ExpectedDeliveryDate, h.PaymentTermId, h.SalesLeadId,
+                    SL.ProspectCompanyName AS SalesLeadProspectName,
+                    h.Remarks, h.IsActive, h.IsDeleted,
                     h.CreatedBy, h.CreatedDate, h.CreatedByName,
                     h.ModifiedBy, h.ModifiedDate, h.ModifiedByName
                 FROM Sales.SalesEnquiryHeader h
+                LEFT JOIN Sales.SalesLead SL ON SL.Id = h.SalesLeadId AND SL.IsDeleted = 0
                 WHERE h.Id = @Id AND h.IsDeleted = 0";
 
             var header = await _dbConnection.QueryFirstOrDefaultAsync<SalesEnquiryHeaderDto>(headerSql, new { Id = id });
@@ -193,6 +197,13 @@ namespace SalesManagement.Infrastructure.Repositories.SalesEnquiry
         {
             var items = await _itemLookup.GetByIdsAsync(new[] { itemId });
             return items.Any();
+        }
+
+        public async Task<bool> SalesLeadExistsAsync(int salesLeadId)
+        {
+            const string sql = "SELECT COUNT(1) FROM Sales.SalesLead WHERE Id = @Id AND IsDeleted = 0 AND IsActive = 1";
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = salesLeadId });
+            return count > 0;
         }
     }
 }

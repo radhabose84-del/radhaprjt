@@ -4,6 +4,7 @@ using UserManagement.Application.Common.Interfaces.IDivision;
 using System.Data;
 using Dapper;
 using UserManagement.Application.Common.Interfaces;
+using UserManagement.Application.Divisions.Queries.GetUnitsByDivision;
 
 namespace UserManagement.Infrastructure.Repositories.Divisions
 {
@@ -113,6 +114,29 @@ namespace UserManagement.Infrastructure.Repositories.Divisions
             var divisions = await _dbConnection.QueryAsync<Division>(query, parameters);
             return divisions.ToList();
         }
+        public async Task<List<GetUnitsByDivisionDto>> GetUnitsByDivisionAsync(int companyId, int divisionId)
+        {
+            const string sql = @"
+                SELECT
+                    U.CompanyId,
+                    U.Id        AS UnitId,
+                    U.UnitName,
+                    U.UnitTypeId,
+                    MM.Description AS UnitTypeName,
+                    D.Id        AS DivisionId,
+                    D.Name      AS DivisionName
+                FROM [AppData].[Unit] U
+                INNER JOIN [AppData].[Division] D ON D.Id = U.DivisionId AND D.IsDeleted = 0
+                LEFT JOIN [AppData].[MiscMaster] MM ON MM.Id = U.UnitTypeId AND MM.IsDeleted = 0
+                WHERE U.IsDeleted = 0
+                  AND U.CompanyId  = @CompanyId
+                  AND U.DivisionId = @DivisionId
+                ORDER BY U.UnitName ASC;";
+
+            var result = await _dbConnection.QueryAsync<GetUnitsByDivisionDto>(sql, new { CompanyId = companyId, DivisionId = divisionId });
+            return result.ToList();
+        }
+
            public async Task<bool>SoftDeleteValidation(int Id)
            {
                                 const string query = @"

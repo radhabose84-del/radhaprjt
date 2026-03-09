@@ -10,6 +10,7 @@ namespace SalesManagement.Application.SalesEnquiry.Commands.UpdateSalesEnquiry
         public string? ContactPerson { get; set; }
         public DateTimeOffset? ExpectedDeliveryDate { get; set; }
         public int? PaymentTermId { get; set; }
+        public int? SalesLeadId { get; set; }
         public string? Remarks { get; set; }
         public int IsActive { get; set; }
         public List<UpdateSalesEnquiryDetailDto>? SalesEnquiryDetails { get; set; }

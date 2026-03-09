@@ -8,6 +8,8 @@ namespace Contracts.Dtos.Lookups.Users
         public string UnitHeadName { get; set; } = default!;
         public string OldUnitId { get; set; } = default!;
         public int? SpindlesCapacity { get; set; }
+        public int UnitTypeId { get; set; }
+        public string? UnitTypeName { get; set; }
 
     }
 }

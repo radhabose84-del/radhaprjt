@@ -2,6 +2,7 @@
 using FluentValidation;
 using UserManagement.Application.Units.Queries.GetUnits;
 using UserManagement.Application.Units.Commands.UpdateUnit;
+using UserManagement.Application.Common.Interfaces.IUnit;
 using UserManagement.Presentation.Validation.Common;
 using Serilog;
 using Shared.Validation.Common;
@@ -10,8 +11,11 @@ namespace UserManagement.Presentation.Validation.Unit
     public class UpdateUnitCommandValidator : AbstractValidator<UpdateUnitCommand>
     {
         private readonly List<ValidationRule> _validationRules;
-        public UpdateUnitCommandValidator(MaxLengthProvider maxLengthProvider)
+        private readonly IUnitQueryRepository _queryRepo;
+
+        public UpdateUnitCommandValidator(MaxLengthProvider maxLengthProvider, IUnitQueryRepository queryRepo)
         {
+            _queryRepo = queryRepo;
               _validationRules = ValidationRuleLoader.LoadValidationRules();
                 if (_validationRules == null || !_validationRules.Any())
             {
@@ -71,6 +75,15 @@ namespace UserManagement.Presentation.Validation.Unit
                         RuleFor(x => x.UpdateUnitDto.UnitContactsDto.PhoneNo)
                             .NotEmpty()
                             .WithMessage($"{nameof(UnitContactsDto.PhoneNo)} {rule.Error}");
+                        RuleFor(x => x.UpdateUnitDto.UnitTypeId)
+                            .GreaterThan(0)
+                            .WithMessage($"{nameof(UpdateUnitsDto.UnitTypeId)} {rule.Error}");
+                        break;
+                    case "FKColumnDelete":
+                        RuleFor(x => x.UpdateUnitDto.UnitTypeId)
+                            .MustAsync(async (id, ct) => await _queryRepo.MiscMasterExistsAsync(id))
+                            .WithMessage($"{nameof(UpdateUnitsDto.UnitTypeId)} is inactive or deleted.")
+                            .When(x => x.UpdateUnitDto.UnitTypeId > 0);
                         break;
                     case "MaxLength":
                         // Apply MaxLength validation using dynamic max length values

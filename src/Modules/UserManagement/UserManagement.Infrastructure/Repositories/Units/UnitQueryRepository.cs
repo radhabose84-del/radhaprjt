@@ -29,9 +29,9 @@ namespace UserManagement.Infrastructure.Repositories.Units
               WHERE C.IsDeleted = 0
             {{(string.IsNullOrEmpty(SearchTerm) ? "" : "AND (C.UnitName LIKE @Search OR C.ShortName LIKE @Search)")}};
 
-                SELECT 
-            C.Id, 
-            C.UnitName, 
+                SELECT
+            C.Id,
+            C.UnitName,
             C.ShortName,
             C.CompanyId,
             C.DivisionId,
@@ -39,8 +39,11 @@ namespace UserManagement.Infrastructure.Repositories.Units
             C.CINNO,
             C.IsActive,
             C.OldUnitId, C.IsMaintenanceStopStart,
-            C.SpindlesCapacity
+            C.SpindlesCapacity,
+            C.UnitTypeId,
+            MM.Description AS UnitTypeName
              FROM AppData.Unit C
+             LEFT JOIN AppData.MiscMaster MM ON MM.Id = C.UnitTypeId AND MM.IsDeleted = 0
               WHERE C.IsDeleted = 0
                 {{(string.IsNullOrEmpty(SearchTerm) ? "" : "AND (C.UnitName LIKE @Search OR C.ShortName LIKE @Search)")}}
               ORDER BY C.Id DESC
@@ -115,13 +118,17 @@ namespace UserManagement.Infrastructure.Repositories.Units
     public async Task<List<Unit>> GetUnit(string searchPattern, int userId, int CompanyId)
     {
       const string query = @"
-                SELECT 
-                U.Id, 
+                SELECT
+                U.Id,
                 U.UnitName,
-                U.DivisionId
+                U.DivisionId,
+                U.UnitTypeId,
+                MM.Description AS UnitTypeName
             FROM AppData.Unit U
-            Inner join [AppSecurity].[UserUnit] UU on UU.UnitId = U.Id where IsDeleted = 0 
-            and UnitName like @SearchPattern and UU.UserId = @UserId and UU.IsActive = 1 and U.CompanyId = @CompanyId";
+            INNER JOIN [AppSecurity].[UserUnit] UU ON UU.UnitId = U.Id AND UU.IsActive = 1
+            LEFT JOIN AppData.MiscMaster MM ON MM.Id = U.UnitTypeId AND MM.IsDeleted = 0
+            WHERE U.IsDeleted = 0
+            AND U.UnitName LIKE @SearchPattern AND UU.UserId = @UserId AND U.CompanyId = @CompanyId";
 
       var result = await _dbConnection.QueryAsync<Unit>(query, new
       {
@@ -135,14 +142,17 @@ namespace UserManagement.Infrastructure.Repositories.Units
     public async Task<List<Unit>> GetUnitByUserId(int userId, int CompanyId)
     {
       const string query = @"
-            SELECT 
-                U.Id, 
+            SELECT
+                U.Id,
                 U.UnitName,
-                U.DivisionId
+                U.DivisionId,
+                U.UnitTypeId,
+                MM.Description AS UnitTypeName
             FROM AppData.Unit U
-            Inner join [AppSecurity].[UserUnit] UU on UU.UnitId = U.Id 
-            where U.IsDeleted = 0 
-            and UU.UserId = @UserId and UU.IsActive = 1 and U.CompanyId = @CompanyId";
+            INNER JOIN [AppSecurity].[UserUnit] UU ON UU.UnitId = U.Id AND UU.IsActive = 1
+            LEFT JOIN AppData.MiscMaster MM ON MM.Id = U.UnitTypeId AND MM.IsDeleted = 0
+            WHERE U.IsDeleted = 0
+            AND UU.UserId = @UserId AND U.CompanyId = @CompanyId";
 
       var result = await _dbConnection.QueryAsync<Unit>(query, new
       {
@@ -162,12 +172,15 @@ namespace UserManagement.Infrastructure.Repositories.Units
     {
       var companyId = _ipAddressService.GetCompanyId();
       const string query = @"
-                     SELECT 
-                     U.Id, 
+                     SELECT
+                     U.Id,
                      U.UnitName,
-                     U.DivisionId
+                     U.DivisionId,
+                     U.UnitTypeId,
+                     MM.Description AS UnitTypeName
                  FROM AppData.Unit U
-                 WHERE IsDeleted = 0 AND UnitName like @SearchPattern AND U.CompanyId=@CompanyId";
+                 LEFT JOIN AppData.MiscMaster MM ON MM.Id = U.UnitTypeId AND MM.IsDeleted = 0
+                 WHERE U.IsDeleted = 0 AND U.UnitName LIKE @SearchPattern AND U.CompanyId = @CompanyId";
 
       var result = await _dbConnection.QueryAsync<Unit>(query, new
       {
@@ -182,20 +195,23 @@ namespace UserManagement.Infrastructure.Repositories.Units
     {
       var query = $$"""
 
-                SELECT 
-            C.Id, 
-            C.UnitName, 
+                SELECT
+            C.Id,
+            C.UnitName,
             C.ShortName,
             C.CompanyId,
             C.DivisionId,
             C.UnitHeadName,
             C.CINNO,
             C.IsActive,
-            C.OldUnitId,C.IsMaintenanceStopStart, 
-            C.SpindlesCapacity
+            C.OldUnitId,C.IsMaintenanceStopStart,
+            C.SpindlesCapacity,
+            C.UnitTypeId,
+            MM.Description AS UnitTypeName
              FROM AppData.Unit C
-             Inner join [AppSecurity].[UserUnit] UU on UU.UnitId = C.Id where IsDeleted = 0 
-              WHERE C.IsDeleted = 0 AND UU.UserId = @UserId and UU.IsActive = 1
+             INNER JOIN [AppSecurity].[UserUnit] UU ON UU.UnitId = C.Id AND UU.IsActive = 1
+             LEFT JOIN AppData.MiscMaster MM ON MM.Id = C.UnitTypeId AND MM.IsDeleted = 0
+              WHERE C.IsDeleted = 0 AND UU.UserId = @UserId
                
             """;
 
@@ -212,19 +228,21 @@ namespace UserManagement.Infrastructure.Repositories.Units
     public async Task<GetUnitsByIdDto> GetByIdAsync(int Id)
     {
       const string query = @"
-          SELECT 
-            C.Id, 
-            C.UnitName, 
+          SELECT
+            C.Id,
+            C.UnitName,
             C.ShortName,
             C.CompanyId,
             C.DivisionId,
             C.UnitHeadName,
             C.CINNO,
             C.IsActive,
-            C.OldUnitId, 
-            C.IsMaintenanceStopStart,  
+            C.OldUnitId,
+            C.IsMaintenanceStopStart,
             C.SpindlesCapacity,
-			      D.GstNumber AS GstNumber,
+            C.UnitTypeId,
+            MM.Description AS UnitTypeName,
+            D.GstNumber AS GstNumber,
             A.CountryId,
             A.StateId,
             A.CityId,
@@ -236,12 +254,13 @@ namespace UserManagement.Infrastructure.Repositories.Units
             B.Name,
                  B.Designation,
                  B.Email,
-                 B.PhoneNo ,
-                 B.Remarks As Remarks     
+                 B.PhoneNo,
+                 B.Remarks As Remarks
              FROM AppData.Unit C
              LEFT JOIN AppData.UnitAddress A ON A.UnitId = C.Id
              LEFT JOIN AppData.UnitContacts B ON B.UnitId = C.Id
-			       LEFT JOIN AppData.Company D ON D.Id = C.CompanyId
+             LEFT JOIN AppData.Company D ON D.Id = C.CompanyId
+             LEFT JOIN AppData.MiscMaster MM ON MM.Id = C.UnitTypeId AND MM.IsDeleted = 0
              WHERE C.Id = @id AND C.IsDeleted = 0";
       var unitResponse = await _dbConnection.QueryAsync<GetUnitsByIdDto, UnitAddressDto, UnitContactsDto, GetUnitsByIdDto>(query,
       (getUnitsByIdDto, unitaddressdto, unitcontactsdto) =>
@@ -271,6 +290,13 @@ namespace UserManagement.Infrastructure.Repositories.Units
       return count > 0;
     }
 
+    public async Task<bool> MiscMasterExistsAsync(int id)
+    {
+      const string sql = "SELECT COUNT(1) FROM AppData.MiscMaster WHERE Id = @Id AND IsDeleted = 0 AND IsActive = 1";
+      var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = id });
+      return count > 0;
+    }
+
   }
-    
+
     }

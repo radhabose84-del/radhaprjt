@@ -24,6 +24,9 @@ public  UnitContacts? UnitContacts { get; set; }
 public IList<UserUnit>? UserUnits { get; set; }
 public IList<CustomFieldUnit>? CustomFieldUnits { get; set; }
 public int? SpindlesCapacity { get; set; }
-     
+public int UnitTypeId { get; set; }
+public MiscMaster? UnitType { get; set; }
+public string? UnitTypeName { get; set; }
+
 }
 }

@@ -1,3 +1,4 @@
+using UserManagement.Application.Divisions.Queries.GetUnitsByDivision;
 using UserManagement.Domain.Entities;
 
 namespace UserManagement.Application.Common.Interfaces.IDivision
@@ -8,8 +9,9 @@ namespace UserManagement.Application.Common.Interfaces.IDivision
         Task<Division> GetByIdAsync(int id);
         Task<List<Division>> GetDivision(string searchPattern);
         Task<Division?> GetByDivisionnameAsync(string name,int? id = null);
-        Task<bool> SoftDeleteValidation(int Id); 
+        Task<bool> SoftDeleteValidation(int Id);
         Task<bool> FKColumnExistValidation(int Id);
         Task<List<Division>> GetDivision_SuperAdmin(string searchPattern);
+        Task<List<GetUnitsByDivisionDto>> GetUnitsByDivisionAsync(int companyId, int divisionId);
     }
 }

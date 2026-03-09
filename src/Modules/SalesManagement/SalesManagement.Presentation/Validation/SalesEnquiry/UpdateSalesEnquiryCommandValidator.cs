@@ -81,6 +81,12 @@ namespace SalesManagement.Presentation.Validation.SalesEnquiry
                                 await _queryRepository.PaymentTermExistsAsync(paymentTermId!.Value))
                             .WithMessage($"PaymentTermId {rule.Error}")
                             .When(x => x.PaymentTermId.HasValue && x.PaymentTermId > 0);
+
+                        RuleFor(x => x.SalesLeadId)
+                            .MustAsync(async (salesLeadId, ct) =>
+                                await _queryRepository.SalesLeadExistsAsync(salesLeadId!.Value))
+                            .WithMessage($"SalesLeadId {rule.Error}")
+                            .When(x => x.SalesLeadId.HasValue && x.SalesLeadId > 0);
                         break;
 
                     case "ByteValue":

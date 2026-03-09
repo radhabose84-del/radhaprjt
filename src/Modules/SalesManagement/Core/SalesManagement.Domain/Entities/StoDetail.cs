@@ -19,5 +19,8 @@ namespace SalesManagement.Domain.Entities
         // Line Status (same-module FK → Sales.MiscMaster, MiscType = "StoLineItemStatus")
         public int? LineStatusId { get; set; }
         public MiscMaster? LineStatus { get; set; }
+
+        // Reverse navigation (DeliveryChallan)
+        public ICollection<DeliveryChallanDetail>? DeliveryChallanDetails { get; set; }
     }
 }

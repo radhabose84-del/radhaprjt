@@ -42,6 +42,7 @@ namespace SalesManagement.Infrastructure.Repositories.StoHeader
                        OR st.StoTypeName LIKE @SearchTerm
                        OR mt.MovementCode LIKE @SearchTerm
                        OR mt.MovementDescription LIKE @SearchTerm
+                       OR hs.Description LIKE @SearchTerm
                        OR h.Remarks LIKE @SearchTerm)";
 
             var countSql = $@"
@@ -49,6 +50,7 @@ namespace SalesManagement.Infrastructure.Repositories.StoHeader
                 FROM Sales.StoHeader h
                 LEFT JOIN Sales.StoTypeMaster st ON h.StoTypeId = st.Id AND st.IsDeleted = 0
                 LEFT JOIN Sales.MovementTypeConfig mt ON h.MovementTypeId = mt.Id AND mt.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster hs ON h.HeaderStatusId = hs.Id AND hs.IsDeleted = 0
                 WHERE h.IsDeleted = 0 {searchFilter};";
 
             var dataSql = $@"
@@ -68,6 +70,8 @@ namespace SalesManagement.Infrastructure.Repositories.StoHeader
                     h.ReceivingPlantId,
                     h.ReceivingStorageLocationId,
                     h.Remarks,
+                    h.HeaderStatusId,
+                    hs.Description AS HeaderStatusName,
                     h.IsActive,
                     h.IsDeleted,
                     h.CreatedBy,
@@ -81,6 +85,7 @@ namespace SalesManagement.Infrastructure.Repositories.StoHeader
                 FROM Sales.StoHeader h
                 LEFT JOIN Sales.StoTypeMaster st ON h.StoTypeId = st.Id AND st.IsDeleted = 0
                 LEFT JOIN Sales.MovementTypeConfig mt ON h.MovementTypeId = mt.Id AND mt.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster hs ON h.HeaderStatusId = hs.Id AND hs.IsDeleted = 0
                 WHERE h.IsDeleted = 0 {searchFilter}
                 ORDER BY h.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;";
@@ -142,6 +147,8 @@ namespace SalesManagement.Infrastructure.Repositories.StoHeader
                     h.ReceivingPlantId,
                     h.ReceivingStorageLocationId,
                     h.Remarks,
+                    h.HeaderStatusId,
+                    hs.Description AS HeaderStatusName,
                     h.IsActive,
                     h.IsDeleted,
                     h.CreatedBy,
@@ -155,6 +162,7 @@ namespace SalesManagement.Infrastructure.Repositories.StoHeader
                 FROM Sales.StoHeader h
                 LEFT JOIN Sales.StoTypeMaster st ON h.StoTypeId = st.Id AND st.IsDeleted = 0
                 LEFT JOIN Sales.MovementTypeConfig mt ON h.MovementTypeId = mt.Id AND mt.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster hs ON h.HeaderStatusId = hs.Id AND hs.IsDeleted = 0
                 WHERE h.Id = @Id AND h.IsDeleted = 0;";
 
             var header = await _dbConnection.QueryFirstOrDefaultAsync<StoHeaderDto>(headerSql, new { Id = id });
