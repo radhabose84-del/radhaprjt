@@ -2,7 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SalesManagement.Application.Invoice.Commands.CreateInvoice;
-using SalesManagement.Application.Invoice.Commands.DeleteInvoice;
+using SalesManagement.Application.Invoice.Commands.UpdateInvoice;
 using SalesManagement.Application.Invoice.Queries.GetAllInvoice;
 using SalesManagement.Application.Invoice.Queries.GetInvoiceAutoComplete;
 using SalesManagement.Application.Invoice.Queries.GetInvoiceByDispatchAdvice;
@@ -92,16 +92,17 @@ namespace SalesManagement.Presentation.Controllers
             });
         }
 
-        [HttpDelete]
-        public async Task<IActionResult> DeleteInvoice(int id)
+        [HttpPut]
+        public async Task<IActionResult> UpdateInvoice([FromBody] UpdateInvoiceCommand command)
         {
-            var result = await Mediator.Send(new DeleteInvoiceCommand(id));
+            var result = await Mediator.Send(command);
 
             return Ok(new
             {
                 StatusCode = StatusCodes.Status200OK,
-                isSuccess = result,
-                message = "Invoice deleted successfully."
+                isSuccess = result.IsSuccess,
+                message = result.Message,
+                data = result.Data
             });
         }
     }

@@ -82,18 +82,61 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
             return entity.Id;
         }
 
-        public async Task<bool> SoftDeleteAsync(int id, CancellationToken ct)
+        public async Task<int> UpdateAsync(InvoiceHeader entity)
         {
             var existing = await _dbContext.InvoiceHeader
-                .FirstOrDefaultAsync(x => x.Id == id && x.IsDeleted == IsDelete.NotDeleted, ct);
+                .FirstOrDefaultAsync(x => x.Id == entity.Id && x.IsDeleted == IsDelete.NotDeleted);
 
             if (existing == null)
-                return false;
+                return 0;
 
-            existing.IsDeleted = IsDelete.Deleted;
+            // Update updatable fields — preserve immutable: InvoiceNo, DispatchAdviceId, PartyId, UnitId, FinancialYearId
+            existing.InvoiceDate             = entity.InvoiceDate;
+            existing.InvoiceType             = entity.InvoiceType;
+            existing.AgentId                 = entity.AgentId;
+            existing.TransportMode           = entity.TransportMode;
+            existing.VehicleNumber           = entity.VehicleNumber;
+            existing.TransporterName         = entity.TransporterName;
+            existing.LRNumber                = entity.LRNumber;
+            existing.LRDate                  = entity.LRDate;
+            existing.TotalBags               = entity.TotalBags;
+            existing.TotalWeight             = entity.TotalWeight;
+            existing.TaxableValue            = entity.TaxableValue;
+            existing.Discount                = entity.Discount;
+            existing.Freight                 = entity.Freight;
+            existing.Insurance               = entity.Insurance;
+            existing.HandlingCharge          = entity.HandlingCharge;
+            existing.OtherCharges            = entity.OtherCharges;
+            existing.CGST                    = entity.CGST;
+            existing.SGST                    = entity.SGST;
+            existing.IGST                    = entity.IGST;
+            existing.TaxAmount               = entity.TaxAmount;
+            existing.TCSPercentage           = entity.TCSPercentage;
+            existing.TCS                     = entity.TCS;
+            existing.RoundOff                = entity.RoundOff;
+            existing.InvoiceAmountBeforeTCS  = entity.InvoiceAmountBeforeTCS;
+            existing.InvoiceAmount           = entity.InvoiceAmount;
+            existing.Remarks                 = entity.Remarks;
+            existing.IsActive                = entity.IsActive;
+
+            // Replace detail lines: delete existing, insert new
+            var existingDetails = _dbContext.InvoiceDetail.Where(d => d.InvoiceHeaderId == existing.Id);
+            _dbContext.InvoiceDetail.RemoveRange(existingDetails);
+
+            if (entity.InvoiceDetails != null && entity.InvoiceDetails.Count > 0)
+            {
+                foreach (var detail in entity.InvoiceDetails)
+                {
+                    detail.Id = 0;
+                    detail.InvoiceHeaderId = existing.Id;
+                    await _dbContext.InvoiceDetail.AddAsync(detail);
+                }
+            }
+
             _dbContext.InvoiceHeader.Update(existing);
-            await _dbContext.SaveChangesAsync(ct);
-            return true;
+            await _dbContext.SaveChangesAsync();
+            return existing.Id;
         }
+
     }
 }

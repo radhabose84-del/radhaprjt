@@ -6,6 +6,6 @@ namespace SalesManagement.Application.Common.Interfaces.IInvoice
     {
         Task<string> GenerateNextInvoiceNoAsync(int unitId, CancellationToken ct = default);
         Task<int> CreateAsync(InvoiceHeader entity, int unitId, int dispatchedStatusId, int invoicedStatusId);
-        Task<bool> SoftDeleteAsync(int id, CancellationToken ct);
+        Task<int> UpdateAsync(InvoiceHeader entity);
     }
 }
