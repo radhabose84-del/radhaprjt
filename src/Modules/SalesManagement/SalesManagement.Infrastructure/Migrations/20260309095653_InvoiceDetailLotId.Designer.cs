@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SalesManagement.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using SalesManagement.Infrastructure.Data;
 namespace SalesManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260309095653_InvoiceDetailLotId")]
+    partial class InvoiceDetailLotId
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -3872,194 +3875,6 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.ToTable("StoHeader", "Sales");
                 });
 
-            modelBuilder.Entity("SalesManagement.Domain.Entities.StoReceiptDetail", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("Id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<decimal>("AcceptedQuantity")
-                        .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,3)")
-                        .HasColumnName("AcceptedQuantity");
-
-                    b.Property<int?>("BagCount")
-                        .HasColumnType("int")
-                        .HasColumnName("BagCount");
-
-                    b.Property<decimal>("DamageQuantity")
-                        .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,3)")
-                        .HasColumnName("DamageQuantity");
-
-                    b.Property<int>("DeliveryChallanDetailId")
-                        .HasColumnType("int")
-                        .HasColumnName("DeliveryChallanDetailId");
-
-                    b.Property<decimal>("DispatchQuantity")
-                        .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,3)")
-                        .HasColumnName("DispatchQuantity");
-
-                    b.Property<int>("EndPackNo")
-                        .HasColumnType("int")
-                        .HasColumnName("EndPackNo");
-
-                    b.Property<decimal?>("GrossWeight")
-                        .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,3)")
-                        .HasColumnName("GrossWeight");
-
-                    b.Property<int>("ItemId")
-                        .HasColumnType("int")
-                        .HasColumnName("ItemId");
-
-                    b.Property<int>("LineStatusId")
-                        .HasColumnType("int")
-                        .HasColumnName("LineStatusId");
-
-                    b.Property<int>("LotId")
-                        .HasColumnType("int")
-                        .HasColumnName("LotId");
-
-                    b.Property<decimal>("NetWeight")
-                        .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,3)")
-                        .HasColumnName("NetWeight");
-
-                    b.Property<decimal>("ReceivedQuantity")
-                        .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,3)")
-                        .HasColumnName("ReceivedQuantity");
-
-                    b.Property<int>("StartPackNo")
-                        .HasColumnType("int")
-                        .HasColumnName("StartPackNo");
-
-                    b.Property<int>("StoReceiptHeaderId")
-                        .HasColumnType("int")
-                        .HasColumnName("StoReceiptHeaderId");
-
-                    b.Property<int>("UOMId")
-                        .HasColumnType("int")
-                        .HasColumnName("UOMId");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DeliveryChallanDetailId");
-
-                    b.HasIndex("ItemId");
-
-                    b.HasIndex("LineStatusId");
-
-                    b.HasIndex("LotId");
-
-                    b.HasIndex("StoReceiptHeaderId");
-
-                    b.ToTable("StoReceiptDetail", "Sales");
-                });
-
-            modelBuilder.Entity("SalesManagement.Domain.Entities.StoReceiptHeader", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("Id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("CreatedBy")
-                        .HasColumnType("int")
-                        .HasColumnName("CreatedBy");
-
-                    b.Property<string>("CreatedByName")
-                        .HasColumnType("varchar(100)")
-                        .HasColumnName("CreatedByName");
-
-                    b.Property<DateTimeOffset?>("CreatedDate")
-                        .HasColumnType("datetimeoffset")
-                        .HasColumnName("CreatedDate");
-
-                    b.Property<string>("CreatedIP")
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("CreatedIP");
-
-                    b.Property<int>("DeliveryChallanHeaderId")
-                        .HasColumnType("int")
-                        .HasColumnName("DeliveryChallanHeaderId");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit")
-                        .HasColumnName("IsActive");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit")
-                        .HasColumnName("IsDeleted");
-
-                    b.Property<int?>("ModifiedBy")
-                        .HasColumnType("int")
-                        .HasColumnName("ModifiedBy");
-
-                    b.Property<string>("ModifiedByName")
-                        .HasColumnType("varchar(100)")
-                        .HasColumnName("ModifiedByName");
-
-                    b.Property<DateTimeOffset?>("ModifiedDate")
-                        .HasColumnType("datetimeoffset")
-                        .HasColumnName("ModifiedDate");
-
-                    b.Property<string>("ModifiedIP")
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("ModifiedIP");
-
-                    b.Property<int>("ReceivingPlantId")
-                        .HasColumnType("int")
-                        .HasColumnName("ReceivingPlantId");
-
-                    b.Property<int>("ReceivingStorageLocationId")
-                        .HasColumnType("int")
-                        .HasColumnName("ReceivingStorageLocationId");
-
-                    b.Property<string>("Remarks")
-                        .HasColumnType("nvarchar(500)")
-                        .HasColumnName("Remarks");
-
-                    b.Property<int>("StatusId")
-                        .HasColumnType("int")
-                        .HasColumnName("StatusId");
-
-                    b.Property<DateOnly>("StoReceiptDate")
-                        .HasColumnType("date")
-                        .HasColumnName("StoReceiptDate");
-
-                    b.Property<string>("StoReceiptNumber")
-                        .IsRequired()
-                        .HasColumnType("varchar(30)")
-                        .HasColumnName("StoReceiptNumber");
-
-                    b.Property<string>("VehicleNumber")
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("VehicleNumber");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DeliveryChallanHeaderId");
-
-                    b.HasIndex("ReceivingPlantId");
-
-                    b.HasIndex("StatusId");
-
-                    b.HasIndex("StoReceiptDate");
-
-                    b.HasIndex("StoReceiptNumber")
-                        .IsUnique();
-
-                    b.ToTable("StoReceiptHeader", "Sales");
-                });
-
             modelBuilder.Entity("SalesManagement.Domain.Entities.StoTypeMaster", b =>
                 {
                     b.Property<int>("Id")
@@ -4976,60 +4791,6 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("StoType");
                 });
 
-            modelBuilder.Entity("SalesManagement.Domain.Entities.StoReceiptDetail", b =>
-                {
-                    b.HasOne("SalesManagement.Domain.Entities.DeliveryChallanDetail", "DeliveryChallanDetail")
-                        .WithMany("StoReceiptDetails")
-                        .HasForeignKey("DeliveryChallanDetailId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "LineStatus")
-                        .WithMany("StoReceiptDetailsAsLineStatus")
-                        .HasForeignKey("LineStatusId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("SalesManagement.Domain.Entities.LotMaster", "LotMaster")
-                        .WithMany("StoReceiptDetails")
-                        .HasForeignKey("LotId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("SalesManagement.Domain.Entities.StoReceiptHeader", "StoReceiptHeader")
-                        .WithMany("StoReceiptDetails")
-                        .HasForeignKey("StoReceiptHeaderId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("DeliveryChallanDetail");
-
-                    b.Navigation("LineStatus");
-
-                    b.Navigation("LotMaster");
-
-                    b.Navigation("StoReceiptHeader");
-                });
-
-            modelBuilder.Entity("SalesManagement.Domain.Entities.StoReceiptHeader", b =>
-                {
-                    b.HasOne("SalesManagement.Domain.Entities.DeliveryChallanHeader", "DeliveryChallanHeader")
-                        .WithMany("StoReceiptHeaders")
-                        .HasForeignKey("DeliveryChallanHeaderId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "Status")
-                        .WithMany("StoReceiptHeadersAsStatus")
-                        .HasForeignKey("StatusId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("DeliveryChallanHeader");
-
-                    b.Navigation("Status");
-                });
-
             modelBuilder.Entity("SalesManagement.Domain.Entities.StoTypeMaster", b =>
                 {
                     b.HasOne("SalesManagement.Domain.Entities.MovementTypeConfig", "GrMovementType")
@@ -5059,16 +4820,9 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("CustomerVisitProducts");
                 });
 
-            modelBuilder.Entity("SalesManagement.Domain.Entities.DeliveryChallanDetail", b =>
-                {
-                    b.Navigation("StoReceiptDetails");
-                });
-
             modelBuilder.Entity("SalesManagement.Domain.Entities.DeliveryChallanHeader", b =>
                 {
                     b.Navigation("DeliveryChallanDetails");
-
-                    b.Navigation("StoReceiptHeaders");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.DispatchAddressMaster", b =>
@@ -5102,8 +4856,6 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("DispatchAdviceDetails");
 
                     b.Navigation("ProductionPackDetails");
-
-                    b.Navigation("StoReceiptDetails");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.MarketingOfficer", b =>
@@ -5156,10 +4908,6 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("StoDetailsAsLineStatus");
 
                     b.Navigation("StoHeadersAsHeaderStatus");
-
-                    b.Navigation("StoReceiptDetailsAsLineStatus");
-
-                    b.Navigation("StoReceiptHeadersAsStatus");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.MiscTypeMaster", b =>
@@ -5258,11 +5006,6 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("DeliveryChallanHeaders");
 
                     b.Navigation("StoDetails");
-                });
-
-            modelBuilder.Entity("SalesManagement.Domain.Entities.StoReceiptHeader", b =>
-                {
-                    b.Navigation("StoReceiptDetails");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.StoTypeMaster", b =>

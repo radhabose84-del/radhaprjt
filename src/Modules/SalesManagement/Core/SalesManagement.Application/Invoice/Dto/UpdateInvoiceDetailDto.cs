@@ -7,7 +7,7 @@ namespace SalesManagement.Application.Invoice.Dto
         public int ItemId { get; set; }
         public string? HsnCode { get; set; }
         public decimal GstPercentage { get; set; }
-        public string? LotNo { get; set; }
+        public int? LotId { get; set; }
         public int NoOfBags { get; set; }
         public decimal Quantity { get; set; }
         public decimal RatePerKg { get; set; }
