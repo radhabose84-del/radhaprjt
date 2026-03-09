@@ -12,5 +12,7 @@ namespace SalesManagement.Application.DispatchAdvice.Dto
         public int StartPackNo { get; set; }
         public int EndPackNo { get; set; }
         public decimal DispatchQty { get; set; }
+        public int PackTypeId { get; set; }
+        public string? PackTypeName { get; set; }
     }
 }

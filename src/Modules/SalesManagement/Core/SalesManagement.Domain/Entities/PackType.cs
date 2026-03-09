@@ -14,5 +14,8 @@ namespace SalesManagement.Domain.Entities
 
         // Reverse navigation (Production)
         public ICollection<ProductionPackDetail>? ProductionPackDetails { get; set; }
+
+        // Reverse navigation (DispatchAdvice)
+        public ICollection<DispatchAdviceDetail>? DispatchAdviceDetails { get; set; }
     }
 }
