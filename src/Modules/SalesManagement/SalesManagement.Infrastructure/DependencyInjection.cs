@@ -70,7 +70,8 @@ using SalesManagement.Application.Common.Interfaces.IDeliveryChallan;
 using SalesManagement.Infrastructure.Repositories.DeliveryChallan;
 using SalesManagement.Application.Common.Interfaces.ITransactionTypeMaster;
 using SalesManagement.Infrastructure.Repositories.TransactionTypeMaster;
-
+using SalesManagement.Application.Common.Interfaces.IInvoice;
+using SalesManagement.Infrastructure.Repositories.Invoice;
 
 namespace SalesManagement.Infrastructure
 {
@@ -270,6 +271,9 @@ namespace SalesManagement.Infrastructure
             // ── Transaction Type Master Repositories ───────────────────────────
             services.AddScoped<ITransactionTypeMasterCommandRepository, TransactionTypeMasterCommandRepository>();
             services.AddScoped<ITransactionTypeMasterQueryRepository, TransactionTypeMasterQueryRepository>();
+           // ── Invoice Repositories ───────────────────────────────────────────
+            services.AddScoped<IInvoiceCommandRepository, InvoiceCommandRepository>();
+            services.AddScoped<IInvoiceQueryRepository, InvoiceQueryRepository>();
 
             return services;
         }

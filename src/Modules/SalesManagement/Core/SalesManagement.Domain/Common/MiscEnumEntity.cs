@@ -18,6 +18,7 @@ namespace SalesManagement.Domain.Common
         public const string StockStatus = "StockStatus";
         public const string Reserved = "Reserved";
         public const string Invoiced = "Invoiced";
+        public const string Dispatched = "Dispatched";
         public const string Pending = "Pending";
 
         // STO Line Item Status

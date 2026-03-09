@@ -60,7 +60,7 @@ namespace SalesManagement.Infrastructure.Repositories.MiscTypeMaster
         public async Task<IReadOnlyList<MiscTypeMasterLookupDto>> AutocompleteAsync(string term, CancellationToken ct)
         {
             const string sql = @"
-                SELECT TOP 20 Id, MiscTypeCode, Description
+                SELECT Id, MiscTypeCode, Description
                 FROM Sales.MiscTypeMaster
                 WHERE IsDeleted = 0 AND IsActive = 1
                 AND (MiscTypeCode LIKE @Term OR Description LIKE @Term)

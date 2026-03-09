@@ -114,7 +114,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrganisation
         public async Task<IReadOnlyList<SalesOrganisationLookupDto>> AutocompleteAsync(string term, CancellationToken ct)
         {
             const string sql = @"
-                SELECT TOP 20 Id, SalesOrganisationCode, SalesOrganisationName
+                SELECT Id, SalesOrganisationCode, SalesOrganisationName
                 FROM Sales.SalesOrganisation
                 WHERE IsDeleted = 0 AND IsActive = 1
                 AND (SalesOrganisationCode LIKE @Term OR SalesOrganisationName LIKE @Term)
