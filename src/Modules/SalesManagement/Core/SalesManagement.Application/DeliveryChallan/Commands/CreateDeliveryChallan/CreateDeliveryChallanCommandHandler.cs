@@ -57,7 +57,16 @@ namespace SalesManagement.Application.DeliveryChallan.Commands.CreateDeliveryCha
                 entity.ConsignmentValue = entity.DeliveryValue;
             }
 
-            var newId = await _commandRepository.CreateAsync(entity);
+            // Resolve Packed and Reserved status IDs for StockLedger update
+            var packedStatus = await _miscMasterQueryRepository.GetMiscMasterByName(
+                MiscEnumEntity.StockStatus, MiscEnumEntity.Packed);
+            var packedStatusId = packedStatus?.Id ?? 0;
+
+            var reservedStatus = await _miscMasterQueryRepository.GetMiscMasterByName(
+                MiscEnumEntity.StockStatus, MiscEnumEntity.Reserved);
+            var reservedStatusId = reservedStatus?.Id ?? 0;
+
+            var newId = await _commandRepository.CreateAsync(entity, request.FromPlantId, packedStatusId, reservedStatusId);
 
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Create",
