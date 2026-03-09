@@ -16,7 +16,7 @@ namespace SalesManagement.Domain.Common
 
         // Dispatch Advice Status
         public const string StockStatus = "StockStatus";
-        public const string Dispatched = "Dispatched";
+        public const string Reserved = "Reserved";
         public const string Invoiced = "Invoiced";
         public const string Pending = "Pending";
 
