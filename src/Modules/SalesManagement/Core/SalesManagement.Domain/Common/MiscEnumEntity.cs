@@ -42,6 +42,7 @@ namespace SalesManagement.Domain.Common
         // Document Sequence - Transaction Types
         public const string TransactionTypeInvoice = "Invoice";
         public const string TransactionTypePriceMaster = "PriceMaster";
+        public const string TransactionTypePackMaster = "PackMaster";
         public const string ModuleSales = "Sales";
 
         // STO Receipt Status
