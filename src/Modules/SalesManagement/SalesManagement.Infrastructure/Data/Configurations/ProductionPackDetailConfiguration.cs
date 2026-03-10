@@ -56,6 +56,11 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("int")
                 .IsRequired();
 
+            builder.Property(t => t.NoOfBags)
+                .HasColumnName("NoOfBags")
+                .HasColumnType("int")
+                .IsRequired();
+
             builder.Property(t => t.TotalBags)
                 .HasColumnName("TotalBags")
                 .HasColumnType("int")

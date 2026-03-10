@@ -58,6 +58,16 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("decimal(18,3)")
                 .IsRequired();
 
+            builder.Property(t => t.ProductionKgs)
+                .HasColumnName("ProductionKgs")
+                .HasColumnType("decimal(18,3)")
+                .IsRequired();
+
+            builder.Property(t => t.LooseKgs)
+                .HasColumnName("LooseKgs")
+                .HasColumnType("decimal(18,3)")
+                .IsRequired();
+
             builder.Property(t => t.Remarks)
                 .HasColumnName("Remarks")
                 .HasColumnType("nvarchar(500)")
