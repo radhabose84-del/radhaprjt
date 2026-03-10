@@ -49,6 +49,7 @@ namespace PartyManagement.Application.PartyMaster.Command.UpdatePartyMaster
         public List<UpdatePartyAddressDto>? PartyAddressesUpdate { get; set; }
         public List<UpdatePartyBankDto>? PartyBanksUpdate { get; set; }
         public List<UpdatePartyDocumentDto>? PartyDocumentsUpdate { get; set; }
+        public List<UpdateSalesTypeDto>? SalesTypesUpdate { get; set; }
 
          public class UpdatePartyUniCompanyDto
         {
@@ -113,12 +114,24 @@ namespace PartyManagement.Application.PartyMaster.Command.UpdatePartyMaster
         public class UpdatePartyDocumentDto
         {
             public int Id { get; set; } // PK of PartDocument, 0 for new
-            public int PartyId { get; set; } // FK 
+            public int PartyId { get; set; } // FK
             public int DocumentId { get; set; }
-            public string? FileName { get; set; } 
-            public DateTimeOffset UploadedDate { get; set; }            
+            public string? FileName { get; set; }
+            public DateTimeOffset UploadedDate { get; set; }
         }
 
+        public class UpdateSalesTypeDto
+        {
+            public int Id { get; set; } // PK of SalesType, 0 for new
+            public int PartyId { get; set; } // FK
+            public int? SalesSegmentId { get; set; }
+            public int? OrderTypeId { get; set; }
+            public int? IncotermId { get; set; }
+            public int? PaymentTermsId { get; set; }
+            public int? ShippingConditionId { get; set; }
+            public int? AccountAssignmentId { get; set; }
+            public byte Active { get; set; }
+        }
 
     }
 }

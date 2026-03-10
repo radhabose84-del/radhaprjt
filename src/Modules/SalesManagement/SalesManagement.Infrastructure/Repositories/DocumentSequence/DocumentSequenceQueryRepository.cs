@@ -34,18 +34,18 @@ namespace SalesManagement.Infrastructure.Repositories.DocumentSequence
             const string countSql = @"
                 SELECT COUNT(*)
                 FROM [Finance].[DocumentSequence] ds
-                INNER JOIN [Finance].[TransactionTypeMaster] ttm ON ds.TypeId = ttm.Id AND ttm.IsDeleted = 0
+                INNER JOIN [Finance].[TransactionTypeMaster] ttm ON ds.TransactionTypeId = ttm.Id AND ttm.IsDeleted = 0
                 WHERE ds.IsDeleted = 0
                 AND (@Search IS NULL OR ttm.TypeName LIKE @Search)";
 
             const string dataSql = @"
-                SELECT ds.Id, ds.TypeId, ttm.TypeName, ttm.ShortName AS TypeShortName, ttm.UnitId,
+                SELECT ds.Id, ds.TransactionTypeId, ttm.TypeName, ttm.ShortName AS TypeShortName, ttm.UnitId,
                        ds.FinancialYearId, ds.DocNo,
                        ds.IsActive, ds.IsDeleted,
                        ds.CreatedBy, ds.CreatedDate, ds.CreatedByName, ds.CreatedIP,
                        ds.ModifiedBy, ds.ModifiedDate, ds.ModifiedByName, ds.ModifiedIP
                 FROM [Finance].[DocumentSequence] ds
-                INNER JOIN [Finance].[TransactionTypeMaster] ttm ON ds.TypeId = ttm.Id AND ttm.IsDeleted = 0
+                INNER JOIN [Finance].[TransactionTypeMaster] ttm ON ds.TransactionTypeId = ttm.Id AND ttm.IsDeleted = 0
                 WHERE ds.IsDeleted = 0
                 AND (@Search IS NULL OR ttm.TypeName LIKE @Search)
                 ORDER BY ds.Id
@@ -77,13 +77,13 @@ namespace SalesManagement.Infrastructure.Repositories.DocumentSequence
         public async Task<DocumentSequenceDto?> GetByIdAsync(int id)
         {
             const string sql = @"
-                SELECT ds.Id, ds.TypeId, ttm.TypeName, ttm.ShortName AS TypeShortName, ttm.UnitId,
+                SELECT ds.Id, ds.TransactionTypeId, ttm.TypeName, ttm.ShortName AS TypeShortName, ttm.UnitId,
                        ds.FinancialYearId, ds.DocNo,
                        ds.IsActive, ds.IsDeleted,
                        ds.CreatedBy, ds.CreatedDate, ds.CreatedByName, ds.CreatedIP,
                        ds.ModifiedBy, ds.ModifiedDate, ds.ModifiedByName, ds.ModifiedIP
                 FROM [Finance].[DocumentSequence] ds
-                INNER JOIN [Finance].[TransactionTypeMaster] ttm ON ds.TypeId = ttm.Id AND ttm.IsDeleted = 0
+                INNER JOIN [Finance].[TransactionTypeMaster] ttm ON ds.TransactionTypeId = ttm.Id AND ttm.IsDeleted = 0
                 WHERE ds.IsDeleted = 0 AND ds.Id = @Id";
 
             var dto = await _dbConnection.QueryFirstOrDefaultAsync<DocumentSequenceDto>(sql, new { Id = id });
@@ -107,7 +107,7 @@ namespace SalesManagement.Infrastructure.Repositories.DocumentSequence
             const string sql = @"
                 SELECT TOP 20 ds.Id, ttm.TypeName, ds.DocNo
                 FROM [Finance].[DocumentSequence] ds
-                INNER JOIN [Finance].[TransactionTypeMaster] ttm ON ds.TypeId = ttm.Id AND ttm.IsDeleted = 0
+                INNER JOIN [Finance].[TransactionTypeMaster] ttm ON ds.TransactionTypeId = ttm.Id AND ttm.IsDeleted = 0
                 WHERE ds.IsDeleted = 0 AND ds.IsActive = 1
                 AND ttm.TypeName LIKE @Search
                 ORDER BY ttm.TypeName, ds.DocNo";
@@ -119,11 +119,11 @@ namespace SalesManagement.Infrastructure.Repositories.DocumentSequence
         public async Task<IReadOnlyList<string>> GenerateDocumentNumber(int Id)
         {
             const string sql = @"
-                SELECT ds.Id, ds.TypeId, ds.FinancialYearId, ds.DocNo,
+                SELECT ds.Id, ds.TransactionTypeId, ds.FinancialYearId, ds.DocNo,
                        ttm.ShortName AS TypeShortName, ttm.UnitId
                 FROM [Finance].[DocumentSequence] ds
-                INNER JOIN [Finance].[TransactionTypeMaster] ttm ON ds.TypeId = ttm.Id AND ttm.IsDeleted = 0
-                WHERE ds.TypeId = @Id AND ds.IsDeleted = 0
+                INNER JOIN [Finance].[TransactionTypeMaster] ttm ON ds.TransactionTypeId = ttm.Id AND ttm.IsDeleted = 0
+                WHERE ds.TransactionTypeId = @Id AND ds.IsDeleted = 0
                 ORDER BY ds.FinancialYearId, ds.DocNo";
 
             var rows = (await _dbConnection.QueryAsync<DocumentSequenceGeneratedDto>(sql, new { Id = Id })).ToList();
@@ -152,15 +152,15 @@ namespace SalesManagement.Infrastructure.Repositories.DocumentSequence
         {
             const string sql = @"
                 SELECT COUNT(1) FROM [Finance].[DocumentSequence]
-                WHERE TypeId = @TypeId AND FinancialYearId = @FinancialYearId AND DocNo = @DocNo
+                WHERE TransactionTypeId = @TransactionTypeId AND FinancialYearId = @FinancialYearId AND DocNo = @DocNo
                 AND IsDeleted = 0
                 AND (@ExcludeId IS NULL OR Id != @ExcludeId)";
 
-            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { TypeId = typeId, FinancialYearId = financialYearId, DocNo = docNo, ExcludeId = excludeId });
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { TransactionTypeId = typeId, FinancialYearId = financialYearId, DocNo = docNo, ExcludeId = excludeId });
             return count > 0;
         }
 
-        public async Task<bool> TypeIdExistsAsync(int typeId)
+        public async Task<bool> TransactionTypeIdExistsAsync(int typeId)
         {
             const string sql = @"
                 SELECT COUNT(1) FROM [Finance].[TransactionTypeMaster]

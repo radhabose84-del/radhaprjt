@@ -2,7 +2,7 @@ using MediatR;
 using SalesManagement.Application.Common.Interfaces.IDocumentSequence;
 using SalesManagement.Domain.Events;
 
-namespace SalesManagement.Application.DocumentSequence.Queries.GetDocumentNumberByTypeId
+namespace SalesManagement.Application.DocumentSequence.Queries.GetDocumentNumberByTransactionTypeId
 {
     public class GetDocumentQueryHandler : IRequestHandler<GetDocumentQuery, IReadOnlyList<string>>
     {
@@ -19,13 +19,13 @@ namespace SalesManagement.Application.DocumentSequence.Queries.GetDocumentNumber
 
         public async Task<IReadOnlyList<string>> Handle(GetDocumentQuery request, CancellationToken cancellationToken)
         {
-            var result = await _queryRepository.GenerateDocumentNumber(request.TypeId);
+            var result = await _queryRepository.GenerateDocumentNumber(request.TransactionTypeId);
 
             var domainEvent = new AuditLogsDomainEvent(
                 actionDetail: "GetDocument",
                 actionCode: "GetDocumentQuery",
-                actionName: request.TypeId.ToString(),
-                details: $"Document Sequence generated numbers for TypeId '{request.TypeId}' were fetched.",
+                actionName: request.TransactionTypeId.ToString(),
+                details: $"Document Sequence generated numbers for TransactionTypeId '{request.TransactionTypeId}' were fetched.",
                 module: "DocumentSequence"
             );
             await _mediator.Publish(domainEvent, cancellationToken);

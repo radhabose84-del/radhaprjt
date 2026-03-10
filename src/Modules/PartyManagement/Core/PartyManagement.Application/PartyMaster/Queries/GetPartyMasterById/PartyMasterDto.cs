@@ -52,6 +52,7 @@ namespace PartyManagement.Application.PartyMaster.Queries.GetPartyMasterById
         public List<PartyBankDto>? PartyBanks { get; set; }
         public List<PartyDocumentDto>? PartyDocuments { get; set; }
         public List<PartyUnitCompanyMappingDto>? PartyUnitCompanyMappings { get; set; }
+        public List<SalesTypeDto>? SalesTypes { get; set; }
 
         public class PartyContactDto
         {
@@ -125,11 +126,27 @@ namespace PartyManagement.Application.PartyMaster.Queries.GetPartyMasterById
             public int? PartyId { get; set; }
             public int? CompanyId { get; set; }
            // public string? CompanyName { get; set; }
-            public int? UnitId { get; set; } 
-            public string? UnitName { get; set; } 
+            public int? UnitId { get; set; }
+            public string? UnitName { get; set; }
 
         }
 
+        public class SalesTypeDto
+        {
+            public int Id { get; set; }
+            public int? PartyId { get; set; }
+            public int? SalesSegmentId { get; set; }
+            public int? OrderTypeId { get; set; }
+            public int? IncotermId { get; set; }
+            public string? IncotermName { get; set; }
+            public int? PaymentTermsId { get; set; }
+            public string? PaymentTermsName { get; set; }
+            public int? ShippingConditionId { get; set; }
+            public string? ShippingConditionName { get; set; }
+            public int? AccountAssignmentId { get; set; }
+            public string? AccountAssignmentName { get; set; }
+            public byte Active { get; set; }
+        }
 
     }
 }

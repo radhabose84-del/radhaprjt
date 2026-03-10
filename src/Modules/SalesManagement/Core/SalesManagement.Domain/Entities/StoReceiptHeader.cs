@@ -16,6 +16,9 @@ namespace SalesManagement.Domain.Entities
         // Receiving Storage Location (cross-module FK → WarehouseManagement)
         public int ReceivingStorageLocationId { get; set; }
 
+        // Rack (cross-module FK → WarehouseManagement.RackMaster)
+        public int? RackId { get; set; }
+
         // Vehicle Number (auto-fetched from DC for verification)
         public string? VehicleNumber { get; set; }
 

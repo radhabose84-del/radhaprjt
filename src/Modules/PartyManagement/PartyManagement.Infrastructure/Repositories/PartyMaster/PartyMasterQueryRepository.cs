@@ -9,6 +9,7 @@ using PartyManagement.Application.PartyMaster.Queries.GetPartyGroupLoad;
 using PartyManagement.Application.PartyMaster.Queries.GetPartyMasterById;
 using PartyManagement.Application.PartyMaster.Queries.GetPartyMasterPending;
 using PartyManagement.Domain.Common;
+using Contracts.Interfaces.Lookups.Purchase;
 using Dapper;
 
 namespace PartyManagement.Infrastructure.Repositories.PartyMaster
@@ -17,11 +18,16 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
     {
         private readonly IDbConnection _dbConnection;
         private readonly IIPAddressService _ipAddressService;
+        private readonly IIncotermLookup _incotermLookup;
+        private readonly IPaymentTermLookup _paymentTermLookup;
 
-        public PartyMasterQueryRepository(IDbConnection dbConnection, IIPAddressService ipAddressService)
+        public PartyMasterQueryRepository(IDbConnection dbConnection, IIPAddressService ipAddressService,
+            IIncotermLookup incotermLookup, IPaymentTermLookup paymentTermLookup)
         {
             _dbConnection = dbConnection;
             _ipAddressService = ipAddressService;
+            _incotermLookup = incotermLookup;
+            _paymentTermLookup = paymentTermLookup;
         }
         public async Task<List<PartyGroupLoadDto>> GetPartyGroupsAsync(List<int> groupTypeIds)
         {
@@ -75,6 +81,22 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
             SELECT * FROM Party.PartyBank WHERE PartyId = @Id;
             SELECT * FROM Party.PartyDocument WHERE PartyId = @Id;
             SELECT * FROM Party.PartyUnitCompanyMapping WHERE PartyId = @Id;
+            SELECT
+                st.Id,
+                st.PartyId,
+                st.SalesSegmentId,
+                st.OrderTypeId,
+                st.IncotermId,
+                st.PaymentTermsId,
+                st.ShippingConditionId,
+                sc.Description AS ShippingConditionName,
+                st.AccountAssignmentId,
+                aa.Description AS AccountAssignmentName,
+                st.Active
+            FROM Party.SalesType st
+            LEFT JOIN Party.MiscMaster sc ON st.ShippingConditionId = sc.Id AND sc.IsDeleted = 0
+            LEFT JOIN Party.MiscMaster aa ON st.AccountAssignmentId = aa.Id AND aa.IsDeleted = 0
+            WHERE st.PartyId = @Id;
 
         ";
 
@@ -90,6 +112,37 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
             partyMaster.PartyBanks = (await multi.ReadAsync<PartyMasterDto.PartyBankDto>()).ToList();
             partyMaster.PartyDocuments = (await multi.ReadAsync<PartyMasterDto.PartyDocumentDto>()).ToList();
             partyMaster.PartyUnitCompanyMappings = (await multi.ReadAsync<PartyMasterDto.PartyUnitCompanyMappingDto>()).ToList();
+            partyMaster.SalesTypes = (await multi.ReadAsync<PartyMasterDto.SalesTypeDto>()).ToList();
+
+            // Populate cross-module lookup names for SalesTypes
+            if (partyMaster.SalesTypes?.Any() == true)
+            {
+                var incotermIds = partyMaster.SalesTypes.Where(s => s.IncotermId.HasValue).Select(s => s.IncotermId!.Value).Distinct().ToList();
+                var paymentTermIds = partyMaster.SalesTypes.Where(s => s.PaymentTermsId.HasValue).Select(s => s.PaymentTermsId!.Value).Distinct().ToList();
+
+                if (incotermIds.Any())
+                {
+                    var incoterms = await _incotermLookup.GetAllIncotermAsync();
+                    var incotermDict = incoterms.ToDictionary(i => i.Id, i => i.Description);
+                    foreach (var st in partyMaster.SalesTypes.Where(s => s.IncotermId.HasValue))
+                    {
+                        incotermDict.TryGetValue(st.IncotermId!.Value, out var name);
+                        st.IncotermName = name;
+                    }
+                }
+
+                if (paymentTermIds.Any())
+                {
+                    var paymentTerms = await _paymentTermLookup.GetAllPaymentTermAsync();
+                    var ptDict = paymentTerms.ToDictionary(p => p.Id, p => p.Description);
+                    foreach (var st in partyMaster.SalesTypes.Where(s => s.PaymentTermsId.HasValue))
+                    {
+                        ptDict.TryGetValue(st.PaymentTermsId!.Value, out var name);
+                        st.PaymentTermsName = name;
+                    }
+                }
+            }
+
             return partyMaster;
         }
 
