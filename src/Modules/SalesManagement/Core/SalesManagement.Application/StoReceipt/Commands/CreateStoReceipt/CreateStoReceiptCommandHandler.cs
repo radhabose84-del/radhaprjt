@@ -54,7 +54,11 @@ namespace SalesManagement.Application.StoReceipt.Commands.CreateStoReceipt
                 request.ReceivingPlantId, cancellationToken);
             entity.StoReceiptNumber = stoReceiptNumber;
 
-            // Resolve Reserved and Dispatched status IDs for StockLedger update
+            // Resolve StockLedger status IDs
+            var packedStatus = await _miscMasterQueryRepository.GetMiscMasterByName(
+                MiscEnumEntity.StockStatus, MiscEnumEntity.Packed);
+            var packedStatusId = packedStatus?.Id ?? 0;
+
             var reservedStatus = await _miscMasterQueryRepository.GetMiscMasterByName(
                 MiscEnumEntity.StockStatus, MiscEnumEntity.Reserved);
             var reservedStatusId = reservedStatus?.Id ?? 0;
@@ -63,7 +67,7 @@ namespace SalesManagement.Application.StoReceipt.Commands.CreateStoReceipt
                 MiscEnumEntity.StockStatus, MiscEnumEntity.Dispatched);
             var dispatchedStatusId = dispatchedStatus?.Id ?? 0;
 
-            var newId = await _commandRepository.CreateAsync(entity, request.ReceivingPlantId, reservedStatusId, dispatchedStatusId);
+            var newId = await _commandRepository.CreateAsync(entity, packedStatusId, reservedStatusId, dispatchedStatusId);
 
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Create",

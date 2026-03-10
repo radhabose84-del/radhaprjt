@@ -2,7 +2,6 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SalesManagement.Application.StoReceipt.Commands.CreateStoReceipt;
-using SalesManagement.Application.StoReceipt.Commands.DeleteStoReceipt;
 using SalesManagement.Application.StoReceipt.Queries.GetAllStoReceipt;
 using SalesManagement.Application.StoReceipt.Queries.GetStoReceiptById;
 using SalesManagement.Application.StoReceipt.Queries.GetStoReceiptAutoComplete;
@@ -88,17 +87,5 @@ namespace SalesManagement.Presentation.Controllers
             });
         }
 
-        [HttpDelete]
-        public async Task<IActionResult> DeleteStoReceipt(int id)
-        {
-            var result = await Mediator.Send(new DeleteStoReceiptCommand(id));
-
-            return Ok(new
-            {
-                StatusCode = StatusCodes.Status200OK,
-                isSuccess = result,
-                message = "STO Receipt deleted successfully."
-            });
-        }
     }
 }
