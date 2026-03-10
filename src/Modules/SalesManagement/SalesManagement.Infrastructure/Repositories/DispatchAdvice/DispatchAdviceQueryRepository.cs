@@ -309,6 +309,28 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
             return result;
         }
 
+        public async Task<bool> NotFoundAsync(int id)
+        {
+            const string sql = @"
+                SELECT COUNT(1)
+                FROM Sales.DispatchAdviceHeader
+                WHERE Id = @Id AND IsDeleted = 0";
+
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = id });
+            return count == 0;
+        }
+
+        public async Task<bool> HasInvoiceAsync(int dispatchAdviceId)
+        {
+            const string sql = @"
+                SELECT COUNT(1)
+                FROM Sales.InvoiceHeader
+                WHERE DispatchAdviceId = @DispatchAdviceId AND IsDeleted = 0";
+
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { DispatchAdviceId = dispatchAdviceId });
+            return count > 0;
+        }
+
         public async Task<IReadOnlyList<DispatchAdviceLookupDto>> AutocompleteAsync(string term, CancellationToken ct)
         {
             const string sql = @"
