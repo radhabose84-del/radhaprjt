@@ -150,6 +150,13 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
             existingParty.InsuranceLimit = partyMaster.InsuranceLimit;
             existingParty.IsActive = partyMaster.IsActive;
             existingParty.IsPortalAccessEnabled = partyMaster.IsPortalAccessEnabled;
+            existingParty.TransportModeId = partyMaster.TransportModeId;
+            existingParty.VehicleTypeId = partyMaster.VehicleTypeId;
+            existingParty.DefaultFreightTypeId = partyMaster.DefaultFreightTypeId;
+            existingParty.DefaultFreightRate = partyMaster.DefaultFreightRate;
+            existingParty.LicenseNo = partyMaster.LicenseNo;
+            existingParty.LicenseExpiryDate = partyMaster.LicenseExpiryDate;
+            existingParty.FreightExpensesGl = partyMaster.FreightExpensesGl;
 
             // Check if any related collection has at least one record
             bool hasRelatedRecords =

@@ -76,7 +76,7 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
             });
         }
 
-        public async Task<int> UpdateAsync(InvoiceHeader entity)
+        public async Task<int> UpdateAsync(InvoiceHeader entity, int unitId, int dispatchedStatusId, int invoicedStatusId)
         {
             var existing = await _dbContext.InvoiceHeader
                 .FirstOrDefaultAsync(x => x.Id == entity.Id && x.IsDeleted == IsDelete.NotDeleted);
@@ -91,7 +91,29 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                 using var transaction = await _dbContext.Database.BeginTransactionAsync();
                 try
                 {
-                    // Update updatable fields — preserve immutable: InvoiceNo, DispatchAdviceId, PartyId, UnitId, FinancialYearId
+                    // Step 1: Revert old StockLedger entries (Invoiced → Dispatched)
+                    var daDetails = await _dbContext.DispatchAdviceDetail
+                        .Where(d => d.DispatchAdviceHeaderId == existing.DispatchAdviceId)
+                        .ToListAsync();
+
+                    foreach (var daDetail in daDetails)
+                    {
+                        var stockRecords = await _dbContext.StockLedger
+                            .Where(s => s.UnitId == unitId
+                                && s.ItemId == daDetail.ItemId
+                                && s.LotId == daDetail.LotId
+                                && s.PackNo >= daDetail.StartPackNo
+                                && s.PackNo <= daDetail.EndPackNo
+                                && s.StatusId == invoicedStatusId)
+                            .ToListAsync();
+
+                        foreach (var stock in stockRecords)
+                            stock.StatusId = dispatchedStatusId;
+                    }
+
+                    await _dbContext.SaveChangesAsync();
+
+                    // Step 2: Update updatable fields — preserve immutable: InvoiceNo, DispatchAdviceId, PartyId, UnitId, FinancialYearId
                     existing.InvoiceDate             = entity.InvoiceDate;
                     existing.InvoiceType             = entity.InvoiceType;
                     existing.AgentId                 = entity.AgentId;
@@ -120,7 +142,7 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                     existing.Remarks                 = entity.Remarks;
                     existing.IsActive                = entity.IsActive;
 
-                    // Replace detail lines: delete existing, insert new
+                    // Step 3: Replace detail lines: delete existing, insert new
                     var existingDetails = _dbContext.InvoiceDetail.Where(d => d.InvoiceHeaderId == existing.Id);
                     _dbContext.InvoiceDetail.RemoveRange(existingDetails);
 
@@ -132,6 +154,22 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                             detail.InvoiceHeaderId = existing.Id;
                             await _dbContext.InvoiceDetail.AddAsync(detail);
                         }
+                    }
+
+                    // Step 4: Re-apply StockLedger entries (Dispatched → Invoiced)
+                    foreach (var daDetail in daDetails)
+                    {
+                        var stockRecords = await _dbContext.StockLedger
+                            .Where(s => s.UnitId == unitId
+                                && s.ItemId == daDetail.ItemId
+                                && s.LotId == daDetail.LotId
+                                && s.PackNo >= daDetail.StartPackNo
+                                && s.PackNo <= daDetail.EndPackNo
+                                && s.StatusId == dispatchedStatusId)
+                            .ToListAsync();
+
+                        foreach (var stock in stockRecords)
+                            stock.StatusId = invoicedStatusId;
                     }
 
                     _dbContext.InvoiceHeader.Update(existing);

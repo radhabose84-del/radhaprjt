@@ -12,7 +12,8 @@ namespace PurchaseManagement.Application.PaymentTermMaster.Queries.GetAllPayment
         public decimal? DiscountPercent { get; set; }
         public int? DiscountDays { get; set; }
         public int? GraceDays { get; set; }
-        public bool ApplicableForPortal { get; set; }  
+        public decimal AdditionalValue { get; set; }
+        public bool ApplicableForPortal { get; set; }
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }
         public int CreatedBy { get; set; }

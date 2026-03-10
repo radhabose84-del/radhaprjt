@@ -15,6 +15,7 @@ namespace PurchaseManagement.Application.PaymentTermMaster.Command.UpdatePayment
         public decimal? DiscountPercent { get; set; }
         public int? DiscountDays { get; set; }
         public int? GraceDays { get; set; }
+        public decimal AdditionalValue { get; set; }
         public bool ApplicableForPortal { get; set; }
          public bool IsActive { get; set; } 
        
