@@ -31,6 +31,7 @@ namespace SalesManagement.Domain.Common
 
         // STO Header Status
         public const string StoHeaderStatus = "StoHeaderStatus";
+        public const string StoHeaderStatusPending = "Pending";
 
         // Delivery Challan Status
         public const string DCLineStatus = "DCLineStatus";

@@ -151,7 +151,7 @@ namespace SalesManagement.Infrastructure.Repositories.StoHeader
                     && m.MiscTypeMaster != null
                     && m.MiscTypeMaster.IsDeleted == IsDelete.NotDeleted
                     && m.MiscTypeMaster.MiscTypeCode == MiscEnumEntity.StoHeaderStatus
-                    && m.Code == MiscEnumEntity.StoLineStatusDraft)
+                    && m.Code == MiscEnumEntity.StoHeaderStatusPending)
                 .Select(m => (int?)m.Id)
                 .FirstOrDefaultAsync();
         }
