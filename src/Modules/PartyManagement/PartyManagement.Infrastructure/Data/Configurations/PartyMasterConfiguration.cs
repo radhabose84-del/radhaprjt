@@ -300,7 +300,59 @@ namespace PartyManagement.Infrastructure.Data.Configurations
                 .HasColumnName("IsUpdate")
                 .HasColumnType("bit")
                 .IsRequired();
-                                                
+
+            // TransportModeId - FK to Party.MiscMaster
+            builder.Property(m => m.TransportModeId)
+                .HasColumnName("TransportModeId")
+                .HasColumnType("int");
+
+            builder.HasOne(m => m.TransportModeMisc)
+                .WithMany(t => t.PartyTransportMode)
+                .HasForeignKey(m => m.TransportModeId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // VehicleTypeId - FK to Party.MiscMaster
+            builder.Property(m => m.VehicleTypeId)
+                .HasColumnName("VehicleTypeId")
+                .HasColumnType("int");
+
+            builder.HasOne(m => m.VehicleTypeMisc)
+                .WithMany(t => t.PartyVehicleType)
+                .HasForeignKey(m => m.VehicleTypeId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // DefaultFreightTypeId - FK to Party.MiscMaster
+            builder.Property(m => m.DefaultFreightTypeId)
+                .HasColumnName("DefaultFreightTypeId")
+                .HasColumnType("int");
+
+            builder.HasOne(m => m.DefaultFreightTypeMisc)
+                .WithMany(t => t.PartyDefaultFreightType)
+                .HasForeignKey(m => m.DefaultFreightTypeId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // DefaultFreightRate
+            builder.Property(x => x.DefaultFreightRate)
+                .HasColumnName("DefaultFreightRate")
+                .HasColumnType("decimal(18,3)")
+                .IsRequired(false);
+
+            // LicenseNo
+            builder.Property(m => m.LicenseNo)
+                .HasColumnName("LicenseNo")
+                .HasColumnType("nvarchar(50)");
+
+            // LicenseExpiryDate
+            builder.Property(x => x.LicenseExpiryDate)
+                .HasColumnName("LicenseExpiryDate")
+                .HasColumnType("datetimeoffset")
+                .IsRequired(false);
+
+            // FreightExpensesGl
+            builder.Property(m => m.FreightExpensesGl)
+                .HasColumnName("FreightExpensesGl")
+                .HasColumnType("nvarchar(50)");
+
         }
     }
 }

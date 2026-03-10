@@ -46,6 +46,16 @@ namespace PartyManagement.Application.PartyMaster.Queries.GetPartyMasterById
         public decimal? InsuranceLimit { get; set; }
         public byte IsPortalAccessEnabled { get; set; }
         public byte IsUpdate { get; set; }
+        public int? TransportModeId { get; set; }
+        public string? TransportModeName { get; set; }
+        public int? VehicleTypeId { get; set; }
+        public string? VehicleTypeName { get; set; }
+        public int? DefaultFreightTypeId { get; set; }
+        public string? DefaultFreightTypeName { get; set; }
+        public decimal? DefaultFreightRate { get; set; }
+        public string? LicenseNo { get; set; }
+        public DateTimeOffset? LicenseExpiryDate { get; set; }
+        public string? FreightExpensesGl { get; set; }
         public List<PartyTypeDto>? PartyTypes { get; set; }
         public List<PartyContactDto>? PartyContacts { get; set; }
         public List<PartyAddressDto>? PartyAddresses { get; set; }
