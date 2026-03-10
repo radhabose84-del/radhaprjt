@@ -940,17 +940,17 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("varchar(50)")
                         .HasColumnName("ModifiedIP");
 
-                    b.Property<int>("TypeId")
+                    b.Property<int>("TransactionTypeId")
                         .HasColumnType("int")
-                        .HasColumnName("TypeId");
+                        .HasColumnName("TransactionTypeId");
 
                     b.HasKey("Id");
 
                     b.HasIndex("FinancialYearId");
 
-                    b.HasIndex("TypeId");
+                    b.HasIndex("TransactionTypeId");
 
-                    b.HasIndex("TypeId", "FinancialYearId", "DocNo")
+                    b.HasIndex("TransactionTypeId", "FinancialYearId", "DocNo")
                         .IsUnique();
 
                     b.ToTable("DocumentSequence", "Finance");
@@ -1430,7 +1430,7 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("decimal(18,6)")
                         .HasColumnName("InvoiceAmountBeforeTCS");
 
-                    b.Property<DateOnly>("InvoiceDate")
+                    b.Property<DateTime>("InvoiceDate")
                         .HasColumnType("date")
                         .HasColumnName("InvoiceDate");
 
@@ -1450,7 +1450,7 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("bit")
                         .HasColumnName("IsDeleted");
 
-                    b.Property<DateOnly?>("LRDate")
+                    b.Property<DateTime?>("LRDate")
                         .HasColumnType("date")
                         .HasColumnName("LRDate");
 
@@ -1496,6 +1496,10 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,6)")
                         .HasColumnName("SGST");
+
+                    b.Property<int?>("StatusId")
+                        .HasColumnType("int")
+                        .HasColumnName("StatusId");
 
                     b.Property<decimal>("TCS")
                         .HasPrecision(18, 6)
@@ -1557,6 +1561,8 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.HasIndex("InvoiceType");
 
                     b.HasIndex("PartyId");
+
+                    b.HasIndex("StatusId");
 
                     b.HasIndex("TransportMode");
 
@@ -1640,6 +1646,10 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("SalesSegmentId");
 
+                    b.Property<int?>("StatusId")
+                        .HasColumnType("int")
+                        .HasColumnName("StatusId");
+
                     b.Property<DateOnly>("ValidFrom")
                         .HasColumnType("date")
                         .HasColumnName("ValidFrom");
@@ -1654,6 +1664,8 @@ namespace SalesManagement.Infrastructure.Migrations
                         .IsUnique();
 
                     b.HasIndex("SalesSegmentId");
+
+                    b.HasIndex("StatusId");
 
                     b.HasIndex("ItemId", "SalesSegmentId", "PaymentTermsId");
 
@@ -2404,6 +2416,10 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("decimal(18,3)")
                         .HasColumnName("NetWeightPerPack");
 
+                    b.Property<int>("NoOfBags")
+                        .HasColumnType("int")
+                        .HasColumnName("NoOfBags");
+
                     b.Property<int>("PackTypeId")
                         .HasColumnType("int")
                         .HasColumnName("PackTypeId");
@@ -2477,6 +2493,11 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("bit")
                         .HasColumnName("IsDeleted");
 
+                    b.Property<decimal>("LooseKgs")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,3)")
+                        .HasColumnName("LooseKgs");
+
                     b.Property<int?>("ModifiedBy")
                         .HasColumnType("int")
                         .HasColumnName("ModifiedBy");
@@ -2501,6 +2522,11 @@ namespace SalesManagement.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("varchar(30)")
                         .HasColumnName("PackNo");
+
+                    b.Property<decimal>("ProductionKgs")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,3)")
+                        .HasColumnName("ProductionKgs");
 
                     b.Property<string>("Remarks")
                         .HasColumnType("nvarchar(500)")
@@ -3677,6 +3703,10 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("SalesEnquiryId");
 
+                    b.Property<int?>("StatusId")
+                        .HasColumnType("int")
+                        .HasColumnName("StatusId");
+
                     b.Property<decimal>("TotalBasicAmount")
                         .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,2)")
@@ -3707,6 +3737,8 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.HasIndex("PaymentTermId");
 
                     b.HasIndex("SalesEnquiryId");
+
+                    b.HasIndex("StatusId");
 
                     b.ToTable("SalesQuotationHeader", "Sales");
                 });
@@ -4088,6 +4120,10 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("varchar(50)")
                         .HasColumnName("ModifiedIP");
 
+                    b.Property<int?>("RackId")
+                        .HasColumnType("int")
+                        .HasColumnName("RackId");
+
                     b.Property<int>("ReceivingPlantId")
                         .HasColumnType("int")
                         .HasColumnName("ReceivingPlantId");
@@ -4233,7 +4269,7 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("DetailDocNo");
 
-                    b.Property<DateOnly>("DocDate")
+                    b.Property<DateTime>("DocDate")
                         .HasColumnType("date")
                         .HasColumnName("DocDate");
 
@@ -4563,7 +4599,7 @@ namespace SalesManagement.Infrastructure.Migrations
                 {
                     b.HasOne("SalesManagement.Domain.Entities.TransactionTypeMaster", "TransactionTypeMaster")
                         .WithMany("DocumentSequences")
-                        .HasForeignKey("TypeId")
+                        .HasForeignKey("TransactionTypeId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -4630,6 +4666,11 @@ namespace SalesManagement.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "StatusMisc")
+                        .WithMany("InvoiceHeadersAsStatus")
+                        .HasForeignKey("StatusId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "TransportModeMisc")
                         .WithMany("InvoiceHeadersAsTransportMode")
                         .HasForeignKey("TransportMode")
@@ -4638,6 +4679,8 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("DispatchAdviceHeader");
 
                     b.Navigation("InvoiceTypeMisc");
+
+                    b.Navigation("StatusMisc");
 
                     b.Navigation("TransportModeMisc");
                 });
@@ -4650,7 +4693,14 @@ namespace SalesManagement.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "StatusMisc")
+                        .WithMany("ItemPriceMastersAsStatus")
+                        .HasForeignKey("StatusId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("SalesSegment");
+
+                    b.Navigation("StatusMisc");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.LotMaster", b =>
@@ -4982,11 +5032,18 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasForeignKey("SalesEnquiryId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "StatusMisc")
+                        .WithMany("SalesQuotationHeadersAsStatus")
+                        .HasForeignKey("StatusId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("ContactPerson");
 
                     b.Navigation("DeliveryTerm");
 
                     b.Navigation("SalesEnquiryHeader");
+
+                    b.Navigation("StatusMisc");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.SalesSegment", b =>
@@ -5207,7 +5264,11 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     b.Navigation("InvoiceHeadersAsInvoiceType");
 
+                    b.Navigation("InvoiceHeadersAsStatus");
+
                     b.Navigation("InvoiceHeadersAsTransportMode");
+
+                    b.Navigation("ItemPriceMastersAsStatus");
 
                     b.Navigation("LotMastersAsLotType");
 
@@ -5236,6 +5297,8 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("SalesOrderHeadersAsFreightType");
 
                     b.Navigation("SalesOrderHeadersAsPaymentType");
+
+                    b.Navigation("SalesQuotationHeadersAsStatus");
 
                     b.Navigation("StoDetailsAsLineStatus");
 

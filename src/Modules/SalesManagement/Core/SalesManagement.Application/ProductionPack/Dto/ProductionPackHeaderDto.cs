@@ -11,6 +11,8 @@ namespace SalesManagement.Application.ProductionPack.Dto
         public string? WarehouseName { get; set; }
         public int TotalBags { get; set; }
         public decimal TotalNetWeight { get; set; }
+        public decimal ProductionKgs { get; set; }
+        public decimal LooseKgs { get; set; }
         public string? Remarks { get; set; }
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }

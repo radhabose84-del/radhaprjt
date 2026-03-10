@@ -155,7 +155,7 @@ namespace SalesManagement.IntegrationTests.Repositories.ItemPriceMaster
             await ClearTableAsync(ctx);
 
             var repo = CreateRepository(ctx);
-            var newId = await repo.CreateAsync(BuildEntity(segmentId));
+            var newId = await repo.CreateAsync(BuildEntity(segmentId), 0);
 
             newId.Should().BeGreaterThan(0);
         }
@@ -175,7 +175,7 @@ namespace SalesManagement.IntegrationTests.Repositories.ItemPriceMaster
                 validFrom: validFrom, validTo: validTo);
 
             var repo = CreateRepository(ctx);
-            var newId = await repo.CreateAsync(entity);
+            var newId = await repo.CreateAsync(entity, 0);
             ctx.ChangeTracker.Clear();
 
             var saved = await ctx.ItemPriceMaster.FirstOrDefaultAsync(x => x.Id == newId);
@@ -201,7 +201,7 @@ namespace SalesManagement.IntegrationTests.Repositories.ItemPriceMaster
             await ClearTableAsync(ctx);
 
             var repo = CreateRepository(ctx);
-            var newId = await repo.CreateAsync(BuildEntity(segmentId));
+            var newId = await repo.CreateAsync(BuildEntity(segmentId), 0);
             ctx.ChangeTracker.Clear();
 
             var saved = await ctx.ItemPriceMaster.FirstOrDefaultAsync(x => x.Id == newId);
@@ -223,7 +223,7 @@ namespace SalesManagement.IntegrationTests.Repositories.ItemPriceMaster
 
             var repo = CreateRepository(ctx);
             var id = await repo.CreateAsync(BuildEntity(segmentId,
-                itemId: 100, paymentTermsId: 10, exMillRate: 100.00m, currencyId: 5));
+                itemId: 100, paymentTermsId: 10, exMillRate: 100.00m, currencyId: 5), 0);
             ctx.ChangeTracker.Clear();
 
             var newValidFrom = new DateOnly(2025, 6, 1);
@@ -265,7 +265,7 @@ namespace SalesManagement.IntegrationTests.Repositories.ItemPriceMaster
             await ClearTableAsync(ctx);
 
             var repo = CreateRepository(ctx);
-            var id = await repo.CreateAsync(BuildEntity(segmentId, priceCode: "INTPC001"));
+            var id = await repo.CreateAsync(BuildEntity(segmentId, priceCode: "INTPC001"), 0);
             ctx.ChangeTracker.Clear();
 
             // Attempt to update (PriceCode is immutable — not modified by UpdateAsync)
@@ -322,7 +322,7 @@ namespace SalesManagement.IntegrationTests.Repositories.ItemPriceMaster
             await ClearTableAsync(ctx);
 
             var repo = CreateRepository(ctx);
-            var id = await repo.CreateAsync(BuildEntity(segmentId));
+            var id = await repo.CreateAsync(BuildEntity(segmentId), 0);
             ctx.ChangeTracker.Clear();
 
             var updated = new Domain.Entities.ItemPriceMaster
@@ -359,7 +359,7 @@ namespace SalesManagement.IntegrationTests.Repositories.ItemPriceMaster
             await ClearTableAsync(ctx);
 
             var repo = CreateRepository(ctx);
-            var id = await repo.CreateAsync(BuildEntity(segmentId));
+            var id = await repo.CreateAsync(BuildEntity(segmentId), 0);
             ctx.ChangeTracker.Clear();
 
             var result = await repo.SoftDeleteAsync(id, CancellationToken.None);
@@ -375,7 +375,7 @@ namespace SalesManagement.IntegrationTests.Repositories.ItemPriceMaster
             await ClearTableAsync(ctx);
 
             var repo = CreateRepository(ctx);
-            var id = await repo.CreateAsync(BuildEntity(segmentId));
+            var id = await repo.CreateAsync(BuildEntity(segmentId), 0);
             ctx.ChangeTracker.Clear();
 
             await repo.SoftDeleteAsync(id, CancellationToken.None);
@@ -408,7 +408,7 @@ namespace SalesManagement.IntegrationTests.Repositories.ItemPriceMaster
             await ClearTableAsync(ctx);
 
             var repo = CreateRepository(ctx);
-            var id = await repo.CreateAsync(BuildEntity(segmentId));
+            var id = await repo.CreateAsync(BuildEntity(segmentId), 0);
             ctx.ChangeTracker.Clear();
 
             await repo.SoftDeleteAsync(id, CancellationToken.None);

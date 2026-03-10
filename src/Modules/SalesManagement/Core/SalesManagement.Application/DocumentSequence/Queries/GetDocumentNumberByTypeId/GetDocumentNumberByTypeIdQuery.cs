@@ -1,10 +1,9 @@
 using MediatR;
-using SalesManagement.Application.DocumentSequence.Dto;
 
-namespace SalesManagement.Application.DocumentSequence.Queries.GetDocumentNumberByTypeId
+namespace SalesManagement.Application.DocumentSequence.Queries.GetDocumentNumberByTransactionTypeId
 {
-    public class GetDocumentNumberByTypeIdQuery : IRequest<IReadOnlyList<DocumentSequenceGeneratedDto>>
+    public class GetDocumentQuery : IRequest<IReadOnlyList<string>>
     {
-        public int TypeId { get; set; }
+        public int TransactionTypeId { get; set; }
     }
 }

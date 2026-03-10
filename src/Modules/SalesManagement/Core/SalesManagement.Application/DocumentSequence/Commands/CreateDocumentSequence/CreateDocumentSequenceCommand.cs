@@ -5,7 +5,7 @@ namespace SalesManagement.Application.DocumentSequence.Commands.CreateDocumentSe
 {
     public class CreateDocumentSequenceCommand : IRequest<ApiResponseDTO<int>>
     {
-        public int TypeId { get; set; }
+        public int TransactionTypeId { get; set; }
         public int FinancialYearId { get; set; }
         public int DocNo { get; set; }
     }

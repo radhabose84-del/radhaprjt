@@ -2,6 +2,7 @@ using System.Text.Json;
 using Contracts.Common;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace Shared.Infrastructure.Middleware;
@@ -10,16 +11,18 @@ public class GlobalExceptionMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<GlobalExceptionMiddleware> _logger;
+    private readonly IHostEnvironment _env;
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
 
-    public GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExceptionMiddleware> logger)
+    public GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExceptionMiddleware> logger, IHostEnvironment env)
     {
         _next = next;
         _logger = logger;
+        _env = env;
     }
 
     public async Task Invoke(HttpContext context)
@@ -47,7 +50,12 @@ public class GlobalExceptionMiddleware
         catch (Exception ex)
         {
             _logger.LogError(ex, "TraceId: {TraceId}, Unhandled exception", traceId);
-            await HandleException(context, StatusCodes.Status500InternalServerError, "Internal Server Error");
+
+            var message = _env.IsDevelopment()
+                ? $"{ex.Message}{(ex.InnerException != null ? $" | Inner: {ex.InnerException.Message}" : "")}"
+                : "Internal Server Error";
+
+            await HandleException(context, StatusCodes.Status500InternalServerError, message);
         }
     }
 

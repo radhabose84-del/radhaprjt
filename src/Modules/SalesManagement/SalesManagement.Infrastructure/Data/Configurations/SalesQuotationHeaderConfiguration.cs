@@ -103,6 +103,11 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("decimal(18,2)")
                 .IsRequired();
 
+            builder.Property(t => t.StatusId)
+                .HasColumnName("StatusId")
+                .HasColumnType("int")
+                .IsRequired(false);
+
             builder.Property(b => b.IsActive)
                 .HasColumnName("IsActive")
                 .HasColumnType("bit")
@@ -139,6 +144,12 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             builder.HasOne(t => t.DeliveryTerm)
                 .WithMany()
                 .HasForeignKey(t => t.DeliveryTermId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasOne(t => t.StatusMisc)
+                .WithMany(m => m.SalesQuotationHeadersAsStatus)
+                .HasForeignKey(t => t.StatusId)
+                .IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // Indexes

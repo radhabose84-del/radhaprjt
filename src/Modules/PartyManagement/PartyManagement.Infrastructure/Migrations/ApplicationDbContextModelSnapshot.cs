@@ -679,6 +679,7 @@ namespace PartyManagement.Infrastructure.Migrations
 
                     b.Property<decimal?>("CreditLimit")
                         .ValueGeneratedOnAdd()
+                        .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,3)")
                         .HasDefaultValue(0.000m);
 
@@ -712,6 +713,7 @@ namespace PartyManagement.Infrastructure.Migrations
 
                     b.Property<decimal?>("InsuranceLimit")
                         .ValueGeneratedOnAdd()
+                        .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,3)")
                         .HasDefaultValue(0.000m);
 
@@ -944,6 +946,58 @@ namespace PartyManagement.Infrastructure.Migrations
                     b.ToTable("PartyUnitCompanyMapping", "Party");
                 });
 
+            modelBuilder.Entity("PartyManagement.Domain.Entities.SalesType", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("AccountAssignmentId")
+                        .HasColumnType("int")
+                        .HasColumnName("AccountAssignmentId");
+
+                    b.Property<byte>("Active")
+                        .HasColumnType("tinyint")
+                        .HasColumnName("Active");
+
+                    b.Property<int?>("IncotermId")
+                        .HasColumnType("int")
+                        .HasColumnName("IncotermId");
+
+                    b.Property<int?>("OrderTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("OrderTypeId");
+
+                    b.Property<int>("PartyId")
+                        .HasColumnType("int")
+                        .HasColumnName("PartyId");
+
+                    b.Property<int?>("PaymentTermsId")
+                        .HasColumnType("int")
+                        .HasColumnName("PaymentTermsId");
+
+                    b.Property<int?>("SalesSegmentId")
+                        .HasColumnType("int")
+                        .HasColumnName("SalesSegmentId");
+
+                    b.Property<int?>("ShippingConditionId")
+                        .HasColumnType("int")
+                        .HasColumnName("ShippingConditionId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountAssignmentId");
+
+                    b.HasIndex("PartyId");
+
+                    b.HasIndex("ShippingConditionId");
+
+                    b.ToTable("SalesType", "Party");
+                });
+
             modelBuilder.Entity("PartyManagement.Domain.Entities.BankAccount", b =>
                 {
                     b.HasOne("PartyManagement.Domain.Entities.MiscMaster", "BankAccountType")
@@ -1172,6 +1226,31 @@ namespace PartyManagement.Infrastructure.Migrations
                     b.Navigation("PartyUnitCompany");
                 });
 
+            modelBuilder.Entity("PartyManagement.Domain.Entities.SalesType", b =>
+                {
+                    b.HasOne("PartyManagement.Domain.Entities.MiscMaster", "AccountAssignmentMisc")
+                        .WithMany("SalesTypeAccountAssignment")
+                        .HasForeignKey("AccountAssignmentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("PartyManagement.Domain.Entities.PartyMaster", "Party")
+                        .WithMany("SalesTypes")
+                        .HasForeignKey("PartyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("PartyManagement.Domain.Entities.MiscMaster", "ShippingConditionMisc")
+                        .WithMany("SalesTypeShippingCondition")
+                        .HasForeignKey("ShippingConditionId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("AccountAssignmentMisc");
+
+                    b.Navigation("Party");
+
+                    b.Navigation("ShippingConditionMisc");
+                });
+
             modelBuilder.Entity("PartyManagement.Domain.Entities.MiscMaster", b =>
                 {
                     b.Navigation("BankAccountBranch");
@@ -1206,6 +1285,10 @@ namespace PartyManagement.Infrastructure.Migrations
 
                     b.Navigation("PartyZoneType");
 
+                    b.Navigation("SalesTypeAccountAssignment");
+
+                    b.Navigation("SalesTypeShippingCondition");
+
                     b.Navigation("StatusHeader");
                 });
 
@@ -1234,6 +1317,8 @@ namespace PartyManagement.Infrastructure.Migrations
                     b.Navigation("PartyTypes");
 
                     b.Navigation("PartyUnitCompanyMappings");
+
+                    b.Navigation("SalesTypes");
                 });
 #pragma warning restore 612, 618
         }

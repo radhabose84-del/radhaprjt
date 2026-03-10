@@ -82,7 +82,9 @@ namespace SalesManagement.Presentation.Validation.Invoice
                             .GreaterThan(0)
                             .WithMessage("Valid Id is required.")
                             .MustAsync(async (id, ct) => !await _queryRepository.NotFoundAsync(id))
-                            .WithMessage($"Invoice {rule.Error}");
+                            .WithMessage($"Invoice {rule.Error}")
+                            .MustAsync(async (id, ct) => await _queryRepository.IsInvoicePendingAsync(id))
+                            .WithMessage("Only invoices with 'Pending' status can be updated.");
                         break;
 
                     case "ByteValue":
@@ -150,7 +152,7 @@ namespace SalesManagement.Presentation.Validation.Invoice
                 }
             }
 
-            // Final invoice amount must match calculated totals
+       /*      // Final invoice amount must match calculated totals
             RuleFor(x => x)
                 .Must(cmd =>
                 {
@@ -164,7 +166,7 @@ namespace SalesManagement.Presentation.Validation.Invoice
                     return Math.Abs(cmd.InvoiceAmountBeforeTCS - expectedBeforeTCS) <= tolerance
                         && Math.Abs(cmd.InvoiceAmount - expectedFinal) <= tolerance;
                 })
-                .WithMessage("Final invoice amount does not match calculated totals.");
+                .WithMessage("Final invoice amount does not match calculated totals."); */
         }
     }
 }

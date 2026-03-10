@@ -87,6 +87,19 @@ namespace PartyManagement.Application.PartyMaster.Command.CreatePartyMaster
                     dto.PartyBanks = null;
             }
 
+            // ------------------- Clean SalesTypes -------------------
+            if (dto.SalesTypes != null)
+            {
+                dto.SalesTypes = dto.SalesTypes
+                    .Where(s =>
+                        s.SalesSegmentId != 0 &&
+                        s.PaymentTermsId != 0)
+                    .ToList();
+
+                if (!dto.SalesTypes.Any())
+                    dto.SalesTypes = null;
+            }
+
             // ------------------- Generate PartyCode -------------------
             var nextPartyCode = await _partyMasterCommandRepository.GetNextPartyCodeAsync();
 

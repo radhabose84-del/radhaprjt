@@ -5,7 +5,7 @@ using SalesManagement.Application.DocumentSequence.Commands.CreateDocumentSequen
 using SalesManagement.Application.DocumentSequence.Commands.DeleteDocumentSequence;
 using SalesManagement.Application.DocumentSequence.Commands.UpdateDocumentSequence;
 using SalesManagement.Application.DocumentSequence.Queries.GetAllDocumentSequence;
-using SalesManagement.Application.DocumentSequence.Queries.GetDocumentNumberByTypeId;
+using SalesManagement.Application.DocumentSequence.Queries.GetDocumentNumberByTransactionTypeId;
 using SalesManagement.Application.DocumentSequence.Queries.GetDocumentSequenceAutoComplete;
 using SalesManagement.Application.DocumentSequence.Queries.GetDocumentSequenceById;
 
@@ -61,10 +61,10 @@ namespace SalesManagement.Presentation.Controllers
             });
         }
 
-        [HttpGet("by-type/{typeId}")]
-        public async Task<IActionResult> GetDocumentNumberByTypeIdAsync(int typeId)
+        [HttpGet("by-document/{typeId}")]
+        public async Task<IActionResult> GenerateDocumentNumber(int typeId)
         {
-            var result = await Mediator.Send(new GetDocumentNumberByTypeIdQuery { TypeId = typeId });
+            var result = await Mediator.Send(new GetDocumentQuery { TransactionTypeId = typeId });
             return Ok(new
             {
                 StatusCode = StatusCodes.Status200OK,

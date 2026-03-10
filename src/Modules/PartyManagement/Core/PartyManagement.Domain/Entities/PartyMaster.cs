@@ -60,6 +60,7 @@ namespace PartyManagement.Domain.Entities
         public ICollection<PartyDocument>? PartyDocumentTypes { get; set; }
         public ICollection<PartyBank>? PartyBankTypes { get; set; }
         public ICollection<PartyUnitCompanyMapping>? PartyUnitCompanyMappings { get; set; }
-        
+        public ICollection<SalesType>? SalesTypes { get; set; }
+
     }
 }

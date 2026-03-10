@@ -13,6 +13,7 @@ namespace SalesManagement.Infrastructure.Repositories.StoReceipt
         private readonly IDbConnection _dbConnection;
         private readonly IUnitLookup _unitLookup;
         private readonly IWarehouseLookup _warehouseLookup;
+        private readonly IRackLookup _rackLookup;
         private readonly IItemLookup _itemLookup;
         private readonly IUOMLookup _uomLookup;
 
@@ -20,12 +21,14 @@ namespace SalesManagement.Infrastructure.Repositories.StoReceipt
             IDbConnection dbConnection,
             IUnitLookup unitLookup,
             IWarehouseLookup warehouseLookup,
+            IRackLookup rackLookup,
             IItemLookup itemLookup,
             IUOMLookup uomLookup)
         {
             _dbConnection = dbConnection;
             _unitLookup = unitLookup;
             _warehouseLookup = warehouseLookup;
+            _rackLookup = rackLookup;
             _itemLookup = itemLookup;
             _uomLookup = uomLookup;
         }
@@ -56,6 +59,7 @@ namespace SalesManagement.Infrastructure.Repositories.StoReceipt
                     dc.DeliveryNumber,
                     h.ReceivingPlantId,
                     h.ReceivingStorageLocationId,
+                    h.RackId,
                     h.VehicleNumber,
                     h.Remarks,
                     h.StatusId,
@@ -99,10 +103,15 @@ namespace SalesManagement.Infrastructure.Repositories.StoReceipt
                 var warehouses = await _warehouseLookup.GetByIdsAsync(warehouseIds);
                 var warehouseDict = warehouses.ToDictionary(w => w.Id, w => w.WarehouseName);
 
+                var rackIds = data.Where(d => d.RackId.HasValue).Select(d => d.RackId!.Value).Distinct();
+                var racks = await _rackLookup.GetByIdsAsync(rackIds);
+                var rackDict = racks.ToDictionary(r => r.Id, r => r.RackName);
+
                 foreach (var item in data)
                 {
                     item.ReceivingPlantName = plantDict.TryGetValue(item.ReceivingPlantId, out var pName) ? pName : null;
                     item.ReceivingStorageLocationName = warehouseDict.TryGetValue(item.ReceivingStorageLocationId, out var wName) ? wName : null;
+                    item.RackName = item.RackId.HasValue && rackDict.TryGetValue(item.RackId.Value, out var rName) ? rName : null;
                 }
             }
 
@@ -120,6 +129,7 @@ namespace SalesManagement.Infrastructure.Repositories.StoReceipt
                     dc.DeliveryNumber,
                     h.ReceivingPlantId,
                     h.ReceivingStorageLocationId,
+                    h.RackId,
                     h.VehicleNumber,
                     h.Remarks,
                     h.StatusId,
@@ -151,6 +161,12 @@ namespace SalesManagement.Infrastructure.Repositories.StoReceipt
             var warehouses = await _warehouseLookup.GetByIdsAsync(new[] { header.ReceivingStorageLocationId });
             var wh = warehouses.FirstOrDefault();
             header.ReceivingStorageLocationName = wh?.WarehouseName;
+
+            if (header.RackId.HasValue)
+            {
+                var rackList = await _rackLookup.GetByIdsAsync(new[] { header.RackId.Value });
+                header.RackName = rackList.FirstOrDefault()?.RackName;
+            }
 
             // Fetch details with Lot + LineStatus JOINs
             const string detailSql = @"

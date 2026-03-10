@@ -81,6 +81,19 @@ namespace PartyManagement.Application.PartyMaster.Command.UpdatePartyMaster
                 }
             }
 
+            // ------------------- Clean SalesTypes -------------------
+            if (request.UpdatePartyMaster.SalesTypesUpdate != null)
+            {
+                request.UpdatePartyMaster.SalesTypesUpdate = request.UpdatePartyMaster.SalesTypesUpdate
+                    .Where(s =>
+                        s.SalesSegmentId != 0 &&
+                        s.PaymentTermsId != 0)
+                    .ToList();
+
+                if (!request.UpdatePartyMaster.SalesTypesUpdate.Any())
+                    request.UpdatePartyMaster.SalesTypesUpdate = null;
+            }
+
             // Map DTO to Entity (Fix: Pass full DTO, not just Id)
             var partyEntity = _mapper.Map<PartyManagement.Domain.Entities.PartyMaster>(request.UpdatePartyMaster);
 
