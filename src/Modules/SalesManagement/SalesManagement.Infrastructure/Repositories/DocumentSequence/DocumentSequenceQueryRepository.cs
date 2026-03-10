@@ -116,7 +116,7 @@ namespace SalesManagement.Infrastructure.Repositories.DocumentSequence
             return result.ToList();
         }
 
-        public async Task<IReadOnlyList<DocumentSequenceGeneratedDto>> GetByTypeIdAsync(int typeId)
+        public async Task<IReadOnlyList<string>> GenerateDocumentNumber(int typeId)
         {
             const string sql = @"
                 SELECT ds.Id, ds.TypeId, ds.FinancialYearId, ds.DocNo,
@@ -128,23 +128,24 @@ namespace SalesManagement.Infrastructure.Repositories.DocumentSequence
 
             var rows = (await _dbConnection.QueryAsync<DocumentSequenceGeneratedDto>(sql, new { TypeId = typeId })).ToList();
 
-            if (rows.Count > 0)
+            if (rows.Count == 0)
+                return new List<string>();
+
+            var units = await _unitLookup.GetAllUnitAsync();
+            var unitDict = units.ToDictionary(u => u.UnitId, u => u.ShortName);
+
+            var years = await _financialYearLookup.GetAllFinancialYearAsync();
+            var yearDict = years.ToDictionary(y => y.FinancialYearId, y => y.FinancialYearName);
+
+            var result = new List<string>();
+            foreach (var item in rows)
             {
-                var units = await _unitLookup.GetAllUnitAsync();
-                var unitDict = units.ToDictionary(u => u.UnitId, u => u.ShortName);
-
-                var years = await _financialYearLookup.GetAllFinancialYearAsync();
-                var yearDict = years.ToDictionary(y => y.FinancialYearId, y => y.FinancialYearName);
-
-                foreach (var item in rows)
-                {
-                    item.UnitShortName = unitDict.TryGetValue(item.UnitId, out var uName) ? uName : null;
-                    item.FinancialYearName = yearDict.TryGetValue(item.FinancialYearId, out var yName) ? yName : null;
-                    item.GeneratedDocumentNumber = BuildDocNumber(item.UnitShortName, item.TypeShortName, item.FinancialYearName, item.DocNo);
-                }
+                var unitShortName = unitDict.TryGetValue(item.UnitId, out var uName) ? uName : null;
+                var financialYearName = yearDict.TryGetValue(item.FinancialYearId, out var yName) ? yName : null;
+                result.Add(BuildDocNumber(unitShortName, item.TypeShortName, financialYearName, item.DocNo));
             }
 
-            return rows;
+            return result;
         }
 
         public async Task<bool> CompositeKeyExistsAsync(int typeId, int financialYearId, int docNo, int? excludeId = null)
@@ -214,7 +215,7 @@ namespace SalesManagement.Infrastructure.Repositories.DocumentSequence
 
         private static string BuildDocNumber(string? unitShortName, string? typeShortName, string? financialYearName, int docNo)
         {
-            return $"{unitShortName ?? "?"}-{typeShortName ?? "?"}-{financialYearName ?? "?"}-{docNo.ToString().PadLeft(4, '0')}";
+            return $"{unitShortName ?? "?"}-{typeShortName ?? "?"}-{financialYearName ?? "?"}-{docNo.ToString().PadLeft(4, '0')}".ToUpper();
         }
     }
 }

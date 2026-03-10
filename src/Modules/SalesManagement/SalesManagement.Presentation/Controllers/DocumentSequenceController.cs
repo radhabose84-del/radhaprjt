@@ -61,10 +61,10 @@ namespace SalesManagement.Presentation.Controllers
             });
         }
 
-        [HttpGet("by-type/{typeId}")]
-        public async Task<IActionResult> GetDocumentNumberByTypeIdAsync(int typeId)
+        [HttpGet("by-document/{typeId}")]
+        public async Task<IActionResult> GenerateDocumentNumber(int typeId)
         {
-            var result = await Mediator.Send(new GetDocumentNumberByTypeIdQuery { TypeId = typeId });
+            var result = await Mediator.Send(new GetDocumentQuery { TypeId = typeId });
             return Ok(new
             {
                 StatusCode = StatusCodes.Status200OK,

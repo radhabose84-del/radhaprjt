@@ -1,42 +1,36 @@
-using AutoMapper;
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.IDocumentSequence;
-using SalesManagement.Application.DocumentSequence.Dto;
 using SalesManagement.Domain.Events;
 
 namespace SalesManagement.Application.DocumentSequence.Queries.GetDocumentNumberByTypeId
 {
-    public class GetDocumentNumberByTypeIdQueryHandler : IRequestHandler<GetDocumentNumberByTypeIdQuery, IReadOnlyList<DocumentSequenceGeneratedDto>>
+    public class GetDocumentQueryHandler : IRequestHandler<GetDocumentQuery, IReadOnlyList<string>>
     {
         private readonly IDocumentSequenceQueryRepository _queryRepository;
-        private readonly IMapper _mapper;
         private readonly IMediator _mediator;
 
-        public GetDocumentNumberByTypeIdQueryHandler(
+        public GetDocumentQueryHandler(
             IDocumentSequenceQueryRepository queryRepository,
-            IMapper mapper,
             IMediator mediator)
         {
             _queryRepository = queryRepository;
-            _mapper = mapper;
             _mediator = mediator;
         }
 
-        public async Task<IReadOnlyList<DocumentSequenceGeneratedDto>> Handle(GetDocumentNumberByTypeIdQuery request, CancellationToken cancellationToken)
+        public async Task<IReadOnlyList<string>> Handle(GetDocumentQuery request, CancellationToken cancellationToken)
         {
-            var result = await _queryRepository.GetByTypeIdAsync(request.TypeId);
-            var dtos = _mapper.Map<List<DocumentSequenceGeneratedDto>>(result);
+            var result = await _queryRepository.GenerateDocumentNumber(request.TypeId);
 
             var domainEvent = new AuditLogsDomainEvent(
-                actionDetail: "GetByTypeId",
-                actionCode: "GetDocumentNumberByTypeIdQuery",
+                actionDetail: "GetDocument",
+                actionCode: "GetDocumentQuery",
                 actionName: request.TypeId.ToString(),
-                details: $"Document Sequence generated numbers for TypeId {request.TypeId} were fetched.",
+                details: $"Document Sequence generated numbers for TypeId '{request.TypeId}' were fetched.",
                 module: "DocumentSequence"
             );
             await _mediator.Publish(domainEvent, cancellationToken);
 
-            return dtos;
+            return result;
         }
     }
 }
