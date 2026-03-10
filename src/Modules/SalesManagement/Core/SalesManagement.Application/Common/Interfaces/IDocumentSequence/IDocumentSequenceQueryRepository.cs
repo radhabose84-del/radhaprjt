@@ -9,7 +9,7 @@ namespace SalesManagement.Application.Common.Interfaces.IDocumentSequence
         Task<IReadOnlyList<DocumentSequenceLookupDto>> AutocompleteAsync(string term, CancellationToken ct);
         Task<IReadOnlyList<string>> GenerateDocumentNumber(int Id);
         Task<bool> CompositeKeyExistsAsync(int typeId, int financialYearId, int docNo, int? excludeId = null);
-        Task<bool> TypeIdExistsAsync(int typeId);
+        Task<bool> TransactionTypeIdExistsAsync(int typeId);
         Task<bool> FinancialYearExistsAsync(int financialYearId);
         Task<bool> NotFoundAsync(int id);
         Task<int?> GetTransactionTypeIdAsync(string typeName, string moduleName, int unitId);
