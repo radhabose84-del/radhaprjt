@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SalesManagement.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using SalesManagement.Infrastructure.Data;
 namespace SalesManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260309123012_InvoiceHeader_AddStatusId")]
+    partial class InvoiceHeader_AddStatusId
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -883,79 +886,6 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.ToTable("DispatchAdviceHeader", "Sales");
                 });
 
-            modelBuilder.Entity("SalesManagement.Domain.Entities.DocumentSequence", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("Id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("CreatedBy")
-                        .HasColumnType("int")
-                        .HasColumnName("CreatedBy");
-
-                    b.Property<string>("CreatedByName")
-                        .HasColumnType("varchar(100)")
-                        .HasColumnName("CreatedByName");
-
-                    b.Property<DateTimeOffset?>("CreatedDate")
-                        .HasColumnType("datetimeoffset")
-                        .HasColumnName("CreatedDate");
-
-                    b.Property<string>("CreatedIP")
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("CreatedIP");
-
-                    b.Property<int>("DocNo")
-                        .HasColumnType("int")
-                        .HasColumnName("DocNo");
-
-                    b.Property<int>("FinancialYearId")
-                        .HasColumnType("int")
-                        .HasColumnName("FinancialYearId");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit")
-                        .HasColumnName("IsActive");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit")
-                        .HasColumnName("IsDeleted");
-
-                    b.Property<int?>("ModifiedBy")
-                        .HasColumnType("int")
-                        .HasColumnName("ModifiedBy");
-
-                    b.Property<string>("ModifiedByName")
-                        .HasColumnType("varchar(100)")
-                        .HasColumnName("ModifiedByName");
-
-                    b.Property<DateTimeOffset?>("ModifiedDate")
-                        .HasColumnType("datetimeoffset")
-                        .HasColumnName("ModifiedDate");
-
-                    b.Property<string>("ModifiedIP")
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("ModifiedIP");
-
-                    b.Property<int>("TypeId")
-                        .HasColumnType("int")
-                        .HasColumnName("TypeId");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("FinancialYearId");
-
-                    b.HasIndex("TypeId");
-
-                    b.HasIndex("TypeId", "FinancialYearId", "DocNo")
-                        .IsUnique();
-
-                    b.ToTable("DocumentSequence", "Finance");
-                });
-
             modelBuilder.Entity("SalesManagement.Domain.Entities.EInvoiceDetail", b =>
                 {
                     b.Property<int>("Id")
@@ -1646,10 +1576,6 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("SalesSegmentId");
 
-                    b.Property<int?>("StatusId")
-                        .HasColumnType("int")
-                        .HasColumnName("StatusId");
-
                     b.Property<DateOnly>("ValidFrom")
                         .HasColumnType("date")
                         .HasColumnName("ValidFrom");
@@ -1664,8 +1590,6 @@ namespace SalesManagement.Infrastructure.Migrations
                         .IsUnique();
 
                     b.HasIndex("SalesSegmentId");
-
-                    b.HasIndex("StatusId");
 
                     b.HasIndex("ItemId", "SalesSegmentId", "PaymentTermsId");
 
@@ -3689,10 +3613,6 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("SalesEnquiryId");
 
-                    b.Property<int?>("StatusId")
-                        .HasColumnType("int")
-                        .HasColumnName("StatusId");
-
                     b.Property<decimal>("TotalBasicAmount")
                         .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,2)")
@@ -3723,8 +3643,6 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.HasIndex("PaymentTermId");
 
                     b.HasIndex("SalesEnquiryId");
-
-                    b.HasIndex("StatusId");
 
                     b.ToTable("SalesQuotationHeader", "Sales");
                 });
@@ -4577,17 +4495,6 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("StatusMisc");
                 });
 
-            modelBuilder.Entity("SalesManagement.Domain.Entities.DocumentSequence", b =>
-                {
-                    b.HasOne("SalesManagement.Domain.Entities.TransactionTypeMaster", "TransactionTypeMaster")
-                        .WithMany("DocumentSequences")
-                        .HasForeignKey("TypeId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("TransactionTypeMaster");
-                });
-
             modelBuilder.Entity("SalesManagement.Domain.Entities.EInvoiceDetail", b =>
                 {
                     b.HasOne("SalesManagement.Domain.Entities.EInvoiceHeader", "EInvoiceHeader")
@@ -4675,14 +4582,7 @@ namespace SalesManagement.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "StatusMisc")
-                        .WithMany("ItemPriceMastersAsStatus")
-                        .HasForeignKey("StatusId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.Navigation("SalesSegment");
-
-                    b.Navigation("StatusMisc");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.LotMaster", b =>
@@ -5014,18 +4914,11 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasForeignKey("SalesEnquiryId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "StatusMisc")
-                        .WithMany("SalesQuotationHeadersAsStatus")
-                        .HasForeignKey("StatusId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.Navigation("ContactPerson");
 
                     b.Navigation("DeliveryTerm");
 
                     b.Navigation("SalesEnquiryHeader");
-
-                    b.Navigation("StatusMisc");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.SalesSegment", b =>
@@ -5250,8 +5143,6 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     b.Navigation("InvoiceHeadersAsTransportMode");
 
-                    b.Navigation("ItemPriceMastersAsStatus");
-
                     b.Navigation("LotMastersAsLotType");
 
                     b.Navigation("LotMastersAsStatus");
@@ -5279,8 +5170,6 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("SalesOrderHeadersAsFreightType");
 
                     b.Navigation("SalesOrderHeadersAsPaymentType");
-
-                    b.Navigation("SalesQuotationHeadersAsStatus");
 
                     b.Navigation("StoDetailsAsLineStatus");
 
@@ -5397,11 +5286,6 @@ namespace SalesManagement.Infrastructure.Migrations
             modelBuilder.Entity("SalesManagement.Domain.Entities.StoTypeMaster", b =>
                 {
                     b.Navigation("StoHeaders");
-                });
-
-            modelBuilder.Entity("SalesManagement.Domain.Entities.TransactionTypeMaster", b =>
-                {
-                    b.Navigation("DocumentSequences");
                 });
 #pragma warning restore 612, 618
         }

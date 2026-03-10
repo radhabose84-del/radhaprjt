@@ -78,7 +78,9 @@ namespace SalesManagement.Presentation.Validation.SalesQuotation
                         RuleFor(x => x.Id)
                             .GreaterThan(0).WithMessage($"Id {rule.Error}")
                             .MustAsync(async (id, ct) => !await _queryRepository.NotFoundAsync(id))
-                            .WithMessage($"SalesQuotation {rule.Error}");
+                            .WithMessage($"SalesQuotation {rule.Error}")
+                            .MustAsync(async (id, ct) => await _queryRepository.IsSalesQuotationPendingAsync(id))
+                            .WithMessage("Only Sales Quotation records with 'Pending' status can be updated.");
                         break;
 
                     case "DateCompare":

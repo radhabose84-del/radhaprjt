@@ -22,6 +22,8 @@ namespace SalesManagement.Application.SalesQuotation.Dto
         public decimal NetTaxableAmount { get; set; }
         public decimal TotalTax { get; set; }
         public decimal GrandTotal { get; set; }
+        public int? StatusId { get; set; }
+        public string? StatusName { get; set; }
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }
         public int CreatedBy { get; set; }

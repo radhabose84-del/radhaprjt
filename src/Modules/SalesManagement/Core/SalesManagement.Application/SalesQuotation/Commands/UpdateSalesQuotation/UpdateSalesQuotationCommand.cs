@@ -21,6 +21,7 @@ namespace SalesManagement.Application.SalesQuotation.Commands.UpdateSalesQuotati
         public decimal NetTaxableAmount { get; set; }
         public decimal TotalTax { get; set; }
         public decimal GrandTotal { get; set; }
+        public int? StatusId { get; set; }
         public int IsActive { get; set; }
         public List<UpdateSalesQuotationDetailDto>? SalesQuotationDetails { get; set; }
     }

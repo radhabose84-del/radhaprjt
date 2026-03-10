@@ -5,6 +5,7 @@ using Contracts.Interfaces.Lookups.Users;
 using Dapper;
 using SalesManagement.Application.Common.Interfaces.IItemPriceMaster;
 using SalesManagement.Application.ItemPriceMaster.Dto;
+using SalesManagement.Domain.Common;
 
 namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
 {
@@ -42,12 +43,15 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
                     sipm.ItemId, sipm.SalesSegmentId, sipm.PaymentTermsId,
                     sipm.ExMillRate, sipm.CurrencyId,
                     sipm.ValidFrom, sipm.ValidTo,
+                    sipm.StatusId,
+                    sm.Description AS StatusName,
                     sipm.IsActive, sipm.IsDeleted,
                     sipm.CreatedBy, sipm.CreatedDate, sipm.CreatedByName, sipm.CreatedIP,
                     sipm.ModifiedBy, sipm.ModifiedDate, sipm.ModifiedByName, sipm.ModifiedIP,
                     ss.SegmentName AS SalesSegmentName
                 FROM Sales.ItemPriceMaster sipm
                 LEFT JOIN Sales.SalesSegment ss ON sipm.SalesSegmentId = ss.Id AND ss.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster sm ON sipm.StatusId = sm.Id AND sm.IsDeleted = 0
                 WHERE sipm.IsDeleted = 0
                 {{(string.IsNullOrWhiteSpace(searchTerm) ? "" : "AND sipm.PriceCode LIKE @Search")}}
                 ORDER BY sipm.Id DESC
@@ -115,12 +119,15 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
                     sipm.ItemId, sipm.SalesSegmentId, sipm.PaymentTermsId,
                     sipm.ExMillRate, sipm.CurrencyId,
                     sipm.ValidFrom, sipm.ValidTo,
+                    sipm.StatusId,
+                    sm.Description AS StatusName,
                     sipm.IsActive, sipm.IsDeleted,
                     sipm.CreatedBy, sipm.CreatedDate, sipm.CreatedByName, sipm.CreatedIP,
                     sipm.ModifiedBy, sipm.ModifiedDate, sipm.ModifiedByName, sipm.ModifiedIP,
                     ss.SegmentName AS SalesSegmentName
                 FROM Sales.ItemPriceMaster sipm
                 LEFT JOIN Sales.SalesSegment ss ON sipm.SalesSegmentId = ss.Id AND ss.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster sm ON sipm.StatusId = sm.Id AND sm.IsDeleted = 0
                 WHERE sipm.Id = @Id AND sipm.IsDeleted = 0";
 
             var dto = await _dbConnection.QueryFirstOrDefaultAsync<ItemPriceMasterDto>(
@@ -306,12 +313,15 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
                     sipm.ItemId, sipm.SalesSegmentId, sipm.PaymentTermsId,
                     sipm.ExMillRate, sipm.CurrencyId,
                     sipm.ValidFrom, sipm.ValidTo,
+                    sipm.StatusId,
+                    sm.Description AS StatusName,
                     sipm.IsActive, sipm.IsDeleted,
                     sipm.CreatedBy, sipm.CreatedDate, sipm.CreatedByName, sipm.CreatedIP,
                     sipm.ModifiedBy, sipm.ModifiedDate, sipm.ModifiedByName, sipm.ModifiedIP,
                     ss.SegmentName AS SalesSegmentName
                 FROM Sales.ItemPriceMaster sipm
                 LEFT JOIN Sales.SalesSegment ss ON sipm.SalesSegmentId = ss.Id AND ss.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster sm ON sipm.StatusId = sm.Id AND sm.IsDeleted = 0
                 WHERE sipm.ItemId = @ItemId
                   AND sipm.IsDeleted = 0
                   AND sipm.IsActive = 1
@@ -359,6 +369,26 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
             }
 
             return list;
+        }
+
+        public async Task<bool> IsItemPriceMasterPendingAsync(int id)
+        {
+            const string sql = @"
+                SELECT COUNT(1)
+                FROM Sales.ItemPriceMaster ipm
+                INNER JOIN Sales.MiscMaster mm ON ipm.StatusId = mm.Id AND mm.IsDeleted = 0
+                INNER JOIN Sales.MiscTypeMaster mt ON mm.MiscTypeId = mt.Id AND mt.IsDeleted = 0
+                WHERE ipm.Id = @Id AND ipm.IsDeleted = 0
+                  AND mt.Description = @MiscType
+                  AND mm.Code = @StatusCode";
+
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new
+            {
+                Id = id,
+                MiscType = MiscEnumEntity.InvoiceApprovalStatus,
+                StatusCode = MiscEnumEntity.InvoiceStatusPending
+            });
+            return count > 0;
         }
     }
 }

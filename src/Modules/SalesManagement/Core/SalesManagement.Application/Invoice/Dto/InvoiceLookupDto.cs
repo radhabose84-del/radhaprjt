@@ -5,6 +5,7 @@ namespace SalesManagement.Application.Invoice.Dto
         public int Id { get; set; }
         public string? InvoiceNo { get; set; }
         public DateOnly InvoiceDate { get; set; }
+        public int PartyId { get; set; }
         public string? PartyName { get; set; }
     }
 }

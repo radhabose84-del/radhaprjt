@@ -68,6 +68,11 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("date")
                 .IsRequired();
 
+            builder.Property(t => t.StatusId)
+                .HasColumnName("StatusId")
+                .HasColumnType("int")
+                .IsRequired(false);
+
             builder.Property(b => b.IsActive)
                 .HasColumnName("IsActive")
                 .HasColumnType("bit")
@@ -99,6 +104,13 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             builder.HasOne(t => t.SalesSegment)
                 .WithMany()
                 .HasForeignKey(t => t.SalesSegmentId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Same-module FK — StatusId → MiscMaster
+            builder.HasOne(t => t.StatusMisc)
+                .WithMany(m => m.ItemPriceMastersAsStatus)
+                .HasForeignKey(t => t.StatusId)
+                .IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // Cross-module FKs (ItemId, PaymentTermsId, CurrencyId) — NO DB FK constraints

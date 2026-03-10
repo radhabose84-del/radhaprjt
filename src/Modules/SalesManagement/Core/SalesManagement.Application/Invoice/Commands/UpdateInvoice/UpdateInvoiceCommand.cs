@@ -11,6 +11,7 @@ namespace SalesManagement.Application.Invoice.Commands.UpdateInvoice
         public int InvoiceType { get; set; }
         public int? AgentId { get; set; }
         public int? TransportMode { get; set; }
+        public int? StatusId { get; set; }
         public string? VehicleNumber { get; set; }
         public string? TransporterName { get; set; }
         public string? LRNumber { get; set; }
