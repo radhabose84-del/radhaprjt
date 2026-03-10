@@ -1,4 +1,3 @@
-using Contracts.Interfaces.Lookups.Warehouse;
 using Microsoft.EntityFrameworkCore;
 using SalesManagement.Application.Common.Interfaces.IMiscMaster;
 using SalesManagement.Application.Common.Interfaces.IProductionPack;
@@ -12,56 +11,17 @@ namespace SalesManagement.Infrastructure.Repositories.ProductionPack
     public class ProductionCommandRepository : IProductionCommandRepository
     {
         private readonly ApplicationDbContext _applicationDbContext;
-        private readonly IWarehouseLookup _warehouseLookup;
-        private readonly IBinLookup _binLookup;
         private readonly IMiscMasterQueryRepository _miscMasterQueryRepository;
 
         public ProductionCommandRepository(
             ApplicationDbContext applicationDbContext,
-            IWarehouseLookup warehouseLookup,
-            IBinLookup binLookup,
             IMiscMasterQueryRepository miscMasterQueryRepository)
         {
             _applicationDbContext = applicationDbContext;
-            _warehouseLookup = warehouseLookup;
-            _binLookup = binLookup;
             _miscMasterQueryRepository = miscMasterQueryRepository;
         }
 
-        public async Task<string> GenerateNextPackNoAsync(int warehouseId, int binId, CancellationToken ct = default)
-        {
-            // Get first 3 characters of warehouse code
-            var warehouses = await _warehouseLookup.GetByIdsAsync(new[] { warehouseId }, ct);
-            var whName = warehouses.FirstOrDefault()?.WarehouseName ?? "WH";
-            var whPrefix = (whName.Length >= 3 ? whName[..3] : whName).ToUpper();
-
-            // Get first 3 characters of bin code
-            var bins = await _binLookup.GetByIdsAsync(new[] { binId }, ct);
-            var binName = bins.FirstOrDefault()?.BinName ?? "BIN";
-            var binPrefix = (binName.Length >= 3 ? binName[..3] : binName).ToUpper();
-
-            var prefix = $"PA-{whPrefix}-{binPrefix}-";
-
-            var lastNo = await _applicationDbContext.ProductionPackHeader
-                .Where(x => x.PackNo != null && x.PackNo.StartsWith(prefix))
-                .OrderByDescending(x => x.Id)
-                .Select(x => x.PackNo)
-                .FirstOrDefaultAsync(ct);
-
-            int nextSeq = 1;
-            if (lastNo != null)
-            {
-                var parts = lastNo.Split('-');
-                if (parts.Length >= 4 && int.TryParse(parts[^1], out var lastSeq))
-                {
-                    nextSeq = lastSeq + 1;
-                }
-            }
-
-            return $"{prefix}{nextSeq}";
-        }
-
-        public async Task<int> CreateAsync(ProductionPackHeader entity)
+        public async Task<int> CreateAsync(ProductionPackHeader entity, int typeId)
         {
             var strategy = _applicationDbContext.Database.CreateExecutionStrategy();
 
@@ -126,6 +86,11 @@ namespace SalesManagement.Infrastructure.Repositories.ProductionPack
                         }
                     }
 
+                    // Step 6: Increment DocNo in DocumentSequence
+                    await _applicationDbContext.Database.ExecuteSqlRawAsync(
+                        "UPDATE [Finance].[DocumentSequence] SET DocNo = DocNo + 1 WHERE TypeId = {0} AND IsDeleted = 0",
+                        typeId);
+
                     await transaction.CommitAsync();
                     return entity.Id;
                 }
@@ -159,6 +124,8 @@ namespace SalesManagement.Infrastructure.Repositories.ProductionPack
                     existingEntity.WarehouseId = entity.WarehouseId;
                     existingEntity.TotalBags = entity.TotalBags;
                     existingEntity.TotalNetWeight = entity.TotalNetWeight;
+                    existingEntity.ProductionKgs = entity.ProductionKgs;
+                    existingEntity.LooseKgs = entity.LooseKgs;
                     existingEntity.Remarks = entity.Remarks;
                     existingEntity.IsActive = entity.IsActive;
 

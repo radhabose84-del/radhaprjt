@@ -53,6 +53,11 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("int")
                 .IsRequired();
 
+            builder.Property(t => t.RackId)
+                .HasColumnName("RackId")
+                .HasColumnType("int")
+                .IsRequired(false);
+
             builder.Property(t => t.VehicleNumber)
                 .HasColumnName("VehicleNumber")
                 .HasColumnType("varchar(50)")

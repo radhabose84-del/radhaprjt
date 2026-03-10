@@ -18,6 +18,10 @@ namespace SalesManagement.Application.StoReceipt.Dto
         public int ReceivingStorageLocationId { get; set; }
         public string? ReceivingStorageLocationName { get; set; }
 
+        // Rack (cross-module lookup)
+        public int? RackId { get; set; }
+        public string? RackName { get; set; }
+
         public string? VehicleNumber { get; set; }
         public string? Remarks { get; set; }
 

@@ -4,8 +4,7 @@ namespace SalesManagement.Application.Common.Interfaces.IProductionPack
 {
     public interface IProductionCommandRepository
     {
-        Task<string> GenerateNextPackNoAsync(int warehouseId, int binId, CancellationToken ct = default);
-        Task<int> CreateAsync(ProductionPackHeader entity);
+        Task<int> CreateAsync(ProductionPackHeader entity, int typeId);
         Task<int> UpdateAsync(ProductionPackHeader entity);
     }
 }

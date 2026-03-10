@@ -2,8 +2,9 @@ using AutoMapper;
 using Contracts.Common;
 using MediatR;
 using SalesManagement.Application.Common.Interfaces;
+using SalesManagement.Application.Common.Interfaces.IDocumentSequence;
 using SalesManagement.Application.Common.Interfaces.IProductionPack;
-using SalesManagement.Application.ProductionPack.Dto;
+using SalesManagement.Domain.Common;
 using SalesManagement.Domain.Entities;
 using SalesManagement.Domain.Events;
 
@@ -13,20 +14,20 @@ namespace SalesManagement.Application.ProductionPack.Commands.CreateProduction
         : IRequestHandler<CreateProductionCommand, ApiResponseDTO<int>>
     {
         private readonly IProductionCommandRepository _commandRepository;
-        private readonly IProductionQueryRepository _queryRepository;
+        private readonly IDocumentSequenceQueryRepository _documentSequenceQueryRepository;
         private readonly IMediator _mediator;
         private readonly IMapper _mapper;
         private readonly IIPAddressService _ipAddressService;
 
         public CreateProductionCommandHandler(
             IProductionCommandRepository commandRepository,
-            IProductionQueryRepository queryRepository,
+            IDocumentSequenceQueryRepository documentSequenceQueryRepository,
             IMediator mediator,
             IMapper mapper,
             IIPAddressService ipAddressService)
         {
             _commandRepository = commandRepository;
-            _queryRepository = queryRepository;
+            _documentSequenceQueryRepository = documentSequenceQueryRepository;
             _mediator = mediator;
             _mapper = mapper;
             _ipAddressService = ipAddressService;
@@ -41,19 +42,27 @@ namespace SalesManagement.Application.ProductionPack.Commands.CreateProduction
             var entity = _mapper.Map<ProductionPackHeader>(details);
             entity.UnitId = _ipAddressService.GetUnitId();
 
-            // Auto-generate PackNo: PA-{First3Warehouse}-{First3Bin}-{seq}
-            var firstBinId = details.ProductionPackDetails?.FirstOrDefault()?.BinId ?? 0;
-            var packAllocationNo = await _commandRepository.GenerateNextPackNoAsync(
-                details.WarehouseId, firstBinId, cancellationToken);
-            entity.PackNo = packAllocationNo;
+            // Get UnitId from JWT token
+            var unitId = _ipAddressService.GetUnitId();
 
-            var newId = await _commandRepository.CreateAsync(entity);
+            // Generate PackNo from DocumentSequence
+            var typeId = await _documentSequenceQueryRepository.GetTransactionTypeIdAsync(
+                MiscEnumEntity.TransactionTypePackMaster, MiscEnumEntity.ModuleSales, unitId);
+            if (!typeId.HasValue)
+                throw new ExceptionRules("Transaction Type 'PackMaster' not found for Sales module.");
+
+            var sequences = await _documentSequenceQueryRepository.GenerateDocumentNumber(typeId.Value);
+            var packNo = sequences.Count > 0 ? sequences[^1] : null;
+            entity.PackNo = packNo
+                ?? throw new ExceptionRules("No document sequence configured for PackMaster.");
+
+            var newId = await _commandRepository.CreateAsync(entity, typeId.Value);
 
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Create",
                 actionCode: "PACK_ALLOCATION_CREATE",
-                actionName: packAllocationNo,
-                details: $"Pack Allocation '{packAllocationNo}' created successfully with Id {newId}.",
+                actionName: entity.PackNo,
+                details: $"Pack Allocation '{entity.PackNo}' created successfully with Id {newId}.",
                 module: "Production"
             );
             await _mediator.Publish(auditEvent, cancellationToken);

@@ -115,6 +115,15 @@ namespace SalesManagement.Presentation.Validation.DeliveryChallan
                                     .GreaterThan(0)
                                     .WithMessage($"DispatchQuantity {rule.Error}");
 
+                                detail.RuleFor(d => d.DispatchQuantity)
+                                    .MustAsync(async (dto, qty, ct) =>
+                                    {
+                                        var openQty = await _queryRepository.GetStoOpenQtyAsync(dto.StoDetailId);
+                                        return openQty != null && qty <= openQty.OpenQty;
+                                    })
+                                    .WithMessage("DispatchQuantity exceeds available STO open quantity.")
+                                    .When(d => d.StoDetailId > 0 && d.DispatchQuantity > 0);
+
                                 detail.RuleFor(d => d.UOMId)
                                     .GreaterThan(0)
                                     .WithMessage($"UOMId {rule.Error}");

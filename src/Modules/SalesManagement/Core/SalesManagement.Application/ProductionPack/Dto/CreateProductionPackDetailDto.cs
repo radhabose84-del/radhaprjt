@@ -9,6 +9,7 @@ namespace SalesManagement.Application.ProductionPack.Dto
         public decimal NetWeightPerPack { get; set; }
         public int StartPackNo { get; set; }
         public int EndPackNo { get; set; }
+        public int NoOfBags { get; set; }
         public int TotalBags { get; set; }
         public decimal TotalNetWeight { get; set; }
         public int BinId { get; set; }

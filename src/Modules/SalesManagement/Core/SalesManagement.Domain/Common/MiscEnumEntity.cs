@@ -31,6 +31,7 @@ namespace SalesManagement.Domain.Common
 
         // STO Header Status
         public const string StoHeaderStatus = "StoHeaderStatus";
+        public const string StoHeaderStatusPending = "Pending";
 
         // Delivery Challan Status
         public const string DCLineStatus = "DCLineStatus";
@@ -42,6 +43,7 @@ namespace SalesManagement.Domain.Common
         // Document Sequence - Transaction Types
         public const string TransactionTypeInvoice = "Invoice";
         public const string TransactionTypePriceMaster = "PriceMaster";
+        public const string TransactionTypePackMaster = "PackMaster";
         public const string ModuleSales = "Sales";
 
         // STO Receipt Status
