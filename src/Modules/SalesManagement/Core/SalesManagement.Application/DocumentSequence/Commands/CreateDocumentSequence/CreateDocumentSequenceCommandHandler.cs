@@ -31,8 +31,8 @@ namespace SalesManagement.Application.DocumentSequence.Commands.CreateDocumentSe
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Create",
                 actionCode: "DOCUMENT_SEQUENCE_CREATE",
-                actionName: $"Type:{request.TypeId}-Year:{request.FinancialYearId}-Doc:{request.DocNo}",
-                details: $"Document Sequence created with TypeId {request.TypeId}, FinancialYearId {request.FinancialYearId}, DocNo {request.DocNo}, Id {newId}.",
+                actionName: $"Type:{request.TransactionTypeId}-Year:{request.FinancialYearId}-Doc:{request.DocNo}",
+                details: $"Document Sequence created with TransactionTypeId {request.TransactionTypeId}, FinancialYearId {request.FinancialYearId}, DocNo {request.DocNo}, Id {newId}.",
                 module: "DocumentSequence"
             );
             await _mediator.Publish(auditEvent, cancellationToken);

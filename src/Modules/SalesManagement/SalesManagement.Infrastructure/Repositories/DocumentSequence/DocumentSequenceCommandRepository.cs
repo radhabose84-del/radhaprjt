@@ -29,7 +29,7 @@ namespace SalesManagement.Infrastructure.Repositories.DocumentSequence
             if (existing == null)
                 return 0;
 
-            existing.TypeId = entity.TypeId;
+            existing.TransactionTypeId = entity.TransactionTypeId;
             existing.FinancialYearId = entity.FinancialYearId;
             existing.DocNo = entity.DocNo;
             existing.IsActive = entity.IsActive;

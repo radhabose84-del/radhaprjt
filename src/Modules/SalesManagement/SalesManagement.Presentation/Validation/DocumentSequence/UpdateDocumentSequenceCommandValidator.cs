@@ -25,9 +25,9 @@ namespace SalesManagement.Presentation.Validation.DocumentSequence
                 switch (rule.Rule)
                 {
                     case "NotEmpty":
-                        RuleFor(x => x.TypeId)
+                        RuleFor(x => x.TransactionTypeId)
                             .NotEmpty()
-                            .WithMessage($"{nameof(UpdateDocumentSequenceCommand.TypeId)} {rule.Error}");
+                            .WithMessage($"{nameof(UpdateDocumentSequenceCommand.TransactionTypeId)} {rule.Error}");
 
                         RuleFor(x => x.FinancialYearId)
                             .NotEmpty()
@@ -52,11 +52,11 @@ namespace SalesManagement.Presentation.Validation.DocumentSequence
                         break;
 
                     case "FKColumnDelete":
-                        RuleFor(x => x.TypeId)
+                        RuleFor(x => x.TransactionTypeId)
                             .MustAsync(async (typeId, ct) =>
-                                await _queryRepository.TypeIdExistsAsync(typeId))
-                            .WithMessage($"{nameof(UpdateDocumentSequenceCommand.TypeId)} {rule.Error}")
-                            .When(x => x.TypeId > 0);
+                                await _queryRepository.TransactionTypeIdExistsAsync(typeId))
+                            .WithMessage($"{nameof(UpdateDocumentSequenceCommand.TransactionTypeId)} {rule.Error}")
+                            .When(x => x.TransactionTypeId > 0);
 
                         RuleFor(x => x.FinancialYearId)
                             .MustAsync(async (financialYearId, ct) =>
@@ -68,9 +68,9 @@ namespace SalesManagement.Presentation.Validation.DocumentSequence
                     case "AlreadyExists":
                         RuleFor(x => x.DocNo)
                             .MustAsync(async (command, docNo, ct) =>
-                                !await _queryRepository.CompositeKeyExistsAsync(command.TypeId, command.FinancialYearId, docNo, command.Id))
+                                !await _queryRepository.CompositeKeyExistsAsync(command.TransactionTypeId, command.FinancialYearId, docNo, command.Id))
                             .WithMessage($"Document Sequence for this Type, Financial Year and DocNo {rule.Error}")
-                            .When(x => x.TypeId > 0 && x.FinancialYearId > 0 && x.DocNo > 0);
+                            .When(x => x.TransactionTypeId > 0 && x.FinancialYearId > 0 && x.DocNo > 0);
                         break;
 
                     case "ByteValue":
