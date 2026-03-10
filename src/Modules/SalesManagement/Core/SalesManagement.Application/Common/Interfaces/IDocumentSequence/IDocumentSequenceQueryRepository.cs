@@ -12,5 +12,6 @@ namespace SalesManagement.Application.Common.Interfaces.IDocumentSequence
         Task<bool> TypeIdExistsAsync(int typeId);
         Task<bool> FinancialYearExistsAsync(int financialYearId);
         Task<bool> NotFoundAsync(int id);
+        Task<int?> GetTransactionTypeIdAsync(string typeName, string moduleName, int unitId);
     }
 }

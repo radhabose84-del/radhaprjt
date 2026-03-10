@@ -39,6 +39,10 @@ namespace SalesManagement.Domain.Common
         public const string DCStatusCancelled = "Cancelled";
         public const string DCStatusDelivered = "Delivered";
 
+        // Document Sequence - Transaction Types
+        public const string TransactionTypeInvoice = "Invoice";
+        public const string ModuleSales = "Sales";
+
         // STO Receipt Status
         public const string StoReceiptLineStatus = "StoReceiptLineStatus";
         public const string StoReceiptStatusPending = "Pending";

@@ -1,6 +1,7 @@
 using AutoMapper;
 using Contracts.Common;
 using MediatR;
+using SalesManagement.Application.Common.Interfaces.IDocumentSequence;
 using SalesManagement.Application.Common.Interfaces.IInvoice;
 using SalesManagement.Application.Common.Interfaces.IMiscMaster;
 using SalesManagement.Domain.Common;
@@ -14,6 +15,7 @@ namespace SalesManagement.Application.Invoice.Commands.CreateInvoice
         private readonly IInvoiceCommandRepository _commandRepository;
         private readonly IInvoiceQueryRepository _queryRepository;
         private readonly IMiscMasterQueryRepository _miscMasterQueryRepository;
+        private readonly IDocumentSequenceQueryRepository _documentSequenceQueryRepository;
         private readonly IMediator _mediator;
         private readonly IMapper _mapper;
 
@@ -21,12 +23,14 @@ namespace SalesManagement.Application.Invoice.Commands.CreateInvoice
             IInvoiceCommandRepository commandRepository,
             IInvoiceQueryRepository queryRepository,
             IMiscMasterQueryRepository miscMasterQueryRepository,
+            IDocumentSequenceQueryRepository documentSequenceQueryRepository,
             IMediator mediator,
             IMapper mapper)
         {
             _commandRepository = commandRepository;
             _queryRepository = queryRepository;
             _miscMasterQueryRepository = miscMasterQueryRepository;
+            _documentSequenceQueryRepository = documentSequenceQueryRepository;
             _mediator = mediator;
             _mapper = mapper;
         }
@@ -40,8 +44,16 @@ namespace SalesManagement.Application.Invoice.Commands.CreateInvoice
                 MiscEnumEntity.InvoiceApprovalStatus, MiscEnumEntity.InvoiceStatusPending);
             entity.StatusId = pendingStatus?.Id;
 
-            // Generate auto invoice number
-            var invoiceNo = await _commandRepository.GenerateNextInvoiceNoAsync(request.UnitId, cancellationToken);
+            // Generate invoice number from DocumentSequence
+            var typeId = await _documentSequenceQueryRepository.GetTransactionTypeIdAsync(
+                MiscEnumEntity.TransactionTypeInvoice, MiscEnumEntity.ModuleSales, request.UnitId);
+            if (!typeId.HasValue)
+                throw new ExceptionRules("Transaction Type 'Invoice' not found for Sales module.");
+
+            var sequences = await _documentSequenceQueryRepository.GetByTypeIdAsync(typeId.Value);
+            var latestSequence = sequences.Count > 0 ? sequences[^1] : null;
+            var invoiceNo = latestSequence?.GeneratedDocumentNumber
+                ?? throw new ExceptionRules("No document sequence configured for Invoice.");
             entity.InvoiceNo = invoiceNo;
 
             // Resolve StockLedger status IDs from MiscMaster
@@ -53,8 +65,8 @@ namespace SalesManagement.Application.Invoice.Commands.CreateInvoice
                 MiscEnumEntity.StockStatus, MiscEnumEntity.Invoiced);
             var invoicedStatusId = invoicedStatus?.Id ?? 0;
 
-            // Insert header + details, update StockLedger Dispatched → Invoiced
-            var newId = await _commandRepository.CreateAsync(entity, request.UnitId, dispatchedStatusId, invoicedStatusId);
+            // Insert header + details, update StockLedger Dispatched → Invoiced, increment DocNo
+            var newId = await _commandRepository.CreateAsync(entity, request.UnitId, dispatchedStatusId, invoicedStatusId, latestSequence.Id);
 
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Create",

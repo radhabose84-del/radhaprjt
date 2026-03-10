@@ -14,29 +14,8 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
         {
             _dbContext = dbContext;
         }
-
-        public async Task<string> GenerateNextInvoiceNoAsync(int unitId, CancellationToken ct = default)
-        {
-            var prefix = $"INV-{unitId}-";
-
-            var lastInvoice = await _dbContext.InvoiceHeader
-                .Where(x => x.InvoiceNo != null && x.InvoiceNo.StartsWith(prefix))
-                .OrderByDescending(x => x.Id)
-                .Select(x => x.InvoiceNo)
-                .FirstOrDefaultAsync(ct);
-
-            int nextSeq = 1;
-            if (lastInvoice != null)
-            {
-                var parts = lastInvoice.Split('-');
-                if (parts.Length == 3 && int.TryParse(parts[2], out var lastSeq))
-                    nextSeq = lastSeq + 1;
-            }
-
-            return $"{prefix}{nextSeq:D5}";
-        }
-
-        public async Task<int> CreateAsync(InvoiceHeader entity, int unitId, int dispatchedStatusId, int invoicedStatusId)
+       
+        public async Task<int> CreateAsync(InvoiceHeader entity, int unitId, int dispatchedStatusId, int invoicedStatusId, int documentSequenceId)
         {
             var strategy = _dbContext.Database.CreateExecutionStrategy();
 
@@ -79,6 +58,11 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                         foreach (var stock in stockRecords)
                             stock.StatusId = invoicedStatusId;
                     }
+
+                    // Increment DocNo in Finance.DocumentSequence
+                    await _dbContext.Database.ExecuteSqlRawAsync(
+                        "UPDATE [Finance].[DocumentSequence] SET DocNo = DocNo + 1 WHERE Id = {0}",
+                        documentSequenceId);
 
                     await _dbContext.SaveChangesAsync();
                     await transaction.CommitAsync();

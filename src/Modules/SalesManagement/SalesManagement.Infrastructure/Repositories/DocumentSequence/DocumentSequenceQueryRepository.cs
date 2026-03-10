@@ -12,15 +12,18 @@ namespace SalesManagement.Infrastructure.Repositories.DocumentSequence
         private readonly IDbConnection _dbConnection;
         private readonly IUnitLookup _unitLookup;
         private readonly IFinancialYearLookup _financialYearLookup;
+        private readonly IModuleLookup _moduleLookup;
 
         public DocumentSequenceQueryRepository(
             IDbConnection dbConnection,
             IUnitLookup unitLookup,
-            IFinancialYearLookup financialYearLookup)
+            IFinancialYearLookup financialYearLookup,
+            IModuleLookup moduleLookup)
         {
             _dbConnection = dbConnection;
             _unitLookup = unitLookup;
             _financialYearLookup = financialYearLookup;
+            _moduleLookup = moduleLookup;
         }
 
         public async Task<(List<DocumentSequenceDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
@@ -180,6 +183,31 @@ namespace SalesManagement.Infrastructure.Repositories.DocumentSequence
 
             var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = id });
             return count == 0;
+        }
+
+        public async Task<int?> GetTransactionTypeIdAsync(string typeName, string moduleName, int unitId)
+        {
+            // Resolve ModuleId via cross-module lookup (AppData.Modules belongs to UserManagement)
+            var modules = await _moduleLookup.GetAllModuleAsync();
+            var module = modules.FirstOrDefault(m => m.ModuleName == moduleName);
+            if (module == null)
+                return null;
+
+            // TransactionTypeMaster is same-module (Finance schema, SalesManagement module) — direct SQL is correct
+            const string sql = @"
+                SELECT Id
+                FROM [Finance].[TransactionTypeMaster]
+                WHERE TypeName = @TypeName
+                  AND ModuleId = @ModuleId
+                  AND UnitId = @UnitId
+                  AND IsDeleted = 0";
+
+            return await _dbConnection.QueryFirstOrDefaultAsync<int?>(sql, new
+            {
+                TypeName = typeName,
+                ModuleId = module.ModuleId,
+                UnitId = unitId
+            });
         }
 
         // ── Private Helpers ────────────────────────────────────────────────
