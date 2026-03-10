@@ -50,6 +50,7 @@ namespace PartyManagement.Application.PartyMaster.Command.CreatePartyMaster
         public List<PartyAddressDto>? PartyAddresses { get; set; }
         public List<PartyBankDto>? PartyBanks { get; set; }
         public List<PartyDocumentDto>? PartyDocuments { get; set; }
+        public List<SalesTypeDto>? SalesTypes { get; set; }
 
         public class PartyUnitCompanyDto
         {
@@ -107,10 +108,21 @@ namespace PartyManagement.Application.PartyMaster.Command.CreatePartyMaster
         public class PartyDocumentDto
         {
             public int DocumentId { get; set; }
-            public string? FileName { get; set; } 
+            public string? FileName { get; set; }
             public DateTimeOffset UploadedDate { get; set; }
 
-            
+
+        }
+
+        public class SalesTypeDto
+        {
+            public int? SalesSegmentId { get; set; }
+            public int? OrderTypeId { get; set; }
+            public int? IncotermId { get; set; }
+            public int? PaymentTermsId { get; set; }
+            public int? ShippingConditionId { get; set; }
+            public int? AccountAssignmentId { get; set; }
+            public byte Active { get; set; }
         }
 
     }
