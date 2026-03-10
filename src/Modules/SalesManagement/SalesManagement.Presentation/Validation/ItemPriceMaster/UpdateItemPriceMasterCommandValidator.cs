@@ -79,7 +79,9 @@ namespace SalesManagement.Presentation.Validation.ItemPriceMaster
                         RuleFor(x => x.Id)
                             .GreaterThan(0).WithMessage("Valid Item Price Master Id is required.")
                             .MustAsync(async (id, ct) => !await _queryRepository.NotFoundAsync(id))
-                            .WithMessage($"Item Price Master {rule.Error}");
+                            .WithMessage($"Item Price Master {rule.Error}")
+                            .MustAsync(async (id, ct) => await _queryRepository.IsItemPriceMasterPendingAsync(id))
+                            .WithMessage("Only Item Price Master records with 'Pending' status can be updated.");
                         break;
 
                     case "FKColumnDelete":

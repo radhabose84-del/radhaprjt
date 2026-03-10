@@ -190,7 +190,7 @@ namespace SalesManagement.IntegrationTests.Repositories.ItemPriceMaster
                 IsActive       = isActive ? Status.Active : Status.Inactive,
                 IsDeleted      = IsDelete.NotDeleted
             };
-            return await CreateCommandRepo(ctx).CreateAsync(entity);
+            return await CreateCommandRepo(ctx).CreateAsync(entity, 0);
         }
 
         // ── GetAllAsync ───────────────────────────────────────────────────────

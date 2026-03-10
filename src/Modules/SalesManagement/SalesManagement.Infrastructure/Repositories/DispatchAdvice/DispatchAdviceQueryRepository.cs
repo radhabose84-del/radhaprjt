@@ -234,6 +234,103 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
             return result.ToList();
         }
 
+        public async Task<List<DispatchAdvicePackRangeDto>> GetPackRangeAsync(int itemId, int lotId, int packTypeId, int statusId, int range)
+        {
+            var unitId = _ipAddressService.GetUnitId();
+
+            const string sql = @"
+                SELECT S.PackNo, S.ItemId, S.LotId, S.PackTypeId,
+                    L.LotCode AS LotName, P.PackTypeName
+                FROM Sales.StockLedger S
+                INNER JOIN Sales.LotMaster L ON S.LotId = L.Id AND L.IsDeleted = 0
+                INNER JOIN Sales.PackType P ON S.PackTypeId = P.Id AND P.IsDeleted = 0
+                WHERE S.UnitId = @UnitId AND S.ItemId = @ItemId AND S.StatusId = @StatusId
+                    AND S.LotId = @LotId AND S.PackTypeId = @PackTypeId
+                ORDER BY S.PackNo";
+
+            var rows = (await _dbConnection.QueryAsync<dynamic>(sql,
+                new { UnitId = unitId, ItemId = itemId, StatusId = statusId, LotId = lotId, PackTypeId = packTypeId })).ToList();
+
+            if (rows.Count == 0)
+                return new List<DispatchAdvicePackRangeDto>();
+
+            // Populate cross-module: ItemName
+            var items = await _itemLookup.GetByIdsAsync(new[] { itemId });
+            var itemName = items.FirstOrDefault()?.ItemName;
+
+            var firstRow = rows[0];
+            string? lotName = firstRow.LotName;
+            string? packTypeName = firstRow.PackTypeName;
+
+            // Collect all PackNos sorted
+            var packNos = rows.Select(r => (int)r.PackNo).OrderBy(p => p).ToList();
+
+            // Step 1: Group consecutive PackNos (break on gaps)
+            var consecutiveGroups = new List<List<int>>();
+            var currentGroup = new List<int> { packNos[0] };
+            for (int i = 1; i < packNos.Count; i++)
+            {
+                if (packNos[i] == packNos[i - 1] + 1)
+                {
+                    currentGroup.Add(packNos[i]);
+                }
+                else
+                {
+                    consecutiveGroups.Add(currentGroup);
+                    currentGroup = new List<int> { packNos[i] };
+                }
+            }
+            consecutiveGroups.Add(currentGroup);
+
+            // Step 2: Split each consecutive group into chunks of 'range' size
+            var result = new List<DispatchAdvicePackRangeDto>();
+            int sNo = 1;
+            foreach (var group in consecutiveGroups)
+            {
+                for (int i = 0; i < group.Count; i += range)
+                {
+                    var chunk = group.Skip(i).Take(range).ToList();
+                    result.Add(new DispatchAdvicePackRangeDto
+                    {
+                        SNo = sNo++,
+                        ItemId = itemId,
+                        ItemName = itemName,
+                        LotId = lotId,
+                        LotName = lotName,
+                        PackTypeId = packTypeId,
+                        PackTypeName = packTypeName,
+                        FromPackNo = chunk.First(),
+                        ToPackNo = chunk.Last(),
+                        TotalPacks = chunk.Count
+                    });
+                }
+            }
+
+            return result;
+        }
+
+        public async Task<bool> NotFoundAsync(int id)
+        {
+            const string sql = @"
+                SELECT COUNT(1)
+                FROM Sales.DispatchAdviceHeader
+                WHERE Id = @Id AND IsDeleted = 0";
+
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = id });
+            return count == 0;
+        }
+
+        public async Task<bool> HasInvoiceAsync(int dispatchAdviceId)
+        {
+            const string sql = @"
+                SELECT COUNT(1)
+                FROM Sales.InvoiceHeader
+                WHERE DispatchAdviceId = @DispatchAdviceId AND IsDeleted = 0";
+
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { DispatchAdviceId = dispatchAdviceId });
+            return count > 0;
+        }
+
         public async Task<IReadOnlyList<DispatchAdviceLookupDto>> AutocompleteAsync(string term, CancellationToken ct)
         {
             const string sql = @"

@@ -12,8 +12,10 @@ namespace SalesManagement.Domain.Entities
         public int CurrencyId { get; set; }
         public DateOnly ValidFrom { get; set; }
         public DateOnly ValidTo { get; set; }
+        public int? StatusId { get; set; }                // FK → Sales.MiscMaster
 
-        // Navigation property (same-module FK)
+        // Navigation properties (same-module FK)
         public SalesSegment? SalesSegment { get; set; }
+        public MiscMaster? StatusMisc { get; set; }
     }
 }

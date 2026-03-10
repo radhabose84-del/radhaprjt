@@ -62,6 +62,7 @@ namespace SalesManagement.Infrastructure.Data
         public DbSet<DeliveryChallanHeader> DeliveryChallanHeader { get; set; }
         public DbSet<DeliveryChallanDetail> DeliveryChallanDetail { get; set; }
         public DbSet<TransactionTypeMaster> TransactionTypeMaster { get; set; }
+        public DbSet<DocumentSequence> DocumentSequence { get; set; }
         public DbSet<InvoiceHeader> InvoiceHeader { get; set; }
         public DbSet<InvoiceDetail> InvoiceDetail { get; set; }
         public DbSet<EInvoiceHeader> EInvoiceHeader { get; set; }
@@ -110,7 +111,8 @@ namespace SalesManagement.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new DeliveryChallanHeaderConfiguration());
             modelBuilder.ApplyConfiguration(new DeliveryChallanDetailConfiguration());
             modelBuilder.ApplyConfiguration(new TransactionTypeMasterConfiguration());
-   			modelBuilder.ApplyConfiguration(new InvoiceHeaderConfiguration());
+            modelBuilder.ApplyConfiguration(new DocumentSequenceConfiguration());
+            modelBuilder.ApplyConfiguration(new InvoiceHeaderConfiguration());
             modelBuilder.ApplyConfiguration(new InvoiceDetailConfiguration());
             modelBuilder.ApplyConfiguration(new EInvoiceHeaderConfiguration());
             modelBuilder.ApplyConfiguration(new EInvoiceDetailConfiguration());

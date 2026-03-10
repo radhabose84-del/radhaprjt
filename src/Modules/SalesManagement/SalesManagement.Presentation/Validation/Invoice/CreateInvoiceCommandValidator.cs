@@ -45,10 +45,6 @@ namespace SalesManagement.Presentation.Validation.Invoice
                             .NotEmpty()
                             .WithMessage($"{nameof(CreateInvoiceCommand.PartyId)} {rule.Error}");
 
-                        RuleFor(x => x.UnitId)
-                            .NotEmpty()
-                            .WithMessage($"{nameof(CreateInvoiceCommand.UnitId)} {rule.Error}");
-
                         RuleFor(x => x.FinancialYearId)
                             .NotEmpty()
                             .WithMessage($"{nameof(CreateInvoiceCommand.FinancialYearId)} {rule.Error}");
@@ -188,7 +184,7 @@ namespace SalesManagement.Presentation.Validation.Invoice
                         break;
                 }
             }
-
+/* 
             // Final invoice amount must match calculated totals (pure math — no DB call)
             RuleFor(x => x)
                 .Must(cmd =>
@@ -203,7 +199,7 @@ namespace SalesManagement.Presentation.Validation.Invoice
                     return Math.Abs(cmd.InvoiceAmountBeforeTCS - expectedBeforeTCS) <= tolerance
                         && Math.Abs(cmd.InvoiceAmount - expectedFinal) <= tolerance;
                 })
-                .WithMessage("Final invoice amount does not match calculated totals.");
+                .WithMessage("Final invoice amount does not match calculated totals."); */
         }
     }
 }
