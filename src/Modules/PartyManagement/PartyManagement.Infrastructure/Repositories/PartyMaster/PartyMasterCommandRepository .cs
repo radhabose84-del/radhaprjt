@@ -104,6 +104,7 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
             .Include(p => p.PartyBankTypes)
             .Include(p => p.PartyDocumentTypes)
             .Include(p => p.PartyUnitCompanyMappings)
+            .Include(p => p.SalesTypes)
             .FirstOrDefaultAsync(p => p.Id == Id);
 
             if (existingParty == null)
@@ -157,7 +158,8 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
                 (partyMaster.PartyAddressTypes?.Any() ?? false) ||
                 (partyMaster.PartyBankTypes?.Any() ?? false) ||
                 (partyMaster.PartyDocumentTypes?.Any() ?? false) ||
-                (partyMaster.PartyUnitCompanyMappings?.Any() ?? false);
+                (partyMaster.PartyUnitCompanyMappings?.Any() ?? false) ||
+                (partyMaster.SalesTypes?.Any() ?? false);
 
             if (hasRelatedRecords)
             {
@@ -440,6 +442,48 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
                     }
                 }
 
+            }
+
+            // SalesTypes - Update if exists, else Insert
+            if (partyMaster.SalesTypes != null)
+            {
+                foreach (var incoming in partyMaster.SalesTypes)
+                {
+                    if (incoming.Id > 0 && incoming.PartyId > 0)
+                    {
+                        var existingChildSalesType = existingParty.SalesTypes
+                            .FirstOrDefault(st => st.Id == incoming.Id && st.PartyId == Id);
+
+                        if (existingChildSalesType != null)
+                        {
+                            await TrackChanges(existingChildSalesType, incoming, existingParty.Id, "SalesType");
+                            existingChildSalesType.SalesSegmentId = incoming.SalesSegmentId;
+                            existingChildSalesType.OrderTypeId = incoming.OrderTypeId;
+                            existingChildSalesType.IncotermId = incoming.IncotermId;
+                            existingChildSalesType.PaymentTermsId = incoming.PaymentTermsId;
+                            existingChildSalesType.ShippingConditionId = incoming.ShippingConditionId;
+                            existingChildSalesType.AccountAssignmentId = incoming.AccountAssignmentId;
+                            existingChildSalesType.Active = incoming.Active;
+                        }
+                    }
+                    else
+                    {
+                        existingParty.SalesTypes.Add(new SalesType
+                        {
+                            PartyId = existingParty.Id,
+                            SalesSegmentId = incoming.SalesSegmentId,
+                            OrderTypeId = incoming.OrderTypeId,
+                            IncotermId = incoming.IncotermId,
+                            PaymentTermsId = incoming.PaymentTermsId,
+                            ShippingConditionId = incoming.ShippingConditionId,
+                            AccountAssignmentId = incoming.AccountAssignmentId,
+                            Active = incoming.Active
+                        });
+
+                        await LogChange(existingParty.Id, "SalesType", "SalesSegmentId-OrderTypeId", "",
+                            incoming.SalesSegmentId + "," + incoming.OrderTypeId, "Insert");
+                    }
+                }
             }
 
             //  _applicationDbContext.PartyMaster.Update(existingParty);

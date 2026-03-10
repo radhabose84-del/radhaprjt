@@ -3,7 +3,7 @@ namespace SalesManagement.Application.DocumentSequence.Dto
     public class DocumentSequenceDto
     {
         public int Id { get; set; }
-        public int TypeId { get; set; }
+        public int TransactionTypeId { get; set; }
         public string? TypeName { get; set; }
         public string? TypeShortName { get; set; }
         public int UnitId { get; set; }

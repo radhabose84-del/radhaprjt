@@ -28,8 +28,8 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("int")
                 .IsRequired();
 
-            builder.Property(t => t.TypeId)
-                .HasColumnName("TypeId")
+            builder.Property(t => t.TransactionTypeId)
+                .HasColumnName("TransactionTypeId")
                 .HasColumnType("int")
                 .IsRequired();
 
@@ -64,17 +64,17 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             builder.Property(t => t.ModifiedByName).HasColumnName("ModifiedByName").HasColumnType("varchar(100)");
             builder.Property(t => t.ModifiedIP).HasColumnName("ModifiedIP").HasColumnType("varchar(50)");
 
-            // Composite unique index — no duplicate TypeId + FinancialYearId + DocNo combinations
-            builder.HasIndex(t => new { t.TypeId, t.FinancialYearId, t.DocNo }).IsUnique();
+            // Composite unique index — no duplicate TransactionTypeId + FinancialYearId + DocNo combinations
+            builder.HasIndex(t => new { t.TransactionTypeId, t.FinancialYearId, t.DocNo }).IsUnique();
 
             // Individual indexes for filtering
-            builder.HasIndex(t => t.TypeId);
+            builder.HasIndex(t => t.TransactionTypeId);
             builder.HasIndex(t => t.FinancialYearId);
 
             // Same-module FK constraint (Finance.TransactionTypeMaster)
             builder.HasOne(t => t.TransactionTypeMaster)
                 .WithMany(ttm => ttm.DocumentSequences)
-                .HasForeignKey(t => t.TypeId)
+                .HasForeignKey(t => t.TransactionTypeId)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }

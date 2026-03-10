@@ -33,6 +33,7 @@ namespace PartyManagement.Infrastructure.Data
         public DbSet<PartyUnitCompanyMapping> PartyUnitCompanyMapping { get; set; }
         public DbSet<BankAccount> BankAccount { get; set; }
         public DbSet<BankMaster> BankMaster { get; set; }
+        public DbSet<SalesType> SalesType { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -50,6 +51,7 @@ namespace PartyManagement.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new PartyUnitCompanyMappingConfiguration());
             modelBuilder.ApplyConfiguration(new BankAccountConfiguration());
             modelBuilder.ApplyConfiguration(new BankMasterConfiguration());
+            modelBuilder.ApplyConfiguration(new SalesTypeConfiguration());
 
 
 
