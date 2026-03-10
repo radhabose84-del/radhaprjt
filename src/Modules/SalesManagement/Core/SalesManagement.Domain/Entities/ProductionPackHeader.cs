@@ -10,6 +10,8 @@ namespace SalesManagement.Domain.Entities
         public int WarehouseId { get; set; }
         public int TotalBags { get; set; }
         public decimal TotalNetWeight { get; set; }
+        public decimal ProductionKgs { get; set; }
+        public decimal LooseKgs { get; set; }
         public string? Remarks { get; set; }
 
         // Child collection
