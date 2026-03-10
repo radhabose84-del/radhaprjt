@@ -45,10 +45,6 @@ namespace SalesManagement.Presentation.Validation.Invoice
                             .NotEmpty()
                             .WithMessage($"{nameof(CreateInvoiceCommand.PartyId)} {rule.Error}");
 
-                        RuleFor(x => x.UnitId)
-                            .NotEmpty()
-                            .WithMessage($"{nameof(CreateInvoiceCommand.UnitId)} {rule.Error}");
-
                         RuleFor(x => x.FinancialYearId)
                             .NotEmpty()
                             .WithMessage($"{nameof(CreateInvoiceCommand.FinancialYearId)} {rule.Error}");
