@@ -74,7 +74,15 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
         public async Task<PartyMasterDto> GetByIdPartyMasterAsync(int id)
         {
             var sql = @"
-            SELECT * FROM Party.PartyMaster WHERE Id = @Id;
+            SELECT pm.*,
+                   tm.Description AS TransportModeName,
+                   vt.Description AS VehicleTypeName,
+                   dft.Description AS DefaultFreightTypeName
+            FROM Party.PartyMaster pm
+            LEFT JOIN Party.MiscMaster tm ON pm.TransportModeId = tm.Id AND tm.IsDeleted = 0
+            LEFT JOIN Party.MiscMaster vt ON pm.VehicleTypeId = vt.Id AND vt.IsDeleted = 0
+            LEFT JOIN Party.MiscMaster dft ON pm.DefaultFreightTypeId = dft.Id AND dft.IsDeleted = 0
+            WHERE pm.Id = @Id;
             select A.Id,A.PartyId,A.PartyTypeId,A.PartyGroupId,C.description as GlCategory from Party.PartyType A INNER JOIN Party.PartyGroup B ON A.PartyGroupId=B.Id INNER JOIN Party.MiscMaster C ON B.GlCategoryId=C.Id where a.PartyId=@Id;
             SELECT * FROM Party.PartyContact WHERE PartyId = @Id;
             SELECT * FROM Party.PartyAddress WHERE PartyId = @Id;
