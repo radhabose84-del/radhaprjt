@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SalesManagement.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using SalesManagement.Infrastructure.Data;
 namespace SalesManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260310104659_RenameRackIdToBinId")]
+    partial class RenameRackIdToBinId
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1579,11 +1582,6 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnName("Id");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<decimal>("BaseRate")
-                        .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,4)")
-                        .HasColumnName("BaseRate");
 
                     b.Property<int>("CreatedBy")
                         .HasColumnType("int")
