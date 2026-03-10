@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SalesManagement.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using SalesManagement.Infrastructure.Data;
 namespace SalesManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260310113239_ItemPriceMaster_AddBaseRate")]
+    partial class ItemPriceMaster_AddBaseRate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -940,17 +943,17 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("varchar(50)")
                         .HasColumnName("ModifiedIP");
 
-                    b.Property<int>("TransactionTypeId")
+                    b.Property<int>("TypeId")
                         .HasColumnType("int")
-                        .HasColumnName("TransactionTypeId");
+                        .HasColumnName("TypeId");
 
                     b.HasKey("Id");
 
                     b.HasIndex("FinancialYearId");
 
-                    b.HasIndex("TransactionTypeId");
+                    b.HasIndex("TypeId");
 
-                    b.HasIndex("TransactionTypeId", "FinancialYearId", "DocNo")
+                    b.HasIndex("TypeId", "FinancialYearId", "DocNo")
                         .IsUnique();
 
                     b.ToTable("DocumentSequence", "Finance");
@@ -4125,10 +4128,6 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("varchar(50)")
                         .HasColumnName("ModifiedIP");
 
-                    b.Property<int?>("RackId")
-                        .HasColumnType("int")
-                        .HasColumnName("RackId");
-
                     b.Property<int>("ReceivingPlantId")
                         .HasColumnType("int")
                         .HasColumnName("ReceivingPlantId");
@@ -4604,7 +4603,7 @@ namespace SalesManagement.Infrastructure.Migrations
                 {
                     b.HasOne("SalesManagement.Domain.Entities.TransactionTypeMaster", "TransactionTypeMaster")
                         .WithMany("DocumentSequences")
-                        .HasForeignKey("TransactionTypeId")
+                        .HasForeignKey("TypeId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 

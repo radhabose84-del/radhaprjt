@@ -5,6 +5,7 @@ namespace SalesManagement.Application.ItemPriceMaster.Dto
         public int Id { get; set; }
         public string? PriceCode { get; set; }
         public string? ItemName { get; set; }
+        public decimal BaseRate { get; set; }
         public decimal ExMillRate { get; set; }
         public DateOnly ValidFrom { get; set; }
         public DateOnly ValidTo { get; set; }

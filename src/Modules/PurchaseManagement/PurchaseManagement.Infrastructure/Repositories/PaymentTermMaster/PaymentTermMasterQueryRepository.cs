@@ -41,7 +41,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PaymentTermMaster
                     p.Id, p.Code, p.[Description], p.BaselineTypeId, p.CreditDays,
                     p.AdvancePercent,
                     COALESCE(p.BalancePercent, 100.00 - ISNULL(p.AdvancePercent,0)) AS BalancePercent,
-                    p.DiscountPercent, p.DiscountDays, p.GraceDays, p.ApplicableForPortal,
+                    p.DiscountPercent, p.DiscountDays, p.GraceDays, p.AdditionalValue, p.ApplicableForPortal,
                     p.IsActive, p.IsDeleted,
                     p.CreatedBy, p.CreatedDate, p.CreatedByName, p.CreatedIP,
                     p.ModifiedBy, p.ModifiedDate, p.ModifiedByName, p.ModifiedIP,
@@ -93,7 +93,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PaymentTermMaster
                     p.Id, p.Code, p.[Description], p.BaselineTypeId, p.CreditDays,
                     p.AdvancePercent,
                     COALESCE(p.BalancePercent, CONVERT(decimal(5,2), 100.00 - ISNULL(p.AdvancePercent,0))) AS BalancePercent,
-                    p.DiscountPercent, p.DiscountDays, p.GraceDays, p.ApplicableForPortal ,p.IsActive,p.IsDeleted,p.CreatedBy,p.CreatedDate,p.CreatedByName,p.CreatedIP,
+                    p.DiscountPercent, p.DiscountDays, p.GraceDays, p.AdditionalValue, p.ApplicableForPortal ,p.IsActive,p.IsDeleted,p.CreatedBy,p.CreatedDate,p.CreatedByName,p.CreatedIP,
                     p.ModifiedBy,p.ModifiedDate,p.ModifiedByName,p.ModifiedIP
                 FROM [Purchase].[Purchase].[PaymentTermMaster] p
                 WHERE p.Id = @Id;

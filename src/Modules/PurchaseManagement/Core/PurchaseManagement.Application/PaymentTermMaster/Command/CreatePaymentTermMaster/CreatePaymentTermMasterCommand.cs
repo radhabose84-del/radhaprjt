@@ -13,6 +13,7 @@ namespace PurchaseManagement.Application.PaymentTermMaster.Command.CreatePayment
         public decimal? DiscountPercent { get; set; }
         public int? DiscountDays { get; set; }
         public int? GraceDays { get; set; }
+        public decimal AdditionalValue { get; set; }
         public bool ApplicableForPortal { get; set; }
         public List<PaymentTermInstallmentDto>? Installments { get; set; }
     }

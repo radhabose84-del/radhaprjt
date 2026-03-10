@@ -53,6 +53,10 @@ namespace PurchaseManagement.Infrastructure.Data.Configurations
             builder.Property(x => x.DiscountPercent)
                    .HasPrecision(5, 2);
 
+            builder.Property(x => x.AdditionalValue)
+                   .HasPrecision(18, 4)
+                   .IsRequired();
+
             // Derived column: BalancePercent = 100 - ISNULL(AdvancePercent, 0)
             builder.Property(x => x.BalancePercent)
                    .HasPrecision(5, 2)
