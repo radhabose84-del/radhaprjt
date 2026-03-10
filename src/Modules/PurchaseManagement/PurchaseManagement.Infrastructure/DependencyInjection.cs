@@ -232,6 +232,7 @@ namespace PurchaseManagement.Infrastructure
             services.AddScoped<IWorkflowLookup, WorkflowLookupRepository>();
             services.AddScoped<IStockLedgerLookup, StockLedgerLookupRepository>();
             services.AddScoped<IPaymentTermLookup, PaymentTermLookupRepository>();
+            services.AddScoped<IIncotermLookup, IncotermLookupRepository>();
 
             services.AddScoped<IPoMethodLookup, PoMethodLookup>();
             services.AddScoped<IPODocumentQueryRepository, PODocumentQueryRepository>();
