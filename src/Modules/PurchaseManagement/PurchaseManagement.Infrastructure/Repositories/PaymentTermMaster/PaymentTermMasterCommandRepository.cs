@@ -39,6 +39,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PaymentTermMaster
             entity.DiscountPercent = incoming.DiscountPercent;
             entity.DiscountDays = incoming.DiscountDays;
             entity.GraceDays = incoming.GraceDays;
+            entity.AdditionalValue = incoming.AdditionalValue;
             entity.ApplicableForPortal = incoming.ApplicableForPortal;
             entity.IsActive = incoming.IsActive;
 

@@ -17,6 +17,7 @@ namespace SalesManagement.Application.ItemPriceMaster.Dto
         public string? PaymentTermsCode { get; set; }
         public string? PaymentTermsDescription { get; set; }
 
+        public decimal BaseRate { get; set; }
         public decimal ExMillRate { get; set; }
 
         public int CurrencyId { get; set; }

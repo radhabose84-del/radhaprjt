@@ -14,7 +14,8 @@ namespace PurchaseManagement.Domain.Entities
         public decimal? DiscountPercent { get; set; }   
         public int? DiscountDays { get; set; }
         public int? GraceDays { get; set; }
-        public bool ApplicableForPortal { get; set; }       
+        public decimal AdditionalValue { get; set; }
+        public bool ApplicableForPortal { get; set; }
         public ICollection<PaymentTermInstallment> Installments { get; set; } = new List<PaymentTermInstallment>();
     }
 }
