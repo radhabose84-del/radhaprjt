@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SalesManagement.Domain.Entities;
 
 namespace SalesManagement.Infrastructure.Data.Configurations
@@ -8,6 +9,11 @@ namespace SalesManagement.Infrastructure.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<StockLedger> builder)
         {
+            var dateOnlyConverter = new ValueConverter<DateOnly, DateTime>(
+                v => v.ToDateTime(TimeOnly.MinValue),
+                v => DateOnly.FromDateTime(v)
+            );
+
             builder.ToTable("StockLedger", "Sales");
             builder.HasKey(t => t.Id);
 
@@ -39,6 +45,7 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             builder.Property(t => t.DocDate)
                 .HasColumnName("DocDate")
                 .HasColumnType("date")
+                .HasConversion(dateOnlyConverter)
                 .IsRequired();
 
             builder.Property(t => t.ItemId)

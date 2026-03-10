@@ -20,12 +20,22 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 v => v ? IsDelete.Deleted : IsDelete.NotDeleted
             );
 
+            var dateOnlyConverter = new ValueConverter<DateOnly, DateTime>(
+                v => v.ToDateTime(TimeOnly.MinValue),
+                v => DateOnly.FromDateTime(v)
+            );
+
+            var nullableDateOnlyConverter = new ValueConverter<DateOnly?, DateTime?>(
+                v => v.HasValue ? v.Value.ToDateTime(TimeOnly.MinValue) : (DateTime?)null,
+                v => v.HasValue ? DateOnly.FromDateTime(v.Value) : (DateOnly?)null
+            );
+
             builder.ToTable("InvoiceHeader", "Sales");
             builder.HasKey(t => t.Id);
 
             builder.Property(t => t.Id).HasColumnName("Id").HasColumnType("int").IsRequired();
             builder.Property(t => t.InvoiceNo).HasColumnName("InvoiceNo").HasColumnType("varchar(30)").IsRequired(false);
-            builder.Property(t => t.InvoiceDate).HasColumnName("InvoiceDate").HasColumnType("date").IsRequired();
+            builder.Property(t => t.InvoiceDate).HasColumnName("InvoiceDate").HasColumnType("date").HasConversion(dateOnlyConverter).IsRequired();
             builder.Property(t => t.InvoiceType).HasColumnName("InvoiceType").HasColumnType("int").IsRequired();
             builder.Property(t => t.DispatchAdviceId).HasColumnName("DispatchAdviceId").HasColumnType("int").IsRequired();
             builder.Property(t => t.PartyId).HasColumnName("PartyId").HasColumnType("int").IsRequired();
@@ -33,10 +43,11 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             builder.Property(t => t.UnitId).HasColumnName("UnitId").HasColumnType("int").IsRequired();
             builder.Property(t => t.FinancialYearId).HasColumnName("FinancialYearId").HasColumnType("int").IsRequired();
             builder.Property(t => t.TransportMode).HasColumnName("TransportMode").HasColumnType("int").IsRequired(false);
+            builder.Property(t => t.StatusId).HasColumnName("StatusId").HasColumnType("int").IsRequired(false);
             builder.Property(t => t.VehicleNumber).HasColumnName("VehicleNumber").HasColumnType("varchar(20)").IsRequired(false);
             builder.Property(t => t.TransporterName).HasColumnName("TransporterName").HasColumnType("varchar(100)").IsRequired(false);
             builder.Property(t => t.LRNumber).HasColumnName("LRNumber").HasColumnType("varchar(50)").IsRequired(false);
-            builder.Property(t => t.LRDate).HasColumnName("LRDate").HasColumnType("date").IsRequired(false);
+            builder.Property(t => t.LRDate).HasColumnName("LRDate").HasColumnType("date").HasConversion(nullableDateOnlyConverter).IsRequired(false);
             builder.Property(t => t.TotalBags).HasColumnName("TotalBags").HasColumnType("int").IsRequired();
             builder.Property(t => t.TotalWeight).HasColumnName("TotalWeight").HasColumnType("decimal(18,6)").IsRequired();
             builder.Property(t => t.TaxableValue).HasColumnName("TaxableValue").HasColumnType("decimal(18,6)").IsRequired();
@@ -76,6 +87,12 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             builder.HasOne(t => t.TransportModeMisc)
                 .WithMany(m => m.InvoiceHeadersAsTransportMode)
                 .HasForeignKey(t => t.TransportMode)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasOne(t => t.StatusMisc)
+                .WithMany(m => m.InvoiceHeadersAsStatus)
+                .HasForeignKey(t => t.StatusId)
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
 

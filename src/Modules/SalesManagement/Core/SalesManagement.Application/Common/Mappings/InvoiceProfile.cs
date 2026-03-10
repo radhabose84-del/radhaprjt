@@ -45,6 +45,7 @@ namespace SalesManagement.Application.Common.Mappings
                 .ForMember(dest => dest.AgentName,         opt => opt.Ignore())
                 .ForMember(dest => dest.UnitName,          opt => opt.Ignore())
                 .ForMember(dest => dest.TransportModeName, opt => opt.Ignore())
+                .ForMember(dest => dest.StatusName,        opt => opt.Ignore())
                 .ForMember(dest => dest.InvoiceDetails,    opt => opt.Ignore());
 
             CreateMap<InvoiceDetail, InvoiceDetailDto>()

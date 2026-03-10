@@ -12,15 +12,18 @@ namespace SalesManagement.Infrastructure.Repositories.DocumentSequence
         private readonly IDbConnection _dbConnection;
         private readonly IUnitLookup _unitLookup;
         private readonly IFinancialYearLookup _financialYearLookup;
+        private readonly IModuleLookup _moduleLookup;
 
         public DocumentSequenceQueryRepository(
             IDbConnection dbConnection,
             IUnitLookup unitLookup,
-            IFinancialYearLookup financialYearLookup)
+            IFinancialYearLookup financialYearLookup,
+            IModuleLookup moduleLookup)
         {
             _dbConnection = dbConnection;
             _unitLookup = unitLookup;
             _financialYearLookup = financialYearLookup;
+            _moduleLookup = moduleLookup;
         }
 
         public async Task<(List<DocumentSequenceDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
@@ -113,17 +116,17 @@ namespace SalesManagement.Infrastructure.Repositories.DocumentSequence
             return result.ToList();
         }
 
-        public async Task<IReadOnlyList<string>> GenerateDocumentNumber(int typeId)
+        public async Task<IReadOnlyList<string>> GenerateDocumentNumber(int Id)
         {
             const string sql = @"
                 SELECT ds.Id, ds.TypeId, ds.FinancialYearId, ds.DocNo,
                        ttm.ShortName AS TypeShortName, ttm.UnitId
                 FROM [Finance].[DocumentSequence] ds
                 INNER JOIN [Finance].[TransactionTypeMaster] ttm ON ds.TypeId = ttm.Id AND ttm.IsDeleted = 0
-                WHERE ds.TypeId = @TypeId AND ds.IsDeleted = 0
+                WHERE ds.TypeId = @Id AND ds.IsDeleted = 0
                 ORDER BY ds.FinancialYearId, ds.DocNo";
 
-            var rows = (await _dbConnection.QueryAsync<DocumentSequenceGeneratedDto>(sql, new { TypeId = typeId })).ToList();
+            var rows = (await _dbConnection.QueryAsync<DocumentSequenceGeneratedDto>(sql, new { Id = Id })).ToList();
 
             if (rows.Count == 0)
                 return new List<string>();
@@ -183,11 +186,37 @@ namespace SalesManagement.Infrastructure.Repositories.DocumentSequence
             return count == 0;
         }
 
+        public async Task<int?> GetTransactionTypeIdAsync(string typeName, string moduleName, int unitId)
+        {
+            // Resolve ModuleId via cross-module lookup (AppData.Modules belongs to UserManagement)
+            var modules = await _moduleLookup.GetAllModuleAsync();
+            var module = modules.FirstOrDefault(m => m.ModuleName == moduleName);
+            if (module == null)
+                return null;
+
+            // TransactionTypeMaster is same-module (Finance schema, SalesManagement module) — direct SQL is correct
+            const string sql = @"
+                SELECT Id
+                FROM [Finance].[TransactionTypeMaster]
+                WHERE TypeName = @TypeName
+                  AND ModuleId = @ModuleId
+                  AND UnitId = @UnitId
+                  AND IsDeleted = 0";
+
+            return await _dbConnection.QueryFirstOrDefaultAsync<int?>(sql, new
+            {
+                TypeName = typeName,
+                ModuleId = module.ModuleId,
+                UnitId = unitId
+            });
+        }
+
         // ── Private Helpers ────────────────────────────────────────────────
 
         private static string BuildDocNumber(string? unitShortName, string? typeShortName, string? financialYearName, int docNo)
         {
             return $"{unitShortName ?? "?"}-{typeShortName ?? "?"}-{financialYearName ?? "?"}-{docNo.ToString().PadLeft(4, '0')}".ToUpper();
         }
+       
     }
 }

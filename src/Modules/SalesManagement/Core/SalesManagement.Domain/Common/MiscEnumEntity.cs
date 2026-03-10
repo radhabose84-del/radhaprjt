@@ -21,6 +21,10 @@ namespace SalesManagement.Domain.Common
         public const string Dispatched = "Dispatched";
         public const string Pending = "Pending";
 
+        // Invoice Approval Status
+        public const string InvoiceApprovalStatus = "ApprovalStatus";
+        public const string InvoiceStatusPending = "Pending";
+
         // STO Line Item Status
         public const string StoLineItemStatus = "StoLineItemStatus";
         public const string StoLineStatusDraft = "Draft";
@@ -34,6 +38,11 @@ namespace SalesManagement.Domain.Common
         public const string DCStatusDispatched = "Dispatched";
         public const string DCStatusCancelled = "Cancelled";
         public const string DCStatusDelivered = "Delivered";
+
+        // Document Sequence - Transaction Types
+        public const string TransactionTypeInvoice = "Invoice";
+        public const string TransactionTypePriceMaster = "PriceMaster";
+        public const string ModuleSales = "Sales";
 
         // STO Receipt Status
         public const string StoReceiptLineStatus = "StoReceiptLineStatus";

@@ -16,8 +16,11 @@ namespace SalesManagement.Application.Invoice.Dto
         public int UnitId { get; set; }
         public string? UnitName { get; set; }
         public int FinancialYearId { get; set; }
+        public string? FinancialYearName { get; set; }
         public int? TransportMode { get; set; }
         public string? TransportModeName { get; set; }
+        public int? StatusId { get; set; }
+        public string? StatusName { get; set; }
         public string? VehicleNumber { get; set; }
         public string? TransporterName { get; set; }
         public string? LRNumber { get; set; }
