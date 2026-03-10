@@ -7,6 +7,7 @@ using SalesManagement.Application.DispatchAdvice.Queries.GetDispatchAdviceById;
 using SalesManagement.Application.DispatchAdvice.Queries.GetDispatchAdviceStock;
 using SalesManagement.Application.DispatchAdvice.Queries.GetDispatchAdvicePackNoValidation;
 using SalesManagement.Application.DispatchAdvice.Queries.GetDispatchAdviceAutoComplete;
+using SalesManagement.Application.DispatchAdvice.Queries.GetDispatchAdvicePackRange;
 using SalesManagement.Application.DispatchAdvice.Commands.DeleteDispatchAdvice;
 
 namespace SalesManagement.Presentation.Controllers
@@ -110,6 +111,28 @@ namespace SalesManagement.Presentation.Controllers
                 StartPackNo = startPackNo,
                 EndPackNo = endPackNo,
                 PackTypeId = packTypeId
+            });
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result
+            });
+        }
+
+        [HttpGet("pack-range")]
+        public async Task<IActionResult> GetDispatchAdvicePackRangeAsync(
+            [FromQuery] int itemId,
+            [FromQuery] int lotId,
+            [FromQuery] int packTypeId,
+            [FromQuery] int range)
+        {
+            var result = await Mediator.Send(new GetDispatchAdvicePackRangeQuery
+            {
+                ItemId = itemId,
+                LotId = lotId,
+                PackTypeId = packTypeId,
+                Range = range
             });
 
             return Ok(new
