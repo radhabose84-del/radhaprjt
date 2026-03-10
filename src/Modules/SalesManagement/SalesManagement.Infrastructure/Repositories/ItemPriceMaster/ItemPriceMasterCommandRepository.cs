@@ -14,11 +14,32 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
             _applicationDbContext = applicationDbContext;
         }
 
-        public async Task<int> CreateAsync(Domain.Entities.ItemPriceMaster entity)
+        public async Task<int> CreateAsync(Domain.Entities.ItemPriceMaster entity, int typeId)
         {
-            await _applicationDbContext.ItemPriceMaster.AddAsync(entity);
-            await _applicationDbContext.SaveChangesAsync();
-            return entity.Id;
+            var strategy = _applicationDbContext.Database.CreateExecutionStrategy();
+
+            return await strategy.ExecuteAsync(async () =>
+            {
+                using var transaction = await _applicationDbContext.Database.BeginTransactionAsync();
+                try
+                {
+                    await _applicationDbContext.ItemPriceMaster.AddAsync(entity);
+                    await _applicationDbContext.SaveChangesAsync();
+
+                    // Increment DocNo in Finance.DocumentSequence
+                    await _applicationDbContext.Database.ExecuteSqlRawAsync(
+                        "UPDATE [Finance].[DocumentSequence] SET DocNo = DocNo + 1 WHERE TypeId = {0} AND IsDeleted = 0",
+                        typeId);
+
+                    await transaction.CommitAsync();
+                    return entity.Id;
+                }
+                catch
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
+            });
         }
 
         public async Task<int> UpdateAsync(Domain.Entities.ItemPriceMaster entity)

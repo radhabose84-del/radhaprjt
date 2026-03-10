@@ -116,17 +116,17 @@ namespace SalesManagement.Infrastructure.Repositories.DocumentSequence
             return result.ToList();
         }
 
-        public async Task<IReadOnlyList<string>> GenerateDocumentNumber(int typeId)
+        public async Task<IReadOnlyList<string>> GenerateDocumentNumber(int Id)
         {
             const string sql = @"
                 SELECT ds.Id, ds.TypeId, ds.FinancialYearId, ds.DocNo,
                        ttm.ShortName AS TypeShortName, ttm.UnitId
                 FROM [Finance].[DocumentSequence] ds
                 INNER JOIN [Finance].[TransactionTypeMaster] ttm ON ds.TypeId = ttm.Id AND ttm.IsDeleted = 0
-                WHERE ds.TypeId = @TypeId AND ds.IsDeleted = 0
+                WHERE ds.TypeId = @Id AND ds.IsDeleted = 0
                 ORDER BY ds.FinancialYearId, ds.DocNo";
 
-            var rows = (await _dbConnection.QueryAsync<DocumentSequenceGeneratedDto>(sql, new { TypeId = typeId })).ToList();
+            var rows = (await _dbConnection.QueryAsync<DocumentSequenceGeneratedDto>(sql, new { Id = Id })).ToList();
 
             if (rows.Count == 0)
                 return new List<string>();
@@ -217,5 +217,6 @@ namespace SalesManagement.Infrastructure.Repositories.DocumentSequence
         {
             return $"{unitShortName ?? "?"}-{typeShortName ?? "?"}-{financialYearName ?? "?"}-{docNo.ToString().PadLeft(4, '0')}".ToUpper();
         }
+       
     }
 }

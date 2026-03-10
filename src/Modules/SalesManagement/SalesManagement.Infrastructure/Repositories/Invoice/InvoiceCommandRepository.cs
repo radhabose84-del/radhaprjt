@@ -15,7 +15,7 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
             _dbContext = dbContext;
         }
        
-        public async Task<int> CreateAsync(InvoiceHeader entity, int unitId, int dispatchedStatusId, int invoicedStatusId, int documentSequenceId)
+        public async Task<int> CreateAsync(InvoiceHeader entity, int unitId, int dispatchedStatusId, int invoicedStatusId, int typeId)
         {
             var strategy = _dbContext.Database.CreateExecutionStrategy();
 
@@ -61,8 +61,8 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
 
                     // Increment DocNo in Finance.DocumentSequence
                     await _dbContext.Database.ExecuteSqlRawAsync(
-                        "UPDATE [Finance].[DocumentSequence] SET DocNo = DocNo + 1 WHERE Id = {0}",
-                        documentSequenceId);
+                        "UPDATE [Finance].[DocumentSequence] SET DocNo = DocNo + 1 WHERE TypeId = {0} AND IsDeleted = 0",
+                        typeId);
 
                     await _dbContext.SaveChangesAsync();
                     await transaction.CommitAsync();

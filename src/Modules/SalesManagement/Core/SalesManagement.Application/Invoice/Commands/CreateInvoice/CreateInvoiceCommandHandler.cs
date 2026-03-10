@@ -1,6 +1,7 @@
 using AutoMapper;
 using Contracts.Common;
 using MediatR;
+using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Application.Common.Interfaces.IDocumentSequence;
 using SalesManagement.Application.Common.Interfaces.IInvoice;
 using SalesManagement.Application.Common.Interfaces.IMiscMaster;
@@ -16,6 +17,7 @@ namespace SalesManagement.Application.Invoice.Commands.CreateInvoice
         private readonly IInvoiceQueryRepository _queryRepository;
         private readonly IMiscMasterQueryRepository _miscMasterQueryRepository;
         private readonly IDocumentSequenceQueryRepository _documentSequenceQueryRepository;
+        private readonly IIPAddressService _ipAddressService;
         private readonly IMediator _mediator;
         private readonly IMapper _mapper;
 
@@ -24,6 +26,7 @@ namespace SalesManagement.Application.Invoice.Commands.CreateInvoice
             IInvoiceQueryRepository queryRepository,
             IMiscMasterQueryRepository miscMasterQueryRepository,
             IDocumentSequenceQueryRepository documentSequenceQueryRepository,
+            IIPAddressService ipAddressService,
             IMediator mediator,
             IMapper mapper)
         {
@@ -31,6 +34,7 @@ namespace SalesManagement.Application.Invoice.Commands.CreateInvoice
             _queryRepository = queryRepository;
             _miscMasterQueryRepository = miscMasterQueryRepository;
             _documentSequenceQueryRepository = documentSequenceQueryRepository;
+            _ipAddressService = ipAddressService;
             _mediator = mediator;
             _mapper = mapper;
         }
@@ -44,21 +48,23 @@ namespace SalesManagement.Application.Invoice.Commands.CreateInvoice
                 MiscEnumEntity.InvoiceApprovalStatus, MiscEnumEntity.InvoiceStatusPending);
             entity.StatusId = pendingStatus?.Id;
 
+            // Get UnitId from JWT token
+            var unitId = _ipAddressService.GetUnitId();
+
             // Generate invoice number from DocumentSequence
             var typeId = await _documentSequenceQueryRepository.GetTransactionTypeIdAsync(
-                MiscEnumEntity.TransactionTypeInvoice, MiscEnumEntity.ModuleSales, request.UnitId);
+                MiscEnumEntity.TransactionTypeInvoice, MiscEnumEntity.ModuleSales, unitId);
             if (!typeId.HasValue)
                 throw new ExceptionRules("Transaction Type 'Invoice' not found for Sales module.");
 
-            var sequences = await _documentSequenceQueryRepository.GetByTypeIdAsync(typeId.Value);
-            var latestSequence = sequences.Count > 0 ? sequences[^1] : null;
-            var invoiceNo = latestSequence?.GeneratedDocumentNumber
+            var sequences = await _documentSequenceQueryRepository.GenerateDocumentNumber(typeId.Value);
+            var invoiceNo = sequences.Count > 0 ? sequences[^1] : null;
+            entity.InvoiceNo = invoiceNo
                 ?? throw new ExceptionRules("No document sequence configured for Invoice.");
-            entity.InvoiceNo = invoiceNo;
 
             // Resolve StockLedger status IDs from MiscMaster
             var dispatchedStatus = await _miscMasterQueryRepository.GetMiscMasterByName(
-                MiscEnumEntity.StockStatus, MiscEnumEntity.Dispatched);
+                MiscEnumEntity.StockStatus, MiscEnumEntity.Reserved);
             var dispatchedStatusId = dispatchedStatus?.Id ?? 0;
 
             var invoicedStatus = await _miscMasterQueryRepository.GetMiscMasterByName(
@@ -66,7 +72,7 @@ namespace SalesManagement.Application.Invoice.Commands.CreateInvoice
             var invoicedStatusId = invoicedStatus?.Id ?? 0;
 
             // Insert header + details, update StockLedger Dispatched → Invoiced, increment DocNo
-            var newId = await _commandRepository.CreateAsync(entity, request.UnitId, dispatchedStatusId, invoicedStatusId, latestSequence.Id);
+            var newId = await _commandRepository.CreateAsync(entity, unitId, dispatchedStatusId, invoicedStatusId, typeId.Value);
 
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Create",
