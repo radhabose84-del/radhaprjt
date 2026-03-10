@@ -9,7 +9,7 @@ namespace SalesManagement.Domain.Entities
         public int ItemId { get; set; }                   // Cross-module FK → InventoryManagement
         public string? HsnCode { get; set; }
         public decimal GstPercentage { get; set; }
-        public string? LotNo { get; set; }
+        public int? LotId { get; set; }                   // FK → Sales.LotMaster
         public int NoOfBags { get; set; }
         public decimal Quantity { get; set; }
         public decimal RatePerKg { get; set; }
@@ -29,5 +29,6 @@ namespace SalesManagement.Domain.Entities
         // Navigation properties
         public InvoiceHeader? InvoiceHeader { get; set; }
         public PackType? PackType { get; set; }
+        public LotMaster? LotMaster { get; set; }
     }
 }

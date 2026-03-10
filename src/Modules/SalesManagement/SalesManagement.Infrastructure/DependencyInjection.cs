@@ -72,6 +72,10 @@ using SalesManagement.Application.Common.Interfaces.ITransactionTypeMaster;
 using SalesManagement.Infrastructure.Repositories.TransactionTypeMaster;
 using SalesManagement.Application.Common.Interfaces.IInvoice;
 using SalesManagement.Infrastructure.Repositories.Invoice;
+using SalesManagement.Application.Common.Interfaces.IStoReceipt;
+using SalesManagement.Infrastructure.Repositories.StoReceipt;
+using SalesManagement.Application.Common.Interfaces.IDocumentSequence;
+using SalesManagement.Infrastructure.Repositories.DocumentSequence;
 
 namespace SalesManagement.Infrastructure
 {
@@ -274,6 +278,14 @@ namespace SalesManagement.Infrastructure
            // ── Invoice Repositories ───────────────────────────────────────────
             services.AddScoped<IInvoiceCommandRepository, InvoiceCommandRepository>();
             services.AddScoped<IInvoiceQueryRepository, InvoiceQueryRepository>();
+
+            // ── STO Receipt Repositories ────────────────────────────────────────
+            services.AddScoped<IStoReceiptCommandRepository, StoReceiptCommandRepository>();
+            services.AddScoped<IStoReceiptQueryRepository, StoReceiptQueryRepository>();
+
+            // ── Document Sequence Repositories ──────────────────────────────────
+            services.AddScoped<IDocumentSequenceCommandRepository, DocumentSequenceCommandRepository>();
+            services.AddScoped<IDocumentSequenceQueryRepository, DocumentSequenceQueryRepository>();
 
             return services;
         }
