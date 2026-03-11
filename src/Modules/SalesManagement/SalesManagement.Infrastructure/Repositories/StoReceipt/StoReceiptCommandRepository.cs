@@ -38,7 +38,7 @@ namespace SalesManagement.Infrastructure.Repositories.StoReceipt
             return $"{prefix}{nextSeq:D5}";
         }
 
-        public async Task<int> CreateAsync(StoReceiptHeader entity, int receivingPlantId, int reservedStatusId, int dispatchedStatusId)
+        public async Task<int> CreateAsync(StoReceiptHeader entity, int packedStatusId)
         {
             var strategy = _dbContext.Database.CreateExecutionStrategy();
             var newId = 0;
@@ -56,7 +56,15 @@ namespace SalesManagement.Infrastructure.Repositories.StoReceipt
                     await _dbContext.StoReceiptHeader.AddAsync(entity);
                     await _dbContext.SaveChangesAsync();
 
-                    // Insert details and update StockLedger per detail line
+                    // Get FromPlantId from the linked DeliveryChallan
+                    var dcHeader = await _dbContext.DeliveryChallanHeader
+                        .Where(dc => dc.Id == entity.DeliveryChallanHeaderId && dc.IsDeleted == IsDelete.NotDeleted)
+                        .Select(dc => new { dc.FromPlantId, dc.FromStorageLocationId })
+                        .FirstOrDefaultAsync();
+
+                    var fromPlantId = dcHeader?.FromPlantId ?? 0;
+
+                    // Insert details and create StockLedger at receiving plant
                     if (details != null && details.Count > 0)
                     {
                         foreach (var detail in details)
@@ -81,20 +89,38 @@ namespace SalesManagement.Infrastructure.Repositories.StoReceipt
                             };
                             await _dbContext.StoReceiptDetail.AddAsync(newDetail);
 
-                            // Update StockLedger: change each PackNo from Reserved to Dispatched
+                            // INSERT new StockLedger rows at ReceivingPlant for each PackNo
                             for (int packNo = detail.StartPackNo; packNo <= detail.EndPackNo; packNo++)
                             {
-                                var stockRecord = await _dbContext.StockLedger
-                                    .FirstOrDefaultAsync(s => s.UnitId == receivingPlantId
+                                // Fetch PackTypeId and TotalValue from the FromPlant's StockLedger
+                                var sourceStock = await _dbContext.StockLedger
+                                    .FirstOrDefaultAsync(s => s.UnitId == fromPlantId
                                         && s.ItemId == detail.ItemId
                                         && s.LotId == detail.LotId
-                                        && s.PackNo == packNo
-                                        && s.StatusId == reservedStatusId);
+                                        && s.PackNo == packNo);
 
-                                if (stockRecord != null)
+                                var packTypeId = sourceStock?.PackTypeId ?? 0;
+                                var totalValue = sourceStock?.TotalValue ?? 0;
+
+                                // Insert new StockLedger at receiving plant with Packed status
+                                var newStock = new StockLedger
                                 {
-                                    stockRecord.StatusId = dispatchedStatusId;
-                                }
+                                    UnitId = entity.ReceivingPlantId,
+                                    DocType = "STOR",
+                                    DocNo = entity.Id,
+                                    DetailDocNo = newDetail.Id > 0 ? newDetail.Id : 0,
+                                    DocDate = entity.StoReceiptDate,
+                                    ItemId = detail.ItemId,
+                                    LotId = detail.LotId,
+                                    PackNo = packNo,
+                                    PackTypeId = packTypeId,
+                                    WarehouseId = entity.ReceivingStorageLocationId,
+                                    BinId = entity.BinId ?? 0,
+                                    TotalQty = 1,
+                                    TotalValue = totalValue,
+                                    StatusId = packedStatusId
+                                };
+                                await _dbContext.StockLedger.AddAsync(newStock);
                             }
                         }
 
@@ -112,68 +138,6 @@ namespace SalesManagement.Infrastructure.Repositories.StoReceipt
             });
 
             return newId;
-        }
-
-        public async Task<bool> SoftDeleteAsync(int id, int dispatchedStatusId, int reservedStatusId, CancellationToken ct)
-        {
-            var strategy = _dbContext.Database.CreateExecutionStrategy();
-            var result = false;
-
-            await strategy.ExecuteAsync(async () =>
-            {
-                using var transaction = await _dbContext.Database.BeginTransactionAsync(ct);
-                try
-                {
-                    var existing = await _dbContext.StoReceiptHeader
-                        .Include(h => h.StoReceiptDetails)
-                        .FirstOrDefaultAsync(x => x.Id == id && x.IsDeleted == IsDelete.NotDeleted, ct);
-
-                    if (existing == null)
-                    {
-                        result = false;
-                        return;
-                    }
-
-                    // Reverse StockLedger: change each PackNo from Dispatched back to Reserved
-                    if (existing.StoReceiptDetails != null && existing.StoReceiptDetails.Count > 0)
-                    {
-                        var receivingPlantId = existing.ReceivingPlantId;
-
-                        foreach (var detail in existing.StoReceiptDetails)
-                        {
-                            for (int packNo = detail.StartPackNo; packNo <= detail.EndPackNo; packNo++)
-                            {
-                                var stockRecord = await _dbContext.StockLedger
-                                    .FirstOrDefaultAsync(s => s.UnitId == receivingPlantId
-                                        && s.ItemId == detail.ItemId
-                                        && s.LotId == detail.LotId
-                                        && s.PackNo == packNo
-                                        && s.StatusId == dispatchedStatusId, ct);
-
-                                if (stockRecord != null)
-                                {
-                                    stockRecord.StatusId = reservedStatusId;
-                                }
-                            }
-                        }
-                    }
-
-                    // Soft delete header
-                    existing.IsDeleted = IsDelete.Deleted;
-                    _dbContext.StoReceiptHeader.Update(existing);
-                    await _dbContext.SaveChangesAsync(ct);
-
-                    await transaction.CommitAsync(ct);
-                    result = true;
-                }
-                catch
-                {
-                    await transaction.RollbackAsync(ct);
-                    throw;
-                }
-            });
-
-            return result;
         }
     }
 }

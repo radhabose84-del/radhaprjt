@@ -54,6 +54,16 @@ namespace PartyManagement.Domain.Entities
         public bool IsUpdate { get; set; }
         public MiscMaster? StatusParty { get; set; }
         public MiscMaster? CustomerTypeMisc { get; set; } = null!;
+        public int? TransportModeId { get; set; }
+        public MiscMaster? TransportModeMisc { get; set; }
+        public int? VehicleTypeId { get; set; }
+        public MiscMaster? VehicleTypeMisc { get; set; }
+        public int? DefaultFreightTypeId { get; set; }
+        public MiscMaster? DefaultFreightTypeMisc { get; set; }
+        public decimal? DefaultFreightRate { get; set; }
+        public string? LicenseNo { get; set; }
+        public DateTimeOffset? LicenseExpiryDate { get; set; }
+        public string? FreightExpensesGl { get; set; }
         public ICollection<PartyContact>? PartyContactTypes { get; set; }
         public ICollection<PartyAddress>? PartyAddressTypes { get; set; }
         public ICollection<PartyType>? PartyTypes { get; set; }

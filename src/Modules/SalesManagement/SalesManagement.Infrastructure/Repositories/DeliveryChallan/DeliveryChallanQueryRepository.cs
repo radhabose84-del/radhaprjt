@@ -326,5 +326,16 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
 
             return result;
         }
+
+        public async Task<bool> HasStoReceiptAsync(int dcHeaderId)
+        {
+            const string sql = @"
+                SELECT COUNT(1)
+                FROM Sales.StoReceiptHeader
+                WHERE DeliveryChallanHeaderId = @DcHeaderId AND IsDeleted = 0;";
+
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { DcHeaderId = dcHeaderId });
+            return count > 0;
+        }
     }
 }

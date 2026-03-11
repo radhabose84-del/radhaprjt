@@ -53,8 +53,8 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("int")
                 .IsRequired();
 
-            builder.Property(t => t.RackId)
-                .HasColumnName("RackId")
+            builder.Property(t => t.BinId)
+                .HasColumnName("BinId")
                 .HasColumnType("int")
                 .IsRequired(false);
 

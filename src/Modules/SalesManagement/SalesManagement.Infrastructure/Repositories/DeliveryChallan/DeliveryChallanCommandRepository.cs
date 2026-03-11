@@ -37,7 +37,7 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
             return $"{prefix}{nextSeq:D5}";
         }
 
-        public async Task<int> CreateAsync(Domain.Entities.DeliveryChallanHeader entity, int fromPlantId, int packedStatusId, int reservedStatusId)
+        public async Task<int> CreateAsync(Domain.Entities.DeliveryChallanHeader entity, int fromPlantId, int packedStatusId, int dispatchedStatusId)
         {
             var strategy = _dbContext.Database.CreateExecutionStrategy();
             var newId = 0;
@@ -91,7 +91,7 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
 
                                 if (stockRecord != null)
                                 {
-                                    stockRecord.StatusId = reservedStatusId;
+                                    stockRecord.StatusId = dispatchedStatusId;
                                 }
                             }
                         }
@@ -112,7 +112,7 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
             return newId;
         }
 
-        public async Task<bool> SoftDeleteAsync(int id, int reservedStatusId, int packedStatusId, CancellationToken ct)
+        public async Task<bool> SoftDeleteAsync(int id, int dispatchedStatusId, int packedStatusId, CancellationToken ct)
         {
             var strategy = _dbContext.Database.CreateExecutionStrategy();
             var result = false;
@@ -144,7 +144,7 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
                                         && s.ItemId == detail.ItemId
                                         && s.LotId == detail.LotId
                                         && s.PackNo == packNo
-                                        && s.StatusId == reservedStatusId, ct);
+                                        && s.StatusId == dispatchedStatusId, ct);
 
                                 if (stockRecord != null)
                                 {

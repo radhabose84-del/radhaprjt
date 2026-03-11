@@ -35,6 +35,13 @@ namespace SalesManagement.Presentation.Validation.DeliveryChallan
                             .WithMessage($"Delivery Challan {rule.Error}");
                         break;
 
+                    case "SoftDelete":
+                        RuleFor(x => x.Id)
+                            .MustAsync(async (id, ct) => !await _queryRepository.HasStoReceiptAsync(id))
+                            .WithMessage("Cannot delete Delivery Challan. STO Receipt has already been created against it.")
+                            .When(x => x.Id > 0);
+                        break;
+
                     default:
                         break;
                 }
