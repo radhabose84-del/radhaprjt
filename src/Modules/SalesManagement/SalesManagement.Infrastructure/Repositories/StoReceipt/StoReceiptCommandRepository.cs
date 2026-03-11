@@ -38,7 +38,7 @@ namespace SalesManagement.Infrastructure.Repositories.StoReceipt
             return $"{prefix}{nextSeq:D5}";
         }
 
-        public async Task<int> CreateAsync(StoReceiptHeader entity, int packedStatusId, int reservedStatusId, int dispatchedStatusId)
+        public async Task<int> CreateAsync(StoReceiptHeader entity, int packedStatusId)
         {
             var strategy = _dbContext.Database.CreateExecutionStrategy();
             var newId = 0;
@@ -89,25 +89,18 @@ namespace SalesManagement.Infrastructure.Repositories.StoReceipt
                             };
                             await _dbContext.StoReceiptDetail.AddAsync(newDetail);
 
-                            // Process StockLedger for each PackNo
+                            // INSERT new StockLedger rows at ReceivingPlant for each PackNo
                             for (int packNo = detail.StartPackNo; packNo <= detail.EndPackNo; packNo++)
                             {
-                                // Fetch source StockLedger at FromPlant (Reserved status)
+                                // Fetch PackTypeId and TotalValue from the FromPlant's StockLedger
                                 var sourceStock = await _dbContext.StockLedger
                                     .FirstOrDefaultAsync(s => s.UnitId == fromPlantId
                                         && s.ItemId == detail.ItemId
                                         && s.LotId == detail.LotId
-                                        && s.PackNo == packNo
-                                        && s.StatusId == reservedStatusId);
+                                        && s.PackNo == packNo);
 
                                 var packTypeId = sourceStock?.PackTypeId ?? 0;
                                 var totalValue = sourceStock?.TotalValue ?? 0;
-
-                                // Update old StockLedger at FromPlant: Reserved → Dispatched
-                                if (sourceStock != null)
-                                {
-                                    sourceStock.StatusId = dispatchedStatusId;
-                                }
 
                                 // Insert new StockLedger at receiving plant with Packed status
                                 var newStock = new StockLedger
