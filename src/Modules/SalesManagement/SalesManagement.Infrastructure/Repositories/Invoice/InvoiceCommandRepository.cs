@@ -61,7 +61,7 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
 
                     // Increment DocNo in Finance.DocumentSequence
                     await _dbContext.Database.ExecuteSqlRawAsync(
-                        "UPDATE [Finance].[DocumentSequence] SET DocNo = DocNo + 1 WHERE TypeId = {0} AND IsDeleted = 0",
+                        "UPDATE [Finance].[DocumentSequence] SET DocNo = DocNo + 1 WHERE TransactionTypeId = {0} AND IsDeleted = 0",
                         typeId);
 
                     await _dbContext.SaveChangesAsync();

@@ -88,7 +88,7 @@ namespace SalesManagement.Infrastructure.Repositories.ProductionPack
 
                     // Step 6: Increment DocNo in DocumentSequence
                     await _applicationDbContext.Database.ExecuteSqlRawAsync(
-                        "UPDATE [Finance].[DocumentSequence] SET DocNo = DocNo + 1 WHERE TypeId = {0} AND IsDeleted = 0",
+                        "UPDATE [Finance].[DocumentSequence] SET DocNo = DocNo + 1 WHERE TransactionTypeId = {0} AND IsDeleted = 0",
                         typeId);
 
                     await transaction.CommitAsync();
@@ -120,12 +120,13 @@ namespace SalesManagement.Infrastructure.Repositories.ProductionPack
                 {
                     // Update header fields (StatusId removed from header)
                     existingEntity.PackDate = entity.PackDate;
+                    existingEntity.ProductionYear = entity.ProductionYear;
                     existingEntity.UnitId = entity.UnitId;
                     existingEntity.WarehouseId = entity.WarehouseId;
                     existingEntity.TotalBags = entity.TotalBags;
                     existingEntity.TotalNetWeight = entity.TotalNetWeight;
                     existingEntity.ProductionKgs = entity.ProductionKgs;
-                    existingEntity.LooseKgs = entity.LooseKgs;
+                    existingEntity.LooseConeKgs = entity.LooseConeKgs;
                     existingEntity.Remarks = entity.Remarks;
                     existingEntity.IsActive = entity.IsActive;
 

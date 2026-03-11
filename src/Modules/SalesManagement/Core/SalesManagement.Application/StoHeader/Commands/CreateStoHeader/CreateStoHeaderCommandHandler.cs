@@ -1,7 +1,10 @@
 using AutoMapper;
 using Contracts.Common;
 using MediatR;
+using SalesManagement.Application.Common.Interfaces;
+using SalesManagement.Application.Common.Interfaces.IDocumentSequence;
 using SalesManagement.Application.Common.Interfaces.IStoHeader;
+using SalesManagement.Domain.Common;
 using SalesManagement.Domain.Events;
 
 namespace SalesManagement.Application.StoHeader.Commands.CreateStoHeader
@@ -10,17 +13,23 @@ namespace SalesManagement.Application.StoHeader.Commands.CreateStoHeader
     {
         private readonly IStoHeaderCommandRepository _commandRepository;
         private readonly IStoHeaderQueryRepository _queryRepository;
+        private readonly IDocumentSequenceQueryRepository _documentSequenceQueryRepository;
+        private readonly IIPAddressService _ipAddressService;
         private readonly IMediator _mediator;
         private readonly IMapper _mapper;
 
         public CreateStoHeaderCommandHandler(
             IStoHeaderCommandRepository commandRepository,
             IStoHeaderQueryRepository queryRepository,
+            IDocumentSequenceQueryRepository documentSequenceQueryRepository,
+            IIPAddressService ipAddressService,
             IMediator mediator,
             IMapper mapper)
         {
             _commandRepository = commandRepository;
             _queryRepository = queryRepository;
+            _documentSequenceQueryRepository = documentSequenceQueryRepository;
+            _ipAddressService = ipAddressService;
             _mediator = mediator;
             _mapper = mapper;
         }
@@ -29,11 +38,21 @@ namespace SalesManagement.Application.StoHeader.Commands.CreateStoHeader
         {
             var entity = _mapper.Map<Domain.Entities.StoHeader>(request);
 
-            // Generate STO Number
-            var stoNumber = await _commandRepository.GenerateNextStoNumberAsync(request.SupplyingPlantId, cancellationToken);
-            entity.StoNumber = stoNumber;
+            // Get UnitId from JWT token
+            var unitId = _ipAddressService.GetUnitId();
 
-            var newId = await _commandRepository.CreateAsync(entity);
+            // Generate STO Number from Finance.DocumentSequence
+            var typeId = await _documentSequenceQueryRepository.GetTransactionTypeIdAsync(
+                MiscEnumEntity.TransactionTypeSto, MiscEnumEntity.ModuleSales, unitId);
+            if (!typeId.HasValue)
+                throw new ExceptionRules("Transaction Type 'Stock Transfer Order' not found for Sales module.");
+
+            var sequences = await _documentSequenceQueryRepository.GenerateDocumentNumber(typeId.Value);
+            var stoNumber = sequences.Count > 0 ? sequences[^1] : null;
+            entity.StoNumber = stoNumber
+                ?? throw new ExceptionRules("No document sequence configured for Stock Transfer Order.");
+
+            var newId = await _commandRepository.CreateAsync(entity, typeId.Value);
 
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Create",

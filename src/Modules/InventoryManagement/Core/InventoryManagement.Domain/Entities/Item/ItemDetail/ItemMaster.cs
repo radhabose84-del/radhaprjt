@@ -38,6 +38,8 @@ namespace InventoryManagement.Domain.Entities.Item.ItemDetail
         public ItemSale? Sale { get; set; }
         public int? IssueRuleId { get; set; }
         public MiscMaster? MiscIssueRule { get; set; } = null!;
+        public int? OriginCountryId { get; set; }
+        public string? TariffNumber { get; set; }
         public bool IsOnSpot { get; set; }=false;
         public ICollection<ItemVariantValue> VariantValues { get; set; } = new List<ItemVariantValue>();
         public ICollection<ItemSupplier> Suppliers { get; set; } = new List<ItemSupplier>();

@@ -15,30 +15,7 @@ namespace SalesManagement.Infrastructure.Repositories.StoHeader
             _dbContext = dbContext;
         }
 
-        public async Task<string> GenerateNextStoNumberAsync(int supplyingPlantId, CancellationToken ct = default)
-        {
-            var prefix = $"STO-{supplyingPlantId}-";
-
-            var lastNumber = await _dbContext.StoHeader
-                .Where(x => x.StoNumber != null && x.StoNumber.StartsWith(prefix))
-                .OrderByDescending(x => x.StoNumber)
-                .Select(x => x.StoNumber)
-                .FirstOrDefaultAsync(ct);
-
-            var nextSeq = 1;
-            if (lastNumber != null)
-            {
-                var seqPart = lastNumber.Substring(prefix.Length);
-                if (int.TryParse(seqPart, out var lastSeq))
-                {
-                    nextSeq = lastSeq + 1;
-                }
-            }
-
-            return $"{prefix}{nextSeq:D5}";
-        }
-
-        public async Task<int> CreateAsync(Domain.Entities.StoHeader entity)
+        public async Task<int> CreateAsync(Domain.Entities.StoHeader entity, int typeId)
         {
             // Separate details from header
             var details = entity.StoDetails?.ToList();
@@ -74,6 +51,11 @@ namespace SalesManagement.Infrastructure.Repositories.StoHeader
 
                 await _dbContext.SaveChangesAsync();
             }
+
+            // Increment DocNo in Finance.DocumentSequence
+            await _dbContext.Database.ExecuteSqlRawAsync(
+                "UPDATE [Finance].[DocumentSequence] SET DocNo = DocNo + 1 WHERE TransactionTypeId = {0} AND IsDeleted = 0",
+                typeId);
 
             return entity.Id;
         }
