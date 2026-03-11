@@ -1,6 +1,8 @@
 using AutoMapper;
 using Contracts.Common;
 using MediatR;
+using SalesManagement.Application.Common.Interfaces;
+using SalesManagement.Application.Common.Interfaces.IDocumentSequence;
 using SalesManagement.Application.Common.Interfaces.IMiscMaster;
 using SalesManagement.Application.Common.Interfaces.IStoReceipt;
 using SalesManagement.Domain.Common;
@@ -14,6 +16,8 @@ namespace SalesManagement.Application.StoReceipt.Commands.CreateStoReceipt
         private readonly IStoReceiptCommandRepository _commandRepository;
         private readonly IStoReceiptQueryRepository _queryRepository;
         private readonly IMiscMasterQueryRepository _miscMasterQueryRepository;
+        private readonly IDocumentSequenceQueryRepository _documentSequenceQueryRepository;
+        private readonly IIPAddressService _ipAddressService;
         private readonly IMediator _mediator;
         private readonly IMapper _mapper;
 
@@ -21,12 +25,16 @@ namespace SalesManagement.Application.StoReceipt.Commands.CreateStoReceipt
             IStoReceiptCommandRepository commandRepository,
             IStoReceiptQueryRepository queryRepository,
             IMiscMasterQueryRepository miscMasterQueryRepository,
+            IDocumentSequenceQueryRepository documentSequenceQueryRepository,
+            IIPAddressService ipAddressService,
             IMediator mediator,
             IMapper mapper)
         {
             _commandRepository = commandRepository;
             _queryRepository = queryRepository;
             _miscMasterQueryRepository = miscMasterQueryRepository;
+            _documentSequenceQueryRepository = documentSequenceQueryRepository;
+            _ipAddressService = ipAddressService;
             _mediator = mediator;
             _mapper = mapper;
         }
@@ -49,17 +57,30 @@ namespace SalesManagement.Application.StoReceipt.Commands.CreateStoReceipt
                 }
             }
 
-            // Generate auto-number: STOR-{ReceivingPlantId}-{Seq:D5}
-            var stoReceiptNumber = await _commandRepository.GenerateNextStoReceiptNumberAsync(
-                request.ReceivingPlantId, cancellationToken);
-            entity.StoReceiptNumber = stoReceiptNumber;
+            // Get UnitId from JWT token
+            var unitId = _ipAddressService.GetUnitId();
 
-            // Resolve Packed status ID for new StockLedger rows at receiving plant
+            // Generate STO Receipt Number from Finance.DocumentSequence
+            var typeId = await _documentSequenceQueryRepository.GetTransactionTypeIdAsync(
+                MiscEnumEntity.TransactionTypeStogr, MiscEnumEntity.ModuleSales, unitId);
+            if (!typeId.HasValue)
+                throw new ExceptionRules("Transaction Type 'STO Goods Receipt' not found for Sales module.");
+
+            var sequences = await _documentSequenceQueryRepository.GenerateDocumentNumber(typeId.Value);
+            var stoReceiptNumber = sequences.Count > 0 ? sequences[^1] : null;
+            entity.StoReceiptNumber = stoReceiptNumber
+                ?? throw new ExceptionRules("No document sequence configured for STO Goods Receipt.");
+
+            // Resolve Packed and Damaged status IDs for new StockLedger rows at receiving plant
             var packedStatus = await _miscMasterQueryRepository.GetMiscMasterByName(
                 MiscEnumEntity.StockStatus, MiscEnumEntity.Packed);
             var packedStatusId = packedStatus?.Id ?? 0;
 
-            var newId = await _commandRepository.CreateAsync(entity, packedStatusId);
+            var damagedStatus = await _miscMasterQueryRepository.GetMiscMasterByName(
+                MiscEnumEntity.StockStatus, MiscEnumEntity.Damaged);
+            var damagedStatusId = damagedStatus?.Id ?? 0;
+
+            var newId = await _commandRepository.CreateAsync(entity, packedStatusId, damagedStatusId, typeId.Value);
 
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Create",

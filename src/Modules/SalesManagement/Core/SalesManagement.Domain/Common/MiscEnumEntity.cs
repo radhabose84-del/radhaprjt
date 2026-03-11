@@ -19,6 +19,7 @@ namespace SalesManagement.Domain.Common
         public const string Reserved = "Reserved";
         public const string Invoiced = "Invoiced";
         public const string Dispatched = "Dispatched";
+        public const string Damaged = "Damaged";
         public const string Pending = "Pending";
 
         // Invoice Approval Status
@@ -44,6 +45,9 @@ namespace SalesManagement.Domain.Common
         public const string TransactionTypeInvoice = "Invoice";
         public const string TransactionTypePriceMaster = "PriceMaster";
         public const string TransactionTypePackMaster = "PackMaster";
+        public const string TransactionTypeSto = "Stock Transfer Order";
+        public const string TransactionTypeStodc = "STO Delivery Challan";
+        public const string TransactionTypeStogr = "STO Goods Receipt";
         public const string ModuleSales = "Sales";
 
         // STO Receipt Status
