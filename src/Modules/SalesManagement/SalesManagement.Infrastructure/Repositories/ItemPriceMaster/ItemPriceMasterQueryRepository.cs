@@ -41,7 +41,7 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
                 SELECT
                     sipm.Id, sipm.PriceCode,
                     sipm.ItemId, sipm.SalesSegmentId, sipm.PaymentTermsId,
-                    sipm.ExMillRate, sipm.CurrencyId,
+                    sipm.BaseRate, sipm.ExMillRate, sipm.CurrencyId,
                     sipm.ValidFrom, sipm.ValidTo,
                     sipm.StatusId,
                     sm.Description AS StatusName,
@@ -117,7 +117,7 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
                 SELECT
                     sipm.Id, sipm.PriceCode,
                     sipm.ItemId, sipm.SalesSegmentId, sipm.PaymentTermsId,
-                    sipm.ExMillRate, sipm.CurrencyId,
+                    sipm.BaseRate, sipm.ExMillRate, sipm.CurrencyId,
                     sipm.ValidFrom, sipm.ValidTo,
                     sipm.StatusId,
                     sm.Description AS StatusName,
@@ -167,7 +167,7 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
             string term, CancellationToken ct)
         {
             const string sql = @"
-                SELECT Id, PriceCode, ItemId, ExMillRate, ValidFrom, ValidTo
+                SELECT Id, PriceCode, ItemId, BaseRate, ExMillRate, ValidFrom, ValidTo
                 FROM Sales.ItemPriceMaster
                 WHERE IsDeleted = 0 AND IsActive = 1
                   AND PriceCode LIKE @Term
@@ -192,6 +192,7 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
                     Id = (int)r.Id,
                     PriceCode = (string)r.PriceCode,
                     ItemName = itemData?.ItemName,
+                    BaseRate = (decimal)r.BaseRate,
                     ExMillRate = (decimal)r.ExMillRate,
                     ValidFrom = DateOnly.FromDateTime((DateTime)r.ValidFrom),
                     ValidTo = DateOnly.FromDateTime((DateTime)r.ValidTo)
@@ -311,7 +312,7 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
                 SELECT
                     sipm.Id, sipm.PriceCode,
                     sipm.ItemId, sipm.SalesSegmentId, sipm.PaymentTermsId,
-                    sipm.ExMillRate, sipm.CurrencyId,
+                    sipm.BaseRate, sipm.ExMillRate, sipm.CurrencyId,
                     sipm.ValidFrom, sipm.ValidTo,
                     sipm.StatusId,
                     sm.Description AS StatusName,

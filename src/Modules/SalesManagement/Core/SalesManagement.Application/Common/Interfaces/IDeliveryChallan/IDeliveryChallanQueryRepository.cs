@@ -11,5 +11,6 @@ namespace SalesManagement.Application.Common.Interfaces.IDeliveryChallan
         Task<bool> StoHeaderExistsAsync(int stoHeaderId);
         Task<bool> LotExistsAsync(int lotId);
         Task<StoOpenQtyDto?> GetStoOpenQtyAsync(int stoDetailId);
+        Task<bool> HasStoReceiptAsync(int dcHeaderId);
     }
 }

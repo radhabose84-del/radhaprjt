@@ -59,7 +59,7 @@ namespace SalesManagement.Infrastructure.Repositories.StoReceipt
                     dc.DeliveryNumber,
                     h.ReceivingPlantId,
                     h.ReceivingStorageLocationId,
-                    h.RackId,
+                    h.BinId,
                     h.VehicleNumber,
                     h.Remarks,
                     h.StatusId,
@@ -103,15 +103,15 @@ namespace SalesManagement.Infrastructure.Repositories.StoReceipt
                 var warehouses = await _warehouseLookup.GetByIdsAsync(warehouseIds);
                 var warehouseDict = warehouses.ToDictionary(w => w.Id, w => w.WarehouseName);
 
-                var rackIds = data.Where(d => d.RackId.HasValue).Select(d => d.RackId!.Value).Distinct();
-                var racks = await _rackLookup.GetByIdsAsync(rackIds);
-                var rackDict = racks.ToDictionary(r => r.Id, r => r.RackName);
+                var binIds = data.Where(d => d.BinId.HasValue).Select(d => d.BinId!.Value).Distinct();
+                var bins = await _rackLookup.GetByIdsAsync(binIds);
+                var binDict = bins.ToDictionary(r => r.Id, r => r.RackName);
 
                 foreach (var item in data)
                 {
                     item.ReceivingPlantName = plantDict.TryGetValue(item.ReceivingPlantId, out var pName) ? pName : null;
                     item.ReceivingStorageLocationName = warehouseDict.TryGetValue(item.ReceivingStorageLocationId, out var wName) ? wName : null;
-                    item.RackName = item.RackId.HasValue && rackDict.TryGetValue(item.RackId.Value, out var rName) ? rName : null;
+                    item.BinName = item.BinId.HasValue && binDict.TryGetValue(item.BinId.Value, out var bName) ? bName : null;
                 }
             }
 
@@ -129,7 +129,7 @@ namespace SalesManagement.Infrastructure.Repositories.StoReceipt
                     dc.DeliveryNumber,
                     h.ReceivingPlantId,
                     h.ReceivingStorageLocationId,
-                    h.RackId,
+                    h.BinId,
                     h.VehicleNumber,
                     h.Remarks,
                     h.StatusId,
@@ -162,10 +162,10 @@ namespace SalesManagement.Infrastructure.Repositories.StoReceipt
             var wh = warehouses.FirstOrDefault();
             header.ReceivingStorageLocationName = wh?.WarehouseName;
 
-            if (header.RackId.HasValue)
+            if (header.BinId.HasValue)
             {
-                var rackList = await _rackLookup.GetByIdsAsync(new[] { header.RackId.Value });
-                header.RackName = rackList.FirstOrDefault()?.RackName;
+                var binList = await _rackLookup.GetByIdsAsync(new[] { header.BinId.Value });
+                header.BinName = binList.FirstOrDefault()?.RackName;
             }
 
             // Fetch details with Lot + LineStatus JOINs

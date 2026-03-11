@@ -43,6 +43,13 @@ namespace PartyManagement.Application.PartyMaster.Command.CreatePartyMaster
         public int UnitId { get; set; }
         public decimal? InsuranceLimit { get; set; }
         public byte IsPortalAccessEnabled { get; set; }
+        public int? TransportModeId { get; set; }
+        public int? VehicleTypeId { get; set; }
+        public int? DefaultFreightTypeId { get; set; }
+        public decimal? DefaultFreightRate { get; set; }
+        public string? LicenseNo { get; set; }
+        public DateTimeOffset? LicenseExpiryDate { get; set; }
+        public string? FreightExpensesGl { get; set; }
 
         public List<PartyUnitCompanyDto>? PartyUnitCompanies { get; set; } 
         public List<PartyTypeDto>? PartyTypes { get; set; }

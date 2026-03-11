@@ -48,6 +48,11 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("int")
                 .IsRequired();
 
+            builder.Property(t => t.BaseRate)
+                .HasColumnName("BaseRate")
+                .HasColumnType("decimal(18,4)")
+                .IsRequired();
+
             builder.Property(t => t.ExMillRate)
                 .HasColumnName("ExMillRate")
                 .HasColumnType("decimal(18,4)")
