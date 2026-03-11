@@ -13,17 +13,20 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
         private readonly IDbConnection _dbConnection;
         private readonly IPartyLookup _partyLookup;
         private readonly IItemLookup _itemLookup;
+        private readonly IHSNLookup _hsnLookup;
         private readonly IIPAddressService _ipAddressService;
 
         public DispatchAdviceQueryRepository(
             IDbConnection dbConnection,
             IPartyLookup partyLookup,
             IItemLookup itemLookup,
+            IHSNLookup hsnLookup,
             IIPAddressService ipAddressService)
         {
             _dbConnection = dbConnection;
             _partyLookup = partyLookup;
             _itemLookup = itemLookup;
+            _hsnLookup = hsnLookup;
             _ipAddressService = ipAddressService;
         }
 
@@ -131,10 +134,20 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
                     lm.LotCode,
                     d.StartPackNo, d.EndPackNo, d.DispatchQty,
                     d.PackTypeId,
-                    pt.PackTypeName
+                    pt.PackTypeName,
+                    sod.HSNId,
+                    sod.ExMillRate,
+                    sod.TaxableAmount,
+                    sod.TaxPercentage,
+                    sod.TaxAmount,
+                    sod.TCSPercentage,
+                    sod.TCSAmount,
+                    sod.NetAmount,
+                    sod.BagWeight
                 FROM Sales.DispatchAdviceDetail d
                 LEFT JOIN Sales.LotMaster lm ON d.LotId = lm.Id AND lm.IsDeleted = 0
                 LEFT JOIN Sales.PackType pt ON d.PackTypeId = pt.Id AND pt.IsDeleted = 0
+                LEFT JOIN Sales.SalesOrderDetail sod ON d.SalesOrderDetailId = sod.Id
                 WHERE d.DispatchAdviceHeaderId = @HeaderId";
 
             var details = (await _dbConnection.QueryAsync<DispatchAdviceDetailDto>(detailSql, new { HeaderId = id })).ToList();
@@ -157,9 +170,17 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
                 var items = await _itemLookup.GetByIdsAsync(itemIds);
                 var itemDict = items.ToDictionary(i => i.Id, i => i.ItemName);
 
+                // Populate cross-module: HSNCode
+                var hsnIds = details.Where(d => d.HSNId.HasValue).Select(d => d.HSNId!.Value).Distinct();
+                var hsnList = await _hsnLookup.GetByIdsAsync(hsnIds);
+                var hsnDict = hsnList.ToDictionary(h => h.Id, h => h.HSNCode);
+
                 foreach (var detail in details)
                 {
                     detail.ItemName = itemDict.TryGetValue(detail.ItemId, out var iName) ? iName : null;
+
+                    if (detail.HSNId.HasValue)
+                        detail.HSNCode = hsnDict.TryGetValue(detail.HSNId.Value, out var hCode) ? hCode : null;
                 }
             }
 
