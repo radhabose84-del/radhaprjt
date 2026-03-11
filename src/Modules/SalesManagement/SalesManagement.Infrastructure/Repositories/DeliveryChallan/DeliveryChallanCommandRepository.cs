@@ -14,30 +14,7 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
             _dbContext = dbContext;
         }
 
-        public async Task<string> GenerateNextDeliveryNumberAsync(int fromPlantId, CancellationToken ct = default)
-        {
-            var prefix = $"DC-{fromPlantId}-";
-
-            var lastNumber = await _dbContext.DeliveryChallanHeader
-                .Where(x => x.DeliveryNumber != null && x.DeliveryNumber.StartsWith(prefix))
-                .OrderByDescending(x => x.DeliveryNumber)
-                .Select(x => x.DeliveryNumber)
-                .FirstOrDefaultAsync(ct);
-
-            var nextSeq = 1;
-            if (lastNumber != null)
-            {
-                var seqPart = lastNumber.Substring(prefix.Length);
-                if (int.TryParse(seqPart, out var lastSeq))
-                {
-                    nextSeq = lastSeq + 1;
-                }
-            }
-
-            return $"{prefix}{nextSeq:D5}";
-        }
-
-        public async Task<int> CreateAsync(Domain.Entities.DeliveryChallanHeader entity, int fromPlantId, int packedStatusId, int dispatchedStatusId)
+        public async Task<int> CreateAsync(Domain.Entities.DeliveryChallanHeader entity, int fromPlantId, int packedStatusId, int dispatchedStatusId, int typeId)
         {
             var strategy = _dbContext.Database.CreateExecutionStrategy();
             var newId = 0;
@@ -98,6 +75,11 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
 
                         await _dbContext.SaveChangesAsync();
                     }
+
+                    // Increment DocNo in Finance.DocumentSequence
+                    await _dbContext.Database.ExecuteSqlRawAsync(
+                        "UPDATE [Finance].[DocumentSequence] SET DocNo = DocNo + 1 WHERE TransactionTypeId = {0} AND IsDeleted = 0",
+                        typeId);
 
                     await transaction.CommitAsync();
                     newId = entity.Id;
