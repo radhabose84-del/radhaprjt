@@ -100,6 +100,22 @@ namespace PartyManagement.Application.PartyMaster.Command.CreatePartyMaster
                     dto.SalesTypes = null;
             }
 
+            // ------------------- Clean AgentConfigs -------------------
+            if (dto.AgentConfigs != null)
+            {
+                dto.AgentConfigs = dto.AgentConfigs
+                    .Where(a =>
+                        a.SettlementCycleId != 0 ||
+                        !string.IsNullOrWhiteSpace(a.TdsCode) ||
+                        !string.IsNullOrWhiteSpace(a.DefaultCommissionGl) ||
+                        a.AgreementStartDate != null ||
+                        a.TargetAmount != null)
+                    .ToList();
+
+                if (!dto.AgentConfigs.Any())
+                    dto.AgentConfigs = null;
+            }
+
             // ------------------- Generate PartyCode -------------------
             var nextPartyCode = await _partyMasterCommandRepository.GetNextPartyCodeAsync();
 

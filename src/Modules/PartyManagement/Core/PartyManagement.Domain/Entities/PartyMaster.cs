@@ -71,6 +71,7 @@ namespace PartyManagement.Domain.Entities
         public ICollection<PartyBank>? PartyBankTypes { get; set; }
         public ICollection<PartyUnitCompanyMapping>? PartyUnitCompanyMappings { get; set; }
         public ICollection<SalesType>? SalesTypes { get; set; }
+        public ICollection<AgentConfig>? AgentConfigs { get; set; }
 
     }
 }

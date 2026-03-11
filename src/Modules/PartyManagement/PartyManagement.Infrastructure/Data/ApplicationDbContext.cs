@@ -34,6 +34,7 @@ namespace PartyManagement.Infrastructure.Data
         public DbSet<BankAccount> BankAccount { get; set; }
         public DbSet<BankMaster> BankMaster { get; set; }
         public DbSet<SalesType> SalesType { get; set; }
+        public DbSet<AgentConfig> AgentConfig { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -52,6 +53,7 @@ namespace PartyManagement.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new BankAccountConfiguration());
             modelBuilder.ApplyConfiguration(new BankMasterConfiguration());
             modelBuilder.ApplyConfiguration(new SalesTypeConfiguration());
+            modelBuilder.ApplyConfiguration(new AgentConfigConfiguration());
 
 
 

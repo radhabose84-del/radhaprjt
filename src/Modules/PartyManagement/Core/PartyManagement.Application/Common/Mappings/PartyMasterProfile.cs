@@ -41,7 +41,8 @@ namespace PartyManagement.Application.Common.Mappings
             .ForMember(dest => dest.IsPortalAccessEnabled, opt => opt.MapFrom(src => src.IsPortalAccessEnabled == 1 ? true : false))
            // .ForMember(dest => dest.IsPortalAccessEnabled, opt => opt.MapFrom(src => 0))
             .ForMember(dest => dest.IsUpdate, opt => opt.MapFrom(src => 0))
-            .ForMember(dest => dest.SalesTypes, opt => opt.MapFrom(src => src.SalesTypes));
+            .ForMember(dest => dest.SalesTypes, opt => opt.MapFrom(src => src.SalesTypes))
+            .ForMember(dest => dest.AgentConfigs, opt => opt.MapFrom(src => src.AgentConfigs));
             CreateMap<PartyContactDto, PartyManagement.Domain.Entities.PartyContact>();
             CreateMap<PartyAddressDto, PartyManagement.Domain.Entities.PartyAddress>();
             CreateMap<PartyBankDto, PartyManagement.Domain.Entities.PartyBank>();
@@ -49,6 +50,7 @@ namespace PartyManagement.Application.Common.Mappings
             CreateMap<PartyDocumentDto, PartyManagement.Domain.Entities.PartyDocument>();
             CreateMap<PartyUnitCompanyDto, PartyManagement.Domain.Entities.PartyUnitCompanyMapping>();
             CreateMap<CreatePartyMasterDto.SalesTypeDto, PartyManagement.Domain.Entities.SalesType>();
+            CreateMap<CreatePartyMasterDto.AgentConfigDto, PartyManagement.Domain.Entities.AgentConfig>();
 
             //Update DTO
             CreateMap<UpdatePartyMasterDto, PartyManagement.Domain.Entities.PartyMaster>()
@@ -75,7 +77,8 @@ namespace PartyManagement.Application.Common.Mappings
             .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive == 1 ? Status.Active : Status.Inactive))
             .ForMember(dest => dest.IsPortalAccessEnabled, opt => opt.MapFrom(src => src.IsPortalAccessEnabled == 1 ? true : false))
             .ForMember(dest => dest.IsUpdate, opt => opt.MapFrom(src => 1))
-            .ForMember(dest => dest.SalesTypes, opt => opt.MapFrom(src => src.SalesTypesUpdate));
+            .ForMember(dest => dest.SalesTypes, opt => opt.MapFrom(src => src.SalesTypesUpdate))
+            .ForMember(dest => dest.AgentConfigs, opt => opt.MapFrom(src => src.AgentConfigsUpdate));
             CreateMap<UpdatePartyMasterDto.UpdatePartyTypeDto, PartyType>();
             CreateMap<UpdatePartyMasterDto.UpdatePartyContactDto, PartyContact>();
             CreateMap<UpdatePartyMasterDto.UpdatePartyAddressDto, PartyAddress>();
@@ -83,8 +86,9 @@ namespace PartyManagement.Application.Common.Mappings
             CreateMap<UpdatePartyMasterDto.UpdatePartyDocumentDto, PartyDocument>();
             CreateMap<UpdatePartyMasterDto.UpdatePartyUniCompanyDto, PartyUnitCompanyMapping>();
             CreateMap<UpdatePartyMasterDto.UpdateSalesTypeDto, PartyManagement.Domain.Entities.SalesType>();
+            CreateMap<UpdatePartyMasterDto.UpdateAgentConfigDto, PartyManagement.Domain.Entities.AgentConfig>();
 
-            //Delete 
+            //Delete
 
             CreateMap<DeletePartyMasterCommand, PartyManagement.Domain.Entities.PartyMaster>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))

@@ -63,6 +63,7 @@ namespace PartyManagement.Application.PartyMaster.Queries.GetPartyMasterById
         public List<PartyDocumentDto>? PartyDocuments { get; set; }
         public List<PartyUnitCompanyMappingDto>? PartyUnitCompanyMappings { get; set; }
         public List<SalesTypeDto>? SalesTypes { get; set; }
+        public List<AgentConfigDto>? AgentConfigs { get; set; }
 
         public class PartyContactDto
         {
@@ -156,6 +157,23 @@ namespace PartyManagement.Application.PartyMaster.Queries.GetPartyMasterById
             public int? AccountAssignmentId { get; set; }
             public string? AccountAssignmentName { get; set; }
             public byte Active { get; set; }
+        }
+
+        public class AgentConfigDto
+        {
+            public int Id { get; set; }
+            public int? PartyId { get; set; }
+            public int? SettlementCycleId { get; set; }
+            public string? SettlementCycleName { get; set; }
+            public byte TdsApplicable { get; set; }
+            public string? TdsCode { get; set; }
+            public string? DefaultCommissionGl { get; set; }
+            public DateTimeOffset? AgreementStartDate { get; set; }
+            public DateTimeOffset? AgreementEndDate { get; set; }
+            public string? AgentPayableControlGl { get; set; }
+            public decimal? TargetAmount { get; set; }
+            public string? TargetPeriod { get; set; }
+            public byte Status { get; set; }
         }
 
     }
