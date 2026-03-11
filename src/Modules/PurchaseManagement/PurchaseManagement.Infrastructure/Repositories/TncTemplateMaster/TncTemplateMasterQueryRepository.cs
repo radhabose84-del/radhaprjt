@@ -33,9 +33,9 @@ namespace PurchaseManagement.Infrastructure.Repositories.TncTemplateMaster
             // ---- TOTAL (distinct master count, soft-delete aware)
             const string countSql = @"
 SELECT COUNT(DISTINCT t.Id)
-FROM   [Purchase].[Purchase].[TnCTemplateMaster] t
+FROM   [Purchase].[TnCTemplateMaster] t
 LEFT   JOIN [Purchase].[MiscMaster] tt ON tt.Id = t.TemplateTypeId
-LEFT   JOIN [Purchase].[Purchase].[TnCTemplateApplicability] ta 
+LEFT   JOIN [Purchase].[TnCTemplateApplicability] ta 
            ON ta.TnCTemplateMasterId = t.Id AND ta.IsDeleted = 0
 LEFT   JOIN [Purchase].[MiscMaster] mm ON mm.Id = ta.ApplicabilityId
 WHERE  t.IsDeleted = 0
@@ -103,7 +103,7 @@ FROM (
         t.ModifiedDate,
         t.ModifiedByName,
         t.ModifiedIP
-    FROM   [Purchase].[Purchase].[TnCTemplateMaster] t
+    FROM   [Purchase].[TnCTemplateMaster] t
     LEFT   JOIN [Purchase].[MiscMaster] tt ON tt.Id = t.TemplateTypeId
     WHERE  t.IsDeleted = 0
     AND   (
@@ -116,7 +116,7 @@ FROM (
     ORDER BY t.CreatedDate DESC, t.Id DESC
     OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY
 ) p
-LEFT JOIN [Purchase].[Purchase].[TnCTemplateApplicability] ta 
+LEFT JOIN [Purchase].[TnCTemplateApplicability] ta 
        ON ta.TnCTemplateMasterId = p.Id AND ta.IsDeleted = 0
 LEFT JOIN [Purchase].[MiscMaster] mm ON mm.Id = ta.ApplicabilityId
 ORDER BY p.CreatedDate DESC, p.Id DESC, ta.Id ASC;";
@@ -190,9 +190,9 @@ ORDER BY p.CreatedDate DESC, p.Id DESC, ta.Id ASC;";
             ta.ApplicabilityId,
             mm.Code              AS Code,
             mm.[Description]     AS [Description]
-        FROM [Purchase].[Purchase].[TnCTemplateMaster] t
+        FROM [Purchase].[TnCTemplateMaster] t
         LEFT JOIN [Purchase].[MiscMaster] tt ON tt.Id = t.TemplateTypeId
-        LEFT JOIN [Purchase].[Purchase].[TnCTemplateApplicability] ta 
+        LEFT JOIN [Purchase].[TnCTemplateApplicability] ta 
             ON ta.TnCTemplateMasterId = t.Id AND ta.IsDeleted = 0
         LEFT JOIN [Purchase].[MiscMaster] mm ON mm.Id = ta.ApplicabilityId
         WHERE t.Id = @Id AND t.IsDeleted = 0;";
@@ -230,7 +230,7 @@ ORDER BY p.CreatedDate DESC, p.Id DESC, ta.Id ASC;";
         {
             const string sql = @"
             SELECT 1
-            FROM   [Purchase].[Purchase].[TnCTemplateMaster]
+            FROM   [Purchase].[TnCTemplateMaster]
             WHERE  TemplateTypeId = @TypeId
             AND  TemplateName   = @Name
             AND  IsDeleted      = 0
