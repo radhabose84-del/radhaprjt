@@ -12,5 +12,6 @@ namespace SalesManagement.Application.Common.Interfaces.ITransactionTypeMaster
         Task<bool> NotFoundAsync(int id);
         Task<bool> UnitExistsAsync(int unitId);
         Task<bool> ModuleExistsAsync(int moduleId);
+        Task<bool> MenuExistsAsync(int menuId);
     }
 }

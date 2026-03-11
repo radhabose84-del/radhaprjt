@@ -38,6 +38,11 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("int")
                 .IsRequired();
 
+            builder.Property(t => t.MenuId)
+                .HasColumnName("MenuId")
+                .HasColumnType("int")
+                .IsRequired();
+
             builder.Property(t => t.TypeName)
                 .HasColumnName("TypeName")
                 .HasColumnType("varchar(100)")
@@ -81,6 +86,7 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             // Non-unique indexes for FK lookups (no DB FK constraint — cross-module references)
             builder.HasIndex(t => t.UnitId);
             builder.HasIndex(t => t.ModuleId);
+            builder.HasIndex(t => t.MenuId);
         }
     }
 }

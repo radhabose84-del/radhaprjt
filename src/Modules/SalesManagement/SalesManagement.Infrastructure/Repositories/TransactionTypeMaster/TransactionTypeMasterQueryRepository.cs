@@ -11,15 +11,18 @@ namespace SalesManagement.Infrastructure.Repositories.TransactionTypeMaster
         private readonly IDbConnection _dbConnection;
         private readonly IUnitLookup _unitLookup;
         private readonly IModuleLookup _moduleLookup;
+        private readonly IMenuLookup _menuLookup;
 
         public TransactionTypeMasterQueryRepository(
             IDbConnection dbConnection,
             IUnitLookup unitLookup,
-            IModuleLookup moduleLookup)
+            IModuleLookup moduleLookup,
+            IMenuLookup menuLookup)
         {
             _dbConnection = dbConnection;
             _unitLookup = unitLookup;
             _moduleLookup = moduleLookup;
+            _menuLookup = menuLookup;
         }
 
         public async Task<(List<TransactionTypeMasterDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
@@ -30,6 +33,9 @@ namespace SalesManagement.Infrastructure.Repositories.TransactionTypeMaster
             var modules = await _moduleLookup.GetAllModuleAsync();
             var moduleDict = modules.ToDictionary(m => m.ModuleId, m => m.ModuleName);
 
+            var menus = await _menuLookup.GetAllMenuAsync();
+            var menuDict = menus.ToDictionary(m => m.MenuId, m => m.MenuName);
+
             var query = $$"""
                 DECLARE @TotalCount INT;
                 SELECT @TotalCount = COUNT(*)
@@ -37,7 +43,7 @@ namespace SalesManagement.Infrastructure.Repositories.TransactionTypeMaster
                 WHERE IsDeleted = 0
                 {{(string.IsNullOrWhiteSpace(searchTerm) ? "" : "AND (TypeName LIKE @Search OR ShortName LIKE @Search)")}};
 
-                SELECT Id, UnitId, ModuleId, TypeName, ShortName, Description,
+                SELECT Id, UnitId, ModuleId, MenuId, TypeName, ShortName, Description,
                        IsActive, IsDeleted,
                        CreatedBy, CreatedDate, CreatedByName, CreatedIP,
                        ModifiedBy, ModifiedDate, ModifiedByName, ModifiedIP
@@ -63,8 +69,9 @@ namespace SalesManagement.Infrastructure.Repositories.TransactionTypeMaster
 
             foreach (var item in list)
             {
-                item.UnitName   = unitDict.TryGetValue(item.UnitId,   out var uName) ? uName   : null;
-                item.ModuleName = moduleDict.TryGetValue(item.ModuleId, out var mName) ? mName : null;
+                item.UnitName   = unitDict.TryGetValue(item.UnitId,    out var uName)  ? uName  : null;
+                item.ModuleName = moduleDict.TryGetValue(item.ModuleId, out var mName)  ? mName  : null;
+                item.MenuName   = menuDict.TryGetValue(item.MenuId,     out var mnName) ? mnName : null;
             }
 
             return (list, totalCount);
@@ -73,7 +80,7 @@ namespace SalesManagement.Infrastructure.Repositories.TransactionTypeMaster
         public async Task<TransactionTypeMasterDto?> GetByIdAsync(int id)
         {
             const string sql = @"
-                SELECT Id, UnitId, ModuleId, TypeName, ShortName, Description,
+                SELECT Id, UnitId, ModuleId, MenuId, TypeName, ShortName, Description,
                        IsActive, IsDeleted,
                        CreatedBy, CreatedDate, CreatedByName, CreatedIP,
                        ModifiedBy, ModifiedDate, ModifiedByName, ModifiedIP
@@ -89,6 +96,9 @@ namespace SalesManagement.Infrastructure.Repositories.TransactionTypeMaster
 
                 var modules = await _moduleLookup.GetAllModuleAsync();
                 dto.ModuleName = modules.FirstOrDefault(m => m.ModuleId == dto.ModuleId)?.ModuleName;
+
+                var menus = await _menuLookup.GetAllMenuAsync();
+                dto.MenuName = menus.FirstOrDefault(m => m.MenuId == dto.MenuId)?.MenuName;
             }
 
             return dto;
@@ -157,6 +167,12 @@ namespace SalesManagement.Infrastructure.Repositories.TransactionTypeMaster
         {
             var modules = await _moduleLookup.GetAllModuleAsync();
             return modules.Any(m => m.ModuleId == moduleId);
+        }
+
+        public async Task<bool> MenuExistsAsync(int menuId)
+        {
+            var menus = await _menuLookup.GetAllMenuAsync();
+            return menus.Any(m => m.MenuId == menuId);
         }
     }
 }
