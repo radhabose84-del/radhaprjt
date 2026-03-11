@@ -622,12 +622,12 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.ServicePO
             a.UnitId,
             CAST(b.ValidityFrom AS datetime2)                 AS ValidityFrom, 
             CAST(b.ValidityTo   AS datetime2)                 AS ValidityTo 
-                FROM [purchase].[Purchase].[PurchaseOrderHeader]        AS a
-                JOIN [purchase].[Purchase].[PurchaseOrderServiceHeader] AS b
+                FROM [Purchase].[PurchaseOrderHeader]        AS a
+                JOIN [Purchase].[PurchaseOrderServiceHeader] AS b
                 ON b.PurchaseOrderId = a.Id
-                LEFT JOIN [purchase].[Purchase].[MiscMaster]            AS sc
+                LEFT JOIN [Purchase].[MiscMaster]            AS sc
                 ON sc.Id = b.ServiceCategoryId
-                LEFT JOIN [purchase].[Purchase].[MiscMaster]            AS ct
+                LEFT JOIN [Purchase].[MiscMaster]            AS ct
                 ON ct.Id = b.ContractTypeId
                     WHERE a.Id = @Id
                     AND ISNULL(a.IsDeleted, 0) = 0
@@ -799,10 +799,10 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.ServicePO
             var unitId = _ip.GetUnitId() ?? 0;
             const string sql = @"
             SELECT A.Id AS POId, A.PONumber AS ServicePONumber
-            FROM [Purchase].[Purchase].[PurchaseOrderHeader] AS A
-            INNER JOIN [Purchase].[Purchase].[PurchaseOrderServiceHeader] AS B ON A.Id = B.PurchaseOrderId
-            INNER JOIN [Purchase].[Purchase].[MiscMaster] AS C ON C.Id = A.POCategoryId
-            INNER JOIN [Purchase].[Purchase].[MiscMaster] AS F ON F.Id = A.StatusId
+            FROM [Purchase].[PurchaseOrderHeader] AS A
+            INNER JOIN [Purchase].[PurchaseOrderServiceHeader] AS B ON A.Id = B.PurchaseOrderId
+            INNER JOIN [Purchase].[MiscMaster] AS C ON C.Id = A.POCategoryId
+            INNER JOIN [Purchase].[MiscMaster] AS F ON F.Id = A.StatusId
             WHERE C.[Description] = @PoCategory AND F.[Description] = @Status AND A.IsDeleted = 0
             ORDER BY A.PODate DESC, A.Id DESC;";
 
@@ -1130,7 +1130,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.ServicePO
 
                 -- total count
                 SELECT @TotalCount = COUNT(*)
-                FROM [Purchase].[Purchase].[ServiceEntrySheets] S
+                FROM [Purchase].[ServiceEntrySheets] S
                 WHERE S.IsDeleted = 0
                 {{(string.IsNullOrWhiteSpace(searchTerm)
                     ? ""
@@ -1172,10 +1172,10 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.ServicePO
                     S.LineRemarks, 
                     S.StatusId,
                     SM.Code AS Status
-                FROM [Purchase].[Purchase].[ServiceEntrySheets] S
-                Inner JOIN [Purchase].[Purchase].[PurchaseOrderHeader] POH ON POH.Id = S.PurchaseOrderId
-                LEFT JOIN [Purchase].[Purchase].[MiscMaster] SM ON SM.Id = S.StatusId
-                LEFT JOIN [Purchase].[Purchase].[MiscMaster] SES ON SES.Id = S.SESStatusId
+                FROM [Purchase].[ServiceEntrySheets] S
+                Inner JOIN [Purchase].[PurchaseOrderHeader] POH ON POH.Id = S.PurchaseOrderId
+                LEFT JOIN [Purchase].[MiscMaster] SM ON SM.Id = S.StatusId
+                LEFT JOIN [Purchase].[MiscMaster] SES ON SES.Id = S.SESStatusId
                 WHERE S.IsDeleted = 0 AND POH.IsDeleted = 0  
                  AND S.StatusId = @StatusId
                 {{(string.IsNullOrWhiteSpace(searchTerm)

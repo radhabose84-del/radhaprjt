@@ -204,6 +204,16 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                             ? _db.MiscMaster.Where(mm => mm.Id == i.Quality.CertificateTypeId).Select(mm => mm.Code).FirstOrDefault()
                             : null
                     },
+                    Sale = i.Sale == null ? null : new ItemSaleDto
+                    {
+                        Id = i.Sale.Id,
+                        UomId = i.Sale.UomId,
+                        MinQuantity = i.Sale.MinQuantity,
+                        PackageQuantity = i.Sale.PackageQuantity,
+                        DeliveryLeadTime = i.Sale.DeliveryLeadTime,
+                        Discount = i.Sale.Discount,
+                        SalesUOM = i.Sale.SalesUOM != null ? i.Sale.SalesUOM.UOMName : null
+                    },
 
                     // ---------- collections ----------
                     Suppliers = i.Suppliers

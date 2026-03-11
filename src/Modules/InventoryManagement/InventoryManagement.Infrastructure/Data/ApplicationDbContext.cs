@@ -56,7 +56,8 @@ namespace InventoryManagement.Infrastructure.Data
         public DbSet<ItemManufacture> ItemManufacture { get; set; } 
         public DbSet<ItemPurchase> ItemPurchase { get; set; } 
         public DbSet<ItemInventory> ItemInventory { get; set; } 
-        public DbSet<ItemQuality> ItemQuality { get; set; }         
+        public DbSet<ItemQuality> ItemQuality { get; set; }
+        public DbSet<ItemSale> ItemSale { get; set; }
         public DbSet<ItemVariantValue> ItemVariantValue { get; set; } 
         public DbSet<PutAwayStrategy> PutAwayStrategy { get; set; }
         public DbSet<ItemLog> ItemLog { get; set; } 
@@ -96,6 +97,7 @@ namespace InventoryManagement.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new ItemPurchaseConfiguration());
             modelBuilder.ApplyConfiguration(new ItemInventoryConfiguration());
             modelBuilder.ApplyConfiguration(new ItemQualityConfiguration());
+            modelBuilder.ApplyConfiguration(new ItemSaleConfiguration());
             modelBuilder.ApplyConfiguration(new ItemVariantValueConfiguration());
             modelBuilder.ApplyConfiguration(new ItemUOMConfiguration());
             modelBuilder.ApplyConfiguration(new ItemLogConfiguration());

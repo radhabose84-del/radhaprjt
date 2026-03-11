@@ -25,18 +25,18 @@ namespace SalesManagement.Application.DeliveryChallan.Commands.DeleteDeliveryCha
 
         public async Task<bool> Handle(DeleteDeliveryChallanCommand request, CancellationToken cancellationToken)
         {
-            // Resolve Reserved and Packed status IDs for StockLedger reversal
-            var reservedStatus = await _miscMasterQueryRepository.GetMiscMasterByName(
-                MiscEnumEntity.StockStatus, MiscEnumEntity.Reserved);
-            var reservedStatusId = reservedStatus?.Id ?? 0;
+            // Resolve Dispatched and Packed status IDs for StockLedger reversal
+            var dispatchedStatus = await _miscMasterQueryRepository.GetMiscMasterByName(
+                MiscEnumEntity.StockStatus, MiscEnumEntity.Dispatched);
+            var dispatchedStatusId = dispatchedStatus?.Id ?? 0;
 
             var packedStatus = await _miscMasterQueryRepository.GetMiscMasterByName(
                 MiscEnumEntity.StockStatus, MiscEnumEntity.Packed);
             var packedStatusId = packedStatus?.Id ?? 0;
 
-            // SoftDelete header and reverse StockLedger (Reserved -> Packed)
+            // SoftDelete header and reverse StockLedger (Dispatched -> Packed)
             var result = await _commandRepository.SoftDeleteAsync(
-                request.Id, reservedStatusId, packedStatusId, cancellationToken);
+                request.Id, dispatchedStatusId, packedStatusId, cancellationToken);
 
             if (!result)
                 throw new ExceptionRules("Delivery Challan not found.");
@@ -45,7 +45,7 @@ namespace SalesManagement.Application.DeliveryChallan.Commands.DeleteDeliveryCha
                 actionDetail: "SoftDelete",
                 actionCode: "DELIVERYCHALLAN_DELETE",
                 actionName: request.Id.ToString(),
-                details: $"Delivery Challan with Id {request.Id} soft deleted. StockLedger reverted from Reserved to Packed.",
+                details: $"Delivery Challan with Id {request.Id} soft deleted. StockLedger reverted from Dispatched to Packed.",
                 module: "DeliveryChallan");
             await _mediator.Publish(auditEvent, cancellationToken);
 

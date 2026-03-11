@@ -24,6 +24,7 @@ namespace InventoryManagement.Application.Item.ItemAggregate.Handlers
         private readonly IItemPurchaseCommandRepository _purchaseRepo;
         private readonly IItemInventoryCommandRepository _inventoryRepo;
         private readonly IItemQualityCommandRepository _qualityRepo;
+        private readonly IItemSaleCommandRepository _saleRepo;
         private readonly IItemSupplierCommandRepository _supplierRepo;
         private readonly IItemManufactureCommandRepository _manufactureRepo;
         private readonly IItemUomCommandRepository _uomRepo;
@@ -42,6 +43,7 @@ namespace InventoryManagement.Application.Item.ItemAggregate.Handlers
             IItemPurchaseCommandRepository purchaseRepo,
             IItemInventoryCommandRepository inventoryRepo,
             IItemQualityCommandRepository qualityRepo,
+            IItemSaleCommandRepository saleRepo,
             IItemSupplierCommandRepository supplierRepo,
             IItemManufactureCommandRepository manufactureRepo,
             IItemUomCommandRepository uomRepo,
@@ -59,6 +61,7 @@ namespace InventoryManagement.Application.Item.ItemAggregate.Handlers
             _purchaseRepo = purchaseRepo;
             _inventoryRepo = inventoryRepo;
             _qualityRepo = qualityRepo;
+            _saleRepo = saleRepo;
             _supplierRepo = supplierRepo;
             _manufactureRepo = manufactureRepo;
             _uomRepo = uomRepo;
@@ -125,7 +128,15 @@ namespace InventoryManagement.Application.Item.ItemAggregate.Handlers
                     var e = _mapper.Map<ItemQuality>(p.Quality);
                     e.ItemId = newId;
                     await _qualityRepo.CreateAsync(e, ct);
-                }               
+                }
+
+                // Sale
+                if (!DtoEmptyChecker.IsEmpty(p.Sale))
+                {
+                    var e = _mapper.Map<ItemSale>(p.Sale);
+                    e.ItemId = newId;
+                    await _saleRepo.CreateAsync(e, ct);
+                }
                 // Collections (null-safe)
                 if (DtoEmptyChecker.HasAny(p.Suppliers))   await _supplierRepo.UpdateAsync(newId, p.Suppliers, ct);
                 if (DtoEmptyChecker.HasAny(p.Manufacture)) await _manufactureRepo.UpdateAsync(newId, p.Manufacture, ct);
@@ -357,6 +368,7 @@ namespace InventoryManagement.Application.Item.ItemAggregate.Handlers
                 if (p.Purchase is not null) { var e = _mapper.Map<ItemPurchase>(p.Purchase); e.ItemId = newId; await _purchaseRepo.CreateAsync(e, ct); }
                 if (p.Inventory is not null) { var e = _mapper.Map<ItemInventory>(p.Inventory); e.ItemId = newId; await _inventoryRepo.CreateAsync(e, ct); }
                 if (p.Quality is not null) { var e = _mapper.Map<ItemQuality>(p.Quality); e.ItemId = newId; await _qualityRepo.CreateAsync(e, ct); }
+                if (p.Sale is not null) { var e = _mapper.Map<ItemSale>(p.Sale); e.ItemId = newId; await _saleRepo.CreateAsync(e, ct); }
 
                 if (p.Suppliers.Count > 0) await _supplierRepo.UpdateAsync(newId, p.Suppliers, ct);
                 if (p.Manufacture.Count > 0) await _manufactureRepo.UpdateAsync(newId, p.Manufacture, ct);
@@ -422,8 +434,14 @@ namespace InventoryManagement.Application.Item.ItemAggregate.Handlers
             if (!DtoEmptyChecker.IsEmpty(payload.Quality))
             {
                 var e = _mapper.Map<ItemQuality>(payload.Quality);
-                e.ItemId = childId; 
+                e.ItemId = childId;
                 await _qualityRepo.CreateAsync(e, ct);
+            }
+            if (!DtoEmptyChecker.IsEmpty(payload.Sale))
+            {
+                var e = _mapper.Map<ItemSale>(payload.Sale);
+                e.ItemId = childId;
+                await _saleRepo.CreateAsync(e, ct);
             }
 
             if (DtoEmptyChecker.HasAny(payload.Suppliers))   await _supplierRepo.UpdateAsync(childId, payload.Suppliers, ct);

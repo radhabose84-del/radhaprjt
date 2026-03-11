@@ -151,6 +151,7 @@ namespace InventoryManagement.Infrastructure
             services.AddScoped<IItemPurchaseCommandRepository, ItemPurchaseCommandRepository>();
             services.AddScoped<IItemInventoryCommandRepository, ItemInventoryCommandRepository>();
             services.AddScoped<IItemQualityCommandRepository, ItemQualityCommandRepository>();
+            services.AddScoped<IItemSaleCommandRepository, ItemSaleCommandRepository>();
             services.AddScoped<IItemUomCommandRepository, ItemUomCommandRepository>();
             services.AddScoped<IItemManufactureCommandRepository, ItemManufactureCommandRepository>();
             services.AddScoped<IItemSupplierCommandRepository, ItemSupplierCommandRepository>();

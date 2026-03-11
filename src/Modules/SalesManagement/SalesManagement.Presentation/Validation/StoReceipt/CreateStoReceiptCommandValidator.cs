@@ -131,6 +131,24 @@ namespace SalesManagement.Presentation.Validation.StoReceipt
                         break;
                 }
             }
+
+            // Business rules: quantity relationship validations
+            RuleForEach(x => x.Details)
+                .ChildRules(detail =>
+                {
+                    detail.RuleFor(d => d.ReceivedQuantity)
+                        .LessThanOrEqualTo(d => d.DispatchQuantity)
+                        .WithMessage("ReceivedQuantity must be less than or equal to DispatchQuantity.");
+
+                    detail.RuleFor(d => d.DamageQuantity)
+                        .LessThanOrEqualTo(d => d.ReceivedQuantity)
+                        .WithMessage("DamageQuantity must be less than or equal to ReceivedQuantity.");
+
+                    detail.RuleFor(d => d.AcceptedQuantity)
+                        .Equal(d => d.ReceivedQuantity - d.DamageQuantity)
+                        .WithMessage("AcceptedQuantity must be equal to ReceivedQuantity minus DamageQuantity.");
+                })
+                .When(x => x.Details != null && x.Details.Any());
         }
     }
 }

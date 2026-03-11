@@ -29,7 +29,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PaymentTermMaster
 
             const string countSql = @"
                 SELECT COUNT(*)
-                FROM [Purchase].[Purchase].[PaymentTermMaster] pt
+                FROM [Purchase].[PaymentTermMaster] pt
                 WHERE pt.IsDeleted = 0
                 AND (@Search IS NULL OR @Search = '' OR (pt.Code LIKE @Search OR pt.[Description] LIKE @Search));";
 
@@ -52,13 +52,13 @@ namespace PurchaseManagement.Infrastructure.Repositories.PaymentTermMaster
 
                 FROM (
                     SELECT *
-                    FROM [Purchase].[Purchase].[PaymentTermMaster] pt
+                    FROM  [Purchase].[PaymentTermMaster] pt
                     WHERE pt.IsDeleted = 0
                     AND (@Search IS NULL OR @Search = '' OR (pt.Code LIKE @Search OR pt.[Description] LIKE @Search))
                     ORDER BY pt.Id DESC
                     OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY
                 ) p
-                LEFT JOIN [Purchase].[Purchase].[PaymentTermInstallment] i 
+                LEFT JOIN [Purchase].[PaymentTermInstallment] i 
                     ON i.PaymentTermId = p.Id
                 ORDER BY p.Id DESC, i.SeqNo;";
 
@@ -95,11 +95,11 @@ namespace PurchaseManagement.Infrastructure.Repositories.PaymentTermMaster
                     COALESCE(p.BalancePercent, CONVERT(decimal(5,2), 100.00 - ISNULL(p.AdvancePercent,0))) AS BalancePercent,
                     p.DiscountPercent, p.DiscountDays, p.GraceDays, p.AdditionalValue, p.ApplicableForPortal ,p.IsActive,p.IsDeleted,p.CreatedBy,p.CreatedDate,p.CreatedByName,p.CreatedIP,
                     p.ModifiedBy,p.ModifiedDate,p.ModifiedByName,p.ModifiedIP
-                FROM [Purchase].[Purchase].[PaymentTermMaster] p
+                FROM [Purchase].[PaymentTermMaster] p
                 WHERE p.Id = @Id;
 
                 SELECT  i.PaymentTermId, i.SeqNo, i.[Percent], i.DueDays ,i.IsActive,i.IsDeleted,i.CreatedBy,i.CreatedDate,i.CreatedByName,i.CreatedIP,i.ModifiedBy,i.ModifiedDate,i.ModifiedByName,i.ModifiedIP
-                FROM [Purchase].[Purchase].[PaymentTermInstallment] i
+                FROM [Purchase].[PaymentTermInstallment] i
                 WHERE i.PaymentTermId = @Id
                 ORDER BY i.SeqNo;";
 
@@ -118,7 +118,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PaymentTermMaster
         {
             const string sql = @"
                 SELECT 1
-                FROM [Purchase].[Purchase].[PaymentTermMaster]
+                FROM [Purchase].[PaymentTermMaster]
                 WHERE IsDeleted = 0
                 AND Code = @Code
                 AND (@ExcludeId IS NULL OR Id <> @ExcludeId);";
@@ -135,7 +135,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PaymentTermMaster
         {
             const string sql = @"
                 SELECT 1
-                FROM [Purchase].[Purchase].[PaymentTermMaster]
+                FROM [Purchase].[PaymentTermMaster]
                 WHERE Id = @Id AND IsDeleted = 0;";
             var exists = await _dbConnection.ExecuteScalarAsync<int?>(sql, new { Id = id });
             return exists.HasValue;
@@ -147,7 +147,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PaymentTermMaster
                 pt.Id,
                 pt.Code,
                 pt.[Description]
-            FROM [Purchase].[Purchase].[PaymentTermMaster] pt
+            FROM [Purchase].[PaymentTermMaster] pt
             WHERE pt.IsDeleted = 0
             AND pt.IsActive = 1
             AND (@PaymentTermCode IS NULL OR @PaymentTermCode = '' OR pt.Code = @PaymentTermCode)
@@ -170,105 +170,5 @@ namespace PurchaseManagement.Infrastructure.Repositories.PaymentTermMaster
 
             return rows.AsList();
         }
-    
-
-
-        //   public async Task<bool> ExistsByCodeAsync(string code)
-    // {
-    //     const string sql = @"
-    //         SELECT 1
-    //         FROM [Purchase].[Purchase].[PaymentTermMaster]
-    //         WHERE IsDeleted = 0 AND Code = @Code";
-
-    //     var exists = await _dbConnection.ExecuteScalarAsync<int?>(sql, new { Code = code });
-    //     return exists.HasValue;
-    // }
-
-    //    public async Task<PaymentTermMasterDto> GetByIdAsync(int id)
-    //     {
-    //         const string sql = @" 
-    //         SELECT 
-    //             p.Id, p.Code, p.[Description], p.BaselineTypeId, p.CreditDays,
-    //             p.AdvancePercent,
-    //             COALESCE(p.BalancePercent, 100.00 - ISNULL(p.AdvancePercent,0)) AS BalancePercent,
-    //             p.DiscountPercent, p.DiscountDays, p.GraceDays, p.ApplicableForPortal,
-    //             i.Id AS InstallmentId,i.PaymentTermId, i.SeqNo, i.[Percent], i.DueDays
-    //         FROM [Purchase].[Purchase].[PaymentTermMaster] p
-    //         LEFT JOIN [Purchase].[Purchase].[PaymentTermInstallment] i
-    //             ON i.PaymentTermId = p.Id
-    //         WHERE p.Id = @Id
-    //         ORDER BY i.SeqNo;";
-
-    //         PaymentTermMasterDto? master = null;
-
-    //         await _dbConnection.QueryAsync<PaymentTermMasterDto, PaymentTermInstallmentDto, PaymentTermMasterDto>(
-    //             sql,
-    //             (m, child) =>
-    //             {
-    //                 if (master == null)
-    //                 {
-    //                     master = m;
-    //                     master.Installments = new List<PaymentTermInstallmentDto>();
-    //                 }
-
-    //                 if (child != null && child.SeqNo > 0)
-    //                     master.Installments!.Add(child);
-
-    //                 return m;
-    //             },
-    //             new { Id = id },
-    //             splitOn: "InstallmentId"
-    //         );
-
-    //         if (master == null)
-    //             throw new KeyNotFoundException($"Payment term not found for Id={id}.");
-
-    //         return master;
-    //     }
-
-    //     public async Task<PaymentTermMasterDto> GetByIdAsync(int id)
-    // {
-    //     const string sql = @"
-    //     SELECT 
-    //         p.Id, p.Code, p.[Description], p.BaselineTypeId, p.CreditDays,
-    //         p.AdvancePercent,
-    //         COALESCE(p.BalancePercent, 100.00 - ISNULL(p.AdvancePercent,0)) AS BalancePercent,
-    //         p.DiscountPercent, p.DiscountDays, p.GraceDays, p.ApplicableForPortal,
-    //         i.Id AS InstallmentId, i.SeqNo, i.[Percent], i.DueDays
-    //     FROM [Purchase].[Purchase].[PaymentTermMaster] p
-    //     LEFT JOIN [Purchase].[Purchase].[PaymentTermInstallment] i
-    //         ON i.PaymentTermId = p.Id
-    //     WHERE p.Id = @Id
-    //     ORDER BY i.SeqNo;";
-
-    //     PaymentTermMasterDto? master = null;
-
-    //     await _dbConnection.QueryAsync<
-    //         PaymentTermMasterDto, PaymentTermInstallmentDto, PaymentTermMasterDto>(
-    //         sql,
-    //         (m, child) =>
-    //         {
-    //             if (master == null)
-    //             {
-    //                 master = m;
-    //                 master.Installments = new List<PaymentTermInstallmentDto>();
-    //             }
-
-    //             if (child != null && child.SeqNo > 0)
-    //                 master.Installments!.Add(child);
-
-    //             return m;
-    //         },
-    //         new { Id = id },
-    //         splitOn: "InstallmentId",
-    //         buffered: false
-    //     );
-
-    //     if (master == null)
-    //         throw new KeyNotFoundException($"Payment term not found for Id={id}.");
-
-    //     return master;
-    // }
-
 }
 }

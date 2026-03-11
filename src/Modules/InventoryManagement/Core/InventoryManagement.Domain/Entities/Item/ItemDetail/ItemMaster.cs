@@ -35,6 +35,7 @@ namespace InventoryManagement.Domain.Entities.Item.ItemDetail
         public ItemPurchase? Purchase { get; set; }
         public ItemInventory? Inventory { get; set; }
         public ItemQuality? Quality { get; set; }
+        public ItemSale? Sale { get; set; }
         public int? IssueRuleId { get; set; }
         public MiscMaster? MiscIssueRule { get; set; } = null!;
         public bool IsOnSpot { get; set; }=false;
