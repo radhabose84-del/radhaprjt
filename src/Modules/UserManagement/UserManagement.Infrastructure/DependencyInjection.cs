@@ -333,6 +333,7 @@ namespace UserManagement.Infrastructure
             services.AddScoped<ICityLookup, CityLookupRepository>();
             services.AddScoped<ILocationLookup, LocationLookupRepository>();
             services.AddScoped<IDivisionUnitLookup, DivisionUnitLookupRepository>();
+            services.AddScoped<IMenuLookup, MenuLookupRepository>();
 
             services.AddScoped<IAuditLogRepository, AuditLogRepository>();
             services.AddScoped<IUserSessionRepository, UserSessionRepository>();
