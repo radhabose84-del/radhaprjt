@@ -14,5 +14,17 @@ namespace SalesManagement.Application.DispatchAdvice.Dto
         public decimal DispatchQty { get; set; }
         public int PackTypeId { get; set; }
         public string? PackTypeName { get; set; }
+
+        // From SalesOrderDetail
+        public int? HSNId { get; set; }
+        public string? HSNCode { get; set; }
+        public decimal ExMillRate { get; set; }
+        public decimal TaxableAmount { get; set; }
+        public decimal TaxPercentage { get; set; }
+        public decimal TaxAmount { get; set; }
+        public decimal TCSPercentage { get; set; }
+        public decimal TCSAmount { get; set; }
+        public decimal NetAmount { get; set; }
+        public decimal BagWeight { get; set; }
     }
 }
