@@ -28,7 +28,6 @@ namespace InventoryManagement.Application.Item.ItemAggregate.Handlers
         private readonly IItemSupplierCommandRepository _supplierRepo;
         private readonly IItemManufactureCommandRepository _manufactureRepo;
         private readonly IItemUomCommandRepository _uomRepo;
-
         private readonly IItemQueryRepository _itemQry;
         private readonly IItemVariantValueCommandRepository _variantValCmd;
         private readonly IItemVariantValueQueryRepository _variantValQry;

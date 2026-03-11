@@ -23,6 +23,8 @@
             public string? ItemImage { get; set; }
             public int IsActive { get; set; }
             public int IssueRuleId { get; set; }
+            public int? OriginCountryId { get; set; }
+            public string? TariffNumber { get; set; }
             public bool IsOnSpot { get; set; } = false;
             // Tabs
             public ItemPurchaseDto? Purchase { get; set; }
@@ -56,12 +58,8 @@
         public int Id { get; set; }
         public int? PurchaseUomId { get; set; }
         public int? LeadTimeDays { get; set; }
-        public int? SafetyStock { get; set; }
         public int? GrProcessingTimeDays { get; set; }
-        public decimal? PurchaseRate { get; set; }
         public bool AutomaticPo { get; set; }
-        public int? OriginCountryId { get; set; }
-        public string? TariffNumber { get; set; }
         public string? PurchaseUOM { get; set; }
         public int? SourceOfItem { get; set; }
         }
@@ -80,6 +78,7 @@
             public int? ReorderLevel { get; set; }
             public int? ReorderQty { get; set; }
             public int? RequestTypeId { get; set; }
+            public int? SafetyStock { get; set; }
             public bool AllowNegativeStock { get; set; }
             public bool BatchManagement { get; set; }
             public bool ApplyBatchNumber { get; set; }

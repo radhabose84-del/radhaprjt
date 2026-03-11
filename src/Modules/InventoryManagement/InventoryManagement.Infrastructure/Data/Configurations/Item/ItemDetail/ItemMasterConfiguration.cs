@@ -88,6 +88,8 @@
                 .HasForeignKey(x => x.IssueRuleId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+                b.Property(x => x.OriginCountryId).HasColumnName("OriginCountryId").HasColumnType("int").IsRequired(false);
+                b.Property(x => x.TariffNumber).HasColumnName("TariffNumber").HasColumnType("varchar(50)").IsRequired(false);
                 b.Property(x => x.ItemImage).HasColumnName("ItemImage").HasColumnType("nvarchar(255)").IsRequired(false);
 
                 // --- BaseEntity columns (unchanged) ---

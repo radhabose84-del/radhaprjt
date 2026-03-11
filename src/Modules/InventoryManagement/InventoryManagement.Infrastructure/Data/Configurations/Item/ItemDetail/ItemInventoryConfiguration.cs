@@ -101,6 +101,11 @@ namespace InventoryManagement.Infrastructure.Data.Configurations.Item.ItemDetail
              .HasForeignKey(x => x.RequestTypeId)
              .OnDelete(DeleteBehavior.Restrict); 
 
+            b.Property(x => x.SafetyStock)
+             .HasColumnName("SafetyStock")
+             .HasColumnType("int")
+             .IsRequired(false);
+
             b.Property(x => x.AllowNegativeStock)
              .HasColumnName("AllowNegativeStock")
              .HasColumnType("bit")
