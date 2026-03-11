@@ -1,6 +1,7 @@
 using System.Data;
 using Dapper;
 using UserManagement.Application.Common.Interfaces.IAdminSecuritySettings;
+using Contracts.Interfaces;
 using UserManagement.Application.Common.Interfaces;
 
 

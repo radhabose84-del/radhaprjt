@@ -1,5 +1,6 @@
 #nullable disable
 using System.Data;
+using Contracts.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces.IPreventiveScheduler;
 using MaintenanceManagement.Domain.Entities;
@@ -19,7 +20,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.PreventiveSchedulers
         }
         public async Task<bool> AlreadyExistsAsync(int activityId, int machinegroupId, int? id = null)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
             var query = @"
                     SELECT COUNT(1) FROM [Maintenance].[PreventiveSchedulerHeader] PSH
                  INNER JOIN [Maintenance].[PreventiveSchedulerActivity] PSA ON PSA.PreventiveSchedulerHeaderId = PSH.Id
@@ -57,7 +58,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.PreventiveSchedulers
 
         public async Task<(IEnumerable<dynamic> PreventiveSchedulerList, int)> GetAllPreventiveSchedulerAsync(int PageNumber, int PageSize, string SearchTerm, List<int> departmentIds)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
             var query = $@"
                 DECLARE @TotalCount INT;
                 SELECT @TotalCount = COUNT(*) 
@@ -299,7 +300,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.PreventiveSchedulers
         }
         public async Task<IEnumerable<dynamic>> GetAbstractSchedulerByDate(int DepartmentId)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
             var statusCodes = new[] { StatusOpen.Code, GetStatusId.Status };
             var query = $@"
                             SELECT
@@ -340,7 +341,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.PreventiveSchedulers
         }
         public async Task<IEnumerable<dynamic>> GetDetailSchedulerByDate(DateOnly schedulerDate, int DepartmentId)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
             var statusCodes = new[] { StatusOpen.Code, GetStatusId.Status, WorkOrderHold.Code };
             var query = $@"
                             SELECT
@@ -446,7 +447,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.PreventiveSchedulers
         }
         public async Task<bool> MachingroupValidation(int id)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
             var query = @"SELECT COUNT(1) FROM [Maintenance].[MachineGroup] MG
                  INNER JOIN [Maintenance].[MachineMaster] MM ON MM.MachineGroupId=MG.Id
                   WHERE MG.Id = @Id AND MG.IsDeleted = 0 AND MG.IsActive = 1 AND MM.IsDeleted = 0 AND MM.IsActive = 1 AND MM.Unitid=@UnitId";
@@ -591,7 +592,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.PreventiveSchedulers
 
         public async Task<PreventiveSchedulerHeader> GetDetailSchedulerByPreventiveScheduleId(int Id)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
             var statusCodes = new[] { StatusOpen.Code, GetStatusId.Status, WorkOrderHold.Code };
             // var query = $@"
             //                 SELECT  

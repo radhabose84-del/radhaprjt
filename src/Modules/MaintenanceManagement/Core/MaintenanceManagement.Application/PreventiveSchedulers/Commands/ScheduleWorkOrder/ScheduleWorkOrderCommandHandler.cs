@@ -1,6 +1,7 @@
 using AutoMapper;
 using MaintenanceManagement.Application.Common;
 using Contracts.Common;
+using Contracts.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces.IMiscMaster;
 using MaintenanceManagement.Application.Common.Interfaces.IPreventiveScheduler;

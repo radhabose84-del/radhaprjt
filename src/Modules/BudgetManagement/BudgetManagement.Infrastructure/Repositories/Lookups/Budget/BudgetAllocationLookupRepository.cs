@@ -1,6 +1,6 @@
 using System.Data;
 using System.Data.Common;
-using BudgetManagement.Application.Common.Interfaces;
+using Contracts.Interfaces;
 using Contracts.Dtos.Budget;
 using Contracts.Interfaces.Lookups.Budget;
 using Dapper;
@@ -30,7 +30,7 @@ namespace BudgetManagement.Infrastructure.Repositories.Lookups.Budget
             int? financialYearId,
             CancellationToken ct = default)
         {
-            var unitId = _ipAddressService.GetUnitId();
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
 
             // Treat 0 as null
             projectId = (projectId.HasValue && projectId.Value <= 0) ? null : projectId;
@@ -116,7 +116,7 @@ namespace BudgetManagement.Infrastructure.Repositories.Lookups.Budget
             int? financialYearId,
             CancellationToken ct = default)
         {
-            var unitId = _ipAddressService.GetUnitId();
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
 
             // Treat 0 as null
             projectId = (projectId.HasValue && projectId.Value <= 0) ? null : projectId;
@@ -169,7 +169,7 @@ namespace BudgetManagement.Infrastructure.Repositories.Lookups.Budget
             DbTransaction transaction,
             CancellationToken ct = default)
         {
-            var unitId = _ipAddressService.GetUnitId();
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
 
             projectId = (projectId.HasValue && projectId.Value <= 0) ? null : projectId;
             wbsId = (wbsId.HasValue && wbsId.Value <= 0) ? null : wbsId;

@@ -1,5 +1,6 @@
 #nullable disable
 using System.Data;
+using Contracts.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.ImportPO;
 using Dapper;
@@ -170,7 +171,7 @@ public class ImportPOQueryRepository : IImportPOQueryRepository
         var s = (size.HasValue && size > 0) ? size.Value : 15;
         var off = (p - 1) * s;
         var like = string.IsNullOrWhiteSpace(search) ? null : $"%{search.Trim()}%";
-        var unitId = _ip.GetUnitId();
+        var unitId = _ip.GetUnitId() ?? 0;
 
         // Only “Pending” POs (same as Local)
         var pending = await _miscMasterQueryRepository.GetMiscMasterByName(
@@ -320,7 +321,7 @@ public class ImportPOQueryRepository : IImportPOQueryRepository
         var val = await _conn.ExecuteScalarAsync<int?>(
             new CommandDefinition(
                 sql,
-                new { Id = poId, UnitId = _ip.GetUnitId() },
+                new { Id = poId, UnitId = _ip.GetUnitId() ?? 0 },
                 cancellationToken: ct));
 
         return val.HasValue;

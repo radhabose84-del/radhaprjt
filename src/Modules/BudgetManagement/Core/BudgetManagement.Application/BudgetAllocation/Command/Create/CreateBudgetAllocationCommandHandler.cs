@@ -1,5 +1,6 @@
 using AutoMapper;
 using Contracts.Common;
+using Contracts.Interfaces;
 using BudgetManagement.Application.Common.Interfaces;
 using BudgetManagement.Application.Common.Interfaces.IBudgetAllocation;
 using BudgetManagement.Domain.Events;

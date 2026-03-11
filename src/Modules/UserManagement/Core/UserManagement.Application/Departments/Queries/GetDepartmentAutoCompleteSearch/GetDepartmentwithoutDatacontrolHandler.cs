@@ -1,5 +1,6 @@
 #nullable disable
 using AutoMapper;
+using Contracts.Interfaces;
 using UserManagement.Application.Common.Interfaces;
 using MediatR;
 using UserManagement.Application.Common.Interfaces.IDepartment;

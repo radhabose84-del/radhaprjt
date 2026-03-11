@@ -1,4 +1,5 @@
 using System.Data;
+using Contracts.Interfaces;
 using InventoryManagement.Application.Common.Interfaces;
 using InventoryManagement.Application.Common.Interfaces.IReports.IStockReport;
 using InventoryManagement.Application.Reports.StockReport;
@@ -98,7 +99,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Reports
 
         public async Task<List<StockSummaryDto>> GetStockSummaryAsync(int? itemId = null, int? warehouseId = null, int? storageTypeId = null, int? targetId = null)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
             // Base SQL
             var sql = @"
                SELECT 
@@ -181,7 +182,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Reports
 
         public async Task<List<SubStockSummaryDto>> GetSubStoresStockSummaryAsync(int? itemId = null, int? departmentId = null, int? warehouseId = null, int? storageTypeId = null, int? targetId = null)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
             // Base SQL
             var sql = @"
                 

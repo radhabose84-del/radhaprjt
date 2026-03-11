@@ -1,4 +1,5 @@
 using System.Data;
+using Contracts.Interfaces;
 using BackgroundService.Application.Notification.Common.Interfaces;
 using BackgroundService.Application.Notification.Common.Interfaces.INotificationConfig;
 using BackgroundService.Application.Notification.NotificationConfig.Queries.GetAllNotificationConfig;
@@ -21,7 +22,7 @@ namespace  BackgroundService.Infrastructure.Repositories.Notification.Notificati
 
         public async Task<NotificationConfigDto> GetByIdAsync(int Id)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
             const string query = @" select 
                     NC.Id, ModuleName, NotificationEventTypeId, NC.IsActive, NC.IsDeleted, NC.CreatedBy, NC.CreatedDate, NC.CreatedByName, NC.CreatedIP, NC.ModifiedBy, NC.ModifiedDate, NC.ModifiedByName, NC.ModifiedIP,MM.Code
                     FROM  AppNotification.NotificationConfig NC
@@ -34,7 +35,7 @@ namespace  BackgroundService.Infrastructure.Repositories.Notification.Notificati
 
         public async Task<List<NotificationConfigAutoCompleteDto>> GetNotificationConfigAutoCompleteAsync(string searchPattern)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
             searchPattern = searchPattern ?? string.Empty;
             const string query = @"
             SELECT distinct NC.Id, NC.ModuleName 
@@ -52,7 +53,7 @@ namespace  BackgroundService.Infrastructure.Repositories.Notification.Notificati
 
         public async Task<(IEnumerable<dynamic>, int)> GetAllNotificationConfigAsync(int PageNumber, int PageSize, string? SearchTerm)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
             var query = $$"""
             DECLARE @TotalCount INT;
             SELECT @TotalCount = COUNT(*) 

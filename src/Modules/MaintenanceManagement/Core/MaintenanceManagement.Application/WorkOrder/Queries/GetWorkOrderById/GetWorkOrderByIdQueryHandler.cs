@@ -1,6 +1,7 @@
 using AutoMapper;
 using Contracts.Interfaces.Lookups.Users;
 using Contracts.Common;
+using Contracts.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces.IWorkOrder;
 using MaintenanceManagement.Domain.Events;

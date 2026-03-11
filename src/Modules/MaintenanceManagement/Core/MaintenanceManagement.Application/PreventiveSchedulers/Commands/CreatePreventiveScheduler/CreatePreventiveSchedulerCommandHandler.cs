@@ -2,6 +2,7 @@ using Contracts.Common;
 using Contracts.Dtos.Maintenance.Preventive;
 using Contracts.Events.Maintenance.PreventiveScheduler;
 using MaintenanceManagement.Application.Common;
+using Contracts.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces.IMachineMaster;
 using MaintenanceManagement.Application.Common.Interfaces.IMiscMaster;
@@ -56,7 +57,7 @@ namespace MaintenanceManagement.Application.PreventiveSchedulers.Commands.Create
         public async Task<int> Handle(CreatePreventiveSchedulerCommand request, CancellationToken cancellationToken)
         {
             // ── Read-only work outside the transaction ─────────────────────────────
-            var unitId = _ipAddressService.GetUnitId();
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
             var machineMaster = await _machineMasterQueryRepository.GetMachineByGroupSagaAsync(request.MachineGroupId, unitId);
 
             if (machineMaster == null || machineMaster.Count == 0)

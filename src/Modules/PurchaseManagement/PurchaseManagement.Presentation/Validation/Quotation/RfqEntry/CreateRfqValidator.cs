@@ -1,5 +1,6 @@
 using FluentValidation;
 using PurchaseManagement.Application.Quotation.RfqEntry.Commands.Create;
+using Contracts.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces;           
 using PurchaseManagement.Application.Common.Interfaces.IQuotation.IRfqEntry;  
 
@@ -154,7 +155,7 @@ namespace PurchaseManagement.Presentation.Validation.Quotation.RfqEntry
 
                 if (supplierIds.Length == 0 || itemIds.Length == 0) return;
 
-                var unitId = _ip.GetUnitId();
+                var unitId = _ip.GetUnitId() ?? 0;
 
                 
                 //var today = DateOnly.FromDateTime(DateTime.Today);

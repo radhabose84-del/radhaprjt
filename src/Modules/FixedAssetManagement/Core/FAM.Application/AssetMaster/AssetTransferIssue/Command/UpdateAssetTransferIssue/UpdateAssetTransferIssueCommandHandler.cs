@@ -1,4 +1,5 @@
 using AutoMapper;
+using Contracts.Interfaces;
 using FAM.Application.Common.Interfaces;
 using FAM.Application.Common.Interfaces.IAssetMaster.IAssetTransferIssue;
 using FluentValidation;

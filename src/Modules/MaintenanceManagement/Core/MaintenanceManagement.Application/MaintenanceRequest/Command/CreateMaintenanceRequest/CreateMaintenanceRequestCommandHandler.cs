@@ -2,6 +2,7 @@
 using AutoMapper;
 using Contracts.Events.Notifications;
 using Contracts.Common;
+using Contracts.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces.IMaintenanceRequest;
 using MaintenanceManagement.Application.Common.Interfaces.IMiscMaster;
@@ -108,8 +109,8 @@ namespace MaintenanceManagement.Application.MaintenanceRequest.Command.CreateMai
 
             // Set status and company/unit from context
             maintenanceRequest.RequestStatusId = openStatus.Id;
-            maintenanceRequest.CompanyId = _ipAddressService.GetCompanyId();
-            maintenanceRequest.UnitId = _ipAddressService.GetUnitId();
+            maintenanceRequest.CompanyId = _ipAddressService.GetCompanyId() ?? 0;
+            maintenanceRequest.UnitId = _ipAddressService.GetUnitId() ?? 0;
 
             // ═══════════════════════════════════════════════════════════════════
             // ATOMIC PATTERN:
@@ -153,8 +154,8 @@ namespace MaintenanceManagement.Application.MaintenanceRequest.Command.CreateMai
             {
                 var workOrder = _imapper.Map<Domain.Entities.WorkOrderMaster.WorkOrder>(maintenanceRequest);
                 workOrder.RequestId = maintenanceRequest.Id; // Real Id — MaintenanceRequest was saved in Step 1
-                workOrder.CompanyId = _ipAddressService.GetCompanyId();
-                workOrder.UnitId = _ipAddressService.GetUnitId();
+                workOrder.CompanyId = _ipAddressService.GetCompanyId() ?? 0;
+                workOrder.UnitId = _ipAddressService.GetUnitId() ?? 0;
                 workOrder.Remarks = string.Empty;
 
                 await _workOrderCommandRepository.CreateWithoutSaveAsync(
@@ -254,7 +255,7 @@ namespace MaintenanceManagement.Application.MaintenanceRequest.Command.CreateMai
             {
                 CorrelationId = correlationId,
                 CreatedByName = workOrder.CreatedByName,
-                UnitId = _ipAddressService.GetUnitId(),
+                UnitId = _ipAddressService.GetUnitId() ?? 0,
                 ModuleName = isBreakdown ? "WorkOrder-BreakDown" : "WorkOrder",
                 EventTypeId = eventTypeId,
                 // CC mail uses department ID for recipient resolution

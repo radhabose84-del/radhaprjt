@@ -1,5 +1,6 @@
 using AutoMapper;
 using Contracts.Interfaces.Lookups.Users;
+using Contracts.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces.IActivityMaster;
 using MaintenanceManagement.Domain.Events;
@@ -29,7 +30,7 @@ namespace MaintenanceManagement.Application.MachineGroup.Queries.GetMachineGroup
         public async Task<GetActivityMasterByIdDto> Handle(GetActivityMasterByIdQuery request, CancellationToken cancellationToken)
         {
 
-               var unitId = _ipAddressService.GetUnitId();
+               var unitId = _ipAddressService.GetUnitId() ?? 0;
 
             var result = await _activityMasterQueryRepository.GetByIdAsync(request.Id);
 

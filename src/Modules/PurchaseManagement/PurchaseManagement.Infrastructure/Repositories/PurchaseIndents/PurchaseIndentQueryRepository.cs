@@ -1,5 +1,6 @@
 #nullable disable
 using System.Data;
+using Contracts.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseIndent;
 using PurchaseManagement.Application.PurchaseIndents.Queries.ApprovedIndentDetailsForPO;
@@ -63,7 +64,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseIndents
 
         // // public async Task<(List<IndentHeader>, int)> GetAllPurchaseIndentAsync(int PageNumber, int PageSize, string? SearchTerm, int? StatusId)
         // // {
-        // //     var UnitId = _ipAddressService.GetUnitId();
+        // //     var UnitId = _ipAddressService.GetUnitId() ?? 0;
         // //     const string dataQuery = @" SELECT 
         // //         IH.Id, 
         // //         IH.IndentNumber,
@@ -272,7 +273,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseIndents
 
         public async Task<(List<PendingIndentDto>, int)> GetPendingPurchaseIndentAsync(int PageNumber, int PageSize, string SearchTerm)
         {
-            var unitId = _ipAddressService.GetUnitId();
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
 
             var sql = @"
                     SELECT 
@@ -352,7 +353,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseIndents
 
         // public async Task<(List<IndentHeader>, int)> GetPendingPurchaseIndentAsync(int PageNumber, int PageSize, string? SearchTerm)
         // {
-        //     var UnitId = _ipAddressService.GetUnitId();
+        //     var UnitId = _ipAddressService.GetUnitId() ?? 0;
         //     const string dataQuery = @" SELECT 
         //         IH.Id, 
         //         IH.IndentNumber,
@@ -427,7 +428,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseIndents
 
         public async Task<List<IndentHeader>> GetPurchaseIndentAutoCompleteAsync(string status, string searchTerm, bool allIndents = false)
         {
-            var unitId = _ipAddressService.GetUnitId();
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
 
             var searchPattern = string.IsNullOrWhiteSpace(searchTerm)
                 ? "%"
@@ -477,7 +478,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseIndents
 
         public async Task<List<IndentForPODto>> GetApprovedIndentDetailsForPO(int? vendorId, int? departmentId, CancellationToken ct = default)
         {
-            var unitId = _ipAddressService.GetUnitId();
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
 
             const string query = @"
                 SELECT
@@ -644,7 +645,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseIndents
 
         public async Task<(List<PurchaseManagement.Application.PurchaseIndents.Queries.GetAllPurchaseIndent.IndentDto> Items, int TotalCount)> GetAllPurchaseIndentAsync(int pageNumber, int pageSize, string searchTerm, int? statusId)
         {
-           var unitId = _ipAddressService.GetUnitId();
+           var unitId = _ipAddressService.GetUnitId() ?? 0;
 
                     var sql = @"
                         SELECT 
@@ -739,7 +740,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseIndents
         //     string? searchTerm,
         //     int? statusId)
         // {
-        //     var unitId = _ipAddressService.GetUnitId();
+        //     var unitId = _ipAddressService.GetUnitId() ?? 0;
 
         //     var sql = @"
         //     SELECT 

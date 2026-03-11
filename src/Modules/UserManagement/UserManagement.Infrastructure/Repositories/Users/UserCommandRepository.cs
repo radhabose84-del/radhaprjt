@@ -2,6 +2,7 @@
 using System.Data;
 using Microsoft.EntityFrameworkCore;
 using UserManagement.Infrastructure.Data;
+using Contracts.Interfaces;
 using UserManagement.Application.Common.Interfaces;
 using UserManagement.Domain.Entities;
 using UserManagement.Application.Common.Interfaces.IUser;

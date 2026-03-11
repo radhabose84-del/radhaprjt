@@ -1,6 +1,7 @@
 using AutoMapper;
 using Contracts.Interfaces.Lookups.Users;
 using Contracts.Interfaces.Lookups.Workflow;
+using Contracts.Interfaces;
 using ProjectManagement.Application.Common.Interfaces;
 using ProjectManagement.Application.Common.Interfaces.IMiscMaster;
 using ProjectManagement.Application.Common.Interfaces.IProjectMaster;
@@ -42,7 +43,7 @@ namespace ProjectManagement.Application.ProjectMaster.Queries.GetProjectPendingA
         public async Task<(List<GetProjectPendingApprovalDto> Items, int TotalCount)> Handle(
     GetProjectPendingApprovalQuery request, CancellationToken ct)
         {
-            var unitId = _ip.GetUnitId();
+            var unitId = _ip.GetUnitId() ?? 0;
             var currentUserId = _ip.GetUserId();
 
             var pending = await _misc.GetMiscMasterByName(MiscEnumEntity.ApprovalStatus, MiscEnumEntity.Pending);

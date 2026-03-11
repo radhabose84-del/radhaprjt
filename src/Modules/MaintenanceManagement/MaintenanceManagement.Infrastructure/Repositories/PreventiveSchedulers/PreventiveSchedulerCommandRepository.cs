@@ -1,6 +1,7 @@
 #nullable disable
 // using Contracts.Events.Maintenance;
 // using Contracts.Interfaces.External.IMaintenance;
+using Contracts.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces.IMiscMaster;
 using MaintenanceManagement.Application.Common.Interfaces.IPreventiveScheduler;
@@ -51,8 +52,8 @@ namespace MaintenanceManagement.Infrastructure.Repositories.PreventiveSchedulers
 
         public async Task<PreventiveSchedulerHeader> CreateAsync(PreventiveSchedulerHeader preventiveSchedulerHdr)
         {
-            preventiveSchedulerHdr.CompanyId = _ipAddressService.GetCompanyId();
-            preventiveSchedulerHdr.UnitId = _ipAddressService.GetUnitId();
+            preventiveSchedulerHdr.CompanyId = _ipAddressService.GetCompanyId() ?? 0;
+            preventiveSchedulerHdr.UnitId = _ipAddressService.GetUnitId() ?? 0;
             _applicationDbContext.Entry(preventiveSchedulerHdr);
             await _applicationDbContext.PreventiveSchedulerHdr.AddAsync(preventiveSchedulerHdr);
             await _applicationDbContext.SaveChangesAsync();

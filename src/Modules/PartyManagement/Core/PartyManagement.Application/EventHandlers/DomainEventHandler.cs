@@ -1,3 +1,4 @@
+using Contracts.Interfaces;
 using PartyManagement.Application.Common.Interfaces;
 using PartyManagement.Domain.Events;
 using MediatR;

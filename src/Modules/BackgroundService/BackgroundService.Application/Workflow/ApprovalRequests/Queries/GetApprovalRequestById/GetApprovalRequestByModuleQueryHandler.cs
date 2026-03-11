@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using Contracts.Common;
-using BackgroundService.Application.Notification.Common.Interfaces;
+using Contracts.Interfaces;
 using BackgroundService.Application.Workflow.Common.Interfaces.IApprovalRequest;
 using MediatR;
 

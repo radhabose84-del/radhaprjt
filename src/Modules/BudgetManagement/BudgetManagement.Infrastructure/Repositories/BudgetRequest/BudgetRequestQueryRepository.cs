@@ -1,6 +1,7 @@
 using System.Data;
 using BudgetManagement.Application.BudgetRequest;
 using BudgetManagement.Application.BudgetRequest.Queries.GetBudgetRequestPending;
+using Contracts.Interfaces;
 using BudgetManagement.Application.Common.Interfaces;
 using BudgetManagement.Application.Common.Interfaces.IBudgetRequest;
 using BudgetManagement.Application.Common.Interfaces.IMiscMaster;
@@ -33,7 +34,7 @@ public class BudgetRequestQueryRepository : IBudgetRequestQueryRepository
     int? statusId, int pageNumber, int pageSize, string? searchTerm, CancellationToken ct = default)
     {
         var skip = (pageNumber - 1) * pageSize;
-        var UnitId = _ipAddressService.GetUnitId();
+        var UnitId = _ipAddressService.GetUnitId() ?? 0;
          var listSql = @"
             SELECT  
                 br.Id,
@@ -302,7 +303,7 @@ public class BudgetRequestQueryRepository : IBudgetRequestQueryRepository
     {
         var skip = (pageNumber - 1) * pageSize;
         var like = string.IsNullOrWhiteSpace(search) ? null : $"%{search.Trim()}%";
-        var unitId = _ipAddressService.GetUnitId();
+        var unitId = _ipAddressService.GetUnitId() ?? 0;
 
         // ApprovalStatus = Pending
         var pending = await _miscMasterQueryRepository.GetMiscMasterByName(
@@ -384,7 +385,7 @@ public class BudgetRequestQueryRepository : IBudgetRequestQueryRepository
 
     public async Task<bool> AllocationExistsAsync(int financialYearId, int requestById, int? requestMonthId, int? budgetGroupId, int? projectId, int? wbsId, CancellationToken ct = default)
     {
-        var unitId = _ipAddressService.GetUnitId();
+        var unitId = _ipAddressService.GetUnitId() ?? 0;
         var sql = @"
         SELECT CASE WHEN EXISTS (
             SELECT 1

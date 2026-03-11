@@ -2,7 +2,8 @@
 // using Contracts.Interfaces.Lookups.Party;
 // using Contracts.Interfaces.Lookups.Users;
 // using Contracts.Interfaces.Lookups.Workflow;
-// using PurchaseManagement.Application.Common.Interfaces;
+// using Contracts.Interfaces;
+using PurchaseManagement.Application.Common.Interfaces;
 // using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.Local;
 // using PurchaseManagement.Domain.Common;
 // using PurchaseManagement.Domain.Events;

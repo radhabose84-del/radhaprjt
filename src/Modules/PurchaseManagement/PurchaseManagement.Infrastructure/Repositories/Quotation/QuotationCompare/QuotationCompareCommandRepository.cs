@@ -1,3 +1,4 @@
+using Contracts.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IMiscMaster;
 using PurchaseManagement.Application.Common.Interfaces.IQuotation.IQuotationCompare;
@@ -65,7 +66,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.Quotation.QuotationComp
                 RfqCode = x.RfqCode,
                 RfqId = x.RfqId,
                 StatusId = x.StatusId,
-                UnitId = _ipAddressService.GetUnitId()
+                UnitId = _ipAddressService.GetUnitId() ?? 0
                 //RfqHeaderId = x.RfqHeaderId,
                 //OverrideStatus = x.OverrideStatus                           
             })
@@ -117,7 +118,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.Quotation.QuotationComp
 
         private async Task CreatePriceMastersFromComparisonAsync(int comparisonHeaderId, CancellationToken ct)
         {
-            //var unitId = _ipAddressService.GetUnitId();
+            //var unitId = _ipAddressService.GetUnitId() ?? 0;
             var nowDate = DateOnly.FromDateTime(DateTime.UtcNow.Date);
 
             // Resolve SourceFromId for "Quotation"

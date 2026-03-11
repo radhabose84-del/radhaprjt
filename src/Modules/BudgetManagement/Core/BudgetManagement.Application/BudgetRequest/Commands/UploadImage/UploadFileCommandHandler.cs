@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using Contracts.Interfaces.Lookups.Users;
 using BudgetManagement.Application.BudgetRequest.Commands;
 using BudgetManagement.Application.BudgetRequest.Commands.UploadImage;
+using Contracts.Interfaces;
 using BudgetManagement.Application.Common.Interfaces;
 using BudgetManagement.Application.Common.Interfaces.IBudgetRequest;
 using MediatR;
@@ -46,8 +47,8 @@ namespace BudgetManagement.Application.Quotation.QuotationEntry.Commands.UploadI
                 throw new ValidationException("Base directory not configured.");                
             }
   
-            var companyId = _ipAddressService.GetCompanyId();
-            var unitId = _ipAddressService.GetUnitId();
+            var companyId = _ipAddressService.GetCompanyId() ?? 0;
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
 
             var companies = await _companyLookup.GetAllCompanyAsync();
             var units = await _unitLookup.GetAllUnitAsync();

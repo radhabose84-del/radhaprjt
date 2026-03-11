@@ -3,6 +3,7 @@ using Contracts.Dtos.Maintenance.Preventive;
 using Contracts.Events.Maintenance.PreventiveScheduler.PreventiveSchedulerUpdate;
 using MaintenanceManagement.Application.Common;
 using Contracts.Common;
+using Contracts.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces.IMiscMaster;
 using MaintenanceManagement.Application.Common.Interfaces.IOutbox;

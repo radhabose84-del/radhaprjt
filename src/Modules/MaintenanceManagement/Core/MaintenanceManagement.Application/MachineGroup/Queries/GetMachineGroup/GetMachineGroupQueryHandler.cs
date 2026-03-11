@@ -1,6 +1,7 @@
 using AutoMapper;
 using Contracts.Interfaces.Lookups.Users;
 using Contracts.Common;
+using Contracts.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces.IMachineGroup;
 using MaintenanceManagement.Domain.Events;
@@ -36,7 +37,7 @@ namespace MaintenanceManagement.Application.MachineGroup.Queries.GetMachineGroup
 
         public async Task<ApiResponseDTO<List<MachineGroupDto>>> Handle(GetMachineGroupQuery request, CancellationToken cancellationToken)
         {
-            var unitId = _ipAddressService.GetUnitId();
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
             // Fetch data from repository
             var (machineGroups, totalCount) = await _machineGroupQueryRepository.GetAllMachineGroupsAsync(request.PageNumber, request.PageSize, request.SearchTerm);
 

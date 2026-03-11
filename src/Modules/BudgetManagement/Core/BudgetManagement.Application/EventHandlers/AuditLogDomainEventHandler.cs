@@ -1,4 +1,5 @@
 using MediatR;
+using Contracts.Interfaces;
 using BudgetManagement.Application.Common.Interfaces;
 using BudgetManagement.Domain.Events;
 

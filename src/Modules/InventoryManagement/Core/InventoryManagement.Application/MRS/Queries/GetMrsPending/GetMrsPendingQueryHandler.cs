@@ -4,6 +4,7 @@ using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Users;
 using Contracts.Interfaces.Lookups.Workflow;
 using Contracts.Common;
+using Contracts.Interfaces;
 using InventoryManagement.Application.Common.Interfaces;
 using InventoryManagement.Application.Common.Interfaces.IMRS;
 using InventoryManagement.Domain.Common;

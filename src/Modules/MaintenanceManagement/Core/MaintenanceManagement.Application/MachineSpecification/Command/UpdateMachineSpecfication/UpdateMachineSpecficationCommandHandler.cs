@@ -1,6 +1,7 @@
 using AutoMapper;
 using Contracts.Common;
 using MaintenanceManagement.Application.Common.IMachineSpecification;
+using Contracts.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces;
 using MaintenanceManagement.Domain.Events;
 using MediatR;

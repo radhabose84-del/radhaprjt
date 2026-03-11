@@ -1,4 +1,5 @@
 using AutoMapper;
+using Contracts.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IQuotation.IRfqEntry;
 using PurchaseManagement.Domain.Common;
@@ -32,7 +33,7 @@ namespace PurchaseManagement.Application.Quotation.RfqEntry.Commands.Update
                 Id              = request.Id,
                 InitiationTypeId= request.InitiationTypeId,
                 IndentId        = request.IndentId,       
-                UnitId          = _ip.GetUnitId(),
+                UnitId          = _ip.GetUnitId() ?? 0,
                 RfqStatusId     = submitStatusId,
                 IsActive        = status
             };

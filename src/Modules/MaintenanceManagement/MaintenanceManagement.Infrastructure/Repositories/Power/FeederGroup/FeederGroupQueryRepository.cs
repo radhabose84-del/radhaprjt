@@ -1,5 +1,6 @@
 #nullable disable
 using System.Data;
+using Contracts.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces.Power.IFeederGroup;
 using Dapper;
@@ -20,7 +21,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.Power.FeederGroup
         public async Task<(List<MaintenanceManagement.Domain.Entities.Power.FeederGroup>, int)> GetAllFeederGroupAsync(int PageNumber, int PageSize, string SearchTerm)
         {
 
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
             var query = $$"""
             DECLARE @TotalCount INT;
             SELECT @TotalCount = COUNT(*) 
@@ -59,7 +60,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.Power.FeederGroup
         public async Task<MaintenanceManagement.Domain.Entities.Power.FeederGroup> GetFeederGroupByIdAsync(int id)
         {
 
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
             var query = """
                 SELECT FG.Id, FG.FeederGroupCode, FG.FeederGroupName,FG.UnitId, FG.IsActive, FG.IsDeleted, 
                     FG.CreatedBy, FG.CreatedDate, FG.CreatedByName, FG.CreatedIP, 
@@ -74,7 +75,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.Power.FeederGroup
 
         public async Task<bool> AlreadyExistsAsync(string feederGroupCode, int? id = null)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
             var query = "SELECT COUNT(1) FROM [Maintenance].[FeederGroup] WHERE FeederGroupCode = @feederGroupCode AND UnitId = @UnitId AND IsDeleted = 0";
 
             var parameters = new DynamicParameters();
@@ -101,7 +102,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.Power.FeederGroup
 
         public async Task<List<MaintenanceManagement.Domain.Entities.Power.FeederGroup>> GetFeederGroupAutoComplete(string searchPattern)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
             const string query = @"
                        SELECT Id, FeederGroupCode,FeederGroupName  
                        FROM Maintenance.FeederGroup

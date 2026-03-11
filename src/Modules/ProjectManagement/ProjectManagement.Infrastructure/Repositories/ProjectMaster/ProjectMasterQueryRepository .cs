@@ -1,5 +1,6 @@
 using System.Data;
 using Contracts.Interfaces.Lookups.Users;
+using Contracts.Interfaces;
 using ProjectManagement.Application.Common.Interfaces;
 using ProjectManagement.Application.Common.Interfaces.IMiscMaster;
 using ProjectManagement.Application.Common.Interfaces.IProjectMaster;
@@ -32,7 +33,7 @@ namespace ProjectManagement.Infrastructure.Repositories.ProjectMaster
          string? searchTerm,
          CancellationToken ct = default)
         {
-            var unitId = _iPAddressService.GetUnitId();
+            var unitId = _iPAddressService.GetUnitId() ?? 0;
 
 
 
@@ -167,7 +168,7 @@ namespace ProjectManagement.Infrastructure.Repositories.ProjectMaster
   
         public async Task<GetProjectMasterDto?> GetByIdAsync(int id, CancellationToken ct = default)
         {
-            var unitId = _iPAddressService.GetUnitId();
+            var unitId = _iPAddressService.GetUnitId() ?? 0;
             const string sqlProject = @"
                   SELECT 
                     p.Id,

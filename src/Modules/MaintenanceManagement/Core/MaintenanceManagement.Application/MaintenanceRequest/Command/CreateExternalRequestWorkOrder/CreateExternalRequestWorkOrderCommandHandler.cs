@@ -1,6 +1,7 @@
 #nullable disable
 using AutoMapper;
 using Contracts.Common;
+using Contracts.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces.IMaintenanceRequest;
 using MaintenanceManagement.Application.Common.Interfaces.IWorkOrder;

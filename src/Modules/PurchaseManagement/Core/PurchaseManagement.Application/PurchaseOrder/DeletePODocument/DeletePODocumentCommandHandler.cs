@@ -1,5 +1,6 @@
 using Contracts.Interfaces.Lookups.Users;
 using Contracts.Common;
+using Contracts.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.IPurchaseDocument;
 using MediatR;
@@ -32,8 +33,8 @@ namespace PurchaseManagement.Application.PurchaseOrder.DeletePODocument
         public async Task<ApiResponseDTO<bool>> Handle(DeletePODocumentCommand request, CancellationToken cancellationToken)
         {
             // 1️⃣ Resolve company & unit names via gRPC
-            var companyId = _ipAddressService.GetCompanyId();
-            var unitId    = _ipAddressService.GetUnitId();
+            var companyId = _ipAddressService.GetCompanyId() ?? 0;
+            var unitId    = _ipAddressService.GetUnitId() ?? 0;
 
             var companies = await _companyLookup.GetAllCompanyAsync();
             var unit      = await _unitLookup.GetByIdAsync(unitId, cancellationToken);

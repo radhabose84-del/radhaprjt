@@ -1,4 +1,5 @@
 using PartyManagement.Application.BankAccount.Command.UpdateBankAccount;
+using Contracts.Interfaces;
 using PartyManagement.Application.Common.Interfaces;
 using PartyManagement.Application.Common.Interfaces.IBankAccount;
 using PartyManagement.Domain.Events;

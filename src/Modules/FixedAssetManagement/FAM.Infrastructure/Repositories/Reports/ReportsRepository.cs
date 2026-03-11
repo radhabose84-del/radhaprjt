@@ -1,5 +1,6 @@
 
 using System.Data;
+using Contracts.Interfaces;
 using FAM.Application.Common.Interfaces;
 using FAM.Application.Common.Interfaces.IReports;
 using FAM.Application.Reports.AssetAudit;

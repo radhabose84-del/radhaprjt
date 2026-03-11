@@ -1,5 +1,6 @@
 #nullable disable
 using System.Data;
+using Contracts.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IMiscMaster;
 using PurchaseManagement.Application.Common.Interfaces.PriceMaster;
@@ -42,7 +43,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PriceMaster
         }
         public async Task<PriceMasterGetAllDto> GetByIdAsync(int id, CancellationToken ct)
         {
-            var unitId = _ipAddress.GetUnitId();
+            var unitId = _ipAddress.GetUnitId() ?? 0;
 
             var h = await db.Set<PriceMasterHeader>()
                 .AsNoTracking()
@@ -107,7 +108,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PriceMaster
             decimal? qtyTo, int? statusId,bool expiredList,
             CancellationToken ct)
         {
-            var unitId = _ipAddress.GetUnitId();
+            var unitId = _ipAddress.GetUnitId() ?? 0;
             var includeExpired = expiredList == true;
             var today = DateOnly.FromDateTime(DateTime.UtcNow);
 
@@ -196,7 +197,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PriceMaster
         public async Task<(List<PriceMasterPendingGroupDto>, int)> GetPriceMasterPendingAsync(
             int PageNumber, int PageSize, string SearchTerm)
         {
-            var unitId = _ipAddress.GetUnitId();
+            var unitId = _ipAddress.GetUnitId() ?? 0;
             var page   = Math.Max(1, PageNumber);
             var size   = Math.Max(1, PageSize);
             var offset = (page - 1) * size;
@@ -342,7 +343,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PriceMaster
             var list = items?.ToList() ?? new List<ItemQtyDto>();
             if (list.Count == 0) return new List<UnitPriceDto>();
 
-            var unitId = _ipAddress.GetUnitId();
+            var unitId = _ipAddress.GetUnitId() ?? 0;
             const string statusCode = MiscEnumEntity.Approved;
 
             // Build TVP

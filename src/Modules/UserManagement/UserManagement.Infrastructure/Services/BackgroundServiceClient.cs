@@ -1,7 +1,7 @@
 
-using UserManagement.Application.Common.Interfaces;
 using Contracts.Events.Notifications;
 using System.Net.Http.Json;
+using UserManagement.Application.Common.Interfaces;
 
 namespace UserManagement.Infrastructure.Services
 {

@@ -181,7 +181,6 @@ namespace InventoryManagement.Infrastructure
             services.AddScoped<IInventoryCategoryLookup, ItemCategoryLookupRepository>();
 
             // Miscellaneous services
-            services.AddScoped<IIPAddressService, IPAddressService>();
             services.AddTransient<IFileUploadService, FileUploadRepository>();
             services.AddSingleton<ITimeZoneService, TimeZoneService>();
             services.AddTransient<IJwtTokenHelper, JwtTokenHelper>();

@@ -1,6 +1,7 @@
 using System.Data;
 using FAM.Application.AssetMaster.AssetMasterGeneral.Commands.CreateAssetMasterGeneral;
 using FAM.Application.AssetMaster.AssetMasterGeneral.Queries.GetAssetMasterGeneral;
+using Contracts.Interfaces;
 using FAM.Application.Common.Interfaces;
 using FAM.Application.Common.Interfaces.IExcelImport;
 using FAM.Application.Common.Interfaces.ILocation;
@@ -158,7 +159,7 @@ namespace FAM.Infrastructure.Repositories.ExcelImport
                 LocationName = locationName,
                 Code = GenerateLocationCode(locationName), 
                 Description="Excel Import",                
-                UnitId=_ipAddressService.GetUnitId(),
+                UnitId=_ipAddressService.GetUnitId() ?? 0,
                 DepartmentId=0,
                 IsDeleted = 0,
                 CreatedBy=_ipAddressService.GetUserId(),
@@ -209,7 +210,7 @@ namespace FAM.Infrastructure.Repositories.ExcelImport
                 Description="Excel Import",                
                 LocationId = assetLocationId,
                 DepartmentId = 0,
-                UnitId = _ipAddressService.GetUnitId(),
+                UnitId = _ipAddressService.GetUnitId() ?? 0,
                 IsDeleted = 0,
                 CreatedBy=_ipAddressService.GetUserId(),
                 CreatedByName=_ipAddressService.GetUserName(),
@@ -249,7 +250,7 @@ namespace FAM.Infrastructure.Repositories.ExcelImport
                 await using var transaction = await _applicationDbContext.Database.BeginTransactionAsync(cancellationToken);
                 try
                 {
-                    var unitId = _ipAddressService.GetUnitId();
+                    var unitId = _ipAddressService.GetUnitId() ?? 0;
                     // Get the current max for that unit
                     var maxUploadId = (await _applicationDbContext.AssetAudit
                         .Where(x => x.UnitId == unitId)
@@ -291,7 +292,7 @@ namespace FAM.Infrastructure.Repositories.ExcelImport
 
         public async Task<bool> InsertScannedAssetAsync(AssetAudit entity, CancellationToken cancellationToken)
         {
-             var unitId = _ipAddressService.GetUnitId();
+             var unitId = _ipAddressService.GetUnitId() ?? 0;
             // Assign UnitId to the entity
              entity.UnitId = unitId;
              await _applicationDbContext.AssetAudit.AddAsync(entity, cancellationToken);
@@ -300,7 +301,7 @@ namespace FAM.Infrastructure.Repositories.ExcelImport
 
         public async Task<bool> IsAssetAlreadyScannedAsync(string assetCode, int auditCycle, string auditFinancialYear, string department,string unitName ,CancellationToken cancellationToken)
         {
-            var unitId = _ipAddressService.GetUnitId();
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
             return await _applicationDbContext.AssetAudit.AnyAsync(x =>
                             x.AssetCode == assetCode.Trim() &&
                             x.AuditTypeId == auditCycle &&

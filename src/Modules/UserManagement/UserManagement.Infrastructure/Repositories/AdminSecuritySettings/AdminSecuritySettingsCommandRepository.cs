@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using UserManagement.Infrastructure.Data;
 using UserManagement.Application.Common.Interfaces.IAdminSecuritySettings;
+using Contracts.Interfaces;
 using UserManagement.Application.Common.Interfaces;
 
 namespace UserManagement.Infrastructure.Repositories.AdminSecuritySettings

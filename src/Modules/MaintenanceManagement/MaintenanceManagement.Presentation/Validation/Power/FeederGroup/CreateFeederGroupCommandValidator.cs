@@ -1,3 +1,4 @@
+using Contracts.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces.Power.IFeederGroup;
 using MaintenanceManagement.Application.Power.FeederGroup.Command.CreateFeederGroup;

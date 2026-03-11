@@ -1,4 +1,5 @@
 using AutoMapper;
+using Contracts.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IIssueReturn;
 using PurchaseManagement.Domain.Entities.IssueReturn;

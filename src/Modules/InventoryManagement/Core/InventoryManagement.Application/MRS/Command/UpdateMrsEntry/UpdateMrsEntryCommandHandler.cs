@@ -1,4 +1,5 @@
 using AutoMapper;
+using Contracts.Interfaces;
 using InventoryManagement.Application.Common.Interfaces;
 using InventoryManagement.Application.Common.Interfaces.IMRS;
 using InventoryManagement.Domain.Entities.MRS;

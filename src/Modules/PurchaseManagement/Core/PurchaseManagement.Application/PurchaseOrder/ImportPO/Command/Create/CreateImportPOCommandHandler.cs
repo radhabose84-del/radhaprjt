@@ -1,6 +1,7 @@
 using AutoMapper;
 using Contracts.Interfaces.Lookups.Budget;
 using Contracts.Interfaces.Lookups.Users;
+using Contracts.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IMiscMaster;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.ImportPO;
@@ -59,7 +60,7 @@ public class CreateImportPOCommandHandler : IRequestHandler<CreateImportPOComman
         catch { tzi = TimeZoneInfo.Local; }
         var now = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, tzi);
 
-        entity.UnitId = _ip.GetUnitId();
+        entity.UnitId = _ip.GetUnitId() ?? 0;
 
         var units = await _unitLookup.GetAllUnitAsync();
         var unitLookupDict = units.ToDictionary(u => u.UnitId, u => (u.ShortName ?? string.Empty).Trim());

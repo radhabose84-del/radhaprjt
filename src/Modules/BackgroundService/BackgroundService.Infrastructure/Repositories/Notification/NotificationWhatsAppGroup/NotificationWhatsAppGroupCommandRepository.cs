@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using Contracts.Interfaces;
 using BackgroundService.Application.Notification.Common.Interfaces;
 using BackgroundService.Application.Notification.Common.Interfaces.INotificationWhatsAppGroup;
 using BackgroundService.Infrastructure.Data.Notification;
@@ -24,7 +25,7 @@ namespace BackgroundService.Infrastructure.Repositories.Notification.Notificatio
         public async Task<int> CreateAsync(NotificationWhatsAppGroupEntity notificationWhatsAppGroup)
         {
             // Resolve UnitId from context
-            notificationWhatsAppGroup.UnitId = _ipAddressService.GetUnitId();
+            notificationWhatsAppGroup.UnitId = _ipAddressService.GetUnitId() ?? 0;
 
             // Track + insert
             _notificationDbContext.Entry(notificationWhatsAppGroup);
@@ -70,7 +71,7 @@ namespace BackgroundService.Infrastructure.Repositories.Notification.Notificatio
 
         public async Task<bool> ExistsByNameAsync(string groupName, int departmentId, int? excludeId = null, CancellationToken ct = default)
         {
-            var unitId = _ipAddressService.GetUnitId();
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
             var trimmedName = groupName.Trim();
 
             var query = _notificationDbContext.NotificationWhatsAppGroup

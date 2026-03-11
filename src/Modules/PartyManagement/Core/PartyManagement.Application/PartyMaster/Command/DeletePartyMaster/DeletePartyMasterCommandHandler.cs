@@ -1,5 +1,6 @@
 using AutoMapper;
 using Contracts.Common;
+using Contracts.Interfaces;
 using PartyManagement.Application.Common.Interfaces;
 using PartyManagement.Application.Common.Interfaces.IPartyMaster;
 using PartyManagement.Domain.Entities;

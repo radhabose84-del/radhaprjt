@@ -2,6 +2,7 @@
 using System.Data;
 using MaintenanceManagement.Application.ActivityCheckListMaster.Queries.GetActivityCheckListMaster;
 using MaintenanceManagement.Application.ActivityCheckListMaster.Queries.GetCheckListByActivityId;
+using Contracts.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces.IActivityCheckListMaster;
 using Dapper;
@@ -23,7 +24,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.ActivityCheckListMas
         }
         public async Task<(List<GetAllActivityCheckListMasterDto>, int)> GetAllActivityCheckListMasterAsync(int PageNumber, int PageSize, string SearchTerm)
         {
-           var UnitId = _ipAddressService.GetUnitId();
+           var UnitId = _ipAddressService.GetUnitId() ?? 0;
 
             var query = $$"""
                     DECLARE @TotalCount INT;
@@ -80,7 +81,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.ActivityCheckListMas
         public async Task<GetAllActivityCheckListMasterDto> GetByIdAsync(int id)
         {
 
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
             const string query = @"
                 SELECT 
                     aclm.Id AS ChecklistId,
@@ -110,7 +111,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.ActivityCheckListMas
 
         public async Task<bool> GetByActivityCheckListAsync(string activityCheckList, int activityId)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
             var query = """
             SELECT COUNT(1) FROM Maintenance.ActivityCheckListMaster
             WHERE ActivityCheckList = @activityCheckList AND ActivityID = @activityId  AND IsDeleted = 0  AND UnitId = @UnitId  
@@ -123,7 +124,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.ActivityCheckListMas
 
         public async Task<bool> AlreadyExistsCheckListAsync(string activityCheckList, int activityId, int? id = null)
         {
-           var UnitId = _ipAddressService.GetUnitId();
+           var UnitId = _ipAddressService.GetUnitId() ?? 0;
             var query = "SELECT COUNT(1) FROM Maintenance.ActivityCheckListMaster WHERE ActivityCheckList = @activityCheckList AND ActivityID = @activityId AND IsDeleted = 0 AND UnitId = @UnitId AND IsActive = 1"; 
             var parameters = new DynamicParameters(new { ActivityCheckList = activityCheckList, ActivityID = activityId , UnitId});
 
@@ -138,7 +139,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.ActivityCheckListMas
         public async Task<List<GetActivityCheckListByActivityIdDto>> GetCheckListByActivityIdsAsync(List<int> ids, int? workOrderId = null)
         {
 
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
             if (ids == null || !ids.Any())
             {
                 return new List<GetActivityCheckListByActivityIdDto>();

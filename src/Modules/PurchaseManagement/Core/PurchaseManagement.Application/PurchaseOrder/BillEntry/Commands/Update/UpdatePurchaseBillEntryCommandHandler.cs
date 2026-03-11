@@ -1,4 +1,5 @@
 using AutoMapper;
+using Contracts.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.IBillEntry;
 using PurchaseManagement.Domain.Entities.PurchaseOrder.BillEntry;
@@ -47,7 +48,7 @@ public sealed class UpdatePurchaseBillEntryCommandHandler
             var line = _mapper.Map<PurchaseBillEntryDetail>(lineDto);
             header.Lines.Add(line);
         }
-        header.UnitId= _ip.GetUnitId();
+        header.UnitId= _ip.GetUnitId() ?? 0;
         header.ModifiedBy= _ip.GetUserId();
         header.ModifiedByName= _ip.GetUserName();
         header.ModifiedIP= _ip.GetUserIPAddress();

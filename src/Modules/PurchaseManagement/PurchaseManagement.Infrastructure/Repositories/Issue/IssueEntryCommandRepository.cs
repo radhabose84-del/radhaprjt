@@ -1,4 +1,5 @@
 #nullable disable
+using Contracts.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IIssue;
 using PurchaseManagement.Domain.Entities.GRN.StockLedger;
@@ -93,7 +94,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.Issue
 
         public async Task<string> GenerateNextCodeAsync(CancellationToken ct = default)
         {
-            var unitId = _ipAddressService.GetUnitId();
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
             var unitCode = unitId > 0 ? unitId.ToString() : "NA";
             var prefix = $"ISS-{unitCode}-";
 

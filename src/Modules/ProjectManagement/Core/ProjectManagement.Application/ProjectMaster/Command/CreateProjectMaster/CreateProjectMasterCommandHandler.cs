@@ -7,7 +7,8 @@
 // using AutoMapper;
 // using Contracts.Events.Workflow;
 // using Contracts.Interfaces.External.IWorkflow;
-// using ProjectManagement.Application.Common.Interfaces;
+// using Contracts.Interfaces;
+using ProjectManagement.Application.Common.Interfaces;
 // using ProjectManagement.Application.Common.Interfaces.IProjectMaster;
 // using ProjectManagement.Application.ProjectMaster.Queries.Dtos;
 // using ProjectManagement.Domain.Common;

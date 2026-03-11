@@ -1,5 +1,6 @@
 #nullable disable
 using AutoMapper;
+using Contracts.Interfaces;
 using UserManagement.Application.Common.Interfaces;
 using MediatR;
 using UserManagement.Application.Divisions.Queries.GetDivisions;
@@ -25,7 +26,7 @@ namespace UserManagement.Application.Divisions.Queries.GetDivisionAutoComplete
          }  
           public async Task<List<DivisionAutoCompleteDTO>> Handle(GetDivisionAutoCompleteQuery request, CancellationToken cancellationToken)
           {
-             var groupcode = _ipAddressService.GetGroupcode();
+             var groupcode = _ipAddressService.GetGroupCode();
 
             if(groupcode == "SUPER_ADMIN" || groupcode == "ADMIN")
                 {

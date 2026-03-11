@@ -1,5 +1,6 @@
 #nullable disable
 using System.Data;
+using Contracts.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IMiscMaster;
 using PurchaseManagement.Application.Common.Interfaces.IQuotation.IQuotationCompare;
@@ -140,7 +141,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.Quotation.QuotationComp
       public async Task<(List<QuoteComparisonPendingGroupDto>, int)> GetQuoteComparisonPendingAsync(
             int PageNumber, int PageSize, string SearchTerm)
         {
-            var unitId = _ip.GetUnitId();
+            var unitId = _ip.GetUnitId() ?? 0;
             var page    = Math.Max(1, PageNumber);
             var size    = Math.Max(1, PageSize);
             var offset  = (page - 1) * size;

@@ -2,7 +2,7 @@ using System.Data;
 using Dapper;
 using Contracts.Dtos.Lookups.Users;
 using Contracts.Interfaces.Lookups.Users;
-using UserManagement.Application.Common.Interfaces;
+using Contracts.Interfaces;
 
 namespace UserManagement.Infrastructure.Repositories.Lookups.Users
 {
@@ -19,7 +19,7 @@ namespace UserManagement.Infrastructure.Repositories.Lookups.Users
 
         public async Task<List<DepartmentLookupDto>> GetAllDepartmentAsync()
         {
-            var CompanyId = _ipAddressService.GetCompanyId();
+            var CompanyId = _ipAddressService.GetCompanyId() ?? 0;
             const string sql = @"
                 SELECT
                     Id        AS DepartmentId,

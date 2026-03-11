@@ -1,6 +1,6 @@
 using System.Globalization;
 using System.Reflection;
-using InventoryManagement.Application.Common.Interfaces;
+using Contracts.Interfaces;
 using InventoryManagement.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 

@@ -1,4 +1,5 @@
 using System.Data;
+using Contracts.Interfaces;
 using ProjectManagement.Application.Common.Interfaces;
 using ProjectManagement.Application.Common.Interfaces.IProjectWorkBreakdownStructure;
 using ProjectManagement.Application.ProjectWorkBreakdownStructure.Queries.Dtos;
@@ -358,7 +359,7 @@ namespace ProjectManagement.Infrastructure.Repositories.ProjectWorkBreakdownStru
         
                 public async Task<List<ProjectWbsLookupDto>> GetWbsLookupAsync(int? projectId = null, CancellationToken ct = default)
             {
-                var unitId = _iPAddressService.GetUnitId();
+                var unitId = _iPAddressService.GetUnitId() ?? 0;
 
                 const string sql = @"
                     SELECT Id,

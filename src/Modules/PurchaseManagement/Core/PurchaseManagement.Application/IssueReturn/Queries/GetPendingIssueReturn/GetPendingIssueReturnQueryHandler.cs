@@ -1,6 +1,7 @@
 using System.Text.Json;
 using AutoMapper;
 using Contracts.Common;
+using Contracts.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IIssue;
 using PurchaseManagement.Domain.Common;

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using FAM.Domain.Entities;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Contracts.Interfaces;
 using FAM.Application.Common.Interfaces;
 using FAM.Domain.Common;
 using FAM.Infrastructure.Data.Configurations;

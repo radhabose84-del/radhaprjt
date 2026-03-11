@@ -1,5 +1,6 @@
 
 using System.Data;
+using Contracts.Interfaces;
 using FAM.Application.Common.Interfaces;
 using FAM.Application.Common.Interfaces.IDepreciationDetail;
 using FAM.Application.DepreciationDetail.Queries.GetDepreciationDetail;

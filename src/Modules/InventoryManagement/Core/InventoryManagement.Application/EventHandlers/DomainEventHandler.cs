@@ -1,3 +1,4 @@
+using Contracts.Interfaces;
 using InventoryManagement.Application.Common.Interfaces;
 using InventoryManagement.Domain.Events;
 using MediatR;

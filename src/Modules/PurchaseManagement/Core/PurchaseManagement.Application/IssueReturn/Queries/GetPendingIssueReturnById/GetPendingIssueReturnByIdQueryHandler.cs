@@ -2,6 +2,7 @@
 using System.Text.Json;
 using AutoMapper;
 using Contracts.Dtos.Inventory;
+using Contracts.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IIssue;
 using PurchaseManagement.Domain.Common;

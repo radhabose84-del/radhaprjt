@@ -361,8 +361,6 @@ namespace BackgroundService.Infrastructure
             services.AddScoped<INotificationWhatsAppGroupCommand, NotificationWhatsAppGroupCommandRepository>();
             services.AddScoped<INotificationWhatsAppGroupQuery, NotificationWhatsAppGroupQueryRepository>();
             services.AddScoped<ILookupRepository, LookupRepository>();
-            services.AddScoped<IIPAddressService, IPAddressService>();
-
             services.AddSingleton<ITimeZoneService, TimeZoneService>();
 
 

@@ -1,6 +1,7 @@
 using BackgroundService.Application.Helpers;
 using BackgroundService.Application.Interfaces.IInbox;
 using BackgroundService.Application.Interfaces.Notification;
+using Contracts.Interfaces;
 using BackgroundService.Application.Notification.Common.Interfaces;
 using BackgroundService.Domain.Entities.Notification;
 using Contracts.Events.Notifications;

@@ -1,3 +1,4 @@
+using Contracts.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IQuotation.IQuotationCompare;
 using PurchaseManagement.Application.Quotation.QuotationCompare.Commands.CreateQuoteComparsion;
@@ -30,7 +31,7 @@ namespace PurchaseManagement.Presentation.Validation.Quotation.QuotationCompare
             {
                 throw new InvalidOperationException("Validation rules could not be loaded.");
             }
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
             RuleFor(x => new { UnitId })
                             .MustAsync(async (indent, cancellation) =>
                           await _workflowLookup.IsApproveWorkflowConfigureAsync(MiscEnumEntity.QuotationComparison, indent.UnitId, 0))

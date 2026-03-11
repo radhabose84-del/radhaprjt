@@ -1,5 +1,6 @@
 #nullable disable
 using Contracts.Common;
+using Contracts.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IQuotation.IQuotationEntry;
 using MediatR;
@@ -30,8 +31,8 @@ namespace PurchaseManagement.Application.Quotation.QuotationEntry.Commands.Delet
 
         public async Task<ApiResponseDTO<bool>>  Handle(DeleteFileCommand request, CancellationToken cancellationToken)
         { 
-            var companyId = _ipAddressService.GetCompanyId();
-            var unitId = _ipAddressService.GetUnitId();
+            var companyId = _ipAddressService.GetCompanyId() ?? 0;
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
             var companies = await _companyLookup.GetAllCompanyAsync();
             var units = await _unitLookup.GetAllUnitAsync();
 

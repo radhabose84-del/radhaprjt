@@ -6,6 +6,7 @@ using Contracts.Events.Notifications;
 using Contracts.Interfaces.Lookups.Budget;
 using Contracts.Interfaces.Lookups.Users;
 using Contracts.Common;
+using Contracts.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IOutbox;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.IPurchaseDocument;
@@ -160,7 +161,7 @@ namespace PurchaseManagement.Application.PurchaseOrder.Local.Commands.Create
             var now = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, systemTimeZone);
 
             // --- Audit + numbering
-            entity.UnitId = _ip.GetUnitId();
+            entity.UnitId = _ip.GetUnitId() ?? 0;
 
             // Get unit code for PO number generation
             var units = await _unitLookup.GetAllUnitAsync();
@@ -275,7 +276,7 @@ namespace PurchaseManagement.Application.PurchaseOrder.Local.Commands.Create
                     {
                         CorrelationId = correlationId,
                         CreatedByName = entity.CreatedByName,
-                        UnitId = _ip.GetUnitId(),
+                        UnitId = _ip.GetUnitId() ?? 0,
                         ModuleName = "Purchase Order",
                         EventTypeId = (int)NotificationEnum.NotificationEvent.Create,
                         param1 = entity.PONumber,
@@ -360,8 +361,8 @@ namespace PurchaseManagement.Application.PurchaseOrder.Local.Commands.Create
             }
 
             // Resolve company & unit names
-            var companyId = _ip.GetCompanyId();
-            var unitId = _ip.GetUnitId();
+            var companyId = _ip.GetCompanyId() ?? 0;
+            var unitId = _ip.GetUnitId() ?? 0;
 
             var units = await _unitLookup.GetAllUnitAsync();
             var companies = await _companyLookup.GetAllCompanyAsync();

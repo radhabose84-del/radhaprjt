@@ -2,7 +2,7 @@ using System.Data;
 using Contracts.Dtos.Workflow;
 using Contracts.Interfaces.Lookups.Workflow;
 using Dapper;
-using PurchaseManagement.Application.Common.Interfaces;
+using Contracts.Interfaces;
 
 namespace PurchaseManagement.Infrastructure.Repositories.Lookups.Workflow
 {

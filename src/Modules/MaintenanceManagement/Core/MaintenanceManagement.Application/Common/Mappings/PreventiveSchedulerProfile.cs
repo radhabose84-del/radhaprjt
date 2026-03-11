@@ -4,7 +4,7 @@
 // using System.Threading.Tasks;
 // using AutoMapper;
 // using Contracts.Dtos.Maintenance.Preventive;
-// using MaintenanceManagement.Application.Common.Interfaces;
+// using Contracts.Interfaces;
 // using MaintenanceManagement.Application.PreventiveSchedulers.Commands.ActiveInActivePreventive;
 // using MaintenanceManagement.Application.PreventiveSchedulers.Commands.CreatePreventiveScheduler;
 // using MaintenanceManagement.Application.PreventiveSchedulers.Commands.DeletePreventiveScheduler;
@@ -95,8 +95,8 @@
 //                 ctx.Items.ContainsKey("StatusId") ? (int)ctx.Items["StatusId"] : 0))
 //             // .ForMember(dest => dest.WorkOrderDocNo, opt => opt.MapFrom((src, dest, destMember, ctx) =>
 //             //     ctx.Items.ContainsKey("WorkOrderDocNo")))
-//             // .ForMember(dest => dest.CompanyId, opt => opt.MapFrom(src => _ipAddressService.GetCompanyId()))
-//             // .ForMember(dest => dest.UnitId, opt => opt.MapFrom(src => _ipAddressService.GetUnitId()))
+//             // .ForMember(dest => dest.CompanyId, opt => opt.MapFrom(src => _ipAddressService.GetCompanyId() ?? 0))
+//             // .ForMember(dest => dest.UnitId, opt => opt.MapFrom(src => _ipAddressService.GetUnitId() ?? 0))
 //             .ForMember(dest => dest.WorkOrderActivities, opt => opt.MapFrom(src => src.PreventiveSchedulerActivities))
 //             .ForMember(dest => dest.WorkOrderItems, opt => opt.MapFrom(src => src.PreventiveSchedulerItems))
 //             .ForMember(dest => dest.DowntimeStart, opt => opt.Ignore())

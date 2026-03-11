@@ -1,5 +1,6 @@
 #nullable disable
 using System.Data;
+using Contracts.Interfaces;
 using PartyManagement.Application.Common.Interfaces;
 using PartyManagement.Application.Common.Interfaces.IPartyMaster;
 using PartyManagement.Application.PartyMaster.Command.CreatePartyMaster;
@@ -208,7 +209,7 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
 
         public async Task<List<GetPartyMasterAutoCompleteDto>> GetPartyMasterAutoComplete(List<int> partyTypeIds, string searchPattern)
         {
-             var UnitId = _ipAddressService.GetUnitId();
+             var UnitId = _ipAddressService.GetUnitId() ?? 0;
             var sql = @"
                 SELECT 
                     a.Id,
@@ -293,7 +294,7 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
 
         public async Task<(List<PartyMasterPendingDto>, int)> GetAllPartyMasterPendingAsync(string SearchTerm)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
 
             var query = $$"""
                 ;WITH PartyMaster_CTE AS (

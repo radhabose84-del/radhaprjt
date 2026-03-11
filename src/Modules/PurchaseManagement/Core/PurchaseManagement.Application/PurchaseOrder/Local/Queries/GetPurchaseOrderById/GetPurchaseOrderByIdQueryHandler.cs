@@ -1,6 +1,7 @@
 using Contracts.Interfaces.Lookups.Users;
 using MediatR;
 using PurchaseManagement.Application.PurchaseOrder.Dtos.Local;
+using Contracts.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.Local;
 using Contracts.Interfaces.Lookups.Party;
@@ -84,8 +85,8 @@ public class GetPurchaseOrderByIdQueryHandler
                 var companyLookupDict = companies.ToDictionary(c => c.CompanyId, c => c.CompanyName);
                 var unitLookupDict = units.ToDictionary(u => u.UnitId, u => u.UnitName);
 
-                companyLookupDict.TryGetValue(_ip.GetCompanyId(), out var companyName);
-                unitLookupDict.TryGetValue(_ip.GetUnitId(), out var unitName);
+                companyLookupDict.TryGetValue(_ip.GetCompanyId() ?? 0, out var companyName);
+                unitLookupDict.TryGetValue(_ip.GetUnitId() ?? 0, out var unitName);
 
                 companyName ??= string.Empty;
                 unitName ??= string.Empty;

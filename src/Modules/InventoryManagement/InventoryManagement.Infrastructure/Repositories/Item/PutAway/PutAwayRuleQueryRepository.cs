@@ -6,6 +6,7 @@ using InventoryManagement.Application.Item.PutAway.Queries.GetAllPutAwayRule;
 using Contracts.Dtos.Lookups.Warehouse;
 using Contracts.Interfaces.Lookups.Warehouse;
 using InventoryManagement.Application.Item.PutAway.Queries.GetPutAwayRuleItemId;
+using Contracts.Interfaces;
 using InventoryManagement.Application.Common.Interfaces;
 
 namespace InventoryManagement.Infrastructure.Repositories.Item.Templates
@@ -219,7 +220,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.Templates
             if (itemIds == null || !itemIds.Any())
                 return new List<GetPutAwayRuleItemIdDto>();
 
-            var unitId = _ipAddressService.GetUnitId();
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
 
             var sql = @"
                 
@@ -408,7 +409,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.Templates
             if (warehouseIds == null || !warehouseIds.Any())
                 return null;
 
-            var unitId = _ipAddressService.GetUnitId();
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
 
             var sql = @"
                 

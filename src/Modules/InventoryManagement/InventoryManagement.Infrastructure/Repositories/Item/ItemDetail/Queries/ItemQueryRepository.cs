@@ -1,5 +1,6 @@
 #nullable disable
 using System.Data;
+using Contracts.Interfaces;
 using InventoryManagement.Application.Common.Interfaces;
 using InventoryManagement.Application.Common.Interfaces.Item.ItemDetail.Queries;
 using InventoryManagement.Application.Item.ItemDetail.Queries.GetAllItems;
@@ -337,7 +338,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
 
         public async Task<List<GetItemAutoCompleteDto>> GetItemAutoCompleteAsync(string searchPattern,int? itemGroupId, int? itemCategoryId,int? sourceId,int? issueRuleId, CancellationToken ct = default)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
             searchPattern = searchPattern ?? string.Empty;
             const string query = @"
                 SELECT IM.Id, ItemName, ItemCode, ParentItemId,HSNId,HSNCode,GSTPercentage,IM.ItemCategoryId,IM.ItemGroupId,P.TariffNumber,

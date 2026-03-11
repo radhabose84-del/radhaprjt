@@ -1,4 +1,5 @@
 using System.Data;
+using Contracts.Interfaces;
 using PartyManagement.Application.Common.Interfaces;
 using PartyManagement.Application.Common.Interfaces.IPartyGroup;
 using PartyManagement.Application.PartyGroup.Queries.GetPartyGroup;

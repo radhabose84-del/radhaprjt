@@ -1,4 +1,5 @@
 #nullable disable
+using Contracts.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IGRN.IGRNEntry;
 using PurchaseManagement.Application.GRN.GRNEntry.Commands.UpdateGRNEntry;
@@ -46,7 +47,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
 
         public async Task<string> GenerateNextCodeAsync(CancellationToken ct = default)
         {
-            var unitId = _ipAddressService.GetUnitId();
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
             var unitCode = unitId > 0 ? unitId.ToString() : "NA";
             var prefix = $"GRN-{unitCode}-";
 
