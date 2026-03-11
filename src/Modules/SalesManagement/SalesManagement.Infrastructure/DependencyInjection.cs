@@ -76,6 +76,8 @@ using SalesManagement.Application.Common.Interfaces.IStoReceipt;
 using SalesManagement.Infrastructure.Repositories.StoReceipt;
 using SalesManagement.Application.Common.Interfaces.IDocumentSequence;
 using SalesManagement.Infrastructure.Repositories.DocumentSequence;
+using SalesManagement.Application.Common.Interfaces.IStockLedger;
+using SalesManagement.Infrastructure.Repositories.Reports.StockLedger;
 
 namespace SalesManagement.Infrastructure
 {
@@ -286,6 +288,9 @@ namespace SalesManagement.Infrastructure
             // ── Document Sequence Repositories ──────────────────────────────────
             services.AddScoped<IDocumentSequenceCommandRepository, DocumentSequenceCommandRepository>();
             services.AddScoped<IDocumentSequenceQueryRepository, DocumentSequenceQueryRepository>();
+
+            // ── Stock Ledger Report Repository ───────────────────────────────────
+            services.AddScoped<IStockLedgerReportRepository, StockLedgerReportRepository>();
 
             return services;
         }
