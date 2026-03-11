@@ -28,6 +28,7 @@ namespace InventoryManagement.Application.Common.Mappings.Item.ItemDetail
                 .ForMember(d => d.Purchase, o => o.Ignore())
                 .ForMember(d => d.Inventory, o => o.Ignore())
                 .ForMember(d => d.Quality, o => o.Ignore())
+                .ForMember(d => d.Sale, o => o.Ignore())
                 .ForMember(d => d.VariantValues, o => o.Ignore())
                 .ForMember(d => d.VariantAttributes, o => o.Ignore())
                 .ForMember(d => d.Suppliers, o => o.Ignore())
@@ -62,6 +63,12 @@ namespace InventoryManagement.Application.Common.Mappings.Item.ItemDetail
                 .ForMember(d => d.Item, o => o.Ignore())
                 .ForMember(d => d.MiscCertificateType, o => o.Ignore());
 
+            CreateMap<ItemSaleDto, ItemSale>()
+                .ForMember(d => d.Id, o => o.Ignore())
+                .ForMember(d => d.ItemId, o => o.Ignore())
+                .ForMember(d => d.Item, o => o.Ignore())
+                .ForMember(d => d.SalesUOM, o => o.Ignore());
+
             CreateMap<ItemUomDto, ItemUOM>()
                 .ForMember(d => d.Id, o => o.Ignore())
                 .ForMember(d => d.Item, o => o.Ignore())
@@ -87,6 +94,7 @@ namespace InventoryManagement.Application.Common.Mappings.Item.ItemDetail
             CreateMap<ItemPurchase, ItemPurchaseDto>();
             CreateMap<ItemInventory, ItemInventoryDto>();
             CreateMap<ItemQuality, ItemQualityDto>();
+            CreateMap<ItemSale, ItemSaleDto>();
             CreateMap<ItemUOM, ItemUomDto>();
             CreateMap<ItemSupplier, ItemSupplierDto>();
             CreateMap<ItemManufacture, ItemManufactureDto>();

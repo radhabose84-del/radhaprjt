@@ -20,6 +20,7 @@ namespace InventoryManagement.Application.Item.ItemDetail.Commands.UpdateItem
         private readonly IItemPurchaseCommandRepository _purchaseRepo;
         private readonly IItemInventoryCommandRepository _inventoryRepo;
         private readonly IItemQualityCommandRepository _qualityRepo;
+        private readonly IItemSaleCommandRepository _saleRepo;
         private readonly IItemSupplierCommandRepository _supplierRepo;
         private readonly IItemManufactureCommandRepository _manuRepo;
         private readonly IItemUomCommandRepository _uomRepo;
@@ -37,6 +38,7 @@ namespace InventoryManagement.Application.Item.ItemDetail.Commands.UpdateItem
             IItemPurchaseCommandRepository purchaseRepo,
             IItemInventoryCommandRepository inventoryRepo,
             IItemQualityCommandRepository qualityRepo,
+            IItemSaleCommandRepository saleRepo,
             IItemSupplierCommandRepository supplierRepo,
             IItemManufactureCommandRepository manuRepo,
             IItemUomCommandRepository uomRepo,
@@ -46,7 +48,7 @@ namespace InventoryManagement.Application.Item.ItemDetail.Commands.UpdateItem
         {
             _uow = uow; _mapper = mapper; _mediator = mediator; _logger = logger;
             _itemRepo = itemRepo; _purchaseRepo = purchaseRepo; _inventoryRepo = inventoryRepo; _qualityRepo = qualityRepo;
-            _supplierRepo = supplierRepo; _manuRepo = manuRepo; _uomRepo = uomRepo;
+            _saleRepo = saleRepo; _supplierRepo = supplierRepo; _manuRepo = manuRepo; _uomRepo = uomRepo;
             _attrRepo = attrRepo; _variantCmd = variantCmd; _variantQry = variantQry;
         }
 
@@ -114,6 +116,22 @@ namespace InventoryManagement.Application.Item.ItemDetail.Commands.UpdateItem
                     {
                         _mapper.Map(p.Quality, row);
                         await _qualityRepo.UpdateAsync(row, ct);
+                    }
+                }
+
+                if (p.Sale is not null)
+                {
+                    var row = await _saleRepo.GetByItemIdAsync(item.Id, ct);
+                    if (row is null)
+                    {
+                        var add = _mapper.Map<InventoryManagement.Domain.Entities.Item.ItemDetail.ItemSale>(p.Sale);
+                        add.ItemId = item.Id;
+                        await _saleRepo.CreateAsync(add, ct);
+                    }
+                    else
+                    {
+                        _mapper.Map(p.Sale, row);
+                        await _saleRepo.UpdateAsync(row, ct);
                     }
                 }
 

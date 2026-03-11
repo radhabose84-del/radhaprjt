@@ -28,6 +28,7 @@
             public ItemPurchaseDto? Purchase { get; set; }
             public ItemInventoryDto? Inventory { get; set; }
             public ItemQualityDto? Quality { get; set; }
+            public ItemSaleDto? Sale { get; set; }
             // Collections
             public List<ItemSupplierDto> Suppliers { get; set; } = new();
             public List<ItemManufactureDto> Manufacture { get; set; } = new();
@@ -97,6 +98,16 @@
             public bool QualityInspectionFree { get; set; }
             public bool IsCertificateRequiredFromSupplier { get; set; }
             public string? CertificateType { get; set; }
+        }
+        public class ItemSaleDto
+        {
+            public int Id { get; set; }
+            public int? UomId { get; set; }
+            public decimal MinQuantity { get; set; }
+            public decimal? PackageQuantity { get; set; }
+            public int? DeliveryLeadTime { get; set; }
+            public bool Discount { get; set; }
+            public string? SalesUOM { get; set; }
         }
         public class ItemSupplierDto
         {
