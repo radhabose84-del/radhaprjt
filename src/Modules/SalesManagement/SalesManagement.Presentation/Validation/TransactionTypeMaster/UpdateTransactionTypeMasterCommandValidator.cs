@@ -45,6 +45,9 @@ namespace SalesManagement.Presentation.Validation.TransactionTypeMaster
 
                         RuleFor(x => x.ModuleId)
                             .NotEmpty().WithMessage($"{nameof(UpdateTransactionTypeMasterCommand.ModuleId)} {rule.Error}");
+
+                        RuleFor(x => x.MenuId)
+                            .NotEmpty().WithMessage($"{nameof(UpdateTransactionTypeMasterCommand.MenuId)} {rule.Error}");
                         break;
 
                     case "MaxLength":
@@ -95,6 +98,12 @@ namespace SalesManagement.Presentation.Validation.TransactionTypeMaster
                                 await _queryRepository.ModuleExistsAsync(moduleId))
                             .WithMessage($"{nameof(UpdateTransactionTypeMasterCommand.ModuleId)} {rule.Error}")
                             .When(x => x.ModuleId > 0);
+
+                        RuleFor(x => x.MenuId)
+                            .MustAsync(async (menuId, ct) =>
+                                await _queryRepository.MenuExistsAsync(menuId))
+                            .WithMessage($"{nameof(UpdateTransactionTypeMasterCommand.MenuId)} {rule.Error}")
+                            .When(x => x.MenuId > 0);
                         break;
 
                     case "ByteValue":
