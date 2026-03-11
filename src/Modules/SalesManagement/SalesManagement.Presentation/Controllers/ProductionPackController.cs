@@ -5,6 +5,7 @@ using SalesManagement.Application.ProductionPack.Commands.CreateProduction;
 using SalesManagement.Application.ProductionPack.Commands.UpdateProduction;
 using SalesManagement.Application.ProductionPack.Queries.GetAllProduction;
 using SalesManagement.Application.ProductionPack.Queries.GetProductionAutoComplete;
+using SalesManagement.Application.ProductionPack.Queries.GetLastEndPackNo;
 using SalesManagement.Application.ProductionPack.Queries.GetProductionById;
 
 namespace SalesManagement.Presentation.Controllers
@@ -41,6 +42,18 @@ namespace SalesManagement.Presentation.Controllers
         public async Task<IActionResult> GetProductionAutoCompleteAsync([FromQuery] string? term = null)
         {
             var result = await Mediator.Send(new GetProductionAutoCompleteQuery(term));
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result
+            });
+        }
+
+        [HttpGet("endpackno/{productionYear}")]
+        public async Task<IActionResult> GetLastEndPackNoAsync(int productionYear)
+        {
+            var result = await Mediator.Send(new GetLastEndPackNoQuery { ProductionYear = productionYear });
 
             return Ok(new
             {

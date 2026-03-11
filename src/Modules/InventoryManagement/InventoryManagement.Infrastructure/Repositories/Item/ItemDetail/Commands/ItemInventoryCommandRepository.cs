@@ -43,6 +43,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Comman
             existing.ReorderLevel                   = updated.ReorderLevel;
             existing.ReorderQty                     = updated.ReorderQty;
             existing.RequestTypeId                  = updated.RequestTypeId;
+            existing.SafetyStock                    = updated.SafetyStock;
             existing.AllowNegativeStock             = updated.AllowNegativeStock;
             existing.BatchManagement                = updated.BatchManagement;
             existing.ApplyBatchNumber               = updated.ApplyBatchNumber;

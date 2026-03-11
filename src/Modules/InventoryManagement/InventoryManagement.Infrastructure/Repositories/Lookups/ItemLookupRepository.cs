@@ -26,7 +26,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Lookups
                        IM.ItemName,
                        IM.ParentItemId,
                        PIM.ItemName AS ParentItemName,
-                       IP.TariffNumber,
+                       IM.TariffNumber,
                        H.HSNCode,
                        ISNULL(H.GSTPercentage, 0) AS GSTPercentage,
                        IM.IsOnSpot,

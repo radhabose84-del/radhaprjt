@@ -21,6 +21,7 @@ namespace InventoryManagement.Domain.Entities.Item.ItemDetail
         public int? ReorderQty { get; set; }
         public int? RequestTypeId { get; set; }
         public MiscMaster? MiscRequestType { get; set; }
+        public int? SafetyStock { get; set; }
         public bool AllowNegativeStock { get; set; }
         public bool BatchManagement { get; set; }
         public bool ApplyBatchNumber { get; set; }
