@@ -121,8 +121,7 @@ namespace InventoryManagement.Presentation.Validation.Item.ItemDetail
 
         private static bool IsEmptyPurchase(ItemPurchaseDto p) =>
             !p.PurchaseUomId.HasValue && !p.LeadTimeDays.HasValue &&
-            !p.SafetyStock.HasValue && !p.GrProcessingTimeDays.HasValue &&
-            !p.OriginCountryId.HasValue && string.IsNullOrWhiteSpace(p.TariffNumber);
+            !p.GrProcessingTimeDays.HasValue;
 
         private static bool IsEmptyInventory(ItemInventoryDto p) =>
             !p.Weight.HasValue && !p.WeightUomId.HasValue &&
@@ -130,6 +129,7 @@ namespace InventoryManagement.Presentation.Validation.Item.ItemDetail
             !p.ShelfLife.HasValue && !p.UpperTolerance.HasValue && !p.LowerTolerance.HasValue &&
             string.IsNullOrWhiteSpace(p.BatchNumberSeries) && string.IsNullOrWhiteSpace(p.SerialNumberSeries) &&
             !p.ReorderLevel.HasValue && !p.ReorderQty.HasValue && !p.RequestTypeId.HasValue &&
+            !p.SafetyStock.HasValue &&
             !p.AllowNegativeStock && !p.BatchManagement && !p.ApplyBatchNumber;
 
         private static bool IsEmptyQuality(ItemQualityDto p) =>

@@ -106,6 +106,7 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
             .Include(p => p.PartyDocumentTypes)
             .Include(p => p.PartyUnitCompanyMappings)
             .Include(p => p.SalesTypes)
+            .Include(p => p.AgentConfigs)
             .FirstOrDefaultAsync(p => p.Id == Id);
 
             if (existingParty == null)
@@ -167,7 +168,8 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
                 (partyMaster.PartyBankTypes?.Any() ?? false) ||
                 (partyMaster.PartyDocumentTypes?.Any() ?? false) ||
                 (partyMaster.PartyUnitCompanyMappings?.Any() ?? false) ||
-                (partyMaster.SalesTypes?.Any() ?? false);
+                (partyMaster.SalesTypes?.Any() ?? false) ||
+                (partyMaster.AgentConfigs?.Any() ?? false);
 
             if (hasRelatedRecords)
             {
@@ -490,6 +492,54 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
 
                         await LogChange(existingParty.Id, "SalesType", "SalesSegmentId-OrderTypeId", "",
                             incoming.SalesSegmentId + "," + incoming.OrderTypeId, "Insert");
+                    }
+                }
+            }
+
+            // AgentConfigs - Update if exists, else Insert
+            if (partyMaster.AgentConfigs != null)
+            {
+                foreach (var incoming in partyMaster.AgentConfigs)
+                {
+                    if (incoming.Id > 0 && incoming.PartyId > 0)
+                    {
+                        var existingChildAgentConfig = existingParty.AgentConfigs
+                            ?.FirstOrDefault(ac => ac.Id == incoming.Id && ac.PartyId == Id);
+
+                        if (existingChildAgentConfig != null)
+                        {
+                            existingChildAgentConfig.SettlementCycleId = incoming.SettlementCycleId;
+                            existingChildAgentConfig.TdsApplicable = incoming.TdsApplicable;
+                            existingChildAgentConfig.TdsCode = incoming.TdsCode;
+                            existingChildAgentConfig.DefaultCommissionGl = incoming.DefaultCommissionGl;
+                            existingChildAgentConfig.AgreementStartDate = incoming.AgreementStartDate;
+                            existingChildAgentConfig.AgreementEndDate = incoming.AgreementEndDate;
+                            existingChildAgentConfig.AgentPayableControlGl = incoming.AgentPayableControlGl;
+                            existingChildAgentConfig.TargetAmount = incoming.TargetAmount;
+                            existingChildAgentConfig.TargetPeriod = incoming.TargetPeriod;
+                            existingChildAgentConfig.Status = incoming.Status;
+                        }
+                    }
+                    else
+                    {
+                        existingParty.AgentConfigs ??= new List<AgentConfig>();
+                        existingParty.AgentConfigs.Add(new AgentConfig
+                        {
+                            PartyId = existingParty.Id,
+                            SettlementCycleId = incoming.SettlementCycleId,
+                            TdsApplicable = incoming.TdsApplicable,
+                            TdsCode = incoming.TdsCode,
+                            DefaultCommissionGl = incoming.DefaultCommissionGl,
+                            AgreementStartDate = incoming.AgreementStartDate,
+                            AgreementEndDate = incoming.AgreementEndDate,
+                            AgentPayableControlGl = incoming.AgentPayableControlGl,
+                            TargetAmount = incoming.TargetAmount,
+                            TargetPeriod = incoming.TargetPeriod,
+                            Status = incoming.Status
+                        });
+
+                        await LogChange(existingParty.Id, "AgentConfig", "SettlementCycleId", "",
+                            incoming.SettlementCycleId?.ToString() ?? "", "Insert");
                     }
                 }
             }

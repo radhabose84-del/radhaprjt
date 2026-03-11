@@ -106,6 +106,23 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
             LEFT JOIN Party.MiscMaster sc ON st.ShippingConditionId = sc.Id AND sc.IsDeleted = 0
             LEFT JOIN Party.MiscMaster aa ON st.AccountAssignmentId = aa.Id AND aa.IsDeleted = 0
             WHERE st.PartyId = @Id;
+            SELECT
+                ac.Id,
+                ac.PartyId,
+                ac.SettlementCycleId,
+                mm.Description AS SettlementCycleName,
+                ac.TdsApplicable,
+                ac.TdsCode,
+                ac.DefaultCommissionGl,
+                ac.AgreementStartDate,
+                ac.AgreementEndDate,
+                ac.AgentPayableControlGl,
+                ac.TargetAmount,
+                ac.TargetPeriod,
+                ac.Status
+            FROM Party.AgentConfig ac
+            LEFT JOIN Party.MiscMaster mm ON ac.SettlementCycleId = mm.Id AND mm.IsDeleted = 0
+            WHERE ac.PartyId = @Id;
 
         ";
 
@@ -122,6 +139,7 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
             partyMaster.PartyDocuments = (await multi.ReadAsync<PartyMasterDto.PartyDocumentDto>()).ToList();
             partyMaster.PartyUnitCompanyMappings = (await multi.ReadAsync<PartyMasterDto.PartyUnitCompanyMappingDto>()).ToList();
             partyMaster.SalesTypes = (await multi.ReadAsync<PartyMasterDto.SalesTypeDto>()).ToList();
+            partyMaster.AgentConfigs = (await multi.ReadAsync<PartyMasterDto.AgentConfigDto>()).ToList();
 
             // Populate cross-module lookup names for SalesTypes
             if (partyMaster.SalesTypes?.Any() == true)

@@ -22,6 +22,69 @@ namespace PartyManagement.Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("PartyManagement.Domain.Entities.AgentConfig", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AgentPayableControlGl")
+                        .HasColumnType("nvarchar(10)")
+                        .HasColumnName("AgentPayableControlGl");
+
+                    b.Property<DateTimeOffset?>("AgreementEndDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("AgreementEndDate");
+
+                    b.Property<DateTimeOffset?>("AgreementStartDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("AgreementStartDate");
+
+                    b.Property<string>("DefaultCommissionGl")
+                        .HasColumnType("nvarchar(10)")
+                        .HasColumnName("DefaultCommissionGl");
+
+                    b.Property<int>("PartyId")
+                        .HasColumnType("int")
+                        .HasColumnName("PartyId");
+
+                    b.Property<int?>("SettlementCycleId")
+                        .HasColumnType("int")
+                        .HasColumnName("SettlementCycleId");
+
+                    b.Property<byte>("Status")
+                        .HasColumnType("tinyint")
+                        .HasColumnName("Status");
+
+                    b.Property<decimal?>("TargetAmount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(15,3)")
+                        .HasColumnName("TargetAmount");
+
+                    b.Property<string>("TargetPeriod")
+                        .HasColumnType("nvarchar(10)")
+                        .HasColumnName("TargetPeriod");
+
+                    b.Property<byte>("TdsApplicable")
+                        .HasColumnType("tinyint")
+                        .HasColumnName("TdsApplicable");
+
+                    b.Property<string>("TdsCode")
+                        .HasColumnType("nvarchar(10)")
+                        .HasColumnName("TdsCode");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PartyId");
+
+                    b.HasIndex("SettlementCycleId");
+
+                    b.ToTable("AgentConfig", "Party");
+                });
+
             modelBuilder.Entity("PartyManagement.Domain.Entities.BankAccount", b =>
                 {
                     b.Property<int>("Id")
@@ -1033,6 +1096,24 @@ namespace PartyManagement.Infrastructure.Migrations
                     b.ToTable("SalesType", "Party");
                 });
 
+            modelBuilder.Entity("PartyManagement.Domain.Entities.AgentConfig", b =>
+                {
+                    b.HasOne("PartyManagement.Domain.Entities.PartyMaster", "Party")
+                        .WithMany("AgentConfigs")
+                        .HasForeignKey("PartyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("PartyManagement.Domain.Entities.MiscMaster", "SettlementCycleMisc")
+                        .WithMany("AgentConfigSettlementCycle")
+                        .HasForeignKey("SettlementCycleId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Party");
+
+                    b.Navigation("SettlementCycleMisc");
+                });
+
             modelBuilder.Entity("PartyManagement.Domain.Entities.BankAccount", b =>
                 {
                     b.HasOne("PartyManagement.Domain.Entities.MiscMaster", "BankAccountType")
@@ -1309,6 +1390,8 @@ namespace PartyManagement.Infrastructure.Migrations
 
             modelBuilder.Entity("PartyManagement.Domain.Entities.MiscMaster", b =>
                 {
+                    b.Navigation("AgentConfigSettlementCycle");
+
                     b.Navigation("BankAccountBranch");
 
                     b.Navigation("BankAccountType");
@@ -1368,6 +1451,8 @@ namespace PartyManagement.Infrastructure.Migrations
 
             modelBuilder.Entity("PartyManagement.Domain.Entities.PartyMaster", b =>
                 {
+                    b.Navigation("AgentConfigs");
+
                     b.Navigation("PartyAddressTypes");
 
                     b.Navigation("PartyBankTypes");

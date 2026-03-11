@@ -43,10 +43,10 @@ namespace SalesManagement.Infrastructure.Repositories.ProductionPack
                 FROM Production.ProductionPackHeader h
                 WHERE h.IsDeleted = 0 {searchFilter};
 
-                SELECT h.Id, h.PackNo, h.PackDate,
+                SELECT h.Id, h.PackNo, h.PackDate, h.ProductionYear,
                     h.UnitId, h.WarehouseId,
                     h.TotalBags, h.TotalNetWeight,
-                    h.ProductionKgs, h.LooseKgs,
+                    h.ProductionKgs, h.LooseConeKgs,
                     h.Remarks,
                     h.IsActive, h.IsDeleted,
                     h.CreatedBy, h.CreatedDate, h.CreatedByName,
@@ -94,10 +94,10 @@ namespace SalesManagement.Infrastructure.Repositories.ProductionPack
         public async Task<ProductionPackHeaderDto?> GetByIdAsync(int id)
         {
             const string headerSql = @"
-                SELECT h.Id, h.PackNo, h.PackDate,
+                SELECT h.Id, h.PackNo, h.PackDate, h.ProductionYear,
                     h.UnitId, h.WarehouseId,
                     h.TotalBags, h.TotalNetWeight,
-                    h.ProductionKgs, h.LooseKgs,
+                    h.ProductionKgs, h.LooseConeKgs,
                     h.Remarks,
                     h.IsActive, h.IsDeleted,
                     h.CreatedBy, h.CreatedDate, h.CreatedByName,
@@ -257,6 +257,18 @@ namespace SalesManagement.Infrastructure.Repositories.ProductionPack
             return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { Id = qualityStatusId });
         }
 
+        public async Task<int> GetLastEndPackNoAsync(int productionYear)
+        {
+            const string sql = @"
+                SELECT ISNULL(MAX(d.EndPackNo), 0)
+                FROM Production.ProductionPackDetail d
+                INNER JOIN Production.ProductionPackHeader h ON d.ProductionPackHeaderId = h.Id
+                WHERE h.ProductionYear = @ProductionYear
+                    AND h.IsDeleted = 0";
+
+            return await _dbConnection.ExecuteScalarAsync<int>(sql, new { ProductionYear = productionYear });
+        }
+
         public async Task<bool> PackOverlapExistsAsync(
             int lotId, int startPackNo, int endPackNo, int? excludeDetailId = null)
         {
@@ -269,7 +281,6 @@ namespace SalesManagement.Infrastructure.Repositories.ProductionPack
                     SELECT 1 FROM Production.ProductionPackDetail d
                     INNER JOIN Production.ProductionPackHeader h ON d.ProductionPackHeaderId = h.Id
                     WHERE d.LotId = @LotId
-                        AND d.PackTypeId = @PackTypeId
                         AND d.StartPackNo <= @EndPackNo
                         AND d.EndPackNo >= @StartPackNo
                         AND h.IsDeleted = 0
@@ -279,7 +290,6 @@ namespace SalesManagement.Infrastructure.Repositories.ProductionPack
             return await _dbConnection.ExecuteScalarAsync<bool>(sql, new
             {
                 LotId = lotId,
-                //PackTypeId = packTypeId,
                 StartPackNo = startPackNo,
                 EndPackNo = endPackNo,
                 ExcludeDetailId = excludeDetailId

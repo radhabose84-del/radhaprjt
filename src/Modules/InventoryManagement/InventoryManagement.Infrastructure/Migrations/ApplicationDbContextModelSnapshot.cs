@@ -551,6 +551,10 @@ namespace InventoryManagement.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("RequestTypeId");
 
+                    b.Property<int?>("SafetyStock")
+                        .HasColumnType("int")
+                        .HasColumnName("SafetyStock");
+
                     b.Property<string>("SerialNumberSeries")
                         .HasColumnType("varchar(100)")
                         .HasColumnName("SerialNumberSeries");
@@ -802,6 +806,10 @@ namespace InventoryManagement.Infrastructure.Migrations
                         .HasColumnType("varchar(50)")
                         .HasColumnName("ModifiedIP");
 
+                    b.Property<int?>("OriginCountryId")
+                        .HasColumnType("int")
+                        .HasColumnName("OriginCountryId");
+
                     b.Property<int?>("ParentItemId")
                         .HasColumnType("int")
                         .HasColumnName("ParentItemId");
@@ -809,6 +817,10 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.Property<int?>("StockUomId")
                         .HasColumnType("int")
                         .HasColumnName("StockUomId");
+
+                    b.Property<string>("TariffNumber")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("TariffNumber");
 
                     b.Property<int?>("UnitId")
                         .HasColumnType("int")
@@ -868,30 +880,13 @@ namespace InventoryManagement.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("LeadTimeDays");
 
-                    b.Property<int?>("OriginCountryId")
-                        .HasColumnType("int")
-                        .HasColumnName("OriginCountryId");
-
-                    b.Property<decimal?>("PurchaseRate")
-                        .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,3)")
-                        .HasColumnName("PurchaseRate");
-
                     b.Property<int?>("PurchaseUomId")
                         .HasColumnType("int")
                         .HasColumnName("PurchaseUomId");
 
-                    b.Property<int?>("SafetyStock")
-                        .HasColumnType("int")
-                        .HasColumnName("SafetyStock");
-
                     b.Property<int?>("SourceOfItem")
                         .HasColumnType("int")
                         .HasColumnName("SourceOfItem");
-
-                    b.Property<string>("TariffNumber")
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("TariffNumber");
 
                     b.HasKey("Id");
 

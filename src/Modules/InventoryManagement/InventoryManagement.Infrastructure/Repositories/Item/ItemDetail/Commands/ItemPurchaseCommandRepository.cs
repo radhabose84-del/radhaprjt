@@ -32,12 +32,8 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Comman
             // ---- DO NOT change keys. Copy only non-key fields. ----
             existing.PurchaseUomId = updated.PurchaseUomId;
             existing.LeadTimeDays = updated.LeadTimeDays;
-            existing.SafetyStock = updated.SafetyStock;
             existing.GrProcessingTimeDays = updated.GrProcessingTimeDays;
             existing.AutomaticPo = updated.AutomaticPo;
-            existing.OriginCountryId = updated.OriginCountryId;
-            existing.TariffNumber = updated.TariffNumber;
-            existing.PurchaseRate = updated.PurchaseRate;
             existing.SourceOfItem = updated.SourceOfItem;            
 
             var entry = _db.Entry(existing);

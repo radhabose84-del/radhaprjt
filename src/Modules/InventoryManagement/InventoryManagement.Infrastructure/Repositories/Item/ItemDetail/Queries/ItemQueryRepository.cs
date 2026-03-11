@@ -151,17 +151,17 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                     IsActive = (i.IsActive == BaseEntity.Status.Active ? 1 : 0),
 
                     // ---------- tabs (1-1) ----------
+                    // ItemMaster-level fields (moved from Purchase)
+                    OriginCountryId = i.OriginCountryId,
+                    TariffNumber = i.TariffNumber,
+
                     Purchase = i.Purchase == null ? null : new ItemPurchaseDto
                     {
                         PurchaseUomId = i.Purchase.PurchaseUomId,
                         PurchaseUOM = i.Purchase.PurchaseUOM != null ? i.Purchase.PurchaseUOM.UOMName : null,
                         LeadTimeDays = i.Purchase.LeadTimeDays,
-                        SafetyStock = i.Purchase.SafetyStock,
                         GrProcessingTimeDays = i.Purchase.GrProcessingTimeDays,
-                        PurchaseRate = i.Purchase.PurchaseRate,
                         AutomaticPo = i.Purchase.AutomaticPo,
-                        OriginCountryId = i.Purchase.OriginCountryId,
-                        TariffNumber = i.Purchase.TariffNumber,
                         SourceOfItem = i.Purchase.SourceOfItem
                     },
                     Inventory = i.Inventory == null ? null : new ItemInventoryDto
@@ -186,6 +186,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                         ReorderLevel = i.Inventory.ReorderLevel,
                         ReorderQty = i.Inventory.ReorderQty,
                         RequestTypeId = i.Inventory.RequestTypeId,
+                        SafetyStock = i.Inventory.SafetyStock,
                         AllowNegativeStock = i.Inventory.AllowNegativeStock,
                         BatchManagement = i.Inventory.BatchManagement,
                         ApplyBatchNumber = i.Inventory.ApplyBatchNumber
@@ -351,7 +352,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
             var UnitId = _ipAddressService.GetUnitId() ?? 0;
             searchPattern = searchPattern ?? string.Empty;
             const string query = @"
-                SELECT IM.Id, ItemName, ItemCode, ParentItemId,HSNId,HSNCode,GSTPercentage,IM.ItemCategoryId,IM.ItemGroupId,P.TariffNumber,
+                SELECT IM.Id, ItemName, ItemCode, ParentItemId,HSNId,HSNCode,GSTPercentage,IM.ItemCategoryId,IM.ItemGroupId,IM.TariffNumber,
                 P.PurchaseUomId,IM.StockUomId,U.Code as PurchaseUom,U1.Code as StockUom,ISNULL(ST.CurrentStockQty, 0) AS CurrentStockQty
                 FROM Inventory.ItemMaster IM
                 Inner join Inventory.HSNMaster HM on IM.HSNId=HM.id
@@ -401,7 +402,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                     H.GSTPercentage     AS GSTPercentage,
                     IM.ItemCategoryId,
                     IM.ItemGroupId,
-                    P.TariffNumber,
+                    IM.TariffNumber,
                     IM.IsOnSpot,
                     P.PurchaseUomId,
                     IM.StockUomId,
@@ -505,7 +506,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                 SELECT IM.Id, IM.ItemName, IM.ItemCode, IM.ParentItemId,
                        IM.HSNId, HM.HSNCode, HM.GSTPercentage,
                        IM.ItemCategoryId, IM.ItemGroupId,
-                       P.TariffNumber, P.PurchaseUomId, IM.StockUomId,
+                       IM.TariffNumber, P.PurchaseUomId, IM.StockUomId,
                        U.Code AS PurchaseUom, U1.Code AS StockUom, IM.IsOnSpot
                 FROM Inventory.ItemMaster IM
                 INNER JOIN Inventory.HSNMaster HM ON IM.HSNId = HM.Id

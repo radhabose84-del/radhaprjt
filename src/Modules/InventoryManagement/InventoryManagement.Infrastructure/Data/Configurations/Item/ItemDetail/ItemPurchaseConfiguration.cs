@@ -39,35 +39,15 @@ namespace InventoryManagement.Infrastructure.Data.Configurations.Item.ItemDetail
              .HasColumnType("int")
              .IsRequired(false);
 
-            b.Property(x => x.SafetyStock)
-             .HasColumnName("SafetyStock")
-             .HasColumnType("int")
-             .IsRequired(false);
-
             b.Property(x => x.GrProcessingTimeDays)
              .HasColumnName("GrProcessingTimeDays")
              .HasColumnType("int")
-             .IsRequired(false);
-
-            b.Property(x => x.PurchaseRate)
-             .HasColumnName("PurchaseRate")
-             .HasColumnType("decimal(18,3)")
              .IsRequired(false);
 
             b.Property(x => x.AutomaticPo)
              .HasColumnName("AutomaticPo")
              .HasColumnType("bit")
              .IsRequired();
-
-            b.Property(x => x.OriginCountryId)
-             .HasColumnName("OriginCountryId")
-             .HasColumnType("int")
-             .IsRequired(false);
-
-            b.Property(x => x.TariffNumber)
-             .HasColumnName("TariffNumber")
-             .HasColumnType("varchar(50)")
-             .IsRequired(false);      
 
             b.Property(x => x.SourceOfItem).HasColumnName("SourceOfItem").HasColumnType("int").IsRequired(false);
                 b.HasOne(x => x.MiscSource)

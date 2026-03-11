@@ -2498,10 +2498,10 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("bit")
                         .HasColumnName("IsDeleted");
 
-                    b.Property<decimal>("LooseKgs")
+                    b.Property<decimal>("LooseConeKgs")
                         .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,3)")
-                        .HasColumnName("LooseKgs");
+                        .HasColumnName("LooseConeKgs");
 
                     b.Property<int?>("ModifiedBy")
                         .HasColumnType("int")
@@ -2533,6 +2533,10 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("decimal(18,3)")
                         .HasColumnName("ProductionKgs");
 
+                    b.Property<int>("ProductionYear")
+                        .HasColumnType("int")
+                        .HasColumnName("ProductionYear");
+
                     b.Property<string>("Remarks")
                         .HasColumnType("nvarchar(500)")
                         .HasColumnName("Remarks");
@@ -2558,10 +2562,10 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     b.HasIndex("PackDate");
 
-                    b.HasIndex("PackNo")
-                        .IsUnique();
-
                     b.HasIndex("WarehouseId");
+
+                    b.HasIndex("PackNo", "ProductionYear")
+                        .IsUnique();
 
                     b.ToTable("ProductionPackHeader", "Production");
                 });

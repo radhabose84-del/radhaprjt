@@ -38,6 +38,11 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("date")
                 .IsRequired();
 
+            builder.Property(t => t.ProductionYear)
+                .HasColumnName("ProductionYear")
+                .HasColumnType("int")
+                .IsRequired();
+
             builder.Property(t => t.UnitId)
                 .HasColumnName("UnitId")
                 .HasColumnType("int")
@@ -63,8 +68,8 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("decimal(18,3)")
                 .IsRequired();
 
-            builder.Property(t => t.LooseKgs)
-                .HasColumnName("LooseKgs")
+            builder.Property(t => t.LooseConeKgs)
+                .HasColumnName("LooseConeKgs")
                 .HasColumnType("decimal(18,3)")
                 .IsRequired();
 
@@ -101,8 +106,8 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasForeignKey(d => d.ProductionPackHeaderId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Indexes
-            builder.HasIndex(t => t.PackNo).IsUnique();
+            // Indexes — PackNo is unique per ProductionYear (not globally)
+            builder.HasIndex(t => new { t.PackNo, t.ProductionYear }).IsUnique();
             builder.HasIndex(t => t.WarehouseId);
             builder.HasIndex(t => t.PackDate);
         }

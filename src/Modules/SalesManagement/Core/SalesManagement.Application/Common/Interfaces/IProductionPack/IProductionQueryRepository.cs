@@ -19,6 +19,9 @@ namespace SalesManagement.Application.Common.Interfaces.IProductionPack
         Task<bool> ItemExistsAsync(int itemId);
         Task<bool> QualityStatusExistsAsync(int qualityStatusId);
 
+        // Last EndPackNo for a production year
+        Task<int> GetLastEndPackNoAsync(int productionYear);
+
         // Pack overlap validation
         Task<bool> PackOverlapExistsAsync(int lotId,  int startPackNo, int endPackNo, int? excludeDetailId = null);
     }
