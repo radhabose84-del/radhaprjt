@@ -31,6 +31,7 @@ namespace PartyManagement.Domain.Entities
         public ICollection<PartyMaster>? PartyTransportMode { get; set; }
         public ICollection<PartyMaster>? PartyVehicleType { get; set; }
         public ICollection<PartyMaster>? PartyDefaultFreightType { get; set; }
+        public ICollection<AgentConfig>? AgentConfigSettlementCycle { get; set; }
 
     }
 }

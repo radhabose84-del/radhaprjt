@@ -58,6 +58,7 @@ namespace PartyManagement.Application.PartyMaster.Command.CreatePartyMaster
         public List<PartyBankDto>? PartyBanks { get; set; }
         public List<PartyDocumentDto>? PartyDocuments { get; set; }
         public List<SalesTypeDto>? SalesTypes { get; set; }
+        public List<AgentConfigDto>? AgentConfigs { get; set; }
 
         public class PartyUnitCompanyDto
         {
@@ -130,6 +131,20 @@ namespace PartyManagement.Application.PartyMaster.Command.CreatePartyMaster
             public int? ShippingConditionId { get; set; }
             public int? AccountAssignmentId { get; set; }
             public byte Active { get; set; }
+        }
+
+        public class AgentConfigDto
+        {
+            public int? SettlementCycleId { get; set; }
+            public byte TdsApplicable { get; set; }
+            public string? TdsCode { get; set; }
+            public string? DefaultCommissionGl { get; set; }
+            public DateTimeOffset? AgreementStartDate { get; set; }
+            public DateTimeOffset? AgreementEndDate { get; set; }
+            public string? AgentPayableControlGl { get; set; }
+            public decimal? TargetAmount { get; set; }
+            public string? TargetPeriod { get; set; }
+            public byte Status { get; set; }
         }
 
     }

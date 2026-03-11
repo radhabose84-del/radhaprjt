@@ -57,6 +57,7 @@ namespace PartyManagement.Application.PartyMaster.Command.UpdatePartyMaster
         public List<UpdatePartyBankDto>? PartyBanksUpdate { get; set; }
         public List<UpdatePartyDocumentDto>? PartyDocumentsUpdate { get; set; }
         public List<UpdateSalesTypeDto>? SalesTypesUpdate { get; set; }
+        public List<UpdateAgentConfigDto>? AgentConfigsUpdate { get; set; }
 
          public class UpdatePartyUniCompanyDto
         {
@@ -138,6 +139,22 @@ namespace PartyManagement.Application.PartyMaster.Command.UpdatePartyMaster
             public int? ShippingConditionId { get; set; }
             public int? AccountAssignmentId { get; set; }
             public byte Active { get; set; }
+        }
+
+        public class UpdateAgentConfigDto
+        {
+            public int Id { get; set; } // PK of AgentConfig, 0 for new
+            public int PartyId { get; set; } // FK
+            public int? SettlementCycleId { get; set; }
+            public byte TdsApplicable { get; set; }
+            public string? TdsCode { get; set; }
+            public string? DefaultCommissionGl { get; set; }
+            public DateTimeOffset? AgreementStartDate { get; set; }
+            public DateTimeOffset? AgreementEndDate { get; set; }
+            public string? AgentPayableControlGl { get; set; }
+            public decimal? TargetAmount { get; set; }
+            public string? TargetPeriod { get; set; }
+            public byte Status { get; set; }
         }
 
     }
