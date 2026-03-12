@@ -57,7 +57,7 @@ namespace WarehouseManagement.Infrastructure.Repositories.Lookups
             {
                 const string countryInsertSql = @"
                     INSERT INTO [AppData].[Country]
-                        (CountryCode, CountryName, IsActive, IsDeleted, CreatedBy, CreatedDate)
+                        (CountryCode, CountryName, IsActive, IsDeleted, CreatedBy, CreatedAt)
                     OUTPUT INSERTED.Id
                     VALUES (@CountryCode, @CountryName, 1, 0, 0, SYSDATETIMEOFFSET());";
 
@@ -87,7 +87,7 @@ namespace WarehouseManagement.Infrastructure.Repositories.Lookups
             {
                 const string stateInsertSql = @"
                     INSERT INTO [AppData].[State]
-                        (StateCode, StateName, CountryId, IsActive, IsDeleted, CreatedBy, CreatedDate)
+                        (StateCode, StateName, CountryId, IsActive, IsDeleted, CreatedBy, CreatedAt)
                     OUTPUT INSERTED.Id
                     VALUES (@StateCode, @StateName, @CountryId, 1, 0, 0, SYSDATETIMEOFFSET());";
 
@@ -113,7 +113,7 @@ namespace WarehouseManagement.Infrastructure.Repositories.Lookups
             {
                 const string cityInsertSql = @"
                     INSERT INTO [AppData].[City]
-                        (CityCode, CityName, StateId, IsActive, IsDeleted, CreatedBy, CreatedDate)
+                        (CityCode, CityName, StateId, IsActive, IsDeleted, CreatedBy, CreatedAt)
                     OUTPUT INSERTED.Id
                     VALUES (@CityCode, @CityName, @StateId, 1, 0, 0, SYSDATETIMEOFFSET());";
 
