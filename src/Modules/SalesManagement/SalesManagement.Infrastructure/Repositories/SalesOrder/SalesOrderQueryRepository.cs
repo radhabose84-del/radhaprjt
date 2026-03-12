@@ -212,7 +212,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             if (header == null)
                 return null;
 
-            // Fetch detail rows
+            // Fetch detail rows with ReservedQty from DispatchAdviceDetail
             const string detailSql = @"
                 SELECT d.Id, d.SalesOrderHeaderId,
                     d.ItemId, d.VariantId, d.HSNId,
@@ -222,11 +222,21 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     d.TCSPercentage, d.TCSAmount,
                     d.NetAmount, d.NetRatePerKg,
                     d.ExpectedDeliveryDate, d.AgentCommissionPercentage,
-                    d.DispatchedQty, d.PendingQty,
+                    d.DispatchedQty,
+                    ISNULL(da.ReservedQty, 0) AS ReservedQty,
+                    (d.QtyInBags - d.DispatchedQty) AS PendingQty,
                     d.LineItemStatusId,
                     mm.Description AS LineItemStatusName
                 FROM Sales.SalesOrderDetail d
                 LEFT JOIN Sales.MiscMaster mm ON d.LineItemStatusId = mm.Id AND mm.IsDeleted = 0
+                LEFT JOIN (
+                    SELECT dad.SalesOrderDetailId,
+                           SUM(dad.DispatchQty) AS ReservedQty
+                    FROM Sales.DispatchAdviceDetail dad
+                    INNER JOIN Sales.DispatchAdviceHeader dah ON dad.DispatchAdviceHeaderId = dah.Id
+                    WHERE dah.IsDeleted = 0
+                    GROUP BY dad.SalesOrderDetailId
+                ) da ON da.SalesOrderDetailId = d.Id
                 WHERE d.SalesOrderHeaderId = @HeaderId";
 
             var details = (await _dbConnection.QueryAsync<SalesOrderDetailDto>(detailSql, new { HeaderId = id })).ToList();

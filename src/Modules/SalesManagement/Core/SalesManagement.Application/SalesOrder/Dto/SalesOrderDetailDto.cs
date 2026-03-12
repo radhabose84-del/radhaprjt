@@ -39,6 +39,7 @@ namespace SalesManagement.Application.SalesOrder.Dto
         public DateOnly ExpectedDeliveryDate { get; set; }
         public decimal AgentCommissionPercentage { get; set; }
         public int DispatchedQty { get; set; }
+        public decimal ReservedQty { get; set; }
         public int PendingQty { get; set; }
 
         // Status
