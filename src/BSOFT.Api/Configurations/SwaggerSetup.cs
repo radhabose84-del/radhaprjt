@@ -19,7 +19,8 @@ namespace BSOFT.Api.Configurations
             new SwaggerModuleInfo("SalesManagement", "Sales Management API", "v1", "SalesManagement.Presentation.Controllers"),
             new SwaggerModuleInfo("ProjectManagement", "Project Management API", "v1", "ProjectManagement.Presentation.Controllers"),
             new SwaggerModuleInfo("BackgroundService", "Background Service API", "v1", "BackgroundService.Presentation.Controllers"),
-            new SwaggerModuleInfo("GateEntryManagement", "Gate Entry Management API", "v1", "GateEntryManagement.Presentation.Controllers")
+            new SwaggerModuleInfo("GateEntryManagement", "Gate Entry Management API", "v1", "GateEntryManagement.Presentation.Controllers"),
+            new SwaggerModuleInfo("FinanceManagement", "Finance Management API", "v1", "FinanceManagement.Presentation.Controllers")
         };
 
         // ✅ Expose for Program.cs SwaggerUI dropdown
