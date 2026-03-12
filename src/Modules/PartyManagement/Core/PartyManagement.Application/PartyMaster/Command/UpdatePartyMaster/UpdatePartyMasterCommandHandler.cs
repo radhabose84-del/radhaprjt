@@ -94,6 +94,22 @@ namespace PartyManagement.Application.PartyMaster.Command.UpdatePartyMaster
                     request.UpdatePartyMaster.SalesTypesUpdate = null;
             }
 
+            // ------------------- Clean AgentConfigs -------------------
+            if (request.UpdatePartyMaster.AgentConfigsUpdate != null)
+            {
+                request.UpdatePartyMaster.AgentConfigsUpdate = request.UpdatePartyMaster.AgentConfigsUpdate
+                    .Where(a =>
+                        a.SettlementCycleId != 0 ||
+                        !string.IsNullOrWhiteSpace(a.TdsCode) ||
+                        !string.IsNullOrWhiteSpace(a.DefaultCommissionGl) ||
+                        a.AgreementStartDate != null ||
+                        a.TargetAmount != null)
+                    .ToList();
+
+                if (!request.UpdatePartyMaster.AgentConfigsUpdate.Any())
+                    request.UpdatePartyMaster.AgentConfigsUpdate = null;
+            }
+
             // Map DTO to Entity (Fix: Pass full DTO, not just Id)
             var partyEntity = _mapper.Map<PartyManagement.Domain.Entities.PartyMaster>(request.UpdatePartyMaster);
 
