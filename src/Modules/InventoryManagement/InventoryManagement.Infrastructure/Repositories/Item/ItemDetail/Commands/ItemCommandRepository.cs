@@ -1,4 +1,3 @@
-using Contracts.Interfaces;
 using InventoryManagement.Application.Common.Interfaces;
 using InventoryManagement.Application.Common.Interfaces.Item.ItemDetail.Commands;
 using InventoryManagement.Domain.Common;
@@ -20,7 +19,6 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Comman
 
         public async Task<int> CreateAsync(ItemMaster item, CancellationToken ct = default)
         {
-            item.UnitId = _ipAddressService.GetUnitId() ?? 0;
             await _db.ItemMaster.AddAsync(item, ct);
             await _db.SaveChangesAsync(ct);
             return item.Id;
@@ -161,3 +159,4 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Comman
                 .Replace(")", "");
     }
 }
+

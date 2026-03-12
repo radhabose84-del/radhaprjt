@@ -24,6 +24,7 @@ namespace InventoryManagement.Application.Item.ItemDetail.Commands.UpdateItem
         private readonly IItemSupplierCommandRepository _supplierRepo;
         private readonly IItemManufactureCommandRepository _manuRepo;
         private readonly IItemUomCommandRepository _uomRepo;
+        private readonly IItemUnitMappingCommandRepository _unitMappingRepo;
         // Variants
         private readonly IItemVariantAttributeCommandRepository _attrRepo;   // upsert template attributes
         private readonly IItemVariantValueCommandRepository _variantCmd;     // (optional) insert template options
@@ -42,6 +43,7 @@ namespace InventoryManagement.Application.Item.ItemDetail.Commands.UpdateItem
             IItemSupplierCommandRepository supplierRepo,
             IItemManufactureCommandRepository manuRepo,
             IItemUomCommandRepository uomRepo,
+            IItemUnitMappingCommandRepository unitMappingRepo,
             IItemVariantAttributeCommandRepository attrRepo,
             IItemVariantValueCommandRepository variantCmd,
             IItemVariantValueQueryRepository variantQry)
@@ -49,7 +51,7 @@ namespace InventoryManagement.Application.Item.ItemDetail.Commands.UpdateItem
             _uow = uow; _mapper = mapper; _mediator = mediator; _logger = logger;
             _itemRepo = itemRepo; _purchaseRepo = purchaseRepo; _inventoryRepo = inventoryRepo; _qualityRepo = qualityRepo;
             _saleRepo = saleRepo; _supplierRepo = supplierRepo; _manuRepo = manuRepo; _uomRepo = uomRepo;
-            _attrRepo = attrRepo; _variantCmd = variantCmd; _variantQry = variantQry;
+            _unitMappingRepo = unitMappingRepo; _attrRepo = attrRepo; _variantCmd = variantCmd; _variantQry = variantQry;
         }
 
         public async Task<Unit> Handle(UpdateItemCommand request, CancellationToken ct)
@@ -136,9 +138,10 @@ namespace InventoryManagement.Application.Item.ItemDetail.Commands.UpdateItem
                 }
 
                 // 4) Collections
-                if (p.Suppliers is not null)   await _supplierRepo.UpdateAsync(item.Id, p.Suppliers, ct);
-                if (p.Manufacture is not null) await _manuRepo.UpdateAsync(item.Id, p.Manufacture, ct);
-                if (p.Uoms is not null)        await _uomRepo.UpdateAsync(item.Id, p.Uoms, ct);
+                if (p.Suppliers is not null)        await _supplierRepo.UpdateAsync(item.Id, p.Suppliers, ct);
+                if (p.Manufacture is not null)      await _manuRepo.UpdateAsync(item.Id, p.Manufacture, ct);
+                if (p.Uoms is not null)             await _uomRepo.UpdateAsync(item.Id, p.Uoms, ct);
+                if (p.ItemUnitMappings is not null)  await _unitMappingRepo.UpdateAsync(item.Id, p.ItemUnitMappings, ct);
 
                 // 5) VARIANT ATTRIBUTES (this is the missing piece)
                 // Turn the item into a template / maintain template attributes

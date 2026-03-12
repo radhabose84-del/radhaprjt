@@ -118,7 +118,6 @@ namespace InventoryManagement.Application.Item.ItemDetail.Commands.CreateItemVar
                 {
                     var child = new ItemMaster
                     {
-                        UnitId = template.UnitId,
                         ItemCode = finalCode,
                         ItemName = name,
                         HSNId = template.HSNId,

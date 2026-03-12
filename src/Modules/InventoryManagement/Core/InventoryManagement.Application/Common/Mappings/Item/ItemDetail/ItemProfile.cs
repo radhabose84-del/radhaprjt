@@ -34,6 +34,7 @@ namespace InventoryManagement.Application.Common.Mappings.Item.ItemDetail
                 .ForMember(d => d.Suppliers, o => o.Ignore())
                 .ForMember(d => d.Manufacture, o => o.Ignore())
                 .ForMember(d => d.ItemUOMs, o => o.Ignore())
+                .ForMember(d => d.ItemUnitMappings, o => o.Ignore())
                 .ForMember(d => d.HSNMaster, o => o.Ignore())
                 .ForMember(d => d.ItemGroup, o => o.Ignore())
                 .ForMember(d => d.ItemCategory, o => o.Ignore())
@@ -74,6 +75,13 @@ namespace InventoryManagement.Application.Common.Mappings.Item.ItemDetail
                 .ForMember(d => d.Item, o => o.Ignore())
                 .ForMember(d => d.ConversionUOM, o => o.Ignore());
 
+            CreateMap<ItemUnitMappingDto, ItemUnitMapping>()
+                .ForMember(d => d.Id, o => o.Ignore())
+                .ForMember(d => d.ItemId, o => o.Ignore())
+                .ForMember(d => d.Item, o => o.Ignore())
+                .ForMember(d => d.ProcurementType, o => o.Ignore())
+                .ForMember(d => d.ItemGroup, o => o.Ignore());
+
             // If you ever need to write attributes via AutoMapper:
             CreateMap<VariantAttributeDto, ItemVariantAttribute>()
                 .ForMember(d => d.Id, o => o.Ignore())
@@ -98,6 +106,7 @@ namespace InventoryManagement.Application.Common.Mappings.Item.ItemDetail
             CreateMap<ItemUOM, ItemUomDto>();
             CreateMap<ItemSupplier, ItemSupplierDto>();
             CreateMap<ItemManufacture, ItemManufactureDto>();
+            CreateMap<ItemUnitMapping, ItemUnitMappingDto>();
 
             // NEW SCHEMA: value has VariantAttributeId; AttributeId is on the nav
             CreateMap<ItemVariantValue, VariantValueDto>()
