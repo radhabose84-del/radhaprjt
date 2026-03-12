@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Core\GateEntryManagement.Application\GateEntryManagement.Application.csproj" />
+    <ProjectReference Include="..\Core\GateEntryManagement.Domain\GateEntryManagement.Domain.csproj" />
+    <ProjectReference Include="..\GateEntryManagement.Infrastructure\GateEntryManagement.Infrastructure.csproj" />
+    <ProjectReference Include="..\GateEntryManagement.Presentation\GateEntryManagement.Presentation.csproj" />
+  </ItemGroup>
+
+</Project>
