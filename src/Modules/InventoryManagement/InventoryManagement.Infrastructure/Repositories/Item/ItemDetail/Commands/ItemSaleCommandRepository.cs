@@ -1,4 +1,4 @@
-using InventoryManagement.Application.Common.Interfaces;
+using Contracts.Interfaces;
 using InventoryManagement.Application.Common.Interfaces.Item.ItemDetail.Commands;
 using InventoryManagement.Domain.Entities.Item.ItemDetail;
 using InventoryManagement.Infrastructure.Data;

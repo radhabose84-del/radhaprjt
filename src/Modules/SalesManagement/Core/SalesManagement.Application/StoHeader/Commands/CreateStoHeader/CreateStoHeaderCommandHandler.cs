@@ -1,7 +1,7 @@
 using AutoMapper;
 using Contracts.Common;
 using MediatR;
-using SalesManagement.Application.Common.Interfaces;
+using Contracts.Interfaces;
 using SalesManagement.Application.Common.Interfaces.IDocumentSequence;
 using SalesManagement.Application.Common.Interfaces.IStoHeader;
 using SalesManagement.Domain.Common;
@@ -43,7 +43,7 @@ namespace SalesManagement.Application.StoHeader.Commands.CreateStoHeader
 
             // Generate STO Number from Finance.DocumentSequence
             var typeId = await _documentSequenceQueryRepository.GetTransactionTypeIdAsync(
-                MiscEnumEntity.TransactionTypeSto, MiscEnumEntity.ModuleSales, unitId);
+                MiscEnumEntity.TransactionTypeSto, MiscEnumEntity.ModuleSales, unitId ?? 0);
             if (!typeId.HasValue)
                 throw new ExceptionRules("Transaction Type 'Stock Transfer Order' not found for Sales module.");
 
