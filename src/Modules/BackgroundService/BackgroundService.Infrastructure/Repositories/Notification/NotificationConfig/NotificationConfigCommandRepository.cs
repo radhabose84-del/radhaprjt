@@ -1,3 +1,4 @@
+using Contracts.Interfaces;
 using BackgroundService.Application.Notification.Common.Interfaces;
 using BackgroundService.Application.Notification.Common.Interfaces.INotificationConfig;
 using BackgroundService.Infrastructure.Data.Notification;
@@ -19,7 +20,7 @@ namespace BackgroundService.Infrastructure.Repositories.Notification.Notificatio
 
         public async Task<int> CreateAsync(Domain.Entities.Notification.NotificationConfig notificationConfig)
         {
-            notificationConfig.UnitId = _ipAddressService.GetUnitId();
+            notificationConfig.UnitId = _ipAddressService.GetUnitId() ?? 0;
             notificationConfig.NotificationEventType = null;
             //_applicationDbContext.Entry(notificationConfig);
             await _applicationDbContext.NotificationConfig.AddAsync(notificationConfig);

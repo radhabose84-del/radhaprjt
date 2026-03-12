@@ -4,6 +4,7 @@ using BudgetManagement.Application.BudgetAllocation.Queries.GetBudgetBalanceRepo
 using BudgetManagement.Application.BudgetAllocation.Queries.GetRemainingBalance;
 using BudgetManagement.Application.BudgetAllocation.Queries.GetSpindleDetailsMonthwise;
 using BudgetManagement.Application.BudgetAllocation.Queries.GetSpindleMonthwiseReport;
+using Contracts.Interfaces;
 using BudgetManagement.Application.Common.Interfaces;
 using BudgetManagement.Application.Common.Interfaces.IBudgetAllocation;
 using BudgetManagement.Domain.Common;
@@ -62,7 +63,7 @@ namespace BudgetManagement.Infrastructure.Repositories.BudgetAllocation
         public async Task<(List<GetSpindleDetailsMonthwiseDto>, int)> GetBudgetGroupDetailSpindlewise(
         int PageNumber, int PageSize, string? SearchTerm)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
 
             // Build Search Parameter
             string? search = string.IsNullOrWhiteSpace(SearchTerm) ? null : $"%{SearchTerm}%";
@@ -133,7 +134,7 @@ namespace BudgetManagement.Infrastructure.Repositories.BudgetAllocation
         public async Task<List<GetSpindleMonthwiseReportDto>> GetSpindleDetailsMonthwiseAsync(
                 int financialYearId, int? departmentId, int? costCenterId, int? allocationTypeId, int? budgetGroupId, DateOnly? budgetDate,CancellationToken ct = default)
         {
-            var unitId = _ipAddressService.GetUnitId();
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
             var sql = @"
                     SELECT 
                         A.UnitId,
@@ -193,7 +194,7 @@ namespace BudgetManagement.Infrastructure.Repositories.BudgetAllocation
             int? wbsId,int? financialYearId,
             CancellationToken ct = default)
         {
-            var unitId = _ipAddressService.GetUnitId();
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
 
             // treat 0 as null
             projectId = (projectId.HasValue && projectId.Value <= 0) ? null : projectId;
@@ -319,7 +320,7 @@ namespace BudgetManagement.Infrastructure.Repositories.BudgetAllocation
 
         public async Task<List<BudgetBalanceReportDto>> GetBudgetAllocationsAsync(int financialYearId)
         {
-            var unitId = _ipAddressService.GetUnitId();
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
             var sql = @"
                 SELECT 
                     A.UnitId,

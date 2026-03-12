@@ -1,7 +1,7 @@
 using AutoMapper;
 using Contracts.Common;
 using MediatR;
-using SalesManagement.Application.Common.Interfaces;
+using Contracts.Interfaces;
 using SalesManagement.Application.Common.Interfaces.IDocumentSequence;
 using SalesManagement.Application.Common.Interfaces.IMiscMaster;
 using SalesManagement.Application.Common.Interfaces.IStoReceipt;
@@ -62,7 +62,7 @@ namespace SalesManagement.Application.StoReceipt.Commands.CreateStoReceipt
 
             // Generate STO Receipt Number from Finance.DocumentSequence
             var typeId = await _documentSequenceQueryRepository.GetTransactionTypeIdAsync(
-                MiscEnumEntity.TransactionTypeStogr, MiscEnumEntity.ModuleSales, unitId);
+                MiscEnumEntity.TransactionTypeStogr, MiscEnumEntity.ModuleSales, unitId ?? 0);
             if (!typeId.HasValue)
                 throw new ExceptionRules("Transaction Type 'STO Goods Receipt' not found for Sales module.");
 

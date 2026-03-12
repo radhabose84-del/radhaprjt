@@ -1,3 +1,4 @@
+using Contracts.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IQuotation.IQuotationEntry;
 using PurchaseManagement.Application.Quotations.QuotationEntry.DTOs;
@@ -28,7 +29,7 @@ public class QuotationQueryRepository(
     int PageSize,
     string? SearchTerm)
     {
-        var unitId = ip.GetUnitId();
+        var unitId = ip.GetUnitId() ?? 0;
 
         var q = db.Set<QuotationHeader>()
                 .AsNoTracking()
@@ -139,8 +140,8 @@ public class QuotationQueryRepository(
         var companyNameLookup = companies.ToDictionary(c => c.CompanyId, c => c.CompanyName);
         var unitNameLookup = units.ToDictionary(u => u.UnitId, u => u.UnitName);
 
-        var CompanyName = companyNameLookup.TryGetValue(ip.GetCompanyId(), out var cName) ? cName : string.Empty;
-        var UnitName = unitNameLookup.TryGetValue(ip.GetUnitId(), out var uName) ? uName : string.Empty;
+        var CompanyName = companyNameLookup.TryGetValue(ip.GetCompanyId() ?? 0, out var cName) ? cName : string.Empty;
+        var UnitName = unitNameLookup.TryGetValue(ip.GetUnitId() ?? 0, out var uName) ? uName : string.Empty;
 
         string prefix = string.Empty;
         if (!string.IsNullOrWhiteSpace(basePath) && !string.IsNullOrWhiteSpace(folder))
@@ -267,7 +268,7 @@ public class QuotationQueryRepository(
 
     public async Task<List<QuotationAutoCompleteDto>> GetQuotationAutoComplete(string? searchPattern)
     {
-        var unitId = ip.GetUnitId();
+        var unitId = ip.GetUnitId() ?? 0;
         var q = db.Set<QuotationHeader>()
                 .AsNoTracking()
                 .Where(h => h.IsDeleted == BaseEntity.IsDelete.NotDeleted &&

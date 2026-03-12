@@ -1,3 +1,4 @@
+using Contracts.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.PriceMaster;
 using PurchaseManagement.Domain.Common;

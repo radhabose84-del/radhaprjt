@@ -3,6 +3,7 @@ using BudgetManagement.Application.BudgetGroups;
 using BudgetManagement.Application.Common.Interfaces.IBudgetGroupMaster;
 using Dapper;
 using BudgetManagement.Domain.Common;
+using Contracts.Interfaces;
 using BudgetManagement.Application.Common.Interfaces;
 
 namespace BudgetManagement.Infrastructure.Repositories.BudgetGroup
@@ -25,7 +26,7 @@ namespace BudgetManagement.Infrastructure.Repositories.BudgetGroup
         {
 
             var skip = (filter.PageNumber - 1) * filter.PageSize;
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
 
 const string sql = @"
     SELECT 
@@ -309,7 +310,7 @@ const string sql = @"
 
         public async Task<List<BudgetGroupAutoCompleteDto>> GetBudgetGroupByDepartmentAsync(int departmentId, string? searchPattern, CancellationToken ct = default)
         {
-            var unitId = _ipAddressService.GetUnitId();
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
 
             const string sql = @"
         SELECT 

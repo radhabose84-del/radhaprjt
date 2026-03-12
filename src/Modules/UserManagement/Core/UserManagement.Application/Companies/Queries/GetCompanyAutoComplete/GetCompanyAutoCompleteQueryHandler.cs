@@ -4,6 +4,7 @@ using MediatR;
 using UserManagement.Application.Companies.Queries.GetCompanies;
 using UserManagement.Application.Common.Interfaces.ICompany;
 using UserManagement.Domain.Events;
+using Contracts.Interfaces;
 using UserManagement.Application.Common.Interfaces;
 
 
@@ -24,7 +25,7 @@ namespace UserManagement.Application.Companies.Queries.GetCompanyAutoComplete
          }  
           public async Task<List<CompanyAutoCompleteDTO>> Handle(GetCompanyAutoCompleteQuery request, CancellationToken cancellationToken)
           {
-             var groupcode = _ipAddressService.GetGroupcode();
+             var groupcode = _ipAddressService.GetGroupCode();
 
             if(groupcode == "SUPER_ADMIN" || groupcode == "ADMIN")
                 {

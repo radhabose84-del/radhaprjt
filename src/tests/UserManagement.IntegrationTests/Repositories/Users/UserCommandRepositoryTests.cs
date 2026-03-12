@@ -1,3 +1,4 @@
+using Contracts.Interfaces;
 #nullable disable
 using System.Data;
 using UserManagement.Domain.Entities;

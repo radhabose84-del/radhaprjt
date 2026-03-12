@@ -12,7 +12,8 @@
 // using MediatR;
 // using ServiceEntrySheetEntity   = PurchaseManagement.Domain.Entities.PurchaseOrder.ServicePO.ServiceEntrySheet;
 // using ServiceEntryActivityEntity = PurchaseManagement.Domain.Entities.PurchaseOrder.ServicePO.ServiceEntryActivity;
-// using PurchaseManagement.Application.Common.Interfaces;
+// using Contracts.Interfaces;
+using PurchaseManagement.Application.Common.Interfaces;
 // using System.Text;
 // using Contracts.Events.Workflow;
 // using PurchaseManagement.Domain.Common;
@@ -63,7 +64,7 @@
 //             var ses = _mapper.Map<ServiceEntrySheetEntity>(dto);
 
 //             // Audit fields from IP service
-//             ses.UnitId = _ip.GetUnitId();
+//             ses.UnitId = _ip.GetUnitId() ?? 0;
 //             ses.CreatedBy = _ip.GetUserId();
 //             ses.CreatedByName = _ip.GetUserName();
 //             ses.CreatedIP = _ip.GetSystemIPAddress();

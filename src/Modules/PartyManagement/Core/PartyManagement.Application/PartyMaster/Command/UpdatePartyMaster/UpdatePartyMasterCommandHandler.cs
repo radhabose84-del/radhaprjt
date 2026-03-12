@@ -3,6 +3,7 @@ using AutoMapper;
 using Contracts.Events.Users;
 using Contracts.Interfaces.Lookups.Users;
 using Contracts.Common;
+using Contracts.Interfaces;
 using PartyManagement.Application.Common.Interfaces;
 using PartyManagement.Application.Common.Interfaces.IPartyMaster;
 using PartyManagement.Application.PartyMaster.Queries.GetPartyMasterById;

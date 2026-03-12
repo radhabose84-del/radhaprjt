@@ -1,4 +1,5 @@
 using System.Data;
+using Contracts.Interfaces;
 using FAM.Application.Common.Interfaces;
 using FAM.Application.Common.Interfaces.ILocation;
 using FAM.Domain.Entities;
@@ -19,7 +20,7 @@ namespace FAM.Infrastructure.Repositories.Locations
         }
         // public async Task<(List<Location>, int)> GetAllLocationAsync(int PageNumber, int PageSize, string? SearchTerm)
         // {
-        //     // var UnitId = _ipAddressService.GetUnitId();
+        //     // var UnitId = _ipAddressService.GetUnitId() ?? 0;
         //     var query = $$"""
         //      DECLARE @TotalCount INT;
         //      SELECT @TotalCount = COUNT(*) 
@@ -64,7 +65,7 @@ namespace FAM.Infrastructure.Repositories.Locations
 
         public async Task<(List<LocationDto>, int)> GetAllLocationListAsync(int PageNumber, int PageSize, string? SearchTerm)
         {
-            var unitId = _ipAddressService.GetUnitId();
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
 
             var sql = $$"""
                 DECLARE @TotalCount INT;

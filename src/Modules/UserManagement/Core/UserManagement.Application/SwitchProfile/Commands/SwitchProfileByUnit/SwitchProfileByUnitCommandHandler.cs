@@ -1,4 +1,5 @@
 #nullable disable
+using Contracts.Interfaces;
 using UserManagement.Application.Common.Interfaces;
 using UserManagement.Application.Common.Interfaces.IUser;
 using UserManagement.Application.Common.Interfaces.IUserSession;
@@ -35,7 +36,7 @@ namespace UserManagement.Application.SwitchProfile.Commands.SwitchProfileByUnit
         public async Task<SwitchProfileByUnitDTO> Handle(SwitchProfileByUnitCommand request, CancellationToken cancellationToken)
         {
             var userId = _ipAddressService.GetUserId();
-            var groupCode = _ipAddressService.GetGroupcode();
+            var groupCode = _ipAddressService.GetGroupCode();
             
             var user = await _userQueryRepository.GetByUserByUnit(userId,request.UnitId);
             if (user == null)

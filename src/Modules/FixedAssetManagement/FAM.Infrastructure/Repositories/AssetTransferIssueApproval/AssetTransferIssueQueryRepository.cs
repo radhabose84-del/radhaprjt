@@ -1,5 +1,6 @@
 using System.Data;
 using FAM.Application.AssetMaster.AssetTranferIssueApproval.Queries.GetAssetTransferIssueApproval;
+using Contracts.Interfaces;
 using FAM.Application.Common.Interfaces;
 using FAM.Application.Common.Interfaces.IAssetTransferIssueApproval;
 using Dapper;
@@ -25,7 +26,7 @@ namespace FAM.Infrastructure.Repositories.AssetTransferIssueApproval
     DateTimeOffset? FromDate, 
     DateTimeOffset? ToDate)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
             var query = $$"""
                 DECLARE @TotalCount INT;
                 SELECT @TotalCount = COUNT(*)
@@ -85,7 +86,7 @@ namespace FAM.Infrastructure.Repositories.AssetTransferIssueApproval
 
     public async Task<List<FAM.Domain.Entities.AssetMaster.AssetTransferIssueApproval>> GetByAssetTransferIdAsync(int Id)
     {
-         var UnitId = _ipAddressService.GetUnitId();
+         var UnitId = _ipAddressService.GetUnitId() ?? 0;
             const string query = @"
             SELECT 
                 a.Id,

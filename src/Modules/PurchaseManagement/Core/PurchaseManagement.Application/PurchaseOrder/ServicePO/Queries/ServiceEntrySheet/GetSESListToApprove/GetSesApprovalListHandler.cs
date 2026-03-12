@@ -3,7 +3,8 @@
 // using System.Linq;
 // using System.Threading.Tasks;
 // using AutoMapper;
-// using PurchaseManagement.Application.Common.Interfaces;
+// using Contracts.Interfaces;
+using PurchaseManagement.Application.Common.Interfaces;
 // using PurchaseManagement.Application.Common.Interfaces.IMiscMaster;
 // using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.ServicePO;
 // using PurchaseManagement.Domain.Common;
@@ -30,7 +31,7 @@
 //             // 🔹 1. Resolve "Pending" approval status from Misc
 //             var pendingStatus = await _misc.GetMiscMasterByName( MiscEnumEntity.ApprovalStatus, MiscEnumEntity.Pending);
 
-//             var unitId = _ip.GetUnitId();
+//             var unitId = _ip.GetUnitId() ?? 0;
 
 //             // 🔹 2. Fetch SES rows for approval
 //             var list = await _servicePoQuery.GetServiceEntrySheetsForApprovalAsync(

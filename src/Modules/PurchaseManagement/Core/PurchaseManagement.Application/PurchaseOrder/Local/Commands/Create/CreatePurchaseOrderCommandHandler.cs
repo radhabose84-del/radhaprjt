@@ -6,6 +6,7 @@ using Contracts.Events.Notifications;
 using Contracts.Interfaces.Lookups.Budget;
 using Contracts.Interfaces.Lookups.Users;
 using Contracts.Common;
+using Contracts.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IOutbox;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.IPurchaseDocument;
@@ -160,7 +161,7 @@ namespace PurchaseManagement.Application.PurchaseOrder.Local.Commands.Create
             var now = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, systemTimeZone);
 
             // --- Audit + numbering
-            entity.UnitId = _ip.GetUnitId();
+            entity.UnitId = _ip.GetUnitId() ?? 0;
 
             // Get unit code for PO number generation
             var units = await _unitLookup.GetAllUnitAsync();
@@ -200,7 +201,11 @@ namespace PurchaseManagement.Application.PurchaseOrder.Local.Commands.Create
 
             return await strategy.ExecuteAsync(async () =>
             {
-                await using var transaction = await _repo.BeginTransactionAsync(ct);
+                // Shared Transaction pattern: open the EF Core transaction and obtain the
+                // underlying ADO.NET connection + transaction so the Budget Dapper UPDATE
+                // participates in the same SQL transaction as the PO write.
+                var (transaction, dbConn, dbTx) = await _repo.BeginTransactionWithConnectionAsync(ct);
+                await using var _ = transaction;;
 
                 try
                 {
@@ -230,6 +235,8 @@ namespace PurchaseManagement.Application.PurchaseOrder.Local.Commands.Create
                             projectId: entity.ProjectId,
                             wbsId: entity.WBSId,
                             financialYearId: entity.FinancialYearId,
+                            connection: dbConn,
+                            transaction: dbTx,
                             ct: ct);
 
                         if (!deltaApplied)
@@ -247,7 +254,7 @@ namespace PurchaseManagement.Application.PurchaseOrder.Local.Commands.Create
                                 IsSuccess = false,
                                 Message = "Budget allocation failed. Purchase order creation rolled back.",
                                 Data = 0
-                                
+
                             };
                         }
                     }
@@ -269,7 +276,7 @@ namespace PurchaseManagement.Application.PurchaseOrder.Local.Commands.Create
                     {
                         CorrelationId = correlationId,
                         CreatedByName = entity.CreatedByName,
-                        UnitId = _ip.GetUnitId(),
+                        UnitId = _ip.GetUnitId() ?? 0,
                         ModuleName = "Purchase Order",
                         EventTypeId = (int)NotificationEnum.NotificationEvent.Create,
                         param1 = entity.PONumber,
@@ -354,8 +361,8 @@ namespace PurchaseManagement.Application.PurchaseOrder.Local.Commands.Create
             }
 
             // Resolve company & unit names
-            var companyId = _ip.GetCompanyId();
-            var unitId = _ip.GetUnitId();
+            var companyId = _ip.GetCompanyId() ?? 0;
+            var unitId = _ip.GetUnitId() ?? 0;
 
             var units = await _unitLookup.GetAllUnitAsync();
             var companies = await _companyLookup.GetAllCompanyAsync();

@@ -1,4 +1,5 @@
 using AutoMapper;
+using Contracts.Interfaces;
 using FAM.Application.Common.Interfaces;
 using FAM.Application.Common.Interfaces.IAssetTransferReceipt;
 using FAM.Domain.Events;

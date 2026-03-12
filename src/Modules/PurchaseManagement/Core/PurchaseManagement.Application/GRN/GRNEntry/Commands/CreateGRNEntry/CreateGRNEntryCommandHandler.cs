@@ -1,6 +1,7 @@
 #nullable disable
 using AutoMapper;
 using Contracts.Common;
+using Contracts.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IGRN.IGRNEntry;
 using PurchaseManagement.Domain.Entities.GRN.GRNEntry;

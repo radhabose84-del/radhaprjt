@@ -1,4 +1,5 @@
 using FluentValidation;
+using Contracts.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces;                       // IIPAddressService
 using PurchaseManagement.Application.Common.Interfaces.IQuotation.IRfqEntry; // IRfqQueryRepository
 
@@ -84,7 +85,7 @@ namespace PurchaseManagement.Presentation.Validation.Quotation.RfqEntry
 
                 if (supplierIds.Length == 0 || itemIds.Length == 0) return;
 
-                var unitId = ip.GetUnitId();
+                var unitId = ip.GetUnitId() ?? 0;
 
                 // If you need IST specifically, convert from UTC first; otherwise DateTime.Today is fine.
                 var ist = TimeZoneInfo.FindSystemTimeZoneById("Asia/Kolkata");

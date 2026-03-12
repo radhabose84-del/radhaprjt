@@ -4,6 +4,7 @@ using UserManagement.Application.Common.Interfaces.IUnit;
 using System.Data;
 using Dapper;
 using UserManagement.Application.Units.Queries.GetUnits;
+using Contracts.Interfaces;
 using UserManagement.Application.Common.Interfaces;
 
 namespace UserManagement.Infrastructure.Repositories.Units
@@ -170,7 +171,7 @@ namespace UserManagement.Infrastructure.Repositories.Units
     }
     public async Task<List<Unit>> GetUnit_SuperAdmin(string searchPattern)
     {
-      var companyId = _ipAddressService.GetCompanyId();
+      var companyId = _ipAddressService.GetCompanyId() ?? 0;
       const string query = @"
                      SELECT
                      U.Id,

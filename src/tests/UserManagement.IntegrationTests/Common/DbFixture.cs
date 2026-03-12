@@ -1,3 +1,4 @@
+using Contracts.Interfaces;
 using UserManagement.Application.Common.Interfaces;
 using Dapper;
 using Microsoft.EntityFrameworkCore;
@@ -49,7 +50,7 @@ namespace UserManagement.IntegrationTests.Common
 
         private void ConfigureMocks()
         {
-            _ip.Setup(x => x.GetGroupcode()).Returns("SUPER_ADMIN");
+            _ip.Setup(x => x.GetGroupCode()).Returns("SUPER_ADMIN");
             _ip.Setup(x => x.GetUnitId()).Returns(1);
             _ip.Setup(x => x.GetCompanyId()).Returns(1);
             _ip.Setup(x => x.GetEntityId()).Returns(1);

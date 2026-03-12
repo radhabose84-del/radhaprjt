@@ -1,3 +1,4 @@
+using Contracts.Interfaces;
 using UserManagement.Application.Common.Interfaces;
 using UserManagement.Application.Common.Interfaces.ICompany;
 using UserManagement.Application.Common.Interfaces.IDepartment;
@@ -35,7 +36,7 @@ namespace UserManagement.UnitTests.Validators.Users
 
         private CreateUserCommandValidator CreateValidator(string groupCode = "ADMIN")
         {
-            _ip.Setup(x => x.GetGroupcode()).Returns(groupCode);
+            _ip.Setup(x => x.GetGroupCode()).Returns(groupCode);
 
             // Default allow role FK so strict mocks don’t fail in tests that don’t care about roles.
             _role.Setup(r => r.FKColumnExistValidation(It.IsAny<int>()))
@@ -146,7 +147,7 @@ namespace UserManagement.UnitTests.Validators.Users
         public async Task MaxLength_is_enforced_from_MaxLengthProvider()
         {
             // Ensure IP group code is set before we construct our own provider below.
-            _ip.Setup(x => x.GetGroupcode()).Returns("ADMIN");
+            _ip.Setup(x => x.GetGroupCode()).Returns("ADMIN");
 
             // Compute the actual configured max for FirstName using the same provider the validator uses.
             var options = new DbContextOptionsBuilder<ApplicationDbContext>()

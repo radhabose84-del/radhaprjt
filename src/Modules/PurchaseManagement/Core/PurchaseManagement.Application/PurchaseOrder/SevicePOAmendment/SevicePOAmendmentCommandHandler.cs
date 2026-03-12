@@ -5,7 +5,8 @@
 // using System.Threading.Tasks;
 // using AutoMapper;
 // using Contracts.Events.Workflow;
-// using PurchaseManagement.Application.Common.Interfaces;
+// using Contracts.Interfaces;
+using PurchaseManagement.Application.Common.Interfaces;
 // using PurchaseManagement.Application.Common.Interfaces.IMiscMaster;
 // using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.ServicePO;
 // using PurchaseManagement.Application.PurchaseOrder.ServicePO.Command.Create;

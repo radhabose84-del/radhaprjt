@@ -1,5 +1,6 @@
 #nullable disable
 using System.Data;
+using Contracts.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces.IMachineGroup;
 using Dapper;
@@ -21,7 +22,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.MachineGroup
        
        public async Task<MaintenanceManagement.Domain.Entities.MachineGroup>GetByIdAsync(int id)
         { 
-            var UnitId = _ipAddressService.GetUnitId();           
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;           
             const string query = @"
                 SELECT 
                     Id,  GroupName,DepartmentId,Manufacturer,UnitId, IsActive, IsDeleted,PowerSource,CreatedBy, CreatedDate, CreatedByName,CreatedIP
@@ -32,7 +33,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.MachineGroup
         }
         public async Task<bool> GetByMachineGroupCodeAsync(string groupName, int id)
         {
-            var UnitId = _ipAddressService.GetUnitId();    
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;    
             var query = """
             SELECT COUNT(1) FROM Maintenance.MachineGroup
             WHERE GroupName = @GroupName AND UnitId = @UnitId AND IsDeleted = 0 AND Id <> @Id
@@ -46,7 +47,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.MachineGroup
 
         public async Task<bool> GetByMachineGroupnameAsync(string groupName)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
             var query = """
             SELECT COUNT(1) FROM Maintenance.MachineGroup
             WHERE GroupName = @GroupName  AND UnitId = @UnitId  AND IsDeleted = 0  
@@ -58,7 +59,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.MachineGroup
         }
          public async Task<bool> NotFoundAsync(int id)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
              var query = "SELECT COUNT(1) FROM Maintenance.MachineGroup WHERE Id = @Id AND IsDeleted = 0 AND UnitId = @UnitId";
              
                 var count = await _dbConnection.ExecuteScalarAsync<int>(query, new { Id = id , UnitId });
@@ -66,7 +67,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.MachineGroup
         }   
         public async Task<(List<MaintenanceManagement.Domain.Entities.MachineGroup>, int)> GetAllMachineGroupsAsync(int PageNumber, int PageSize, string SearchTerm)
             {
-               var UnitId = _ipAddressService.GetUnitId();
+               var UnitId = _ipAddressService.GetUnitId() ?? 0;
                 var query = $$"""
                 DECLARE @TotalCount INT;
                 SELECT @TotalCount = COUNT(*) 
@@ -107,7 +108,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.MachineGroup
              public async Task<List<MaintenanceManagement.Domain.Entities.MachineGroup>> GetMachineGroupAutoComplete(string searchPattern)
                {
 
-                var UnitId = _ipAddressService.GetUnitId();
+                var UnitId = _ipAddressService.GetUnitId() ?? 0;
                    const string query = @"
                        SELECT Id, GroupName  
                        FROM Maintenance.MachineGroup

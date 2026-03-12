@@ -1,5 +1,6 @@
 #nullable disable
 using System.Data;
+using Contracts.Interfaces;
 using UserManagement.Application.Common.Interfaces;
 using UserManagement.Application.Common.Interfaces.IUserGroup;
 using Dapper;
@@ -61,7 +62,7 @@ namespace UserManagement.Infrastructure.Repositories.UserGroup
 
         public async Task<List<UserManagement.Domain.Entities.UserGroup>> GetUserGroups(string searchTerm = null)
         { 
-            var groupCode = _ipAddressService.GetGroupcode();
+            var groupCode = _ipAddressService.GetGroupCode();
             var userid = _ipAddressService.GetUserId();
             var query="";
             if (groupCode == "ADMIN" )

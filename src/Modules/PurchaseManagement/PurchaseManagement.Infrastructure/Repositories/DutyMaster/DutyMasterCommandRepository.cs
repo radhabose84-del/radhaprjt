@@ -1,3 +1,4 @@
+using Contracts.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IDutyMaster;
 using Microsoft.EntityFrameworkCore;

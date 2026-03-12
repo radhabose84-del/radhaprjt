@@ -6,7 +6,8 @@
 // using AutoMapper;
 // using Contracts.Events.Workflow;
 // using Contracts.Common;
-// using InventoryManagement.Application.Common.Interfaces;
+// using Contracts.Interfaces;
+using InventoryManagement.Application.Common.Interfaces;
 // using InventoryManagement.Application.Common.Interfaces.IMRS;
 // using InventoryManagement.Domain.Common;
 // using InventoryManagement.Domain.Entities.MRS;

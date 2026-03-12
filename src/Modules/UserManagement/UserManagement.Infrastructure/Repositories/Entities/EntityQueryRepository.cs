@@ -3,6 +3,7 @@ using UserManagement.Domain.Entities;
 using UserManagement.Application.Common.Interfaces.IEntity;
 using System.Data;
 using Dapper;
+using Contracts.Interfaces;
 using UserManagement.Application.Common.Interfaces;
 using UserManagement.Application.Entity.Queries.GetEntityBasedCompany;
 using UserManagement.Application.Entity.Queries.GetCompanyBasedUnit;

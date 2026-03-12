@@ -1,3 +1,4 @@
+using Contracts.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IQuotation.IQuotationEntry;
 using PurchaseManagement.Domain.Entities.Quotation.QuotationEntry;
@@ -41,7 +42,7 @@ public class CreateQuotationHandler : IRequestHandler<CreateQuotationCommand, in
 
         var header = new QuotationHeader
         {
-            UnitId          = _ipAddressService.GetUnitId(),
+            UnitId          = _ipAddressService.GetUnitId() ?? 0,
             SupplierId      = request.SupplierId,
             RfqId           = request.RfqId,
             QuotationNumber = request.QuotationNumber,
@@ -117,8 +118,8 @@ public class CreateQuotationHandler : IRequestHandler<CreateQuotationCommand, in
             var unitLookup = units.ToDictionary(u => u.UnitId, u => u.UnitName);
             var companyLookup = companies.ToDictionary(c => c.CompanyId, c => c.CompanyName);
 
-            unitLookup.TryGetValue(_ipAddressService.GetUnitId(), out var unitName);
-            companyLookup.TryGetValue(_ipAddressService.GetCompanyId(), out var companyName);
+            unitLookup.TryGetValue(_ipAddressService.GetUnitId() ?? 0, out var unitName);
+            companyLookup.TryGetValue(_ipAddressService.GetCompanyId() ?? 0, out var companyName);
 
             var uploadPath = Path.Combine(
                 Directory.GetCurrentDirectory(),

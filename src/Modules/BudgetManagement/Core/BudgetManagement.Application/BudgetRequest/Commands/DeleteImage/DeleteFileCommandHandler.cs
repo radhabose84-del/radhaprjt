@@ -1,4 +1,5 @@
 using Contracts.Interfaces.Lookups.Users;
+using Contracts.Interfaces;
 using BudgetManagement.Application.Common.Interfaces;
 using BudgetManagement.Application.Common.Interfaces.IBudgetRequest;
 using MediatR;
@@ -36,8 +37,8 @@ namespace BudgetManagement.Application.BudgetRequest.Commands.DeleteImage
 
         public async Task<bool> Handle(DeleteFileCommand request, CancellationToken cancellationToken)
         {
-            var companyId = _ipAddressService.GetCompanyId();
-            var unitId = _ipAddressService.GetUnitId();
+            var companyId = _ipAddressService.GetCompanyId() ?? 0;
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
             var companies = await _companyLookup.GetAllCompanyAsync();
             var units = await _unitLookup.GetAllUnitAsync();
 

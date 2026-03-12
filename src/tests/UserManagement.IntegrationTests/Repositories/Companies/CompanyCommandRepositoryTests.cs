@@ -1,3 +1,4 @@
+using Contracts.Interfaces;
 #nullable disable
 using UserManagement.Application.Common.Interfaces;
 using UserManagement.Application.Common.Interfaces.ICompany;
@@ -32,7 +33,7 @@ namespace UserManagement.IntegrationTests.Repositories.Companies
             ipMock.Setup(x => x.GetCompanyId()).Returns(1);
             ipMock.Setup(x => x.GetUnitId()).Returns(1);
             ipMock.Setup(x => x.GetEntityId()).Returns(1);
-            ipMock.Setup(x => x.GetGroupcode()).Returns("SUPER_ADMIN");
+            ipMock.Setup(x => x.GetGroupCode()).Returns("SUPER_ADMIN");
             ipMock.Setup(x => x.GetSystemIPAddress()).Returns("127.0.0.1"); // IMPORTANT
 
             // 🔴 These are used by ApplicationDbContext.UpdateIpFields()

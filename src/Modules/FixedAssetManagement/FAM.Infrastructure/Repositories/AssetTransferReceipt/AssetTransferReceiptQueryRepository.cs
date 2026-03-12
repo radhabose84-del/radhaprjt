@@ -5,6 +5,7 @@ using FAM.Application.AssetMaster.AssetTransferReceipt.Queries.GetAssetReceiptDe
 using FAM.Application.AssetMaster.AssetTransferReceipt.Queries.GetAssetReceiptDetailsById;
 using FAM.Application.AssetMaster.AssetTransferReceipt.Queries.GetAssetReceiptPending;
 using FAM.Application.AssetMaster.AssetTransferReceipt.Queries.GetAssetRecieptDtlPending;
+using Contracts.Interfaces;
 using FAM.Application.Common.Interfaces;
 using FAM.Application.Common.Interfaces.IAssetTransferReceipt;
 using Dapper;
@@ -24,7 +25,7 @@ namespace FAM.Infrastructure.Repositories.AssetTransferReceipt
 
          public async Task<(List<AssetReceiptDetailsDto>, int)> GetAllAssetReceiptDetails(int PageNumber, int PageSize, string? Receiptno, DateTimeOffset? FromDate, DateTimeOffset? ToDate)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
              var query = $$"""
                 DECLARE @TotalCount INT;
                 SELECT @TotalCount = COUNT(*)
@@ -117,7 +118,7 @@ namespace FAM.Infrastructure.Repositories.AssetTransferReceipt
         public async Task<(List<AssetTransferReceiptPendingDto>, int)> GetAllPendingAssetTransferAsync(
             int PageNumber, int PageSize, int? AssetTransferId, string? TransferType, DateTimeOffset? FromDate, DateTimeOffset? ToDate)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
             var query = $$"""
                 DECLARE @TotalCount INT;
                 SELECT @TotalCount = COUNT(DISTINCT A.Id)
@@ -232,7 +233,7 @@ namespace FAM.Infrastructure.Repositories.AssetTransferReceipt
 
         public async Task<AssetTransferDto?> GetByAssetTransferId(int assetTransferId)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
              const string query = @"
                 SELECT ToUnitId, ToDepartmentId, ToCustodianId
                 FROM FixedAsset.AssetTransferIssueHdr
@@ -247,7 +248,7 @@ namespace FAM.Infrastructure.Repositories.AssetTransferReceipt
 
         public async Task<AssetTrasnferReceiptHdrPendingDto?> GetAssetTransferByIdAsync(int assetTransferId)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
              const string query = @"
                     SELECT
                     Distinct(A.Id) AS AssetTransferId,

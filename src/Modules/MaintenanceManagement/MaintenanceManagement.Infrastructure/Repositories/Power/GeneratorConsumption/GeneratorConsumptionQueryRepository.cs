@@ -1,4 +1,5 @@
 using System.Data;
+using Contracts.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces.Power.IGeneratorConsumption;
 using MaintenanceManagement.Application.Power.GeneratorConsumption.Queries.GetClosingEnergyReaderValueById;
@@ -20,7 +21,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.Power.GeneratorConsu
 
         public async Task<(List<GetGeneratorConsumptionDto>, int)> GetAllGeneratorConsumptionAsync(int PageNumber, int PageSize, string? SearchTerm)
         {
-             var UnitId = _ipAddressService.GetUnitId();
+             var UnitId = _ipAddressService.GetUnitId() ?? 0;
             var query = $$"""
             DECLARE @TotalCount INT;
 
@@ -75,7 +76,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.Power.GeneratorConsu
 
         public async Task<List<GetMachineIdBasedonUnitDto>> GetMachineIdBasedonUnit()
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
             const string query = @"
                 SELECT 
                 B.Id,
@@ -100,7 +101,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.Power.GeneratorConsu
 
         public async Task<GetClosingEnergyReaderValueDto> GetOpeningReaderValueById(int generatorId)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
             const string query = @"
                 SELECT 
                     f.Id AS GeneratorId,

@@ -1,4 +1,5 @@
 using Contracts.Interfaces.Lookups.Users;
+using Contracts.Interfaces;
 using BudgetManagement.Application.Common.Interfaces;
 using BudgetManagement.Application.Common.Interfaces.IBudgetRequest;
 using BudgetManagement.Domain.Events;

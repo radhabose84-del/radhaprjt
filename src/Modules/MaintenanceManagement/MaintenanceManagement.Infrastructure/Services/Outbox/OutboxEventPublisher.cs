@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Contracts.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces.IOutbox;
 using MaintenanceManagement.Domain.Entities.Outbox;

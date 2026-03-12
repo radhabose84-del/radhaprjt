@@ -1,4 +1,5 @@
 using System.Data;
+using Contracts.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces.IWorkCenter;
 using Dapper;
@@ -18,7 +19,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.WorkCenter
 
         public async Task<(List<MaintenanceManagement.Domain.Entities.WorkCenter>, int)> GetAllWorkCenterGroupAsync(int PageNumber, int PageSize, string? SearchTerm)
         {
-             var UnitId = _ipAddressService.GetUnitId();
+             var UnitId = _ipAddressService.GetUnitId() ?? 0;
             var query = $$"""
              DECLARE @TotalCount INT;
              SELECT @TotalCount = COUNT(*) 
@@ -60,7 +61,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.WorkCenter
 
         public async Task<MaintenanceManagement.Domain.Entities.WorkCenter?> GetByIdAsync(int Id)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
             const string query = @"
                     SELECT * 
                     FROM Maintenance.WorkCenter 
@@ -72,7 +73,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.WorkCenter
 
         public async Task<List<MaintenanceManagement.Domain.Entities.WorkCenter>> GetWorkCenterGroups(string searchPattern)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
             searchPattern = searchPattern ?? string.Empty; // Prevent null issues
 
             const string query = @"

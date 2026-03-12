@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Contracts.Interfaces;
 using PartyManagement.Application.Common.Interfaces;
 using PartyManagement.Domain.Common;
 using PartyManagement.Domain.Entities;

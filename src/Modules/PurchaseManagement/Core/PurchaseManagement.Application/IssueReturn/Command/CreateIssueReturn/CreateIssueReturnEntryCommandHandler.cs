@@ -6,7 +6,8 @@
 // using AutoMapper;
 // using Contracts.Events.Workflow;
 // using Contracts.Common;
-// using PurchaseManagement.Application.Common.Interfaces;
+// using Contracts.Interfaces;
+using PurchaseManagement.Application.Common.Interfaces;
 // using PurchaseManagement.Application.Common.Interfaces.IIssueReturn;
 // using PurchaseManagement.Application.Common.Interfaces.ILogService;
 // using PurchaseManagement.Domain.Common;

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using UserManagement.Domain.Entities;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Contracts.Interfaces;
 using UserManagement.Application.Common.Interfaces;
 using UserManagement.Domain.Common;
 using UserManagement.Infrastructure.Data.Configurations;

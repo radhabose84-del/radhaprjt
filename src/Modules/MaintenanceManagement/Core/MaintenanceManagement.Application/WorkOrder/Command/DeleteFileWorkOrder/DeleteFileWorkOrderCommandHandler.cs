@@ -1,6 +1,7 @@
 #nullable disable
 using Contracts.Interfaces.Lookups.Users;
 using Contracts.Common;
+using Contracts.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces.IWorkOrder;
 using MediatR;
@@ -34,8 +35,8 @@ namespace MaintenanceManagement.Application.WorkOrder.Command.DeleteFileWorkOrde
 
         public async Task<ApiResponseDTO<bool>> Handle(DeleteFileWorkOrderCommand request, CancellationToken cancellationToken)
         { 
-            var companyId = _ipAddressService.GetCompanyId();
-            var unitId = _ipAddressService.GetUnitId();
+            var companyId = _ipAddressService.GetCompanyId() ?? 0;
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
              var companies = await _companyLookup.GetAllCompanyAsync();
             var units = await _unitLookup.GetAllUnitAsync();
 

@@ -1,3 +1,4 @@
+using Contracts.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces.IPreventiveSchedulerLog;
 using MaintenanceManagement.Domain.Entities;

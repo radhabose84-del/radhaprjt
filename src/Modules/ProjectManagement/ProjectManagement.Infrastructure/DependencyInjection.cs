@@ -104,7 +104,6 @@ namespace ProjectManagement.Infrastructure
             services.AddScoped<IProjectLookup, ProjectLookupRepository>();
             services.AddScoped<IProjectWbsLookup, ProjectWbsLookupRepository>();      
             // Miscellaneous services
-            services.AddScoped<IIPAddressService, IPAddressService>();
             services.AddTransient<IFileUploadService, FileUploadRepository>();
             services.AddSingleton<ITimeZoneService, TimeZoneService>();
             services.AddTransient<IJwtTokenHelper, JwtTokenHelper>();

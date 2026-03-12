@@ -2,6 +2,7 @@ using Contracts.Common;
 using Contracts.Interfaces.Lookups.Users;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using Contracts.Interfaces;
 using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Domain.Events;
 
@@ -38,8 +39,8 @@ namespace SalesManagement.Application.SalesOrder.Commands.DeleteSalesOrderDocume
                 return false;
 
             // Get company and unit context
-            var companyId = _ipAddressService.GetCompanyId();
-            var unitId = _ipAddressService.GetUnitId();
+            var companyId = _ipAddressService.GetCompanyId() ?? 0;
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
 
             var companies = await _companyLookup.GetAllCompanyAsync();
             var companyName = companies.FirstOrDefault(c => c.CompanyId == companyId)?.CompanyName ?? "Default";

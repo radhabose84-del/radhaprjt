@@ -1,6 +1,7 @@
 using AutoMapper;
 using Contracts.Common;
 using MediatR;
+using Contracts.Interfaces;
 using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Application.Common.Interfaces.IInvoice;
 using SalesManagement.Application.Common.Interfaces.IMiscMaster;
@@ -37,7 +38,7 @@ namespace SalesManagement.Application.Invoice.Commands.UpdateInvoice
             var entity = _mapper.Map<InvoiceHeader>(request);
 
             // Get UnitId from JWT token
-            var unitId = _ipAddressService.GetUnitId();
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
 
             // Resolve StockLedger status IDs from MiscMaster
             var dispatchedStatus = await _miscMasterQueryRepository.GetMiscMasterByName(

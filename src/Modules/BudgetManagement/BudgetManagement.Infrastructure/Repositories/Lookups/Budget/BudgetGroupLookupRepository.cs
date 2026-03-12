@@ -1,5 +1,5 @@
 using System.Data;
-using BudgetManagement.Application.Common.Interfaces;
+using Contracts.Interfaces;
 using Contracts.Dtos.Lookups.Budget;
 using Contracts.Interfaces.Lookups.Budget;
 using Dapper;
@@ -38,7 +38,7 @@ internal sealed class BudgetGroupLookupRepository : IBudgetGroupLookup
               AND UnitId = @UnitId;";
 
         var result = await _dbConnection.QueryAsync<BudgetGroupLookupDto>(
-            new CommandDefinition(sql, new { Ids = distinctIds, UnitId = _ipAddressService.GetUnitId() }, cancellationToken: ct));
+            new CommandDefinition(sql, new { Ids = distinctIds, UnitId = _ipAddressService.GetUnitId() ?? 0 }, cancellationToken: ct));
 
         return result.ToList();
     }

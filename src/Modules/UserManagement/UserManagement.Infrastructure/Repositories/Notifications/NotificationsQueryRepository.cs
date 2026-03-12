@@ -1,6 +1,7 @@
 using Dapper;
 using System.Data;
 using UserManagement.Application.Common.Interfaces.INotifications;
+using Contracts.Interfaces;
 using UserManagement.Application.Common.Interfaces;
 
 namespace UserManagement.Infrastructure.Repositories.Notifications
@@ -40,7 +41,7 @@ namespace UserManagement.Infrastructure.Repositories.Notifications
 
         public async Task<int> GetResetCodeExpiryMinutes()
         {
-        //     var companyId = _ipAddressService.GetCompanyId();
+        //     var companyId = _ipAddressService.GetCompanyId() ?? 0;
         // if (companyId == null)
         //     return 0; 
             var query = @"

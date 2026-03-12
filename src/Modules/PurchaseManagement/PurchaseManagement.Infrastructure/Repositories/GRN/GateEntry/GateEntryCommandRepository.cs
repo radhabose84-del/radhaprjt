@@ -1,4 +1,5 @@
 #nullable disable
+using Contracts.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IGRN.IGateEntry;
 using PurchaseManagement.Domain.Entities.GRN.GateEntry;
@@ -38,7 +39,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GateEntry
         }
         public async Task<string> GenerateNextCodeAsync(CancellationToken ct = default)
         {
-            var unitId = _ipAddressService.GetUnitId();
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
             var unitCode = unitId > 0 ? unitId.ToString() : "NA";
             var prefix = $"GE-{unitCode}-";
 

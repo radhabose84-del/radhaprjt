@@ -1,5 +1,6 @@
 #nullable disable
 using System.Data;
+using Contracts.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IMRS;
 using PurchaseManagement.Application.MRS.Queries.GetMrsEntry;
@@ -24,7 +25,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.MRS
 
         public async Task<GetMrsEntryByIdDto> GetMrsDetailsById(int id)
         {
-             var UnitId = _ipAddressService.GetUnitId();
+             var UnitId = _ipAddressService.GetUnitId() ?? 0;
             var sql = @"
             SELECT 
             A.Id,
@@ -73,7 +74,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.MRS
     DateTimeOffset? fromDate,
     DateTimeOffset? toDate)
 {
-    var UnitId = _ipAddressService.GetUnitId();
+    var UnitId = _ipAddressService.GetUnitId() ?? 0;
 
     var parameters = new DynamicParameters();
     parameters.Add("UnitId", UnitId);
@@ -192,7 +193,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.MRS
             int PageSize, 
             string SearchTerm)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
 
             const string dataQuery = @"
                 SELECT 
@@ -290,7 +291,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.MRS
         }
         public async Task<List<GetStockItemDto>> GetStockDetails(int itemId, int warehouseId)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
             string sql = @"
                 SELECT 
                     ItemId,

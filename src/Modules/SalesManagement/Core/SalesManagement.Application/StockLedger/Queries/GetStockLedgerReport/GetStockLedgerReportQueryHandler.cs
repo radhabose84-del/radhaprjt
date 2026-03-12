@@ -1,6 +1,6 @@
 using Contracts.Common;
 using MediatR;
-using SalesManagement.Application.Common.Interfaces;
+using Contracts.Interfaces;
 using SalesManagement.Application.Common.Interfaces.IStockLedger;
 using SalesManagement.Application.StockLedger.Dto;
 using SalesManagement.Domain.Events;
@@ -30,7 +30,7 @@ namespace SalesManagement.Application.StockLedger.Queries.GetStockLedgerReport
             var unitId = _ipAddressService.GetUnitId();
 
             var (data, totalCount) = await _reportRepository.GetReportAsync(
-                unitId,
+                unitId ?? 0,
                 request.PageNumber,
                 request.PageSize,
                 request.ItemId,

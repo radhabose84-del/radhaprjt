@@ -152,9 +152,7 @@ namespace FAM.Infrastructure
             // Common Services
             // --------------------------
             services.AddHttpContextAccessor();
-            services.AddTransient<AuthTokenHandler>();
-            services.AddScoped<IIPAddressService, IPAddressService>();
-            services.AddTransient<IFileUploadService, FileUploadRepository>();
+            services.AddTransient<AuthTokenHandler>();            services.AddTransient<IFileUploadService, FileUploadRepository>();
             services.AddSingleton<ITimeZoneService, TimeZoneService>();
             services.AddTransient<IJwtTokenHelper, JwtTokenHelper>();
 

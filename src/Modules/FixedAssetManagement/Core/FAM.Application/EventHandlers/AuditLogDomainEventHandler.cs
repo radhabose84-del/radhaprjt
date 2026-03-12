@@ -1,4 +1,5 @@
 using MediatR;
+using Contracts.Interfaces;
 using FAM.Application.Common.Interfaces;
 using FAM.Domain.Events;
 

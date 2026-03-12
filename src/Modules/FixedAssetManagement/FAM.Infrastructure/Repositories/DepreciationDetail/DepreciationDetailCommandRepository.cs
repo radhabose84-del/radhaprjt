@@ -1,3 +1,4 @@
+using Contracts.Interfaces;
 using FAM.Application.Common.Interfaces;
 using FAM.Application.Common.Interfaces.IDepreciationDetail;
 using FAM.Infrastructure.Data;

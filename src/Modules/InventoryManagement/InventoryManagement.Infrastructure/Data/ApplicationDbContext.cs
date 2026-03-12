@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Contracts.Interfaces;
 using InventoryManagement.Application.Common.Interfaces;
 using InventoryManagement.Domain.Common;
 using InventoryManagement.Domain.Entities.Item;

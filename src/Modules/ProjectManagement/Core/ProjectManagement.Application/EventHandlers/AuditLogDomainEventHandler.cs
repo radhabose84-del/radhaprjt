@@ -1,4 +1,5 @@
 using MediatR;
+using Contracts.Interfaces;
 using ProjectManagement.Application.Common.Interfaces;
 using ProjectManagement.Domain.Events;
 

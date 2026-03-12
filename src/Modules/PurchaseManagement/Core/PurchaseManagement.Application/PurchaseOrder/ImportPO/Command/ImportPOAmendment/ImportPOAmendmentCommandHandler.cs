@@ -1,5 +1,6 @@
 // PurchaseManagement.Application/PurchaseOrder/ImportPO/Command/ImportPOAmendment/ImportPOAmendmentCommandHandler.cs
 using AutoMapper;
+using Contracts.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IMiscMaster;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.ImportPO;

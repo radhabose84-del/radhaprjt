@@ -29,6 +29,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Modules\BackgroundService\BackgroundService.Application\BackgroundService.Application.csproj" />
     <ProjectReference Include="..\Modules\BackgroundService\BackgroundService.Infrastructure\BackgroundService.Infrastructure.csproj" />
+    <ProjectReference Include="..\Shared\Shared.Infrastructure\Shared.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>

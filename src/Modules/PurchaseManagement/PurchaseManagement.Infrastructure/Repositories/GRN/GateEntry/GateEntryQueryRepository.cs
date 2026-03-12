@@ -1,5 +1,6 @@
 #nullable disable
 using System.Data;
+using Contracts.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IGRN.IGateEntry;
 using PurchaseManagement.Application.GRN.GateEntry.Queries.GetGateEntriesApprovedPo;
@@ -33,7 +34,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GateEntry
 
         public async Task<List<GetGateEntriesApprovedPoDto>> GetGateEntriesApprovedPoDto(int partyId)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
             var query = @"
                     WITH GrnSummary AS
                     (

@@ -1,4 +1,5 @@
 using MediatR;
+using Contracts.Interfaces;
 using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Domain.Events;
 

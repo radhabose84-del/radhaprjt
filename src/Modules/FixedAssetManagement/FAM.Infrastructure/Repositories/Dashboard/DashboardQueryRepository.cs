@@ -1,5 +1,6 @@
 using System.Data;
 using Contracts.Interfaces.Lookups.Users; // ✅ lookup contract
+using Contracts.Interfaces;
 using FAM.Application.Common.Interfaces;
 using FAM.Application.Common.Interfaces.IDashboard;
 using FAM.Application.Dashboard.CardView;
@@ -25,7 +26,7 @@ namespace FAM.Infrastructure.Repositories.Dashboard
 
         public async Task<ChartDto> GetAssetChartViewAsync( int? departmentId = null)
         {
-             var unitId = _iPAddressService.GetUnitId(); // Or however you're getting UnitId
+             var unitId = _iPAddressService.GetUnitId() ?? 0; // Or however you're getting UnitId
 
              var query = @" 
                 SELECT 
@@ -67,7 +68,7 @@ namespace FAM.Infrastructure.Repositories.Dashboard
 
         public async Task<ChartDto> GetAssetExpiredDashBoardDataAsync()
         {
-            var unitId = _iPAddressService.GetUnitId(); // Or however you're getting UnitId
+            var unitId = _iPAddressService.GetUnitId() ?? 0; // Or however you're getting UnitId
 
             var query = @"
                 DECLARE @StartDate DATE = 
@@ -127,7 +128,7 @@ namespace FAM.Infrastructure.Repositories.Dashboard
 
         // public async Task<CardViewDto> GetCardViewAsync()
         // {
-        //     var UnitId = _iPAddressService.GetUnitId();
+        //     var UnitId = _iPAddressService.GetUnitId() ?? 0;
 
         //     var query = @"
                 // SELECT
@@ -154,7 +155,7 @@ namespace FAM.Infrastructure.Repositories.Dashboard
 
        public async Task<CardViewDto> GetDashboardDataAsync()
 {
-    var UnitId = _iPAddressService.GetUnitId();
+    var UnitId = _iPAddressService.GetUnitId() ?? 0;
 
     var query = @"
         SELECT
@@ -180,7 +181,7 @@ namespace FAM.Infrastructure.Repositories.Dashboard
 
         // public async Task<AssetDashboardDto> GetDashboardDataAsync()
         // {
-        //     var UnitId = _iPAddressService.GetUnitId();
+        //     var UnitId = _iPAddressService.GetUnitId() ?? 0;
         //     var dashboard = new AssetDashboardDto();
 
         //     var cardViewQuery = @"

@@ -1,4 +1,5 @@
 using Contracts.Interfaces.Lookups.Users; // ✅ lookup contract
+using Contracts.Interfaces;
 using FAM.Application.Common.Interfaces;
 using FAM.Application.Common.Interfaces.IAssetMaster.IAssetMasterGeneral;
 using MediatR;
@@ -32,8 +33,8 @@ namespace FAM.Application.AssetMaster.AssetMasterGeneral.Commands.DeleteFileAsse
 
         public async Task<bool> Handle(DeleteFileAssetMasterGeneralCommand request, CancellationToken cancellationToken)
         {
-            var companyId = _ipAddressService.GetCompanyId();
-            var unitId = _ipAddressService.GetUnitId();
+            var companyId = _ipAddressService.GetCompanyId() ?? 0;
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
 
             // ✅ Get company and unit names using lookup interfaces
             var companies = await _companyLookup.GetAllCompanyAsync();

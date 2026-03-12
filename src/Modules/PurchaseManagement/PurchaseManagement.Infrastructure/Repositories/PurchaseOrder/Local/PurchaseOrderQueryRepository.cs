@@ -1,5 +1,6 @@
 using System.Data;
 using PurchaseManagement.Application.Common;
+using Contracts.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IMiscMaster;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.Local;
@@ -99,7 +100,7 @@ public class PurchaseOrderQueryRepository : IPurchaseOrderQueryRepository
 
         using var multi = await _conn.QueryMultipleAsync(sql, new
         {
-            UnitId = _ip.GetUnitId(),
+            UnitId = _ip.GetUnitId() ?? 0,
             Search = searchTerm,
             LikeSearch = like,  
             PoMethodId = poMethodId,
@@ -240,7 +241,7 @@ public class PurchaseOrderQueryRepository : IPurchaseOrderQueryRepository
             AND (@poMethodId IS NULL OR POMethodId = @poMethodId)
             AND (@BudgetGroupId IS NULL OR BudgetGroupId = @BudgetGroupId)            
             ORDER BY Id DESC;";
-        return _conn.QueryAsync<AutocompleteDto>(sql, new { t = $"%{term?.Trim()}%", poMethodId, UnitId = _ip.GetUnitId(), budgetGroupId});
+        return _conn.QueryAsync<AutocompleteDto>(sql, new { t = $"%{term?.Trim()}%", poMethodId, UnitId = _ip.GetUnitId() ?? 0, budgetGroupId});
     }
 
 
@@ -251,7 +252,7 @@ public class PurchaseOrderQueryRepository : IPurchaseOrderQueryRepository
         var s = (size.HasValue && size > 0) ? size.Value : 15;
         var off = (p - 1) * s;
         var like = string.IsNullOrWhiteSpace(search) ? null : $"%{search.Trim()}%";
-        var unitId = _ip.GetUnitId();
+        var unitId = _ip.GetUnitId() ?? 0;
 
         // Only “Pending”
         var pending = await _miscMasterQueryRepository.GetMiscMasterByName(
@@ -511,7 +512,7 @@ public class PurchaseOrderQueryRepository : IPurchaseOrderQueryRepository
         var val = await _conn.ExecuteScalarAsync<int?>(
             new CommandDefinition(
                 sql,
-                new { Id = poId, UnitId = _ip.GetUnitId() },
+                new { Id = poId, UnitId = _ip.GetUnitId() ?? 0 },
                 cancellationToken: ct));
 
         return val.HasValue;

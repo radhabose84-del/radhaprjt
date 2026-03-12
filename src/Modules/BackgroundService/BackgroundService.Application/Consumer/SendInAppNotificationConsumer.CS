@@ -2,7 +2,7 @@ using BackgroundService.Application.DTO;
 using BackgroundService.Application.Helpers;
 using BackgroundService.Application.Interfaces.IInbox;
 using BackgroundService.Application.Interfaces.Notification;
-using BackgroundService.Application.Notification.Common.Interfaces;
+using Contracts.Interfaces;
 using Contracts.Events.Notifications;
 using Contracts.Events.Notifications.InApp;
 using MassTransit;

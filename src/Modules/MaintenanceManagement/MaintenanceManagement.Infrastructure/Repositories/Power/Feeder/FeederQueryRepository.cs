@@ -1,5 +1,6 @@
 #nullable disable
 using System.Data;
+using Contracts.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces.Power.IFeeder;
 using MaintenanceManagement.Application.Power.Feeder.Queries.GetFeeder;
@@ -20,7 +21,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.Power.Feeder
 
         public async Task<(List<GetFeederDto>, int)> GetAllFeederAsync(int pageNumber, int pageSize, string searchTerm)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
             
             var query = $$"""
             DECLARE @TotalCount INT;
@@ -88,7 +89,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.Power.Feeder
 
         public async Task<MaintenanceManagement.Domain.Entities.Power.Feeder> GetFeederByIdAsync(int id)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
             var query = """
                 SELECT 
                     Id,FeederCode,FeederName,ParentFeederId,FeederGroupId,FeederTypeId, MeterAvailable,
@@ -103,7 +104,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.Power.Feeder
 
         public async Task<bool> AlreadyExistsAsync(string feederCode, int? id = null)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
             var query = "SELECT COUNT(1) FROM [Maintenance].[Feeder] WHERE FeederCode = @feederCode AND IsDeleted = 0 AND UnitId = @UnitId";
 
             var parameters = new DynamicParameters();
@@ -129,7 +130,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.Power.Feeder
 
         public async Task<List<MaintenanceManagement.Domain.Entities.Power.Feeder>> GetFeederAutoComplete(string searchPattern)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
             const string query = @"
                        SELECT Id, FeederCode,FeederName  
                        FROM Maintenance.Feeder

@@ -1,4 +1,5 @@
 #nullable disable
+using Contracts.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IMiscMaster;
 using PurchaseManagement.Application.Common.Interfaces.IQuotation.IRfqEntry;
@@ -36,7 +37,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.Quotation.RfqEntry
       
         public async Task<(IReadOnlyList<RfqListItemDto> Items, int Total)> GetAllAsync(int page, int pageSize, int? statusId, string searchTerm, CancellationToken ct)
         {
-            var unitId = _ip.GetUnitId();
+            var unitId = _ip.GetUnitId() ?? 0;
             if (page <= 0) page = 1;
             if (pageSize <= 0) pageSize = 20;
 
@@ -114,7 +115,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.Quotation.RfqEntry
         DateOnly? lastSubmitDate,    // optional override
         CancellationToken ct)
         {
-            var unitId = _ip.GetUnitId();
+            var unitId = _ip.GetUnitId() ?? 0;
             var date = lastSubmitDate ?? DateOnly.FromDateTime(DateTime.Now);
             var q = _db.Set<RfqMaster>()
                 .AsNoTracking()
@@ -145,7 +146,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.Quotation.RfqEntry
             DateOnly? lastSubmitDate,
             CancellationToken ct/*, int? supplierId = null*/)
         {
-            var unitId = _ip.GetUnitId();
+            var unitId = _ip.GetUnitId() ?? 0;
             var date = lastSubmitDate ?? DateOnly.FromDateTime(DateTime.Now);
             var pending = await _miscMasterQueryRepository.GetMiscMasterByName(
                 MiscEnumEntity.ApprovalStatus,
@@ -191,7 +192,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.Quotation.RfqEntry
             int? statusId,
             CancellationToken ct)
         {
-            var unitId = _ip.GetUnitId();
+            var unitId = _ip.GetUnitId() ?? 0;
 
             // Pending status row (from Misc master)
             var pending = await _miscMasterQueryRepository.GetMiscMasterByName(

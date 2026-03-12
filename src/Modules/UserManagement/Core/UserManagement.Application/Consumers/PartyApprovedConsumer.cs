@@ -15,7 +15,8 @@
 // using UserUnitEntity = UserManagement.Domain.Entities.UserUnit;
 // using CompanyEntity = UserManagement.Domain.Entities.Company;   // maps AppData.Company
 // using UnitEntity = UserManagement.Domain.Entities.Unit;
-// using UserManagement.Application.Common.Interfaces;
+// using Contracts.Interfaces;
+using UserManagement.Application.Common.Interfaces;
 // using Microsoft.Extensions.Logging;         // maps AppData.Unit
 
 

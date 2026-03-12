@@ -1,3 +1,4 @@
+using Contracts.Interfaces;
 using UserManagement.Application.Common.Interfaces;
 using UserManagement.Application.Common.Interfaces.IUser;
 using Dapper;
@@ -362,7 +363,7 @@ END
         private IUserQueryRepository CreateRepo(string groupCode, int unitId = 1, int companyId = 1, int entityId = 1)
         {
             var ip = new Mock<IIPAddressService>(MockBehavior.Loose);
-            ip.Setup(x => x.GetGroupcode()).Returns(groupCode);
+            ip.Setup(x => x.GetGroupCode()).Returns(groupCode);
             ip.Setup(x => x.GetUnitId()).Returns(unitId);
             ip.Setup(x => x.GetCompanyId()).Returns(companyId);
             ip.Setup(x => x.GetEntityId()).Returns(entityId);

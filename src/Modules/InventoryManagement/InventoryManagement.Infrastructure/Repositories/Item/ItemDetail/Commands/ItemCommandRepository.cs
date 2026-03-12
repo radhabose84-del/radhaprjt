@@ -159,3 +159,4 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Comman
                 .Replace(")", "");
     }
 }
+

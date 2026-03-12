@@ -3,6 +3,7 @@ using UserManagement.Domain.Entities;
 using UserManagement.Application.Common.Interfaces.IDivision;
 using System.Data;
 using Dapper;
+using Contracts.Interfaces;
 using UserManagement.Application.Common.Interfaces;
 using UserManagement.Application.Divisions.Queries.GetUnitsByDivision;
 
@@ -19,7 +20,7 @@ namespace UserManagement.Infrastructure.Repositories.Divisions
         }
          public async Task<(List<Division>,int)> GetAllDivisionAsync(int PageNumber, int PageSize, string SearchTerm)
         {
-            var CompanyId = _ipAddressService.GetCompanyId();
+            var CompanyId = _ipAddressService.GetCompanyId() ?? 0;
                  var query = $$"""
              DECLARE @TotalCount INT;
              SELECT @TotalCount = COUNT(*) 
@@ -65,7 +66,7 @@ namespace UserManagement.Infrastructure.Repositories.Divisions
         }   
         public async Task<Division> GetByDivisionnameAsync(string name, int? id = null)
         {
-            var CompanyId = _ipAddressService.GetCompanyId();
+            var CompanyId = _ipAddressService.GetCompanyId() ?? 0;
               var query = """
                  SELECT * FROM AppData.Division 
                  WHERE Name = @Name AND IsDeleted = 0 AND CompanyId=@CompanyId
@@ -85,14 +86,14 @@ namespace UserManagement.Infrastructure.Repositories.Divisions
          public async Task<Division> GetByIdAsync(int id)
         {
             
-                var CompanyId = _ipAddressService.GetCompanyId();
+                var CompanyId = _ipAddressService.GetCompanyId() ?? 0;
              const string query = "SELECT * FROM AppData.Division WHERE Id = @Id AND IsDeleted = 0 AND CompanyId=@CompanyId";
             return await _dbConnection.QueryFirstOrDefaultAsync<Division>(query, new { id,CompanyId });
         }
       
         public async Task<List<Division>>  GetDivision(string searchPattern)
         {
-            var CompanyId = _ipAddressService.GetCompanyId();
+            var CompanyId = _ipAddressService.GetCompanyId() ?? 0;
             var userId = _ipAddressService.GetUserId();
 
             var query = $@"
@@ -159,7 +160,7 @@ namespace UserManagement.Infrastructure.Repositories.Divisions
           }
             public async Task<List<Division>>  GetDivision_SuperAdmin(string searchPattern)
             {
-                var CompanyId = _ipAddressService.GetCompanyId();
+                var CompanyId = _ipAddressService.GetCompanyId() ?? 0;
 
                 var query = $@"
                  SELECT Id, Name 

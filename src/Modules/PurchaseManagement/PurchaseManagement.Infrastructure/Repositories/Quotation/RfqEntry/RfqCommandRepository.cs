@@ -1,3 +1,4 @@
+using Contracts.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IQuotation.IRfqEntry;
 using PurchaseManagement.Domain.Entities.Quotation.RfqEntry;
@@ -132,7 +133,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.Quotation.RfqEntry
         
         public async Task<string> GenerateNextCodeAsync( DateTimeOffset rfqDate,CancellationToken ct = default)
         {
-            var unitId = _ip.GetUnitId();
+            var unitId = _ip.GetUnitId() ?? 0;
               string unitCode;
             var Units = await _unitLookup.GetAllUnitAsync();
             var UnitLookup = Units.ToDictionary(d => d.UnitId, d => d.ShortName);

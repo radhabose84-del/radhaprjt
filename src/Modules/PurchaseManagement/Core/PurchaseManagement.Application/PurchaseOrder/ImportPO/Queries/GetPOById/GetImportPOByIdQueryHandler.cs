@@ -3,6 +3,7 @@ using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Users;
 using MediatR;
+using Contracts.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.ImportPO;
 using PurchaseManagement.Application.PurchaseOrder.Dtos.ImportPO;
@@ -90,8 +91,8 @@ public class GetImportPOByIdQueryHandler
                 var companyMap = companies.ToDictionary(c => c.CompanyId, c => c.CompanyName ?? string.Empty);
                 var unitMap = units.ToDictionary(u => u.UnitId, u => u.UnitName ?? string.Empty);
 
-                companyMap.TryGetValue(_ip.GetCompanyId(), out var companyName);
-                unitMap.TryGetValue(_ip.GetUnitId(), out var unitName);
+                companyMap.TryGetValue(_ip.GetCompanyId() ?? 0, out var companyName);
+                unitMap.TryGetValue(_ip.GetUnitId() ?? 0, out var unitName);
 
                 foreach (var doc in vm.ImportDocumentList)
                 {

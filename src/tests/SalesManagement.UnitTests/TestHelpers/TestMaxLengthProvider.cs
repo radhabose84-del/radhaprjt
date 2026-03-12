@@ -1,3 +1,4 @@
+using Contracts.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Infrastructure.Data;

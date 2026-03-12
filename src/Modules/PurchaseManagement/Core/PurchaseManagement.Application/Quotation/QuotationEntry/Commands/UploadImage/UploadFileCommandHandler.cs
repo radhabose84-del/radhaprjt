@@ -1,6 +1,7 @@
 #nullable disable
 
 using Contracts.Common;
+using Contracts.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IQuotation.IQuotationEntry;
 using PurchaseManagement.Application.Quotation.QuotationEntry.Commands.UploadItemImage;
@@ -43,8 +44,8 @@ namespace PurchaseManagement.Application.Item.ItemDetail.Commands.UploadItemImag
                _logger.LogError("Base directory path not found in database.");
                 return new ApiResponseDTO<ImageDto> { IsSuccess = false, Message = "Base directory not configured." };
             }
-            var companyId =_ipAddressService.GetCompanyId();
-            var unitId = _ipAddressService.GetUnitId();
+            var companyId =_ipAddressService.GetCompanyId() ?? 0;
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
             
                var companies = await _companyLookup.GetAllCompanyAsync();
             var units = await _unitLookup.GetAllUnitAsync();

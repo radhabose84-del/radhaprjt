@@ -1,6 +1,7 @@
 using System.Text.Json;
 using AutoMapper;
 using BackgroundService.Application.Interfaces.IMiscMaster;
+using Contracts.Interfaces;
 using BackgroundService.Application.Notification.Common.Interfaces;
 using BackgroundService.Application.Workflow.Common.Interfaces.IApprovalRequest;
 using BackgroundService.Domain.Common;

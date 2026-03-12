@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
-using BackgroundService.Application.Notification.Common.Interfaces;
+using Contracts.Interfaces;
 using BackgroundService.Application.Notification.Common.Interfaces.INotificationGroupMembers;
 using BackgroundService.Application.Notification.NotificationGroupMember.Queries.GetAllNotificationGroupMember;
 using BackgroundService.Domain.Entities.Notification;
@@ -23,7 +23,7 @@ namespace BackgroundService.Infrastructure.Repositories.Notification.Notificatio
         }
         public async Task<GetNotificationGroupMemberDto> GetByIdAsync(int id)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
 
             const string query = @"
                 SELECT  
@@ -89,7 +89,7 @@ namespace BackgroundService.Infrastructure.Repositories.Notification.Notificatio
         public async Task<(List<GetNotificationGroupMemberDto>, int)> GetAllNotificationGroupAsync(
             int pageNumber, int pageSize, string? searchTerm)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
             const string dataQuery = @"
                 SELECT  
                     NGM.GroupId,

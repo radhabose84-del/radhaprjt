@@ -5,6 +5,7 @@ using FluentValidation;
 using UserManagement.Application.Common.Interfaces.IUser;
 using UserManagement.Application.Common.Interfaces.IUserSession;
 using UserManagement.Application.Common.Interfaces.ICompanySettings;
+using Contracts.Interfaces;
 using UserManagement.Application.Common.Interfaces;
 using Shared.Validation.Common;
 
@@ -65,7 +66,7 @@ namespace UserManagement.Presentation.Validation.UserLogin
                         // await _companyQuerySettings.BeforeLoginNotFoundValidation(Username))             
                         //    .WithName("User Name")
                         //     .WithMessage("User Admin Settings not found")
-                        //     .When(x => _ipAddressService.GetGroupcode() =="USER")
+                        //     .When(x => _ipAddressService.GetGroupCode() =="USER")
                         //     .MustAsync(async (Username, cancellation) => 
                         // await _userQueryRepository.ValidateUserRolesAsync(Username))
                         //     .WithMessage("User does not have any role assigned to it. Contact your admin.");

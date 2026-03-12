@@ -1,5 +1,6 @@
 using AutoMapper;
 using Contracts.Common;
+using Contracts.Interfaces;
 using FAM.Application.Common.Interfaces;
 using FAM.Application.Common.Interfaces.IExcelImport;
 using FAM.Domain.Entities.AssetMaster;

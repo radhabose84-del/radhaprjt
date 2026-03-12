@@ -4,6 +4,7 @@ using System.Text.Json;
 using MaintenanceManagement.Application.ActivityMaster.Queries.GetActivityByMachinGroupId;
 using MaintenanceManagement.Application.ActivityMaster.Queries.GetAllActivityMaster;
 using MaintenanceManagement.Application.ActivityMaster.Queries.GetMachineGroupById;
+using Contracts.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces.IActivityMaster;
 using MaintenanceManagement.Application.MachineGroup.Queries.GetMachineGroupById;
@@ -27,7 +28,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.ActivityMaster
 
         public async Task<(List<GetAllActivityMasterDto>, int)> GetAllActivityMasterAsync(int PageNumber, int PageSize, string SearchTerm)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
             var query = $$"""
                  DECLARE @TotalCount INT;
                  
@@ -78,7 +79,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.ActivityMaster
         }
         public async Task<GetActivityMasterByIdDto> GetByIdAsync(int activityMasterId)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
             const string query = @"
                    
                     SELECT A.Id, A.ActivityName, A.Description, A.DepartmentId, A.UnitId,
@@ -134,7 +135,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.ActivityMaster
         }
          public async Task<List<MaintenanceManagement.Domain.Entities.ActivityMaster>> GetActivityMasterAutoComplete(     string searchPattern ,string machineCode = null)
         {
-             var unitId = _ipAddressService.GetUnitId();
+             var unitId = _ipAddressService.GetUnitId() ?? 0;
                 var code = string.IsNullOrWhiteSpace(machineCode) ? null : machineCode.Trim();
 
                 const string sql = @"
@@ -163,7 +164,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.ActivityMaster
         // public async Task<List<MaintenanceManagement.Domain.Entities.ActivityMaster>> GetActivityMasterAutoComplete(string searchPattern)
         // {
 
-        //     var UnitId = _ipAddressService.GetUnitId();
+        //     var UnitId = _ipAddressService.GetUnitId() ?? 0;
         //     const string query = @"
         //                SELECT Id, ActivityName  
         //                FROM Maintenance.ActivityMaster
@@ -180,7 +181,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.ActivityMaster
 
         // public async Task<bool> GetByActivityNameAsync(string activityname , int activityId)
         // {
-        //     var UnitId = _ipAddressService.GetUnitId();
+        //     var UnitId = _ipAddressService.GetUnitId() ?? 0;
         //     var query = """
         //             SELECT COUNT(1) FROM Maintenance.ActivityMaster
         //             WHERE ActivityName = @activityname AND IsDeleted = 0 AND IsActive = 1 AND UnitId = @UnitId AND Id != @activityId
@@ -192,7 +193,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.ActivityMaster
         // }
         public async Task<bool> GetByActivityNameAsync(string activityname, int? activityId = null)
             {
-                var unitId = _ipAddressService.GetUnitId();
+                var unitId = _ipAddressService.GetUnitId() ?? 0;
 
                 var baseQuery = """
                     SELECT COUNT(1)
@@ -239,7 +240,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.ActivityMaster
         } 
         public async Task<List<GetActivityByMachineGroupDto>> GetActivityByMachinGroupId(int machineGroupById)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
                     const string query = @"
                 SELECT a.Id , a.ActivityName
                 FROM Maintenance.ActivityMaster a

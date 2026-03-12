@@ -1,5 +1,6 @@
 using System.Globalization;
 using BudgetManagement.Infrastructure.Data;
+using Contracts.Interfaces;
 using BudgetManagement.Application.Common.Interfaces;
 using BudgetManagement.Domain.Common;
 using BudgetManagement.Domain.Entities;

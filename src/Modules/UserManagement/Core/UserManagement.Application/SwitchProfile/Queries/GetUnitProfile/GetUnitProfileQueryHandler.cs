@@ -1,4 +1,5 @@
 using AutoMapper;
+using Contracts.Interfaces;
 using UserManagement.Application.Common.Interfaces;
 using UserManagement.Application.Common.Interfaces.IProfile;
 using UserManagement.Domain.Events;

@@ -1,3 +1,4 @@
+using Contracts.Interfaces;
 using ProjectManagement.Application.Common.Interfaces;
 using ProjectManagement.Application.Common.Interfaces.IProjectWorkBreakdownStructure;
 using MediatR;
@@ -19,7 +20,7 @@ namespace ProjectManagement.Application.ProjectWorkBreakdownStructure.Queries.Ge
             GetProjectWbsLookupQuery request,
             CancellationToken ct)
         {
-            var unitId = _ipAddressService.GetUnitId();
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
 
             return await _repo.GetWbsLookupAsync(request.ProjectId, ct);
         }

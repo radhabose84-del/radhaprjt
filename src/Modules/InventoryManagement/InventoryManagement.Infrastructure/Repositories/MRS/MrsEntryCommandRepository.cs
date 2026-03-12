@@ -1,4 +1,5 @@
 #nullable disable
+using Contracts.Interfaces;
 using InventoryManagement.Application.Common.Interfaces;
 using InventoryManagement.Application.Common.Interfaces.IMiscMaster;
 using InventoryManagement.Application.Common.Interfaces.IMRS;
@@ -42,7 +43,7 @@ namespace InventoryManagement.Infrastructure.Repositories.MRS
 
         public async Task<string> GenerateNextCodeAsync(CancellationToken ct = default)
         {
-            var unitId = _ipAddressService.GetUnitId();
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
             var unitCode = unitId > 0 ? unitId.ToString() : "NA";
             var prefix = $"MRS-{unitCode}-";
 

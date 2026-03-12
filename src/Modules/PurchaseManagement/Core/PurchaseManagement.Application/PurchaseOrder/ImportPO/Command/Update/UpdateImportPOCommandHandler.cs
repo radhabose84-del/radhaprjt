@@ -1,12 +1,14 @@
 using System.ComponentModel.DataAnnotations;
+using System.Data.Common;
 using AutoMapper;
 using Contracts.Interfaces.Lookups.Budget;
+using MediatR;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.ImportPO;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.IPurchaseDocument;
 using PurchaseManagement.Domain.Common;
 using PurchaseManagement.Domain.Entities.PurchaseOrder;
-using MediatR;
 
 namespace PurchaseManagement.Application.PurchaseOrder.ImportPO.Command.Update;
 
@@ -69,9 +71,26 @@ public class UpdateImportPOCommandHandler : IRequestHandler<UpdateImportPOComman
             }
         }
 
-        var updatedId = await _repo.UpdateAsync(incoming, dto, ct);
-        if (updatedId > 0)
-            await ApplyBudgetAdjustmentsAsync(existing, incoming, updatedId, ct);
+        // ── Shared Transaction Pattern ────────────────────────────────────────────
+        // Both the Import PO EF Core write and the Budget Dapper UPDATE(s) must
+        // commit or roll back together. The transaction is opened here; the
+        // underlying ADO.NET connection + transaction are passed to the Budget
+        // lookup so all writes join the same SQL transaction.
+        // ─────────────────────────────────────────────────────────────────────────
+        var strategy = _repo.CreateExecutionStrategy();
+        var updatedId = await strategy.ExecuteAsync(async () =>
+        {
+            var (transaction, dbConn, dbTx) = await _repo.BeginTransactionWithConnectionAsync(ct);
+            await using var _ = transaction;
+
+            var poId = await _repo.UpdateWithoutTransactionAsync(incoming, dto, ct);
+
+            if (poId > 0)
+                await ApplyBudgetAdjustmentsAsync(existing, incoming, poId, dbConn, dbTx, ct);
+
+            await transaction.CommitAsync(ct);
+            return poId;
+        });
 
         return updatedId > 0;
     }
@@ -86,6 +105,8 @@ public class UpdateImportPOCommandHandler : IRequestHandler<UpdateImportPOComman
         PurchaseOrderHeader existing,
         PurchaseOrderHeader incoming,
         int poId,
+        DbConnection dbConn,
+        DbTransaction dbTx,
         CancellationToken ct)
     {
         var oldBudgetGroupId = existing.BudgetGroupId ?? 0;
@@ -93,19 +114,19 @@ public class UpdateImportPOCommandHandler : IRequestHandler<UpdateImportPOComman
         if (oldBudgetGroupId <= 0 && newBudgetGroupId <= 0)
             return;
 
-        var oldMonth = new DateOnly(existing.PODate.Year, existing.PODate.Month, 1);
-        var newMonth = new DateOnly(incoming.PODate.Year, incoming.PODate.Month, 1);
+        var oldMonth       = new DateOnly(existing.PODate.Year, existing.PODate.Month, 1);
+        var newMonth       = new DateOnly(incoming.PODate.Year, incoming.PODate.Month, 1);
         var oldRequestById = existing.BudgetRequestById ?? 0;
         var newRequestById = incoming.BudgetRequestById ?? 0;
-        var oldMonthId = existing.BudgetMonthId ?? 0;
-        var newMonthId = incoming.BudgetMonthId ?? 0;
-        var oldProjectId = existing.ProjectId;
-        var newProjectId = incoming.ProjectId;
-        var oldWbsId = existing.WBSId;
-        var newWbsId = incoming.WBSId;
+        var oldMonthId     = existing.BudgetMonthId ?? 0;
+        var newMonthId     = incoming.BudgetMonthId ?? 0;
+        var oldProjectId   = existing.ProjectId;
+        var newProjectId   = incoming.ProjectId;
+        var oldWbsId       = existing.WBSId;
+        var newWbsId       = incoming.WBSId;
         var oldFinancialYearId = existing.FinancialYearId ?? 0;
-        var oldValue = existing.PurchaseValue;
-        var newValue = incoming.PurchaseValue;
+        var oldValue       = existing.PurchaseValue;
+        var newValue       = incoming.PurchaseValue;
 
         if (oldBudgetGroupId == newBudgetGroupId && oldBudgetGroupId > 0)
         {
@@ -113,24 +134,14 @@ public class UpdateImportPOCommandHandler : IRequestHandler<UpdateImportPOComman
             if (delta != 0)
             {
                 var applied = await _budgetAllocationLookup.ApplyRemainingBalanceDeltaAsync(
-                    oldBudgetGroupId,
-                    oldMonth,
-                    oldRequestById,
-                    oldMonthId,
-                    delta,
-                    oldProjectId,
-                    oldWbsId,
-                    oldFinancialYearId,
-                    ct);
+                    oldBudgetGroupId, oldMonth, oldRequestById, oldMonthId,
+                    delta, oldProjectId, oldWbsId, oldFinancialYearId,
+                    dbConn, dbTx, ct);
 
                 if (!applied)
-                {
                     _logger.LogWarning(
                         "Import PO: Budget delta failed (same BG). PO {PoId}, BG {BgId}, Delta {Delta}",
-                        poId,
-                        oldBudgetGroupId,
-                        delta);
-                }
+                        poId, oldBudgetGroupId, delta);
             }
 
             return;
@@ -139,47 +150,27 @@ public class UpdateImportPOCommandHandler : IRequestHandler<UpdateImportPOComman
         if (oldBudgetGroupId > 0 && oldValue != 0)
         {
             var reverted = await _budgetAllocationLookup.ApplyRemainingBalanceDeltaAsync(
-                oldBudgetGroupId,
-                oldMonth,
-                oldRequestById,
-                oldMonthId,
-                -oldValue,
-                oldProjectId,
-                oldWbsId,
-                oldFinancialYearId,
-                ct);
+                oldBudgetGroupId, oldMonth, oldRequestById, oldMonthId,
+                -oldValue, oldProjectId, oldWbsId, oldFinancialYearId,
+                dbConn, dbTx, ct);
 
             if (!reverted)
-            {
                 _logger.LogWarning(
                     "Import PO: Budget refund failed (old BG). PO {PoId}, BG {BgId}, Delta {Delta}",
-                    poId,
-                    oldBudgetGroupId,
-                    -oldValue);
-            }
+                    poId, oldBudgetGroupId, -oldValue);
         }
 
         if (newBudgetGroupId > 0 && newValue != 0)
         {
             var applied = await _budgetAllocationLookup.ApplyRemainingBalanceDeltaAsync(
-                newBudgetGroupId,
-                newMonth,
-                newRequestById,
-                newMonthId,
-                newValue,
-                newProjectId,
-                newWbsId,
-                oldFinancialYearId,
-                ct);
+                newBudgetGroupId, newMonth, newRequestById, newMonthId,
+                newValue, newProjectId, newWbsId, oldFinancialYearId,
+                dbConn, dbTx, ct);
 
             if (!applied)
-            {
                 _logger.LogWarning(
                     "Import PO: Budget consume failed (new BG). PO {PoId}, BG {BgId}, Delta {Delta}",
-                    poId,
-                    newBudgetGroupId,
-                    newValue);
-            }
+                    poId, newBudgetGroupId, newValue);
         }
     }
 }

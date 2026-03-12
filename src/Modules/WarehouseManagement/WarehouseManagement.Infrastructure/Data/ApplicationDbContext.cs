@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Contracts.Interfaces;
 using WarehouseManagement.Application.Common.Interfaces;
 using WarehouseManagement.Domain.Common;
 using WarehouseManagement.Domain.Entities;

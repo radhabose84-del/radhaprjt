@@ -1,5 +1,6 @@
 #nullable disable
 using System.Data;
+using Contracts.Interfaces;
 using UserManagement.Application.Common.Interfaces;
 using UserManagement.Application.Common.Interfaces.ICompanySettings;
 using Dapper;
@@ -18,7 +19,7 @@ namespace UserManagement.Infrastructure.Repositories.CompanySettings
         }
         public async Task<UserManagement.Domain.Entities.CompanySettings> GetAsync()
         {
-              var companyId = _ipAddressService.GetCompanyId();
+              var companyId = _ipAddressService.GetCompanyId() ?? 0;
        
             const string query = "SELECT * FROM AppData.CompanySetting where CompanyId = @CompanyId";
             

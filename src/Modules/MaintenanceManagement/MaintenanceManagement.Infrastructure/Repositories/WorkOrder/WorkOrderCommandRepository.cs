@@ -1,5 +1,6 @@
 #nullable disable
 using System.Data;
+using Contracts.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces.IWorkOrder;
 using MaintenanceManagement.Domain.Common;
@@ -57,8 +58,8 @@ namespace MaintenanceManagement.Infrastructure.Repositories.WorkOrder
         }
         public async Task<string> GetLatestWorkOrderDocNo(int TypeId)
         {
-            var companyId = _ipAddressService.GetCompanyId();
-            var unitId = _ipAddressService.GetUnitId();
+            var companyId = _ipAddressService.GetCompanyId() ?? 0;
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
             var parameters = new DynamicParameters();
             parameters.Add("@CompanyId", companyId);
             parameters.Add("@UnitId", unitId);

@@ -1,6 +1,7 @@
 using AutoMapper;
 using Contracts.Interfaces.Lookups.Users; // ✅ lookup contract
 using FAM.Application.AssetMaster.AssetWarranty.Queries.GetAssetWarranty;
+using Contracts.Interfaces;
 using FAM.Application.Common.Interfaces;
 using FAM.Application.Common.Interfaces.IAssetMaster.IAssetMasterGeneral;
 using FAM.Application.Common.Interfaces.IAssetMaster.IAssetWarranty;
@@ -72,8 +73,8 @@ namespace FAM.Application.AssetMaster.AssetWarranty.Commands.UploadAssetWarranty
                 string baseDirectory = await _assetWarrantyQueryRepository.GetBaseDirectoryAsync();                
                 EnsureDirectoryExists(baseDirectory);
 
-                var companyId = _ipAddressService.GetCompanyId();
-                var unitId = _ipAddressService.GetUnitId();
+                var companyId = _ipAddressService.GetCompanyId() ?? 0;
+                var unitId = _ipAddressService.GetUnitId() ?? 0;
 
                 // ✅ Get company and unit names using lookup interfaces
                 var companies = await _companyLookup.GetAllCompanyAsync();

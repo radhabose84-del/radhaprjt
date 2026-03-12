@@ -6,6 +6,7 @@ using BSOFT.Api.Filters;
 using BSOFT.Api.Middleware;
 using Shared.Validation.Common;
 using Shared.Infrastructure.Caching;
+using Shared.Infrastructure;
 using UserManagement.Module;
 using FixedAssetManagement.Module;
 using MaintenanceManagement.Module;
@@ -30,6 +31,7 @@ builder.Configuration
     .AddEnvironmentVariables();
 
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddSharedInfrastructureServices();
 builder.Services.AddProblemDetails();
 builder.Services.AddEndpointsApiExplorer();
 

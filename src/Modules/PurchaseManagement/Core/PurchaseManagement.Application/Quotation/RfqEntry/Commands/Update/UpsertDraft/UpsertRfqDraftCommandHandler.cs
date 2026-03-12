@@ -1,3 +1,4 @@
+using Contracts.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IQuotation.IRfqEntry;
 using PurchaseManagement.Domain.Entities.Quotation.RfqEntry;
@@ -42,7 +43,7 @@ public class UpsertRfqDraftCommandHandler : IRequestHandler<UpsertRfqDraftComman
             var rfq = new RfqMaster
             {
                 RfqCode          = code,
-                UnitId           = _ip.GetUnitId(),
+                UnitId           = _ip.GetUnitId() ?? 0,
                 InitiationTypeId = request.InitiationTypeId ?? 0,
                 IndentId         = request.IndentId,
                 RfqStatusId      = draftStatusId,
@@ -82,7 +83,7 @@ public class UpsertRfqDraftCommandHandler : IRequestHandler<UpsertRfqDraftComman
         var header = new RfqMaster
         {
             Id               = request.Id.Value,
-            UnitId           = _ip.GetUnitId(),
+            UnitId           = _ip.GetUnitId() ?? 0,
             InitiationTypeId = request.InitiationTypeId ?? 0,
             IndentId         = request.IndentId
         };
