@@ -1,0 +1,15 @@
+using FinanceManagement.Domain.Common;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
+
+namespace FinanceManagement.Domain.Entities
+{
+    public class AuditLogs : AuditLogBase
+    {
+        [BsonId]
+        public ObjectId Id { get; set; }
+        public string? Action { get; set; }
+        public string? Details { get; set; }
+        public string? Module { get; set; }
+    }
+}
