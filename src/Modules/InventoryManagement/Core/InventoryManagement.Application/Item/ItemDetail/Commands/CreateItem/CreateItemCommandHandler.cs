@@ -32,6 +32,7 @@ namespace InventoryManagement.Application.Item.ItemAggregate.Handlers
         private readonly IItemVariantValueCommandRepository _variantValCmd;
         private readonly IItemVariantValueQueryRepository _variantValQry;
         private readonly IItemVariantAttributeCommandRepository _variantAttrCmd;
+        private readonly IItemUnitMappingCommandRepository _unitMappingRepo;
 
         public CreateItemCommandHandler(
             IUnitOfWork uow,
@@ -49,7 +50,8 @@ namespace InventoryManagement.Application.Item.ItemAggregate.Handlers
             IItemQueryRepository itemQry,
             IItemVariantValueCommandRepository variantValCmd,
             IItemVariantValueQueryRepository variantValQry,
-            IItemVariantAttributeCommandRepository variantAttrCmd)
+            IItemVariantAttributeCommandRepository variantAttrCmd,
+            IItemUnitMappingCommandRepository unitMappingRepo)
         {
             _uow = uow;
             _mapper = mapper;
@@ -68,6 +70,7 @@ namespace InventoryManagement.Application.Item.ItemAggregate.Handlers
             _variantValCmd = variantValCmd;
             _variantValQry = variantValQry;
             _variantAttrCmd = variantAttrCmd;
+            _unitMappingRepo = unitMappingRepo;
         }
 
         public async Task<int> Handle(CreateItemCommand request, CancellationToken ct)
@@ -137,9 +140,10 @@ namespace InventoryManagement.Application.Item.ItemAggregate.Handlers
                     await _saleRepo.CreateAsync(e, ct);
                 }
                 // Collections (null-safe)
-                if (DtoEmptyChecker.HasAny(p.Suppliers))   await _supplierRepo.UpdateAsync(newId, p.Suppliers, ct);
-                if (DtoEmptyChecker.HasAny(p.Manufacture)) await _manufactureRepo.UpdateAsync(newId, p.Manufacture, ct);
-                if (DtoEmptyChecker.HasAny(p.Uoms))        await _uomRepo.UpdateAsync(newId, p.Uoms, ct);
+                if (DtoEmptyChecker.HasAny(p.Suppliers))        await _supplierRepo.UpdateAsync(newId, p.Suppliers, ct);
+                if (DtoEmptyChecker.HasAny(p.Manufacture))     await _manufactureRepo.UpdateAsync(newId, p.Manufacture, ct);
+                if (DtoEmptyChecker.HasAny(p.Uoms))            await _uomRepo.UpdateAsync(newId, p.Uoms, ct);
+                if (DtoEmptyChecker.HasAny(p.ItemUnitMappings)) await _unitMappingRepo.UpdateAsync(newId, p.ItemUnitMappings, ct);
                 // ATTRIBUTES ONLY (no values on template)
                 if (p.VariantAttributes is { Count: > 0 })
                     await _variantAttrCmd.UpsertAttributesAsync(newId, p.VariantAttributes, ct);
@@ -298,7 +302,6 @@ namespace InventoryManagement.Application.Item.ItemAggregate.Handlers
                 {
                     var child = new ItemMaster
                     {
-                        UnitId = template.UnitId,
                         ItemCode = finalCode,
                         ItemName = childName,
                         HSNId = template.HSNId,
@@ -372,6 +375,7 @@ namespace InventoryManagement.Application.Item.ItemAggregate.Handlers
                 if (p.Suppliers.Count > 0) await _supplierRepo.UpdateAsync(newId, p.Suppliers, ct);
                 if (p.Manufacture.Count > 0) await _manufactureRepo.UpdateAsync(newId, p.Manufacture, ct);
                 if (p.Uoms.Count > 0) await _uomRepo.UpdateAsync(newId, p.Uoms, ct);
+                if (p.ItemUnitMappings.Count > 0) await _unitMappingRepo.UpdateAsync(newId, p.ItemUnitMappings, ct);
 
                 return newId;
             }, ct);
@@ -443,9 +447,10 @@ namespace InventoryManagement.Application.Item.ItemAggregate.Handlers
                 await _saleRepo.CreateAsync(e, ct);
             }
 
-            if (DtoEmptyChecker.HasAny(payload.Suppliers))   await _supplierRepo.UpdateAsync(childId, payload.Suppliers, ct);
-            if (DtoEmptyChecker.HasAny(payload.Manufacture)) await _manufactureRepo.UpdateAsync(childId, payload.Manufacture, ct);
-            if (DtoEmptyChecker.HasAny(payload.Uoms))        await _uomRepo.UpdateAsync(childId, payload.Uoms, ct);
+            if (DtoEmptyChecker.HasAny(payload.Suppliers))        await _supplierRepo.UpdateAsync(childId, payload.Suppliers, ct);
+            if (DtoEmptyChecker.HasAny(payload.Manufacture))     await _manufactureRepo.UpdateAsync(childId, payload.Manufacture, ct);
+            if (DtoEmptyChecker.HasAny(payload.Uoms))            await _uomRepo.UpdateAsync(childId, payload.Uoms, ct);
+            if (DtoEmptyChecker.HasAny(payload.ItemUnitMappings)) await _unitMappingRepo.UpdateAsync(childId, payload.ItemUnitMappings, ct);
         }
 
         private async Task TryMoveImageAsync(int itemId, string tempFileName, string baseCode, CancellationToken ct)

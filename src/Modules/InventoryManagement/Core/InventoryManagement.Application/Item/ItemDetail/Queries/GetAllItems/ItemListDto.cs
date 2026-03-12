@@ -8,7 +8,6 @@ namespace InventoryManagement.Application.Item.ItemDetail.Queries.GetAllItems
         public bool HasVariants { get; set; }
         public bool IsStockItem { get; set; }
         public bool IsCapitalItem { get; set; }
-        public int UnitId { get; set; }
         public string? ParentItemName { get; set; }
         public string? ItemGroupName { get; set; }
         public string? ItemCategoryName { get; set; }

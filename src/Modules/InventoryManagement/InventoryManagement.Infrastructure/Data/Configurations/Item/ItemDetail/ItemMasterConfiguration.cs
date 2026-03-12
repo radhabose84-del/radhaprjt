@@ -26,8 +26,7 @@
                 b.HasKey(x => x.Id);
                 b.Property(x => x.Id).HasColumnName("Id").HasColumnType("int").IsRequired();
 
-                // --- Base fields (unchanged) ---
-                b.Property(x => x.UnitId).HasColumnName("UnitId").HasColumnType("int").IsRequired(false);
+                // --- Base fields ---
                 b.Property(x => x.ItemCode).HasColumnName("ItemCode").HasMaxLength(50).IsRequired();
                 b.Property(x => x.ItemName).HasColumnName("ItemName").HasMaxLength(200).IsRequired();
 
