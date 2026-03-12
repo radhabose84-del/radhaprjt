@@ -1,4 +1,5 @@
 using System.Data;
+using Contracts.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IServiceMaster;
 using PurchaseManagement.Application.PurchaseOrder.ServicePO.Queries.GetVendorServicePO;
@@ -142,7 +143,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.ServiceMaster
 
         public async Task<List<GetVendorServicePODto>> GetVendorApprovedServicePo(int vendorId)
         {
-            var unitId = _ipAddressService.GetUnitId(); // if you have this service; otherwise remove line
+            var unitId = _ipAddressService.GetUnitId() ?? 0; // if you have this service; otherwise remove line
                 var sql = @"
                     SELECT 
                         A.Id AS ServicePOId,

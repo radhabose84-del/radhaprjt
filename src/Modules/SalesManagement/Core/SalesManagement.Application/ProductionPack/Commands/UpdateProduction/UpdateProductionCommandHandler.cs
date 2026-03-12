@@ -1,6 +1,7 @@
 using AutoMapper;
 using Contracts.Common;
 using MediatR;
+using Contracts.Interfaces;
 using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Application.Common.Interfaces.IProductionPack;
 using SalesManagement.Domain.Entities;
@@ -36,7 +37,7 @@ namespace SalesManagement.Application.ProductionPack.Commands.UpdateProduction
             CancellationToken cancellationToken)
         {
             var entity = _mapper.Map<ProductionPackHeader>(request.ProductionPackDetails!);
-            entity.UnitId = _ipAddressService.GetUnitId();
+            entity.UnitId = _ipAddressService.GetUnitId() ?? 0;
 
             var result = await _commandRepository.UpdateAsync(entity);
 

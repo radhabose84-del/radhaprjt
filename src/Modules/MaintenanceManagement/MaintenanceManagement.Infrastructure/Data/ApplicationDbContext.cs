@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using MaintenanceManagement.Domain.Entities;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Contracts.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces;
 using MaintenanceManagement.Domain.Common;
 using MaintenanceManagement.Infrastructure.Data.Configurations;

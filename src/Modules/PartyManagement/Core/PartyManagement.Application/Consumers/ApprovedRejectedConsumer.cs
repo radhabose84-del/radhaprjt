@@ -5,7 +5,8 @@
 // using AutoMapper;
 // using Contracts.Commands.Party;
 // using Contracts.Commands.Workflow;
-// using PartyManagement.Application.Common.Interfaces;
+// using Contracts.Interfaces;
+using PartyManagement.Application.Common.Interfaces;
 // using PartyManagement.Application.Common.Interfaces.IMiscMaster;
 // using PartyManagement.Application.Common.Interfaces.IPartyMaster;
 // using PartyManagement.Application.PartyMaster.Queries.GetPartyMasterById;

@@ -1,4 +1,5 @@
 using System.Data;
+using Contracts.Interfaces;
 using InventoryManagement.Application.Common.Interfaces;
 using InventoryManagement.Application.Common.Interfaces.IIssue;
 using InventoryManagement.Application.Issue.Queries.GetApprovedMrsById;
@@ -23,7 +24,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Issue
 
         public async Task<List<GetApprovedMrsByIdDto>> GetApprovedMrsDetails(string? searchPattern)
         {
-             var unitId = _ipAddressService.GetUnitId();
+             var unitId = _ipAddressService.GetUnitId() ?? 0;
             var sql = @"
                 SELECT 
                     a.Id AS MrsId,
@@ -63,7 +64,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Issue
 
         public async Task<List<GetPendingIssueDto.GetPendingStockBinDto>> GetMainStoresStockBinWise(List<int> itemIds, int warehouseId)
         {
-             var unitId = _ipAddressService.GetUnitId();
+             var unitId = _ipAddressService.GetUnitId() ?? 0;
 
             // Base SQL
             var sql = @"
@@ -113,7 +114,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Issue
 
         public async Task<(List<GetPendingIssueHeaderDto>, int)> GetPendingIssueHeaderAsync(DateTimeOffset? fromDate, DateTimeOffset? toDate, int PageNumber, int PageSize, string? SearchTerm)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
 
             var parameters = new DynamicParameters();
             parameters.Add("UnitId", UnitId);
@@ -244,7 +245,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Issue
 
         public async Task<List<GetPendingIssueDto>> GetPendingIssuesAsync(int mrsNo)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
 
     var query = @"
         SELECT 

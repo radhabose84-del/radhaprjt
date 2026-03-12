@@ -17,6 +17,7 @@ using InventoryManagement.Application.Common.Interfaces.Item.ItemGroup;
 using InventoryManagement.Application.Common.Interfaces.Item.PutAway;
 using InventoryManagement.Application.Common.Interfaces.Item.Templates;
 using InventoryManagement.Application.Common.Interfaces.IUOM;
+using InventoryManagement.Application.Common.Interfaces.IProcurementType;
 using InventoryManagement.Application.Common.Interfaces.IUOMConversion;
 using InventoryManagement.Application.Item.ItemDetail.Queries.GetItemLogById;
 using Infrastructure.Data;
@@ -33,6 +34,7 @@ using InventoryManagement.Infrastructure.Repositories.Item.ItemGroup;
 using InventoryManagement.Infrastructure.Repositories.Item.Templates;
 using InventoryManagement.Infrastructure.Repositories.MiscMaster;
 using InventoryManagement.Infrastructure.Repositories.MiscTypeMaster;
+using InventoryManagement.Infrastructure.Repositories.ProcurementType;
 using InventoryManagement.Infrastructure.Repositories.MRS;
 using InventoryManagement.Infrastructure.Repositories.Reports;
 using InventoryManagement.Infrastructure.Repositories.Stock;
@@ -170,6 +172,9 @@ namespace InventoryManagement.Infrastructure
             services.AddScoped<IIssueEntryCommandRepository, IssueEntryCommandRepository>();
             services.AddScoped<IIssueQueryCommandRepository, IssueEntryQueryRepository>();
             services.AddScoped<IStockReportQueryRepository, StockReportQueryRepository>();
+            services.AddScoped<IProcurementTypeCommandRepository, ProcurementTypeCommandRepository>();
+            services.AddScoped<IProcurementTypeQueryRepository, ProcurementTypeQueryRepository>();
+            services.AddScoped<IItemUnitMappingCommandRepository, ItemUnitMappingCommandRepository>();
 
             // Lookups
             services.AddScoped<IUOMLookup, UOMLookupRepository>();
@@ -182,7 +187,6 @@ namespace InventoryManagement.Infrastructure
             services.AddScoped<IInventoryCategoryLookup, ItemCategoryLookupRepository>();
 
             // Miscellaneous services
-            services.AddScoped<IIPAddressService, IPAddressService>();
             services.AddTransient<IFileUploadService, FileUploadRepository>();
             services.AddSingleton<ITimeZoneService, TimeZoneService>();
             services.AddTransient<IJwtTokenHelper, JwtTokenHelper>();

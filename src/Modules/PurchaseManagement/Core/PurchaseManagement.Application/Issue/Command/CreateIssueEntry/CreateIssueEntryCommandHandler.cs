@@ -1,6 +1,7 @@
 using AutoMapper;
 using Contracts.Dtos.Inventory;
 using Contracts.Dtos.Stock;
+using Contracts.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IIssue;
 using PurchaseManagement.Domain.Common;

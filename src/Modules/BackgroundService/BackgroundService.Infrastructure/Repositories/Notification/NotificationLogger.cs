@@ -1,6 +1,6 @@
 using System.Data;
 using BackgroundService.Application.Interfaces.Notification;
-using BackgroundService.Application.Notification.Common.Interfaces;
+using Contracts.Interfaces;
 using BackgroundService.Domain.Entities.Notification;
 using Dapper;
 using Microsoft.Extensions.DependencyInjection;

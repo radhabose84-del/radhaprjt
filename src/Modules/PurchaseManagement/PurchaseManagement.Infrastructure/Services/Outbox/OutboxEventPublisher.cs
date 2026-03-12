@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Contracts.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IOutbox;
 using PurchaseManagement.Domain.Entities.Outbox;

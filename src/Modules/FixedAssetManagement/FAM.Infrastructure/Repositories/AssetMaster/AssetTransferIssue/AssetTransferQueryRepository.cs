@@ -8,6 +8,7 @@ using FAM.Application.AssetMaster.AssetTransferIssue.Queries.GetAssetDtlToTransf
 using FAM.Application.AssetMaster.AssetTransferIssue.Queries.GetAssetTransfered;
 using FAM.Application.AssetMaster.AssetTransferIssue.Queries.GetCategoryByCustodian;
 using FAM.Application.AssetMaster.AssetTransferIssue.Queries.GetCategoryByDeptId;
+using Contracts.Interfaces;
 using FAM.Application.Common.Interfaces;
 using FAM.Application.Common.Interfaces.IAssetMaster.IAssetTransferIssue;
 using FAM.Domain.Common;
@@ -34,8 +35,8 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetTransferIssue
 
         public async Task<(List<AssetTransferDto>, int)> GetAllAsync(int PageNumber, int PageSize, string? SearchTerm, DateTimeOffset? FromDate, DateTimeOffset? ToDate)
         {
-            var CompanyId = _iPAddressService.GetCompanyId();
-            var UnitId = _iPAddressService.GetUnitId();
+            var CompanyId = _iPAddressService.GetCompanyId() ?? 0;
+            var UnitId = _iPAddressService.GetUnitId() ?? 0;
             var query = $$"""
                 DECLARE @TotalCount INT;
                 SELECT @TotalCount = COUNT(*)
@@ -109,8 +110,8 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetTransferIssue
         }
         public async Task<AssetTransferJsonDto?> GetAssetTransferByIdAsync(int assetTransferId)
         {
-            var CompanyId = _iPAddressService.GetCompanyId();
-            var UnitId = _iPAddressService.GetUnitId();
+            var CompanyId = _iPAddressService.GetCompanyId() ?? 0;
+            var UnitId = _iPAddressService.GetUnitId() ?? 0;
             const string query = @"
             SELECT Id as AssetTransferId , DocDate, TransferType, FromUnitId, ToUnitId, FromDepartmentId, ToDepartmentId, 
                    FromCustodianId, ToCustodianId, Status, FromCustodianName, ToCustodianName,GatePassNo
@@ -155,8 +156,8 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetTransferIssue
 
         public async Task<List<GetCategoryByDeptIdDto>> GetCategoriesByDepartmentAsync(int departmentId)
         {
-            var CompanyId = _iPAddressService.GetCompanyId();
-            var UnitId = _iPAddressService.GetUnitId();
+            var CompanyId = _iPAddressService.GetCompanyId() ?? 0;
+            var UnitId = _iPAddressService.GetUnitId() ?? 0;
             const string query = @"SELECT DISTINCT 
             A.Id AS CategoryID,  A.CategoryName  FROM FixedAsset.AssetCategories A 
             INNER JOIN FixedAsset.AssetMaster   B   ON A.Id = B.AssetCategoryId 
@@ -168,8 +169,8 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetTransferIssue
 
         public async Task<List<GetCategoryByCustodianDto>> GetCategoryByCustodianAsync(string custodianId, int departmentId)
         {
-            var CompanyId = _iPAddressService.GetCompanyId();
-            var UnitId = _iPAddressService.GetUnitId();
+            var CompanyId = _iPAddressService.GetCompanyId() ?? 0;
+            var UnitId = _iPAddressService.GetUnitId() ?? 0;
             const string query = @"SELECT DISTINCT 
             A.Id AS CategoryID,  A.CategoryName  FROM FixedAsset.AssetCategories A 
             INNER JOIN FixedAsset.AssetMaster   B   ON A.Id = B.AssetCategoryId 
@@ -184,7 +185,7 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetTransferIssue
 
         public async Task<List<GetAssetCustodianDto>> GetCustodianByDepartmentAsync(string oldUnitId, int departmentId)
         {
-            var UnitId = _iPAddressService.GetUnitId();
+            var UnitId = _iPAddressService.GetUnitId() ?? 0;
             // Step 1: Get distinct CustodianIds
             const string custodianQuery = @"
                 SELECT DISTINCT CU.CustodianId 
@@ -218,8 +219,8 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetTransferIssue
         public async Task<List<GetAssetMasterDto>> GetAssetsByCategoryAsync(int assetCategoryId, int assetDepartmentId)
         {
             // const string query = @"SELECT Id as AssetId, AssetName FROM FixedAsset.AssetMaster WHERE AssetCategoryId = @assetCategoryId"; 
-            var CompanyId = _iPAddressService.GetCompanyId();
-            var UnitId = _iPAddressService.GetUnitId();
+            var CompanyId = _iPAddressService.GetCompanyId() ?? 0;
+            var UnitId = _iPAddressService.GetUnitId() ?? 0;
             const string query = @"	SELECT  A.Id AS AssetId,A.AssetName,A.AssetCategoryId FROM FixedAsset.AssetMaster A 
                                     INNER JOIN FixedAsset.AssetLocation B  ON A.Id = B.AssetId  
                                     WHERE      A.AssetCategoryId = @assetCategoryId   AND B.DepartmentId =  @assetDepartmentId  AND A.CompanyId = @CompanyId AND A.UnitId = @UnitId";
@@ -229,8 +230,8 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetTransferIssue
 
         public async Task<GetAssetDetailsToTransferHdrDto?> GetAssetDetailsToTransferByIdAsync(int assetId)
         {
-            var CompanyId = _iPAddressService.GetCompanyId();
-            var UnitId = _iPAddressService.GetUnitId();
+            var CompanyId = _iPAddressService.GetCompanyId() ?? 0;
+            var UnitId = _iPAddressService.GetUnitId() ?? 0;
             const string query = @"
                     -- Get Asset Master Details
                     SELECT
@@ -390,7 +391,7 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetTransferIssue
         }
         public async Task<bool> IsAssetPendingOrApprovedAsync(int assetId)
         {
-            var UnitId = _iPAddressService.GetUnitId();
+            var UnitId = _iPAddressService.GetUnitId() ?? 0;
             const string query = @"
               SELECT 1 FROM FixedAsset.AssetTransferIssueHdr A
                         INNER JOIN FixedAsset.AssetTransferIssueDtl B ON A.Id = B.AssetTransferId
@@ -415,8 +416,8 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetTransferIssue
 
         public async Task<List<GetAllTransferDtlDto>> GetAssetTransferByIDAsync(int assetTransferId)
         {
-            var CompanyId = _iPAddressService.GetCompanyId();
-            var UnitId = _iPAddressService.GetUnitId();
+            var CompanyId = _iPAddressService.GetCompanyId() ?? 0;
+            var UnitId = _iPAddressService.GetUnitId() ?? 0;
             const string query = @"SELECT  A.Id,A.AssetTransferId,A.AssetId,B.AssetCode,B.AssetName,A.AssetValue  FROM FixedAsset.AssetTransferIssueDtl A 
 			                                 INNER JOIN  FixedAsset.AssetMaster B on  A.AssetId=B.ID WHERE AssetTransferId = @assetTransferId AND B.CompanyId = @CompanyId AND B.UnitId = @UnitId";
             var result = await _dbConnection.QueryAsync<GetAllTransferDtlDto>(query, new { assetTransferId, CompanyId, UnitId });
@@ -467,8 +468,8 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetTransferIssue
         }
          public async Task<List<GetAssetDetailsToTransferHdrDto>> GetAssetDetailsToTransferByFiltersAsync(string custodianIdsCsv, int departmentId, string categoryIdsCsv)
         {
-            var companyId = _iPAddressService.GetCompanyId();
-            var unitId = _iPAddressService.GetUnitId();
+            var companyId = _iPAddressService.GetCompanyId() ?? 0;
+            var unitId = _iPAddressService.GetUnitId() ?? 0;
 
             var sql = @"
                 DECLARE @PendingStatus VARCHAR(50) = 'Pending';
@@ -700,8 +701,8 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetTransferIssue
         
         // public async Task<List<GetAssetDetailsToTransferHdrDto>> GetAssetDetailsToTransferByFiltersAsync( string custodianIdsCsv, int departmentId, string categoryIdsCsv)
         // {
-        //              var companyId = _iPAddressService.GetCompanyId();
-        //              var unitId = _iPAddressService.GetUnitId();
+        //              var companyId = _iPAddressService.GetCompanyId() ?? 0;
+        //              var unitId = _iPAddressService.GetUnitId() ?? 0;
 
         //              var sql = @"
         //          DECLARE @PendingStatus VARCHAR(50) = 'Pending';

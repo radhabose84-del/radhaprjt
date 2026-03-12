@@ -1,4 +1,5 @@
 using System.Data;
+using Contracts.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces.ICostCenter;
 using Dapper;
@@ -19,7 +20,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.CostCenter
 
         // public async Task<(List<MaintenanceManagement.Domain.Entities.CostCenter>, int)> GetAllCostCenterGroupAsync(int PageNumber, int PageSize, string? SearchTerm)
         // {
-        //     var UnitId = _ipAddressService.GetUnitId();
+        //     var UnitId = _ipAddressService.GetUnitId() ?? 0;
         //     var query = $$"""
         //      DECLARE @TotalCount INT;
         //      SELECT @TotalCount = COUNT(*) 
@@ -65,7 +66,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.CostCenter
 
         public async Task<MaintenanceManagement.Domain.Entities.CostCenter?> GetByIdAsync(int Id)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
             const string query = @"
                     SELECT * 
                     FROM Maintenance.CostCenter 
@@ -77,7 +78,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.CostCenter
 
         public async Task<List<MaintenanceManagement.Domain.Entities.CostCenter>> GetCostCenterGroups(string searchPattern)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
             searchPattern = searchPattern ?? string.Empty; // Prevent null issues
 
             const string query = @"
@@ -184,7 +185,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.CostCenter
 
         public async Task<(List<CostCenterDto>, int)> GetAllCostCenterListGroupAsync(int PageNumber, int PageSize, string? SearchTerm)
         {
-            var unitId = _ipAddressService.GetUnitId();
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
 
             var query = $$"""
     DECLARE @TotalCount INT;

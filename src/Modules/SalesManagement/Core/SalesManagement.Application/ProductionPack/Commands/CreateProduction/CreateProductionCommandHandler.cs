@@ -1,6 +1,7 @@
 using AutoMapper;
 using Contracts.Common;
 using MediatR;
+using Contracts.Interfaces;
 using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Application.Common.Interfaces.IDocumentSequence;
 using SalesManagement.Application.Common.Interfaces.IProductionPack;
@@ -40,10 +41,10 @@ namespace SalesManagement.Application.ProductionPack.Commands.CreateProduction
             var details = request.ProductionPackDetails!;
 
             var entity = _mapper.Map<ProductionPackHeader>(details);
-            entity.UnitId = _ipAddressService.GetUnitId();
+            entity.UnitId = _ipAddressService.GetUnitId() ?? 0;
 
             // Get UnitId from JWT token
-            var unitId = _ipAddressService.GetUnitId();
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
 
             // Generate PackNo from DocumentSequence
             var typeId = await _documentSequenceQueryRepository.GetTransactionTypeIdAsync(

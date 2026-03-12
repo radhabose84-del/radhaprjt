@@ -1,4 +1,3 @@
-#nullable disable
 using System.Data;
 using MaintenanceManagement.Application.Common.Interfaces;
 using Microsoft.Data.SqlClient;
@@ -66,7 +65,6 @@ using MaintenanceManagement.Infrastructure.Repositories.Power.GeneratorConsumpti
 using MaintenanceManagement.Application.Common.Interfaces.IPreventiveSchedulerLog;
 using MaintenanceManagement.Infrastructure.Repositories.PreventiveSchedulesLogs;
 using MaintenanceManagement.Application.Common.IMachineSpecification;
-using MaintenanceManagement.Infrastructure.Persistence;
 using Contracts.Interfaces.Lookups.Maintenance;
 using MaintenanceManagement.Infrastructure.Repositories.Lookups.Maintenance;
 using MaintenanceManagement.Application.Common.Interfaces.IOutbox;
@@ -83,7 +81,7 @@ namespace MaintenanceManagement.Infrastructure
             this IServiceCollection services,
             IConfiguration configuration)
         {
-            var connectionString = configuration.GetConnectionString("DefaultConnection")
+            var connectionString = (configuration.GetConnectionString("DefaultConnection") ?? string.Empty)
                                                 .Replace("{SERVER}", Environment.GetEnvironmentVariable("DATABASE_SERVER") ?? "")
                                                 .Replace("{USER_ID}", Environment.GetEnvironmentVariable("DATABASE_USERID") ?? "")
                                                 .Replace("{ENC_PASSWORD}", Environment.GetEnvironmentVariable("DATABASE_PASSWORD") ?? "");
@@ -134,13 +132,7 @@ namespace MaintenanceManagement.Infrastructure
                 return mongoDbContext.GetDatabase();
             });
             
-             services.AddSingleton<IMongoCollection<OutboxMessage>>(sp =>
-            {
-                var db = sp.GetRequiredService<IMongoDatabase>();
-                return db.GetCollection<OutboxMessage>("OutboxMessages");
-            });
-
-            services.AddLogging(builder =>
+             services.AddLogging(builder =>
             {
                 builder.AddSerilog();
             });
@@ -215,12 +207,10 @@ namespace MaintenanceManagement.Infrastructure
             services.AddScoped<IPreventiveScheduleLogService, PreventiveScheduleLogsService>();
 
             // Miscellaneous services
-            services.AddScoped<IIPAddressService, IPAddressService>();
             services.AddTransient<IFileUploadService, FileUploadRepository>();
             services.AddSingleton<ITimeZoneService, TimeZoneService>();
             services.AddTransient<IJwtTokenHelper, JwtTokenHelper>();
             services.AddScoped<ILogQueryService, LogQueryService>();
-            services.AddScoped<IEventPublisher, EventPublisher>();
 
             var rabbitHost = configuration["MassTransit:RabbitMq:Host"];
             if (string.IsNullOrWhiteSpace(rabbitHost))
@@ -276,6 +266,9 @@ namespace MaintenanceManagement.Infrastructure
 
             // Outbox event publisher (saves events to outbox table)
             services.AddScoped<IOutboxEventPublisher, OutboxEventPublisher>();
+
+            // Unit of work — wraps EF Core transaction for atomic domain writes + outbox insert
+            services.AddScoped<IMaintenanceUnitOfWork, MaintenanceUnitOfWork>();
 
             return services;
         }

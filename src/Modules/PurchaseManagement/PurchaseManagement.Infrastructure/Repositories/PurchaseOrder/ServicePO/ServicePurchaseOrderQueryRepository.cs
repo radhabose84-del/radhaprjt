@@ -1,6 +1,7 @@
 using System.Data;
 using System.Text;
 using AutoMapper;
+using Contracts.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IMiscMaster;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.ServicePO;
@@ -403,7 +404,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.ServicePO
             var s = (size.HasValue && size > 0) ? size.Value : 15;
             var off = (p - 1) * s;
             var like = string.IsNullOrWhiteSpace(search) ? null : $"%{search.Trim()}%";
-            var unitId = _ip.GetUnitId();
+            var unitId = _ip.GetUnitId() ?? 0;
 
             // ApprovalStatus:Pending
             var pending = await _miscMasterQueryRepository.GetMiscMasterByName(
@@ -607,7 +608,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.ServicePO
 
         public async Task<PoServiceHeaderByIdDto?> GetServicePoHeaderByIdAsync(int poId, CancellationToken ct)
         {
-            var unitId = _ip.GetUnitId();
+            var unitId = _ip.GetUnitId() ?? 0;
 
             const string sql = @"
             SELECT
@@ -795,7 +796,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.ServicePO
 
         public async Task<List<PoIdNumberDto>> GetApprovedServicePoAsync()
         {
-            var unitId = _ip.GetUnitId();
+            var unitId = _ip.GetUnitId() ?? 0;
             const string sql = @"
             SELECT A.Id AS POId, A.PONumber AS ServicePONumber
             FROM [Purchase].[PurchaseOrderHeader] AS A
@@ -936,7 +937,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.ServicePO
         public async Task<List<SesApprovalListDto>> GetServiceEntrySheetsForApprovalAsync(DateTimeOffset? fromDate, DateTimeOffset? toDate, int? vendorId, CancellationToken ct = default)
         {
 
-            var unitId = _ip.GetUnitId();
+            var unitId = _ip.GetUnitId() ?? 0;
 
             var sql = new StringBuilder(@"
                 SELECT

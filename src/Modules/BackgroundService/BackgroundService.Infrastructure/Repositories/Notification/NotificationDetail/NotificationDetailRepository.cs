@@ -1,4 +1,5 @@
 using System.Data;
+using Contracts.Interfaces;
 using BackgroundService.Application.Notification.Common.Interfaces;
 using BackgroundService.Application.Notification.Common.Interfaces.INotificationDetail;
 using BackgroundService.Application.Notification.GetNotificationDetail.GetNotificationDetailById;
@@ -26,7 +27,7 @@ namespace BackgroundService.Infrastructure.Repositories.Notification.Notificatio
 
         public async Task<List<GetNotificationDetailDto>> GetAllByUserIdAsync(string userId)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
             const string query = @" SELECT L.Id,NC.ModuleName,MM.Code  EventType,MM1.Code TargetType,MM2.Code ChannelName,
                     ActionStatus, MM4.Code ReadStatus,MM4.Id ReadStatusId, MessageText, Timestamp, L.CreatedBy,L.CreatedDate, L.CreatedByName, L.CreatedIP, SendTo,
                     L.Value

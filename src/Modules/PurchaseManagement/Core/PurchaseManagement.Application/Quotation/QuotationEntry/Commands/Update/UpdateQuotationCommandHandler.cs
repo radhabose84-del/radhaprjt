@@ -1,3 +1,4 @@
+using Contracts.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IQuotation.IQuotationEntry;
 using PurchaseManagement.Domain.Common;
@@ -55,7 +56,7 @@ namespace PurchaseManagement.Application.Quotations.QuotationEntry.Commands.Upda
                 : BaseEntity.Status.Inactive;
 
             // 3) Update header fields
-            header.UnitId          = _ipAddressService.GetUnitId();
+            header.UnitId          = _ipAddressService.GetUnitId() ?? 0;
             header.SupplierId      = request.SupplierId;
             header.RfqId           = request.RfqId;
             header.QuotationNumber = request.QuotationNumber;
@@ -144,8 +145,8 @@ namespace PurchaseManagement.Application.Quotations.QuotationEntry.Commands.Upda
                 var unitLookup = units.ToDictionary(u => u.UnitId, u => u.UnitName);
                 var companyLookup = companies.ToDictionary(c => c.CompanyId, c => c.CompanyName);
 
-                unitLookup.TryGetValue(_ipAddressService.GetUnitId(), out var unitName);
-                companyLookup.TryGetValue(_ipAddressService.GetCompanyId(), out var companyName);
+                unitLookup.TryGetValue(_ipAddressService.GetUnitId() ?? 0, out var unitName);
+                companyLookup.TryGetValue(_ipAddressService.GetCompanyId() ?? 0, out var companyName);
 
                 var uploadPath = Path.Combine(
                     Directory.GetCurrentDirectory(),

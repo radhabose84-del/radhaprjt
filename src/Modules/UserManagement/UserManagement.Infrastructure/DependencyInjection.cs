@@ -388,9 +388,7 @@ namespace UserManagement.Infrastructure
             // --------------------------
             // Services
             // --------------------------
-            services.AddHttpContextAccessor();
-            services.AddScoped<IIPAddressService, IPAddressService>();
-            services.AddTransient<IFileUploadService, FileUploadRepository>();
+            services.AddHttpContextAccessor();            services.AddTransient<IFileUploadService, FileUploadRepository>();
             services.AddTransient<IJwtTokenHelper, JwtTokenHelper>();
             services.AddSingleton<ITimeZoneService, TimeZoneService>();
             services.AddScoped<IChangePassword, PasswordChangeRepository>();

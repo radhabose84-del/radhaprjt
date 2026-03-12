@@ -2,9 +2,11 @@ using Contracts.Common;
 using Contracts.Dtos.Maintenance.Preventive;
 using Contracts.Events.Maintenance.PreventiveScheduler;
 using MaintenanceManagement.Application.Common;
+using Contracts.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces.IMachineMaster;
 using MaintenanceManagement.Application.Common.Interfaces.IMiscMaster;
+using MaintenanceManagement.Application.Common.Interfaces.IOutbox;
 using MaintenanceManagement.Application.Common.Interfaces.IPreventiveScheduler;
 using MaintenanceManagement.Application.Common.Interfaces.IPreventiveSchedulerLog;
 using MaintenanceManagement.Domain.Entities;
@@ -19,7 +21,8 @@ namespace MaintenanceManagement.Application.PreventiveSchedulers.Commands.Create
     {
         private readonly IPreventiveSchedulerCommand _preventiveSchedulerCommand;
         private readonly IMediator _mediator;
-        private readonly IEventPublisher _eventPublisher;
+        private readonly IOutboxEventPublisher _outboxEventPublisher;
+        private readonly IMaintenanceUnitOfWork _unitOfWork;
         private readonly IIPAddressService _ipAddressService;
         private readonly IPreventiveScheduleLogService _preventiveScheduleLogService;
         private readonly IMachineMasterQueryRepository _machineMasterQueryRepository;
@@ -30,7 +33,8 @@ namespace MaintenanceManagement.Application.PreventiveSchedulers.Commands.Create
         public CreatePreventiveSchedulerCommandHandler(
             IPreventiveSchedulerCommand preventiveSchedulerCommand,
             IMediator mediator,
-            IEventPublisher eventPublisher,
+            IOutboxEventPublisher outboxEventPublisher,
+            IMaintenanceUnitOfWork unitOfWork,
             IIPAddressService iPAddressService,
             IPreventiveScheduleLogService preventiveScheduleLogService,
             IMachineMasterQueryRepository machineMasterQueryRepository,
@@ -40,7 +44,8 @@ namespace MaintenanceManagement.Application.PreventiveSchedulers.Commands.Create
         {
             _preventiveSchedulerCommand = preventiveSchedulerCommand;
             _mediator = mediator;
-            _eventPublisher = eventPublisher;
+            _outboxEventPublisher = outboxEventPublisher;
+            _unitOfWork = unitOfWork;
             _ipAddressService = iPAddressService;
             _preventiveScheduleLogService = preventiveScheduleLogService;
             _machineMasterQueryRepository = machineMasterQueryRepository;
@@ -51,19 +56,16 @@ namespace MaintenanceManagement.Application.PreventiveSchedulers.Commands.Create
 
         public async Task<int> Handle(CreatePreventiveSchedulerCommand request, CancellationToken cancellationToken)
         {
-            var unitId = _ipAddressService.GetUnitId();
+            // ── Read-only work outside the transaction ─────────────────────────────
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
             var machineMaster = await _machineMasterQueryRepository.GetMachineByGroupSagaAsync(request.MachineGroupId, unitId);
 
             if (machineMaster == null || machineMaster.Count == 0)
-            {
                 throw new ExceptionRules("No machines found for selected MachineGroup.");
-            }
 
             var frequencyUnit = await _miscMasterQueryRepository.GetByIdAsync(request.FrequencyUnitId);
             if (frequencyUnit == null || string.IsNullOrWhiteSpace(frequencyUnit.Code))
-            {
                 throw new ExceptionRules("Invalid FrequencyUnitId.");
-            }
 
             var details = new List<PreventiveSchedulerDetail>();
             foreach (var machine in machineMaster)
@@ -143,53 +145,72 @@ namespace MaintenanceManagement.Application.PreventiveSchedulers.Commands.Create
                 }).ToList()
             };
 
-            var response = await _preventiveSchedulerCommand.CreateAsync(preventiveScheduler);
-            if (response == null || response.Id <= 0)
+            // ── Atomic transaction: domain insert + outbox insert ──────────────────
+            // If any step throws, RollbackAsync undoes both the header/detail inserts
+            // and the outbox row — nothing is left in an inconsistent state.
+            // If CommitAsync succeeds, BSOFT.Worker's SqlOutboxProcessorJob picks up
+            // the outbox row and publishes MachineWiseScheduleCreationEvent to RabbitMQ.
+            PreventiveSchedulerHeader response;
+            var correlationId = Guid.NewGuid();
+
+            await _unitOfWork.BeginTransactionAsync(cancellationToken);
+            try
             {
-                throw new ExceptionRules("Preventive scheduler creation failed.");
+                response = await _preventiveSchedulerCommand.CreateAsync(preventiveScheduler);
+                if (response == null || response.Id <= 0)
+                    throw new ExceptionRules("Preventive scheduler creation failed.");
+
+                _logger.LogInformation("Created PreventiveSchedulerId: {Id}, Details: {Count}", response.Id, details.Count);
+
+                var reverseMapDetails = (response.PreventiveSchedulerDetails ?? Enumerable.Empty<PreventiveSchedulerDetail>())
+                    .Select(d =>
+                    {
+                        var target = d.WorkOrderCreationStartDate.ToDateTime(TimeOnly.MinValue);
+                        var minutes = (int)Math.Ceiling((target - DateTime.Now).TotalMinutes);
+                        return new ScheduleDetailSagaDto
+                        {
+                            Id = d.Id,
+                            DelayInMinutes = minutes < 0 ? 5 : minutes,
+                            PreventiveSchedulerHeaderId = d.PreventiveSchedulerHeaderId,
+                            MachineId = d.MachineId,
+                            WorkOrderCreationStartDate = d.WorkOrderCreationStartDate,
+                            ActualWorkOrderDate = d.ActualWorkOrderDate,
+                            MaterialReqStartDays = d.MaterialReqStartDays,
+                            FrequencyInterval = d.FrequencyInterval,
+                            ReminderWorkOrderDays = d.ReminderWorkOrderDays,
+                            ReminderMaterialReqDays = d.ReminderMaterialReqDays,
+                            LastMaintenanceActivityDate = d.LastMaintenanceActivityDate,
+                            ScheduleId = d.ScheduleId ?? 0,
+                            FrequencyTypeId = d.FrequencyTypeId ?? 0,
+                            FrequencyUnitId = d.FrequencyUnitId ?? 0,
+                            DownTimeEstimateHrs = d.DownTimeEstimateHrs,
+                            GraceDays = d.GraceDays,
+                            IsDownTimeRequired = d.IsDownTimeRequired
+                        };
+                    })
+                    .ToList();
+
+                var @event = new MachineWiseScheduleCreationEvent
+                {
+                    CorrelationId = correlationId,
+                    PreventiveSchedulerHeaderId = response.Id,
+                    ScheduleDetail = reverseMapDetails
+                };
+
+                // ScheduleWithoutSaveAsync adds the outbox row to the EF change tracker
+                // without calling SaveChangesAsync — CommitAsync flushes + commits both.
+                await _outboxEventPublisher.ScheduleWithoutSaveAsync(@event, correlationId, cancellationToken);
+
+                await _unitOfWork.CommitAsync(cancellationToken);
+            }
+            catch
+            {
+                await _unitOfWork.RollbackAsync(cancellationToken);
+                throw;
             }
 
-            _logger.LogInformation("Created PreventiveSchedulerId: {Id}, Details: {Details}", response.Id, details.Count);
-
-            var reverseMapDetails = (response.PreventiveSchedulerDetails ?? Enumerable.Empty<PreventiveSchedulerDetail>())
-                .Select(d =>
-                {
-                    var target = d.WorkOrderCreationStartDate.ToDateTime(TimeOnly.MinValue);
-                    var minutes = (int)Math.Ceiling((target - DateTime.Now).TotalMinutes);
-
-                    return new ScheduleDetailSagaDto
-                    {
-                        Id = d.Id,
-                        DelayInMinutes = minutes < 0 ? 5 : minutes,
-                        PreventiveSchedulerHeaderId = d.PreventiveSchedulerHeaderId,
-                        MachineId = d.MachineId,
-                        WorkOrderCreationStartDate = d.WorkOrderCreationStartDate,
-                        ActualWorkOrderDate = d.ActualWorkOrderDate,
-                        MaterialReqStartDays = d.MaterialReqStartDays,
-                        FrequencyInterval = d.FrequencyInterval,
-                        ReminderWorkOrderDays = d.ReminderWorkOrderDays,
-                        ReminderMaterialReqDays = d.ReminderMaterialReqDays,
-                        LastMaintenanceActivityDate = d.LastMaintenanceActivityDate,
-                        ScheduleId = d.ScheduleId ?? 0,
-                        FrequencyTypeId = d.FrequencyTypeId ?? 0,
-                        FrequencyUnitId = d.FrequencyUnitId ?? 0,
-                        DownTimeEstimateHrs = d.DownTimeEstimateHrs,
-                        GraceDays = d.GraceDays,
-                        IsDownTimeRequired = d.IsDownTimeRequired
-                    };
-                })
-                .ToList();
-
-            var @event = new MachineWiseScheduleCreationEvent
-            {
-                CorrelationId = Guid.NewGuid(),
-                PreventiveSchedulerHeaderId = response.Id,
-                ScheduleDetail = reverseMapDetails
-            };
-
-            await _eventPublisher.SaveEventAsync(@event);
-            await _eventPublisher.PublishPendingEventsAsync();
-            _logger.LogInformation("Published MachineWiseScheduleCreationEvent for PreventiveSchedulerHeaderId: {Id}", response.Id);
+            // ── Post-commit: audit + log (outside transaction — informational only) ─
+            _logger.LogInformation("Committed MachineWiseScheduleCreationEvent for PreventiveSchedulerHeaderId: {Id}", response.Id);
 
             await AuditLogPublisher.PublishAuditLogAsync(
                 _mediator,

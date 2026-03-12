@@ -1,4 +1,5 @@
 using Contracts.Interfaces.Lookups.Users;
+using Contracts.Interfaces;
 using BudgetManagement.Application.Common.Interfaces;
 using BudgetManagement.Application.Common.Interfaces.IBudgetRequest;
 using MediatR;
@@ -35,10 +36,10 @@ public class GetBudgetRequestByIdQueryHandler
         {
             var companies = await _companyLookup.GetAllCompanyAsync();
             var companyName = companies
-                .FirstOrDefault(c => c.CompanyId == _ipAddressService.GetCompanyId())
+                .FirstOrDefault(c => c.CompanyId == (_ipAddressService.GetCompanyId() ?? 0))
                 ?.CompanyName ?? string.Empty;
 
-            var unit = await _unitLookup.GetByIdAsync(_ipAddressService.GetUnitId(), ct);
+            var unit = await _unitLookup.GetByIdAsync(_ipAddressService.GetUnitId() ?? 0, ct);
             var unitName = string.IsNullOrWhiteSpace(unit?.ShortName)
                 ? unit?.UnitName ?? string.Empty
                 : unit.ShortName;

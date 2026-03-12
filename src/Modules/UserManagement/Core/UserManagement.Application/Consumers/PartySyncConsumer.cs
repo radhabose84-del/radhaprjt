@@ -3,7 +3,7 @@
 // using System.Linq;
 // using System.Threading.Tasks;
 // using Contracts.Events.Users;
-// using UserManagement.Application.Common.Interfaces;
+// using Contracts.Interfaces;
 // using MassTransit;
 // using Microsoft.EntityFrameworkCore;
 

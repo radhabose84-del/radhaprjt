@@ -1,5 +1,6 @@
 #nullable disable
 using System.Data;
+using Contracts.Interfaces;
 using InventoryManagement.Application.Common.Interfaces;
 using InventoryManagement.Application.Common.Interfaces.Item.ItemDetail.Queries;
 using InventoryManagement.Application.Item.ItemDetail.Queries.GetAllItems;
@@ -7,6 +8,7 @@ using InventoryManagement.Application.Item.ItemDetail.Queries.GetItemAutoComplet
 using InventoryManagement.Domain.Common;
 using InventoryManagement.Domain.Entities.Item.ItemDetail.Variant;
 using Dapper;
+using Contracts.Interfaces.Lookups.Users;
 using InventoryManagement.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,12 +19,14 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
         private readonly ApplicationDbContext _db;
         private readonly IDbConnection _dbConnection;
         private readonly IIPAddressService _ipAddressService;
+        private readonly IUnitLookup _unitLookup;
 
-        public ItemQueryRepository(IDbConnection dbConnection, ApplicationDbContext db, IIPAddressService ipAddressService)
+        public ItemQueryRepository(IDbConnection dbConnection, ApplicationDbContext db, IIPAddressService ipAddressService, IUnitLookup unitLookup)
         {
             _db = db;
             _dbConnection = dbConnection;
             _ipAddressService = ipAddressService;
+            _unitLookup = unitLookup;
         }
         public async Task<(List<ItemListDto> Items, int TotalCount)> GetAllAsync(
             int? page, int? size, string search, bool onlyActive,
@@ -57,7 +61,6 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                     HasVariants = x.HasVariants,
                     IsStockItem = x.IsStockItem,
                     IsCapitalItem = x.IsCapitalItem,
-                    UnitId = x.UnitId ?? 0,
                     ParentItemName = x.ParentItem != null ? x.ParentItem.ItemName : null,
                     ItemGroupName = x.ItemGroup != null ? x.ItemGroup.ItemGroupName : null,
                     ItemCategoryName = x.ItemCategory != null ? x.ItemCategory.ItemCategoryName : null,
@@ -114,7 +117,6 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                 {
                     // ---------- base ----------
                     Id = i.Id,
-                    UnitId = i.UnitId ?? 0,
                     ItemCode = i.ItemCode,
                     ItemName = i.ItemName,
                     HSNId = i.HSNId,
@@ -156,6 +158,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
 
                     Purchase = i.Purchase == null ? null : new ItemPurchaseDto
                     {
+                        Id = i.Purchase.Id,
                         PurchaseUomId = i.Purchase.PurchaseUomId,
                         PurchaseUOM = i.Purchase.PurchaseUOM != null ? i.Purchase.PurchaseUOM.UOMName : null,
                         LeadTimeDays = i.Purchase.LeadTimeDays,
@@ -165,6 +168,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                     },
                     Inventory = i.Inventory == null ? null : new ItemInventoryDto
                     {
+                        Id = i.Inventory.Id,
                         InventoryUOM = i.Inventory.WeightUOM != null ? i.Inventory.WeightUOM.UOMName : null,
                         DefaultMaterialRequestType = i.Inventory.MiscDefaultMaterialRequestType != null
                             ? i.Inventory.MiscDefaultMaterialRequestType.Code : null,
@@ -192,6 +196,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                     },
                     Quality = i.Quality == null ? null : new ItemQualityDto
                     {
+                        Id = i.Quality.Id,
                         InspectionTemplateId = i.Quality.InspectionTemplateId,
                         CertificateTypeId = i.Quality.CertificateTypeId,
                         InspLotProcessingTime = i.Quality.InspLotProcessingTime,
@@ -284,8 +289,36 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                             Combo = null
                         })
                         .ToList(),
+
+                    // ---------- UNIT MAPPINGS ----------
+                    ItemUnitMappings = i.ItemUnitMappings
+                        .OrderBy(m => m.Id)
+                        .Select(m => new ItemUnitMappingDto
+                        {
+                            Id = m.Id,
+                            ProcurementId = m.ProcurementId,
+                            ProcurementName = m.ProcurementType != null ? m.ProcurementType.ProcurementName : null,
+                            ItemGroupId = m.ItemGroupId,
+                            ItemGroupName = m.ItemGroup != null ? m.ItemGroup.ItemGroupName : null,
+                            UnitId = m.UnitId
+                        })
+                        .ToList(),
                 })
                 .FirstOrDefaultAsync(ct);
+
+            // Populate UnitName from cross-module lookup (UserManagement)
+            if (dto?.ItemUnitMappings is { Count: > 0 })
+            {
+                var unitIds = dto.ItemUnitMappings.Select(m => m.UnitId).Distinct();
+                var units = await _unitLookup.GetByIdsAsync(unitIds, ct);
+                var unitDict = units.ToDictionary(u => u.UnitId, u => u.UnitName);
+
+                foreach (var mapping in dto.ItemUnitMappings)
+                {
+                    if (unitDict.TryGetValue(mapping.UnitId, out var name))
+                        mapping.UnitName = name;
+                }
+            }
 
             return dto;
         }
@@ -348,7 +381,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
 
         public async Task<List<GetItemAutoCompleteDto>> GetItemAutoCompleteAsync(string searchPattern,int? itemGroupId, int? itemCategoryId,int? sourceId,int? issueRuleId, CancellationToken ct = default)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
             searchPattern = searchPattern ?? string.Empty;
             const string query = @"
                 SELECT IM.Id, ItemName, ItemCode, ParentItemId,HSNId,HSNCode,GSTPercentage,IM.ItemCategoryId,IM.ItemGroupId,IM.TariffNumber,
@@ -513,7 +546,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                 LEFT JOIN Inventory.UOM U ON U.Id = P.PurchaseUomId
                 LEFT JOIN Inventory.UOM U1 ON U1.Id = IM.StockUomId
                 WHERE IM.IsDeleted = 0 AND IM.IsActive = 1
-                AND (@HasVariant IS NULL OR IM.HasVariants = @HasVariant)
+                AND ((@HasVariant IS NULL OR IM.HasVariants = @HasVariant) or ParentItemId is null)
                 AND (@ParentItemId IS NULL OR IM.ParentItemId = @ParentItemId)";
 
             var parameters = new { HasVariant = hasVariant, ParentItemId = parentItemId };

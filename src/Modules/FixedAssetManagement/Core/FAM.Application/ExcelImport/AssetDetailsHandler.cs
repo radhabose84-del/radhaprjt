@@ -1,6 +1,7 @@
 using FAM.Application.Common.Interfaces.IExcelImport;
 using FAM.Application.AssetMaster.AssetMasterGeneral.Queries.GetAssetMasterGeneral;
 using OfficeOpenXml;
+using Contracts.Interfaces;
 using FAM.Application.Common.Interfaces;
 
 namespace FAM.Application.ExcelImport
@@ -24,8 +25,8 @@ namespace FAM.Application.ExcelImport
             string assetParent = worksheet.Cells[row, 10].Value?.ToString() ?? string.Empty;
             assetDto.AssetParentId = string.IsNullOrEmpty(assetParent) ? null : await _assetRepository.GetAssetIdByNameAsync(assetParent);
 
-            var companyId = _ipAddressService.GetCompanyId();
-            var unitId = _ipAddressService.GetUnitId();
+            var companyId = _ipAddressService.GetCompanyId() ?? 0;
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
             assetDto.UnitId= unitId;
             assetDto.CompanyId = companyId;    
             

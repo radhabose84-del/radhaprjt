@@ -1,6 +1,7 @@
 using AutoMapper;
 using Contracts.Interfaces.Lookups.Users;
 using BudgetManagement.Application.BudgetRequest.Commands.Update;
+using Contracts.Interfaces;
 using BudgetManagement.Application.Common.Interfaces;
 using BudgetManagement.Application.Common.Interfaces.IBudgetRequest;
 using BudgetManagement.Domain.Events;
@@ -102,8 +103,8 @@ public class UpdateBudgetRequestCommandHandler
     {
         try
         {
-            var companyId = _ip.GetCompanyId();
-            var unitId = _ip.GetUnitId();
+            var companyId = _ip.GetCompanyId() ?? 0;
+            var unitId = _ip.GetUnitId() ?? 0;
 
             var units = await _unitLookup.GetAllUnitAsync();
             var companies = await _companyLookup.GetAllCompanyAsync();

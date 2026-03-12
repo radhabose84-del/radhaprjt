@@ -1,4 +1,5 @@
 #nullable disable
+using Contracts.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IIssueReturn;
 using PurchaseManagement.Application.Common.Interfaces.IMiscMaster;
@@ -112,7 +113,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.IssueReturn
 
         public async Task<string> GenerateNextCodeAsync(CancellationToken ct = default)
         {
-            var unitId = _ipAddressService.GetUnitId();
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
             var unitCode = unitId > 0 ? unitId.ToString() : "NA";
             var prefix = $"RET-{unitCode}-";
 

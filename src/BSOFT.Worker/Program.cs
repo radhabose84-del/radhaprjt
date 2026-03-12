@@ -6,6 +6,7 @@ using BSOFT.Worker.Configurations;
 using BSOFT.Worker.Services;
 using Hangfire;
 using Serilog;
+using Shared.Infrastructure;
 
 var builder = Host.CreateApplicationBuilder(args);
 
@@ -37,6 +38,7 @@ builder.Services.AddWindowsService(options =>
 // ── Core infrastructure ──────────────────────────────────────────────────────
 builder.Services.AddHttpContextAccessor();   // required by IPAddressService
 builder.Services.AddMemoryCache();
+builder.Services.AddSharedInfrastructureServices();  // registers IIPAddressService
 
 // ── Application layer: MediatR + AutoMapper + SignalR server (for IHubContext<>) ──
 builder.Services.AddApplicationServices();

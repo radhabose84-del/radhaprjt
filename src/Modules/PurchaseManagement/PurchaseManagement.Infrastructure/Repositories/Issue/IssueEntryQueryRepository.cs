@@ -1,5 +1,6 @@
 #nullable disable
 using System.Data;
+using Contracts.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IIssue;
 using PurchaseManagement.Application.Issue.Queries.GetApprovedMrsById;
@@ -26,7 +27,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.Issue
 
         public async Task<List<GetApprovedMrsByIdDto>> GetApprovedMrsDetails(string searchPattern)
         {
-            var unitId = _ipAddressService.GetUnitId();
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
             var sql = @"
                 SELECT 
                     a.Id AS MrsId,
@@ -60,7 +61,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.Issue
 
       public async Task<PendingIssueReturnByIdDto> GetByIdAsync(int id)
     {
-        var UnitId = _ipAddressService.GetUnitId();
+        var UnitId = _ipAddressService.GetUnitId() ?? 0;
 
         const string query = @"
             SELECT 
@@ -131,7 +132,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.Issue
 
        public async Task<List<GetPendingStockBinDto>> GetMainStoresStockBinWise(List<int> itemIds, int warehouseId)
         {
-            var unitId = _ipAddressService.GetUnitId();
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
 
             // Base SQL
             var sql = @"
@@ -185,7 +186,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.Issue
             int PageSize,
             string SearchTerm)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
 
             var parameters = new DynamicParameters();
             parameters.Add("UnitId", UnitId);
@@ -316,7 +317,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.Issue
 
         public async Task<(List<PendingIssueReturnDto>, int)> GetPendingIssueReturnAsync(int PageNumber, int PageSize, string SearchTerm)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
 
             const string dataQuery = @"
                 SELECT 
@@ -381,7 +382,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.Issue
 
         public async Task<List<GetPendingIssueDto>> GetPendingIssuesAsync(int mrsid)
 {
-    var UnitId = _ipAddressService.GetUnitId();
+    var UnitId = _ipAddressService.GetUnitId() ?? 0;
 
     var query = @"
         SELECT 

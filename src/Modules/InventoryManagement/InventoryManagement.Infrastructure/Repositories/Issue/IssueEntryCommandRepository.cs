@@ -1,4 +1,5 @@
 #nullable disable
+using Contracts.Interfaces;
 using InventoryManagement.Application.Common.Interfaces;
 using InventoryManagement.Application.Common.Interfaces.IIssue;
 using InventoryManagement.Domain.Entities.Issue;
@@ -92,7 +93,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Issue
 
         public async Task<string> GenerateNextCodeAsync(CancellationToken ct = default)
         {
-            var unitId = _ipAddressService.GetUnitId();
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
             var unitCode = unitId > 0 ? unitId.ToString() : "NA";
             var prefix = $"ISS-{unitCode}-";
 

@@ -5,6 +5,7 @@ using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Purchase;
 using Contracts.Interfaces.Lookups.Warehouse;
 using Contracts.Interfaces.Lookups.Inventory;
+using Contracts.Interfaces;
 using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Application.Common.Interfaces.ISalesOrder;
 using SalesManagement.Application.SalesOrder.Dto;
@@ -211,7 +212,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             if (header == null)
                 return null;
 
-            // Fetch detail rows
+            // Fetch detail rows with ReservedQty from DispatchAdviceDetail
             const string detailSql = @"
                 SELECT d.Id, d.SalesOrderHeaderId,
                     d.ItemId, d.VariantId, d.HSNId,
@@ -221,11 +222,21 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     d.TCSPercentage, d.TCSAmount,
                     d.NetAmount, d.NetRatePerKg,
                     d.ExpectedDeliveryDate, d.AgentCommissionPercentage,
-                    d.DispatchedQty, d.PendingQty,
+                    d.DispatchedQty,
+                    ISNULL(da.ReservedQty, 0) AS ReservedQty,
+                    (d.QtyInBags - d.DispatchedQty) AS PendingQty,
                     d.LineItemStatusId,
                     mm.Description AS LineItemStatusName
                 FROM Sales.SalesOrderDetail d
                 LEFT JOIN Sales.MiscMaster mm ON d.LineItemStatusId = mm.Id AND mm.IsDeleted = 0
+                LEFT JOIN (
+                    SELECT dad.SalesOrderDetailId,
+                           SUM(dad.DispatchQty) AS ReservedQty
+                    FROM Sales.DispatchAdviceDetail dad
+                    INNER JOIN Sales.DispatchAdviceHeader dah ON dad.DispatchAdviceHeaderId = dah.Id
+                    WHERE dah.IsDeleted = 0
+                    GROUP BY dad.SalesOrderDetailId
+                ) da ON da.SalesOrderDetailId = d.Id
                 WHERE d.SalesOrderHeaderId = @HeaderId";
 
             var details = (await _dbConnection.QueryAsync<SalesOrderDetailDto>(detailSql, new { HeaderId = id })).ToList();
@@ -431,8 +442,8 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             var companies = await _companyLookup.GetAllCompanyAsync();
             var units = await _unitLookup.GetAllUnitAsync();
 
-            var companyName = companies.FirstOrDefault(c => c.CompanyId == _ipAddressService.GetCompanyId())?.CompanyName ?? string.Empty;
-            var unitName = units.FirstOrDefault(u => u.UnitId == _ipAddressService.GetUnitId())?.UnitName ?? string.Empty;
+            var companyName = companies.FirstOrDefault(c => c.CompanyId == (_ipAddressService.GetCompanyId() ?? 0))?.CompanyName ?? string.Empty;
+            var unitName = units.FirstOrDefault(u => u.UnitId == (_ipAddressService.GetUnitId() ?? 0))?.UnitName ?? string.Empty;
 
             return $"{basePath.TrimEnd('/', '\\')}/{companyName}/{unitName}";
         }

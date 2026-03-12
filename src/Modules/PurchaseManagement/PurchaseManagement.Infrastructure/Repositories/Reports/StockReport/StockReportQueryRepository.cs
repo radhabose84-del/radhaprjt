@@ -1,4 +1,5 @@
 using System.Data;
+using Contracts.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IReports.IStockReport;
 using PurchaseManagement.Application.Reports.StockReport;
@@ -20,7 +21,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.Reports.StockReport
 
         public async Task<List<StockSummaryDto>> GetStockSummaryAsync(int? itemId = null, int? warehouseId = null, int? storageTypeId = null, int? targetId = null)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
             // Base SQL
             var sql = @"
                 SELECT 
@@ -76,7 +77,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.Reports.StockReport
 
         public async Task<List<SubStockSummaryDto>> GetSubStoresStockSummaryAsync(int? itemId = null, int? departmentId = null, int? warehouseId = null, int? storageTypeId = null, int? targetId = null)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
             // Base SQL
             var sql = @"
                 

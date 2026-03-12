@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text.Json;
 using AutoMapper;
 using Contracts.Events.Notifications;
+using Contracts.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseIndent;
 using PurchaseManagement.Application.Common.Interfaces.IQuotation.IRfqEntry;
@@ -118,7 +119,7 @@ namespace PurchaseManagement.Application.Quotation.RfqEntry.Commands.Create
             }
 
             // 4) Audit
-            rfq.UnitId = _ip.GetUnitId();
+            rfq.UnitId = _ip.GetUnitId() ?? 0;
             rfq.RfqCode = await _rfqRepo.GenerateNextCodeAsync(now, ct);
             rfq.CreatedBy = _ip.GetUserId();
             rfq.CreatedByName = _ip.GetUserName();
@@ -207,7 +208,7 @@ namespace PurchaseManagement.Application.Quotation.RfqEntry.Commands.Create
                     {
                         CorrelationId = correlationId,
                         CreatedByName = contactName,
-                        UnitId = rfq.UnitId ?? _ip.GetUnitId(),
+                        UnitId = rfq.UnitId ?? _ip.GetUnitId() ?? 0,
                         ModuleName = "RFQ",
                         EventTypeId = RfqEmailEventTypeId,
                         Email = email,

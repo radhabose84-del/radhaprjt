@@ -3,7 +3,8 @@
 // using System.Linq;
 // using System.Threading.Tasks;
 // using AutoMapper;
-// using InventoryManagement.Application.Common.Interfaces;
+// using Contracts.Interfaces;
+using InventoryManagement.Application.Common.Interfaces;
 // using InventoryManagement.Application.Common.Interfaces.IIssue;
 // using InventoryManagement.Application.Common.Interfaces.Item.PutAway;
 // using InventoryManagement.Application.Item.PutAway.Queries.GetPutAwayRuleItemId;

@@ -1,6 +1,6 @@
 using BackgroundService.Application.Interfaces;
 using BackgroundService.Application.Interfaces.Notification;
-using BackgroundService.Application.Notification.Common.Interfaces;
+using Contracts.Interfaces;
 using BackgroundService.Domain.Entities.Notification;
 using BackgroundService.Infrastructure.Configurations;
 using Contracts.Events.Notifications;

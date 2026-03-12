@@ -1,5 +1,6 @@
 using System.Data;
 // using Contracts.Interfaces.External.IUser;
+using Contracts.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces.IMaintenanceRequest;
 using MaintenanceManagement.Application.MaintenanceRequest.Queries.GetExternalRequestById;
@@ -25,7 +26,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.MaintenanceRequest
 
                 public async Task<(IEnumerable<dynamic> MaintenanceRequestList, int)> GetAllMaintenanceRequestAsync(int PageNumber, int PageSize, string? SearchTerm, DateTimeOffset? FromDate,    DateTimeOffset? ToDate   ) 
         {
-            var UnitId= _iPAddressService.GetUnitId();
+            var UnitId= _iPAddressService.GetUnitId() ?? 0;
                                 var query = $$"""
                 DECLARE @TotalCount INT;
 
@@ -135,7 +136,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.MaintenanceRequest
         public async Task<(IEnumerable<dynamic> MaintenanceRequestList, int)> GetAllMaintenanceExternalRequestAsync(int PageNumber, int PageSize, string? SearchTerm, DateTimeOffset? FromDate, DateTimeOffset? ToDate)
         {
 
-            var UnitId = _iPAddressService.GetUnitId();
+            var UnitId = _iPAddressService.GetUnitId() ?? 0;
             var query = $$"""
                         DECLARE @TotalCount INT;
 
@@ -248,7 +249,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.MaintenanceRequest
                 public async Task<dynamic?> GetByIdAsync(int id)
                 {
 
-                    var UnitId= _iPAddressService.GetUnitId();
+                    var UnitId= _iPAddressService.GetUnitId() ?? 0;
                     var query = @"
                         SELECT 
                             A.Id,
@@ -323,7 +324,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.MaintenanceRequest
 
                 public async Task<List<GetExternalRequestByIdDto>> GetExternalRequestByIdAsync(List<int> ids)
                 {
-                    var UnitId= _iPAddressService.GetUnitId();
+                    var UnitId= _iPAddressService.GetUnitId() ?? 0;
                     var query = @"
                         SELECT 
                             A.Id,

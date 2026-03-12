@@ -1,5 +1,6 @@
 #nullable disable
 using System.Data;
+using Contracts.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces.Power.IPowerConsumption;
 using MaintenanceManagement.Application.Power.PowerConsumption.Queries.GetClosingReaderValueById;
@@ -22,7 +23,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.Power.PowerConsumpti
 
         public async Task<(List<GetPowerConsumptionDto>, int)> GetAllPowerConsumptionAsync(int PageNumber, int PageSize, string SearchTerm)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
             var query = $$"""
             DECLARE @TotalCount INT;
             SELECT @TotalCount = COUNT(*) 
@@ -58,7 +59,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.Power.PowerConsumpti
 
         public async Task<List<GetFeederSubFeederDto>> GetFeederSubFeedersById(int feederTypeId)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
             const string query = @"
                 SELECT 
                     a.Id, 
@@ -78,7 +79,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.Power.PowerConsumpti
 
         public async Task<GetClosingReaderValueDto> GetOpeningReaderValueById(int feederId)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
             const string query = @"
                 SELECT 
                     f.Id AS FeederId,
@@ -106,7 +107,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.Power.PowerConsumpti
 
         public async Task<GetPowerConsumptionDto> GetPowerConsumptionById(int id)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
              var query = """
                 SELECT FG.Id, FG.FeederTypeId, FG.FeederId,FG.UnitId,FG.OpeningReading, FG.ClosingReading, 
                 FG.TotalUnits, FG.IsActive, FG.CreatedDate, FG.CreatedByName, FG.ModifiedDate,FG.ModifiedByName

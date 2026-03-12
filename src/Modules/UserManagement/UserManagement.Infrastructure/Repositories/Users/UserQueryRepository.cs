@@ -4,6 +4,7 @@ using System.Data;
 using UserManagement.Infrastructure.Data;
 using UserManagement.Domain.Entities;
 using UserManagement.Application.Common.Interfaces.IUser;
+using Contracts.Interfaces;
 using UserManagement.Application.Common.Interfaces;
 
 namespace UserManagement.Infrastructure.Repositories.Users
@@ -28,10 +29,10 @@ namespace UserManagement.Infrastructure.Repositories.Users
         }
         public async Task<(List<User>,int)> GetAllUsersAsync(int PageNumber, int PageSize, string SearchTerm)
         {
-            var groupCode = _ipAddressService.GetGroupcode();
+            var groupCode = _ipAddressService.GetGroupCode();
            
-            var UnitId = _ipAddressService.GetUnitId();
-            var CompanyId = _ipAddressService.GetCompanyId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
+            var CompanyId = _ipAddressService.GetCompanyId() ?? 0;
             var EntityId = _ipAddressService.GetEntityId();
 
                    string filterCondition = groupCode switch
@@ -111,7 +112,7 @@ namespace UserManagement.Infrastructure.Repositories.Users
 
      public async Task<User> GetByIdAsync(int userId)
 {
-    // var UnitId = _ipAddressService.GetUnitId();
+    // var UnitId = _ipAddressService.GetUnitId() ?? 0;
     const string query = @"
         SELECT ur.Id,
                ur.UserId,
@@ -207,7 +208,7 @@ namespace UserManagement.Infrastructure.Repositories.Users
 
         public async Task<User> GetByUsernameAsync(string username, int? id = null)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
            
              var query = """
                  SELECT u.Id,u.FirstName,u.LastName,u.UserName,u.IsActive,u.PasswordHash,u.UserType,u.DepartmentId,d.DeptName As Department,u.Mobile,u.EmailId,u.CreatedBy,
@@ -236,7 +237,7 @@ namespace UserManagement.Infrastructure.Repositories.Users
         }
         public async Task<List<User>> GetUser(string searchPattern)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
              const string query = @"
                 SELECT u.UserId, u.UserName ,u.FirstName,u.LastName
                 FROM AppSecurity.Users u
@@ -257,7 +258,7 @@ namespace UserManagement.Infrastructure.Repositories.Users
         }
         public async Task<List<string>> GetUserRolesAsync(int userId)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
                 const string query = @"
                 SELECT ur.RoleName
                 FROM AppSecurity.UserRole ur
@@ -355,7 +356,7 @@ namespace UserManagement.Infrastructure.Repositories.Users
         }
           public async Task<User> GetByUsernameAsync(string username)
         {
-        //    var UnitId = _ipAddressService.GetUnitId();
+        //    var UnitId = _ipAddressService.GetUnitId() ?? 0;
              var query = """
                  SELECT U.Id,U.FirstName,U.LastName,U.UserName,U.UserType,U.Mobile,U.EmailId,U.UserId,U.IsFirstTimeUser,U.EntityId,U.PasswordHash,U.PartyId, U.DepartmentId ,UG.GroupCode
                  FROM AppSecurity.Users U

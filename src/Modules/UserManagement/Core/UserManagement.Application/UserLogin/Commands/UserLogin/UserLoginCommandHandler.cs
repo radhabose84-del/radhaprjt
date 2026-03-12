@@ -1,4 +1,5 @@
 #nullable disable
+using Contracts.Interfaces;
 using UserManagement.Application.Common.Interfaces;
 using MediatR;
 using Microsoft.Extensions.Logging; // This is where the ILogger interface is defined

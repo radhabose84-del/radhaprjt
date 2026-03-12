@@ -1,4 +1,5 @@
 using MediatR;
+using Contracts.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces;
 using MaintenanceManagement.Domain.Events;
 

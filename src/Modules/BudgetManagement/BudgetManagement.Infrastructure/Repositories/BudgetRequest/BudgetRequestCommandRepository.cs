@@ -1,6 +1,7 @@
 using BudgetManagement.Infrastructure.Data;
 using Contracts.Interfaces.Lookups.Users;
 using BudgetManagement.Application.BudgetRequest.Commands.Create;
+using Contracts.Interfaces;
 using BudgetManagement.Application.Common.Interfaces;
 using BudgetManagement.Application.Common.Interfaces.IBudgetRequest;
 using BudgetManagement.Application.Common.Interfaces.IMiscMaster;
@@ -230,7 +231,7 @@ public class BudgetRequestCommandRepository : IBudgetRequestCommandRepository
             Id = x.Id,
             RequestCode = x.RequestCode,
             StatusId = x.StatusId,
-            UnitId = _ipAddressService.GetUnitId()
+            UnitId = _ipAddressService.GetUnitId() ?? 0
         })
         .FirstOrDefaultAsync();
         return entity!;

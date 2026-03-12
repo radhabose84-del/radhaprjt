@@ -4,6 +4,7 @@ using UserManagement.Application.Common.Interfaces.IUnit;
 using AutoMapper;
 using UserManagement.Domain.Events;
 using Microsoft.Extensions.Logging;
+using Contracts.Interfaces;
 using UserManagement.Application.Common.Interfaces;
 using FluentValidation;
 

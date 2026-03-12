@@ -74,6 +74,14 @@ public class PurchaseOrderCommandRepository : IPurchaseOrderCommandRepository
         return await _db.Database.BeginTransactionAsync(ct);
     }
 
+    public async Task<(IDbContextTransaction EfTx, System.Data.Common.DbConnection Conn, System.Data.Common.DbTransaction DbTx)> BeginTransactionWithConnectionAsync(CancellationToken ct)
+    {
+        var efTx  = await _db.Database.BeginTransactionAsync(ct);
+        var dbTx  = efTx.GetDbTransaction();
+        var conn  = dbTx.Connection!;
+        return (efTx, conn, dbTx);
+    }
+
     /// <summary>
     /// Saves all pending changes to the database.
     /// </summary>

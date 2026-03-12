@@ -4,7 +4,8 @@
 // using System.Linq;
 // using System.Threading.Tasks;
 // using AutoMapper;
-// using PurchaseManagement.Application.Common.Interfaces;
+// using Contracts.Interfaces;
+using PurchaseManagement.Application.Common.Interfaces;
 // using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.ServicePO;
 // using PurchaseManagement.Domain.Common;
 // using PurchaseManagement.Domain.Entities.PurchaseOrder;

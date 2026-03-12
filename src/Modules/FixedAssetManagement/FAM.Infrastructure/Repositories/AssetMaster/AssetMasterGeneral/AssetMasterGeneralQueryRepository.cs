@@ -1,6 +1,7 @@
 using System.Data;
 using Contracts.Interfaces.Lookups.Users; // ✅ lookup contracts
 using FAM.Application.AssetMaster.AssetMasterGeneral.Queries.GetAssetMasterGeneral;
+using Contracts.Interfaces;
 using FAM.Application.Common.Interfaces;
 using FAM.Application.Common.Interfaces.IAssetMaster.IAssetMasterGeneral;
 using FAM.Domain.Common;

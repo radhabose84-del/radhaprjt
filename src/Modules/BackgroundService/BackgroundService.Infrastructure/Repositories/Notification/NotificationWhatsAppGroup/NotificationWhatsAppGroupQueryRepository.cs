@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using BackgroundService.Application.Dto;
+using Contracts.Interfaces;
 using BackgroundService.Application.Notification.Common.Interfaces;
 using BackgroundService.Application.Notification.Common.Interfaces.INotificationWhatsAppGroup;
 using Dapper;
@@ -28,7 +29,7 @@ namespace BackgroundService.Infrastructure.Repositories.Notification.Notificatio
             NotificationWhatsAppGroupListFilterDto filter,
             CancellationToken ct = default)
         {
-            var unitId = _ipAddressService.GetUnitId();
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
             var skip = (filter.PageNumber - 1) * filter.PageSize;
 
             const string sql = @"
@@ -79,7 +80,7 @@ WHERE
 
         public async Task<NotificationWhatsAppGroupDto?> GetByIdAsync(int id, CancellationToken ct = default)
         {
-            var unitId = _ipAddressService.GetUnitId();
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
 
             const string sql = @"
 SELECT TOP 1
@@ -107,7 +108,7 @@ WHERE
             string? searchTerm,
             CancellationToken ct = default)
         {
-            var unitId = _ipAddressService.GetUnitId();
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
 
             const string sql = @"
 SELECT TOP 25
@@ -138,7 +139,7 @@ ORDER BY nwg.GroupName ASC, nwg.Id DESC;";
             string? searchTerm,
             CancellationToken ct = default)
         {
-            var unitId = _ipAddressService.GetUnitId();
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
 
             const string sql = @"
 SELECT TOP 50

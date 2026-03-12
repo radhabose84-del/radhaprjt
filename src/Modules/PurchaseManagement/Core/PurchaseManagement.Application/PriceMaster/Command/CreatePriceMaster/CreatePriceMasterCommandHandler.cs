@@ -3,6 +3,7 @@ using AutoMapper;
 using MediatR;
 using PurchaseManagement.Application.Common.Interfaces.PriceMaster;
 using PurchaseManagement.Domain.Entities.PriceMaster;
+using Contracts.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Domain.Common;
 using PurchaseManagement.Application.Common.Interfaces.IMiscMaster;
@@ -81,7 +82,7 @@ namespace PurchaseManagement.Application.PriceMaster.Commands.Create
             header.StatusId = status.Id;
             header.SourceFromId = src.Id;
             header.IsActive = BaseEntity.Status.Active;
-            header.UnitId = _ipAddress.GetUnitId();
+            header.UnitId = _ipAddress.GetUnitId() ?? 0;
 
             await _repo.AddAsync(header, ct);
             await _repo.SaveChangesAsync(ct); // header.Id now set
@@ -125,7 +126,7 @@ namespace PurchaseManagement.Application.PriceMaster.Commands.Create
                 {
                     CorrelationId = correlationId,
                     CreatedByName = header.CreatedByName,
-                    UnitId = _ipAddress.GetUnitId(),
+                    UnitId = _ipAddress.GetUnitId() ?? 0,
                     ModuleName = "PriceMaster",
                     EventTypeId = (int)NotificationEnum.NotificationEvent.Create,
                     param1 = header.Id.ToString(),

@@ -1,6 +1,6 @@
 using PartyManagement.Application.Common.Interfaces;
 
-namespace InventoryManagement.Infrastructure.Services
+namespace PartyManagement.Infrastructure.Services
 {
     public class TimeZoneService : ITimeZoneService
     {

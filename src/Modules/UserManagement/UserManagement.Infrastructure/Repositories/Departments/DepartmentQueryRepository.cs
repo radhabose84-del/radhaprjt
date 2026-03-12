@@ -4,6 +4,7 @@ using UserManagement.Application.Common.Interfaces.IDepartment;
 using System.Data;
 using Dapper;
 using UserManagement.Application.Departments.Queries.GetDepartments;
+using Contracts.Interfaces;
 using UserManagement.Application.Common.Interfaces;
 using UserManagement.Application.Departments.Queries.GetDepartmentByGroupWithControl;
 
@@ -115,7 +116,7 @@ namespace UserManagement.Infrastructure.Repositories.Departments
 
     public async Task<List<Department>> GetAllDepartmentAutoCompleteSearchAsync(string SearchDept)
     {
-      var CompanyId = _ipAddressService.GetCompanyId();
+      var CompanyId = _ipAddressService.GetCompanyId() ?? 0;
       var userId = _ipAddressService.GetUserId();
       const string query = @"
             SELECT D.Id,D.CompanyId,D.ShortName,D.DeptName,D.DepartmentGroupId ,DG.DepartmentGroupName,D.IsActive FROM  AppData.Department D
@@ -143,7 +144,7 @@ namespace UserManagement.Infrastructure.Repositories.Departments
     }
     public async Task<List<Department>> GetDepartment_SuperAdmin(string SearchDept)
     {
-      var CompanyId = _ipAddressService.GetCompanyId();
+      var CompanyId = _ipAddressService.GetCompanyId() ?? 0;
       const string query = @"
             SELECT D.Id,D.CompanyId,D.ShortName,D.DeptName,D.IsActive FROM  AppData.Department D
             WHERE (D.DeptName LIKE @SearchDept OR  D.ShortName LIKE @SearchDept) and D.IsDeleted = 0 AND D.CompanyId=@CompanyId 

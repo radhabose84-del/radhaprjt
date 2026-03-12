@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Contracts.Interfaces;
 using InventoryManagement.Application.Common.Interfaces;
 using InventoryManagement.Domain.Common;
 using InventoryManagement.Domain.Entities.Item;
@@ -71,8 +72,10 @@ namespace InventoryManagement.Infrastructure.Data
         public DbSet<MrsDetail> MrsDetail  { get; set; }
         public DbSet<IssueHeader> IssueHeader  { get; set; }
         public DbSet<IssueDetail> IssueDetail  { get; set; }
+        public DbSet<ProcurementType> ProcurementType { get; set; }
+        public DbSet<ItemUnitMapping> ItemUnitMapping { get; set; }
 
-        
+
         //End  Item related DbSets
 
 
@@ -111,10 +114,9 @@ namespace InventoryManagement.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new MrsDetailConfiguration());
             modelBuilder.ApplyConfiguration(new IssueHeaderConfiguration());
             modelBuilder.ApplyConfiguration(new IssueDetailConfiguration());
+            modelBuilder.ApplyConfiguration(new ProcurementTypeConfiguration());
+            modelBuilder.ApplyConfiguration(new ItemUnitMappingConfiguration());
 
-
-
-            
             // Global convention: set explicit precision/scale for all decimal properties
             // This prevents EF Core runtime warnings about silent truncation
             foreach (var property in modelBuilder.Model.GetEntityTypes()

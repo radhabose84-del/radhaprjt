@@ -5,7 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using BackgroundService.Application.Dto;
-using BackgroundService.Application.Notification.Common.Interfaces;
+using Contracts.Interfaces;
 // using BackgroundService.Application.Workflow.ApprovalRequests.Commands.ApproveApprovalRequest;
 using BackgroundService.Application.Workflow.Common.Interfaces.IApprovalRequest;
 using BackgroundService.Domain.Common;

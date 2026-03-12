@@ -2,6 +2,7 @@ using System.Data;
 using Dapper;
 using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Inventory;
+using Contracts.Interfaces;
 using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Application.Common.Interfaces.IDispatchAdvice;
 using SalesManagement.Application.DispatchAdvice.Dto;
@@ -222,7 +223,7 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
 
         public async Task<List<DispatchAdviceStockDto>> GetStockAsync(int itemId, int lotId, int statusId)
         {
-            var unitId = _ipAddressService.GetUnitId();
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
 
             const string sql = @"
                 SELECT Sum(S.TotalQty) AS Qty, Sum(S.TotalValue) AS Value,
@@ -242,7 +243,7 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
 
         public async Task<List<int>> GetAvailablePackNosAsync(int itemId, int lotId, int statusId, int startPackNo, int endPackNo, int packTypeId)
         {
-            var unitId = _ipAddressService.GetUnitId();
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
 
             const string sql = @"
                 SELECT PackNo
@@ -257,7 +258,7 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
 
         public async Task<List<DispatchAdvicePackRangeDto>> GetPackRangeAsync(int itemId, int lotId, int packTypeId, int statusId, int range)
         {
-            var unitId = _ipAddressService.GetUnitId();
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
 
             const string sql = @"
                 SELECT S.PackNo, S.ItemId, S.LotId, S.PackTypeId,

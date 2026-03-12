@@ -1,5 +1,6 @@
 using BudgetManagement.Presentation.Validation.Common;
 using BudgetManagement.Application.BudgetAllocation.Command.Create;
+using Contracts.Interfaces;
 using BudgetManagement.Application.Common.Interfaces;
 using BudgetManagement.Application.Common.Interfaces.IBudgetAllocation;
 using FluentValidation;
@@ -38,7 +39,7 @@ namespace BudgetManagement.Presentation.Validation.BudgetAllocation
                             RuleForEach(x => x.createBudgetAllocations)
                             .MustAsync(async (dto, ct) =>
                             {
-                                var userUnitId = _ipAddressService.GetUnitId(); // moved here
+                                var userUnitId = _ipAddressService.GetUnitId() ?? 0; // moved here
 
                                 return !await _ibudgetAllocationQueryRepository.ExistsAsync(
                                     userUnitId,

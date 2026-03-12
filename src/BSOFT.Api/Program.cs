@@ -6,6 +6,7 @@ using BSOFT.Api.Filters;
 using BSOFT.Api.Middleware;
 using Shared.Validation.Common;
 using Shared.Infrastructure.Caching;
+using Shared.Infrastructure;
 using UserManagement.Module;
 using FixedAssetManagement.Module;
 using MaintenanceManagement.Module;
@@ -17,6 +18,7 @@ using WarehouseManagement.Module;
 using ProjectManagement.Module;
 using BudgetManagement.Module;
 using BackgroundService.Presentation;
+using GateEntryManagement.Module;
 using Contracts.Common;
 using BSOFT.Api.Hubs;
 
@@ -30,6 +32,7 @@ builder.Configuration
     .AddEnvironmentVariables();
 
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddSharedInfrastructureServices();
 builder.Services.AddProblemDetails();
 builder.Services.AddEndpointsApiExplorer();
 
@@ -55,6 +58,7 @@ builder.Services.AddWarehouseManagementModule(builder.Configuration, builder.Env
 builder.Services.AddProjectManagementModule(builder.Configuration, builder.Environment);
 builder.Services.AddBudgetManagementModule(builder.Configuration, builder.Environment);
 builder.Services.AddBackgroundServiceModule(builder.Configuration, builder.Environment);
+builder.Services.AddGateEntryManagementModule(builder.Configuration, builder.Environment);
 
 // ✅ Global lookup caching (MUST be after module registrations)
 builder.Services.AddLookupCaching(options =>

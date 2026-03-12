@@ -1,5 +1,6 @@
 #nullable disable
 using UserManagement.Application.Common.Interfaces.ICompany;
+using Contracts.Interfaces;
 using UserManagement.Application.Common.Interfaces;
 using System.Data;
 using Dapper;

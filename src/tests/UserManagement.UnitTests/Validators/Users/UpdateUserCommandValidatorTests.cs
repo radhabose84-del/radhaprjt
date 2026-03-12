@@ -1,3 +1,4 @@
+using Contracts.Interfaces;
 #nullable disable
 using UserManagement.Application.Common.Interfaces;
 using UserManagement.Application.Common.Interfaces.IUser;
@@ -22,7 +23,7 @@ namespace UserManagement.UnitTests.Validation.Users
                 .UseInMemoryDatabase(databaseName: System.Guid.NewGuid().ToString())
                 .Options;
 
-            _ip.Setup(x => x.GetGroupcode()).Returns("ADMIN");
+            _ip.Setup(x => x.GetGroupCode()).Returns("ADMIN");
 
             var db = new ApplicationDbContext(dbOptions, _ip.Object, _tz.Object);
             var maxProvider = new MaxLengthProvider(db);

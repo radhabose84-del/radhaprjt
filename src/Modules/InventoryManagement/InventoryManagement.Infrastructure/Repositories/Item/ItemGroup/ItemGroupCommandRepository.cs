@@ -1,4 +1,5 @@
 
+using Contracts.Interfaces;
 using InventoryManagement.Application.Common.Interfaces;
 using InventoryManagement.Application.Common.Interfaces.Item.ItemGroup;
 using InventoryManagement.Infrastructure.Data;
@@ -21,7 +22,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemGroup
         public async Task<int> CreateAsync(InventoryManagement.Domain.Entities.Item.ItemGroup itemGroup)
         {
             var entry = _applicationDbContext.Entry(itemGroup);
-            itemGroup.UnitId = _ipAddressService.GetUnitId();
+            itemGroup.UnitId = _ipAddressService.GetUnitId() ?? 0;
             await _applicationDbContext.ItemGroup.AddAsync(itemGroup);
             await _applicationDbContext.SaveChangesAsync();
             return itemGroup.Id;
@@ -79,7 +80,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemGroup
             return await _applicationDbContext.ItemGroup
                 .AsNoTracking()
                 .AnyAsync(x =>
-                    x.UnitId == _ipAddressService.GetUnitId() &&
+                    x.UnitId == (_ipAddressService.GetUnitId() ?? 0) &&
                      x.IsDeleted == IsDelete.NotDeleted && 
                     x.ItemGroupName != null &&
                     x.ItemGroupName.Trim() == name,

@@ -1,5 +1,6 @@
 #nullable disable
 using System.Data;
+using Contracts.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IGRN.IGRNEntry;
 using PurchaseManagement.Application.GRN.GRNEntry.Commands.CreateGRNEntry;
@@ -44,7 +45,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
         //     bool? IsGrnGenerated,
         //     bool? IsQcGenerated)
         // {
-        //     var UnitId = _ipAddressService.GetUnitId();
+        //     var UnitId = _ipAddressService.GetUnitId() ?? 0;
 
         //     // Prepare SQL parameters
         //     var parameters = new DynamicParameters();
@@ -294,7 +295,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
                 bool? IsGrnGenerated,
                 bool? IsQcGenerated)
             {
-                var UnitId = _ipAddressService.GetUnitId();
+                var UnitId = _ipAddressService.GetUnitId() ?? 0;
 
                 var parameters = new DynamicParameters();
                 parameters.Add("UnitId", UnitId);
@@ -471,7 +472,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
          int PageSize,
          string SearchTerm)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
 
             var parameters = new DynamicParameters();
             parameters.Add("UnitId", UnitId);
@@ -589,7 +590,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
                int PageSize,
                string SearchTerm)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
 
             var parameters = new DynamicParameters();
             parameters.Add("UnitId", UnitId);
@@ -686,7 +687,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
 
         public async Task<List<GetGateEntryPendingPoDto>> GetPendingPoAsync(int partyId)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
             // var query = @"
             //         SELECT 
             //         gd.GateEntryHeaderId as GateEntryId,
@@ -766,7 +767,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
 
         public async Task<List<GetGateEntryPendingDto>> GetPendingPoGateAsync(int partyId, int poId)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
             // var query = @"
             //         WITH GrnSummary AS
             //         (
@@ -877,7 +878,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
 
         public async Task<List<GetGrnPendingDto>> GetPendingPoGrnAsync(int partyId, int poId, int gateEntryId)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
             //     var query = @"
             // WITH GrnSummary AS
             // (
@@ -1033,7 +1034,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
 
         public async Task<List<ValidateToleranceDto>> ValidateToleranceQuantity(int partyId, int poId, int Poslno, int ItemId)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
             // var query = @"
             //         WITH GrnSummary AS
             //         (
@@ -1148,7 +1149,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
 
         public async Task<List<GetGrnQCCompletedDto>> GetGrnQcCompletedDetails(int? GrnId, int? ItemId)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
 
             var parameters = new DynamicParameters();
             parameters.Add("UnitId", UnitId);
@@ -1406,7 +1407,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
         }
             public async Task<decimal?> GetUnitPriceAsync(int poId, int itemId, int poSlNoLocal)
             {
-                var UnitId = _ipAddressService.GetUnitId();
+                var UnitId = _ipAddressService.GetUnitId() ?? 0;
 
                 var parameters = new DynamicParameters();
                 parameters.Add("PoId", poId);

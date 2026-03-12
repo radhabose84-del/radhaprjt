@@ -157,7 +157,6 @@ namespace SalesManagement.Infrastructure
             // ═══════════════════════════════════════════════════════════════
             services.AddScoped<IAuditLogRepository, AuditLogRepository>();
             // Miscellaneous services
-            services.AddScoped<IIPAddressService, IPAddressService>();
             services.AddTransient<IFileUploadService, FileUploadRepository>();
             services.AddSingleton<ITimeZoneService, TimeZoneService>();
             services.AddTransient<IJwtTokenHelper, JwtTokenHelper>();

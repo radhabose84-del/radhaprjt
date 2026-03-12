@@ -1,5 +1,6 @@
 #nullable disable
 using System.Data;
+using Contracts.Interfaces;
 using WarehouseManagement.Application.Common.Interfaces;
 using WarehouseManagement.Application.Common.Interfaces.IWarehouseMaster;
 using WarehouseManagement.Application.WarehouseMaster.GetAllWarehouseMaster;
@@ -26,7 +27,7 @@ namespace WarehouseManagement.Infrastructure.Repositories.WarehouseMaster
         public async Task<(List<WarehouseMasterDto>, int)> GetAllAsync(int pageNumber, int pageSize, string searchTerm)
         {
 
-             var unitId = _ipAddressService.GetUnitId();
+             var unitId = _ipAddressService.GetUnitId() ?? 0;
 
             var sql = @"
                 DECLARE @TotalCount INT;
@@ -133,7 +134,7 @@ namespace WarehouseManagement.Infrastructure.Repositories.WarehouseMaster
         }
         public async Task<WarehouseMasterDto> GetByIdAsync(int id)
         {
-            var unitId = _ipAddressService.GetUnitId();
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
             var sql = @"
                
                 SELECT 
@@ -167,7 +168,7 @@ namespace WarehouseManagement.Infrastructure.Repositories.WarehouseMaster
         }
         public async Task<bool> ExistsByNameAsync(string warehouseName, int? excludeId = null)
         {
-             var unitId = _ipAddressService.GetUnitId();          
+             var unitId = _ipAddressService.GetUnitId() ?? 0;          
           
             var sql = @"
                 SELECT COUNT(1)
@@ -189,7 +190,7 @@ namespace WarehouseManagement.Infrastructure.Repositories.WarehouseMaster
         }
         public async Task<List<GetWarehouseAutoCompleteDto>> GetWarehouseMasterAutoCompletes(string searchPattern)
         {
-               var unitId = _ipAddressService.GetUnitId();
+               var unitId = _ipAddressService.GetUnitId() ?? 0;
 
             //Old Query Not Added ParentWarehouseId and ParentWarehouseName
             //     SELECT
@@ -243,7 +244,7 @@ namespace WarehouseManagement.Infrastructure.Repositories.WarehouseMaster
         }
         public async Task<List<GetParentWarehouseDto>> GetParentWarehouseMaster()
         {
-               var unitId = _ipAddressService.GetUnitId();
+               var unitId = _ipAddressService.GetUnitId() ?? 0;
             const string sql = @"
                                             SELECT
                                                 w.Id   AS Id,
@@ -263,7 +264,7 @@ namespace WarehouseManagement.Infrastructure.Repositories.WarehouseMaster
         }
         public async Task<List<WarehouseMasterDto>> GetwarehouseAsync()
         {
-               var unitId = _ipAddressService.GetUnitId();
+               var unitId = _ipAddressService.GetUnitId() ?? 0;
             const string sql = @"SELECT Id, WarehouseCode, WarehouseName, UnitId
                                         FROM Warehouse.WarehouseMaster
                                         WHERE IsDeleted = 0 AND unitId = @UnitId";

@@ -1,3 +1,4 @@
+using Contracts.Interfaces;
 using UserManagement.Application.Common.Interfaces;
 using UserManagement.Application.Users.Commands.UpdateFirstTimeUserPassword;
 using FluentValidation.TestHelper;
@@ -16,7 +17,7 @@ namespace UserManagement.UnitTests.Validators.Users
 
         private PasswordChangeCommandValidator CreateValidator()
         {
-            _ip.Setup(x => x.GetGroupcode()).Returns("ADMIN");
+            _ip.Setup(x => x.GetGroupCode()).Returns("ADMIN");
 
             var options = new DbContextOptionsBuilder<ApplicationDbContext>()
                 .UseInMemoryDatabase(Guid.NewGuid().ToString())

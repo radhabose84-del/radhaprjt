@@ -9,6 +9,7 @@ using UserManagement.Application.Common.Interfaces.IDivision;
 using UserManagement.Application.Common.Interfaces.IDepartment;
 using UserManagement.Application.Common.Interfaces.IUserRole;
 using UserManagement.Application.Common.Interfaces.IUnit;
+using Contracts.Interfaces;
 using UserManagement.Application.Common.Interfaces;
 using Shared.Validation.Common;
 
@@ -76,7 +77,7 @@ namespace UserManagement.Presentation.Validation.Users
                         .WithMessage($"{rule.Error}")
                         .Must(x => x.Count > 0)
                         .WithMessage($"{rule.Error}")
-                        .When(x => _ipAddressService.GetGroupcode() == "USER");
+                        .When(x => _ipAddressService.GetGroupCode() == "USER");
 
                         RuleFor(x => x.userUnits)
                         .Cascade(CascadeMode.Stop)
@@ -84,7 +85,7 @@ namespace UserManagement.Presentation.Validation.Users
                         .WithMessage($"{rule.Error}")
                         .Must(x => x.Count > 0)
                         .WithMessage($"{rule.Error}")
-                        .When(x => _ipAddressService.GetGroupcode() == "USER");
+                        .When(x => _ipAddressService.GetGroupCode() == "USER");
 
                         RuleFor(x => x.userDivisions)
                         .Cascade(CascadeMode.Stop)
@@ -92,7 +93,7 @@ namespace UserManagement.Presentation.Validation.Users
                         .WithMessage($"{rule.Error}")
                         .Must(x => x.Count > 0)
                         .WithMessage($"{rule.Error}")
-                        .When(x => _ipAddressService.GetGroupcode() == "USER");
+                        .When(x => _ipAddressService.GetGroupCode() == "USER");
 
                         RuleFor(x => x.userDepartments)
                         .Cascade(CascadeMode.Stop)
@@ -100,7 +101,7 @@ namespace UserManagement.Presentation.Validation.Users
                        .WithMessage($"{rule.Error}")
                        .Must(x => x.Count > 0)
                        .WithMessage($"{rule.Error}")
-                       .When(x => _ipAddressService.GetGroupcode() == "USER");
+                       .When(x => _ipAddressService.GetGroupCode() == "USER");
 
                         RuleFor(x => x.userRoleAllocations)
                          .NotNull()
@@ -176,7 +177,7 @@ namespace UserManagement.Presentation.Validation.Users
                                      await _companyQueryRepository.FKColumnExistValidation(company.CompanyId))
                                      .WithMessage($"{rule.Error}");
                              })
-                             .When(x => _ipAddressService.GetGroupcode() == "USER");
+                             .When(x => _ipAddressService.GetGroupCode() == "USER");
 
                         RuleFor(x => x.userDivisions)
                                 .ForEach(divisionRule =>
@@ -185,7 +186,7 @@ namespace UserManagement.Presentation.Validation.Users
                                         await _divisionQueryRepository.FKColumnExistValidation(division.DivisionId))
                                         .WithMessage($"{rule.Error}");
                                 })
-                                .When(x => _ipAddressService.GetGroupcode() == "USER");
+                                .When(x => _ipAddressService.GetGroupCode() == "USER");
                         RuleFor(x => x.userUnits)
                              .ForEach(unitRule =>
                              {
@@ -193,7 +194,7 @@ namespace UserManagement.Presentation.Validation.Users
                                      await _unitQueryRepository.FKColumnExistValidation(unit.UnitId))
                                      .WithMessage($"{rule.Error}");
                              })
-                             .When(x => _ipAddressService.GetGroupcode() == "USER");
+                             .When(x => _ipAddressService.GetGroupCode() == "USER");
                         RuleFor(x => x.userRoleAllocations)
                              .ForEach(RoleRule =>
                              {
@@ -209,7 +210,7 @@ namespace UserManagement.Presentation.Validation.Users
                                      await _departmentQueryRepository.FKColumnExistValidation(department.DepartmentId))
                                      .WithMessage($"{rule.Error}");
                              })
-                             .When(x => _ipAddressService.GetGroupcode() == "USER");
+                             .When(x => _ipAddressService.GetGroupCode() == "USER");
 
                         break;
 

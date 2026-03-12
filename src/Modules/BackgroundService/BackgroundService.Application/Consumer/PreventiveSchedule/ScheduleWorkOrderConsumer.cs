@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using BackgroundService.Application.Interfaces;
 using BackgroundService.Application.Interfaces.IHangfire;
 using BackgroundService.Application.Interfaces.IInbox;
-using BackgroundService.Application.Notification.Common.Interfaces;
+using Contracts.Interfaces;
 using Contracts.Commands.Hangfire;
 using Contracts.Events.Hangfire.PreventiveScheduler;
 using Hangfire;

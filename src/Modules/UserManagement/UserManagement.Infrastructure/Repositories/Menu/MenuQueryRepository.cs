@@ -1,5 +1,6 @@
 #nullable disable
 using System.Data;
+using Contracts.Interfaces;
 using UserManagement.Application.Common.Interfaces;
 using UserManagement.Application.Common.Interfaces.IMenu;
 using Dapper;
@@ -18,7 +19,7 @@ namespace UserManagement.Infrastructure.Repositories.Menu
 
         public async Task<List<UserManagement.Domain.Entities.Menu>> GetChildMenus(List<int> parentId)
         {
-            // var companyId = _ipAddressService.GetCompanyId();
+            // var companyId = _ipAddressService.GetCompanyId() ?? 0;
             string parentIdList = string.Join(",", parentId);
             string query = $@"
               WITH RecursiveMenu AS (
@@ -38,7 +39,7 @@ namespace UserManagement.Infrastructure.Repositories.Menu
 
         public async Task<List<UserManagement.Domain.Entities.Menu>> GetParentMenus(List<int> moduleId)
         {
-            // var companyId = _ipAddressService.GetCompanyId();
+            // var companyId = _ipAddressService.GetCompanyId() ?? 0;
 
             string moduleIdList = string.Join(",", moduleId);
             string query = $@"
@@ -52,7 +53,7 @@ namespace UserManagement.Infrastructure.Repositories.Menu
         }
         public async Task<bool> FKColumnExistValidation(int Id)
         {
-            // var companyId = _ipAddressService.GetCompanyId();
+            // var companyId = _ipAddressService.GetCompanyId() ?? 0;
             var sql = "SELECT COUNT(1) FROM AppData.Menus WHERE Id = @Id AND IsDeleted = 0 AND IsActive = 1 ";
             var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = Id });
             return count > 0;

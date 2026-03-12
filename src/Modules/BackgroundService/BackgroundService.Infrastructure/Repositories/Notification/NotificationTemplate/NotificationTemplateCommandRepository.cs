@@ -1,3 +1,4 @@
+using Contracts.Interfaces;
 using BackgroundService.Application.Notification.Common.Interfaces;
 using BackgroundService.Application.Notification.Common.Interfaces.INotificationTemplate;
 using BackgroundService.Infrastructure.Data.Notification;

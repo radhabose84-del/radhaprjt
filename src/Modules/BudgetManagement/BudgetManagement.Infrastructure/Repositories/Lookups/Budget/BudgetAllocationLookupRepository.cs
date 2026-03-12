@@ -1,5 +1,6 @@
 using System.Data;
-using BudgetManagement.Application.Common.Interfaces;
+using System.Data.Common;
+using Contracts.Interfaces;
 using Contracts.Dtos.Budget;
 using Contracts.Interfaces.Lookups.Budget;
 using Dapper;
@@ -29,7 +30,7 @@ namespace BudgetManagement.Infrastructure.Repositories.Lookups.Budget
             int? financialYearId,
             CancellationToken ct = default)
         {
-            var unitId = _ipAddressService.GetUnitId();
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
 
             // Treat 0 as null
             projectId = (projectId.HasValue && projectId.Value <= 0) ? null : projectId;
@@ -115,7 +116,7 @@ namespace BudgetManagement.Infrastructure.Repositories.Lookups.Budget
             int? financialYearId,
             CancellationToken ct = default)
         {
-            var unitId = _ipAddressService.GetUnitId();
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
 
             // Treat 0 as null
             projectId = (projectId.HasValue && projectId.Value <= 0) ? null : projectId;
@@ -151,6 +152,59 @@ namespace BudgetManagement.Infrastructure.Repositories.Lookups.Budget
                     WbsId = wbsId,
                     FinancialYearId = financialYearId
                 }, cancellationToken: ct));
+
+            return rowsAffected > 0;
+        }
+
+        public async Task<bool> ApplyRemainingBalanceDeltaAsync(
+            int budgetGroupId,
+            DateOnly budgetDate,
+            int monthId,
+            int requestById,
+            decimal deltaAmount,
+            int? projectId,
+            int? wbsId,
+            int? financialYearId,
+            DbConnection connection,
+            DbTransaction transaction,
+            CancellationToken ct = default)
+        {
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
+
+            projectId = (projectId.HasValue && projectId.Value <= 0) ? null : projectId;
+            wbsId = (wbsId.HasValue && wbsId.Value <= 0) ? null : wbsId;
+            int? monthIdNullable = monthId <= 0 ? null : monthId;
+            int? requestByIdNullable = requestById <= 0 ? null : requestById;
+
+            DateTime sqlDate = budgetDate.ToDateTime(TimeOnly.MinValue);
+
+            const string sql = @"
+                UPDATE Budget.BudgetAllocation
+                SET RemainingBalance = ISNULL(RemainingBalance, 0) + @DeltaAmount
+                WHERE UnitId = @UnitId
+                AND BudgetGroupId = @BudgetGroupId
+                AND (@RequestById IS NULL OR RequestById = @RequestById)
+                AND @BudgetDate BETWEEN FromDate AND ToDate
+                AND (@MonthId IS NULL OR RequestMonthId = @MonthId)
+                AND (@ProjectId IS NULL OR ProjectId = @ProjectId)
+                AND (@WbsId IS NULL OR WBSId = @WbsId)
+                AND (@FinancialYearId IS NULL OR FinancialYearId = @FinancialYearId);
+            ";
+
+            // Execute on the CALLER's connection + transaction (Shared Transaction pattern)
+            var rowsAffected = await connection.ExecuteAsync(
+                new CommandDefinition(sql, new
+                {
+                    UnitId = unitId,
+                    BudgetGroupId = budgetGroupId,
+                    MonthId = monthIdNullable,
+                    RequestById = requestByIdNullable,
+                    BudgetDate = sqlDate,
+                    DeltaAmount = deltaAmount,
+                    ProjectId = projectId,
+                    WbsId = wbsId,
+                    FinancialYearId = financialYearId
+                }, transaction: transaction, cancellationToken: ct));
 
             return rowsAffected > 0;
         }

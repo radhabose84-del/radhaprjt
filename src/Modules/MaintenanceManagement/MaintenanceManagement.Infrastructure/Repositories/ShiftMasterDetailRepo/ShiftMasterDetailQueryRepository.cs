@@ -1,5 +1,6 @@
 #nullable disable
 using System.Data;
+using Contracts.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces.IShiftMasterDetail;
 using MaintenanceManagement.Domain.Entities;
@@ -34,7 +35,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.ShiftMasterDetailRep
 
         public async Task<(IEnumerable<dynamic>, int)> GetAllShiftMasterDetailAsync(int PageNumber, int PageSize, string SearchTerm)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
               var query = $$"""
              DECLARE @TotalCount INT;
              SELECT @TotalCount = COUNT(*) 
@@ -83,7 +84,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.ShiftMasterDetailRep
 
         public async Task<ShiftMasterDetail> GetByIdAsync(int ShiftMasterId)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
             const string query = "SELECT * FROM [Maintenance].[ShiftMasterDetails]  WHERE Id = @ShiftMasterId AND IsDeleted = 0 AND UnitId = @UnitId";
             return await _dbConnection.QueryFirstOrDefaultAsync<ShiftMasterDetail>(query, new { ShiftMasterId =ShiftMasterId, UnitId = UnitId });
         }

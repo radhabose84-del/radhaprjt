@@ -1,3 +1,4 @@
+using Contracts.Interfaces;
 using ProjectManagement.Application.Common.Interfaces;
 using ProjectManagement.Application.Common.Interfaces.IProjectMaster;
 using MediatR;

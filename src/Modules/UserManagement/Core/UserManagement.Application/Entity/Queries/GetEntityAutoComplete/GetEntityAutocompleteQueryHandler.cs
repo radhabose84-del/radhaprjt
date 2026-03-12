@@ -5,6 +5,7 @@ using UserManagement.Application.Common.Interfaces.IEntity;
 using AutoMapper;
 using UserManagement.Domain.Events;
 using Microsoft.Extensions.Logging;
+using Contracts.Interfaces;
 using UserManagement.Application.Common.Interfaces;
 using FluentValidation;
 
@@ -32,7 +33,7 @@ namespace UserManagement.Application.Entity.Queries.GetEntityAutoComplete
     public async Task<List<EntityAutoCompleteDto>> Handle(GetEntityAutocompleteQuery request, CancellationToken cancellationToken)
     {
 
-            var groupcode = _ipAddressService.GetGroupcode();
+            var groupcode = _ipAddressService.GetGroupCode();
 
             if(groupcode == "SUPER_ADMIN")
                 {

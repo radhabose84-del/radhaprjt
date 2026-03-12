@@ -1,5 +1,6 @@
 #nullable disable
 using UserManagement.Infrastructure.Data;
+using Contracts.Interfaces;
 using UserManagement.Application.Common.Interfaces;
 using UserManagement.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -114,9 +115,9 @@ namespace UserManagement.Infrastructure.Repositories
         }
         public async Task<bool> ValidatePassword(int userId,string password)
         {
-            var groupCode = _ipAddressService.GetGroupcode();
+            var groupCode = _ipAddressService.GetGroupCode();
             var Entityid = _ipAddressService.GetEntityId();
-            var CompanyId = _ipAddressService.GetCompanyId();
+            var CompanyId = _ipAddressService.GetCompanyId() ?? 0;
             var passwordHistoryCount =0;
             if (groupCode == "ENT_ADM" || groupCode == "ENT_ADM_USR")
             {
@@ -171,7 +172,7 @@ namespace UserManagement.Infrastructure.Repositories
         public async Task<bool> ValidatePasswordbyUserName(string username, string password)
         {
 
-        //  var companyId = _ipAddressService.GetCompanyId();
+        //  var companyId = _ipAddressService.GetCompanyId() ?? 0;
         //   if (companyId == null)
         //     return false;
 

@@ -7,6 +7,8 @@ using PurchaseManagement.Domain.Entities.PurchaseOrder;
 using PurchaseManagement.Domain.Entities.PurchaseOrder.ImportPO;
 using PurchaseManagement.Domain.PurchaseOrder;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 using PurchaseManagement.Infrastructure.Data;
 
@@ -618,6 +620,269 @@ public async Task<int> AmendAsync(
 }
 
 
+
+        /* ========================= Shared Transaction support ========================= */
+
+        public IExecutionStrategy CreateExecutionStrategy() =>
+            _db.Database.CreateExecutionStrategy();
+
+        public Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken ct) =>
+            _db.Database.BeginTransactionAsync(ct);
+
+        public async Task<(IDbContextTransaction EfTx, System.Data.Common.DbConnection Conn, System.Data.Common.DbTransaction DbTx)> BeginTransactionWithConnectionAsync(CancellationToken ct)
+        {
+            var efTx = await _db.Database.BeginTransactionAsync(ct);
+            var dbTx = efTx.GetDbTransaction();
+            var conn = dbTx.Connection!;
+            return (efTx, conn, dbTx);
+        }
+
+        /// <summary>
+        /// Same logic as CreateAsync but without opening its own transaction.
+        /// The caller must already have an active transaction on _db.Database.
+        /// </summary>
+        public async Task<int> CreateWithoutTransactionAsync(
+            PurchaseOrderHeader aggregate, ImportPOCreateDto dto, CancellationToken ct)
+        {
+            foreach (var h in aggregate.ImportPOHeader ?? Enumerable.Empty<ImportPOHeader>())
+            {
+                h.Id = 0;
+                foreach (var d in h.ImportPODetails ?? Enumerable.Empty<ImportPODetail>())
+                    d.Id = 0;
+            }
+            foreach (var t in aggregate.PaymentTerms ?? Enumerable.Empty<PurchasePaymentTerm>())
+                t.Id = 0;
+            foreach (var doc in aggregate.PurchaseDocumentTypes ?? Enumerable.Empty<PurchaseDocument>())
+                doc.Id = 0;
+
+            var pending = await _misc.GetMiscMasterByName(MiscEnumEntity.ApprovalStatus, MiscEnumEntity.Pending);
+            aggregate.StatusId = pending.Id;
+
+            var impacted = aggregate.ImportPOHeader?
+                .SelectMany(h => h.ImportPODetails ?? [])
+                .Select(d => d.IndentId ?? 0)
+                .Where(id => id > 0)
+                .Distinct()
+                .ToHashSet() ?? new HashSet<int>();
+
+            _db.PurchaseOrderHeaders.Add(aggregate);
+            await _db.SaveChangesAsync(ct);
+
+            if ((aggregate.PurchaseDocumentTypes == null || aggregate.PurchaseDocumentTypes.Count == 0)
+                && dto.Documents != null && dto.Documents.Count > 0)
+            {
+                var docs = dto.Documents
+                    .Where(d => d.DocumentId > 0 && !string.IsNullOrWhiteSpace(d.FileName))
+                    .Select(d => new PurchaseDocument
+                    {
+                        PoId         = aggregate.Id,
+                        DocumentId   = d.DocumentId,
+                        FileName     = d.FileName,
+                        UploadedDate = d.UploadedDate == default ? DateTimeOffset.UtcNow : d.UploadedDate
+                    })
+                    .ToList();
+
+                if (docs.Count > 0)
+                {
+                    _db.PurchaseDocuments.AddRange(docs);
+                    await _db.SaveChangesAsync(ct);
+                }
+            }
+            else
+            {
+                if (aggregate.PurchaseDocumentTypes != null && aggregate.PurchaseDocumentTypes.Count > 0)
+                {
+                    foreach (var doc in aggregate.PurchaseDocumentTypes)
+                        doc.PoId = aggregate.Id;
+                    await _db.SaveChangesAsync(ct);
+                }
+            }
+
+            if (impacted.Count > 0)
+                await RecomputeImportIndentPoQtyAsync(impacted, ct);
+
+            return aggregate.Id;
+        }
+
+        /// <summary>
+        /// Same logic as UpdateAsync but without opening its own transaction.
+        /// The caller must already have an active transaction on _db.Database.
+        /// </summary>
+        public async Task<int> UpdateWithoutTransactionAsync(
+            PurchaseOrderHeader incoming, ImportPOUpdateDto dto, CancellationToken ct)
+        {
+            if (dto == null || dto.Id <= 0) return 0;
+
+            var existing = await _db.PurchaseOrderHeaders
+                .Include(x => x.ImportPOHeader).ThenInclude(h => h.ImportPODetails)
+                .Include(x => x.PaymentTerms)
+                .FirstOrDefaultAsync(x => x.Id == dto.Id, ct);
+
+            if (existing is null) return 0;
+
+            incoming.StatusId = existing.StatusId;
+
+            var oldIndents = (existing.ImportPOHeader ?? new List<ImportPOHeader>())
+                .SelectMany(h => h.ImportPODetails ?? new List<ImportPODetail>())
+                .Select(d => d.IndentId.GetValueOrDefault())
+                .Where(i => i > 0).Distinct().ToHashSet();
+
+            var newIndents = (dto.Headers ?? new List<ImportPOHeaderDto>())
+                .SelectMany(h => h.Details ?? new List<ImportPODetailDto>())
+                .Select(d => d.IndentId)
+                .Where(i => i > 0).Distinct().ToHashSet();
+
+            var impacted = new HashSet<int>(oldIndents);
+            impacted.UnionWith(newIndents);
+
+            var incomingDocs = (dto.Documents ?? new List<DocumentDto>())
+                .Where(d => d.DocumentId > 0 && !string.IsNullOrWhiteSpace(d.FileName))
+                .GroupBy(d => d.DocumentId)
+                .Select(g => g.First())
+                .Select(d => new PurchaseDocument
+                {
+                    PoId         = existing.Id,
+                    DocumentId   = d.DocumentId,
+                    FileName     = d.FileName!,
+                    UploadedDate = d.UploadedDate == default ? DateTimeOffset.UtcNow : d.UploadedDate
+                })
+                .ToList();
+
+            ApplyScalarUpdates(existing, incoming);
+            existing.ModifiedDate = DateTimeOffset.UtcNow;
+            await _db.SaveChangesAsync(ct);
+
+            if (existing.ImportPOHeader?.Count > 0)
+            {
+                var oldDetails = existing.ImportPOHeader
+                    .SelectMany(h => h.ImportPODetails ?? new List<ImportPODetail>())
+                    .ToList();
+
+                if (oldDetails.Count > 0)
+                    _db.ImportPODetail.RemoveRange(oldDetails);
+
+                _db.ImportPOHeader.RemoveRange(existing.ImportPOHeader);
+            }
+
+            if (existing.PaymentTerms?.Count > 0)
+                _db.PurchasePaymentTerms.RemoveRange(existing.PaymentTerms);
+
+            var oldDocs = await _db.PurchaseDocuments
+                .Where(d => d.PoId == existing.Id)
+                .ToListAsync(ct);
+
+            if (oldDocs.Count > 0)
+                _db.PurchaseDocuments.RemoveRange(oldDocs);
+
+            await _db.SaveChangesAsync(ct);
+
+            foreach (var h in dto.Headers ?? Enumerable.Empty<ImportPOHeaderDto>())
+            {
+                var hEntity = new ImportPOHeader
+                {
+                    PurchaseOrderId     = existing.Id,
+                    TTExchangeRateId    = h.TTExchangeRateId,
+                    TTExchangeRate      = h.TTExchangeRate,
+                    IncotermId          = h.IncotermId,
+                    ShippingPortId      = h.ShippingPortId,
+                    DestinationPortId   = h.DestinationPortId,
+                    ModeOfTransportId   = h.ModeOfTransportId,
+                    ShippingModeId      = h.ShippingModeId,
+                    CustomsOfficeId     = h.CustomsOfficeId,
+                    OriginCountryId     = h.OriginCountryId,
+                    InsuranceProviderId = h.InsuranceProviderId,
+                    FreightForwarderId  = h.FreightForwarderId,
+                    FreeDaysAllowed     = h.FreeDaysAllowed,
+                    DemurrageTerms      = h.DemurrageTerms,
+                    BillOfLadingNumber  = h.BillOfLadingNumber,
+                    VesselName          = h.VesselName,
+                    ContainerNumber     = h.ContainerNumber,
+                    AirlineName         = h.AirlineName,
+                    AirWaybillNumber    = h.AirWaybillNumber,
+                    AirWaybillDate      = h.AirWaybillDate,
+                    FlightNumber        = h.FlightNumber,
+                    ExpectedTimeOfDeparture = h.ExpectedTimeOfDeparture,
+                    ExpectedTimeOfArrival   = h.ExpectedTimeOfArrival,
+                    CustomsHouseAgentId = h.CustomsHouseAgentId,
+                    BillOfEntryNumber   = h.BillOfEntryNumber,
+                    LCPaymentModeId     = h.LCPaymentModeId,
+                    LCPaymentStatusId   = h.LCPaymentStatusId,
+                    LCNumber            = h.LCNumber,
+                    LCDate              = h.LCDate,
+                    LCExpiryDate        = h.LCExpiryDate,
+                    LCCurrencyId        = h.LCCurrencyId,
+                    LCAmount            = h.LCAmount,
+                    LCIssueBankId       = h.LCIssueBankId,
+                    LCBeneficiaryBankId = h.LCBeneficiaryBankId,
+                    LCTypeId            = h.LCTypeId,
+                    LCRemarks           = h.LCRemarks,
+                    TTReferenceNumber   = h.TTReferenceNumber,
+                    TTTransferDate      = h.TTTransferDate,
+                    TTBankId            = h.TTBankId,
+                    TTCurrencyId        = h.TTCurrencyId,
+                    TTPaymentModeId     = h.TTPaymentModeId,
+                    TTPaymentStatusId   = h.TTPaymentStatusId,
+                    TTRemarks           = h.TTRemarks,
+                    LCSwiftCode         = h.LCSwiftCode,
+                    TTSwiftCode         = h.TTSwiftCode,
+                    IsPartialReceiptAllowed = h.IsPartialReceiptAllowed,
+                    ImportPODetails = (h.Details ?? new List<ImportPODetailDto>()).Select(d => new ImportPODetail
+                    {
+                        IndentId                = d.IndentId,
+                        ItemId                  = d.ItemId,
+                        ItemSno                 = d.ItemSno,
+                        Quantity                = d.Quantity,
+                        UomId                   = d.UomId,
+                        UnitPrice               = d.UnitPrice,
+                        DutyMasterId            = d.DutyMasterId,
+                        FreightAmount           = d.FreightAmount,
+                        InsuranceAmount         = d.InsuranceAmount,
+                        CIFValue                = d.CIFValue,
+                        BasicCustomDuty         = d.BasicCustomDuty,
+                        SocialWelfareSurCharges = d.SocialWelfareSurCharges,
+                        IGST                    = d.IGST,
+                        IGSTPercentage          = d.IGSTPercentage,
+                        AgriInfraDevCess        = d.AgriInfraDevCess,
+                        AntiDumpingDuty         = d.AntiDumpingDuty,
+                        SafeguardDuty           = d.SafeguardDuty,
+                        HealthEducationCess     = d.HealthEducationCess,
+                        OtherCharges            = d.OtherCharges,
+                        TotalValue              = d.TotalValue,
+                        GRBasedIV               = d.GRBasedIV
+                    }).ToList()
+                };
+
+                _db.ImportPOHeader.Add(hEntity);
+            }
+
+            foreach (var t in dto.PaymentTerms ?? Enumerable.Empty<ImportPurchasePaymentTermDto>())
+            {
+                _db.PurchasePaymentTerms.Add(new PurchasePaymentTerm
+                {
+                    PurchaseOrderId  = existing.Id,
+                    PaymentTermId    = t.PaymentTermId,
+                    AdvancePercent   = t.AdvancePercent,
+                    CreditDays       = t.CreditDays,
+                    PaymentModelId   = t.PaymentModelId,
+                    InsuranceId      = t.InsuranceId,
+                    InsurancePercent = t.InsurancePercent,
+                    InsuranceAmount  = t.InsuranceAmount,
+                    AdvanceAmount    = t.AdvanceAmount,
+                    BalancePercent   = t.BalancePercent,
+                    BalanceAmount    = t.BalanceAmount
+                });
+            }
+
+            if (incomingDocs.Count > 0)
+                _db.PurchaseDocuments.AddRange(incomingDocs);
+
+            await _db.SaveChangesAsync(ct);
+
+            if (impacted.Count > 0)
+                await RecomputeImportIndentPoQtyAsync(impacted, ct);
+
+            return existing.Id;
+        }
 
         /* ========================= Helpers ========================= */
 

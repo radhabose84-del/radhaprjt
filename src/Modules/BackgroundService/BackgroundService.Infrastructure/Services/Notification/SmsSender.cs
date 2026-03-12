@@ -4,7 +4,7 @@ using BackgroundService.Application.Interfaces.Notification;
 using Contracts.Events.Notifications.Sms;
 using BackgroundService.Domain.Entities.Notification;
 using BackgroundService.Infrastructure.Repositories.Common;
-using BackgroundService.Application.Notification.Common.Interfaces;
+using Contracts.Interfaces;
 using Contracts.Events.Notifications;
 
 namespace BackgroundService.Infrastructure.Services.Notification

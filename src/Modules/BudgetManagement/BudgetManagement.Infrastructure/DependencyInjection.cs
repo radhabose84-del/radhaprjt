@@ -113,9 +113,7 @@ namespace BudgetManagement.Infrastructure
             services.AddScoped<IBudgetAllocationQueryRepository, BudgetAllocationQueryRepository>();
             services.AddScoped<IBudgetAllocationCommandRepository, BudgetAllocationCommandRepository>();
             services.AddScoped<IBudgetGroupCommandRepository, BudgetGroupCommandRepository>();
-            services.AddScoped<IBudgetGroupQueryRepository, BudgetGroupQueryRepository>();
-            services.AddScoped<IIPAddressService, IPAddressService>();
-            services.AddTransient<IFileUploadService, FileUploadRepository>();
+            services.AddScoped<IBudgetGroupQueryRepository, BudgetGroupQueryRepository>();            services.AddTransient<IFileUploadService, FileUploadRepository>();
             services.AddSingleton<ITimeZoneService, TimeZoneService>();
             services.AddTransient<IJwtTokenHelper, JwtTokenHelper>();
             services.AddScoped<ILogQueryService, LogQueryService>();

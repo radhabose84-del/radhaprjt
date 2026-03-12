@@ -1,4 +1,5 @@
 using System.Data;
+using Contracts.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces.IReports;
 using MaintenanceManagement.Application.Reports.GetStockLegerReport;
@@ -194,7 +195,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.Reports
 
         public async Task<IEnumerable<dynamic>> ScheduleReportAsync(DateTime? FromDueDate, DateTime? ToDueDate)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
             var query = $$"""
 
                 Select PSH.DepartmentId,PSH.PreventiveSchedulerName,MG.DepartmentId AS ProductionDepartmentId,MG.GroupName,MM.MachineName,MISC.description AS MaintenanceCategory,A.ActivityName,ActivityType.Code AS ActivityType,
@@ -239,7 +240,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.Reports
 
         public async Task<IEnumerable<dynamic>> MaterialPlanningReportAsync(DateTime? FromDueDate, DateTime? ToDueDate)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
                    var query = $$"""
            SELECT 
                ItemCode, 

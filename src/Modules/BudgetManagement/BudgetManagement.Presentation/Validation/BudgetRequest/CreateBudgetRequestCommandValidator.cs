@@ -1,5 +1,6 @@
 //using Contracts.Interfaces.Lookups.Workflow;
 using BudgetManagement.Application.BudgetRequest.Commands.Create;
+using Contracts.Interfaces;
 using BudgetManagement.Application.Common.Interfaces;
 using BudgetManagement.Application.Common.Interfaces.IBudgetRequest;
 using BudgetManagement.Application.Common.Interfaces.IMiscMaster;
@@ -32,7 +33,7 @@ public sealed class CreateBudgetRequestCommandValidator : AbstractValidator<Crea
         // ----------------------------
         // Resolve UnitId from IP (if your system does that)
         // ----------------------------
-        var resolvedUnitId = _ipAddressService.GetUnitId();
+        var resolvedUnitId = _ipAddressService.GetUnitId() ?? 0;
 
         // ----------------------------
         // Workflow configured check

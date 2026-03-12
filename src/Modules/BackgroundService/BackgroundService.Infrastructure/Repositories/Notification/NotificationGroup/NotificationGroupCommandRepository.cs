@@ -1,3 +1,4 @@
+using Contracts.Interfaces;
 using BackgroundService.Application.Notification.Common.Interfaces;
 using BackgroundService.Application.Notification.Common.Interfaces.INotificationGroup;
 using BackgroundService.Infrastructure.Data.Notification;
@@ -17,7 +18,7 @@ namespace BackgroundService.Infrastructure.Repositories.Notification.Notificatio
         }
         public async Task<int> CreateAsync(Domain.Entities.Notification.NotificationGroup notificationGroup)
         {
-            notificationGroup.UnitId = _ipAddressService.GetUnitId();
+            notificationGroup.UnitId = _ipAddressService.GetUnitId() ?? 0;
             _notificationDbContext.Entry(notificationGroup);
             await _notificationDbContext.NotificationGroup.AddAsync(notificationGroup);
             await _notificationDbContext.SaveChangesAsync();

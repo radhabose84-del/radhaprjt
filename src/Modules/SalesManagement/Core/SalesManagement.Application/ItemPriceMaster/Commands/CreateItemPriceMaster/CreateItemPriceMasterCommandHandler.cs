@@ -1,6 +1,7 @@
 using AutoMapper;
 using Contracts.Common;
 using MediatR;
+using Contracts.Interfaces;
 using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Application.Common.Interfaces.IDocumentSequence;
 using SalesManagement.Application.Common.Interfaces.IItemPriceMaster;
@@ -48,7 +49,7 @@ namespace SalesManagement.Application.ItemPriceMaster.Commands.CreateItemPriceMa
             entity.StatusId = pendingStatus?.Id;
 
             // Get UnitId from JWT token
-            var unitId = _ipAddressService.GetUnitId();
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
 
             // Generate PriceCode from DocumentSequence
             var typeId = await _documentSequenceQueryRepository.GetTransactionTypeIdAsync(

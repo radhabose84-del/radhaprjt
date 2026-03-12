@@ -2,6 +2,7 @@ using System.Text.Json;
 using AutoMapper;
 using Contracts.Events.Workflow;
 using Contracts.Interfaces.Lookups.Users;
+using Contracts.Interfaces;
 using BudgetManagement.Application.Common.Interfaces;
 using BudgetManagement.Application.Common.Interfaces.IBudgetRequest;
 using BudgetManagement.Application.Common.Interfaces.IMiscMaster;
@@ -136,8 +137,8 @@ public class CreateBudgetRequestCommandHandler
     {
         try
         {
-            var companyId = _ip.GetCompanyId();
-            var unitId = _ip.GetUnitId();
+            var companyId = _ip.GetCompanyId() ?? 0;
+            var unitId = _ip.GetUnitId() ?? 0;
 
             var units = await _unitLookup.GetAllUnitAsync();
             var companies = await _companyLookup.GetAllCompanyAsync();

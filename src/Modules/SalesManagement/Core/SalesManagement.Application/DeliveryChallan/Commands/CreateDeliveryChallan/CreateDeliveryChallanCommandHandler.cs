@@ -1,7 +1,7 @@
 using AutoMapper;
 using Contracts.Common;
 using MediatR;
-using SalesManagement.Application.Common.Interfaces;
+using Contracts.Interfaces;
 using SalesManagement.Application.Common.Interfaces.IDeliveryChallan;
 using SalesManagement.Application.Common.Interfaces.IDocumentSequence;
 using SalesManagement.Application.Common.Interfaces.IMiscMaster;
@@ -53,7 +53,7 @@ namespace SalesManagement.Application.DeliveryChallan.Commands.CreateDeliveryCha
 
             // Generate DC Number from Finance.DocumentSequence
             var typeId = await _documentSequenceQueryRepository.GetTransactionTypeIdAsync(
-                MiscEnumEntity.TransactionTypeStodc, MiscEnumEntity.ModuleSales, unitId);
+                MiscEnumEntity.TransactionTypeStodc, MiscEnumEntity.ModuleSales, unitId ?? 0);
             if (!typeId.HasValue)
                 throw new ExceptionRules("Transaction Type 'STO Delivery Challan' not found for Sales module.");
 

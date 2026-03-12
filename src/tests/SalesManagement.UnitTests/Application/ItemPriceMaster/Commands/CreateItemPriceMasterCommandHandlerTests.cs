@@ -1,3 +1,4 @@
+using Contracts.Interfaces;
 using AutoMapper;
 using Contracts.Common;
 using MediatR;

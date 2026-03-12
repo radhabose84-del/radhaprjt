@@ -7,7 +7,8 @@
 // using System.Threading.Tasks;
 // using AutoMapper;
 // using Contracts.Events.Workflow;
-// using PurchaseManagement.Application.Common.Interfaces;
+// using Contracts.Interfaces;
+using PurchaseManagement.Application.Common.Interfaces;
 // using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.Local;
 // using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.ServicePO;
 // using PurchaseManagement.Domain.Common;
@@ -56,7 +57,7 @@
 //             // await ServicePoScheduleBuilder.EnsureSchedulesFromMiscAsync(entity, _misc, ct);
 
 //             // 2) Audit + PO number
-//             entity.UnitId = _ip.GetUnitId();
+//             entity.UnitId = _ip.GetUnitId() ?? 0;
 //             entity.PONumber = await _repo.GenerateNextCodeAsync(entity.POCategoryId, entity.POMethodId, entity.PODate, ct);
 //             entity.CreatedBy = _ip.GetUserId();
 //             entity.CreatedByName = _ip.GetUserName();

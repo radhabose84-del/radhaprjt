@@ -1,4 +1,5 @@
 using System.Data;
+using Contracts.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces.IMachineSpecification;
 using MaintenanceManagement.Application.MachineSpecification.Command;
@@ -19,7 +20,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.MachineSpecification
 
         public async Task<List<MachineSpecificationDto>> GetByIdAsync(int Id)
         {
-            var unitId = _ipAddressService.GetUnitId();
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
 
             const string query = @"
                 SELECT 

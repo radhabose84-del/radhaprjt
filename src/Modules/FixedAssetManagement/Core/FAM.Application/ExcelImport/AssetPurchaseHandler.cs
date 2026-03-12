@@ -1,6 +1,6 @@
 using System.Globalization;
 using FAM.Application.AssetMaster.AssetMasterGeneral.Queries.GetAssetMasterGeneral;
-using FAM.Application.Common.Interfaces;
+using Contracts.Interfaces;
 using OfficeOpenXml;
 
 namespace FAM.Application.ExcelImport

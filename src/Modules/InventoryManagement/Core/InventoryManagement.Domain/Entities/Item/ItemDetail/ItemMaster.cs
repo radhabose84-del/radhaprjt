@@ -6,7 +6,6 @@ namespace InventoryManagement.Domain.Entities.Item.ItemDetail
 {
     public class ItemMaster : BaseEntity
     {
-        public int? UnitId { get; set; }
         public string ItemCode { get; set; } = null!;
         public string ItemName { get; set; } = null!;
         public int? HSNId { get; set; }
@@ -47,6 +46,7 @@ namespace InventoryManagement.Domain.Entities.Item.ItemDetail
         public ICollection<ItemUOM> ItemUOMs { get; set; } = new List<ItemUOM>();
         public ICollection<PutAwayRule>? PutAwayRules { get; set; } = new List<PutAwayRule>();
         public ICollection<ItemVariantAttribute> VariantAttributes { get; set; } = new List<ItemVariantAttribute>();
-        public ICollection<ItemVariantValue> VariantParentItem { get; set; } = new List<ItemVariantValue>();     
+        public ICollection<ItemVariantValue> VariantParentItem { get; set; } = new List<ItemVariantValue>();
+        public ICollection<ItemUnitMapping> ItemUnitMappings { get; set; } = new List<ItemUnitMapping>();
     }
 }

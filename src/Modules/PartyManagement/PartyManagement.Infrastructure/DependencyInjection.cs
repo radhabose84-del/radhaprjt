@@ -137,7 +137,6 @@ namespace PartyManagement.Infrastructure
 services.AddScoped<IPartyLookup, PartyLookupRepository>();
 
             // Miscellaneous services
-            services.AddScoped<IIPAddressService, IPAddressService>();
             services.AddTransient<IFileUploadService, FileUploadRepository>();
             services.AddSingleton<ITimeZoneService, TimeZoneService>();
             services.AddTransient<IJwtTokenHelper, JwtTokenHelper>();

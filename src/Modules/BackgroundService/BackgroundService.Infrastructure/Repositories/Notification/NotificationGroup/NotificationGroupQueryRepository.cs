@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
+using Contracts.Interfaces;
 using BackgroundService.Application.Notification.Common.Interfaces;
 using BackgroundService.Application.Notification.Common.Interfaces.INotificationGroup;
 using BackgroundService.Application.Notification.NotificationGroup.Queries.GetAllNotificationGroup;
@@ -23,7 +24,7 @@ namespace BackgroundService.Infrastructure.Repositories.Notification.Notificatio
 
         public async Task<bool> AlreadyExistsAsync(string GroupName, int? id = null)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
             var query = "SELECT COUNT(1) FROM [AppNotification].[NotificationGroup] WHERE GroupName = @GroupName AND IsDeleted = 0 AND UnitId=@UnitId";
             var parameters = new DynamicParameters(new { GroupName,UnitId });
 
@@ -41,7 +42,7 @@ namespace BackgroundService.Infrastructure.Repositories.Notification.Notificatio
             int PageSize, 
             string? SearchTerm)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
 
             var query = $$"""
                 DECLARE @TotalCount INT;
@@ -86,7 +87,7 @@ namespace BackgroundService.Infrastructure.Repositories.Notification.Notificatio
 
         public async Task<List<Domain.Entities.Notification.NotificationGroup>> GetNotificationGroupsAutoComplete(string searchPattern)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
               const string query = @"
                 SELECT Id, GroupName 
                 FROM [AppNotification].[NotificationGroup] 

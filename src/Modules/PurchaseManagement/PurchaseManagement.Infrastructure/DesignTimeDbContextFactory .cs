@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
+using Contracts.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces;
 using Microsoft.AspNetCore.Http;
 using PurchaseManagement.Infrastructure.Data;
@@ -32,10 +33,27 @@ namespace PurchaseManagement.Infrastructure
             optionsBuilder.UseSqlServer(connectionString);
 
             IHttpContextAccessor httpContextAccessor = new HttpContextAccessor();
-            IIPAddressService ipAddressService = new IPAddressService(httpContextAccessor);
+            IIPAddressService ipAddressService = new DesignTimeMockIPAddressService();
             ITimeZoneService timeZoneService = new TimeZoneService();
 
             return new ApplicationDbContext(optionsBuilder.Options, ipAddressService, timeZoneService);
         }
+
+    private sealed class DesignTimeMockIPAddressService : IIPAddressService
+    {
+        public string GetSystemIPAddress() => "127.0.0.1";
+        public string GetUserIPAddress() => "127.0.0.1";
+        public string GetUserAgent() => "design-time";
+        public string GetCurrentUserId() => "0";
+        public int    GetUserId() => 0;
+        public string GetUserName() => "design-time";
+        public string GetUserOS() => "Unknown";
+        public string GetUserBrowserDetails(string userAgent) => "design-time";
+        public int?   GetCompanyId() => null;
+        public string GetGroupCode() => string.Empty;
+        public int    GetEntityId() => 0;
+        public int?   GetUnitId() => null;
+        public string GetOldUnitId() => string.Empty;
+    }
     }
 }

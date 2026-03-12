@@ -1,4 +1,5 @@
 using System.Data;
+using Contracts.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces.IMachineMaster;
 using MaintenanceManagement.Application.MachineMaster.Queries.GetMachineDepartmentbyId;
@@ -20,7 +21,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.MachineMaster
         }
         public async Task<List<MachineMasterDto>> GetAllMachineAsync(string? SearchTerm)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
 
             var query = $$"""
                 SELECT 
@@ -61,7 +62,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.MachineMaster
 
         public async Task<MachineMasterDto?> GetByIdAsync(int Id)
         {
-            var unitId = _ipAddressService.GetUnitId();
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
             const string query = @"
                                 SELECT 
                                 mm.*, 
@@ -80,7 +81,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.MachineMaster
         }
         public async Task<List<MaintenanceManagement.Domain.Entities.MachineMaster>> GetMachineAsync(string searchPattern)
         {
-            var unitId = _ipAddressService.GetUnitId();
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
             searchPattern = searchPattern ?? string.Empty; // Prevent null issues 
             const string query = @"SELECT 
                 M.Id, M.MachineName, M.MachineCode, M.MachineGroupId,
@@ -122,7 +123,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.MachineMaster
 
         public async Task<List<MaintenanceManagement.Domain.Entities.MachineMaster>> GetMachineByGroupAsync(int MachineGroupId)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
             const string query = @"
                     SELECT Id 
                     FROM Maintenance.MachineMaster 
@@ -195,8 +196,8 @@ namespace MaintenanceManagement.Infrastructure.Repositories.MachineMaster
                  FROM Maintenance.MachineMaster A
                  INNER JOIN Maintenance.MachineGroup B ON A.MachineGroupId = B.Id
                  WHERE B.DepartmentId = @DepartmentId"; */
-            var UnitId = _ipAddressService.GetUnitId();
-            var CompanyId = _ipAddressService.GetCompanyId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
+            var CompanyId = _ipAddressService.GetCompanyId() ?? 0;
             const string query = @"
                 select distinct MM.Id,MachineCode,MachineName 
                 from Maintenance.WorkOrder WO with(nolock)              

@@ -1,4 +1,5 @@
 using System.Data;
+using Contracts.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IIssueReturn;
 using PurchaseManagement.Application.IssueReturn.Queries.GetIssueDetailsById;
@@ -51,7 +52,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.IssueReturn
 
         public async Task<List<GetIssueDetailsByIdDto>> GetIssueDetailsByIssueId(int issueId, int? itemid)
         {
-            var UnitId = _ipAddressService.GetUnitId();
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
 
             var query = @"
                 SELECT 
