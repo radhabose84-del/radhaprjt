@@ -1,4 +1,3 @@
-#nullable disable
 using System.Data;
 using Contracts.Dtos.Lookups.Purchase;
 using Contracts.Interfaces.Lookups.Purchase;
@@ -21,7 +20,8 @@ namespace PurchaseManagement.Infrastructure.Repositories.Lookups.Purchase
                 SELECT
                     Id,
                     Code,
-                    Description
+                    Description,
+                    AdditionalValue
                 FROM Purchase.PaymentTermMaster
                 WHERE IsActive = 1
                   AND IsDeleted = 0

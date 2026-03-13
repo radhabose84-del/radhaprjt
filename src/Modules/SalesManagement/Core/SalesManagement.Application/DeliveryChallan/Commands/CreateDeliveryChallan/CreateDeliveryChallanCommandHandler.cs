@@ -3,7 +3,7 @@ using Contracts.Common;
 using MediatR;
 using Contracts.Interfaces;
 using SalesManagement.Application.Common.Interfaces.IDeliveryChallan;
-using SalesManagement.Application.Common.Interfaces.IDocumentSequence;
+using Contracts.Interfaces.Lookups.Finance;
 using SalesManagement.Application.Common.Interfaces.IMiscMaster;
 using SalesManagement.Domain.Common;
 using SalesManagement.Domain.Entities;
@@ -16,7 +16,7 @@ namespace SalesManagement.Application.DeliveryChallan.Commands.CreateDeliveryCha
         private readonly IDeliveryChallanCommandRepository _commandRepository;
         private readonly IDeliveryChallanQueryRepository _queryRepository;
         private readonly IMiscMasterQueryRepository _miscMasterQueryRepository;
-        private readonly IDocumentSequenceQueryRepository _documentSequenceQueryRepository;
+        private readonly IDocumentSequenceLookup _documentSequenceLookup;
         private readonly IIPAddressService _ipAddressService;
         private readonly IMediator _mediator;
         private readonly IMapper _mapper;
@@ -25,7 +25,7 @@ namespace SalesManagement.Application.DeliveryChallan.Commands.CreateDeliveryCha
             IDeliveryChallanCommandRepository commandRepository,
             IDeliveryChallanQueryRepository queryRepository,
             IMiscMasterQueryRepository miscMasterQueryRepository,
-            IDocumentSequenceQueryRepository documentSequenceQueryRepository,
+            IDocumentSequenceLookup documentSequenceLookup,
             IIPAddressService ipAddressService,
             IMediator mediator,
             IMapper mapper)
@@ -33,7 +33,7 @@ namespace SalesManagement.Application.DeliveryChallan.Commands.CreateDeliveryCha
             _commandRepository = commandRepository;
             _queryRepository = queryRepository;
             _miscMasterQueryRepository = miscMasterQueryRepository;
-            _documentSequenceQueryRepository = documentSequenceQueryRepository;
+            _documentSequenceLookup = documentSequenceLookup;
             _ipAddressService = ipAddressService;
             _mediator = mediator;
             _mapper = mapper;
@@ -52,12 +52,12 @@ namespace SalesManagement.Application.DeliveryChallan.Commands.CreateDeliveryCha
             var unitId = _ipAddressService.GetUnitId();
 
             // Generate DC Number from Finance.DocumentSequence
-            var typeId = await _documentSequenceQueryRepository.GetTransactionTypeIdAsync(
+            var typeId = await _documentSequenceLookup.GetTransactionTypeIdAsync(
                 MiscEnumEntity.TransactionTypeStodc, MiscEnumEntity.ModuleSales, unitId ?? 0);
             if (!typeId.HasValue)
                 throw new ExceptionRules("Transaction Type 'STO Delivery Challan' not found for Sales module.");
 
-            var sequences = await _documentSequenceQueryRepository.GenerateDocumentNumber(typeId.Value);
+            var sequences = await _documentSequenceLookup.GenerateDocumentNumber(typeId.Value);
             var deliveryNumber = sequences.Count > 0 ? sequences[^1] : null;
             entity.DeliveryNumber = deliveryNumber
                 ?? throw new ExceptionRules("No document sequence configured for STO Delivery Challan.");

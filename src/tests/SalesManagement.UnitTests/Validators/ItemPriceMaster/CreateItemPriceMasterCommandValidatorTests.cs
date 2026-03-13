@@ -25,10 +25,9 @@ namespace SalesManagement.UnitTests.Validators.ItemPriceMaster
         {
             _mockQueryRepo.Setup(r => r.ItemExistsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>())).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.SalesSegmentExistsAsync(It.IsAny<int>())).ReturnsAsync(true);
-            _mockQueryRepo.Setup(r => r.PaymentTermExistsAsync(It.IsAny<int>())).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.CurrencyExistsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>())).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.OverlapExistsAsync(
-                    It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(),
+                    It.IsAny<int>(), It.IsAny<int>(),
                     It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<int?>()))
                 .ReturnsAsync(false);
         }
@@ -100,49 +99,6 @@ namespace SalesManagement.UnitTests.Validators.ItemPriceMaster
 
             result.ShouldHaveValidationErrorFor(x => x.SalesSegmentId)
                   .WithErrorMessage("SalesSegmentId Sales Segment Id is inactive/deleted.");
-        }
-
-        // ── PaymentTermsId Rules ──────────────────────────────────────────────
-
-        [Theory]
-        [InlineData(0)]
-        public async Task PaymentTermsId_ZeroOrNegative_FailsValidation(int ptId)
-        {
-            SetupAllValid();
-            var command = ItemPriceMasterBuilders.ValidCreateCommand(paymentTermsId: ptId);
-
-            var result = await CreateValidator().TestValidateAsync(command);
-
-            result.ShouldHaveValidationErrorFor(x => x.PaymentTermsId)
-                  .WithErrorMessage("PaymentTermsId is required.");
-        }
-
-        [Fact]
-        public async Task PaymentTermsId_NotFound_FailsValidation()
-        {
-            SetupAllValid();
-            _mockQueryRepo.Setup(r => r.PaymentTermExistsAsync(2)).ReturnsAsync(false);
-            var command = ItemPriceMasterBuilders.ValidCreateCommand(paymentTermsId: 2);
-
-            var result = await CreateValidator().TestValidateAsync(command);
-
-            result.ShouldHaveValidationErrorFor(x => x.PaymentTermsId)
-                  .WithErrorMessage("PaymentTermsId Payment Terms Id is inactive/deleted.");
-        }
-
-        // ── ExMillRate Rules ─────────────────────────────────────────────────
-
-        [Theory]
-        [InlineData(0)]
-        public async Task ExMillRate_ZeroOrNegative_FailsValidation(decimal price)
-        {
-            SetupAllValid();
-            var command = ItemPriceMasterBuilders.ValidCreateCommand(exMillRate: price);
-
-            var result = await CreateValidator().TestValidateAsync(command);
-
-            result.ShouldHaveValidationErrorFor(x => x.ExMillRate)
-                  .WithErrorMessage("ExMillRate must be greater than zero.");
         }
 
         // ── CurrencyId Rules ──────────────────────────────────────────────────
@@ -219,7 +175,7 @@ namespace SalesManagement.UnitTests.Validators.ItemPriceMaster
         {
             SetupAllValid();
             _mockQueryRepo.Setup(r => r.OverlapExistsAsync(
-                    It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(),
+                    It.IsAny<int>(), It.IsAny<int>(),
                     It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<int?>()))
                 .ReturnsAsync(true);
 
