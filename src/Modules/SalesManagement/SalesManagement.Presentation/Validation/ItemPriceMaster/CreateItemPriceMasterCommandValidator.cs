@@ -41,18 +41,6 @@ namespace SalesManagement.Presentation.Validation.ItemPriceMaster
                             .NotEmpty()
                             .WithMessage($"{nameof(CreateItemPriceMasterCommand.SalesSegmentId)} {rule.Error}");
 
-                        // PaymentTermsId required
-                        RuleFor(x => x.PaymentTermsId)
-                            .NotNull()
-                            .WithMessage($"{nameof(CreateItemPriceMasterCommand.PaymentTermsId)} {rule.Error}")
-                            .NotEmpty()
-                            .WithMessage($"{nameof(CreateItemPriceMasterCommand.PaymentTermsId)} {rule.Error}");
-
-                        // ExMillRate must be greater than zero
-                        RuleFor(x => x.ExMillRate)
-                            .GreaterThan(0)
-                            .WithMessage($"{nameof(CreateItemPriceMasterCommand.ExMillRate)} must be greater than zero.");
-
                         // CurrencyId required
                         RuleFor(x => x.CurrencyId)
                             .NotNull()
@@ -84,11 +72,6 @@ namespace SalesManagement.Presentation.Validation.ItemPriceMaster
                             .MustAsync(async (id, ct) => await _queryRepository.SalesSegmentExistsAsync(id))
                             .WithMessage($"{nameof(CreateItemPriceMasterCommand.SalesSegmentId)} {rule.Error}");
 
-                        // PaymentTermsId FK exists
-                        RuleFor(x => x.PaymentTermsId)
-                            .MustAsync(async (id, ct) => await _queryRepository.PaymentTermExistsAsync(id))
-                            .WithMessage($"{nameof(CreateItemPriceMasterCommand.PaymentTermsId)} {rule.Error}");
-
                         // CurrencyId FK exists
                         RuleFor(x => x.CurrencyId)
                             .MustAsync(async (id, ct) => await _queryRepository.CurrencyExistsAsync(id, ct))
@@ -96,17 +79,16 @@ namespace SalesManagement.Presentation.Validation.ItemPriceMaster
                         break;
 
                     case "AlreadyExists":
-                        // Overlap check (same Item + Segment + PaymentTerms with overlapping dates)
+                        // Overlap check (same Item + Segment with overlapping dates)
                         RuleFor(x => x)
                             .MustAsync(async (cmd, ct) =>
                                 !await _queryRepository.OverlapExistsAsync(
                                     cmd.ItemId,
                                     cmd.SalesSegmentId,
-                                    cmd.PaymentTermsId,
                                     cmd.ValidFrom,
-                                    cmd.ValidTo!))
+                                    cmd.ValidTo))
                             .WithMessage($"An active price record {rule.Error}")
-                            .When(x => x.ItemId > 0 && x.SalesSegmentId > 0 && x.PaymentTermsId > 0
+                            .When(x => x.ItemId > 0 && x.SalesSegmentId > 0
                                         && x.ValidFrom != default && x.ValidTo != default
                                         && x.ValidTo > x.ValidFrom);
                         break;

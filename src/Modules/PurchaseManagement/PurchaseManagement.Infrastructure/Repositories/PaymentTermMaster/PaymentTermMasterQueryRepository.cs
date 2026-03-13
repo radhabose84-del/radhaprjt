@@ -143,10 +143,11 @@ namespace PurchaseManagement.Infrastructure.Repositories.PaymentTermMaster
         public async Task<List<AutoCompleteDto>> GetPaymentTermAutoComplete(string searchPattern, string paymentTermCode)
         {
             const string sql = @"
-            SELECT TOP (10)
+            SELECT 
                 pt.Id,
                 pt.Code,
-                pt.[Description]
+                pt.[Description],
+                pt.AdditionalValue
             FROM [Purchase].[PaymentTermMaster] pt
             WHERE pt.IsDeleted = 0
             AND pt.IsActive = 1

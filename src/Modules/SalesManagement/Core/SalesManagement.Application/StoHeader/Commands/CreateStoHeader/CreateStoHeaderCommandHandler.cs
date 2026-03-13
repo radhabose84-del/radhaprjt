@@ -2,7 +2,7 @@ using AutoMapper;
 using Contracts.Common;
 using MediatR;
 using Contracts.Interfaces;
-using SalesManagement.Application.Common.Interfaces.IDocumentSequence;
+using Contracts.Interfaces.Lookups.Finance;
 using SalesManagement.Application.Common.Interfaces.IStoHeader;
 using SalesManagement.Domain.Common;
 using SalesManagement.Domain.Events;
@@ -13,7 +13,7 @@ namespace SalesManagement.Application.StoHeader.Commands.CreateStoHeader
     {
         private readonly IStoHeaderCommandRepository _commandRepository;
         private readonly IStoHeaderQueryRepository _queryRepository;
-        private readonly IDocumentSequenceQueryRepository _documentSequenceQueryRepository;
+        private readonly IDocumentSequenceLookup _documentSequenceLookup;
         private readonly IIPAddressService _ipAddressService;
         private readonly IMediator _mediator;
         private readonly IMapper _mapper;
@@ -21,14 +21,14 @@ namespace SalesManagement.Application.StoHeader.Commands.CreateStoHeader
         public CreateStoHeaderCommandHandler(
             IStoHeaderCommandRepository commandRepository,
             IStoHeaderQueryRepository queryRepository,
-            IDocumentSequenceQueryRepository documentSequenceQueryRepository,
+            IDocumentSequenceLookup documentSequenceLookup,
             IIPAddressService ipAddressService,
             IMediator mediator,
             IMapper mapper)
         {
             _commandRepository = commandRepository;
             _queryRepository = queryRepository;
-            _documentSequenceQueryRepository = documentSequenceQueryRepository;
+            _documentSequenceLookup = documentSequenceLookup;
             _ipAddressService = ipAddressService;
             _mediator = mediator;
             _mapper = mapper;
@@ -42,12 +42,12 @@ namespace SalesManagement.Application.StoHeader.Commands.CreateStoHeader
             var unitId = _ipAddressService.GetUnitId();
 
             // Generate STO Number from Finance.DocumentSequence
-            var typeId = await _documentSequenceQueryRepository.GetTransactionTypeIdAsync(
+            var typeId = await _documentSequenceLookup.GetTransactionTypeIdAsync(
                 MiscEnumEntity.TransactionTypeSto, MiscEnumEntity.ModuleSales, unitId ?? 0);
             if (!typeId.HasValue)
                 throw new ExceptionRules("Transaction Type 'Stock Transfer Order' not found for Sales module.");
 
-            var sequences = await _documentSequenceQueryRepository.GenerateDocumentNumber(typeId.Value);
+            var sequences = await _documentSequenceLookup.GenerateDocumentNumber(typeId.Value);
             var stoNumber = sequences.Count > 0 ? sequences[^1] : null;
             entity.StoNumber = stoNumber
                 ?? throw new ExceptionRules("No document sequence configured for Stock Transfer Order.");

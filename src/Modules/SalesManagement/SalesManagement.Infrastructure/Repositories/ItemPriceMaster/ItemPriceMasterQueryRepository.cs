@@ -40,8 +40,8 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
 
                 SELECT
                     sipm.Id, sipm.PriceCode,
-                    sipm.ItemId, sipm.SalesSegmentId, sipm.PaymentTermsId,
-                    sipm.BaseRate, sipm.ExMillRate, sipm.CurrencyId,
+                    sipm.ItemId, sipm.SalesSegmentId,
+                    sipm.BaseRate, sipm.CurrencyId,
                     sipm.ValidFrom, sipm.ValidTo,
                     sipm.StatusId,
                     sm.Description AS StatusName,
@@ -75,18 +75,12 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
             {
                 var itemIds = list.Select(x => x.ItemId).Distinct();
                 var currencyIds = list.Select(x => x.CurrencyId).Distinct();
-                var paymentTermIds = list.Select(x => x.PaymentTermsId).Distinct().ToList();
 
                 var items = await _itemLookup.GetByIdsAsync(itemIds);
                 var itemDict = items.ToDictionary(x => x.Id);
 
                 var currencies = await _currencyLookup.GetByIdsAsync(currencyIds);
                 var currencyDict = currencies.ToDictionary(x => x.CurrencyId);
-
-                var paymentTerms = await _paymentTermLookup.GetAllPaymentTermAsync();
-                var paymentTermDict = paymentTerms
-                    .Where(x => paymentTermIds.Contains(x.Id))
-                    .ToDictionary(x => x.Id);
 
                 foreach (var item in list)
                 {
@@ -100,11 +94,6 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
                     {
                         item.CurrencyCode = currencyData.Code;
                     }
-                    if (paymentTermDict.TryGetValue(item.PaymentTermsId, out var ptData))
-                    {
-                        item.PaymentTermsCode = ptData.Code;
-                        item.PaymentTermsDescription = ptData.Description;
-                    }
                 }
             }
 
@@ -116,8 +105,8 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
             const string sql = @"
                 SELECT
                     sipm.Id, sipm.PriceCode,
-                    sipm.ItemId, sipm.SalesSegmentId, sipm.PaymentTermsId,
-                    sipm.BaseRate, sipm.ExMillRate, sipm.CurrencyId,
+                    sipm.ItemId, sipm.SalesSegmentId,
+                    sipm.BaseRate, sipm.CurrencyId,
                     sipm.ValidFrom, sipm.ValidTo,
                     sipm.StatusId,
                     sm.Description AS StatusName,
@@ -150,14 +139,6 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
                 {
                     dto.CurrencyCode = currencyData.Code;
                 }
-
-                var paymentTerms = await _paymentTermLookup.GetAllPaymentTermAsync();
-                var ptData = paymentTerms.FirstOrDefault(x => x.Id == dto.PaymentTermsId);
-                if (ptData != null)
-                {
-                    dto.PaymentTermsCode = ptData.Code;
-                    dto.PaymentTermsDescription = ptData.Description;
-                }
             }
 
             return dto;
@@ -167,7 +148,7 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
             string term, CancellationToken ct)
         {
             const string sql = @"
-                SELECT Id, PriceCode, ItemId, BaseRate, ExMillRate, ValidFrom, ValidTo
+                SELECT Id, PriceCode, ItemId, BaseRate, ValidFrom, ValidTo
                 FROM Sales.ItemPriceMaster
                 WHERE IsDeleted = 0 AND IsActive = 1
                   AND PriceCode LIKE @Term
@@ -193,7 +174,6 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
                     PriceCode = (string)r.PriceCode,
                     ItemName = itemData?.ItemName,
                     BaseRate = (decimal)r.BaseRate,
-                    ExMillRate = (decimal)r.ExMillRate,
                     ValidFrom = DateOnly.FromDateTime((DateTime)r.ValidFrom),
                     ValidTo = DateOnly.FromDateTime((DateTime)r.ValidTo)
                 };
@@ -240,12 +220,6 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
             return count > 0;
         }
 
-        public async Task<bool> PaymentTermExistsAsync(int paymentTermsId)
-        {
-            var paymentTerms = await _paymentTermLookup.GetAllPaymentTermAsync();
-            return paymentTerms.Any(x => x.Id == paymentTermsId);
-        }
-
         public async Task<bool> CurrencyExistsAsync(int currencyId, CancellationToken ct = default)
         {
             var currencies = await _currencyLookup.GetByIdsAsync(new[] { currencyId }, ct);
@@ -253,14 +227,13 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
         }
 
         public async Task<bool> OverlapExistsAsync(
-            int itemId, int salesSegmentId, int paymentTermsId,
+            int itemId, int salesSegmentId,
             DateOnly validFrom, DateOnly validTo, int? excludeId = null)
         {
             var sql = @"
                 SELECT COUNT(1) FROM Sales.ItemPriceMaster
                 WHERE ItemId = @ItemId
                   AND SalesSegmentId = @SalesSegmentId
-                  AND PaymentTermsId = @PaymentTermsId
                   AND IsDeleted = 0
                   AND IsActive = 1
                   AND ValidFrom < @ValidTo
@@ -273,7 +246,6 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
             {
                 ItemId = itemId,
                 SalesSegmentId = salesSegmentId,
-                PaymentTermsId = paymentTermsId,
                 ValidFrom = validFrom,
                 ValidTo = validTo,
                 ExcludeId = excludeId
@@ -311,8 +283,8 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
             const string sql = @"
                 SELECT
                     sipm.Id, sipm.PriceCode,
-                    sipm.ItemId, sipm.SalesSegmentId, sipm.PaymentTermsId,
-                    sipm.BaseRate, sipm.ExMillRate, sipm.CurrencyId,
+                    sipm.ItemId, sipm.SalesSegmentId,
+                    sipm.BaseRate, sipm.CurrencyId,
                     sipm.ValidFrom, sipm.ValidTo,
                     sipm.StatusId,
                     sm.Description AS StatusName,
@@ -328,7 +300,7 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
                   AND sipm.IsActive = 1
                   AND sipm.ValidFrom <= @Date
                   AND sipm.ValidTo >= @Date
-                ORDER BY sipm.ExMillRate ASC";
+                ORDER BY sipm.BaseRate ASC";
 
             var list = (await _dbConnection.QueryAsync<ItemPriceMasterDto>(
                 sql, new { ItemId = itemId, Date = date })).ToList();
@@ -336,18 +308,12 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
             if (list.Any())
             {
                 var currencyIds = list.Select(x => x.CurrencyId).Distinct();
-                var paymentTermIds = list.Select(x => x.PaymentTermsId).Distinct().ToList();
 
                 var items = await _itemLookup.GetByIdsAsync(new[] { itemId });
                 var itemData = items.FirstOrDefault();
 
                 var currencies = await _currencyLookup.GetByIdsAsync(currencyIds);
                 var currencyDict = currencies.ToDictionary(x => x.CurrencyId);
-
-                var paymentTerms = await _paymentTermLookup.GetAllPaymentTermAsync();
-                var paymentTermDict = paymentTerms
-                    .Where(x => paymentTermIds.Contains(x.Id))
-                    .ToDictionary(x => x.Id);
 
                 foreach (var item in list)
                 {
@@ -360,11 +326,6 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
                     if (currencyDict.TryGetValue(item.CurrencyId, out var currencyData))
                     {
                         item.CurrencyCode = currencyData.Code;
-                    }
-                    if (paymentTermDict.TryGetValue(item.PaymentTermsId, out var ptData))
-                    {
-                        item.PaymentTermsCode = ptData.Code;
-                        item.PaymentTermsDescription = ptData.Description;
                     }
                 }
             }
@@ -390,6 +351,47 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
                 StatusCode = MiscEnumEntity.InvoiceStatusPending
             });
             return count > 0;
+        }
+
+        public async Task<List<ExMillRateDto>> GetExMillRateByPaymentTermAsync(int paymentTermId, int itemId, int? salesSegmentId = null)
+        {
+            var paymentTerms = await _paymentTermLookup.GetAllPaymentTermAsync();
+            var paymentTerm = paymentTerms.FirstOrDefault(pt => pt.Id == paymentTermId);
+
+            if (paymentTerm == null)
+                return [];
+
+            const string sql = @"
+                SELECT
+                    sipm.Id, sipm.PriceCode,
+                    sipm.ItemId, sipm.SalesSegmentId,
+                    sipm.BaseRate,
+                    ss.SegmentName AS SalesSegmentName
+                FROM Sales.ItemPriceMaster sipm
+                LEFT JOIN Sales.SalesSegment ss ON sipm.SalesSegmentId = ss.Id AND ss.IsDeleted = 0
+                WHERE sipm.IsDeleted = 0 AND sipm.IsActive = 1
+                  AND sipm.ItemId = @ItemId
+                  AND (@SalesSegmentId IS NULL OR sipm.SalesSegmentId = @SalesSegmentId)
+                ORDER BY sipm.PriceCode ASC";
+
+            var rows = (await _dbConnection.QueryAsync<dynamic>(sql, new { ItemId = itemId, SalesSegmentId = salesSegmentId })).ToList();
+
+            if (!rows.Any())
+                return [];
+
+            return rows.Select(r =>
+            {
+                var baseRate = (decimal)r.BaseRate;
+                var calculated = baseRate + paymentTerm.AdditionalValue;
+                return new ExMillRateDto
+                {
+                    Id = (int)r.Id,
+                    PriceCode = (string?)r.PriceCode,
+                    SalesSegmentId = (int)r.SalesSegmentId,
+                    SalesSegmentName = (string?)r.SalesSegmentName,
+                    ExMillRate = calculated != 0 ? calculated : baseRate
+                };
+            }).ToList();
         }
     }
 }

@@ -3,7 +3,7 @@ using Contracts.Common;
 using MediatR;
 using Contracts.Interfaces;
 using SalesManagement.Application.Common.Interfaces;
-using SalesManagement.Application.Common.Interfaces.IDocumentSequence;
+using Contracts.Interfaces.Lookups.Finance;
 using SalesManagement.Application.Common.Interfaces.IItemPriceMaster;
 using SalesManagement.Application.Common.Interfaces.IMiscMaster;
 using SalesManagement.Domain.Common;
@@ -16,7 +16,7 @@ namespace SalesManagement.Application.ItemPriceMaster.Commands.CreateItemPriceMa
     {
         private readonly IItemPriceMasterCommandRepository _commandRepository;
         private readonly IMiscMasterQueryRepository _miscMasterQueryRepository;
-        private readonly IDocumentSequenceQueryRepository _documentSequenceQueryRepository;
+        private readonly IDocumentSequenceLookup _documentSequenceLookup;
         private readonly IIPAddressService _ipAddressService;
         private readonly IMediator _mediator;
         private readonly IMapper _mapper;
@@ -24,14 +24,14 @@ namespace SalesManagement.Application.ItemPriceMaster.Commands.CreateItemPriceMa
         public CreateItemPriceMasterCommandHandler(
             IItemPriceMasterCommandRepository commandRepository,
             IMiscMasterQueryRepository miscMasterQueryRepository,
-            IDocumentSequenceQueryRepository documentSequenceQueryRepository,
+            IDocumentSequenceLookup documentSequenceLookup,
             IIPAddressService ipAddressService,
             IMediator mediator,
             IMapper mapper)
         {
             _commandRepository = commandRepository;
             _miscMasterQueryRepository = miscMasterQueryRepository;
-            _documentSequenceQueryRepository = documentSequenceQueryRepository;
+            _documentSequenceLookup = documentSequenceLookup;
             _ipAddressService = ipAddressService;
             _mediator = mediator;
             _mapper = mapper;
@@ -52,12 +52,12 @@ namespace SalesManagement.Application.ItemPriceMaster.Commands.CreateItemPriceMa
             var unitId = _ipAddressService.GetUnitId() ?? 0;
 
             // Generate PriceCode from DocumentSequence
-            var typeId = await _documentSequenceQueryRepository.GetTransactionTypeIdAsync(
+            var typeId = await _documentSequenceLookup.GetTransactionTypeIdAsync(
                 MiscEnumEntity.TransactionTypePriceMaster, MiscEnumEntity.ModuleSales, unitId);
             if (!typeId.HasValue)
                 throw new ExceptionRules("Transaction Type 'PriceMaster' not found for Sales module.");
 
-            var sequences = await _documentSequenceQueryRepository.GenerateDocumentNumber(typeId.Value);
+            var sequences = await _documentSequenceLookup.GenerateDocumentNumber(typeId.Value);
             var priceCode = sequences.Count > 0 ? sequences[^1] : null;
             entity.PriceCode = priceCode
                 ?? throw new ExceptionRules("No document sequence configured for PriceMaster.");

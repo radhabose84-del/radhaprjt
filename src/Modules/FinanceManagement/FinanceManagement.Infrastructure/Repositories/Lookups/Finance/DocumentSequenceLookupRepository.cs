@@ -1,22 +1,18 @@
 using System.Data;
+using Contracts.Interfaces.Lookups.Finance;
 using Contracts.Interfaces.Lookups.Users;
 using Dapper;
-using SalesManagement.Application.Common.Interfaces.IDocumentSequence;
 
-namespace SalesManagement.Infrastructure.Repositories.DocumentSequence
+namespace FinanceManagement.Infrastructure.Repositories.Lookups.Finance
 {
-    /// <summary>
-    /// SalesManagement-side proxy that reads Finance.DocumentSequence for document number generation.
-    /// Only exposes the two methods that SalesManagement operations require.
-    /// </summary>
-    internal sealed class DocumentSequenceQueryRepository : IDocumentSequenceQueryRepository
+    internal sealed class DocumentSequenceLookupRepository : IDocumentSequenceLookup
     {
         private readonly IDbConnection _dbConnection;
         private readonly IUnitLookup _unitLookup;
         private readonly IFinancialYearLookup _financialYearLookup;
         private readonly IModuleLookup _moduleLookup;
 
-        public DocumentSequenceQueryRepository(
+        public DocumentSequenceLookupRepository(
             IDbConnection dbConnection,
             IUnitLookup unitLookup,
             IFinancialYearLookup financialYearLookup,

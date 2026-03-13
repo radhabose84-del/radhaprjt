@@ -38,8 +38,7 @@ namespace SalesManagement.UnitTests.Domain
                 PriceCode = "PRC001",
                 ItemId = 100,
                 SalesSegmentId = 4,
-                PaymentTermsId = 2,
-                ExMillRate = 1500.50m,
+                BaseRate = 1500.50m,
                 CurrencyId = 1,
                 ValidFrom = validFrom,
                 ValidTo = validTo
@@ -49,8 +48,7 @@ namespace SalesManagement.UnitTests.Domain
             entity.PriceCode.Should().Be("PRC001");
             entity.ItemId.Should().Be(100);
             entity.SalesSegmentId.Should().Be(4);
-            entity.PaymentTermsId.Should().Be(2);
-            entity.ExMillRate.Should().Be(1500.50m);
+            entity.BaseRate.Should().Be(1500.50m);
             entity.CurrencyId.Should().Be(1);
             entity.ValidFrom.Should().Be(validFrom);
             entity.ValidTo.Should().Be(validTo);
