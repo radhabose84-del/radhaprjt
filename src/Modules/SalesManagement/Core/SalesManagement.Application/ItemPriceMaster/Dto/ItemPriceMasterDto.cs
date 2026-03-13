@@ -13,12 +13,7 @@ namespace SalesManagement.Application.ItemPriceMaster.Dto
         public int SalesSegmentId { get; set; }
         public string? SalesSegmentName { get; set; }
 
-        public int PaymentTermsId { get; set; }
-        public string? PaymentTermsCode { get; set; }
-        public string? PaymentTermsDescription { get; set; }
-
         public decimal BaseRate { get; set; }
-        public decimal ExMillRate { get; set; }
 
         public int CurrencyId { get; set; }
         public string? CurrencyCode { get; set; }

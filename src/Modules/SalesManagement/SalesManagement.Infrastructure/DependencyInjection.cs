@@ -72,8 +72,7 @@ using SalesManagement.Application.Common.Interfaces.IInvoice;
 using SalesManagement.Infrastructure.Repositories.Invoice;
 using SalesManagement.Application.Common.Interfaces.IStoReceipt;
 using SalesManagement.Infrastructure.Repositories.StoReceipt;
-using SalesManagement.Application.Common.Interfaces.IDocumentSequence;
-using SalesManagement.Infrastructure.Repositories.DocumentSequence;
+
 using SalesManagement.Application.Common.Interfaces.IStockLedger;
 using SalesManagement.Infrastructure.Repositories.Reports.StockLedger;
 
@@ -278,9 +277,6 @@ namespace SalesManagement.Infrastructure
             // ── STO Receipt Repositories ────────────────────────────────────────
             services.AddScoped<IStoReceiptCommandRepository, StoReceiptCommandRepository>();
             services.AddScoped<IStoReceiptQueryRepository, StoReceiptQueryRepository>();
-
-            // ── Document Sequence (cross-module read — Finance schema) ──────────
-            services.AddScoped<IDocumentSequenceQueryRepository, DocumentSequenceQueryRepository>();
 
             // ── Stock Ledger Report Repository ───────────────────────────────────
             services.AddScoped<IStockLedgerReportRepository, StockLedgerReportRepository>();

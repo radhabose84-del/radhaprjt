@@ -13,8 +13,10 @@ using FinanceManagement.Application.Common.Interfaces.ITransactionTypeMaster;
 using FinanceManagement.Infrastructure.Data;
 using FinanceManagement.Infrastructure.Persistence;
 using FinanceManagement.Infrastructure.Repositories.AuditLog;
+using Contracts.Interfaces.Lookups.Finance;
 using FinanceManagement.Infrastructure.Repositories.DocumentSequence;
 using FinanceManagement.Infrastructure.Repositories.EInvoiceHeader;
+using FinanceManagement.Infrastructure.Repositories.Lookups.Finance;
 using FinanceManagement.Infrastructure.Repositories.TransactionTypeMaster;
 using FinanceManagement.Infrastructure.Services;
 using Serilog;
@@ -101,6 +103,9 @@ namespace FinanceManagement.Infrastructure
 
             services.AddScoped<IEInvoiceHeaderCommandRepository, EInvoiceHeaderCommandRepository>();
             services.AddScoped<IEInvoiceHeaderQueryRepository, EInvoiceHeaderQueryRepository>();
+
+            // ── Lookup repositories (consumed by other modules via Contracts) ──
+            services.AddScoped<IDocumentSequenceLookup, DocumentSequenceLookupRepository>();
 
             return services;
         }
