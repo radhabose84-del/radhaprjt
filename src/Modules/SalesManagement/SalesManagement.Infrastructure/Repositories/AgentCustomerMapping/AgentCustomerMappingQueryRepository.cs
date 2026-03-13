@@ -38,11 +38,13 @@ namespace SalesManagement.Infrastructure.Repositories.AgentCustomerMapping
 
                 SELECT
                     acm.Id, acm.CustomerId, acm.AgentId, acm.SubAgentId,
+                    acm.SalesSegmentId, ss.SegmentName,
                     acm.EffectiveFrom, acm.EffectiveTo, acm.IsDefaultAgent, acm.Remarks,
                     acm.IsActive, acm.IsDeleted,
                     acm.CreatedBy, acm.CreatedDate, acm.CreatedByName, acm.CreatedIP,
                     acm.ModifiedBy, acm.ModifiedDate, acm.ModifiedByName, acm.ModifiedIP
                 FROM Sales.AgentCustomerMapping acm
+                LEFT JOIN Sales.SalesSegment ss ON acm.SalesSegmentId = ss.Id AND ss.IsDeleted = 0
                 WHERE acm.IsDeleted = 0
                 {searchFilter}
                 ORDER BY acm.Id DESC
@@ -90,11 +92,13 @@ namespace SalesManagement.Infrastructure.Repositories.AgentCustomerMapping
             const string sql = @"
                 SELECT
                     acm.Id, acm.CustomerId, acm.AgentId, acm.SubAgentId,
+                    acm.SalesSegmentId, ss.SegmentName,
                     acm.EffectiveFrom, acm.EffectiveTo, acm.IsDefaultAgent, acm.Remarks,
                     acm.IsActive, acm.IsDeleted,
                     acm.CreatedBy, acm.CreatedDate, acm.CreatedByName, acm.CreatedIP,
                     acm.ModifiedBy, acm.ModifiedDate, acm.ModifiedByName, acm.ModifiedIP
                 FROM Sales.AgentCustomerMapping acm
+                LEFT JOIN Sales.SalesSegment ss ON acm.SalesSegmentId = ss.Id AND ss.IsDeleted = 0
                 WHERE acm.Id = @Id AND acm.IsDeleted = 0";
 
             var dto = await _dbConnection.QueryFirstOrDefaultAsync<AgentCustomerMappingDto>(
@@ -180,6 +184,16 @@ namespace SalesManagement.Infrastructure.Repositories.AgentCustomerMapping
         {
             var agents = await _agentLookup.GetAllAgentAsync();
             return agents.Any(x => x.Id == agentId);
+        }
+
+        public async Task<bool> SalesSegmentExistsAsync(int salesSegmentId, CancellationToken ct = default)
+        {
+            const string sql = @"
+                SELECT COUNT(1) FROM Sales.SalesSegment
+                WHERE Id = @Id AND IsActive = 1 AND IsDeleted = 0";
+
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = salesSegmentId });
+            return count > 0;
         }
 
         public async Task<bool> SoftDeleteValidationAsync(int id, CancellationToken ct = default)

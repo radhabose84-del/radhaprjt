@@ -38,6 +38,10 @@ namespace SalesManagement.Presentation.Validation.AgentCustomerMapping
                             .GreaterThan(0)
                             .WithMessage($"{nameof(CreateAgentCustomerMappingCommand.AgentId)} {rule.Error}");
 
+                        RuleFor(x => x.SalesSegmentId)
+                            .GreaterThan(0)
+                            .WithMessage($"{nameof(CreateAgentCustomerMappingCommand.SalesSegmentId)} {rule.Error}");
+
                         RuleFor(x => x.EffectiveFrom)
                             .NotEqual(default(DateTime))
                             .WithMessage($"{nameof(CreateAgentCustomerMappingCommand.EffectiveFrom)} {rule.Error}")
@@ -68,6 +72,11 @@ namespace SalesManagement.Presentation.Validation.AgentCustomerMapping
                             .MustAsync(async (id, ct) => await _queryRepository.AgentExistsAsync(id, ct))
                             .WithMessage($"{nameof(CreateAgentCustomerMappingCommand.SubAgentId)} {rule.Error}")
                             .When(x => x.SubAgentId.HasValue && x.SubAgentId.Value > 0);
+
+                        RuleFor(x => x.SalesSegmentId)
+                            .MustAsync(async (id, ct) => await _queryRepository.SalesSegmentExistsAsync(id, ct))
+                            .WithMessage($"{nameof(CreateAgentCustomerMappingCommand.SalesSegmentId)} {rule.Error}")
+                            .When(x => x.SalesSegmentId > 0);
                         break;
 
                     case "AlreadyExists":
