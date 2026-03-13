@@ -27,6 +27,11 @@ namespace FinanceManagement.Infrastructure.Data.Configurations
             builder.Property(t => t.CGST).HasColumnName("CGST").HasColumnType("decimal(18,6)").IsRequired();
             builder.Property(t => t.SGST).HasColumnName("SGST").HasColumnType("decimal(18,6)").IsRequired();
             builder.Property(t => t.IGST).HasColumnName("IGST").HasColumnType("decimal(18,6)").IsRequired();
+            builder.Property(t => t.IsService).HasColumnName("IsService").HasColumnType("char(1)").HasDefaultValue("N").IsRequired(false);
+            builder.Property(t => t.GrossAmount).HasColumnName("GrossAmount").HasColumnType("decimal(18,6)").IsRequired();
+            builder.Property(t => t.FreeQty).HasColumnName("FreeQty").HasColumnType("decimal(18,6)").IsRequired();
+            builder.Property(t => t.CessRate).HasColumnName("CessRate").HasColumnType("decimal(5,2)").IsRequired();
+            builder.Property(t => t.CessAmount).HasColumnName("CessAmount").HasColumnType("decimal(18,6)").IsRequired();
             builder.Property(t => t.OtherCharges).HasColumnName("OtherCharges").HasColumnType("decimal(18,6)").IsRequired();
             builder.Property(t => t.TotalAmount).HasColumnName("TotalAmount").HasColumnType("decimal(18,6)").IsRequired();
             builder.Property(t => t.PackTypeId).HasColumnName("PackTypeId").HasColumnType("int").IsRequired(false);

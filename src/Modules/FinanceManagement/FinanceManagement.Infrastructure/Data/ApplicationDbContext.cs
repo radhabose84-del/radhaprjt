@@ -25,6 +25,8 @@ namespace FinanceManagement.Infrastructure.Data
         public DbSet<DocumentSequence> DocumentSequence => Set<DocumentSequence>();
         public DbSet<EInvoiceHeader> EInvoiceHeader => Set<EInvoiceHeader>();
         public DbSet<EInvoiceDetail> EInvoiceDetail => Set<EInvoiceDetail>();
+        public DbSet<EWaybillHeader> EWaybillHeader => Set<EWaybillHeader>();
+        public DbSet<EWaybillDetail> EWaybillDetail => Set<EWaybillDetail>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

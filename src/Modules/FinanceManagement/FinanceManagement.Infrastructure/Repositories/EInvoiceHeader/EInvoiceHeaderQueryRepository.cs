@@ -28,10 +28,12 @@ namespace FinanceManagement.Infrastructure.Repositories.EInvoiceHeader
                 AND (@Search IS NULL OR InvoiceNo LIKE @Search OR IrnNumber LIKE @Search)";
 
             const string dataSql = @"
-                SELECT Id, UnitId, InvoiceNo, InvoiceDate, IrnNumber, AckNo, AckDate,
-                       CGST, SGST, IGST, TCS, RoundOff, InvoiceAmount,
-                       PartyId, GstNo, Discount, Cess, OtherCharges, ReverseCharge,
-                       SignInvoice, SignQrCode, EwbNo, EwbDate, EwbValidTill, StatusId,
+                SELECT Id, UnitId, DocType, SupplyType, InvoiceNo, InvoiceDate, PlaceOfSupply,
+                       IrnNumber, AckNo, AckDate, SignInvoice, SignQrCode,
+                       IrnStatus, ErrorCode, ErrorMessage,
+                       PartyId, GstNo, ReverseCharge,
+                       CGST, SGST, IGST, Cess, StateCess, TCS, Discount, OtherCharges, RoundOff, InvoiceAmount,
+                       Remarks, StatusId, EWaybillCreated,
                        IsActive, IsDeleted,
                        CreatedBy, CreatedDate, CreatedByName, CreatedIP,
                        ModifiedBy, ModifiedDate, ModifiedByName, ModifiedIP
@@ -60,10 +62,12 @@ namespace FinanceManagement.Infrastructure.Repositories.EInvoiceHeader
         public async Task<EInvoiceHeaderDto?> GetByIdAsync(int id)
         {
             const string sql = @"
-                SELECT Id, UnitId, InvoiceNo, InvoiceDate, IrnNumber, AckNo, AckDate,
-                       CGST, SGST, IGST, TCS, RoundOff, InvoiceAmount,
-                       PartyId, GstNo, Discount, Cess, OtherCharges, ReverseCharge,
-                       SignInvoice, SignQrCode, EwbNo, EwbDate, EwbValidTill, StatusId,
+                SELECT Id, UnitId, DocType, SupplyType, InvoiceNo, InvoiceDate, PlaceOfSupply,
+                       IrnNumber, AckNo, AckDate, SignInvoice, SignQrCode,
+                       IrnStatus, ErrorCode, ErrorMessage,
+                       PartyId, GstNo, ReverseCharge,
+                       CGST, SGST, IGST, Cess, StateCess, TCS, Discount, OtherCharges, RoundOff, InvoiceAmount,
+                       Remarks, StatusId, EWaybillCreated,
                        IsActive, IsDeleted,
                        CreatedBy, CreatedDate, CreatedByName, CreatedIP,
                        ModifiedBy, ModifiedDate, ModifiedByName, ModifiedIP
