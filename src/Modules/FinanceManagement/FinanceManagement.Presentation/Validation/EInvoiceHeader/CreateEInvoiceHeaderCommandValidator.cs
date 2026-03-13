@@ -21,7 +21,6 @@ namespace FinanceManagement.Presentation.Validation.EInvoiceHeader
             var maxLengthIrnNumber  = maxLengthProvider.GetMaxLength<FinanceManagement.Domain.Entities.EInvoiceHeader>("IrnNumber")  ?? 100;
             var maxLengthAckNo      = maxLengthProvider.GetMaxLength<FinanceManagement.Domain.Entities.EInvoiceHeader>("AckNo")      ?? 50;
             var maxLengthGstNo      = maxLengthProvider.GetMaxLength<FinanceManagement.Domain.Entities.EInvoiceHeader>("GstNo")      ?? 20;
-            var maxLengthEwbNo      = maxLengthProvider.GetMaxLength<FinanceManagement.Domain.Entities.EInvoiceHeader>("EwbNo")      ?? 20;
 
             _validationRules = ValidationRuleLoader.LoadValidationRules();
             if (_validationRules == null || _validationRules.Count == 0)
@@ -67,11 +66,6 @@ namespace FinanceManagement.Presentation.Validation.EInvoiceHeader
                             .MaximumLength(maxLengthGstNo)
                             .WithMessage($"{nameof(CreateEInvoiceHeaderCommand.GstNo)} {rule.Error} {maxLengthGstNo} characters.")
                             .When(x => !string.IsNullOrWhiteSpace(x.GstNo));
-
-                        RuleFor(x => x.EwbNo)
-                            .MaximumLength(maxLengthEwbNo)
-                            .WithMessage($"{nameof(CreateEInvoiceHeaderCommand.EwbNo)} {rule.Error} {maxLengthEwbNo} characters.")
-                            .When(x => !string.IsNullOrWhiteSpace(x.EwbNo));
                         break;
 
                     case "AlreadyExists":

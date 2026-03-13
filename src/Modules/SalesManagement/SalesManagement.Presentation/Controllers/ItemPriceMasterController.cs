@@ -73,8 +73,8 @@ namespace SalesManagement.Presentation.Controllers
 
         [HttpGet("exmill-rate")]
         public async Task<IActionResult> GetExMillRateByPaymentTermAsync(
-            [FromQuery] int paymentTermId,
             [FromQuery] int itemId,
+            [FromQuery] int? paymentTermId = null,
             [FromQuery] int? salesSegmentId = null)
         {
             var result = await Mediator.Send(new GetExMillRateByPaymentTermQuery

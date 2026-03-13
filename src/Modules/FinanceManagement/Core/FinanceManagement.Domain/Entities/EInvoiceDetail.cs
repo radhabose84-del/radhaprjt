@@ -21,10 +21,15 @@ namespace FinanceManagement.Domain.Entities
         public decimal IGST { get; set; }
         public decimal OtherCharges { get; set; }
         public decimal TotalAmount { get; set; }
+        public string? IsService { get; set; }            // Y = Service, N = Goods
+        public decimal GrossAmount { get; set; }          // Qty × UnitPrice before discount (TotAmt)
+        public decimal FreeQty { get; set; }
+        public decimal CessRate { get; set; }
+        public decimal CessAmount { get; set; }
         public int? PackTypeId { get; set; }              // Cross-module FK — no navigation property in Finance
         public string? UOM { get; set; }
 
-        // Navigation properties
+        // Navigation property
         public EInvoiceHeader? EInvoiceHeader { get; set; }
     }
 }
