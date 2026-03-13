@@ -59,9 +59,6 @@ namespace SalesManagement.Domain.Entities
         // Reverse navigation (SalesQuotationHeader)
         public ICollection<SalesQuotationHeader>? SalesQuotationHeadersAsStatus { get; set; }
 
-        // Reverse navigation (EInvoiceHeader)
-        public ICollection<EInvoiceHeader>? EInvoiceHeadersAsStatus { get; set; }
-
         // Reverse navigation (StoReceipt)
         public ICollection<StoReceiptHeader>? StoReceiptHeadersAsStatus { get; set; }
         public ICollection<StoReceiptDetail>? StoReceiptDetailsAsLineStatus { get; set; }

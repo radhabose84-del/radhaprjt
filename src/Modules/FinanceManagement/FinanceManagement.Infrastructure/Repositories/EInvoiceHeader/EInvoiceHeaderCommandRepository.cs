@@ -1,0 +1,77 @@
+using FinanceManagement.Application.Common.Interfaces.IEInvoiceHeader;
+using FinanceManagement.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
+using static FinanceManagement.Domain.Common.BaseEntity;
+
+namespace FinanceManagement.Infrastructure.Repositories.EInvoiceHeader
+{
+    public class EInvoiceHeaderCommandRepository : IEInvoiceHeaderCommandRepository
+    {
+        private readonly ApplicationDbContext _dbContext;
+
+        public EInvoiceHeaderCommandRepository(ApplicationDbContext dbContext)
+        {
+            _dbContext = dbContext;
+        }
+
+        public async Task<int> CreateAsync(Domain.Entities.EInvoiceHeader entity)
+        {
+            await _dbContext.EInvoiceHeader.AddAsync(entity);
+            await _dbContext.SaveChangesAsync();
+            return entity.Id;
+        }
+
+        public async Task<int> UpdateAsync(Domain.Entities.EInvoiceHeader entity)
+        {
+            var existing = await _dbContext.EInvoiceHeader
+                .FirstOrDefaultAsync(x => x.Id == entity.Id && x.IsDeleted == IsDelete.NotDeleted);
+
+            if (existing == null)
+                return 0;
+
+            existing.UnitId = entity.UnitId;
+            existing.InvoiceNo = entity.InvoiceNo;
+            existing.InvoiceDate = entity.InvoiceDate;
+            existing.IrnNumber = entity.IrnNumber;
+            existing.AckNo = entity.AckNo;
+            existing.AckDate = entity.AckDate;
+            existing.CGST = entity.CGST;
+            existing.SGST = entity.SGST;
+            existing.IGST = entity.IGST;
+            existing.TCS = entity.TCS;
+            existing.RoundOff = entity.RoundOff;
+            existing.InvoiceAmount = entity.InvoiceAmount;
+            existing.PartyId = entity.PartyId;
+            existing.GstNo = entity.GstNo;
+            existing.Discount = entity.Discount;
+            existing.Cess = entity.Cess;
+            existing.OtherCharges = entity.OtherCharges;
+            existing.ReverseCharge = entity.ReverseCharge;
+            existing.SignInvoice = entity.SignInvoice;
+            existing.SignQrCode = entity.SignQrCode;
+            existing.EwbNo = entity.EwbNo;
+            existing.EwbDate = entity.EwbDate;
+            existing.EwbValidTill = entity.EwbValidTill;
+            existing.StatusId = entity.StatusId;
+            existing.IsActive = entity.IsActive;
+
+            _dbContext.EInvoiceHeader.Update(existing);
+            await _dbContext.SaveChangesAsync();
+            return existing.Id;
+        }
+
+        public async Task<bool> SoftDeleteAsync(int id, CancellationToken ct)
+        {
+            var existing = await _dbContext.EInvoiceHeader
+                .FirstOrDefaultAsync(x => x.Id == id && x.IsDeleted == IsDelete.NotDeleted, ct);
+
+            if (existing == null)
+                return false;
+
+            existing.IsDeleted = IsDelete.Deleted;
+            _dbContext.EInvoiceHeader.Update(existing);
+            await _dbContext.SaveChangesAsync(ct);
+            return true;
+        }
+    }
+}
