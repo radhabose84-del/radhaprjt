@@ -6,8 +6,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace ProjectManagement.Presentation.Controllers
 {
-    [Route("api/[controller]")]
-
+    [Route("api/project/[controller]")]
     public class AuditLogController : ApiControllerBase
     {
 

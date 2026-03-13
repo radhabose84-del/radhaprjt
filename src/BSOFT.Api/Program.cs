@@ -20,6 +20,7 @@ using BudgetManagement.Module;
 using BackgroundService.Presentation;
 using GateEntryManagement.Module;
 using FinanceManagement.Module;
+using ProductionManagement.Module;
 using Contracts.Common;
 using BSOFT.Api.Hubs;
 
@@ -61,6 +62,7 @@ builder.Services.AddBudgetManagementModule(builder.Configuration, builder.Enviro
 builder.Services.AddBackgroundServiceModule(builder.Configuration, builder.Environment);
 builder.Services.AddGateEntryManagementModule(builder.Configuration, builder.Environment);
 builder.Services.AddFinanceManagementModule(builder.Configuration, builder.Environment);
+builder.Services.AddProductionManagementModule(builder.Configuration, builder.Environment);
 
 // ✅ Global lookup caching (MUST be after module registrations)
 builder.Services.AddLookupCaching(options =>
