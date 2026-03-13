@@ -104,12 +104,7 @@ namespace PartyManagement.Application.PartyMaster.Command.CreatePartyMaster
             if (dto.AgentConfigs != null)
             {
                 dto.AgentConfigs = dto.AgentConfigs
-                    .Where(a =>
-                        a.SettlementCycleId != 0 ||
-                        !string.IsNullOrWhiteSpace(a.TdsCode) ||
-                        !string.IsNullOrWhiteSpace(a.DefaultCommissionGl) ||
-                        a.AgreementStartDate != null ||
-                        a.TargetAmount != null)
+                    .Where(a => a.SettlementCycleId != 0)
                     .ToList();
 
                 if (!dto.AgentConfigs.Any())
