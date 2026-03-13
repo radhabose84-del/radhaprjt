@@ -134,7 +134,9 @@ namespace PartyManagement.Infrastructure
             services.AddScoped<IBankMasterCommandRepository, BankMasterCommandRepository>();
 
             // Lookups
-services.AddScoped<IPartyLookup, PartyLookupRepository>();
+            services.AddScoped<IPartyLookup, PartyLookupRepository>();
+            services.AddScoped<ICustomerLookup, CustomerLookupRepository>();
+            services.AddScoped<IAgentLookup, AgentLookupRepository>();
 
             // Miscellaneous services
             services.AddTransient<IFileUploadService, FileUploadRepository>();
