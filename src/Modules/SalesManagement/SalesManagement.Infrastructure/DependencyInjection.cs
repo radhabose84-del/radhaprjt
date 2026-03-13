@@ -75,6 +75,8 @@ using SalesManagement.Infrastructure.Repositories.StoReceipt;
 
 using SalesManagement.Application.Common.Interfaces.IStockLedger;
 using SalesManagement.Infrastructure.Repositories.Reports.StockLedger;
+using SalesManagement.Application.Common.Interfaces.IAgentCustomerMapping;
+using SalesManagement.Infrastructure.Repositories.AgentCustomerMapping;
 
 namespace SalesManagement.Infrastructure
 {
@@ -199,6 +201,10 @@ namespace SalesManagement.Infrastructure
             // ── Agent Commission Configuration Repositories ─────────────
             services.AddScoped<IAgentCommissionConfigCommandRepository, AgentCommissionConfigCommandRepository>();
             services.AddScoped<IAgentCommissionConfigQueryRepository, AgentCommissionConfigQueryRepository>();
+
+            // ── Agent Customer Mapping Repositories ──────────────────────
+            services.AddScoped<IAgentCustomerMappingCommandRepository, AgentCustomerMappingCommandRepository>();
+            services.AddScoped<IAgentCustomerMappingQueryRepository, AgentCustomerMappingQueryRepository>();
             // ── Dispatch Address Master Repositories ──────────────────────
             services.AddScoped<IDispatchAddressMasterCommandRepository, DispatchAddressMasterCommandRepository>();
             services.AddScoped<IDispatchAddressMasterQueryRepository, DispatchAddressMasterQueryRepository>();

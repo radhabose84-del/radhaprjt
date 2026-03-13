@@ -34,6 +34,7 @@ namespace SalesManagement.Infrastructure.Data
         public DbSet<MiscTypeMaster> MiscTypeMaster { get; set; }
         public DbSet<MiscMaster> MiscMaster { get; set; }
         public DbSet<AgentCommissionConfig> AgentCommissionConfig { get; set; }
+        public DbSet<AgentCustomerMapping> AgentCustomerMapping { get; set; }
         public DbSet<DispatchAddressMaster> DispatchAddressMaster { get; set; }
         public DbSet<MarketingOfficer> MarketingOfficer { get; set; }
         public DbSet<OfficerSalesGroup> OfficerSalesGroup { get; set; }
@@ -79,6 +80,7 @@ namespace SalesManagement.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new MiscTypeMasterConfiguration());
             modelBuilder.ApplyConfiguration(new MiscMasterConfiguration());
             modelBuilder.ApplyConfiguration(new AgentCommissionConfigConfiguration());
+            modelBuilder.ApplyConfiguration(new AgentCustomerMappingConfiguration());
             modelBuilder.ApplyConfiguration(new DispatchAddressMasterConfiguration());
             modelBuilder.ApplyConfiguration(new MarketingOfficerConfiguration());
             modelBuilder.ApplyConfiguration(new OfficerSalesGroupConfiguration());
