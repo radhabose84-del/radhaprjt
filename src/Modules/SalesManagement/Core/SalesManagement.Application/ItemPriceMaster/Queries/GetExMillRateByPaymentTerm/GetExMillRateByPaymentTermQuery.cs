@@ -6,7 +6,7 @@ namespace SalesManagement.Application.ItemPriceMaster.Queries.GetExMillRateByPay
 {
     public class GetExMillRateByPaymentTermQuery : IRequest<ApiResponseDTO<List<ExMillRateDto>>>
     {
-        public int PaymentTermId { get; set; }
+        public int? PaymentTermId { get; set; }
         public int? SalesSegmentId { get; set; }
         public int ItemId { get; set; }
     }

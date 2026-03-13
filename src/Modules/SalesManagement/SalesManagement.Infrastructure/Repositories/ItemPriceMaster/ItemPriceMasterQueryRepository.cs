@@ -1,5 +1,6 @@
 using System.Data;
 using Contracts.Interfaces.Lookups.Inventory;
+using Contracts.Dtos.Lookups.Purchase;
 using Contracts.Interfaces.Lookups.Purchase;
 using Contracts.Interfaces.Lookups.Users;
 using Dapper;
@@ -353,13 +354,14 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
             return count > 0;
         }
 
-        public async Task<List<ExMillRateDto>> GetExMillRateByPaymentTermAsync(int paymentTermId, int itemId, int? salesSegmentId = null)
+        public async Task<List<ExMillRateDto>> GetExMillRateByPaymentTermAsync(int? paymentTermId, int itemId, int? salesSegmentId = null)
         {
-            var paymentTerms = await _paymentTermLookup.GetAllPaymentTermAsync();
-            var paymentTerm = paymentTerms.FirstOrDefault(pt => pt.Id == paymentTermId);
-
-            if (paymentTerm == null)
-                return [];
+            PaymentTermLookupDto? paymentTerm = null;
+            if (paymentTermId.HasValue)
+            {
+                var paymentTerms = await _paymentTermLookup.GetAllPaymentTermAsync();
+                paymentTerm = paymentTerms.FirstOrDefault(pt => pt.Id == paymentTermId.Value);
+            }
 
             const string sql = @"
                 SELECT
@@ -382,7 +384,7 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
             return rows.Select(r =>
             {
                 var baseRate = (decimal)r.BaseRate;
-                var calculated = baseRate + paymentTerm.AdditionalValue;
+                var calculated = paymentTerm != null ? baseRate + paymentTerm.AdditionalValue : baseRate;
                 return new ExMillRateDto
                 {
                     Id = (int)r.Id,
