@@ -1,12 +1,17 @@
 using Contracts.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using ProductionManagement.Application.Common.Interfaces;
 using ProductionManagement.Domain.Common;
-using Microsoft.EntityFrameworkCore;
+using ProductionManagement.Domain.Entities;
 
 namespace ProductionManagement.Infrastructure.Data
 {
     public class ApplicationDbContext : DbContext
     {
+        public DbSet<CountMaster> CountMaster => Set<CountMaster>();
+        public DbSet<MiscTypeMaster> MiscTypeMaster => Set<MiscTypeMaster>();
+        public DbSet<MiscMaster> MiscMaster => Set<MiscMaster>();
+
         private readonly IIPAddressService _ipAddressService;
         private readonly ITimeZoneService _timeZoneService;
 
