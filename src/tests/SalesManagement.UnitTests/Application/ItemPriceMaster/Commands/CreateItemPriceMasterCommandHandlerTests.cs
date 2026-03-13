@@ -1,9 +1,9 @@
 using Contracts.Interfaces;
 using AutoMapper;
 using Contracts.Common;
+using Contracts.Interfaces.Lookups.Finance;
 using MediatR;
 using SalesManagement.Application.Common.Interfaces;
-using SalesManagement.Application.Common.Interfaces.IDocumentSequence;
 using SalesManagement.Application.Common.Interfaces.IItemPriceMaster;
 using SalesManagement.Application.Common.Interfaces.IMiscMaster;
 using SalesManagement.Application.ItemPriceMaster.Commands.CreateItemPriceMaster;
@@ -17,7 +17,7 @@ namespace SalesManagement.UnitTests.Application.ItemPriceMaster.Commands
     {
         private readonly Mock<IItemPriceMasterCommandRepository> _mockCommandRepo = new(MockBehavior.Strict);
         private readonly Mock<IMiscMasterQueryRepository> _mockMiscMasterQueryRepo = new(MockBehavior.Strict);
-        private readonly Mock<IDocumentSequenceQueryRepository> _mockDocSeqQueryRepo = new(MockBehavior.Strict);
+        private readonly Mock<IDocumentSequenceLookup> _mockDocSeqLookup = new(MockBehavior.Strict);
         private readonly Mock<IIPAddressService> _mockIpAddressService = new(MockBehavior.Strict);
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Strict);
         private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Strict);
@@ -26,7 +26,7 @@ namespace SalesManagement.UnitTests.Application.ItemPriceMaster.Commands
             new CreateItemPriceMasterCommandHandler(
                 _mockCommandRepo.Object,
                 _mockMiscMasterQueryRepo.Object,
-                _mockDocSeqQueryRepo.Object,
+                _mockDocSeqLookup.Object,
                 _mockIpAddressService.Object,
                 _mockMediator.Object,
                 _mockMapper.Object);
@@ -39,7 +39,7 @@ namespace SalesManagement.UnitTests.Application.ItemPriceMaster.Commands
             {
                 ItemId = command.ItemId,
                 SalesSegmentId = command.SalesSegmentId,
-                ExMillRate = command.ExMillRate
+                BaseRate = command.BaseRate
             };
 
             _mockMapper
@@ -54,11 +54,11 @@ namespace SalesManagement.UnitTests.Application.ItemPriceMaster.Commands
                 .Setup(s => s.GetUnitId())
                 .Returns(1);
 
-            _mockDocSeqQueryRepo
+            _mockDocSeqLookup
                 .Setup(r => r.GetTransactionTypeIdAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()))
                 .ReturnsAsync(5);
 
-            _mockDocSeqQueryRepo
+            _mockDocSeqLookup
                 .Setup(r => r.GenerateDocumentNumber(It.IsAny<int>()))
                 .ReturnsAsync(new List<string> { "UNIT-PM-2526-0001" });
 
@@ -149,7 +149,7 @@ namespace SalesManagement.UnitTests.Application.ItemPriceMaster.Commands
             {
                 ItemId = command.ItemId,
                 SalesSegmentId = command.SalesSegmentId,
-                ExMillRate = command.ExMillRate
+                BaseRate = command.BaseRate
             };
 
             _mockMapper
@@ -164,11 +164,11 @@ namespace SalesManagement.UnitTests.Application.ItemPriceMaster.Commands
                 .Setup(s => s.GetUnitId())
                 .Returns(1);
 
-            _mockDocSeqQueryRepo
+            _mockDocSeqLookup
                 .Setup(r => r.GetTransactionTypeIdAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()))
                 .ReturnsAsync(5);
 
-            _mockDocSeqQueryRepo
+            _mockDocSeqLookup
                 .Setup(r => r.GenerateDocumentNumber(5))
                 .ReturnsAsync(new List<string> { "UNIT-PM-2526-0001" });
 
@@ -220,7 +220,7 @@ namespace SalesManagement.UnitTests.Application.ItemPriceMaster.Commands
             {
                 ItemId = command.ItemId,
                 SalesSegmentId = command.SalesSegmentId,
-                ExMillRate = command.ExMillRate
+                BaseRate = command.BaseRate
             };
 
             _mockMapper
@@ -235,7 +235,7 @@ namespace SalesManagement.UnitTests.Application.ItemPriceMaster.Commands
                 .Setup(s => s.GetUnitId())
                 .Returns(1);
 
-            _mockDocSeqQueryRepo
+            _mockDocSeqLookup
                 .Setup(r => r.GetTransactionTypeIdAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()))
                 .ReturnsAsync((int?)null);
 
@@ -254,7 +254,7 @@ namespace SalesManagement.UnitTests.Application.ItemPriceMaster.Commands
             {
                 ItemId = command.ItemId,
                 SalesSegmentId = command.SalesSegmentId,
-                ExMillRate = command.ExMillRate
+                BaseRate = command.BaseRate
             };
 
             _mockMapper
@@ -269,11 +269,11 @@ namespace SalesManagement.UnitTests.Application.ItemPriceMaster.Commands
                 .Setup(s => s.GetUnitId())
                 .Returns(1);
 
-            _mockDocSeqQueryRepo
+            _mockDocSeqLookup
                 .Setup(r => r.GetTransactionTypeIdAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()))
                 .ReturnsAsync(5);
 
-            _mockDocSeqQueryRepo
+            _mockDocSeqLookup
                 .Setup(r => r.GenerateDocumentNumber(5))
                 .ReturnsAsync(new List<string>());
 

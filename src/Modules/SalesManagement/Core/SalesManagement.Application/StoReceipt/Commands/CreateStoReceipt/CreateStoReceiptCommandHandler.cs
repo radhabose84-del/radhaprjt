@@ -2,7 +2,7 @@ using AutoMapper;
 using Contracts.Common;
 using MediatR;
 using Contracts.Interfaces;
-using SalesManagement.Application.Common.Interfaces.IDocumentSequence;
+using Contracts.Interfaces.Lookups.Finance;
 using SalesManagement.Application.Common.Interfaces.IMiscMaster;
 using SalesManagement.Application.Common.Interfaces.IStoReceipt;
 using SalesManagement.Domain.Common;
@@ -15,7 +15,7 @@ namespace SalesManagement.Application.StoReceipt.Commands.CreateStoReceipt
     {
         private readonly IStoReceiptCommandRepository _commandRepository;
         private readonly IMiscMasterQueryRepository _miscMasterQueryRepository;
-        private readonly IDocumentSequenceQueryRepository _documentSequenceQueryRepository;
+        private readonly IDocumentSequenceLookup _documentSequenceLookup;
         private readonly IIPAddressService _ipAddressService;
         private readonly IMediator _mediator;
         private readonly IMapper _mapper;
@@ -23,14 +23,14 @@ namespace SalesManagement.Application.StoReceipt.Commands.CreateStoReceipt
         public CreateStoReceiptCommandHandler(
             IStoReceiptCommandRepository commandRepository,
             IMiscMasterQueryRepository miscMasterQueryRepository,
-            IDocumentSequenceQueryRepository documentSequenceQueryRepository,
+            IDocumentSequenceLookup documentSequenceLookup,
             IIPAddressService ipAddressService,
             IMediator mediator,
             IMapper mapper)
         {
             _commandRepository = commandRepository;
             _miscMasterQueryRepository = miscMasterQueryRepository;
-            _documentSequenceQueryRepository = documentSequenceQueryRepository;
+            _documentSequenceLookup = documentSequenceLookup;
             _ipAddressService = ipAddressService;
             _mediator = mediator;
             _mapper = mapper;
@@ -58,12 +58,12 @@ namespace SalesManagement.Application.StoReceipt.Commands.CreateStoReceipt
             var unitId = _ipAddressService.GetUnitId();
 
             // Generate STO Receipt Number from Finance.DocumentSequence
-            var typeId = await _documentSequenceQueryRepository.GetTransactionTypeIdAsync(
+            var typeId = await _documentSequenceLookup.GetTransactionTypeIdAsync(
                 MiscEnumEntity.TransactionTypeStogr, MiscEnumEntity.ModuleSales, unitId ?? 0);
             if (!typeId.HasValue)
                 throw new ExceptionRules("Transaction Type 'STO Goods Receipt' not found for Sales module.");
 
-            var sequences = await _documentSequenceQueryRepository.GenerateDocumentNumber(typeId.Value);
+            var sequences = await _documentSequenceLookup.GenerateDocumentNumber(typeId.Value);
             var stoReceiptNumber = sequences.Count > 0 ? sequences[^1] : null;
             entity.StoReceiptNumber = stoReceiptNumber
                 ?? throw new ExceptionRules("No document sequence configured for STO Goods Receipt.");

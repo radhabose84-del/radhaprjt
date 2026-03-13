@@ -43,18 +43,8 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("int")
                 .IsRequired();
 
-            builder.Property(t => t.PaymentTermsId)
-                .HasColumnName("PaymentTermsId")
-                .HasColumnType("int")
-                .IsRequired();
-
             builder.Property(t => t.BaseRate)
                 .HasColumnName("BaseRate")
-                .HasColumnType("decimal(18,4)")
-                .IsRequired();
-
-            builder.Property(t => t.ExMillRate)
-                .HasColumnName("ExMillRate")
                 .HasColumnType("decimal(18,4)")
                 .IsRequired();
 
@@ -103,7 +93,7 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             builder.HasIndex(t => t.PriceCode).IsUnique();
 
             // Composite index for overlap query performance
-            builder.HasIndex(t => new { t.ItemId, t.SalesSegmentId, t.PaymentTermsId });
+            builder.HasIndex(t => new { t.ItemId, t.SalesSegmentId });
 
             // Same-module FK — SalesSegment (DB constraint created)
             builder.HasOne(t => t.SalesSegment)
@@ -118,7 +108,7 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Cross-module FKs (ItemId, PaymentTermsId, CurrencyId) — NO DB FK constraints
+            // Cross-module FKs (ItemId, CurrencyId) — NO DB FK constraints
         }
     }
 }

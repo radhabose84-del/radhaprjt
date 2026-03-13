@@ -1,17 +1,36 @@
-using System.Data;
 using Contracts.Dtos.Lookups.Users;
 using Contracts.Interfaces.Lookups.Users;
-using Dapper;
+using UserManagement.Application.Common.Interfaces.ICity;
+using UserManagement.Application.Common.Interfaces.ICountry;
+using UserManagement.Application.Common.Interfaces.IState;
+using UserManagement.Domain.Entities;
+using static UserManagement.Domain.Enums.Common.Enums;
 
 namespace UserManagement.Infrastructure.Repositories.Lookups.Users
 {
-    internal class LocationLookupRepository : ILocationLookup
+    internal sealed class LocationLookupRepository : ILocationLookup
     {
-        private readonly IDbConnection _dbConnection;
+        private readonly ICountryQueryRepository   _countryQueryRepository;
+        private readonly ICountryCommandRepository _countryCommandRepository;
+        private readonly IStateQueryRepository     _stateQueryRepository;
+        private readonly IStateCommandRepository   _stateCommandRepository;
+        private readonly ICityQueryRepository      _cityQueryRepository;
+        private readonly ICityCommandRepository    _cityCommandRepository;
 
-        public LocationLookupRepository(IDbConnection dbConnection)
+        public LocationLookupRepository(
+            ICountryQueryRepository   countryQueryRepository,
+            ICountryCommandRepository countryCommandRepository,
+            IStateQueryRepository     stateQueryRepository,
+            IStateCommandRepository   stateCommandRepository,
+            ICityQueryRepository      cityQueryRepository,
+            ICityCommandRepository    cityCommandRepository)
         {
-            _dbConnection = dbConnection;
+            _countryQueryRepository   = countryQueryRepository;
+            _countryCommandRepository = countryCommandRepository;
+            _stateQueryRepository     = stateQueryRepository;
+            _stateCommandRepository   = stateCommandRepository;
+            _cityQueryRepository      = cityQueryRepository;
+            _cityCommandRepository    = cityCommandRepository;
         }
 
         public async Task<LocationLookupDto?> GetLocationAsync(
@@ -27,7 +46,6 @@ namespace UserManagement.Infrastructure.Repositories.Lookups.Users
                 return null;
             }
 
-            // Normalization: trim + lowercase + remove spaces
             static string Normalize(string input) =>
                 string.IsNullOrWhiteSpace(input)
                     ? string.Empty
@@ -41,95 +59,59 @@ namespace UserManagement.Infrastructure.Repositories.Lookups.Users
             var normalizedCity    = Normalize(city);
 
             // --- Step 1: Country ---
-            const string countrySelectSql = @"
-                SELECT Id, CountryName FROM [AppData].[Country]
-                WHERE IsDeleted = 0 AND LOWER(REPLACE(TRIM(CountryName), ' ', '')) = @Normalized;";
+            var countries      = await _countryQueryRepository.GetByCountryNameAsync(country);
+            var matchedCountry = countries.FirstOrDefault(c => Normalize(c.CountryName ?? " ") == normalizedCountry);
 
-            var (countryDbId, _) = await _dbConnection.QueryFirstOrDefaultAsync<(int Id, string CountryName)>(
-                countrySelectSql, new { Normalized = normalizedCountry });
-
-            int countryId;
-            if (countryDbId > 0)
+            if (matchedCountry is null)
             {
-                countryId = countryDbId;
-            }
-            else
-            {
-                const string countryInsertSql = @"
-                    INSERT INTO [AppData].[Country]
-                        (CountryCode, CountryName, IsActive, IsDeleted, CreatedBy, CreatedAt)
-                    OUTPUT INSERTED.Id
-                    VALUES (@CountryCode, @CountryName, 1, 0, 0, SYSDATETIMEOFFSET());";
-
-                countryId = await _dbConnection.ExecuteScalarAsync<int>(countryInsertSql, new
+                matchedCountry = new Countries
                 {
+                    CountryName = country.TrimEnd(),
                     CountryCode = Code(country, 5),
-                    CountryName = country.Trim()
-                });
+                    IsActive    = Status.Active
+                };
+                matchedCountry = await _countryCommandRepository.CreateAsync(matchedCountry);
             }
 
             // --- Step 2: State ---
-            const string stateSelectSql = @"
-                SELECT Id, StateName FROM [AppData].[State]
-                WHERE IsDeleted = 0
-                  AND CountryId = @CountryId
-                  AND LOWER(REPLACE(TRIM(StateName), ' ', '')) = @Normalized;";
+            var states       = await _stateQueryRepository.GetByStateNameAsync(state);
+            var matchedState = states.FirstOrDefault(s =>
+                Normalize(s.StateName ?? " ") == normalizedState && s.CountryId == matchedCountry.Id);
 
-            var (stateDbId, _) = await _dbConnection.QueryFirstOrDefaultAsync<(int Id, string StateName)>(
-                stateSelectSql, new { CountryId = countryId, Normalized = normalizedState });
-
-            int stateId;
-            if (stateDbId > 0)
+            if (matchedState is null)
             {
-                stateId = stateDbId;
-            }
-            else
-            {
-                const string stateInsertSql = @"
-                    INSERT INTO [AppData].[State]
-                        (StateCode, StateName, CountryId, IsActive, IsDeleted, CreatedBy, CreatedAt)
-                    OUTPUT INSERTED.Id
-                    VALUES (@StateCode, @StateName, @CountryId, 1, 0, 0, SYSDATETIMEOFFSET());";
-
-                stateId = await _dbConnection.ExecuteScalarAsync<int>(stateInsertSql, new
+                matchedState = new States
                 {
                     StateCode = Code(state, 5),
-                    StateName = state.Trim(),
-                    CountryId = countryId
-                });
+                    StateName = state.TrimEnd(),
+                    CountryId = matchedCountry.Id,
+                    IsActive  = Status.Active
+                };
+                matchedState = await _stateCommandRepository.CreateAsync(matchedState);
             }
 
             // --- Step 3: City ---
-            const string citySelectSql = @"
-                SELECT Id FROM [AppData].[City]
-                WHERE IsDeleted = 0
-                  AND StateId = @StateId
-                  AND LOWER(REPLACE(TRIM(CityName), ' ', '')) = @Normalized;";
+            var cities      = await _cityQueryRepository.GetByCityNameAsync(city);
+            var matchedCity = cities.FirstOrDefault(c =>
+                Normalize(c.CityName ?? " ") == normalizedCity && c.StateId == matchedState.Id);
 
-            var cityId = await _dbConnection.QueryFirstOrDefaultAsync<int?>(
-                citySelectSql, new { StateId = stateId, Normalized = normalizedCity });
-
-            if (cityId == null || cityId == 0)
+            if (matchedCity is null)
             {
-                const string cityInsertSql = @"
-                    INSERT INTO [AppData].[City]
-                        (CityCode, CityName, StateId, IsActive, IsDeleted, CreatedBy, CreatedAt)
-                    OUTPUT INSERTED.Id
-                    VALUES (@CityCode, @CityName, @StateId, 1, 0, 0, SYSDATETIMEOFFSET());";
-
-                cityId = await _dbConnection.ExecuteScalarAsync<int>(cityInsertSql, new
+                matchedCity = new Cities
                 {
                     CityCode = Code(city, 5),
-                    CityName = city.Trim(),
-                    StateId  = stateId
-                });
+                    CityName = city.TrimEnd(),
+                    StateId  = matchedState.Id,
+                    IsActive = Status.Active
+                };
+                matchedCity = await _cityCommandRepository.CreateAsync(matchedCity);
             }
 
             return new LocationLookupDto
             {
-                CityId    = cityId.Value,
-                StateId   = stateId,
-                CountryId = countryId
+                CityId    = matchedCity.Id,
+                StateId   = matchedState.Id,
+                CountryId = matchedCountry.Id
             };
         }
     }
