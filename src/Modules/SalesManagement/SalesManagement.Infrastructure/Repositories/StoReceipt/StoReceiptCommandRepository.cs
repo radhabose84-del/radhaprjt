@@ -58,6 +58,8 @@ namespace SalesManagement.Infrastructure.Repositories.StoReceipt
                                 LineStatusId = detail.LineStatusId
                             };
                             await _dbContext.StoReceiptDetail.AddAsync(newDetail);
+                            // Save detail now to get its auto-generated Id (needed for DetailDocNo in StockLedger)
+                            await _dbContext.SaveChangesAsync();
 
                             // Mark ALL dispatched packs at FROM plant as Dispatched (single range UPDATE)
                             if (dispatchedStatusId > 0)
@@ -96,7 +98,7 @@ namespace SalesManagement.Infrastructure.Repositories.StoReceipt
                                     UnitId = entity.ReceivingPlantId,
                                     DocType = "STOR",
                                     DocNo = entity.Id,
-                                    DetailDocNo = newDetail.Id > 0 ? newDetail.Id : 0,
+                                    DetailDocNo = newDetail.Id,
                                     DocDate = entity.StoReceiptDate,
                                     ItemId = detail.ItemId,
                                     LotId = detail.LotId,
@@ -111,9 +113,10 @@ namespace SalesManagement.Infrastructure.Repositories.StoReceipt
                                 await _dbContext.StockLedger.AddAsync(newStock);
                                 packIndex++;
                             }
-                        }
 
-                        await _dbContext.SaveChangesAsync();
+                            // Save StockLedger rows for this detail
+                            await _dbContext.SaveChangesAsync();
+                        }
                     }
 
                     // Increment DocNo in Finance.DocumentSequence
