@@ -99,12 +99,7 @@ namespace PartyManagement.Application.PartyMaster.Command.UpdatePartyMaster
             if (request.UpdatePartyMaster.AgentConfigsUpdate != null)
             {
                 request.UpdatePartyMaster.AgentConfigsUpdate = request.UpdatePartyMaster.AgentConfigsUpdate
-                    .Where(a =>
-                        a.SettlementCycleId != 0 ||
-                        !string.IsNullOrWhiteSpace(a.TdsCode) ||
-                        !string.IsNullOrWhiteSpace(a.DefaultCommissionGl) ||
-                        a.AgreementStartDate != null ||
-                        a.TargetAmount != null)
+                    .Where(a => a.SettlementCycleId != 0)
                     .ToList();
 
                 if (!request.UpdatePartyMaster.AgentConfigsUpdate.Any())
