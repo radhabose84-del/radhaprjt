@@ -10,7 +10,7 @@ namespace SalesManagement.UnitTests.TestData
     /// <summary>
     /// Builder helpers for creating valid test data for ItemPriceMaster tests.
     /// PriceCode is immutable after creation — not included in UpdateCommand.
-    /// Cross-module FKs: ItemId (IItemLookup), CurrencyId (ICurrencyLookup), PaymentTermsId (IPaymentTermLookup).
+    /// Cross-module FKs: ItemId (IItemLookup), CurrencyId (ICurrencyLookup).
     /// Same-module FK: SalesSegmentId → Sales.SalesSegment (DB FK constraint).
     /// </summary>
     public static class ItemPriceMasterBuilders
@@ -23,8 +23,7 @@ namespace SalesManagement.UnitTests.TestData
         public static CreateItemPriceMasterCommand ValidCreateCommand(
             int itemId = 10,
             int salesSegmentId = 1,
-            int paymentTermsId = 2,
-            decimal exMillRate = 100.00m,
+            decimal baseRate = 100.00m,
             int currencyId = 5,
             DateOnly? validFrom = null,
             DateOnly? validTo = null) =>
@@ -32,8 +31,7 @@ namespace SalesManagement.UnitTests.TestData
             {
                 ItemId         = itemId,
                 SalesSegmentId = salesSegmentId,
-                PaymentTermsId = paymentTermsId,
-                ExMillRate    = exMillRate,
+                BaseRate       = baseRate,
                 CurrencyId     = currencyId,
                 ValidFrom      = validFrom ?? DefaultValidFrom,
                 ValidTo        = validTo   ?? DefaultValidTo
@@ -45,8 +43,7 @@ namespace SalesManagement.UnitTests.TestData
             int id = 1,
             int itemId = 10,
             int salesSegmentId = 1,
-            int paymentTermsId = 2,
-            decimal exMillRate = 150.00m,
+            decimal baseRate = 150.00m,
             int currencyId = 5,
             DateOnly? validFrom = null,
             DateOnly? validTo = null,
@@ -56,8 +53,7 @@ namespace SalesManagement.UnitTests.TestData
                 Id             = id,
                 ItemId         = itemId,
                 SalesSegmentId = salesSegmentId,
-                PaymentTermsId = paymentTermsId,
-                ExMillRate    = exMillRate,
+                BaseRate       = baseRate,
                 CurrencyId     = currencyId,
                 ValidFrom      = validFrom ?? DefaultValidFrom,
                 ValidTo        = validTo   ?? DefaultValidTo,
@@ -71,31 +67,27 @@ namespace SalesManagement.UnitTests.TestData
             string priceCode = "PC001",
             int itemId = 10,
             int salesSegmentId = 1,
-            int paymentTermsId = 2,
-            decimal exMillRate = 100.00m,
+            decimal baseRate = 100.00m,
             int currencyId = 5) =>
             new ItemPriceMasterDto
             {
-                Id                     = id,
-                PriceCode              = priceCode,
-                ItemId                 = itemId,
-                ItemCode               = "ITEM001",
-                ItemName               = "Test Item",
-                SalesSegmentId         = salesSegmentId,
-                SalesSegmentName       = "Test Segment",
-                PaymentTermsId         = paymentTermsId,
-                PaymentTermsCode       = "NET30",
-                PaymentTermsDescription = "Net 30 Days",
-                ExMillRate            = exMillRate,
-                CurrencyId             = currencyId,
-                CurrencyCode           = "USD",
-                ValidFrom              = DefaultValidFrom,
-                ValidTo                = DefaultValidTo,
-                IsActive               = true,
-                IsDeleted              = false,
-                CreatedBy              = 1,
-                CreatedDate            = DateTimeOffset.UtcNow,
-                CreatedByName          = "test-user"
+                Id               = id,
+                PriceCode        = priceCode,
+                ItemId           = itemId,
+                ItemCode         = "ITEM001",
+                ItemName         = "Test Item",
+                SalesSegmentId   = salesSegmentId,
+                SalesSegmentName = "Test Segment",
+                BaseRate         = baseRate,
+                CurrencyId       = currencyId,
+                CurrencyCode     = "USD",
+                ValidFrom        = DefaultValidFrom,
+                ValidTo          = DefaultValidTo,
+                IsActive         = true,
+                IsDeleted        = false,
+                CreatedBy        = 1,
+                CreatedDate      = DateTimeOffset.UtcNow,
+                CreatedByName    = "test-user"
             };
 
         // ── Lookup DTO List ───────────────────────────────────────────────────
@@ -149,8 +141,7 @@ namespace SalesManagement.UnitTests.TestData
                 PriceCode      = "PC001",
                 ItemId         = 10,
                 SalesSegmentId = 1,
-                PaymentTermsId = 2,
-                ExMillRate    = 100.00m,
+                BaseRate       = 100.00m,
                 CurrencyId     = 5,
                 ValidFrom      = DefaultValidFrom,
                 ValidTo        = DefaultValidTo,

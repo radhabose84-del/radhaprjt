@@ -8,6 +8,7 @@ using SalesManagement.Application.ItemPriceMaster.Queries.GetAllItemPriceMaster;
 using SalesManagement.Application.ItemPriceMaster.Queries.GetItemPriceMasterById;
 using SalesManagement.Application.ItemPriceMaster.Queries.GetItemPriceByItemAndDate;
 using SalesManagement.Application.ItemPriceMaster.Queries.GetItemPriceMasterAutoComplete;
+using SalesManagement.Application.ItemPriceMaster.Queries.GetExMillRateByPaymentTerm;
 
 namespace SalesManagement.Presentation.Controllers
 {
@@ -60,6 +61,27 @@ namespace SalesManagement.Presentation.Controllers
             {
                 ItemId = ItemId,
                 Date = Date
+            });
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result.Data,
+                TotalCount = result.TotalCount
+            });
+        }
+
+        [HttpGet("exmill-rate")]
+        public async Task<IActionResult> GetExMillRateByPaymentTermAsync(
+            [FromQuery] int paymentTermId,
+            [FromQuery] int itemId,
+            [FromQuery] int? salesSegmentId = null)
+        {
+            var result = await Mediator.Send(new GetExMillRateByPaymentTermQuery
+            {
+                PaymentTermId = paymentTermId,
+                ItemId = itemId,
+                SalesSegmentId = salesSegmentId
             });
 
             return Ok(new

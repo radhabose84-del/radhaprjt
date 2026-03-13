@@ -3,7 +3,7 @@ using Contracts.Common;
 using MediatR;
 using Contracts.Interfaces;
 using SalesManagement.Application.Common.Interfaces;
-using SalesManagement.Application.Common.Interfaces.IDocumentSequence;
+using Contracts.Interfaces.Lookups.Finance;
 using SalesManagement.Application.Common.Interfaces.IProductionPack;
 using SalesManagement.Domain.Common;
 using SalesManagement.Domain.Entities;
@@ -15,20 +15,20 @@ namespace SalesManagement.Application.ProductionPack.Commands.CreateProduction
         : IRequestHandler<CreateProductionCommand, ApiResponseDTO<int>>
     {
         private readonly IProductionCommandRepository _commandRepository;
-        private readonly IDocumentSequenceQueryRepository _documentSequenceQueryRepository;
+        private readonly IDocumentSequenceLookup _documentSequenceLookup;
         private readonly IMediator _mediator;
         private readonly IMapper _mapper;
         private readonly IIPAddressService _ipAddressService;
 
         public CreateProductionCommandHandler(
             IProductionCommandRepository commandRepository,
-            IDocumentSequenceQueryRepository documentSequenceQueryRepository,
+            IDocumentSequenceLookup documentSequenceLookup,
             IMediator mediator,
             IMapper mapper,
             IIPAddressService ipAddressService)
         {
             _commandRepository = commandRepository;
-            _documentSequenceQueryRepository = documentSequenceQueryRepository;
+            _documentSequenceLookup = documentSequenceLookup;
             _mediator = mediator;
             _mapper = mapper;
             _ipAddressService = ipAddressService;
@@ -47,12 +47,12 @@ namespace SalesManagement.Application.ProductionPack.Commands.CreateProduction
             var unitId = _ipAddressService.GetUnitId() ?? 0;
 
             // Generate PackNo from DocumentSequence
-            var typeId = await _documentSequenceQueryRepository.GetTransactionTypeIdAsync(
+            var typeId = await _documentSequenceLookup.GetTransactionTypeIdAsync(
                 MiscEnumEntity.TransactionTypePackMaster, MiscEnumEntity.ModuleSales, unitId);
             if (!typeId.HasValue)
                 throw new ExceptionRules("Transaction Type 'PackMaster' not found for Sales module.");
 
-            var sequences = await _documentSequenceQueryRepository.GenerateDocumentNumber(typeId.Value);
+            var sequences = await _documentSequenceLookup.GenerateDocumentNumber(typeId.Value);
             var packNo = sequences.Count > 0 ? sequences[^1] : null;
             entity.PackNo = packNo
                 ?? throw new ExceptionRules("No document sequence configured for PackMaster.");
