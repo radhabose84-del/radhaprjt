@@ -74,16 +74,16 @@ namespace SalesManagement.Application.DeliveryChallan.Commands.CreateDeliveryCha
                 entity.ConsignmentValue = entity.DeliveryValue;
             }
 
-            // Resolve Packed and Dispatched status IDs for StockLedger update
+            // Resolve Reserved status ID — DC creation marks packs as Reserved (Packed → Reserved)
+            var reservedStatus = await _miscMasterQueryRepository.GetMiscMasterByName(
+                MiscEnumEntity.StockStatus, MiscEnumEntity.Reserved);
+            var reservedStatusId = reservedStatus?.Id ?? 0;
+
             var packedStatus = await _miscMasterQueryRepository.GetMiscMasterByName(
                 MiscEnumEntity.StockStatus, MiscEnumEntity.Packed);
             var packedStatusId = packedStatus?.Id ?? 0;
 
-            var dispatchedStatus = await _miscMasterQueryRepository.GetMiscMasterByName(
-                MiscEnumEntity.StockStatus, MiscEnumEntity.Dispatched);
-            var dispatchedStatusId = dispatchedStatus?.Id ?? 0;
-
-            var newId = await _commandRepository.CreateAsync(entity, request.FromPlantId, packedStatusId, dispatchedStatusId, typeId.Value);
+            var newId = await _commandRepository.CreateAsync(entity, packedStatusId, reservedStatusId, typeId.Value);
 
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Create",

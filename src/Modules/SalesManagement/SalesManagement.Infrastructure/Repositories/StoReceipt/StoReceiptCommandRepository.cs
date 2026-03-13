@@ -15,7 +15,7 @@ namespace SalesManagement.Infrastructure.Repositories.StoReceipt
             _dbContext = dbContext;
         }
 
-        public async Task<int> CreateAsync(StoReceiptHeader entity, int packedStatusId, int damagedStatusId, int typeId)
+        public async Task<int> CreateAsync(StoReceiptHeader entity, int packedStatusId, int damagedStatusId, int dispatchedStatusId, int typeId)
         {
             var strategy = _dbContext.Database.CreateExecutionStrategy();
             var newId = 0;
@@ -33,13 +33,6 @@ namespace SalesManagement.Infrastructure.Repositories.StoReceipt
                     await _dbContext.StoReceiptHeader.AddAsync(entity);
                     await _dbContext.SaveChangesAsync();
 
-                    // Get FromPlantId from the linked DeliveryChallan
-                    var dcHeader = await _dbContext.DeliveryChallanHeader
-                        .Where(dc => dc.Id == entity.DeliveryChallanHeaderId && dc.IsDeleted == IsDelete.NotDeleted)
-                        .Select(dc => new { dc.FromPlantId, dc.FromStorageLocationId })
-                        .FirstOrDefaultAsync();
-
-                    var fromPlantId = dcHeader?.FromPlantId ?? 0;
 
                     // Insert details and create StockLedger at receiving plant
                     if (details != null && details.Count > 0)
@@ -65,25 +58,37 @@ namespace SalesManagement.Infrastructure.Repositories.StoReceipt
                                 LineStatusId = detail.LineStatusId
                             };
                             await _dbContext.StoReceiptDetail.AddAsync(newDetail);
+                            // Save detail now to get its auto-generated Id (needed for DetailDocNo in StockLedger)
+                            await _dbContext.SaveChangesAsync();
+
+                            // Mark ALL dispatched packs at FROM plant as Dispatched (single range UPDATE)
+                            if (dispatchedStatusId > 0)
+                            {
+                                await _dbContext.Database.ExecuteSqlRawAsync(
+                                    "UPDATE Sales.StockLedger SET StatusId = {0} WHERE DocType = 'PROD' AND ItemId = {1} AND LotId = {2} AND PackNo >= {3} AND PackNo <= {4}",
+                                    dispatchedStatusId, detail.ItemId, detail.LotId, detail.StartPackNo, detail.EndPackNo);
+                            }
+
+                            // Fetch PackTypeId and TotalValue once for this lot (same across packs in a PROD batch)
+                            var sourceStockInfo = await _dbContext.StockLedger
+                                .AsNoTracking()
+                                .Where(s => s.DocType == "PROD"
+                                    && s.ItemId == detail.ItemId
+                                    && s.LotId == detail.LotId
+                                    && s.PackNo == detail.StartPackNo)
+                                .Select(s => new { s.PackTypeId, s.TotalValue })
+                                .FirstOrDefaultAsync();
+
+                            var packTypeId = sourceStockInfo?.PackTypeId ?? 0;
+                            var totalValue = sourceStockInfo?.TotalValue ?? 0;
 
                             // INSERT new StockLedger rows at ReceivingPlant for each PackNo
-                            // Accepted packs → Packed status, Damaged packs → Damaged status
+                            // First AcceptedQuantity packs → Packed status, remaining → Damaged status
                             var acceptedPackCount = (int)detail.AcceptedQuantity;
                             var packIndex = 0;
 
                             for (int packNo = detail.StartPackNo; packNo <= detail.EndPackNo; packNo++)
                             {
-                                // Fetch PackTypeId and TotalValue from the FromPlant's StockLedger
-                                var sourceStock = await _dbContext.StockLedger
-                                    .FirstOrDefaultAsync(s => s.UnitId == fromPlantId
-                                        && s.ItemId == detail.ItemId
-                                        && s.LotId == detail.LotId
-                                        && s.PackNo == packNo);
-
-                                var packTypeId = sourceStock?.PackTypeId ?? 0;
-                                var totalValue = sourceStock?.TotalValue ?? 0;
-
-                                // First N packs = Packed (accepted), remaining = Damaged
                                 var stockStatusId = packIndex < acceptedPackCount
                                     ? packedStatusId
                                     : damagedStatusId;
@@ -93,7 +98,7 @@ namespace SalesManagement.Infrastructure.Repositories.StoReceipt
                                     UnitId = entity.ReceivingPlantId,
                                     DocType = "STOR",
                                     DocNo = entity.Id,
-                                    DetailDocNo = newDetail.Id > 0 ? newDetail.Id : 0,
+                                    DetailDocNo = newDetail.Id,
                                     DocDate = entity.StoReceiptDate,
                                     ItemId = detail.ItemId,
                                     LotId = detail.LotId,
@@ -108,9 +113,10 @@ namespace SalesManagement.Infrastructure.Repositories.StoReceipt
                                 await _dbContext.StockLedger.AddAsync(newStock);
                                 packIndex++;
                             }
-                        }
 
-                        await _dbContext.SaveChangesAsync();
+                            // Save StockLedger rows for this detail
+                            await _dbContext.SaveChangesAsync();
+                        }
                     }
 
                     // Increment DocNo in Finance.DocumentSequence
