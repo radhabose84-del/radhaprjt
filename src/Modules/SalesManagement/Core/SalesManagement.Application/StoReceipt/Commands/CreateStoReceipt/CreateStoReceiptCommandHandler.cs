@@ -14,7 +14,6 @@ namespace SalesManagement.Application.StoReceipt.Commands.CreateStoReceipt
     public class CreateStoReceiptCommandHandler : IRequestHandler<CreateStoReceiptCommand, ApiResponseDTO<int>>
     {
         private readonly IStoReceiptCommandRepository _commandRepository;
-        private readonly IStoReceiptQueryRepository _queryRepository;
         private readonly IMiscMasterQueryRepository _miscMasterQueryRepository;
         private readonly IDocumentSequenceQueryRepository _documentSequenceQueryRepository;
         private readonly IIPAddressService _ipAddressService;
@@ -23,7 +22,6 @@ namespace SalesManagement.Application.StoReceipt.Commands.CreateStoReceipt
 
         public CreateStoReceiptCommandHandler(
             IStoReceiptCommandRepository commandRepository,
-            IStoReceiptQueryRepository queryRepository,
             IMiscMasterQueryRepository miscMasterQueryRepository,
             IDocumentSequenceQueryRepository documentSequenceQueryRepository,
             IIPAddressService ipAddressService,
@@ -31,7 +29,6 @@ namespace SalesManagement.Application.StoReceipt.Commands.CreateStoReceipt
             IMapper mapper)
         {
             _commandRepository = commandRepository;
-            _queryRepository = queryRepository;
             _miscMasterQueryRepository = miscMasterQueryRepository;
             _documentSequenceQueryRepository = documentSequenceQueryRepository;
             _ipAddressService = ipAddressService;
@@ -80,7 +77,11 @@ namespace SalesManagement.Application.StoReceipt.Commands.CreateStoReceipt
                 MiscEnumEntity.StockStatus, MiscEnumEntity.Damaged);
             var damagedStatusId = damagedStatus?.Id ?? 0;
 
-            var newId = await _commandRepository.CreateAsync(entity, packedStatusId, damagedStatusId, typeId.Value);
+            var dispatchedStatus = await _miscMasterQueryRepository.GetMiscMasterByName(
+                MiscEnumEntity.StockStatus, MiscEnumEntity.Dispatched);
+            var dispatchedStatusId = dispatchedStatus?.Id ?? 0;
+
+            var newId = await _commandRepository.CreateAsync(entity, packedStatusId, damagedStatusId, dispatchedStatusId, typeId.Value);
 
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Create",

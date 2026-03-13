@@ -87,6 +87,12 @@
     <!-- âœ… Add BackgroundService module -->
     <ProjectReference Include="..\Modules\BackgroundService\BackgroundService.Presentation\BackgroundService.Presentation.csproj" />
 
+    <!-- Add GateEntry module -->
+    <ProjectReference Include="..\Modules\GateEntryManagement\GateEntryManagement.Module\GateEntryManagement.Module.csproj" />
+
+    <!-- Add Finance module -->
+    <ProjectReference Include="..\Modules\FinanceManagement\FinanceManagement.Module\FinanceManagement.Module.csproj" />
+
     <ProjectReference Include="..\Shared\Contracts\Contracts.csproj" />
     <ProjectReference Include="..\Shared\Shared.Infrastructure\Shared.Infrastructure.csproj" />
     <ProjectReference Include="..\Shared\Shared.Validation\Shared.Validation.csproj" />

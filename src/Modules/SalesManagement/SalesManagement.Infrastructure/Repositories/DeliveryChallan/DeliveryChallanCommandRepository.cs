@@ -14,7 +14,7 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
             _dbContext = dbContext;
         }
 
-        public async Task<int> CreateAsync(Domain.Entities.DeliveryChallanHeader entity, int fromPlantId, int packedStatusId, int dispatchedStatusId, int typeId)
+        public async Task<int> CreateAsync(Domain.Entities.DeliveryChallanHeader entity, int packedStatusId, int reservedStatusId, int typeId)
         {
             var strategy = _dbContext.Database.CreateExecutionStrategy();
             var newId = 0;
@@ -56,20 +56,12 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
                             };
                             await _dbContext.DeliveryChallanDetail.AddAsync(newDetail);
 
-                            // Update StockLedger: change each PackNo from Packed to Reserved
-                            for (int packNo = detail.StartPackNo; packNo <= detail.EndPackNo; packNo++)
+                            // Update StockLedger: Packed → Reserved (single range UPDATE)
+                            if (reservedStatusId > 0)
                             {
-                                var stockRecord = await _dbContext.StockLedger
-                                    .FirstOrDefaultAsync(s => s.UnitId == fromPlantId
-                                        && s.ItemId == detail.ItemId
-                                        && s.LotId == detail.LotId
-                                        && s.PackNo == packNo
-                                        && s.StatusId == packedStatusId);
-
-                                if (stockRecord != null)
-                                {
-                                    stockRecord.StatusId = dispatchedStatusId;
-                                }
+                                await _dbContext.Database.ExecuteSqlRawAsync(
+                                    "UPDATE Sales.StockLedger SET StatusId = {0} WHERE DocType = 'PROD' AND ItemId = {1} AND LotId = {2} AND PackNo >= {3} AND PackNo <= {4} AND StatusId = {5}",
+                                    reservedStatusId, detail.ItemId, detail.LotId, detail.StartPackNo, detail.EndPackNo, packedStatusId);
                             }
                         }
 
@@ -94,7 +86,7 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
             return newId;
         }
 
-        public async Task<bool> SoftDeleteAsync(int id, int dispatchedStatusId, int packedStatusId, CancellationToken ct)
+        public async Task<bool> SoftDeleteAsync(int id, int reservedStatusId, int packedStatusId, CancellationToken ct)
         {
             var strategy = _dbContext.Database.CreateExecutionStrategy();
             var result = false;
@@ -114,25 +106,14 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
                         return;
                     }
 
-                    // Reverse StockLedger: change each PackNo from Reserved back to Packed
+                    // Reverse StockLedger: Reserved → Packed (single range UPDATE per detail)
                     if (existing.DeliveryChallanDetails != null && existing.DeliveryChallanDetails.Count > 0)
                     {
                         foreach (var detail in existing.DeliveryChallanDetails)
                         {
-                            for (int packNo = detail.StartPackNo; packNo <= detail.EndPackNo; packNo++)
-                            {
-                                var stockRecord = await _dbContext.StockLedger
-                                    .FirstOrDefaultAsync(s => s.UnitId == existing.FromPlantId
-                                        && s.ItemId == detail.ItemId
-                                        && s.LotId == detail.LotId
-                                        && s.PackNo == packNo
-                                        && s.StatusId == dispatchedStatusId, ct);
-
-                                if (stockRecord != null)
-                                {
-                                    stockRecord.StatusId = packedStatusId;
-                                }
-                            }
+                            await _dbContext.Database.ExecuteSqlRawAsync(
+                                "UPDATE Sales.StockLedger SET StatusId = {0} WHERE DocType = 'PROD' AND ItemId = {1} AND LotId = {2} AND PackNo >= {3} AND PackNo <= {4} AND StatusId = {5}",
+                                packedStatusId, detail.ItemId, detail.LotId, detail.StartPackNo, detail.EndPackNo, reservedStatusId);
                         }
                     }
 

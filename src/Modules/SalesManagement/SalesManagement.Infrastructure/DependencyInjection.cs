@@ -68,8 +68,6 @@ using SalesManagement.Application.Common.Interfaces.IStoHeader;
 using SalesManagement.Infrastructure.Repositories.StoHeader;
 using SalesManagement.Application.Common.Interfaces.IDeliveryChallan;
 using SalesManagement.Infrastructure.Repositories.DeliveryChallan;
-using SalesManagement.Application.Common.Interfaces.ITransactionTypeMaster;
-using SalesManagement.Infrastructure.Repositories.TransactionTypeMaster;
 using SalesManagement.Application.Common.Interfaces.IInvoice;
 using SalesManagement.Infrastructure.Repositories.Invoice;
 using SalesManagement.Application.Common.Interfaces.IStoReceipt;
@@ -279,9 +277,6 @@ namespace SalesManagement.Infrastructure
             services.AddScoped<IDeliveryChallanCommandRepository, DeliveryChallanCommandRepository>();
             services.AddScoped<IDeliveryChallanQueryRepository, DeliveryChallanQueryRepository>();
 
-            // ── Transaction Type Master Repositories ───────────────────────────
-            services.AddScoped<ITransactionTypeMasterCommandRepository, TransactionTypeMasterCommandRepository>();
-            services.AddScoped<ITransactionTypeMasterQueryRepository, TransactionTypeMasterQueryRepository>();
            // ── Invoice Repositories ───────────────────────────────────────────
             services.AddScoped<IInvoiceCommandRepository, InvoiceCommandRepository>();
             services.AddScoped<IInvoiceQueryRepository, InvoiceQueryRepository>();
@@ -290,8 +285,7 @@ namespace SalesManagement.Infrastructure
             services.AddScoped<IStoReceiptCommandRepository, StoReceiptCommandRepository>();
             services.AddScoped<IStoReceiptQueryRepository, StoReceiptQueryRepository>();
 
-            // ── Document Sequence Repositories ──────────────────────────────────
-            services.AddScoped<IDocumentSequenceCommandRepository, DocumentSequenceCommandRepository>();
+            // ── Document Sequence (cross-module read — Finance schema) ──────────
             services.AddScoped<IDocumentSequenceQueryRepository, DocumentSequenceQueryRepository>();
 
             // ── Stock Ledger Report Repository ───────────────────────────────────

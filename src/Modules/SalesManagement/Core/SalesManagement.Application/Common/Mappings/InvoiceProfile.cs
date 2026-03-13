@@ -54,13 +54,6 @@ namespace SalesManagement.Application.Common.Mappings
                 .ForMember(dest => dest.UOMName,      opt => opt.Ignore())    // populated via IUOMLookup
                 .ForMember(dest => dest.LotNo,        opt => opt.Ignore());   // populated via JOIN in query repo
 
-            CreateMap<EInvoiceHeader, EInvoiceHeaderDto>()
-                .ForMember(dest => dest.IsActive,    opt => opt.MapFrom(src => src.IsActive == Status.Active))
-                .ForMember(dest => dest.PartyName,   opt => opt.Ignore())
-                .ForMember(dest => dest.StatusName,  opt => opt.Ignore())
-                .ForMember(dest => dest.EInvoiceDetails, opt => opt.Ignore());
-
-            CreateMap<EInvoiceDetail, EInvoiceDetailDto>();
         }
     }
 }
