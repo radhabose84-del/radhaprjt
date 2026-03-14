@@ -10,5 +10,10 @@ namespace FinanceManagement.Application.EInvoiceHeader.Dto
         public string? SignedQRCode { get; set; }
         public string? ErrorCode { get; set; }
         public string? ErrorMessage { get; set; }
+
+        // ── e-Waybill fields (populated only when EwbDtls was included in IRN request) ──
+        public long? EwbNo { get; set; }
+        public string? EwbDate { get; set; }
+        public string? EwbValidTill { get; set; }
     }
 }
