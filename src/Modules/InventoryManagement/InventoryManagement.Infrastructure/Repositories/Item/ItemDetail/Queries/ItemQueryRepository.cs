@@ -547,7 +547,17 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                 LEFT JOIN Inventory.UOM U1 ON U1.Id = IM.StockUomId
                 WHERE IM.IsDeleted = 0 AND IM.IsActive = 1
                 AND ((@HasVariant IS NULL OR IM.HasVariants = @HasVariant) or ParentItemId is null)
-                AND (@ParentItemId IS NULL OR IM.ParentItemId = @ParentItemId)";
+                AND (@ParentItemId IS NULL OR IM.ParentItemId = @ParentItemId)
+                AND NOT (
+                IM.HasVariants = @HasVariant
+                AND NOT EXISTS (
+                    SELECT 1 
+                    FROM Inventory.ItemMaster Child
+                    WHERE Child.ParentItemId = IM.Id
+                        AND Child.IsDeleted = 0
+                        AND Child.IsActive = 1
+                )) 
+                ";
 
             var parameters = new { HasVariant = hasVariant, ParentItemId = parentItemId };
             var items = await _dbConnection.QueryAsync<GetItemAutoCompleteDto>(sql, parameters);
