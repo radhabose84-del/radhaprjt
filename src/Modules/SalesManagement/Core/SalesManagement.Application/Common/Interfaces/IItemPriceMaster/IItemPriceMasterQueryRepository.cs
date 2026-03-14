@@ -18,6 +18,6 @@ namespace SalesManagement.Application.Common.Interfaces.IItemPriceMaster
         Task<List<ItemPriceMasterDto>> GetByItemAndDateAsync(int itemId, DateOnly date);
         Task<int> GetNextPriceCodeSerialAsync(string prefix);
         Task<bool> IsItemPriceMasterPendingAsync(int id);
-        Task<List<ExMillRateDto>> GetExMillRateByPaymentTermAsync(int paymentTermId, int itemId, int? salesSegmentId = null);
+        Task<List<ExMillRateDto>> GetExMillRateByPaymentTermAsync(int? paymentTermId, int itemId, int? salesSegmentId = null);
     }
 }
