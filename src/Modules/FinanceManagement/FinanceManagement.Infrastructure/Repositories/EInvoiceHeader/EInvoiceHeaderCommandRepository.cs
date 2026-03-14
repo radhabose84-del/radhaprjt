@@ -79,5 +79,37 @@ namespace FinanceManagement.Infrastructure.Repositories.EInvoiceHeader
             await _dbContext.SaveChangesAsync(ct);
             return true;
         }
+
+        public async Task<bool> UpdateIrnDetailsAsync(
+            int id,
+            string? irn,
+            string? ackNo,
+            DateTimeOffset? ackDate,
+            string? signInvoice,
+            string? signQrCode,
+            string irnStatus,
+            string? errorCode,
+            string? errorMessage,
+            CancellationToken ct)
+        {
+            var existing = await _dbContext.EInvoiceHeader
+                .FirstOrDefaultAsync(x => x.Id == id && x.IsDeleted == IsDelete.NotDeleted, ct);
+
+            if (existing == null)
+                return false;
+
+            existing.IrnNumber = irn;
+            existing.AckNo = ackNo;
+            existing.AckDate = ackDate;
+            existing.SignInvoice = signInvoice;
+            existing.SignQrCode = signQrCode;
+            existing.IrnStatus = irnStatus;
+            existing.ErrorCode = errorCode;
+            existing.ErrorMessage = errorMessage;
+
+            _dbContext.EInvoiceHeader.Update(existing);
+            await _dbContext.SaveChangesAsync(ct);
+            return true;
+        }
     }
 }
