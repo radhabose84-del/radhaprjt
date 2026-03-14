@@ -53,6 +53,12 @@ namespace InventoryManagement.Infrastructure.Data.Configurations.Item.ItemDetail
              .HasColumnName("Discount")
              .HasColumnType("bit")
              .IsRequired();
+
+            // CountId — cross-module FK to Production.CountMaster (no DB constraint)
+            b.Property(x => x.CountId)
+             .HasColumnName("CountId")
+             .HasColumnType("int")
+             .IsRequired(false);
         }
     }
 }

@@ -10,6 +10,8 @@ using ProductionManagement.Application.Common.Interfaces.AuditLog;
 using ProductionManagement.Application.Common.Interfaces.ICountMaster;
 using ProductionManagement.Application.Common.Interfaces.IMiscMaster;
 using ProductionManagement.Application.Common.Interfaces.IMiscTypeMaster;
+using Contracts.Interfaces.Lookups.Production;
+using ProductionManagement.Infrastructure.Repositories.Lookups.Production;
 using ProductionManagement.Infrastructure.Data;
 using ProductionManagement.Infrastructure.Persistence;
 using ProductionManagement.Infrastructure.Repositories.AuditLog;
@@ -98,6 +100,9 @@ namespace ProductionManagement.Infrastructure
             // MiscMaster repositories
             services.AddScoped<IMiscMasterCommandRepository, MiscMasterCommandRepository>();
             services.AddScoped<IMiscMasterQueryRepository, MiscMasterQueryRepository>();
+
+            // Lookup registration — caching is handled globally by AddLookupCaching() in Program.cs
+            services.AddScoped<ICountMasterLookup, CountMasterLookupRepository>();
 
             return services;
         }

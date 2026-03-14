@@ -34,6 +34,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Comman
             existing.PackageQuantity = updated.PackageQuantity;
             existing.DeliveryLeadTime = updated.DeliveryLeadTime;
             existing.Discount = updated.Discount;
+            existing.CountId = updated.CountId;
 
             var entry = _db.Entry(existing);
             entry.Property(x => x.Id).IsModified = false;
