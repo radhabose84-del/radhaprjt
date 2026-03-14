@@ -21,5 +21,14 @@ namespace FinanceManagement.Application.Common.Interfaces.IEInvoiceHeader
             string? errorCode,
             string? errorMessage,
             CancellationToken ct);
+        /// <summary>
+        /// Updates only the e-Waybill-related fields after a successful NIC e-Waybill API call.
+        /// </summary>
+        Task<bool> UpdateEwbDetailsAsync(
+            int id,
+            long? ewbNo,
+            string? ewbDate,
+            string? ewbValidTill,
+            CancellationToken ct);
     }
 }

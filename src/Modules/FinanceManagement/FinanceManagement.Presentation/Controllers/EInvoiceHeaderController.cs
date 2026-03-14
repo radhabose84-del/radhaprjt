@@ -1,5 +1,6 @@
 using FinanceManagement.Application.EInvoiceHeader.Commands.CreateEInvoiceHeader;
 using FinanceManagement.Application.EInvoiceHeader.Commands.DeleteEInvoiceHeader;
+using FinanceManagement.Application.EInvoiceHeader.Commands.GenerateEwb;
 using FinanceManagement.Application.EInvoiceHeader.Commands.GenerateIrn;
 using FinanceManagement.Application.EInvoiceHeader.Commands.UpdateEInvoiceHeader;
 using FinanceManagement.Application.EInvoiceHeader.Queries.GetAllEInvoiceHeader;
@@ -99,14 +100,32 @@ namespace FinanceManagement.Presentation.Controllers
         }
 
         /// <summary>
-        /// Authenticates with the NIC API, builds and encrypts the GST e-invoice payload
-        /// from the stored EInvoiceHeader/Detail records, calls the NIC Generate IRN endpoint,
-        /// and persists the returned IRN / AckNo / SignedInvoice / SignedQRCode.
+        /// Generates IRN from NIC API. Optionally generates e-Waybill together
+        /// when transport details (Distance, VehNo, etc.) are provided in the body.
+        /// Case 1: POST with transport details → IRN + e-Waybill in one call.
+        /// Case 2: POST without transport details → IRN only.
         /// </summary>
-        [HttpPost("generate-irn/{id}")]
-        public async Task<IActionResult> GenerateIrn(int id)
+        [HttpPost("generate-irn")]
+        public async Task<IActionResult> GenerateIrn([FromBody] GenerateIrnCommand command)
         {
-            var result = await Mediator.Send(new GenerateIrnCommand(id));
+            var result = await Mediator.Send(command);
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                isSuccess = result.IsSuccess,
+                message = result.Message,
+                data = result.Data
+            });
+        }
+
+        /// <summary>
+        /// Generates an e-Waybill from an existing IRN by calling the NIC e-Waybill API
+        /// with transport details.
+        /// </summary>
+        [HttpPost("generate-ewb")]
+        public async Task<IActionResult> GenerateEwb([FromBody] GenerateEwbCommand command)
+        {
+            var result = await Mediator.Send(command);
             return Ok(new
             {
                 StatusCode = StatusCodes.Status200OK,
