@@ -7,9 +7,15 @@ using Microsoft.Extensions.Hosting;
 using MongoDB.Driver;
 using ProductionManagement.Application.Common.Interfaces;
 using ProductionManagement.Application.Common.Interfaces.AuditLog;
+using ProductionManagement.Application.Common.Interfaces.ICountMaster;
+using ProductionManagement.Application.Common.Interfaces.IMiscMaster;
+using ProductionManagement.Application.Common.Interfaces.IMiscTypeMaster;
 using ProductionManagement.Infrastructure.Data;
 using ProductionManagement.Infrastructure.Persistence;
 using ProductionManagement.Infrastructure.Repositories.AuditLog;
+using ProductionManagement.Infrastructure.Repositories.CountMaster;
+using ProductionManagement.Infrastructure.Repositories.MiscMaster;
+using ProductionManagement.Infrastructure.Repositories.MiscTypeMaster;
 using ProductionManagement.Infrastructure.Services;
 using Serilog;
 
@@ -80,6 +86,18 @@ namespace ProductionManagement.Infrastructure
             services.AddTransient<IJwtTokenHelper, JwtTokenHelper>();
             services.AddScoped<ILogQueryService, LogQueryService>();
             services.AddScoped<IEventPublisher, EventPublisher>();
+
+            // CountMaster repositories
+            services.AddScoped<ICountMasterCommandRepository, CountMasterCommandRepository>();
+            services.AddScoped<ICountMasterQueryRepository, CountMasterQueryRepository>();
+
+            // MiscTypeMaster repositories
+            services.AddScoped<IMiscTypeMasterCommandRepository, MiscTypeMasterCommandRepository>();
+            services.AddScoped<IMiscTypeMasterQueryRepository, MiscTypeMasterQueryRepository>();
+
+            // MiscMaster repositories
+            services.AddScoped<IMiscMasterCommandRepository, MiscMasterCommandRepository>();
+            services.AddScoped<IMiscMasterQueryRepository, MiscMasterQueryRepository>();
 
             return services;
         }
