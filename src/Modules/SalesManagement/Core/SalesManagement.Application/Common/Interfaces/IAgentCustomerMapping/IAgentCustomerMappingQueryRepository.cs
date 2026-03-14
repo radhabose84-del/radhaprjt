@@ -12,5 +12,6 @@ namespace SalesManagement.Application.Common.Interfaces.IAgentCustomerMapping
         Task<bool> AgentExistsAsync(int agentId, CancellationToken ct = default);
         Task<bool> SalesSegmentExistsAsync(int salesSegmentId, CancellationToken ct = default);
         Task<bool> SoftDeleteValidationAsync(int id, CancellationToken ct = default);
+        Task<List<AgentCustomerMappingDto>> GetByCustomerIdAsync(int customerId, CancellationToken ct = default);
     }
 }
