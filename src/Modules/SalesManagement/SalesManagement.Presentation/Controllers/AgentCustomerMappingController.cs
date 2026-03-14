@@ -5,6 +5,7 @@ using SalesManagement.Application.AgentCustomerMapping.Commands.CreateAgentCusto
 using SalesManagement.Application.AgentCustomerMapping.Commands.DeleteAgentCustomerMapping;
 using SalesManagement.Application.AgentCustomerMapping.Commands.UpdateAgentCustomerMapping;
 using SalesManagement.Application.AgentCustomerMapping.Queries.GetAgentCustomerMappingAutoComplete;
+using SalesManagement.Application.AgentCustomerMapping.Queries.GetAgentCustomerMappingByCustomerId;
 using SalesManagement.Application.AgentCustomerMapping.Queries.GetAgentCustomerMappingById;
 using SalesManagement.Application.AgentCustomerMapping.Queries.GetAllAgentCustomerMapping;
 
@@ -58,6 +59,18 @@ namespace SalesManagement.Presentation.Controllers
             {
                 StatusCode = StatusCodes.Status200OK,
                 data = result
+            });
+        }
+
+        [HttpGet("by-customer/{customerId}")]
+        public async Task<IActionResult> GetAgentCustomerMappingByCustomerIdAsync(int customerId)
+        {
+            var result = await Mediator.Send(new GetAgentCustomerMappingByCustomerIdQuery { CustomerId = customerId });
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result.Data,
+                TotalCount = result.TotalCount
             });
         }
 
