@@ -3,7 +3,6 @@ using Dapper;
 using Contracts.Interfaces.Lookups.Users;
 using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Purchase;
-using Contracts.Interfaces.Lookups.Warehouse;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces;
 using SalesManagement.Application.Common.Interfaces;
@@ -19,7 +18,6 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
         private readonly IUnitLookup _unitLookup;
         private readonly IPartyLookup _partyLookup;
         private readonly IPaymentTermLookup _paymentTermLookup;
-        private readonly IWarehouseLookup _warehouseLookup;
         private readonly IItemLookup _itemLookup;
         private readonly IHSNLookup _hsnLookup;
         private readonly IUOMLookup _uomLookup;
@@ -31,7 +29,6 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             IUnitLookup unitLookup,
             IPartyLookup partyLookup,
             IPaymentTermLookup paymentTermLookup,
-            IWarehouseLookup warehouseLookup,
             IItemLookup itemLookup,
             IHSNLookup hsnLookup,
             IUOMLookup uomLookup,
@@ -42,7 +39,6 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             _unitLookup = unitLookup;
             _partyLookup = partyLookup;
             _paymentTermLookup = paymentTermLookup;
-            _warehouseLookup = warehouseLookup;
             _itemLookup = itemLookup;
             _hsnLookup = hsnLookup;
             _uomLookup = uomLookup;
@@ -125,10 +121,10 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 var paymentTerms = await _paymentTermLookup.GetAllPaymentTermAsync();
                 var ptDict = paymentTerms.ToDictionary(p => p.Id, p => p.Description);
 
-                // Dispatch depot (warehouse) names
+                // Dispatch depot (unit) names
                 var depotIds = list.Where(x => x.DispatchDepotId.HasValue).Select(x => x.DispatchDepotId!.Value).Distinct();
-                var warehouses = depotIds.Any() ? await _warehouseLookup.GetByIdsAsync(depotIds) : [];
-                var whDict = warehouses.ToDictionary(w => w.Id, w => w.WarehouseName);
+                var depotUnits = depotIds.Any() ? await _unitLookup.GetByIdsAsync(depotIds) : [];
+                var whDict = depotUnits.ToDictionary(u => u.UnitId, u => u.UnitName);
 
                 // Dispatch unit names
                 var dispatchUnitIds = list.Where(x => x.DispatchUnitId.HasValue).Select(x => x.DispatchUnitId!.Value).Distinct();
@@ -216,6 +212,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             const string detailSql = @"
                 SELECT d.Id, d.SalesOrderHeaderId,
                     d.ItemId, d.VariantId, d.HSNId,
+                    d.PackTypeId, pkt.PackTypeName AS PackTypeName,
                     d.QtyInBags, d.BagWeight, d.SaleUOMId, d.TotalWeight,
                     d.ExMillRate, d.DiscountPerUnit, d.Freight,
                     d.TaxableAmount, d.TaxPercentage, d.TaxAmount,
@@ -228,6 +225,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     d.LineItemStatusId,
                     mm.Description AS LineItemStatusName
                 FROM Sales.SalesOrderDetail d
+                LEFT JOIN Sales.PackType pkt ON d.PackTypeId = pkt.Id AND pkt.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster mm ON d.LineItemStatusId = mm.Id AND mm.IsDeleted = 0
                 LEFT JOIN (
                     SELECT dad.SalesOrderDetailId,
@@ -253,8 +251,8 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
 
             if (header.DispatchDepotId.HasValue)
             {
-                var depots = await _warehouseLookup.GetByIdsAsync(new[] { header.DispatchDepotId.Value });
-                header.DispatchDepotName = depots.FirstOrDefault()?.WarehouseName;
+                var depotUnit = await _unitLookup.GetByIdAsync(header.DispatchDepotId.Value);
+                header.DispatchDepotName = depotUnit?.UnitName;
             }
 
             if (header.DispatchUnitId.HasValue)
@@ -393,8 +391,8 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
 
         public async Task<bool> WarehouseExistsAsync(int warehouseId)
         {
-            var warehouses = await _warehouseLookup.GetByIdsAsync(new[] { warehouseId });
-            return warehouses.Any();
+            var unit = await _unitLookup.GetByIdAsync(warehouseId);
+            return unit != null;
         }
 
         public async Task<bool> ItemExistsAsync(int itemId)
@@ -423,6 +421,17 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 WHERE Id = @Id AND IsDeleted = 0";
 
             var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = id });
+            return count > 0;
+        }
+
+        public async Task<bool> PackTypeExistsAsync(int packTypeId)
+        {
+            const string sql = @"
+                SELECT COUNT(1)
+                FROM Sales.PackType
+                WHERE Id = @Id AND IsActive = 1 AND IsDeleted = 0";
+
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = packTypeId });
             return count > 0;
         }
 

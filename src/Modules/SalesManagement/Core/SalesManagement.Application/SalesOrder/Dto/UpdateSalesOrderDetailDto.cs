@@ -5,6 +5,7 @@ namespace SalesManagement.Application.SalesOrder.Dto
         public int ItemId { get; set; }
         public int? VariantId { get; set; }
         public int HSNId { get; set; }
+        public int? PackTypeId { get; set; }
         public int QtyInBags { get; set; }
         public decimal BagWeight { get; set; }
         public int SaleUOMId { get; set; }
