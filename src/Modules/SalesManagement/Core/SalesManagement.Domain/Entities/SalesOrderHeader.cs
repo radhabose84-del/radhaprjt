@@ -13,6 +13,7 @@ namespace SalesManagement.Domain.Entities
         public int EnquiryType { get; set; }            // 1=Unit, 2=Combined
         public int UnitId { get; set; }                  // Cross-module FK (UserManagement)
         public int PartyId { get; set; }                 // Cross-module FK (PartyManagement)
+        public int? AgentId { get; set; }                // Cross-module FK (PartyManagement) — nullable
 
         // Commercial Details
         public int? DiscountPlanId { get; set; }

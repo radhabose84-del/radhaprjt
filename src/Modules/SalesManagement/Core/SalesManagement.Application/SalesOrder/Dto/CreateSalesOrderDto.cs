@@ -11,6 +11,7 @@ namespace SalesManagement.Application.SalesOrder.Dto
         public int EnquiryType { get; set; }
         public int UnitId { get; set; }
         public int PartyId { get; set; }
+        public int? AgentId { get; set; }
 
         // Commercial Details
         public int? DiscountPlanId { get; set; }

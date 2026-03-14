@@ -66,7 +66,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     ss.SegmentName AS SegmentName,
                     h.EnquiryType,
                     et.Description AS EnquiryTypeName,
-                    h.UnitId, h.PartyId,
+                    h.UnitId, h.PartyId, h.AgentId,
                     h.DiscountPlanId,
                     dp.Description AS DiscountPlanName,
                     h.PaymentTermsId,
@@ -118,6 +118,10 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 var parties = await _partyLookup.GetByIdsAsync(partyIds);
                 var partyDict = parties.ToDictionary(p => p.Id, p => p.PartyName);
 
+                var agentIds = list.Where(x => x.AgentId.HasValue).Select(x => x.AgentId!.Value).Distinct();
+                var agents = agentIds.Any() ? await _partyLookup.GetByIdsAsync(agentIds) : [];
+                var agentDict = agents.ToDictionary(a => a.Id, a => a.PartyName);
+
                 var paymentTerms = await _paymentTermLookup.GetAllPaymentTermAsync();
                 var ptDict = paymentTerms.ToDictionary(p => p.Id, p => p.Description);
 
@@ -135,6 +139,8 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 {
                     item.UnitName = unitDict.TryGetValue(item.UnitId, out var uName) ? uName : null;
                     item.PartyName = partyDict.TryGetValue(item.PartyId, out var pName) ? pName : null;
+                    if (item.AgentId.HasValue)
+                        item.AgentName = agentDict.TryGetValue(item.AgentId.Value, out var aName) ? aName : null;
                     item.PaymentTermsName = ptDict.TryGetValue(item.PaymentTermsId, out var ptName) ? ptName : null;
 
                     if (item.DispatchDepotId.HasValue)
@@ -171,7 +177,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     ss.SegmentName AS SegmentName,
                     h.EnquiryType,
                     et.Description AS EnquiryTypeName,
-                    h.UnitId, h.PartyId,
+                    h.UnitId, h.PartyId, h.AgentId,
                     h.DiscountPlanId,
                     dp.Description AS DiscountPlanName,
                     h.PaymentTermsId,
@@ -245,6 +251,12 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
 
             var parties = await _partyLookup.GetByIdsAsync(new[] { header.PartyId });
             header.PartyName = parties.FirstOrDefault()?.PartyName;
+
+            if (header.AgentId.HasValue)
+            {
+                var agentList = await _partyLookup.GetByIdsAsync(new[] { header.AgentId.Value });
+                header.AgentName = agentList.FirstOrDefault()?.PartyName;
+            }
 
             var paymentTerms = await _paymentTermLookup.GetAllPaymentTermAsync();
             header.PaymentTermsName = paymentTerms.FirstOrDefault(p => p.Id == header.PaymentTermsId)?.Description;
@@ -433,6 +445,12 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
 
             var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = packTypeId });
             return count > 0;
+        }
+
+        public async Task<bool> AgentExistsAsync(int agentId)
+        {
+            var agents = await _partyLookup.GetByIdsAsync(new[] { agentId });
+            return agents.Any();
         }
 
         private async Task<string> GetDocumentBasePathAsync(string miscTypeCode)
