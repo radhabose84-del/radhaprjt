@@ -64,6 +64,11 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("int")
                 .IsRequired();
 
+            builder.Property(t => t.AgentId)
+                .HasColumnName("AgentId")
+                .HasColumnType("int")
+                .IsRequired(false);
+
             // Commercial Details
             builder.Property(t => t.DiscountPlanId)
                 .HasColumnName("DiscountPlanId")
@@ -266,6 +271,7 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             // Indexes
             builder.HasIndex(t => t.SalesOrderNo).IsUnique();
             builder.HasIndex(t => t.PartyId);
+            builder.HasIndex(t => t.AgentId);
             builder.HasIndex(t => t.SalesGroupId);
             builder.HasIndex(t => t.OrderDate);
             builder.HasIndex(t => t.SalesQuotationHeaderId);

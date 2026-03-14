@@ -11,6 +11,7 @@ using PartyManagement.Application.PartyMaster.Queries.GetPartyMasterById;
 using PartyManagement.Application.PartyMaster.Queries.GetPartyMasterPending;
 using PartyManagement.Domain.Common;
 using Contracts.Interfaces.Lookups.Purchase;
+using Contracts.Interfaces.Lookups.Users;
 using Dapper;
 
 namespace PartyManagement.Infrastructure.Repositories.PartyMaster
@@ -21,14 +22,21 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
         private readonly IIPAddressService _ipAddressService;
         private readonly IIncotermLookup _incotermLookup;
         private readonly IPaymentTermLookup _paymentTermLookup;
+        private readonly ICityLookup _cityLookup;
+        private readonly IStateLookup _stateLookup;
+        private readonly ICountryLookup _countryLookup;
 
         public PartyMasterQueryRepository(IDbConnection dbConnection, IIPAddressService ipAddressService,
-            IIncotermLookup incotermLookup, IPaymentTermLookup paymentTermLookup)
+            IIncotermLookup incotermLookup, IPaymentTermLookup paymentTermLookup,
+            ICityLookup cityLookup, IStateLookup stateLookup, ICountryLookup countryLookup)
         {
             _dbConnection = dbConnection;
             _ipAddressService = ipAddressService;
             _incotermLookup = incotermLookup;
             _paymentTermLookup = paymentTermLookup;
+            _cityLookup = cityLookup;
+            _stateLookup = stateLookup;
+            _countryLookup = countryLookup;
         }
         public async Task<List<PartyGroupLoadDto>> GetPartyGroupsAsync(List<int> groupTypeIds)
         {
@@ -286,9 +294,106 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
 
             };
 
-            var result = await _dbConnection.QueryAsync<GetPartyMasterAutoCompleteDto>(sql, parameters);
+            var result = (await _dbConnection.QueryAsync<GetPartyMasterAutoCompleteDto>(sql, parameters)).ToList();
 
-            return result.ToList();
+            if (result.Count > 0)
+            {
+                var partyIds = result.Select(p => p.Id).ToList();
+
+                // Fetch addresses
+                const string addressSql = @"
+                    SELECT pa.Id, pa.PartyId, pa.AddressType, pa.AddressLine1, pa.AddressLine2, pa.PostalCode,
+                        pa.CityId, pa.StateId, pa.CountryId
+                    FROM Party.PartyAddress pa
+                    WHERE pa.PartyId IN @PartyIds";
+
+                var flatAddresses = (await _dbConnection.QueryAsync<PartyAddressFlatDto>(addressSql, new { PartyIds = partyIds })).ToList();
+
+                if (flatAddresses.Count > 0)
+                {
+                    var cityIds = flatAddresses.Where(a => a.CityId.HasValue).Select(a => a.CityId.Value).Distinct();
+                    var stateIds = flatAddresses.Where(a => a.StateId.HasValue).Select(a => a.StateId.Value).Distinct();
+                    var countryIds = flatAddresses.Where(a => a.CountryId.HasValue).Select(a => a.CountryId.Value).Distinct();
+
+                    var cities = cityIds.Any() ? await _cityLookup.GetByIdsAsync(cityIds) : [];
+                    var states = stateIds.Any() ? await _stateLookup.GetByIdsAsync(stateIds) : [];
+                    var countries = countryIds.Any() ? await _countryLookup.GetByIdsAsync(countryIds) : [];
+
+                    var cityDict = cities.ToDictionary(c => c.CityId, c => c.CityName);
+                    var stateDict = states.ToDictionary(s => s.StateId, s => s.StateName);
+                    var countryDict = countries.ToDictionary(c => c.CountryId, c => c.CountryName);
+
+                    var addressByParty = flatAddresses.GroupBy(a => a.PartyId).ToDictionary(g => g.Key, g => g.ToList());
+
+                    foreach (var party in result)
+                    {
+                        if (addressByParty.TryGetValue(party.Id, out var addresses))
+                        {
+                            party.PartyAddresses = addresses.Select(a => new PartyAddressAutoCompleteDto
+                            {
+                                Id = a.Id,
+                                AddressType = a.AddressType,
+                                AddressLine1 = a.AddressLine1,
+                                AddressLine2 = a.AddressLine2,
+                                PostalCode = a.PostalCode,
+                                CityId = a.CityId,
+                                CityName = a.CityId.HasValue && cityDict.TryGetValue(a.CityId.Value, out var cn) ? cn : null,
+                                StateId = a.StateId,
+                                StateName = a.StateId.HasValue && stateDict.TryGetValue(a.StateId.Value, out var sn) ? sn : null,
+                                CountryId = a.CountryId,
+                                CountryName = a.CountryId.HasValue && countryDict.TryGetValue(a.CountryId.Value, out var countryName) ? countryName : null,
+                            }).ToList();
+                        }
+                    }
+                }
+
+                // Fetch contacts (Gender, PreferredChannel, ContactType from same-module MiscMaster)
+                const string contactSql = @"
+                    SELECT pc.Id, pc.PartyId, pc.FirstName, pc.LastName, pc.Designation,
+                        pc.EmailID, pc.MobileNo, pc.Phone,
+                        pc.GenderId, g.Description AS GenderName,
+                        pc.PreferredChannelId, ch.Description AS PreferredChannelName,
+                        pc.ContactTypeId, ct.Description AS ContactTypeName,
+                        pc.ContactBy
+                    FROM Party.PartyContact pc
+                    LEFT JOIN Party.MiscMaster g  ON pc.GenderId          = g.Id  AND g.IsDeleted  = 0
+                    LEFT JOIN Party.MiscMaster ch ON pc.PreferredChannelId = ch.Id AND ch.IsDeleted = 0
+                    LEFT JOIN Party.MiscMaster ct ON pc.ContactTypeId      = ct.Id AND ct.IsDeleted = 0
+                    WHERE pc.PartyId IN @PartyIds";
+
+                var flatContacts = (await _dbConnection.QueryAsync<PartyContactFlatDto>(contactSql, new { PartyIds = partyIds })).ToList();
+
+                if (flatContacts.Count > 0)
+                {
+                    var contactByParty = flatContacts.GroupBy(c => c.PartyId).ToDictionary(g => g.Key, g => g.ToList());
+
+                    foreach (var party in result)
+                    {
+                        if (contactByParty.TryGetValue(party.Id, out var contacts))
+                        {
+                            party.PartyContacts = contacts.Select(c => new PartyContactAutoCompleteDto
+                            {
+                                Id = c.Id,
+                                FirstName = c.FirstName,
+                                LastName = c.LastName,
+                                Designation = c.Designation,
+                                EmailID = c.EmailID,
+                                MobileNo = c.MobileNo,
+                                Phone = c.Phone,
+                                GenderId = c.GenderId,
+                                GenderName = c.GenderName,
+                                PreferredChannelId = c.PreferredChannelId,
+                                PreferredChannelName = c.PreferredChannelName,
+                                ContactTypeId = c.ContactTypeId,
+                                ContactTypeName = c.ContactTypeName,
+                                ContactBy = c.ContactBy,
+                            }).ToList();
+                        }
+                    }
+                }
+            }
+
+            return result;
         }
 
         public async Task<List<GetPartyMasterAutoCompleteDto>> GetPartyMasterAutoComplete(string searchPattern)

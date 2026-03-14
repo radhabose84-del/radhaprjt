@@ -9,6 +9,7 @@ using InventoryManagement.Domain.Common;
 using InventoryManagement.Domain.Entities.Item.ItemDetail.Variant;
 using Dapper;
 using Contracts.Interfaces.Lookups.Users;
+using Contracts.Interfaces.Lookups.Production;
 using InventoryManagement.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -20,13 +21,15 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
         private readonly IDbConnection _dbConnection;
         private readonly IIPAddressService _ipAddressService;
         private readonly IUnitLookup _unitLookup;
+        private readonly ICountMasterLookup _countMasterLookup;
 
-        public ItemQueryRepository(IDbConnection dbConnection, ApplicationDbContext db, IIPAddressService ipAddressService, IUnitLookup unitLookup)
+        public ItemQueryRepository(IDbConnection dbConnection, ApplicationDbContext db, IIPAddressService ipAddressService, IUnitLookup unitLookup, ICountMasterLookup countMasterLookup)
         {
             _db = db;
             _dbConnection = dbConnection;
             _ipAddressService = ipAddressService;
             _unitLookup = unitLookup;
+            _countMasterLookup = countMasterLookup;
         }
         public async Task<(List<ItemListDto> Items, int TotalCount)> GetAllAsync(
             int? page, int? size, string search, bool onlyActive,
@@ -217,7 +220,8 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                         PackageQuantity = i.Sale.PackageQuantity,
                         DeliveryLeadTime = i.Sale.DeliveryLeadTime,
                         Discount = i.Sale.Discount,
-                        SalesUOM = i.Sale.SalesUOM != null ? i.Sale.SalesUOM.UOMName : null
+                        SalesUOM = i.Sale.SalesUOM != null ? i.Sale.SalesUOM.UOMName : null,
+                        CountId = i.Sale.CountId
                     },
 
                     // ---------- collections ----------
@@ -318,6 +322,14 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                     if (unitDict.TryGetValue(mapping.UnitId, out var name))
                         mapping.UnitName = name;
                 }
+            }
+
+            // Populate CountName from cross-module lookup (ProductionManagement)
+            if (dto?.Sale?.CountId is { } countId)
+            {
+                var counts = await _countMasterLookup.GetByIdsAsync([countId], ct);
+                if (counts.Count > 0)
+                    dto.Sale.CountName = counts[0].CountDescription;
             }
 
             return dto;
@@ -534,7 +546,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
         public async Task<List<GetItemAutoCompleteDto>> GetItemsByVariantFilterAsync(
             bool? hasVariant, int? parentItemId, CancellationToken ct = default)
         {
-            const string sql = @"
+            const string baseSelect = @"
                 SELECT IM.Id, IM.ItemName, IM.ItemCode, IM.ParentItemId,
                        IM.HSNId, HM.HSNCode, HM.GSTPercentage,
                        IM.ItemCategoryId, IM.ItemGroupId,
@@ -545,12 +557,33 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                 LEFT JOIN Inventory.ItemPurchase P ON P.ItemId = IM.Id
                 LEFT JOIN Inventory.UOM U ON U.Id = P.PurchaseUomId
                 LEFT JOIN Inventory.UOM U1 ON U1.Id = IM.StockUomId
-                WHERE IM.IsDeleted = 0 AND IM.IsActive = 1
-                AND ((@HasVariant IS NULL OR IM.HasVariants = @HasVariant) or ParentItemId is null)
-                AND (@ParentItemId IS NULL OR IM.ParentItemId = @ParentItemId)";
+                WHERE IM.IsDeleted = 0 AND IM.IsActive = 1";
 
-            var parameters = new { HasVariant = hasVariant, ParentItemId = parentItemId };
-            var items = await _dbConnection.QueryAsync<GetItemAutoCompleteDto>(sql, parameters);
+            const string variantFilter = @"
+                AND (
+                    (IM.HasVariants = @HasVariant OR IM.ParentItemId IS NULL)
+                    AND NOT (
+                        IM.HasVariants = @HasVariant
+                        AND NOT EXISTS (
+                            SELECT 1
+                            FROM Inventory.ItemMaster Child
+                            WHERE Child.ParentItemId = IM.Id
+                              AND Child.IsDeleted = 0
+                              AND Child.IsActive = 1
+                        )
+                    )
+                )";
+
+            var sql = hasVariant.HasValue
+                ? baseSelect + variantFilter + "\n                AND (@ParentItemId IS NULL OR IM.ParentItemId = @ParentItemId)"
+                : baseSelect + "\n                AND (@ParentItemId IS NULL OR IM.ParentItemId = @ParentItemId)";
+
+            var dp = new DynamicParameters();
+            if (hasVariant.HasValue)
+                dp.Add("HasVariant", hasVariant.Value, DbType.Boolean);
+            dp.Add("ParentItemId", parentItemId, DbType.Int32);
+
+            var items = await _dbConnection.QueryAsync<GetItemAutoCompleteDto>(sql, dp);
             return items.ToList();
         }
 

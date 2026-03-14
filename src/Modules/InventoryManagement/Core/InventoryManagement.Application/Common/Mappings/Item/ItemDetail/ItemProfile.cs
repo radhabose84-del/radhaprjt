@@ -22,6 +22,8 @@ namespace InventoryManagement.Application.Common.Mappings.Item.ItemDetail
                 .ForMember(d => d.Id, o => o.Ignore())
                 .ForMember(d => d.ParentItemId,
                     o => o.MapFrom(src => src.ParentItemId > 0 ? src.ParentItemId : (int?)null))
+                .ForMember(d => d.IssueRuleId,
+                    o => o.MapFrom(src => src.IssueRuleId > 0 ? src.IssueRuleId : (int?)null))
                 .ForMember(d => d.IsActive, o => o.MapFrom(src => src.IsActive))
                 // navs ignored – handled elsewhere
                 .ForMember(d => d.ChildItems, o => o.Ignore())
@@ -41,6 +43,7 @@ namespace InventoryManagement.Application.Common.Mappings.Item.ItemDetail
                 .ForMember(d => d.UOM, o => o.Ignore())
                 .ForMember(d => d.MiscClassification, o => o.Ignore())
                 .ForMember(d => d.MiscStatus, o => o.Ignore())
+                .ForMember(d => d.MiscIssueRule, o => o.Ignore())
                 .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
 
             CreateMap<ItemPurchaseDto, ItemPurchase>()
@@ -68,7 +71,8 @@ namespace InventoryManagement.Application.Common.Mappings.Item.ItemDetail
                 .ForMember(d => d.Id, o => o.Ignore())
                 .ForMember(d => d.ItemId, o => o.Ignore())
                 .ForMember(d => d.Item, o => o.Ignore())
-                .ForMember(d => d.SalesUOM, o => o.Ignore());
+                .ForMember(d => d.SalesUOM, o => o.Ignore())
+                .ForSourceMember(s => s.CountName, o => o.DoNotValidate());
 
             CreateMap<ItemUomDto, ItemUOM>()
                 .ForMember(d => d.Id, o => o.Ignore())

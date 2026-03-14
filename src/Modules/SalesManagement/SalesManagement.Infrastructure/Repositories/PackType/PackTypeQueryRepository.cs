@@ -106,7 +106,7 @@ namespace SalesManagement.Infrastructure.Repositories.PackType
             const string sql = @"
                 SELECT COUNT(1)
                 FROM Production.ProductionPackDetail
-                WHERE Id = @Id ";
+                WHERE packTypeId = @Id ";
 
             var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = id });
             return count == 0;           

@@ -67,14 +67,14 @@ namespace PartyManagement.Presentation.Validation.PartyMaster
 
                         // ✅ EmailID (Update)
                         RuleFor(x => x.UpdatePartyMaster.PartyContactsUpdate)
-                            .MustAsync(async (contacts, cancellation) =>
+                            .MustAsync(async (command, contacts, cancellation) =>
                             {
                                 if (contacts == null || !contacts.Any()) return true;
 
                                 foreach (var contact in contacts)
                                 {
                                     if (await _iPartyMasterCommandRepository
-                                        .EmailExistsUpdateAsync(contact.EmailID ?? string.Empty, contact.Id))
+                                        .EmailExistsUpdateAsync(contact.EmailID ?? string.Empty, command.UpdatePartyMaster.Id))
                                         return false;
                                 }
                                 return true;
@@ -83,14 +83,14 @@ namespace PartyManagement.Presentation.Validation.PartyMaster
 
                         // ✅ MobileNo (Update)
                         RuleFor(x => x.UpdatePartyMaster.PartyContactsUpdate)
-                            .MustAsync(async (contacts, cancellation) =>
+                            .MustAsync(async (command, contacts, cancellation) =>
                             {
                                 if (contacts == null || !contacts.Any()) return true;
 
                                 foreach (var contact in contacts)
                                 {
                                     if (await _iPartyMasterCommandRepository
-                                        .MobileExistsUpdateAsync(contact.MobileNo ?? string.Empty, contact.Id))
+                                        .MobileExistsUpdateAsync(contact.MobileNo ?? string.Empty, command.UpdatePartyMaster.Id))
                                         return false;
                                 }
                                 return true;
