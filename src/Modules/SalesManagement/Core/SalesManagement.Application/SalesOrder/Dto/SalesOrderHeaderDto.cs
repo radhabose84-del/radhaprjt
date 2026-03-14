@@ -20,6 +20,8 @@ namespace SalesManagement.Application.SalesOrder.Dto
         public string? UnitName { get; set; }
         public int PartyId { get; set; }
         public string? PartyName { get; set; }
+        public int? AgentId { get; set; }
+        public string? AgentName { get; set; }
 
         // Commercial Details
         public int? DiscountPlanId { get; set; }
