@@ -9,6 +9,7 @@ using InventoryManagement.Domain.Common;
 using InventoryManagement.Domain.Entities.Item.ItemDetail.Variant;
 using Dapper;
 using Contracts.Interfaces.Lookups.Users;
+using Contracts.Interfaces.Lookups.Production;
 using InventoryManagement.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -20,13 +21,15 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
         private readonly IDbConnection _dbConnection;
         private readonly IIPAddressService _ipAddressService;
         private readonly IUnitLookup _unitLookup;
+        private readonly ICountMasterLookup _countMasterLookup;
 
-        public ItemQueryRepository(IDbConnection dbConnection, ApplicationDbContext db, IIPAddressService ipAddressService, IUnitLookup unitLookup)
+        public ItemQueryRepository(IDbConnection dbConnection, ApplicationDbContext db, IIPAddressService ipAddressService, IUnitLookup unitLookup, ICountMasterLookup countMasterLookup)
         {
             _db = db;
             _dbConnection = dbConnection;
             _ipAddressService = ipAddressService;
             _unitLookup = unitLookup;
+            _countMasterLookup = countMasterLookup;
         }
         public async Task<(List<ItemListDto> Items, int TotalCount)> GetAllAsync(
             int? page, int? size, string search, bool onlyActive,
@@ -217,7 +220,8 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                         PackageQuantity = i.Sale.PackageQuantity,
                         DeliveryLeadTime = i.Sale.DeliveryLeadTime,
                         Discount = i.Sale.Discount,
-                        SalesUOM = i.Sale.SalesUOM != null ? i.Sale.SalesUOM.UOMName : null
+                        SalesUOM = i.Sale.SalesUOM != null ? i.Sale.SalesUOM.UOMName : null,
+                        CountId = i.Sale.CountId
                     },
 
                     // ---------- collections ----------
@@ -318,6 +322,14 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                     if (unitDict.TryGetValue(mapping.UnitId, out var name))
                         mapping.UnitName = name;
                 }
+            }
+
+            // Populate CountName from cross-module lookup (ProductionManagement)
+            if (dto?.Sale?.CountId is { } countId)
+            {
+                var counts = await _countMasterLookup.GetByIdsAsync([countId], ct);
+                if (counts.Count > 0)
+                    dto.Sale.CountName = counts[0].CountDescription;
             }
 
             return dto;

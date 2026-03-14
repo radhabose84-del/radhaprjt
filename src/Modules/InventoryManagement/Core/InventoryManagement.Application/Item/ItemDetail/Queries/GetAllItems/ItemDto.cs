@@ -21,7 +21,7 @@
             public int? ParentItemId { get; set; }
             public string? ItemImage { get; set; }
             public int IsActive { get; set; }
-            public int IssueRuleId { get; set; }
+            public int? IssueRuleId { get; set; }
             public int? OriginCountryId { get; set; }
             public string? TariffNumber { get; set; }
             public bool IsOnSpot { get; set; } = false;
@@ -107,6 +107,8 @@
             public int? DeliveryLeadTime { get; set; }
             public bool Discount { get; set; }
             public string? SalesUOM { get; set; }
+            public int? CountId { get; set; }
+            public string? CountName { get; set; }
         }
         public class ItemSupplierDto
         {

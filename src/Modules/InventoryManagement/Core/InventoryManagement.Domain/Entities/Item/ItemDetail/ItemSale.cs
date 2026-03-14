@@ -11,5 +11,6 @@ namespace InventoryManagement.Domain.Entities.Item.ItemDetail
         public decimal? PackageQuantity { get; set; }
         public int? DeliveryLeadTime { get; set; }
         public bool Discount { get; set; }
+        public int? CountId { get; set; }
     }
 }
