@@ -1,4 +1,5 @@
 using Contracts.Common;
+using FinanceManagement.Application.EInvoiceHeader.Dto;
 using MediatR;
 
 namespace FinanceManagement.Application.EInvoiceHeader.Commands.CreateEInvoiceHeader
@@ -34,5 +35,6 @@ namespace FinanceManagement.Application.EInvoiceHeader.Commands.CreateEInvoiceHe
         public decimal InvoiceAmount { get; set; }
         public string? Remarks { get; set; }
         public int? StatusId { get; set; }
+        public List<CreateEInvoiceDetailDto>? Details { get; set; }
     }
 }
