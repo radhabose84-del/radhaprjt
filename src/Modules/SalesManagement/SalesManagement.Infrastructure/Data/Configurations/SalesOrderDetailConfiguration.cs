@@ -132,6 +132,17 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("int")
                 .IsRequired();
 
+            // Pack Type
+            builder.Property(t => t.PackTypeId)
+                .HasColumnName("PackTypeId")
+                .HasColumnType("int")
+                .IsRequired(false);
+
+            builder.HasOne(t => t.PackType)
+                .WithMany(p => p.SalesOrderDetails)
+                .HasForeignKey(t => t.PackTypeId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             // Status
             builder.Property(t => t.LineItemStatusId)
                 .HasColumnName("LineItemStatusId")
@@ -147,6 +158,7 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             builder.HasIndex(t => t.SalesOrderHeaderId);
             builder.HasIndex(t => t.ItemId);
             builder.HasIndex(t => t.HSNId);
+            builder.HasIndex(t => t.PackTypeId);
         }
     }
 }

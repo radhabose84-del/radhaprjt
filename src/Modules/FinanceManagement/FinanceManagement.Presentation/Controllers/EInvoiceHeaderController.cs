@@ -1,5 +1,6 @@
 using FinanceManagement.Application.EInvoiceHeader.Commands.CreateEInvoiceHeader;
 using FinanceManagement.Application.EInvoiceHeader.Commands.DeleteEInvoiceHeader;
+using FinanceManagement.Application.EInvoiceHeader.Commands.GenerateIrn;
 using FinanceManagement.Application.EInvoiceHeader.Commands.UpdateEInvoiceHeader;
 using FinanceManagement.Application.EInvoiceHeader.Queries.GetAllEInvoiceHeader;
 using FinanceManagement.Application.EInvoiceHeader.Queries.GetEInvoiceHeaderAutoComplete;
@@ -94,6 +95,24 @@ namespace FinanceManagement.Presentation.Controllers
                 StatusCode = StatusCodes.Status200OK,
                 isSuccess = result,
                 message = result ? "EInvoice Header deleted successfully." : "EInvoice Header not found."
+            });
+        }
+
+        /// <summary>
+        /// Authenticates with the NIC API, builds and encrypts the GST e-invoice payload
+        /// from the stored EInvoiceHeader/Detail records, calls the NIC Generate IRN endpoint,
+        /// and persists the returned IRN / AckNo / SignedInvoice / SignedQRCode.
+        /// </summary>
+        [HttpPost("generate-irn/{id}")]
+        public async Task<IActionResult> GenerateIrn(int id)
+        {
+            var result = await Mediator.Send(new GenerateIrnCommand(id));
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                isSuccess = result.IsSuccess,
+                message = result.Message,
+                data = result.Data
             });
         }
     }

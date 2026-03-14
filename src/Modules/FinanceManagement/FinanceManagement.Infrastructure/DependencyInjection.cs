@@ -21,6 +21,8 @@ using FinanceManagement.Infrastructure.Repositories.EWaybillHeader;
 using FinanceManagement.Infrastructure.Repositories.Lookups.Finance;
 using FinanceManagement.Infrastructure.Repositories.TransactionTypeMaster;
 using FinanceManagement.Infrastructure.Services;
+using Contracts.Interfaces.Lookups.Party;
+using Contracts.Interfaces.Lookups.Users;
 using Serilog;
 
 namespace FinanceManagement.Infrastructure
@@ -111,6 +113,20 @@ namespace FinanceManagement.Infrastructure
 
             // ── Lookup repositories (consumed by other modules via Contracts) ──
             services.AddScoped<IDocumentSequenceLookup, DocumentSequenceLookupRepository>();
+
+            // ── NIC E-Invoice service ─────────────────────────────────────────
+            // Named HttpClient for NIC API calls; base address is set dynamically
+            // inside NicEInvoiceService.GetConfig() so the client has no base address here.
+            // SSL validation is intentionally bypassed for the NIC sandbox which uses
+            // a self-signed certificate.
+            services.AddHttpClient("NicEInvoice")
+                .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+                {
+                    ServerCertificateCustomValidationCallback =
+                        HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+                });
+
+            services.AddScoped<INicEInvoiceService, NicEInvoiceService>();
 
             return services;
         }
