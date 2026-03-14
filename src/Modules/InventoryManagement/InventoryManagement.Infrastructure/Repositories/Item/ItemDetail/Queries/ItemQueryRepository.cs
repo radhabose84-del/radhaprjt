@@ -546,7 +546,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
         public async Task<List<GetItemAutoCompleteDto>> GetItemsByVariantFilterAsync(
             bool? hasVariant, int? parentItemId, CancellationToken ct = default)
         {
-            const string sql = @"
+            const string baseSelect = @"
                 SELECT IM.Id, IM.ItemName, IM.ItemCode, IM.ParentItemId,
                        IM.HSNId, HM.HSNCode, HM.GSTPercentage,
                        IM.ItemCategoryId, IM.ItemGroupId,
@@ -557,22 +557,33 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                 LEFT JOIN Inventory.ItemPurchase P ON P.ItemId = IM.Id
                 LEFT JOIN Inventory.UOM U ON U.Id = P.PurchaseUomId
                 LEFT JOIN Inventory.UOM U1 ON U1.Id = IM.StockUomId
-                WHERE IM.IsDeleted = 0 AND IM.IsActive = 1
-                AND ((@HasVariant IS NULL OR IM.HasVariants = @HasVariant) or ParentItemId is null)
-                AND (@ParentItemId IS NULL OR IM.ParentItemId = @ParentItemId)
-                AND NOT (
-                IM.HasVariants = @HasVariant
-                AND NOT EXISTS (
-                    SELECT 1 
-                    FROM Inventory.ItemMaster Child
-                    WHERE Child.ParentItemId = IM.Id
-                        AND Child.IsDeleted = 0
-                        AND Child.IsActive = 1
-                )) 
-                ";
+                WHERE IM.IsDeleted = 0 AND IM.IsActive = 1";
 
-            var parameters = new { HasVariant = hasVariant, ParentItemId = parentItemId };
-            var items = await _dbConnection.QueryAsync<GetItemAutoCompleteDto>(sql, parameters);
+            const string variantFilter = @"
+                AND (
+                    (IM.HasVariants = @HasVariant OR IM.ParentItemId IS NULL)
+                    AND NOT (
+                        IM.HasVariants = @HasVariant
+                        AND NOT EXISTS (
+                            SELECT 1
+                            FROM Inventory.ItemMaster Child
+                            WHERE Child.ParentItemId = IM.Id
+                              AND Child.IsDeleted = 0
+                              AND Child.IsActive = 1
+                        )
+                    )
+                )";
+
+            var sql = hasVariant.HasValue
+                ? baseSelect + variantFilter + "\n                AND (@ParentItemId IS NULL OR IM.ParentItemId = @ParentItemId)"
+                : baseSelect + "\n                AND (@ParentItemId IS NULL OR IM.ParentItemId = @ParentItemId)";
+
+            var dp = new DynamicParameters();
+            if (hasVariant.HasValue)
+                dp.Add("HasVariant", hasVariant.Value, DbType.Boolean);
+            dp.Add("ParentItemId", parentItemId, DbType.Int32);
+
+            var items = await _dbConnection.QueryAsync<GetItemAutoCompleteDto>(sql, dp);
             return items.ToList();
         }
 
