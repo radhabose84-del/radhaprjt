@@ -196,6 +196,49 @@ namespace SalesManagement.Infrastructure.Repositories.AgentCustomerMapping
             return count > 0;
         }
 
+        public async Task<List<AgentCustomerMappingDto>> GetByCustomerIdAsync(int customerId, CancellationToken ct = default)
+        {
+            const string sql = @"
+                SELECT
+                    acm.Id, acm.CustomerId, acm.AgentId, acm.SubAgentId,
+                    acm.SalesSegmentId, ss.SegmentName,
+                    acm.EffectiveFrom, acm.EffectiveTo, acm.IsDefaultAgent, acm.Remarks,
+                    acm.IsActive, acm.IsDeleted,
+                    acm.CreatedBy, acm.CreatedDate, acm.CreatedByName, acm.CreatedIP,
+                    acm.ModifiedBy, acm.ModifiedDate, acm.ModifiedByName, acm.ModifiedIP
+                FROM Sales.AgentCustomerMapping acm
+                LEFT JOIN Sales.SalesSegment ss ON acm.SalesSegmentId = ss.Id AND ss.IsDeleted = 0
+                WHERE acm.CustomerId = @CustomerId AND acm.IsDeleted = 0
+                ORDER BY acm.Id DESC";
+
+            var list = (await _dbConnection.QueryAsync<AgentCustomerMappingDto>(
+                new CommandDefinition(sql, new { CustomerId = customerId }, cancellationToken: ct)))
+                .ToList();
+
+            if (list.Any())
+            {
+                var allCustomers = await _customerLookup.GetAllCustomerAsync();
+                var customerDict = allCustomers.ToDictionary(x => x.Id, x => x.CustomerName);
+
+                var allAgents = await _agentLookup.GetAllAgentAsync();
+                var agentDict = allAgents.ToDictionary(x => x.Id, x => x.AgentName);
+
+                foreach (var item in list)
+                {
+                    if (customerDict.TryGetValue(item.CustomerId, out var customerName))
+                        item.CustomerName = customerName;
+
+                    if (agentDict.TryGetValue(item.AgentId, out var agentName))
+                        item.AgentName = agentName;
+
+                    if (item.SubAgentId.HasValue && agentDict.TryGetValue(item.SubAgentId.Value, out var subAgentName))
+                        item.SubAgentName = subAgentName;
+                }
+            }
+
+            return list;
+        }
+
         public async Task<bool> SoftDeleteValidationAsync(int id, CancellationToken ct = default)
         {
             // Returns true if the mapping is referenced in active transactions (blocks delete)
