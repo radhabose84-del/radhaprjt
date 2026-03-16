@@ -11,15 +11,18 @@ namespace SalesManagement.Infrastructure.Repositories.AgentCustomerMapping
         private readonly IDbConnection _dbConnection;
         private readonly ICustomerLookup _customerLookup;
         private readonly IAgentLookup _agentLookup;
+        private readonly ISubAgentLookup _subAgentLookup;
 
         public AgentCustomerMappingQueryRepository(
             IDbConnection dbConnection,
             ICustomerLookup customerLookup,
-            IAgentLookup agentLookup)
+            IAgentLookup agentLookup,
+            ISubAgentLookup subAgentLookup)
         {
             _dbConnection = dbConnection;
             _customerLookup = customerLookup;
             _agentLookup = agentLookup;
+            _subAgentLookup = subAgentLookup;
         }
 
         public async Task<(List<AgentCustomerMappingDto>, int)> GetAllAsync(
@@ -184,6 +187,12 @@ namespace SalesManagement.Infrastructure.Repositories.AgentCustomerMapping
         {
             var agents = await _agentLookup.GetAllAgentAsync();
             return agents.Any(x => x.Id == agentId);
+        }
+
+        public async Task<bool> SubAgentExistsAsync(int subAgentId, CancellationToken ct = default)
+        {
+            var subAgents = await _subAgentLookup.GetAllSubAgentAsync();
+            return subAgents.Any(x => x.Id == subAgentId);
         }
 
         public async Task<bool> SalesSegmentExistsAsync(int salesSegmentId, CancellationToken ct = default)
