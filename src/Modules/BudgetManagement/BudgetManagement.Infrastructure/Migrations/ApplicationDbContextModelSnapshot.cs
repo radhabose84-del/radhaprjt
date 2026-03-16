@@ -96,6 +96,7 @@ namespace BudgetManagement.Infrastructure.Migrations
                         .HasColumnName("AllocationTypeId");
 
                     b.Property<decimal>("ApprovedAmount")
+                        .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,2)")
                         .HasColumnName("ApprovedAmount");
 
@@ -151,6 +152,7 @@ namespace BudgetManagement.Infrastructure.Migrations
 
                     b.Property<decimal?>("RatePerSpindle")
                         .ValueGeneratedOnAdd()
+                        .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,2)")
                         .HasDefaultValue(0.00m)
                         .HasColumnName("RatePerSpindle");
@@ -214,10 +216,12 @@ namespace BudgetManagement.Infrastructure.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<decimal?>("AllocatedPercentage")
+                        .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,2)")
                         .HasColumnName("AllocatedPercentage");
 
                     b.Property<decimal?>("AllocatedSpindleCost")
+                        .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,2)")
                         .HasColumnName("AllocatedSpindleCost");
 
@@ -567,6 +571,75 @@ namespace BudgetManagement.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("MiscTypeMaster", "Budget");
+                });
+
+            modelBuilder.Entity("BudgetManagement.Domain.Entities.Outbox.OutboxMessage", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<Guid>("CorrelationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int?>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("EventData")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EventType")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("LastError")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<int>("MaxRetries")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ModuleName")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasDefaultValue("BudgetManagement");
+
+                    b.Property<DateTimeOffset?>("NextRetryAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset?>("PublishedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("RetryCount")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CorrelationId")
+                        .HasDatabaseName("IX_Budget_OutboxMessages_CorrelationId");
+
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("IX_Budget_OutboxMessages_CreatedAt");
+
+                    b.HasIndex("Status", "NextRetryAt")
+                        .HasDatabaseName("IX_Budget_OutboxMessages_Status_NextRetryAt")
+                        .HasFilter("[Status] = 0");
+
+                    b.ToTable("OutboxMessages", "Budget");
                 });
 
             modelBuilder.Entity("BudgetManagement.Domain.Entities.BudgetAllocation", b =>

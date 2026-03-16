@@ -36,10 +36,11 @@ namespace PurchaseManagement.Presentation.Validation.PurchaseIndent
                         .Must(v => v == 0 || v == 1) 
                         .WithMessage("IsDraft must be one of: 0, 1.");
 
-            RuleFor(x => new { x.UnitId, x.DepartmentId })
-                            .MustAsync(async (indent, cancellation) => 
+            RuleFor(x => new { x.UnitId, x.DepartmentId, x.IsDraft })
+                            .MustAsync(async (indent, cancellation) =>
                           await _workflowLookup.IsApproveWorkflowConfigureAsync(MiscEnumEntity.PurchaseIndent,indent.UnitId, indent.DepartmentId))
-                            .WithMessage("Approval Workflow is not configured.");
+                            .WithMessage("Approval Workflow is not configured.")
+                            .When(x => x.IsDraft == 0);
         }
     }
 }

@@ -137,6 +137,7 @@ namespace PartyManagement.Infrastructure
             services.AddScoped<IPartyLookup, PartyLookupRepository>();
             services.AddScoped<ICustomerLookup, CustomerLookupRepository>();
             services.AddScoped<IAgentLookup, AgentLookupRepository>();
+            services.AddScoped<ISubAgentLookup, SubAgentLookupRepository>();
 
             // Miscellaneous services
             services.AddTransient<IFileUploadService, FileUploadRepository>();
