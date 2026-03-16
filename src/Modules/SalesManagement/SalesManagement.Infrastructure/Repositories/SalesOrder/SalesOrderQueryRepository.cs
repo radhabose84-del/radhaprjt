@@ -293,6 +293,10 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 var items = await _itemLookup.GetByIdsAsync(itemIds);
                 var itemDict = items.ToDictionary(i => i.Id, i => i.ItemName);
 
+                var variantIds = details.Where(d => d.VariantId.HasValue).Select(d => d.VariantId!.Value).Distinct();
+                var variants = variantIds.Any() ? await _itemLookup.GetByIdsAsync(variantIds) : [];
+                var variantDict = variants.ToDictionary(v => v.Id, v => v.ItemName);
+
                 var hsnIds = details.Select(d => d.HSNId).Distinct();
                 var hsnList = await _hsnLookup.GetByIdsAsync(hsnIds);
                 var hsnDict = hsnList.ToDictionary(h => h.Id, h => h.HSNCode);
@@ -304,6 +308,8 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 foreach (var detail in details)
                 {
                     detail.ItemName = itemDict.TryGetValue(detail.ItemId, out var iName) ? iName : null;
+                    if (detail.VariantId.HasValue)
+                        detail.VariantName = variantDict.TryGetValue(detail.VariantId.Value, out var vName) ? vName : null;
                     detail.HSNCode = hsnDict.TryGetValue(detail.HSNId, out var hCode) ? hCode : null;
                     detail.UOMName = uomDict.TryGetValue(detail.SaleUOMId, out var uName) ? uName : null;
                 }
