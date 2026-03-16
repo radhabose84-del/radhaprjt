@@ -18,5 +18,7 @@ namespace WarehouseManagement.Application.Common.Interfaces.IWarehouseMaster
         Task<List<GetParentWarehouseDto>> GetParentWarehouseMaster();
 
         Task<List<WarehouseMasterDto>> GetwarehouseAsync();
+
+        Task<List<GetWarehouseAutoCompleteDto>> GetByUnitIdAsync(int unitId);
     }
 }

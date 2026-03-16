@@ -1,6 +1,7 @@
 #nullable disable
 using System.Data;
 using Contracts.Interfaces;
+using Contracts.Interfaces.Lookups.Users;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseIndent;
 using PurchaseManagement.Application.PurchaseIndents.Queries.ApprovedIndentDetailsForPO;
@@ -15,52 +16,45 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseIndents
     {
         private readonly IDbConnection _dbConnection;
         private readonly IIPAddressService _ipAddressService;
-        // private readonly IUnitGrpcClient _unitGrpcClient;
-        public PurchaseIndentQueryRepository(IDbConnection dbConnection, IIPAddressService iPAddressService
-        // , IUnitGrpcClient unitGrpcClient
-        )
+        private readonly IUnitLookup _unitLookup;
+
+        public PurchaseIndentQueryRepository(IDbConnection dbConnection, IIPAddressService iPAddressService,
+            IUnitLookup unitLookup)
         {
             _dbConnection = dbConnection;
             _ipAddressService = iPAddressService;
-            // _unitGrpcClient = unitGrpcClient;
+            _unitLookup = unitLookup;
         }
 
-        // public async Task<string> GeneratePurchaseIndentNumberAsync(int unitId)
-        // {
+        public async Task<string> GeneratePurchaseIndentNumberAsync(int unitId)
+        {
+            var units = await _unitLookup.GetAllUnitAsync();
+            var unitDict = units.ToDictionary(d => d.UnitId, d => d.ShortName);
 
-        //     string unitCode;
-        //     var Units = await _unitGrpcClient.GetAllUnitAsync();
-        //     var UnitLookup = Units.ToDictionary(d => d.UnitId, d => d.ShortName);
-
-
-        //     if (UnitLookup.TryGetValue(unitId, out var ShortName))
-        //     {
-        //         unitCode = ShortName;
-        //     }
-        //     else
-        //     {
-        //         throw new Exception("Invalid Unit Id. Failed to generate indent number.");
-        //     }
+            if (!unitDict.TryGetValue(unitId, out var unitCode))
+            {
+                throw new Exception("Invalid Unit Id. Failed to generate indent number.");
+            }
 
 
-        //     const string sql = @"
-        //            SELECT MAX(CAST(RIGHT(IndentNumber, 4) AS INT))
-        //            FROM Purchase.IndentHeader
-        //            WHERE UnitId = @UnitId 
-        //                  ";
+            const string sql = @"
+                   SELECT MAX(CAST(RIGHT(IndentNumber, 4) AS INT))
+                   FROM Purchase.IndentHeader
+                   WHERE UnitId = @UnitId 
+                         ";
 
-        //     int? maxSequence = await _dbConnection.ExecuteScalarAsync<int?>(sql, new
-        //     {
-        //         UnitId = unitId
-        //     });
+            int? maxSequence = await _dbConnection.ExecuteScalarAsync<int?>(sql, new
+            {
+                UnitId = unitId
+            });
 
-        //     int newSequence = (maxSequence ?? 0) + 1;
+            int newSequence = (maxSequence ?? 0) + 1;
 
 
-        //     string indentNumber = $"PI/{unitCode}/{newSequence:D4}";
+            string indentNumber = $"PI/{unitCode}/{newSequence:D4}";
 
-        //     return indentNumber;
-        // }
+            return indentNumber;
+        }
 
         // // public async Task<(List<IndentHeader>, int)> GetAllPurchaseIndentAsync(int PageNumber, int PageSize, string? SearchTerm, int? StatusId)
         // // {

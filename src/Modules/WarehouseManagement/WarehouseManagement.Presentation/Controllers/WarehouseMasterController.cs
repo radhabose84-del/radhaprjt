@@ -5,6 +5,7 @@ using WarehouseManagement.Application.WarehouseMaster.Command.DeleteWarehouseMas
 using WarehouseManagement.Application.WarehouseMaster.Command.UpdateWarehouseMaster;
 using WarehouseManagement.Application.WarehouseMaster.GetWarehouseMasterById;
 using WarehouseManagement.Application.WarehouseMaster.Queries.GetParentWarehouseMaster;
+using WarehouseManagement.Application.WarehouseMaster.Queries.GetWarehouseByUnitId;
 using WarehouseManagement.Application.WarehouseMaster.Queries.GetWareMasterAutoComplete;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -127,6 +128,17 @@ namespace WarehouseManagement.Presentation.Controllers
             });
         }
         
+
+        [HttpGet("by-unit/{unitId}")]
+        public async Task<IActionResult> GetWarehouseByUnitIdAsync(int unitId)
+        {
+            var result = await Mediator.Send(new GetWarehouseByUnitIdQuery { UnitId = unitId });
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result
+            });
+        }
 
          [HttpGet("Get Parent Warehouse")]
         public async Task<IActionResult> GetParentWarehouse([FromQuery] string? name)
