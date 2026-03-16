@@ -45,5 +45,7 @@ namespace FinanceManagement.Application.EInvoiceHeader.Dto
         public DateTimeOffset? ModifiedDate { get; set; }
         public string? ModifiedByName { get; set; }
         public string? ModifiedIP { get; set; }
+
+        public List<EInvoiceDetailDto> Details { get; set; } = new();
     }
 }

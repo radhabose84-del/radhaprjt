@@ -33,6 +33,7 @@ namespace FinanceManagement.Infrastructure.Services
         private readonly IDbConnection _dbConnection;
         private readonly IUnitLookup _unitLookup;
         private readonly IPartyLookup _partyLookup;
+        private readonly ICityLookup _cityLookup;
         private readonly IConfiguration _configuration;
 
         // ── JSON serialiser options (camelCase disabled; NIC uses PascalCase) ──
@@ -47,12 +48,14 @@ namespace FinanceManagement.Infrastructure.Services
             IDbConnection dbConnection,
             IUnitLookup unitLookup,
             IPartyLookup partyLookup,
+            ICityLookup cityLookup,
             IConfiguration configuration)
         {
             _httpClientFactory = httpClientFactory;
             _dbConnection = dbConnection;
             _unitLookup = unitLookup;
             _partyLookup = partyLookup;
+            _cityLookup = cityLookup;
             _configuration = configuration;
         }
 
@@ -305,19 +308,34 @@ namespace FinanceManagement.Infrastructure.Services
             var cfg = GetConfig();
             var client = _httpClientFactory.CreateClient("NicEInvoice");
 
-            var authRequest = new
+            // NIC auth flow:
+            // 1. Generate random 32-byte AES key (AppKey) for this session
+            // 2. RSA-encrypt ONLY the Password and AppKey fields individually
+            // 3. Send JSON with plain UserName + encrypted Password + encrypted AppKey
+            // 4. NIC decrypts Password & AppKey with their private key, authenticates
+            // 5. NIC encrypts SEK with our AppKey (AES-256 ECB) and returns it
+            var appKeyBytes = new byte[32];
+            RandomNumberGenerator.Fill(appKeyBytes);
+            var appKeyBase64 = Convert.ToBase64String(appKeyBytes);
+
+            // Encrypt Password and AppKey individually with NIC's RSA public key
+            var encryptedPassword = RsaEncryptWithPublicKey(cfg.Password);
+            var encryptedAppKey = RsaEncryptWithPublicKey(appKeyBase64);
+
+            // Build inner JSON with encrypted fields, then wrap in {"Data": "<json_string>"}
+            var innerJson = JsonSerializer.Serialize(new
             {
                 UserName = cfg.UserName,
-                Password = cfg.Password,
-                AppKey = cfg.AppKey,
-                ForceRefreshAccessToken = "Yes"
-            };
+                Password = encryptedPassword,
+                AppKey = encryptedAppKey,
+                ForceRefreshAccessToken = false
+            }, _jsonOptions);
+
+            var requestBody = JsonSerializer.Serialize(new { Data = innerJson }, _jsonOptions);
 
             using var req = new HttpRequestMessage(HttpMethod.Post, cfg.AuthPath)
             {
-                Content = new StringContent(
-                    JsonSerializer.Serialize(authRequest, _jsonOptions),
-                    Encoding.UTF8, "application/json")
+                Content = new StringContent(requestBody, Encoding.UTF8, "application/json")
             };
             req.Headers.Add("client-id", cfg.ClientId);
             req.Headers.Add("client-secret", cfg.ClientSecret);
@@ -326,23 +344,45 @@ namespace FinanceManagement.Infrastructure.Services
             using var resp = await client.SendAsync(req, ct);
             var body = await resp.Content.ReadAsStringAsync(ct);
 
+            // NIC may return HTML error pages — detect and report
+            if (string.IsNullOrWhiteSpace(body) || body.TrimStart().StartsWith('<'))
+            {
+                throw new InvalidOperationException(
+                    $"NIC auth endpoint returned non-JSON response (HTTP {(int)resp.StatusCode}). " +
+                    $"URL: {cfg.AuthPath}. Response: {body[..Math.Min(body.Length, 500)]}");
+            }
+
             using var doc = JsonDocument.Parse(body);
             var root = doc.RootElement;
 
-            if (root.GetProperty("status").GetInt32() != 1)
+            // NIC response uses "Status" (PascalCase) — handle both cases
+            var statusVal = root.TryGetProperty("Status", out var statusEl)
+                ? statusEl.GetInt32()
+                : root.TryGetProperty("status", out var statusEl2)
+                    ? statusEl2.GetInt32()
+                    : throw new InvalidOperationException($"NIC auth response missing 'Status' key. Response: {body[..Math.Min(body.Length, 500)]}");
+
+            if (statusVal != 1)
             {
-                var msg = root.TryGetProperty("message", out var m) ? m.GetString() : "Auth failed";
+                var msg = root.TryGetProperty("ErrorDetails", out var ed) ? ed.ToString()
+                    : root.TryGetProperty("message", out var m) ? m.GetString()
+                    : "Auth failed";
                 throw new InvalidOperationException($"NIC auth failed: {msg}");
             }
 
-            var data = root.GetProperty("data");
-            var authToken = data.GetProperty("AuthToken").GetString()
+            var data = root.TryGetProperty("Data", out var dataEl) ? dataEl
+                : root.TryGetProperty("data", out var dataEl2) ? dataEl2
+                : throw new InvalidOperationException($"NIC auth response missing 'Data' key. Response: {body[..Math.Min(body.Length, 500)]}");
+
+            var authToken = (data.TryGetProperty("AuthToken", out var at) ? at.GetString()
+                : data.TryGetProperty("authToken", out var at2) ? at2.GetString() : null)
                 ?? throw new InvalidOperationException("AuthToken missing in NIC response.");
-            var sekBase64 = data.GetProperty("Sek").GetString()
+
+            var sekBase64 = (data.TryGetProperty("Sek", out var sk) ? sk.GetString()
+                : data.TryGetProperty("sek", out var sk2) ? sk2.GetString() : null)
                 ?? throw new InvalidOperationException("Sek missing in NIC response.");
 
-            // Decrypt Sek using AppKey (Base64-decoded → 32 bytes = AES-256 key)
-            var appKeyBytes = Convert.FromBase64String(cfg.AppKey);
+            // Decrypt Sek using AppKey (already decoded above)
             var sekBytes = AesDecryptEcb(sekBase64, appKeyBytes);
 
             return (authToken, sekBytes);
@@ -399,16 +439,16 @@ namespace FinanceManagement.Infrastructure.Services
             if (unitRow is not null)
             {
                 const string companySql =
-                    "SELECT CompanyName, GstNumber FROM AppData.Company WHERE CompanyId = @companyId";
+                    "SELECT CompanyName, GstNumber FROM AppData.Company WHERE Id = @companyId";
                 companyRow = await _dbConnection.QueryFirstOrDefaultAsync<CompanyRow>(
                     companySql, new { companyId = unitRow.CompanyId });
             }
 
             // ── 2e. Unit address (AppData schema) ────────────────────────────
             const string unitAddrSql = @"
-                SELECT TOP 1 AddressLine1, AddressLine2, City, PinCode, Phone, Email
+                SELECT TOP 1 AddressLine1, AddressLine2, CityId, PinCode, ContactNumber
                 FROM AppData.UnitAddress
-                WHERE UnitId = @unitId AND IsDeleted = 0
+                WHERE UnitId = @unitId
                 ORDER BY Id";
             var unitAddr = await _dbConnection.QueryFirstOrDefaultAsync<UnitAddressRow>(
                 unitAddrSql, new { unitId = header.UnitId });
@@ -418,9 +458,9 @@ namespace FinanceManagement.Infrastructure.Services
 
             // ── 2g. Buyer address (PartyManagement schema) ────────────────────
             const string partyAddrSql = @"
-                SELECT TOP 1 AddressLine1, AddressLine2, City, PostalCode, Phone, Email
-                FROM PartyManagement.PartyAddress
-                WHERE PartyId = @partyId AND IsDeleted = 0
+                SELECT TOP 1 AddressLine1, AddressLine2, CityId, PostalCode
+                FROM Party.PartyAddress
+                WHERE PartyId = @partyId
                 ORDER BY Id";
             var partyAddr = await _dbConnection.QueryFirstOrDefaultAsync<PartyAddressRow>(
                 partyAddrSql, new { partyId = header.PartyId });
@@ -453,19 +493,19 @@ namespace FinanceManagement.Infrastructure.Services
                 CompanyLegalName = companyRow?.CompanyName,
                 SellerAddr1 = unitAddr?.AddressLine1,
                 SellerAddr2 = unitAddr?.AddressLine2,
-                SellerLocation = unitAddr?.City,
-                SellerPinCode = unitAddr?.PinCode,
-                SellerPhone = unitAddr?.Phone,
-                SellerEmail = unitAddr?.Email,
+                SellerLocation = unitAddr != null ? (await _cityLookup.GetByIdAsync(unitAddr.CityId, ct))?.CityName : null,
+                SellerPinCode = unitAddr?.PinCode.ToString(),
+                SellerPhone = unitAddr?.ContactNumber,
+                SellerEmail = null,
 
                 BuyerLegalName = partyDto?.PartyName,
                 BuyerTradeName = partyDto?.PartyName,
                 BuyerAddr1 = partyAddr?.AddressLine1,
                 BuyerAddr2 = partyAddr?.AddressLine2,
-                BuyerLocation = partyAddr?.City,
+                BuyerLocation = partyAddr != null ? (await _cityLookup.GetByIdAsync(partyAddr.CityId, ct))?.CityName : null,
                 BuyerPinCode = partyAddr?.PostalCode,
-                BuyerPhone = partyAddr?.Phone,
-                BuyerEmail = partyAddr?.Email,
+                BuyerPhone = null,
+                BuyerEmail = null,
 
                 Details = details.Select(d => new NicDetailData
                 {
@@ -792,6 +832,31 @@ namespace FinanceManagement.Infrastructure.Services
             return Convert.ToBase64String(cipher);
         }
 
+        // NIC sandbox public key (PEM) for RSA encryption of auth payload
+        private const string NicSandboxPublicKeyBase64 =
+            "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA3whXIStUW1q8Orgi3trd" +
+            "zV42/fEpGdwmHWqvLfcv1HKby8CL15EzSe/UwW1fykEAPpDnCiURckc8uDGfThwU" +
+            "XWhS+Ird30wE4VjGhifLsr87FXUnGuNcP9AngX8WF7Q7QraYdomCmIkkWvhNJMSH" +
+            "wIHbMcUYLzZl2eREoZO+8iCjHy7haWgTcMK6YP2qzCnJczVTpxdX4rDY1gABDOO0" +
+            "2Qui3+6a/sCbVWRS+PjlSt/dGVw/8xihS7nDPRnq9WgEEwVsxUb5jcHZpFxeM6BW" +
+            "F1BwGKAUmOE6YKF8/zwDZflk8ShB43XP0j0rAHaNeKSAR8N77mgqroRCinvVdMpN" +
+            "DQIDAQAB";
+
+        private static string RsaEncryptWithPublicKey(string plainText)
+        {
+            // NIC C# sample: encrypt raw UTF-8 bytes with RSA
+            // Try loading from config first, fallback to hardcoded sandbox key
+            var publicKeyBytes = Convert.FromBase64String(NicSandboxPublicKeyBase64);
+            using var rsa = RSA.Create();
+            rsa.ImportSubjectPublicKeyInfo(publicKeyBytes, out _);
+
+            var dataToEncrypt = Encoding.UTF8.GetBytes(plainText);
+
+            // NIC sample uses rsa.Encrypt(plaintext, false) = PKCS1 v1.5
+            var encrypted = rsa.Encrypt(dataToEncrypt, RSAEncryptionPadding.Pkcs1);
+            return Convert.ToBase64String(encrypted);
+        }
+
         // ─────────────────────────────────────────────────────────────────────
         //  Configuration helper
         // ─────────────────────────────────────────────────────────────────────
@@ -881,8 +946,8 @@ namespace FinanceManagement.Infrastructure.Services
 
         private sealed class UnitCompanyRow { public int CompanyId { get; set; } }
         private sealed class CompanyRow { public string? CompanyName { get; set; } public string? GstNumber { get; set; } }
-        private sealed class UnitAddressRow { public string? AddressLine1 { get; set; } public string? AddressLine2 { get; set; } public string? City { get; set; } public string? PinCode { get; set; } public string? Phone { get; set; } public string? Email { get; set; } }
-        private sealed class PartyAddressRow { public string? AddressLine1 { get; set; } public string? AddressLine2 { get; set; } public string? City { get; set; } public string? PostalCode { get; set; } public string? Phone { get; set; } public string? Email { get; set; } }
+        private sealed class UnitAddressRow { public string? AddressLine1 { get; set; } public string? AddressLine2 { get; set; } public int CityId { get; set; } public int PinCode { get; set; } public string? ContactNumber { get; set; } }
+        private sealed class PartyAddressRow { public string? AddressLine1 { get; set; } public string? AddressLine2 { get; set; } public int CityId { get; set; } public string? PostalCode { get; set; } }
 
         private sealed class NicEInvoiceData
         {

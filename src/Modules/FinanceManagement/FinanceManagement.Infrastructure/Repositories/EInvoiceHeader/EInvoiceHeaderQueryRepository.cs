@@ -72,12 +72,22 @@ namespace FinanceManagement.Infrastructure.Repositories.EInvoiceHeader
                        CreatedBy, CreatedDate, CreatedByName, CreatedIP,
                        ModifiedBy, ModifiedDate, ModifiedByName, ModifiedIP
                 FROM [Finance].[EInvoiceHeader]
-                WHERE Id = @Id AND IsDeleted = 0";
+                WHERE Id = @Id AND IsDeleted = 0;
 
-            var dto = await _dbConnection.QueryFirstOrDefaultAsync<EInvoiceHeaderDto>(sql, new { Id = id });
+                SELECT Id, EInvoiceHeaderId, ItemSno, ItemId, ItemName, HsnNo,
+                       NoOfBags, Qty, UnitPrice, Rate, Discount, GrossAmount, TaxableAmount,
+                       GstPercentage, CGST, SGST, IGST, CessRate, CessAmount,
+                       OtherCharges, TotalAmount, IsService, FreeQty, PackTypeId, UOM
+                FROM [Finance].[EInvoiceDetail]
+                WHERE EInvoiceHeaderId = @Id;";
+
+            using var multi = await _dbConnection.QueryMultipleAsync(sql, new { Id = id });
+            var dto = await multi.ReadFirstOrDefaultAsync<EInvoiceHeaderDto>();
 
             if (dto != null)
             {
+                dto.Details = (await multi.ReadAsync<EInvoiceDetailDto>()).ToList();
+
                 var party = await _partyLookup.GetByIdAsync(dto.PartyId);
                 dto.PartyName = party?.PartyName;
             }

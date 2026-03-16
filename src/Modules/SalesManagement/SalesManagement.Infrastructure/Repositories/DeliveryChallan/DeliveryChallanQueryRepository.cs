@@ -1,4 +1,5 @@
 using System.Data;
+using Contracts.Interfaces;
 using Contracts.Dtos.Lookups.Inventory;
 using Contracts.Dtos.Lookups.Users;
 using Contracts.Dtos.Lookups.Warehouse;
@@ -20,6 +21,7 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
         private readonly IPartyLookup _partyLookup;
         private readonly IItemLookup _itemLookup;
         private readonly IUOMLookup _uomLookup;
+        private readonly IIPAddressService _ipAddressService;
 
         public DeliveryChallanQueryRepository(
             IDbConnection dbConnection,
@@ -27,7 +29,8 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
             IWarehouseLookup warehouseLookup,
             IPartyLookup partyLookup,
             IItemLookup itemLookup,
-            IUOMLookup uomLookup)
+            IUOMLookup uomLookup,
+            IIPAddressService ipAddressService)
         {
             _dbConnection = dbConnection;
             _unitLookup = unitLookup;
@@ -35,6 +38,7 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
             _partyLookup = partyLookup;
             _itemLookup = itemLookup;
             _uomLookup = uomLookup;
+            _ipAddressService = ipAddressService;
         }
 
         public async Task<(List<DeliveryChallanHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
@@ -243,6 +247,8 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
 
         public async Task<IReadOnlyList<DeliveryChallanLookupDto>> AutocompleteAsync(string term, CancellationToken ct)
         {
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
+
             const string sql = @"
                 SELECT TOP 20
                     h.Id,
@@ -252,10 +258,11 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
                 FROM Sales.DeliveryChallanHeader h
                 LEFT JOIN Sales.StoHeader sh ON h.StoHeaderId = sh.Id AND sh.IsDeleted = 0
                 WHERE h.IsDeleted = 0 AND h.IsActive = 1
+                  AND h.UnitId = @UnitId
                   AND (h.DeliveryNumber LIKE @Term OR sh.StoNumber LIKE @Term)
                 ORDER BY h.DeliveryNumber ASC;";
 
-            var result = await _dbConnection.QueryAsync<DeliveryChallanLookupDto>(sql, new { Term = $"%{term}%" });
+            var result = await _dbConnection.QueryAsync<DeliveryChallanLookupDto>(sql, new { UnitId = unitId, Term = $"%{term}%" });
             return result.ToList();
         }
 
