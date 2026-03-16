@@ -9,6 +9,7 @@ namespace SalesManagement.Application.SalesOrder.Dto
         public int ItemId { get; set; }
         public string? ItemName { get; set; }
         public int? VariantId { get; set; }
+        public string? VariantName { get; set; }
         public int HSNId { get; set; }
         public string? HSNCode { get; set; }
         public int? PackTypeId { get; set; }
