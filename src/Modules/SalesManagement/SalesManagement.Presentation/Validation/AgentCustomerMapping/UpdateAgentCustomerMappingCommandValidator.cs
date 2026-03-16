@@ -68,7 +68,7 @@ namespace SalesManagement.Presentation.Validation.AgentCustomerMapping
                             .When(x => x.AgentId > 0);
 
                         RuleFor(x => x.SubAgentId!.Value)
-                            .MustAsync(async (id, ct) => await _queryRepository.AgentExistsAsync(id, ct))
+                            .MustAsync(async (id, ct) => await _queryRepository.SubAgentExistsAsync(id, ct))
                             .WithMessage($"{nameof(UpdateAgentCustomerMappingCommand.SubAgentId)} {rule.Error}")
                             .When(x => x.SubAgentId.HasValue && x.SubAgentId.Value > 0);
 
