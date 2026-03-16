@@ -7,6 +7,13 @@ using BSOFT.Worker.Services;
 using Hangfire;
 using Serilog;
 using Shared.Infrastructure;
+using PurchaseManagement.Infrastructure;
+using BudgetManagement.Infrastructure;
+using InventoryManagement.Infrastructure;
+using UserManagement.Infrastructure;
+using PartyManagement.Infrastructure;
+using WarehouseManagement.Infrastructure;
+using ProductionManagement.Infrastructure;
 
 var builder = Host.CreateApplicationBuilder(args);
 
@@ -45,6 +52,18 @@ builder.Services.AddApplicationServices();
 
 // ── Infrastructure layer: Hangfire + MassTransit + all repositories ───────────
 builder.Services.AddInfrastructureServices(builder.Configuration, builder.Services);
+
+// ── Module infrastructure — registers repos needed by module-specific consumers ──
+// Lookup providers first (UserManagement / PartyManagement / WarehouseManagement / Production supply
+// IUnitLookup, ICurrencyLookup, IPartyLookup, IRackLookup, ICountMasterLookup etc.)
+builder.Services.AddUserManagementInfrastructure(builder.Configuration, builder.Environment);
+builder.Services.AddPartyInfrastructure(builder.Configuration, builder.Environment);
+builder.Services.AddWarehouseInfrastructure(builder.Configuration, builder.Environment);
+builder.Services.AddProductionInfrastructureServices(builder.Configuration, builder.Environment);
+// Business module infrastructure (consumers and their command/query repos)
+builder.Services.AddPurchaseInfrastructureServices(builder.Configuration, builder.Environment);
+builder.Services.AddBudgetInfrastructure(builder.Configuration, builder.Environment);
+builder.Services.AddInventoryInfrastructure(builder.Configuration, builder.Environment);
 
 // ── Hangfire server — BSOFT.Worker is the sole job executor ──────────────────
 //    BSOFT.Api only uses Hangfire for the dashboard + job enqueueing (no server there).

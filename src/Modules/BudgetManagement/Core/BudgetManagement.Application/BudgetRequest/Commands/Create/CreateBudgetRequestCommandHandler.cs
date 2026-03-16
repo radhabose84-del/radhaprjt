@@ -1,11 +1,12 @@
 using System.Text.Json;
 using AutoMapper;
-using Contracts.Events.Workflow;
+using Contracts.Commands.Workflow;
 using Contracts.Interfaces.Lookups.Users;
 using Contracts.Interfaces;
 using BudgetManagement.Application.Common.Interfaces;
 using BudgetManagement.Application.Common.Interfaces.IBudgetRequest;
 using BudgetManagement.Application.Common.Interfaces.IMiscMaster;
+using BudgetManagement.Application.Common.Interfaces.IOutbox;
 using BudgetManagement.Domain.Common;
 using BudgetManagement.Domain.Events;
 using MediatR;
@@ -25,7 +26,8 @@ public class CreateBudgetRequestCommandHandler
     private readonly IUnitLookup _unitLookup;
     private readonly ICompanyLookup _companyLookup;
     private readonly IIPAddressService _ip;
-    private readonly IEventPublisher _eventPublisher;
+    private readonly IOutboxEventPublisher _outboxEventPublisher;
+    private readonly IBudgetUnitOfWork _unitOfWork;
     private readonly IFinancialYearLookup _financialYearLookup;
 
     public CreateBudgetRequestCommandHandler(
@@ -38,7 +40,8 @@ public class CreateBudgetRequestCommandHandler
         IUnitLookup unitLookup,
         ICompanyLookup companyLookup,
         IIPAddressService ip,
-        IEventPublisher eventPublisher,
+        IOutboxEventPublisher outboxEventPublisher,
+        IBudgetUnitOfWork unitOfWork,
         IFinancialYearLookup financialYearLookup)
     {
         _budgetRepo = budgetRepo;
@@ -50,13 +53,13 @@ public class CreateBudgetRequestCommandHandler
         _unitLookup = unitLookup;
         _companyLookup = companyLookup;
         _ip = ip;
-        _eventPublisher = eventPublisher;
+        _outboxEventPublisher = outboxEventPublisher;
+        _unitOfWork = unitOfWork;
         _financialYearLookup = financialYearLookup;
     }
 
     public async Task<int> Handle(CreateBudgetRequestCommand request, CancellationToken cancellationToken)
     {
-        // map
         var entity = _mapper.Map<BudgetManagement.Domain.Entities.BudgetRequest>(request);
         var requestDate = request.FromDate ?? DateOnly.FromDateTime(DateTime.Today);
 
@@ -64,7 +67,6 @@ public class CreateBudgetRequestCommandHandler
         {
             var financialYears = await _financialYearLookup.GetAllFinancialYearAsync();
 
-            // convert DateTime → DateOnly for comparison
             var fyMatch = financialYears
                 .FirstOrDefault(fy =>
                 {
@@ -86,41 +88,30 @@ public class CreateBudgetRequestCommandHandler
             {
                 var msg = $"Financial year does not exist for date {requestDate:yyyy-MM-dd}.";
                 _logger.LogWarning(msg);
-
                 throw new ApplicationException(msg);
             }
         }
 
         entity.RequestCode = await _budgetRepo.GenerateCodeAsync(
-            unitId: request.UnitId,            
+            unitId: request.UnitId,
             requestDate: requestDate,
             ct: cancellationToken);
 
-        // save
-        var created = await _budgetRepo.AddAsync(entity, cancellationToken);
-        var entity1 = await _budgetRepo.GetByIdBudgetRequestWorkFlowAsync(created.Id);
-        var reverseMap = _mapper.Map<CreateBudgetRequestReverseDto>(entity1);
-        string serializedPayload = JsonSerializer.Serialize(reverseMap);
+        await _unitOfWork.BeginTransactionAsync(cancellationToken);
+        try
+        {
+            var created = await _budgetRepo.AddAsync(entity, cancellationToken);
+            var entity1 = await _budgetRepo.GetByIdBudgetRequestWorkFlowAsync(created.Id);
+            var reverseMap = _mapper.Map<CreateBudgetRequestReverseDto>(entity1);
+            string serializedPayload = JsonSerializer.Serialize(reverseMap);
 
-        // ---- Audit domain event ----
-        var domainEvent = new AuditLogsDomainEvent(
-            actionDetail: "Create",
-            actionCode: created.RequestCode ?? created.Id.ToString(),
-            actionName: "Budget Request",
-            details: $"Budget Request '{created.RequestCode}' was created.",
-            module: "BudgetRequest"
-        );
-
-        await _mediator.Publish(domainEvent, cancellationToken);        
-       
-        
-        if (created.Id > 0)
+            if (created.Id > 0)
             {
-                 if (!string.IsNullOrWhiteSpace(request.ImagePath))
+                if (!string.IsNullOrWhiteSpace(request.ImagePath))
                     await TryMoveImageAsync(created.Id, request.ImagePath!, created.RequestCode ?? string.Empty, cancellationToken);
 
                 var correlationId = Guid.NewGuid();
-                var @event = new TransactionCreatedEvent
+                var @event = new CreateApprovalRequestCommand
                 {
                     CorrelationId = correlationId,
                     ModuleTypeName = MiscEnumEntity.BudgetRequest,
@@ -128,11 +119,35 @@ public class CreateBudgetRequestCommandHandler
                     Payload = serializedPayload
                 };
 
-                await _eventPublisher.SaveEventAsync(@event);
-                await _eventPublisher.PublishPendingEventsAsync();
+                await _outboxEventPublisher.ScheduleWithoutSaveAsync(@event, correlationId, cancellationToken);
             }
-        return created.Id;
+
+            await _unitOfWork.CommitAsync(cancellationToken);
+
+            try
+            {
+                await _mediator.Publish(new AuditLogsDomainEvent(
+                    actionDetail: "Create",
+                    actionCode: entity.RequestCode ?? entity.Id.ToString(),
+                    actionName: "Budget Request",
+                    details: $"Budget Request '{entity.RequestCode}' was created.",
+                    module: "BudgetRequest"
+                ), cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Audit log failed for BudgetRequest {Id} — non-critical", entity.Id);
+            }
+
+            return entity.Id;
+        }
+        catch
+        {
+            await _unitOfWork.RollbackAsync(cancellationToken);
+            throw;
+        }
     }
+
     private async Task TryMoveImageAsync(int requestId, string tempFileName, string baseCode, CancellationToken ct)
     {
         try
@@ -161,7 +176,6 @@ public class CreateBudgetRequestCommandHandler
             {
                 var newFile = $"{baseCode}{Path.GetExtension(tempFullPath)}";
                 var newPath = Path.Combine(Path.GetDirectoryName(tempFullPath)!, newFile);
-
                 File.Move(tempFullPath, newPath, overwrite: true);
                 await _budgetRepo.UpdateImageAsync(requestId, newFile, ct);
             }
