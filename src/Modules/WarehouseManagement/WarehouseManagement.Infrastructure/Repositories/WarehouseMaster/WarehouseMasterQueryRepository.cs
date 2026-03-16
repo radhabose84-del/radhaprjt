@@ -271,6 +271,28 @@ namespace WarehouseManagement.Infrastructure.Repositories.WarehouseMaster
 
             var items = (await _dbConnection.QueryAsync<WarehouseMasterDto>(sql , new { UnitId = unitId })).ToList();
             return items;
-        }                                                      
+        }
+
+        public async Task<List<GetWarehouseAutoCompleteDto>> GetByUnitIdAsync(int unitId)
+        {
+            const string sql = @"
+                SELECT
+                    w.Id,
+                    w.WarehouseCode,
+                    w.WarehouseName,
+                    w.ParentWarehouseId,
+                    pw.WarehouseName AS ParentWarehouseName
+                FROM [Warehouse].[WarehouseMaster] w
+                LEFT JOIN [Warehouse].[WarehouseMaster] pw
+                    ON w.ParentWarehouseId = pw.Id
+                WHERE w.IsDeleted = 0
+                    AND w.IsActive = 1
+                    AND w.UnitId = @UnitId
+                ORDER BY w.WarehouseCode, w.WarehouseName;
+            ";
+
+            var rows = await _dbConnection.QueryAsync<GetWarehouseAutoCompleteDto>(sql, new { UnitId = unitId });
+            return rows.ToList();
+        }
     }
 }

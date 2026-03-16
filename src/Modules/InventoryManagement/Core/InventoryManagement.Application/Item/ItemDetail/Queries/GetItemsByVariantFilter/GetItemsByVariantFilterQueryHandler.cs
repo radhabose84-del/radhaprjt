@@ -1,4 +1,3 @@
-using AutoMapper;
 using InventoryManagement.Application.Common.Interfaces.Item.ItemDetail.Queries;
 using InventoryManagement.Application.Item.ItemDetail.Queries.GetItemAutoComplete;
 using InventoryManagement.Domain.Events;
@@ -11,26 +10,21 @@ namespace InventoryManagement.Application.Item.ItemDetail.Queries.GetItemsByVari
     {
         private readonly IItemQueryRepository _itemQueryRepository;
         private readonly IMediator _mediator;
-        private readonly IMapper _mapper;
 
         public GetItemsByVariantFilterQueryHandler(
             IItemQueryRepository itemQueryRepository,
-            IMediator mediator,
-            IMapper mapper)
+            IMediator mediator)
         {
             _itemQueryRepository = itemQueryRepository;
             _mediator = mediator;
-            _mapper = mapper;
         }
 
         public async Task<List<GetItemAutoCompleteDto>> Handle(
             GetItemsByVariantFilterQuery request,
             CancellationToken cancellationToken)
         {
-            var result = await _itemQueryRepository.GetItemsByVariantFilterAsync(
+            var items = await _itemQueryRepository.GetItemsByVariantFilterAsync(
                 request.HasVariant, request.ParentItemId, cancellationToken);
-
-            var items = _mapper.Map<List<GetItemAutoCompleteDto>>(result);
 
             var domainEvent = new AuditLogsDomainEvent(
                 actionDetail: "GetItemsByVariantFilter",

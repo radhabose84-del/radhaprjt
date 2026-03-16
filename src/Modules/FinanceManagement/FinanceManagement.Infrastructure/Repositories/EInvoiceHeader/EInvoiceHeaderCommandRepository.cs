@@ -111,5 +111,47 @@ namespace FinanceManagement.Infrastructure.Repositories.EInvoiceHeader
             await _dbContext.SaveChangesAsync(ct);
             return true;
         }
+        public async Task<bool> UpdateEwbDetailsAsync(
+            int id,
+            long? ewbNo,
+            string? ewbDate,
+            string? ewbValidTill,
+            CancellationToken ct)
+        {
+            var existing = await _dbContext.EInvoiceHeader
+                .FirstOrDefaultAsync(x => x.Id == id && x.IsDeleted == IsDelete.NotDeleted, ct);
+
+            if (existing == null)
+                return false;
+
+            existing.EWaybillCreated = true;
+
+            // Create EWaybillHeader record with NIC response data
+            var ewbHeader = new Domain.Entities.EWaybillHeader
+            {
+                EInvoiceHeaderId = id,
+                UnitId = existing.UnitId,
+                EWBNumber = ewbNo?.ToString(),
+                InvoiceNo = existing.InvoiceNo,
+                InvoiceDate = existing.InvoiceDate,
+                InvoiceValue = existing.InvoiceAmount,
+                FromGSTIN = existing.GstNo,
+                EwbStatus = "Generated",
+                IsActive = Status.Active,
+                IsDeleted = IsDelete.NotDeleted
+            };
+
+            // Parse EWB dates from NIC response format
+            if (!string.IsNullOrEmpty(ewbDate) && DateTimeOffset.TryParse(ewbDate, out var genDate))
+                ewbHeader.GeneratedDate = genDate;
+
+            if (!string.IsNullOrEmpty(ewbValidTill) && DateTimeOffset.TryParse(ewbValidTill, out var validDate))
+                ewbHeader.ValidUpto = validDate;
+
+            await _dbContext.EWaybillHeader.AddAsync(ewbHeader, ct);
+            _dbContext.EInvoiceHeader.Update(existing);
+            await _dbContext.SaveChangesAsync(ct);
+            return true;
+        }
     }
 }
