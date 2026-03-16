@@ -6,6 +6,8 @@ using BudgetManagement.Domain.Common;
 using BudgetManagement.Infrastructure.Data.Configurations;
 using BudgetManagement.Domain.Entities;
 using BudgetManagement.Infrastructure.Data.Configuration;
+using BudgetManagement.Domain.Entities.Outbox;
+using BudgetManagement.Infrastructure.Data.Configurations.Outbox;
 
 namespace BudgetManagement.Infrastructure.Data
 {
@@ -27,11 +29,11 @@ namespace BudgetManagement.Infrastructure.Data
         public DbSet<BudgetRequest> BudgetRequests { get; set; }
         public DbSet<BudgetGroup> BudgetGroups { get; set; }
         public DbSet<BudgetAllocation> BudgetAllocations { get; set; }
-
-
+        public DbSet<OutboxMessage> OutboxMessages { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.ApplyConfiguration(new OutboxMessageConfiguration());
             modelBuilder.ApplyConfiguration(new ActivityLogConfiguration());
             modelBuilder.ApplyConfiguration(new MiscTypeMasterConfiguration());
             modelBuilder.ApplyConfiguration(new MiscMasterConfiguration());

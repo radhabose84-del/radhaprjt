@@ -1,5 +1,5 @@
-#nullable disable
 using System.Data;
+using Contracts.Common;
 using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Users;
 using PurchaseManagement.Application.Common.Interfaces;
@@ -18,8 +18,12 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseIndents
         private readonly IIPAddressService _ipAddressService;
         private readonly IUnitLookup _unitLookup;
 
+<<<<<<< HEAD
+        public PurchaseIndentQueryRepository(IDbConnection dbConnection, IIPAddressService iPAddressService, IUnitLookup unitLookup)
+=======
         public PurchaseIndentQueryRepository(IDbConnection dbConnection, IIPAddressService iPAddressService,
             IUnitLookup unitLookup)
+>>>>>>> remotes/origin/BSOFTERP_Dev_V0.1
         {
             _dbConnection = dbConnection;
             _ipAddressService = iPAddressService;
@@ -28,6 +32,20 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseIndents
 
         public async Task<string> GeneratePurchaseIndentNumberAsync(int unitId)
         {
+<<<<<<< HEAD
+            var unit = await _unitLookup.GetByIdAsync(unitId);
+            if (unit == null)
+                throw new ExceptionRules("Invalid Unit Id. Failed to generate indent number.");
+
+            const string sql = @"
+                SELECT MAX(CAST(RIGHT(IndentNumber, 4) AS INT))
+                FROM Purchase.IndentHeader
+                WHERE UnitId = @UnitId";
+
+            int? maxSequence = await _dbConnection.ExecuteScalarAsync<int?>(sql, new { UnitId = unitId });
+            int newSequence = (maxSequence ?? 0) + 1;
+            return $"PI/{unit.ShortName}/{newSequence:D4}";
+=======
             var units = await _unitLookup.GetAllUnitAsync();
             var unitDict = units.ToDictionary(d => d.UnitId, d => d.ShortName);
 
@@ -54,6 +72,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseIndents
             string indentNumber = $"PI/{unitCode}/{newSequence:D4}";
 
             return indentNumber;
+>>>>>>> remotes/origin/BSOFTERP_Dev_V0.1
         }
 
         // // public async Task<(List<IndentHeader>, int)> GetAllPurchaseIndentAsync(int PageNumber, int PageSize, string? SearchTerm, int? StatusId)
@@ -133,7 +152,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseIndents
         // //     return (Indent.ToList(), totalCount);
         // // }
 
-        public async Task<IndentHeader> GetByIdAsync(int id)
+        public async Task<IndentHeader?> GetByIdAsync(int id)
         {
             const string query = @"
                 SELECT 

@@ -316,6 +316,7 @@ namespace PurchaseManagement.Infrastructure
 
             // Outbox event publisher (saves events to outbox table)
             services.AddScoped<IOutboxEventPublisher, OutboxEventPublisher>();
+            services.AddScoped<IPurchaseUnitOfWork, PurchaseUnitOfWork>();
 
             services.AddScoped<IEventPublisher, EventPublisher>();
 

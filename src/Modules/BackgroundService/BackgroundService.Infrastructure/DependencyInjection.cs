@@ -46,6 +46,9 @@ using BackgroundService.Infrastructure.Repositories.Workflow.ApprovalRules;
 using BackgroundService.Application.Notification.Common.Interfaces.INotificationDetail;
 using BackgroundService.Infrastructure.Repositories.Notification.NotificationDetail;
 using BackgroundService.Application.Consumer.Workflow;
+using PurchaseManagement.Application.Consumers;
+using BudgetManagement.Application.Consumers;
+using InventoryManagement.Application.Consumers;
 using BackgroundService.Application.Workflow.Common.Interfaces.IApprovalRequest;
 using BackgroundService.Infrastructure.Repositories.Workflow.ApprovalRequests;
 using MongoDB.Driver;
@@ -179,6 +182,14 @@ namespace BackgroundService.Infrastructure
 
                     // Workflow Consumers
                     x.AddConsumer<ApprovalRequestConsumer>();
+                    x.AddConsumer<ApprovalResultDispatcherConsumer>();
+
+                    // Module-specific approval result consumers
+                    x.AddConsumer<PurchaseManagement.Application.Consumers.ApprovedRejectedConsumer>();
+                    x.AddConsumer<BudgetManagement.Application.Consumers.ApprovedRejectedConsumer>();
+                    x.AddConsumer<InventoryManagement.Application.Consumers.ApprovedRejectedConsumer>();
+                    x.AddConsumer<PurchaseManagement.Application.Consumers.RollbackTransactionConsumer>();
+                    x.AddConsumer<BudgetManagement.Application.Consumers.RollbackTransactionConsumer>();
                     x.AddConsumer<ScheduleWorkOrderConsumer>();
                     x.AddConsumer<NewScheduleWorkOrderTaskConsumer>();
                     x.AddConsumer<RollBackScheduleWorkOrderConsumer>();
@@ -264,6 +275,40 @@ namespace BackgroundService.Infrastructure
                         cfg.ReceiveEndpoint("approval-request-task-queue", e =>
                         {
                             e.ConfigureConsumer<ApprovalRequestConsumer>(context);
+                        });
+
+                        // Approval result dispatcher — routes ApprovedRejectedEvent to module queues
+                        cfg.ReceiveEndpoint("approval-result-dispatcher-queue", e =>
+                        {
+                            e.UseMessageRetry(r => r.Intervals(TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(30)));
+                            e.ConfigureConsumer<ApprovalResultDispatcherConsumer>(context);
+                        });
+
+                        // Module-specific approval result queues
+                        cfg.ReceiveEndpoint("approved-rejected-purchase-task-queue", e =>
+                        {
+                            e.UseMessageRetry(r => r.Intervals(TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(30)));
+                            e.ConfigureConsumer<PurchaseManagement.Application.Consumers.ApprovedRejectedConsumer>(context);
+                        });
+                        cfg.ReceiveEndpoint("approved-rejected-budget-task-queue", e =>
+                        {
+                            e.UseMessageRetry(r => r.Intervals(TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(30)));
+                            e.ConfigureConsumer<BudgetManagement.Application.Consumers.ApprovedRejectedConsumer>(context);
+                        });
+                        cfg.ReceiveEndpoint("approved-rejected-inventory-task-queue", e =>
+                        {
+                            e.UseMessageRetry(r => r.Intervals(TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(30)));
+                            e.ConfigureConsumer<InventoryManagement.Application.Consumers.ApprovedRejectedConsumer>(context);
+                        });
+
+                        // Rollback queues (undo pending status on workflow failure)
+                        cfg.ReceiveEndpoint("approval-request-rollback-purchase-queue", e =>
+                        {
+                            e.ConfigureConsumer<PurchaseManagement.Application.Consumers.RollbackTransactionConsumer>(context);
+                        });
+                        cfg.ReceiveEndpoint("approval-request-rollback-budget-queue", e =>
+                        {
+                            e.ConfigureConsumer<BudgetManagement.Application.Consumers.RollbackTransactionConsumer>(context);
                         });
 
                         cfg.ReceiveEndpoint("hangfire-workorder-schedule-queue", e =>
