@@ -135,8 +135,7 @@ namespace ProductionManagement.Infrastructure.Repositories.CountMaster
         {
             const string sql = @"
                 SELECT ISNULL(MAX(CAST(CountCode AS INT)), 0) + 1
-                FROM Production.CountMaster
-                WHERE IsDeleted = 0";
+                FROM Production.CountMaster";
 
             var next = await _dbConnection.ExecuteScalarAsync<int>(sql);
             return next.ToString();
