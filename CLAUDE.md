@@ -1188,6 +1188,57 @@ public sealed class SalesOrganisationLookupDto
 using {Module}.Application.{EntityName}.Dto;
 ```
 
+### ⚠️ Do NOT Duplicate LookupDto When It Already Exists in Contracts
+
+If `{EntityName}LookupDto` already exists in `Contracts.Dtos.Lookups.{Module}/`, do **NOT** create a second `{EntityName}LookupDto.cs` inside `{Module}.Application/{EntityName}/Dto/`.
+
+**Correct Application Dto folder — only one file:**
+- ✅ `{EntityName}Dto.cs` — full DTO (for GetAll, GetById)
+- ❌ `{EntityName}LookupDto.cs` — do NOT create; already defined in Contracts
+
+**Example (wrong vs correct):**
+```csharp
+// ❌ WRONG — duplicate lookup DTO in Application layer
+namespace ProductionManagement.Application.CountMaster.Dto
+{
+    public sealed class CountMasterLookupDto { ... }
+}
+
+// ✅ CORRECT — canonical lookup DTO lives in Contracts only
+namespace Contracts.Dtos.Lookups.Production
+{
+    public sealed class CountMasterLookupDto { ... }
+}
+```
+
+**AutoComplete query handlers must use the Contracts namespace:**
+```csharp
+using Contracts.Dtos.Lookups.Production; // ✅ correct
+// NOT: using ProductionManagement.Application.CountMaster.Dto; // ❌
+```
+
+### 📋 What to Create — Contracts vs Application Layer
+
+Use this table every time you add a new entity:
+
+**When creating in Contracts (cross-module lookup):**
+
+| File | Namespace | Class Name |
+|---|---|---|
+| `Contracts.Dtos.Lookups.{Module}/{EntityName}LookupDto.cs` | `Contracts.Dtos.Lookups.{Module}` | `{EntityName}LookupDto` |
+| `Contracts.Interfaces.Lookups.{Module}/I{EntityName}Lookup.cs` | `Contracts.Interfaces.Lookups.{Module}` | `I{EntityName}Lookup` |
+
+**When creating in Application layer:**
+
+| File | Namespace | Class Name |
+|---|---|---|
+| `{Module}.Application/{EntityName}/Dto/{EntityName}Dto.cs` | `{Module}.Application.{EntityName}.Dto` | `{EntityName}Dto` |
+| ❌ `{EntityName}LookupDto.cs` | — | **DO NOT CREATE** — use Contracts |
+
+**Summary rule:**
+- `{EntityName}LookupDto` → **Contracts only** (one place, shared across modules)
+- `{EntityName}Dto` → **Application layer only** (full DTO with all fields)
+
 ---
 
 ## 🧪 EF Core Migrations

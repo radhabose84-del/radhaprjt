@@ -16,7 +16,7 @@ namespace PurchaseManagement.Application.Common.Interfaces.IPurchaseIndent
     );
         Task<bool> NotFoundAsync(int id);
         Task<IndentHeader> GetByIdAsync(int id);
-        // Task<string> GeneratePurchaseIndentNumberAsync(int unitId);
+        Task<string> GeneratePurchaseIndentNumberAsync(int unitId);
     //   //  Task<(List<IndentHeader>, int)> GetPendingPurchaseIndentAsync(int PageNumber, int PageSize, string? SearchTerm);
         Task<(List<PendingIndentDto>, int)> GetPendingPurchaseIndentAsync(int PageNumber, int PageSize, string? SearchTerm);
         Task<List<IndentHeader>> GetPurchaseIndentAutoCompleteAsync(string Status, string? SearchTerm,bool AllIndents=false);        
