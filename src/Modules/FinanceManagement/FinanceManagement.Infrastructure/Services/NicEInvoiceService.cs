@@ -318,20 +318,24 @@ namespace FinanceManagement.Infrastructure.Services
             RandomNumberGenerator.Fill(appKeyBytes);
             var appKeyBase64 = Convert.ToBase64String(appKeyBytes);
 
-            // Encrypt Password and AppKey individually with NIC's RSA public key
-            var encryptedPassword = RsaEncryptWithPublicKey(cfg.Password);
-            var encryptedAppKey = RsaEncryptWithPublicKey(appKeyBase64);
-
-            // Build inner JSON with encrypted fields, then wrap in {"Data": "<json_string>"}
-            var innerJson = JsonSerializer.Serialize(new
+            // NIC C# sample flow:
+            // 1. Serialize JSON with plain Password & AppKey
+            // 2. UTF-8 encode → bytes
+            // 3. Base64 encode bytes → string
+            // 4. RSA encrypt the Base64 string with NIC public key
+            // 5. Wrap in {"Data": "<rsa_encrypted_base64>"}
+            var authJson = JsonSerializer.Serialize(new
             {
                 UserName = cfg.UserName,
-                Password = encryptedPassword,
-                AppKey = encryptedAppKey,
+                Password = cfg.Password,
+                AppKey = appKeyBase64,
                 ForceRefreshAccessToken = false
             }, _jsonOptions);
 
-            var requestBody = JsonSerializer.Serialize(new { Data = innerJson }, _jsonOptions);
+            var authBase64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(authJson));
+            var encryptedData = RsaEncryptWithPublicKey(authBase64);
+
+            var requestBody = JsonSerializer.Serialize(new { Data = encryptedData }, _jsonOptions);
 
             using var req = new HttpRequestMessage(HttpMethod.Post, cfg.AuthPath)
             {
