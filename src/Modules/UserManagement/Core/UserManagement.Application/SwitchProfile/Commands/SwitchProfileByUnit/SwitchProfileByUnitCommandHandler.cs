@@ -44,7 +44,7 @@ namespace UserManagement.Application.SwitchProfile.Commands.SwitchProfileByUnit
                 throw new ValidationException("User does not exist.");
                
             }
-            var token = _jwtTokenHelper.GenerateToken(user.UserName,userId,user.Mobile,user.EmailId,user.IsFirstTimeUser.ToString(),user.EntityId ?? 0,groupCode,request.CompanyId,request.DivisionId,request.UnitId ,request.OldUnitId,user.FirstName,user.LastName, out var jti);   
+            var token = _jwtTokenHelper.GenerateToken(user.UserName,userId,user.Mobile,user.EmailId,user.IsFirstTimeUser.ToString(),user.EntityId ?? 0,groupCode,request.CompanyId,request.DivisionId,request.UnitId ,request.OldUnitId,user.FirstName,user.LastName,user.PartyId, out var jti);   
            
             var httpContext = _httpContextAccessor.HttpContext;
             var browserInfo = httpContext?.Request.Headers["User-Agent"].ToString();

@@ -153,4 +153,11 @@ internal sealed class IPAddressService : IIPAddressService
     {
         return _httpContextAccessor.HttpContext?.User?.FindFirst("OldUnitId")?.Value ?? string.Empty;
     }
+
+    public int? GetPartyId()
+    {
+        var claim = _httpContextAccessor.HttpContext?.User?.FindFirst("PartyId")?.Value;
+        if (claim == null) return null;
+        return int.TryParse(claim, out int partyId) && partyId > 0 ? partyId : null;
+    }
 }
