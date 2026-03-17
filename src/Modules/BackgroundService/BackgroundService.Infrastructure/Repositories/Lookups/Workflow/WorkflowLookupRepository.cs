@@ -72,21 +72,21 @@ namespace BackgroundService.Infrastructure.Repositories.Lookups.Workflow
                 return new List<ApproverListDto>();
 
             const string sql = @"
-                SELECT
-                    arl.Id AS ApprovalRequestLineId,
-                    ar.ModuleTransactionId,
-                    arl.Status,
-                    arl.ApproverBinding,
-                    arl.ApproverValue,
-                    ar.Id AS ApprovalRequestId,
-                    ISNULL(ar.IsEdit, 0) AS IsEdit
-                FROM Workflow.ApprovalRequestLine arl
-                INNER JOIN Workflow.ApprovalRequest ar ON arl.ApprovalRequestId = ar.Id
-                INNER JOIN Workflow.ModuleType mt ON ar.ModuleTypeId = mt.Id
-                WHERE mt.ModuleTypeName = @ModuleTypeName
-                  AND ar.ModuleTransactionId IN @Ids
-                  AND ar.IsDeleted = 0
-                  AND arl.Status = 'Pending';
+                // SELECT
+                //     arl.Id AS ApprovalRequestLineId,
+                //     ar.ModuleTransactionId,
+                //     arl.Status,
+                //     arl.ApproverBinding,
+                //     arl.ApproverValue,
+                //     ar.Id AS ApprovalRequestId,
+                //     ISNULL(ar.IsEdit, 0) AS IsEdit
+                // FROM AppData.ApprovalRequestLine arl
+                // INNER JOIN AppData.ApprovalRequest ar ON arl.ApprovalRequestId = ar.Id
+                // INNER JOIN Workflow.ModuleType mt ON ar.ModuleTypeId = mt.Id
+                // WHERE mt.ModuleTypeName = @ModuleTypeName
+                //   AND ar.ModuleTransactionId IN @Ids
+                //   AND ar.IsDeleted = 0
+                //   AND arl.Status = 'Pending';
             ";
 
             var result = await _dbConnection.QueryAsync<ApproverListDto>(
