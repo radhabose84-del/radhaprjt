@@ -435,8 +435,8 @@ namespace BackgroundService.Infrastructure
             services.AddScoped<INotificationEventRuleCommand, NotificationEventRuleCommand>();
             services.AddScoped<INotificationLogger, NotificationLogger>();
             
-             services.AddScoped<IWorkflowLookup, WorkflowLookupRepository>();
-             services.AddScoped<IWorkflowTypeQuery, WorkflowTypeQueryRepository >();
+            services.AddScoped<IWorkflowLookup, WorkflowLookupRepository>();
+            services.AddScoped<IWorkflowTypeQuery, WorkflowTypeQueryRepository >();
             services.AddScoped<IWorkflowTypeCommand, WorkflowTypeCommandRepository >();
              services.AddScoped<IApprovalStepDetailQuery, ApprovalStepDetailQueryRepository >();
             services.AddScoped<IApprovalStepDetailCommand, ApprovalStepDetailCommandRepository >();
