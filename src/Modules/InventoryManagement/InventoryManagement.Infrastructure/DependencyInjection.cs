@@ -46,7 +46,6 @@ using InventoryManagement.Infrastructure.Repositories.Outbox;
 using InventoryManagement.Infrastructure.Services.Outbox;
 using InventoryManagement.Application.Common.Interfaces.IOutbox;
 using Contracts.Interfaces.Lookups.Inventory;
-using Contracts.Interfaces.Lookups.Workflow;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -184,7 +183,7 @@ namespace InventoryManagement.Infrastructure
             services.AddScoped<IItemLookup, ItemLookupRepository>();
             services.AddScoped<IMiscMasterLookup, MiscMasterLookupRepository>();
             services.AddScoped<IHSNLookup, HSNLookupRepository>();
-            services.AddScoped<IWorkflowLookup, WorkflowLookupRepository>();
+
             services.AddScoped<IItemPurchaseToleranceLookup, ItemPurchaseToleranceLookupRepository>();
             services.AddScoped<IPutawayRuleLookup, PutawayRuleLookupRepository>();
             services.AddScoped<IInventoryCategoryLookup, ItemCategoryLookupRepository>();
