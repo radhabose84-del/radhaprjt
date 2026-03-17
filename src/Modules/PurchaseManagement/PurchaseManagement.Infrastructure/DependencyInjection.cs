@@ -60,7 +60,7 @@ using PurchaseManagement.Infrastructure.Repositories.Port;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.ImportPO;
 using PurchaseManagement.Application.Common.Interfaces.IPurchase.DutyMaster;
 using PurchaseManagement.Infrastructure.Repositories.DutyMaster;
-using PurchaseManagement.Infrastructure.Repositories.Lookups.Workflow;
+//using PurchaseManagement.Infrastructure.Repositories.Lookups.Workflow;
 using PurchaseManagement.Application.Common.Interfaces.IDutyMaster;
 using PurchaseManagement.Application.Common.Interfaces.IPoMethodLookup;
 using PurchaseManagement.Infrastructure.Repositories.PoMethodLookup;
@@ -229,7 +229,7 @@ namespace PurchaseManagement.Infrastructure
             services.AddScoped<IImportPOCommandRepository, ImportPOCommandRepository>();
             services.AddScoped<IDutyMasterQueryRepository, DutyMasterQueryRepository>();
             services.AddScoped<IDutyMasterCommandRepository, DutyMasterCommandRepository>();
-            services.AddScoped<IWorkflowLookup, WorkflowLookupRepository>();
+          //  services.AddScoped<IWorkflowLookup, WorkflowLookupRepository>();
             services.AddScoped<IStockLedgerLookup, StockLedgerLookupRepository>();
             services.AddScoped<IPaymentTermLookup, PaymentTermLookupRepository>();
             services.AddScoped<IIncotermLookup, IncotermLookupRepository>();
