@@ -33,6 +33,7 @@ namespace FinanceManagement.Infrastructure.Services
         private readonly IDbConnection _dbConnection;
         private readonly IUnitLookup _unitLookup;
         private readonly IPartyLookup _partyLookup;
+        private readonly ICityLookup _cityLookup;
         private readonly IConfiguration _configuration;
 
         // ── JSON serialiser options (camelCase disabled; NIC uses PascalCase) ──
@@ -47,12 +48,14 @@ namespace FinanceManagement.Infrastructure.Services
             IDbConnection dbConnection,
             IUnitLookup unitLookup,
             IPartyLookup partyLookup,
+            ICityLookup cityLookup,
             IConfiguration configuration)
         {
             _httpClientFactory = httpClientFactory;
             _dbConnection = dbConnection;
             _unitLookup = unitLookup;
             _partyLookup = partyLookup;
+            _cityLookup = cityLookup;
             _configuration = configuration;
         }
 
@@ -95,11 +98,13 @@ namespace FinanceManagement.Infrastructure.Services
             }
             catch (Exception ex)
             {
+                // Include method name from stack trace for debugging
+                var source = ex.StackTrace?.Split('\n').FirstOrDefault()?.Trim() ?? "unknown";
                 return new NicIrnResultDto
                 {
                     IsSuccess = false,
                     ErrorCode = "SERVICE_ERROR",
-                    ErrorMessage = ex.Message
+                    ErrorMessage = $"{ex.Message} | Source: {source}"
                 };
             }
         }
@@ -182,11 +187,12 @@ namespace FinanceManagement.Infrastructure.Services
             }
             catch (Exception ex)
             {
+                var source = ex.StackTrace?.Split('\n').FirstOrDefault()?.Trim() ?? "unknown";
                 return new NicEwbResultDto
                 {
                     IsSuccess = false,
                     ErrorCode = "SERVICE_ERROR",
-                    ErrorMessage = ex.Message
+                    ErrorMessage = $"{ex.Message} | Source: {source}"
                 };
             }
         }
@@ -305,19 +311,33 @@ namespace FinanceManagement.Infrastructure.Services
             var cfg = GetConfig();
             var client = _httpClientFactory.CreateClient("NicEInvoice");
 
-            var authRequest = new
-            {
-                UserName = cfg.UserName,
-                Password = cfg.Password,
-                AppKey = cfg.AppKey,
-                ForceRefreshAccessToken = "Yes"
-            };
+            // NIC auth flow:
+            // 1. Generate random 32-byte AES key (AppKey) for this session
+            // 2. RSA-encrypt ONLY the Password and AppKey fields individually
+            // 3. Send JSON with plain UserName + encrypted Password + encrypted AppKey
+            // 4. NIC decrypts Password & AppKey with their private key, authenticates
+            // 5. NIC encrypts SEK with our AppKey (AES-256 ECB) and returns it
+            var appKeyBytes = new byte[32];
+            RandomNumberGenerator.Fill(appKeyBytes);
+            var appKeyBase64 = Convert.ToBase64String(appKeyBytes);
+
+            // NIC C# sample flow:
+            // 1. Serialize JSON with plain Password & AppKey
+            // 2. UTF-8 encode → bytes
+            // 3. Base64 encode bytes → string
+            // 4. RSA encrypt the Base64 string with NIC public key
+            // 5. Wrap in {"Data": "<rsa_encrypted_base64>"}
+            // Build auth JSON exactly as NIC portal does
+            var authJson = $"{{\"UserName\":\"{cfg.UserName}\",\"Password\":\"{cfg.Password}\",\"AppKey\":\"{appKeyBase64}\",\"ForceRefreshAccessToken\":false}}";
+
+            var authBase64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(authJson));
+            var encryptedData = RsaEncryptWithPublicKey(authBase64);
+
+            var requestBody = JsonSerializer.Serialize(new { Data = encryptedData }, _jsonOptions);
 
             using var req = new HttpRequestMessage(HttpMethod.Post, cfg.AuthPath)
             {
-                Content = new StringContent(
-                    JsonSerializer.Serialize(authRequest, _jsonOptions),
-                    Encoding.UTF8, "application/json")
+                Content = new StringContent(requestBody, Encoding.UTF8, "application/json")
             };
             req.Headers.Add("client-id", cfg.ClientId);
             req.Headers.Add("client-secret", cfg.ClientSecret);
@@ -326,23 +346,70 @@ namespace FinanceManagement.Infrastructure.Services
             using var resp = await client.SendAsync(req, ct);
             var body = await resp.Content.ReadAsStringAsync(ct);
 
-            using var doc = JsonDocument.Parse(body);
+            // NIC may return HTML error pages — detect and report
+            if (string.IsNullOrWhiteSpace(body) || body.TrimStart().StartsWith('<'))
+            {
+                throw new InvalidOperationException(
+                    $"NIC auth endpoint returned non-JSON response (HTTP {(int)resp.StatusCode}). " +
+                    $"URL: {cfg.AuthPath}. Response: {body[..Math.Min(body.Length, 500)]}");
+            }
+
+            // Log full response for debugging
+            JsonDocument doc;
+            try
+            {
+                doc = JsonDocument.Parse(body);
+            }
+            catch
+            {
+                throw new InvalidOperationException($"NIC auth returned invalid JSON. Response: {body[..Math.Min(body.Length, 500)]}");
+            }
+
             var root = doc.RootElement;
 
-            if (root.GetProperty("status").GetInt32() != 1)
+            // Parse Status — could be int (1) or string ("1")
+            int statusVal = 0;
+            if (root.TryGetProperty("Status", out var statusEl))
+                statusVal = statusEl.ValueKind == JsonValueKind.Number ? statusEl.GetInt32() : int.Parse(statusEl.GetString() ?? "0");
+            else if (root.TryGetProperty("status", out var statusEl2))
+                statusVal = statusEl2.ValueKind == JsonValueKind.Number ? statusEl2.GetInt32() : int.Parse(statusEl2.GetString() ?? "0");
+            else
+                throw new InvalidOperationException($"NIC auth response missing 'Status'. Response: {body[..Math.Min(body.Length, 500)]}");
+
+            if (statusVal != 1)
             {
-                var msg = root.TryGetProperty("message", out var m) ? m.GetString() : "Auth failed";
+                var msg = root.TryGetProperty("ErrorDetails", out var ed) ? ed.ToString()
+                    : root.TryGetProperty("error", out var er) ? er.ToString()
+                    : root.TryGetProperty("message", out var m) ? m.GetString()
+                    : $"Auth failed. Full response: {body[..Math.Min(body.Length, 500)]}";
                 throw new InvalidOperationException($"NIC auth failed: {msg}");
             }
 
-            var data = root.GetProperty("data");
-            var authToken = data.GetProperty("AuthToken").GetString()
-                ?? throw new InvalidOperationException("AuthToken missing in NIC response.");
-            var sekBase64 = data.GetProperty("Sek").GetString()
-                ?? throw new InvalidOperationException("Sek missing in NIC response.");
+            // Data could be a JSON object or an encrypted string
+            if (!root.TryGetProperty("Data", out var dataEl) && !root.TryGetProperty("data", out dataEl))
+                throw new InvalidOperationException($"NIC auth response missing 'Data'. Response: {body[..Math.Min(body.Length, 500)]}");
 
-            // Decrypt Sek using AppKey (Base64-decoded → 32 bytes = AES-256 key)
-            var appKeyBytes = Convert.FromBase64String(cfg.AppKey);
+            // If Data is a string, it's AES-encrypted with our AppKey — decrypt it
+            JsonElement dataObj;
+            if (dataEl.ValueKind == JsonValueKind.String)
+            {
+                var decryptedDataJson = Encoding.UTF8.GetString(AesDecryptEcb(dataEl.GetString()!, appKeyBytes));
+                dataObj = JsonDocument.Parse(decryptedDataJson).RootElement;
+            }
+            else
+            {
+                dataObj = dataEl;
+            }
+
+            var authToken = (dataObj.TryGetProperty("AuthToken", out var at) ? at.GetString()
+                : dataObj.TryGetProperty("authToken", out var at2) ? at2.GetString() : null)
+                ?? throw new InvalidOperationException($"AuthToken missing. Data: {dataObj}");
+
+            var sekBase64 = (dataObj.TryGetProperty("Sek", out var sk) ? sk.GetString()
+                : dataObj.TryGetProperty("sek", out var sk2) ? sk2.GetString() : null)
+                ?? throw new InvalidOperationException($"Sek missing. Data: {dataObj}");
+
+            // Decrypt Sek using AppKey (already decoded above)
             var sekBytes = AesDecryptEcb(sekBase64, appKeyBytes);
 
             return (authToken, sekBytes);
@@ -356,7 +423,8 @@ namespace FinanceManagement.Infrastructure.Services
         {
             // ── 2a. EInvoiceHeader (Finance schema) ──────────────────────────
             const string headerSql = @"
-                SELECT h.Id, h.UnitId, h.PartyId, h.InvoiceNo, h.InvoiceDate,
+                SELECT h.Id, h.UnitId, h.PartyId, h.InvoiceNo,
+                       FORMAT(h.InvoiceDate, 'dd/MM/yyyy') AS InvoiceDateFormatted,
                        h.DocType, h.SupplyType, h.PlaceOfSupply, h.GstNo,
                        h.ReverseCharge, h.CGST, h.SGST, h.IGST, h.Cess,
                        h.StateCess, h.Discount, h.OtherCharges, h.RoundOff,
@@ -399,16 +467,16 @@ namespace FinanceManagement.Infrastructure.Services
             if (unitRow is not null)
             {
                 const string companySql =
-                    "SELECT CompanyName, GstNumber FROM AppData.Company WHERE CompanyId = @companyId";
+                    "SELECT CompanyName, GstNumber FROM AppData.Company WHERE Id = @companyId";
                 companyRow = await _dbConnection.QueryFirstOrDefaultAsync<CompanyRow>(
                     companySql, new { companyId = unitRow.CompanyId });
             }
 
             // ── 2e. Unit address (AppData schema) ────────────────────────────
             const string unitAddrSql = @"
-                SELECT TOP 1 AddressLine1, AddressLine2, City, PinCode, Phone, Email
+                SELECT TOP 1 AddressLine1, AddressLine2, CityId, PinCode, ContactNumber
                 FROM AppData.UnitAddress
-                WHERE UnitId = @unitId AND IsDeleted = 0
+                WHERE UnitId = @unitId
                 ORDER BY Id";
             var unitAddr = await _dbConnection.QueryFirstOrDefaultAsync<UnitAddressRow>(
                 unitAddrSql, new { unitId = header.UnitId });
@@ -418,9 +486,9 @@ namespace FinanceManagement.Infrastructure.Services
 
             // ── 2g. Buyer address (PartyManagement schema) ────────────────────
             const string partyAddrSql = @"
-                SELECT TOP 1 AddressLine1, AddressLine2, City, PostalCode, Phone, Email
-                FROM PartyManagement.PartyAddress
-                WHERE PartyId = @partyId AND IsDeleted = 0
+                SELECT TOP 1 AddressLine1, AddressLine2, CityId, PostalCode
+                FROM Party.PartyAddress
+                WHERE PartyId = @partyId
                 ORDER BY Id";
             var partyAddr = await _dbConnection.QueryFirstOrDefaultAsync<PartyAddressRow>(
                 partyAddrSql, new { partyId = header.PartyId });
@@ -432,7 +500,7 @@ namespace FinanceManagement.Infrastructure.Services
                 UnitId = header.UnitId,
                 PartyId = header.PartyId,
                 InvoiceNo = header.InvoiceNo,
-                InvoiceDate = header.InvoiceDate,
+                InvoiceDateFormatted = header.InvoiceDateFormatted,
                 DocType = header.DocType,
                 SupplyType = header.SupplyType,
                 PlaceOfSupply = header.PlaceOfSupply,
@@ -453,19 +521,19 @@ namespace FinanceManagement.Infrastructure.Services
                 CompanyLegalName = companyRow?.CompanyName,
                 SellerAddr1 = unitAddr?.AddressLine1,
                 SellerAddr2 = unitAddr?.AddressLine2,
-                SellerLocation = unitAddr?.City,
-                SellerPinCode = unitAddr?.PinCode,
-                SellerPhone = unitAddr?.Phone,
-                SellerEmail = unitAddr?.Email,
+                SellerLocation = unitAddr != null ? (await _cityLookup.GetByIdAsync(unitAddr.CityId, ct))?.CityName : null,
+                SellerPinCode = unitAddr?.PinCode.ToString(),
+                SellerPhone = unitAddr?.ContactNumber,
+                SellerEmail = null,
 
                 BuyerLegalName = partyDto?.PartyName,
                 BuyerTradeName = partyDto?.PartyName,
                 BuyerAddr1 = partyAddr?.AddressLine1,
                 BuyerAddr2 = partyAddr?.AddressLine2,
-                BuyerLocation = partyAddr?.City,
+                BuyerLocation = partyAddr != null ? (await _cityLookup.GetByIdAsync(partyAddr.CityId, ct))?.CityName : null,
                 BuyerPinCode = partyAddr?.PostalCode,
-                BuyerPhone = partyAddr?.Phone,
-                BuyerEmail = partyAddr?.Email,
+                BuyerPhone = null,
+                BuyerEmail = null,
 
                 Details = details.Select(d => new NicDetailData
                 {
@@ -506,32 +574,36 @@ namespace FinanceManagement.Infrastructure.Services
             if (docNo.Length > 16)
                 docNo = docNo.Substring(docNo.Length - 16);
 
+            // NIC requires: amounts max 2 decimals, qty/rate max 3 decimals
+            static decimal R2(decimal v) => Math.Round(v, 2);
+            static decimal R3(decimal v) => Math.Round(v, 3);
+
             var itemList = d.Details.Select(item => new
             {
                 SlNo = item.ItemSno.ToString(),
                 PrdDesc = item.ItemName,
                 IsServc = item.IsService,
                 HsnCd = item.HsnNo,
-                Qty = item.Qty,
+                Qty = R3(item.Qty),
                 FreeQty = 0m,
                 Unit = item.UOM,
-                UnitPrice = item.UnitPrice,
-                TotAmt = item.GrossAmount,
-                Discount = item.Discount,
+                UnitPrice = R3(item.UnitPrice),
+                TotAmt = R2(item.GrossAmount),
+                Discount = R2(item.Discount),
                 PreTaxVal = 0m,
-                AssAmt = item.TaxableAmount,
-                GstRt = item.GstPercentage,
-                IgstAmt = item.IGST,
-                CgstAmt = item.CGST,
-                SgstAmt = item.SGST,
-                CesRt = item.CessRate,
-                CesAmt = item.CessAmount,
+                AssAmt = R2(item.TaxableAmount),
+                GstRt = R3(item.GstPercentage),
+                IgstAmt = R2(item.IGST),
+                CgstAmt = R2(item.CGST),
+                SgstAmt = R2(item.SGST),
+                CesRt = R2(item.CessRate),
+                CesAmt = R2(item.CessAmount),
                 CesNonAdvlAmt = 0m,
                 StateCesRt = 0m,
                 StateCesAmt = 0m,
                 StateCesNonAdvlAmt = 0m,
                 OthChrg = 0m,
-                TotItemVal = item.TotalAmount
+                TotItemVal = R2(item.TotalAmount)
             }).ToList();
 
             var payload = new Dictionary<string, object>
@@ -548,7 +620,7 @@ namespace FinanceManagement.Infrastructure.Services
                 {
                     Typ = d.DocType ?? "INV",
                     No = docNo,
-                    Dt = d.InvoiceDate.ToString("dd/MM/yyyy")
+                    Dt = d.InvoiceDateFormatted ?? "01/01/2026"
                 },
                 ["SellerDtls"] = new
                 {
@@ -580,16 +652,16 @@ namespace FinanceManagement.Infrastructure.Services
                 ["ItemList"] = itemList,
                 ["ValDtls"] = new
                 {
-                    AssVal = d.Details.Sum(x => x.TaxableAmount),
-                    IgstVal = d.IGST,
-                    CgstVal = d.CGST,
-                    SgstVal = d.SGST,
-                    CesVal = d.Cess,
-                    StCesVal = d.StateCess,
-                    Discount = d.Discount,
-                    OthChrg = d.OtherCharges,
-                    RndOffAmt = d.RoundOff,
-                    TotInvVal = d.InvoiceAmount
+                    AssVal = R2(d.Details.Sum(x => x.TaxableAmount)),
+                    IgstVal = R2(d.IGST),
+                    CgstVal = R2(d.CGST),
+                    SgstVal = R2(d.SGST),
+                    CesVal = R2(d.Cess),
+                    StCesVal = R2(d.StateCess),
+                    Discount = R2(d.Discount),
+                    OthChrg = R2(d.OtherCharges),
+                    RndOffAmt = R2(d.RoundOff),
+                    TotInvVal = R2(d.InvoiceAmount)
                 }
             };
 
@@ -623,13 +695,14 @@ namespace FinanceManagement.Infrastructure.Services
             var cfg = GetConfig();
             var client = _httpClientFactory.CreateClient("NicEInvoice");
 
-            var body = JsonSerializer.Serialize(new { data = encryptedPayload }, _jsonOptions);
+            var body = JsonSerializer.Serialize(new { Data = encryptedPayload }, _jsonOptions);
 
             using var req = new HttpRequestMessage(HttpMethod.Post, cfg.GenerateIrnPath)
             {
                 Content = new StringContent(body, Encoding.UTF8, "application/json")
             };
             req.Headers.Add("client-id", cfg.ClientId);
+            req.Headers.Add("client-secret", cfg.ClientSecret);
             req.Headers.Add("user_name", cfg.UserName);
             req.Headers.Add("authtoken", authToken);
             req.Headers.Add("gstin", cfg.GstinForAuth);
@@ -640,28 +713,36 @@ namespace FinanceManagement.Infrastructure.Services
             using var doc = JsonDocument.Parse(responseBody);
             var root = doc.RootElement;
 
-            if (root.GetProperty("status").GetInt32() != 1)
+            // Parse status — handle both "Status"/"status" and int/string
+            int irnStatusVal = 0;
+            if (root.TryGetProperty("Status", out var irnSt))
+                irnStatusVal = irnSt.ValueKind == JsonValueKind.Number ? irnSt.GetInt32() : int.TryParse(irnSt.GetString(), out var sv) ? sv : 0;
+            else if (root.TryGetProperty("status", out var irnSt2))
+                irnStatusVal = irnSt2.ValueKind == JsonValueKind.Number ? irnSt2.GetInt32() : int.TryParse(irnSt2.GetString(), out var sv2) ? sv2 : 0;
+
+            if (irnStatusVal != 1)
             {
                 // Extract error details from NIC error response
-                var message = root.TryGetProperty("message", out var msg)
-                    ? msg.GetString() : "Unknown error";
-                var errorCode = root.TryGetProperty("errorDetails", out var errArr)
-                    && errArr.ValueKind == JsonValueKind.Array
-                    && errArr.GetArrayLength() > 0
-                    ? errArr[0].TryGetProperty("error_code", out var ec) ? ec.GetString() : null
-                    : null;
+                var message = root.TryGetProperty("ErrorDetails", out var edArr) ? edArr.ToString()
+                    : root.TryGetProperty("errorDetails", out var errArr) ? errArr.ToString()
+                    : root.TryGetProperty("message", out var msg) ? msg.GetString()
+                    : root.TryGetProperty("Message", out var msg2) ? msg2.GetString()
+                    : $"Unknown error. Response: {responseBody[..Math.Min(responseBody.Length, 500)]}";
 
                 return new NicIrnResultDto
                 {
                     IsSuccess = false,
-                    ErrorCode = errorCode,
+                    ErrorCode = "NIC_ERROR",
                     ErrorMessage = message
                 };
             }
 
             // Decrypt the response data using Sek
-            var encryptedResponse = root.GetProperty("data").GetString()
-                ?? throw new InvalidOperationException("NIC response missing 'data' field.");
+            var encData = root.TryGetProperty("Data", out var dataP) ? dataP
+                : root.TryGetProperty("data", out var dataP2) ? dataP2
+                : throw new InvalidOperationException($"NIC IRN response missing 'Data'. Response: {responseBody[..Math.Min(responseBody.Length, 500)]}");
+            var encryptedResponse = encData.GetString()
+                ?? throw new InvalidOperationException("NIC response 'Data' is null.");
 
             var decryptedJson = Encoding.UTF8.GetString(AesDecryptEcb(encryptedResponse, sek));
             using var irnDoc = JsonDocument.Parse(decryptedJson);
@@ -706,7 +787,7 @@ namespace FinanceManagement.Infrastructure.Services
             var cfg = GetConfig();
             var client = _httpClientFactory.CreateClient("NicEInvoice");
 
-            var body = JsonSerializer.Serialize(new { data = encryptedPayload }, _jsonOptions);
+            var body = JsonSerializer.Serialize(new { Data = encryptedPayload }, _jsonOptions);
 
             var ewbPath = cfg.BaseUrl +
                 (_configuration.GetSection("NicEInvoice")["GenerateEwbPath"]
@@ -717,6 +798,7 @@ namespace FinanceManagement.Infrastructure.Services
                 Content = new StringContent(body, Encoding.UTF8, "application/json")
             };
             req.Headers.Add("client-id", cfg.ClientId);
+            req.Headers.Add("client-secret", cfg.ClientSecret);
             req.Headers.Add("user_name", cfg.UserName);
             req.Headers.Add("authtoken", authToken);
             req.Headers.Add("gstin", cfg.GstinForAuth);
@@ -727,29 +809,49 @@ namespace FinanceManagement.Infrastructure.Services
             using var doc = JsonDocument.Parse(responseBody);
             var root = doc.RootElement;
 
-            if (root.GetProperty("status").GetInt32() != 1)
+            // NIC returns Status/status — check both
+            var statusOk = false;
+            if (root.TryGetProperty("Status", out var statusProp) || root.TryGetProperty("status", out statusProp))
             {
-                var message = root.TryGetProperty("message", out var msg)
-                    ? msg.GetString() : "Unknown error";
-                var errorCode = root.TryGetProperty("errorDetails", out var errArr)
-                    && errArr.ValueKind == JsonValueKind.Array
-                    && errArr.GetArrayLength() > 0
-                    ? errArr[0].TryGetProperty("error_code", out var ec) ? ec.GetString() : null
-                    : null;
+                var statusVal = statusProp.ValueKind == JsonValueKind.Number
+                    ? statusProp.GetInt32()
+                    : int.TryParse(statusProp.GetString(), out var sv) ? sv : 0;
+                statusOk = statusVal == 1;
+            }
+
+            if (!statusOk)
+            {
+                // Try multiple NIC error field names
+                var message = root.TryGetProperty("ErrorDetails", out var ed) ? ed.GetRawText()
+                    : root.TryGetProperty("errorDetails", out ed) ? ed.GetRawText()
+                    : root.TryGetProperty("error", out ed) ? ed.GetRawText()
+                    : responseBody.Length > 500 ? responseBody[..500] : responseBody;
 
                 return new NicEwbResultDto
                 {
                     IsSuccess = false,
-                    ErrorCode = errorCode,
+                    ErrorCode = "NIC_ERROR",
                     ErrorMessage = message
                 };
             }
 
             // Decrypt the response data using Sek
-            var encryptedResponse = root.GetProperty("data").GetString()
-                ?? throw new InvalidOperationException("NIC e-Waybill response missing 'data' field.");
+            var encData = root.TryGetProperty("Data", out var dataProp) ? dataProp.GetString()
+                : root.TryGetProperty("data", out dataProp) ? dataProp.GetString()
+                : null;
 
-            var decryptedJson = Encoding.UTF8.GetString(AesDecryptEcb(encryptedResponse, sek));
+            if (string.IsNullOrEmpty(encData))
+            {
+                return new NicEwbResultDto
+                {
+                    IsSuccess = false,
+                    ErrorCode = "NIC_ERROR",
+                    ErrorMessage = "NIC e-Waybill response missing 'Data' field. Raw: " +
+                        (responseBody.Length > 300 ? responseBody[..300] : responseBody)
+                };
+            }
+
+            var decryptedJson = Encoding.UTF8.GetString(AesDecryptEcb(encData, sek));
             using var ewbDoc = JsonDocument.Parse(decryptedJson);
             var ewbRoot = ewbDoc.RootElement;
 
@@ -757,7 +859,7 @@ namespace FinanceManagement.Infrastructure.Services
             {
                 IsSuccess = true,
                 EwbNo = ewbRoot.TryGetProperty("EwbNo", out var ewbNo)
-                    ? ewbNo.GetInt64() : null,
+                    && ewbNo.ValueKind == JsonValueKind.Number ? ewbNo.GetInt64() : null,
                 EwbDate = ewbRoot.TryGetProperty("EwbDt", out var ewbDt)
                     ? ewbDt.GetString() : null,
                 EwbValidTill = ewbRoot.TryGetProperty("EwbValidTill", out var ewbValid)
@@ -790,6 +892,37 @@ namespace FinanceManagement.Infrastructure.Services
             using var enc = aes.CreateEncryptor();
             var cipher = enc.TransformFinalBlock(plain, 0, plain.Length);
             return Convert.ToBase64String(cipher);
+        }
+
+        // NIC sandbox public key (einv_sandbox.PEM) for RSA encryption of auth payload
+        // Downloaded from: https://einv-apisandbox.nic.in/einvapiclient/EncDesc/GetPublicKey.aspx
+        // Section: "Public Key for Encryption of Password and App Key for Authentication"
+        private const string NicSandboxPublicKeyBase64 =
+            "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArxd93uLDs8HTPqcSPpxZ" +
+            "rf0Dc29r3iPp0a8filjAyeX4RAH6lWm9qFt26CcE8ESYtmo1sVtswvs7VH4Bjg/F" +
+            "DlRpd+MnAlXuxChij8/vjyAwE71ucMrmZhxM8rOSfPML8fniZ8trr3I4R2o4xWh6" +
+            "no/xTUtZ02/yUEXbphw3DEuefzHEQnEF+quGji9pvGnPO6Krmnri9H4WPY0ysPQQ" +
+            "Qd82bUZCk9XdhSZcW/am8wBulYokITRMVHlbRXqu1pOFmQMO5oSpyZU3pXbsx+Ox" +
+            "IOc4EDX0WMa9aH4+snt18WAXVGwF2B4fmBk7AtmkFzrTmbpmyVqA3KO2IjzMZPw0" +
+            "hQIDAQAB";
+
+        private static string RsaEncryptWithPublicKey(string plainText)
+        {
+            // Match NIC C# sample exactly: RSACryptoServiceProvider + ImportParameters
+            var publicKeyBytes = Convert.FromBase64String(NicSandboxPublicKeyBase64);
+
+            // Parse DER-encoded SubjectPublicKeyInfo to get RSA parameters
+            using var tempRsa = RSA.Create();
+            tempRsa.ImportSubjectPublicKeyInfo(publicKeyBytes, out _);
+            var rsaParams = tempRsa.ExportParameters(false);
+
+            // Use RSACryptoServiceProvider as NIC sample does
+            using var rsa = new RSACryptoServiceProvider();
+            rsa.ImportParameters(rsaParams);
+
+            var dataToEncrypt = Encoding.UTF8.GetBytes(plainText);
+            var encrypted = rsa.Encrypt(dataToEncrypt, false); // false = PKCS1 v1.5
+            return Convert.ToBase64String(encrypted);
         }
 
         // ─────────────────────────────────────────────────────────────────────
@@ -841,7 +974,7 @@ namespace FinanceManagement.Infrastructure.Services
             public int UnitId { get; set; }
             public int PartyId { get; set; }
             public string? InvoiceNo { get; set; }
-            public DateOnly InvoiceDate { get; set; }
+            public string? InvoiceDateFormatted { get; set; }
             public string? DocType { get; set; }
             public string? SupplyType { get; set; }
             public string? PlaceOfSupply { get; set; }
@@ -881,8 +1014,8 @@ namespace FinanceManagement.Infrastructure.Services
 
         private sealed class UnitCompanyRow { public int CompanyId { get; set; } }
         private sealed class CompanyRow { public string? CompanyName { get; set; } public string? GstNumber { get; set; } }
-        private sealed class UnitAddressRow { public string? AddressLine1 { get; set; } public string? AddressLine2 { get; set; } public string? City { get; set; } public string? PinCode { get; set; } public string? Phone { get; set; } public string? Email { get; set; } }
-        private sealed class PartyAddressRow { public string? AddressLine1 { get; set; } public string? AddressLine2 { get; set; } public string? City { get; set; } public string? PostalCode { get; set; } public string? Phone { get; set; } public string? Email { get; set; } }
+        private sealed class UnitAddressRow { public string? AddressLine1 { get; set; } public string? AddressLine2 { get; set; } public int CityId { get; set; } public int PinCode { get; set; } public string? ContactNumber { get; set; } }
+        private sealed class PartyAddressRow { public string? AddressLine1 { get; set; } public string? AddressLine2 { get; set; } public int CityId { get; set; } public string? PostalCode { get; set; } }
 
         private sealed class NicEInvoiceData
         {
@@ -890,7 +1023,7 @@ namespace FinanceManagement.Infrastructure.Services
             public int UnitId { get; set; }
             public int PartyId { get; set; }
             public string? InvoiceNo { get; set; }
-            public DateOnly InvoiceDate { get; set; }
+            public string? InvoiceDateFormatted { get; set; }
             public string? DocType { get; set; }
             public string? SupplyType { get; set; }
             public string? PlaceOfSupply { get; set; }

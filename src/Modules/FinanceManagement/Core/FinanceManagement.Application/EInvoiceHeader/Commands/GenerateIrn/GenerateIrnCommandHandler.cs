@@ -74,12 +74,17 @@ namespace FinanceManagement.Application.EInvoiceHeader.Commands.GenerateIrn
             }
             else
             {
+                // Truncate error message to fit DB column (varchar 500)
+                var errorMsg = result.ErrorMessage?.Length > 490
+                    ? result.ErrorMessage[..490] + "..."
+                    : result.ErrorMessage;
+
                 await _commandRepository.UpdateIrnDetailsAsync(
                     request.EInvoiceHeaderId,
                     null, null, null, null, null,
                     "Failed",
                     result.ErrorCode,
-                    result.ErrorMessage,
+                    errorMsg,
                     cancellationToken);
             }
 
