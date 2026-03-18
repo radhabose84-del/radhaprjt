@@ -1,11 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
 using BackgroundService.Application.Notification.Exceptions;
 using BackgroundService.Application.Workflow.Common.Interfaces.IApprovalRule;
 using BackgroundService.Domain.Entities.Workflow;
+using BackgroundService.Domain.Events;
 using MediatR;
 
 namespace BackgroundService.Application.Workflow.ApprovalRules.Commands.DeleteApprovalRule
@@ -23,9 +20,17 @@ namespace BackgroundService.Application.Workflow.ApprovalRules.Commands.DeleteAp
         }
         public async Task<bool> Handle(DeleteApprovalRuleCommand request, CancellationToken cancellationToken)
         {
-            var ApprovalRule = _imapper.Map<ApprovalRule>(request);
-            var result = await _approvalRuleCommand.DeleteAsync(request.Id,ApprovalRule);
-        
+            var approvalRule = _imapper.Map<ApprovalRule>(request);
+            var result = await _approvalRuleCommand.DeleteAsync(request.Id, approvalRule);
+
+            var domainEvent = new AuditLogsDomainEvent(
+                actionDetail: "Delete",
+                actionCode: "APPROVAL_RULE_DELETE",
+                actionName: request.Id.ToString(),
+                details: $"ApprovalRule with Id {request.Id} deleted successfully.",
+                module: "ApprovalRule");
+            await _imediator.Publish(domainEvent, cancellationToken);
+
             return result == true ? result : throw new ExceptionRules("Approval Rule deletion failed.");
         }
     }
