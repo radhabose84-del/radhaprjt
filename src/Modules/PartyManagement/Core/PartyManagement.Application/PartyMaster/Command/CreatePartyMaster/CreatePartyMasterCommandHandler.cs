@@ -1,9 +1,10 @@
 #nullable disable
 using System.Text.Json;
 using AutoMapper;
-using Contracts.Events.Workflow;
+using Contracts.Commands.Workflow;
 using Contracts.Interfaces.Lookups.Users;
 using Contracts.Common;
+using PartyManagement.Application.Common.Interfaces.IOutbox;
 using PartyManagement.Application.Common.Interfaces;
 using PartyManagement.Application.Common.Interfaces.IPartyMaster;
 using PartyManagement.Domain.Common;
@@ -19,11 +20,18 @@ namespace PartyManagement.Application.PartyMaster.Command.CreatePartyMaster
         private readonly IPartyMasterQueryRepository _ipartyMasterQueryRepository;
         private readonly IPartyActivityLogCommandRepository _ipartyActivityLogCommandRepository;
         private readonly IMapper _mapper;
-        private readonly IMediator _mediator; 
+        private readonly IMediator _mediator;
         private readonly ILocationLookup _locationLookup;
-        private readonly IEventPublisher _eventPublisher;
+        private readonly IOutboxEventPublisher _outboxEventPublisher;
 
-        public CreatePartyMasterCommandHandler(IPartyMasterCommandRepository partyMasterCommandRepository, IMapper mapper, IMediator mediator, IPartyMasterQueryRepository ipartyMasterQueryRepository, IPartyActivityLogCommandRepository ipartyActivityLogCommandRepository, ILocationLookup locationLookup, IEventPublisher eventPublisher)
+        public CreatePartyMasterCommandHandler(
+            IPartyMasterCommandRepository partyMasterCommandRepository,
+            IMapper mapper,
+            IMediator mediator,
+            IPartyMasterQueryRepository ipartyMasterQueryRepository,
+            IPartyActivityLogCommandRepository ipartyActivityLogCommandRepository,
+            ILocationLookup locationLookup,
+            IOutboxEventPublisher outboxEventPublisher)
         {
             _partyMasterCommandRepository = partyMasterCommandRepository;
             _mapper = mapper;
@@ -31,7 +39,7 @@ namespace PartyManagement.Application.PartyMaster.Command.CreatePartyMaster
             _ipartyMasterQueryRepository = ipartyMasterQueryRepository;
             _ipartyActivityLogCommandRepository = ipartyActivityLogCommandRepository;
             _locationLookup = locationLookup;
-            _eventPublisher = eventPublisher;
+            _outboxEventPublisher = outboxEventPublisher;
         }
 
         
@@ -229,9 +237,9 @@ namespace PartyManagement.Application.PartyMaster.Command.CreatePartyMaster
 
             await _ipartyActivityLogCommandRepository.InsertAsync(log, cancellationToken);
 
-            // ------------------- Publish Outbox Event -------------------
+            // ------------------- Schedule Outbox Event (SQL Transactional Outbox) -------------------
             var correlationId = Guid.NewGuid();
-            var @event = new TransactionCreatedEvent
+            var @event = new CreateApprovalRequestCommand
             {
                 CorrelationId = correlationId,
                 ModuleTypeName = MiscEnumEntity.PartyDocumentImage.PartyMaster.ToString(),
@@ -239,8 +247,7 @@ namespace PartyManagement.Application.PartyMaster.Command.CreatePartyMaster
                 Payload = serializedPayload
             };
 
-            await _eventPublisher.SaveEventAsync(@event);
-            await _eventPublisher.PublishPendingEventsAsync();
+            await _outboxEventPublisher.ScheduleAsync(@event, correlationId, cancellationToken);
 
             return result;
         }

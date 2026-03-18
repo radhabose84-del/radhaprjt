@@ -66,6 +66,8 @@ using BackgroundService.Application.Interfaces.Files;
 using BackgroundService.Infrastructure.Files;
 using BackgroundService.Application.Interfaces.IInbox;
 using BackgroundService.Infrastructure.Repositories.Inbox;
+using Contracts.Interfaces.Lookups.Workflow;
+using BackgroundService.Infrastructure.Repositories.Lookups.Workflow;
 
 
 
@@ -194,6 +196,7 @@ namespace BackgroundService.Infrastructure
                     x.AddConsumer<NewScheduleWorkOrderTaskConsumer>();
                     x.AddConsumer<RollBackScheduleWorkOrderConsumer>();
                     x.AddConsumer<ScheduleWorkOrderUpdateConsumer>();
+                    
 
                     // Outbox event bridge consumers — receive events from SqlOutboxProcessorJob
                     // and translate them into the appropriate Hangfire scheduling commands.
@@ -432,8 +435,8 @@ namespace BackgroundService.Infrastructure
             services.AddScoped<INotificationEventRuleCommand, NotificationEventRuleCommand>();
             services.AddScoped<INotificationLogger, NotificationLogger>();
             
-
-             services.AddScoped<IWorkflowTypeQuery, WorkflowTypeQueryRepository >();
+            services.AddScoped<IWorkflowLookup, WorkflowLookupRepository>();
+            services.AddScoped<IWorkflowTypeQuery, WorkflowTypeQueryRepository >();
             services.AddScoped<IWorkflowTypeCommand, WorkflowTypeCommandRepository >();
              services.AddScoped<IApprovalStepDetailQuery, ApprovalStepDetailQueryRepository >();
             services.AddScoped<IApprovalStepDetailCommand, ApprovalStepDetailCommandRepository >();

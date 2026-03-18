@@ -7,7 +7,7 @@ using Contracts.Interfaces.Lookups.Workflow;
 using Dapper;
 namespace BackgroundService.Infrastructure.Repositories.Lookups.Workflow
 {
-    internal class WorkflowLookupRepository : IWorkflowLookup
+    internal sealed class WorkflowLookupRepository : IWorkflowLookup
     {
         private readonly IDbConnection _dbConnection;
 
@@ -20,13 +20,14 @@ namespace BackgroundService.Infrastructure.Repositories.Lookups.Workflow
         {
             const string sql = @"
                 SELECT
+                    ar.Id,
                     ar.Id AS ApprovalRequestId,
                     ar.ModuleTransactionId,
-                    ar.Status,
-                    mt.ModuleTypeName
-                FROM Workflow.ApprovalRequest ar
-                INNER JOIN Workflow.ModuleType mt ON ar.ModuleTypeId = mt.Id
-                WHERE mt.ModuleTypeName = @ModuleTypeName
+                    mm.Description AS CurrentStatus,
+                    ar.WorkflowType AS ModuleTypeName
+                FROM AppData.ApprovalRequest ar
+                INNER JOIN AppData.MiscMaster mm ON ar.StatusId = mm.Id
+                WHERE ar.WorkflowType = @ModuleTypeName
                   AND ar.IsDeleted = 0;
             ";
 
@@ -45,19 +46,16 @@ namespace BackgroundService.Infrastructure.Repositories.Lookups.Workflow
 
             const string sql = @"
                 SELECT
-                    arl.Id AS ApprovalRequestLineId,
-                    ar.ModuleTransactionId,
-                    arl.Status,
-                    arl.ApproverBinding,
-                    arl.ApproverValue,
-                    ar.Id AS ApprovalRequestId
-                FROM Workflow.ApprovalRequestLine arl
-                INNER JOIN Workflow.ApprovalRequest ar ON arl.ApprovalRequestId = ar.Id
-                INNER JOIN Workflow.ModuleType mt ON ar.ModuleTypeId = mt.Id
-                WHERE mt.ModuleTypeName = @ModuleTypeName
+                    arl.Id AS ApprovalRequestLineTransactionId,
+                    arl.ModuleLineTransactionId,
+                    mm.Description AS Status
+                FROM AppData.ApprovalRequestLine arl
+                INNER JOIN AppData.ApprovalRequest ar ON arl.ApprovalRequestId = ar.Id
+                INNER JOIN AppData.MiscMaster mm ON arl.StatusId = mm.Id
+                WHERE ar.WorkflowType = @ModuleTypeName
                   AND ar.ModuleTransactionId IN @Ids
                   AND ar.IsDeleted = 0
-                  AND arl.ApproverValue = CAST(@UserId AS NVARCHAR(50));
+                  AND ar.ApproverValue = CAST(@UserId AS NVARCHAR(50));
             ";
 
             var result = await _dbConnection.QueryAsync<ApprovalRequestLineStatusDto>(
@@ -75,18 +73,19 @@ namespace BackgroundService.Infrastructure.Repositories.Lookups.Workflow
                 SELECT
                     arl.Id AS ApprovalRequestLineId,
                     ar.ModuleTransactionId,
-                    arl.Status,
-                    arl.ApproverBinding,
-                    arl.ApproverValue,
+                    mm.Description AS Status,
+                    ar.ApproverBinding,
+                    ar.ApproverValue,
                     ar.Id AS ApprovalRequestId,
-                    ISNULL(ar.IsEdit, 0) AS IsEdit
-                FROM Workflow.ApprovalRequestLine arl
-                INNER JOIN Workflow.ApprovalRequest ar ON arl.ApprovalRequestId = ar.Id
-                INNER JOIN Workflow.ModuleType mt ON ar.ModuleTypeId = mt.Id
-                WHERE mt.ModuleTypeName = @ModuleTypeName
+                    ISNULL(asd.IsEdit, 0) AS IsEdit
+                FROM AppData.ApprovalRequestLine arl
+                INNER JOIN AppData.ApprovalRequest ar ON arl.ApprovalRequestId = ar.Id
+                INNER JOIN AppData.MiscMaster mm ON arl.StatusId = mm.Id
+                INNER JOIN AppData.ApprovalStepDetail asd ON ar.ApprovalStepDetailId = asd.Id
+                WHERE ar.WorkflowType = @ModuleTypeName
                   AND ar.ModuleTransactionId IN @Ids
                   AND ar.IsDeleted = 0
-                  AND arl.Status = 'Pending';
+                  AND mm.Description = 'Pending';
             ";
 
             var result = await _dbConnection.QueryAsync<ApproverListDto>(
@@ -107,18 +106,19 @@ namespace BackgroundService.Infrastructure.Repositories.Lookups.Workflow
             const string sql = @"
                 SELECT CASE WHEN EXISTS (
                     SELECT 1
-                    FROM Workflow.WorkflowConfiguration wc
-                    INNER JOIN Workflow.ModuleType mt ON wc.ModuleTypeId = mt.Id
-                    WHERE mt.ModuleTypeName = @MenuName
-                      AND wc.UnitId = @UnitId
-                      AND wc.DepartmentId = @DepartmentId
-                      AND wc.IsDeleted = 0
-                      AND wc.IsActive = 1
+                    FROM AppData.ApprovalStepDetail asd
+                    INNER JOIN AppData.WorkflowType wt ON asd.WorkFlowTypeId = wt.Id
+                    INNER JOIN AppData.Menus m ON wt.MenuId = m.Id
+                    INNER JOIN AppData.ApprovalStepUnitMapping asum ON asd.Id = asum.ApprovalStepDetailId
+                    WHERE m.MenuName = @MenuName
+                      AND asum.UnitId = @UnitId
+                      AND asd.IsDeleted = 0
+                      AND asd.IsActive = 1
                 ) THEN 1 ELSE 0 END;
             ";
 
             var result = await _dbConnection.ExecuteScalarAsync<int>(
-                sql, new { MenuName = menuName, UnitId = unitId, DepartmentId = departmentId });
+                sql, new { MenuName = menuName, UnitId = unitId });
             return result == 1;
         }
     }

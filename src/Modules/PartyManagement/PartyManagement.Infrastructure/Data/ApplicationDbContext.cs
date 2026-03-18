@@ -4,7 +4,9 @@ using Contracts.Interfaces;
 using PartyManagement.Application.Common.Interfaces;
 using PartyManagement.Domain.Common;
 using PartyManagement.Domain.Entities;
+using PartyManagement.Domain.Entities.Outbox;
 using PartyManagement.Infrastructure.Data.Configurations;
+using PartyManagement.Infrastructure.Data.Configurations.Outbox;
 
 namespace PartyManagement.Infrastructure.Data
 {
@@ -36,6 +38,7 @@ namespace PartyManagement.Infrastructure.Data
         public DbSet<BankMaster> BankMaster { get; set; }
         public DbSet<SalesType> SalesType { get; set; }
         public DbSet<AgentConfig> AgentConfig { get; set; }
+        public DbSet<OutboxMessage> OutboxMessages { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -55,8 +58,7 @@ namespace PartyManagement.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new BankMasterConfiguration());
             modelBuilder.ApplyConfiguration(new SalesTypeConfiguration());
             modelBuilder.ApplyConfiguration(new AgentConfigConfiguration());
-
-
+            modelBuilder.ApplyConfiguration(new OutboxMessageConfiguration());
 
 
 
