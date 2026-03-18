@@ -47,11 +47,14 @@ namespace PurchaseManagement.Application.PurchaseIndents.Queries.GetPendingInden
             var departmentLookup = departmentData.ToDictionary(d => d.DepartmentId, d => d.DepartmentName);
 
             var indentIds = IndentDto.Select(d => d.Id).ToList();
-            var workflowApproverResponse = await _workflowLookup.GetApproverListAsync(MiscEnumEntity.PurchaseIndent,indentIds);
-            var ApproverLookup = workflowApproverResponse.ToDictionary(d => d.ModuleTransactionId, d => d.ApproverValue);
-            var ApprovalRequestHeaderIdLookup = workflowApproverResponse.ToDictionary(d => d.ModuleTransactionId, d => d.ApprovalRequestId);
-            
-            var IsEditLookup = workflowApproverResponse.ToDictionary(d => d.ModuleTransactionId, d => d.IsEdit);
+            var workflowApproverResponse = await _workflowLookup.GetApproverListAsync(MiscEnumEntity.PurchaseIndent, indentIds);
+
+            // Build grouped lookup: ModuleTransactionId -> list of approver entries (multi-level approval)
+            var workflowByTransaction = workflowApproverResponse
+                .GroupBy(x => x.ModuleTransactionId)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
+            var currentUserId = _ipAddressService.GetUserId();
 
             foreach (var dto in IndentDto)
             {
@@ -63,29 +66,18 @@ namespace PurchaseManagement.Application.PurchaseIndents.Queries.GetPendingInden
                 {
                     dto.DepartmentName = DepartmentName;
                 }
-                if (ApprovalRequestHeaderIdLookup.TryGetValue(dto.Id, out var ApprovalRequestHeaderId))
+
+                // Find the approval entry for the current user (multi-level: pick the one matching current user)
+                if (workflowByTransaction.TryGetValue(dto.Id, out var approverEntries))
                 {
-                    dto.ApprovalRequestHeaderId = Convert.ToInt32(ApprovalRequestHeaderId);
+                    var currentUserEntry = approverEntries
+                        .FirstOrDefault(a => a.ApproverValue == currentUserId.ToString())
+                        ?? approverEntries.First();
+
+                    dto.ApprovalRequestHeaderId = currentUserEntry.ApprovalRequestId;
+                    dto.ApproverId = Convert.ToInt32(currentUserEntry.ApproverValue);
+                    dto.IsEdit = currentUserEntry.IsEdit;
                 }
-
-                if (ApproverLookup.TryGetValue(dto.Id, out var ApproverValue))
-                {
-                    dto.ApproverId = Convert.ToInt32(ApproverValue);
-                }
-
-                 // ✅ Set IsEdit from workflow
-                if (IsEditLookup.TryGetValue(dto.Id, out var isEditValue))
-                {
-                    // 👉 If IsEdit in workflow is BYTE:
-                    // dto.IsEdit = isEditValue;
-
-                    // 👉 If IsEdit in workflow is BOOL:
-                    dto.IsEdit = isEditValue;
-                }
-
-
-
-
             }
             var approverNameMap = await _usersAllLookup.GetAllUserAsync();
             var approverNameLookup = approverNameMap.ToDictionary(d => d.UserId, d => d.UserName);
