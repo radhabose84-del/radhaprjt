@@ -1,14 +1,18 @@
-using AutoMapper;
-using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.ServicePO;
-using MediatR;
-using ServiceEntryActivityEntity = PurchaseManagement.Domain.Entities.PurchaseOrder.ServicePO.ServiceEntryActivity;
-using Contracts.Common;
-using PurchaseManagement.Domain.Events;
 using System.Text.Json;
-using PurchaseManagement.Domain.Common;
+using AutoMapper;
+using Contracts.Commands.Workflow;
+using Contracts.Common;
 using PurchaseManagement.Application.Common.Interfaces.IMiscMaster;
-using PurchaseManagement.Domain.Entities.PurchaseOrder.ServicePO;
+using PurchaseManagement.Application.Common.Interfaces.IOutbox;
+using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.ServicePO;
 using PurchaseManagement.Application.PurchaseOrder.ServicePO.Command.CreateServiceEntrySheet;
+using PurchaseManagement.Domain.Common;
+using PurchaseManagement.Domain.Entities.PurchaseOrder.ServicePO;
+using PurchaseManagement.Domain.Events;
+using PurchaseManagement.Domain.PurchaseOrder;
+using MediatR;
+using Microsoft.Extensions.Logging;
+using ServiceEntryActivityEntity = PurchaseManagement.Domain.Entities.PurchaseOrder.ServicePO.ServiceEntryActivity;
 
 namespace PurchaseManagement.Application.PurchaseOrder.ServicePO.Command.UpdateServiceEntrySheet
 {
@@ -18,21 +22,26 @@ namespace PurchaseManagement.Application.PurchaseOrder.ServicePO.Command.UpdateS
         private readonly IServicePurchaseOrderQueryRepository _servicePurchaseOrderQueryRepository;
         private readonly IMapper _mapper;
         private readonly IMediator _mediator;
-
         private readonly IMiscMasterQueryRepository _miscMasterQueryRepository;
+        private readonly IOutboxEventPublisher _outboxEventPublisher;
+        private readonly ILogger<UpdateServiceEntrySheetCommandHandler> _logger;
 
         public UpdateServiceEntrySheetCommandHandler(
            IServicePurchaseOrderCommandRepository servicePurchaseOrderCommandRepository,
            IServicePurchaseOrderQueryRepository poQuery,
            IMapper mapper,
            IMediator mediator,
-          IMiscMasterQueryRepository miscTypeMasterQueryRepository)
+           IMiscMasterQueryRepository miscTypeMasterQueryRepository,
+           IOutboxEventPublisher outboxEventPublisher,
+           ILogger<UpdateServiceEntrySheetCommandHandler> logger)
         {
             _servicePurchaseOrderCommandRepository = servicePurchaseOrderCommandRepository;
             _servicePurchaseOrderQueryRepository = poQuery;
             _mapper = mapper;
             _mediator = mediator;
             _miscMasterQueryRepository = miscTypeMasterQueryRepository;
+            _outboxEventPublisher = outboxEventPublisher;
+            _logger = logger;
         }
         public async Task<int> Handle(UpdateServiceEntrySheetCommand request, CancellationToken ct)
         {
@@ -226,6 +235,30 @@ namespace PurchaseManagement.Application.PurchaseOrder.ServicePO.Command.UpdateS
                 actionName: "ServiceEntrySheet",
                 details: JsonSerializer.Serialize(new { SESId = saved.Id, PO = saved.PurchaseOrderId }),
                 module: "ServiceEntry"), ct);
+
+            // (I) Reload for workflow payload
+            var agg = await _servicePurchaseOrderCommandRepository.GetServiceEntrySheetByIdAsync(saved.Id, ct)
+                      ?? throw new InvalidOperationException($"Service Entry Sheet {saved.Id} not found after update.");
+
+            // (J) Build workflow payload
+            var wf = _mapper.Map<CreateServiceEntrySheetWorkflowDto>(agg);
+            var payload = JsonSerializer.Serialize(wf);
+            var correlationId = Guid.NewGuid();
+
+            // (K) Schedule Outbox Event (SQL Transactional Outbox)
+            var @event = new CreateApprovalRequestCommand
+            {
+                CorrelationId = correlationId,
+                ModuleTypeName = MiscEnumEntity.ServiceEntrySheet,
+                ModuleTransactionId = saved.Id,
+                Payload = payload
+            };
+
+            await _outboxEventPublisher.ScheduleAsync(@event, correlationId, ct);
+
+            _logger.LogInformation(
+                "ServiceEntrySheet updated. Id={SesId}, CorrelationId={CorrelationId}",
+                saved.Id, correlationId);
 
             return saved.Id;
         }
