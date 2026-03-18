@@ -190,8 +190,10 @@ namespace BackgroundService.Infrastructure
                     x.AddConsumer<PurchaseManagement.Application.Consumers.ApprovedRejectedConsumer>();
                     x.AddConsumer<BudgetManagement.Application.Consumers.ApprovedRejectedConsumer>();
                     x.AddConsumer<InventoryManagement.Application.Consumers.ApprovedRejectedConsumer>();
+                    x.AddConsumer<PartyManagement.Application.Consumers.ApprovedRejectedConsumer>();
                     x.AddConsumer<PurchaseManagement.Application.Consumers.RollbackTransactionConsumer>();
                     x.AddConsumer<BudgetManagement.Application.Consumers.RollbackTransactionConsumer>();
+                    x.AddConsumer<PartyManagement.Application.Consumers.RollbackTransactionConsumer>();
                     x.AddConsumer<ScheduleWorkOrderConsumer>();
                     x.AddConsumer<NewScheduleWorkOrderTaskConsumer>();
                     x.AddConsumer<RollBackScheduleWorkOrderConsumer>();
@@ -303,6 +305,11 @@ namespace BackgroundService.Infrastructure
                             e.UseMessageRetry(r => r.Intervals(TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(30)));
                             e.ConfigureConsumer<InventoryManagement.Application.Consumers.ApprovedRejectedConsumer>(context);
                         });
+                        cfg.ReceiveEndpoint("approved-rejected-party-task-queue", e =>
+                        {
+                            e.UseMessageRetry(r => r.Intervals(TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(30)));
+                            e.ConfigureConsumer<PartyManagement.Application.Consumers.ApprovedRejectedConsumer>(context);
+                        });
 
                         // Rollback queues (undo pending status on workflow failure)
                         cfg.ReceiveEndpoint("approval-request-rollback-purchase-queue", e =>
@@ -312,6 +319,10 @@ namespace BackgroundService.Infrastructure
                         cfg.ReceiveEndpoint("approval-request-rollback-budget-queue", e =>
                         {
                             e.ConfigureConsumer<BudgetManagement.Application.Consumers.RollbackTransactionConsumer>(context);
+                        });
+                        cfg.ReceiveEndpoint("approval-request-rollback-party-queue", e =>
+                        {
+                            e.ConfigureConsumer<PartyManagement.Application.Consumers.RollbackTransactionConsumer>(context);
                         });
 
                         cfg.ReceiveEndpoint("hangfire-workorder-schedule-queue", e =>

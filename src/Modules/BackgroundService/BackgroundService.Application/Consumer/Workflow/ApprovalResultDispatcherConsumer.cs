@@ -1,5 +1,6 @@
 using Contracts.Commands.Budget;
 using Contracts.Commands.Inventory;
+using Contracts.Commands.Party;
 using Contracts.Commands.Purchase;
 using Contracts.Events.Workflow;
 using BackgroundService.Application.Interfaces.IInbox;
@@ -18,6 +19,7 @@ namespace BackgroundService.Application.Consumer.Workflow;
 ///   Budget types     → UpdateApprovedRejectedBudgetCommand      → approved-rejected-budget-task-queue
 ///   Inventory types  → UpdateApprovedRejectedInventoryCommand   → approved-rejected-inventory-task-queue
 ///   MaterialRequest  → both Purchase and Inventory queues (dual-module update)
+///   Party types      → UpdateApprovedRejectedPartyCommand    → approved-rejected-party-task-queue
 /// </summary>
 public class ApprovalResultDispatcherConsumer : IConsumer<ApprovedRejectedEvent>
 {
@@ -35,6 +37,11 @@ public class ApprovalResultDispatcherConsumer : IConsumer<ApprovedRejectedEvent>
     private static readonly HashSet<string> InventoryTypes = new(StringComparer.OrdinalIgnoreCase)
     {
         "MaterialRequest"
+    };
+
+    private static readonly HashSet<string> PartyTypes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "Party"
     };
 
     private readonly IInboxRepository _inbox;
@@ -99,6 +106,19 @@ public class ApprovalResultDispatcherConsumer : IConsumer<ApprovedRejectedEvent>
                 LineStatus = msg.LineStatus,
                 PartyContacts = msg.PartyContacts,
                 DynamicFields = msg.DynamicFields
+            });
+        }
+
+        if (PartyTypes.Contains(msg.ModuleTypeName))
+        {
+            await context.Publish(new UpdateApprovedRejectedPartyCommand
+            {
+                CorrelationId = msg.CorrelationId,
+                ModuleTransactionId = msg.ModuleTransactionId,
+                ModuleTypeName = msg.ModuleTypeName,
+                Status = msg.Status,
+                LineStatus = msg.LineStatus,
+                PartyContacts = msg.PartyContacts
             });
         }
 
