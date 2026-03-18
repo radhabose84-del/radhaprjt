@@ -52,9 +52,12 @@ namespace PurchaseManagement.Application.PurchaseIndents.Queries.GetPendingInden
             var workflowApproverResponse = await _workflowLookup.GetApproverListAsync(MiscEnumEntity.PurchaseIndent,indentIds);
 
              var ApprovalRequestLineIdLookup = workflowResponse.ToDictionary(d => d.ModuleLineTransactionId, d => d.ApprovalRequestLineTransactionId);
-             var ApproverLookup = workflowApproverResponse.ToDictionary(d => d.ModuleTransactionId, d => d.ApproverValue);
-             var ApprovalRequestHeaderIdLookup = workflowApproverResponse.ToDictionary(d => d.ModuleTransactionId, d => d.ApprovalRequestId);
-             
+
+            var currentUserId = _ipAddressService.GetUserId();
+            var workflowByTransaction = workflowApproverResponse
+                .GroupBy(x => x.ModuleTransactionId)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
             var itemIds = Indent.IndentDetails.Select(d => d.ItemId).ToList();
             var itemCategoryIds = Indent.IndentDetails.Select(d => d.ItemCategoryId).ToList();
 
@@ -79,14 +82,15 @@ namespace PurchaseManagement.Application.PurchaseIndents.Queries.GetPendingInden
                     Indent.UnitName = UnitName;
                 }
             
-                    if (ApprovalRequestHeaderIdLookup.TryGetValue(Indent.Id, out var ApprovalRequestHeaderId))
-                     {
-                         Indent.ApprovalRequestHeaderId = Convert.ToInt32(ApprovalRequestHeaderId);
-                     }
-                     if (ApproverLookup.TryGetValue(Indent.Id, out var ApproverValue))
-                    {
-                        Indent.ApproverId = Convert.ToInt32(ApproverValue);
-                    }
+            if (workflowByTransaction.TryGetValue(Indent.Id, out var approverEntries))
+            {
+                var currentUserEntry = approverEntries
+                    .FirstOrDefault(a => a.ApproverValue == currentUserId.ToString())
+                    ?? approverEntries.First();
+
+                Indent.ApprovalRequestHeaderId = Convert.ToInt32(currentUserEntry.ApprovalRequestId);
+                Indent.ApproverId = Convert.ToInt32(currentUserEntry.ApproverValue);
+            }
 
 
             foreach (var dto in Indent.IndentDetails)
