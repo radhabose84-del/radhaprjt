@@ -3,6 +3,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Contracts.Common;
 using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Users;
 using Dapper;
@@ -101,6 +102,476 @@ namespace FinanceManagement.Infrastructure.Services
                 // Include method name from stack trace for debugging
                 var source = ex.StackTrace?.Split('\n').FirstOrDefault()?.Trim() ?? "unknown";
                 return new NicIrnResultDto
+                {
+                    IsSuccess = false,
+                    ErrorCode = "SERVICE_ERROR",
+                    ErrorMessage = $"{ex.Message} | Source: {source}"
+                };
+            }
+        }
+
+        public async Task<NicCancelIrnResultDto> CancelIrnAsync(
+            int eInvoiceHeaderId,
+            string cnlRsn,
+            string? cnlRem = null,
+            CancellationToken ct = default)
+        {
+            try
+            {
+                // 1. Load IRN from EInvoiceHeader
+                const string irnSql = @"
+                    SELECT IrnNumber
+                    FROM Finance.EInvoiceHeader
+                    WHERE Id = @id AND IsDeleted = 0";
+
+                var irnNumber = await _dbConnection.QueryFirstOrDefaultAsync<string>(
+                    irnSql, new { id = eInvoiceHeaderId });
+
+                if (string.IsNullOrEmpty(irnNumber))
+                    return new NicCancelIrnResultDto
+                    {
+                        IsSuccess = false,
+                        ErrorCode = "VALIDATION_ERROR",
+                        ErrorMessage = $"EInvoiceHeader {eInvoiceHeaderId} has no IRN. Cannot cancel."
+                    };
+
+                // 2. Authenticate with NIC
+                var (authToken, sek) = await GetAuthTokenAsync(ct);
+
+                // 3. Build cancel payload
+                var cancelPayload = new
+                {
+                    Irn = irnNumber,
+                    CnlRsn = cnlRsn,
+                    CnlRem = cnlRem ?? "Cancelled"
+                };
+
+                var jsonString = JsonSerializer.Serialize(cancelPayload, _jsonOptions);
+                var encryptedPayload = AesEncryptEcb(jsonString, sek);
+
+                // 4. Call NIC Cancel IRN API
+                var cfg = GetConfig();
+                var client = _httpClientFactory.CreateClient("NicEInvoice");
+                var cancelPath = cfg.BaseUrl +
+                    (_configuration.GetSection("NicEInvoice")["CancelIrnPath"]
+                        ?? "/eicore/v1.03/Invoice/Cancel");
+
+                var body = JsonSerializer.Serialize(new { Data = encryptedPayload }, _jsonOptions);
+
+                using var req = new HttpRequestMessage(HttpMethod.Post, cancelPath)
+                {
+                    Content = new StringContent(body, Encoding.UTF8, "application/json")
+                };
+                req.Headers.Add("client-id", cfg.ClientId);
+                req.Headers.Add("client-secret", cfg.ClientSecret);
+                req.Headers.Add("user_name", cfg.UserName);
+                req.Headers.Add("authtoken", authToken);
+                req.Headers.Add("gstin", cfg.GstinForAuth);
+
+                using var resp = await client.SendAsync(req, ct);
+                var responseBody = await resp.Content.ReadAsStringAsync(ct);
+
+                using var doc = JsonDocument.Parse(responseBody);
+                var root = doc.RootElement;
+
+                // Check status (NIC returns Status/status)
+                var statusOk = false;
+                if (root.TryGetProperty("Status", out var statusProp) || root.TryGetProperty("status", out statusProp))
+                {
+                    var statusVal = statusProp.ValueKind == JsonValueKind.Number
+                        ? statusProp.GetInt32()
+                        : int.TryParse(statusProp.GetString(), out var sv) ? sv : 0;
+                    statusOk = statusVal == 1;
+                }
+
+                if (!statusOk)
+                {
+                    var message = root.TryGetProperty("ErrorDetails", out var ed) ? ed.GetRawText()
+                        : root.TryGetProperty("errorDetails", out ed) ? ed.GetRawText()
+                        : responseBody.Length > 500 ? responseBody[..500] : responseBody;
+
+                    return new NicCancelIrnResultDto
+                    {
+                        IsSuccess = false,
+                        ErrorCode = "NIC_ERROR",
+                        ErrorMessage = message
+                    };
+                }
+
+                // Decrypt response
+                var encData = root.TryGetProperty("Data", out var dataProp) ? dataProp.GetString()
+                    : root.TryGetProperty("data", out dataProp) ? dataProp.GetString()
+                    : null;
+
+                if (string.IsNullOrEmpty(encData))
+                    return new NicCancelIrnResultDto
+                    {
+                        IsSuccess = false,
+                        ErrorCode = "NIC_ERROR",
+                        ErrorMessage = "NIC cancel response missing 'Data' field."
+                    };
+
+                var decryptedJson = Encoding.UTF8.GetString(AesDecryptEcb(encData, sek));
+                using var cancelDoc = JsonDocument.Parse(decryptedJson);
+                var cancelRoot = cancelDoc.RootElement;
+
+                return new NicCancelIrnResultDto
+                {
+                    IsSuccess = true,
+                    Irn = cancelRoot.TryGetProperty("Irn", out var irn) ? irn.GetString() : irnNumber,
+                    CancelDate = cancelRoot.TryGetProperty("CancelDate", out var cd) ? cd.GetString()
+                        : cancelRoot.TryGetProperty("CnlDt", out cd) ? cd.GetString() : null
+                };
+            }
+            catch (Exception ex)
+            {
+                var source = ex.StackTrace?.Split('\n').FirstOrDefault()?.Trim() ?? "unknown";
+                return new NicCancelIrnResultDto
+                {
+                    IsSuccess = false,
+                    ErrorCode = "SERVICE_ERROR",
+                    ErrorMessage = $"{ex.Message} | Source: {source}"
+                };
+            }
+        }
+
+        public async Task<ApiResponseDTO<object>> GetIrnDetailsAsync(
+            int eInvoiceHeaderId, CancellationToken ct = default)
+        {
+            try
+            {
+                // 1. Load IRN from DB
+                const string irnSql = @"
+                    SELECT IrnNumber FROM Finance.EInvoiceHeader
+                    WHERE Id = @id AND IsDeleted = 0";
+
+                var irnNumber = await _dbConnection.QueryFirstOrDefaultAsync<string>(irnSql, new { id = eInvoiceHeaderId });
+
+                if (string.IsNullOrEmpty(irnNumber))
+                    return new ApiResponseDTO<object>
+                    {
+                        IsSuccess = false,
+                        Message = $"EInvoiceHeader {eInvoiceHeaderId} has no IRN."
+                    };
+
+                // 2. Auth
+                var (authToken, sek) = await GetAuthTokenAsync(ct);
+                var cfg = GetConfig();
+                var client = _httpClientFactory.CreateClient("NicEInvoice");
+
+                // 3. GET /eicore/v1.03/Invoice/irn/{irn}
+                var getIrnPath = cfg.BaseUrl + "/eicore/v1.03/Invoice/irn/" + irnNumber;
+
+                using var req = new HttpRequestMessage(HttpMethod.Get, getIrnPath);
+                req.Headers.Add("client-id", cfg.ClientId);
+                req.Headers.Add("client-secret", cfg.ClientSecret);
+                req.Headers.Add("user_name", cfg.UserName);
+                req.Headers.Add("authtoken", authToken);
+                req.Headers.Add("gstin", cfg.GstinForAuth);
+
+                using var resp = await client.SendAsync(req, ct);
+                var responseBody = await resp.Content.ReadAsStringAsync(ct);
+
+                if (string.IsNullOrWhiteSpace(responseBody))
+                    return new ApiResponseDTO<object>
+                    {
+                        IsSuccess = false,
+                        Message = $"NIC returned empty response (HTTP {(int)resp.StatusCode})."
+                    };
+
+                using var doc = JsonDocument.Parse(responseBody);
+                var root = doc.RootElement;
+
+                var statusOk = false;
+                if (root.TryGetProperty("Status", out var sp) || root.TryGetProperty("status", out sp))
+                {
+                    var sv = sp.ValueKind == JsonValueKind.Number ? sp.GetInt32()
+                        : int.TryParse(sp.GetString(), out var v) ? v : 0;
+                    statusOk = sv == 1;
+                }
+
+                if (!statusOk)
+                {
+                    var message = root.TryGetProperty("ErrorDetails", out var ed) ? ed.GetRawText()
+                        : root.TryGetProperty("errorDetails", out ed) ? ed.GetRawText()
+                        : responseBody.Length > 500 ? responseBody[..500] : responseBody;
+
+                    return new ApiResponseDTO<object>
+                    {
+                        IsSuccess = false,
+                        Message = message
+                    };
+                }
+
+                // 4. Decrypt response
+                var encData = root.TryGetProperty("Data", out var dp) ? dp.GetString()
+                    : root.TryGetProperty("data", out dp) ? dp.GetString() : null;
+
+                if (string.IsNullOrEmpty(encData))
+                    return new ApiResponseDTO<object>
+                    {
+                        IsSuccess = false,
+                        Message = "NIC response missing 'Data' field."
+                    };
+
+                var decryptedJson = Encoding.UTF8.GetString(AesDecryptEcb(encData, sek));
+                var irnDetails = JsonSerializer.Deserialize<JsonElement>(decryptedJson);
+
+                return new ApiResponseDTO<object>
+                {
+                    IsSuccess = true,
+                    Message = "IRN details fetched successfully.",
+                    Data = irnDetails
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ApiResponseDTO<object>
+                {
+                    IsSuccess = false,
+                    Message = $"{ex.Message}"
+                };
+            }
+        }
+
+        public async Task<ApiResponseDTO<object>> GetEwbDetailsByIrnAsync(
+            int eInvoiceHeaderId, CancellationToken ct = default)
+        {
+            try
+            {
+                // 1. Load IRN from DB
+                const string irnSql = @"
+                    SELECT IrnNumber FROM Finance.EInvoiceHeader
+                    WHERE Id = @id AND IsDeleted = 0";
+
+                var irnNumber = await _dbConnection.QueryFirstOrDefaultAsync<string>(irnSql, new { id = eInvoiceHeaderId });
+
+                if (string.IsNullOrEmpty(irnNumber))
+                    return new ApiResponseDTO<object>
+                    {
+                        IsSuccess = false,
+                        Message = $"EInvoiceHeader {eInvoiceHeaderId} has no IRN."
+                    };
+
+                // 2. Auth
+                var (authToken, sek) = await GetAuthTokenAsync(ct);
+                var cfg = GetConfig();
+                var client = _httpClientFactory.CreateClient("NicEInvoice");
+
+                // 3. GET /eiewb/v1.03/ewaybill/irn/{irn}
+                var ewbPath = cfg.BaseUrl + "/eiewb/v1.03/ewaybill/irn/" + irnNumber;
+
+                using var req = new HttpRequestMessage(HttpMethod.Get, ewbPath);
+                req.Headers.Add("client-id", cfg.ClientId);
+                req.Headers.Add("client-secret", cfg.ClientSecret);
+                req.Headers.Add("user_name", cfg.UserName);
+                req.Headers.Add("authtoken", authToken);
+                req.Headers.Add("gstin", cfg.GstinForAuth);
+
+                using var resp = await client.SendAsync(req, ct);
+                var responseBody = await resp.Content.ReadAsStringAsync(ct);
+
+                if (string.IsNullOrWhiteSpace(responseBody))
+                    return new ApiResponseDTO<object>
+                    {
+                        IsSuccess = false,
+                        Message = $"NIC returned empty response (HTTP {(int)resp.StatusCode})."
+                    };
+
+                using var doc = JsonDocument.Parse(responseBody);
+                var root = doc.RootElement;
+
+                var statusOk = false;
+                if (root.TryGetProperty("Status", out var sp) || root.TryGetProperty("status", out sp))
+                {
+                    var sv = sp.ValueKind == JsonValueKind.Number ? sp.GetInt32()
+                        : int.TryParse(sp.GetString(), out var v) ? v : 0;
+                    statusOk = sv == 1;
+                }
+
+                if (!statusOk)
+                {
+                    var message = root.TryGetProperty("ErrorDetails", out var ed) ? ed.GetRawText()
+                        : root.TryGetProperty("errorDetails", out ed) ? ed.GetRawText()
+                        : responseBody.Length > 500 ? responseBody[..500] : responseBody;
+
+                    return new ApiResponseDTO<object>
+                    {
+                        IsSuccess = false,
+                        Message = message
+                    };
+                }
+
+                // 4. Decrypt response
+                var encData = root.TryGetProperty("Data", out var dp) ? dp.GetString()
+                    : root.TryGetProperty("data", out dp) ? dp.GetString() : null;
+
+                if (string.IsNullOrEmpty(encData))
+                    return new ApiResponseDTO<object>
+                    {
+                        IsSuccess = false,
+                        Message = "NIC response missing 'Data' field."
+                    };
+
+                var decryptedJson = Encoding.UTF8.GetString(AesDecryptEcb(encData, sek));
+                var ewbDetails = JsonSerializer.Deserialize<JsonElement>(decryptedJson);
+
+                return new ApiResponseDTO<object>
+                {
+                    IsSuccess = true,
+                    Message = "e-Waybill details fetched successfully.",
+                    Data = ewbDetails
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ApiResponseDTO<object>
+                {
+                    IsSuccess = false,
+                    Message = $"{ex.Message}"
+                };
+            }
+        }
+
+        public async Task<NicCancelEwbResultDto> CancelEwbAsync(
+            int eInvoiceHeaderId,
+            int cancelRsnCode,
+            string? cancelRmrk = null,
+            CancellationToken ct = default)
+        {
+            try
+            {
+                // 1. Get EWB number from EWaybillHeader table
+                const string ewbSql = @"
+                    SELECT TOP 1 EWBNumber
+                    FROM Finance.EWaybillHeader
+                    WHERE EInvoiceHeaderId = @id AND IsDeleted = 0 AND EwbStatus = 'Generated'
+                    ORDER BY Id DESC";
+
+                var ewbNumberStr = await _dbConnection.QueryFirstOrDefaultAsync<string>(ewbSql, new { id = eInvoiceHeaderId });
+
+                if (string.IsNullOrEmpty(ewbNumberStr) || !long.TryParse(ewbNumberStr, out var ewbNo) || ewbNo == 0)
+                    return new NicCancelEwbResultDto
+                    {
+                        IsSuccess = false,
+                        ErrorCode = "VALIDATION_ERROR",
+                        ErrorMessage = $"EInvoiceHeader {eInvoiceHeaderId} has no active e-Waybill to cancel."
+                    };
+
+                // 2. Authenticate with NIC
+                var (authToken, sek) = await GetAuthTokenAsync(ct);
+                var cfg = GetConfig();
+                var client = _httpClientFactory.CreateClient("NicEInvoice");
+
+                // 2. Build cancel payload
+                var cancelPayload = new
+                {
+                    ewbNo = ewbNo,
+                    cancelRsnCode = cancelRsnCode,
+                    cancelRmrk = cancelRmrk ?? "Cancelled"
+                };
+
+                var cancelJson = JsonSerializer.Serialize(cancelPayload, _jsonOptions);
+                var encCancel = AesEncryptEcb(cancelJson, sek);
+
+                // 3. Call NIC Cancel e-Waybill API
+                // Cancel EWB uses a different host than IRN/EWB generation
+                var ewbBaseUrl = _configuration.GetSection("NicEInvoice")["EwbBaseUrl"]
+                    ?? "https://einv-apisandbox.nic.in";
+                var cancelPath = ewbBaseUrl +
+                    (_configuration.GetSection("NicEInvoice")["CancelEwbPath"]
+                        ?? "/ewaybillapi/v1.03/ewayapi");
+
+                // NIC Cancel EWB requires "action" field in the body
+                var cancelBody = JsonSerializer.Serialize(new { action = "CANEWB", Data = encCancel }, _jsonOptions);
+
+                using var cancelReq = new HttpRequestMessage(HttpMethod.Post, cancelPath)
+                {
+                    Content = new StringContent(cancelBody, Encoding.UTF8, "application/json")
+                };
+                cancelReq.Headers.Add("client-id", cfg.ClientId);
+                cancelReq.Headers.Add("client-secret", cfg.ClientSecret);
+                cancelReq.Headers.Add("user_name", cfg.UserName);
+                cancelReq.Headers.Add("authtoken", authToken);
+                cancelReq.Headers.Add("gstin", cfg.GstinForAuth);
+
+                using var cancelResp = await client.SendAsync(cancelReq, ct);
+                var cancelRespBody = await cancelResp.Content.ReadAsStringAsync(ct);
+
+                // If empty response, return error with HTTP status
+                if (string.IsNullOrWhiteSpace(cancelRespBody))
+                    return new NicCancelEwbResultDto
+                    {
+                        IsSuccess = false,
+                        ErrorCode = "NIC_ERROR",
+                        ErrorMessage = $"NIC returned empty response (HTTP {(int)cancelResp.StatusCode}). URL: {cancelPath}"
+                    };
+
+                using var cancelDoc = JsonDocument.Parse(cancelRespBody);
+                var cancelRoot = cancelDoc.RootElement;
+
+                var cancelStatusOk = false;
+                if (cancelRoot.TryGetProperty("Status", out var csp) || cancelRoot.TryGetProperty("status", out csp))
+                {
+                    var csv = csp.ValueKind == JsonValueKind.Number ? csp.GetInt32()
+                        : int.TryParse(csp.GetString(), out var v) ? v : 0;
+                    cancelStatusOk = csv == 1;
+                }
+
+                if (!cancelStatusOk)
+                {
+                    // EWB API returns error as Base64-encoded JSON in "error" field
+                    var message = cancelRespBody;
+                    if (cancelRoot.TryGetProperty("error", out var errProp) && errProp.ValueKind == JsonValueKind.String)
+                    {
+                        try
+                        {
+                            var errJson = Encoding.UTF8.GetString(Convert.FromBase64String(errProp.GetString()!));
+                            message = errJson;
+                        }
+                        catch { message = errProp.GetString(); }
+                    }
+                    else if (cancelRoot.TryGetProperty("ErrorDetails", out var ed))
+                        message = ed.GetRawText();
+                    else if (cancelRoot.TryGetProperty("errorDetails", out ed))
+                        message = ed.GetRawText();
+
+                    if (message?.Length > 500) message = message[..500];
+
+                    return new NicCancelEwbResultDto
+                    {
+                        IsSuccess = false,
+                        ErrorCode = "NIC_ERROR",
+                        ErrorMessage = message
+                    };
+                }
+
+                // Decrypt response — EWB API uses "data" (lowercase)
+                var encResult = cancelRoot.TryGetProperty("data", out var rdp) ? rdp.GetString()
+                    : cancelRoot.TryGetProperty("Data", out rdp) ? rdp.GetString() : null;
+
+                string? cancelDate = null;
+                if (!string.IsNullOrEmpty(encResult))
+                {
+                    var decResult = Encoding.UTF8.GetString(AesDecryptEcb(encResult, sek));
+                    using var resultDoc = JsonDocument.Parse(decResult);
+                    if (resultDoc.RootElement.TryGetProperty("cancelDate", out var cdProp))
+                        cancelDate = cdProp.GetString();
+                    else if (resultDoc.RootElement.TryGetProperty("CancelDate", out cdProp))
+                        cancelDate = cdProp.GetString();
+                }
+
+                return new NicCancelEwbResultDto
+                {
+                    IsSuccess = true,
+                    EwbNo = ewbNo,
+                    CancelDate = cancelDate
+                };
+            }
+            catch (Exception ex)
+            {
+                var source = ex.StackTrace?.Split('\n').FirstOrDefault()?.Trim() ?? "unknown";
+                return new NicCancelEwbResultDto
                 {
                     IsSuccess = false,
                     ErrorCode = "SERVICE_ERROR",
