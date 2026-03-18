@@ -39,7 +39,7 @@ namespace BackgroundService.Infrastructure.Repositories.Workflow.WorkflowTypes
         public async Task<bool> UpdateAsync(WorkflowType workflowType)
         {
             var existingWorkflow = await _notificationDbContext.WorkflowType
-            .AsNoTracking().FirstOrDefaultAsync(u => u.Id == workflowType.Id);
+                .FirstOrDefaultAsync(u => u.Id == workflowType.Id);
             
             if (existingWorkflow != null)
             {
