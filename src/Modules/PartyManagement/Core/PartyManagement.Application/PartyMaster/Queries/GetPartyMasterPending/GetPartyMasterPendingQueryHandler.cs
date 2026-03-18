@@ -49,31 +49,30 @@ namespace PartyManagement.Application.PartyMaster.Queries.GetPartyMasterPending
                 var workflowApproverResponse = await _workflowLookup
                     .GetApproverListAsync(MiscEnumEntity.PartyDocumentImage.PartyMaster, partyIds);
 
-                var ApproverLookup = workflowApproverResponse
-                    .ToDictionary(d => d.ModuleTransactionId, d => d.ApproverValue);
-                var ApprovalRequestHeaderIdLookup = workflowApproverResponse
-                    .ToDictionary(d => d.ModuleTransactionId, d => d.ApprovalRequestId);
-                    
-                var IsEditLookup = workflowApproverResponse
+                // Build a lookup: ModuleTransactionId -> list of approver entries (multi-level approval)
+                var workflowByTransaction = workflowApproverResponse
                     .GroupBy(x => x.ModuleTransactionId)
-                    .ToDictionary(g => g.Key, g => g.First().IsEdit);
+                    .ToDictionary(g => g.Key, g => g.ToList());
 
-            foreach (var dto in partyMasterDtos)
-            {
-                if (UnitLookup.TryGetValue(dto.UnitId, out var UnitName))
-                    dto.UnitName = UnitName;
+                var currentUserId = _ipAddressService.GetUserId();
 
-                if (ApprovalRequestHeaderIdLookup.TryGetValue(dto.Id, out var ApprovalRequestHeaderId))
-                    dto.ApprovalRequestHeaderId = Convert.ToInt32(ApprovalRequestHeaderId);
+                foreach (var dto in partyMasterDtos)
+                {
+                    if (UnitLookup.TryGetValue(dto.UnitId, out var UnitName))
+                        dto.UnitName = UnitName;
 
-                if (ApproverLookup.TryGetValue(dto.Id, out var ApproverValue))
-                    dto.ApproverId = Convert.ToInt32(ApproverValue);
-                    
-                    if (IsEditLookup.TryGetValue(dto.Id, out var isEdit))
-                    dto.IsEdit = isEdit;
-                else
-                    dto.IsEdit = 0;
-            }
+                    // Find the approval entry for the current user (multi-level: pick the one matching current user)
+                    if (workflowByTransaction.TryGetValue(dto.Id, out var approverEntries))
+                    {
+                        var currentUserEntry = approverEntries
+                            .FirstOrDefault(a => a.ApproverValue == currentUserId.ToString())
+                            ?? approverEntries.First();
+
+                        dto.ApprovalRequestHeaderId = currentUserEntry.ApprovalRequestId;
+                        dto.ApproverId = Convert.ToInt32(currentUserEntry.ApproverValue);
+                        dto.IsEdit = currentUserEntry.IsEdit;
+                    }
+                }
 
                 var approverNameMap = await _usersAllLookup.GetAllUserAsync();
                 var approverNameLookup = approverNameMap.ToDictionary(d => d.UserId, d => d.UserName);
@@ -84,7 +83,7 @@ namespace PartyManagement.Application.PartyMaster.Queries.GetPartyMasterPending
 
                 var FilteredIndent = partyMasterDtos
                     .Where(p => UnitLookup.ContainsKey(p.UnitId))
-                    .Where(p => p.ApproverId == _ipAddressService.GetUserId())
+                    .Where(p => p.ApproverId == currentUserId)
                     .ToList();
 
                 await _mediator.Publish(new AuditLogsDomainEvent(

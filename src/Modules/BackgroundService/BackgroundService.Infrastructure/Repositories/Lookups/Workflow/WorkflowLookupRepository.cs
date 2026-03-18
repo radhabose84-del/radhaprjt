@@ -54,7 +54,6 @@ namespace BackgroundService.Infrastructure.Repositories.Lookups.Workflow
                 INNER JOIN AppData.MiscMaster mm ON arl.StatusId = mm.Id
                 WHERE ar.WorkflowType = @ModuleTypeName
                   AND ar.ModuleTransactionId IN @Ids
-                  AND ar.IsDeleted = 0
                   AND ar.ApproverValue = CAST(@UserId AS NVARCHAR(50));
             ";
 
@@ -70,6 +69,7 @@ namespace BackgroundService.Infrastructure.Repositories.Lookups.Workflow
                 return new List<ApproverListDto>();
 
             const string sql = @"
+                -- HasLine = 1: line-level approval (ApprovalRequestLine has rows)
                 SELECT
                     arl.Id AS ApprovalRequestLineId,
                     ar.ModuleTransactionId,
@@ -82,10 +82,33 @@ namespace BackgroundService.Infrastructure.Repositories.Lookups.Workflow
                 INNER JOIN AppData.ApprovalRequest ar ON arl.ApprovalRequestId = ar.Id
                 INNER JOIN AppData.MiscMaster mm ON arl.StatusId = mm.Id
                 INNER JOIN AppData.ApprovalStepDetail asd ON ar.ApprovalStepDetailId = asd.Id
+                INNER JOIN AppData.WorkflowType wt ON asd.WorkFlowTypeId = wt.Id
                 WHERE ar.WorkflowType = @ModuleTypeName
                   AND ar.ModuleTransactionId IN @Ids
-                  AND ar.IsDeleted = 0
-                  AND mm.Description = 'Pending';
+                  AND asd.IsDeleted = 0
+                  AND mm.Description = 'Pending'
+                  AND wt.HasLine = 1
+
+                UNION ALL
+
+                -- HasLine = 0: header-only approval (no ApprovalRequestLine rows)
+                SELECT
+                    0 AS ApprovalRequestLineId,
+                    ar.ModuleTransactionId,
+                    mm.Description AS Status,
+                    ar.ApproverBinding,
+                    ar.ApproverValue,
+                    ar.Id AS ApprovalRequestId,
+                    ISNULL(asd.IsEdit, 0) AS IsEdit
+                FROM AppData.ApprovalRequest ar
+                INNER JOIN AppData.MiscMaster mm ON ar.StatusId = mm.Id
+                INNER JOIN AppData.ApprovalStepDetail asd ON ar.ApprovalStepDetailId = asd.Id
+                INNER JOIN AppData.WorkflowType wt ON asd.WorkFlowTypeId = wt.Id
+                WHERE ar.WorkflowType = @ModuleTypeName
+                  AND ar.ModuleTransactionId IN @Ids
+                  AND mm.Description = 'Pending'
+                  AND asd.IsDeleted = 0
+                  AND wt.HasLine = 0;
             ";
 
             var result = await _dbConnection.QueryAsync<ApproverListDto>(
