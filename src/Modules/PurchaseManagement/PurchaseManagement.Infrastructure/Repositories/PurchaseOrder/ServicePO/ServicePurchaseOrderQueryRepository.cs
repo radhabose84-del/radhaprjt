@@ -649,11 +649,11 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.ServicePO
                 SELECT CASE 
                         WHEN EXISTS (
                             SELECT 1
-                            FROM Purchase.Purchase.ServiceEntrySheets ses
+                            FROM Purchase.ServiceEntrySheets ses
                             INNER JOIN Purchase.Purchase.PurchaseOrderServiceSchedule sch
                                 ON sch.Id = ses.ScheduleId
                                 AND ISNULL(sch.IsDeleted, 0) = 0
-                            INNER JOIN Purchase.Purchase.PurchaseOrderServiceLine l
+                            INNER JOIN Purchase.PurchaseOrderServiceLine l
                                 ON l.Id = sch.ServiceItemId
                                 AND ISNULL(l.IsDeleted, 0) = 0
                             WHERE l.PurchaseOrderId = @PurchaseOrderId
@@ -704,16 +704,16 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.ServicePO
                         ELSE 'Yes'
                     END AS SESAlreadyGenerated
 
-                FROM Purchase.Purchase.PurchaseOrderServiceSchedule AS sch
-                JOIN Purchase.Purchase.PurchaseOrderServiceLine    AS l
+                FROM Purchase.PurchaseOrderServiceSchedule AS sch
+                JOIN Purchase.PurchaseOrderServiceLine    AS l
                     ON l.Id = sch.ServiceItemId
 
-                LEFT JOIN Purchase.Purchase.ServiceEntrySheets AS ses
+                LEFT JOIN Purchase.ServiceEntrySheets AS ses
                     ON ses.PurchaseOrderId   = l.PurchaseOrderId
                 AND ses.ScheduleId        = sch.Id
                 AND ISNULL(ses.IsDeleted, 0) = 0
 
-                LEFT JOIN Purchase.Purchase.MiscMaster AS at
+                LEFT JOIN Purchase.MiscMaster AS at
                     ON at.Id = sch.ActivityTypeId
 
                 WHERE l.PurchaseOrderId     = @PurchaseOrderId
@@ -867,16 +867,16 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.ServicePO
                 d.ServiceEndDate     AS ScheduleEndDate,   -- alias fix
                 d.AutoGenerateSES    AS AutoGenerateSES,
                 d.Remarks            AS LineRemarks        -- alias fix
-            FROM Purchase.Purchase.PurchaseOrderHeader a  
-            LEFT JOIN Purchase.Purchase.PurchaseOrderServiceHeader  b 
+            FROM Purchase.PurchaseOrderHeader a  
+            LEFT JOIN Purchase.PurchaseOrderServiceHeader  b 
                    ON a.Id = b.PurchaseOrderId 
-            LEFT JOIN Purchase.Purchase.PurchaseOrderServiceLine   c  
+            LEFT JOIN Purchase.PurchaseOrderServiceLine   c  
                    ON a.Id = c.PurchaseOrderId  
-            LEFT JOIN Purchase.Purchase.PurchaseOrderServiceSchedule d  
+            LEFT JOIN Purchase.PurchaseOrderServiceSchedule d  
                    ON a.Id = d.PurchaseOrderId  
                   AND c.Id = d.ServiceItemId     
                   AND d.ScheduleNo = @ScheduleNo
-            LEFT JOIN Purchase.Purchase.ServiceMaster   e    
+            LEFT JOIN Purchase.ServiceMaster   e    
                    ON c.ServiceId = e.Id  
             WHERE a.Id = @PurchaseOrderId
               AND d.ServiceItemId = @ServiceItemId
@@ -911,7 +911,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.ServicePO
             s.ActualQuantity, s.ActualRate, s.ActualValue, s.DiscountTypeId, s.DiscountValue,
             s.TaxPercentage, s.TaxValue, s.TotalValue, s.WorkStartDate, s.WorkEndDate, s.DurationHrs,
             s.LineRemarks, s.StatusId
-        FROM Purchase.Purchase.ServiceEntrySheets s
+        FROM Purchase.ServiceEntrySheets s
         WHERE s.Id = @Id;
 
         -- activities
@@ -919,7 +919,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.ServicePO
             a.Id, a.EntrySheetId, a.ActivityTypeId, a.Description,
              a.PerformedByName, a.SESActivityStatusId, a.StatusRemarks,
             a.CreatedDate, a.CreatedByName
-        FROM Purchase.Purchase.ServiceEntryActivities a
+        FROM Purchase.ServiceEntryActivities a
         WHERE a.EntrySheetId = @Id
         ORDER BY a.CreatedDate DESC;
 
@@ -963,7 +963,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.ServicePO
                     , UnitId
                     , CreatedByName
                     , CreatedDate
-                FROM Purchase.Purchase.ServiceEntrySheets
+                FROM Purchase.ServiceEntrySheets
                 WHERE UnitId = @UnitId
                 AND IsActive = 1
                 AND IsDeleted = 0
@@ -1047,7 +1047,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.ServicePO
                     s.DurationHrs,
                     s.LineRemarks, 
                     s.StatusId
-                FROM Purchase.Purchase.ServiceEntrySheets s 
+                FROM Purchase.ServiceEntrySheets s 
                 inner join Purchase.ServiceMaster sm  on s.ServiceId=sm.Id               
                 WHERE s.PurchaseOrderId = @PurchaseOrderId;";
 
@@ -1075,7 +1075,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.ServicePO
                     a.StatusRemarks,
                     a.CreatedDate,
                     a.CreatedByName
-                FROM Purchase.Purchase.ServiceEntryActivities a
+                FROM Purchase.ServiceEntryActivities a
                 WHERE a.EntrySheetId IN @EntrySheetIds
                 ORDER BY a.EntrySheetId, a.CreatedDate DESC;";
 
@@ -1097,7 +1097,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.ServicePO
                         d.UploadedDate,
                         d.UploadedPath,
                         d.DocumentName
-                    FROM Purchase.Purchase.ServiceEntrySheetDocuments d
+                    FROM Purchase.ServiceEntrySheetDocuments d
                     WHERE d.ServiceEntrySheetId IN @EntrySheetIds
                     AND d.IsDeleted = 0;";
 
@@ -1248,7 +1248,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.ServicePO
                     s.DurationHrs,
                     s.LineRemarks,
                     s.StatusId
-                FROM Purchase.Purchase.ServiceEntrySheets s
+                FROM Purchase.ServiceEntrySheets s
                 WHERE s.Id = @SesId AND s.IsDeleted = 0;";
 
             return await _conn.QueryFirstOrDefaultAsync<ServiceEntrySheetDetailDto.SesDto>(
@@ -1280,7 +1280,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.ServicePO
                     a.ModifiedDate,
                     a.ModifiedByName,
                     a.ModifiedIP
-                FROM Purchase.Purchase.ServiceEntryActivities a
+                FROM Purchase.ServiceEntryActivities a
                 WHERE a.EntrySheetId = @SesId
                   AND a.IsDeleted = 0
                 ORDER BY a.CreatedDate DESC;";
@@ -1380,7 +1380,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.ServicePO
                     h.CostCenterId,
                     h.ProjectId,
                     h.PurchaseTypeId
-                FROM Purchase.Purchase.PurchaseOrderHeader h
+                FROM Purchase.PurchaseOrderHeader h
                 WHERE h.Id = @PoId AND h.IsDeleted = 0;";
 
             return await _conn.QueryFirstOrDefaultAsync<ServiceEntrySheetDetailDto.PurchaseOrderHeaderDto>(
@@ -1417,7 +1417,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.ServicePO
                     p.ModifiedDate,
                     p.ModifiedByName,
                     p.ModifiedIP
-                FROM Purchase.Purchase.PurchasePaymentTerm p
+                FROM Purchase.PurchasePaymentTerm p
                 WHERE p.PurchaseOrderId = @PoId AND p.IsDeleted = 0;";
 
                 var rows = await _conn.QueryAsync<ServiceEntrySheetDetailDto.PaymentTermDto>(
@@ -1461,7 +1461,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.ServicePO
                     sh.FreightCharges,
                     sh.ModeOfDispatchId,
                     sh.TermsId
-                FROM Purchase.Purchase.PurchaseOrderServiceHeader sh
+                FROM Purchase.PurchaseOrderServiceHeader sh
                 WHERE sh.PurchaseOrderId = @PoId AND sh.IsDeleted = 0;";
 
             var rows = await _conn.QueryAsync<ServiceEntrySheetDetailDto.ServiceHeaderDto>(
@@ -1509,7 +1509,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.ServicePO
                     sl.DiscountId,
                     sl.ServiceCode,
                     sl.PlannedValue
-                FROM Purchase.Purchase.PurchaseOrderServiceLine sl
+                FROM Purchase.PurchaseOrderServiceLine sl
                 WHERE sl.PurchaseOrderId = @PoId
                   AND sl.ServiceId      = @ServiceId
                   AND sl.IsDeleted      = 0;";
@@ -1556,7 +1556,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.ServicePO
                     sc.ModifiedDate,
                     sc.ModifiedByName,
                     sc.ModifiedIP
-                FROM Purchase.Purchase.PurchaseOrderServiceSchedule sc
+                FROM Purchase.PurchaseOrderServiceSchedule sc
                 WHERE sc.PurchaseOrderId = @PoId
                   AND sc.Id             = @ScheduleId
                   AND sc.IsDeleted      = 0;";
