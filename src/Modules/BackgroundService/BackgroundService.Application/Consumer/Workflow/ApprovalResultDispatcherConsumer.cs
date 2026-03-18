@@ -36,7 +36,7 @@ public class ApprovalResultDispatcherConsumer : IConsumer<ApprovedRejectedEvent>
 
     private static readonly HashSet<string> InventoryTypes = new(StringComparer.OrdinalIgnoreCase)
     {
-        "MaterialRequest"
+        "Material Requisition Slip"
     };
 
     private static readonly HashSet<string> PartyTypes = new(StringComparer.OrdinalIgnoreCase)
