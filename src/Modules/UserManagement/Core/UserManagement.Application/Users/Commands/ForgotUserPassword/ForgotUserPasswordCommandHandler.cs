@@ -1,6 +1,7 @@
 #nullable disable
 using AutoMapper;
 using Contracts.Common;
+using Contracts.Events.Notifications;
 using UserManagement.Application.Common.Interfaces;
 using UserManagement.Application.Common.Interfaces.INotifications;
 using UserManagement.Application.Common.Interfaces.IUser;
@@ -9,7 +10,6 @@ using UserManagement.Domain.Events;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using UserManagement.Application.Users.Queries.GetUsers;
-// using Contracts.Events.Notifications;
 
 namespace UserManagement.Application.Users.Commands.ForgotUserPassword
 {
@@ -20,10 +20,9 @@ namespace UserManagement.Application.Users.Commands.ForgotUserPassword
         private readonly IChangePassword _changePasswordService;
         private readonly IMediator _mediator;
         private readonly INotificationsQueryRepository _notificationsQueryRepository;
-        private readonly ILogger<ForgotUserPasswordCommandHandler> _logger;        
-        // private readonly ISmsService _smsService;
+        private readonly ILogger<ForgotUserPasswordCommandHandler> _logger;
         private readonly ITimeZoneService _timeZoneService;
-        private readonly IBackgroundServiceClient  _backgroundServiceClient;
+        private readonly IBackgroundServiceClient _backgroundServiceClient;
 
         public ForgotUserPasswordCommandHandler(
             IUserQueryRepository userQueryRepository,
@@ -31,19 +30,18 @@ namespace UserManagement.Application.Users.Commands.ForgotUserPassword
             IChangePassword changePasswordService,
             ILogger<ForgotUserPasswordCommandHandler> logger,
             INotificationsQueryRepository notificationsQueryRepository,
-            IMediator mediator
-            // ,ISmsService smsService
-            , ITimeZoneService timeZoneService, IBackgroundServiceClient backgroundServiceClient)
+            IMediator mediator,
+            ITimeZoneService timeZoneService,
+            IBackgroundServiceClient backgroundServiceClient)
         {
             _userQueryRepository = userQueryRepository;
             _mapper = mapper;
             _changePasswordService = changePasswordService;
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _notificationsQueryRepository = notificationsQueryRepository;
-            _mediator = mediator;            
-            // _smsService = smsService ?? throw new ArgumentNullException(nameof(smsService));
-            _timeZoneService = timeZoneService;    
-            _backgroundServiceClient=backgroundServiceClient;
+            _mediator = mediator;
+            _timeZoneService = timeZoneService;
+            _backgroundServiceClient = backgroundServiceClient;
         }
 
         public async Task<ApiResponseDTO<ForgotPasswordResponse>> Handle(ForgotUserPasswordCommand request, CancellationToken cancellationToken)
@@ -62,30 +60,67 @@ namespace UserManagement.Application.Users.Commands.ForgotUserPassword
                 ExpiryTime = currentTime.AddMinutes(expiryMinutes)
             };
 
-            await _backgroundServiceClient.ScheduleVerificationCodeCleanupAsync(request.UserName, expiryMinutes);
+            try
+            {
+                await _backgroundServiceClient.ScheduleVerificationCodeCleanupAsync(request.UserName, expiryMinutes);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex,
+                    "Background service unavailable. Verification code cleanup for '{UserName}' will not be scheduled. " +
+                    "Code will expire naturally at {ExpiryTime}.",
+                    request.UserName,
+                    ForgotPasswordCache.CodeStorage[request.UserName].ExpiryTime);
+            }
             string provider = user.EmailId.EndsWith("@gmail.com", StringComparison.OrdinalIgnoreCase)
                 ? "Gmail"
                 : "Zimbra";
 
-            //SMS
-            // var smsCommand = new SendSmsCommand
-            // {
-            //     to = user.Mobile,
-            //     message = $"Dear {request.UserName}, We received a request to reset your password. Use the verification code below to proceed:Code:{verificationCode}, This code is valid for {expiryMinutes} minutes."
-                
-            // };
-            // var smsSent=await _smsService.SendSmsAsync(smsCommand);
-          
+            // Send email with verification code via MediatR (routes to SendEmailCommandHandler → RealEmailService → SMTP)
+            try
+            {
+                var emailCommand = new SendEmailCommand
+                {
+                    ToEmail = user.EmailId,
+                    Subject = "Password Reset - Verification Code",
+                    HtmlContent = $@"<p>Dear {user.FirstName},</p>
+<p>We received a request to reset your password.</p>
+<p><b>Verification Code: {verificationCode}</b></p>
+<p>This code is valid for <b>{expiryMinutes} minutes</b>.</p>
+<p>If you did not request a password reset, please ignore this email.</p>
+<p>Thanks,<br/>Support Team</p>",
+                    Provider = provider
+                };
+                var emailSent = await _mediator.Send(emailCommand, cancellationToken);
+                if (emailSent)
+                    _logger.LogInformation("Password reset email sent to {Email} for user '{UserName}'.", user.EmailId, request.UserName);
+                else
+                    _logger.LogWarning("Failed to send password reset email to {Email} for user '{UserName}'.", user.EmailId, request.UserName);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Email sending failed for user '{UserName}'.", request.UserName);
+            }
 
-            // if (smsSent)
-            // {
-            //     _logger.LogInformation("Login notification SMS sent to {Mobile}.",  user.Mobile);
-            // }
-            // else
-            // {
-            //     _logger.LogWarning("Failed to send login notification SMS to {Mobile}.", user.Mobile);
-            // }  
-            
+            // Send SMS with verification code via MediatR (routes to SendSmsCommandHandler → RealSmsService → SMS API)
+            try
+            {
+                var smsCommand = new SendSmsCommand
+                {
+                    to = user.Mobile,
+                    message = $"Dear {request.UserName}, We received a request to reset your password. Use the verification code below to proceed: Code: {verificationCode}. This code is valid for {expiryMinutes} minutes."
+                };
+                var smsSent = await _mediator.Send(smsCommand, cancellationToken);
+                if (smsSent)
+                    _logger.LogInformation("Password reset SMS sent to {Mobile} for user '{UserName}'.", user.Mobile, request.UserName);
+                else
+                    _logger.LogWarning("Failed to send password reset SMS to {Mobile} for user '{UserName}'.", user.Mobile, request.UserName);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "SMS sending failed for user '{UserName}'.", request.UserName);
+            }
+
             // Publish domain event for logging purposes
             var domainEvent = new AuditLogsDomainEvent(
                 actionDetail: "ResetUserPassword",
