@@ -1,3 +1,5 @@
+using FinanceManagement.Application.EInvoiceHeader.Commands.CancelEwb;
+using FinanceManagement.Application.EInvoiceHeader.Commands.CancelIrn;
 using FinanceManagement.Application.EInvoiceHeader.Commands.CreateEInvoiceHeader;
 using FinanceManagement.Application.EInvoiceHeader.Commands.DeleteEInvoiceHeader;
 using FinanceManagement.Application.EInvoiceHeader.Commands.GenerateEwb;
@@ -6,6 +8,8 @@ using FinanceManagement.Application.EInvoiceHeader.Commands.UpdateEInvoiceHeader
 using FinanceManagement.Application.EInvoiceHeader.Queries.GetAllEInvoiceHeader;
 using FinanceManagement.Application.EInvoiceHeader.Queries.GetEInvoiceHeaderAutoComplete;
 using FinanceManagement.Application.EInvoiceHeader.Queries.GetEInvoiceHeaderById;
+using FinanceManagement.Application.EInvoiceHeader.Queries.GetEwbDetails;
+using FinanceManagement.Application.EInvoiceHeader.Queries.GetIrnDetails;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -126,6 +130,72 @@ namespace FinanceManagement.Presentation.Controllers
         public async Task<IActionResult> GenerateEwb([FromBody] GenerateEwbCommand command)
         {
             var result = await Mediator.Send(command);
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                isSuccess = result.IsSuccess,
+                message = result.Message,
+                data = result.Data
+            });
+        }
+
+        /// <summary>
+        /// Cancels an IRN within 24 hours of generation.
+        /// CnlRsn: "1"=Duplicate, "2"=Data entry mistake, "3"=Order cancelled, "4"=Others
+        /// </summary>
+        [HttpPost("cancel-irn")]
+        public async Task<IActionResult> CancelIrn([FromBody] CancelIrnCommand command)
+        {
+            var result = await Mediator.Send(command);
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                isSuccess = result.IsSuccess,
+                message = result.Message,
+                data = result.Data
+            });
+        }
+
+        /// <summary>
+        /// Cancels an e-Waybill within 24 hours. Must cancel EWB before cancelling IRN.
+        /// CancelRsnCode: 1=Duplicate, 2=Data entry mistake, 3=Order cancelled, 4=Others
+        /// </summary>
+        [HttpPost("cancel-ewb")]
+        public async Task<IActionResult> CancelEwb([FromBody] CancelEwbCommand command)
+        {
+            var result = await Mediator.Send(command);
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                isSuccess = result.IsSuccess,
+                message = result.Message,
+                data = result.Data
+            });
+        }
+
+        /// <summary>
+        /// Fetches IRN details from NIC API for the given EInvoiceHeader.
+        /// </summary>
+        [HttpGet("irn-details/{id}")]
+        public async Task<IActionResult> GetIrnDetails(int id)
+        {
+            var result = await Mediator.Send(new GetIrnDetailsQuery { EInvoiceHeaderId = id });
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                isSuccess = result.IsSuccess,
+                message = result.Message,
+                data = result.Data
+            });
+        }
+
+        /// <summary>
+        /// Fetches e-Waybill details from NIC API by IRN for the given EInvoiceHeader.
+        /// </summary>
+        [HttpGet("ewb-details/{id}")]
+        public async Task<IActionResult> GetEwbDetails(int id)
+        {
+            var result = await Mediator.Send(new GetEwbDetailsQuery { EInvoiceHeaderId = id });
             return Ok(new
             {
                 StatusCode = StatusCodes.Status200OK,

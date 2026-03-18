@@ -111,6 +111,24 @@ namespace FinanceManagement.Infrastructure.Repositories.EInvoiceHeader
             await _dbContext.SaveChangesAsync(ct);
             return true;
         }
+        public async Task<bool> UpdateIrnStatusAsync(
+            int id, string irnStatus, string? errorCode, string? errorMessage, CancellationToken ct)
+        {
+            var existing = await _dbContext.EInvoiceHeader
+                .FirstOrDefaultAsync(x => x.Id == id && x.IsDeleted == IsDelete.NotDeleted, ct);
+
+            if (existing == null)
+                return false;
+
+            existing.IrnStatus = irnStatus;
+            existing.ErrorCode = errorCode;
+            existing.ErrorMessage = errorMessage;
+
+            _dbContext.EInvoiceHeader.Update(existing);
+            await _dbContext.SaveChangesAsync(ct);
+            return true;
+        }
+
         public async Task<bool> UpdateEwbDetailsAsync(
             int id,
             long? ewbNo,
