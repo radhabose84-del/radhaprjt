@@ -1,3 +1,4 @@
+using Contracts.Common;
 using FinanceManagement.Application.EInvoiceHeader.Dto;
 
 namespace FinanceManagement.Application.Common.Interfaces.IEInvoiceHeader
@@ -21,5 +22,31 @@ namespace FinanceManagement.Application.Common.Interfaces.IEInvoiceHeader
         Task<NicEwbResultDto> GenerateEwbAsync(int eInvoiceHeaderId, string transporterId, string transporterName,
             string transMode, int distance, string transDocNo, string transDocDt,
             string vehicleNo, string vehicleType, CancellationToken ct = default);
+
+        /// <summary>
+        /// Cancels an IRN within 24 hours of generation.
+        /// CnlRsn: "1"=Duplicate, "2"=Data entry mistake, "3"=Order cancelled, "4"=Others
+        /// </summary>
+        Task<NicCancelIrnResultDto> CancelIrnAsync(int eInvoiceHeaderId, string cnlRsn,
+            string? cnlRem = null, CancellationToken ct = default);
+
+        /// <summary>
+        /// Cancels an e-Waybill within 24 hours of generation.
+        /// Must cancel EWB before cancelling IRN if both exist.
+        /// </summary>
+        Task<NicCancelEwbResultDto> CancelEwbAsync(int eInvoiceHeaderId, int cancelRsnCode,
+            string? cancelRmrk = null, CancellationToken ct = default);
+
+        /// <summary>
+        /// Fetches IRN details from NIC API by IRN number.
+        /// GET /eicore/v1.03/Invoice/irn/{irn}
+        /// </summary>
+        Task<ApiResponseDTO<object>> GetIrnDetailsAsync(int eInvoiceHeaderId, CancellationToken ct = default);
+
+        /// <summary>
+        /// Fetches e-Waybill details from NIC API by IRN number.
+        /// GET /eiewb/v1.03/ewaybill/irn/{irn}
+        /// </summary>
+        Task<ApiResponseDTO<object>> GetEwbDetailsByIrnAsync(int eInvoiceHeaderId, CancellationToken ct = default);
     }
 }
