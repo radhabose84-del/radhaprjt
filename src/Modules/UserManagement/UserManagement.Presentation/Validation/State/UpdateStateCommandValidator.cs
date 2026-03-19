@@ -1,5 +1,4 @@
 using FluentValidation;
-using UserManagement.Application.State.Commands.CreateState;
 using UserManagement.Domain.Entities;
 using UserManagement.Presentation.Validation.Common;
 using UserManagement.Application.State.Commands.UpdateState;
@@ -30,23 +29,24 @@ namespace UserManagement.Presentation.Validation.State
                 switch (rule.Rule)
                 {
                     case "NotEmpty":
-                        // Apply NotEmpty validation
+                        RuleFor(x => x.Id)
+                            .GreaterThan(0)
+                            .WithMessage($"{nameof(UpdateStateCommand.Id)} {rule.Error}");
                         RuleFor(x => x.StateName)
                             .NotEmpty()
-                            .WithMessage($"{nameof(CreateStateCommand.StateName)} {rule.Error}");
+                            .WithMessage($"{nameof(UpdateStateCommand.StateName)} {rule.Error}");
                         RuleFor(x => x.StateCode)
                             .NotEmpty()
-                            .WithMessage($"{nameof(CreateStateCommand.StateCode)} {rule.Error}");
+                            .WithMessage($"{nameof(UpdateStateCommand.StateCode)} {rule.Error}");
                         break;
 
                     case "MaxLength":
-                        // Apply MaxLength validation using dynamic max length values
                         RuleFor(x => x.StateName)
-                            .MaximumLength(stateNameMaxLength) // Dynamic value from MaxLengthProvider
-                            .WithMessage($"{nameof(CreateStateCommand.StateName)} {rule.Error} {stateNameMaxLength}");
+                            .MaximumLength(stateNameMaxLength)
+                            .WithMessage($"{nameof(UpdateStateCommand.StateName)} {rule.Error} {stateNameMaxLength}");
                         RuleFor(x => x.StateCode)
-                            .MaximumLength(stateCodeMaxLength) // Dynamic value from MaxLengthProvider
-                            .WithMessage($"{nameof(CreateStateCommand.StateCode)} {rule.Error} {stateCodeMaxLength}");
+                            .MaximumLength(stateCodeMaxLength)
+                            .WithMessage($"{nameof(UpdateStateCommand.StateCode)} {rule.Error} {stateCodeMaxLength}");
                         break;                                 
                     default:                        
                         break;
