@@ -22,8 +22,9 @@ using BudgetManagement.Infrastructure.Repositories.BudgetAllocation;
 using BudgetManagement.Infrastructure.Persistence;
 using Contracts.Interfaces.Lookups.Budget;
 using BudgetManagement.Infrastructure.Repositories.Lookups.Budget;
-// using GrpcServices.BackgroundService;
-// using GrpcServices.BackgroundService.Line;
+using BudgetManagement.Application.Common.Interfaces.IOutbox;
+using BudgetManagement.Infrastructure.Repositories.Outbox;
+using BudgetManagement.Infrastructure.Services.Outbox;
 
 
 namespace BudgetManagement.Infrastructure
@@ -88,11 +89,6 @@ namespace BudgetManagement.Infrastructure
                 var mongoDbContext = (MongoDbContext)sp.GetRequiredService<IMongoDbContext>();
                 return mongoDbContext.GetDatabase();
             });
-              services.AddSingleton<IMongoCollection<OutboxMessage>>(sp =>
-            {
-                var db = sp.GetRequiredService<IMongoDatabase>();
-                return db.GetCollection<OutboxMessage>("OutboxMessages");
-            });
 
 
             services.AddLogging(b => b.AddSerilog());
@@ -106,44 +102,26 @@ namespace BudgetManagement.Infrastructure
             services.AddScoped<IMiscMasterQueryRepository, MiscMasterQueryRepository>();
             services.AddScoped<IMiscTypeMasterCommandRepository, MiscTypeMasterCommandRepository>();
             services.AddScoped<IMiscTypeMasterQueryRepository, MiscTypeMasterQueryRepository>();
-            services.AddScoped<IActivityLogQueryRepository, ActivityLogQueryRepository>();                  
+            services.AddScoped<IActivityLogQueryRepository, ActivityLogQueryRepository>();
             services.AddScoped<IBudgetAllocationLookup, BudgetAllocationLookupRepository>();
 
 
             services.AddScoped<IBudgetAllocationQueryRepository, BudgetAllocationQueryRepository>();
             services.AddScoped<IBudgetAllocationCommandRepository, BudgetAllocationCommandRepository>();
             services.AddScoped<IBudgetGroupCommandRepository, BudgetGroupCommandRepository>();
-            services.AddScoped<IBudgetGroupQueryRepository, BudgetGroupQueryRepository>();            services.AddTransient<IFileUploadService, FileUploadRepository>();
+            services.AddScoped<IBudgetGroupQueryRepository, BudgetGroupQueryRepository>(); services.AddTransient<IFileUploadService, FileUploadRepository>();
             services.AddSingleton<ITimeZoneService, TimeZoneService>();
             services.AddTransient<IJwtTokenHelper, JwtTokenHelper>();
             services.AddScoped<ILogQueryService, LogQueryService>();
-            services.AddScoped<IEventPublisher, EventPublisher>();
+            services.AddScoped<IOutboxRepository, OutboxRepository>();
+            services.AddScoped<IOutboxEventPublisher, OutboxEventPublisher>();
+            services.AddScoped<IBudgetUnitOfWork, BudgetUnitOfWork>();
 
             services.AddScoped<IBudgetAllocationLookup, BudgetAllocationLookupRepository>();
             services.AddScoped<IBudgetGroupLookup, BudgetGroupLookupRepository>();
 
-            var backgroundServiceUrl = configuration["HttpClientSettings:BackgroundService"]
-                                       ?? configuration["GrpcSettings:BackGroundUrl"];
-
-            if (string.IsNullOrWhiteSpace(backgroundServiceUrl))
-            {
-                throw new InvalidOperationException(
-                    "Background service gRPC URL is missing. Set HttpClientSettings:BackgroundService or GrpcSettings:BackGroundUrl.");
-            }
-
-#pragma warning disable CS8321
-
-
-#pragma warning restore CS8321
-            #pragma warning disable CS8321
-            static HttpClientHandler CreateGrpcHandler() => new()
-            #pragma warning restore CS8321
-            {
-                ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-            };
-
             return services;
-       }
+        }
     }
 
 }

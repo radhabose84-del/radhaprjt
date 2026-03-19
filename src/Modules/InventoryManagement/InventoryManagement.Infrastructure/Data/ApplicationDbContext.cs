@@ -23,6 +23,8 @@ using InventoryManagement.Domain.Entities.MRS;
 using InventoryManagement.Domain.Entities.Issue;
 using InventoryManagement.Infrastructure.Data.Configurations.MRS;
 using InventoryManagement.Infrastructure.Data.Issue;
+using InventoryManagement.Domain.Entities.Outbox;
+using InventoryManagement.Infrastructure.Data.Configurations.Outbox;
 
 namespace InventoryManagement.Infrastructure.Data
 {
@@ -74,15 +76,14 @@ namespace InventoryManagement.Infrastructure.Data
         public DbSet<IssueDetail> IssueDetail  { get; set; }
         public DbSet<ProcurementType> ProcurementType { get; set; }
         public DbSet<ItemUnitMapping> ItemUnitMapping { get; set; }
-        public DbSet<UsageType> UsageType { get; set; }
+        public DbSet<OutboxMessage> OutboxMessages { get; set; }
+		public DbSet<UsageType> UsageType { get; set; }
         public DbSet<ItemUsageTypeMapping> ItemUsageTypeMapping { get; set; }
-
-
         //End  Item related DbSets
-
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.ApplyConfiguration(new OutboxMessageConfiguration());
             modelBuilder.ApplyConfiguration(new ItemGroupConfiguration());
             modelBuilder.ApplyConfiguration(new ItemCategoryConfiguration());
 
@@ -118,7 +119,7 @@ namespace InventoryManagement.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new IssueDetailConfiguration());
             modelBuilder.ApplyConfiguration(new ProcurementTypeConfiguration());
             modelBuilder.ApplyConfiguration(new ItemUnitMappingConfiguration());
-            modelBuilder.ApplyConfiguration(new UsageTypeConfiguration());
+     		modelBuilder.ApplyConfiguration(new UsageTypeConfiguration());
             modelBuilder.ApplyConfiguration(new ItemUsageTypeMappingConfiguration());
 
             // Global convention: set explicit precision/scale for all decimal properties

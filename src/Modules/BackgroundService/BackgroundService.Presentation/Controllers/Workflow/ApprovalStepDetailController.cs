@@ -14,7 +14,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace BackgroundService.Presentation.Controllers.Workflow
 {
-    [ApiController]
     [Route("api/[controller]")]
     public class ApprovalStepDetailController : ApiControllerBase
     {

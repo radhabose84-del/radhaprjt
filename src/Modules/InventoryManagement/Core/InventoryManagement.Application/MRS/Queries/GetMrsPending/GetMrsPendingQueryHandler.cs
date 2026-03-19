@@ -67,17 +67,14 @@ namespace InventoryManagement.Application.MRS.Queries.GetMrsPending
             var DepartmentLookup = (await departmentTask).ToDictionary(d => d.DepartmentId, d => d.DepartmentName);
             var UomLookup = (await uomTask).ToDictionary(u => u.Id, u => u.UOMName);
             var workflowApproverResponse = await workflowApproverTask;
-            var ApproverLookup = workflowApproverResponse
-                .GroupBy(a => a.ModuleTransactionId)
-                .ToDictionary(g => g.Key, g => g.First().ApproverValue);
 
-            var ApprovalRequestHeaderIdLookup = workflowApproverResponse
-                    .ToDictionary(d => d.ModuleTransactionId, d => d.ApprovalRequestId);
+            // Build grouped lookup: ModuleTransactionId -> list of approver entries (multi-level approval)
+            var workflowByTransaction = workflowApproverResponse
+                .GroupBy(x => x.ModuleTransactionId)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
             var ApproverNameLookup = (await usersTask).ToDictionary(u => u.UserId, u => u.UserName);
-            
-           var IsEditLookup = workflowApproverResponse
-            .GroupBy(a => a.ModuleTransactionId)
-            .ToDictionary(g => g.Key, g => g.First().IsEdit);
+            var currentUserId = _ipAddressService.GetUserId();
 
             // Step 6: Enrich DTOs
             foreach (var dto in mrsPendingDtos)
@@ -91,21 +88,21 @@ namespace InventoryManagement.Application.MRS.Queries.GetMrsPending
                 if (DepartmentLookup.TryGetValue(dto.SubDepartmentId, out var subDeptName))
                     dto.SubDepartmentName = subDeptName;
 
-                if (ApproverLookup.TryGetValue(dto.Id, out var approverId))
-                    dto.ApproverId = Convert.ToInt32(approverId);
+                // Find the approval entry for the current user (multi-level: pick the one matching current user)
+                if (workflowByTransaction.TryGetValue(dto.Id, out var approverEntries))
+                {
+                    var currentUserEntry = approverEntries
+                        .FirstOrDefault(a => a.ApproverValue == currentUserId.ToString())
+                        ?? approverEntries.First();
+
+                    dto.ApprovalRequestHeaderId = currentUserEntry.ApprovalRequestId;
+                    dto.ApproverId = Convert.ToInt32(currentUserEntry.ApproverValue);
+                    dto.IsEdit = currentUserEntry.IsEdit;
+                }
 
                 if (ApproverNameLookup.TryGetValue(dto.ApproverId, out var approverName))
                     dto.ApproverName = approverName;
 
-                if (ApprovalRequestHeaderIdLookup.TryGetValue(dto.Id, out var ApprovalRequestHeaderId))
-                    dto.ApprovalRequestHeaderId = Convert.ToInt32(ApprovalRequestHeaderId);
-                
-                if (IsEditLookup.TryGetValue(dto.Id, out var isEdit))
-                    dto.IsEdit = isEdit;
-                else
-                    dto.IsEdit = 0;
-
-                
                 foreach (var detail in dto.MrsDetails)
                 {
                     if (UomLookup.TryGetValue(detail.UomId, out var uomName))
@@ -116,7 +113,7 @@ namespace InventoryManagement.Application.MRS.Queries.GetMrsPending
             // Step 7: Optional filtering
             var FilteredIndent = mrsPendingDtos
                 .Where(p => UnitLookup.ContainsKey(p.UnitId))
-                .Where(p => p.ApproverId == _ipAddressService.GetUserId())
+                .Where(p => p.ApproverId == currentUserId)
                 .ToList();
 
             // Step 8: Audit log

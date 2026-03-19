@@ -30,6 +30,15 @@
     <ProjectReference Include="..\Modules\BackgroundService\BackgroundService.Application\BackgroundService.Application.csproj" />
     <ProjectReference Include="..\Modules\BackgroundService\BackgroundService.Infrastructure\BackgroundService.Infrastructure.csproj" />
     <ProjectReference Include="..\Shared\Shared.Infrastructure\Shared.Infrastructure.csproj" />
+    <!-- Module infrastructure — needed to register repos consumed by module-specific MassTransit consumers -->
+    <ProjectReference Include="..\Modules\PurchaseManagement\PurchaseManagement.Infrastructure\PurchaseManagement.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\BudgetManagement\BudgetManagement.Infrastructure\BudgetManagement.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\InventoryManagement\InventoryManagement.Infrastructure\InventoryManagement.Infrastructure.csproj" />
+    <!-- Lookup providers — cross-module lookup interfaces used by the above repos -->
+    <ProjectReference Include="..\Modules\UserManagement\UserManagement.Infrastructure\UserManagement.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\PartyManagement\PartyManagement.Infrastructure\PartyManagement.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\WarehouseManagement\WarehouseManagement.Infrastructure\WarehouseManagement.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\ProductionManagement\ProductionManagement.Infrastructure\ProductionManagement.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>

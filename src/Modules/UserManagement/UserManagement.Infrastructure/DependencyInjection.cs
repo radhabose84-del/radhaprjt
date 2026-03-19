@@ -1,5 +1,4 @@
 using System.Data;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -89,7 +88,7 @@ namespace UserManagement.Infrastructure
         public static IServiceCollection AddUserManagementInfrastructure(
             this IServiceCollection services,
             IConfiguration configuration,
-            IWebHostEnvironment environment)
+            IHostEnvironment environment)
         {
             var isTesting = environment.IsEnvironment("Testing");
 
@@ -198,48 +197,52 @@ namespace UserManagement.Infrastructure
             // --------------------------
             // MassTransit
             // --------------------------
-            if (isTesting)
+            // Only register MassTransit if not already registered (e.g. by BackgroundService.Infrastructure in BSOFT.Worker)
+            if (!services.Any(d => d.ServiceType == typeof(IBus)))
             {
-                // InMemory bus for tests so IPublishEndpoint resolves
-                services.AddMassTransit(x =>
+                if (isTesting)
                 {
-                    x.SetKebabCaseEndpointNameFormatter();
-                    x.UsingInMemory((ctx, cfg) =>
+                    // InMemory bus for tests so IPublishEndpoint resolves
+                    services.AddMassTransit(x =>
                     {
-                        cfg.ConfigureEndpoints(ctx);
-                    });
-                });
-            }
-            else
-            {
-                var rabbitHost = configuration["MassTransit:RabbitMq:Host"];
-                var rabbitUser = configuration["MassTransit:RabbitMq:Username"];
-                var rabbitPass = configuration["MassTransit:RabbitMq:Password"];
-
-                if (string.IsNullOrWhiteSpace(rabbitHost))
-                    throw new InvalidOperationException("MassTransit:RabbitMq:Host is missing.");
-
-                rabbitUser = string.IsNullOrWhiteSpace(rabbitUser) ? "guest" : rabbitUser;
-                rabbitPass = string.IsNullOrWhiteSpace(rabbitPass) ? "guest" : rabbitPass;
-
-                var rabbitUri = rabbitHost.StartsWith("rabbitmq://", StringComparison.OrdinalIgnoreCase)
-                    ? new Uri(rabbitHost)
-                    : new Uri($"rabbitmq://{rabbitHost}");
-
-                services.AddMassTransit(x =>
-                {
-                    x.SetKebabCaseEndpointNameFormatter();
-                    x.UsingRabbitMq((ctx, cfg) =>
-                    {
-                        cfg.Host(rabbitUri, h =>
+                        x.SetKebabCaseEndpointNameFormatter();
+                        x.UsingInMemory((ctx, cfg) =>
                         {
-                            h.Username(rabbitUser);
-                            h.Password(rabbitPass);
+                            cfg.ConfigureEndpoints(ctx);
                         });
-
-                        cfg.ConfigureEndpoints(ctx);
                     });
-                });
+                }
+                else
+                {
+                    var rabbitHost = configuration["MassTransit:RabbitMq:Host"];
+                    var rabbitUser = configuration["MassTransit:RabbitMq:Username"];
+                    var rabbitPass = configuration["MassTransit:RabbitMq:Password"];
+
+                    if (string.IsNullOrWhiteSpace(rabbitHost))
+                        throw new InvalidOperationException("MassTransit:RabbitMq:Host is missing.");
+
+                    rabbitUser = string.IsNullOrWhiteSpace(rabbitUser) ? "guest" : rabbitUser;
+                    rabbitPass = string.IsNullOrWhiteSpace(rabbitPass) ? "guest" : rabbitPass;
+
+                    var rabbitUri = rabbitHost.StartsWith("rabbitmq://", StringComparison.OrdinalIgnoreCase)
+                        ? new Uri(rabbitHost)
+                        : new Uri($"rabbitmq://{rabbitHost}");
+
+                    services.AddMassTransit(x =>
+                    {
+                        x.SetKebabCaseEndpointNameFormatter();
+                        x.UsingRabbitMq((ctx, cfg) =>
+                        {
+                            cfg.Host(rabbitUri, h =>
+                            {
+                                h.Username(rabbitUser);
+                                h.Password(rabbitPass);
+                            });
+
+                            cfg.ConfigureEndpoints(ctx);
+                        });
+                    });
+                }
             }
 
             // --------------------------

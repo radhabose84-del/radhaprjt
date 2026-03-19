@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using FluentValidation;
@@ -17,7 +17,7 @@ public static class ModuleExtensions
     public static IServiceCollection AddUserManagementModule(
         this IServiceCollection services,
         IConfiguration configuration,
-        IWebHostEnvironment environment)
+        IHostEnvironment environment)
     {
         // ✅ 0) Infrastructure FIRST (DbContext + repos + services)
         services.AddUserManagementInfrastructure(configuration, environment);

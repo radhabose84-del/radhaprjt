@@ -8,7 +8,7 @@ using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Domain.Common;
 using PurchaseManagement.Application.Common.Interfaces.IMiscMaster;
 using System.Text.Json;
-using Contracts.Events.Workflow;
+using Contracts.Commands.Workflow;
 using PurchaseManagement.Domain.Events;
 using PurchaseManagement.Application.PriceMaster.Command.CreatePriceMaster;
 using Contracts.Events.Notifications;
@@ -114,7 +114,7 @@ namespace PurchaseManagement.Application.PriceMaster.Commands.Create
                 var serializedPayload = JsonSerializer.Serialize(reversePayload);
 
                var correlationId = Guid.NewGuid();
-               var wfEvent = new TransactionCreatedEvent
+               var wfEvent = new CreateApprovalRequestCommand
                 {
                     CorrelationId = correlationId,
                     ModuleTypeName = MiscEnumEntity.PriceMaster,

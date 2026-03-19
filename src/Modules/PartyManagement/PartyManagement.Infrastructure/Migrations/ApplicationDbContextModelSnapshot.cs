@@ -362,6 +362,75 @@ namespace PartyManagement.Infrastructure.Migrations
                     b.ToTable("MiscTypeMaster", "Party");
                 });
 
+            modelBuilder.Entity("PartyManagement.Domain.Entities.Outbox.OutboxMessage", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<Guid>("CorrelationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int?>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("EventData")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EventType")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("LastError")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<int>("MaxRetries")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ModuleName")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasDefaultValue("PartyManagement");
+
+                    b.Property<DateTimeOffset?>("NextRetryAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset?>("PublishedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("RetryCount")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CorrelationId")
+                        .HasDatabaseName("IX_Party_OutboxMessages_CorrelationId");
+
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("IX_Party_OutboxMessages_CreatedAt");
+
+                    b.HasIndex("Status", "NextRetryAt")
+                        .HasDatabaseName("IX_Party_OutboxMessages_Status_NextRetryAt")
+                        .HasFilter("[Status] = 0");
+
+                    b.ToTable("OutboxMessages", "Party");
+                });
+
             modelBuilder.Entity("PartyManagement.Domain.Entities.PartyActivityLog", b =>
                 {
                     b.Property<long>("Id")

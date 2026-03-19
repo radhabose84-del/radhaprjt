@@ -44,8 +44,10 @@ using InventoryManagement.Infrastructure.Repositories.UOMConversion;
 using InventoryManagement.Infrastructure.Repositories.UOMs;
 using InventoryManagement.Infrastructure.Repositories.Lookups;
 using InventoryManagement.Infrastructure.Services;
+using InventoryManagement.Infrastructure.Repositories.Outbox;
+using InventoryManagement.Infrastructure.Services.Outbox;
+using InventoryManagement.Application.Common.Interfaces.IOutbox;
 using Contracts.Interfaces.Lookups.Inventory;
-using Contracts.Interfaces.Lookups.Workflow;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -186,10 +188,15 @@ namespace InventoryManagement.Infrastructure
             services.AddScoped<IItemLookup, ItemLookupRepository>();
             services.AddScoped<IMiscMasterLookup, MiscMasterLookupRepository>();
             services.AddScoped<IHSNLookup, HSNLookupRepository>();
-            services.AddScoped<IWorkflowLookup, WorkflowLookupRepository>();
+
             services.AddScoped<IItemPurchaseToleranceLookup, ItemPurchaseToleranceLookupRepository>();
             services.AddScoped<IPutawayRuleLookup, PutawayRuleLookupRepository>();
             services.AddScoped<IInventoryCategoryLookup, ItemCategoryLookupRepository>();
+
+            // Outbox (SQL transactional outbox pattern)
+            services.AddScoped<IOutboxRepository, OutboxRepository>();
+            services.AddScoped<IOutboxEventPublisher, OutboxEventPublisher>();
+            services.AddScoped<IInventoryUnitOfWork, InventoryUnitOfWork>();
 
             // Miscellaneous services
             services.AddTransient<IFileUploadService, FileUploadRepository>();
