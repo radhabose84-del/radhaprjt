@@ -74,8 +74,6 @@ namespace InventoryManagement.Infrastructure.Data
         public DbSet<MrsDetail> MrsDetail  { get; set; }
         public DbSet<IssueHeader> IssueHeader  { get; set; }
         public DbSet<IssueDetail> IssueDetail  { get; set; }
-        public DbSet<ProcurementType> ProcurementType { get; set; }
-        public DbSet<ItemUnitMapping> ItemUnitMapping { get; set; }
         public DbSet<OutboxMessage> OutboxMessages { get; set; }
 		public DbSet<UsageType> UsageType { get; set; }
         public DbSet<ItemUsageTypeMapping> ItemUsageTypeMapping { get; set; }
@@ -117,8 +115,6 @@ namespace InventoryManagement.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new MrsDetailConfiguration());
             modelBuilder.ApplyConfiguration(new IssueHeaderConfiguration());
             modelBuilder.ApplyConfiguration(new IssueDetailConfiguration());
-            modelBuilder.ApplyConfiguration(new ProcurementTypeConfiguration());
-            modelBuilder.ApplyConfiguration(new ItemUnitMappingConfiguration());
      		modelBuilder.ApplyConfiguration(new UsageTypeConfiguration());
             modelBuilder.ApplyConfiguration(new ItemUsageTypeMappingConfiguration());
 

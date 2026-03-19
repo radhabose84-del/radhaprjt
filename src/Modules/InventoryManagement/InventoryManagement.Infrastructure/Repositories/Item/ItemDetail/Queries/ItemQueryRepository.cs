@@ -294,20 +294,6 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                         })
                         .ToList(),
 
-                    // ---------- UNIT MAPPINGS ----------
-                    ItemUnitMappings = i.ItemUnitMappings
-                        .OrderBy(m => m.Id)
-                        .Select(m => new ItemUnitMappingDto
-                        {
-                            Id = m.Id,
-                            ProcurementId = m.ProcurementId,
-                            ProcurementName = m.ProcurementType != null ? m.ProcurementType.ProcurementName : null,
-                            ItemGroupId = m.ItemGroupId,
-                            ItemGroupName = m.ItemGroup != null ? m.ItemGroup.ItemGroupName : null,
-                            UnitId = m.UnitId
-                        })
-                        .ToList(),
-
                     // ---------- USAGE TYPE MAPPINGS ----------
                     ItemUsageTypeMappings = i.ItemUsageTypeMappings
                         .OrderBy(m => m.Id)
@@ -321,20 +307,6 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                         .ToList(),
                 })
                 .FirstOrDefaultAsync(ct);
-
-            // Populate UnitName from cross-module lookup (UserManagement)
-            if (dto?.ItemUnitMappings is { Count: > 0 })
-            {
-                var unitIds = dto.ItemUnitMappings.Select(m => m.UnitId).Distinct();
-                var units = await _unitLookup.GetByIdsAsync(unitIds, ct);
-                var unitDict = units.ToDictionary(u => u.UnitId, u => u.UnitName);
-
-                foreach (var mapping in dto.ItemUnitMappings)
-                {
-                    if (unitDict.TryGetValue(mapping.UnitId, out var name))
-                        mapping.UnitName = name;
-                }
-            }
 
             // Populate UnitName for ItemUsageTypeMappings from cross-module lookup
             if (dto?.ItemUsageTypeMappings is { Count: > 0 })
