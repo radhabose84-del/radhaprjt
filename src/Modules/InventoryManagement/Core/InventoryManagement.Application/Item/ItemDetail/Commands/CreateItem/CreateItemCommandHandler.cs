@@ -32,7 +32,7 @@ namespace InventoryManagement.Application.Item.ItemAggregate.Handlers
         private readonly IItemVariantValueCommandRepository _variantValCmd;
         private readonly IItemVariantValueQueryRepository _variantValQry;
         private readonly IItemVariantAttributeCommandRepository _variantAttrCmd;
-        private readonly IItemUnitMappingCommandRepository _unitMappingRepo;
+        private readonly IItemUsageTypeMappingCommandRepository _usageTypeMappingRepo;
 
         public CreateItemCommandHandler(
             IUnitOfWork uow,
@@ -51,7 +51,7 @@ namespace InventoryManagement.Application.Item.ItemAggregate.Handlers
             IItemVariantValueCommandRepository variantValCmd,
             IItemVariantValueQueryRepository variantValQry,
             IItemVariantAttributeCommandRepository variantAttrCmd,
-            IItemUnitMappingCommandRepository unitMappingRepo)
+            IItemUsageTypeMappingCommandRepository usageTypeMappingRepo)
         {
             _uow = uow;
             _mapper = mapper;
@@ -70,7 +70,7 @@ namespace InventoryManagement.Application.Item.ItemAggregate.Handlers
             _variantValCmd = variantValCmd;
             _variantValQry = variantValQry;
             _variantAttrCmd = variantAttrCmd;
-            _unitMappingRepo = unitMappingRepo;
+            _usageTypeMappingRepo = usageTypeMappingRepo;
         }
 
         public async Task<int> Handle(CreateItemCommand request, CancellationToken ct)
@@ -143,7 +143,7 @@ namespace InventoryManagement.Application.Item.ItemAggregate.Handlers
                 if (DtoEmptyChecker.HasAny(p.Suppliers))        await _supplierRepo.UpdateAsync(newId, p.Suppliers, ct);
                 if (DtoEmptyChecker.HasAny(p.Manufacture))     await _manufactureRepo.UpdateAsync(newId, p.Manufacture, ct);
                 if (DtoEmptyChecker.HasAny(p.Uoms))            await _uomRepo.UpdateAsync(newId, p.Uoms, ct);
-                if (DtoEmptyChecker.HasAny(p.ItemUnitMappings)) await _unitMappingRepo.UpdateAsync(newId, p.ItemUnitMappings, ct);
+                if (DtoEmptyChecker.HasAny(p.ItemUsageTypeMappings)) await _usageTypeMappingRepo.UpdateAsync(newId, p.ItemUsageTypeMappings, ct);
                 // ATTRIBUTES ONLY (no values on template)
                 if (p.VariantAttributes is { Count: > 0 })
                     await _variantAttrCmd.UpsertAttributesAsync(newId, p.VariantAttributes, ct);
@@ -375,7 +375,7 @@ namespace InventoryManagement.Application.Item.ItemAggregate.Handlers
                 if (p.Suppliers.Count > 0) await _supplierRepo.UpdateAsync(newId, p.Suppliers, ct);
                 if (p.Manufacture.Count > 0) await _manufactureRepo.UpdateAsync(newId, p.Manufacture, ct);
                 if (p.Uoms.Count > 0) await _uomRepo.UpdateAsync(newId, p.Uoms, ct);
-                if (p.ItemUnitMappings.Count > 0) await _unitMappingRepo.UpdateAsync(newId, p.ItemUnitMappings, ct);
+                if (p.ItemUsageTypeMappings.Count > 0) await _usageTypeMappingRepo.UpdateAsync(newId, p.ItemUsageTypeMappings, ct);
 
                 return newId;
             }, ct);
@@ -450,7 +450,7 @@ namespace InventoryManagement.Application.Item.ItemAggregate.Handlers
             if (DtoEmptyChecker.HasAny(payload.Suppliers))        await _supplierRepo.UpdateAsync(childId, payload.Suppliers, ct);
             if (DtoEmptyChecker.HasAny(payload.Manufacture))     await _manufactureRepo.UpdateAsync(childId, payload.Manufacture, ct);
             if (DtoEmptyChecker.HasAny(payload.Uoms))            await _uomRepo.UpdateAsync(childId, payload.Uoms, ct);
-            if (DtoEmptyChecker.HasAny(payload.ItemUnitMappings)) await _unitMappingRepo.UpdateAsync(childId, payload.ItemUnitMappings, ct);
+            if (DtoEmptyChecker.HasAny(payload.ItemUsageTypeMappings)) await _usageTypeMappingRepo.UpdateAsync(childId, payload.ItemUsageTypeMappings, ct);
         }
 
         private async Task TryMoveImageAsync(int itemId, string tempFileName, string baseCode, CancellationToken ct)

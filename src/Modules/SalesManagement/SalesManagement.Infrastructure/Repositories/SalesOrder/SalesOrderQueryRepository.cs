@@ -102,8 +102,12 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
 
                 SELECT @TotalCount AS TotalCount;";
 
-            var parameters = new { Search = $"%{searchTerm}%", Offset = (pageNumber - 1) * pageSize, PageSize = pageSize };
-            var result = await _dbConnection.QueryMultipleAsync(query, parameters);
+            var result = await _dbConnection.QueryMultipleAsync(query, new
+            {
+                Search = $"%{searchTerm}%",
+                Offset = (pageNumber - 1) * pageSize,
+                PageSize = pageSize
+            });
             var list = (await result.ReadAsync<SalesOrderHeaderDto>()).ToList();
             var totalCount = await result.ReadFirstAsync<int>();
 

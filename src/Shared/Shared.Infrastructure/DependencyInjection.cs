@@ -13,6 +13,7 @@ public static class DependencyInjection
     public static IServiceCollection AddSharedInfrastructureServices(this IServiceCollection services)
     {
         services.AddScoped<IIPAddressService, IPAddressService>();
+        services.AddScoped<IDataAccessFilter, DataAccessFilterService>();
         return services;
     }
 }
