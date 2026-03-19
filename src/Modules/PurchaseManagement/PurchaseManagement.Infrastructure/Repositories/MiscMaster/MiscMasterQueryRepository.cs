@@ -158,7 +158,6 @@ namespace PurchaseManagement.Infrastructure.Repositories.MiscMaster
                 FROM Purchase.MiscMaster AS M
                 INNER JOIN Purchase.MiscTypeMaster AS MT ON MT.Id = M.MiscTypeId
                 WHERE M.IsDeleted = 0 AND M.IsActive = 1
-                AND MT.IsDeleted = 0
                 AND LOWER(MT.MiscTypeCode) = LOWER(@MiscTypeCode)
                 AND LOWER(M.Code) = LOWER(@MiscTypeName);";
 
