@@ -1119,6 +1119,37 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.ToTable("ItemUnitMapping", "Inventory");
                 });
 
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemDetail.ItemUsageTypeMapping", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ItemId")
+                        .HasColumnType("int")
+                        .HasColumnName("ItemId");
+
+                    b.Property<int>("UnitId")
+                        .HasColumnType("int")
+                        .HasColumnName("UnitId");
+
+                    b.Property<int>("UsageTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("UsageTypeId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UsageTypeId");
+
+                    b.HasIndex("ItemId", "UsageTypeId", "UnitId")
+                        .IsUnique();
+
+                    b.ToTable("ItemUsageTypeMapping", "Inventory");
+                });
+
             modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemDetail.Templates.InspectionTemplate", b =>
                 {
                     b.Property<int>("Id")
@@ -2128,6 +2159,71 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.ToTable("UOMConversion", "Inventory");
                 });
 
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.UsageType", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CreatedByName")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedIP")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("varchar(250)")
+                        .HasColumnName("Description");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("UsageTypeCode")
+                        .IsRequired()
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("UsageTypeCode");
+
+                    b.Property<string>("UsageTypeName")
+                        .IsRequired()
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("UsageTypeName");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UsageTypeCode")
+                        .IsUnique();
+
+                    b.ToTable("UsageType", "Inventory");
+                });
+
             modelBuilder.Entity("InventoryManagement.Domain.Entities.item.ItemDetail.Templates.InspectionParameter", b =>
                 {
                     b.Property<int>("Id")
@@ -2532,6 +2628,25 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.Navigation("ProcurementType");
                 });
 
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemDetail.ItemUsageTypeMapping", b =>
+                {
+                    b.HasOne("InventoryManagement.Domain.Entities.Item.ItemDetail.ItemMaster", "Item")
+                        .WithMany("ItemUsageTypeMappings")
+                        .HasForeignKey("ItemId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("InventoryManagement.Domain.Entities.UsageType", "UsageType")
+                        .WithMany("ItemUsageTypeMappings")
+                        .HasForeignKey("UsageTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Item");
+
+                    b.Navigation("UsageType");
+                });
+
             modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemDetail.Variant.ItemVariantAttribute", b =>
                 {
                     b.HasOne("InventoryManagement.Domain.Entities.MiscTypeMaster", "MiscAttributeGroup")
@@ -2767,6 +2882,8 @@ namespace InventoryManagement.Infrastructure.Migrations
 
                     b.Navigation("ItemUnitMappings");
 
+                    b.Navigation("ItemUsageTypeMappings");
+
                     b.Navigation("Manufacture");
 
                     b.Navigation("Purchase");
@@ -2889,6 +3006,11 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.Navigation("SalesUOM");
 
                     b.Navigation("ToUOMConversions");
+                });
+
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.UsageType", b =>
+                {
+                    b.Navigation("ItemUsageTypeMappings");
                 });
 #pragma warning restore 612, 618
         }

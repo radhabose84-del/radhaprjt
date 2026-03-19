@@ -307,6 +307,18 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                             UnitId = m.UnitId
                         })
                         .ToList(),
+
+                    // ---------- USAGE TYPE MAPPINGS ----------
+                    ItemUsageTypeMappings = i.ItemUsageTypeMappings
+                        .OrderBy(m => m.Id)
+                        .Select(m => new ItemUsageTypeMappingDto
+                        {
+                            Id = m.Id,
+                            UsageTypeId = m.UsageTypeId,
+                            UsageTypeName = m.UsageType != null ? m.UsageType.UsageTypeName : null,
+                            UnitId = m.UnitId
+                        })
+                        .ToList(),
                 })
                 .FirstOrDefaultAsync(ct);
 
@@ -321,6 +333,20 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                 {
                     if (unitDict.TryGetValue(mapping.UnitId, out var name))
                         mapping.UnitName = name;
+                }
+            }
+
+            // Populate UnitName for ItemUsageTypeMappings from cross-module lookup
+            if (dto?.ItemUsageTypeMappings is { Count: > 0 })
+            {
+                var usageUnitIds = dto.ItemUsageTypeMappings.Select(m => m.UnitId).Distinct();
+                var usageUnits = await _unitLookup.GetByIdsAsync(usageUnitIds, ct);
+                var usageUnitDict = usageUnits.ToDictionary(u => u.UnitId, u => u.UnitName);
+
+                foreach (var mapping in dto.ItemUsageTypeMappings)
+                {
+                    if (usageUnitDict.TryGetValue(mapping.UnitId, out var uName))
+                        mapping.UnitName = uName;
                 }
             }
 
@@ -395,7 +421,8 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
         {
             var UnitId = _ipAddressService.GetUnitId() ?? 0;
             searchPattern = searchPattern ?? string.Empty;
-            const string query = @"
+
+            var query = @"
                 SELECT IM.Id, ItemName, ItemCode, ParentItemId,HSNId,HSNCode,GSTPercentage,IM.ItemCategoryId,IM.ItemGroupId,IM.TariffNumber,
                 P.PurchaseUomId,IM.StockUomId,U.Code as PurchaseUom,U1.Code as StockUom,ISNULL(ST.CurrentStockQty, 0) AS CurrentStockQty
                 FROM Inventory.ItemMaster IM
@@ -404,7 +431,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                 left join Inventory.UOM U on U.Id=P.PurchaseUomId
                 left join Inventory.UOM U1 on U1.Id=IM.StockUomId
                 LEFT JOIN (
-                        SELECT 
+                        SELECT
                             SL.ItemId,
                             SUM(SL.ReceivedQty - SL.IssueQty) AS CurrentStockQty
                         FROM Inventory.StockLedger SL
@@ -413,11 +440,12 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                     ) ST ON ST.ItemId = IM.Id
                 WHERE IM.IsDeleted = 0 and IM.IsActive = 1
                 AND HasVariants = 0     AND (@GroupId    IS NULL OR @GroupId    <= 0 OR IM.ItemGroupId    = @GroupId)
-                AND (@CategoryId IS NULL OR @CategoryId <= 0 OR IM.ItemCategoryId = @CategoryId)                
+                AND (@CategoryId IS NULL OR @CategoryId <= 0 OR IM.ItemCategoryId = @CategoryId)
                 AND (@SourceId IS NULL OR @SourceId <= 0 OR P.SourceOfItem = @SourceId OR P.SourceOfItem IS NULL )
                 AND (@IssueRuleId IS NULL OR @IssueRuleId <= 0 OR IM.IssueRuleId = @IssueRuleId)
-                AND (@Search = '' OR IM.ItemName LIKE @Like OR IM.ItemCode LIKE @Like) ";            
-            var parameters = new
+                AND (@Search = '' OR IM.ItemName LIKE @Like OR IM.ItemCode LIKE @Like)";
+
+            var items = await _dbConnection.QueryAsync<GetItemAutoCompleteDto>(query, new
             {
                 GroupId = itemGroupId,
                 CategoryId = itemCategoryId,
@@ -425,9 +453,8 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                 Like = $"%{searchPattern}%",
                 SourceId = sourceId,
                 IssueRuleId = issueRuleId,
-                UnitId=UnitId
-            };
-            var items = await _dbConnection.QueryAsync<GetItemAutoCompleteDto>(query, parameters);
+                UnitId
+            });
             return items.ToList();
         }
 

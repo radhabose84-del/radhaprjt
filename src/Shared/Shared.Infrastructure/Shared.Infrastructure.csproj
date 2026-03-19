@@ -27,6 +27,9 @@
     <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
     <PackageReference Include="Serilog.Sinks.MongoDB" Version="7.0.0" />
 
+    <!-- Data access filtering (Dapper for cross-schema queries) -->
+    <PackageReference Include="Dapper" Version="2.1.44" />
+
     <!-- Lookup caching infrastructure -->
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="9.0.0" />
     <PackageReference Include="Scrutor" Version="5.0.1" />

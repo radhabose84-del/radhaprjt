@@ -37,6 +37,7 @@
             public List<VariantAttributeDto> VariantAttributes { get; set; } = new();
             public List<VariantValueDto> VariantValues { get; set; } = new();
             public List<ItemUnitMappingDto> ItemUnitMappings { get; set; } = new();
+            public List<ItemUsageTypeMappingDto> ItemUsageTypeMappings { get; set; } = new();
         }
     public class ItemDetailsDto : ItemDto
     {
@@ -158,6 +159,14 @@
             public string? ProcurementName { get; set; }
             public int ItemGroupId { get; set; }
             public string? ItemGroupName { get; set; }
+            public int UnitId { get; set; }
+            public string? UnitName { get; set; }
+        }
+        public class ItemUsageTypeMappingDto
+        {
+            public int Id { get; set; }
+            public int UsageTypeId { get; set; }
+            public string? UsageTypeName { get; set; }
             public int UnitId { get; set; }
             public string? UnitName { get; set; }
         }

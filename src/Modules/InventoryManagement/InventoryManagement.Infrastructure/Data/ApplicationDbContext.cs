@@ -77,7 +77,8 @@ namespace InventoryManagement.Infrastructure.Data
         public DbSet<ProcurementType> ProcurementType { get; set; }
         public DbSet<ItemUnitMapping> ItemUnitMapping { get; set; }
         public DbSet<OutboxMessage> OutboxMessages { get; set; }
-
+		public DbSet<UsageType> UsageType { get; set; }
+        public DbSet<ItemUsageTypeMapping> ItemUsageTypeMapping { get; set; }
         //End  Item related DbSets
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -118,6 +119,8 @@ namespace InventoryManagement.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new IssueDetailConfiguration());
             modelBuilder.ApplyConfiguration(new ProcurementTypeConfiguration());
             modelBuilder.ApplyConfiguration(new ItemUnitMappingConfiguration());
+     		modelBuilder.ApplyConfiguration(new UsageTypeConfiguration());
+            modelBuilder.ApplyConfiguration(new ItemUsageTypeMappingConfiguration());
 
             // Global convention: set explicit precision/scale for all decimal properties
             // This prevents EF Core runtime warnings about silent truncation

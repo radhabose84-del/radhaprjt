@@ -35,6 +35,8 @@ using InventoryManagement.Infrastructure.Repositories.Item.Templates;
 using InventoryManagement.Infrastructure.Repositories.MiscMaster;
 using InventoryManagement.Infrastructure.Repositories.MiscTypeMaster;
 using InventoryManagement.Infrastructure.Repositories.ProcurementType;
+using InventoryManagement.Application.Common.Interfaces.IUsageType;
+using InventoryManagement.Infrastructure.Repositories.UsageType;
 using InventoryManagement.Infrastructure.Repositories.MRS;
 using InventoryManagement.Infrastructure.Repositories.Reports;
 using InventoryManagement.Infrastructure.Repositories.Stock;
@@ -177,6 +179,9 @@ namespace InventoryManagement.Infrastructure
             services.AddScoped<IProcurementTypeCommandRepository, ProcurementTypeCommandRepository>();
             services.AddScoped<IProcurementTypeQueryRepository, ProcurementTypeQueryRepository>();
             services.AddScoped<IItemUnitMappingCommandRepository, ItemUnitMappingCommandRepository>();
+            services.AddScoped<IUsageTypeCommandRepository, UsageTypeCommandRepository>();
+            services.AddScoped<IUsageTypeQueryRepository, UsageTypeQueryRepository>();
+            services.AddScoped<IItemUsageTypeMappingCommandRepository, ItemUsageTypeMappingCommandRepository>();
 
             // Lookups
             services.AddScoped<IUOMLookup, UOMLookupRepository>();
