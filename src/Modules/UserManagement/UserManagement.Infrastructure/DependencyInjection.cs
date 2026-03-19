@@ -255,32 +255,6 @@ namespace UserManagement.Infrastructure
             // --------------------------
             services.Configure<JwtSettings>(configuration.GetSection("JwtSettings"));
 
-            // --------------------------
-            // HttpClient (BackgroundServiceClient)
-            // --------------------------
-            // In Testing: allow missing base address.
-            services.AddHttpClient("BackgroundServiceClient", client =>
-            {
-                var baseAddress = configuration["HttpClientSettings:BackgroundService"];
-
-                if (string.IsNullOrWhiteSpace(baseAddress))
-                {
-                    if (!isTesting)
-                        throw new InvalidOperationException("HttpClientSettings:BackgroundService is missing in configuration.");
-
-                    baseAddress = "http://localhost";
-                }
-
-                client.BaseAddress = new Uri(baseAddress);
-            })
-            .AddTransientHttpErrorPolicy(policyBuilder =>
-                policyBuilder.CircuitBreakerAsync(
-                    handledEventsAllowedBeforeBreaking: 3,
-                    durationOfBreak: TimeSpan.FromSeconds(30)))
-            .AddTransientHttpErrorPolicy(policyBuilder =>
-                policyBuilder.WaitAndRetryAsync(3, retryAttempt =>
-                    TimeSpan.FromSeconds(Math.Pow(2, retryAttempt))));
-
             services.AddScoped<IBackgroundServiceClient, BackgroundServiceClient>();
 
             // --------------------------

@@ -10,7 +10,6 @@ using Microsoft.EntityFrameworkCore;
 using MassTransit;
 using Microsoft.Extensions.Logging;
 using Contracts.Interfaces.Lookups.Users;
-// using Contracts.Interfaces.External.IUser;
 using Serilog;
 
 namespace MaintenanceManagement.Infrastructure.Repositories.WorkOrder

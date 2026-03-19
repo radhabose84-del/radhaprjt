@@ -61,7 +61,6 @@ using BackgroundService.Application.Common.Interfaces.IMiscTypeMaster;
 using BackgroundService.Infrastructure.Repositories.MiscTypeMaster;
 using BackgroundService.Application.Interfaces.IHangfire;
 using BackgroundService.Application.Consumer.PreventiveSchedule;
-using BackgroundService.Application.Consumer.PreventiveSchedule.Update;
 using BackgroundService.Application.Interfaces.Files;
 using BackgroundService.Infrastructure.Files;
 using BackgroundService.Application.Interfaces.IInbox;
@@ -193,18 +192,7 @@ namespace BackgroundService.Infrastructure
                     x.AddConsumer<PartyManagement.Application.Consumers.ApprovedRejectedConsumer>();
                     x.AddConsumer<PurchaseManagement.Application.Consumers.RollbackTransactionConsumer>();
                     x.AddConsumer<BudgetManagement.Application.Consumers.RollbackTransactionConsumer>();
-                    x.AddConsumer<PartyManagement.Application.Consumers.RollbackTransactionConsumer>();
-                    x.AddConsumer<ScheduleWorkOrderConsumer>();
-                    x.AddConsumer<NewScheduleWorkOrderTaskConsumer>();
                     x.AddConsumer<RollBackScheduleWorkOrderConsumer>();
-                    x.AddConsumer<ScheduleWorkOrderUpdateConsumer>();
-                    
-
-                    // Outbox event bridge consumers — receive events from SqlOutboxProcessorJob
-                    // and translate them into the appropriate Hangfire scheduling commands.
-                    x.AddConsumer<MachineWiseScheduleCreationConsumer>();
-                    x.AddConsumer<HeaderUpdateEventConsumer>();
-                    x.AddConsumer<NextSchedulerCreatedEventConsumer>();
 
                     x.UsingRabbitMq((context, cfg) =>
                     {
@@ -325,35 +313,9 @@ namespace BackgroundService.Infrastructure
                             e.ConfigureConsumer<PartyManagement.Application.Consumers.RollbackTransactionConsumer>(context);
                         });
 
-                        cfg.ReceiveEndpoint("hangfire-workorder-schedule-queue", e =>
-                        {
-                            e.ConfigureConsumer<ScheduleWorkOrderConsumer>(context);
-                        });
-                        cfg.ReceiveEndpoint("schedule-workorder-queue", e =>
-                        {
-                            e.ConfigureConsumer<NewScheduleWorkOrderTaskConsumer>(context);
-                        });
                         cfg.ReceiveEndpoint("rollback-ScheduleWorkOrder-queue", e =>
                         {
                             e.ConfigureConsumer<RollBackScheduleWorkOrderConsumer>(context);
-                        });
-                        cfg.ReceiveEndpoint("update-scheduleWorkOrder-task-queue", e =>
-                        {
-                            e.ConfigureConsumer<ScheduleWorkOrderUpdateConsumer>(context);
-                        });
-
-                        // Outbox event bridge endpoints
-                        cfg.ReceiveEndpoint("machine-wise-schedule-creation-queue", e =>
-                        {
-                            e.ConfigureConsumer<MachineWiseScheduleCreationConsumer>(context);
-                        });
-                        cfg.ReceiveEndpoint("header-update-event-queue", e =>
-                        {
-                            e.ConfigureConsumer<HeaderUpdateEventConsumer>(context);
-                        });
-                        cfg.ReceiveEndpoint("next-scheduler-created-queue", e =>
-                        {
-                            e.ConfigureConsumer<NextSchedulerCreatedEventConsumer>(context);
                         });
                     });
                 });
@@ -410,9 +372,7 @@ namespace BackgroundService.Infrastructure
             services.AddScoped<IEmailService, RealEmailService>();
             services.AddScoped<ISmsService, RealSmsService>();
             services.AddScoped<IUserUnlockService, UserUnlockService>();
-            services.AddTransient<IVerificationCodeCleanupService, VerificationCodeCleanupService>();
             services.AddScoped<IUserUnlockBackgroundJob, UserUnlockBackgroundJob>();
-            services.AddTransient<IMaintenance, MaintenanceService>();
             services.AddScoped<INotificationConfigCommandRepository, NotificationConfigCommandRepository>();  
             services.AddScoped<INotificationConfigQueryRepository, NotificationConfigQueryRepository>();  
             services.AddScoped<INotificationGroupCommand, NotificationGroupCommandRepository >();

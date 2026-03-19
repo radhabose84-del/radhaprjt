@@ -1,5 +1,4 @@
 using System.Data;
-// using Contracts.Interfaces.External.IUser;
 using Contracts.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces.IMaintenanceRequest;
