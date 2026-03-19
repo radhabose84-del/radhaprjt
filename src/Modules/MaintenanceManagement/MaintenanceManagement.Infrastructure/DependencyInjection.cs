@@ -67,7 +67,9 @@ using MaintenanceManagement.Infrastructure.Repositories.PreventiveSchedulesLogs;
 using MaintenanceManagement.Application.Common.IMachineSpecification;
 using Contracts.Interfaces.Lookups.Maintenance;
 using MaintenanceManagement.Infrastructure.Repositories.Lookups.Maintenance;
+using MaintenanceManagement.Application.Common.Interfaces.IBackgroundService;
 using MaintenanceManagement.Application.Common.Interfaces.IOutbox;
+using MaintenanceManagement.Infrastructure.Jobs;
 using MaintenanceManagement.Infrastructure.Repositories.Outbox;
 using MaintenanceManagement.Infrastructure.Services.Outbox;
 
@@ -199,6 +201,11 @@ namespace MaintenanceManagement.Infrastructure
             services.AddScoped<IGeneratorConsumptionQueryRepository, GeneratorConsumptionQueryRepository>();
             services.AddScoped<IGeneratorConsumptionCommandRepository, GeneratorConsumptionCommandRepository>();
             services.AddScoped<IPreventiveScheduleLogService, PreventiveScheduleLogsService>();
+
+            // Background service client (Hangfire-native: schedules/removes WorkOrder jobs in-process)
+            services.AddScoped<IBackgroundServiceClient, BackgroundServiceClient>();
+            services.AddScoped<ScheduleWorkOrderJob>();
+            services.AddScoped<MaintenanceOutboxProcessorJob>();
 
             // Miscellaneous services
             services.AddTransient<IFileUploadService, FileUploadRepository>();

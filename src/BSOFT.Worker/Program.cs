@@ -65,14 +65,15 @@ builder.Services.AddPurchaseInfrastructureServices(builder.Configuration, builde
 builder.Services.AddBudgetInfrastructure(builder.Configuration, builder.Environment);
 builder.Services.AddInventoryInfrastructure(builder.Configuration, builder.Environment);
 
-// ── Hangfire server — BSOFT.Worker is the sole job executor ──────────────────
-//    BSOFT.Api only uses Hangfire for the dashboard + job enqueueing (no server there).
+// ── Hangfire server — BSOFT.Worker handles infrastructure jobs only ───────────
+//    BSOFT.Api runs its own Hangfire server for business-domain jobs (e.g. ScheduleWorkOrderJob)
+//    because those jobs require module DI (MediatR handlers, repos) loaded only in BSOFT.Api.
+//    Queues must NOT overlap with BSOFT.Api's queues ("maintenance-jobs", "default").
 builder.Services.AddHangfireServer(options =>
 {
     options.ServerName = builder.Configuration["HangfireServer:Server"] ?? "BSOFT-Worker";
     options.Queues = new[]
     {
-        "schedule_work_order_queue",
         "forgot_password_queue",
         "user_unlock_queue",
         "sql-outbox-queue",    // SqlOutboxProcessorJob — polls purchase/maintenance outbox tables

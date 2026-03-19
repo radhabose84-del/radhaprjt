@@ -39,6 +39,10 @@ namespace MaintenanceManagement.Infrastructure.Data.Configurations
                 .HasMaxLength(100)
                 .HasDefaultValue("MaintenanceManagement");
 
+            builder.Property(x => x.ProcessorHint)
+                .HasMaxLength(50)
+                .IsRequired(false);
+
             // Indexes for efficient polling
             builder.HasIndex(x => new { x.Status, x.NextRetryAt })
                 .HasDatabaseName("IX_OutboxMessages_Status_NextRetryAt")

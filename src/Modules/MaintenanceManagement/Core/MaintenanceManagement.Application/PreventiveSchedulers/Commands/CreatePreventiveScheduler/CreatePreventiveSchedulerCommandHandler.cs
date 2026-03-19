@@ -146,10 +146,10 @@ namespace MaintenanceManagement.Application.PreventiveSchedulers.Commands.Create
             };
 
             // ── Atomic transaction: domain insert + outbox insert ──────────────────
-            // If any step throws, RollbackAsync undoes both the header/detail inserts
-            // and the outbox row — nothing is left in an inconsistent state.
-            // If CommitAsync succeeds, BSOFT.Worker's SqlOutboxProcessorJob picks up
-            // the outbox row and publishes MachineWiseScheduleCreationEvent to RabbitMQ.
+            // CommitAsync flushes both the header/detail inserts and the outbox row
+            // in a single SQL transaction. MaintenanceOutboxProcessorJob (BSOFT.Api,
+            // maintenance-jobs queue) picks up the row every minute and schedules
+            // ScheduleWorkOrderJob directly — no RabbitMQ hop.
             PreventiveSchedulerHeader response;
             var correlationId = Guid.NewGuid();
 
@@ -160,9 +160,11 @@ namespace MaintenanceManagement.Application.PreventiveSchedulers.Commands.Create
                 if (response == null || response.Id <= 0)
                     throw new ExceptionRules("Preventive scheduler creation failed.");
 
-                _logger.LogInformation("Created PreventiveSchedulerId: {Id}, Details: {Count}", response.Id, details.Count);
+                _logger.LogInformation(
+                    "Created PreventiveSchedulerId: {Id}, Details: {Count}",
+                    response.Id, response.PreventiveSchedulerDetails?.Count ?? 0);
 
-                var reverseMapDetails = (response.PreventiveSchedulerDetails ?? Enumerable.Empty<PreventiveSchedulerDetail>())
+                var scheduleDetails = (response.PreventiveSchedulerDetails ?? Enumerable.Empty<PreventiveSchedulerDetail>())
                     .Select(d =>
                     {
                         var target = d.WorkOrderCreationStartDate.ToDateTime(TimeOnly.MinValue);
@@ -170,7 +172,7 @@ namespace MaintenanceManagement.Application.PreventiveSchedulers.Commands.Create
                         return new ScheduleDetailSagaDto
                         {
                             Id = d.Id,
-                            DelayInMinutes = minutes < 0 ? 5 : minutes,
+                            DelayInMinutes = minutes < 5 ? 5 : minutes,
                             PreventiveSchedulerHeaderId = d.PreventiveSchedulerHeaderId,
                             MachineId = d.MachineId,
                             WorkOrderCreationStartDate = d.WorkOrderCreationStartDate,
@@ -194,13 +196,10 @@ namespace MaintenanceManagement.Application.PreventiveSchedulers.Commands.Create
                 {
                     CorrelationId = correlationId,
                     PreventiveSchedulerHeaderId = response.Id,
-                    ScheduleDetail = reverseMapDetails
+                    ScheduleDetail = scheduleDetails
                 };
 
-                // ScheduleWithoutSaveAsync adds the outbox row to the EF change tracker
-                // without calling SaveChangesAsync — CommitAsync flushes + commits both.
-                await _outboxEventPublisher.ScheduleWithoutSaveAsync(@event, correlationId, cancellationToken);
-
+                await _outboxEventPublisher.ScheduleWithoutSaveAsync(@event, correlationId, "maintenance", cancellationToken);
                 await _unitOfWork.CommitAsync(cancellationToken);
             }
             catch
@@ -209,8 +208,9 @@ namespace MaintenanceManagement.Application.PreventiveSchedulers.Commands.Create
                 throw;
             }
 
-            // ── Post-commit: audit + log (outside transaction — informational only) ─
-            _logger.LogInformation("Committed MachineWiseScheduleCreationEvent for PreventiveSchedulerHeaderId: {Id}", response.Id);
+            // ── Post-commit: audit + log ───────────────────────────────────────────
+            _logger.LogInformation(
+                "Committed MachineWiseScheduleCreationEvent for PreventiveSchedulerHeaderId: {Id}", response.Id);
 
             await AuditLogPublisher.PublishAuditLogAsync(
                 _mediator,

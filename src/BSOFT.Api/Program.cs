@@ -9,6 +9,7 @@ using Shared.Infrastructure.Caching;
 using Shared.Infrastructure;
 using UserManagement.Module;
 using FixedAssetManagement.Module;
+using MaintenanceManagement.Infrastructure.Jobs;
 using MaintenanceManagement.Module;
 using PurchaseManagement.Module;
 using InventoryManagement.Module;
@@ -126,6 +127,26 @@ app.UseHangfireDashboard("/hangfire", new DashboardOptions
     Authorization = [new HangfireAuthorizationFilter(hangfireUser, hangfirePass)],
     DashboardTitle = "BSOFT Hangfire Dashboard"
 });
+
+// ✅ Hangfire server — BSOFT.Api executes business-domain Hangfire jobs in-process.
+//    Only listens on "maintenance-jobs" so it never competes with BSOFT.Worker's
+//    infrastructure queues (forgot_password, user_unlock, sql-outbox).
+//    WorkerCount is capped to avoid background threads starving API request threads.
+app.UseHangfireServer(new BackgroundJobServerOptions
+{
+    ServerName = "BSOFT.Api",
+    Queues = ["maintenance-jobs"],
+    WorkerCount = 5
+});
+
+// Poll maintenance.OutboxMessages for scheduling events every minute.
+// MaintenanceOutboxProcessorJob handles: MachineWiseScheduleCreationEvent,
+// HeaderUpdateEvent, NextSchedulerCreatedEvent — no RabbitMQ hop.
+RecurringJob.AddOrUpdate<MaintenanceOutboxProcessorJob>(
+    "maintenance-outbox-processor",
+    "maintenance-jobs",
+    job => job.ProcessAsync(CancellationToken.None),
+    Cron.Minutely());
 
 app.UseMiddleware<TokenValidationMiddleware>();
 
