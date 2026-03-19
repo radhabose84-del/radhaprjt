@@ -61,7 +61,6 @@ using BackgroundService.Application.Common.Interfaces.IMiscTypeMaster;
 using BackgroundService.Infrastructure.Repositories.MiscTypeMaster;
 using BackgroundService.Application.Interfaces.IHangfire;
 using BackgroundService.Application.Consumer.PreventiveSchedule;
-using BackgroundService.Application.Consumer.PreventiveSchedule.Update;
 using BackgroundService.Application.Interfaces.Files;
 using BackgroundService.Infrastructure.Files;
 using BackgroundService.Application.Interfaces.IInbox;
@@ -190,16 +189,10 @@ namespace BackgroundService.Infrastructure
                     x.AddConsumer<PurchaseManagement.Application.Consumers.ApprovedRejectedConsumer>();
                     x.AddConsumer<BudgetManagement.Application.Consumers.ApprovedRejectedConsumer>();
                     x.AddConsumer<InventoryManagement.Application.Consumers.ApprovedRejectedConsumer>();
+                    x.AddConsumer<PartyManagement.Application.Consumers.ApprovedRejectedConsumer>();
                     x.AddConsumer<PurchaseManagement.Application.Consumers.RollbackTransactionConsumer>();
                     x.AddConsumer<BudgetManagement.Application.Consumers.RollbackTransactionConsumer>();
                     x.AddConsumer<RollBackScheduleWorkOrderConsumer>();
-                    
-
-                    // Outbox event bridge consumers — receive events from SqlOutboxProcessorJob
-                    // and translate them into the appropriate Hangfire scheduling commands.
-                    x.AddConsumer<MachineWiseScheduleCreationConsumer>();
-                    x.AddConsumer<HeaderUpdateEventConsumer>();
-                    x.AddConsumer<NextSchedulerCreatedEventConsumer>();
 
                     x.UsingRabbitMq((context, cfg) =>
                     {
@@ -300,6 +293,11 @@ namespace BackgroundService.Infrastructure
                             e.UseMessageRetry(r => r.Intervals(TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(30)));
                             e.ConfigureConsumer<InventoryManagement.Application.Consumers.ApprovedRejectedConsumer>(context);
                         });
+                        cfg.ReceiveEndpoint("approved-rejected-party-task-queue", e =>
+                        {
+                            e.UseMessageRetry(r => r.Intervals(TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(30)));
+                            e.ConfigureConsumer<PartyManagement.Application.Consumers.ApprovedRejectedConsumer>(context);
+                        });
 
                         // Rollback queues (undo pending status on workflow failure)
                         cfg.ReceiveEndpoint("approval-request-rollback-purchase-queue", e =>
@@ -310,24 +308,14 @@ namespace BackgroundService.Infrastructure
                         {
                             e.ConfigureConsumer<BudgetManagement.Application.Consumers.RollbackTransactionConsumer>(context);
                         });
+                        cfg.ReceiveEndpoint("approval-request-rollback-party-queue", e =>
+                        {
+                            e.ConfigureConsumer<PartyManagement.Application.Consumers.RollbackTransactionConsumer>(context);
+                        });
 
                         cfg.ReceiveEndpoint("rollback-ScheduleWorkOrder-queue", e =>
                         {
                             e.ConfigureConsumer<RollBackScheduleWorkOrderConsumer>(context);
-                        });
-
-                        // Outbox event bridge endpoints
-                        cfg.ReceiveEndpoint("machine-wise-schedule-creation-queue", e =>
-                        {
-                            e.ConfigureConsumer<MachineWiseScheduleCreationConsumer>(context);
-                        });
-                        cfg.ReceiveEndpoint("header-update-event-queue", e =>
-                        {
-                            e.ConfigureConsumer<HeaderUpdateEventConsumer>(context);
-                        });
-                        cfg.ReceiveEndpoint("next-scheduler-created-queue", e =>
-                        {
-                            e.ConfigureConsumer<NextSchedulerCreatedEventConsumer>(context);
                         });
                     });
                 });
