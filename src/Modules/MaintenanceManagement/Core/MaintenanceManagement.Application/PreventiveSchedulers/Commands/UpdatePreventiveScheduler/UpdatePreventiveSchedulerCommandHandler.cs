@@ -1,16 +1,15 @@
 using AutoMapper;
+using Contracts.Common;
 using Contracts.Dtos.Maintenance.Preventive;
 using Contracts.Events.Maintenance.PreventiveScheduler.PreventiveSchedulerUpdate;
-using MaintenanceManagement.Application.Common;
-using Contracts.Common;
 using Contracts.Interfaces;
+using MaintenanceManagement.Application.Common;
 using MaintenanceManagement.Application.Common.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces.IMiscMaster;
 using MaintenanceManagement.Application.Common.Interfaces.IOutbox;
 using MaintenanceManagement.Application.Common.Interfaces.IPreventiveScheduler;
 using MaintenanceManagement.Application.Common.Interfaces.IPreventiveSchedulerLog;
 using MaintenanceManagement.Application.Common.Interfaces.IWorkOrder;
-using MaintenanceManagement.Application.PreventiveSchedulers.Commands.CreatePreventiveScheduler;
 using MaintenanceManagement.Domain.Entities;
 using MaintenanceManagement.Domain.Events;
 using MediatR;
@@ -29,8 +28,8 @@ namespace MaintenanceManagement.Application.PreventiveSchedulers.Commands.Update
         private readonly IWorkOrderCommandRepository _workOrderRepository;
         private readonly IIPAddressService _ipAddressService;
         private readonly ITimeZoneService _timeZoneService;
-        private readonly IOutboxEventPublisher _outboxEventPublisher;
         private readonly IMaintenanceUnitOfWork _unitOfWork;
+        private readonly IOutboxEventPublisher _outboxEventPublisher;
         private readonly IPreventiveScheduleLogService _preventiveScheduleLogService;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IMiscMasterQueryRepository _miscMasterQueryRepository;
@@ -44,8 +43,8 @@ namespace MaintenanceManagement.Application.PreventiveSchedulers.Commands.Update
             IWorkOrderCommandRepository workOrderRepository,
             IIPAddressService ipAddressService,
             ITimeZoneService timeZoneService,
-            IOutboxEventPublisher outboxEventPublisher,
             IMaintenanceUnitOfWork unitOfWork,
+            IOutboxEventPublisher outboxEventPublisher,
             IPreventiveScheduleLogService preventiveScheduleLogService,
             IHttpContextAccessor httpContextAccessor,
             IMiscMasterQueryRepository miscMasterQueryRepository,
@@ -58,8 +57,8 @@ namespace MaintenanceManagement.Application.PreventiveSchedulers.Commands.Update
             _workOrderRepository = workOrderRepository;
             _ipAddressService = ipAddressService;
             _timeZoneService = timeZoneService;
-            _outboxEventPublisher = outboxEventPublisher;
             _unitOfWork = unitOfWork;
+            _outboxEventPublisher = outboxEventPublisher;
             _preventiveScheduleLogService = preventiveScheduleLogService;
             _httpContextAccessor = httpContextAccessor;
             _miscMasterQueryRepository = miscMasterQueryRepository;
@@ -74,8 +73,6 @@ namespace MaintenanceManagement.Application.PreventiveSchedulers.Commands.Update
             var preventiveScheduler = _mapper.Map<PreventiveSchedulerHeader>(request);
             var existingPreventiveScheduler = await _preventiveSchedulerQuery.GetByIdAsync(request.Id);
 
-            var rollbackHeader = _mapper.Map<RollbackHeaderDto>(existingPreventiveScheduler);
-
             bool isFrequencyChanged =
                 request.FrequencyInterval != existingPreventiveScheduler.FrequencyInterval ||
                 request.FrequencyTypeId != existingPreventiveScheduler.FrequencyTypeId ||
@@ -86,9 +83,6 @@ namespace MaintenanceManagement.Application.PreventiveSchedulers.Commands.Update
                 request.Id, isFrequencyChanged);
 
             // ── Atomic transaction: metadata update + detail update + outbox insert ─
-            // If any step throws, RollbackAsync undoes all writes (header, details, outbox).
-            // If CommitAsync succeeds, BSOFT.Worker picks up the outbox row and publishes
-            // HeaderUpdateEvent to RabbitMQ for downstream Hangfire rescheduling.
             PreventiveSchedulerHeader? metaDataResponse = null;
             var correlationId = Guid.NewGuid();
 
@@ -102,13 +96,10 @@ namespace MaintenanceManagement.Application.PreventiveSchedulers.Commands.Update
                     var frequencyUnit = await _miscMasterQueryRepository.GetByIdAsync(metaDataResponse.FrequencyUnitId);
                     var DetailResult = await _preventiveSchedulerQuery.GetPreventiveSchedulerDetail(metaDataResponse.Id);
 
-                    var rollbackDetails = new List<RollbackScheduleDetailDto>();
-                    var hangfireScheduleDetail = new List<ScheduleDetailUpdateDto>();
+                    var scheduleDetailUpdates = new List<ScheduleDetailUpdateDto>();
 
                     foreach (var detail in DetailResult)
                     {
-                        var dto = _mapper.Map<RollbackScheduleDetailDto>(detail);
-
                         if (isFrequencyChanged)
                         {
                             var (nextDate, reminderDate) = await _preventiveSchedulerQuery.CalculateNextScheduleDate(
@@ -123,22 +114,26 @@ namespace MaintenanceManagement.Application.PreventiveSchedulers.Commands.Update
                             detail.ActualWorkOrderDate = DateOnly.FromDateTime(nextDate);
                             detail.FrequencyInterval = metaDataResponse.FrequencyInterval;
 
-                            var result = await _preventiveSchedulerQuery.ExistWorkOrderBySchedulerDetailId(detail.Id);
+                            var existsWO = await _preventiveSchedulerQuery.ExistWorkOrderBySchedulerDetailId(detail.Id);
                             _logger.LogInformation(
-                                "Existing Work Order PreventiveSchedulerId:{PreventiveSchedulerId},IsExisting:{result}",
-                                request.Id, result);
+                                "Existing Work Order PreventiveSchedulerId:{PreventiveSchedulerId},IsExisting:{existsWO}",
+                                request.Id, existsWO);
 
-                            if (result != true)
+                            if (!existsWO)
                             {
-                                rollbackDetails.Add(dto);
                                 detail.WorkOrderCreationStartDate = DateOnly.FromDateTime(reminderDate);
                                 detail.MaterialReqStartDays = DateOnly.FromDateTime(ItemReminderDate);
-                                hangfireScheduleDetail.Add(_mapper.Map<ScheduleDetailUpdateDto>(detail));
+
+                                var delayMins = (int)Math.Ceiling((reminderDate - DateTime.Now).TotalMinutes);
+                                scheduleDetailUpdates.Add(new ScheduleDetailUpdateDto
+                                {
+                                    Id = detail.Id,
+                                    DelayInMinutes = delayMins < 5 ? 5 : delayMins
+                                });
                             }
                         }
                         else
                         {
-                            rollbackDetails.Add(dto);
                             detail.ReminderWorkOrderDays = metaDataResponse.ReminderWorkOrderDays;
                             detail.ReminderMaterialReqDays = metaDataResponse.ReminderMaterialReqDays;
                         }
@@ -146,16 +141,19 @@ namespace MaintenanceManagement.Application.PreventiveSchedulers.Commands.Update
 
                     await _preventiveSchedulerCommand.UpdateScheduleDetails(metaDataResponse.Id, DetailResult);
 
-                    var @event = new HeaderUpdateEvent
+                    if (scheduleDetailUpdates.Count > 0)
                     {
-                        CorrelationId = correlationId,
-                        ScheduleDetailUpdate = hangfireScheduleDetail,
-                        rollbackHeaders = rollbackHeader,
-                        rollbackDetails = rollbackDetails
-                    };
+                        var @event = new HeaderUpdateEvent
+                        {
+                            CorrelationId = correlationId,
+                            ScheduleDetailUpdate = scheduleDetailUpdates
+                        };
+                        await _outboxEventPublisher.ScheduleWithoutSaveAsync(@event, correlationId, "maintenance", cancellationToken);
 
-                    // Outbox insert participates in the same SQL transaction.
-                    await _outboxEventPublisher.ScheduleWithoutSaveAsync(@event, correlationId, cancellationToken);
+                        _logger.LogInformation(
+                            "Queued HeaderUpdateEvent for PreventiveSchedulerHeaderId: {Id}, Details: {Count}",
+                            metaDataResponse.Id, scheduleDetailUpdates.Count);
+                    }
                 }
 
                 await _unitOfWork.CommitAsync(cancellationToken);
@@ -166,7 +164,7 @@ namespace MaintenanceManagement.Application.PreventiveSchedulers.Commands.Update
                 throw;
             }
 
-            // ── Post-commit: audit (outside transaction) ───────────────────────────
+            // ── Post-commit: audit ─────────────────────────────────────────────────
             await AuditLogPublisher.PublishAuditLogAsync(
                 _mediator,
                 actionDetail: "Schedule Update request",
@@ -178,7 +176,7 @@ namespace MaintenanceManagement.Application.PreventiveSchedulers.Commands.Update
 
             if (metaDataResponse?.Id > 0)
             {
-                _logger.LogInformation("Committed HeaderUpdateEvent for PreventiveSchedulerId: {Id}", request.Id);
+                _logger.LogInformation("Updated PreventiveSchedulerId: {Id}", request.Id);
                 return new ApiResponseDTO<bool> { IsSuccess = true, Message = "Preventive Scheduler updated successfully." };
             }
 

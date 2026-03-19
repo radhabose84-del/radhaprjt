@@ -52,14 +52,15 @@ namespace MaintenanceManagement.Infrastructure.Services.Outbox
         public async Task ScheduleWithoutSaveAsync<TEvent>(
             TEvent @event,
             Guid correlationId,
+            string? processorHint = null,
             CancellationToken cancellationToken = default) where TEvent : class
         {
-            var outboxMessage = CreateOutboxMessage(@event, correlationId);
+            var outboxMessage = CreateOutboxMessage(@event, correlationId, processorHint);
             await _outboxRepository.AddWithoutSaveAsync(outboxMessage, cancellationToken);
 
             _logger.LogDebug(
-                "Scheduled outbox event (without save - participates in caller's transaction). Type: {EventType}, CorrelationId: {CorrelationId}",
-                typeof(TEvent).Name, correlationId);
+                "Scheduled outbox event (without save - participates in caller's transaction). Type: {EventType}, CorrelationId: {CorrelationId}, ProcessorHint: {ProcessorHint}",
+                typeof(TEvent).Name, correlationId, processorHint ?? "null");
         }
 
         public async Task ScheduleBatchAsync<TEvent>(
@@ -76,15 +77,16 @@ namespace MaintenanceManagement.Infrastructure.Services.Outbox
         public async Task ScheduleBatchWithoutSaveAsync<TEvent>(
             IEnumerable<TEvent> events,
             Guid correlationId,
+            string? processorHint = null,
             CancellationToken cancellationToken = default) where TEvent : class
         {
             foreach (var @event in events)
             {
-                await ScheduleWithoutSaveAsync(@event, correlationId, cancellationToken);
+                await ScheduleWithoutSaveAsync(@event, correlationId, processorHint, cancellationToken);
             }
         }
 
-        private OutboxMessage CreateOutboxMessage<TEvent>(TEvent @event, Guid correlationId) where TEvent : class
+        private OutboxMessage CreateOutboxMessage<TEvent>(TEvent @event, Guid correlationId, string? processorHint = null) where TEvent : class
         {
             var eventType = typeof(TEvent);
             var systemTimeZone = _timeZoneService.GetSystemTimeZone();
@@ -101,7 +103,8 @@ namespace MaintenanceManagement.Infrastructure.Services.Outbox
                 MaxRetries = 5,
                 NextRetryAt = null,
                 ModuleName = "MaintenanceManagement",
-                CreatedBy = _ipAddressService.GetUserId()
+                CreatedBy = _ipAddressService.GetUserId(),
+                ProcessorHint = processorHint
             };
         }
     }

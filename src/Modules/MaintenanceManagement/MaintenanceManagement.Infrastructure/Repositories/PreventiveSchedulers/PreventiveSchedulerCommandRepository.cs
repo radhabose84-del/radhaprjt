@@ -1,6 +1,4 @@
 #nullable disable
-// using Contracts.Events.Maintenance;
-// using Contracts.Interfaces.External.IMaintenance;
 using Contracts.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces.IMiscMaster;

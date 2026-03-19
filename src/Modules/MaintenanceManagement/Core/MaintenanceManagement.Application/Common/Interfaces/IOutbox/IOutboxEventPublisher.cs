@@ -34,9 +34,15 @@ namespace MaintenanceManagement.Application.Common.Interfaces.IOutbox
         /// Use this when outbox must be atomic with other domain operations.
         /// Caller must call SaveChangesAsync() to persist.
         /// </summary>
+        /// <param name="processorHint">
+        /// Optional routing hint. Pass "maintenance" for direct Hangfire scheduling events
+        /// (handled by MaintenanceOutboxProcessorJob). Leave null for MassTransit events
+        /// (handled by SqlOutboxProcessorJob).
+        /// </param>
         Task ScheduleWithoutSaveAsync<TEvent>(
             TEvent @event,
             Guid correlationId,
+            string? processorHint = null,
             CancellationToken cancellationToken = default) where TEvent : class;
 
         /// <summary>
@@ -45,6 +51,7 @@ namespace MaintenanceManagement.Application.Common.Interfaces.IOutbox
         Task ScheduleBatchWithoutSaveAsync<TEvent>(
             IEnumerable<TEvent> events,
             Guid correlationId,
+            string? processorHint = null,
             CancellationToken cancellationToken = default) where TEvent : class;
     }
 }

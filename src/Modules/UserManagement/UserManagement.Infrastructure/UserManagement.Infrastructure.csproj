@@ -13,6 +13,7 @@
 
     <ProjectReference Include="..\..\..\Shared\Contracts\Contracts.csproj" />
     <ProjectReference Include="..\..\..\Shared\Shared.Infrastructure\Shared.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\BackgroundService\BackgroundService.Application\BackgroundService.Application.csproj" />
   </ItemGroup>
 
   <ItemGroup>

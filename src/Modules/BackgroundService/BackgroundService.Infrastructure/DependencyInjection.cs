@@ -192,10 +192,7 @@ namespace BackgroundService.Infrastructure
                     x.AddConsumer<InventoryManagement.Application.Consumers.ApprovedRejectedConsumer>();
                     x.AddConsumer<PurchaseManagement.Application.Consumers.RollbackTransactionConsumer>();
                     x.AddConsumer<BudgetManagement.Application.Consumers.RollbackTransactionConsumer>();
-                    x.AddConsumer<ScheduleWorkOrderConsumer>();
-                    x.AddConsumer<NewScheduleWorkOrderTaskConsumer>();
                     x.AddConsumer<RollBackScheduleWorkOrderConsumer>();
-                    x.AddConsumer<ScheduleWorkOrderUpdateConsumer>();
                     
 
                     // Outbox event bridge consumers — receive events from SqlOutboxProcessorJob
@@ -314,21 +311,9 @@ namespace BackgroundService.Infrastructure
                             e.ConfigureConsumer<BudgetManagement.Application.Consumers.RollbackTransactionConsumer>(context);
                         });
 
-                        cfg.ReceiveEndpoint("hangfire-workorder-schedule-queue", e =>
-                        {
-                            e.ConfigureConsumer<ScheduleWorkOrderConsumer>(context);
-                        });
-                        cfg.ReceiveEndpoint("schedule-workorder-queue", e =>
-                        {
-                            e.ConfigureConsumer<NewScheduleWorkOrderTaskConsumer>(context);
-                        });
                         cfg.ReceiveEndpoint("rollback-ScheduleWorkOrder-queue", e =>
                         {
                             e.ConfigureConsumer<RollBackScheduleWorkOrderConsumer>(context);
-                        });
-                        cfg.ReceiveEndpoint("update-scheduleWorkOrder-task-queue", e =>
-                        {
-                            e.ConfigureConsumer<ScheduleWorkOrderUpdateConsumer>(context);
                         });
 
                         // Outbox event bridge endpoints
@@ -399,9 +384,7 @@ namespace BackgroundService.Infrastructure
             services.AddScoped<IEmailService, RealEmailService>();
             services.AddScoped<ISmsService, RealSmsService>();
             services.AddScoped<IUserUnlockService, UserUnlockService>();
-            services.AddTransient<IVerificationCodeCleanupService, VerificationCodeCleanupService>();
             services.AddScoped<IUserUnlockBackgroundJob, UserUnlockBackgroundJob>();
-            services.AddTransient<IMaintenance, MaintenanceService>();
             services.AddScoped<INotificationConfigCommandRepository, NotificationConfigCommandRepository>();  
             services.AddScoped<INotificationConfigQueryRepository, NotificationConfigQueryRepository>();  
             services.AddScoped<INotificationGroupCommand, NotificationGroupCommandRepository >();
