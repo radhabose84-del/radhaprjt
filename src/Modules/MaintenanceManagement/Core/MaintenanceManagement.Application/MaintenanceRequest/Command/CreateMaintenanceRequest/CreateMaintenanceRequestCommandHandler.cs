@@ -198,7 +198,7 @@ namespace MaintenanceManagement.Application.MaintenanceRequest.Command.CreateMai
                     createdDate: createdDate,
                     createdBy: createdBy);
 
-                await _outboxEventPublisher.ScheduleWithoutSaveAsync(notificationEvent, correlationId, cancellationToken);
+                await _outboxEventPublisher.ScheduleWithoutSaveAsync(notificationEvent, correlationId, cancellationToken: cancellationToken);
             }
 
             // ═══════════════════════════════════════════════════════════════════

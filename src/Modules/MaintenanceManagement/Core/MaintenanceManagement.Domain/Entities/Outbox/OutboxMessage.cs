@@ -67,6 +67,13 @@ namespace MaintenanceManagement.Domain.Entities.Outbox
         /// User who triggered the action
         /// </summary>
         public int? CreatedBy { get; set; }
+
+        /// <summary>
+        /// Hints which processor should handle this message.
+        /// NULL = SqlOutboxProcessorJob (general, via MassTransit).
+        /// "maintenance" = MaintenanceOutboxProcessorJob (direct Hangfire scheduling).
+        /// </summary>
+        public string? ProcessorHint { get; set; }
     }
 
     public enum OutboxMessageStatus

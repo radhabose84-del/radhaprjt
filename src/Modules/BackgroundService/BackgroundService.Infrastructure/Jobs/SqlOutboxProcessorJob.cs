@@ -89,6 +89,14 @@ public class SqlOutboxProcessorJob
     {
         var now = DateTimeOffset.UtcNow;
 
+        // Maintenance scheduling events carry ProcessorHint = 'maintenance' and are handled by
+        // MaintenanceOutboxProcessorJob (BSOFT.Api, maintenance-jobs queue).
+        // For the maintenance schema, only pick up rows where ProcessorHint IS NULL
+        // (i.e. non-scheduling events that go through MassTransit).
+        var maintenanceExclusion = schema.Equals("maintenance", StringComparison.OrdinalIgnoreCase)
+            ? "AND ProcessorHint IS NULL"
+            : string.Empty;
+
         var querySql = $"""
             SELECT TOP ({BatchSize})
                 Id, CorrelationId, EventType, EventData, RetryCount, MaxRetries
@@ -96,6 +104,7 @@ public class SqlOutboxProcessorJob
             WHERE Status = 0
               AND (NextRetryAt IS NULL OR NextRetryAt <= @Now)
               AND RetryCount < MaxRetries
+            {maintenanceExclusion}
             ORDER BY CreatedAt ASC
             """;
 

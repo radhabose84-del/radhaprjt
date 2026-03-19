@@ -41,6 +41,7 @@ using UserManagement.Infrastructure.Repositories.UserRoleAllocation.UserRoleAllo
 using UserManagement.Infrastructure.Repositories.UserRoleAllocation.UserRoleAllocationQueryRepository;
 using UserManagement.Infrastructure.Repositories.UserRoles;
 using UserManagement.Infrastructure.Repositories.Users;
+using UserManagement.Infrastructure.Repositories.RoleItemGroupMapping;
 using UserManagement.Infrastructure.Services;
 
 using UserManagement.Application.Common.Interfaces.IAdminSecuritySettings;
@@ -72,6 +73,7 @@ using UserManagement.Application.Common.Interfaces.IUserRole;
 using UserManagement.Application.Common.Interfaces.IUserRoleAllocation;
 using UserManagement.Application.Common.Interfaces.IUserSession;
 using UserManagement.Application.Common.Interfaces.IRoleEntitlement;
+using UserManagement.Application.Common.Interfaces.IRoleItemGroupMapping;
 using UserManagement.Application.Notification.Queries;
 
 using UserManagement.Domain.Entities;
@@ -253,32 +255,6 @@ namespace UserManagement.Infrastructure
             // --------------------------
             services.Configure<JwtSettings>(configuration.GetSection("JwtSettings"));
 
-            // --------------------------
-            // HttpClient (BackgroundServiceClient)
-            // --------------------------
-            // In Testing: allow missing base address.
-            services.AddHttpClient("BackgroundServiceClient", client =>
-            {
-                var baseAddress = configuration["HttpClientSettings:BackgroundService"];
-
-                if (string.IsNullOrWhiteSpace(baseAddress))
-                {
-                    if (!isTesting)
-                        throw new InvalidOperationException("HttpClientSettings:BackgroundService is missing in configuration.");
-
-                    baseAddress = "http://localhost";
-                }
-
-                client.BaseAddress = new Uri(baseAddress);
-            })
-            .AddTransientHttpErrorPolicy(policyBuilder =>
-                policyBuilder.CircuitBreakerAsync(
-                    handledEventsAllowedBeforeBreaking: 3,
-                    durationOfBreak: TimeSpan.FromSeconds(30)))
-            .AddTransientHttpErrorPolicy(policyBuilder =>
-                policyBuilder.WaitAndRetryAsync(3, retryAttempt =>
-                    TimeSpan.FromSeconds(Math.Pow(2, retryAttempt))));
-
             services.AddScoped<IBackgroundServiceClient, BackgroundServiceClient>();
 
             // --------------------------
@@ -387,6 +363,9 @@ namespace UserManagement.Infrastructure
 
             services.AddScoped<IDepartmentGroupCommandRepository, DepartmentGroupCommandRepository>();
             services.AddScoped<IDepartmentGroupQueryRepository, DepartmentGroupQueryRepository>();
+
+            services.AddScoped<IRoleItemGroupMappingCommandRepository, RoleItemGroupMappingCommandRepository>();
+            services.AddScoped<IRoleItemGroupMappingQueryRepository, RoleItemGroupMappingQueryRepository>();
 
             // --------------------------
             // Services

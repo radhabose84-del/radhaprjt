@@ -1585,6 +1585,60 @@ namespace UserManagement.Infrastructure.Migrations
                     b.ToTable("RoleEntitlements", "AppSecurity");
                 });
 
+            modelBuilder.Entity("UserManagement.Domain.Entities.RoleItemGroupMapping", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<int>("ItemGroupId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ModifiedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<int>("RoleId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RoleId", "ItemGroupId")
+                        .IsUnique();
+
+                    b.ToTable("RoleItemGroupMapping", "AppSecurity");
+                });
+
             modelBuilder.Entity("UserManagement.Domain.Entities.RoleMenuPrivileges", b =>
                 {
                     b.Property<int>("Id")
@@ -2279,6 +2333,12 @@ namespace UserManagement.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<bool>("BypassDataAccess")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false)
+                        .HasColumnName("BypassDataAccess");
+
                     b.Property<int>("CompanyId")
                         .HasColumnType("int")
                         .HasColumnName("CompanyId");
@@ -2685,6 +2745,17 @@ namespace UserManagement.Infrastructure.Migrations
                     b.Navigation("UserRole");
                 });
 
+            modelBuilder.Entity("UserManagement.Domain.Entities.RoleItemGroupMapping", b =>
+                {
+                    b.HasOne("UserManagement.Domain.Entities.UserRole", "UserRole")
+                        .WithMany("RoleItemGroupMappings")
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("UserRole");
+                });
+
             modelBuilder.Entity("UserManagement.Domain.Entities.RoleMenuPrivileges", b =>
                 {
                     b.HasOne("UserManagement.Domain.Entities.Menu", "Menu")
@@ -3069,6 +3140,8 @@ namespace UserManagement.Infrastructure.Migrations
             modelBuilder.Entity("UserManagement.Domain.Entities.UserRole", b =>
                 {
                     b.Navigation("RoleChildren");
+
+                    b.Navigation("RoleItemGroupMappings");
 
                     b.Navigation("RoleMenuPrivileges");
 

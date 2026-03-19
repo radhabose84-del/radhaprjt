@@ -190,6 +190,7 @@ namespace MaintenanceManagement.Infrastructure.Migrations
 
                     b.Property<decimal?>("BudgetAllocated")
                         .ValueGeneratedOnAdd()
+                        .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,2)")
                         .HasDefaultValue(0.00m);
 
@@ -320,9 +321,11 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                         .HasColumnName("OldUnitCode");
 
                     b.Property<decimal>("Quantity")
+                        .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,3)");
 
                     b.Property<decimal>("Rate")
+                        .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,3)");
 
                     b.Property<int>("TC")
@@ -340,6 +343,7 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                         .HasColumnName("UOM");
 
                     b.Property<decimal>("Value")
+                        .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,3)");
 
                     b.HasKey("Id");
@@ -545,6 +549,7 @@ namespace MaintenanceManagement.Infrastructure.Migrations
 
                     b.Property<decimal?>("ProductionCapacity")
                         .ValueGeneratedOnAdd()
+                        .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,2)")
                         .HasDefaultValue(0.00m);
 
@@ -714,10 +719,12 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal?>("EstimatedServiceCost")
+                        .HasPrecision(18, 6)
                         .HasColumnType("decimal");
 
                     b.Property<decimal?>("EstimatedSpareCost")
-                        .HasColumnType("decimal(18,2)");
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
 
                     b.Property<DateTimeOffset?>("ExpectedDispatchDate")
                         .HasColumnType("DateTimeOffset");
@@ -991,6 +998,79 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     b.ToTable("MiscTypeMaster", "Maintenance");
                 });
 
+            modelBuilder.Entity("MaintenanceManagement.Domain.Entities.Outbox.OutboxMessage", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<Guid>("CorrelationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int?>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("EventData")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EventType")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("LastError")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<int>("MaxRetries")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ModuleName")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasDefaultValue("MaintenanceManagement");
+
+                    b.Property<DateTimeOffset?>("NextRetryAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("ProcessorHint")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTimeOffset?>("PublishedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("RetryCount")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CorrelationId")
+                        .HasDatabaseName("IX_OutboxMessages_CorrelationId");
+
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("IX_OutboxMessages_CreatedAt");
+
+                    b.HasIndex("Status", "NextRetryAt")
+                        .HasDatabaseName("IX_OutboxMessages_Status_NextRetryAt")
+                        .HasFilter("[Status] = 0");
+
+                    b.ToTable("OutboxMessages", "maintenance");
+                });
+
             modelBuilder.Entity("MaintenanceManagement.Domain.Entities.Power.Feeder", b =>
                 {
                     b.Property<int>("Id")
@@ -1074,10 +1154,12 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                         .HasColumnType("varchar(50)");
 
                     b.Property<decimal>("MultiplicationFactor")
+                        .HasPrecision(18, 6)
                         .HasColumnType("Decimal(18,2)")
                         .HasColumnName("MultiplicationFactor");
 
                     b.Property<decimal>("OpeningReading")
+                        .HasPrecision(18, 6)
                         .HasColumnType("Decimal(18,3)")
                         .HasColumnName("OpeningReading");
 
@@ -1086,6 +1168,7 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                         .HasColumnName("ParentFeederId");
 
                     b.Property<decimal>("Target")
+                        .HasPrecision(18, 6)
                         .HasColumnType("Decimal(18,3)")
                         .HasColumnName("Target");
 
@@ -1173,6 +1256,7 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<decimal>("ClosingEnergyReading")
+                        .HasPrecision(18, 6)
                         .HasColumnType("Decimal(18,3)")
                         .HasColumnName("ClosingEnergyReading");
 
@@ -1191,6 +1275,7 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                         .HasColumnType("varchar(50)");
 
                     b.Property<decimal>("DieselConsumption")
+                        .HasPrecision(18, 6)
                         .HasColumnType("decimal(10,3)")
                         .HasColumnName("DieselConsumption");
 
@@ -1199,6 +1284,7 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                         .HasColumnName("EndTime");
 
                     b.Property<decimal>("Energy")
+                        .HasPrecision(18, 6)
                         .HasColumnType("Decimal(18,3)")
                         .HasColumnName("Energy");
 
@@ -1225,6 +1311,7 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                         .HasColumnType("varchar(50)");
 
                     b.Property<decimal>("OpeningEnergyReading")
+                        .HasPrecision(18, 6)
                         .HasColumnType("Decimal(18,3)")
                         .HasColumnName("OpeningEnergyReading");
 
@@ -1233,6 +1320,7 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                         .HasColumnName("PurposeId");
 
                     b.Property<decimal>("RunningHours")
+                        .HasPrecision(18, 6)
                         .HasColumnType("Decimal(18,3)")
                         .HasColumnName("RunningHours");
 
@@ -1263,6 +1351,7 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<decimal>("ClosingReading")
+                        .HasPrecision(18, 6)
                         .HasColumnType("Decimal(18,3)")
                         .HasColumnName("ClosingReading");
 
@@ -1307,10 +1396,12 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                         .HasColumnType("varchar(50)");
 
                     b.Property<decimal>("OpeningReading")
+                        .HasPrecision(18, 6)
                         .HasColumnType("Decimal(18,3)")
                         .HasColumnName("OpeningReading");
 
                     b.Property<decimal>("TotalUnits")
+                        .HasPrecision(18, 6)
                         .HasColumnType("Decimal(18,3)")
                         .HasColumnName("TotalUnits");
 
@@ -1443,7 +1534,8 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                         .HasColumnType("varchar(255)");
 
                     b.Property<decimal>("DownTimeEstimateHrs")
-                        .HasColumnType("decimal(18,2)");
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
 
                     b.Property<int>("FrequencyInterval")
                         .HasColumnType("int")
@@ -1570,7 +1662,8 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                         .HasColumnName("DepartmentId");
 
                     b.Property<decimal>("DownTimeEstimateHrs")
-                        .HasColumnType("decimal(18,2)");
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
 
                     b.Property<DateOnly>("EffectiveDate")
                         .HasColumnType("date")
@@ -1860,11 +1953,13 @@ namespace MaintenanceManagement.Infrastructure.Migrations
 
                     b.Property<decimal>("IssueQty")
                         .ValueGeneratedOnAdd()
+                        .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,3)")
                         .HasDefaultValue(0.00m);
 
                     b.Property<decimal>("IssueValue")
                         .ValueGeneratedOnAdd()
+                        .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,3)")
                         .HasDefaultValue(0.00m);
 
@@ -1885,11 +1980,13 @@ namespace MaintenanceManagement.Infrastructure.Migrations
 
                     b.Property<decimal>("ReceivedQty")
                         .ValueGeneratedOnAdd()
+                        .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,3)")
                         .HasDefaultValue(0.00m);
 
                     b.Property<decimal>("ReceivedValue")
                         .ValueGeneratedOnAdd()
+                        .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,3)")
                         .HasDefaultValue(0.00m);
 
@@ -2048,6 +2145,7 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                         .HasColumnName("TotalManPower");
 
                     b.Property<decimal?>("TotalSpentHours")
+                        .HasPrecision(18, 6)
                         .HasColumnType("decimal(5,2)")
                         .HasColumnName("TotalSpentHours");
 
@@ -2170,7 +2268,8 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                         .HasColumnName("OldItemCode");
 
                     b.Property<decimal?>("Rate")
-                        .HasColumnType("decimal(18,2)");
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
 
                     b.Property<int?>("ScarpQty")
                         .HasColumnType("int")

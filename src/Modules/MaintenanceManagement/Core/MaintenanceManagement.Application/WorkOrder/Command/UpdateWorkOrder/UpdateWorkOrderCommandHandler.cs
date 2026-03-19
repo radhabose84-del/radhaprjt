@@ -1,9 +1,9 @@
 using AutoMapper;
-using Contracts.Events.Maintenance;
 using Contracts.Interfaces.Lookups.Users;
 using Contracts.Common;
 using MaintenanceManagement.Application.Common;
 using MaintenanceManagement.Application.Common.Interfaces;
+using Contracts.Events.Maintenance;
 using MaintenanceManagement.Application.Common.Interfaces.IOutbox;
 using MaintenanceManagement.Application.Common.Interfaces.IPreventiveScheduler;
 using MaintenanceManagement.Application.Common.Interfaces.IPreventiveSchedulerLog;
@@ -24,8 +24,8 @@ namespace MaintenanceManagement.Application.WorkOrder.Command.UpdateWorkOrder
         private readonly IWorkOrderQueryRepository _workOrderQueryRepository;
         private readonly IMapper _mapper;
         private readonly IMediator _mediator;
-        private readonly IOutboxEventPublisher _outboxEventPublisher;
         private readonly IMaintenanceUnitOfWork _unitOfWork;
+        private readonly IOutboxEventPublisher _outboxEventPublisher;
         private readonly ILogger<UpdateWorkOrderCommandHandler> _logger;
         private readonly ILogQueryService _logQueryService;
         private readonly IUnitLookup _unitLookup;
@@ -40,8 +40,8 @@ namespace MaintenanceManagement.Application.WorkOrder.Command.UpdateWorkOrder
             IMapper mapper,
             IWorkOrderQueryRepository workOrderQueryRepository,
             IMediator mediator,
-            IOutboxEventPublisher outboxEventPublisher,
             IMaintenanceUnitOfWork unitOfWork,
+            IOutboxEventPublisher outboxEventPublisher,
             ILogger<UpdateWorkOrderCommandHandler> logger,
             ILogQueryService logQueryService,
             IUnitLookup unitLookup,
@@ -55,8 +55,8 @@ namespace MaintenanceManagement.Application.WorkOrder.Command.UpdateWorkOrder
             _mapper = mapper;
             _workOrderQueryRepository = workOrderQueryRepository;
             _mediator = mediator;
-            _outboxEventPublisher = outboxEventPublisher;
             _unitOfWork = unitOfWork;
+            _outboxEventPublisher = outboxEventPublisher;
             _logger = logger;
             _logQueryService = logQueryService ?? throw new ArgumentNullException(nameof(logQueryService));
             _unitLookup = unitLookup;
@@ -75,11 +75,11 @@ namespace MaintenanceManagement.Application.WorkOrder.Command.UpdateWorkOrder
 
             _logger.LogInformation("Work Order Status. updatedEntity: {@updatedEntity}", updatedEntity);
 
-            // ── Atomic transaction: WO update + optional next-schedule creation + outbox insert ─
-            // If any step throws, RollbackAsync undoes all writes.
-            // If CommitAsync succeeds, BSOFT.Worker picks up the outbox row and publishes
-            // NextSchedulerCreatedEvent to RabbitMQ for downstream Hangfire scheduling.
+            // ── Atomic transaction: WO update + next-schedule creation + outbox insert ─
+            // If any step throws, RollbackAsync undoes everything.
             bool updateResult;
+            var correlationId = Guid.NewGuid();
+
             await _unitOfWork.BeginTransactionAsync(cancellationToken);
             try
             {
@@ -100,19 +100,21 @@ namespace MaintenanceManagement.Application.WorkOrder.Command.UpdateWorkOrder
                         if (nextPreventiveSchedule != null)
                         {
                             var targetDateTime = nextPreventiveSchedule.WorkOrderCreationStartDate.ToDateTime(TimeOnly.MinValue);
-                            var delay = targetDateTime - DateTime.Now;
-                            var delayInMinutes = (int)delay.TotalMinutes;
-                            var correlationId = Guid.NewGuid();
+                            var delayInMinutes = (int)Math.Ceiling((targetDateTime - DateTime.Now).TotalMinutes);
+                            var delayMinutesClamped = delayInMinutes < 5 ? 5 : delayInMinutes;
 
                             var @event = new NextSchedulerCreatedEvent
                             {
                                 CorrelationId = correlationId,
                                 PreventiveSchedulerDetailId = nextPreventiveSchedule.Id,
-                                DelayInMinutes = delayInMinutes,
+                                DelayInMinutes = delayMinutesClamped,
                                 WorkOrderId = updatedEntity.Id
                             };
+                            await _outboxEventPublisher.ScheduleWithoutSaveAsync(@event, correlationId, "maintenance", cancellationToken);
 
-                            await _outboxEventPublisher.ScheduleWithoutSaveAsync(@event, correlationId, cancellationToken);
+                            _logger.LogInformation(
+                                "Queued NextSchedulerCreatedEvent for DetailId: {DetailId} (delay {Delay} min)",
+                                nextPreventiveSchedule.Id, delayMinutesClamped);
                         }
                     }
                 }
