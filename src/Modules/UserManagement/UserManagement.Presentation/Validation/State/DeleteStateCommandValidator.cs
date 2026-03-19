@@ -10,15 +10,11 @@ namespace UserManagement.Presentation.Validation.State
         private readonly List<ValidationRule> _validationRules;
         private readonly IStateQueryRepository _stateQueryRepository;
 
-        // ✅ ADD optional rules parameter for unit testing
-        public DeleteStateCommandValidator(
-            IStateQueryRepository stateQueryRepository,
-            IEnumerable<ValidationRule>? rules = null)
+        public DeleteStateCommandValidator(IStateQueryRepository stateQueryRepository)
         {
             _stateQueryRepository = stateQueryRepository;
 
-            _validationRules = (rules?.ToList() ?? ValidationRuleLoader.LoadValidationRules()) 
-                               ?? new List<ValidationRule>();
+            _validationRules = ValidationRuleLoader.LoadValidationRules() ?? new List<ValidationRule>();
 
             if (_validationRules.Count == 0)
                 throw new InvalidOperationException("Validation rules could not be loaded.");
