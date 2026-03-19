@@ -157,8 +157,8 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                     pt.PackTypeName,
                     d.UOMId, d.TotalAmount
                 FROM Sales.InvoiceDetail d
-                LEFT JOIN Sales.PackType  pt ON d.PackTypeId = pt.Id  AND pt.IsDeleted = 0
-                LEFT JOIN Sales.LotMaster lm ON d.LotId      = lm.Id  AND lm.IsDeleted = 0
+                LEFT JOIN Production.PackType  pt ON d.PackTypeId = pt.Id  AND pt.IsDeleted = 0
+                LEFT JOIN Production.LotMaster lm ON d.LotId      = lm.Id  AND lm.IsDeleted = 0
                 WHERE d.InvoiceHeaderId = @HeaderId
                 ORDER BY d.ItemSno";
 

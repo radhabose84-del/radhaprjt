@@ -9,7 +9,7 @@ namespace SalesManagement.Domain.Entities
         public int ItemId { get; set; }                   // Cross-module FK → InventoryManagement
         public string? HsnCode { get; set; }
         public decimal GstPercentage { get; set; }
-        public int? LotId { get; set; }                   // FK → Sales.LotMaster
+        public int? LotId { get; set; }                   // Cross-module FK → ProductionManagement
         public int NoOfBags { get; set; }
         public decimal Quantity { get; set; }
         public decimal RatePerKg { get; set; }
@@ -22,13 +22,12 @@ namespace SalesManagement.Domain.Entities
         public decimal SGST { get; set; }
         public decimal IGST { get; set; }
         public decimal TaxAmount { get; set; }
-        public int? PackTypeId { get; set; }              // FK → Sales.PackType
+        public int? PackTypeId { get; set; }              // Cross-module FK → ProductionManagement
         public int? UOMId { get; set; }                   // Cross-module FK → Inventory.UOM
         public decimal TotalAmount { get; set; }
 
         // Navigation properties
         public InvoiceHeader? InvoiceHeader { get; set; }
-        public PackType? PackType { get; set; }
-        public LotMaster? LotMaster { get; set; }
+        // PackType and LotMaster moved to ProductionManagement — use lookups for names
     }
 }

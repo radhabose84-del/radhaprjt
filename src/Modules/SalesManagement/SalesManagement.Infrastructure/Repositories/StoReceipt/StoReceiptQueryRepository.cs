@@ -190,7 +190,7 @@ namespace SalesManagement.Infrastructure.Repositories.StoReceipt
                     d.LineStatusId,
                     ms2.Description AS LineStatusName
                 FROM Sales.StoReceiptDetail d
-                LEFT JOIN Sales.LotMaster lm ON d.LotId = lm.Id AND lm.IsDeleted = 0
+                LEFT JOIN Production.LotMaster lm ON d.LotId = lm.Id AND lm.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster ms2 ON d.LineStatusId = ms2.Id AND ms2.IsDeleted = 0
                 WHERE d.StoReceiptHeaderId = @HeaderId;";
 
@@ -297,7 +297,7 @@ namespace SalesManagement.Infrastructure.Repositories.StoReceipt
 
                 // Fetch LotCode via same-module query
                 const string lotSql = @"
-                    SELECT LotCode FROM Sales.LotMaster WHERE Id = @LotId AND IsDeleted = 0;";
+                    SELECT LotCode FROM Production.LotMaster WHERE Id = @LotId AND IsDeleted = 0;";
                 result.LotCode = await _dbConnection.ExecuteScalarAsync<string>(lotSql, new { result.LotId });
             }
 

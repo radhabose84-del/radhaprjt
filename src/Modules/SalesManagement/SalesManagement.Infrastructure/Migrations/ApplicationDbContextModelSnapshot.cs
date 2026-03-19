@@ -1420,126 +1420,6 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.ToTable("ItemPriceMaster", "Sales");
                 });
 
-            modelBuilder.Entity("SalesManagement.Domain.Entities.LotMaster", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("Id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<decimal>("AvailableQty")
-                        .ValueGeneratedOnAdd()
-                        .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,2)")
-                        .HasDefaultValue(0m)
-                        .HasColumnName("AvailableQty");
-
-                    b.Property<string>("BatchNumber")
-                        .IsRequired()
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("BatchNumber");
-
-                    b.Property<int>("CreatedBy")
-                        .HasColumnType("int")
-                        .HasColumnName("CreatedBy");
-
-                    b.Property<string>("CreatedByName")
-                        .HasColumnType("varchar(100)")
-                        .HasColumnName("CreatedByName");
-
-                    b.Property<DateTimeOffset?>("CreatedDate")
-                        .HasColumnType("datetimeoffset")
-                        .HasColumnName("CreatedDate");
-
-                    b.Property<string>("CreatedIP")
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("CreatedIP");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit")
-                        .HasColumnName("IsActive");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit")
-                        .HasColumnName("IsDeleted");
-
-                    b.Property<int>("ItemId")
-                        .HasColumnType("int")
-                        .HasColumnName("ItemId");
-
-                    b.Property<string>("LotCode")
-                        .IsRequired()
-                        .HasColumnType("varchar(20)")
-                        .HasColumnName("LotCode");
-
-                    b.Property<int>("LotTypeId")
-                        .HasColumnType("int")
-                        .HasColumnName("LotTypeId");
-
-                    b.Property<int?>("ModifiedBy")
-                        .HasColumnType("int")
-                        .HasColumnName("ModifiedBy");
-
-                    b.Property<string>("ModifiedByName")
-                        .HasColumnType("varchar(100)")
-                        .HasColumnName("ModifiedByName");
-
-                    b.Property<DateTimeOffset?>("ModifiedDate")
-                        .HasColumnType("datetimeoffset")
-                        .HasColumnName("ModifiedDate");
-
-                    b.Property<string>("ModifiedIP")
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("ModifiedIP");
-
-                    b.Property<string>("ProductionOrderRef")
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("ProductionOrderRef");
-
-                    b.Property<string>("Remarks")
-                        .HasColumnType("varchar(500)")
-                        .HasColumnName("Remarks");
-
-                    b.Property<DateOnly?>("RunOutDate")
-                        .HasColumnType("date")
-                        .HasColumnName("RunOutDate");
-
-                    b.Property<DateOnly>("StartDate")
-                        .HasColumnType("date")
-                        .HasColumnName("StartDate");
-
-                    b.Property<int>("StatusId")
-                        .HasColumnType("int")
-                        .HasColumnName("StatusId");
-
-                    b.Property<decimal>("TotalProducedQty")
-                        .ValueGeneratedOnAdd()
-                        .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,2)")
-                        .HasDefaultValue(0m)
-                        .HasColumnName("TotalProducedQty");
-
-                    b.Property<int>("UnitId")
-                        .HasColumnType("int")
-                        .HasColumnName("UnitId");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ItemId");
-
-                    b.HasIndex("LotCode")
-                        .IsUnique()
-                        .HasFilter("[IsDeleted] = 0");
-
-                    b.HasIndex("LotTypeId");
-
-                    b.HasIndex("StatusId");
-
-                    b.ToTable("LotMaster", "Sales");
-                });
-
             modelBuilder.Entity("SalesManagement.Domain.Entities.MarketingOfficer", b =>
                 {
                     b.Property<int>("Id")
@@ -2032,285 +1912,6 @@ namespace SalesManagement.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("OfficerSalesGroup", "Sales");
-                });
-
-            modelBuilder.Entity("SalesManagement.Domain.Entities.PackType", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("Id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int?>("ConesPerBag")
-                        .HasColumnType("int")
-                        .HasColumnName("ConesPerBag");
-
-                    b.Property<int>("CreatedBy")
-                        .HasColumnType("int")
-                        .HasColumnName("CreatedBy");
-
-                    b.Property<string>("CreatedByName")
-                        .HasColumnType("varchar(100)")
-                        .HasColumnName("CreatedByName");
-
-                    b.Property<DateTimeOffset?>("CreatedDate")
-                        .HasColumnType("datetimeoffset")
-                        .HasColumnName("CreatedDate");
-
-                    b.Property<string>("CreatedIP")
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("CreatedIP");
-
-                    b.Property<decimal>("GrossWeight")
-                        .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,2)")
-                        .HasColumnName("GrossWeight");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit")
-                        .HasColumnName("IsActive");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit")
-                        .HasColumnName("IsDeleted");
-
-                    b.Property<int?>("ModifiedBy")
-                        .HasColumnType("int")
-                        .HasColumnName("ModifiedBy");
-
-                    b.Property<string>("ModifiedByName")
-                        .HasColumnType("varchar(100)")
-                        .HasColumnName("ModifiedByName");
-
-                    b.Property<DateTimeOffset?>("ModifiedDate")
-                        .HasColumnType("datetimeoffset")
-                        .HasColumnName("ModifiedDate");
-
-                    b.Property<string>("ModifiedIP")
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("ModifiedIP");
-
-                    b.Property<decimal>("NetWeight")
-                        .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,2)")
-                        .HasColumnName("NetWeight");
-
-                    b.Property<string>("PackTypeCode")
-                        .IsRequired()
-                        .HasColumnType("varchar(20)")
-                        .HasColumnName("PackTypeCode");
-
-                    b.Property<string>("PackTypeName")
-                        .IsRequired()
-                        .HasColumnType("varchar(100)")
-                        .HasColumnName("PackTypeName");
-
-                    b.Property<bool>("ProductionAllowed")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(true)
-                        .HasColumnName("ProductionAllowed");
-
-                    b.Property<decimal>("TareWeight")
-                        .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,2)")
-                        .HasColumnName("TareWeight");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PackTypeCode")
-                        .IsUnique();
-
-                    b.ToTable("PackType", "Sales");
-                });
-
-            modelBuilder.Entity("SalesManagement.Domain.Entities.ProductionPackDetail", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("Id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("BinId")
-                        .HasColumnType("int")
-                        .HasColumnName("BinId");
-
-                    b.Property<int>("EndPackNo")
-                        .HasColumnType("int")
-                        .HasColumnName("EndPackNo");
-
-                    b.Property<int>("ItemId")
-                        .HasColumnType("int")
-                        .HasColumnName("ItemId");
-
-                    b.Property<int>("ItemSno")
-                        .HasColumnType("int")
-                        .HasColumnName("ItemSno");
-
-                    b.Property<string>("LineRemarks")
-                        .HasColumnType("nvarchar(250)")
-                        .HasColumnName("LineRemarks");
-
-                    b.Property<int>("LotId")
-                        .HasColumnType("int")
-                        .HasColumnName("LotId");
-
-                    b.Property<decimal>("NetWeightPerPack")
-                        .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,3)")
-                        .HasColumnName("NetWeightPerPack");
-
-                    b.Property<int>("NoOfBags")
-                        .HasColumnType("int")
-                        .HasColumnName("NoOfBags");
-
-                    b.Property<int>("PackTypeId")
-                        .HasColumnType("int")
-                        .HasColumnName("PackTypeId");
-
-                    b.Property<int>("ProductionPackHeaderId")
-                        .HasColumnType("int")
-                        .HasColumnName("ProductionPackHeaderId");
-
-                    b.Property<int>("QualityStatusId")
-                        .HasColumnType("int")
-                        .HasColumnName("QualityStatusId");
-
-                    b.Property<int>("StartPackNo")
-                        .HasColumnType("int")
-                        .HasColumnName("StartPackNo");
-
-                    b.Property<int>("TotalBags")
-                        .HasColumnType("int")
-                        .HasColumnName("TotalBags");
-
-                    b.Property<decimal>("TotalNetWeight")
-                        .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,3)")
-                        .HasColumnName("TotalNetWeight");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("BinId");
-
-                    b.HasIndex("LotId");
-
-                    b.HasIndex("PackTypeId");
-
-                    b.HasIndex("ProductionPackHeaderId");
-
-                    b.HasIndex("QualityStatusId");
-
-                    b.ToTable("ProductionPackDetail", "Production");
-                });
-
-            modelBuilder.Entity("SalesManagement.Domain.Entities.ProductionPackHeader", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("Id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("CreatedBy")
-                        .HasColumnType("int")
-                        .HasColumnName("CreatedBy");
-
-                    b.Property<string>("CreatedByName")
-                        .HasColumnType("varchar(100)")
-                        .HasColumnName("CreatedByName");
-
-                    b.Property<DateTimeOffset?>("CreatedDate")
-                        .HasColumnType("datetimeoffset")
-                        .HasColumnName("CreatedDate");
-
-                    b.Property<string>("CreatedIP")
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("CreatedIP");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit")
-                        .HasColumnName("IsActive");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit")
-                        .HasColumnName("IsDeleted");
-
-                    b.Property<decimal>("LooseConeKgs")
-                        .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,3)")
-                        .HasColumnName("LooseConeKgs");
-
-                    b.Property<int?>("ModifiedBy")
-                        .HasColumnType("int")
-                        .HasColumnName("ModifiedBy");
-
-                    b.Property<string>("ModifiedByName")
-                        .HasColumnType("varchar(100)")
-                        .HasColumnName("ModifiedByName");
-
-                    b.Property<DateTimeOffset?>("ModifiedDate")
-                        .HasColumnType("datetimeoffset")
-                        .HasColumnName("ModifiedDate");
-
-                    b.Property<string>("ModifiedIP")
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("ModifiedIP");
-
-                    b.Property<DateOnly>("PackDate")
-                        .HasColumnType("date")
-                        .HasColumnName("PackDate");
-
-                    b.Property<string>("PackNo")
-                        .IsRequired()
-                        .HasColumnType("varchar(30)")
-                        .HasColumnName("PackNo");
-
-                    b.Property<decimal>("ProductionKgs")
-                        .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,3)")
-                        .HasColumnName("ProductionKgs");
-
-                    b.Property<int>("ProductionYear")
-                        .HasColumnType("int")
-                        .HasColumnName("ProductionYear");
-
-                    b.Property<string>("Remarks")
-                        .HasColumnType("nvarchar(500)")
-                        .HasColumnName("Remarks");
-
-                    b.Property<int>("TotalBags")
-                        .HasColumnType("int")
-                        .HasColumnName("TotalBags");
-
-                    b.Property<decimal>("TotalNetWeight")
-                        .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,3)")
-                        .HasColumnName("TotalNetWeight");
-
-                    b.Property<int>("UnitId")
-                        .HasColumnType("int")
-                        .HasColumnName("UnitId");
-
-                    b.Property<int>("WarehouseId")
-                        .HasColumnType("int")
-                        .HasColumnName("WarehouseId");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PackDate");
-
-                    b.HasIndex("WarehouseId");
-
-                    b.HasIndex("PackNo", "ProductionYear")
-                        .IsUnique();
-
-                    b.ToTable("ProductionPackHeader", "Production");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.SalesChannel", b =>
@@ -4165,12 +3766,6 @@ namespace SalesManagement.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("SalesManagement.Domain.Entities.LotMaster", "LotMaster")
-                        .WithMany("DeliveryChallanDetails")
-                        .HasForeignKey("LotId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("SalesManagement.Domain.Entities.StoDetail", "StoDetail")
                         .WithMany("DeliveryChallanDetails")
                         .HasForeignKey("StoDetailId")
@@ -4178,8 +3773,6 @@ namespace SalesManagement.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("DeliveryChallanHeader");
-
-                    b.Navigation("LotMaster");
 
                     b.Navigation("StoDetail");
                 });
@@ -4230,18 +3823,6 @@ namespace SalesManagement.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("SalesManagement.Domain.Entities.LotMaster", "LotMaster")
-                        .WithMany("DispatchAdviceDetails")
-                        .HasForeignKey("LotId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("SalesManagement.Domain.Entities.PackType", "PackType")
-                        .WithMany("DispatchAdviceDetails")
-                        .HasForeignKey("PackTypeId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("SalesManagement.Domain.Entities.SalesOrderDetail", "SalesOrderDetail")
                         .WithMany("DispatchAdviceDetails")
                         .HasForeignKey("SalesOrderDetailId")
@@ -4249,10 +3830,6 @@ namespace SalesManagement.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("DispatchAdviceHeader");
-
-                    b.Navigation("LotMaster");
-
-                    b.Navigation("PackType");
 
                     b.Navigation("SalesOrderDetail");
                 });
@@ -4292,21 +3869,7 @@ namespace SalesManagement.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("SalesManagement.Domain.Entities.LotMaster", "LotMaster")
-                        .WithMany()
-                        .HasForeignKey("LotId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("SalesManagement.Domain.Entities.PackType", "PackType")
-                        .WithMany()
-                        .HasForeignKey("PackTypeId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.Navigation("InvoiceHeader");
-
-                    b.Navigation("LotMaster");
-
-                    b.Navigation("PackType");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.InvoiceHeader", b =>
@@ -4356,25 +3919,6 @@ namespace SalesManagement.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("SalesSegment");
-
-                    b.Navigation("StatusMisc");
-                });
-
-            modelBuilder.Entity("SalesManagement.Domain.Entities.LotMaster", b =>
-                {
-                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "LotTypeMisc")
-                        .WithMany("LotMastersAsLotType")
-                        .HasForeignKey("LotTypeId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "StatusMisc")
-                        .WithMany("LotMastersAsStatus")
-                        .HasForeignKey("StatusId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("LotTypeMisc");
 
                     b.Navigation("StatusMisc");
                 });
@@ -4456,41 +4000,6 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("MarketingOfficer");
 
                     b.Navigation("SalesGroup");
-                });
-
-            modelBuilder.Entity("SalesManagement.Domain.Entities.ProductionPackDetail", b =>
-                {
-                    b.HasOne("SalesManagement.Domain.Entities.LotMaster", "LotMaster")
-                        .WithMany("ProductionPackDetails")
-                        .HasForeignKey("LotId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("SalesManagement.Domain.Entities.PackType", "PackType")
-                        .WithMany("ProductionPackDetails")
-                        .HasForeignKey("PackTypeId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("SalesManagement.Domain.Entities.ProductionPackHeader", "ProductionPackHeader")
-                        .WithMany("ProductionPackDetails")
-                        .HasForeignKey("ProductionPackHeaderId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "QualityStatusMisc")
-                        .WithMany("ProductionPackDetailsAsQualityStatus")
-                        .HasForeignKey("QualityStatusId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("LotMaster");
-
-                    b.Navigation("PackType");
-
-                    b.Navigation("ProductionPackHeader");
-
-                    b.Navigation("QualityStatusMisc");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.SalesContact", b =>
@@ -4579,11 +4088,6 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasForeignKey("LineItemStatusId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("SalesManagement.Domain.Entities.PackType", "PackType")
-                        .WithMany("SalesOrderDetails")
-                        .HasForeignKey("PackTypeId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("SalesManagement.Domain.Entities.SalesOrderHeader", "SalesOrderHeader")
                         .WithMany("SalesOrderDetails")
                         .HasForeignKey("SalesOrderHeaderId")
@@ -4591,8 +4095,6 @@ namespace SalesManagement.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("LineItemStatus");
-
-                    b.Navigation("PackType");
 
                     b.Navigation("SalesOrderHeader");
                 });
@@ -4795,12 +4297,6 @@ namespace SalesManagement.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("SalesManagement.Domain.Entities.LotMaster", "LotMaster")
-                        .WithMany("StoReceiptDetails")
-                        .HasForeignKey("LotId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("SalesManagement.Domain.Entities.StoReceiptHeader", "StoReceiptHeader")
                         .WithMany("StoReceiptDetails")
                         .HasForeignKey("StoReceiptHeaderId")
@@ -4810,8 +4306,6 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("DeliveryChallanDetail");
 
                     b.Navigation("LineStatus");
-
-                    b.Navigation("LotMaster");
 
                     b.Navigation("StoReceiptHeader");
                 });
@@ -4895,17 +4389,6 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("InvoiceDetails");
                 });
 
-            modelBuilder.Entity("SalesManagement.Domain.Entities.LotMaster", b =>
-                {
-                    b.Navigation("DeliveryChallanDetails");
-
-                    b.Navigation("DispatchAdviceDetails");
-
-                    b.Navigation("ProductionPackDetails");
-
-                    b.Navigation("StoReceiptDetails");
-                });
-
             modelBuilder.Entity("SalesManagement.Domain.Entities.MarketingOfficer", b =>
                 {
                     b.Navigation("OfficerSalesGroups");
@@ -4927,17 +4410,11 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     b.Navigation("ItemPriceMastersAsStatus");
 
-                    b.Navigation("LotMastersAsLotType");
-
-                    b.Navigation("LotMastersAsStatus");
-
                     b.Navigation("MovementTypeConfigsAsFromStockType");
 
                     b.Navigation("MovementTypeConfigsAsMovementCategory");
 
                     b.Navigation("MovementTypeConfigsAsToStockType");
-
-                    b.Navigation("ProductionPackDetailsAsQualityStatus");
 
                     b.Navigation("SalesContacts");
 
@@ -4978,20 +4455,6 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("StoTypeMastersAsGr");
 
                     b.Navigation("StoTypeMastersAsPgi");
-                });
-
-            modelBuilder.Entity("SalesManagement.Domain.Entities.PackType", b =>
-                {
-                    b.Navigation("DispatchAdviceDetails");
-
-                    b.Navigation("ProductionPackDetails");
-
-                    b.Navigation("SalesOrderDetails");
-                });
-
-            modelBuilder.Entity("SalesManagement.Domain.Entities.ProductionPackHeader", b =>
-                {
-                    b.Navigation("ProductionPackDetails");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.SalesChannel", b =>
