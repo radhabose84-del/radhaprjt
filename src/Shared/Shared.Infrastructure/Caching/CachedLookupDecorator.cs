@@ -153,7 +153,7 @@ public class CachedLookupDecorator<TLookup> : DispatchProxy where TLookup : clas
 
     private static string GenerateCacheKey(MethodInfo method, object?[]? args)
     {
-        var lookupName = typeof(TLookup).Name; // e.g., "IUnitLookup"
+        var lookupName = typeof(TLookup).FullName ?? typeof(TLookup).Name; // e.g., "Contracts.Interfaces.Lookups.UserManagement.IUnitLookup"
         var methodName = method.Name;          // e.g., "GetAllAsync"
 
         // Serialize arguments to create unique key

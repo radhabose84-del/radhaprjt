@@ -5,8 +5,7 @@ namespace UserManagement.Application.Users.Commands.ForgotUserPassword
     public string? Message { get; set; }
     public string? Email { get; set; }
     public string? Mobile { get; set; }
-    public string? VerificationCode { get; set; }
-    public int  PasswordResetCodeExpiryMinutes  {get; set;}
+    public int PasswordResetCodeExpiryMinutes { get; set; }
 
     }
 }
