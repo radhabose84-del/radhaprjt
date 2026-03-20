@@ -10,8 +10,7 @@ namespace SalesManagement.Domain.Entities
         public int ItemId { get; set; }                        // Cross-module FK (InventoryManagement)
         public int? VariantId { get; set; }                    // Optional, no lookup yet
         public int HSNId { get; set; }                         // Cross-module FK (InventoryManagement)
-        public int? PackTypeId { get; set; }                   // Same-module FK → Sales.PackType
-        public PackType? PackType { get; set; }
+        public int? PackTypeId { get; set; }                   // Cross-module FK → ProductionManagement
 
         // Quantity & Weight
         public int QtyInBags { get; set; }

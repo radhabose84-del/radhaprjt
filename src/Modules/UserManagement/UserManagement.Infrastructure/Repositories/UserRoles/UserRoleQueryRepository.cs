@@ -31,20 +31,21 @@ namespace UserManagement.Infrastructure.Repositories.UserRoles
                 WHERE IsDeleted = 0
                 {{(string.IsNullOrEmpty(SearchTerm) ? "" : "AND (RoleName LIKE @Search OR Description LIKE @Search)")}};
                 
-                SELECT 
-                    Id, 
-                    RoleName, 
-                    Description, 
-                    CompanyId, 
-                    IsActive, 
-                    CreatedBy, 
-                    CreatedAt, 
-                    CreatedByName, 
-                    CreatedIP, 
-                    ModifiedBy, 
-                    ModifiedAt, 
-                    ModifiedByName, 
-                    ModifiedIP, 
+                SELECT
+                    Id,
+                    RoleName,
+                    Description,
+                    CompanyId,
+                    BypassDataAccess,
+                    IsActive,
+                    CreatedBy,
+                    CreatedAt,
+                    CreatedByName,
+                    CreatedIP,
+                    ModifiedBy,
+                    ModifiedAt,
+                    ModifiedByName,
+                    ModifiedIP,
                     IsDeleted
                 FROM AppSecurity.UserRole 
                 WHERE 
@@ -76,7 +77,7 @@ namespace UserManagement.Infrastructure.Repositories.UserRoles
             {
                   
                 var CompanyId = _ipAddressService.GetCompanyId() ?? 0;
-                const string query = "SELECT Id,RoleName,Description,CompanyId,IsActive FROM  AppSecurity.UserRole WHERE Id = @Id AND IsDeleted=0 AND CompanyId=@CompanyId ORDER BY Id DESC";
+                const string query = "SELECT Id,RoleName,Description,CompanyId,BypassDataAccess,IsActive FROM  AppSecurity.UserRole WHERE Id = @Id AND IsDeleted=0 AND CompanyId=@CompanyId ORDER BY Id DESC";
                 return await _dbConnection.QueryFirstOrDefaultAsync<UserRole>(query, new { id,CompanyId });
             
             }   

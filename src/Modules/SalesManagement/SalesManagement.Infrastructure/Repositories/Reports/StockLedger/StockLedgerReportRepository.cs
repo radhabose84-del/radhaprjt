@@ -72,8 +72,8 @@ namespace SalesManagement.Infrastructure.Repositories.Reports.StockLedger
                     sl.StatusId,
                     mm.Description AS StatusName
                 FROM Sales.StockLedger sl
-                LEFT JOIN Sales.LotMaster lm  ON sl.LotId       = lm.Id  AND lm.IsDeleted  = 0
-                LEFT JOIN Sales.PackType  pt  ON sl.PackTypeId   = pt.Id  AND pt.IsDeleted  = 0
+                LEFT JOIN Production.LotMaster lm  ON sl.LotId       = lm.Id  AND lm.IsDeleted  = 0
+                LEFT JOIN Production.PackType  pt  ON sl.PackTypeId   = pt.Id  AND pt.IsDeleted  = 0
                 LEFT JOIN Sales.MiscMaster mm ON sl.StatusId     = mm.Id  AND mm.IsDeleted  = 0
                 LEFT JOIN Sales.MiscTypeMaster mtm ON mm.MiscTypeId = mtm.Id
                                                    AND mtm.MiscTypeCode = 'StockStatus'

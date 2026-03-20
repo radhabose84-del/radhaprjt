@@ -8,5 +8,6 @@ namespace UserManagement.Application.Common.Interfaces.IRoleItemGroupMapping
         Task<int> UpdateAsync(int id, Domain.Entities.RoleItemGroupMapping entity);
         Task<int> DeleteAsync(int id, Domain.Entities.RoleItemGroupMapping entity);
         Task<bool> CompositeKeyExistsAsync(int roleId, int itemGroupId, int? excludeId = null);
+        Task SoftDeleteByRoleIdAsync(int roleId, CancellationToken ct);
     }
 }

@@ -8,6 +8,7 @@ namespace UserManagement.Application.UserRole.Queries.GetRole
         public string? RoleName { get; set; }
         public string? Description { get; set; }
         public int CompanyId { get; set; }
+        public bool BypassDataAccess { get; set; }
         public Status IsActive { get; set; }
         public IsDelete IsDeleted { get; set; }
         public int CreatedBy { get; set; }
@@ -18,5 +19,13 @@ namespace UserManagement.Application.UserRole.Queries.GetRole
         public DateTime? ModifiedAt { get; set; }
         public string? ModifiedByName { get; set; }
         public string? ModifiedIP { get; set; }
+        public List<RoleItemGroupMappingOutputDto>? RoleItemGroupMappings { get; set; }
+    }
+
+    public class RoleItemGroupMappingOutputDto
+    {
+        public int Id { get; set; }
+        public int ItemGroupId { get; set; }
+        public string? ItemGroupName { get; set; }
     }
 }

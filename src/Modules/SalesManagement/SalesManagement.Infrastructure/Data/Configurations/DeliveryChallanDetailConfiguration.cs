@@ -92,11 +92,7 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasForeignKey(t => t.StoDetailId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Same-module FK: DeliveryChallanDetail → LotMaster
-            builder.HasOne(t => t.LotMaster)
-                .WithMany(l => l.DeliveryChallanDetails)
-                .HasForeignKey(t => t.LotId)
-                .OnDelete(DeleteBehavior.Restrict);
+            // LotMaster → ProductionManagement — no DB constraint
 
             // Indexes
             builder.HasIndex(t => t.DeliveryChallanHeaderId);

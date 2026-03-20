@@ -96,7 +96,6 @@ namespace FinanceManagement.Infrastructure
             services.AddSingleton<ITimeZoneService, TimeZoneService>();
             services.AddTransient<IJwtTokenHelper, JwtTokenHelper>();
             services.AddScoped<ILogQueryService, LogQueryService>();
-            services.AddScoped<IEventPublisher, EventPublisher>();
 
             // ── Entity repositories ──────────────────────────────────────────
             services.AddScoped<ITransactionTypeMasterCommandRepository, TransactionTypeMasterCommandRepository>();
