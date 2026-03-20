@@ -18,5 +18,13 @@ namespace UserManagement.Application.UserRole.Queries.GetRole
         public DateTime? ModifiedAt { get; set; }
         public string? ModifiedByName { get; set; }
         public string? ModifiedIP { get; set; }
+        public List<RoleItemGroupMappingOutputDto>? RoleItemGroupMappings { get; set; }
+    }
+
+    public class RoleItemGroupMappingOutputDto
+    {
+        public int Id { get; set; }
+        public int ItemGroupId { get; set; }
+        public string? ItemGroupName { get; set; }
     }
 }

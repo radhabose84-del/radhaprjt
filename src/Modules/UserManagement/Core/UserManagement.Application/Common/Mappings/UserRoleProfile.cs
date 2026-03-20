@@ -21,8 +21,9 @@ namespace UserManagement.Application.Common.Mappings
              .ForMember(dest => dest.RoleName, opt => opt.MapFrom(src => src.RoleName))
             .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description))
             .ForMember(dest => dest.CompanyId, opt => opt.MapFrom(src => src.CompanyId))
-            .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => Status.Active))        
-            .ForMember(dest => dest.IsDeleted, opt => opt.MapFrom(src => IsDelete.NotDeleted));
+            .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => Status.Active))
+            .ForMember(dest => dest.IsDeleted, opt => opt.MapFrom(src => IsDelete.NotDeleted))
+            .ForMember(dest => dest.RoleItemGroupMappings, opt => opt.Ignore());
             // Ensures Id is not set during creation
 
                 CreateMap<UserManagement.Domain.Entities.UserRole, UserRoleDto>()             
@@ -35,8 +36,9 @@ namespace UserManagement.Application.Common.Mappings
             // .ForMember(dest => dest.RoleName, opt => opt.MapFrom(src => src.RoleName))
             // .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive));
 
-             CreateMap<UpdateRoleCommand,  UserManagement.Domain.Entities.UserRole>() 
-           .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive ==1 ? Status.Active : Status.Inactive));
+             CreateMap<UpdateRoleCommand, UserManagement.Domain.Entities.UserRole>()
+           .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive == 1 ? Status.Active : Status.Inactive))
+           .ForMember(dest => dest.RoleItemGroupMappings, opt => opt.Ignore());
 
 
           //  CreateMap<DeleteRoleCommand, UserManagement.Domain.Entities.UserRole>();
