@@ -294,7 +294,7 @@ namespace UserManagement.Infrastructure.Repositories.Users
           public async Task<User> GetByUserByUnit(int UserId,int UnitId)
           {
             const string query = @"
-                SELECT U.UserId, U.UserName,U.Mobile,U.EmailId,U.IsFirstTimeUser,U.EntityId,U.UserGroupId,FirstName,LastName,GstNumber
+                SELECT U.UserId, U.UserName,U.Mobile,U.EmailId,U.IsFirstTimeUser,U.EntityId,U.UserGroupId,FirstName,LastName,GstNumber,U.PartyId
                 FROM AppSecurity.Users U
                 Inner join [AppSecurity].[UserUnit] UU on UU.UserId = U.UserId
                 Inner join [AppData].[Unit] U1 on U1.Id = UU.UnitId

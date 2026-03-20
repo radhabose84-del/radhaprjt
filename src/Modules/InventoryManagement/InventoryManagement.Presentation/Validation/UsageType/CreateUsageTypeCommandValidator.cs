@@ -74,6 +74,19 @@ namespace InventoryManagement.Presentation.Validation.UsageType
                             .When(x => !string.IsNullOrWhiteSpace(x.UsageTypeCode));
                         break;
 
+                    case "FKColumnDelete":
+                        RuleFor(x => x.ModuleId)
+                            .MustAsync(async (id, ct) => await _queryRepo.ModuleExistsAsync(id))
+                            .WithMessage($"{nameof(CreateUsageTypeCommand.ModuleId)} {rule.Error}")
+                            .When(x => x.ModuleId > 0);
+                        break;
+
+                    case "GreaterThan":
+                        RuleFor(x => x.ModuleId)
+                            .GreaterThan(0)
+                            .WithMessage($"{nameof(CreateUsageTypeCommand.ModuleId)} {rule.Error}");
+                        break;
+
                     default:
                         break;
                 }
