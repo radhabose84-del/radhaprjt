@@ -6,6 +6,8 @@ namespace InventoryManagement.Application.UsageType.Dto
         public string? UsageTypeCode { get; set; }
         public string? UsageTypeName { get; set; }
         public string? Description { get; set; }
+        public int ModuleId { get; set; }
+        public string? ModuleName { get; set; }
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }
         public int CreatedBy { get; set; }

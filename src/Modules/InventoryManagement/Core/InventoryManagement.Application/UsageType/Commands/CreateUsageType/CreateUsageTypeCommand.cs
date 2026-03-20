@@ -8,5 +8,6 @@ namespace InventoryManagement.Application.UsageType.Commands.CreateUsageType
         public string? UsageTypeCode { get; set; }
         public string? UsageTypeName { get; set; }
         public string? Description { get; set; }
+        public int ModuleId { get; set; }
     }
 }

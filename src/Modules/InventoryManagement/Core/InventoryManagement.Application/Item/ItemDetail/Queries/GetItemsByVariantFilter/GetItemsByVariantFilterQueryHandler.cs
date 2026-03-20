@@ -24,7 +24,7 @@ namespace InventoryManagement.Application.Item.ItemDetail.Queries.GetItemsByVari
             CancellationToken cancellationToken)
         {
             var items = await _itemQueryRepository.GetItemsByVariantFilterAsync(
-                request.HasVariant, request.ParentItemId, cancellationToken);
+                request.HasVariant, request.ParentItemId, request.ModuleId, cancellationToken);
 
             var domainEvent = new AuditLogsDomainEvent(
                 actionDetail: "GetItemsByVariantFilter",

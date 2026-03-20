@@ -61,5 +61,19 @@ namespace UserManagement.Infrastructure.Repositories.RoleItemGroupMapping
                     && x.IsDeleted == Enums.IsDelete.NotDeleted
                     && (!excludeId.HasValue || x.Id != excludeId.Value));
         }
+
+        public async Task SoftDeleteByRoleIdAsync(int roleId, CancellationToken ct)
+        {
+            var mappings = await _dbContext.RoleItemGroupMapping
+                .Where(x => x.RoleId == roleId && x.IsDeleted == Enums.IsDelete.NotDeleted)
+                .ToListAsync(ct);
+
+            foreach (var mapping in mappings)
+            {
+                mapping.IsDeleted = Enums.IsDelete.Deleted;
+            }
+
+            await _dbContext.SaveChangesAsync(ct);
+        }
     }
 }

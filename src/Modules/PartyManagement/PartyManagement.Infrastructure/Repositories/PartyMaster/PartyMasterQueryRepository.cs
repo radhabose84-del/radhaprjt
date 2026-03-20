@@ -25,10 +25,12 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
         private readonly ICityLookup _cityLookup;
         private readonly IStateLookup _stateLookup;
         private readonly ICountryLookup _countryLookup;
+        private readonly IDataAccessFilter _dataAccessFilter;
 
         public PartyMasterQueryRepository(IDbConnection dbConnection, IIPAddressService ipAddressService,
             IIncotermLookup incotermLookup, IPaymentTermLookup paymentTermLookup,
-            ICityLookup cityLookup, IStateLookup stateLookup, ICountryLookup countryLookup)
+            ICityLookup cityLookup, IStateLookup stateLookup, ICountryLookup countryLookup,
+            IDataAccessFilter dataAccessFilter)
         {
             _dbConnection = dbConnection;
             _ipAddressService = ipAddressService;
@@ -37,6 +39,7 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
             _cityLookup = cityLookup;
             _stateLookup = stateLookup;
             _countryLookup = countryLookup;
+            _dataAccessFilter = dataAccessFilter;
         }
         public async Task<List<PartyGroupLoadDto>> GetPartyGroupsAsync(List<int> groupTypeIds)
         {
@@ -183,9 +186,22 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
 
         public async Task<(List<GetPartyMasterDto>, int)> GetAllPartyMasterAsync(int PageNumber, int PageSize, string SearchTerm)
         {
-            var query = $$"""
+            // Data access control — agent-level customer filtering
+            var accessCtx = await _dataAccessFilter.GetContextAsync();
+            if (!accessCtx.BypassDataAccess && accessCtx.PartyId.HasValue && accessCtx.AllowedCustomerIds.Count == 0)
+                return (new List<GetPartyMasterDto>(), 0);
+
+            var customerFilter = !accessCtx.BypassDataAccess && accessCtx.PartyId.HasValue && accessCtx.AllowedCustomerIds.Count > 0
+                ? "AND a.Id IN @AllowedCustomerIds"
+                : "";
+
+            var searchFilter = string.IsNullOrEmpty(SearchTerm)
+                ? ""
+                : "WHERE (PartyName LIKE @Search OR PartyCode LIKE @Search OR Party_GroupType LIKE @Search)";
+
+            var query = $@"
                 ;WITH PartyMaster_CTE AS (
-                    SELECT 
+                    SELECT
                         a.Id,
                         a.PartyCode,
                         a.PartyName,
@@ -203,27 +219,28 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
                     INNER JOIN Party.MiscMaster d ON b.PartyTypeId = d.Id
                     INNER JOIN Party.PartyGroup e ON e.Id = b.PartyGroupId
                     WHERE a.IsDeleted = 0
+                    {customerFilter}
                     GROUP BY a.Id, a.PartyCode, a.PartyName, c.Description, a.GSTNumber, a.PAN, a.Website, a.PartyStatus, a.IsActive,a.CreatedDate
                 )
                 SELECT *,
                     COUNT(*) OVER() AS TotalCount
                 FROM PartyMaster_CTE
-                {{(string.IsNullOrEmpty(SearchTerm) ? "" : "WHERE (PartyName LIKE @Search OR PartyCode LIKE @Search OR Party_GroupType LIKE @Search)")}}
+                {searchFilter}
                 ORDER BY CreatedDate DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
-            """;
+            ";
 
-            var parameters = new
-            {
-                Search = $"%{SearchTerm}%",
-                Offset = (PageNumber - 1) * PageSize,
-                PageSize
-            };
+            var dp = new DynamicParameters();
+            dp.Add("Search", $"%{SearchTerm}%");
+            dp.Add("Offset", (PageNumber - 1) * PageSize);
+            dp.Add("PageSize", PageSize);
+            if (!accessCtx.BypassDataAccess && accessCtx.PartyId.HasValue && accessCtx.AllowedCustomerIds.Count > 0)
+                dp.Add("AllowedCustomerIds", accessCtx.AllowedCustomerIds.ToList());
 
             var result = await _dbConnection.QueryAsync<GetPartyMasterDto, int, (GetPartyMasterDto, int)>(
                 query,
                 (dto, totalCount) => (dto, totalCount),
-                parameters,
+                dp,
                 splitOn: "TotalCount"
             );
 
@@ -235,9 +252,15 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
 
         public async Task<List<GetPartyMasterAutoCompleteDto>> GetPartyMasterAutoComplete(List<int> partyTypeIds, string searchPattern)
         {
-             var UnitId = _ipAddressService.GetUnitId() ?? 0;
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
+
+            // Data access control — agent-level customer filtering
+            var accessCtx = await _dataAccessFilter.GetContextAsync();
+            if (!accessCtx.BypassDataAccess && accessCtx.PartyId.HasValue && accessCtx.AllowedCustomerIds.Count == 0)
+                return new List<GetPartyMasterAutoCompleteDto>();
+
             var sql = @"
-                SELECT 
+                SELECT
                     a.Id,
                     a.PartyCode,
                     a.PartyName,
@@ -251,15 +274,15 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
                     pc.EmailID AS PrimaryEmail,
                     pc.MobileNo AS PrimaryMobile
                 FROM Party.PartyMaster a
-                INNER JOIN Party.PartyType b 
+                INNER JOIN Party.PartyType b
                     ON a.Id = b.PartyId
                 INNER JOIN Party.PartyUnitCompanyMapping UC
 				    ON a.Id=UC.PartyId
-                INNER JOIN Party.MiscMaster c 
+                INNER JOIN Party.MiscMaster c
                     ON b.PartyTypeId = c.Id
                 INNER JOIN Party.MiscMaster d
                     ON a.RegistrationTypeId = d.Id
-                 INNER JOIN Party.MiscMaster MM 
+                 INNER JOIN Party.MiscMaster MM
                  ON a.StatusId=MM.Id
                 LEFT JOIN Party.PartyContact pc
                     ON a.Id = pc.PartyId
@@ -269,7 +292,7 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
                 AND a.IsActive = 1
                 AND UC.UnitId=@UnitId
                 AND (a.PartyName LIKE @SearchPattern OR a.PartyCode LIKE @SearchPattern)
-                
+
             ";
 
             // ✅ Apply optional PartyTypeId filter dynamically
@@ -278,23 +301,28 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
                 sql += " AND b.PartyTypeId IN @PartyTypeIds";
             }
 
+            // ✅ Apply agent-level customer access filter
+            if (!accessCtx.BypassDataAccess && accessCtx.PartyId.HasValue && accessCtx.AllowedCustomerIds.Count > 0)
+            {
+                sql += " AND a.Id IN @AllowedCustomerIds";
+            }
+
             // ✅ Group after filtering
             sql += @"
-                GROUP BY 
+                GROUP BY
                     a.Id, a.PartyCode, a.PartyName, d.Description, a.GSTNumber,
                     pc.EmailID, pc.MobileNo,UC.UnitId
                     ORDER BY a.PartyName ASC";
 
-            var parameters = new
-            {
-                PartyTypeIds = partyTypeIds,
-                SearchPattern = $"%{searchPattern}%",
-                MiscTypeCode = MiscEnumEntity.PartyDocumentImage.Approved,
-                UnitId=UnitId
+            var dp = new DynamicParameters();
+            dp.Add("PartyTypeIds", partyTypeIds);
+            dp.Add("SearchPattern", $"%{searchPattern}%");
+            dp.Add("MiscTypeCode", MiscEnumEntity.PartyDocumentImage.Approved);
+            dp.Add("UnitId", UnitId);
+            if (!accessCtx.BypassDataAccess && accessCtx.PartyId.HasValue && accessCtx.AllowedCustomerIds.Count > 0)
+                dp.Add("AllowedCustomerIds", accessCtx.AllowedCustomerIds.ToList());
 
-            };
-
-            var result = (await _dbConnection.QueryAsync<GetPartyMasterAutoCompleteDto>(sql, parameters)).ToList();
+            var result = (await _dbConnection.QueryAsync<GetPartyMasterAutoCompleteDto>(sql, dp)).ToList();
 
             if (result.Count > 0)
             {
@@ -398,20 +426,28 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
 
         public async Task<List<GetPartyMasterAutoCompleteDto>> GetPartyMasterAutoComplete(string searchPattern)
         {
-            searchPattern = searchPattern ?? string.Empty; // Prevent null issues
+            searchPattern = searchPattern ?? string.Empty;
 
-            const string query = @"
-             SELECT Id, PartyCode,PartyName 
-            FROM Party.PartyMaster 
-            WHERE IsDeleted = 0  and IsActive=1
-            AND PartyName LIKE @SearchPattern OR PartyCode LIKE @SearchPattern";
-            var parameters = new
-            {
-                SearchPattern = $"%{searchPattern}%"
+            // Data access control — agent-level customer filtering
+            var accessCtx = await _dataAccessFilter.GetContextAsync();
+            if (!accessCtx.BypassDataAccess && accessCtx.PartyId.HasValue && accessCtx.AllowedCustomerIds.Count == 0)
+                return new List<GetPartyMasterAutoCompleteDto>();
 
-            };
+            var sql = @"
+             SELECT Id, PartyCode, PartyName
+            FROM Party.PartyMaster
+            WHERE IsDeleted = 0 AND IsActive = 1
+            AND (PartyName LIKE @SearchPattern OR PartyCode LIKE @SearchPattern)";
 
-            var partyMasters = await _dbConnection.QueryAsync<GetPartyMasterAutoCompleteDto>(query, parameters);
+            if (!accessCtx.BypassDataAccess && accessCtx.PartyId.HasValue && accessCtx.AllowedCustomerIds.Count > 0)
+                sql += " AND Id IN @AllowedCustomerIds";
+
+            var dp = new DynamicParameters();
+            dp.Add("SearchPattern", $"%{searchPattern}%");
+            if (!accessCtx.BypassDataAccess && accessCtx.PartyId.HasValue && accessCtx.AllowedCustomerIds.Count > 0)
+                dp.Add("AllowedCustomerIds", accessCtx.AllowedCustomerIds.ToList());
+
+            var partyMasters = await _dbConnection.QueryAsync<GetPartyMasterAutoCompleteDto>(sql, dp);
             return partyMasters.ToList();
         }
 

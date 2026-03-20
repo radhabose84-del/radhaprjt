@@ -7,5 +7,6 @@ namespace InventoryManagement.Application.Item.ItemDetail.Queries.GetItemsByVari
     {
         public bool? HasVariant { get; set; }
         public int? ParentItemId { get; set; }
+        public int? ModuleId { get; set; }
     }
 }

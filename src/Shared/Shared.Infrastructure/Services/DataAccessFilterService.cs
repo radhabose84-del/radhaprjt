@@ -60,13 +60,22 @@ internal sealed class DataAccessFilterService : IDataAccessFilter
             ? await GetAllowedCustomerIdsAsync(partyId.Value)
             : (IReadOnlySet<int>)new HashSet<int>();
 
+        // Step 5: Build AllowedAgentIds
+        // If user is an Agent (PartyId = their own AgentId), include self
+        var agentIdSet = new HashSet<int>();
+        if (partyId.HasValue && customerIds.Count > 0)
+        {
+            // User has customers via AgentCustomerMapping → they are an Agent
+            agentIdSet.Add(partyId.Value);
+        }
+
         _cachedContext = new DataAccessContext
         {
             BypassDataAccess = false,
             PartyId = partyId,
             AllowedItemGroupIds = itemGroupIds,
             AllowedCustomerIds = customerIds,
-            AllowedAgentIds = new HashSet<int>() // Officer-level deferred
+            AllowedAgentIds = agentIdSet
         };
         return _cachedContext;
     }
@@ -91,7 +100,8 @@ internal sealed class DataAccessFilterService : IDataAccessFilter
 
         _cache.Set(cacheKey, result, new MemoryCacheEntryOptions
         {
-            SlidingExpiration = CacheDuration
+            SlidingExpiration = CacheDuration,
+            Size = 1
         });
 
         return result;
@@ -106,7 +116,7 @@ internal sealed class DataAccessFilterService : IDataAccessFilter
         const string sql = @"
             SELECT DISTINCT rigm.ItemGroupId
             FROM AppSecurity.UserRoleAllocation ura
-            INNER JOIN UserManagement.RoleItemGroupMapping rigm
+            INNER JOIN AppSecurity.RoleItemGroupMapping rigm
                 ON rigm.RoleId = ura.UserRoleId
                 AND rigm.IsDeleted = 0 AND rigm.IsActive = 1
             WHERE ura.UserId = @UserId AND ura.IsActive = 1";
@@ -116,7 +126,8 @@ internal sealed class DataAccessFilterService : IDataAccessFilter
 
         _cache.Set(cacheKey, result, new MemoryCacheEntryOptions
         {
-            SlidingExpiration = CacheDuration
+            SlidingExpiration = CacheDuration,
+            Size = 1
         });
 
         return result;
@@ -141,9 +152,11 @@ internal sealed class DataAccessFilterService : IDataAccessFilter
 
         _cache.Set(cacheKey, result, new MemoryCacheEntryOptions
         {
-            SlidingExpiration = CacheDuration
+            SlidingExpiration = CacheDuration,
+            Size = 1
         });
 
         return result;
     }
+
 }
