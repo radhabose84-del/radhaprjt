@@ -42,6 +42,11 @@ namespace InventoryManagement.Infrastructure.Data.Configurations
                 .HasColumnName("Description")
                 .HasColumnType("varchar(250)");
 
+            builder.Property(t => t.ModuleId)
+                .HasColumnName("ModuleId")
+                .HasColumnType("int")
+                .IsRequired();
+
             builder.Property(b => b.IsActive)
                 .HasColumnName("IsActive")
                 .HasColumnType("bit")

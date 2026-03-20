@@ -7,7 +7,8 @@ namespace InventoryManagement.Application.Item.ItemDetail.Queries.GetItemAutoCom
         public string? SearchPattern { get; set; }
         public int? ItemGroupId { get; set; }
         public int? ItemCategoryId { get; set; }
-        public int? SourceId { get; set; }   
-        public int? IssueRuleId { get; set; }   
+        public int? SourceId { get; set; }
+        public int? IssueRuleId { get; set; }
+        public int? ModuleId { get; set; }
     }
 }

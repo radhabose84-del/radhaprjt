@@ -1,4 +1,5 @@
 using System.Data;
+using Contracts.Interfaces.Lookups.Users;
 using Dapper;
 using InventoryManagement.Application.Common.Interfaces.IUsageType;
 using InventoryManagement.Application.UsageType.Dto;
@@ -8,10 +9,12 @@ namespace InventoryManagement.Infrastructure.Repositories.UsageType
     public class UsageTypeQueryRepository : IUsageTypeQueryRepository
     {
         private readonly IDbConnection _dbConnection;
+        private readonly IModuleLookup _moduleLookup;
 
-        public UsageTypeQueryRepository(IDbConnection dbConnection)
+        public UsageTypeQueryRepository(IDbConnection dbConnection, IModuleLookup moduleLookup)
         {
             _dbConnection = dbConnection;
+            _moduleLookup = moduleLookup;
         }
 
         public async Task<(List<UsageTypeDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
@@ -20,7 +23,7 @@ namespace InventoryManagement.Infrastructure.Repositories.UsageType
 
             var sql = @"
                 SELECT
-                    Id, UsageTypeCode, UsageTypeName, Description,
+                    Id, UsageTypeCode, UsageTypeName, Description, ModuleId,
                     IsActive, IsDeleted,
                     CreatedBy, CreatedDate, CreatedByName, CreatedIP,
                     ModifiedBy, ModifiedDate, ModifiedByName, ModifiedIP
@@ -51,6 +54,18 @@ namespace InventoryManagement.Infrastructure.Repositories.UsageType
             var data = (await _dbConnection.QueryAsync<UsageTypeDto>(sql, parameters)).ToList();
             var totalCount = await _dbConnection.ExecuteScalarAsync<int>(countSql, parameters);
 
+            // Populate ModuleName via cross-module lookup
+            if (data.Count > 0)
+            {
+                var modules = await _moduleLookup.GetAllModuleAsync();
+                var moduleDict = modules.ToDictionary(m => m.ModuleId, m => m.ModuleName);
+                foreach (var dto in data)
+                {
+                    if (moduleDict.TryGetValue(dto.ModuleId, out var moduleName))
+                        dto.ModuleName = moduleName;
+                }
+            }
+
             return (data, totalCount);
         }
 
@@ -58,14 +73,23 @@ namespace InventoryManagement.Infrastructure.Repositories.UsageType
         {
             const string sql = @"
                 SELECT
-                    Id, UsageTypeCode, UsageTypeName, Description,
+                    Id, UsageTypeCode, UsageTypeName, Description, ModuleId,
                     IsActive, IsDeleted,
                     CreatedBy, CreatedDate, CreatedByName, CreatedIP,
                     ModifiedBy, ModifiedDate, ModifiedByName, ModifiedIP
                 FROM Inventory.UsageType
                 WHERE Id = @Id AND IsDeleted = 0";
 
-            return await _dbConnection.QueryFirstOrDefaultAsync<UsageTypeDto>(sql, new { Id = id });
+            var dto = await _dbConnection.QueryFirstOrDefaultAsync<UsageTypeDto>(sql, new { Id = id });
+
+            if (dto != null)
+            {
+                var modules = await _moduleLookup.GetAllModuleAsync();
+                var module = modules.FirstOrDefault(m => m.ModuleId == dto.ModuleId);
+                dto.ModuleName = module?.ModuleName;
+            }
+
+            return dto;
         }
 
         public async Task<IReadOnlyList<UsageTypeLookupDto>> AutocompleteAsync(string term, CancellationToken ct)
@@ -104,6 +128,16 @@ namespace InventoryManagement.Infrastructure.Repositories.UsageType
             sql += ") THEN 1 ELSE 0 END";
 
             return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { UsageTypeCode = usageTypeCode, Id = id });
+        }
+
+        public async Task<bool> ModuleExistsAsync(int moduleId)
+        {
+            const string sql = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1 FROM AppData.Modules WHERE Id = @ModuleId AND IsDeleted = 0
+                ) THEN 1 ELSE 0 END";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { ModuleId = moduleId });
         }
     }
 }
