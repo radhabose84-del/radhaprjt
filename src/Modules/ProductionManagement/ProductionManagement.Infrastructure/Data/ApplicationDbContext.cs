@@ -11,6 +11,10 @@ namespace ProductionManagement.Infrastructure.Data
         public DbSet<CountMaster> CountMaster => Set<CountMaster>();
         public DbSet<MiscTypeMaster> MiscTypeMaster => Set<MiscTypeMaster>();
         public DbSet<MiscMaster> MiscMaster => Set<MiscMaster>();
+        public DbSet<LotMaster> LotMaster => Set<LotMaster>();
+        public DbSet<PackType> PackType => Set<PackType>();
+        public DbSet<ProductionPackHeader> ProductionPackHeader => Set<ProductionPackHeader>();
+        public DbSet<ProductionPackDetail> ProductionPackDetail => Set<ProductionPackDetail>();
 
         private readonly IIPAddressService _ipAddressService;
         private readonly ITimeZoneService _timeZoneService;

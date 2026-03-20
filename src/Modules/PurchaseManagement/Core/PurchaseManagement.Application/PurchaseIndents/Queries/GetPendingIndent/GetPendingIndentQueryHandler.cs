@@ -94,21 +94,6 @@ namespace PurchaseManagement.Application.PurchaseIndents.Queries.GetPendingInden
                 .Where(p => p.ApproverId == _ipAddressService.GetUserId())
                 .ToList();
 
-            // var workflowResponse = await _workflowGrpcClient.GetAllApprovalRequestStatusAsync(MiscEnumEntity.PurchaseIndent);
-            // var workflowLookup = workflowResponse.ToDictionary(d => d.ModuleTransactionId, d => d.CurrentStatus);
-
-            // foreach (var statusMap in FilteredIndent)
-            // {
-            //     if (workflowLookup.TryGetValue(statusMap.Id, out var Status))
-            //     {
-            //         statusMap.Status = Status;
-            //     }
-            // }
-
-            //     var FilteredIndentByPending = FilteredIndent
-            // .Where(p => workflowLookup.ContainsKey(p.Id))
-            // .ToList();
-        
         var evt = new AuditLogsDomainEvent(
                 actionDetail: "GetPendingIndent",
                 actionCode: "GetPendingIndent",

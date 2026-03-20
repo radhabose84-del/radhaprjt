@@ -56,20 +56,11 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("int")
                 .IsRequired();
 
-            // Same-module FK constraints
-            builder.HasOne(t => t.PackType)
-                .WithMany(p => p.DispatchAdviceDetails)
-                .HasForeignKey(t => t.PackTypeId)
-                .OnDelete(DeleteBehavior.Restrict);
+            // Cross-module FKs (PackType, LotMaster) → ProductionManagement — no DB constraint
 
             builder.HasOne(t => t.SalesOrderDetail)
                 .WithMany(d => d.DispatchAdviceDetails)
                 .HasForeignKey(t => t.SalesOrderDetailId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            builder.HasOne(t => t.LotMaster)
-                .WithMany(l => l.DispatchAdviceDetails)
-                .HasForeignKey(t => t.LotId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // Indexes

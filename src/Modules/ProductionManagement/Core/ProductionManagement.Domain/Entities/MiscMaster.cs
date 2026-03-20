@@ -13,5 +13,12 @@ namespace ProductionManagement.Domain.Entities
 
         public ICollection<CountMaster>? CountMastersAsCountType { get; set; }
         public ICollection<CountMaster>? CountMastersAsCountCategory { get; set; }
+
+        // Reverse navigation (LotMaster)
+        public ICollection<LotMaster>? LotMastersAsLotType { get; set; }
+        public ICollection<LotMaster>? LotMastersAsStatus { get; set; }
+
+        // Reverse navigation (Production)
+        public ICollection<ProductionPackDetail>? ProductionPackDetailsAsQualityStatus { get; set; }
     }
 }

@@ -1,9 +1,0 @@
-using MediatR;
-
-namespace SalesManagement.Application.ProductionPack.Queries.GetLastEndPackNo
-{
-    public class GetLastEndPackNoQuery : IRequest<int>
-    {
-        public int ProductionYear { get; set; }
-    }
-}
