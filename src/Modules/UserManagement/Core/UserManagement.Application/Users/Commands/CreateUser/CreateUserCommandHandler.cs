@@ -6,7 +6,6 @@ using UserManagement.Application.Common.Interfaces.IUser;
 using UserManagement.Domain.Events;
 using Contracts.Common;
 using Microsoft.Extensions.Logging;
-using UserManagement.Application.Common.Interfaces;
 // using Contracts.Events.Users;
 
 
@@ -20,16 +19,14 @@ namespace UserManagement.Application.Users.Commands.CreateUser
 
         private readonly IMediator _mediator;
         private readonly ILogger<CreateUserCommandHandler> _logger;
-        private readonly IEventPublisher _eventPublisher;  // Use IEventPublisher instead of IPublishEndpoint
 
 
-        public CreateUserCommandHandler(IUserCommandRepository userRepository, IMapper mapper, IMediator mediator, ILogger<CreateUserCommandHandler> logger, IEventPublisher eventPublisher)
+        public CreateUserCommandHandler(IUserCommandRepository userRepository, IMapper mapper, IMediator mediator, ILogger<CreateUserCommandHandler> logger)
         {
             _userRepository = userRepository;
             _mapper = mapper;
             _mediator = mediator;
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _eventPublisher = eventPublisher ?? throw new ArgumentNullException(nameof(eventPublisher));
 
         }
 
@@ -60,9 +57,6 @@ namespace UserManagement.Application.Users.Commands.CreateUser
                 //     CorrelationId = Guid.NewGuid(),
                 //     Reason = $"Repository returned null for user '{request.UserName}'"
                 // };
-                // await _eventPublisher.SaveEventAsync(failedEvent);
-                // await _eventPublisher.PublishPendingEventsAsync();
-
                 return new ApiResponseDTO<UserDto>
                 {
                     IsSuccess = false,
@@ -93,13 +87,6 @@ namespace UserManagement.Application.Users.Commands.CreateUser
             //     UserName = createdUser.UserName,
             //     Email = createdUser.EmailId
             // };
-
-            // Save event to Outbox 
-            // await _eventPublisher.SaveEventAsync(userCreatedEvent);
-
-            // Triggering the publishing of pending events
-            await _eventPublisher.PublishPendingEventsAsync();
-
 
             // Map the created user entity to DTO
             var userDto = _mapper.Map<UserDto>(createdUser);

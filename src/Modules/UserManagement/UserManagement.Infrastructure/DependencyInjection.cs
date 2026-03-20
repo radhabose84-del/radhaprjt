@@ -378,9 +378,6 @@ namespace UserManagement.Infrastructure
             services.AddScoped<IEmailService, EmailSenderService>();
             services.AddScoped<ISmsService, SmsSenderService>();
 
-            // Outbox publisher
-            services.AddScoped<IEventPublisher, EventPublisher>();
-
             // IMPORTANT: keep AutoMapper registration in Application/Module, not Infrastructure.
 
             return services;

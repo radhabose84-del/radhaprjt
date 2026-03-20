@@ -13,7 +13,7 @@ using Dapper;
 
 namespace PurchaseManagement.Infrastructure.Repositories.PurchaseIndents
 {
-    public class PurchaseIndentQueryRepository : IPurchaseIndentQuery, IPurchaseIndentGrpcQuery
+    public class PurchaseIndentQueryRepository : IPurchaseIndentQuery
     {
         private readonly IDbConnection _dbConnection;
         private readonly IIPAddressService _ipAddressService;

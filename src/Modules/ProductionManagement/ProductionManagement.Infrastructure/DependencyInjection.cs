@@ -90,7 +90,6 @@ namespace ProductionManagement.Infrastructure
             services.AddSingleton<ITimeZoneService, TimeZoneService>();
             services.AddTransient<IJwtTokenHelper, JwtTokenHelper>();
             services.AddScoped<ILogQueryService, LogQueryService>();
-            services.AddScoped<IEventPublisher, EventPublisher>();
 
             // CountMaster repositories
             services.AddScoped<ICountMasterCommandRepository, CountMasterCommandRepository>();

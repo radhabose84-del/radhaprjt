@@ -9,7 +9,7 @@ using UserManagement.Application.Common.Interfaces;
 
 namespace UserManagement.Infrastructure.Repositories.Units
 {
-    public class UnitQueryRepository : IUnitQueryRepository, IUnitGrpcQuery
+    public class UnitQueryRepository : IUnitQueryRepository
   {
     private readonly IDbConnection _dbConnection;
 

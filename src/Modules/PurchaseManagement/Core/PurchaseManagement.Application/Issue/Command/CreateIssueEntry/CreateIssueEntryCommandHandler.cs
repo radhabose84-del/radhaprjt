@@ -109,7 +109,7 @@ namespace PurchaseManagement.Application.Issue.Command.CreateIssueEntry
                 
 
                 // -----------------------------
-            // BUILD GRPC DTOs
+            // BUILD STOCK LEDGER DTOs
             // -----------------------------
             var stockLedgerDtos = new List<StockLedgerDto>();
                 var subStoreLedgerDtos = new List<SubStoreStockLedgerDto>();
@@ -166,13 +166,13 @@ namespace PurchaseManagement.Application.Issue.Command.CreateIssueEntry
                 }
 
                 // -----------------------------
-                // GRPC INSERT
+                // STOCK LEDGER INSERT
                 // -----------------------------
                 var stockResult = await _stockLedgerLookup
                     .InsertStockLedgerAsync(stockLedgerDtos, cancellationToken);
 
                 if (!stockResult)
-                    throw new ApplicationException("StockLedger gRPC insert failed");
+                    throw new ApplicationException("StockLedger insert failed");
 
                 if (subStoreLedgerDtos.Any())
                 {
@@ -180,7 +180,7 @@ namespace PurchaseManagement.Application.Issue.Command.CreateIssueEntry
                         .InsertSubStoreStockLedgerAsync(subStoreLedgerDtos, cancellationToken);
 
                     if (!subStoreResult)
-                        throw new ApplicationException("SubStoreStockLedger gRPC insert failed");
+                        throw new ApplicationException("SubStoreStockLedger insert failed");
                 }
 
                 // -----------------------------
@@ -191,123 +191,12 @@ namespace PurchaseManagement.Application.Issue.Command.CreateIssueEntry
                         "Create",
                         issueId.ToString(),
                         "Issue Entry Created",
-                        "Issue header saved and ledgers inserted via gRPC",
+                        "Issue header saved and ledgers inserted successfully",
                         "Issue"),
                     cancellationToken);
 
                 return issueId;
             }
-
-        
-        
-
-    //    public async Task<int> Handle(CreateIssueEntryCommand request, CancellationToken cancellationToken)
-        //         {
-        //             var issueEntryHeader = _mapper.Map<IssueHeader>(request.IssueEntry);
-
-        //             // ✅ Auto-generate IssueNo if not set
-        //             if (string.IsNullOrWhiteSpace(issueEntryHeader.IssueNo))
-        //             {
-        //                 issueEntryHeader.IssueNo = await _iissueEntryCommandRepository.GenerateNextCodeAsync();
-        //                 issueEntryHeader.IssueDate = DateTime.Today;
-        //                 issueEntryHeader.IssuedBy = _ipAddressService.GetUserId();
-        //                 issueEntryHeader.IssuedDate = DateTime.Now;
-        //                 issueEntryHeader.IssuedByName = _ipAddressService.GetUserName();
-        //                 issueEntryHeader.IssuedIp = _ipAddressService.GetSystemIPAddress();
-        //             }
-
-        //             var stockLedgerEntries = new List<StockLedger>();
-        //             var subStoreLedgerEntries = new List<SubStoreStockLedger>();
-
-        //             // ✅ Get Misc Description (used to identify SubStores)
-        //             var miscDescription = await _iissueQueryCommandRepository
-        //                 .GetDescriptionByIdAsync(request.IssueEntry.RequestCategoryId);
-
-        //             List<PutawayRuleDto> putawayRules = new();
-
-        //             // ✅ Step 1: GRPC call only if category is SubStores
-        //             if (string.Equals(miscDescription, MiscEnumEntity.SubStores, StringComparison.OrdinalIgnoreCase))
-        //             {
-        //                 var itemIds = request.IssueEntry.IssueDetails.Select(x => x.ItemId).ToList();
-        //                 var warehouseIds = new List<int> { request.IssueEntry.SubStoresWarehouseId ?? 0 };
-
-        //                 putawayRules = await _putawayRuleGrpcClient
-        //                     .GetPutAwayRuleDetailsByWarehouseAsync(itemIds, warehouseIds, cancellationToken);
-        //             }
-
-        //             // ✅ Step 2: Process all issue details
-        //             foreach (var detail in request.IssueEntry.IssueDetails)
-        //             {
-        //                 // ✅ STOCK LEDGER — StorageTypeId & TargetId from DTO
-        //                 var stockLedger = new StockLedger
-        //                 {
-        //                     UnitId = issueEntryHeader.UnitId,
-        //                     DocType = "ISS",
-        //                     DocSlNo = detail.Sno,
-        //                     DocDate = DateTime.Today,
-        //                     ItemId = detail.ItemId,
-        //                     UomId = detail.UomId,
-        //                     WarehouseId = detail.WarehouseStockId,
-        //                     StorageTypeId = detail.StorageTypeId,   // ✅ from DTO
-        //                     TargetId = detail.TargetId,             // ✅ from DTO
-        //                     ReceivedQty = 0,
-        //                     ReceivedValue = 0,
-        //                     IssueQty = detail.IssueQuantity ?? 0,
-        //                     IssueValue = (detail.IssueQuantity ?? 0) * detail.AvgRate
-        //                 };
-        //                 stockLedgerEntries.Add(stockLedger);
-
-        //                 // ✅ SUBSTORE LEDGER — StorageTypeId & TargetId from GRPC
-        //                 if (string.Equals(miscDescription, MiscEnumEntity.SubStores, StringComparison.OrdinalIgnoreCase))
-        //                 {
-        //                     var rule = putawayRules.FirstOrDefault(r => r.ItemId == detail.ItemId);
-
-        //                     var subStoreLedger = new SubStoreStockLedger
-        //                     {
-        //                         UnitId = issueEntryHeader.UnitId,
-        //                         DocType = "REC",
-        //                         DocSlNo = detail.Sno,
-        //                         DocDate = DateTime.Today,
-        //                         DepartmentId = request.IssueEntry.DepartmentId,
-        //                         ItemId = detail.ItemId,
-        //                         UomId = detail.UomId,
-        //                         WarehouseId = issueEntryHeader.SubStoresWarehouseId??0,
-        //                         StorageTypeId = rule?.StorageTypeId ?? 0,  // ✅ from GRPC
-        //                         TargetId = rule?.TargetId ?? 0,            // ✅ from GRPC
-        //                         ReceivedQty = detail.IssueQuantity ?? 0,
-        //                         ReceivedValue = (detail.IssueQuantity ?? 0) * detail.AvgRate,
-        //                         IssueQty = 0,
-        //                         IssueValue = 0
-        //                     };
-
-        //                     subStoreLedgerEntries.Add(subStoreLedger);
-        //                 }
-        //             }
-
-        //             // ✅ Step 3: Save all in one transaction
-        //             var result = await _iissueEntryCommandRepository.CreateIssueWithLedgersAsync(
-        //                 issueEntryHeader,
-        //                 stockLedgerEntries,
-        //                 subStoreLedgerEntries,
-        //                 async () =>
-        //                 {
-        //                     // Publish Audit Log
-        //                     var domainEvent = new AuditLogsDomainEvent(
-        //                         actionDetail: "Create",
-        //                         actionCode: issueEntryHeader.Id.ToString(),
-        //                         actionName: "Issue Entry Created",
-        //                         details: "Issue, StockLedger, and optional SubStoreStockLedger created successfully",
-        //                         module: "Issue"
-        //                     );
-
-        //                     await _mediator.Publish(domainEvent, cancellationToken);
-        //                 });
-
-        //             return result;
-        //         }
-
-
-
     }
 }
 
