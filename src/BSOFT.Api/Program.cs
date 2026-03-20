@@ -1,5 +1,3 @@
-using System.Data;
-using Microsoft.Data.SqlClient;
 using FluentValidation;
 using Hangfire;
 using MediatR;
@@ -9,7 +7,6 @@ using BSOFT.Api.Middleware;
 using Shared.Validation.Common;
 using Shared.Infrastructure.Caching;
 using Shared.Infrastructure;
-using Contracts.Interfaces;
 using UserManagement.Module;
 using FixedAssetManagement.Module;
 using MaintenanceManagement.Infrastructure.Jobs;
@@ -67,39 +64,6 @@ builder.Services.AddBackgroundServiceModule(builder.Configuration, builder.Envir
 builder.Services.AddGateEntryManagementModule(builder.Configuration, builder.Environment);
 builder.Services.AddFinanceManagementModule(builder.Configuration, builder.Environment);
 builder.Services.AddProductionManagementModule(builder.Configuration, builder.Environment);
-
-// ✅ Centralized IDbConnection — sets SESSION_CONTEXT from JWT for SQL Server RLS
-// Overrides per-module Transient registrations (last registration wins in DI).
-// RLS predicate functions use SESSION_CONTEXT(N'UserId') and SESSION_CONTEXT(N'PartyId')
-// to automatically filter rows. See docs/sql/RLS_DataAccessControl.sql.
-builder.Services.AddScoped<IDbConnection>(sp =>
-{
-    var config = sp.GetRequiredService<IConfiguration>();
-    var connectionString = (config.GetConnectionString("DefaultConnection") ?? string.Empty)
-        .Replace("{SERVER}", Environment.GetEnvironmentVariable("DATABASE_SERVER") ?? "")
-        .Replace("{USER_ID}", Environment.GetEnvironmentVariable("DATABASE_USERID") ?? "")
-        .Replace("{ENC_PASSWORD}", Environment.GetEnvironmentVariable("DATABASE_PASSWORD") ?? "");
-
-    var conn = new SqlConnection(connectionString);
-    conn.Open();
-
-    // Pass JWT token values to SQL Server SESSION_CONTEXT for RLS
-    var ipService = sp.GetRequiredService<IIPAddressService>();
-    var userId = ipService.GetUserId();
-    if (userId > 0)
-    {
-        var partyId = ipService.GetPartyId();
-        using var cmd = conn.CreateCommand();
-        cmd.CommandText =
-            "EXEC sp_set_session_context @key=N'UserId', @value=@UserId; " +
-            "EXEC sp_set_session_context @key=N'PartyId', @value=@PartyId;";
-        cmd.Parameters.AddWithValue("@UserId", userId);
-        cmd.Parameters.AddWithValue("@PartyId", (object?)partyId ?? DBNull.Value);
-        cmd.ExecuteNonQuery();
-    }
-
-    return conn;
-});
 
 // ✅ Global lookup caching (MUST be after module registrations)
 builder.Services.AddLookupCaching(options =>
