@@ -12,6 +12,5 @@ namespace InventoryManagement.Domain.Entities.Item
         public ICollection<ItemCategory>? ItemCategory { get; set; }
         public ICollection<ItemMaster>? ItemMasterGroup { get; set; } 
         public ICollection<PutAwayRule>? PutAwayRuleGroup { get; set; } = new List<PutAwayRule>();
-        public ICollection<ItemUnitMapping>? ItemUnitMappings { get; set; }
     }
 }

@@ -22,21 +22,36 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
         private readonly IIPAddressService _ipAddressService;
         private readonly IUnitLookup _unitLookup;
         private readonly ICountMasterLookup _countMasterLookup;
+        private readonly IDataAccessFilter _dataAccessFilter;
 
-        public ItemQueryRepository(IDbConnection dbConnection, ApplicationDbContext db, IIPAddressService ipAddressService, IUnitLookup unitLookup, ICountMasterLookup countMasterLookup)
+        public ItemQueryRepository(IDbConnection dbConnection, ApplicationDbContext db, IIPAddressService ipAddressService, IUnitLookup unitLookup, ICountMasterLookup countMasterLookup, IDataAccessFilter dataAccessFilter)
         {
             _db = db;
             _dbConnection = dbConnection;
             _ipAddressService = ipAddressService;
             _unitLookup = unitLookup;
             _countMasterLookup = countMasterLookup;
+            _dataAccessFilter = dataAccessFilter;
         }
         public async Task<(List<ItemListDto> Items, int TotalCount)> GetAllAsync(
             int? page, int? size, string search, bool onlyActive,
-            int? itemGroupId, int? itemCategoryId, CancellationToken ct = default)
+            int? itemGroupId, int? itemCategoryId, int? moduleId = null, CancellationToken ct = default)
         {
             var q = _db.ItemMaster.AsNoTracking()
                 .Where(x => x.IsDeleted == BaseEntity.IsDelete.NotDeleted);
+
+            // Role-based item group filtering
+            var accessCtx = await _dataAccessFilter.GetContextAsync(ct);
+            if (!accessCtx.BypassDataAccess && accessCtx.AllowedItemGroupIds.Count > 0)
+            {
+                var allowedGroups = accessCtx.AllowedItemGroupIds;
+                q = q.Where(x => x.ItemGroupId.HasValue && allowedGroups.Contains(x.ItemGroupId.Value));
+            }
+            else if (!accessCtx.BypassDataAccess && accessCtx.AllowedItemGroupIds.Count == 0)
+            {
+                // No groups assigned and no bypass — return empty
+                return (new List<ItemListDto>(), 0);
+            }
 
             if (onlyActive)
                 q = q.Where(x => x.IsActive == BaseEntity.Status.Active);
@@ -52,6 +67,23 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
 
             if (itemCategoryId.HasValue && itemCategoryId.Value > 0)
                 q = q.Where(x => x.ItemCategoryId == itemCategoryId.Value);
+
+            // Module-level item filtering via UsageType.ModuleId
+            if (moduleId.HasValue)
+            {
+                var unitId = _ipAddressService.GetUnitId() ?? 0;
+                if (unitId > 0)
+                {
+                    q = q.Where(x =>
+                        !x.ItemUsageTypeMappings.Any(m => m.UnitId == unitId)
+                        || x.ItemUsageTypeMappings.Any(m =>
+                            m.UnitId == unitId
+                            && m.UsageType.IsDeleted == BaseEntity.IsDelete.NotDeleted
+                            && m.UsageType.IsActive == BaseEntity.Status.Active
+                            && m.UsageType.ModuleId == moduleId.Value)
+                    );
+                }
+            }
 
             var total = await q.CountAsync(ct);
 
@@ -294,33 +326,31 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                         })
                         .ToList(),
 
-                    // ---------- UNIT MAPPINGS ----------
-                    ItemUnitMappings = i.ItemUnitMappings
+                    // ---------- USAGE TYPE MAPPINGS ----------
+                    ItemUsageTypeMappings = i.ItemUsageTypeMappings
                         .OrderBy(m => m.Id)
-                        .Select(m => new ItemUnitMappingDto
+                        .Select(m => new ItemUsageTypeMappingDto
                         {
                             Id = m.Id,
-                            ProcurementId = m.ProcurementId,
-                            ProcurementName = m.ProcurementType != null ? m.ProcurementType.ProcurementName : null,
-                            ItemGroupId = m.ItemGroupId,
-                            ItemGroupName = m.ItemGroup != null ? m.ItemGroup.ItemGroupName : null,
+                            UsageTypeId = m.UsageTypeId,
+                            UsageTypeName = m.UsageType != null ? m.UsageType.UsageTypeName : null,
                             UnitId = m.UnitId
                         })
                         .ToList(),
                 })
                 .FirstOrDefaultAsync(ct);
 
-            // Populate UnitName from cross-module lookup (UserManagement)
-            if (dto?.ItemUnitMappings is { Count: > 0 })
+            // Populate UnitName for ItemUsageTypeMappings from cross-module lookup
+            if (dto?.ItemUsageTypeMappings is { Count: > 0 })
             {
-                var unitIds = dto.ItemUnitMappings.Select(m => m.UnitId).Distinct();
-                var units = await _unitLookup.GetByIdsAsync(unitIds, ct);
-                var unitDict = units.ToDictionary(u => u.UnitId, u => u.UnitName);
+                var usageUnitIds = dto.ItemUsageTypeMappings.Select(m => m.UnitId).Distinct();
+                var usageUnits = await _unitLookup.GetByIdsAsync(usageUnitIds, ct);
+                var usageUnitDict = usageUnits.ToDictionary(u => u.UnitId, u => u.UnitName);
 
-                foreach (var mapping in dto.ItemUnitMappings)
+                foreach (var mapping in dto.ItemUsageTypeMappings)
                 {
-                    if (unitDict.TryGetValue(mapping.UnitId, out var name))
-                        mapping.UnitName = name;
+                    if (usageUnitDict.TryGetValue(mapping.UnitId, out var uName))
+                        mapping.UnitName = uName;
                 }
             }
 
@@ -391,11 +421,17 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                 .ToListAsync(ct);
         }
 
-        public async Task<List<GetItemAutoCompleteDto>> GetItemAutoCompleteAsync(string searchPattern,int? itemGroupId, int? itemCategoryId,int? sourceId,int? issueRuleId, CancellationToken ct = default)
+        public async Task<List<GetItemAutoCompleteDto>> GetItemAutoCompleteAsync(string searchPattern,int? itemGroupId, int? itemCategoryId,int? sourceId,int? issueRuleId, int? moduleId = null, CancellationToken ct = default)
         {
+            // Role-based item group filtering
+            var accessCtx = await _dataAccessFilter.GetContextAsync(ct);
+            if (!accessCtx.BypassDataAccess && accessCtx.AllowedItemGroupIds.Count == 0)
+                return new List<GetItemAutoCompleteDto>();
+
             var UnitId = _ipAddressService.GetUnitId() ?? 0;
             searchPattern = searchPattern ?? string.Empty;
-            const string query = @"
+
+            var query = @"
                 SELECT IM.Id, ItemName, ItemCode, ParentItemId,HSNId,HSNCode,GSTPercentage,IM.ItemCategoryId,IM.ItemGroupId,IM.TariffNumber,
                 P.PurchaseUomId,IM.StockUomId,U.Code as PurchaseUom,U1.Code as StockUom,ISNULL(ST.CurrentStockQty, 0) AS CurrentStockQty
                 FROM Inventory.ItemMaster IM
@@ -404,7 +440,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                 left join Inventory.UOM U on U.Id=P.PurchaseUomId
                 left join Inventory.UOM U1 on U1.Id=IM.StockUomId
                 LEFT JOIN (
-                        SELECT 
+                        SELECT
                             SL.ItemId,
                             SUM(SL.ReceivedQty - SL.IssueQty) AS CurrentStockQty
                         FROM Inventory.StockLedger SL
@@ -413,21 +449,48 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                     ) ST ON ST.ItemId = IM.Id
                 WHERE IM.IsDeleted = 0 and IM.IsActive = 1
                 AND HasVariants = 0     AND (@GroupId    IS NULL OR @GroupId    <= 0 OR IM.ItemGroupId    = @GroupId)
-                AND (@CategoryId IS NULL OR @CategoryId <= 0 OR IM.ItemCategoryId = @CategoryId)                
+                AND (@CategoryId IS NULL OR @CategoryId <= 0 OR IM.ItemCategoryId = @CategoryId)
                 AND (@SourceId IS NULL OR @SourceId <= 0 OR P.SourceOfItem = @SourceId OR P.SourceOfItem IS NULL )
                 AND (@IssueRuleId IS NULL OR @IssueRuleId <= 0 OR IM.IssueRuleId = @IssueRuleId)
-                AND (@Search = '' OR IM.ItemName LIKE @Like OR IM.ItemCode LIKE @Like) ";            
-            var parameters = new
+                AND (@Search = '' OR IM.ItemName LIKE @Like OR IM.ItemCode LIKE @Like)";
+
+            // Append role-based item group filter
+            if (!accessCtx.BypassDataAccess)
+                query += "\n                AND IM.ItemGroupId IN @AllowedGroupIds";
+
+            // Append module-level item filtering via UsageType
+            if (moduleId.HasValue && UnitId > 0)
             {
-                GroupId = itemGroupId,
-                CategoryId = itemCategoryId,
-                Search = searchPattern,
-                Like = $"%{searchPattern}%",
-                SourceId = sourceId,
-                IssueRuleId = issueRuleId,
-                UnitId=UnitId
-            };
-            var items = await _dbConnection.QueryAsync<GetItemAutoCompleteDto>(query, parameters);
+                query += @"
+                AND (
+                    NOT EXISTS (
+                        SELECT 1 FROM Inventory.ItemUsageTypeMapping M
+                        WHERE M.ItemId = IM.Id AND M.UnitId = @UnitId
+                    )
+                    OR EXISTS (
+                        SELECT 1 FROM Inventory.ItemUsageTypeMapping M
+                        INNER JOIN Inventory.UsageType UT ON UT.Id = M.UsageTypeId
+                            AND UT.IsDeleted = 0 AND UT.IsActive = 1
+                        WHERE M.ItemId = IM.Id AND M.UnitId = @UnitId
+                            AND UT.ModuleId = @ModuleId
+                    )
+                )";
+            }
+
+            var dp = new DynamicParameters();
+            dp.Add("GroupId", itemGroupId);
+            dp.Add("CategoryId", itemCategoryId);
+            dp.Add("Search", searchPattern);
+            dp.Add("Like", $"%{searchPattern}%");
+            dp.Add("SourceId", sourceId);
+            dp.Add("IssueRuleId", issueRuleId);
+            dp.Add("UnitId", UnitId);
+            if (!accessCtx.BypassDataAccess)
+                dp.Add("AllowedGroupIds", accessCtx.AllowedItemGroupIds.ToList());
+            if (moduleId.HasValue)
+                dp.Add("ModuleId", moduleId.Value);
+
+            var items = await _dbConnection.QueryAsync<GetItemAutoCompleteDto>(query, dp);
             return items.ToList();
         }
 
@@ -544,8 +607,13 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
         }
 
         public async Task<List<GetItemAutoCompleteDto>> GetItemsByVariantFilterAsync(
-            bool? hasVariant, int? parentItemId, CancellationToken ct = default)
+            bool? hasVariant, int? parentItemId, int? moduleId = null, CancellationToken ct = default)
         {
+            // Role-based item group filtering
+            var accessCtx = await _dataAccessFilter.GetContextAsync(ct);
+            if (!accessCtx.BypassDataAccess && accessCtx.AllowedItemGroupIds.Count == 0)
+                return new List<GetItemAutoCompleteDto>();
+
             const string baseSelect = @"
                 SELECT IM.Id, IM.ItemName, IM.ItemCode, IM.ParentItemId,
                        IM.HSNId, HM.HSNCode, HM.GSTPercentage,
@@ -578,10 +646,41 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                 ? baseSelect + variantFilter + "\n                AND (@ParentItemId IS NULL OR IM.ParentItemId = @ParentItemId)"
                 : baseSelect + "\n                AND (@ParentItemId IS NULL OR IM.ParentItemId = @ParentItemId)";
 
+            // Append role-based item group filter
+            if (!accessCtx.BypassDataAccess)
+                sql += "\n                AND IM.ItemGroupId IN @AllowedGroupIds";
+
+            // Module-level item filtering via UsageType.ModuleId
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
+            if (moduleId.HasValue && unitId > 0)
+            {
+                sql += @"
+                AND (
+                    NOT EXISTS (
+                        SELECT 1 FROM Inventory.ItemUsageTypeMapping M
+                        WHERE M.ItemId = IM.Id AND M.UnitId = @UnitId
+                    )
+                    OR EXISTS (
+                        SELECT 1 FROM Inventory.ItemUsageTypeMapping M
+                        INNER JOIN Inventory.UsageType UT ON UT.Id = M.UsageTypeId
+                            AND UT.IsDeleted = 0 AND UT.IsActive = 1
+                        WHERE M.ItemId = IM.Id AND M.UnitId = @UnitId
+                            AND UT.ModuleId = @ModuleId
+                    )
+                )";
+            }
+
             var dp = new DynamicParameters();
             if (hasVariant.HasValue)
                 dp.Add("HasVariant", hasVariant.Value, DbType.Boolean);
             dp.Add("ParentItemId", parentItemId, DbType.Int32);
+            if (!accessCtx.BypassDataAccess)
+                dp.Add("AllowedGroupIds", accessCtx.AllowedItemGroupIds.ToList());
+            if (moduleId.HasValue && unitId > 0)
+            {
+                dp.Add("ModuleId", moduleId.Value);
+                dp.Add("UnitId", unitId);
+            }
 
             var items = await _dbConnection.QueryAsync<GetItemAutoCompleteDto>(sql, dp);
             return items.ToList();

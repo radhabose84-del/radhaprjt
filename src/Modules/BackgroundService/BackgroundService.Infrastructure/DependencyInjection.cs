@@ -192,6 +192,7 @@ namespace BackgroundService.Infrastructure
                     x.AddConsumer<PartyManagement.Application.Consumers.ApprovedRejectedConsumer>();
                     x.AddConsumer<PurchaseManagement.Application.Consumers.RollbackTransactionConsumer>();
                     x.AddConsumer<BudgetManagement.Application.Consumers.RollbackTransactionConsumer>();
+                    x.AddConsumer<PartyManagement.Application.Consumers.RollbackTransactionConsumer>();
                     x.AddConsumer<RollBackScheduleWorkOrderConsumer>();
 
                     x.UsingRabbitMq((context, cfg) =>

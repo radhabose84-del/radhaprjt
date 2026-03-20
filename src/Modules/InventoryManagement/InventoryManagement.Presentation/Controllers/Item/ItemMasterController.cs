@@ -32,7 +32,8 @@ namespace InventoryManagement.Presentation.Controllers.Item
             [FromQuery] string? search = null,
             [FromQuery] bool onlyActive = true,
             [FromQuery] int? itemGroupId = null,
-            [FromQuery] int? itemCategoryId = null)
+            [FromQuery] int? itemCategoryId = null,
+            [FromQuery] int? moduleId = null)
         {
             var (items, total) = await _mediator.Send(new GetAllItemsQuery
             {
@@ -41,7 +42,8 @@ namespace InventoryManagement.Presentation.Controllers.Item
                 SearchTerm = search,
                 OnlyActive = onlyActive,
                 ItemGroupId = itemGroupId,
-                ItemCategoryId = itemCategoryId
+                ItemCategoryId = itemCategoryId,
+                ModuleId = moduleId
             });
 
             return Ok(new ApiResponseDTO<List<ItemListDto>>
@@ -158,6 +160,7 @@ namespace InventoryManagement.Presentation.Controllers.Item
             [FromQuery] int? itemCategoryId = null,
             [FromQuery] int? sourceId = null,
             [FromQuery] int? issueRuleId = null,
+            [FromQuery] int? moduleId = null,
             CancellationToken ct = default)
         {
             var items = await _mediator.Send(new GetItemAutoCompleteQuery
@@ -166,7 +169,8 @@ namespace InventoryManagement.Presentation.Controllers.Item
                 ItemGroupId = itemGroupId,
                 ItemCategoryId = itemCategoryId,
                 SourceId = sourceId,
-                IssueRuleId = issueRuleId
+                IssueRuleId = issueRuleId,
+                ModuleId = moduleId
             }, ct);
 
             return Ok(new ApiResponseDTO<List<GetItemAutoCompleteDto>>
@@ -181,12 +185,14 @@ namespace InventoryManagement.Presentation.Controllers.Item
         public async Task<ActionResult<ApiResponseDTO<List<GetItemAutoCompleteDto>>>> GetItemsByVariantFilter(
             [FromQuery] bool? hasVariant = null,
             [FromQuery] int? parentItemId = null,
+            [FromQuery] int? moduleId = null,
             CancellationToken ct = default)
         {
             var items = await _mediator.Send(new GetItemsByVariantFilterQuery
             {
                 HasVariant = hasVariant,
-                ParentItemId = parentItemId
+                ParentItemId = parentItemId,
+                ModuleId = moduleId
             }, ct);
 
             return Ok(new ApiResponseDTO<List<GetItemAutoCompleteDto>>

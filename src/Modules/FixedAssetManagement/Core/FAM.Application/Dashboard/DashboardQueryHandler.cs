@@ -19,8 +19,8 @@ namespace FAM.Application.Dashboard
 
             return request.Type switch
             {
-                "assetexpirySummary" => await _repository.GetAssetExpiredDashBoardDataAsync(),
-                "assetSummary" => await _repository.GetAssetChartViewAsync( request.DepartmentId),
+                "assetexpirySummary" => await _repository.GetAssetExpiredDashBoardDataAsync(request.FromDate, request.ToDate),
+                "assetSummary" => await _repository.GetAssetChartViewAsync(request.DepartmentId, request.FromDate, request.ToDate),
                 _ => throw new ArgumentException("Invalid type.")
             };
         }

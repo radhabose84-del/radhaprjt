@@ -67,6 +67,7 @@ namespace UserManagement.Infrastructure.Data
         public DbSet<CustomFieldMenu> CustomFieldMenu { get; set; }
         
         public DbSet<DepartmentGroup> DepartmentGroup { get; set; }
+        public DbSet<RoleItemGroupMapping> RoleItemGroupMapping { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -118,9 +119,10 @@ namespace UserManagement.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new CustomFieldUnitConfiguration());
             modelBuilder.ApplyConfiguration(new CustomFieldMenuConfiguration());
             modelBuilder.ApplyConfiguration(new DepartmentGroupConfiguration());
+            modelBuilder.ApplyConfiguration(new RoleItemGroupMappingConfiguration());
 
 
-            
+
             // Global convention: set explicit precision/scale for all decimal properties
             // This prevents EF Core runtime warnings about silent truncation
             foreach (var property in modelBuilder.Model.GetEntityTypes()

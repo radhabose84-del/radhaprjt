@@ -52,6 +52,7 @@ namespace ProjectManagement.Infrastructure
         public int    GetEntityId() => 0;
         public int?   GetUnitId() => null;
         public string GetOldUnitId() => string.Empty;
+            public int? GetPartyId() => null;
     }
     }
 }

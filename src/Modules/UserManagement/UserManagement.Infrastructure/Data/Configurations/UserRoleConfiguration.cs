@@ -46,6 +46,12 @@ namespace UserManagement.Infrastructure.Data.Configurations
             .HasColumnType("int")
             .IsRequired();
 
+            builder.Property(u => u.BypassDataAccess)
+                .HasColumnName("BypassDataAccess")
+                .HasColumnType("bit")
+                .HasDefaultValue(false)
+                .IsRequired();
+
              builder.Property(u => u.IsActive)
                 .HasColumnName("IsActive")
                 .HasColumnType("bit")
