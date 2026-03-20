@@ -41,6 +41,7 @@ namespace UserManagement.Infrastructure.Repositories.UserRoles
                 existingRole.RoleName = userrole.RoleName;
                 existingRole.Description = userrole.Description;
                 existingRole.CompanyId = userrole.CompanyId;
+                existingRole.BypassDataAccess = userrole.BypassDataAccess;
                 existingRole.IsActive = userrole.IsActive;                
                
                 _applicationDbContext.UserRole.Update(existingRole);
