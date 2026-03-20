@@ -110,11 +110,7 @@ namespace PurchaseManagement.Infrastructure
             // Register ApplicationDbContext with SQL Server
             services.AddDbContext<ApplicationDbContext>((sp, options) =>
            {
-               options.UseSqlServer(connectionString, sqlOptions =>
-               {
-                   sqlOptions.EnableRetryOnFailure(5, TimeSpan.FromSeconds(30), null);
-               });
-
+               options.UseSqlServer(connectionString);
                options.AddInterceptors(sp.GetRequiredService<ActivityLogSaveChangesInterceptor>());
            });
 
