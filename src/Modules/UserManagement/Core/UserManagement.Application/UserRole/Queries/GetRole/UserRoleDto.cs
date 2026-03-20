@@ -9,7 +9,7 @@ namespace UserManagement.Application.UserRole.Queries.GetRole
         public string? RoleName { get; set; }
         public string? Description { get; set; }
         public int CompanyId { get; set; }
-     
-        
+        public bool BypassDataAccess { get; set; }
+
     }
 }

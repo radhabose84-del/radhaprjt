@@ -9,6 +9,7 @@ namespace UserManagement.Application.UserRole.Commands.UpdateRole
         public string? RoleName { get; set; }
         public string? Description { get; set; }
         public int CompanyId { get; set; }
+        public bool BypassDataAccess { get; set; }
         public byte IsActive { get; set; }
         public List<RoleItemGroupMappingInputDto>? RoleItemGroupMappings { get; set; }
     }
