@@ -18,7 +18,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.Lookups.Maintenance
             const string sql = @"
                 SELECT CASE
                     WHEN EXISTS (
-                        SELECT 1 FROM Maintenance.CostCenter WHERE DepartmentId = @DepartmentId AND IsDeleted = 0
+                        SELECT 1 FROM Maintenance.CostCenter WHERE DepartmentId = @DepartmentId
                     )
                     THEN 1
                     ELSE 0

@@ -108,6 +108,12 @@ namespace UserManagement.Presentation.Validation.Users
                         .WithMessage($"{rule.Error}")
                         .Must(x => x.Count > 0)
                         .WithMessage($"{rule.Error}");
+
+                        RuleFor(x => x.EmailId)
+                            .NotNull()
+                            .WithMessage($"{nameof(CreateUserCommand.EmailId)} {rule.Error}")
+                            .NotEmpty()
+                            .WithMessage($"{nameof(CreateUserCommand.EmailId)} {rule.Error}");
                         break;
 
                     case "MaxLength":
@@ -129,7 +135,8 @@ namespace UserManagement.Presentation.Validation.Users
                     case "Email":
                         RuleFor(x => x.EmailId)
                             .EmailAddress()
-                            .WithMessage($"{nameof(CreateUserCommand.EmailId)} {rule.Error}");
+                            .WithMessage($"{nameof(CreateUserCommand.EmailId)} {rule.Error}")
+                            .When(x => !string.IsNullOrWhiteSpace(x.EmailId));
                         break;
 
                     case "MobileNumber":
@@ -141,8 +148,7 @@ namespace UserManagement.Presentation.Validation.Users
                     case "AlreadyExists":
                         RuleFor(x => x.UserName)
                         .MustAsync(async (UserName, cancellation) => !await _userQueryRepository.AlreadyExistsAsync(UserName))
-                        .WithName("User Name")
-                         .WithMessage($"{rule.Error}");
+                        .WithMessage($"{nameof(CreateUserCommand.UserName)} {rule.Error}");
                         break;
                     case "PasswordMaxLength":
                         RuleFor(x => x.Password)

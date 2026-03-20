@@ -58,10 +58,10 @@ namespace UserManagement.Presentation.Validation.UserLogin
                     case "NotFound":
                            RuleFor(x => x.Username )
                            .Cascade(CascadeMode.Stop)
-                           .MustAsync(async (Username, cancellation) => 
-                        await _userQueryRepository.AlreadyExistsAsync(Username))             
+                           .MustAsync(async (Username, cancellation) =>
+                        await _userQueryRepository.AlreadyExistsAsync(Username))
                            .WithName("User Name")
-                            .WithMessage($"{rule.Error}");
+                            .WithMessage(x => $"Username '{x.Username}' {rule.Error} Please check and try again.");
                         //     .MustAsync(async (Username, cancellation) => 
                         // await _companyQuerySettings.BeforeLoginNotFoundValidation(Username))             
                         //    .WithName("User Name")
