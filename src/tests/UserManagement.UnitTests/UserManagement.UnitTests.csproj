@@ -38,11 +38,25 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Project references -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Project references — module-scoped only (no BSOFT.Api) -->
     <ProjectReference Include="..\..\Modules\UserManagement\Core\UserManagement.Application\UserManagement.Application.csproj" />
     <ProjectReference Include="..\..\Modules\UserManagement\Core\UserManagement.Domain\UserManagement.Domain.csproj" />
     <ProjectReference Include="..\..\Modules\UserManagement\UserManagement.Infrastructure\UserManagement.Infrastructure.csproj" />
-    <ProjectReference Include="..\..\BSOFT.Api\BSOFT.Api.csproj" />
+    <ProjectReference Include="..\..\Modules\UserManagement\UserManagement.Presentation\UserManagement.Presentation.csproj" />
+    <ProjectReference Include="..\..\Shared\Contracts\Contracts.csproj" />
+    <ProjectReference Include="..\..\Shared\Shared.Validation\Shared.Validation.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Copy validation-rules.json for validator tests -->
+    <Content Include="..\..\Shared\Shared.Validation\Common\validation-rules.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>validation-rules.json</Link>
+    </Content>
   </ItemGroup>
 
 </Project>

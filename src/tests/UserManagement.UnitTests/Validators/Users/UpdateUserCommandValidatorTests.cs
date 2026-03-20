@@ -1,5 +1,4 @@
 using Contracts.Interfaces;
-#nullable disable
 using UserManagement.Application.Common.Interfaces;
 using UserManagement.Application.Common.Interfaces.IUser;
 using UserManagement.Application.Users.Commands.UpdateUser;
