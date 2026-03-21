@@ -305,6 +305,18 @@ namespace BackgroundService.Infrastructure
                             e.ConfigureConsumer<PartyManagement.Application.Consumers.ApprovedRejectedConsumer>(context);
                         });
 
+                        // Party → User integration queues
+                        cfg.ReceiveEndpoint("party-approved-user-creation-queue", e =>
+                        {
+                            e.UseMessageRetry(r => r.Intervals(TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(30)));
+                            e.ConfigureConsumer<UserManagement.Application.Consumers.PartyApprovedConsumer>(context);
+                        });
+                        cfg.ReceiveEndpoint("party-sync-user-queue", e =>
+                        {
+                            e.UseMessageRetry(r => r.Intervals(TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(30)));
+                            e.ConfigureConsumer<UserManagement.Application.Consumers.PartySyncConsumer>(context);
+                        });
+
                         // Rollback queues (undo pending status on workflow failure)
                         cfg.ReceiveEndpoint("approval-request-rollback-purchase-queue", e =>
                         {

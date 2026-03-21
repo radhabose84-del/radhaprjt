@@ -138,6 +138,7 @@ namespace UserManagement.Application.Consumers
                 Mobile = m.Mobile,
                 IsLocked = m.IsPortalAccessEnabled ? (byte)0 : (byte)1,
                 PartyId = m.PartyId,
+                DepartmentId = 1,
                 IsFirstTimeUser = UserManagement.Domain.Enums.Common.Enums.FirstTimeUserStatus.Yes,
                 CreatedBy = createdBy,
                 CreatedByName = createdByName,
