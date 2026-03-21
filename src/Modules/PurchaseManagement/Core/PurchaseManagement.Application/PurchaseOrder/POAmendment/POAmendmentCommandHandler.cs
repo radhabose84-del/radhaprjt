@@ -1,12 +1,15 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json;
 using AutoMapper;
+using Contracts.Events.Workflow;
 using Contracts.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IMiscMaster;
+using PurchaseManagement.Application.Common.Interfaces.IOutbox;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.IPurchaseDocument;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.Local;
+using PurchaseManagement.Application.PurchaseOrder.Local.Commands.Create;
 using PurchaseManagement.Application.PurchaseOrder.POAmendment;
-// using PurchaseManagement.Application.PurchaseOrder.Dtos.Local;
 using PurchaseManagement.Domain.Common;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -22,7 +25,7 @@ public sealed class POAmendmentCommandHandler : IRequestHandler<POAmendmentComma
     private readonly IIPAddressService _ip;
     private readonly ITimeZoneService _tz;
     private readonly ILogger<POAmendmentCommandHandler> _logger;
-    //private readonly IEventPublisher _events;
+    private readonly IOutboxEventPublisher _outboxEventPublisher;
     private readonly IPODocumentQueryRepository _poDocs;
 
     public POAmendmentCommandHandler(
@@ -33,12 +36,13 @@ public sealed class POAmendmentCommandHandler : IRequestHandler<POAmendmentComma
         IIPAddressService ip,
         ITimeZoneService tz,
         ILogger<POAmendmentCommandHandler> logger,
-        //IEventPublisher events,
+        IOutboxEventPublisher outboxEventPublisher,
         IPODocumentQueryRepository poDocs)
     {
         _cmd = cmd; _qry = qry; _misc = misc; _mapper = mapper;
-        _ip = ip; _tz = tz; _logger = logger;// _events = events;
-         _poDocs = poDocs;
+        _ip = ip; _tz = tz; _logger = logger;
+        _outboxEventPublisher = outboxEventPublisher;
+        _poDocs = poDocs;
     }
 
     public async Task<int> Handle(POAmendmentCommand request, CancellationToken ct)
@@ -98,28 +102,28 @@ public sealed class POAmendmentCommandHandler : IRequestHandler<POAmendmentComma
         // Call repo with DTO (matches signature): delete old children/docs, soft-close old, insert revised + docs
         var newId = await _cmd.AmendAsync(existing, dto, ct);
 
-        // // Best-effort workflow publish
-        // try
-        // {
-        //     var agg = await _qry.GetByIdAsync(newId, ct);
-        //     if (agg is not null)
-        //     {
-        //         var payload = _mapper.Map<CreatePOLocalReverseDto>(agg);
-        //         var evt = new TransactionCreatedEvent
-        //         {
-        //             CorrelationId = Guid.NewGuid(),
-        //             ModuleTypeName = MiscEnumEntity.POLocal,
-        //             ModuleTransactionId = newId,
-        //             Payload = JsonSerializer.Serialize(payload)
-        //         };
-        //         await _events.SaveEventAsync(evt);
-        //         await _events.PublishPendingEventsAsync();
-        //     }
-        // }
-        // catch (Exception ex)
-        // {
-        //     _logger.LogError(ex, "Workflow publish failed for amended PO={NewId}", newId);
-        // }
+        // Best-effort workflow publish via outbox
+        try
+        {
+            var agg = await _qry.GetByIdAsync(newId, ct);
+            if (agg is not null)
+            {
+                var payload = _mapper.Map<CreatePOLocalReverseDto>(agg);
+                var correlationId = Guid.NewGuid();
+                var evt = new TransactionCreatedEvent
+                {
+                    CorrelationId = correlationId,
+                    ModuleTypeName = MiscEnumEntity.POLocal,
+                    ModuleTransactionId = newId,
+                    Payload = JsonSerializer.Serialize(payload)
+                };
+                await _outboxEventPublisher.ScheduleAsync(evt, correlationId, ct);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Workflow publish failed for amended PO={NewId}", newId);
+        }
 
         return newId;
     }

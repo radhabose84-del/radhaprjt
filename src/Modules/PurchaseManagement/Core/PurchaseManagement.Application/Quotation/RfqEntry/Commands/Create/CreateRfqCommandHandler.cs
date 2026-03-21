@@ -5,10 +5,10 @@ using Contracts.Events.Notifications;
 using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Common;
 using PurchaseManagement.Application.Common.Interfaces;
+using PurchaseManagement.Application.Common.Interfaces.IOutbox;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseIndent;
 using PurchaseManagement.Application.Common.Interfaces.IQuotation.IRfqEntry;
 using PurchaseManagement.Domain.Entities.Quotation.RfqEntry;
-using MassTransit;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -23,7 +23,7 @@ namespace PurchaseManagement.Application.Quotation.RfqEntry.Commands.Create
         private readonly IRfqCommandRepository _rfqRepo;
         private readonly IMapper _mapper;
         private readonly IIPAddressService _ip;
-        private readonly IEventPublisher _eventPublisher;
+        private readonly IOutboxEventPublisher _outboxEventPublisher;
         private readonly IItemLookup _itemLookup;
         private readonly IUOMLookup _uomLookup;
         private readonly ILogger<CreateRfqCommandHandler> _logger;
@@ -34,7 +34,7 @@ namespace PurchaseManagement.Application.Quotation.RfqEntry.Commands.Create
             IRfqCommandRepository rfqRepo,
             IMapper mapper,
             IIPAddressService ip,
-            IEventPublisher eventPublisher,
+            IOutboxEventPublisher outboxEventPublisher,
             ILogger<CreateRfqCommandHandler> logger,
             IItemLookup itemLookup,
             IUOMLookup uOMLookup, ITimeZoneService timeZoneService, IPurchaseIndentCommand indentRepo,
@@ -43,7 +43,7 @@ namespace PurchaseManagement.Application.Quotation.RfqEntry.Commands.Create
             _rfqRepo = rfqRepo ?? throw new ArgumentNullException(nameof(rfqRepo));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _ip = ip ?? throw new ArgumentNullException(nameof(ip));
-            _eventPublisher = eventPublisher ?? throw new ArgumentNullException(nameof(_eventPublisher));
+            _outboxEventPublisher = outboxEventPublisher ?? throw new ArgumentNullException(nameof(outboxEventPublisher));
             _itemLookup = itemLookup ?? throw new ArgumentNullException(nameof(itemLookup));
             _uomLookup = uOMLookup ?? throw new ArgumentNullException(nameof(uOMLookup));
             _logger = logger ?? NullLogger<CreateRfqCommandHandler>.Instance;
@@ -217,7 +217,7 @@ namespace PurchaseManagement.Application.Quotation.RfqEntry.Commands.Create
                         CreatedByName = contactName,
                         UnitId = rfq.UnitId ?? _ip.GetUnitId() ?? 0,
                         ModuleName = "RFQ",
-                        EventTypeId = notifEventMisc.Id,
+                        EventTypeId = notifEventMisc?.Id ?? 0,
                         Email = email,
                         ccMail = "",
                         Mobile = mobile,
@@ -234,8 +234,7 @@ namespace PurchaseManagement.Application.Quotation.RfqEntry.Commands.Create
                         param10 = rowsJson
                     };
 
-                    await _eventPublisher.SaveEventAsync(@event);
-                    await _eventPublisher.PublishPendingEventsAsync();
+                    await _outboxEventPublisher.ScheduleAsync(@event, correlationId, ct);
 
                     _logger.LogInformation("📨 RFQ email queued for '{Recipient}' <{Email}>. RFQ {Id}/{Code} (CorrId: {Corr})",
                         recipientName, email, id, rfq.RfqCode, correlationId);

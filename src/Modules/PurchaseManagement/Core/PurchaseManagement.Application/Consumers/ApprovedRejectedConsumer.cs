@@ -31,8 +31,7 @@ namespace PurchaseManagement.Application.Consumers
     public class ApprovedRejectedConsumer : IConsumer<UpdateApprovedRejectedPurchaseCommand>
     {
         private readonly IPurchaseIndentCommand _purchaseIndentCommand;
-        private readonly IMapper _imapper;
-        private readonly IEventPublisher _eventPublisher;
+        private readonly IMapper _imapper;        
         private readonly IMiscMasterQueryRepository _miscMasterQueryRepository;
         private readonly ILogger<ApprovedRejectedConsumer> _logger;
         private readonly IQuotationCompareCommandRepository _quotationCompareCommand;
@@ -48,8 +47,7 @@ namespace PurchaseManagement.Application.Consumers
 
         public ApprovedRejectedConsumer(
             IPurchaseIndentCommand purchaseIndentCommand,
-            IMapper mapper,
-            IEventPublisher eventPublisher,
+            IMapper mapper,            
             IMiscMasterQueryRepository miscMasterQueryRepository,
             ILogger<ApprovedRejectedConsumer> logger,
             IQuotationCompareCommandRepository quotationCompareCommand,
@@ -65,7 +63,6 @@ namespace PurchaseManagement.Application.Consumers
         {
             _purchaseIndentCommand = purchaseIndentCommand;
             _imapper = mapper;
-            _eventPublisher = eventPublisher;
             _miscMasterQueryRepository = miscMasterQueryRepository;
             _logger = logger;
             _quotationCompareCommand = quotationCompareCommand;

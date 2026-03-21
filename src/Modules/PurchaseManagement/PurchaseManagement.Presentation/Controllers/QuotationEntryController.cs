@@ -1,4 +1,4 @@
-using API.Controllers.Quotation;
+using Contracts.Dtos.Common;
 using PurchaseManagement.Application.Item.ItemDetail.Commands.UploadItemImage;
 using PurchaseManagement.Application.Quotation.QuotationEntry.Commands.DeleteImage;
 using PurchaseManagement.Application.Quotations.QuotationEntry.Commands.Create;

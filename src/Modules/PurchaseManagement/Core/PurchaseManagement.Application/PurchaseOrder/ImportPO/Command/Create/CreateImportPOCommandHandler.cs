@@ -28,8 +28,7 @@ public class CreateImportPOCommandHandler : IRequestHandler<CreateImportPOComman
     private readonly IPODocumentQueryRepository _poDocumentQueryRepository;
     private readonly IImportPOQueryRepository _purchaseOrderQueryRepository;    
     private readonly IUnitLookup _unitLookup;
-    private readonly IBudgetAllocationLookup _budgetAllocationLookup;
-    //private readonly IEventPublisher _eventPublisher;
+    private readonly IBudgetAllocationLookup _budgetAllocationLookup;    
 
     public CreateImportPOCommandHandler(
         IImportPOCommandRepository repo,
@@ -39,11 +38,11 @@ public class CreateImportPOCommandHandler : IRequestHandler<CreateImportPOComman
         ILogger<CreateImportPOCommandHandler> logger,
         IMiscMasterQueryRepository misc,
         IPurchaseOrderCommandRepository poRepo,
-        IPODocumentQueryRepository poDocumentQueryRepository,  IImportPOQueryRepository purchaseOrderQueryRepository, IUnitLookup unitLookup, IBudgetAllocationLookup budgetAllocationLookup//,IEventPublisher eventPublisher
+        IPODocumentQueryRepository poDocumentQueryRepository,  IImportPOQueryRepository purchaseOrderQueryRepository, IUnitLookup unitLookup, IBudgetAllocationLookup budgetAllocationLookup
         )
     {
         _repo = repo; _mapper = mapper; _ip = ip; _tz = tz; _logger = logger;
-        _misc = misc; _poRepo = poRepo; _poDocumentQueryRepository = poDocumentQueryRepository;_purchaseOrderQueryRepository = purchaseOrderQueryRepository; //_eventPublisher = eventPublisher;
+        _misc = misc; _poRepo = poRepo; _poDocumentQueryRepository = poDocumentQueryRepository;_purchaseOrderQueryRepository = purchaseOrderQueryRepository; 
         _unitLookup = unitLookup ?? throw new ArgumentNullException(nameof(unitLookup));
         _budgetAllocationLookup = budgetAllocationLookup ?? throw new ArgumentNullException(nameof(budgetAllocationLookup));
     }
