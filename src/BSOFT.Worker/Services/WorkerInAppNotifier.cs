@@ -1,5 +1,6 @@
 #nullable disable
 using BackgroundService.Application.DTO;
+using Contracts.Interfaces.Lookups.Common;
 using BackgroundService.Application.Interfaces.Notification;
 using BackgroundService.Application.Notification.Common.Interfaces;
 using BackgroundService.Domain.Entities.Notification;
@@ -21,17 +22,20 @@ internal sealed class WorkerInAppNotifier : IInAppNotifier
     private readonly IWorkerNotificationService _workerNotificationService;
     private readonly INotificationLogger _notificationLogger;
     private readonly ITimeZoneService _timeZoneService;
+    private readonly IAppDataMiscMasterLookup _appDataMiscLookup;
 
     public WorkerInAppNotifier(
         ILogger<WorkerInAppNotifier> logger,
         IWorkerNotificationService workerNotificationService,
         INotificationLogger notificationLogger,
-        ITimeZoneService timeZoneService)
+        ITimeZoneService timeZoneService,
+        IAppDataMiscMasterLookup appDataMiscLookup)
     {
         _logger = logger;
         _workerNotificationService = workerNotificationService;
         _notificationLogger = notificationLogger;
         _timeZoneService = timeZoneService;
+        _appDataMiscLookup = appDataMiscLookup;
     }
 
     public async Task<bool> SendInAppNotificationAsync(
@@ -49,6 +53,11 @@ internal sealed class WorkerInAppNotifier : IInAppNotifier
 
         try
         {
+            // Resolve MiscMaster IDs dynamically
+            var successMisc = await _appDataMiscLookup.GetMiscMasterByNameAsync(NotificationEnum.NotificationStatus, NotificationEnum.Success);
+            var unreadMisc = await _appDataMiscLookup.GetMiscMasterByNameAsync(NotificationEnum.NotificationReadStatus, NotificationEnum.Unread);
+            var channelMisc = await _appDataMiscLookup.GetMiscMasterByNameAsync(NotificationEnum.NotificationChannel, NotificationEnum.InApp);
+
             var systemTimeZoneId = _timeZoneService.GetSystemTimeZone();
             var currentTime = _timeZoneService.GetCurrentTime(systemTimeZoneId);
 
@@ -58,11 +67,11 @@ internal sealed class WorkerInAppNotifier : IInAppNotifier
                 var log = new NotificationEventLog
                 {
                     NotificationLevelRuleId = context.EventRuleId,
-                    NotificationStatusId = (int)NotificationEnum.NotificationStatus.Success,
-                    ReadStatusId = (int)NotificationEnum.NotificationReadStatus.Unread,
+                    NotificationStatusId = successMisc?.Id ?? 0,
+                    ReadStatusId = unreadMisc?.Id ?? 0,
                     SendTo = id.ToString(),
                     ActionStatus = "Sent",
-                    ChannelId = (int)NotificationEnum.NotificationChannel.InApp,
+                    ChannelId = channelMisc?.Id ?? 0,
                     MessageText = message,
                     Timestamp = currentTime,
                     CreatedBy = context.CreatedById,

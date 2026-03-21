@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using BackgroundService.Application.Helpers;
 using BackgroundService.Application.Interfaces.IInbox;
+using Contracts.Interfaces.Lookups.Common;
 using BackgroundService.Application.Interfaces.Notification;
 using Contracts.Interfaces;
 using BackgroundService.Application.Notification.Common.Interfaces;
@@ -30,6 +31,7 @@ namespace BackgroundService.Application.Consumers
         private readonly IIPAddressService _ipAddressService;
         private readonly ITimeZoneService _timeZoneService;
         private readonly IInboxRepository _inbox;
+        private readonly IAppDataMiscMasterLookup _appDataMiscLookup;
 
         public SendWhatsappNotificationConsumer(
             IWhatsAppSender waSender,
@@ -38,7 +40,8 @@ namespace BackgroundService.Application.Consumers
             INotificationLogger loggerNotification,
             IIPAddressService ipAddressService,
             ITimeZoneService timeZoneService,
-            IInboxRepository inbox)
+            IInboxRepository inbox,
+            IAppDataMiscMasterLookup appDataMiscLookup)
         {
             _waSender = waSender;
             _logger = logger;
@@ -47,6 +50,7 @@ namespace BackgroundService.Application.Consumers
             _ipAddressService = ipAddressService;
             _timeZoneService = timeZoneService;
             _inbox = inbox;
+            _appDataMiscLookup = appDataMiscLookup;
         }
 
         public async Task Consume(ConsumeContext<SendWhatsappNotificationInternalCommand> context)
@@ -63,6 +67,12 @@ namespace BackgroundService.Application.Consumers
                 return;
             }
 
+
+            // Resolve MiscMaster IDs dynamically
+            var channelMisc = await _appDataMiscLookup.GetMiscMasterByNameAsync(NotificationEnum.NotificationChannel, NotificationEnum.WhatsApp);
+            var successMisc = await _appDataMiscLookup.GetMiscMasterByNameAsync(NotificationEnum.NotificationStatus, NotificationEnum.Success);
+            var failedMisc = await _appDataMiscLookup.GetMiscMasterByNameAsync(NotificationEnum.NotificationStatus, NotificationEnum.Failed);
+            var unreadMisc = await _appDataMiscLookup.GetMiscMasterByNameAsync(NotificationEnum.NotificationReadStatus, NotificationEnum.Unread);
 
             try
             {
@@ -157,9 +167,9 @@ namespace BackgroundService.Application.Consumers
                         {
                             NotificationLevelRuleId = result.EventRuleId,
                             UnitId = msg.UnitId,
-                            ChannelId = (int)NotificationEnum.NotificationChannel.WhatsApp,
-                            NotificationStatusId = (int)NotificationEnum.NotificationStatus.Success,
-                            ReadStatusId = (int)NotificationEnum.NotificationReadStatus.Unread,
+                            ChannelId = channelMisc?.Id ?? 0,
+                            NotificationStatusId = successMisc?.Id ?? 0,
+                            ReadStatusId = unreadMisc?.Id ?? 0,
                             SendTo = string.Join(",", waNumbers),
                             ActionStatus = "Sent",
                             MessageText = resolvedBody,
@@ -200,9 +210,9 @@ namespace BackgroundService.Application.Consumers
                     {
                         NotificationLevelRuleId = null,
                         UnitId = msg.UnitId,
-                        ChannelId = (int)NotificationEnum.NotificationChannel.WhatsApp,
-                        NotificationStatusId = (int)NotificationEnum.NotificationStatus.Failed,
-                        ReadStatusId = (int)NotificationEnum.NotificationReadStatus.Unread,
+                        ChannelId = channelMisc?.Id ?? 0,
+                        NotificationStatusId = failedMisc?.Id ?? 0,
+                        ReadStatusId = unreadMisc?.Id ?? 0,
                         SendTo = msg.Mobile ?? "Unknown",
                         ActionStatus = "Failed",
                         MessageText = ex.Message,

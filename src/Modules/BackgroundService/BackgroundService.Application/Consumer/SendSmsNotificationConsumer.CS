@@ -1,5 +1,6 @@
 using BackgroundService.Application.Helpers;
 using BackgroundService.Application.Interfaces.IInbox;
+using Contracts.Interfaces.Lookups.Common;
 using BackgroundService.Application.Interfaces.Notification;
 using Contracts.Interfaces;
 using BackgroundService.Application.Notification.Common.Interfaces;
@@ -24,6 +25,7 @@ namespace BackgroundService.Application.Consumers
         private readonly IIPAddressService _ipAddressService;
         private readonly ITimeZoneService _timeZoneService;
         private readonly IInboxRepository _inbox;
+        private readonly IAppDataMiscMasterLookup _appDataMiscLookup;
 
         public SendSmsNotificationConsumer(
             ISmsSender smsSender,
@@ -32,7 +34,8 @@ namespace BackgroundService.Application.Consumers
             INotificationLogger loggerNotification,
             IIPAddressService ipAddressService,
             ITimeZoneService timeZoneService,
-            IInboxRepository inbox)
+            IInboxRepository inbox,
+            IAppDataMiscMasterLookup appDataMiscLookup)
         {
             _smsSender = smsSender;
             _logger = logger;
@@ -41,6 +44,7 @@ namespace BackgroundService.Application.Consumers
             _ipAddressService = ipAddressService;
             _timeZoneService = timeZoneService;
             _inbox = inbox;
+            _appDataMiscLookup = appDataMiscLookup;
         }
 
         public async Task Consume(ConsumeContext<SendSmsNotificationInternalCommand> context)
@@ -56,6 +60,12 @@ namespace BackgroundService.Application.Consumers
                     consumerName, messageId, msg.CorrelationId);
                 return;
             }
+
+            // Resolve MiscMaster IDs dynamically
+            var channelMisc = await _appDataMiscLookup.GetMiscMasterByNameAsync(NotificationEnum.NotificationChannel, NotificationEnum.SMS);
+            var successMisc = await _appDataMiscLookup.GetMiscMasterByNameAsync(NotificationEnum.NotificationStatus, NotificationEnum.Success);
+            var failedMisc = await _appDataMiscLookup.GetMiscMasterByNameAsync(NotificationEnum.NotificationStatus, NotificationEnum.Failed);
+            var unreadMisc = await _appDataMiscLookup.GetMiscMasterByNameAsync(NotificationEnum.NotificationReadStatus, NotificationEnum.Unread);
 
             try
             {
@@ -89,7 +99,7 @@ namespace BackgroundService.Application.Consumers
                 var bodyTemplate = result.Body ?? string.Empty;
                 var eventRuleId  = result.EventRuleId ?? 0;
                 var eventTypeId  = result.EventTypeId ?? 0;
-                var channelId    = result.ChannelId ?? (int)NotificationEnum.NotificationChannel.SMS;
+                var channelId    = result.ChannelId ?? channelMisc?.Id ?? 0;
 
                 var tokens = new Dictionary<string, string>
                 {
@@ -140,8 +150,8 @@ namespace BackgroundService.Application.Consumers
                             NotificationLevelRuleId = eventRuleId,
                             UnitId = msg.UnitId,
                             ChannelId = channelId,
-                            NotificationStatusId = (int)NotificationEnum.NotificationStatus.Success,
-                            ReadStatusId = (int)NotificationEnum.NotificationReadStatus.Unread,
+                            NotificationStatusId = successMisc?.Id ?? 0,
+                            ReadStatusId = unreadMisc?.Id ?? 0,
                             SendTo = string.Join(",", smsNumbers),
                             ActionStatus = "Sent",
                             MessageText = resolvedBody,
@@ -181,9 +191,9 @@ namespace BackgroundService.Application.Consumers
                     {
                         NotificationLevelRuleId = null,
                         UnitId = msg.UnitId,
-                        ChannelId = (int)NotificationEnum.NotificationChannel.SMS,
-                        NotificationStatusId = (int)NotificationEnum.NotificationStatus.Failed,
-                        ReadStatusId = (int)NotificationEnum.NotificationReadStatus.Unread,
+                        ChannelId = channelMisc?.Id ?? 0,
+                        NotificationStatusId = failedMisc?.Id ?? 0,
+                        ReadStatusId = unreadMisc?.Id ?? 0,
                         SendTo = msg.Mobile ?? "Unknown",
                         ActionStatus = "Failed",
                         MessageText = ex.Message,

@@ -3,6 +3,7 @@ using System.Text.Json;
 using AutoMapper;
 using Contracts.Events.Notifications;
 using Contracts.Interfaces;
+using Contracts.Interfaces.Lookups.Common;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseIndent;
 using PurchaseManagement.Application.Common.Interfaces.IQuotation.IRfqEntry;
@@ -18,34 +19,37 @@ namespace PurchaseManagement.Application.Quotation.RfqEntry.Commands.Create
 {
     public class CreateRfqCommandHandler : IRequestHandler<CreateRfqCommand, int>
     {
-        private const int RfqEmailEventTypeId = 14;
         private readonly ITimeZoneService _timeZoneService;
         private readonly IRfqCommandRepository _rfqRepo;
         private readonly IMapper _mapper;
         private readonly IIPAddressService _ip;
-        private readonly IEventPublisher _eventPublisher;        
+        private readonly IEventPublisher _eventPublisher;
         private readonly IItemLookup _itemLookup;
         private readonly IUOMLookup _uomLookup;
         private readonly ILogger<CreateRfqCommandHandler> _logger;
         private readonly IPurchaseIndentCommand _indentRepo;
+        private readonly IAppDataMiscMasterLookup _appDataMiscLookup;
 
         public CreateRfqCommandHandler(
             IRfqCommandRepository rfqRepo,
             IMapper mapper,
             IIPAddressService ip,
-            IEventPublisher eventPublisher,            
+            IEventPublisher eventPublisher,
             ILogger<CreateRfqCommandHandler> logger,
             IItemLookup itemLookup,
-            IUOMLookup uOMLookup, ITimeZoneService timeZoneService, IPurchaseIndentCommand indentRepo)
+            IUOMLookup uOMLookup, ITimeZoneService timeZoneService, IPurchaseIndentCommand indentRepo,
+            IAppDataMiscMasterLookup appDataMiscLookup)
         {
             _rfqRepo = rfqRepo ?? throw new ArgumentNullException(nameof(rfqRepo));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _ip = ip ?? throw new ArgumentNullException(nameof(ip));
-            _eventPublisher = eventPublisher ?? throw new ArgumentNullException(nameof(_eventPublisher));            
+            _eventPublisher = eventPublisher ?? throw new ArgumentNullException(nameof(_eventPublisher));
             _itemLookup = itemLookup ?? throw new ArgumentNullException(nameof(itemLookup));
             _uomLookup = uOMLookup ?? throw new ArgumentNullException(nameof(uOMLookup));
             _logger = logger ?? NullLogger<CreateRfqCommandHandler>.Instance;
-            _timeZoneService = timeZoneService ?? throw new ArgumentNullException(nameof(timeZoneService)); _indentRepo = indentRepo ;
+            _timeZoneService = timeZoneService ?? throw new ArgumentNullException(nameof(timeZoneService));
+            _indentRepo = indentRepo;
+            _appDataMiscLookup = appDataMiscLookup;
         }
         
         public async Task<int> Handle(CreateRfqCommand request, CancellationToken ct)
@@ -191,6 +195,9 @@ namespace PurchaseManagement.Application.Quotation.RfqEntry.Commands.Create
             // 7) Publish one email per supplier
             try
             {
+                var notifEventMisc = await _appDataMiscLookup.GetMiscMasterByNameAsync(
+                    NotificationEnum.NotificationEvent, NotificationEnum.Create);
+
                 foreach (var s in request.Suppliers)
                 {
                     var recipientName = string.IsNullOrWhiteSpace(s.Name) ? "Supplier" : s.Name.Trim();
@@ -210,7 +217,7 @@ namespace PurchaseManagement.Application.Quotation.RfqEntry.Commands.Create
                         CreatedByName = contactName,
                         UnitId = rfq.UnitId ?? _ip.GetUnitId() ?? 0,
                         ModuleName = "RFQ",
-                        EventTypeId = RfqEmailEventTypeId,
+                        EventTypeId = notifEventMisc.Id,
                         Email = email,
                         ccMail = "",
                         Mobile = mobile,
