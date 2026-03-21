@@ -154,7 +154,9 @@ namespace BackgroundService.Infrastructure
                           QueuePollInterval = TimeSpan.Zero,
                           UseRecommendedIsolationLevel = true,
                           UsePageLocksOnDequeue = true,
-                          DisableGlobalLocks = true
+                          DisableGlobalLocks = true,
+                          // Schema already exists — suppress repeated migration warnings on every start
+                          PrepareSchemaIfNecessary = false
                       });
             });
 

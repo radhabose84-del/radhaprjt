@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using BackgroundService.Application.Helpers;
 using BackgroundService.Application.Interfaces.Files;
 using BackgroundService.Application.Interfaces.IInbox;
+using Contracts.Interfaces.Lookups.Common;
 using BackgroundService.Application.Interfaces.Notification;
 using Contracts.Interfaces;
 using BackgroundService.Application.Notification.Common.Interfaces;
@@ -35,6 +36,7 @@ namespace BackgroundService.Application.Consumers
         private readonly IHtmlTableRenderer _htmlTableRenderer;
         private readonly IFileFetcher _fileFetcher;
         private readonly IInboxRepository _inbox;
+        private readonly IAppDataMiscMasterLookup _appDataMiscLookup;
 
         public SendEmailNotificationConsumer(
             INotificationResolverHandler resolverHandler,
@@ -46,7 +48,8 @@ namespace BackgroundService.Application.Consumers
             ITimeZoneService timeZoneService,
             IHtmlTableRenderer htmlTableRenderer,
             IFileFetcher fileFetcher,
-            IInboxRepository inbox)
+            IInboxRepository inbox,
+            IAppDataMiscMasterLookup appDataMiscLookup)
         {
             _resolverHandler = resolverHandler;
             _emailSender = emailSender;
@@ -58,6 +61,7 @@ namespace BackgroundService.Application.Consumers
             _htmlTableRenderer = htmlTableRenderer;
             _fileFetcher = fileFetcher;
             _inbox = inbox;
+            _appDataMiscLookup = appDataMiscLookup;
         }
 
         public async Task Consume(ConsumeContext<SendEmailNotificationInternalCommand> context)
@@ -73,6 +77,12 @@ namespace BackgroundService.Application.Consumers
                     consumerName, messageId, msg.CorrelationId);
                 return;
             }
+
+            // Resolve MiscMaster IDs dynamically
+            var channelMisc = await _appDataMiscLookup.GetMiscMasterByNameAsync(NotificationEnum.NotificationChannel, NotificationEnum.Email);
+            var successMisc = await _appDataMiscLookup.GetMiscMasterByNameAsync(NotificationEnum.NotificationStatus, NotificationEnum.Success);
+            var failedMisc = await _appDataMiscLookup.GetMiscMasterByNameAsync(NotificationEnum.NotificationStatus, NotificationEnum.Failed);
+            var unreadMisc = await _appDataMiscLookup.GetMiscMasterByNameAsync(NotificationEnum.NotificationReadStatus, NotificationEnum.Unread);
 
             try
             {
@@ -198,9 +208,9 @@ namespace BackgroundService.Application.Consumers
                         {
                             NotificationLevelRuleId = eventRuleId,
                             UnitId = msg.UnitId,
-                            ChannelId = channelId ?? (int)NotificationEnum.NotificationChannel.Email,
-                            NotificationStatusId = (int)NotificationEnum.NotificationStatus.Success,
-                            ReadStatusId = (int)NotificationEnum.NotificationReadStatus.Unread,
+                            ChannelId = channelId ?? channelMisc?.Id ?? 0,
+                            NotificationStatusId = successMisc?.Id ?? 0,
+                            ReadStatusId = unreadMisc?.Id ?? 0,
                             SendTo = string.Join(",", toEmails),
                             ActionStatus = "Sent",
                             MessageText = $"{resolvedHeader}{resolvedBody}{resolvedFooter}",
@@ -236,11 +246,11 @@ namespace BackgroundService.Application.Consumers
                     {
                         NotificationLevelRuleId = null,
                         UnitId = msg.UnitId,
-                        NotificationStatusId = (int)NotificationEnum.NotificationStatus.Failed,
-                        ReadStatusId = (int)NotificationEnum.NotificationReadStatus.Unread,
+                        NotificationStatusId = failedMisc?.Id ?? 0,
+                        ReadStatusId = unreadMisc?.Id ?? 0,
                         SendTo = msg.Email ?? "Unknown",
                         ActionStatus = "Failed",
-                        ChannelId = (int)NotificationEnum.NotificationChannel.Email,
+                        ChannelId = channelMisc?.Id ?? 0,
                         MessageText = ex.Message,
                         Timestamp = DateTimeOffset.UtcNow,
                         CreatedBy = _ipAddressService.GetUserId(),

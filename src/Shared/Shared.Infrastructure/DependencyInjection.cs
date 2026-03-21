@@ -1,4 +1,5 @@
 using Contracts.Interfaces;
+using Contracts.Interfaces.Lookups.Common;
 using Microsoft.Extensions.DependencyInjection;
 using Shared.Infrastructure.Services;
 
@@ -14,6 +15,7 @@ public static class DependencyInjection
     {
         services.AddScoped<IIPAddressService, IPAddressService>();
         services.AddScoped<IDataAccessFilter, DataAccessFilterService>();
+        services.AddScoped<IAppDataMiscMasterLookup, AppDataMiscMasterLookupRepository>();
         return services;
     }
 }

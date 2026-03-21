@@ -97,5 +97,21 @@ namespace PurchaseManagement.Infrastructure.Repositories.PriceMaster
 
             return await _db.SaveChangesAsync(ct) > 0;
         }
+
+        public async Task<bool> RollbackStatusAsync(int id, CancellationToken ct = default)
+        {
+            var header = await _db.PriceMasterHeader
+                .Include(h => h.Details.Where(d => d.IsDeleted == BaseEntity.IsDelete.NotDeleted))
+                .FirstOrDefaultAsync(h => h.Id == id && h.IsDeleted == BaseEntity.IsDelete.NotDeleted, ct);
+
+            if (header is null) return false;
+
+            var pendingStatus = await _miscMasterQueryRepository
+                .GetMiscMasterByName(MiscEnumEntity.ApprovalStatus, MiscEnumEntity.Pending);
+
+            header.StatusId = pendingStatus.Id;
+
+            return await _db.SaveChangesAsync(ct) > 0;
+        }
     }
 }

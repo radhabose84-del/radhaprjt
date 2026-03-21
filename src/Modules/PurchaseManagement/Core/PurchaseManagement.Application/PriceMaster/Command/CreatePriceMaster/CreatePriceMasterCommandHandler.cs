@@ -4,7 +4,7 @@ using MediatR;
 using PurchaseManagement.Application.Common.Interfaces.PriceMaster;
 using PurchaseManagement.Domain.Entities.PriceMaster;
 using Contracts.Interfaces;
-using PurchaseManagement.Application.Common.Interfaces;
+using PurchaseManagement.Application.Common.Interfaces.IOutbox;
 using PurchaseManagement.Domain.Common;
 using PurchaseManagement.Application.Common.Interfaces.IMiscMaster;
 using System.Text.Json;
@@ -12,6 +12,7 @@ using Contracts.Commands.Workflow;
 using PurchaseManagement.Domain.Events;
 using PurchaseManagement.Application.PriceMaster.Command.CreatePriceMaster;
 using Contracts.Events.Notifications;
+using Contracts.Interfaces.Lookups.Common;
 using Microsoft.Extensions.Logging;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Party;
@@ -24,32 +25,35 @@ namespace PurchaseManagement.Application.PriceMaster.Commands.Create
         private readonly IMapper _mapper;
         private readonly IIPAddressService _ipAddress;
         private readonly IMiscMasterQueryRepository _miscRepo;
-        private readonly IEventPublisher _eventPublisher;
+        private readonly IOutboxEventPublisher _outboxEventPublisher;
         private readonly IMediator _mediator;
         private readonly ILogger<CreatePriceMasterCommandHandler> _logger;
         private readonly IItemLookup _itemLookup;
         private readonly IPartyLookup _partyLookup;
+        private readonly IAppDataMiscMasterLookup _appDataMiscLookup;
 
         public CreatePriceMasterCommandHandler(
             IPriceMasterCommandRepository repo,
             IMapper mapper,
             IIPAddressService ipAddress,
             IMiscMasterQueryRepository miscRepo,
-            IEventPublisher eventPublisher,
+            IOutboxEventPublisher outboxEventPublisher,
             IMediator mediator,
             ILogger<CreatePriceMasterCommandHandler> logger,
             IItemLookup itemLookup,
-            IPartyLookup partyLookup)
+            IPartyLookup partyLookup,
+            IAppDataMiscMasterLookup appDataMiscLookup)
         {
             _repo = repo;
             _mapper = mapper;
             _ipAddress = ipAddress;
             _miscRepo = miscRepo;
-            _eventPublisher = eventPublisher;
+            _outboxEventPublisher = outboxEventPublisher;
             _mediator = mediator;
             _logger = logger;
             _itemLookup = itemLookup;
             _partyLookup = partyLookup;
+            _appDataMiscLookup = appDataMiscLookup;
         }
 
         public async Task<int> Handle(CreatePriceMasterCommand request, CancellationToken ct)
@@ -121,22 +125,24 @@ namespace PurchaseManagement.Application.PriceMaster.Commands.Create
                     ModuleTransactionId = header.Id,
                     Payload = serializedPayload
                 }; 
-                //Notification             
+                //Notification
+                var notifEvent = await _appDataMiscLookup.GetMiscMasterByNameAsync(
+                    NotificationEnum.NotificationEvent, NotificationEnum.Create);
+
                 var notification = new NotificationCreatedEvent
                 {
                     CorrelationId = correlationId,
                     CreatedByName = header.CreatedByName,
                     UnitId = _ipAddress.GetUnitId() ?? 0,
                     ModuleName = "PriceMaster",
-                    EventTypeId = (int)NotificationEnum.NotificationEvent.Create,
+                    EventTypeId = notifEvent.Id,
                     param1 = header.Id.ToString(),
                     param2 = itemName,
                     param3 = new DateTimeOffset(header.ValidFrom.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc)),
                     param4 =vendorName
                 };
-                await _eventPublisher.SaveEventAsync(wfEvent);
-                await _eventPublisher.SaveEventAsync(notification);
-                await _eventPublisher.PublishPendingEventsAsync();
+                await _outboxEventPublisher.ScheduleAsync(wfEvent, correlationId, ct);
+                await _outboxEventPublisher.ScheduleAsync(notification, correlationId, ct);
             }
             catch (Exception ex)
             {
