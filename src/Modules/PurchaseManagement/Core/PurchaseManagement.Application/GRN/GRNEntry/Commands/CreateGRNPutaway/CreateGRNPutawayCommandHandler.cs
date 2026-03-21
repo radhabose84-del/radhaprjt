@@ -1,3 +1,4 @@
+using System.Data;
 using AutoMapper;
 using Contracts.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces;
@@ -13,14 +14,22 @@ namespace PurchaseManagement.Application.GRN.GRNEntry.Commands.CreateGRNPutaway
 {
     public class CreateGRNPutawayCommandHandler : IRequestHandler<CreateGRNPutawayCommand, int>
     {
-
         private readonly IGRNEntryCommandRepository _iGrnEntryCommandRepository;
         private readonly IGRNEntryQueryRepository _igrnEntryQueryRepository;
         private readonly IMapper _mapper;
         private readonly IMediator _mediator;
         private readonly IIPAddressService _ipAddressService;
         private readonly IStockLedgerLookup _stockLedgerLookup;
-        public CreateGRNPutawayCommandHandler(IGRNEntryCommandRepository iGrnEntryCommandRepository, IMapper mapper, IMediator mediator, IGRNEntryQueryRepository igrnEntryQueryRepository, IIPAddressService ipAddressService, IStockLedgerLookup stockLedgerLookup)
+        private readonly IDbConnection _dbConnection;
+
+        public CreateGRNPutawayCommandHandler(
+            IGRNEntryCommandRepository iGrnEntryCommandRepository,
+            IMapper mapper,
+            IMediator mediator,
+            IGRNEntryQueryRepository igrnEntryQueryRepository,
+            IIPAddressService ipAddressService,
+            IStockLedgerLookup stockLedgerLookup,
+            IDbConnection dbConnection)
         {
             _iGrnEntryCommandRepository = iGrnEntryCommandRepository;
             _mapper = mapper;
@@ -28,113 +37,125 @@ namespace PurchaseManagement.Application.GRN.GRNEntry.Commands.CreateGRNPutaway
             _igrnEntryQueryRepository = igrnEntryQueryRepository;
             _ipAddressService = ipAddressService;
             _stockLedgerLookup = stockLedgerLookup;
+            _dbConnection = dbConnection;
         }
-        
+
         public async Task<int> Handle(
-                    CreateGRNPutawayCommand request,
-                    CancellationToken cancellationToken)
+            CreateGRNPutawayCommand request,
+            CancellationToken cancellationToken)
+        {
+            if (request.PutawayList == null || !request.PutawayList.Any())
+                throw new ArgumentException("Putaway list cannot be empty.");
+
+            // Map DTO → Domain
+            var putawayList = _mapper.Map<List<GrnPutAwayRule>>(request.PutawayList);
+
+            foreach (var item in putawayList)
+            {
+                item.PutAwayDate = DateTime.Now;
+                item.CreatedBy = _ipAddressService.GetUserId();
+                item.CreatedDate = DateTime.Now;
+                item.CreatedByName = _ipAddressService.GetUserName();
+                item.CreatedIP = _ipAddressService.GetSystemIPAddress();
+
+                if (!item.ConversionFactor.HasValue || item.ConversionFactor.Value <= 0)
+                    item.ConversionFactor = 1;
+
+                if (item.QcAcceptedQtyStockUom <= 0)
                 {
-                    if (request.PutawayList == null || !request.PutawayList.Any())
-                        throw new ArgumentException("Putaway list cannot be empty.");
-
-                    // Map DTO → Domain
-                    var putawayList = _mapper.Map<List<GrnPutAwayRule>>(request.PutawayList);
-
-                    foreach (var item in putawayList)
-                    {
-                        item.PutAwayDate = DateTime.Now;
-                        item.CreatedBy = _ipAddressService.GetUserId();
-                        item.CreatedDate = DateTime.Now;
-                        item.CreatedByName = _ipAddressService.GetUserName();
-                        item.CreatedIP = _ipAddressService.GetSystemIPAddress();
-
-                        if (!item.ConversionFactor.HasValue || item.ConversionFactor.Value <= 0)
-                            item.ConversionFactor = 1;
-
-                        if (item.QcAcceptedQtyStockUom <= 0)
-                        {
-                            item.QcAcceptedQtyStockUom =
-                                item.QcAcceptedQtyPurchaseUom * item.ConversionFactor.Value;
-                        }
-                    }
-
-                    // -------------------------------
-                    // Prepare StockLedger DTOs (gRPC)
-                    // -------------------------------
-                    var stockLedgerDtos = new List<Contracts.Dtos.Stock.StockLedgerDto>();
-
-                    foreach (var item in putawayList)
-                    {
-                        var conversionFactor = item.ConversionFactor ?? 1m;
-                        if (conversionFactor <= 0)
-                            conversionFactor = 1m;
-
-                        var unitPrice =
-                            await _igrnEntryQueryRepository.GetUnitPriceAsync(
-                                item.PoId, item.ItemId, item.PoSlNoLocal)
-                            ?? 0;
-
-                        var purchaseQty =
-                            item.QcAcceptedQtyStockUom / conversionFactor;
-
-                        var receivedValue = purchaseQty * unitPrice;
-
-                        stockLedgerDtos.Add(new Contracts.Dtos.Stock.StockLedgerDto
-                        {
-                            UnitId = item.UnitId,
-                            DocType = "GRN",
-                            DocNo = item.GrnId,
-                            DocSlNo = item.PoSlNoLocal,
-                            DocDate = DateTime.Today,
-                            ItemId = item.ItemId,
-                            UomId = item.StockUomId,
-                            WarehouseId = item.WarehouseId,
-                            StorageTypeId = item.StorageTypeId,
-                            TargetId = item.TargetId,
-                            ReceivedQty = item.QcAcceptedQtyStockUom,
-                            ReceivedValue = receivedValue,
-                            IssueQty = 0,
-                            IssueValue = 0
-                        });
-                    }
-
-                    // ------------------------------------
-                    // Save Putaway (LOCAL DB TRANSACTION)
-                    // ------------------------------------
-                    var result =
-                        await _iGrnEntryCommandRepository.CreatePutawayListAsync(
-                            putawayList);
-
-                    if (result <= 0)
-                        throw new InvalidOperationException("Failed to create GRN Putaway.");
-
-                    // 🔹 Insert StockLedger via gRPC
-                    var ledgerInserted =
-                        await _stockLedgerLookup.InsertStockLedgerAsync(
-                            stockLedgerDtos,
-                            cancellationToken);
-
-                    if (!ledgerInserted)
-                        throw new InvalidOperationException(
-                            "Failed to insert StockLedger via gRPC.");
-
-                    // 🔹 Audit logs
-                    foreach (var item in putawayList)
-                    {
-                        var domainEvent = new AuditLogsDomainEvent(
-                            actionDetail: "Create",
-                            actionCode: item.GrnId.ToString(),
-                            actionName: item.GrnDetailId.ToString(),
-                            details: "GrnPutaway & StockLedger created via gRPC",
-                            module: "GrnPutaway"
-                        );
-
-                        await _mediator.Publish(domainEvent, cancellationToken);
-                    }
-
-                    return result;
-
+                    item.QcAcceptedQtyStockUom =
+                        item.QcAcceptedQtyPurchaseUom * item.ConversionFactor.Value;
                 }
+            }
+
+            // Prepare StockLedger DTOs
+            var stockLedgerDtos = new List<Contracts.Dtos.Stock.StockLedgerDto>();
+
+            foreach (var item in putawayList)
+            {
+                var conversionFactor = item.ConversionFactor ?? 1m;
+                if (conversionFactor <= 0)
+                    conversionFactor = 1m;
+
+                var unitPrice =
+                    await _igrnEntryQueryRepository.GetUnitPriceAsync(
+                        item.PoId, item.ItemId, item.PoSlNoLocal)
+                    ?? 0;
+
+                var purchaseQty =
+                    item.QcAcceptedQtyStockUom / conversionFactor;
+
+                var receivedValue = purchaseQty * unitPrice;
+
+                stockLedgerDtos.Add(new Contracts.Dtos.Stock.StockLedgerDto
+                {
+                    UnitId = item.UnitId,
+                    DocType = "GRN",
+                    DocNo = item.GrnId,
+                    DocSlNo = item.PoSlNoLocal,
+                    DocDate = DateTime.Today,
+                    ItemId = item.ItemId,
+                    UomId = item.StockUomId,
+                    WarehouseId = item.WarehouseId,
+                    StorageTypeId = item.StorageTypeId,
+                    TargetId = item.TargetId,
+                    ReceivedQty = item.QcAcceptedQtyStockUom,
+                    ReceivedValue = receivedValue,
+                    IssueQty = 0,
+                    IssueValue = 0
+                });
+            }
+
+            // ============================================
+            // Pattern D: Shared Transaction (atomic)
+            // Both Putaway + StockLedger in ONE transaction
+            // ============================================
+            if (_dbConnection.State != ConnectionState.Open)
+                _dbConnection.Open();
+
+            using var transaction = _dbConnection.BeginTransaction();
+
+            try
+            {
+                // Step 1: Save Putaway (using shared transaction)
+                var result = await _iGrnEntryCommandRepository
+                    .CreatePutawayListAsync(putawayList, transaction);
+
+                if (result <= 0)
+                    throw new InvalidOperationException("Failed to create GRN Putaway.");
+
+                // Step 2: Insert StockLedger (SAME transaction → Inventory module)
+                var ledgerInserted = await _stockLedgerLookup
+                    .InsertStockLedgerAsync(stockLedgerDtos, transaction, cancellationToken);
+
+                if (!ledgerInserted)
+                    throw new InvalidOperationException("Failed to insert StockLedger.");
+
+                // Both succeeded → commit atomically
+                transaction.Commit();
+
+                // Audit logs (outside transaction — non-critical)
+                foreach (var item in putawayList)
+                {
+                    var domainEvent = new AuditLogsDomainEvent(
+                        actionDetail: "Create",
+                        actionCode: item.GrnId.ToString(),
+                        actionName: item.GrnDetailId.ToString(),
+                        details: "GrnPutaway & StockLedger created atomically (Pattern D)",
+                        module: "GrnPutaway"
+                    );
+
+                    await _mediator.Publish(domainEvent, cancellationToken);
+                }
+
+                return result;
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
+        }
 
 
 //         public async Task<int> Handle(CreateGRNPutawayCommand request, CancellationToken cancellationToken)

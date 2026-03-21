@@ -144,7 +144,6 @@ namespace PartyManagement.Application.Consumers
         private readonly IPartyMasterQueryRepository _partyMasterQueryRepository;
         private readonly IMiscMasterQueryRepository _miscMasterQueryRepository;
         private readonly IPartyActivityLogCommandRepository _partyActivityLogCommandRepository;
-        private readonly IIPAddressService _ipAddressService;
         private readonly ILogger<ApprovedRejectedConsumer> _logger;
 
         public ApprovedRejectedConsumer(
@@ -152,14 +151,12 @@ namespace PartyManagement.Application.Consumers
             IPartyMasterQueryRepository partyMasterQueryRepository,
             IMiscMasterQueryRepository miscMasterQueryRepository,
             IPartyActivityLogCommandRepository partyActivityLogCommandRepository,
-            IIPAddressService ipAddressService,
             ILogger<ApprovedRejectedConsumer> logger)
         {
             _partyMasterCommandRepository = partyMasterCommandRepository;
             _partyMasterQueryRepository = partyMasterQueryRepository;
             _miscMasterQueryRepository = miscMasterQueryRepository;
             _partyActivityLogCommandRepository = partyActivityLogCommandRepository;
-            _ipAddressService = ipAddressService;
             _logger = logger;
         }
 
@@ -215,9 +212,9 @@ namespace PartyManagement.Application.Consumers
                     OldValue = "Pending",
                     NewValue = party.PartyStatus,
                     ActionType = party.PartyStatus,
-                    ChangedBy = _ipAddressService.GetUserId(),
-                    ChangedByName = _ipAddressService.GetUserName(),
-                    ChangedIp = _ipAddressService.GetSystemIPAddress(),
+                    ChangedBy = msg.ModifiedBy,
+                    ChangedByName = msg.ModifiedByName ?? "Unknown",
+                    ChangedIp = msg.ModifiedIP ?? "Unknown",
                     ChangedOn = DateTimeOffset.UtcNow
                 };
 
