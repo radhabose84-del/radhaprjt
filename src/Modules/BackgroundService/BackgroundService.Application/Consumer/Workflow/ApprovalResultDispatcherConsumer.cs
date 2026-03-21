@@ -118,7 +118,10 @@ public class ApprovalResultDispatcherConsumer : IConsumer<ApprovedRejectedEvent>
                 ModuleTypeName = msg.ModuleTypeName,
                 Status = msg.Status,
                 LineStatus = msg.LineStatus,
-                PartyContacts = msg.PartyContacts
+                PartyContacts = msg.PartyContacts,
+                ModifiedBy = msg.ModifiedBy,
+                ModifiedByName = msg.ModifiedByName,
+                ModifiedIP = msg.ModifiedIP
             });
         }
 

@@ -67,6 +67,11 @@ namespace BackgroundService.Infrastructure.Repositories.Workflow.ApprovalRequest
             if (approvalReq != null)
             {
                 approvalReq.StatusId = approvalRequest.StatusId;
+                approvalReq.Remark = approvalRequest.Remark;
+                approvalReq.ModifiedBy = approvalRequest.ModifiedBy;
+                approvalReq.ModifiedByName = approvalRequest.ModifiedByName;
+                approvalReq.ModifiedDate = approvalRequest.ModifiedDate;
+                approvalReq.ModifiedIP = approvalRequest.ModifiedIP;
                 return await _notificationDbContext.SaveChangesAsync() > 0;
             }
             return false;

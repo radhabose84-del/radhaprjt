@@ -1,3 +1,4 @@
+using System.Data;
 using PurchaseManagement.Application.GRN.GRNEntry.Commands.UpdateGRNEntry;
 using PurchaseManagement.Domain.Entities.GRN.GRNEntry;
 using PurchaseManagement.Domain.Entities.GRN.StockLedger;
@@ -12,6 +13,7 @@ namespace PurchaseManagement.Application.Common.Interfaces.IGRN.IGRNEntry
         Task<bool> UpdateAsync(int Id, GrnHeader grnHeader);
         Task<bool> UpdateAsync(int id, GrnHeader grnHeader,List<CalculatedDetail> calculatedDetails, List<UpdateGRNEntryDto.UpdateGRNDetailsDto> detailDtos);
         Task<int> CreatePutawayListAsync(List<GrnPutAwayRule> putawayList);
+        Task<int> CreatePutawayListAsync(List<GrnPutAwayRule> putawayList, IDbTransaction transaction);
         Task<IDbContextTransaction> BeginTransactionAsync();
         Task<int> CreateStockLedgerEntriesAsync(List<StockLedger> stockLedgerList);
         Task<int> CreatePutawayWithStockLedgerAsync(List<GrnPutAwayRule> putawayList, List<StockLedger> stockLedgerList, Func<Task> publishEvents);
