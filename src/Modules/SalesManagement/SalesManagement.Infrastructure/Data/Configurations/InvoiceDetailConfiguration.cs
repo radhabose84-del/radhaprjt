@@ -34,18 +34,7 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             builder.Property(t => t.UOMId).HasColumnName("UOMId").HasColumnType("int").IsRequired(false);
             builder.Property(t => t.TotalAmount).HasColumnName("TotalAmount").HasColumnType("decimal(18,6)").IsRequired();
 
-            // Same-module FK constraints
-            builder.HasOne(t => t.PackType)
-                .WithMany()
-                .HasForeignKey(t => t.PackTypeId)
-                .IsRequired(false)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            builder.HasOne(t => t.LotMaster)
-                .WithMany()
-                .HasForeignKey(t => t.LotId)
-                .IsRequired(false)
-                .OnDelete(DeleteBehavior.Restrict);
+            // Cross-module FKs (PackType, LotMaster) → ProductionManagement — no DB constraint
 
             // Indexes
             builder.HasIndex(t => t.InvoiceHeaderId);

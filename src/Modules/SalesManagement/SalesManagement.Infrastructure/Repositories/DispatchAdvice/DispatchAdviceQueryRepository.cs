@@ -146,8 +146,8 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
                     sod.NetAmount,
                     sod.BagWeight
                 FROM Sales.DispatchAdviceDetail d
-                LEFT JOIN Sales.LotMaster lm ON d.LotId = lm.Id AND lm.IsDeleted = 0
-                LEFT JOIN Sales.PackType pt ON d.PackTypeId = pt.Id AND pt.IsDeleted = 0
+                LEFT JOIN Production.LotMaster lm ON d.LotId = lm.Id AND lm.IsDeleted = 0
+                LEFT JOIN Production.PackType pt ON d.PackTypeId = pt.Id AND pt.IsDeleted = 0
                 LEFT JOIN Sales.SalesOrderDetail sod ON d.SalesOrderDetailId = sod.Id
                 WHERE d.DispatchAdviceHeaderId = @HeaderId";
 
@@ -230,7 +230,7 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
                     S.PackTypeId, P.PackTypeCode, P.PackTypeName,
                     P.NetWeight, P.TareWeight, P.GrossWeight, P.ConesPerBag
                 FROM Sales.StockLedger S
-                INNER JOIN Sales.PackType P ON S.PackTypeId = P.Id
+                INNER JOIN Production.PackType P ON S.PackTypeId = P.Id
                 WHERE S.UnitId = @UnitId AND S.ItemId = @ItemId AND S.StatusId = @StatusId AND S.LotId = @LotId
                 GROUP BY S.PackTypeId, P.PackTypeCode, P.PackTypeName,
                     P.NetWeight, P.TareWeight, P.GrossWeight, P.ConesPerBag";
@@ -264,8 +264,8 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
                 SELECT S.PackNo, S.ItemId, S.LotId, S.PackTypeId,
                     L.LotCode AS LotName, P.PackTypeName
                 FROM Sales.StockLedger S
-                INNER JOIN Sales.LotMaster L ON S.LotId = L.Id AND L.IsDeleted = 0
-                INNER JOIN Sales.PackType P ON S.PackTypeId = P.Id AND P.IsDeleted = 0
+                INNER JOIN Production.LotMaster L ON S.LotId = L.Id AND L.IsDeleted = 0
+                INNER JOIN Production.PackType P ON S.PackTypeId = P.Id AND P.IsDeleted = 0
                 WHERE S.UnitId = @UnitId AND S.ItemId = @ItemId AND S.StatusId = @StatusId
                     AND S.LotId = @LotId AND S.PackTypeId = @PackTypeId
                 ORDER BY S.PackNo";

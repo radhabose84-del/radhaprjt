@@ -52,12 +52,6 @@ using SalesManagement.Application.Common.Interfaces.ICustomerVisit;
 using SalesManagement.Infrastructure.Repositories.CustomerVisit;
 using SalesManagement.Application.Common.Interfaces.ISalesOrder;
 using SalesManagement.Infrastructure.Repositories.SalesOrder;
-using SalesManagement.Application.Common.Interfaces.ILotMaster;
-using SalesManagement.Infrastructure.Repositories.LotMaster;
-using SalesManagement.Application.Common.Interfaces.IPackType;
-using SalesManagement.Infrastructure.Repositories.PackType;
-using SalesManagement.Application.Common.Interfaces.IProductionPack;
-using SalesManagement.Infrastructure.Repositories.ProductionPack;
 using SalesManagement.Application.Common.Interfaces.IMovementTypeConfig;
 using SalesManagement.Infrastructure.Repositories.MovementTypeConfig;
 using SalesManagement.Application.Common.Interfaces.IDispatchAdvice;
@@ -243,18 +237,6 @@ namespace SalesManagement.Infrastructure
             // ── Sales Order Repositories ──────────────────────────────────
             services.AddScoped<ISalesOrderCommandRepository, SalesOrderCommandRepository>();
             services.AddScoped<ISalesOrderQueryRepository, SalesOrderQueryRepository>();
-
-            // ── Lot Master Repositories ───────────────────────────────────
-            services.AddScoped<ILotMasterCommandRepository, LotMasterCommandRepository>();
-            services.AddScoped<ILotMasterQueryRepository, LotMasterQueryRepository>();
-
-            // ── Pack Type Repositories ──────────────────────────────────────
-            services.AddScoped<IPackTypeCommandRepository, PackTypeCommandRepository>();
-            services.AddScoped<IPackTypeQueryRepository, PackTypeQueryRepository>();
-
-            // ── Pack Allocation Repositories ────────────────────────────────
-            services.AddScoped<IProductionCommandRepository, ProductionCommandRepository>();
-            services.AddScoped<IProductionQueryRepository, ProductionQueryRepository>();
 
             // ── Movement Type Config Repositories ─────────────────────────────
             services.AddScoped<IMovementTypeConfigCommandRepository, MovementTypeConfigCommandRepository>();

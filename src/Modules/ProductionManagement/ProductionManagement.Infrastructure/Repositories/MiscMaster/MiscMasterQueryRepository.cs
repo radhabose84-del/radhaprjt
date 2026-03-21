@@ -119,5 +119,17 @@ namespace ProductionManagement.Infrastructure.Repositories.MiscMaster
             var count = await _dbConnection.QueryFirstAsync<int>(sql, new { Id = miscTypeId });
             return count > 0;
         }
+
+        public async Task<ProductionManagement.Domain.Entities.MiscMaster?> GetMiscMasterByCode(string code)
+        {
+            const string sql = @"
+                SELECT M.Id, M.Code, M.Description
+                FROM Production.MiscMaster AS M
+                WHERE M.IsDeleted = 0 AND M.IsActive = 1
+                AND LOWER(M.Code) = LOWER(@Code);";
+
+            return await _dbConnection.QueryFirstOrDefaultAsync<ProductionManagement.Domain.Entities.MiscMaster>(
+                sql, new { Code = code });
+        }
     }
 }

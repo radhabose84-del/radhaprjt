@@ -17,7 +17,7 @@ using Microsoft.Extensions.Logging;
 
 namespace BackgroundService.Infrastructure.Repositories.Workflow.ApprovalRequests
 {
-    public class ApprovalRequestQueryRepository : IApprovalRequestQuery, IApprovalRequestGrpcQuery
+    public class ApprovalRequestQueryRepository : IApprovalRequestQuery
     {
         private readonly IDbConnection _dbConnection;
         private readonly IIPAddressService _ipaddressService;

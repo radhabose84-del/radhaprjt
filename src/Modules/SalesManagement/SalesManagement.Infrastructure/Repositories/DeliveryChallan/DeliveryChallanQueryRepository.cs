@@ -214,7 +214,7 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
                     d.ExMillRate,
                     d.LineMovementValue
                 FROM Sales.DeliveryChallanDetail d
-                LEFT JOIN Sales.LotMaster lm ON d.LotId = lm.Id AND lm.IsDeleted = 0
+                LEFT JOIN Production.LotMaster lm ON d.LotId = lm.Id AND lm.IsDeleted = 0
                 WHERE d.DeliveryChallanHeaderId = @HeaderId;";
 
             var details = (await _dbConnection.QueryAsync<DeliveryChallanDetailDto>(detailSql, new { HeaderId = id })).ToList();
@@ -292,7 +292,7 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
         {
             const string sql = @"
                 SELECT COUNT(1)
-                FROM Sales.LotMaster
+                FROM Production.LotMaster
                 WHERE Id = @Id AND IsActive = 1 AND IsDeleted = 0;";
 
             var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = lotId });

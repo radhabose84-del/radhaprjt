@@ -124,26 +124,42 @@ namespace UserManagement.Application.Users.Commands.ForgotUserPassword
             // Publish domain event for logging purposes
             var domainEvent = new AuditLogsDomainEvent(
                 actionDetail: "ResetUserPassword",
-                actionCode: verificationCode,
+                actionCode: "PASSWORD_RESET_REQUEST",
                 actionName: request.UserName,
-                details: $"Username '{request.UserName}' requested a password reset. Verification Code: {verificationCode}",
+                details: $"Username '{request.UserName}' requested a password reset.",
                 module: "ResetUserPassword"
             );
             await _mediator.Publish(domainEvent, cancellationToken);
 
-            // Create response
+            // Create response — never expose verificationCode, mask email and mobile
             var userDto = _mapper.Map<UserDto>(user);
+            var maskedEmail = MaskEmail(userDto.EmailId);
+            var maskedMobile = MaskMobile(userDto.Mobile);
             var responseDto = new ForgotPasswordResponse
             {
-                Message = $"Verification code sent to your registered email address {userDto.EmailId} and mobile number {userDto.Mobile}.",
-                Email = userDto.EmailId,
-                Mobile = userDto.Mobile,
-                VerificationCode = verificationCode,
+                Message = $"Verification code sent to your registered email address {maskedEmail} and mobile number {maskedMobile}.",
+                Email = maskedEmail,
+                Mobile = maskedMobile,
                 PasswordResetCodeExpiryMinutes = expiryMinutes
             };
 
             _logger.LogInformation($"Verification code sent successfully for username '{userDto.UserName}'.");
             return new ApiResponseDTO<ForgotPasswordResponse> { IsSuccess = true, Data = responseDto };
-        }      
+        }
+
+        private static string MaskEmail(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email)) return string.Empty;
+            var atIndex = email.IndexOf('@');
+            if (atIndex <= 4) return "****" + email[atIndex..];
+            var maskedMiddle = new string('*', atIndex - 4);
+            return email[..2] + maskedMiddle + email.Substring(atIndex - 2, 2) + email[atIndex..];
+        }
+
+        private static string MaskMobile(string mobile)
+        {
+            if (string.IsNullOrWhiteSpace(mobile) || mobile.Length <= 4) return string.Empty;
+            return mobile[..2] + new string('*', mobile.Length - 4) + mobile[^2..];
+        }
     }
 }
