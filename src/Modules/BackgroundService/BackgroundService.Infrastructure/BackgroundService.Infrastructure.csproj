@@ -39,5 +39,6 @@
     <ProjectReference Include="..\..\..\Modules\BudgetManagement\Core\BudgetManagement.Application\BudgetManagement.Application.csproj" />
     <ProjectReference Include="..\..\..\Modules\InventoryManagement\Core\InventoryManagement.Application\InventoryManagement.Application.csproj" />
     <ProjectReference Include="..\..\..\Modules\PartyManagement\Core\PartyManagement.Application\PartyManagement.Application.csproj" />
+    <ProjectReference Include="..\..\..\Modules\UserManagement\Core\UserManagement.Application\UserManagement.Application.csproj" />
   </ItemGroup>
 </Project>

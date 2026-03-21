@@ -190,6 +190,11 @@ namespace BackgroundService.Infrastructure
                     x.AddConsumer<BudgetManagement.Application.Consumers.ApprovedRejectedConsumer>();
                     x.AddConsumer<InventoryManagement.Application.Consumers.ApprovedRejectedConsumer>();
                     x.AddConsumer<PartyManagement.Application.Consumers.ApprovedRejectedConsumer>();
+
+                    // Party → User integration consumers
+                    x.AddConsumer<UserManagement.Application.Consumers.PartyApprovedConsumer>();
+                    x.AddConsumer<UserManagement.Application.Consumers.PartySyncConsumer>();
+
                     x.AddConsumer<PurchaseManagement.Application.Consumers.RollbackTransactionConsumer>();
                     x.AddConsumer<BudgetManagement.Application.Consumers.RollbackTransactionConsumer>();
                     x.AddConsumer<PartyManagement.Application.Consumers.RollbackTransactionConsumer>();
