@@ -62,7 +62,7 @@ namespace FAM.Presentation.Validation.AssetCategories
                     //          .Matches(new System.Text.RegularExpressions.Regex(rule.Pattern)) 
                     //          .WithMessage($"{nameof(CreateAssetCategoriesCommand.Code)} {rule.Error}");   
                     //     break;
-                    case "AlphaNumericWithPunctuation":
+                    case "Alphanumeric":
                         RuleFor(x => x.CategoryName)
                             .Matches(new System.Text.RegularExpressions.Regex(rule.Pattern))
                             .WithMessage($"{nameof(CreateAssetCategoriesCommand.CategoryName)} {rule.Error}");
