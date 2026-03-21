@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using UserManagement.Infrastructure.Data;
 using UserManagement.Domain.Entities;
 using UserManagement.Application.Common.Interfaces.IDepartment;
+using static UserManagement.Domain.Enums.Common.Enums;
 
 namespace UserManagement.Infrastructure.Repositories.Departments
 {
@@ -45,8 +46,8 @@ namespace UserManagement.Infrastructure.Repositories.Departments
             var deptToDelete = await _applicationDbContext.Department.FirstOrDefaultAsync(u => u.Id == id);
             if (deptToDelete != null)
             {
-               
-                deptToDelete.IsDeleted = department.IsDeleted;
+                deptToDelete.IsDeleted = IsDelete.Deleted;
+                _applicationDbContext.Department.Update(deptToDelete);
                 return await _applicationDbContext.SaveChangesAsync();
             }
             return 0; // No user found

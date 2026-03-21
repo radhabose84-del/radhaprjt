@@ -1,5 +1,4 @@
 using AutoMapper;
-using UserManagement.Application.Common.Interfaces;
 using UserManagement.Application.Common.Interfaces.IUser;
 using UserManagement.Application.Users.Commands.CreateUser;
 using UserManagement.Application.Users.Queries.GetUsers;
@@ -16,15 +15,13 @@ namespace UserManagement.UnitTests.Application.Users.Commands
         private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Strict);
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Strict);
         private readonly Mock<ILogger<CreateUserCommandHandler>> _mockLogger = new();
-        private readonly Mock<IEventPublisher> _mockEventPublisher = new(MockBehavior.Strict);
 
         private CreateUserCommandHandler CreateSut() =>
             new CreateUserCommandHandler(
                 _mockUserCommandRepo.Object,
                 _mockMapper.Object,
                 _mockMediator.Object,
-                _mockLogger.Object,
-                _mockEventPublisher.Object);
+                _mockLogger.Object);
 
         [Fact]
         public async Task Handle_Success_Flows_All_Steps_And_Returns_Success()
@@ -83,9 +80,6 @@ namespace UserManagement.UnitTests.Application.Users.Commands
                     It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);
 
-            _mockEventPublisher.Setup(x => x.PublishPendingEventsAsync())
-                .Returns(Task.CompletedTask);
-
             _mockMapper.Setup(x => x.Map<UserDto>(createdUser)).Returns(userDto);
 
             var handler = CreateSut();
@@ -100,12 +94,9 @@ namespace UserManagement.UnitTests.Application.Users.Commands
             result.Data!.UserId.Should().Be(1);
             result.Data.UserName.Should().Be("testuser");
 
-            _mockEventPublisher.Verify(x => x.PublishPendingEventsAsync(), Times.Once);
-
             _mockUserCommandRepo.VerifyAll();
             _mockMapper.VerifyAll();
             _mockMediator.VerifyAll();
-            _mockEventPublisher.VerifyAll();
         }
 
         [Fact]
@@ -209,9 +200,6 @@ namespace UserManagement.UnitTests.Application.Users.Commands
                     It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);
 
-            _mockEventPublisher.Setup(x => x.PublishPendingEventsAsync())
-                .Returns(Task.CompletedTask);
-
             _mockMapper.Setup(x => x.Map<UserDto>(createdUser)).Returns(userDto);
 
             var handler = CreateSut();
@@ -289,9 +277,6 @@ namespace UserManagement.UnitTests.Application.Users.Commands
                     It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);
 
-            _mockEventPublisher.Setup(x => x.PublishPendingEventsAsync())
-                .Returns(Task.CompletedTask);
-
             _mockMapper.Setup(x => x.Map<UserDto>(createdUser)).Returns(userDto);
 
             var handler = CreateSut();
@@ -308,79 +293,6 @@ namespace UserManagement.UnitTests.Application.Users.Commands
                     e.ActionDetail == "Create" &&
                     e.ActionCode == "audit.user"),
                 It.IsAny<CancellationToken>()), Times.Once);
-        }
-
-        [Fact]
-        public async Task Handle_Should_Call_PublishPendingEventsAsync()
-        {
-            // Arrange
-            var command = new CreateUserCommand
-            {
-                UserName = "event.user",
-                EmailId = "event@example.com",
-                FirstName = "Event",
-                LastName = "User",
-                Mobile = "4445556666"
-            };
-
-            var userEntity = new User
-            {
-                UserName = "event.user",
-                EmailId = "event@example.com",
-                FirstName = "Event",
-                LastName = "User",
-                Mobile = "4445556666"
-            };
-
-            var createdUser = new User
-            {
-                UserId = 15,
-                UserName = "event.user",
-                EmailId = "event@example.com",
-                FirstName = "Event",
-                LastName = "User",
-                Mobile = "4445556666"
-            };
-
-            var userDto = new UserDto
-            {
-                UserId = 15,
-                UserName = "event.user",
-                EmailId = "event@example.com",
-                FirstName = "Event",
-                LastName = "User",
-                Mobile = "4445556666"
-            };
-
-            _mockMapper.Setup(x => x.Map<User>(command)).Returns(userEntity);
-
-            _mockUserCommandRepo.Setup(x => x.GetMiscmasterByIdAsync(
-                    It.IsAny<string>(),
-                    It.IsAny<string>()))
-                .ReturnsAsync(1);
-
-            _mockUserCommandRepo.Setup(x => x.CreateAsync(It.IsAny<User>()))
-                .ReturnsAsync(createdUser);
-
-            _mockMediator.Setup(x => x.Publish(
-                    It.IsAny<AuditLogsDomainEvent>(),
-                    It.IsAny<CancellationToken>()))
-                .Returns(Task.CompletedTask);
-
-            _mockEventPublisher.Setup(x => x.PublishPendingEventsAsync())
-                .Returns(Task.CompletedTask);
-
-            _mockMapper.Setup(x => x.Map<UserDto>(createdUser)).Returns(userDto);
-
-            var handler = CreateSut();
-
-            // Act
-            var result = await handler.Handle(command, CancellationToken.None);
-
-            // Assert
-            result.IsSuccess.Should().BeTrue();
-
-            _mockEventPublisher.Verify(x => x.PublishPendingEventsAsync(), Times.Once);
         }
     }
 }

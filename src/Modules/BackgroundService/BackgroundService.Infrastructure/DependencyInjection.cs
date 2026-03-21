@@ -419,7 +419,6 @@ namespace BackgroundService.Infrastructure
             services.AddScoped<IApprovalRequestQuery, ApprovalRequestQueryRepository >();
             services.AddScoped<IApprovalRequestCommand, ApprovalRequestCommandRepository >();
             services.AddScoped<IEventPublisher, EventPublisher>();
-            services.AddScoped<IApprovalRequestGrpcQuery, ApprovalRequestQueryRepository >();
             services.AddScoped<INotificationResolverHandler, NotificationResolverHandler>();
             services.AddScoped<INotificationTablePresetRepository, NotificationTablePresetRepository>();
             services.AddScoped<IHtmlTableRenderer, SqlHtmlTableRenderer>();          

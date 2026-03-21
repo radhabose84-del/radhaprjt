@@ -235,7 +235,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     d.LineItemStatusId,
                     mm.Description AS LineItemStatusName
                 FROM Sales.SalesOrderDetail d
-                LEFT JOIN Sales.PackType pkt ON d.PackTypeId = pkt.Id AND pkt.IsDeleted = 0
+                LEFT JOIN Production.PackType pkt ON d.PackTypeId = pkt.Id AND pkt.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster mm ON d.LineItemStatusId = mm.Id AND mm.IsDeleted = 0
                 LEFT JOIN (
                     SELECT dad.SalesOrderDetailId,
@@ -450,7 +450,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
         {
             const string sql = @"
                 SELECT COUNT(1)
-                FROM Sales.PackType
+                FROM Production.PackType
                 WHERE Id = @Id AND IsActive = 1 AND IsDeleted = 0";
 
             var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = packTypeId });

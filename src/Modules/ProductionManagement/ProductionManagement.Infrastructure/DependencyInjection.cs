@@ -8,8 +8,11 @@ using MongoDB.Driver;
 using ProductionManagement.Application.Common.Interfaces;
 using ProductionManagement.Application.Common.Interfaces.AuditLog;
 using ProductionManagement.Application.Common.Interfaces.ICountMaster;
+using ProductionManagement.Application.Common.Interfaces.ILotMaster;
 using ProductionManagement.Application.Common.Interfaces.IMiscMaster;
 using ProductionManagement.Application.Common.Interfaces.IMiscTypeMaster;
+using ProductionManagement.Application.Common.Interfaces.IPackType;
+using ProductionManagement.Application.Common.Interfaces.IProductionPack;
 using Contracts.Interfaces.Lookups.Production;
 using ProductionManagement.Infrastructure.Repositories.Lookups.Production;
 using ProductionManagement.Infrastructure.Data;
@@ -87,7 +90,6 @@ namespace ProductionManagement.Infrastructure
             services.AddSingleton<ITimeZoneService, TimeZoneService>();
             services.AddTransient<IJwtTokenHelper, JwtTokenHelper>();
             services.AddScoped<ILogQueryService, LogQueryService>();
-            services.AddScoped<IEventPublisher, EventPublisher>();
 
             // CountMaster repositories
             services.AddScoped<ICountMasterCommandRepository, CountMasterCommandRepository>();
@@ -101,8 +103,22 @@ namespace ProductionManagement.Infrastructure
             services.AddScoped<IMiscMasterCommandRepository, MiscMasterCommandRepository>();
             services.AddScoped<IMiscMasterQueryRepository, MiscMasterQueryRepository>();
 
+            // LotMaster repositories
+            services.AddScoped<ILotMasterCommandRepository, Repositories.LotMaster.LotMasterCommandRepository>();
+            services.AddScoped<ILotMasterQueryRepository, Repositories.LotMaster.LotMasterQueryRepository>();
+
+            // PackType repositories
+            services.AddScoped<IPackTypeCommandRepository, Repositories.PackType.PackTypeCommandRepository>();
+            services.AddScoped<IPackTypeQueryRepository, Repositories.PackType.PackTypeQueryRepository>();
+
+            // Pack Allocation repositories
+            services.AddScoped<IProductionCommandRepository, Repositories.ProductionPack.ProductionCommandRepository>();
+            services.AddScoped<IProductionQueryRepository, Repositories.ProductionPack.ProductionQueryRepository>();
+
             // Lookup registration — caching is handled globally by AddLookupCaching() in Program.cs
             services.AddScoped<ICountMasterLookup, CountMasterLookupRepository>();
+            services.AddScoped<ILotMasterLookup, LotMasterLookupRepository>();
+            services.AddScoped<IPackTypeLookup, PackTypeLookupRepository>();
 
             return services;
         }

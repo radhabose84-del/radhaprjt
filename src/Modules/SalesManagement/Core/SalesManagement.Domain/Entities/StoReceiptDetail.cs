@@ -11,7 +11,7 @@ namespace SalesManagement.Domain.Entities
         // Item (cross-module FK → InventoryManagement)
         public int ItemId { get; set; }
 
-        // Lot (same-module FK → Sales.LotMaster)
+        // Lot (cross-module FK → ProductionManagement)
         public int LotId { get; set; }
 
         // Pack Numbers (auto-fetched from DC detail)
@@ -40,7 +40,7 @@ namespace SalesManagement.Domain.Entities
         // Navigation properties (same-module)
         public StoReceiptHeader StoReceiptHeader { get; set; } = null!;
         public DeliveryChallanDetail? DeliveryChallanDetail { get; set; }
-        public LotMaster? LotMaster { get; set; }
+        // LotMaster moved to ProductionManagement — use lookup for name
         public MiscMaster? LineStatus { get; set; }
     }
 }

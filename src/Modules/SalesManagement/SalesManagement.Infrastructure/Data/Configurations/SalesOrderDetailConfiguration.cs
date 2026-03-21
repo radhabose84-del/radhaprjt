@@ -138,10 +138,7 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("int")
                 .IsRequired(false);
 
-            builder.HasOne(t => t.PackType)
-                .WithMany(p => p.SalesOrderDetails)
-                .HasForeignKey(t => t.PackTypeId)
-                .OnDelete(DeleteBehavior.Restrict);
+            // PackType → ProductionManagement — no DB constraint
 
             // Status
             builder.Property(t => t.LineItemStatusId)
