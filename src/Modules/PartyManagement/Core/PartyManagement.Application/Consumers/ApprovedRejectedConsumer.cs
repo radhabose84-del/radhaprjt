@@ -215,7 +215,7 @@ namespace PartyManagement.Application.Consumers
                     ChangedBy = msg.ModifiedBy,
                     ChangedByName = msg.ModifiedByName ?? "Unknown",
                     ChangedIp = msg.ModifiedIP ?? "Unknown",
-                    ChangedOn = DateTimeOffset.UtcNow
+                    ChangedOn = DateTime.UtcNow
                 };
 
                 await _partyActivityLogCommandRepository.InsertAsync(log);

@@ -3,8 +3,10 @@ using Contracts.Interfaces;
 using UserManagement.Domain.Entities;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
-using UserManagement.Application.Common.Interfaces;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using System.Net;
+using System.Net.Mail;
 
 using UserEntity = UserManagement.Domain.Entities.User;
 using UserRoleAllocationEntity = UserManagement.Domain.Entities.UserRoleAllocation;
@@ -20,14 +22,14 @@ namespace UserManagement.Application.Consumers
     {
         private readonly DbContext _db;
         private readonly IIPAddressService _iPAddressService;
-        private readonly IEmailService _emailService;
+        private readonly IConfiguration _configuration;
         private readonly ILogger<PartyApprovedConsumer> _logger;
 
-        public PartyApprovedConsumer(DbContext db, IIPAddressService iPAddressService, IEmailService emailService, ILogger<PartyApprovedConsumer> logger)
+        public PartyApprovedConsumer(DbContext db, IIPAddressService iPAddressService, IConfiguration configuration, ILogger<PartyApprovedConsumer> logger)
         {
             _db = db;
             _iPAddressService = iPAddressService;
-            _emailService = emailService;
+            _configuration = configuration;
             _logger = logger;
         }
 
@@ -64,6 +66,7 @@ namespace UserManagement.Application.Consumers
                 EmailId = m.Email,
                 IsLocked = 0,
                 PartyId = m.PartyId,
+                DepartmentId = 1,
                 CreatedBy = createdBy,
                 CreatedByName = createdByName,
                 CreatedIP = createdIp,
@@ -156,14 +159,19 @@ namespace UserManagement.Application.Consumers
 
             _logger.LogInformation("User created for PartyId={PartyId}, UserName={UserName}", m.PartyId, userName);
 
-            // -------- FIRST-TIME EMAIL --------
+            // -------- FIRST-TIME EMAIL (SMTP) --------
             if (!string.IsNullOrWhiteSpace(user.EmailId))
             {
                 try
                 {
-                    var provider = user.EmailId.EndsWith("@gmail.com", StringComparison.OrdinalIgnoreCase)
-                        ? "Gmail"
-                        : "Zimbra";
+                    var providerKey = user.EmailId.EndsWith("@gmail.com", StringComparison.OrdinalIgnoreCase)
+                        ? "Gmail" : "Zimbra";
+
+                    var smtpHost = _configuration[$"EmailSettings:Providers:{providerKey}:Host"] ?? "smtp.gmail.com";
+                    var smtpPort = int.TryParse(_configuration[$"EmailSettings:Providers:{providerKey}:Port"], out var p) ? p : 587;
+                    var smtpSsl = bool.TryParse(_configuration[$"EmailSettings:Providers:{providerKey}:EnableSsl"], out var s) && s;
+                    var smtpUser = _configuration[$"EmailSettings:Providers:{providerKey}:UserName"] ?? "";
+                    var smtpPass = _configuration[$"EmailSettings:Providers:{providerKey}:Password"] ?? "";
 
                     var subject = "Your portal account is ready";
                     var html = $@"
@@ -174,19 +182,23 @@ namespace UserManagement.Application.Consumers
                         <p>Please sign in and change your password immediately.</p>
                         <p>Thanks,<br/>Support Team</p>";
 
-                    var emailCmd = new Contracts.Events.Notifications.SendEmailCommand
+                    using var smtpClient = new SmtpClient(smtpHost, smtpPort)
                     {
-                        ToEmail = user.EmailId,
-                        Subject = subject,
-                        HtmlContent = html,
-                        Provider = provider
+                        Credentials = new NetworkCredential(smtpUser, smtpPass),
+                        EnableSsl = smtpSsl
                     };
 
-                    var sent = await _emailService.SendEmailAsync(emailCmd);
-                    if (sent)
-                        _logger.LogInformation("Welcome email sent to {Email} for PartyId {PartyId}", user.EmailId, m.PartyId);
-                    else
-                        _logger.LogWarning("Failed to send welcome email to {Email} for PartyId {PartyId}", user.EmailId, m.PartyId);
+                    using var mailMessage = new MailMessage
+                    {
+                        From = new MailAddress(smtpUser),
+                        Subject = subject,
+                        Body = html,
+                        IsBodyHtml = true
+                    };
+                    mailMessage.To.Add(user.EmailId);
+
+                    await smtpClient.SendMailAsync(mailMessage);
+                    _logger.LogInformation("Welcome email sent to {Email} for PartyId {PartyId}", user.EmailId, m.PartyId);
                 }
                 catch (Exception ex)
                 {
