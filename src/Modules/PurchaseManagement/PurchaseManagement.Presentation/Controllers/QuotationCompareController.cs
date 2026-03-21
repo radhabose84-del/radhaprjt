@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Http;
 
 namespace PurchaseManagement.Presentation.Controllers
 {
-
     [Route("api/[controller]")]
     public class QuotationCompareController : ApiControllerBase
     {

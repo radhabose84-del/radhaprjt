@@ -2,7 +2,7 @@ using System.Text.Json;
 using AutoMapper;
 using Contracts.Events.Workflow;
 using Contracts.Common;
-using PurchaseManagement.Application.Common.Interfaces;
+using PurchaseManagement.Application.Common.Interfaces.IOutbox;
 using PurchaseManagement.Application.Common.Interfaces.IQuotation.IQuotationCompare;
 using PurchaseManagement.Application.Quotation.QuotationCompare.Commands.CreateQuoteComparision;
 using PurchaseManagement.Domain.Common;
@@ -17,15 +17,15 @@ namespace PurchaseManagement.Application.Quotation.QuotationCompare.Commands.Cre
         private readonly IQuotationCompareCommandRepository _iquotationCompareCommandRepository;
         private readonly IMediator _imediator;
         private readonly IMapper _imapper;
-        private readonly IEventPublisher _eventPublisher;
+        private readonly IOutboxEventPublisher _outboxEventPublisher;
 
-        public CreateQuoteComparsionCommandHandler(IQuotationCompareCommandRepository quotationCompareCommandRepository, IMediator mediator, IMapper mapper, IEventPublisher eventPublisher)
+        public CreateQuoteComparsionCommandHandler(IQuotationCompareCommandRepository quotationCompareCommandRepository, IMediator mediator, IMapper mapper, IOutboxEventPublisher outboxEventPublisher)
         {
             _iquotationCompareCommandRepository = quotationCompareCommandRepository;
             _imediator = mediator;
             _imapper = mapper;
-            _eventPublisher = eventPublisher;
-        }   
+            _outboxEventPublisher = outboxEventPublisher;
+        }
 
          public async Task<int> Handle(CreateQuoteComparsionCommand request, CancellationToken cancellationToken)
         {
@@ -52,8 +52,7 @@ namespace PurchaseManagement.Application.Quotation.QuotationCompare.Commands.Cre
                     Payload = serializedPayload
                 };
 
-                await _eventPublisher.SaveEventAsync(@event);
-                await _eventPublisher.PublishPendingEventsAsync();
+                await _outboxEventPublisher.ScheduleAsync(@event, correlationId, cancellationToken);
             }
 
             // Example Domain Event (optional, adjust to your Audit log design)

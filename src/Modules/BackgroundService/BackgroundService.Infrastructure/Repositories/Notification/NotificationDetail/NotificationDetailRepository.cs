@@ -1,5 +1,6 @@
 using System.Data;
 using Contracts.Interfaces;
+using Contracts.Interfaces.Lookups.Common;
 using BackgroundService.Application.Notification.Common.Interfaces;
 using BackgroundService.Application.Notification.Common.Interfaces.INotificationDetail;
 using BackgroundService.Application.Notification.GetNotificationDetail.GetNotificationDetailById;
@@ -17,12 +18,14 @@ namespace BackgroundService.Infrastructure.Repositories.Notification.Notificatio
         private readonly NotificationDbContext _applicationDbContext;
         private readonly IDbConnection _dbConnection;
         private readonly IIPAddressService _ipAddressService;
+        private readonly IAppDataMiscMasterLookup _appDataMiscLookup;
 
-        public NotificationDetailRepository([FromKeyedServices("Notification")] IDbConnection dbConnection, NotificationDbContext applicationDbContext, IIPAddressService iPAddressService)
+        public NotificationDetailRepository([FromKeyedServices("Notification")] IDbConnection dbConnection, NotificationDbContext applicationDbContext, IIPAddressService iPAddressService, IAppDataMiscMasterLookup appDataMiscLookup)
         {
             _dbConnection = dbConnection;
             _applicationDbContext = applicationDbContext;
             _ipAddressService = iPAddressService;
+            _appDataMiscLookup = appDataMiscLookup;
         }
 
         public async Task<List<GetNotificationDetailDto>> GetAllByUserIdAsync(string userId)
@@ -49,13 +52,17 @@ namespace BackgroundService.Infrastructure.Repositories.Notification.Notificatio
 
         public async Task<int> UpdateAsync(int id, NotificationEventLog NotificationLog)
         {
-            var existingNotificationDetail = await _applicationDbContext.NotificationEventLog.FirstOrDefaultAsync(u => u.Id == id);          
+            var existingNotificationDetail = await _applicationDbContext.NotificationEventLog.FirstOrDefaultAsync(u => u.Id == id);
             if (existingNotificationDetail is null)
             {
                 return -1;
-            }            
-            existingNotificationDetail.ReadStatusId =(int)NotificationEnum.NotificationReadStatus.Read;                                            
-            _applicationDbContext.NotificationEventLog.Update(existingNotificationDetail);            
+            }
+
+            // Resolve MiscMaster ID dynamically
+            var readMisc = await _appDataMiscLookup.GetMiscMasterByNameAsync(NotificationEnum.NotificationReadStatus, NotificationEnum.Read);
+            existingNotificationDetail.ReadStatusId = readMisc?.Id ?? 0;
+
+            _applicationDbContext.NotificationEventLog.Update(existingNotificationDetail);
             await _applicationDbContext.SaveChangesAsync();
             return 1;
         }

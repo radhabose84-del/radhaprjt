@@ -1,6 +1,7 @@
 using BackgroundService.Application.DTO;
 using BackgroundService.Application.Helpers;
 using BackgroundService.Application.Interfaces.IInbox;
+using Contracts.Interfaces.Lookups.Common;
 using BackgroundService.Application.Interfaces.Notification;
 using Contracts.Interfaces;
 using Contracts.Events.Notifications;
@@ -21,19 +22,22 @@ namespace BackgroundService.Application.Consumers
         private readonly INotificationResolverHandler _resolverHandler;
         private readonly IIPAddressService _ipAddressService;
         private readonly IInboxRepository _inbox;
+        private readonly IAppDataMiscMasterLookup _appDataMiscLookup;
 
         public SendInAppNotificationConsumer(
             IInAppNotifier notifier,
             ILogger<SendInAppNotificationConsumer> logger,
             INotificationResolverHandler resolverHandler,
             IIPAddressService ipAddressService,
-            IInboxRepository inbox)
+            IInboxRepository inbox,
+            IAppDataMiscMasterLookup appDataMiscLookup)
         {
             _notifier = notifier;
             _logger = logger;
             _resolverHandler = resolverHandler;
             _ipAddressService = ipAddressService;
             _inbox = inbox;
+            _appDataMiscLookup = appDataMiscLookup;
         }
 
         public async Task Consume(ConsumeContext<SendInAppNotificationInternalCommand> context)
@@ -49,6 +53,9 @@ namespace BackgroundService.Application.Consumers
                     consumerName, messageId, msg.CorrelationId);
                 return;
             }
+
+            // Resolve MiscMaster IDs dynamically
+            var channelMisc = await _appDataMiscLookup.GetMiscMasterByNameAsync(NotificationEnum.NotificationChannel, NotificationEnum.InApp);
 
             try
             {
@@ -99,7 +106,7 @@ namespace BackgroundService.Application.Consumers
                 {
                     EventRuleId = eventRuleId ?? 0,
                     EventTypeId = eventTypeId ?? 0,
-                    ChannelId = (int)NotificationEnum.NotificationChannel.InApp,
+                    ChannelId = channelMisc?.Id ?? 0,
                     CreatedById = int.TryParse(_ipAddressService.GetCurrentUserId(), out var uid) ? uid : 0,
                     CreatedByName = _ipAddressService.GetUserName(),
                     CreatedIp = _ipAddressService.GetSystemIPAddress(),

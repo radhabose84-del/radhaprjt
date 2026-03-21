@@ -17,6 +17,11 @@ public static class HangfireJobsSetup
         using var scope = host.Services.CreateScope();
         var jobManager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
 
+        // Remove stale orphaned job from previous architecture where MaintenanceManagement
+        // had its own outbox processor. SqlOutboxProcessorJob (sql-outbox-processor) already
+        // handles both purchase.OutboxMessages and maintenance.OutboxMessages.
+        jobManager.RemoveIfExists("maintenance-outbox-processor");
+
         // Centralized SQL outbox processor — polls purchase.OutboxMessages and
         // maintenance.OutboxMessages every minute, publishes pending events to
         // RabbitMQ via MassTransit, and applies exponential-backoff retry logic.

@@ -19,8 +19,7 @@ namespace PurchaseManagement.Application.PurchaseOrder.ImportPO.Command.ImportPO
         private readonly IMapper _mapper;
         private readonly IIPAddressService _ip;
         private readonly ITimeZoneService _tz;
-        private readonly ILogger<ImportPOAmendmentCommandHandler> _logger;
-        //private readonly IEventPublisher _events;
+        private readonly ILogger<ImportPOAmendmentCommandHandler> _logger;        
 
         public ImportPOAmendmentCommandHandler(
             IImportPOCommandRepository cmd,
@@ -29,8 +28,7 @@ namespace PurchaseManagement.Application.PurchaseOrder.ImportPO.Command.ImportPO
             IMapper mapper,
             IIPAddressService ip,
             ITimeZoneService tz,
-            ILogger<ImportPOAmendmentCommandHandler> logger
-            //,IEventPublisher events
+            ILogger<ImportPOAmendmentCommandHandler> logger            
             )
         {
             _cmd = cmd; _qry = qry; _misc = misc; _mapper = mapper;

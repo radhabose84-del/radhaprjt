@@ -317,6 +317,20 @@ namespace PurchaseManagement.Infrastructure.Repositories.Quotation.RfqEntry
 
             return id.Value;
         }
+        public async Task<bool> RollbackStatusAsync(int id, CancellationToken ct = default)
+        {
+            var rfq = await _db.Rfqs
+                .FirstOrDefaultAsync(r => r.Id == id && r.IsDeleted == Domain.Common.BaseEntity.IsDelete.NotDeleted, ct);
+
+            if (rfq is null)
+                return false;
+
+            var draftId = await GetStatusIdByCodeAsync("DRAFT", ct);
+            rfq.RfqStatusId = draftId;
+            await _db.SaveChangesAsync(ct);
+            return true;
+        }
+
         public async Task<List<SupplierContacts>> GetSupplierContactsAsync(int rfqId, CancellationToken ct)
         => await _db.RfqSuppliers
             .AsNoTracking()
