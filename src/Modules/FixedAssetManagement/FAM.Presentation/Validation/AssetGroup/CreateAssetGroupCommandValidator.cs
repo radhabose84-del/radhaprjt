@@ -43,12 +43,10 @@ namespace FAM.Presentation.Validation.AssetGroup
                             .MaximumLength(GroupNameMaxLength)
                             .WithMessage($"{nameof(CreateAssetGroupCommand.GroupName)} {rule.Error} {GroupNameMaxLength}");
                         break;
-                    case "AlphanumericOnly":
+                    case "Alphanumeric":
                               RuleFor(x => x.Code)
-                             .Matches(new System.Text.RegularExpressions.Regex(rule.Pattern)) 
-                             .WithMessage($"{nameof(CreateAssetGroupCommand.Code)} {rule.Error}");   
-                        break;
-                    case "AlphaNumericWithPunctuation":
+                             .Matches(new System.Text.RegularExpressions.Regex(rule.Pattern))
+                             .WithMessage($"{nameof(CreateAssetGroupCommand.Code)} {rule.Error}");
                         RuleFor(x => x.GroupName)
                             .Matches(new System.Text.RegularExpressions.Regex(rule.Pattern))
                             .WithMessage($"{nameof(CreateAssetGroupCommand.GroupName)} {rule.Error}");
