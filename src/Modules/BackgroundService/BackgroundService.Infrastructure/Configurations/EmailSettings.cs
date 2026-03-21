@@ -4,6 +4,7 @@ namespace BackgroundService.Infrastructure.Configurations
 {
     public class EmailSettings
     {
+        public string DefaultProvider { get; set; } = "Gmail";
         public Dictionary<string, EmailProviderSettings> Providers { get; set; } = new Dictionary<string, EmailProviderSettings>();
     }
 
