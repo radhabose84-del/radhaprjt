@@ -169,7 +169,7 @@ namespace PurchaseManagement.Application.Issue.Command.CreateIssueEntry
                 // STOCK LEDGER INSERT
                 // -----------------------------
                 var stockResult = await _stockLedgerLookup
-                    .InsertStockLedgerAsync(stockLedgerDtos, cancellationToken);
+                    .InsertStockLedgerAsync(stockLedgerDtos, transaction: null, cancellationToken);
 
                 if (!stockResult)
                     throw new ApplicationException("StockLedger insert failed");
@@ -177,7 +177,7 @@ namespace PurchaseManagement.Application.Issue.Command.CreateIssueEntry
                 if (subStoreLedgerDtos.Any())
                 {
                     var subStoreResult = await _stockLedgerLookup
-                        .InsertSubStoreStockLedgerAsync(subStoreLedgerDtos, cancellationToken);
+                        .InsertSubStoreStockLedgerAsync(subStoreLedgerDtos, transaction: null, cancellationToken);
 
                     if (!subStoreResult)
                         throw new ApplicationException("SubStoreStockLedger insert failed");

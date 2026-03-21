@@ -145,7 +145,10 @@ namespace BackgroundService.Application.Workflow.ApprovalRequests.Commands.Appro
                     ModuleTypeName      = headerStatusMapLine.WorkflowType,
                     Status              = headerStatusMapLine.StatusCode,
                     PartyContacts       = request.PartyContacts ?? new(),
-                    DynamicFields       = NormalizeDynamicFields(request.DynamicFields)
+                    DynamicFields       = NormalizeDynamicFields(request.DynamicFields),
+                    ModifiedBy          = userId,
+                    ModifiedByName      = username,
+                    ModifiedIP          = currentIp
                 };
 
                 await _eventPublisher.SaveEventAsync(evLine);
@@ -175,7 +178,10 @@ namespace BackgroundService.Application.Workflow.ApprovalRequests.Commands.Appro
                 Status              = headerStatusMapHeader.StatusCode,
                 LineStatus          = new List<UpdateLineStatusDto>(),
                 PartyContacts       = request.PartyContacts ?? new(),
-                DynamicFields       = NormalizeDynamicFields(request.DynamicFields)
+                DynamicFields       = NormalizeDynamicFields(request.DynamicFields),
+                ModifiedBy          = userId,
+                ModifiedByName      = username,
+                ModifiedIP          = currentIp
             };
 
             await _eventPublisher.SaveEventAsync(evHeader);
