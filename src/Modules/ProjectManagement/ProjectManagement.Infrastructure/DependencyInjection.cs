@@ -22,6 +22,9 @@ using ProjectManagement.Infrastructure.Repositories.ProjectWorkBreakdownStructur
 using Microsoft.Extensions.Hosting;
 using Contracts.Interfaces.Lookups.Projects;
 using ProjectManagement.Infrastructure.Repositories.Lookups.Projects;
+using ProjectManagement.Application.Common.Interfaces.IOutbox;
+using ProjectManagement.Infrastructure.Repositories.Outbox;
+using ProjectManagement.Infrastructure.Services.Outbox;
 
 namespace ProjectManagement.Infrastructure
 {
@@ -102,7 +105,12 @@ namespace ProjectManagement.Infrastructure
             services.AddScoped<IProjectWorkBreakdownStructureCommandRepository, ProjectWorkBreakdownStructureCommandRepository>();
 
             services.AddScoped<IProjectLookup, ProjectLookupRepository>();
-            services.AddScoped<IProjectWbsLookup, ProjectWbsLookupRepository>();      
+            services.AddScoped<IProjectWbsLookup, ProjectWbsLookupRepository>();
+
+            // Outbox pattern
+            services.AddScoped<IOutboxRepository, OutboxRepository>();
+            services.AddScoped<IOutboxEventPublisher, OutboxEventPublisher>();
+
             // Miscellaneous services
             services.AddTransient<IFileUploadService, FileUploadRepository>();
             services.AddSingleton<ITimeZoneService, TimeZoneService>();
