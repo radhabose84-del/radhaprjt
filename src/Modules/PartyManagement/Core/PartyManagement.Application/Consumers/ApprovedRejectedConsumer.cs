@@ -127,6 +127,7 @@
 // ============================================================
 
 using Contracts.Commands.Party;
+using Contracts.Events.Users;
 using Contracts.Interfaces;
 using PartyManagement.Application.Common.Interfaces.IMiscMaster;
 using PartyManagement.Application.Common.Interfaces.IPartyMaster;
@@ -140,6 +141,7 @@ namespace PartyManagement.Application.Consumers
     public class ApprovedRejectedConsumer : IConsumer<UpdateApprovedRejectedPartyCommand>
     {
         private readonly IPartyMasterCommandRepository _partyMasterCommandRepository;
+        private readonly IPartyMasterQueryRepository _partyMasterQueryRepository;
         private readonly IMiscMasterQueryRepository _miscMasterQueryRepository;
         private readonly IPartyActivityLogCommandRepository _partyActivityLogCommandRepository;
         private readonly IIPAddressService _ipAddressService;
@@ -147,12 +149,14 @@ namespace PartyManagement.Application.Consumers
 
         public ApprovedRejectedConsumer(
             IPartyMasterCommandRepository partyMasterCommandRepository,
+            IPartyMasterQueryRepository partyMasterQueryRepository,
             IMiscMasterQueryRepository miscMasterQueryRepository,
             IPartyActivityLogCommandRepository partyActivityLogCommandRepository,
             IIPAddressService ipAddressService,
             ILogger<ApprovedRejectedConsumer> logger)
         {
             _partyMasterCommandRepository = partyMasterCommandRepository;
+            _partyMasterQueryRepository = partyMasterQueryRepository;
             _miscMasterQueryRepository = miscMasterQueryRepository;
             _partyActivityLogCommandRepository = partyActivityLogCommandRepository;
             _ipAddressService = ipAddressService;
@@ -219,6 +223,42 @@ namespace PartyManagement.Application.Consumers
 
                 await _partyActivityLogCommandRepository.InsertAsync(log);
 
+                // Portal access: if approved and IsPortalAccessEnabled, publish integration event to create user
+                if (status == MiscEnumEntity.PartyDocumentImage.Approved && party.IsPortalAccessEnabled)
+                {
+                    var partyWithContacts = await _partyMasterCommandRepository.GetByIdWithContactsAsync(party.Id) ?? party;
+                    var contact = GetPrimaryContact(partyWithContacts)
+                                ?? await _partyMasterCommandRepository.GetPrimaryContactAsync(party.Id);
+
+                    var (companyIds, unitIds) = await _partyMasterQueryRepository.GetCompanyUnitMapAsync(party.Id);
+                    if (unitIds.Count == 0 && party.UnitId > 0) unitIds = new List<int> { party.UnitId }.AsReadOnly();
+
+                    IReadOnlyList<string> partyTypeCodes = await _partyMasterQueryRepository.GetPartyTypeCodesAsync(party.Id);
+
+                    var evt = new PartyApprovedIntegrationEvent
+                    {
+                        CorrelationId = Guid.NewGuid(),
+                        PartyId = party.Id,
+                        PartyCode = party.PartyCode,
+                        PartyName = party.PartyName,
+                        Email = contact?.EmailID?.Trim() ?? "",
+                        Mobile = contact?.MobileNo?.Trim() ?? "",
+                        IsPortalAccessEnabled = true,
+                        CompanyIds = companyIds,
+                        UnitIds = unitIds,
+                        PartyTypeCodes = partyTypeCodes,
+                        DefaultCompanyId = companyIds.Count > 0 ? companyIds[0] : null,
+                        DefaultUnitId = unitIds.Count > 0 ? unitIds[0] : null,
+                        CreatedBy = _ipAddressService.GetUserId(),
+                        CreatedByName = _ipAddressService.GetUserName() ?? "System",
+                        CreatedIp = _ipAddressService.GetSystemIPAddress() ?? "0.0.0.0",
+                        CreatedAt = DateTime.UtcNow
+                    };
+
+                    await context.Publish(evt);
+                    _logger.LogInformation("PartyApprovedIntegrationEvent published for PartyId={PartyId}", party.Id);
+                }
+
                 _logger.LogInformation(
                     "Party {PartyId} status updated to {Status}", partyId, status);
             }
@@ -229,5 +269,13 @@ namespace PartyManagement.Application.Consumers
             }
         }
 
+        private static PartyContact? GetPrimaryContact(PartyManagement.Domain.Entities.PartyMaster p) =>
+            p.PartyContactTypes?
+            .OrderByDescending(c => string.Equals(c.ContactBy, "Primary", StringComparison.OrdinalIgnoreCase))
+            .ThenByDescending(c => !string.IsNullOrWhiteSpace(c.EmailID) || !string.IsNullOrWhiteSpace(c.MobileNo))
+            .FirstOrDefault();
     }
 }
+
+
+
