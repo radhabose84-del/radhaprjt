@@ -169,7 +169,7 @@ namespace PurchaseManagement.Application.Issue.Command.CreateIssueEntry
                 // GRPC INSERT
                 // -----------------------------
                 var stockResult = await _stockLedgerLookup
-                    .InsertStockLedgerAsync(stockLedgerDtos, cancellationToken);
+                    .InsertStockLedgerAsync(stockLedgerDtos, transaction: null, cancellationToken);
 
                 if (!stockResult)
                     throw new ApplicationException("StockLedger gRPC insert failed");
@@ -177,7 +177,7 @@ namespace PurchaseManagement.Application.Issue.Command.CreateIssueEntry
                 if (subStoreLedgerDtos.Any())
                 {
                     var subStoreResult = await _stockLedgerLookup
-                        .InsertSubStoreStockLedgerAsync(subStoreLedgerDtos, cancellationToken);
+                        .InsertSubStoreStockLedgerAsync(subStoreLedgerDtos, transaction: null, cancellationToken);
 
                     if (!subStoreResult)
                         throw new ApplicationException("SubStoreStockLedger gRPC insert failed");

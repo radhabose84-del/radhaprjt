@@ -127,7 +127,6 @@
 // ============================================================
 
 using Contracts.Commands.Party;
-using Contracts.Interfaces;
 using PartyManagement.Application.Common.Interfaces.IMiscMaster;
 using PartyManagement.Application.Common.Interfaces.IPartyMaster;
 using PartyManagement.Domain.Common;
@@ -142,20 +141,17 @@ namespace PartyManagement.Application.Consumers
         private readonly IPartyMasterCommandRepository _partyMasterCommandRepository;
         private readonly IMiscMasterQueryRepository _miscMasterQueryRepository;
         private readonly IPartyActivityLogCommandRepository _partyActivityLogCommandRepository;
-        private readonly IIPAddressService _ipAddressService;
         private readonly ILogger<ApprovedRejectedConsumer> _logger;
 
         public ApprovedRejectedConsumer(
             IPartyMasterCommandRepository partyMasterCommandRepository,
             IMiscMasterQueryRepository miscMasterQueryRepository,
             IPartyActivityLogCommandRepository partyActivityLogCommandRepository,
-            IIPAddressService ipAddressService,
             ILogger<ApprovedRejectedConsumer> logger)
         {
             _partyMasterCommandRepository = partyMasterCommandRepository;
             _miscMasterQueryRepository = miscMasterQueryRepository;
             _partyActivityLogCommandRepository = partyActivityLogCommandRepository;
-            _ipAddressService = ipAddressService;
             _logger = logger;
         }
 
@@ -211,9 +207,9 @@ namespace PartyManagement.Application.Consumers
                     OldValue = "Pending",
                     NewValue = party.PartyStatus,
                     ActionType = party.PartyStatus,
-                    ChangedBy = _ipAddressService.GetUserId(),
-                    ChangedByName = _ipAddressService.GetUserName(),
-                    ChangedIp = _ipAddressService.GetSystemIPAddress(),
+                    ChangedBy = msg.ModifiedBy,
+                    ChangedByName = msg.ModifiedByName ?? "Unknown",
+                    ChangedIp = msg.ModifiedIP ?? "Unknown",
                     ChangedOn = DateTimeOffset.UtcNow
                 };
 

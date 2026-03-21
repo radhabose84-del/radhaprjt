@@ -187,6 +187,7 @@ namespace InventoryManagement.Infrastructure
             services.AddScoped<IItemPurchaseToleranceLookup, ItemPurchaseToleranceLookupRepository>();
             services.AddScoped<IPutawayRuleLookup, PutawayRuleLookupRepository>();
             services.AddScoped<IInventoryCategoryLookup, ItemCategoryLookupRepository>();
+            services.AddScoped<IStockLedgerLookup, StockLedgerLookupRepository>();
 
             // Outbox (SQL transactional outbox pattern)
             services.AddScoped<IOutboxRepository, OutboxRepository>();

@@ -12,5 +12,10 @@ namespace Contracts.Commands.Party
         public string Status { get; set; } = default!;
         public ICollection<UpdateLineStatusDto> LineStatus { get; set; } = default!;
         public List<PartyRefDto> PartyContacts { get; set; } = new();
+
+        // Approver audit info
+        public int ModifiedBy { get; set; }
+        public string? ModifiedByName { get; set; }
+        public string? ModifiedIP { get; set; }
     }
 }

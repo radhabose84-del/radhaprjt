@@ -1,5 +1,7 @@
 #nullable disable
+using System.Data;
 using Contracts.Interfaces;
+using Dapper;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IGRN.IGRNEntry;
 using PurchaseManagement.Application.GRN.GRNEntry.Commands.UpdateGRNEntry;
@@ -15,10 +17,12 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
     {
         private readonly ApplicationDbContext _applicationDbContext;
         private readonly IIPAddressService _ipAddressService;
-        public GRNEntryCommandRepository(ApplicationDbContext applicationDbContext, IIPAddressService ipAddressService)
+        private readonly IDbConnection _dbConnection;
+        public GRNEntryCommandRepository(ApplicationDbContext applicationDbContext, IIPAddressService ipAddressService, IDbConnection dbConnection)
         {
             _applicationDbContext = applicationDbContext;
             _ipAddressService = ipAddressService;
+            _dbConnection = dbConnection;
         }
 
 
@@ -34,6 +38,29 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
         {
             await _applicationDbContext.GrnPutAwayRule.AddRangeAsync(putawayList);
             return await _applicationDbContext.SaveChangesAsync();
+        }
+
+        public async Task<int> CreatePutawayListAsync(List<GrnPutAwayRule> putawayList, IDbTransaction transaction)
+        {
+            const string sql = @"
+                INSERT INTO [Purchase].[GrnPutAwayRule]
+                    (GrnId, GrnDetailId, PoId, PoSlNoLocal, ItemId, UnitId,
+                     PurchaseUomId, StockUomId, ConversionFactor,
+                     QcAcceptedQtyPurchaseUom, QcAcceptedQtyStockUom,
+                     WarehouseId, StorageTypeId, TargetId,
+                     PriorityId, [Override],
+                     PutAwayDate, CreatedBy, CreatedDate, CreatedByName, CreatedIP)
+                VALUES
+                    (@GrnId, @GrnDetailId, @PoId, @PoSlNoLocal, @ItemId, @UnitId,
+                     @PurchaseUomId, @StockUomId, @ConversionFactor,
+                     @QcAcceptedQtyPurchaseUom, @QcAcceptedQtyStockUom,
+                     @WarehouseId, @StorageTypeId, @TargetId,
+                     @PriorityId, @Override,
+                     @PutAwayDate, @CreatedBy, @CreatedDate, @CreatedByName, @CreatedIP)";
+
+            var conn = transaction.Connection ?? _dbConnection;
+            var result = await conn.ExecuteAsync(sql, putawayList, transaction: transaction);
+            return result;
         }
         public async Task<IDbContextTransaction> BeginTransactionAsync()
         {

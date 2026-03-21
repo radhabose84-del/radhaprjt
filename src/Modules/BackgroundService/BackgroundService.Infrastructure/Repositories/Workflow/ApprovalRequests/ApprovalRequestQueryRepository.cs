@@ -536,7 +536,7 @@ namespace BackgroundService.Infrastructure.Repositories.Workflow.ApprovalRequest
                     MM.Code AS ApproverStatusCode
                 FROM [AppData].[ApprovalRequest] AR
                 INNER JOIN [AppData].[MiscMaster] MM ON MM.Id = AR.StatusId
-                WHERE AR.ModuleTransactionId=@ModuleTransactionId AND AR.WorkflowType=@WorkflowType and AR.Id=@Id
+                WHERE AR.ModuleTransactionId=@ModuleTransactionId AND AR.WorkflowType=@WorkflowType
 
             ),
             HeaderRollup AS (
