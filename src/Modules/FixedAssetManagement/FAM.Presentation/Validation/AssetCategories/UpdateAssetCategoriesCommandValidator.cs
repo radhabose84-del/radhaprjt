@@ -59,7 +59,7 @@ namespace FAM.Presentation.Validation.AssetCategories
                             .MaximumLength(CategoryIdMaxLength)
                             .WithMessage($"{nameof(UpdateAssetCategoriesCommand.AssetGroupId)} {rule.Error} {CategoryIdMaxLength}");
                         break;
-                    case "AlphaNumericWithPunctuation":
+                    case "Alphanumeric":
                         RuleFor(x => x.CategoryName)
                             .Matches(new System.Text.RegularExpressions.Regex(rule.Pattern))
                             .WithMessage($"{nameof(UpdateAssetCategoriesCommand.CategoryName)} {rule.Error}");
