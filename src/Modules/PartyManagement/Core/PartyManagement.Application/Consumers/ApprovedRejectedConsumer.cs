@@ -246,9 +246,9 @@ namespace PartyManagement.Application.Consumers
                         PartyTypeCodes = partyTypeCodes,
                         DefaultCompanyId = companyIds.Count > 0 ? companyIds[0] : null,
                         DefaultUnitId = unitIds.Count > 0 ? unitIds[0] : null,
-                        CreatedBy = _ipAddressService.GetUserId(),
-                        CreatedByName = _ipAddressService.GetUserName() ?? "System",
-                        CreatedIp = _ipAddressService.GetSystemIPAddress() ?? "0.0.0.0",
+                        CreatedBy = msg.ModifiedBy,
+                        CreatedByName = msg.ModifiedByName ?? "Unknown",
+                        CreatedIp = msg.ModifiedIP ?? "Unknown",
                         CreatedAt = DateTime.UtcNow
                     };
 
