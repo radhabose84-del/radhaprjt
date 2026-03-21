@@ -1,6 +1,7 @@
 using Contracts.Commands.Budget;
 using Contracts.Commands.Inventory;
 using Contracts.Commands.Party;
+using Contracts.Commands.Project;
 using Contracts.Commands.Purchase;
 using Contracts.Events.Workflow;
 using BackgroundService.Application.Interfaces.IInbox;
@@ -42,6 +43,11 @@ public class ApprovalResultDispatcherConsumer : IConsumer<ApprovedRejectedEvent>
     private static readonly HashSet<string> PartyTypes = new(StringComparer.OrdinalIgnoreCase)
     {
         "Party"
+    };
+
+    private static readonly HashSet<string> ProjectTypes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "ProjectMaster", "Project Master"
     };
 
     private readonly IInboxRepository _inbox;
@@ -122,6 +128,17 @@ public class ApprovalResultDispatcherConsumer : IConsumer<ApprovedRejectedEvent>
                 ModifiedBy = msg.ModifiedBy,
                 ModifiedByName = msg.ModifiedByName,
                 ModifiedIP = msg.ModifiedIP
+            });
+        }
+
+        if (ProjectTypes.Contains(msg.ModuleTypeName))
+        {
+            await context.Publish(new UpdateApprovedRejectedProjectCommand
+            {
+                CorrelationId = msg.CorrelationId,
+                ModuleTransactionId = msg.ModuleTransactionId,
+                ModuleTypeName = msg.ModuleTypeName,
+                Status = msg.Status
             });
         }
 

@@ -31,6 +31,7 @@ public class SqlOutboxProcessorJob
         ("Budget",      "OutboxMessages"),
         ("Inventory",   "OutboxMessages"),
         ("Party",       "OutboxMessages"),
+        ("Project",     "OutboxMessages"),
     ];
 
     private static readonly JsonSerializerOptions JsonOptions = new()
