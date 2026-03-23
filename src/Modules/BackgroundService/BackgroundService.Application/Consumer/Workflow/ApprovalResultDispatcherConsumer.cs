@@ -53,9 +53,7 @@ public class ApprovalResultDispatcherConsumer : IConsumer<ApprovedRejectedEvent>
 
     private static readonly HashSet<string> SalesTypes = new(StringComparer.OrdinalIgnoreCase)
     {
-        "Invoice"
-        // Add more as Sales module gets more pages with workflow:
-        // "SalesOrder"
+        "Invoice"      
     };    private readonly IInboxRepository _inbox;
     private readonly ILogger<ApprovalResultDispatcherConsumer> _logger;
 
