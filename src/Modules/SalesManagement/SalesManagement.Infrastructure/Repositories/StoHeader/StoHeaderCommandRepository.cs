@@ -132,10 +132,37 @@ namespace SalesManagement.Infrastructure.Repositories.StoHeader
                     && m.IsActive == Status.Active
                     && m.MiscTypeMaster != null
                     && m.MiscTypeMaster.IsDeleted == IsDelete.NotDeleted
-                    && m.MiscTypeMaster.MiscTypeCode == MiscEnumEntity.StoHeaderStatus
-                    && m.Code == MiscEnumEntity.StoHeaderStatusPending)
+                    && m.MiscTypeMaster.MiscTypeCode == MiscEnumEntity.StoApprovalStatus
+                    && m.Code == MiscEnumEntity.StoApprovalPending)
                 .Select(m => (int?)m.Id)
                 .FirstOrDefaultAsync();
+        }
+
+        public async Task UpdateApprovalStatusAsync(int id, string status, CancellationToken ct)
+        {
+            var existing = await _dbContext.StoHeader
+                .FirstOrDefaultAsync(x => x.Id == id && x.IsDeleted == IsDelete.NotDeleted, ct);
+
+            if (existing == null)
+                return;
+
+            // Resolve ApprovalStatus MiscMaster Id
+            var statusId = await _dbContext.MiscMaster
+                .Where(m => m.IsDeleted == IsDelete.NotDeleted
+                    && m.IsActive == Status.Active
+                    && m.MiscTypeMaster != null
+                    && m.MiscTypeMaster.IsDeleted == IsDelete.NotDeleted
+                    && m.MiscTypeMaster.MiscTypeCode == MiscEnumEntity.StoApprovalStatus
+                    && m.Code == status)
+                .Select(m => (int?)m.Id)
+                .FirstOrDefaultAsync(ct);
+
+            if (statusId.HasValue)
+            {
+                existing.HeaderStatusId = statusId;
+                _dbContext.StoHeader.Update(existing);
+                await _dbContext.SaveChangesAsync(ct);
+            }
         }
 
         public async Task<bool> SoftDeleteAsync(int id, CancellationToken ct)

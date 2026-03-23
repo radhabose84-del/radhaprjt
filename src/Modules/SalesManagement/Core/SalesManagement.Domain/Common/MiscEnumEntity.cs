@@ -40,12 +40,20 @@ namespace SalesManagement.Domain.Common
         public const string StoHeaderStatus = "StoHeaderStatus";
         public const string StoHeaderStatusPending = "Pending";
 
+        // STO Approval (workflow)
+        public const string StoApprovalStatus = "ApprovalStatus";
+        public const string StoApprovalPending = "Pending";
+        public const string StoApprovalApproved = "Approved";
+        public const string StoApprovalRejected = "Rejected";
+        public const string StoModuleTypeName = "STO";
+
         // Delivery Challan Status
         public const string DCLineStatus = "DCLineStatus";
         public const string DCStatusPending = "Pending";
         public const string DCStatusDispatched = "Dispatched";
         public const string DCStatusCancelled = "Cancelled";
         public const string DCStatusDelivered = "Delivered";
+        public const string DCModuleTypeName = "DeliveryChallan";
 
         // Workflow Module Type Names
         public const string TransactionTypeSalesOrder = "Sales Order";

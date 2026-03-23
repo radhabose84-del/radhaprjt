@@ -2,9 +2,11 @@ using Contracts.Commands.Sales;
 using Contracts.Events.Sales;
 using MassTransit;
 using Microsoft.Extensions.Logging;
+using SalesManagement.Application.Common.Interfaces.IDeliveryChallan;
 using SalesManagement.Application.Common.Interfaces.IInvoice;
 using SalesManagement.Application.Common.Interfaces.IMiscMaster;
 using SalesManagement.Application.Common.Interfaces.ISalesOrder;
+using SalesManagement.Application.Common.Interfaces.IStoHeader;
 using SalesManagement.Domain.Common;
 
 namespace SalesManagement.Application.Consumers
@@ -14,17 +16,23 @@ namespace SalesManagement.Application.Consumers
         private readonly IInvoiceCommandRepository _invoiceCommandRepo;
         private readonly ISalesOrderCommandRepository _salesOrderCommandRepo;
         private readonly IMiscMasterQueryRepository _miscMasterQueryRepository;
+        private readonly IStoHeaderCommandRepository _stoHeaderCommandRepo;
+        private readonly IDeliveryChallanCommandRepository _dcCommandRepo;
         private readonly ILogger<ApprovedRejectedConsumer> _logger;
 
         public ApprovedRejectedConsumer(
             IInvoiceCommandRepository invoiceCommandRepo,
             ISalesOrderCommandRepository salesOrderCommandRepo,
             IMiscMasterQueryRepository miscMasterQueryRepository,
+            IStoHeaderCommandRepository stoHeaderCommandRepo,
+            IDeliveryChallanCommandRepository dcCommandRepo,
             ILogger<ApprovedRejectedConsumer> logger)
         {
             _invoiceCommandRepo = invoiceCommandRepo;
             _salesOrderCommandRepo = salesOrderCommandRepo;
             _miscMasterQueryRepository = miscMasterQueryRepository;
+            _stoHeaderCommandRepo = stoHeaderCommandRepo;
+            _dcCommandRepo = dcCommandRepo;
             _logger = logger;
         }
 
@@ -48,6 +56,21 @@ namespace SalesManagement.Application.Consumers
 
                     case MiscEnumEntity.TransactionTypeSalesOrder:
                         await HandleSalesOrderApprovalAsync(msg, context.CancellationToken);
+                        break;
+                    case MiscEnumEntity.StoModuleTypeName:
+                        await _stoHeaderCommandRepo.UpdateApprovalStatusAsync(
+                            msg.ModuleTransactionId, msg.Status, context.CancellationToken);
+                        _logger.LogInformation(
+                            "STO {Id} status updated to {Status}",
+                            msg.ModuleTransactionId, msg.Status);
+                        break;
+
+                    case MiscEnumEntity.DCModuleTypeName:
+                        await _dcCommandRepo.UpdateApprovalStatusAsync(
+                            msg.ModuleTransactionId, msg.Status, context.CancellationToken);
+                        _logger.LogInformation(
+                            "DeliveryChallan {Id} status updated to {Status}",
+                            msg.ModuleTransactionId, msg.Status);
                         break;
 
                     default:

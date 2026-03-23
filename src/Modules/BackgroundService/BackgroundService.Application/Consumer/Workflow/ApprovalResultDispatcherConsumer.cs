@@ -56,6 +56,13 @@ public class ApprovalResultDispatcherConsumer : IConsumer<ApprovedRejectedEvent>
         "Invoice","Sales Order"
         // Add more as Sales module gets more pages with workflow:
         // "SalesOrder"
+<<<<<<< .mine
+        "Invoice",
+=======
+        "Invoice"      
+>>>>>>> .theirs
+        "STO",
+        "DeliveryChallan"
     };    private readonly IInboxRepository _inbox;
     private readonly ILogger<ApprovalResultDispatcherConsumer> _logger;
 

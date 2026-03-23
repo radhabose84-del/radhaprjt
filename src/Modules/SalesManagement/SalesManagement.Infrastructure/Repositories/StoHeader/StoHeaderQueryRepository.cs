@@ -275,5 +275,89 @@ namespace SalesManagement.Infrastructure.Repositories.StoHeader
             var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = id });
             return count > 0;
         }
+
+        public async Task<(List<StoHeaderDto>, int)> GetPendingAsync(int pageNumber, int pageSize, string? searchTerm)
+        {
+            // Get Pending status Id from ApprovalStatus MiscType
+            const string pendingIdSql = @"
+                SELECT m.Id FROM Sales.MiscMaster m
+                INNER JOIN Sales.MiscTypeMaster mt ON mt.Id = m.MiscTypeId AND mt.IsDeleted = 0
+                WHERE m.Code = 'Pending' AND mt.MiscTypeCode = 'ApprovalStatus' AND m.IsDeleted = 0;";
+
+            var pendingStatusId = await _dbConnection.ExecuteScalarAsync<int?>(pendingIdSql);
+            if (!pendingStatusId.HasValue)
+                return (new List<StoHeaderDto>(), 0);
+
+            var searchFilter = string.IsNullOrWhiteSpace(searchTerm)
+                ? string.Empty
+                : @" AND (h.StoNumber LIKE @SearchTerm
+                       OR st.StoTypeName LIKE @SearchTerm
+                       OR mt.MovementDescription LIKE @SearchTerm
+                       OR h.Remarks LIKE @SearchTerm)";
+
+            var countSql = $@"
+                SELECT COUNT(*)
+                FROM Sales.StoHeader h
+                LEFT JOIN Sales.StoTypeMaster st ON h.StoTypeId = st.Id AND st.IsDeleted = 0
+                LEFT JOIN Sales.MovementTypeConfig mt ON h.MovementTypeId = mt.Id AND mt.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster hs ON h.HeaderStatusId = hs.Id AND hs.IsDeleted = 0
+                WHERE h.IsDeleted = 0 AND h.HeaderStatusId = @PendingStatusId {searchFilter};";
+
+            var dataSql = $@"
+                SELECT
+                    h.Id, h.StoNumber, h.DocumentDate, h.ExpectedDeliveryDate,
+                    h.StoTypeId, st.StoTypeCode, st.StoTypeName,
+                    h.MovementTypeId, mt.MovementCode, mt.MovementDescription,
+                    h.SupplyingPlantId, h.SupplyingStorageLocationId,
+                    h.ReceivingPlantId, h.ReceivingStorageLocationId,
+                    h.Remarks, h.HeaderStatusId,
+                    hs.Description AS HeaderStatusName,
+                    h.IsActive, h.IsDeleted,
+                    h.CreatedBy, h.CreatedDate, h.CreatedByName, h.CreatedIP,
+                    h.ModifiedBy, h.ModifiedDate, h.ModifiedByName, h.ModifiedIP
+                FROM Sales.StoHeader h
+                LEFT JOIN Sales.StoTypeMaster st ON h.StoTypeId = st.Id AND st.IsDeleted = 0
+                LEFT JOIN Sales.MovementTypeConfig mt ON h.MovementTypeId = mt.Id AND mt.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster hs ON h.HeaderStatusId = hs.Id AND hs.IsDeleted = 0
+                WHERE h.IsDeleted = 0 AND h.HeaderStatusId = @PendingStatusId {searchFilter}
+                ORDER BY h.Id DESC
+                OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;";
+
+            var parameters = new
+            {
+                PendingStatusId = pendingStatusId.Value,
+                SearchTerm = $"%{searchTerm}%",
+                Offset = (pageNumber - 1) * pageSize,
+                PageSize = pageSize
+            };
+
+            using var multi = await _dbConnection.QueryMultipleAsync(countSql + dataSql, parameters);
+            var totalCount = await multi.ReadFirstAsync<int>();
+            var data = (await multi.ReadAsync<StoHeaderDto>()).ToList();
+
+            // Populate cross-module FK names via lookups
+            if (data.Count > 0)
+            {
+                var allPlantIds = data.Select(d => d.SupplyingPlantId)
+                    .Union(data.Select(d => d.ReceivingPlantId)).Distinct();
+                var plants = await _unitLookup.GetByIdsAsync(allPlantIds);
+                var plantDict = plants.ToDictionary(p => p.UnitId, p => p.UnitName);
+
+                var warehouseIds = data.Select(d => d.SupplyingStorageLocationId)
+                    .Union(data.Select(d => d.ReceivingStorageLocationId)).Distinct();
+                var warehouses = await _warehouseLookup.GetByIdsAsync(warehouseIds);
+                var warehouseDict = warehouses.ToDictionary(w => w.Id, w => w.WarehouseName);
+
+                foreach (var item in data)
+                {
+                    item.SupplyingPlantName = plantDict.TryGetValue(item.SupplyingPlantId, out var spName) ? spName : null;
+                    item.ReceivingPlantName = plantDict.TryGetValue(item.ReceivingPlantId, out var rpName) ? rpName : null;
+                    item.SupplyingStorageLocationName = warehouseDict.TryGetValue(item.SupplyingStorageLocationId, out var ssName) ? ssName : null;
+                    item.ReceivingStorageLocationName = warehouseDict.TryGetValue(item.ReceivingStorageLocationId, out var rsName) ? rsName : null;
+                }
+            }
+
+            return (data, totalCount);
+        }
     }
 }
