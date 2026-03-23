@@ -1,6 +1,7 @@
 using AutoMapper;
 using SalesManagement.Application.SalesOrder.Commands.UpdateSalesOrder;
 using SalesManagement.Application.SalesOrder.Dto;
+using SalesManagement.Application.SalesOrder.Queries.GetPendingSalesOrderById;
 using SalesManagement.Domain.Entities;
 using static SalesManagement.Domain.Common.BaseEntity;
 
@@ -35,6 +36,9 @@ namespace SalesManagement.Application.Common.Mappings
 
             // Autocomplete: LookupDto → LookupDto (collection type conversion)
             CreateMap<SalesOrderLookupDto, SalesOrderLookupDto>();
+
+            // Pending: SalesOrderHeaderDto → PendingSalesOrderByIdDto
+            CreateMap<SalesOrderHeaderDto, PendingSalesOrderByIdDto>();
         }
     }
 }

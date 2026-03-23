@@ -29,6 +29,8 @@ namespace SalesManagement.Domain.Common
         // SalesOrder Approval Status
         public const string SalesOrderApprovalStatus = "ApprovalStatus";
         public const string SalesOrderStatusPending = "Pending";
+        public const string SalesOrderStatusApproved = "Approved";
+        public const string SalesOrderStatusRejected = "Rejected";
 
         // STO Line Item Status
         public const string StoLineItemStatus = "StoLineItemStatus";
@@ -44,6 +46,9 @@ namespace SalesManagement.Domain.Common
         public const string DCStatusDispatched = "Dispatched";
         public const string DCStatusCancelled = "Cancelled";
         public const string DCStatusDelivered = "Delivered";
+
+        // Workflow Module Type Names
+        public const string TransactionTypeSalesOrder = "Sales Order";
 
         // Document Sequence - Transaction Types
         public const string TransactionTypeInvoice = "Invoice";

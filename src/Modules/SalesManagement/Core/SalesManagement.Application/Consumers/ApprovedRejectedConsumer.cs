@@ -3,6 +3,8 @@ using Contracts.Events.Sales;
 using MassTransit;
 using Microsoft.Extensions.Logging;
 using SalesManagement.Application.Common.Interfaces.IInvoice;
+using SalesManagement.Application.Common.Interfaces.IMiscMaster;
+using SalesManagement.Application.Common.Interfaces.ISalesOrder;
 using SalesManagement.Domain.Common;
 
 namespace SalesManagement.Application.Consumers
@@ -10,13 +12,19 @@ namespace SalesManagement.Application.Consumers
     public class ApprovedRejectedConsumer : IConsumer<UpdateApprovedRejectedSalesCommand>
     {
         private readonly IInvoiceCommandRepository _invoiceCommandRepo;
+        private readonly ISalesOrderCommandRepository _salesOrderCommandRepo;
+        private readonly IMiscMasterQueryRepository _miscMasterQueryRepository;
         private readonly ILogger<ApprovedRejectedConsumer> _logger;
 
         public ApprovedRejectedConsumer(
             IInvoiceCommandRepository invoiceCommandRepo,
+            ISalesOrderCommandRepository salesOrderCommandRepo,
+            IMiscMasterQueryRepository miscMasterQueryRepository,
             ILogger<ApprovedRejectedConsumer> logger)
         {
             _invoiceCommandRepo = invoiceCommandRepo;
+            _salesOrderCommandRepo = salesOrderCommandRepo;
+            _miscMasterQueryRepository = miscMasterQueryRepository;
             _logger = logger;
         }
 
@@ -30,7 +38,7 @@ namespace SalesManagement.Application.Consumers
 
             try
             {
-                // Route by ModuleTypeName — add more cases as more Sales pages get workflow
+                // Route by ModuleTypeName
                 switch (msg.ModuleTypeName)
                 {
                     case MiscEnumEntity.TransactionTypeInvoice:
@@ -38,10 +46,9 @@ namespace SalesManagement.Application.Consumers
                             msg.ModuleTransactionId, msg.Status, context.CancellationToken);
                         break;
 
-                    // Add more cases as needed:
-                    // case "SalesOrder":
-                    //     await _salesOrderCommandRepo.UpdateApprovalStatusAsync(...);
-                    //     break;
+                    case MiscEnumEntity.TransactionTypeSalesOrder:
+                        await HandleSalesOrderApprovalAsync(msg, context.CancellationToken);
+                        break;
 
                     default:
                         _logger.LogWarning("Unknown Sales ModuleTypeName: {Type}", msg.ModuleTypeName);
@@ -62,6 +69,50 @@ namespace SalesManagement.Application.Consumers
                     msg.ModuleTransactionId);
                 throw; // MassTransit retry policy handles retries
             }
+        }
+
+        private async Task HandleSalesOrderApprovalAsync(
+            UpdateApprovedRejectedSalesCommand msg, CancellationToken ct)
+        {
+            _logger.LogInformation(
+                "SalesOrder Consumer Approval Status Update: ModuleTransactionId={Id}, Status={Status}",
+                msg.ModuleTransactionId, msg.Status);
+
+            var status = msg.Status;
+            var salesOrderId = msg.ModuleTransactionId;
+
+            if (msg.ModuleTypeName != MiscEnumEntity.TransactionTypeSalesOrder)
+                return;
+
+            // Resolve Approved and Rejected MiscMaster Ids
+            var statusApproved = await _miscMasterQueryRepository.GetMiscMasterByName(
+                MiscEnumEntity.SalesOrderApprovalStatus,MiscEnumEntity.SalesOrderStatusApproved);
+
+            var statusRejected = await _miscMasterQueryRepository.GetMiscMasterByName(
+                MiscEnumEntity.SalesOrderApprovalStatus, MiscEnumEntity.SalesOrderStatusRejected);
+
+            if (status != MiscEnumEntity.SalesOrderStatusApproved && status != MiscEnumEntity.SalesOrderStatusRejected)
+                return;
+
+            var finalStatusId = status == MiscEnumEntity.SalesOrderStatusApproved
+                ? statusApproved?.Id ?? 0
+                : statusRejected?.Id ?? 0;
+
+            var order = await _salesOrderCommandRepo.GetByIdEntityAsync(salesOrderId);
+            if (order == null)
+            {
+                _logger.LogWarning("Sales Order not found for Id={SalesOrderId}", salesOrderId);
+                return;
+            }
+
+            // Update status
+            order.StatusId = finalStatusId;
+
+            await _salesOrderCommandRepo.FinalizeOrderStatusAsync(order);
+
+            _logger.LogInformation(
+                "SalesOrder Id={SalesOrderId} status updated to {Status} (StatusId={StatusId})",
+                salesOrderId, status, finalStatusId);
         }
     }
 }

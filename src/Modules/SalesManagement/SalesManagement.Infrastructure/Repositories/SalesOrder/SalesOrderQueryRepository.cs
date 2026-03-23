@@ -8,6 +8,7 @@ using Contracts.Interfaces;
 using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Application.Common.Interfaces.ISalesOrder;
 using SalesManagement.Application.SalesOrder.Dto;
+using SalesManagement.Application.SalesOrder.Queries.GetPendingSalesOrder;
 using SalesManagement.Domain.Common;
 
 namespace SalesManagement.Infrastructure.Repositories.SalesOrder
@@ -467,6 +468,65 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
         {
             var agents = await _partyLookup.GetByIdsAsync(new[] { agentId });
             return agents.Any();
+        }
+
+        public async Task<(List<PendingSalesOrderDto>, int)> GetPendingSalesOrderAsync(
+            int pageNumber, int pageSize, string? searchTerm)
+        {
+            var searchFilter = string.IsNullOrWhiteSpace(searchTerm)
+                ? ""
+                : "AND (h.SalesOrderNo LIKE @Search OR h.Remarks LIKE @Search)";
+
+            var query = $@"
+                DECLARE @TotalCount INT;
+                SELECT @TotalCount = COUNT(*)
+                FROM Sales.SalesOrderHeader h
+                INNER JOIN Sales.MiscMaster st ON h.StatusId = st.Id AND st.IsDeleted = 0
+                INNER JOIN Sales.MiscTypeMaster mt ON st.MiscTypeId = mt.Id AND mt.IsDeleted = 0
+                WHERE h.IsDeleted = 0
+                AND LOWER(mt.MiscTypeCode) = LOWER('ApprovalStatus')
+                AND LOWER(st.Code) = LOWER('Pending')
+                {searchFilter};
+
+                SELECT h.Id, h.SalesOrderNo, h.OrderDate,
+                    h.SalesGroupId,
+                    sg.SalesGroupName AS SalesGroupName,
+                    h.SalesSegmentId,
+                    ss.SegmentName AS SegmentName,
+                    h.EnquiryType,
+                    et.Description AS EnquiryTypeName,
+                    h.UnitId, h.PartyId, h.AgentId,
+                    h.StatusId,
+                    st2.Description AS StatusName,
+                    h.Remarks,
+                    h.TotalBags, h.TotalWeightKgs, h.FinalAmount,
+                    h.CreatedByName, h.CreatedDate
+                FROM Sales.SalesOrderHeader h
+                LEFT JOIN Sales.SalesGroup sg ON h.SalesGroupId = sg.Id AND sg.IsDeleted = 0
+                LEFT JOIN Sales.SalesSegment ss ON h.SalesSegmentId = ss.Id AND ss.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster et ON h.EnquiryType = et.Id AND et.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster st2 ON h.StatusId = st2.Id AND st2.IsDeleted = 0
+                INNER JOIN Sales.MiscMaster stf ON h.StatusId = stf.Id AND stf.IsDeleted = 0
+                INNER JOIN Sales.MiscTypeMaster mtf ON stf.MiscTypeId = mtf.Id AND mtf.IsDeleted = 0
+                WHERE h.IsDeleted = 0
+                AND LOWER(mtf.MiscTypeCode) = LOWER('ApprovalStatus')
+                AND LOWER(stf.Code) = LOWER('Pending')
+                {searchFilter}
+                ORDER BY h.Id DESC
+                OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
+
+                SELECT @TotalCount AS TotalCount;";
+
+            var result = await _dbConnection.QueryMultipleAsync(query, new
+            {
+                Search = $"%{searchTerm}%",
+                Offset = (pageNumber - 1) * pageSize,
+                PageSize = pageSize
+            });
+            var list = (await result.ReadAsync<PendingSalesOrderDto>()).ToList();
+            var totalCount = await result.ReadFirstAsync<int>();
+
+            return (list, totalCount);
         }
 
         private async Task<string> GetDocumentBasePathAsync(string miscTypeCode)

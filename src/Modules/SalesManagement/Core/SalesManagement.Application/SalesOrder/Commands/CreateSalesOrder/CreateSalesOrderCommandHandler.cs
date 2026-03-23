@@ -1,10 +1,13 @@
+using System.Text.Json;
 using AutoMapper;
 using Contracts.Common;
+using Contracts.Commands.Workflow;
 using Contracts.Interfaces.Lookups.Users;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using Contracts.Interfaces;
 using SalesManagement.Application.Common.Interfaces;
+using SalesManagement.Application.Common.Interfaces.IOutbox;
 using SalesManagement.Application.Common.Interfaces.ISalesOrder;
 using SalesManagement.Domain.Common;
 using SalesManagement.Domain.Entities;
@@ -22,6 +25,7 @@ namespace SalesManagement.Application.SalesOrder.Commands.CreateSalesOrder
         private readonly ICompanyLookup _companyLookup;
         private readonly IUnitLookup _unitLookup;
         private readonly ILogger<CreateSalesOrderCommandHandler> _logger;
+        private readonly IOutboxEventPublisher _outboxEventPublisher;
 
         public CreateSalesOrderCommandHandler(
             ISalesOrderCommandRepository commandRepository,
@@ -31,7 +35,8 @@ namespace SalesManagement.Application.SalesOrder.Commands.CreateSalesOrder
             IIPAddressService ipAddressService,
             ICompanyLookup companyLookup,
             IUnitLookup unitLookup,
-            ILogger<CreateSalesOrderCommandHandler> logger)
+            ILogger<CreateSalesOrderCommandHandler> logger,
+            IOutboxEventPublisher outboxEventPublisher)
         {
             _commandRepository = commandRepository;
             _queryRepository = queryRepository;
@@ -41,6 +46,7 @@ namespace SalesManagement.Application.SalesOrder.Commands.CreateSalesOrder
             _companyLookup = companyLookup;
             _unitLookup = unitLookup;
             _logger = logger;
+            _outboxEventPublisher = outboxEventPublisher;
         }
 
         public async Task<ApiResponseDTO<int>> Handle(CreateSalesOrderCommand request, CancellationToken cancellationToken)
@@ -136,6 +142,27 @@ namespace SalesManagement.Application.SalesOrder.Commands.CreateSalesOrder
                 details: $"Sales Order '{salesOrderNo}' created successfully with Id {newId}.",
                 module: "SalesOrder");
             await _mediator.Publish(auditEvent, cancellationToken);
+
+            // ------------------- Fetch entity for workflow payload -------------------
+            var workFlowEntity = await _commandRepository.GetByIdSalesOrderWorkFlowAsync(newId);
+            var reverseMap = new CreateSalesOrderReverseDto
+            {
+                Header = workFlowEntity,
+                Lines = null
+            };
+            string serializedPayload = JsonSerializer.Serialize(reverseMap);
+
+            // ------------------- Schedule Outbox Event (SQL Transactional Outbox) -------------------
+            var correlationId = Guid.NewGuid();
+            var @event = new CreateApprovalRequestCommand
+            {
+                CorrelationId = correlationId,
+                ModuleTypeName = MiscEnumEntity.TransactionTypeSalesOrder,
+                ModuleTransactionId = newId,
+                Payload = serializedPayload
+            };
+
+            await _outboxEventPublisher.ScheduleAsync(@event, correlationId, cancellationToken);
 
             return new ApiResponseDTO<int>
             {
