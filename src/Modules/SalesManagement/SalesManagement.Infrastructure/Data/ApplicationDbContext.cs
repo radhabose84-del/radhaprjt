@@ -4,7 +4,9 @@ using Contracts.Interfaces;
 using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Domain.Common;
 using SalesManagement.Domain.Entities;
+using SalesManagement.Domain.Entities.Outbox;
 using SalesManagement.Infrastructure.Data.Configurations;
+using SalesManagement.Infrastructure.Data.Configurations.Outbox;
 
 
 
@@ -63,6 +65,10 @@ namespace SalesManagement.Infrastructure.Data
         public DbSet<InvoiceDetail> InvoiceDetail { get; set; }
         public DbSet<StoReceiptHeader> StoReceiptHeader { get; set; }
         public DbSet<StoReceiptDetail> StoReceiptDetail { get; set; }
+
+        // ── Outbox (SQL-based for workflow transaction atomicity) ─────────
+        public DbSet<OutboxMessage> OutboxMessages { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // ── Entity Configurations ───────────────────────────────────────
@@ -105,6 +111,9 @@ namespace SalesManagement.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new InvoiceDetailConfiguration());
             modelBuilder.ApplyConfiguration(new StoReceiptHeaderConfiguration());
             modelBuilder.ApplyConfiguration(new StoReceiptDetailConfiguration());
+            // ── Outbox (SQL-based for workflow) ─────────────────────────────
+            modelBuilder.ApplyConfiguration(new OutboxMessageConfiguration());
+
             // Global convention: set explicit precision/scale for all decimal properties
             // This prevents EF Core runtime warnings about silent truncation
             foreach (var property in modelBuilder.Model.GetEntityTypes()

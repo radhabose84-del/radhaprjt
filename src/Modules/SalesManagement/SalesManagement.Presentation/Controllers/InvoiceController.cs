@@ -6,6 +6,7 @@ using SalesManagement.Application.Invoice.Commands.UpdateInvoice;
 using SalesManagement.Application.Invoice.Queries.GetAllInvoice;
 using SalesManagement.Application.Invoice.Queries.GetInvoiceAutoComplete;
 using SalesManagement.Application.Invoice.Queries.GetInvoiceById;
+using SalesManagement.Application.Invoice.Queries.GetInvoicePending;
 
 namespace SalesManagement.Presentation.Controllers
 {
@@ -86,6 +87,28 @@ namespace SalesManagement.Presentation.Controllers
                 isSuccess = result.IsSuccess,
                 message = result.Message,
                 data = result.Data
+            });
+        }
+
+        [HttpGet("pending")]
+        public async Task<IActionResult> GetPendingAsync(
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 15,
+            [FromQuery] string? searchTerm = null,
+            CancellationToken ct = default)
+        {
+            var (rows, total) = await Mediator.Send(new GetInvoicePendingQuery
+            {
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                SearchTerm = searchTerm
+            }, ct);
+
+            return Ok(new
+            {
+                statusCode = StatusCodes.Status200OK,
+                data = new { rows, totalCount = total, pageNumber, pageSize, searchTerm },
+                message = "Pending Invoice details fetched successfully."
             });
         }
     }

@@ -1,10 +1,12 @@
 using System.Data;
+using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Users;
 using Dapper;
 using SalesManagement.Application.Common.Interfaces.IInvoice;
 using SalesManagement.Application.Invoice.Dto;
+using SalesManagement.Application.Invoice.Queries.GetInvoicePending;
 using SalesManagement.Domain.Common;
 
 namespace SalesManagement.Infrastructure.Repositories.Invoice
@@ -17,6 +19,7 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
         private readonly IItemLookup _itemLookup;
         private readonly IUOMLookup _uomLookup;
         private readonly IFinancialYearLookup _financialYearLookup;
+        private readonly IIPAddressService _ipAddressService;
 
         public InvoiceQueryRepository(
             IDbConnection dbConnection,
@@ -24,7 +27,8 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
             IUnitLookup unitLookup,
             IItemLookup itemLookup,
             IUOMLookup uomLookup,
-            IFinancialYearLookup financialYearLookup)
+            IFinancialYearLookup financialYearLookup,
+            IIPAddressService ipAddressService)
         {
             _dbConnection = dbConnection;
             _partyLookup = partyLookup;
@@ -32,6 +36,7 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
             _itemLookup = itemLookup;
             _uomLookup = uomLookup;
             _financialYearLookup = financialYearLookup;
+            _ipAddressService = ipAddressService;
         }
 
         public async Task<(List<InvoiceHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
@@ -308,6 +313,215 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                 StatusCode = MiscEnumEntity.InvoiceStatusPending
             });
             return count > 0;
+        }
+
+        public async Task<(List<GetInvoicePendingDto>, int)> GetInvoicePendingAsync(
+            int pageNumber, int pageSize, string? searchTerm)
+        {
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
+            var page = Math.Max(1, pageNumber);
+            var size = Math.Max(1, pageSize);
+            var offset = (page - 1) * size;
+
+            const string sql = @"
+                IF OBJECT_ID('tempdb..#filtered') IS NOT NULL DROP TABLE #filtered;
+                IF OBJECT_ID('tempdb..#groups')   IS NOT NULL DROP TABLE #groups;
+                IF OBJECT_ID('tempdb..#pg')       IS NOT NULL DROP TABLE #pg;
+
+                -- Resolve Pending StatusId
+                DECLARE @PendingStatusId INT;
+                SELECT @PendingStatusId = mm.Id
+                FROM Sales.MiscMaster mm
+                INNER JOIN Sales.MiscTypeMaster mt ON mm.MiscTypeId = mt.Id AND mt.IsDeleted = 0
+                WHERE mt.Description = @MiscType
+                  AND mm.Code = @StatusCode
+                  AND mm.IsDeleted = 0;
+
+                ;WITH base AS (
+                    SELECT
+                        h.Id,
+                        h.InvoiceNo,
+                        h.InvoiceDate,
+                        h.InvoiceType,
+                        mmType.Description  AS InvoiceTypeName,
+                        h.DispatchAdviceId,
+                        da.DispatchNo,
+                        h.PartyId,
+                        h.AgentId,
+                        h.UnitId,
+                        h.FinancialYearId,
+                        h.TransportMode,
+                        mmTrans.Description AS TransportModeName,
+                        h.StatusId,
+                        mmStatus.Description AS StatusName,
+                        h.VehicleNumber,
+                        h.TransporterName,
+                        h.LRNumber,
+                        h.LRDate,
+                        h.TotalBags,
+                        h.TotalWeight,
+                        h.TaxableValue,
+                        h.Discount,
+                        h.Freight,
+                        h.Insurance,
+                        h.HandlingCharge,
+                        h.OtherCharges,
+                        h.CGST,
+                        h.SGST,
+                        h.IGST,
+                        h.TaxAmount,
+                        h.TCSPercentage,
+                        h.TCS,
+                        h.RoundOff,
+                        h.InvoiceAmountBeforeTCS,
+                        h.InvoiceAmount,
+                        h.Remarks,
+                        h.CreatedByName,
+                        h.CreatedDate,
+
+                        -- Detail columns (splitOn = ItemSno)
+                        d.ItemSno,
+                        d.ItemId,
+                        d.HsnCode,
+                        d.GstPercentage,
+                        d.LotId,
+                        lm.LotCode          AS LotNo,
+                        d.NoOfBags,
+                        d.Quantity,
+                        d.RatePerKg,
+                        d.Discount           AS Discount_Detail,
+                        d.TaxableAmount,
+                        d.CgstPercentage,
+                        d.SgstPercentage,
+                        d.IgstPercentage,
+                        d.CGST               AS CGST_Detail,
+                        d.SGST               AS SGST_Detail,
+                        d.IGST               AS IGST_Detail,
+                        d.TaxAmount          AS TaxAmount_Detail,
+                        d.PackTypeId,
+                        pt.PackTypeName,
+                        d.UOMId,
+                        d.TotalAmount
+                    FROM Sales.InvoiceHeader h
+                    JOIN Sales.InvoiceDetail d ON d.InvoiceHeaderId = h.Id
+                    LEFT JOIN Sales.MiscMaster mmType   ON h.InvoiceType   = mmType.Id   AND mmType.IsDeleted = 0
+                    LEFT JOIN Sales.MiscMaster mmTrans  ON h.TransportMode = mmTrans.Id  AND mmTrans.IsDeleted = 0
+                    LEFT JOIN Sales.MiscMaster mmStatus ON h.StatusId      = mmStatus.Id AND mmStatus.IsDeleted = 0
+                    LEFT JOIN Sales.DispatchAdviceHeader da ON h.DispatchAdviceId = da.Id AND da.IsDeleted = 0
+                    LEFT JOIN Production.PackType  pt ON d.PackTypeId = pt.Id AND pt.IsDeleted = 0
+                    LEFT JOIN Production.LotMaster lm ON d.LotId      = lm.Id AND lm.IsDeleted = 0
+                    WHERE h.IsDeleted = 0
+                      AND h.IsActive  = 1
+                      AND h.UnitId    = @UnitId
+                      AND h.StatusId  = @PendingStatusId
+                ),
+                filtered AS (
+                    SELECT * FROM base
+                    WHERE (@Search IS NULL
+                        OR InvoiceNo      LIKE '%' + @Search + '%'
+                        OR VehicleNumber  LIKE '%' + @Search + '%'
+                        OR LRNumber       LIKE '%' + @Search + '%'
+                        OR CONVERT(nvarchar(30), InvoiceDate, 23) LIKE '%' + @Search + '%')
+                )
+                SELECT *
+                INTO #filtered
+                FROM filtered;
+
+                -- Distinct headers for pagination
+                SELECT DISTINCT
+                    Id, InvoiceNo, InvoiceDate, InvoiceType, InvoiceTypeName,
+                    DispatchAdviceId, DispatchNo, PartyId, AgentId, UnitId, FinancialYearId,
+                    TransportMode, TransportModeName, StatusId, StatusName,
+                    VehicleNumber, TransporterName, LRNumber, LRDate,
+                    TotalBags, TotalWeight, TaxableValue, Discount,
+                    Freight, Insurance, HandlingCharge, OtherCharges,
+                    CGST, SGST, IGST, TaxAmount,
+                    TCSPercentage, TCS, RoundOff,
+                    InvoiceAmountBeforeTCS, InvoiceAmount, Remarks,
+                    CreatedByName, CreatedDate
+                INTO #groups
+                FROM #filtered;
+
+                -- Total count of headers
+                SELECT COUNT(1) FROM #groups;
+
+                -- Page the headers
+                ;WITH g AS (
+                    SELECT *,
+                        ROW_NUMBER() OVER (ORDER BY InvoiceDate DESC, Id DESC) AS rn
+                    FROM #groups
+                )
+                SELECT *
+                INTO #pg
+                FROM g
+                WHERE rn BETWEEN @Offset + 1 AND @Offset + @PageSize;
+
+                -- Result set 2: Paged headers only
+                SELECT
+                    p.Id, p.InvoiceNo, p.InvoiceDate,
+                    p.InvoiceType, p.InvoiceTypeName,
+                    p.DispatchAdviceId, p.DispatchNo,
+                    p.PartyId, p.AgentId, p.UnitId, p.FinancialYearId,
+                    p.TransportMode, p.TransportModeName,
+                    p.StatusId, p.StatusName,
+                    p.VehicleNumber, p.TransporterName, p.LRNumber, p.LRDate,
+                    p.TotalBags, p.TotalWeight, p.TaxableValue, p.Discount,
+                    p.Freight, p.Insurance, p.HandlingCharge, p.OtherCharges,
+                    p.CGST, p.SGST, p.IGST, p.TaxAmount,
+                    p.TCSPercentage, p.TCS, p.RoundOff,
+                    p.InvoiceAmountBeforeTCS, p.InvoiceAmount, p.Remarks,
+                    p.CreatedByName, p.CreatedDate
+                FROM #pg p
+                ORDER BY p.InvoiceDate DESC, p.Id DESC;
+
+                -- Result set 3: Detail rows for paged headers
+                SELECT
+                    f.Id AS InvoiceId,
+                    f.ItemSno, f.ItemId, f.HsnCode, f.GstPercentage,
+                    f.LotId, f.LotNo, f.NoOfBags, f.Quantity,
+                    f.RatePerKg, f.Discount_Detail AS Discount,
+                    f.TaxableAmount,
+                    f.CgstPercentage, f.SgstPercentage, f.IgstPercentage,
+                    f.CGST_Detail AS CGST, f.SGST_Detail AS SGST,
+                    f.IGST_Detail AS IGST, f.TaxAmount_Detail AS TaxAmount,
+                    f.PackTypeId, f.PackTypeName, f.UOMId, f.TotalAmount
+                FROM #filtered f
+                JOIN #pg p ON p.Id = f.Id
+                ORDER BY f.Id DESC, f.ItemSno ASC;
+
+                DROP TABLE #filtered;
+                DROP TABLE #groups;
+                DROP TABLE #pg;";
+
+            var args = new
+            {
+                UnitId = unitId,
+                Search = string.IsNullOrWhiteSpace(searchTerm) ? null : searchTerm,
+                Offset = offset,
+                PageSize = size,
+                MiscType = MiscEnumEntity.InvoiceApprovalStatus,
+                StatusCode = MiscEnumEntity.InvoiceStatusPending
+            };
+
+            using var multi = await _dbConnection.QueryMultipleAsync(sql, args);
+
+            // Result set 1: total count
+            var total = await multi.ReadSingleAsync<int>();
+
+            // Result set 2: paged headers
+            var headers = (await multi.ReadAsync<GetInvoicePendingDto>()).ToList();
+
+            // Result set 3: detail rows with InvoiceId for grouping
+            var details = (await multi.ReadAsync<GetInvoicePendingDto.GetInvoicePendingDetailDto>()).ToList();
+
+            // Group details into their parent headers
+            var detailLookup = details.ToLookup(d => d.InvoiceId);
+            foreach (var h in headers)
+            {
+                h.InvoiceDetails = detailLookup[h.Id].ToList();
+            }
+
+            return (headers, total);
         }
     }
 }

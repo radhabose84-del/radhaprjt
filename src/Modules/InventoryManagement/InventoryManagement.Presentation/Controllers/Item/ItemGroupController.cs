@@ -9,7 +9,7 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 
-namespace InventoryManagement.Presentation.Controller.Item
+namespace InventoryManagement.Presentation.Controllers.Item
 {
      [Route("api/[controller]")]
     public class ItemGroupController :  ApiControllerBase
@@ -63,7 +63,7 @@ namespace InventoryManagement.Presentation.Controller.Item
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateAsync(CreateItemGroupCommand createItemGroupCommand)
+        public async Task<IActionResult> CreateAsync([FromBody] CreateItemGroupCommand createItemGroupCommand)
         {            
             var CreatedNotificationId = await _mediator.Send(createItemGroupCommand);            
             return Ok(new
