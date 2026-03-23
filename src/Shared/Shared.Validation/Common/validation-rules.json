@@ -36,6 +36,11 @@
         "Error": " must contain only alphabetic characters."
     },
     {
+        "rule": "AlphabeticWithSpaces",
+        "pattern": "^[A-Za-z][A-Za-z ]*$",
+        "error": " must contain only alphabetic characters and spaces."
+    },
+    {
         "rule": "Alphanumeric",
         "pattern": "^[A-Za-z0-9]+$",
         "error": " must be alphanumeric only."

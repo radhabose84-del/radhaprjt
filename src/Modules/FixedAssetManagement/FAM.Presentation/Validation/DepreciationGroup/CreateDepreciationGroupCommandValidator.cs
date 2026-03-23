@@ -95,12 +95,12 @@ namespace FAM.Presentation.Validation.DepreciationGroup
             RuleFor(x => (x.Code ?? string.Empty).Trim())
                 .Matches(alphaNumWithSpacePattern)
                 .When(x => !string.IsNullOrWhiteSpace(x.Code))
-                .WithMessage("Special characters are not allowed only alphanumeric values are allowed");
+                .WithMessage($"{nameof(CreateDepreciationGroupCommand.Code)} must be alphanumeric only. Special characters are not allowed.");
 
             RuleFor(x => (x.DepreciationGroupName ?? string.Empty).Trim())
                 .Matches(alphaNumWithSpacePattern)
                 .When(x => !string.IsNullOrWhiteSpace(x.DepreciationGroupName))
-                .WithMessage("Special characters are not allowed only alphanumeric values are allowed");
+                .WithMessage($"{nameof(CreateDepreciationGroupCommand.DepreciationGroupName)} must be alphanumeric only. Special characters are not allowed.");
         }
     }
 }

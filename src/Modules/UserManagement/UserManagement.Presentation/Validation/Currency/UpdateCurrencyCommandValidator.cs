@@ -42,15 +42,11 @@ namespace UserManagement.Presentation.Validation.Currency
                         //     .MaximumLength(currencyCodeMaxLength) // Dynamic value from MaxLengthProvider
                         //     .WithMessage($"{nameof(UpdateCurrencyCommand.Code)} {rule.Error} {currencyCodeMaxLength}");
                              break;  
-                     case "AlphabeticOnly":
-                        // Apply AlphabeticOnly validation
-                        // RuleFor(x => x.Code)
-                        //     .Matches(new System.Text.RegularExpressions.Regex(rule.Pattern)) 
-                        //     .WithMessage($"{nameof(UpdateCurrencyCommand.Code)} {rule.Error}");   
-                          
+                     case "AlphabeticWithSpaces":
                         RuleFor(x => x.Name)
-                            .Matches(new System.Text.RegularExpressions.Regex(rule.Pattern)) 
-                            .WithMessage($"{nameof(UpdateCurrencyCommand.Name)} {rule.Error}");
+                            .Matches(rule.Pattern)
+                            .WithMessage($"{nameof(UpdateCurrencyCommand.Name)} {rule.Error}")
+                            .When(x => !string.IsNullOrWhiteSpace(x.Name));
                             break;
                     // case "MinLength":
                     //     // Apply MinLength validation
