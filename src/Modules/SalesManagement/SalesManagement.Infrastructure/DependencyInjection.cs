@@ -71,6 +71,9 @@ using SalesManagement.Application.Common.Interfaces.IStockLedger;
 using SalesManagement.Infrastructure.Repositories.Reports.StockLedger;
 using SalesManagement.Application.Common.Interfaces.IAgentCustomerMapping;
 using SalesManagement.Infrastructure.Repositories.AgentCustomerMapping;
+using SalesManagement.Application.Common.Interfaces.IOutbox;
+using SalesManagement.Infrastructure.Repositories.Outbox;
+using SalesManagement.Infrastructure.Services.Outbox;
 
 namespace SalesManagement.Infrastructure
 {
@@ -268,6 +271,12 @@ namespace SalesManagement.Infrastructure
 
             // ── Stock Ledger Report Repository ───────────────────────────────────
             services.AddScoped<IStockLedgerReportRepository, StockLedgerReportRepository>();
+
+            // ═══════════════════════════════════════════════════════════════
+            // OUTBOX PATTERN SERVICES (SQL-based for transaction atomicity)
+            // ═══════════════════════════════════════════════════════════════
+            services.AddScoped<IOutboxRepository, OutboxRepository>();
+            services.AddScoped<IOutboxEventPublisher, OutboxEventPublisher>();
 
             return services;
         }

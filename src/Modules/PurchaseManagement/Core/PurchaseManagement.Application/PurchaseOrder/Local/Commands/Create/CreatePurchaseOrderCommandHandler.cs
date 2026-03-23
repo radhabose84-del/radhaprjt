@@ -235,7 +235,7 @@ namespace PurchaseManagement.Application.PurchaseOrder.Local.Commands.Create
                             budgetDate: budgetMonthDate,
                             monthId: entity.BudgetMonthId ?? 0,
                             requestById: entity.BudgetRequestById ?? 0,
-                            deltaAmount: entity.PurchaseValue,
+                            deltaAmount: -entity.PurchaseValue,
                             projectId: entity.ProjectId,
                             wbsId: entity.WBSId,
                             financialYearId: entity.FinancialYearId,

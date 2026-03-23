@@ -50,7 +50,12 @@ public class ApprovalResultDispatcherConsumer : IConsumer<ApprovedRejectedEvent>
         "ProjectMaster", "Project Master"
     };
 
-    private readonly IInboxRepository _inbox;
+    private static readonly HashSet<string> SalesTypes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "Invoice"
+        // Add more as Sales module gets more pages with workflow:
+        // "SalesOrder"
+    };    private readonly IInboxRepository _inbox;
     private readonly ILogger<ApprovalResultDispatcherConsumer> _logger;
 
     public ApprovalResultDispatcherConsumer(IInboxRepository inbox, ILogger<ApprovalResultDispatcherConsumer> logger)
@@ -87,6 +92,9 @@ public class ApprovalResultDispatcherConsumer : IConsumer<ApprovedRejectedEvent>
                 LineStatus = msg.LineStatus,
                 PartyContacts = msg.PartyContacts,
                 DynamicFields = msg.DynamicFields
+ ModifiedBy = msg.ModifiedBy,
+                ModifiedByName = msg.ModifiedByName,
+                ModifiedIP = msg.ModifiedIP
             });
         }
 
@@ -98,6 +106,9 @@ public class ApprovalResultDispatcherConsumer : IConsumer<ApprovedRejectedEvent>
                 ModuleTransactionId = msg.ModuleTransactionId,
                 ModuleTypeName = msg.ModuleTypeName,
                 Status = msg.Status
+ ModifiedBy = msg.ModifiedBy,
+                ModifiedByName = msg.ModifiedByName,
+                ModifiedIP = msg.ModifiedIP
             });
         }
 
@@ -112,6 +123,9 @@ public class ApprovalResultDispatcherConsumer : IConsumer<ApprovedRejectedEvent>
                 LineStatus = msg.LineStatus,
                 PartyContacts = msg.PartyContacts,
                 DynamicFields = msg.DynamicFields
+ ModifiedBy = msg.ModifiedBy,
+                ModifiedByName = msg.ModifiedByName,
+                ModifiedIP = msg.ModifiedIP
             });
         }
 
@@ -141,7 +155,20 @@ public class ApprovalResultDispatcherConsumer : IConsumer<ApprovedRejectedEvent>
                 Status = msg.Status
             });
         }
-
+  if (SalesTypes.Contains(msg.ModuleTypeName))
+        {
+            await context.Publish(new UpdateApprovedRejectedSalesCommand
+            {
+                CorrelationId = msg.CorrelationId,
+                ModuleTransactionId = msg.ModuleTransactionId,
+                ModuleTypeName = msg.ModuleTypeName,
+                Status = msg.Status,
+                LineStatus = msg.LineStatus,
+                ModifiedBy = msg.ModifiedBy,
+                ModifiedByName = msg.ModifiedByName,
+                ModifiedIP = msg.ModifiedIP
+            });
+        }
         await _inbox.MarkAsProcessedAsync(consumerName, messageId, msg.CorrelationId, context.CancellationToken);
     }
 }

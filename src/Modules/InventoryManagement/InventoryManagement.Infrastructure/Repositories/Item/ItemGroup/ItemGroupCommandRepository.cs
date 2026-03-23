@@ -76,12 +76,13 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemGroup
         public async Task<bool> ExistsByNameAsync(string name,  CancellationToken ct = default)
         {
             name = (name ?? "").Trim();
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
 
             return await _applicationDbContext.ItemGroup
                 .AsNoTracking()
                 .AnyAsync(x =>
-                    x.UnitId == (_ipAddressService.GetUnitId() ?? 0) &&
-                     x.IsDeleted == IsDelete.NotDeleted && 
+                    x.UnitId == unitId &&
+                    x.IsDeleted == IsDelete.NotDeleted &&
                     x.ItemGroupName != null &&
                     x.ItemGroupName.Trim() == name,
                     ct);

@@ -185,5 +185,25 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
             });
         }
 
+        public async Task UpdateApprovalStatusAsync(int id, string status, CancellationToken ct)
+        {
+            var entity = await _dbContext.InvoiceHeader
+                .FirstOrDefaultAsync(x => x.Id == id && x.IsDeleted == IsDelete.NotDeleted, ct);
+
+            if (entity == null) return;
+
+            // Resolve the MiscMaster Id for the given approval status string
+            var statusMisc = await _dbContext.MiscMaster
+                .FirstOrDefaultAsync(m => m.Code == status
+                    && m.IsDeleted == IsDelete.NotDeleted, ct);
+
+            if (statusMisc != null)
+            {
+                entity.StatusId = statusMisc.Id;
+                _dbContext.InvoiceHeader.Update(entity);
+                await _dbContext.SaveChangesAsync(ct);
+            }
+        }
+
     }
 }

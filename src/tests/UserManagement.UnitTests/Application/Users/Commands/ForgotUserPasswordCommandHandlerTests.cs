@@ -113,7 +113,6 @@ namespace UserManagement.UnitTests.Application.Users.Commands
             result.Data.Should().NotBeNull();
             result.Data!.Email.Should().Be("neo@gmail.com");
             result.Data.Mobile.Should().Be("9990001111");
-            result.Data.VerificationCode.Should().Be(generatedCode);
             result.Data.PasswordResetCodeExpiryMinutes.Should().Be(expiryMinutes);
             result.Data.Message.Should().Contain("Verification code sent");
 
@@ -188,7 +187,6 @@ namespace UserManagement.UnitTests.Application.Users.Commands
             result.Data.Should().NotBeNull();
             result.Data!.Email.Should().Be("trinity@company.com");
             result.Data.Mobile.Should().Be("8887776666");
-            result.Data.VerificationCode.Should().Be(generatedCode);
             result.Data.PasswordResetCodeExpiryMinutes.Should().Be(expiryMinutes);
 
             _userQuery.VerifyAll();

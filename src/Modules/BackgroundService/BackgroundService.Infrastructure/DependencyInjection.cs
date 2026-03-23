@@ -193,6 +193,7 @@ namespace BackgroundService.Infrastructure
                     x.AddConsumer<InventoryManagement.Application.Consumers.ApprovedRejectedConsumer>();
                     x.AddConsumer<PartyManagement.Application.Consumers.ApprovedRejectedConsumer>();
                     x.AddConsumer<ProjectManagement.Application.Consumers.ProjectApprovedRejectedConsumer>();
+ x.AddConsumer<SalesManagement.Application.Consumers.ApprovedRejectedConsumer>();
 
                     // Party → User integration consumers
                     x.AddConsumer<UserManagement.Application.Consumers.PartyApprovedConsumer>();
@@ -314,7 +315,11 @@ namespace BackgroundService.Infrastructure
                             e.UseMessageRetry(r => r.Intervals(TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(30)));
                             e.ConfigureConsumer<ProjectManagement.Application.Consumers.ProjectApprovedRejectedConsumer>(context);
                         });
-
+  						cfg.ReceiveEndpoint("approved-rejected-sales-task-queue", e =>
+                        {
+                            e.UseMessageRetry(r => r.Intervals(TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(30)));
+                            e.ConfigureConsumer<SalesManagement.Application.Consumers.ApprovedRejectedConsumer>(context);
+                        });
                         // Party → User integration queues
                         cfg.ReceiveEndpoint("party-approved-user-creation-queue", e =>
                         {
