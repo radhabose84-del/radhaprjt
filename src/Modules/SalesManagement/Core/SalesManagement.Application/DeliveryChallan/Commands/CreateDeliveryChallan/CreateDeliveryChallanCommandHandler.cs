@@ -1,13 +1,16 @@
 using AutoMapper;
+using Contracts.Commands.Workflow;
 using Contracts.Common;
-using MediatR;
 using Contracts.Interfaces;
-using SalesManagement.Application.Common.Interfaces.IDeliveryChallan;
 using Contracts.Interfaces.Lookups.Finance;
+using MediatR;
+using SalesManagement.Application.Common.Interfaces.IDeliveryChallan;
 using SalesManagement.Application.Common.Interfaces.IMiscMaster;
+using SalesManagement.Application.Common.Interfaces.IOutbox;
 using SalesManagement.Domain.Common;
 using SalesManagement.Domain.Entities;
 using SalesManagement.Domain.Events;
+using System.Text.Json;
 
 namespace SalesManagement.Application.DeliveryChallan.Commands.CreateDeliveryChallan
 {
@@ -18,6 +21,7 @@ namespace SalesManagement.Application.DeliveryChallan.Commands.CreateDeliveryCha
         private readonly IMiscMasterQueryRepository _miscMasterQueryRepository;
         private readonly IDocumentSequenceLookup _documentSequenceLookup;
         private readonly IIPAddressService _ipAddressService;
+        private readonly IOutboxEventPublisher _outboxEventPublisher;
         private readonly IMediator _mediator;
         private readonly IMapper _mapper;
 
@@ -27,6 +31,7 @@ namespace SalesManagement.Application.DeliveryChallan.Commands.CreateDeliveryCha
             IMiscMasterQueryRepository miscMasterQueryRepository,
             IDocumentSequenceLookup documentSequenceLookup,
             IIPAddressService ipAddressService,
+            IOutboxEventPublisher outboxEventPublisher,
             IMediator mediator,
             IMapper mapper)
         {
@@ -35,6 +40,7 @@ namespace SalesManagement.Application.DeliveryChallan.Commands.CreateDeliveryCha
             _miscMasterQueryRepository = miscMasterQueryRepository;
             _documentSequenceLookup = documentSequenceLookup;
             _ipAddressService = ipAddressService;
+            _outboxEventPublisher = outboxEventPublisher;
             _mediator = mediator;
             _mapper = mapper;
         }
@@ -43,9 +49,9 @@ namespace SalesManagement.Application.DeliveryChallan.Commands.CreateDeliveryCha
         {
             var entity = _mapper.Map<DeliveryChallanHeader>(request);
 
-            // Set Pending status
+            // Set Pending status from ApprovalStatus
             var pendingStatus = await _miscMasterQueryRepository.GetMiscMasterByName(
-                MiscEnumEntity.DCLineStatus, MiscEnumEntity.DCStatusPending);
+                MiscEnumEntity.StoApprovalStatus, MiscEnumEntity.StoApprovalPending);
             entity.StatusId = pendingStatus?.Id ?? 0;
 
             // Get UnitId from JWT token
@@ -84,6 +90,30 @@ namespace SalesManagement.Application.DeliveryChallan.Commands.CreateDeliveryCha
             var packedStatusId = packedStatus?.Id ?? 0;
 
             var newId = await _commandRepository.CreateAsync(entity, packedStatusId, reservedStatusId, typeId.Value);
+
+            // Publish workflow approval request via Outbox
+            var correlationId = Guid.NewGuid();
+            var payload = JsonSerializer.Serialize(new
+            {
+                Header = new
+                {
+                    Id = newId,
+                    DeliveryNumber = deliveryNumber,
+                    StoHeaderId = request.StoHeaderId,
+                    UnitId = unitId ?? 0,
+                    StatusId = entity.StatusId
+                },
+                Lines = new List<object>()
+            });
+
+            var workflowEvent = new CreateApprovalRequestCommand
+            {
+                CorrelationId = correlationId,
+                ModuleTypeName = MiscEnumEntity.DCModuleTypeName,
+                ModuleTransactionId = newId,
+                Payload = payload
+            };
+            await _outboxEventPublisher.ScheduleAsync(workflowEvent, correlationId, cancellationToken);
 
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Create",
