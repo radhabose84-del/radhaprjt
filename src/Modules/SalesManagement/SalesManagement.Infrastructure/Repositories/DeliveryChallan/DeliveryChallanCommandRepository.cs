@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using SalesManagement.Application.Common.Interfaces.IDeliveryChallan;
+using SalesManagement.Domain.Common;
 using SalesManagement.Infrastructure.Data;
 using static SalesManagement.Domain.Common.BaseEntity;
 
@@ -133,6 +134,32 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
             });
 
             return result;
+        }
+
+        public async Task UpdateApprovalStatusAsync(int id, string status, CancellationToken ct)
+        {
+            var existing = await _dbContext.DeliveryChallanHeader
+                .FirstOrDefaultAsync(x => x.Id == id && x.IsDeleted == IsDelete.NotDeleted, ct);
+
+            if (existing == null)
+                return;
+
+            var statusId = await _dbContext.MiscMaster
+                .Where(m => m.IsDeleted == IsDelete.NotDeleted
+                    && m.IsActive == Status.Active
+                    && m.MiscTypeMaster != null
+                    && m.MiscTypeMaster.IsDeleted == IsDelete.NotDeleted
+                    && m.MiscTypeMaster.MiscTypeCode == MiscEnumEntity.StoApprovalStatus
+                    && m.Code == status)
+                .Select(m => (int?)m.Id)
+                .FirstOrDefaultAsync(ct);
+
+            if (statusId.HasValue)
+            {
+                existing.StatusId = statusId.Value;
+                _dbContext.DeliveryChallanHeader.Update(existing);
+                await _dbContext.SaveChangesAsync(ct);
+            }
         }
     }
 }

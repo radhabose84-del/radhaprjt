@@ -1,11 +1,14 @@
 using AutoMapper;
+using Contracts.Commands.Workflow;
 using Contracts.Common;
-using MediatR;
 using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Finance;
+using MediatR;
+using SalesManagement.Application.Common.Interfaces.IOutbox;
 using SalesManagement.Application.Common.Interfaces.IStoHeader;
 using SalesManagement.Domain.Common;
 using SalesManagement.Domain.Events;
+using System.Text.Json;
 
 namespace SalesManagement.Application.StoHeader.Commands.CreateStoHeader
 {
@@ -15,6 +18,7 @@ namespace SalesManagement.Application.StoHeader.Commands.CreateStoHeader
         private readonly IStoHeaderQueryRepository _queryRepository;
         private readonly IDocumentSequenceLookup _documentSequenceLookup;
         private readonly IIPAddressService _ipAddressService;
+        private readonly IOutboxEventPublisher _outboxEventPublisher;
         private readonly IMediator _mediator;
         private readonly IMapper _mapper;
 
@@ -23,6 +27,7 @@ namespace SalesManagement.Application.StoHeader.Commands.CreateStoHeader
             IStoHeaderQueryRepository queryRepository,
             IDocumentSequenceLookup documentSequenceLookup,
             IIPAddressService ipAddressService,
+            IOutboxEventPublisher outboxEventPublisher,
             IMediator mediator,
             IMapper mapper)
         {
@@ -30,6 +35,7 @@ namespace SalesManagement.Application.StoHeader.Commands.CreateStoHeader
             _queryRepository = queryRepository;
             _documentSequenceLookup = documentSequenceLookup;
             _ipAddressService = ipAddressService;
+            _outboxEventPublisher = outboxEventPublisher;
             _mediator = mediator;
             _mapper = mapper;
         }
@@ -53,6 +59,30 @@ namespace SalesManagement.Application.StoHeader.Commands.CreateStoHeader
                 ?? throw new ExceptionRules("No document sequence configured for Stock Transfer Order.");
 
             var newId = await _commandRepository.CreateAsync(entity, typeId.Value);
+
+            // Publish workflow approval request via Outbox
+            var correlationId = Guid.NewGuid();
+            var payload = JsonSerializer.Serialize(new
+            {
+                Header = new
+                {
+                    Id = newId,
+                    StoNumber = stoNumber,
+                    StoTypeId = request.StoTypeId,
+                    UnitId = unitId ?? 0,
+                    StatusId = entity.HeaderStatusId
+                },
+                Lines = new List<object>()
+            });
+
+            var workflowEvent = new CreateApprovalRequestCommand
+            {
+                CorrelationId = correlationId,
+                ModuleTypeName = MiscEnumEntity.StoModuleTypeName,
+                ModuleTransactionId = newId,
+                Payload = payload
+            };
+            await _outboxEventPublisher.ScheduleAsync(workflowEvent, correlationId, cancellationToken);
 
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Create",
