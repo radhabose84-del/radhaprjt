@@ -50,6 +50,11 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             var details = entity.SalesOrderDetails?.ToList();
             entity.SalesOrderDetails = null;
 
+            // Set default StatusId to "Pending"
+            var pendingStatus = await _miscMasterQueryRepository.GetMiscMasterByName(
+                MiscEnumEntity.SalesOrderApprovalStatus, MiscEnumEntity.SalesOrderStatusPending);
+            entity.StatusId = pendingStatus?.Id;
+
             // Fetch "Open" line item status id
             var openStatus = await _miscMasterQueryRepository.GetMiscMasterByName(
                 MiscEnumEntity.LineItemApprovalStatus, MiscEnumEntity.LineStatusOpen);

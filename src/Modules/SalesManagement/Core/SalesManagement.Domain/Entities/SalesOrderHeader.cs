@@ -49,6 +49,9 @@ namespace SalesManagement.Domain.Entities
         // Quotation Reference (nullable - same-module FK)
         public int? SalesQuotationHeaderId { get; set; }
 
+        // Approval Status (same-module FK to MiscMaster)
+        public int? StatusId { get; set; }
+
         // Navigation Properties (Same-Module FKs only)
         public SalesQuotationHeader? SalesQuotation { get; set; }
         public SalesGroup? SalesGroup { get; set; }
@@ -59,6 +62,7 @@ namespace SalesManagement.Domain.Entities
         public MiscMaster? FreightType { get; set; }
         public MiscMaster? CountList { get; set; }
         public MiscMaster? DispatchLocationTypeMisc { get; set; }
+        public MiscMaster? StatusMisc { get; set; }
 
         // Child collection
         public ICollection<SalesOrderDetail>? SalesOrderDetails { get; set; }
