@@ -85,6 +85,8 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     h.ItemValue, h.TotalFreight, h.TaxableAmount,
                     h.GSTPercentage, h.TotalGST, h.TotalWithGST,
                     h.TCSPercentage, h.TotalTCS, h.FinalAmount,
+                    h.StatusId,
+                    st.Description AS StatusName,
                     h.IsActive, h.IsDeleted,
                     h.CreatedBy, h.CreatedDate, h.CreatedByName
                 FROM Sales.SalesOrderHeader h
@@ -96,6 +98,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 LEFT JOIN Sales.MiscMaster ft ON h.FreightTypeId = ft.Id AND ft.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster cl ON h.CountListId = cl.Id AND cl.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster dlt ON h.DispatchLocationType = dlt.Id AND dlt.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster st ON h.StatusId = st.Id AND st.IsDeleted = 0
                 WHERE h.IsDeleted = 0 {searchFilter}
                 ORDER BY h.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
@@ -200,6 +203,8 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     h.ItemValue, h.TotalFreight, h.TaxableAmount,
                     h.GSTPercentage, h.TotalGST, h.TotalWithGST,
                     h.TCSPercentage, h.TotalTCS, h.FinalAmount,
+                    h.StatusId,
+                    st.Description AS StatusName,
                     h.IsActive, h.IsDeleted,
                     h.CreatedBy, h.CreatedDate, h.CreatedByName
                 FROM Sales.SalesOrderHeader h
@@ -211,6 +216,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 LEFT JOIN Sales.MiscMaster ft ON h.FreightTypeId = ft.Id AND ft.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster cl ON h.CountListId = cl.Id AND cl.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster dlt ON h.DispatchLocationType = dlt.Id AND dlt.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster st ON h.StatusId = st.Id AND st.IsDeleted = 0
                 WHERE h.Id = @Id AND h.IsDeleted = 0";
 
             var header = await _dbConnection.QueryFirstOrDefaultAsync<SalesOrderHeaderDto>(headerSql, new { Id = id });
