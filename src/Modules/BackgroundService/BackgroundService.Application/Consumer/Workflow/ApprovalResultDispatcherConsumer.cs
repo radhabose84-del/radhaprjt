@@ -53,7 +53,11 @@ public class ApprovalResultDispatcherConsumer : IConsumer<ApprovedRejectedEvent>
 
     private static readonly HashSet<string> SalesTypes = new(StringComparer.OrdinalIgnoreCase)
     {
+<<<<<<< .mine
         "Invoice",
+=======
+        "Invoice"      
+>>>>>>> .theirs
         "STO",
         "DeliveryChallan"
     };    private readonly IInboxRepository _inbox;
