@@ -15,6 +15,7 @@ using PartyManagement.Infrastructure;
 using WarehouseManagement.Infrastructure;
 using ProjectManagement.Infrastructure;
 using ProductionManagement.Infrastructure;
+using SalesManagement.Infrastructure;
 
 var builder = Host.CreateApplicationBuilder(args);
 
@@ -66,6 +67,7 @@ builder.Services.AddPurchaseInfrastructureServices(builder.Configuration, builde
 builder.Services.AddBudgetInfrastructure(builder.Configuration, builder.Environment);
 builder.Services.AddInventoryInfrastructure(builder.Configuration, builder.Environment);
 builder.Services.AddProjectInfrastructure(builder.Configuration, builder.Environment);
+builder.Services.AddSalesInfrastructureServices(builder.Configuration, builder.Environment);
 
 // ── Hangfire server — BSOFT.Worker handles infrastructure jobs only ───────────
 //    BSOFT.Api runs its own Hangfire server for business-domain jobs (e.g. ScheduleWorkOrderJob)
