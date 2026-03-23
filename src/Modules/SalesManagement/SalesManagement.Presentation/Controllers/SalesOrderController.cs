@@ -11,6 +11,8 @@ using SalesManagement.Application.SalesOrder.Commands.DeleteSalesOrderImage;
 using SalesManagement.Application.SalesOrder.Queries.GetAllSalesOrder;
 using SalesManagement.Application.SalesOrder.Queries.GetSalesOrderAutoComplete;
 using SalesManagement.Application.SalesOrder.Queries.GetSalesOrderById;
+using SalesManagement.Application.SalesOrder.Queries.GetPendingSalesOrder;
+using SalesManagement.Application.SalesOrder.Queries.GetPendingSalesOrderById;
 
 namespace SalesManagement.Presentation.Controllers
 {
@@ -58,6 +60,41 @@ namespace SalesManagement.Presentation.Controllers
         public async Task<IActionResult> GetSalesOrderByIdAsync(int id)
         {
             var result = await Mediator.Send(new GetSalesOrderByIdQuery { Id = id });
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result
+            });
+        }
+
+        [HttpGet("pending")]
+        public async Task<IActionResult> GetPendingSalesOrderAsync(
+            [FromQuery] int PageNumber,
+            [FromQuery] int PageSize,
+            [FromQuery] string? SearchTerm = null)
+        {
+            var result = await Mediator.Send(new GetPendingSalesOrderQuery
+            {
+                PageNumber = PageNumber,
+                PageSize = PageSize,
+                SearchTerm = SearchTerm
+            });
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result.Items,
+                TotalCount = result.TotalCount,
+                PageNumber,
+                PageSize
+            });
+        }
+
+        [HttpGet("pending/{id}")]
+        public async Task<IActionResult> GetPendingSalesOrderByIdAsync(int id)
+        {
+            var result = await Mediator.Send(new GetPendingSalesOrderByIdQuery { Id = id });
 
             return Ok(new
             {

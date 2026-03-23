@@ -1,10 +1,12 @@
 using SalesManagement.Application.SalesOrder.Dto;
+using SalesManagement.Application.SalesOrder.Queries.GetPendingSalesOrder;
 
 namespace SalesManagement.Application.Common.Interfaces.ISalesOrder
 {
     public interface ISalesOrderQueryRepository
     {
         Task<(List<SalesOrderHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm);
+        Task<(List<PendingSalesOrderDto>, int)> GetPendingSalesOrderAsync(int pageNumber, int pageSize, string? searchTerm);
         Task<SalesOrderHeaderDto?> GetByIdAsync(int id);
         Task<IReadOnlyList<SalesOrderLookupDto>> AutocompleteAsync(string term, CancellationToken ct);
         Task<bool> NotFoundAsync(int id);
