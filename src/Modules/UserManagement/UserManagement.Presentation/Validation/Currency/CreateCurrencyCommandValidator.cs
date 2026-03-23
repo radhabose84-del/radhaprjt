@@ -44,14 +44,16 @@ namespace UserManagement.Presentation.Validation.Currency
                             .WithMessage($"{nameof(CreateCurrencyCommand.Code)} {rule.Error} {currencyCodeMaxLength}");
                             break;  
                     case "AlphabeticOnly":
-                        // Apply AlphabeticOnly validation
                         RuleFor(x => x.Code)
-                            .Matches(new System.Text.RegularExpressions.Regex(rule.Pattern)) 
-                            .WithMessage($"{nameof(CreateCurrencyCommand.Code)} {rule.Error}");   
-                          
+                            .Matches(rule.Pattern)
+                            .WithMessage($"{nameof(CreateCurrencyCommand.Code)} {rule.Error}")
+                            .When(x => !string.IsNullOrWhiteSpace(x.Code));
+                            break;
+                    case "AlphabeticWithSpaces":
                         RuleFor(x => x.Name)
-                            .Matches(new System.Text.RegularExpressions.Regex(rule.Pattern)) 
-                            .WithMessage($"{nameof(CreateCurrencyCommand.Name)} {rule.Error}");
+                            .Matches(rule.Pattern)
+                            .WithMessage($"{nameof(CreateCurrencyCommand.Name)} {rule.Error}")
+                            .When(x => !string.IsNullOrWhiteSpace(x.Name));
                             break;
                     case "MinLength":
                         // Apply MinLength validation
