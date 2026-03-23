@@ -34,6 +34,7 @@
     <ProjectReference Include="..\Modules\PurchaseManagement\PurchaseManagement.Infrastructure\PurchaseManagement.Infrastructure.csproj" />
     <ProjectReference Include="..\Modules\BudgetManagement\BudgetManagement.Infrastructure\BudgetManagement.Infrastructure.csproj" />
     <ProjectReference Include="..\Modules\InventoryManagement\InventoryManagement.Infrastructure\InventoryManagement.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\ProjectManagement\ProjectManagement.Infrastructure\ProjectManagement.Infrastructure.csproj" />
     <!-- Lookup providers — cross-module lookup interfaces used by the above repos -->
     <ProjectReference Include="..\Modules\UserManagement\UserManagement.Infrastructure\UserManagement.Infrastructure.csproj" />
     <ProjectReference Include="..\Modules\PartyManagement\PartyManagement.Infrastructure\PartyManagement.Infrastructure.csproj" />

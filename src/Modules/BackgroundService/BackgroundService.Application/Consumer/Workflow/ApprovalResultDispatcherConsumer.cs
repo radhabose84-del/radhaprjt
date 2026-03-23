@@ -1,8 +1,8 @@
 using Contracts.Commands.Budget;
 using Contracts.Commands.Inventory;
 using Contracts.Commands.Party;
+using Contracts.Commands.Project;
 using Contracts.Commands.Purchase;
-using Contracts.Commands.Sales;
 using Contracts.Events.Workflow;
 using BackgroundService.Application.Interfaces.IInbox;
 using MassTransit;
@@ -21,7 +21,6 @@ namespace BackgroundService.Application.Consumer.Workflow;
 ///   Inventory types  → UpdateApprovedRejectedInventoryCommand   → approved-rejected-inventory-task-queue
 ///   MaterialRequest  → both Purchase and Inventory queues (dual-module update)
 ///   Party types      → UpdateApprovedRejectedPartyCommand    → approved-rejected-party-task-queue
-///   Sales types      → UpdateApprovedRejectedSalesCommand    → approved-rejected-sales-task-queue
 /// </summary>
 public class ApprovalResultDispatcherConsumer : IConsumer<ApprovedRejectedEvent>
 {
@@ -46,14 +45,17 @@ public class ApprovalResultDispatcherConsumer : IConsumer<ApprovedRejectedEvent>
         "Party"
     };
 
+    private static readonly HashSet<string> ProjectTypes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "ProjectMaster", "Project Master"
+    };
+
     private static readonly HashSet<string> SalesTypes = new(StringComparer.OrdinalIgnoreCase)
     {
         "Invoice"
         // Add more as Sales module gets more pages with workflow:
         // "SalesOrder"
-    };
-
-    private readonly IInboxRepository _inbox;
+    };    private readonly IInboxRepository _inbox;
     private readonly ILogger<ApprovalResultDispatcherConsumer> _logger;
 
     public ApprovalResultDispatcherConsumer(IInboxRepository inbox, ILogger<ApprovalResultDispatcherConsumer> logger)
@@ -89,8 +91,8 @@ public class ApprovalResultDispatcherConsumer : IConsumer<ApprovedRejectedEvent>
                 Status = msg.Status,
                 LineStatus = msg.LineStatus,
                 PartyContacts = msg.PartyContacts,
-                DynamicFields = msg.DynamicFields,
-                ModifiedBy = msg.ModifiedBy,
+                DynamicFields = msg.DynamicFields
+ ModifiedBy = msg.ModifiedBy,
                 ModifiedByName = msg.ModifiedByName,
                 ModifiedIP = msg.ModifiedIP
             });
@@ -103,8 +105,8 @@ public class ApprovalResultDispatcherConsumer : IConsumer<ApprovedRejectedEvent>
                 CorrelationId = msg.CorrelationId,
                 ModuleTransactionId = msg.ModuleTransactionId,
                 ModuleTypeName = msg.ModuleTypeName,
-                Status = msg.Status,
-                ModifiedBy = msg.ModifiedBy,
+                Status = msg.Status
+ ModifiedBy = msg.ModifiedBy,
                 ModifiedByName = msg.ModifiedByName,
                 ModifiedIP = msg.ModifiedIP
             });
@@ -120,8 +122,8 @@ public class ApprovalResultDispatcherConsumer : IConsumer<ApprovedRejectedEvent>
                 Status = msg.Status,
                 LineStatus = msg.LineStatus,
                 PartyContacts = msg.PartyContacts,
-                DynamicFields = msg.DynamicFields,
-                ModifiedBy = msg.ModifiedBy,
+                DynamicFields = msg.DynamicFields
+ ModifiedBy = msg.ModifiedBy,
                 ModifiedByName = msg.ModifiedByName,
                 ModifiedIP = msg.ModifiedIP
             });
@@ -143,7 +145,17 @@ public class ApprovalResultDispatcherConsumer : IConsumer<ApprovedRejectedEvent>
             });
         }
 
-        if (SalesTypes.Contains(msg.ModuleTypeName))
+        if (ProjectTypes.Contains(msg.ModuleTypeName))
+        {
+            await context.Publish(new UpdateApprovedRejectedProjectCommand
+            {
+                CorrelationId = msg.CorrelationId,
+                ModuleTransactionId = msg.ModuleTransactionId,
+                ModuleTypeName = msg.ModuleTypeName,
+                Status = msg.Status
+            });
+        }
+  if (SalesTypes.Contains(msg.ModuleTypeName))
         {
             await context.Publish(new UpdateApprovedRejectedSalesCommand
             {
@@ -157,7 +169,6 @@ public class ApprovalResultDispatcherConsumer : IConsumer<ApprovedRejectedEvent>
                 ModifiedIP = msg.ModifiedIP
             });
         }
-
         await _inbox.MarkAsProcessedAsync(consumerName, messageId, msg.CorrelationId, context.CancellationToken);
     }
 }

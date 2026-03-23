@@ -134,8 +134,8 @@ namespace UserManagement.Presentation.Validation.Users
 
                     case "Email":
                         RuleFor(x => x.EmailId)
-                            .EmailAddress()
-                            .WithMessage($"{nameof(CreateUserCommand.EmailId)} {rule.Error}")
+                            .Matches(rule.Pattern)
+                            .WithMessage($"{nameof(CreateUserCommand.EmailId)} Invalid email address format. Please enter a valid email (e.g. john@example.com).")
                             .When(x => !string.IsNullOrWhiteSpace(x.EmailId));
                         break;
 
@@ -148,7 +148,7 @@ namespace UserManagement.Presentation.Validation.Users
                     case "AlreadyExists":
                         RuleFor(x => x.UserName)
                         .MustAsync(async (UserName, cancellation) => !await _userQueryRepository.AlreadyExistsAsync(UserName))
-                        .WithMessage($"{nameof(CreateUserCommand.UserName)} {rule.Error}");
+                        .WithMessage(x => $"A user with Username '{x.UserName}' {rule.Error} Please use a different username.");
                         break;
                     case "PasswordMaxLength":
                         RuleFor(x => x.Password)

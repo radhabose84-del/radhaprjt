@@ -40,6 +40,7 @@
     <ProjectReference Include="..\..\..\Modules\InventoryManagement\Core\InventoryManagement.Application\InventoryManagement.Application.csproj" />
     <ProjectReference Include="..\..\..\Modules\PartyManagement\Core\PartyManagement.Application\PartyManagement.Application.csproj" />
     <ProjectReference Include="..\..\..\Modules\UserManagement\Core\UserManagement.Application\UserManagement.Application.csproj" />
-    <ProjectReference Include="..\..\..\Modules\SalesManagement\Core\SalesManagement.Application\SalesManagement.Application.csproj" />
+    <ProjectReference Include="..\..\..\Modules\ProjectManagement\Core\ProjectManagement.Application\ProjectManagement.Application.csproj" />
+<ProjectReference Include="..\..\..\Modules\SalesManagement\Core\SalesManagement.Application\SalesManagement.Application.csproj" />
   </ItemGroup>
 </Project>
