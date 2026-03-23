@@ -129,7 +129,7 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetMasterGeneral
 
             if (assetMaster is null)
             {
-                throw new KeyNotFoundException($"DepreciationGroup with ID {assetId} not found.");
+                throw new KeyNotFoundException($"AssetMaster with ID {assetId} not found.");
             }
 
             // 🔹 Deserialize JSON directly for the single object
@@ -253,13 +253,13 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetMasterGeneral
               const string query = @"            
             SELECT AM.Id, AM.AssetCode, AM.AssetName
             FROM FixedAsset.AssetMaster AM           
-            WHERE AM.Id = @depGroupId AND AM.IsDeleted = 0";
+            WHERE AM.Id = @assetTypeId AND AM.IsDeleted = 0";
 
             var assetMaster = await _dbConnection.QueryFirstOrDefaultAsync<AssetMasterGeneralDTO>(query, new { assetTypeId });
 
             if (assetMaster is null)
             {
-                throw new KeyNotFoundException($"DepreciationGroup with ID {assetTypeId} not found.");
+                throw new KeyNotFoundException($"AssetMaster with ID {assetTypeId} not found.");
             }
 
             // 🔹 Deserialize JSON directly for the single object
