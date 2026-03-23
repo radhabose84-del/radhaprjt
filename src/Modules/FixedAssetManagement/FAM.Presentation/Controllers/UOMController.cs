@@ -125,9 +125,9 @@ namespace FAM.Presentation.Controllers
     }
 
     [HttpGet("by-name")]
-    public async Task<IActionResult> GetUOM([FromQuery] string name)
+    public async Task<IActionResult> GetUOM([FromQuery] string? name)
     {
-        var result = await Mediator.Send(new GetUOMAutoCompleteQuery {SearchPattern = name});
+        var result = await Mediator.Send(new GetUOMAutoCompleteQuery {SearchPattern = name ?? string.Empty});
       
             return Ok(new
             {
@@ -137,9 +137,9 @@ namespace FAM.Presentation.Controllers
             });
     }
      [HttpGet("by-Type")]
-    public async Task<IActionResult> GetUOMType([FromQuery] string name)
+    public async Task<IActionResult> GetUOMType([FromQuery] string? name)
     {
-        var result = await Mediator.Send(new GetUOMTypeAutoCompleteQuery {SearchPattern = name});
+        var result = await Mediator.Send(new GetUOMTypeAutoCompleteQuery {SearchPattern = name ?? string.Empty});
       
             return Ok(new
             {
