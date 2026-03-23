@@ -3,6 +3,7 @@ using Contracts.Commands.Inventory;
 using Contracts.Commands.Party;
 using Contracts.Commands.Project;
 using Contracts.Commands.Purchase;
+using Contracts.Commands.Sales;
 using Contracts.Events.Workflow;
 using BackgroundService.Application.Interfaces.IInbox;
 using MassTransit;
@@ -91,8 +92,8 @@ public class ApprovalResultDispatcherConsumer : IConsumer<ApprovedRejectedEvent>
                 Status = msg.Status,
                 LineStatus = msg.LineStatus,
                 PartyContacts = msg.PartyContacts,
-                DynamicFields = msg.DynamicFields
- ModifiedBy = msg.ModifiedBy,
+                DynamicFields = msg.DynamicFields,
+                ModifiedBy = msg.ModifiedBy,
                 ModifiedByName = msg.ModifiedByName,
                 ModifiedIP = msg.ModifiedIP
             });
@@ -105,8 +106,8 @@ public class ApprovalResultDispatcherConsumer : IConsumer<ApprovedRejectedEvent>
                 CorrelationId = msg.CorrelationId,
                 ModuleTransactionId = msg.ModuleTransactionId,
                 ModuleTypeName = msg.ModuleTypeName,
-                Status = msg.Status
- ModifiedBy = msg.ModifiedBy,
+                Status = msg.Status,
+                ModifiedBy = msg.ModifiedBy,
                 ModifiedByName = msg.ModifiedByName,
                 ModifiedIP = msg.ModifiedIP
             });
@@ -122,8 +123,8 @@ public class ApprovalResultDispatcherConsumer : IConsumer<ApprovedRejectedEvent>
                 Status = msg.Status,
                 LineStatus = msg.LineStatus,
                 PartyContacts = msg.PartyContacts,
-                DynamicFields = msg.DynamicFields
- ModifiedBy = msg.ModifiedBy,
+                DynamicFields = msg.DynamicFields,
+                ModifiedBy = msg.ModifiedBy,
                 ModifiedByName = msg.ModifiedByName,
                 ModifiedIP = msg.ModifiedIP
             });
@@ -155,7 +156,7 @@ public class ApprovalResultDispatcherConsumer : IConsumer<ApprovedRejectedEvent>
                 Status = msg.Status
             });
         }
-  if (SalesTypes.Contains(msg.ModuleTypeName))
+        if (SalesTypes.Contains(msg.ModuleTypeName))
         {
             await context.Publish(new UpdateApprovedRejectedSalesCommand
             {
