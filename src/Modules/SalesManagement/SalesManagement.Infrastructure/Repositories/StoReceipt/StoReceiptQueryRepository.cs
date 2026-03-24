@@ -303,5 +303,31 @@ namespace SalesManagement.Infrastructure.Repositories.StoReceipt
 
             return result;
         }
+
+        public async Task<bool> IsDcApprovedAsync(int dcHeaderId)
+        {
+            const string sql = @"
+                SELECT COUNT(1)
+                FROM Sales.DeliveryChallanHeader dch
+                INNER JOIN Sales.MiscMaster mm ON dch.StatusId = mm.Id AND mm.IsDeleted = 0
+                INNER JOIN Sales.MiscTypeMaster mt ON mm.MiscTypeId = mt.Id AND mt.IsDeleted = 0
+                WHERE dch.Id = @Id AND dch.IsDeleted = 0
+                  AND mt.MiscTypeCode = 'ApprovalStatus'
+                  AND mm.Code = 'Approved';";
+
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = dcHeaderId });
+            return count > 0;
+        }
+
+        public async Task<bool> IsStoReceiptExistsForDcAsync(int dcHeaderId)
+        {
+            const string sql = @"
+                SELECT COUNT(1)
+                FROM Sales.StoReceiptHeader
+                WHERE DeliveryChallanHeaderId = @DcHeaderId AND IsDeleted = 0;";
+
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { DcHeaderId = dcHeaderId });
+            return count > 0;
+        }
     }
 }

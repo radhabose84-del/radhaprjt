@@ -10,5 +10,7 @@ namespace SalesManagement.Application.Common.Interfaces.IStoReceipt
         Task<bool> NotFoundAsync(int id);
         Task<bool> DeliveryChallanHeaderExistsAsync(int dcHeaderId);
         Task<DcOpenQtyDto?> GetDcOpenQtyAsync(int dcDetailId);
+        Task<bool> IsDcApprovedAsync(int dcHeaderId);
+        Task<bool> IsStoReceiptExistsForDcAsync(int dcHeaderId);
     }
 }

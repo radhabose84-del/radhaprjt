@@ -87,6 +87,18 @@ namespace SalesManagement.Presentation.Validation.DeliveryChallan
                             .When(x => x.StoHeaderId > 0);
                         break;
 
+                    case "AlreadyExists":
+                        RuleFor(x => x.StoHeaderId)
+                            .MustAsync(async (id, ct) => await _queryRepository.IsStoApprovedAsync(id))
+                            .WithMessage("STO is not yet approved. Delivery Challan can only be created for approved STOs.")
+                            .When(x => x.StoHeaderId > 0);
+
+                        RuleFor(x => x.StoHeaderId)
+                            .MustAsync(async (id, ct) => !await _queryRepository.IsStoFullyDispatchedAsync(id))
+                            .WithMessage("All items in this STO are fully dispatched. No further Delivery Challan can be created.")
+                            .When(x => x.StoHeaderId > 0);
+                        break;
+
                     case "GreaterThan":
                         RuleForEach(x => x.Details)
                             .ChildRules(detail =>
