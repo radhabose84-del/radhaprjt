@@ -69,6 +69,18 @@ namespace SalesManagement.Presentation.Validation.StoReceipt
                             .When(x => x.DeliveryChallanHeaderId > 0);
                         break;
 
+                    case "AlreadyExists":
+                        RuleFor(x => x.DeliveryChallanHeaderId)
+                            .MustAsync(async (id, ct) => await _queryRepository.IsDcApprovedAsync(id))
+                            .WithMessage("Delivery Challan is not yet approved. Receipt can only be created for approved DCs.")
+                            .When(x => x.DeliveryChallanHeaderId > 0);
+
+                        RuleFor(x => x.DeliveryChallanHeaderId)
+                            .MustAsync(async (id, ct) => !await _queryRepository.IsStoReceiptExistsForDcAsync(id))
+                            .WithMessage("A receipt already exists for this Delivery Challan.")
+                            .When(x => x.DeliveryChallanHeaderId > 0);
+                        break;
+
                     case "GreaterThan":
                         RuleForEach(x => x.Details)
                             .ChildRules(detail =>

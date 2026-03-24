@@ -53,7 +53,7 @@ namespace SalesManagement.Domain.Common
         public const string DCStatusDispatched = "Dispatched";
         public const string DCStatusCancelled = "Cancelled";
         public const string DCStatusDelivered = "Delivered";
-        public const string DCModuleTypeName = "DeliveryChallan";
+        public const string DCModuleTypeName = "Delivery Challan";
 
         // Workflow Module Type Names
         public const string TransactionTypeSalesOrder = "Sales Order";
