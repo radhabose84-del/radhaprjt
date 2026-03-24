@@ -4,6 +4,7 @@ using Contracts.Interfaces;
 using ProjectManagement.Application.Common.Interfaces;
 using ProjectManagement.Domain.Common;
 using ProjectManagement.Domain.Entities;
+using ProjectManagement.Domain.Entities.Outbox;
 using ProjectManagement.Infrastructure.Data.Configurations;
 using Microsoft.CodeAnalysis;
 
@@ -29,6 +30,7 @@ namespace ProjectManagement.Infrastructure.Data
         public DbSet<ProjectDocument> ProjectDocument { get; set; }
 
         public DbSet<ProjectWorkBreakdownStructure> ProjectWorkBreakdownStructures { get; set; } = null!;
+        public DbSet<OutboxMessage> OutboxMessages { get; set; } = null!;
         
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -39,6 +41,7 @@ namespace ProjectManagement.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new ProjectMasterConfiguration());
             modelBuilder.ApplyConfiguration(new ProjectDocumentConfiguration());
             modelBuilder.ApplyConfiguration(new ProjectWorkBreakdownStructureConfiguration());
+            modelBuilder.ApplyConfiguration(new Configurations.Outbox.OutboxMessageConfiguration());
 
             
             // Global convention: set explicit precision/scale for all decimal properties

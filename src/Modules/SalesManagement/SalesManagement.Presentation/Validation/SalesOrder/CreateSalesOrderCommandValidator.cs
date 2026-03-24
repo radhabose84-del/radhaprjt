@@ -1,6 +1,8 @@
+using Contracts.Interfaces.Lookups.Workflow;
 using FluentValidation;
 using SalesManagement.Application.Common.Interfaces.ISalesOrder;
 using SalesManagement.Application.SalesOrder.Commands.CreateSalesOrder;
+using SalesManagement.Domain.Common;
 using SalesManagement.Presentation.Validation.Common;
 using Shared.Validation.Common;
 
@@ -10,12 +12,15 @@ namespace SalesManagement.Presentation.Validation.SalesOrder
     {
         private readonly List<ValidationRule> _validationRules;
         private readonly ISalesOrderQueryRepository _queryRepository;
+        private readonly IWorkflowLookup _workflowLookup;
 
         public CreateSalesOrderCommandValidator(
             MaxLengthProvider maxLengthProvider,
-            ISalesOrderQueryRepository queryRepository)
+            ISalesOrderQueryRepository queryRepository,
+            IWorkflowLookup workflowLookup)
         {
             _queryRepository = queryRepository;
+            _workflowLookup = workflowLookup;
 
             var maxLengthRemarks = maxLengthProvider.GetMaxLength<Domain.Entities.SalesOrderHeader>("Remarks") ?? 500;
 
@@ -252,6 +257,17 @@ namespace SalesManagement.Presentation.Validation.SalesOrder
                                     .When(d => d.SaleUOMId > 0);
                             })
                             .When(x => x.SalesOrderDetails?.SalesOrderDetails != null && x.SalesOrderDetails.SalesOrderDetails.Any());
+                        break;
+
+                    case "Workflow":
+                        RuleFor(x => x.SalesOrderDetails!.UnitId)
+                            .MustAsync(async (unitId, cancellation) =>
+                                await _workflowLookup.IsApproveWorkflowConfigureAsync(
+                                    MiscEnumEntity.TransactionTypeSalesOrder,
+                                    unitId,
+                                    0))
+                            .WithMessage(rule.Error)
+                            .When(x => x.SalesOrderDetails != null && x.SalesOrderDetails.UnitId > 0);
                         break;
 
                     default:

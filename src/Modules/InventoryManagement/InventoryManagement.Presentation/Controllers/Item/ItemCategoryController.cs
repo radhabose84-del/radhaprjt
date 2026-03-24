@@ -9,7 +9,7 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 
-namespace InventoryManagement.Presentation.Controller.Item
+namespace InventoryManagement.Presentation.Controllers.Item
 {
      [Route("api/[controller]")]
     public class ItemCategoryController :  ApiControllerBase

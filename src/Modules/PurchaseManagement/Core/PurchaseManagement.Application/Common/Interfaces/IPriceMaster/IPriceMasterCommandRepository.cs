@@ -13,6 +13,7 @@ namespace PurchaseManagement.Application.Common.Interfaces.PriceMaster
         Task AddAsync(PriceMasterHeader header, CancellationToken ct);
         Task<int> SaveChangesAsync(CancellationToken ct);
         Task<bool> DeleteAsync(int id);
-        Task<bool> UpdatePriceMasterApproveAsync(int id, int statusId, CancellationToken ct = default);   
+        Task<bool> UpdatePriceMasterApproveAsync(int id, int statusId, CancellationToken ct = default);
+        Task<bool> RollbackStatusAsync(int id, CancellationToken ct = default);
     }
 }

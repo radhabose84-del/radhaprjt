@@ -1,36 +1,36 @@
-
 namespace Contracts.Events.Notifications
 {
+    /// <summary>
+    /// Shared string constants for notification MiscMaster lookups.
+    /// Use with GetMiscMasterByName(miscTypeCode, code) to resolve IDs dynamically.
+    /// </summary>
     public static class NotificationEnum
     {
-        public enum NotificationChannel
-        {
-            Email = 3,
-            SMS = 4,
-            InApp = 5,
-            WhatsApp = 6
-        }
-        public enum NotificationStatus
-        {
-            Pending = 10,
-            Read = 11,
-            Sent = 12,
-            Failed = 3,
-            Delivered = 4,
-            UnRead = 25,
-            Success = 24,
-        }
-        public enum NotificationEvent
-        {
-            Create = 14,
-            Update = 15,
-            Delete = 16,
-            Approve = 17,
-        }
-        public enum NotificationReadStatus
-        {
-            Unread = 25,
-            Read = 11
-        }       
+        // MiscType codes
+        public const string NotificationChannel = "NotificationChannel";
+        public const string NotificationStatus = "NotificationStatus";
+        public const string NotificationEvent = "EventType";
+        public const string NotificationReadStatus = "ReadStatus";
+
+        // NotificationChannel codes
+        public const string Email = "Email";
+        public const string SMS = "SMS";
+        public const string InApp = "InApp";
+        public const string WhatsApp = "WhatsApp";
+
+        // NotificationStatus codes
+        public const string Pending = "Pending";
+        public const string Read = "Read";
+        public const string Sent = "Sent";
+        public const string Failed = "Failed";
+        public const string Delivered = "Delivered";
+        public const string Unread = "Unread";
+        public const string Success = "Success";
+
+        // NotificationEvent codes
+        public const string Create = "Create";
+        public const string Update = "Update";
+        public const string Delete = "Delete";
+        public const string Approve = "Approve";
     }
 }

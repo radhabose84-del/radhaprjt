@@ -216,6 +216,12 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("int")
                 .IsRequired(false);
 
+            // Approval Status (same-module FK to MiscMaster)
+            builder.Property(t => t.StatusId)
+                .HasColumnName("StatusId")
+                .HasColumnType("int")
+                .IsRequired(false);
+
             // Same-module FK constraints
             builder.HasOne(t => t.SalesGroup)
                 .WithMany(g => g.SalesOrderHeaders)
@@ -260,6 +266,11 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             builder.HasOne(t => t.SalesQuotation)
                 .WithMany(q => q.SalesOrderHeaders)
                 .HasForeignKey(t => t.SalesQuotationHeaderId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasOne(t => t.StatusMisc)
+                .WithMany(m => m.SalesOrderHeadersAsStatus)
+                .HasForeignKey(t => t.StatusId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // Child collection — reverse navigation (Header → Details)

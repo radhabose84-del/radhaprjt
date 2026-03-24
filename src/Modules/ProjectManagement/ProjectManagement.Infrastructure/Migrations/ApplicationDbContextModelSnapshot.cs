@@ -149,6 +149,75 @@ namespace ProjectManagement.Infrastructure.Migrations
                     b.ToTable("MiscTypeMaster", "Project");
                 });
 
+            modelBuilder.Entity("ProjectManagement.Domain.Entities.Outbox.OutboxMessage", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<Guid>("CorrelationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int?>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("EventData")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EventType")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("LastError")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<int>("MaxRetries")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ModuleName")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasDefaultValue("ProjectManagement");
+
+                    b.Property<DateTimeOffset?>("NextRetryAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset?>("PublishedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("RetryCount")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CorrelationId")
+                        .HasDatabaseName("IX_Project_OutboxMessages_CorrelationId");
+
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("IX_Project_OutboxMessages_CreatedAt");
+
+                    b.HasIndex("Status", "NextRetryAt")
+                        .HasDatabaseName("IX_Project_OutboxMessages_Status_NextRetryAt")
+                        .HasFilter("[Status] = 0");
+
+                    b.ToTable("OutboxMessages", "Project");
+                });
+
             modelBuilder.Entity("ProjectManagement.Domain.Entities.ProjectDocument", b =>
                 {
                     b.Property<int>("Id")
@@ -192,6 +261,7 @@ namespace ProjectManagement.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("BudgetAmount")
+                        .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("BudgetYearId")
@@ -352,6 +422,7 @@ namespace ProjectManagement.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal?>("PlannedBudgetAmount")
+                        .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("ProjectId")

@@ -1914,6 +1914,75 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.ToTable("OfficerSalesGroup", "Sales");
                 });
 
+            modelBuilder.Entity("SalesManagement.Domain.Entities.Outbox.OutboxMessage", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<Guid>("CorrelationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int?>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("EventData")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EventType")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("LastError")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<int>("MaxRetries")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ModuleName")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasDefaultValue("SalesManagement");
+
+                    b.Property<DateTimeOffset?>("NextRetryAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset?>("PublishedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("RetryCount")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CorrelationId")
+                        .HasDatabaseName("IX_OutboxMessages_CorrelationId");
+
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("IX_OutboxMessages_CreatedAt");
+
+                    b.HasIndex("Status", "NextRetryAt")
+                        .HasDatabaseName("IX_OutboxMessages_Status_NextRetryAt")
+                        .HasFilter("[Status] = 0");
+
+                    b.ToTable("OutboxMessages", "Sales");
+                });
+
             modelBuilder.Entity("SalesManagement.Domain.Entities.SalesChannel", b =>
                 {
                     b.Property<int>("Id")
@@ -2743,6 +2812,10 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("SalesSegmentId");
 
+                    b.Property<int?>("StatusId")
+                        .HasColumnType("int")
+                        .HasColumnName("StatusId");
+
                     b.Property<decimal>("TCSPercentage")
                         .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,3)")
@@ -2823,6 +2896,8 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.HasIndex("SalesQuotationHeaderId");
 
                     b.HasIndex("SalesSegmentId");
+
+                    b.HasIndex("StatusId");
 
                     b.ToTable("SalesOrderHeader", "Sales");
                 });
@@ -4150,6 +4225,11 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasForeignKey("SalesSegmentId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "StatusMisc")
+                        .WithMany("SalesOrderHeadersAsStatus")
+                        .HasForeignKey("StatusId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("CountList");
 
                     b.Navigation("DiscountPlan");
@@ -4167,6 +4247,8 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("SalesQuotation");
 
                     b.Navigation("SalesSegment");
+
+                    b.Navigation("StatusMisc");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.SalesQuotationDetail", b =>
@@ -4431,6 +4513,8 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("SalesOrderHeadersAsFreightType");
 
                     b.Navigation("SalesOrderHeadersAsPaymentType");
+
+                    b.Navigation("SalesOrderHeadersAsStatus");
 
                     b.Navigation("SalesQuotationHeadersAsStatus");
 

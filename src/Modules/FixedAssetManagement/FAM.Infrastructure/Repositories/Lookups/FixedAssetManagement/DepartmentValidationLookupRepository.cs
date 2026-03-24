@@ -22,11 +22,11 @@ namespace FAM.Infrastructure.Repositories.Lookups.FixedAssetManagement
                     ) OR EXISTS (
                         SELECT 1 FROM FixedAsset.SubLocation WHERE DepartmentId = @DepartmentId AND IsDeleted = 0
                     ) OR EXISTS (
-                        SELECT 1 FROM FixedAsset.AssetLocation WHERE DepartmentId = @DepartmentId AND IsDeleted = 0
+                        SELECT 1 FROM FixedAsset.AssetLocation WHERE DepartmentId = @DepartmentId
                     ) OR EXISTS (
                         SELECT 1 FROM FixedAsset.AssetTransfer WHERE DepartmentId = @DepartmentId AND IsDeleted = 0
                     ) OR EXISTS (
-                        SELECT 1 FROM FixedAsset.AssetTransferIssueHdr WHERE DepartmentId = @DepartmentId AND IsDeleted = 0
+                        SELECT 1 FROM FixedAsset.AssetTransferIssueHdr WHERE DepartmentId = @DepartmentId
                     )
                     THEN 1
                     ELSE 0

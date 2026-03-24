@@ -39,7 +39,7 @@ namespace FAM.Presentation.Validation.AssetGroup
                             .MaximumLength(GroupNameMaxLength)
                             .WithMessage($"{nameof(UpdateAssetGroupCommand.GroupName)} {rule.Error} {GroupNameMaxLength}");
                         break;
-                    case "AlphaNumericWithPunctuation":
+                    case "Alphanumeric":
                         RuleFor(x => x.GroupName)
                             .Matches(new System.Text.RegularExpressions.Regex(rule.Pattern))
                             .WithMessage($"{nameof(UpdateAssetGroupCommand.GroupName)} {rule.Error}");

@@ -64,6 +64,10 @@ namespace SalesManagement.Application.SalesOrder.Dto
         public decimal TotalTCS { get; set; }
         public decimal FinalAmount { get; set; }
 
+        // Approval Status
+        public int? StatusId { get; set; }
+        public string? StatusName { get; set; }
+
         // Status & Audit
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }

@@ -1,8 +1,13 @@
 using AutoMapper;
+using Contracts.Commands.Workflow;
 using Contracts.Common;
+using Contracts.Interfaces;
 using MediatR;
+using SalesManagement.Application.Common.Interfaces.IOutbox;
 using SalesManagement.Application.Common.Interfaces.IStoHeader;
+using SalesManagement.Domain.Common;
 using SalesManagement.Domain.Events;
+using System.Text.Json;
 
 namespace SalesManagement.Application.StoHeader.Commands.UpdateStoHeader
 {
@@ -10,17 +15,23 @@ namespace SalesManagement.Application.StoHeader.Commands.UpdateStoHeader
     {
         private readonly IStoHeaderCommandRepository _commandRepository;
         private readonly IStoHeaderQueryRepository _queryRepository;
+        private readonly IOutboxEventPublisher _outboxEventPublisher;
+        private readonly IIPAddressService _ipAddressService;
         private readonly IMediator _mediator;
         private readonly IMapper _mapper;
 
         public UpdateStoHeaderCommandHandler(
             IStoHeaderCommandRepository commandRepository,
             IStoHeaderQueryRepository queryRepository,
+            IOutboxEventPublisher outboxEventPublisher,
+            IIPAddressService ipAddressService,
             IMediator mediator,
             IMapper mapper)
         {
             _commandRepository = commandRepository;
             _queryRepository = queryRepository;
+            _outboxEventPublisher = outboxEventPublisher;
+            _ipAddressService = ipAddressService;
             _mediator = mediator;
             _mapper = mapper;
         }
@@ -30,6 +41,31 @@ namespace SalesManagement.Application.StoHeader.Commands.UpdateStoHeader
             var entity = _mapper.Map<Domain.Entities.StoHeader>(request);
 
             var result = await _commandRepository.UpdateAsync(entity);
+
+            // Publish workflow approval request via Outbox
+            var unitId = _ipAddressService.GetUnitId();
+            var correlationId = Guid.NewGuid();
+            var payload = JsonSerializer.Serialize(new
+            {
+                Header = new
+                {
+                    Id = request.Id,
+                    StoNumber = (string?)null,
+                    StoTypeId = request.StoTypeId,
+                    UnitId = unitId ?? 0,
+                    StatusId = entity.HeaderStatusId
+                },
+                Lines = new List<object>()
+            });
+
+            var workflowEvent = new CreateApprovalRequestCommand
+            {
+                CorrelationId = correlationId,
+                ModuleTypeName = MiscEnumEntity.StoModuleTypeName,
+                ModuleTransactionId = request.Id,
+                Payload = payload
+            };
+            await _outboxEventPublisher.ScheduleAsync(workflowEvent, correlationId, cancellationToken);
 
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Update",

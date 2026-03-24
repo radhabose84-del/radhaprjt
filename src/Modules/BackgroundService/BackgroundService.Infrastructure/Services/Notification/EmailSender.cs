@@ -33,12 +33,22 @@ namespace BackgroundService.Infrastructure.Services.Notification
                     return false;
                 }
 
-                var provider = _emailSettings.Providers["Gmail"]; // or "Zimbra"
+                var providerKey = emails.Any(e => e.Contains("zimbra", StringComparison.OrdinalIgnoreCase))
+                    ? "Zimbra"
+                    : "Gmail";
+
+                if (!_emailSettings.Providers.TryGetValue(providerKey, out var provider))
+                {
+                    _logger.LogError("Email provider '{ProviderKey}' not found in EmailSettings.", providerKey);
+                    return false;
+                }
 
                 using var smtpClient = new SmtpClient(provider.Host, provider.Port)
                 {
                     Credentials = new NetworkCredential(provider.UserName, provider.Password),
-                    EnableSsl = provider.EnableSsl
+                    EnableSsl = provider.EnableSsl,
+                    DeliveryMethod = SmtpDeliveryMethod.Network,
+                    UseDefaultCredentials = false
                 };
 
                 using var mailMessage = new MailMessage

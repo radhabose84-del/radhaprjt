@@ -4,6 +4,7 @@ using AutoMapper;
 using Contracts.Commands.Workflow;
 using Contracts.Events.Notifications;
 using Contracts.Interfaces.Lookups.Budget;
+using Contracts.Interfaces.Lookups.Common;
 using Contracts.Interfaces.Lookups.Users;
 using Contracts.Common;
 using Contracts.Interfaces;
@@ -36,6 +37,7 @@ namespace PurchaseManagement.Application.PurchaseOrder.Local.Commands.Create
         private readonly ICompanyLookup _companyLookup;
         private readonly IBudgetAllocationLookup _budgetAllocationLookup;
         private readonly IFinancialYearLookup _financialYearLookup;
+        private readonly IAppDataMiscMasterLookup _appDataMiscLookup;
 
         public CreatePurchaseOrderCommandHandler(
             IPurchaseOrderCommandRepository repo,
@@ -48,7 +50,8 @@ namespace PurchaseManagement.Application.PurchaseOrder.Local.Commands.Create
             IUnitLookup unitLookup,
             ICompanyLookup companyLookup,
             IBudgetAllocationLookup budgetAllocationLookup,
-            IFinancialYearLookup financialYearLookup)
+            IFinancialYearLookup financialYearLookup,
+            IAppDataMiscMasterLookup appDataMiscLookup)
         {
             _repo = repo;
             _mapper = mapper;
@@ -62,6 +65,7 @@ namespace PurchaseManagement.Application.PurchaseOrder.Local.Commands.Create
             _budgetAllocationLookup = budgetAllocationLookup ??
                                       throw new ArgumentNullException(nameof(budgetAllocationLookup));
             _financialYearLookup = financialYearLookup;
+            _appDataMiscLookup = appDataMiscLookup;
         }
 
         public async Task<ApiResponseDTO<int>> Handle(CreatePurchaseOrderCommand request, CancellationToken ct)
@@ -231,7 +235,7 @@ namespace PurchaseManagement.Application.PurchaseOrder.Local.Commands.Create
                             budgetDate: budgetMonthDate,
                             monthId: entity.BudgetMonthId ?? 0,
                             requestById: entity.BudgetRequestById ?? 0,
-                            deltaAmount: entity.PurchaseValue,
+                            deltaAmount: -entity.PurchaseValue,
                             projectId: entity.ProjectId,
                             wbsId: entity.WBSId,
                             financialYearId: entity.FinancialYearId,
@@ -272,13 +276,16 @@ namespace PurchaseManagement.Application.PurchaseOrder.Local.Commands.Create
                         Payload = serializedPayload
                     };
 
+                    var notifEventMisc = await _appDataMiscLookup.GetMiscMasterByNameAsync(
+                        NotificationEnum.NotificationEvent, NotificationEnum.Create);
+
                     var notificationEvent = new NotificationCreatedEvent
                     {
                         CorrelationId = correlationId,
                         CreatedByName = entity.CreatedByName,
                         UnitId = _ip.GetUnitId() ?? 0,
                         ModuleName = "Purchase Order",
-                        EventTypeId = (int)NotificationEnum.NotificationEvent.Create,
+                        EventTypeId = notifEventMisc.Id,
                         param1 = entity.PONumber,
                         param2 = entity.CreatedByName,
                         param3 = entity.PODate,

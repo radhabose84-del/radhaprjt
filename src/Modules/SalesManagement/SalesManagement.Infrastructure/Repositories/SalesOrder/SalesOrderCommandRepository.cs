@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using SalesManagement.Application.Common.Interfaces.IMiscMaster;
 using SalesManagement.Application.Common.Interfaces.ISalesOrder;
+using SalesManagement.Application.SalesOrder.Commands.CreateSalesOrder;
 using SalesManagement.Domain.Common;
 using SalesManagement.Domain.Entities;
 using SalesManagement.Infrastructure.Data;
@@ -49,6 +50,11 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             // Separate details from header
             var details = entity.SalesOrderDetails?.ToList();
             entity.SalesOrderDetails = null;
+
+            // Set default StatusId to "Pending"
+            var pendingStatus = await _miscMasterQueryRepository.GetMiscMasterByName(
+                MiscEnumEntity.SalesOrderApprovalStatus, MiscEnumEntity.SalesOrderStatusPending);
+            entity.StatusId = pendingStatus?.Id;
 
             // Fetch "Open" line item status id
             var openStatus = await _miscMasterQueryRepository.GetMiscMasterByName(
@@ -177,6 +183,43 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             existing.AgentPOAttachment = fileName;
             _applicationDbContext.SalesOrderHeader.Update(existing);
             await _applicationDbContext.SaveChangesAsync(ct);
+            return true;
+        }
+
+        public async Task<SalesOrderWorkFlowDto> GetByIdSalesOrderWorkFlowAsync(int id)
+        {
+            var entity = await _applicationDbContext.SalesOrderHeader
+                .Where(x => x.Id == id)
+                .Select(x => new SalesOrderWorkFlowDto
+                {
+                    Id = x.Id,
+                    SalesOrderNo = x.SalesOrderNo,
+                    StatusId = x.StatusId,
+                    StatusName = x.StatusMisc != null ? x.StatusMisc.Description : null,
+                    UnitId = x.UnitId
+                })
+                .FirstOrDefaultAsync();
+
+            return entity!;
+        }
+
+        public async Task<SalesOrderHeader?> GetByIdEntityAsync(int id)
+        {
+            return await _applicationDbContext.SalesOrderHeader
+                .FirstOrDefaultAsync(x => x.Id == id && x.IsDeleted == IsDelete.NotDeleted);
+        }
+
+        public async Task<bool> FinalizeOrderStatusAsync(SalesOrderHeader entity)
+        {
+            var existingOrder = await _applicationDbContext.SalesOrderHeader
+                .FirstOrDefaultAsync(x => x.Id == entity.Id);
+
+            if (existingOrder == null)
+                return false;
+
+            existingOrder.StatusId = entity.StatusId;
+            _applicationDbContext.SalesOrderHeader.Update(existingOrder);
+            await _applicationDbContext.SaveChangesAsync();
             return true;
         }
     }

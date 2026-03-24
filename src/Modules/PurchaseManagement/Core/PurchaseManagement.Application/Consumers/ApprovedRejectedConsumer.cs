@@ -25,14 +25,14 @@ using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using PurchaseManagement.Application.PurchaseOrder.Reports;
 using Contracts.Events.Purchase;
+using Contracts.Interfaces.Lookups.Budget;
 
 namespace PurchaseManagement.Application.Consumers
 {
     public class ApprovedRejectedConsumer : IConsumer<UpdateApprovedRejectedPurchaseCommand>
     {
         private readonly IPurchaseIndentCommand _purchaseIndentCommand;
-        private readonly IMapper _imapper;
-        private readonly IEventPublisher _eventPublisher;
+        private readonly IMapper _imapper;        
         private readonly IMiscMasterQueryRepository _miscMasterQueryRepository;
         private readonly ILogger<ApprovedRejectedConsumer> _logger;
         private readonly IQuotationCompareCommandRepository _quotationCompareCommand;
@@ -45,11 +45,11 @@ namespace PurchaseManagement.Application.Consumers
         private readonly IIssueReturnEntryCommandRepository _issueReturnEntryCommandRepository;
         private readonly IIssueReturnEntryQueryRepository _issueReturnEntryQueryRepository;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IBudgetAllocationLookup _budgetAllocationLookup;
 
         public ApprovedRejectedConsumer(
             IPurchaseIndentCommand purchaseIndentCommand,
             IMapper mapper,
-            IEventPublisher eventPublisher,
             IMiscMasterQueryRepository miscMasterQueryRepository,
             ILogger<ApprovedRejectedConsumer> logger,
             IQuotationCompareCommandRepository quotationCompareCommand,
@@ -61,11 +61,11 @@ namespace PurchaseManagement.Application.Consumers
             IServicePurchaseOrderCommandRepository servicePurchaseOrderCommandRepository,
             IIssueReturnEntryCommandRepository issueReturnEntryCommandRepository,
             IIssueReturnEntryQueryRepository issueReturnEntryQueryRepository,
-            IHttpContextAccessor httpContextAccessor)
+            IHttpContextAccessor httpContextAccessor,
+            IBudgetAllocationLookup budgetAllocationLookup)
         {
             _purchaseIndentCommand = purchaseIndentCommand;
             _imapper = mapper;
-            _eventPublisher = eventPublisher;
             _miscMasterQueryRepository = miscMasterQueryRepository;
             _logger = logger;
             _quotationCompareCommand = quotationCompareCommand;
@@ -78,6 +78,7 @@ namespace PurchaseManagement.Application.Consumers
             _issueReturnEntryCommandRepository = issueReturnEntryCommandRepository;
             _issueReturnEntryQueryRepository = issueReturnEntryQueryRepository;
             _httpContextAccessor = httpContextAccessor;
+            _budgetAllocationLookup = budgetAllocationLookup;
         }
 
         public async Task Consume(ConsumeContext<UpdateApprovedRejectedPurchaseCommand> context)
@@ -234,6 +235,49 @@ namespace PurchaseManagement.Application.Consumers
                                 PartyContacts: partyContacts,
                                 RowsJson: null
                             ), context.CancellationToken);
+                        }
+
+                        // ── BUDGET REVERSAL ON REJECTION ──
+                        // When PO is rejected, add back the PurchaseValue to the
+                        // BudgetAllocation remaining balance (reverse the deduction
+                        // that was made atomically during PO creation).
+                        if (status == MiscEnumEntity.Rejected)
+                        {
+                            var poDetail = await _poLocalQuery.GetByIdAsync(poId, context.CancellationToken);
+
+                            if (poDetail != null
+                                && poDetail.BudgetGroupId.HasValue
+                                && poDetail.BudgetGroupId.Value > 0
+                                && poDetail.PurchaseValue > 0)
+                            {
+                                var budgetMonthDate = new DateOnly(
+                                    poDetail.PODate.Year, poDetail.PODate.Month, 1);
+
+                                var reversed = await _budgetAllocationLookup
+                                    .ApplyRemainingBalanceDeltaAsync(
+                                        budgetGroupId: poDetail.BudgetGroupId.Value,
+                                        budgetDate: budgetMonthDate,
+                                        monthId: poDetail.BudgetMonthId ?? 0,
+                                        requestById: poDetail.BudgetRequestById ?? 0,
+                                        deltaAmount: poDetail.PurchaseValue, // positive = adds back
+                                        projectId: poDetail.ProjectId,
+                                        wbsId: poDetail.WBSId,
+                                        financialYearId: poDetail.FinancialYearId,
+                                        ct: context.CancellationToken);
+
+                                if (reversed)
+                                {
+                                    _logger.LogInformation(
+                                        "Budget reversed for rejected PO {PoId}. Amount {Amount} added back to BudgetGroup {BgId}.",
+                                        poId, poDetail.PurchaseValue, poDetail.BudgetGroupId.Value);
+                                }
+                                else
+                                {
+                                    _logger.LogWarning(
+                                        "Budget reversal failed for rejected PO {PoId}. BudgetGroup {BgId}, Amount {Amount}.",
+                                        poId, poDetail.BudgetGroupId.Value, poDetail.PurchaseValue);
+                                }
+                            }
                         }
                     }
 

@@ -104,11 +104,10 @@ app.UseSwaggerUI(c =>
 });
 
 // ✅ HTTPS Redirection only in Production to avoid Swagger CORS issues in dev
-if (!app.Environment.IsDevelopment())
+if (!app.Environment.IsDevelopment() && !app.Environment.IsEnvironment("QA"))
 {
     app.UseHttpsRedirection();
 }
-
 // ✅ Correct middleware order
 app.UseRouting();
 

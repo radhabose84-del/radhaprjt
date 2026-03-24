@@ -44,10 +44,5 @@ namespace PurchaseManagement.Domain.Common
 
         public const string ServiceEntrySheet = "Service Entry Sheet";
         public const string Incoterms = "Incoterms";
-
-        
-        
-    
-
     }
 }

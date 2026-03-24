@@ -1,3 +1,4 @@
+using SalesManagement.Application.SalesOrder.Commands.CreateSalesOrder;
 using SalesManagement.Domain.Entities;
 
 namespace SalesManagement.Application.Common.Interfaces.ISalesOrder
@@ -10,5 +11,8 @@ namespace SalesManagement.Application.Common.Interfaces.ISalesOrder
         Task<bool> SoftDeleteAsync(int id, CancellationToken ct);
         Task<bool> UpdateVisitNotesAttachmentAsync(int id, string fileName, CancellationToken ct);
         Task<bool> UpdateAgentPOAttachmentAsync(int id, string fileName, CancellationToken ct);
+        Task<SalesOrderWorkFlowDto> GetByIdSalesOrderWorkFlowAsync(int id);
+        Task<SalesOrderHeader?> GetByIdEntityAsync(int id);
+        Task<bool> FinalizeOrderStatusAsync(SalesOrderHeader entity);
     }
 }

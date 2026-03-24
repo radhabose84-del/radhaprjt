@@ -6,6 +6,7 @@ using SalesManagement.Application.DeliveryChallan.Commands.DeleteDeliveryChallan
 using SalesManagement.Application.DeliveryChallan.Queries.GetAllDeliveryChallan;
 using SalesManagement.Application.DeliveryChallan.Queries.GetDeliveryChallanById;
 using SalesManagement.Application.DeliveryChallan.Queries.GetDeliveryChallanAutoComplete;
+using SalesManagement.Application.DeliveryChallan.Queries.GetPendingDeliveryChallan;
 using SalesManagement.Application.DeliveryChallan.Queries.GetStoOpenQty;
 
 namespace SalesManagement.Presentation.Controllers
@@ -22,6 +23,29 @@ namespace SalesManagement.Presentation.Controllers
             [FromQuery] string? SearchTerm = null)
         {
             var result = await Mediator.Send(new GetAllDeliveryChallanQuery
+            {
+                PageNumber = PageNumber,
+                PageSize = PageSize,
+                SearchTerm = SearchTerm
+            });
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result.Data,
+                TotalCount = result.TotalCount,
+                PageNumber = result.PageNumber,
+                PageSize = result.PageSize
+            });
+        }
+
+        [HttpGet("pending")]
+        public async Task<IActionResult> GetPendingDeliveryChallanAsync(
+            [FromQuery] int PageNumber,
+            [FromQuery] int PageSize,
+            [FromQuery] string? SearchTerm = null)
+        {
+            var result = await Mediator.Send(new GetPendingDeliveryChallanQuery
             {
                 PageNumber = PageNumber,
                 PageSize = PageSize,

@@ -1,3 +1,4 @@
+using System.Data;
 using Contracts.Dtos.Stock;
 
 namespace Contracts.Interfaces.Lookups.Inventory
@@ -6,10 +7,12 @@ namespace Contracts.Interfaces.Lookups.Inventory
     {
         Task<bool> InsertStockLedgerAsync(
             List<StockLedgerDto> stockLedgers,
+            IDbTransaction? transaction = null,
             CancellationToken ct = default);
 
         Task<bool> InsertSubStoreStockLedgerAsync(
             List<SubStoreStockLedgerDto> subStoreStockLedgers,
+            IDbTransaction? transaction = null,
             CancellationToken ct = default);
     }
 }

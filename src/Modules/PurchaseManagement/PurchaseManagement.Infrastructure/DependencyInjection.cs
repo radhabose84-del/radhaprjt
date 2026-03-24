@@ -225,7 +225,8 @@ namespace PurchaseManagement.Infrastructure
             services.AddScoped<IDutyMasterQueryRepository, DutyMasterQueryRepository>();
             services.AddScoped<IDutyMasterCommandRepository, DutyMasterCommandRepository>();
           //  services.AddScoped<IWorkflowLookup, WorkflowLookupRepository>();
-            services.AddScoped<IStockLedgerLookup, StockLedgerLookupRepository>();
+            // StockLedger ownership moved to InventoryManagement (Pattern D: Shared Transaction)
+            // services.AddScoped<IStockLedgerLookup, StockLedgerLookupRepository>();
             services.AddScoped<IPaymentTermLookup, PaymentTermLookupRepository>();
             services.AddScoped<IIncotermLookup, IncotermLookupRepository>();
 
