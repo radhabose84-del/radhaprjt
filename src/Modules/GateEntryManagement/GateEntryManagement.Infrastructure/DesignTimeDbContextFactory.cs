@@ -10,27 +10,29 @@ namespace GateEntryManagement.Infrastructure
 {
     public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<ApplicationDbContext>
     {
-        public ApplicationDbContext CreateDbContext(string[] args)
+         public ApplicationDbContext CreateDbContext(string[] args)
         {
-            var basePath = Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "..", "BSOFT.Api");
-            var configuration = new ConfigurationBuilder()
-                .SetBasePath(basePath)
-                .AddJsonFile("appsettings.json", optional: false)
-                .AddJsonFile("appsettings.Development.json", optional: true)
+            var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
+            var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";                        
+            // Build configuration 
+             IConfigurationRoot configuration = new ConfigurationBuilder()
+                .SetBasePath(Path.Combine(Directory.GetCurrentDirectory(), "../BSOFT.Api"))
+                .AddJsonFile($"appsettings.{environment}.json", optional: false, reloadOnChange: true)
                 .Build();
 
-            var connectionString = (configuration.GetConnectionString("DefaultConnection") ?? string.Empty)
-                .Replace("{SERVER}", Environment.GetEnvironmentVariable("DATABASE_SERVER") ?? "192.168.1.126")
-                .Replace("{USER_ID}", Environment.GetEnvironmentVariable("DATABASE_USERID") ?? "developer")
-                .Replace("{ENC_PASSWORD}", Environment.GetEnvironmentVariable("DATABASE_PASSWORD") ?? "Dev@#$456");
+          var connectionString = (configuration.GetConnectionString("DefaultConnection") ?? string.Empty)
+                                                .Replace("{SERVER}","192.168.1.126")
+                                                .Replace("{USER_ID}","Developer")
+                                                .Replace("{ENC_PASSWORD}", "Dev@#$456");
 
-            var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
+
             optionsBuilder.UseSqlServer(connectionString);
 
-            return new ApplicationDbContext(
-                optionsBuilder.Options,
-                new DesignTimeMockIPAddressService(),
-                new TimeZoneService());
+            IIPAddressService ipAddressService = new DesignTimeMockIPAddressService();
+            ITimeZoneService timeZoneService = new TimeZoneService();
+
+            return new ApplicationDbContext(optionsBuilder.Options, ipAddressService,timeZoneService);  // Pass both dependencies
+            //return new ApplicationDbContext(optionsBuilder.Options);  // Pass both dependencies
         }
 
         private sealed class DesignTimeMockIPAddressService : IIPAddressService
