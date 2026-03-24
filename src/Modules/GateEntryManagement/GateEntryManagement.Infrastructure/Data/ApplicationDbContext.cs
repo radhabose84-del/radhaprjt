@@ -1,6 +1,8 @@
 using Contracts.Interfaces;
 using GateEntryManagement.Application.Common.Interfaces;
 using GateEntryManagement.Domain.Common;
+using GateEntryManagement.Domain.Entities;
+using GateEntryManagement.Infrastructure.Data.Configurations;
 using Microsoft.EntityFrameworkCore;
 
 namespace GateEntryManagement.Infrastructure.Data
@@ -20,10 +22,27 @@ namespace GateEntryManagement.Infrastructure.Data
             _timeZoneService = timeZoneService;
         }
 
+        public DbSet<MiscTypeMaster> MiscTypeMaster { get; set; } = null!;
+        public DbSet<MiscMaster> MiscMaster { get; set; } = null!;
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.ApplyConfiguration(new MiscTypeMasterConfiguration());
+            modelBuilder.ApplyConfiguration(new MiscMasterConfiguration());
+               // Global convention: set explicit precision/scale for all decimal properties
+            // This prevents EF Core runtime warnings about silent truncation
+            foreach (var property in modelBuilder.Model.GetEntityTypes()
+                .SelectMany(e => e.GetProperties())
+                .Where(p => p.ClrType == typeof(decimal) || p.ClrType == typeof(decimal?)))
+            {
+                if (property.GetPrecision() == null)
+                {
+                    property.SetPrecision(18);
+                    property.SetScale(6);
+                }
+            }
             base.OnModelCreating(modelBuilder);
-            modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
+      
         }
 
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
@@ -31,7 +50,7 @@ namespace GateEntryManagement.Infrastructure.Data
             UpdateAuditFields();
             return await base.SaveChangesAsync(cancellationToken);
         }
-
+        
         private void UpdateAuditFields()
         {
             var entries = ChangeTracker.Entries<BaseEntity>();
