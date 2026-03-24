@@ -26,12 +26,13 @@ namespace MaintenanceManagement.Presentation.Validation.MaintenanceCategory
                             .NotEmpty()
                             .WithMessage($"{nameof(DeleteMaintenanceCategoryCommand.Id)} {rule.Error}");
                         break;
-                    case "RecordNotFound":
+                    case "NotFound":
                         RuleFor(x => x.Id)
-                            .MustAsync(async (id, cancellation) => 
-                                (await _iMaintenanceCategoryQueryRepository.GetByIdAsync(id)) != null) 
+                            .MustAsync(async (id, cancellation) =>
+                                (await _iMaintenanceCategoryQueryRepository.GetByIdAsync(id)) != null)
                             .WithName("Id")
-                            .WithMessage($"{rule.Error}");
+                            .WithMessage($"{rule.Error}")
+                            .When(x => x.Id > 0);
                             break;
                     // case "SoftDelete":
                     //      RuleFor(x => x.Id)
