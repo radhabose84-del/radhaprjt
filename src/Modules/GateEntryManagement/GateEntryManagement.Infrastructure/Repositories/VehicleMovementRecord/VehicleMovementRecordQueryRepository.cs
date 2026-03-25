@@ -1,5 +1,6 @@
 using System.Data;
 using Dapper;
+using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Users;
 using GateEntryManagement.Application.Common.Interfaces.IVehicleMovementRecord;
@@ -12,20 +13,24 @@ namespace GateEntryManagement.Infrastructure.Repositories.VehicleMovementRecord
         private readonly IDbConnection _dbConnection;
         private readonly IPartyLookup _partyLookup;
         private readonly IUnitLookup _unitLookup;
+        private readonly IIPAddressService _ipAddressService;
 
         public VehicleMovementRecordQueryRepository(
             IDbConnection dbConnection,
             IPartyLookup partyLookup,
-            IUnitLookup unitLookup)
+            IUnitLookup unitLookup,
+            IIPAddressService ipAddressService)
         {
             _dbConnection = dbConnection;
             _partyLookup = partyLookup;
             _unitLookup = unitLookup;
+            _ipAddressService = ipAddressService;
         }
 
         public async Task<(List<VehicleMovementRecordDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
         {
-            var whereClause = "vmr.IsDeleted = 0";
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
+            var whereClause = "vmr.IsDeleted = 0 AND vmr.UnitId = @UnitId";
             if (!string.IsNullOrWhiteSpace(searchTerm))
                 whereClause += " AND (vmr.VehicleMovementId LIKE @Search OR vmr.VehicleNumber LIKE @Search OR vmr.DriverName LIKE @Search)";
 
@@ -57,7 +62,7 @@ namespace GateEntryManagement.Infrastructure.Repositories.VehicleMovementRecord
                 SELECT @TotalCount AS TotalCount;
             ";
 
-            var parameters = new { Search = $"%{searchTerm}%", Offset = (pageNumber - 1) * pageSize, PageSize = pageSize };
+            var parameters = new { UnitId = unitId, Search = $"%{searchTerm}%", Offset = (pageNumber - 1) * pageSize, PageSize = pageSize };
             var result = await _dbConnection.QueryMultipleAsync(query, parameters);
             var list = (await result.ReadAsync<VehicleMovementRecordDto>()).ToList();
             var totalCount = await result.ReadFirstAsync<int>();
@@ -110,6 +115,45 @@ namespace GateEntryManagement.Infrastructure.Repositories.VehicleMovementRecord
             var result = await _dbConnection.QueryAsync<VehicleMovementRecordAutoCompleteDto>(
                 new CommandDefinition(sql, new { Term = $"%{term}%" }, cancellationToken: ct));
             return result.ToList();
+        }
+
+        public async Task<List<PendingVehicleDto>> GetPendingVehiclesAsync(
+            int unitId, string? vehicleMovementId, string? vehicleNumber, CancellationToken ct)
+        {
+            var whereClause = @"vmr.IsDeleted = 0 AND vmr.IsActive = 1
+                AND vmr.GateOutTime IS NULL
+                AND vmr.UnitId = @UnitId
+                AND st.Code = @StatusCode";
+
+            if (!string.IsNullOrWhiteSpace(vehicleMovementId))
+                whereClause += " AND vmr.VehicleMovementId LIKE @VehicleMovementId";
+
+            if (!string.IsNullOrWhiteSpace(vehicleNumber))
+                whereClause += " AND vmr.VehicleNumber LIKE @VehicleNumber";
+
+            var sql = $@"
+                SELECT vmr.Id, vmr.VehicleMovementId, vmr.VehicleNumber,
+                    vmr.DriverName, vmr.DriverMobileNo, vmr.GateInTime,
+                    st.Description AS StatusName
+                FROM Gate.VehicleMovementRecord vmr
+                LEFT JOIN Gate.MiscMaster st ON vmr.StatusId = st.Id AND st.IsDeleted = 0
+                WHERE {whereClause}
+                ORDER BY vmr.GateInTime DESC";
+
+            var parameters = new
+            {
+                UnitId = unitId,
+                StatusCode = GateEntryManagement.Domain.Common.MiscEnumEntity.VMRStatusInsidePremises,
+                VehicleMovementId = $"%{vehicleMovementId}%",
+                VehicleNumber = $"%{vehicleNumber}%"
+            };
+
+            var result = await _dbConnection.QueryAsync<PendingVehicleDto>(
+                new CommandDefinition(sql, parameters, cancellationToken: ct));
+
+            // Populate TransporterName via cross-module lookup
+            var list = result.ToList();
+            return list;
         }
 
         public async Task<bool> NotFoundAsync(int id)
