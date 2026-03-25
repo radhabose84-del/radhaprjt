@@ -294,6 +294,272 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.ToTable("BusinessUnit", "Sales");
                 });
 
+            modelBuilder.Entity("SalesManagement.Domain.Entities.ComplaintDetail", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ComplaintHeaderId")
+                        .HasColumnType("int")
+                        .HasColumnName("ComplaintHeaderId");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<int?>("DivisionId")
+                        .HasColumnType("int")
+                        .HasColumnName("DivisionId");
+
+                    b.Property<decimal>("InvoiceAmount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("InvoiceAmount");
+
+                    b.Property<DateTime>("InvoiceDate")
+                        .HasColumnType("date")
+                        .HasColumnName("InvoiceDate");
+
+                    b.Property<int>("InvoiceHeaderId")
+                        .HasColumnType("int")
+                        .HasColumnName("InvoiceHeaderId");
+
+                    b.Property<int>("InvoiceTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("InvoiceTypeId");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<int>("ItemId")
+                        .HasColumnType("int")
+                        .HasColumnName("ItemId");
+
+                    b.Property<int?>("LotId")
+                        .HasColumnType("int")
+                        .HasColumnName("LotId");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<decimal>("NetWeight")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,3)")
+                        .HasColumnName("NetWeight");
+
+                    b.Property<int>("NumberOfPacks")
+                        .HasColumnType("int")
+                        .HasColumnName("NumberOfPacks");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ComplaintHeaderId");
+
+                    b.HasIndex("InvoiceHeaderId");
+
+                    b.HasIndex("InvoiceTypeId");
+
+                    b.HasIndex("ItemId");
+
+                    b.ToTable("ComplaintDetail", "Sales");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.ComplaintDetailNature", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ComplaintDetailId")
+                        .HasColumnType("int")
+                        .HasColumnName("ComplaintDetailId");
+
+                    b.Property<int>("NatureOfComplaintId")
+                        .HasColumnType("int")
+                        .HasColumnName("NatureOfComplaintId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ComplaintDetailId");
+
+                    b.HasIndex("NatureOfComplaintId");
+
+                    b.ToTable("ComplaintDetailNature", "Sales");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.ComplaintHeader", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("BalanceCredit")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("BalanceCredit");
+
+                    b.Property<DateTime>("ComplaintDate")
+                        .HasColumnType("date")
+                        .HasColumnName("ComplaintDate");
+
+                    b.Property<string>("ComplaintNumber")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ComplaintNumber");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<decimal>("CreditLimit")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("CreditLimit");
+
+                    b.Property<string>("CustomerAddress")
+                        .HasColumnType("varchar(500)")
+                        .HasColumnName("CustomerAddress");
+
+                    b.Property<string>("CustomerEmail")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CustomerEmail");
+
+                    b.Property<string>("CustomerGSTNo")
+                        .HasColumnType("varchar(15)")
+                        .HasColumnName("CustomerGSTNo");
+
+                    b.Property<int>("CustomerId")
+                        .HasColumnType("int")
+                        .HasColumnName("CustomerId");
+
+                    b.Property<string>("CustomerMobile")
+                        .HasColumnType("varchar(15)")
+                        .HasColumnName("CustomerMobile");
+
+                    b.Property<string>("CustomerPAN")
+                        .HasColumnType("varchar(10)")
+                        .HasColumnName("CustomerPAN");
+
+                    b.Property<string>("CustomerPIN")
+                        .HasColumnType("varchar(10)")
+                        .HasColumnName("CustomerPIN");
+
+                    b.Property<string>("Delay")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("Delay");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<string>("Ledger")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("Ledger");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<decimal>("Outstanding")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("Outstanding");
+
+                    b.Property<string>("Remarks")
+                        .HasColumnType("varchar(500)")
+                        .HasColumnName("Remarks");
+
+                    b.Property<int?>("StatusId")
+                        .HasColumnType("int")
+                        .HasColumnName("StatusId");
+
+                    b.Property<decimal>("TotalOS")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("TotalOS");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ComplaintDate");
+
+                    b.HasIndex("ComplaintNumber")
+                        .IsUnique()
+                        .HasFilter("[ComplaintNumber] IS NOT NULL");
+
+                    b.HasIndex("CustomerId");
+
+                    b.HasIndex("StatusId");
+
+                    b.ToTable("ComplaintHeader", "Sales");
+                });
+
             modelBuilder.Entity("SalesManagement.Domain.Entities.CustomerVisit", b =>
                 {
                     b.Property<int>("Id")
@@ -3803,6 +4069,62 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("SalesSegment");
                 });
 
+            modelBuilder.Entity("SalesManagement.Domain.Entities.ComplaintDetail", b =>
+                {
+                    b.HasOne("SalesManagement.Domain.Entities.ComplaintHeader", "ComplaintHeader")
+                        .WithMany("ComplaintDetails")
+                        .HasForeignKey("ComplaintHeaderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SalesManagement.Domain.Entities.InvoiceHeader", "InvoiceHeader")
+                        .WithMany()
+                        .HasForeignKey("InvoiceHeaderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "InvoiceTypeMisc")
+                        .WithMany()
+                        .HasForeignKey("InvoiceTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ComplaintHeader");
+
+                    b.Navigation("InvoiceHeader");
+
+                    b.Navigation("InvoiceTypeMisc");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.ComplaintDetailNature", b =>
+                {
+                    b.HasOne("SalesManagement.Domain.Entities.ComplaintDetail", "ComplaintDetail")
+                        .WithMany("ComplaintDetailNatures")
+                        .HasForeignKey("ComplaintDetailId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "NatureOfComplaintMisc")
+                        .WithMany()
+                        .HasForeignKey("NatureOfComplaintId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ComplaintDetail");
+
+                    b.Navigation("NatureOfComplaintMisc");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.ComplaintHeader", b =>
+                {
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "Status")
+                        .WithMany()
+                        .HasForeignKey("StatusId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Status");
+                });
+
             modelBuilder.Entity("SalesManagement.Domain.Entities.CustomerVisit", b =>
                 {
                     b.HasOne("SalesManagement.Domain.Entities.MarketingOfficer", "MarketingOfficer")
@@ -4433,6 +4755,16 @@ namespace SalesManagement.Infrastructure.Migrations
             modelBuilder.Entity("SalesManagement.Domain.Entities.BusinessUnit", b =>
                 {
                     b.Navigation("SalesSegments");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.ComplaintDetail", b =>
+                {
+                    b.Navigation("ComplaintDetailNatures");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.ComplaintHeader", b =>
+                {
+                    b.Navigation("ComplaintDetails");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.CustomerVisit", b =>

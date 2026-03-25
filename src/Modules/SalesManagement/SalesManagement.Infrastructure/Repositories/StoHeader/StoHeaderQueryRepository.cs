@@ -5,6 +5,7 @@ using Contracts.Dtos.Lookups.Warehouse;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Users;
 using Contracts.Interfaces.Lookups.Warehouse;
+using Contracts.Interfaces;
 using Dapper;
 using SalesManagement.Application.Common.Interfaces.IStoHeader;
 using SalesManagement.Application.StoHeader.Dto;
@@ -18,19 +19,22 @@ namespace SalesManagement.Infrastructure.Repositories.StoHeader
         private readonly IWarehouseLookup _warehouseLookup;
         private readonly IItemLookup _itemLookup;
         private readonly IUOMLookup _uomLookup;
+        private readonly IIPAddressService _ipAddressService;
 
         public StoHeaderQueryRepository(
             IDbConnection dbConnection,
             IUnitLookup unitLookup,
             IWarehouseLookup warehouseLookup,
             IItemLookup itemLookup,
-            IUOMLookup uomLookup)
+            IUOMLookup uomLookup,
+            IIPAddressService ipAddressService)
         {
             _dbConnection = dbConnection;
             _unitLookup = unitLookup;
             _warehouseLookup = warehouseLookup;
             _itemLookup = itemLookup;
             _uomLookup = uomLookup;
+            _ipAddressService = ipAddressService;
         }
 
         public async Task<(List<StoHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
@@ -278,7 +282,9 @@ namespace SalesManagement.Infrastructure.Repositories.StoHeader
 
         public async Task<(List<StoHeaderDto>, int)> GetPendingAsync(int pageNumber, int pageSize, string? searchTerm)
         {
-            // Get Pending status Id from ApprovalStatus MiscType
+            var currentUserId = _ipAddressService.GetUserId();
+
+            // Get Pending status Id from ApprovalStatus MiscType (Sales module)
             const string pendingIdSql = @"
                 SELECT m.Id FROM Sales.MiscMaster m
                 INNER JOIN Sales.MiscTypeMaster mt ON mt.Id = m.MiscTypeId AND mt.IsDeleted = 0
@@ -288,6 +294,16 @@ namespace SalesManagement.Infrastructure.Repositories.StoHeader
             if (!pendingStatusId.HasValue)
                 return (new List<StoHeaderDto>(), 0);
 
+            // Get Pending status Id from AppData MiscMaster (Workflow module)
+            const string appPendingIdSql = @"
+                SELECT m.Id FROM AppData.MiscMaster m
+                INNER JOIN AppData.MiscTypeMaster mt ON mt.Id = m.MiscTypeId AND mt.IsDeleted = 0
+                WHERE m.Code = 'Pending' AND mt.MiscTypeCode = 'ApprovalStatus' AND m.IsDeleted = 0;";
+
+            var appPendingStatusId = await _dbConnection.ExecuteScalarAsync<int?>(appPendingIdSql);
+            if (!appPendingStatusId.HasValue)
+                return (new List<StoHeaderDto>(), 0);
+
             var searchFilter = string.IsNullOrWhiteSpace(searchTerm)
                 ? string.Empty
                 : @" AND (h.StoNumber LIKE @SearchTerm
@@ -295,13 +311,23 @@ namespace SalesManagement.Infrastructure.Repositories.StoHeader
                        OR mt.MovementDescription LIKE @SearchTerm
                        OR h.Remarks LIKE @SearchTerm)";
 
+            // Filter by logged-in approver via AppData.ApprovalRequest
+            const string approverFilter = @"
+                AND h.Id IN (
+                    SELECT ar.ModuleTransactionId
+                    FROM AppData.ApprovalRequest ar
+                    WHERE ar.WorkflowType = 'STO'
+                      AND ar.ApproverValue = @CurrentUserId
+                      AND ar.StatusId = @AppPendingStatusId
+                )";
+
             var countSql = $@"
                 SELECT COUNT(*)
                 FROM Sales.StoHeader h
                 LEFT JOIN Sales.StoTypeMaster st ON h.StoTypeId = st.Id AND st.IsDeleted = 0
                 LEFT JOIN Sales.MovementTypeConfig mt ON h.MovementTypeId = mt.Id AND mt.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster hs ON h.HeaderStatusId = hs.Id AND hs.IsDeleted = 0
-                WHERE h.IsDeleted = 0 AND h.HeaderStatusId = @PendingStatusId {searchFilter};";
+                WHERE h.IsDeleted = 0 AND h.HeaderStatusId = @PendingStatusId {approverFilter} {searchFilter};";
 
             var dataSql = $@"
                 SELECT
@@ -319,13 +345,15 @@ namespace SalesManagement.Infrastructure.Repositories.StoHeader
                 LEFT JOIN Sales.StoTypeMaster st ON h.StoTypeId = st.Id AND st.IsDeleted = 0
                 LEFT JOIN Sales.MovementTypeConfig mt ON h.MovementTypeId = mt.Id AND mt.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster hs ON h.HeaderStatusId = hs.Id AND hs.IsDeleted = 0
-                WHERE h.IsDeleted = 0 AND h.HeaderStatusId = @PendingStatusId {searchFilter}
+                WHERE h.IsDeleted = 0 AND h.HeaderStatusId = @PendingStatusId {approverFilter} {searchFilter}
                 ORDER BY h.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;";
 
             var parameters = new
             {
                 PendingStatusId = pendingStatusId.Value,
+                AppPendingStatusId = appPendingStatusId.Value,
+                CurrentUserId = currentUserId,
                 SearchTerm = $"%{searchTerm}%",
                 Offset = (pageNumber - 1) * pageSize,
                 PageSize = pageSize
