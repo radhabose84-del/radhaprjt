@@ -22,8 +22,8 @@ namespace MaintenanceManagement.Application.MaintenanceRequest.Command.CreateMai
     /// Flow:
     /// ┌─────────────────────────────────────────────────────────────────────┐
     /// │  BEGIN TRANSACTION                                                   │
-    /// │    1. Create MaintenanceRequest                                      │
-    /// │    2. Create WorkOrder (if internal type)                           │
+    /// │    1. Create MaintenanceRequest (saved — Id needed as FK)           │
+    /// │    2. Create WorkOrder (saved — Id needed for notification param1)  │
     /// │    3. Save NotificationCreatedEvent to OutboxMessages table         │
     /// │  COMMIT TRANSACTION                                                  │
     /// │                                                                      │
@@ -149,7 +149,7 @@ namespace MaintenanceManagement.Application.MaintenanceRequest.Command.CreateMai
             var machineName = machineInfo.Value.MachineName;
             var departmentId = machineInfo.Value.DepartmentId;
 
-            // Step 2: Track WorkOrder (only for internal type, no save yet)
+            // Step 2: Save WorkOrder immediately to obtain its generated Id (needed for param1 in notification)
             if (internalTypeId.HasValue && maintenanceRequest.RequestTypeId == internalTypeId.Value)
             {
                 var workOrder = _imapper.Map<Domain.Entities.WorkOrderMaster.WorkOrder>(maintenanceRequest);
@@ -158,7 +158,7 @@ namespace MaintenanceManagement.Application.MaintenanceRequest.Command.CreateMai
                 workOrder.UnitId = _ipAddressService.GetUnitId() ?? 0;
                 workOrder.Remarks = string.Empty;
 
-                await _workOrderCommandRepository.CreateWithoutSaveAsync(
+                await _workOrderCommandRepository.CreateAsync(
                     workOrder, request.MaintenanceTypeId, cancellationToken);
 
                 // Get workflow event type
@@ -202,8 +202,8 @@ namespace MaintenanceManagement.Application.MaintenanceRequest.Command.CreateMai
             }
 
             // ═══════════════════════════════════════════════════════════════════
-            // COMMIT — single SaveChangesAsync atomically persists:
-            //   WorkOrder + OutboxMessage (MaintenanceRequest already saved in Step 1)
+            // COMMIT — SaveChangesAsync persists OutboxMessage
+            //   (MaintenanceRequest + WorkOrder already saved in Steps 1 & 2)
             // ═══════════════════════════════════════════════════════════════════
             await _maintenanceRequestCommandRepository.CommitAsync(cancellationToken);
 
