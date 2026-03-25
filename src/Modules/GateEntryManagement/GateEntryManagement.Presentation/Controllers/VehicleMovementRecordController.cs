@@ -7,6 +7,7 @@ using GateEntryManagement.Application.VehicleMovementRecord.Commands.DeleteVehic
 using GateEntryManagement.Application.VehicleMovementRecord.Queries.GetAllVehicleMovementRecord;
 using GateEntryManagement.Application.VehicleMovementRecord.Queries.GetVehicleMovementRecordById;
 using GateEntryManagement.Application.VehicleMovementRecord.Queries.GetVehicleMovementRecordAutoComplete;
+using GateEntryManagement.Application.VehicleMovementRecord.Queries.GetPendingVehicle;
 
 namespace GateEntryManagement.Presentation.Controllers
 {
@@ -59,6 +60,27 @@ namespace GateEntryManagement.Presentation.Controllers
             {
                 StatusCode = StatusCodes.Status200OK,
                 data = result
+            });
+        }
+
+        [HttpGet("pending")]
+        public async Task<IActionResult> GetPendingVehiclesAsync(
+            [FromQuery] int UnitId,
+            [FromQuery] string? VehicleMovementId = null,
+            [FromQuery] string? VehicleNumber = null)
+        {
+            var result = await Mediator.Send(new GetPendingVehicleQuery
+            {
+                UnitId = UnitId,
+                VehicleMovementId = VehicleMovementId,
+                VehicleNumber = VehicleNumber
+            });
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result.Data,
+                TotalCount = result.TotalCount
             });
         }
 

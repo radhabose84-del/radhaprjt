@@ -10,6 +10,9 @@ namespace GateEntryManagement.Domain.Common
         public const string VMRStatusInsidePremises = "IN";
         public const string VMRStatusExited = "OUT";
 
+        // GatePass
+        public const string TransactionTypeGatePass = "Gate Outward";
+
         // Document Sequence
         public const string TransactionTypeGateEntry = "Gate Entry";
         public const string ModuleGateEntry = "Sales";
