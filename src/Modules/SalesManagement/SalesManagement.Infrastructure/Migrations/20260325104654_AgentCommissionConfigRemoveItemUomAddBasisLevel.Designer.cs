@@ -3,17 +3,20 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SalesManagement.Infrastructure.Data;
 
 #nullable disable
 
-namespace SalesManagement.Infrastructure.Migrations
+namespace SalesManagement.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260325104654_AgentCommissionConfigRemoveItemUomAddBasisLevel")]
+    partial class AgentCommissionConfigRemoveItemUomAddBasisLevel
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -2979,6 +2982,18 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("DiscountPlanId");
 
+                    b.Property<int?>("DispatchDepotId")
+                        .HasColumnType("int")
+                        .HasColumnName("DispatchDepotId");
+
+                    b.Property<int>("DispatchLocationType")
+                        .HasColumnType("int")
+                        .HasColumnName("DispatchLocationType");
+
+                    b.Property<int?>("DispatchUnitId")
+                        .HasColumnType("int")
+                        .HasColumnName("DispatchUnitId");
+
                     b.Property<int>("EnquiryType")
                         .HasColumnType("int")
                         .HasColumnName("EnquiryType");
@@ -3126,6 +3141,8 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.HasIndex("CountListId");
 
                     b.HasIndex("DiscountPlanId");
+
+                    b.HasIndex("DispatchLocationType");
 
                     b.HasIndex("EnquiryType");
 
@@ -4505,6 +4522,12 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasForeignKey("DiscountPlanId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "DispatchLocationTypeMisc")
+                        .WithMany("SalesOrderHeadersAsDispatchLocationType")
+                        .HasForeignKey("DispatchLocationType")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "EnquiryTypeMisc")
                         .WithMany("SalesOrderHeadersAsEnquiryType")
                         .HasForeignKey("EnquiryType")
@@ -4546,6 +4569,8 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("CountList");
 
                     b.Navigation("DiscountPlan");
+
+                    b.Navigation("DispatchLocationTypeMisc");
 
                     b.Navigation("EnquiryTypeMisc");
 
@@ -4830,6 +4855,8 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("SalesOrderHeadersAsCountList");
 
                     b.Navigation("SalesOrderHeadersAsDiscountPlan");
+
+                    b.Navigation("SalesOrderHeadersAsDispatchLocationType");
 
                     b.Navigation("SalesOrderHeadersAsEnquiryType");
 

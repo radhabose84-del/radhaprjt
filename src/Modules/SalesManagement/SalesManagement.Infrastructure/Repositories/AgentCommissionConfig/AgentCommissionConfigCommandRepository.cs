@@ -31,12 +31,11 @@ namespace SalesManagement.Infrastructure.Repositories.AgentCommissionConfig
 
             existingEntity.AgentId = entity.AgentId;
             existingEntity.SalesSegmentId = entity.SalesSegmentId;
-            existingEntity.ItemId = entity.ItemId;
             existingEntity.CommissionTypeId = entity.CommissionTypeId;
-            existingEntity.UomId = entity.UomId;
+            existingEntity.CommissionBasisId = entity.CommissionBasisId;
+            existingEntity.ApplicableLevelId = entity.ApplicableLevelId;
             existingEntity.CommissionPercentage = entity.CommissionPercentage;
             existingEntity.CurrencyId = entity.CurrencyId;
-            existingEntity.SubAgentPercentage = entity.SubAgentPercentage;
             existingEntity.ValidityFrom = entity.ValidityFrom;
             existingEntity.ValidityTo = entity.ValidityTo;
             existingEntity.IsActive = entity.IsActive;

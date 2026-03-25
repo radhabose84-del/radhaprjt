@@ -1,7 +1,5 @@
-using Contracts.Dtos.Lookups.Inventory;
 using Contracts.Dtos.Lookups.Party;
 using Contracts.Dtos.Lookups.Users;
-using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Users;
 using Dapper;
@@ -21,7 +19,7 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCommissionConfig
     /// AgentCommissionConfig JOINs Sales.SalesSegment and Sales.MiscMaster (same-module FKs) for names,
     /// so prerequisite rows are seeded via EnsurePrerequisitesAsync().
     ///
-    /// IPartyLookup, IItemLookup, IUOMLookup, ICurrencyLookup are mocked to isolate cross-module deps.
+    /// IPartyLookup, ICurrencyLookup are mocked to isolate cross-module deps.
     /// Tests verify SQL query correctness, pagination, soft-delete exclusion, and FK validation.
     /// </summary>
     [Collection("DatabaseCollection")]
@@ -36,25 +34,17 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCommissionConfig
 
         // ── Helpers ───────────────────────────────────────────────────────────
 
-        private SqlConnection OpenConnection() => new SqlConnection(_fixture.ConnectionString);
-
         private AgentCommissionConfigQueryRepository CreateQueryRepo(
             Mock<IPartyLookup> partyLookup = null,
-            Mock<IItemLookup> itemLookup = null,
-            Mock<IUOMLookup> uomLookup = null,
             Mock<ICurrencyLookup> currencyLookup = null)
         {
             partyLookup    ??= BuildDefaultPartyLookup();
-            itemLookup     ??= BuildDefaultItemLookup();
-            uomLookup      ??= BuildDefaultUomLookup();
             currencyLookup ??= BuildDefaultCurrencyLookup();
 
             var conn = new SqlConnection(_fixture.ConnectionString);
             return new AgentCommissionConfigQueryRepository(
                 conn,
                 partyLookup.Object,
-                itemLookup.Object,
-                uomLookup.Object,
                 currencyLookup.Object);
         }
 
@@ -69,25 +59,6 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCommissionConfig
                 {
                     new PartyLookupDto { Id = agentId, PartyCode = "AGT001", PartyName = agentName }
                 });
-            return mock;
-        }
-
-        private Mock<IItemLookup> BuildDefaultItemLookup(int itemId = 100, string itemName = "Test Item")
-        {
-            var mock = new Mock<IItemLookup>(MockBehavior.Loose);
-            mock.Setup(i => i.GetByIdsAsync(It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new List<ItemLookupDto>
-                {
-                    new ItemLookupDto { Id = itemId, ItemCode = "ITEM001", ItemName = itemName }
-                });
-            return mock;
-        }
-
-        private Mock<IUOMLookup> BuildDefaultUomLookup()
-        {
-            var mock = new Mock<IUOMLookup>(MockBehavior.Loose);
-            mock.Setup(u => u.GetByIdsAsync(It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new List<UOMLookupDto>());
             return mock;
         }
 
@@ -220,7 +191,7 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCommissionConfig
 
         private async Task<int> SeedEntityAsync(
             int salesSegmentId, int commissionTypeId,
-            int agentId = 10, int itemId = 100,
+            int agentId = 10,
             decimal commissionPct = 5.0m,
             bool isActive = true)
         {
@@ -229,7 +200,6 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCommissionConfig
             {
                 AgentId = agentId,
                 SalesSegmentId = salesSegmentId,
-                ItemId = itemId,
                 CommissionTypeId = commissionTypeId,
                 CommissionPercentage = commissionPct,
                 ValidityFrom = new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero),
@@ -301,14 +271,13 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCommissionConfig
         {
             var (segId, typeId) = await EnsurePrerequisitesAsync();
             await ClearTableAsync();
-            var id = await SeedEntityAsync(segId, typeId, agentId: 10, itemId: 100, commissionPct: 7.5m);
+            var id = await SeedEntityAsync(segId, typeId, agentId: 10, commissionPct: 7.5m);
 
             var dto = await CreateQueryRepo().GetByIdAsync(id);
 
             dto.Should().NotBeNull();
             dto!.Id.Should().Be(id);
             dto.AgentId.Should().Be(10);
-            dto.ItemId.Should().Be(100);
             dto.CommissionPercentage.Should().Be(7.5m);
         }
 
@@ -419,12 +388,12 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCommissionConfig
         {
             var (segId, typeId) = await EnsurePrerequisitesAsync();
             await ClearTableAsync();
-            await SeedEntityAsync(segId, typeId, agentId: 10, itemId: 100);
+            await SeedEntityAsync(segId, typeId, agentId: 10);
 
             var from = new DateTimeOffset(2025, 6, 1, 0, 0, 0, TimeSpan.Zero);
             var to   = new DateTimeOffset(2025, 8, 31, 0, 0, 0, TimeSpan.Zero);
 
-            var overlaps = await CreateQueryRepo().OverlapExistsAsync(10, segId, 100, from, to);
+            var overlaps = await CreateQueryRepo().OverlapExistsAsync(10, segId, from, to);
 
             overlaps.Should().BeTrue();
         }
@@ -434,12 +403,12 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCommissionConfig
         {
             var (segId, typeId) = await EnsurePrerequisitesAsync();
             await ClearTableAsync();
-            await SeedEntityAsync(segId, typeId, agentId: 10, itemId: 100);
+            await SeedEntityAsync(segId, typeId, agentId: 10);
 
             var from = new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
             var to   = new DateTimeOffset(2026, 12, 31, 0, 0, 0, TimeSpan.Zero);
 
-            var overlaps = await CreateQueryRepo().OverlapExistsAsync(10, segId, 100, from, to);
+            var overlaps = await CreateQueryRepo().OverlapExistsAsync(10, segId, from, to);
 
             overlaps.Should().BeFalse();
         }
@@ -449,12 +418,12 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCommissionConfig
         {
             var (segId, typeId) = await EnsurePrerequisitesAsync();
             await ClearTableAsync();
-            var id = await SeedEntityAsync(segId, typeId, agentId: 10, itemId: 100);
+            var id = await SeedEntityAsync(segId, typeId, agentId: 10);
 
             var from = new DateTimeOffset(2025, 6, 1, 0, 0, 0, TimeSpan.Zero);
             var to   = new DateTimeOffset(2025, 8, 31, 0, 0, 0, TimeSpan.Zero);
 
-            var overlaps = await CreateQueryRepo().OverlapExistsAsync(10, segId, 100, from, to, excludeId: id);
+            var overlaps = await CreateQueryRepo().OverlapExistsAsync(10, segId, from, to, excludeId: id);
 
             overlaps.Should().BeFalse();
         }
