@@ -24,15 +24,15 @@ namespace MaintenanceManagement.Application.MachineMaster.Command.UpdateMachineM
 
         public async Task<bool> Handle(UpdateMachineMasterCommand request, CancellationToken cancellationToken)
         {
-             var machineMaster = _imapper.Map<MaintenanceManagement.Domain.Entities.MachineMaster>(request);
-            var result = await _iMachineMasterCommandRepository.UpdateAsync(request.Id, machineMaster);
-
             if (request.IsActive == 0)
             {
                 var linked = await _machineQueryRepository.IsMachineLinkedAsync(request.Id);
                 if (linked)
                     throw new ValidationException("This master is linked with other records. You cannot inactivate this record.");
             }
+
+             var machineMaster = _imapper.Map<MaintenanceManagement.Domain.Entities.MachineMaster>(request);
+            var result = await _iMachineMasterCommandRepository.UpdateAsync(request.Id, machineMaster);
           
             //Domain Event
             var domainEvent = new AuditLogsDomainEvent(
