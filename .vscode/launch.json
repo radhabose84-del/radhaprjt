@@ -1,18 +1,27 @@
 {
   "version": "0.2.0",
-  "configurations": [
-    
+  "compounds": [
     {
-      "name": "BSOFT.Api (Launch)",
+      "name": "Api + Worker",
+      "configurations": ["BSOFT.Api", "BSOFT.Worker"]
+    }
+  ],
+  "configurations": [
+    {
+      "name": "BSOFT.Api",
       "type": "coreclr",
       "request": "launch",
       "program": "${workspaceFolder}/src/BSOFT.Api/bin/Debug/net8.0/BSOFT.Api.dll",
-      "cwd": "${workspaceFolder}/src/BSOFT.Api",
-      "env": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-      },
-      "console": "integratedTerminal",
-      "justMyCode": true
+      "args": [],
+      "cwd": "${workspaceFolder}/src/BSOFT.Api"
+    },
+    {
+      "name": "BSOFT.Worker",
+      "type": "coreclr",
+      "request": "launch",
+      "program": "${workspaceFolder}/src/BSOFT.Worker/bin/Debug/net8.0/BSOFT.Worker.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/src/BSOFT.Worker"
     }
   ]
 }

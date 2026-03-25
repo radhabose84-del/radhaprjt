@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using MassTransit;
 
 namespace Contracts.Events.Notifications
@@ -10,6 +11,7 @@ namespace Contracts.Events.Notifications
         public int EventTypeId { get; set; }
         public string ModuleName { get; set; } = default!;
         public string Email { get; set; } = default!;
+        [JsonPropertyName("ccMail")]
         public string ccMail { get; set; } = default!;
         public string Mobile { get; set; } = default!;
         public string param1 { get; set; } = default!;

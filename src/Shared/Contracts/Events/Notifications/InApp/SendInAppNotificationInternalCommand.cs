@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using MassTransit;
 
 namespace Contracts.Events.Notifications.InApp
@@ -12,6 +13,7 @@ namespace Contracts.Events.Notifications.InApp
         public int EventRuleId { get; set; }
         public int ChannelId { get; set; }
         public string Email { get; set; } = default!;
+        [JsonPropertyName("ccMail")]
         public string ccMail { get; set; } = default!;
         public string Mobile { get; set; } = default!;
         public string CreatedByName { get; set; } = string.Empty;
