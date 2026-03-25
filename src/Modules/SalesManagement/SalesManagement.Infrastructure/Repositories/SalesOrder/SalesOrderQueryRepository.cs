@@ -4,6 +4,7 @@ using Contracts.Interfaces.Lookups.Users;
 using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Purchase;
 using Contracts.Interfaces.Lookups.Inventory;
+using Contracts.Interfaces.Lookups.Production;
 using Contracts.Interfaces;
 using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Application.Common.Interfaces.ISalesOrder;
@@ -24,6 +25,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
         private readonly IUOMLookup _uomLookup;
         private readonly IIPAddressService _ipAddressService;
         private readonly ICompanyLookup _companyLookup;
+        private readonly IPackTypeLookup _packTypeLookup;
 
         public SalesOrderQueryRepository(
             IDbConnection dbConnection,
@@ -34,7 +36,8 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             IHSNLookup hsnLookup,
             IUOMLookup uomLookup,
             IIPAddressService ipAddressService,
-            ICompanyLookup companyLookup)
+            ICompanyLookup companyLookup,
+            IPackTypeLookup packTypeLookup)
         {
             _dbConnection = dbConnection;
             _unitLookup = unitLookup;
@@ -45,6 +48,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             _uomLookup = uomLookup;
             _ipAddressService = ipAddressService;
             _companyLookup = companyLookup;
+            _packTypeLookup = packTypeLookup;
         }
 
         public async Task<(List<SalesOrderHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
@@ -205,7 +209,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             const string detailSql = @"
                 SELECT d.Id, d.SalesOrderHeaderId,
                     d.ItemId, d.VariantId, d.HSNId,
-                    d.PackTypeId, pkt.PackTypeName AS PackTypeName,
+                    d.PackTypeId,
                     d.QtyInBags, d.BagWeight, d.SaleUOMId, d.TotalWeight,
                     d.ExMillRate, d.DiscountPerUnit, d.Freight,
                     d.TaxableAmount, d.TaxPercentage, d.TaxAmount,
@@ -218,7 +222,6 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     d.LineItemStatusId,
                     mm.Description AS LineItemStatusName
                 FROM Sales.SalesOrderDetail d
-                LEFT JOIN Production.PackType pkt ON d.PackTypeId = pkt.Id AND pkt.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster mm ON d.LineItemStatusId = mm.Id AND mm.IsDeleted = 0
                 LEFT JOIN (
                     SELECT dad.SalesOrderDetailId,
@@ -280,6 +283,10 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 var uomList = await _uomLookup.GetByIdsAsync(uomIds);
                 var uomDict = uomList.ToDictionary(u => u.Id, u => u.UOMName);
 
+                var packTypeIds = details.Where(d => d.PackTypeId.HasValue).Select(d => d.PackTypeId!.Value).Distinct();
+                var packTypeList = packTypeIds.Any() ? await _packTypeLookup.GetByIdsAsync(packTypeIds) : [];
+                var packTypeDict = packTypeList.ToDictionary(p => p.Id, p => p.PackTypeName);
+
                 foreach (var detail in details)
                 {
                     detail.ItemName = itemDict.TryGetValue(detail.ItemId, out var iName) ? iName : null;
@@ -287,6 +294,8 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                         detail.VariantName = variantDict.TryGetValue(detail.VariantId.Value, out var vName) ? vName : null;
                     detail.HSNCode = hsnDict.TryGetValue(detail.HSNId, out var hCode) ? hCode : null;
                     detail.UOMName = uomDict.TryGetValue(detail.SaleUOMId, out var uName) ? uName : null;
+                    if (detail.PackTypeId.HasValue)
+                        detail.PackTypeName = packTypeDict.TryGetValue(detail.PackTypeId.Value, out var pName) ? pName : null;
                 }
             }
 
@@ -419,13 +428,8 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
 
         public async Task<bool> PackTypeExistsAsync(int packTypeId)
         {
-            const string sql = @"
-                SELECT COUNT(1)
-                FROM Production.PackType
-                WHERE Id = @Id AND IsActive = 1 AND IsDeleted = 0";
-
-            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = packTypeId });
-            return count > 0;
+            var packTypes = await _packTypeLookup.GetByIdsAsync(new[] { packTypeId });
+            return packTypes.Any();
         }
 
         public async Task<bool> AgentExistsAsync(int agentId)
