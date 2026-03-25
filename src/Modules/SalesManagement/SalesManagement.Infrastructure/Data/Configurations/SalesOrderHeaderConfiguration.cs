@@ -111,22 +111,6 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("nvarchar(500)")
                 .IsRequired(false);
 
-            // Dispatch Location
-            builder.Property(t => t.DispatchLocationType)
-                .HasColumnName("DispatchLocationType")
-                .HasColumnType("int")
-                .IsRequired();
-
-            builder.Property(t => t.DispatchDepotId)
-                .HasColumnName("DispatchDepotId")
-                .HasColumnType("int")
-                .IsRequired(false);
-
-            builder.Property(t => t.DispatchUnitId)
-                .HasColumnName("DispatchUnitId")
-                .HasColumnType("int")
-                .IsRequired(false);
-
             // Derived Summary Fields
             builder.Property(t => t.TotalBags)
                 .HasColumnName("TotalBags")
@@ -256,11 +240,6 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             builder.HasOne(t => t.EnquiryTypeMisc)
                 .WithMany(m => m.SalesOrderHeadersAsEnquiryType)
                 .HasForeignKey(t => t.EnquiryType)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            builder.HasOne(t => t.DispatchLocationTypeMisc)
-                .WithMany(m => m.SalesOrderHeadersAsDispatchLocationType)
-                .HasForeignKey(t => t.DispatchLocationType)
                 .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne(t => t.SalesQuotation)

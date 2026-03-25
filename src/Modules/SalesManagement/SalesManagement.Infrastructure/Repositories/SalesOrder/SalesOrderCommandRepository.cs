@@ -102,9 +102,6 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             existingEntity.Remarks = entity.Remarks;
             existingEntity.VisitNotesAttachment = entity.VisitNotesAttachment;
             existingEntity.AgentPOAttachment = entity.AgentPOAttachment;
-            existingEntity.DispatchLocationType = entity.DispatchLocationType;
-            existingEntity.DispatchDepotId = entity.DispatchDepotId;
-            existingEntity.DispatchUnitId = entity.DispatchUnitId;
             existingEntity.TotalBags = entity.TotalBags;
             existingEntity.TotalWeightKgs = entity.TotalWeightKgs;
             existingEntity.TotalDiscountPerKg = entity.TotalDiscountPerKg;

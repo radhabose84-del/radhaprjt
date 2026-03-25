@@ -27,11 +27,6 @@ namespace SalesManagement.Domain.Entities
         public string? VisitNotesAttachment { get; set; }
         public string? AgentPOAttachment { get; set; }
 
-        // Dispatch Location
-        public int DispatchLocationType { get; set; }    // 1=Depot, 2=Unit
-        public int? DispatchDepotId { get; set; }        // Cross-module FK (WarehouseManagement)
-        public int? DispatchUnitId { get; set; }         // Cross-module FK (UserManagement)
-
         // Derived Summary Fields
         public int TotalBags { get; set; }
         public decimal TotalWeightKgs { get; set; }
@@ -61,7 +56,6 @@ namespace SalesManagement.Domain.Entities
         public MiscMaster? PaymentType { get; set; }
         public MiscMaster? FreightType { get; set; }
         public MiscMaster? CountList { get; set; }
-        public MiscMaster? DispatchLocationTypeMisc { get; set; }
         public MiscMaster? StatusMisc { get; set; }
 
         // Child collection

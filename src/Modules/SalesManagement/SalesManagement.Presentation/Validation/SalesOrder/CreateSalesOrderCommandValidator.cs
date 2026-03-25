@@ -81,13 +81,6 @@ namespace SalesManagement.Presentation.Validation.SalesOrder
                             .WithMessage($"EnquiryType {rule.Error}")
                             .When(x => x.SalesOrderDetails != null);
 
-                        RuleFor(x => x.SalesOrderDetails!.DispatchLocationType)
-                            .NotNull()
-                            .WithMessage($"DispatchLocationType {rule.Error}")
-                            .NotEmpty()
-                            .WithMessage($"DispatchLocationType {rule.Error}")
-                            .When(x => x.SalesOrderDetails != null);
-
                         RuleFor(x => x.SalesOrderDetails!.SalesOrderDetails)
                             .NotNull()
                             .WithMessage($"SalesOrderDetails {rule.Error}")
@@ -221,18 +214,6 @@ namespace SalesManagement.Presentation.Validation.SalesOrder
                                 await _queryRepository.MiscMasterExistsAsync(countListId!.Value))
                             .WithMessage($"CountListId {rule.Error}")
                             .When(x => x.SalesOrderDetails != null && x.SalesOrderDetails.CountListId.HasValue && x.SalesOrderDetails.CountListId > 0);
-
-                        RuleFor(x => x.SalesOrderDetails!.DispatchDepotId)
-                            .MustAsync(async (depotId, ct) =>
-                                await _queryRepository.WarehouseExistsAsync(depotId!.Value))
-                            .WithMessage($"DispatchDepotId {rule.Error}")
-                            .When(x => x.SalesOrderDetails != null && x.SalesOrderDetails.DispatchDepotId.HasValue && x.SalesOrderDetails.DispatchDepotId > 0);
-
-                        RuleFor(x => x.SalesOrderDetails!.DispatchUnitId)
-                            .MustAsync(async (dispatchUnitId, ct) =>
-                                await _queryRepository.UnitExistsAsync(dispatchUnitId!.Value))
-                            .WithMessage($"DispatchUnitId {rule.Error}")
-                            .When(x => x.SalesOrderDetails != null && x.SalesOrderDetails.DispatchUnitId.HasValue && x.SalesOrderDetails.DispatchUnitId > 0);
 
                         // Detail-level FK validation
                         RuleForEach(x => x.SalesOrderDetails!.SalesOrderDetails)
