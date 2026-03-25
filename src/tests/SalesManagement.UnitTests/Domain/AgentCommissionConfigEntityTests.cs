@@ -39,7 +39,6 @@ namespace SalesManagement.UnitTests.Domain
                 Id = 1,
                 AgentId = 10,
                 SalesSegmentId = 20,
-                ItemId = 30,
                 CommissionTypeId = 40,
                 CommissionPercentage = 5.5m,
                 ValidityFrom = from,
@@ -49,7 +48,6 @@ namespace SalesManagement.UnitTests.Domain
             entity.Id.Should().Be(1);
             entity.AgentId.Should().Be(10);
             entity.SalesSegmentId.Should().Be(20);
-            entity.ItemId.Should().Be(30);
             entity.CommissionTypeId.Should().Be(40);
             entity.CommissionPercentage.Should().Be(5.5m);
             entity.ValidityFrom.Should().Be(from);
@@ -61,14 +59,14 @@ namespace SalesManagement.UnitTests.Domain
         {
             var entity = new AgentCommissionConfig
             {
-                UomId = null,
-                CurrencyId = null,
-                SubAgentPercentage = null
+                CommissionBasisId = null,
+                ApplicableLevelId = null,
+                CurrencyId = null
             };
 
-            entity.UomId.Should().BeNull();
+            entity.CommissionBasisId.Should().BeNull();
+            entity.ApplicableLevelId.Should().BeNull();
             entity.CurrencyId.Should().BeNull();
-            entity.SubAgentPercentage.Should().BeNull();
         }
 
         [Fact]
@@ -76,14 +74,14 @@ namespace SalesManagement.UnitTests.Domain
         {
             var entity = new AgentCommissionConfig
             {
-                UomId = 50,
-                CurrencyId = 60,
-                SubAgentPercentage = 2.0m
+                CommissionBasisId = 70,
+                ApplicableLevelId = 80,
+                CurrencyId = 60
             };
 
-            entity.UomId.Should().Be(50);
+            entity.CommissionBasisId.Should().Be(70);
+            entity.ApplicableLevelId.Should().Be(80);
             entity.CurrencyId.Should().Be(60);
-            entity.SubAgentPercentage.Should().Be(2.0m);
         }
 
         [Fact]

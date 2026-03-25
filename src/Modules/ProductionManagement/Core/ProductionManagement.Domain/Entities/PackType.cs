@@ -10,7 +10,11 @@ namespace ProductionManagement.Domain.Entities
         public decimal TareWeight { get; set; }
         public decimal GrossWeight { get; set; }
         public int? ConesPerBag { get; set; }
+        public int? PackMaterialId { get; set; }
         public bool ProductionAllowed { get; set; } = true;
+
+        // Navigation property (same-module FK to MiscMaster)
+        public MiscMaster? PackMaterial { get; set; }
 
         // Reverse navigation (Production)
         public ICollection<ProductionPackDetail>? ProductionPackDetails { get; set; }

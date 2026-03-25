@@ -27,12 +27,12 @@ namespace SalesManagement.UnitTests.Validators.AgentCommissionConfig
             _mockQueryRepo.Setup(r => r.NotFoundAsync(It.IsAny<int>())).ReturnsAsync(false);
             _mockQueryRepo.Setup(r => r.AgentExistsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>())).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.SalesSegmentExistsAsync(It.IsAny<int>())).ReturnsAsync(true);
-            _mockQueryRepo.Setup(r => r.ItemExistsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>())).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.CommissionTypeExistsAsync(It.IsAny<int>())).ReturnsAsync(true);
-            _mockQueryRepo.Setup(r => r.UomExistsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>())).ReturnsAsync(true);
+            _mockQueryRepo.Setup(r => r.CommissionBasisExistsAsync(It.IsAny<int>())).ReturnsAsync(true);
+            _mockQueryRepo.Setup(r => r.ApplicableLevelExistsAsync(It.IsAny<int>())).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.CurrencyExistsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>())).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.OverlapExistsAsync(
-                    It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(),
+                    It.IsAny<int>(), It.IsAny<int>(),
                     It.IsAny<DateTimeOffset>(), It.IsAny<DateTimeOffset>(), It.IsAny<int?>()))
                 .ReturnsAsync(false);
         }
@@ -119,20 +119,6 @@ namespace SalesManagement.UnitTests.Validators.AgentCommissionConfig
             result.ShouldHaveValidationErrorFor(x => x.SalesSegmentId);
         }
 
-        // ── ItemId Rules ──────────────────────────────────────────────────────
-
-        [Fact]
-        public async Task ItemId_NotFound_FailsValidation()
-        {
-            SetupAllValid();
-            _mockQueryRepo.Setup(r => r.ItemExistsAsync(30, It.IsAny<CancellationToken>())).ReturnsAsync(false);
-            var command = AgentCommissionConfigBuilders.ValidUpdateCommand(itemId: 30);
-
-            var result = await CreateValidator().TestValidateAsync(command);
-
-            result.ShouldHaveValidationErrorFor(x => x.ItemId);
-        }
-
         // ── CommissionTypeId Rules ────────────────────────────────────────────
 
         [Fact]
@@ -198,7 +184,7 @@ namespace SalesManagement.UnitTests.Validators.AgentCommissionConfig
         {
             SetupAllValid();
             _mockQueryRepo.Setup(r => r.OverlapExistsAsync(
-                    It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(),
+                    It.IsAny<int>(), It.IsAny<int>(),
                     It.IsAny<DateTimeOffset>(), It.IsAny<DateTimeOffset>(), It.IsAny<int?>()))
                 .ReturnsAsync(true);
 
@@ -207,7 +193,7 @@ namespace SalesManagement.UnitTests.Validators.AgentCommissionConfig
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveAnyValidationError()
-                  .WithErrorMessage("An active commission rule already exists for this Agent, Sales Segment, and Item within the specified validity period.");
+                  .WithErrorMessage("An active commission rule already exists for this Agent and Sales Segment within the specified validity period.");
         }
     }
 }

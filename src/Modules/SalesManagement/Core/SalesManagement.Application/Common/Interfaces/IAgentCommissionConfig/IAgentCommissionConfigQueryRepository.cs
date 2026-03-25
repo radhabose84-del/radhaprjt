@@ -10,11 +10,11 @@ namespace SalesManagement.Application.Common.Interfaces.IAgentCommissionConfig
         Task<bool> NotFoundAsync(int id);
         Task<bool> AgentExistsAsync(int agentId, CancellationToken ct = default);
         Task<bool> SalesSegmentExistsAsync(int salesSegmentId);
-        Task<bool> ItemExistsAsync(int itemId, CancellationToken ct = default);
         Task<bool> CommissionTypeExistsAsync(int commissionTypeId);
-        Task<bool> UomExistsAsync(int uomId, CancellationToken ct = default);
+        Task<bool> CommissionBasisExistsAsync(int commissionBasisId);
+        Task<bool> ApplicableLevelExistsAsync(int applicableLevelId);
         Task<bool> CurrencyExistsAsync(int currencyId, CancellationToken ct = default);
-        Task<bool> OverlapExistsAsync(int agentId, int salesSegmentId, int itemId,
+        Task<bool> OverlapExistsAsync(int agentId, int salesSegmentId,
             DateTimeOffset validityFrom, DateTimeOffset validityTo, int? excludeId = null);
     }
 }
