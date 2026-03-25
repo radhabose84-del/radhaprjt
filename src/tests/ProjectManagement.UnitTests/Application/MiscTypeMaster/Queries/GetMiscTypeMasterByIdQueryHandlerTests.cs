@@ -39,7 +39,7 @@ namespace ProjectManagement.UnitTests.Application.MiscTypeMaster.Queries
         public async Task Handle_EntityNotFound_ReturnsFailure()
         {
             _mockQueryRepo.Setup(r => r.GetByIdAsync(999))
-                .ReturnsAsync((ProjectManagement.Domain.Entities.MiscTypeMaster?)null);
+                .ReturnsAsync((ProjectManagement.Domain.Entities.MiscTypeMaster)null!);
 
             var result = await CreateSut().Handle(
                 new GetMiscTypeMasterByIdQuery { Id = 999 }, CancellationToken.None);

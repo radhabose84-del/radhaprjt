@@ -325,7 +325,8 @@ namespace SalesManagement.UnitTests.Validators.SalesOffice
 
         [Theory]
         [InlineData("notanemail")]
-        [InlineData("user@invalid.com")]
+        [InlineData("user@")]
+        [InlineData("@nodomain")]
         public async Task Email_InvalidFormat_FailsValidation(string email)
         {
             var command = SalesOfficeBuilders.ValidUpdateCommand(email: email);

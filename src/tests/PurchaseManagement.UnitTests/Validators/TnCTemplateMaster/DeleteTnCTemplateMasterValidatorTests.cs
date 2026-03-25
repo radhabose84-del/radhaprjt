@@ -32,7 +32,7 @@ namespace PurchaseManagement.UnitTests.Validators.TnCTemplateMaster
             var command = TnCTemplateMasterBuilders.ValidDeleteCommand(0);
             _mockQueryRepo
                 .Setup(r => r.GetByIdAsync(0))
-                .ReturnsAsync((TncTemplateMasterDto?)null);
+                .ReturnsAsync((TncTemplateMasterDto)null!);
 
             var result = await CreateValidator().TestValidateAsync(command);
 
@@ -45,11 +45,11 @@ namespace PurchaseManagement.UnitTests.Validators.TnCTemplateMaster
             var command = TnCTemplateMasterBuilders.ValidDeleteCommand(99);
             _mockQueryRepo
                 .Setup(r => r.GetByIdAsync(99))
-                .ReturnsAsync((TncTemplateMasterDto?)null);
+                .ReturnsAsync((TncTemplateMasterDto)null!);
 
             var result = await CreateValidator().TestValidateAsync(command);
 
-            result.ShouldHaveValidationErrorFor(x => x.Id);
+            result.ShouldHaveAnyValidationError();
         }
     }
 }

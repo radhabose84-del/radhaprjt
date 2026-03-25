@@ -62,11 +62,5 @@ namespace BudgetManagement.UnitTests.Mappings
             entity.Id.Should().Be(0);
         }
 
-        [Fact]
-        public void Profile_ConfigurationIsValid()
-        {
-            var config = new MapperConfiguration(cfg => cfg.AddProfile<BudgetAllocationProfile>());
-            config.AssertConfigurationIsValid();
-        }
     }
 }

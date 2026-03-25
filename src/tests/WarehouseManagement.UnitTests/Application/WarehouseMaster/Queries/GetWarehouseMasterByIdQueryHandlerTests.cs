@@ -53,7 +53,7 @@ namespace WarehouseManagement.UnitTests.Application.WarehouseMaster.Queries
         [Fact]
         public async Task Handle_NotFound_ReturnsFailure()
         {
-            _mockQueryRepo.Setup(r => r.GetByIdAsync(999)).ReturnsAsync((WarehouseMasterDto?)null);
+            _mockQueryRepo.Setup(r => r.GetByIdAsync(999)).ReturnsAsync((WarehouseMasterDto)null!);
 
             var result = await CreateSut().Handle(new GetWarehouseMasterByIdQuery { Id = 999 }, CancellationToken.None);
 

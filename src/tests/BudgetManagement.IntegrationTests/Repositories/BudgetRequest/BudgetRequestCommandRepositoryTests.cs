@@ -57,8 +57,11 @@ namespace BudgetManagement.IntegrationTests.Repositories.BudgetRequest
                 IsDeleted = IsDelete.NotDeleted
             };
 
-        private async Task ClearTableAsync(BudgetManagement.Infrastructure.Data.ApplicationDbContext ctx) =>
+        private async Task ClearTableAsync(BudgetManagement.Infrastructure.Data.ApplicationDbContext ctx)
+        {
             await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Budget.BudgetRequest");
+            await _fixture.SeedPrerequisiteDataAsync();
+        }
 
         // --- ADD ---
 
@@ -119,7 +122,9 @@ namespace BudgetManagement.IntegrationTests.Repositories.BudgetRequest
             await CreateRepository(ctx).SoftDeleteAsync(added.Id, CancellationToken.None);
             ctx.ChangeTracker.Clear();
 
-            var saved = await ctx.BudgetRequests.FirstOrDefaultAsync(x => x.Id == added.Id);
+            var saved = await ctx.BudgetRequests
+                .IgnoreQueryFilters()
+                .FirstOrDefaultAsync(x => x.Id == added.Id);
 
             saved!.IsDeleted.Should().Be(IsDelete.Deleted);
         }
@@ -170,13 +175,13 @@ namespace BudgetManagement.IntegrationTests.Repositories.BudgetRequest
             await using var ctx = _fixture.CreateFreshDbContext();
             await ClearTableAsync(ctx);
             var entity = BuildEntity(unitId: 1, financialYearId: 1);
-            entity.BudgetGroupId = 5;
+            entity.BudgetGroupId = 1;
             entity.ProjectId = null;
             await CreateRepository(ctx).AddAsync(entity, CancellationToken.None);
 
             var exists = await CreateRepository(ctx).ExistsOpexAsync(
                 unitId: 1, financialYearId: 1, requestTypeId: 1,
-                budgetGroupId: 5, requestById: 1, ct: CancellationToken.None);
+                budgetGroupId: 1, requestById: 1, ct: CancellationToken.None);
 
             exists.Should().BeTrue();
         }

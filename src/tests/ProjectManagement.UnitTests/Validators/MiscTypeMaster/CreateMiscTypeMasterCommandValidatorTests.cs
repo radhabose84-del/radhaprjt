@@ -10,21 +10,12 @@ namespace ProjectManagement.UnitTests.Validators.MiscTypeMaster
     public sealed class CreateMiscTypeMasterCommandValidatorTests
     {
         private readonly Mock<IMiscTypeMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
-        private readonly Mock<MaxLengthProvider> _mockMaxLengthProvider;
-
-        public CreateMiscTypeMasterCommandValidatorTests()
-        {
-            _mockMaxLengthProvider = new Mock<MaxLengthProvider>(MockBehavior.Strict, new object[] { null! });
-            _mockMaxLengthProvider
-                .Setup(m => m.GetMaxLength<ProjectManagement.Domain.Entities.MiscTypeMaster>("MiscTypeCode"))
-                .Returns(50);
-            _mockMaxLengthProvider
-                .Setup(m => m.GetMaxLength<ProjectManagement.Domain.Entities.MiscTypeMaster>("Description"))
-                .Returns(250);
-        }
+        // MaxLengthProvider is not mockable (GetMaxLength is not virtual).
+        // Passing null! to the ctor causes _model to be null → GetMaxLength returns null → fallback values are used.
+        private readonly MaxLengthProvider _maxLengthProvider = new(null!);
 
         private CreateMiscTypeMasterCommandValidator CreateValidator() =>
-            new(_mockQueryRepo.Object, _mockMaxLengthProvider.Object);
+            new(_mockQueryRepo.Object, _maxLengthProvider);
 
         private void SetupAllAsyncMocks(string? code = "MTT001")
         {

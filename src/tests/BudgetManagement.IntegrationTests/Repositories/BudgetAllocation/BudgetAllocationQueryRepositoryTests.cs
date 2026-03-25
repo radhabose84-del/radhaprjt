@@ -58,6 +58,7 @@ namespace BudgetManagement.IntegrationTests.Repositories.BudgetAllocation
         {
             await using var ctx = _fixture.CreateFreshDbContext();
             await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Budget.BudgetAllocation");
+            await _fixture.SeedPrerequisiteDataAsync();
         }
 
         // --- EXISTS ---

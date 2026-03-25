@@ -44,6 +44,10 @@ namespace BudgetManagement.IntegrationTests.Repositories.MiscMaster
 
         private async Task ClearTablesAsync(BudgetManagement.Infrastructure.Data.ApplicationDbContext ctx)
         {
+            // Delete in FK-dependency order: children first
+            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Budget.BudgetAllocation");
+            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Budget.BudgetRequest");
+            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Budget.BudgetGroup");
             await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Budget.MiscMaster");
             await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Budget.MiscTypeMaster");
         }

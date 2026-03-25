@@ -9,7 +9,6 @@ using MediatR;
 using PurchaseManagement.Application.Common.Interfaces.PriceMaster;
 using PurchaseManagement.Application.PriceMaster.Dtos;
 using PurchaseManagement.Application.PriceMaster.Queries.GetById;
-using PurchaseManagement.Application.PriceMaster.Queries.GetById;
 
 namespace PurchaseManagement.UnitTests.Application.PriceMaster.Queries
 {

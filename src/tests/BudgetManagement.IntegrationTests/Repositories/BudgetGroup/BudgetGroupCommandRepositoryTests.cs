@@ -34,8 +34,13 @@ namespace BudgetManagement.IntegrationTests.Repositories.BudgetGroup
                 IsDeleted = IsDelete.NotDeleted
             };
 
-        private async Task ClearTableAsync(BudgetManagement.Infrastructure.Data.ApplicationDbContext ctx) =>
+        private async Task ClearTableAsync(BudgetManagement.Infrastructure.Data.ApplicationDbContext ctx)
+        {
+            // Delete child rows first to satisfy FK constraints
+            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Budget.BudgetAllocation");
+            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Budget.BudgetRequest");
             await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Budget.BudgetGroup");
+        }
 
         // --- CREATE ---
 

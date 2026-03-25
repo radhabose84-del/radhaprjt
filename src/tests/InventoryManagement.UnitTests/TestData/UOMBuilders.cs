@@ -23,12 +23,16 @@ namespace InventoryManagement.UnitTests.TestData
 
         public static UpdateUOMCommand ValidUpdateCommand(
             int id = 1,
+            string code = "KG",
             string name = "Kilogram Updated",
+            int uomTypeId = 1,
             int sortOrder = 1) =>
             new UpdateUOMCommand
             {
                 Id = id,
+                Code = code,
                 UOMName = name,
+                UOMTypeId = uomTypeId,
                 SortOrder = sortOrder,
                 IsActive = 1
             };

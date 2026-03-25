@@ -26,6 +26,11 @@ namespace ProjectManagement.UnitTests.Validators.MiscTypeMaster
         [Fact]
         public async Task Validate_ZeroId_FailsValidation()
         {
+            // All rule chains run independently in FluentValidation (separate RuleFor calls),
+            // so async rules are still invoked even when NotEmpty fails for Id = 0.
+            _mockQueryRepo.Setup(r => r.SoftDeleteValidation(0)).ReturnsAsync(false);
+            _mockQueryRepo.Setup(r => r.NotFoundAsync(0)).ReturnsAsync(false);
+
             var result = await CreateValidator().TestValidateAsync(new DeleteMiscTypeMasterCommand { Id = 0 });
 
             result.ShouldHaveValidationErrorFor(x => x.Id);

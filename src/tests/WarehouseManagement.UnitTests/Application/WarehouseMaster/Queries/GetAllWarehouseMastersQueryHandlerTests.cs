@@ -50,7 +50,7 @@ namespace WarehouseManagement.UnitTests.Application.WarehouseMaster.Queries
         {
             SetupLookups();
             var dtos = new List<WarehouseMasterDto> { WarehouseMasterBuilders.ValidDto() };
-            _mockQueryRepo.Setup(r => r.GetAllAsync(1, 10, null)).ReturnsAsync((dtos, 1));
+            _mockQueryRepo.Setup(r => r.GetAllAsync(1, 10, null!)).ReturnsAsync((dtos, 1));
             _mockMapper.Setup(m => m.Map<List<WarehouseMasterDto>>(It.IsAny<object>()))
                 .Returns(new List<WarehouseMasterDto> { WarehouseMasterBuilders.ValidDto() });
 
@@ -65,7 +65,7 @@ namespace WarehouseManagement.UnitTests.Application.WarehouseMaster.Queries
         public async Task Handle_EmptyResult_ReturnsSuccess()
         {
             SetupLookups();
-            _mockQueryRepo.Setup(r => r.GetAllAsync(1, 10, null))
+            _mockQueryRepo.Setup(r => r.GetAllAsync(1, 10, null!))
                 .ReturnsAsync((new List<WarehouseMasterDto>(), 0));
             _mockMapper.Setup(m => m.Map<List<WarehouseMasterDto>>(It.IsAny<object>()))
                 .Returns(new List<WarehouseMasterDto>());

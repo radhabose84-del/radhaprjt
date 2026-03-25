@@ -40,7 +40,7 @@ namespace PurchaseManagement.UnitTests.Application.ServiceMaster.Queries
                 .Returns<object>(src => src as List<ServiceMasterAutoCompleteDto> ?? new List<ServiceMasterAutoCompleteDto>());
 
             _mockUomLookup
-                .Setup(u => u.GetByIdsAsync(It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))
+                .Setup(u => u.GetAllAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new List<UOMLookupDto>());
 
             _mockHsnLookup

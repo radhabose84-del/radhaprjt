@@ -22,6 +22,9 @@ namespace PurchaseManagement.UnitTests.Application.TnCTemplateMaster.Queries
             _mockQueryRepo
                 .Setup(r => r.GetByIdAsync(1))
                 .ReturnsAsync(dto);
+            _mockMapper
+                .Setup(m => m.Map<PurchaseManagement.Application.TnCTemplateMaster.Queries.GetAllTnCTemplateMaster.TncTemplateMasterDto>(It.IsAny<object>()))
+                .Returns(dto);
 
             var result = await CreateSut().Handle(
                 new GetTncTemplateByIdQuery { Id = 1 }, CancellationToken.None);
@@ -64,7 +67,7 @@ namespace PurchaseManagement.UnitTests.Application.TnCTemplateMaster.Queries
         {
             _mockQueryRepo
                 .Setup(r => r.GetByIdAsync(99))
-                .ReturnsAsync((PurchaseManagement.Application.TnCTemplateMaster.Queries.GetAllTnCTemplateMaster.TncTemplateMasterDto?)null);
+                .ReturnsAsync((PurchaseManagement.Application.TnCTemplateMaster.Queries.GetAllTnCTemplateMaster.TncTemplateMasterDto)null!);
 
             var result = await CreateSut().Handle(
                 new GetTncTemplateByIdQuery { Id = 99 }, CancellationToken.None);

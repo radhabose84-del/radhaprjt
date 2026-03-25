@@ -25,7 +25,7 @@ namespace ProjectManagement.UnitTests.Application.MiscTypeMaster.Commands
             var entity = MiscTypeMasterBuilders.ValidEntity();
 
             _mockQueryRepo
-                .Setup(r => r.GetByMiscTypeMasterCodeAsync(command.MiscTypeCode, command.Id))
+                .Setup(r => r.GetByMiscTypeMasterCodeAsync(command.MiscTypeCode!, command.Id))
                 .ReturnsAsync((ProjectManagement.Domain.Entities.MiscTypeMaster?)null);
 
             _mockMapper
@@ -49,7 +49,7 @@ namespace ProjectManagement.UnitTests.Application.MiscTypeMaster.Commands
             var existing = MiscTypeMasterBuilders.ValidEntity(id: 99);
 
             _mockQueryRepo
-                .Setup(r => r.GetByMiscTypeMasterCodeAsync(command.MiscTypeCode, command.Id))
+                .Setup(r => r.GetByMiscTypeMasterCodeAsync(command.MiscTypeCode!, command.Id))
                 .ReturnsAsync(existing);
 
             var sut = CreateSut();
@@ -66,7 +66,7 @@ namespace ProjectManagement.UnitTests.Application.MiscTypeMaster.Commands
             var entity = MiscTypeMasterBuilders.ValidEntity();
 
             _mockQueryRepo
-                .Setup(r => r.GetByMiscTypeMasterCodeAsync(command.MiscTypeCode, command.Id))
+                .Setup(r => r.GetByMiscTypeMasterCodeAsync(command.MiscTypeCode!, command.Id))
                 .ReturnsAsync((ProjectManagement.Domain.Entities.MiscTypeMaster?)null);
 
             _mockMapper
@@ -90,7 +90,7 @@ namespace ProjectManagement.UnitTests.Application.MiscTypeMaster.Commands
             var entity = MiscTypeMasterBuilders.ValidEntity();
 
             _mockQueryRepo
-                .Setup(r => r.GetByMiscTypeMasterCodeAsync(command.MiscTypeCode, command.Id))
+                .Setup(r => r.GetByMiscTypeMasterCodeAsync(command.MiscTypeCode!, command.Id))
                 .ReturnsAsync((ProjectManagement.Domain.Entities.MiscTypeMaster?)null);
 
             _mockMapper

@@ -8,8 +8,9 @@ namespace ProjectManagement.UnitTests.Validators.ProjectWorkBreakdownStructure
 {
     public sealed class UpdateProjectWBSCommandValidatorTests
     {
+        // Use Loose so that MustAsync calls with unexpected names don't throw
         private readonly Mock<IProjectWorkBreakdownStructureCommandRepository> _mockRepo =
-            new(MockBehavior.Strict);
+            new(MockBehavior.Loose);
 
         private UpdateProjectWorkBreakdownStructureCommandValidator CreateValidator() =>
             new(_mockRepo.Object);
@@ -56,6 +57,8 @@ namespace ProjectManagement.UnitTests.Validators.ProjectWorkBreakdownStructure
         public async Task Validate_EmptyWbsName_FailsValidation()
         {
             var cmd = ProjectWorkBreakdownStructureBuilders.ValidUpdateCommand(wbsName: "");
+            // MustAsync is chained on WorkBreakdownStructureName and runs even when NotEmpty fails.
+            // Loose mock returns false (default Task<bool>) so validator continues without throwing.
 
             var result = await CreateValidator().TestValidateAsync(cmd);
 

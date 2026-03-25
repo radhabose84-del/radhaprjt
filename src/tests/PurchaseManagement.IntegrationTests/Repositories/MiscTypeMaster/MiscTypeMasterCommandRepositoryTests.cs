@@ -30,6 +30,8 @@ namespace PurchaseManagement.IntegrationTests.Repositories.MiscTypeMaster
 
         private async Task ClearTableAsync(PurchaseManagement.Infrastructure.Data.ApplicationDbContext ctx)
         {
+            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Purchase.PortMaster");
+            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Purchase.MiscMaster");
             await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Purchase].[MiscTypeMaster]");
         }
 

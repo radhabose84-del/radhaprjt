@@ -30,6 +30,10 @@ namespace PurchaseManagement.UnitTests.Application.TnCTemplateMaster.Commands
                 .Setup(m => m.Map<PurchaseManagement.Domain.Entities.TnCTemplateMaster>(It.IsAny<object>()))
                 .Returns(entity);
 
+            _mockMapper
+                .Setup(m => m.Map<List<PurchaseManagement.Domain.Entities.TnCTemplateApplicability>>(It.IsAny<object>()))
+                .Returns(new List<PurchaseManagement.Domain.Entities.TnCTemplateApplicability>());
+
             _mockCommandRepo
                 .Setup(r => r.UpdateAsync(It.IsAny<PurchaseManagement.Domain.Entities.TnCTemplateMaster>(),
                     It.IsAny<List<PurchaseManagement.Domain.Entities.TnCTemplateApplicability>?>()))

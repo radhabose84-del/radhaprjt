@@ -33,7 +33,7 @@ namespace BudgetManagement.UnitTests.Validators.BudgetRequest
                     It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int?>(),
                     It.IsAny<int?>(), It.IsAny<int?>(), It.IsAny<int?>(),
                     It.IsAny<CancellationToken>()))
-                .ReturnsAsync(false);
+                .ReturnsAsync(true);
 
             _mockCommandRepo
                 .Setup(r => r.ExistsOpexAsync(

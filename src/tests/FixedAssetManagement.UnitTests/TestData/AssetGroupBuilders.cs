@@ -10,7 +10,7 @@ namespace FixedAssetManagement.UnitTests.TestData
     {
         public static CreateAssetGroupCommand ValidCreateCommand(
             string code = "AG001",
-            string groupName = "Test Asset Group") =>
+            string groupName = "TestAssetGroup") =>
             new CreateAssetGroupCommand
             {
                 Code = code,
@@ -20,7 +20,7 @@ namespace FixedAssetManagement.UnitTests.TestData
 
         public static UpdateAssetGroupCommand ValidUpdateCommand(
             int id = 1,
-            string groupName = "Updated Asset Group") =>
+            string groupName = "UpdatedAssetGroup") =>
             new UpdateAssetGroupCommand
             {
                 Id = id,

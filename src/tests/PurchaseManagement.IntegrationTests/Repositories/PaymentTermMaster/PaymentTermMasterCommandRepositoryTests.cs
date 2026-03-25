@@ -37,6 +37,7 @@ namespace PurchaseManagement.IntegrationTests.Repositories.PaymentTermMaster
         {
             await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Purchase.PaymentTermInstallment");
             await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Purchase.PaymentTermMaster");
+            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Purchase.PortMaster");
             await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Purchase.MiscMaster");
             await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Purchase.MiscTypeMaster");
         }

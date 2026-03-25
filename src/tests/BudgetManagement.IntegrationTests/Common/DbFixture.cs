@@ -85,6 +85,64 @@ IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'Budget')
 ");
         }
 
+        /// <summary>Seeds MiscTypeMaster(1), MiscMaster(1), BudgetGroup(1) as FK prerequisites.
+        /// Call from ClearTableAsync in test classes that depend on these records.</summary>
+        public async Task SeedPrerequisiteDataAsync()
+        {
+            await using var conn = new SqlConnection(TestDbConnection);
+            await conn.OpenAsync();
+
+            // 1. MiscTypeMaster — prerequisite for MiscMaster
+            await conn.ExecuteAsync(@"
+SET IDENTITY_INSERT Budget.MiscTypeMaster ON;
+IF NOT EXISTS (SELECT 1 FROM Budget.MiscTypeMaster WHERE Id = 1)
+    INSERT INTO Budget.MiscTypeMaster
+        (Id, MiscTypeCode, Description, IsActive, IsDeleted,
+         CreatedBy, CreatedByName, CreatedIP)
+    VALUES
+        (1, 'TEST', 'Test Type', 1, 0,
+         1, 'test-user', '127.0.0.1');
+SET IDENTITY_INSERT Budget.MiscTypeMaster OFF;
+");
+
+            // 2. MiscMaster — FK target for RequestTypeId / RequestById / RequestMonthId / AllocationTypeId
+            //    Seed Id=1,2,3 to support tests that use requestById values of 1, 2 or 3
+            await conn.ExecuteAsync(@"
+SET IDENTITY_INSERT Budget.MiscMaster ON;
+IF NOT EXISTS (SELECT 1 FROM Budget.MiscMaster WHERE Id = 1)
+    INSERT INTO Budget.MiscMaster
+        (Id, MiscTypeId, Code, description, sortOrder, IsActive, IsDeleted,
+         CreatedBy, CreatedByName, CreatedIP)
+    VALUES (1, 1, 'TEST1', 'Test Misc 1', 0, 1, 0, 1, 'test-user', '127.0.0.1');
+IF NOT EXISTS (SELECT 1 FROM Budget.MiscMaster WHERE Id = 2)
+    INSERT INTO Budget.MiscMaster
+        (Id, MiscTypeId, Code, description, sortOrder, IsActive, IsDeleted,
+         CreatedBy, CreatedByName, CreatedIP)
+    VALUES (2, 1, 'TEST2', 'Test Misc 2', 0, 1, 0, 1, 'test-user', '127.0.0.1');
+IF NOT EXISTS (SELECT 1 FROM Budget.MiscMaster WHERE Id = 3)
+    INSERT INTO Budget.MiscMaster
+        (Id, MiscTypeId, Code, description, sortOrder, IsActive, IsDeleted,
+         CreatedBy, CreatedByName, CreatedIP)
+    VALUES (3, 1, 'TEST3', 'Test Misc 3', 0, 1, 0, 1, 'test-user', '127.0.0.1');
+SET IDENTITY_INSERT Budget.MiscMaster OFF;
+");
+
+            // 3. BudgetGroup — FK target for BudgetGroupId
+            await conn.ExecuteAsync(@"
+SET IDENTITY_INSERT Budget.BudgetGroup ON;
+IF NOT EXISTS (SELECT 1 FROM Budget.BudgetGroup WHERE Id = 1)
+    INSERT INTO Budget.BudgetGroup
+        (Id, Name, UnitId, DepartmentId, CostCenterId, CurrencyId,
+         IsParent, CarryForward, IsActive, IsDeleted,
+         CreatedBy, CreatedByName, CreatedIP, CreatedDate)
+    VALUES
+        (1, 'Test Group', 1, 1, 1, 1,
+         0, 0, 1, 0,
+         1, 'test-user', '127.0.0.1', SYSDATETIMEOFFSET());
+SET IDENTITY_INSERT Budget.BudgetGroup OFF;
+");
+        }
+
         public Mock<IIPAddressService> IpMock => _ip;
         public Mock<ITimeZoneService> TzMock => _tz;
 

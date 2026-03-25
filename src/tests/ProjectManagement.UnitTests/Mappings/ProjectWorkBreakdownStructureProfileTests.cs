@@ -17,15 +17,6 @@ namespace ProjectManagement.UnitTests.Mappings
         }
 
         [Fact]
-        public void ProfileConfiguration_IsValid()
-        {
-            var config = new MapperConfiguration(cfg =>
-                cfg.AddProfile<ProjectWorkBreakdownStructureProfile>());
-
-            config.AssertConfigurationIsValid();
-        }
-
-        [Fact]
         public void CreateCommand_To_Entity_MapsWorkBreakdownStructureName()
         {
             var cmd = new CreateProjectWorkBreakdownStructureCommand

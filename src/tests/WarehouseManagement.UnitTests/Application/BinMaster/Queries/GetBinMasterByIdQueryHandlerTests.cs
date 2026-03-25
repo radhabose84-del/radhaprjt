@@ -52,7 +52,7 @@ namespace WarehouseManagement.UnitTests.Application.BinMaster.Queries
         [Fact]
         public async Task Handle_NotFound_ThrowsValidationException()
         {
-            _mockBinRepo.Setup(r => r.GetByIdAsync(999)).ReturnsAsync((BinMasterDto?)null);
+            _mockBinRepo.Setup(r => r.GetByIdAsync(999)).ReturnsAsync((BinMasterDto)null!);
 
             Func<Task> act = async () => await CreateSut().Handle(new GetBinMasterByIdQuery { Id = 999 }, CancellationToken.None);
 

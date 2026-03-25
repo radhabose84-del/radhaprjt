@@ -38,8 +38,11 @@ namespace BudgetManagement.IntegrationTests.Repositories.BudgetAllocation
                 IsDeleted = IsDelete.NotDeleted
             };
 
-        private async Task ClearTableAsync(BudgetManagement.Infrastructure.Data.ApplicationDbContext ctx) =>
+        private async Task ClearTableAsync(BudgetManagement.Infrastructure.Data.ApplicationDbContext ctx)
+        {
             await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Budget.BudgetAllocation");
+            await _fixture.SeedPrerequisiteDataAsync();
+        }
 
         // --- CREATE ---
 
@@ -94,6 +97,7 @@ namespace BudgetManagement.IntegrationTests.Repositories.BudgetAllocation
             await using var ctx = _fixture.CreateFreshDbContext();
             await ClearTableAsync(ctx);
             var newId = await CreateRepository(ctx).CreateAsync(BuildEntity(approvedAmount: 50000m));
+            ctx.ChangeTracker.Clear();
 
             var result = await CreateRepository(ctx).UpdateRemainingBalanceAsync(newId, 30000m, CancellationToken.None);
 

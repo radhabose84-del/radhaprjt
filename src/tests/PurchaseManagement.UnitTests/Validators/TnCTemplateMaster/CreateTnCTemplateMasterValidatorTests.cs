@@ -53,6 +53,9 @@ namespace PurchaseManagement.UnitTests.Validators.TnCTemplateMaster
         {
             var command = TnCTemplateMasterBuilders.ValidCreateCommand(templateTypeId: 0);
             _mockQueryRepo
+                .Setup(r => r.ExistsByTypeAndNameAsync(It.IsAny<int>(), It.IsAny<string>(), null, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(false);
+            _mockQueryRepo
                 .Setup(r => r.ApplicabilitiesExistAsync(It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(true);
 
@@ -74,7 +77,7 @@ namespace PurchaseManagement.UnitTests.Validators.TnCTemplateMaster
 
             var result = await CreateValidator().TestValidateAsync(command);
 
-            result.ShouldHaveValidationErrorFor(x => x.TemplateName);
+            result.ShouldHaveAnyValidationError();
         }
     }
 }

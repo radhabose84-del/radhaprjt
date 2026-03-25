@@ -34,7 +34,7 @@ namespace PurchaseManagement.UnitTests.Application.PaymentTermMaster.Queries
         {
             _mockQueryRepo
                 .Setup(r => r.GetPaymentTermAutoComplete(null, null))
-                .ReturnsAsync((List<AutoCompleteDto>?)null);
+                .ReturnsAsync((List<AutoCompleteDto>)null!);
 
             var result = await CreateSut().Handle(
                 new GetPaymentTermAutoCompleteQuery { SearchPattern = null, PaymentTermCode = null },

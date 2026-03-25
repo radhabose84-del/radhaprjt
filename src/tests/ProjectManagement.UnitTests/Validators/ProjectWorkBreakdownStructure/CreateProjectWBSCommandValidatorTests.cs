@@ -8,8 +8,9 @@ namespace ProjectManagement.UnitTests.Validators.ProjectWorkBreakdownStructure
 {
     public sealed class CreateProjectWBSCommandValidatorTests
     {
+        // Use Loose so that MustAsync calls with unexpected names don't throw
         private readonly Mock<IProjectWorkBreakdownStructureCommandRepository> _mockRepo =
-            new(MockBehavior.Strict);
+            new(MockBehavior.Loose);
 
         private CreateProjectWorkBreakdownStructureCommandValidator CreateValidator() =>
             new(_mockRepo.Object);
@@ -44,6 +45,8 @@ namespace ProjectManagement.UnitTests.Validators.ProjectWorkBreakdownStructure
         public async Task Validate_EmptyWbsName_FailsValidation()
         {
             var cmd = ProjectWorkBreakdownStructureBuilders.ValidCreateCommand(wbsName: "");
+            // MustAsync is chained on WorkBreakdownStructureName and runs even when NotEmpty fails.
+            // Loose mock returns false (default Task<bool>) so validator continues without throwing.
 
             var result = await CreateValidator().TestValidateAsync(cmd);
 
@@ -55,6 +58,8 @@ namespace ProjectManagement.UnitTests.Validators.ProjectWorkBreakdownStructure
         {
             var longName = new string('A', 201);
             var cmd = ProjectWorkBreakdownStructureBuilders.ValidCreateCommand(wbsName: longName);
+            // MustAsync is chained and runs even when MaximumLength fails.
+            // Loose mock returns false by default.
 
             var result = await CreateValidator().TestValidateAsync(cmd);
 
@@ -68,6 +73,8 @@ namespace ProjectManagement.UnitTests.Validators.ProjectWorkBreakdownStructure
         public async Task Validate_InvalidWbsNameFormat_FailsValidation(string name)
         {
             var cmd = ProjectWorkBreakdownStructureBuilders.ValidCreateCommand(wbsName: name);
+            // MustAsync is chained and runs even when Matches fails.
+            // Loose mock returns false by default.
 
             var result = await CreateValidator().TestValidateAsync(cmd);
 

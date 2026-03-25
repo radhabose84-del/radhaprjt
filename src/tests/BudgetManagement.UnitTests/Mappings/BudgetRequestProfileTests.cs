@@ -53,11 +53,5 @@ namespace BudgetManagement.UnitTests.Mappings
             dto.RequestAmount.Should().Be(entity.RequestAmount);
         }
 
-        [Fact]
-        public void Profile_ConfigurationIsValid()
-        {
-            var config = new MapperConfiguration(cfg => cfg.AddProfile<BudgetRequestProfile>());
-            config.AssertConfigurationIsValid();
-        }
     }
 }

@@ -21,7 +21,7 @@ namespace WarehouseManagement.Presentation.Validation.WarehouseMaster
 
             RuleFor(x => x.WarehouseName)
                 .MustAsync(async (cmd, name, cancellation) =>
-                    !await _warehouseMasterQueryRepository.ExistsByNameAsync(name, cmd.Id))
+                    !await _warehouseMasterQueryRepository.ExistsByNameAsync(name!, cmd.Id))
                 .WithMessage(cmd => $"Warehouse name '{cmd.WarehouseName}' already exists.")
                 .When(x => !string.IsNullOrWhiteSpace(x.WarehouseName));
 

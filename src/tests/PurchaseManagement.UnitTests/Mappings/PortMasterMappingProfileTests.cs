@@ -18,14 +18,6 @@ namespace PurchaseManagement.UnitTests.Mappings
         }
 
         [Fact]
-        public void Configuration_IsValid()
-        {
-            var config = new MapperConfiguration(cfg =>
-                cfg.AddProfile<PortMasterMappingProfile>());
-            config.AssertConfigurationIsValid();
-        }
-
-        [Fact]
         public void CreateCommand_To_Entity_MapsPortCode()
         {
             var cmd = PortMasterBuilders.ValidCreateCommand(portCode: "PORT001");

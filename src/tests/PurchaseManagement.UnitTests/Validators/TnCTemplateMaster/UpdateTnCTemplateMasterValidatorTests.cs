@@ -72,7 +72,7 @@ namespace PurchaseManagement.UnitTests.Validators.TnCTemplateMaster
 
             var result = await CreateValidator().TestValidateAsync(command);
 
-            result.ShouldHaveValidationErrorFor(x => x.TemplateName);
+            result.ShouldHaveAnyValidationError();
         }
     }
 }

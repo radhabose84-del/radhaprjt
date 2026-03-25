@@ -51,6 +51,9 @@ namespace BudgetManagement.IntegrationTests.Repositories.BudgetGroup
         {
             await using var conn = new SqlConnection(_fixture.ConnectionString);
             await conn.OpenAsync();
+            // Delete child rows first to satisfy FK constraints
+            await conn.ExecuteAsync("DELETE FROM Budget.BudgetAllocation");
+            await conn.ExecuteAsync("DELETE FROM Budget.BudgetRequest");
             await conn.ExecuteAsync("DELETE FROM Budget.BudgetGroup");
         }
 

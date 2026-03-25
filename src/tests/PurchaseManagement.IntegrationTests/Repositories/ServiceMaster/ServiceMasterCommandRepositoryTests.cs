@@ -156,7 +156,7 @@ namespace PurchaseManagement.IntegrationTests.Repositories.ServiceMaster
             var created = await CreateRepository(ctx).CreateAsync(BuildEntity(), CancellationToken.None);
             ctx.ChangeTracker.Clear();
 
-            var entityToDelete = new PurchaseManagement.Domain.Entities.ServiceMaster { Id = created.Id };
+            var entityToDelete = new PurchaseManagement.Domain.Entities.ServiceMaster { Id = created.Id, IsDeleted = IsDelete.Deleted };
             await CreateRepository(ctx).SoftDeleteAsync(entityToDelete, CancellationToken.None);
             ctx.ChangeTracker.Clear();
 

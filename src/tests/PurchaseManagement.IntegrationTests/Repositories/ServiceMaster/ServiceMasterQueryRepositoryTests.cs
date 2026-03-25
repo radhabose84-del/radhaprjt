@@ -123,7 +123,7 @@ namespace PurchaseManagement.IntegrationTests.Repositories.ServiceMaster
             var created = await SeedServiceAsync(ctx, catId);
             ctx.ChangeTracker.Clear();
 
-            var entityToDelete = new PurchaseManagement.Domain.Entities.ServiceMaster { Id = created.Id };
+            var entityToDelete = new PurchaseManagement.Domain.Entities.ServiceMaster { Id = created.Id, IsDeleted = PurchaseManagement.Domain.Common.BaseEntity.IsDelete.Deleted };
             await CreateCommandRepo(ctx).SoftDeleteAsync(entityToDelete, CancellationToken.None);
 
             var (items, total) = await CreateQueryRepo().GetAllServiceMasterAsync(1, 10, null);

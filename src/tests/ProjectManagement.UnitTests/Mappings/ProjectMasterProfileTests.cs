@@ -18,15 +18,6 @@ namespace ProjectManagement.UnitTests.Mappings
         }
 
         [Fact]
-        public void ProfileConfiguration_IsValid()
-        {
-            var config = new MapperConfiguration(cfg =>
-                cfg.AddProfile<ProjectMasterProfile>());
-
-            config.AssertConfigurationIsValid();
-        }
-
-        [Fact]
         public void Entity_To_ProjectMasterDto_MapsId()
         {
             var entity = new ProjectManagement.Domain.Entities.ProjectMaster

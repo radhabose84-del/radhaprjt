@@ -5,6 +5,7 @@ using ProjectManagement.Application.Common.Interfaces.IProjectWorkBreakdownStruc
 using ProjectManagement.Application.ProjectWorkBreakdownStructure.Queries.Dtos;
 using ProjectManagement.Application.ProjectWorkBreakdownStructure.Queries.GetById;
 using ProjectManagement.Application.ProjectWorkBreakdownStructure.Queries.GetWBSById;
+using ProjectManagement.Domain.Events;
 using ProjectManagement.UnitTests.TestData;
 
 namespace ProjectManagement.UnitTests.Application.ProjectWorkBreakdownStructure.Queries
@@ -43,7 +44,7 @@ namespace ProjectManagement.UnitTests.Application.ProjectWorkBreakdownStructure.
                 .ReturnsAsync(new List<Contracts.Dtos.Lookups.Maintenance.CostCenterLookupDto>());
             _mockCurrencyLookup.Setup(x => x.GetByIdsAsync(It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync((IReadOnlyList<Contracts.Dtos.Lookups.Users.CurrencyLookupDto>)new List<Contracts.Dtos.Lookups.Users.CurrencyLookupDto>());
-            _mockMediator.Setup(m => m.Publish(It.IsAny<object>(), It.IsAny<CancellationToken>()))
+            _mockMediator.Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);
         }
 
@@ -98,7 +99,7 @@ namespace ProjectManagement.UnitTests.Application.ProjectWorkBreakdownStructure.
                 CancellationToken.None);
 
             _mockMediator.Verify(
-                m => m.Publish(It.IsAny<object>(), It.IsAny<CancellationToken>()),
+                m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>()),
                 Times.Once);
         }
     }

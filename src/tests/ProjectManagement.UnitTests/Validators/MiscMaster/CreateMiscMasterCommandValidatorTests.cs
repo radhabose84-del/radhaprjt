@@ -10,26 +10,17 @@ namespace ProjectManagement.UnitTests.Validators.MiscMaster
     public sealed class CreateMiscMasterCommandValidatorTests
     {
         private readonly Mock<IMiscMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
-        private readonly Mock<MaxLengthProvider> _mockMaxLengthProvider;
-
-        public CreateMiscMasterCommandValidatorTests()
-        {
-            _mockMaxLengthProvider = new Mock<MaxLengthProvider>(MockBehavior.Strict, new object[] { null! });
-            _mockMaxLengthProvider
-                .Setup(m => m.GetMaxLength<ProjectManagement.Domain.Entities.MiscMaster>("Code"))
-                .Returns(50);
-            _mockMaxLengthProvider
-                .Setup(m => m.GetMaxLength<ProjectManagement.Domain.Entities.MiscMaster>("Description"))
-                .Returns(250);
-        }
+        // MaxLengthProvider.GetMaxLength is not virtual — use a real instance with null dbContext
+        // so _model is null and GetMaxLength returns null → validator uses fallback values (?? 50 / ?? 250)
+        private readonly MaxLengthProvider _maxLengthProvider = new(null!);
 
         private CreateMiscMasterCommandValidator CreateValidator() =>
-            new(_mockQueryRepo.Object, _mockMaxLengthProvider.Object);
+            new(_mockQueryRepo.Object, _maxLengthProvider);
 
         private void SetupAllAsyncMocks()
         {
             _mockQueryRepo
-                .Setup(r => r.AlreadyExistsAsync(It.IsAny<string?>(), It.IsAny<int>(), null))
+                .Setup(r => r.AlreadyExistsAsync(It.IsAny<string>(), It.IsAny<int>(), null))
                 .ReturnsAsync(false);
         }
 

@@ -10,26 +10,17 @@ namespace ProjectManagement.UnitTests.Validators.MiscMaster
     public sealed class UpdateMiscMasterCommandValidatorTests
     {
         private readonly Mock<IMiscMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
-        private readonly Mock<MaxLengthProvider> _mockMaxLengthProvider;
-
-        public UpdateMiscMasterCommandValidatorTests()
-        {
-            _mockMaxLengthProvider = new Mock<MaxLengthProvider>(MockBehavior.Strict, new object[] { null! });
-            _mockMaxLengthProvider
-                .Setup(m => m.GetMaxLength<ProjectManagement.Domain.Entities.MiscMaster>("Code"))
-                .Returns(50);
-            _mockMaxLengthProvider
-                .Setup(m => m.GetMaxLength<ProjectManagement.Domain.Entities.MiscMaster>("Description"))
-                .Returns(250);
-        }
+        // MaxLengthProvider.GetMaxLength is not virtual — use a real instance with null dbContext
+        // so _model is null and GetMaxLength returns null → validator uses fallback values (?? 50 / ?? 250)
+        private readonly MaxLengthProvider _maxLengthProvider = new(null!);
 
         private UpdateMiscMasterCommandValidator CreateValidator() =>
-            new(_mockQueryRepo.Object, _mockMaxLengthProvider.Object);
+            new(_mockQueryRepo.Object, _maxLengthProvider);
 
         private void SetupAllAsyncMocks(int id = 1)
         {
             _mockQueryRepo
-                .Setup(r => r.AlreadyExistsAsync(It.IsAny<string?>(), It.IsAny<int>(), id))
+                .Setup(r => r.AlreadyExistsAsync(It.IsAny<string>(), It.IsAny<int>(), id))
                 .ReturnsAsync(false);
             _mockQueryRepo
                 .Setup(r => r.NotFoundAsync(id))
@@ -67,7 +58,7 @@ namespace ProjectManagement.UnitTests.Validators.MiscMaster
         public async Task Validate_NotFound_FailsValidation()
         {
             _mockQueryRepo
-                .Setup(r => r.AlreadyExistsAsync(It.IsAny<string?>(), It.IsAny<int>(), 1))
+                .Setup(r => r.AlreadyExistsAsync(It.IsAny<string>(), It.IsAny<int>(), 1))
                 .ReturnsAsync(false);
             _mockQueryRepo
                 .Setup(r => r.NotFoundAsync(1))

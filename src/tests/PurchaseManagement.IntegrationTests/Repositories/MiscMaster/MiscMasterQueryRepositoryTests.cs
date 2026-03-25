@@ -57,6 +57,7 @@ namespace PurchaseManagement.IntegrationTests.Repositories.MiscMaster
         private async Task ClearTablesAsync()
         {
             await using var ctx = _fixture.CreateFreshDbContext();
+            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Purchase.PortMaster");
             await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Purchase.MiscMaster");
             await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Purchase.MiscTypeMaster");
         }

@@ -25,6 +25,10 @@ namespace ProjectManagement.UnitTests.Validators.MiscMaster
         [Fact]
         public async Task Validate_ZeroId_FailsValidation()
         {
+            // All rule chains run independently in FluentValidation (separate RuleFor calls),
+            // so NotFoundAsync is still invoked even when NotEmpty fails for Id = 0.
+            _mockQueryRepo.Setup(r => r.NotFoundAsync(0)).ReturnsAsync(false);
+
             var result = await CreateValidator().TestValidateAsync(new DeleteMiscMasterCommand { Id = 0 });
 
             result.ShouldHaveValidationErrorFor(x => x.Id);
