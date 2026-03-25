@@ -9,10 +9,12 @@ using GateEntryManagement.Application.Common.Interfaces;
 using GateEntryManagement.Application.Common.Interfaces.AuditLog;
 using GateEntryManagement.Application.Common.Interfaces.IMiscMaster;
 using GateEntryManagement.Application.Common.Interfaces.IMiscTypeMaster;
+using GateEntryManagement.Application.Common.Interfaces.IVehicleMovementRecord;
 using GateEntryManagement.Infrastructure.Data;
 using GateEntryManagement.Infrastructure.Persistence;
 using GateEntryManagement.Infrastructure.Repositories.AuditLog;
 using GateEntryManagement.Infrastructure.Repositories.MiscMaster;
+using GateEntryManagement.Infrastructure.Repositories.VehicleMovementRecord;
 using GateEntryManagement.Infrastructure.Repositories.MiscTypeMaster;
 using GateEntryManagement.Infrastructure.Services;
 using Serilog;
@@ -96,6 +98,10 @@ namespace GateEntryManagement.Infrastructure
             // ── Misc Master Repositories ──────────────────────────────────
             services.AddScoped<IMiscMasterCommandRepository, MiscMasterCommandRepository>();
             services.AddScoped<IMiscMasterQueryRepository, MiscMasterQueryRepository>();
+
+            // ── Vehicle Movement Record Repositories ──────────────────────
+            services.AddScoped<IVehicleMovementRecordCommandRepository, VehicleMovementRecordCommandRepository>();
+            services.AddScoped<IVehicleMovementRecordQueryRepository, VehicleMovementRecordQueryRepository>();
 
             return services;
         }
