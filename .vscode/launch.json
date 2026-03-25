@@ -3,7 +3,8 @@
   "compounds": [
     {
       "name": "Api + Worker",
-      "configurations": ["BSOFT.Api", "BSOFT.Worker"]
+      "configurations": ["BSOFT.Api", "BSOFT.Worker"],
+      "preLaunchTask": "build-api"
     }
   ],
   "configurations": [
@@ -11,6 +12,7 @@
       "name": "BSOFT.Api",
       "type": "coreclr",
       "request": "launch",
+      "preLaunchTask": "build-api",
       "program": "${workspaceFolder}/src/BSOFT.Api/bin/Debug/net8.0/BSOFT.Api.dll",
       "args": [],
       "cwd": "${workspaceFolder}/src/BSOFT.Api"
@@ -19,6 +21,7 @@
       "name": "BSOFT.Worker",
       "type": "coreclr",
       "request": "launch",
+      "preLaunchTask": "build-worker",
       "program": "${workspaceFolder}/src/BSOFT.Worker/bin/Debug/net8.0/BSOFT.Worker.dll",
       "args": [],
       "cwd": "${workspaceFolder}/src/BSOFT.Worker"
