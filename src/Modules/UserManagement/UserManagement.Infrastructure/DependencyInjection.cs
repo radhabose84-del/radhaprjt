@@ -42,6 +42,8 @@ using UserManagement.Infrastructure.Repositories.UserRoleAllocation.UserRoleAllo
 using UserManagement.Infrastructure.Repositories.UserRoles;
 using UserManagement.Infrastructure.Repositories.Users;
 using UserManagement.Infrastructure.Repositories.RoleItemGroupMapping;
+using UserManagement.Application.Common.Interfaces.IUserFavoriteMenu;
+using UserManagement.Infrastructure.Repositories.UserFavoriteMenu;
 using UserManagement.Infrastructure.Services;
 
 using UserManagement.Application.Common.Interfaces.IAdminSecuritySettings;
@@ -367,6 +369,9 @@ namespace UserManagement.Infrastructure
 
             services.AddScoped<IRoleItemGroupMappingCommandRepository, RoleItemGroupMappingCommandRepository>();
             services.AddScoped<IRoleItemGroupMappingQueryRepository, RoleItemGroupMappingQueryRepository>();
+
+            services.AddScoped<IUserFavoriteMenuCommandRepository, UserFavoriteMenuCommandRepository>();
+            services.AddScoped<IUserFavoriteMenuQueryRepository, UserFavoriteMenuQueryRepository>();
 
             // --------------------------
             // Services
