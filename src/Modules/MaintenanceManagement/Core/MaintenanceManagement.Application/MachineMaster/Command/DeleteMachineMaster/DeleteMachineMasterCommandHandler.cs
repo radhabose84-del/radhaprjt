@@ -24,15 +24,14 @@ namespace MaintenanceManagement.Application.MachineMaster.Command.DeleteMachineM
 
         public async Task<bool> Handle(DeleteMachineMasterCommand request, CancellationToken cancellationToken)
         {
-            var machineMaster = _imapper.Map<MaintenanceManagement.Domain.Entities.MachineMaster>(request);
-            var result = await _iMachineMasterCommandRepository.DeleteAsync(request.Id,machineMaster);
-          
-          var linked = await _machineQueryRepository.IsMachineLinkedAsync(request.Id);
+            var linked = await _machineQueryRepository.IsMachineLinkedAsync(request.Id);
             if (linked)
             {
                 throw new ValidationException("This master is linked with other records. You cannot delete this record.");
-
             }
+
+            var machineMaster = _imapper.Map<MaintenanceManagement.Domain.Entities.MachineMaster>(request);
+            var result = await _iMachineMasterCommandRepository.DeleteAsync(request.Id,machineMaster);
     
             //Domain Event
             var domainEvent = new AuditLogsDomainEvent(
