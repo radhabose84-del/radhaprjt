@@ -13,6 +13,14 @@ namespace PartyManagement.Application.PartyMaster.Queries.GetPartMasterAutoCompl
 
         public List<PartyAddressAutoCompleteDto>? PartyAddresses { get; set; }
         public List<PartyContactAutoCompleteDto>? PartyContacts { get; set; }
+        public List<SalesTypeAutoCompleteDto>? SalesTypes { get; set; }
+    }
+
+    public class SalesTypeAutoCompleteDto
+    {
+        public int Id { get; set; }
+        public int? SalesSegmentId { get; set; }
+        public string? SegmentName { get; set; }
     }
 
     public class PartyAddressAutoCompleteDto

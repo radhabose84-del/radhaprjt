@@ -79,9 +79,6 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     cl.Description AS CountListName,
                     h.Remarks,
                     h.VisitNotesAttachment, h.AgentPOAttachment,
-                    h.DispatchLocationType,
-                    dlt.Description AS DispatchLocationTypeName,
-                    h.DispatchDepotId, h.DispatchUnitId,
                     h.TotalBags, h.TotalWeightKgs, h.TotalDiscountPerKg,
                     h.ItemValue, h.TotalFreight, h.TaxableAmount,
                     h.GSTPercentage, h.TotalGST, h.TotalWithGST,
@@ -98,7 +95,6 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 LEFT JOIN Sales.MiscMaster pt ON h.PaymentTypeId = pt.Id AND pt.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster ft ON h.FreightTypeId = ft.Id AND ft.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster cl ON h.CountListId = cl.Id AND cl.IsDeleted = 0
-                LEFT JOIN Sales.MiscMaster dlt ON h.DispatchLocationType = dlt.Id AND dlt.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster st ON h.StatusId = st.Id AND st.IsDeleted = 0
                 WHERE h.IsDeleted = 0 {searchFilter}
                 ORDER BY h.Id DESC
@@ -133,16 +129,6 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 var paymentTerms = await _paymentTermLookup.GetAllPaymentTermAsync();
                 var ptDict = paymentTerms.ToDictionary(p => p.Id, p => p.Description);
 
-                // Dispatch depot (unit) names
-                var depotIds = list.Where(x => x.DispatchDepotId.HasValue).Select(x => x.DispatchDepotId!.Value).Distinct();
-                var depotUnits = depotIds.Any() ? await _unitLookup.GetByIdsAsync(depotIds) : [];
-                var whDict = depotUnits.ToDictionary(u => u.UnitId, u => u.UnitName);
-
-                // Dispatch unit names
-                var dispatchUnitIds = list.Where(x => x.DispatchUnitId.HasValue).Select(x => x.DispatchUnitId!.Value).Distinct();
-                var dispatchUnits = dispatchUnitIds.Any() ? await _unitLookup.GetByIdsAsync(dispatchUnitIds) : [];
-                var dispUnitDict = dispatchUnits.ToDictionary(u => u.UnitId, u => u.UnitName);
-
                 foreach (var item in list)
                 {
                     item.UnitName = unitDict.TryGetValue(item.UnitId, out var uName) ? uName : null;
@@ -150,12 +136,6 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     if (item.AgentId.HasValue)
                         item.AgentName = agentDict.TryGetValue(item.AgentId.Value, out var aName) ? aName : null;
                     item.PaymentTermsName = ptDict.TryGetValue(item.PaymentTermsId, out var ptName) ? ptName : null;
-
-                    if (item.DispatchDepotId.HasValue)
-                        item.DispatchDepotName = whDict.TryGetValue(item.DispatchDepotId.Value, out var dName) ? dName : null;
-
-                    if (item.DispatchUnitId.HasValue)
-                        item.DispatchUnitName = dispUnitDict.TryGetValue(item.DispatchUnitId.Value, out var duName) ? duName : null;
                 }
 
                 // Construct full attachment paths
@@ -197,9 +177,6 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     cl.Description AS CountListName,
                     h.Remarks,
                     h.VisitNotesAttachment, h.AgentPOAttachment,
-                    h.DispatchLocationType,
-                    dlt.Description AS DispatchLocationTypeName,
-                    h.DispatchDepotId, h.DispatchUnitId,
                     h.TotalBags, h.TotalWeightKgs, h.TotalDiscountPerKg,
                     h.ItemValue, h.TotalFreight, h.TaxableAmount,
                     h.GSTPercentage, h.TotalGST, h.TotalWithGST,
@@ -216,7 +193,6 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 LEFT JOIN Sales.MiscMaster pt ON h.PaymentTypeId = pt.Id AND pt.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster ft ON h.FreightTypeId = ft.Id AND ft.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster cl ON h.CountListId = cl.Id AND cl.IsDeleted = 0
-                LEFT JOIN Sales.MiscMaster dlt ON h.DispatchLocationType = dlt.Id AND dlt.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster st ON h.StatusId = st.Id AND st.IsDeleted = 0
                 WHERE h.Id = @Id AND h.IsDeleted = 0";
 
@@ -271,18 +247,6 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
 
             var paymentTerms = await _paymentTermLookup.GetAllPaymentTermAsync();
             header.PaymentTermsName = paymentTerms.FirstOrDefault(p => p.Id == header.PaymentTermsId)?.Description;
-
-            if (header.DispatchDepotId.HasValue)
-            {
-                var depotUnit = await _unitLookup.GetByIdAsync(header.DispatchDepotId.Value);
-                header.DispatchDepotName = depotUnit?.UnitName;
-            }
-
-            if (header.DispatchUnitId.HasValue)
-            {
-                var dispUnit = await _unitLookup.GetByIdAsync(header.DispatchUnitId.Value);
-                header.DispatchUnitName = dispUnit?.UnitName;
-            }
 
             // Construct full attachment paths
             if (!string.IsNullOrWhiteSpace(header.VisitNotesAttachment))
