@@ -31,22 +31,23 @@ namespace BackgroundService.Infrastructure.Repositories.Notification.Notificatio
         public async Task<List<GetNotificationDetailDto>> GetAllByUserIdAsync(string userId)
         {
             var UnitId = _ipAddressService.GetUnitId() ?? 0;
-            const string query = @" SELECT L.Id,NC.ModuleName,MM.Code  EventType,MM1.Code TargetType,MM2.Code ChannelName,
-                    ActionStatus, MM4.Code ReadStatus,MM4.Id ReadStatusId, MessageText, Timestamp, L.CreatedBy,L.CreatedDate, L.CreatedByName, L.CreatedIP, SendTo,
-                    L.Value
+            const string query = @"
+                    SELECT L.Id, NC.ModuleName, MM.Code AS EventType, MM1.Code AS TargetType, MM2.Code AS ChannelName,
+                    ActionStatus, MM4.Code AS ReadStatus, MM4.Id AS ReadStatusId, MessageText, Timestamp,
+                    L.CreatedBy, L.CreatedDate, L.CreatedByName, L.CreatedIP, SendTo, L.Value
                     FROM AppNotification.NotificationEventLog L
-                    INNER JOIN  AppNotification.NotificationEventRule NR on NR.Id=L.NotificationLevelRuleId
-                    INNER JOIN  AppNotification.NotificationLevelHierarchy NH  on NR.NotificationLevelHierarchyId=NH.Id 
-                    INNER JOIN AppData.MiscMaster MM2 on MM2.Id=NR.NotificationChannelId  
-                    INNER JOIN AppNotification.NotificationTemplate NT on NT.ID=NR.TemplateId  
-                    INNER JOIN AppNotification.NotificationConfig NC on NC.id=NH.NotificationConfigId  
-                    INNER JOIN AppData.MiscMaster MM on MM.id=NC.NotificationEventTypeId  
-                    INNER JOIN AppData.MiscMaster MM1 on MM1.id=NH.TargetTypeId  
-                    INNER JOIN AppData.MiscMaster MM4 on MM4.id=L.ReadStatusId
-                    where L.SendTo = @userId AND L.IsDeleted = 0 and L.UnitId = @UnitId
-                    ORDER BY L.Timestamp DESC ";
-      
-            var notifications = await _dbConnection.QueryAsync<GetNotificationDetailDto>(query, new { userId,UnitId });
+                    INNER JOIN AppNotification.NotificationEventRule NR ON NR.Id = L.NotificationLevelRuleId
+                    INNER JOIN AppNotification.NotificationLevelHierarchy NH ON NR.NotificationLevelHierarchyId = NH.Id
+                    INNER JOIN AppData.MiscMaster MM2 ON MM2.Id = NR.NotificationChannelId
+                    INNER JOIN AppNotification.NotificationTemplate NT ON NT.Id = NR.TemplateId
+                    INNER JOIN AppNotification.NotificationConfig NC ON NC.Id = NH.NotificationConfigId
+                    INNER JOIN AppData.MiscMaster MM ON MM.Id = NC.NotificationEventTypeId
+                    INNER JOIN AppData.MiscMaster MM1 ON MM1.Id = NH.TargetTypeId
+                    INNER JOIN AppData.MiscMaster MM4 ON MM4.Id = L.ReadStatusId
+                    WHERE CAST(L.SendTo AS NVARCHAR(500)) = @userId AND L.IsDeleted = 0 AND L.UnitId = @UnitId
+                    ORDER BY L.Timestamp DESC";
+
+            var notifications = await _dbConnection.QueryAsync<GetNotificationDetailDto>(query, new { userId, UnitId });
             return notifications.ToList();
         }
 
