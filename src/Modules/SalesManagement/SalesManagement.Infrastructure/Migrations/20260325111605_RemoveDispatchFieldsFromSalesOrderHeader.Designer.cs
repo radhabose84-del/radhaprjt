@@ -3,17 +3,20 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SalesManagement.Infrastructure.Data;
 
 #nullable disable
 
-namespace SalesManagement.Infrastructure.Migrations
+namespace SalesManagement.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260325111605_RemoveDispatchFieldsFromSalesOrderHeader")]
+    partial class RemoveDispatchFieldsFromSalesOrderHeader
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -34,14 +37,6 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Property<int>("AgentId")
                         .HasColumnType("int")
                         .HasColumnName("AgentId");
-
-                    b.Property<int?>("ApplicableLevelId")
-                        .HasColumnType("int")
-                        .HasColumnName("ApplicableLevelId");
-
-                    b.Property<int?>("CommissionBasisId")
-                        .HasColumnType("int")
-                        .HasColumnName("CommissionBasisId");
 
                     b.Property<decimal>("CommissionPercentage")
                         .HasPrecision(18, 6)
@@ -80,6 +75,10 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("bit")
                         .HasColumnName("IsDeleted");
 
+                    b.Property<int>("ItemId")
+                        .HasColumnType("int")
+                        .HasColumnName("ItemId");
+
                     b.Property<int?>("ModifiedBy")
                         .HasColumnType("int")
                         .HasColumnName("ModifiedBy");
@@ -100,6 +99,15 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("SalesSegmentId");
 
+                    b.Property<decimal?>("SubAgentPercentage")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,4)")
+                        .HasColumnName("SubAgentPercentage");
+
+                    b.Property<int?>("UomId")
+                        .HasColumnType("int")
+                        .HasColumnName("UomId");
+
                     b.Property<DateTimeOffset>("ValidityFrom")
                         .HasColumnType("datetimeoffset")
                         .HasColumnName("ValidityFrom");
@@ -112,17 +120,15 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     b.HasIndex("AgentId");
 
-                    b.HasIndex("ApplicableLevelId");
-
-                    b.HasIndex("CommissionBasisId");
-
                     b.HasIndex("CommissionTypeId");
+
+                    b.HasIndex("ItemId");
 
                     b.HasIndex("SalesSegmentId");
 
-                    b.HasIndex("AgentId", "SalesSegmentId");
-
                     b.HasIndex("ValidityFrom", "ValidityTo");
+
+                    b.HasIndex("AgentId", "SalesSegmentId", "ItemId");
 
                     b.ToTable("AgentCommissionConfig", "Sales");
                 });
@@ -4024,16 +4030,6 @@ namespace SalesManagement.Infrastructure.Migrations
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.AgentCommissionConfig", b =>
                 {
-                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "ApplicableLevel")
-                        .WithMany("AgentCommissionConfigsAsApplicableLevel")
-                        .HasForeignKey("ApplicableLevelId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "CommissionBasis")
-                        .WithMany("AgentCommissionConfigsAsCommissionBasis")
-                        .HasForeignKey("CommissionBasisId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "MiscMaster")
                         .WithMany()
                         .HasForeignKey("CommissionTypeId")
@@ -4045,10 +4041,6 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasForeignKey("SalesSegmentId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.Navigation("ApplicableLevel");
-
-                    b.Navigation("CommissionBasis");
 
                     b.Navigation("MiscMaster");
 
@@ -4799,10 +4791,6 @@ namespace SalesManagement.Infrastructure.Migrations
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.MiscMaster", b =>
                 {
-                    b.Navigation("AgentCommissionConfigsAsApplicableLevel");
-
-                    b.Navigation("AgentCommissionConfigsAsCommissionBasis");
-
                     b.Navigation("DeliveryChallanHeadersAsStatus");
 
                     b.Navigation("DispatchAddressMappings");

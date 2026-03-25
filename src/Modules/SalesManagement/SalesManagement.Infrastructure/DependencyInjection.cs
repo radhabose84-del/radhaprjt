@@ -76,6 +76,8 @@ using SalesManagement.Infrastructure.Repositories.Outbox;
 using SalesManagement.Infrastructure.Services.Outbox;
 using SalesManagement.Application.Common.Interfaces.IComplaint;
 using SalesManagement.Infrastructure.Repositories.Complaint;
+using Contracts.Interfaces.Lookups.Sales;
+using SalesManagement.Infrastructure.Repositories.Lookups.Sales;
 
 namespace SalesManagement.Infrastructure
 {
@@ -177,6 +179,9 @@ namespace SalesManagement.Infrastructure
             // ── Sales Segment Repositories ───────────────────────────────
             services.AddScoped<ISalesSegmentCommandRepository, SalesSegmentCommandRepository>();
             services.AddScoped<ISalesSegmentQueryRepository, SalesSegmentQueryRepository>();
+
+            // ── Sales Segment Lookup (cross-module) ────────────────────
+            services.AddScoped<ISalesSegmentLookup, SalesSegmentLookupRepository>();
 
             // ── Sales Office Repositories ───────────────────────────────
             services.AddScoped<ISalesOfficeCommandRepository, SalesOfficeCommandRepository>();
