@@ -39,18 +39,18 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("int")
                 .IsRequired();
 
-            builder.Property(t => t.ItemId)
-                .HasColumnName("ItemId")
-                .HasColumnType("int")
-                .IsRequired();
-
             builder.Property(t => t.CommissionTypeId)
                 .HasColumnName("CommissionTypeId")
                 .HasColumnType("int")
                 .IsRequired();
 
-            builder.Property(t => t.UomId)
-                .HasColumnName("UomId")
+            builder.Property(t => t.CommissionBasisId)
+                .HasColumnName("CommissionBasisId")
+                .HasColumnType("int")
+                .IsRequired(false);
+
+            builder.Property(t => t.ApplicableLevelId)
+                .HasColumnName("ApplicableLevelId")
                 .HasColumnType("int")
                 .IsRequired(false);
 
@@ -62,11 +62,6 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             builder.Property(t => t.CurrencyId)
                 .HasColumnName("CurrencyId")
                 .HasColumnType("int")
-                .IsRequired(false);
-
-            builder.Property(t => t.SubAgentPercentage)
-                .HasColumnName("SubAgentPercentage")
-                .HasColumnType("decimal(18,4)")
                 .IsRequired(false);
 
             builder.Property(t => t.ValidityFrom)
@@ -102,12 +97,13 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             // Indexes
             builder.HasIndex(t => t.AgentId);
             builder.HasIndex(t => t.SalesSegmentId);
-            builder.HasIndex(t => t.ItemId);
             builder.HasIndex(t => t.CommissionTypeId);
+            builder.HasIndex(t => t.CommissionBasisId);
+            builder.HasIndex(t => t.ApplicableLevelId);
             builder.HasIndex(t => new { t.ValidityFrom, t.ValidityTo });
 
             // Composite index for overlap query performance
-            builder.HasIndex(t => new { t.AgentId, t.SalesSegmentId, t.ItemId });
+            builder.HasIndex(t => new { t.AgentId, t.SalesSegmentId });
 
             // Same-module FK — SalesSegment (DB constraint)
             builder.HasOne(t => t.SalesSegment)
@@ -115,13 +111,27 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasForeignKey(t => t.SalesSegmentId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Same-module FK — MiscMaster (DB constraint)
+            // Same-module FK — MiscMaster for CommissionType (DB constraint)
             builder.HasOne(t => t.MiscMaster)
                 .WithMany()
                 .HasForeignKey(t => t.CommissionTypeId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Cross-module FKs (AgentId, ItemId, UomId, CurrencyId) — NO DB FK constraints
+            // Same-module FK — MiscMaster for CommissionBasis (DB constraint)
+            builder.HasOne(t => t.CommissionBasis)
+                .WithMany(m => m.AgentCommissionConfigsAsCommissionBasis)
+                .HasForeignKey(t => t.CommissionBasisId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Same-module FK — MiscMaster for ApplicableLevel (DB constraint)
+            builder.HasOne(t => t.ApplicableLevel)
+                .WithMany(m => m.AgentCommissionConfigsAsApplicableLevel)
+                .HasForeignKey(t => t.ApplicableLevelId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Cross-module FKs (AgentId, CurrencyId) — NO DB FK constraints
         }
     }
 }

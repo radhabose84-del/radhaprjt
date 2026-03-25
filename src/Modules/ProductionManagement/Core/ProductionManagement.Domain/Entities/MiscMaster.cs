@@ -20,5 +20,8 @@ namespace ProductionManagement.Domain.Entities
 
         // Reverse navigation (Production)
         public ICollection<ProductionPackDetail>? ProductionPackDetailsAsQualityStatus { get; set; }
+
+        // Reverse navigation (PackType — PackMaterial)
+        public ICollection<PackType>? PackTypesAsPackMaterial { get; set; }
     }
 }

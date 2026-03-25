@@ -42,14 +42,6 @@ namespace SalesManagement.Application.SalesOrder.Dto
         public string? AgentPOAttachment { get; set; }
         public string? AgentPOAttachmentPath { get; set; }
 
-        // Dispatch Location
-        public int DispatchLocationType { get; set; }
-        public string? DispatchLocationTypeName { get; set; }
-        public int? DispatchDepotId { get; set; }
-        public string? DispatchDepotName { get; set; }
-        public int? DispatchUnitId { get; set; }
-        public string? DispatchUnitName { get; set; }
-
         // Derived Summary Fields
         public int TotalBags { get; set; }
         public decimal TotalWeightKgs { get; set; }

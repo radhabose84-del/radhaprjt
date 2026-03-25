@@ -66,12 +66,6 @@ namespace SalesManagement.Presentation.Validation.SalesOrder
                             .NotEmpty()
                             .WithMessage($"EnquiryType {rule.Error}");
 
-                        RuleFor(x => x.DispatchLocationType)
-                            .NotNull()
-                            .WithMessage($"DispatchLocationType {rule.Error}")
-                            .NotEmpty()
-                            .WithMessage($"DispatchLocationType {rule.Error}");
-
                         RuleFor(x => x.SalesOrderDetails)
                             .NotNull()
                             .WithMessage($"SalesOrderDetails {rule.Error}")
@@ -217,18 +211,6 @@ namespace SalesManagement.Presentation.Validation.SalesOrder
                                 await _queryRepository.MiscMasterExistsAsync(countListId!.Value))
                             .WithMessage($"CountListId {rule.Error}")
                             .When(x => x.CountListId.HasValue && x.CountListId > 0);
-
-                        RuleFor(x => x.DispatchDepotId)
-                            .MustAsync(async (depotId, ct) =>
-                                await _queryRepository.WarehouseExistsAsync(depotId!.Value))
-                            .WithMessage($"DispatchDepotId {rule.Error}")
-                            .When(x => x.DispatchDepotId.HasValue && x.DispatchDepotId > 0);
-
-                        RuleFor(x => x.DispatchUnitId)
-                            .MustAsync(async (dispatchUnitId, ct) =>
-                                await _queryRepository.UnitExistsAsync(dispatchUnitId!.Value))
-                            .WithMessage($"DispatchUnitId {rule.Error}")
-                            .When(x => x.DispatchUnitId.HasValue && x.DispatchUnitId > 0);
 
                         // Detail-level FK validation
                         RuleForEach(x => x.SalesOrderDetails)

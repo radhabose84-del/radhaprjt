@@ -25,6 +25,7 @@ namespace ProductionManagement.Infrastructure.Data.Configurations
             builder.Property(t => t.TareWeight).HasColumnName("TareWeight").HasColumnType("decimal(18,2)").IsRequired();
             builder.Property(t => t.GrossWeight).HasColumnName("GrossWeight").HasColumnType("decimal(18,2)").IsRequired();
             builder.Property(t => t.ConesPerBag).HasColumnName("ConesPerBag").HasColumnType("int").IsRequired(false);
+            builder.Property(t => t.PackMaterialId).HasColumnName("PackMaterialId").HasColumnType("int").IsRequired(false);
             builder.Property(t => t.ProductionAllowed).HasColumnName("ProductionAllowed").HasColumnType("bit").HasDefaultValue(true).IsRequired();
             builder.Property(b => b.IsActive).HasColumnName("IsActive").HasColumnType("bit").HasConversion(statusConverter).IsRequired();
             builder.Property(b => b.IsDeleted).HasColumnName("IsDeleted").HasColumnType("bit").HasConversion(isDeleteConverter).IsRequired();
@@ -38,6 +39,14 @@ namespace ProductionManagement.Infrastructure.Data.Configurations
             builder.Property(t => t.ModifiedIP).HasColumnName("ModifiedIP").HasColumnType("varchar(50)");
 
             builder.HasIndex(t => t.PackTypeCode).IsUnique();
+            builder.HasIndex(t => t.PackMaterialId);
+
+            // FK: PackType → MiscMaster (same-module, PackMaterialId)
+            builder.HasOne(t => t.PackMaterial)
+                .WithMany(m => m.PackTypesAsPackMaterial)
+                .HasForeignKey(t => t.PackMaterialId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }
