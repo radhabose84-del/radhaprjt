@@ -74,6 +74,8 @@ using SalesManagement.Infrastructure.Repositories.AgentCustomerMapping;
 using SalesManagement.Application.Common.Interfaces.IOutbox;
 using SalesManagement.Infrastructure.Repositories.Outbox;
 using SalesManagement.Infrastructure.Services.Outbox;
+using SalesManagement.Application.Common.Interfaces.IComplaint;
+using SalesManagement.Infrastructure.Repositories.Complaint;
 
 namespace SalesManagement.Infrastructure
 {
@@ -268,6 +270,10 @@ namespace SalesManagement.Infrastructure
             // ── STO Receipt Repositories ────────────────────────────────────────
             services.AddScoped<IStoReceiptCommandRepository, StoReceiptCommandRepository>();
             services.AddScoped<IStoReceiptQueryRepository, StoReceiptQueryRepository>();
+
+            // ── Complaint Repositories ─────────────────────────────────────────────
+            services.AddScoped<IComplaintCommandRepository, ComplaintCommandRepository>();
+            services.AddScoped<IComplaintQueryRepository, ComplaintQueryRepository>();
 
             // ── Stock Ledger Report Repository ───────────────────────────────────
             services.AddScoped<IStockLedgerReportRepository, StockLedgerReportRepository>();

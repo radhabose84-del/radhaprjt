@@ -10,6 +10,7 @@ namespace ProductionManagement.Application.PackType.Commands.UpdatePackType
         public decimal NetWeight { get; set; }
         public decimal TareWeight { get; set; }
         public int? ConesPerBag { get; set; }
+        public int? PackMaterialId { get; set; }
         public bool ProductionAllowed { get; set; }
         public int IsActive { get; set; }
     }

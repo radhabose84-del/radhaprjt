@@ -38,11 +38,6 @@ namespace SalesManagement.Presentation.Validation.AgentCommissionConfig
                             .GreaterThan(0)
                             .WithMessage($"{nameof(UpdateAgentCommissionConfigCommand.SalesSegmentId)} {rule.Error}");
 
-                        // ItemId required
-                        RuleFor(x => x.ItemId)
-                            .GreaterThan(0)
-                            .WithMessage($"{nameof(UpdateAgentCommissionConfigCommand.ItemId)} {rule.Error}");
-
                         // CommissionTypeId required
                         RuleFor(x => x.CommissionTypeId)
                             .GreaterThan(0)
@@ -66,17 +61,6 @@ namespace SalesManagement.Presentation.Validation.AgentCommissionConfig
                             .WithMessage($"{nameof(UpdateAgentCommissionConfigCommand.ValidityTo)} {rule.Error}")
                             .GreaterThanOrEqualTo(x => x.ValidityFrom)
                             .WithMessage("ValidityTo must be greater than or equal to ValidityFrom.");
-
-                        // SubAgentPercentage <= CommissionPercentage (when provided)
-                        RuleFor(x => x.SubAgentPercentage)
-                            .GreaterThanOrEqualTo(0)
-                            .WithMessage($"{nameof(UpdateAgentCommissionConfigCommand.SubAgentPercentage)} must be greater than or equal to 0.")
-                            .When(x => x.SubAgentPercentage.HasValue);
-
-                        RuleFor(x => x.SubAgentPercentage)
-                            .LessThanOrEqualTo(x => x.CommissionPercentage)
-                            .WithMessage($"{nameof(UpdateAgentCommissionConfigCommand.SubAgentPercentage)} must be less than or equal to CommissionPercentage.")
-                            .When(x => x.SubAgentPercentage.HasValue);
                         break;
 
                     case "NotFound":
@@ -99,23 +83,23 @@ namespace SalesManagement.Presentation.Validation.AgentCommissionConfig
                             .WithMessage($"{nameof(UpdateAgentCommissionConfigCommand.SalesSegmentId)} {rule.Error}")
                             .When(x => x.SalesSegmentId > 0);
 
-                        // ItemId FK exists (cross-module)
-                        RuleFor(x => x.ItemId)
-                            .MustAsync(async (id, ct) => await _queryRepository.ItemExistsAsync(id, ct))
-                            .WithMessage($"{nameof(UpdateAgentCommissionConfigCommand.ItemId)} {rule.Error}")
-                            .When(x => x.ItemId > 0);
-
                         // CommissionTypeId FK exists (same-module MiscMaster)
                         RuleFor(x => x.CommissionTypeId)
                             .MustAsync(async (id, ct) => await _queryRepository.CommissionTypeExistsAsync(id))
                             .WithMessage($"{nameof(UpdateAgentCommissionConfigCommand.CommissionTypeId)} {rule.Error}")
                             .When(x => x.CommissionTypeId > 0);
 
-                        // UomId FK exists (cross-module, optional)
-                        RuleFor(x => x.UomId!.Value)
-                            .MustAsync(async (id, ct) => await _queryRepository.UomExistsAsync(id, ct))
-                            .WithMessage($"{nameof(UpdateAgentCommissionConfigCommand.UomId)} {rule.Error}")
-                            .When(x => x.UomId.HasValue && x.UomId.Value > 0);
+                        // CommissionBasisId FK exists (same-module MiscMaster, optional)
+                        RuleFor(x => x.CommissionBasisId!.Value)
+                            .MustAsync(async (id, ct) => await _queryRepository.CommissionBasisExistsAsync(id))
+                            .WithMessage($"{nameof(UpdateAgentCommissionConfigCommand.CommissionBasisId)} {rule.Error}")
+                            .When(x => x.CommissionBasisId.HasValue && x.CommissionBasisId.Value > 0);
+
+                        // ApplicableLevelId FK exists (same-module MiscMaster, optional)
+                        RuleFor(x => x.ApplicableLevelId!.Value)
+                            .MustAsync(async (id, ct) => await _queryRepository.ApplicableLevelExistsAsync(id))
+                            .WithMessage($"{nameof(UpdateAgentCommissionConfigCommand.ApplicableLevelId)} {rule.Error}")
+                            .When(x => x.ApplicableLevelId.HasValue && x.ApplicableLevelId.Value > 0);
 
                         // CurrencyId FK exists (cross-module, optional)
                         RuleFor(x => x.CurrencyId!.Value)
@@ -131,12 +115,11 @@ namespace SalesManagement.Presentation.Validation.AgentCommissionConfig
                                 !await _queryRepository.OverlapExistsAsync(
                                     cmd.AgentId,
                                     cmd.SalesSegmentId,
-                                    cmd.ItemId,
                                     cmd.ValidityFrom,
                                     cmd.ValidityTo,
                                     excludeId: cmd.Id))
-                            .WithMessage("An active commission rule already exists for this Agent, Sales Segment, and Item within the specified validity period.")
-                            .When(x => x.Id > 0 && x.AgentId > 0 && x.SalesSegmentId > 0 && x.ItemId > 0
+                            .WithMessage("An active commission rule already exists for this Agent and Sales Segment within the specified validity period.")
+                            .When(x => x.Id > 0 && x.AgentId > 0 && x.SalesSegmentId > 0
                                         && x.ValidityFrom != default && x.ValidityTo != default
                                         && x.ValidityTo >= x.ValidityFrom);
                         break;

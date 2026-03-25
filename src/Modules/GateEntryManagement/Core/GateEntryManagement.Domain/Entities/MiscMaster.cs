@@ -10,5 +10,10 @@ namespace GateEntryManagement.Domain.Entities
         public int SortOrder { get; set; }
 
         public MiscTypeMaster? MiscTypeMaster { get; set; }
+
+        // Reverse navigation (VehicleMovementRecord)
+        public ICollection<VehicleMovementRecord>? VehicleMovementRecordsAsPurposeOfVisit { get; set; }
+        public ICollection<VehicleMovementRecord>? VehicleMovementRecordsAsReferenceDocType { get; set; }
+        public ICollection<VehicleMovementRecord>? VehicleMovementRecordsAsStatus { get; set; }
     }
 }

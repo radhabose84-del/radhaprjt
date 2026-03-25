@@ -9,6 +9,8 @@ namespace ProductionManagement.Application.PackType.Dto
         public decimal TareWeight { get; set; }
         public decimal GrossWeight { get; set; }
         public int? ConesPerBag { get; set; }
+        public int? PackMaterialId { get; set; }
+        public string? PackMaterialName { get; set; }
         public bool ProductionAllowed { get; set; }
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }

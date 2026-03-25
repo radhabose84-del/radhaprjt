@@ -141,7 +141,7 @@ namespace FinanceManagement.Infrastructure.Repositories.DocumentSequence
             {
                 var unitShortName = unitDict.TryGetValue(item.UnitId, out var uName) ? uName : null;
                 var financialYearName = yearDict.TryGetValue(item.FinancialYearId, out var yName) ? yName : null;
-                result.Add(BuildDocNumber(unitShortName, item.TypeShortName, financialYearName, item.DocNo));
+                result.Add(BuildDocNumber(item.TypeShortName, financialYearName, item.DocNo));
             }
 
             return result;
@@ -210,9 +210,9 @@ namespace FinanceManagement.Infrastructure.Repositories.DocumentSequence
 
         // ── Private Helpers ────────────────────────────────────────────────
 
-        private static string BuildDocNumber(string? unitShortName, string? typeShortName, string? financialYearName, int docNo)
+        private static string BuildDocNumber(string? typeShortName, string? financialYearName, int docNo)
         {
-            return $"{unitShortName ?? "?"}-{typeShortName ?? "?"}-{financialYearName ?? "?"}-{docNo.ToString().PadLeft(4, '0')}".ToUpper();
+            return $"{typeShortName ?? "?"}/{financialYearName ?? "?"}{docNo.ToString().PadLeft(4, '0')}".ToUpper();
         }
     }
 }

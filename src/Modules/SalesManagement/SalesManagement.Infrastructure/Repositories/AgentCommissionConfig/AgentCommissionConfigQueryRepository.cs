@@ -1,5 +1,4 @@
 using System.Data;
-using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Users;
 using Dapper;
@@ -12,21 +11,15 @@ namespace SalesManagement.Infrastructure.Repositories.AgentCommissionConfig
     {
         private readonly IDbConnection _dbConnection;
         private readonly IPartyLookup _partyLookup;
-        private readonly IItemLookup _itemLookup;
-        private readonly IUOMLookup _uomLookup;
         private readonly ICurrencyLookup _currencyLookup;
 
         public AgentCommissionConfigQueryRepository(
             IDbConnection dbConnection,
             IPartyLookup partyLookup,
-            IItemLookup itemLookup,
-            IUOMLookup uomLookup,
             ICurrencyLookup currencyLookup)
         {
             _dbConnection = dbConnection;
             _partyLookup = partyLookup;
-            _itemLookup = itemLookup;
-            _uomLookup = uomLookup;
             _currencyLookup = currencyLookup;
         }
 
@@ -35,7 +28,7 @@ namespace SalesManagement.Infrastructure.Repositories.AgentCommissionConfig
         {
             var searchFilter = string.IsNullOrWhiteSpace(searchTerm)
                 ? ""
-                : "AND (ss.SegmentName LIKE @Search OR mm.Description LIKE @Search)";
+                : "AND (ss.SegmentName LIKE @Search OR mm.Description LIKE @Search OR cb.Description LIKE @Search OR al.Description LIKE @Search)";
 
             var query = $@"
                 DECLARE @TotalCount INT;
@@ -43,22 +36,29 @@ namespace SalesManagement.Infrastructure.Repositories.AgentCommissionConfig
                 FROM Sales.AgentCommissionConfig acc
                 LEFT JOIN Sales.SalesSegment ss ON acc.SalesSegmentId = ss.Id AND ss.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster mm ON acc.CommissionTypeId = mm.Id AND mm.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster cb ON acc.CommissionBasisId = cb.Id AND cb.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster al ON acc.ApplicableLevelId = al.Id AND al.IsDeleted = 0
                 WHERE acc.IsDeleted = 0
                 {searchFilter};
 
                 SELECT
-                    acc.Id, acc.AgentId, acc.SalesSegmentId, acc.ItemId,
-                    acc.CommissionTypeId, acc.UomId, acc.CommissionPercentage,
-                    acc.CurrencyId, acc.SubAgentPercentage,
+                    acc.Id, acc.AgentId, acc.SalesSegmentId,
+                    acc.CommissionTypeId, acc.CommissionBasisId, acc.ApplicableLevelId,
+                    acc.CommissionPercentage,
+                    acc.CurrencyId,
                     acc.ValidityFrom, acc.ValidityTo,
                     acc.IsActive, acc.IsDeleted,
                     acc.CreatedBy, acc.CreatedDate, acc.CreatedByName, acc.CreatedIP,
                     acc.ModifiedBy, acc.ModifiedDate, acc.ModifiedByName, acc.ModifiedIP,
                     ss.SegmentName,
-                    mm.Description AS CommissionTypeName
+                    mm.Description AS CommissionTypeName,
+                    cb.Description AS CommissionBasisName,
+                    al.Description AS ApplicableLevelName
                 FROM Sales.AgentCommissionConfig acc
                 LEFT JOIN Sales.SalesSegment ss ON acc.SalesSegmentId = ss.Id AND ss.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster mm ON acc.CommissionTypeId = mm.Id AND mm.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster cb ON acc.CommissionBasisId = cb.Id AND cb.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster al ON acc.ApplicableLevelId = al.Id AND al.IsDeleted = 0
                 WHERE acc.IsDeleted = 0
                 {searchFilter}
                 ORDER BY acc.Id DESC
@@ -81,22 +81,10 @@ namespace SalesManagement.Infrastructure.Repositories.AgentCommissionConfig
             {
                 // Cross-module lookups — batch by distinct IDs
                 var agentIds = list.Select(x => x.AgentId).Distinct();
-                var itemIds = list.Select(x => x.ItemId).Distinct();
-                var uomIds = list.Where(x => x.UomId.HasValue).Select(x => x.UomId!.Value).Distinct();
                 var currencyIds = list.Where(x => x.CurrencyId.HasValue).Select(x => x.CurrencyId!.Value).Distinct();
 
                 var agents = await _partyLookup.GetByIdsAsync(agentIds);
                 var agentDict = agents.ToDictionary(x => x.Id);
-
-                var items = await _itemLookup.GetByIdsAsync(itemIds);
-                var itemDict = items.ToDictionary(x => x.Id);
-
-                var uomDict = new Dictionary<int, string>();
-                if (uomIds.Any())
-                {
-                    var uoms = await _uomLookup.GetByIdsAsync(uomIds);
-                    uomDict = uoms.ToDictionary(x => x.Id, x => x.UOMName);
-                }
 
                 var currencyDict = new Dictionary<int, string?>();
                 if (currencyIds.Any())
@@ -110,12 +98,6 @@ namespace SalesManagement.Infrastructure.Repositories.AgentCommissionConfig
                     if (agentDict.TryGetValue(item.AgentId, out var agentData))
                         item.AgentName = agentData.PartyName;
 
-                    if (itemDict.TryGetValue(item.ItemId, out var itemData))
-                        item.ItemName = itemData.ItemName;
-
-                    if (item.UomId.HasValue && uomDict.TryGetValue(item.UomId.Value, out var uomName))
-                        item.UomName = uomName;
-
                     if (item.CurrencyId.HasValue && currencyDict.TryGetValue(item.CurrencyId.Value, out var currencyCode))
                         item.CurrencyCode = currencyCode;
                 }
@@ -128,18 +110,23 @@ namespace SalesManagement.Infrastructure.Repositories.AgentCommissionConfig
         {
             const string sql = @"
                 SELECT
-                    acc.Id, acc.AgentId, acc.SalesSegmentId, acc.ItemId,
-                    acc.CommissionTypeId, acc.UomId, acc.CommissionPercentage,
-                    acc.CurrencyId, acc.SubAgentPercentage,
+                    acc.Id, acc.AgentId, acc.SalesSegmentId,
+                    acc.CommissionTypeId, acc.CommissionBasisId, acc.ApplicableLevelId,
+                    acc.CommissionPercentage,
+                    acc.CurrencyId,
                     acc.ValidityFrom, acc.ValidityTo,
                     acc.IsActive, acc.IsDeleted,
                     acc.CreatedBy, acc.CreatedDate, acc.CreatedByName, acc.CreatedIP,
                     acc.ModifiedBy, acc.ModifiedDate, acc.ModifiedByName, acc.ModifiedIP,
                     ss.SegmentName,
-                    mm.Description AS CommissionTypeName
+                    mm.Description AS CommissionTypeName,
+                    cb.Description AS CommissionBasisName,
+                    al.Description AS ApplicableLevelName
                 FROM Sales.AgentCommissionConfig acc
                 LEFT JOIN Sales.SalesSegment ss ON acc.SalesSegmentId = ss.Id AND ss.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster mm ON acc.CommissionTypeId = mm.Id AND mm.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster cb ON acc.CommissionBasisId = cb.Id AND cb.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster al ON acc.ApplicableLevelId = al.Id AND al.IsDeleted = 0
                 WHERE acc.Id = @Id AND acc.IsDeleted = 0";
 
             var dto = await _dbConnection.QueryFirstOrDefaultAsync<AgentCommissionConfigDto>(
@@ -151,19 +138,6 @@ namespace SalesManagement.Infrastructure.Repositories.AgentCommissionConfig
                 var agentData = agents.FirstOrDefault();
                 if (agentData != null)
                     dto.AgentName = agentData.PartyName;
-
-                var items = await _itemLookup.GetByIdsAsync(new[] { dto.ItemId });
-                var itemData = items.FirstOrDefault();
-                if (itemData != null)
-                    dto.ItemName = itemData.ItemName;
-
-                if (dto.UomId.HasValue)
-                {
-                    var uoms = await _uomLookup.GetByIdsAsync(new[] { dto.UomId.Value });
-                    var uomData = uoms.FirstOrDefault();
-                    if (uomData != null)
-                        dto.UomName = uomData.UOMName;
-                }
 
                 if (dto.CurrencyId.HasValue)
                 {
@@ -182,7 +156,7 @@ namespace SalesManagement.Infrastructure.Repositories.AgentCommissionConfig
         {
             const string sql = @"
                 SELECT TOP 20
-                    acc.Id, acc.AgentId, acc.ItemId,
+                    acc.Id, acc.AgentId,
                     ss.SegmentName
                 FROM Sales.AgentCommissionConfig acc
                 LEFT JOIN Sales.SalesSegment ss ON acc.SalesSegmentId = ss.Id AND ss.IsDeleted = 0
@@ -198,23 +172,17 @@ namespace SalesManagement.Infrastructure.Repositories.AgentCommissionConfig
                 return new List<AgentCommissionConfigLookupDto>();
 
             var agentIds = rows.Select(r => (int)r.AgentId).Distinct();
-            var itemIds = rows.Select(r => (int)r.ItemId).Distinct();
 
             var agents = await _partyLookup.GetByIdsAsync(agentIds, ct);
             var agentDict = agents.ToDictionary(x => x.Id);
 
-            var items = await _itemLookup.GetByIdsAsync(itemIds, ct);
-            var itemDict = items.ToDictionary(x => x.Id);
-
             return rows.Select(r =>
             {
                 agentDict.TryGetValue((int)r.AgentId, out var agentData);
-                itemDict.TryGetValue((int)r.ItemId, out var itemData);
                 return new AgentCommissionConfigLookupDto
                 {
                     Id = (int)r.Id,
                     AgentName = agentData?.PartyName,
-                    ItemName = itemData?.ItemName,
                     SegmentName = (string?)r.SegmentName
                 };
             }).ToList();
@@ -246,12 +214,6 @@ namespace SalesManagement.Infrastructure.Repositories.AgentCommissionConfig
             return count > 0;
         }
 
-        public async Task<bool> ItemExistsAsync(int itemId, CancellationToken ct = default)
-        {
-            var items = await _itemLookup.GetByIdsAsync(new[] { itemId }, ct);
-            return items.Any();
-        }
-
         public async Task<bool> CommissionTypeExistsAsync(int commissionTypeId)
         {
             const string sql = @"
@@ -262,10 +224,24 @@ namespace SalesManagement.Infrastructure.Repositories.AgentCommissionConfig
             return count > 0;
         }
 
-        public async Task<bool> UomExistsAsync(int uomId, CancellationToken ct = default)
+        public async Task<bool> CommissionBasisExistsAsync(int commissionBasisId)
         {
-            var uoms = await _uomLookup.GetByIdsAsync(new[] { uomId }, ct);
-            return uoms.Any();
+            const string sql = @"
+                SELECT COUNT(1) FROM Sales.MiscMaster
+                WHERE Id = @Id AND IsDeleted = 0";
+
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = commissionBasisId });
+            return count > 0;
+        }
+
+        public async Task<bool> ApplicableLevelExistsAsync(int applicableLevelId)
+        {
+            const string sql = @"
+                SELECT COUNT(1) FROM Sales.MiscMaster
+                WHERE Id = @Id AND IsDeleted = 0";
+
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = applicableLevelId });
+            return count > 0;
         }
 
         public async Task<bool> CurrencyExistsAsync(int currencyId, CancellationToken ct = default)
@@ -275,14 +251,13 @@ namespace SalesManagement.Infrastructure.Repositories.AgentCommissionConfig
         }
 
         public async Task<bool> OverlapExistsAsync(
-            int agentId, int salesSegmentId, int itemId,
+            int agentId, int salesSegmentId,
             DateTimeOffset validityFrom, DateTimeOffset validityTo, int? excludeId = null)
         {
             var sql = @"
                 SELECT COUNT(1) FROM Sales.AgentCommissionConfig
                 WHERE AgentId = @AgentId
                   AND SalesSegmentId = @SalesSegmentId
-                  AND ItemId = @ItemId
                   AND IsDeleted = 0
                   AND IsActive = 1
                   AND ValidityFrom < @ValidityTo
@@ -295,7 +270,6 @@ namespace SalesManagement.Infrastructure.Repositories.AgentCommissionConfig
             {
                 AgentId = agentId,
                 SalesSegmentId = salesSegmentId,
-                ItemId = itemId,
                 ValidityFrom = validityFrom,
                 ValidityTo = validityTo,
                 ExcludeId = excludeId

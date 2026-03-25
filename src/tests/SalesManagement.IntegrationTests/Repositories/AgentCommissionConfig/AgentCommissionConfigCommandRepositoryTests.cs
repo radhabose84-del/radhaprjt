@@ -14,7 +14,8 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCommissionConfig
     ///   - Sales.SalesSegment (DB FK) → which requires SalesOrganisation, SalesChannel, BusinessUnit
     ///   - Sales.MiscMaster (DB FK) → which requires MiscTypeMaster
     ///
-    /// AgentId, ItemId, UomId, CurrencyId are cross-module FKs — no DB constraint, any int value is valid.
+    /// AgentId, CurrencyId are cross-module FKs — no DB constraint, any int value is valid.
+    /// CommissionBasisId, ApplicableLevelId are same-module FKs to MiscMaster (nullable).
     /// </summary>
     [Collection("DatabaseCollection")]
     public sealed class AgentCommissionConfigCommandRepositoryTests
@@ -158,7 +159,6 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCommissionConfig
             int salesSegmentId,
             int commissionTypeId,
             int agentId = 10,
-            int itemId = 100,
             decimal commissionPercentage = 5.00m,
             DateTimeOffset? validityFrom = null,
             DateTimeOffset? validityTo = null)
@@ -166,7 +166,6 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCommissionConfig
             {
                 AgentId = agentId,
                 SalesSegmentId = salesSegmentId,
-                ItemId = itemId,
                 CommissionTypeId = commissionTypeId,
                 CommissionPercentage = commissionPercentage,
                 ValidityFrom = validityFrom ?? new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero),
@@ -199,7 +198,7 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCommissionConfig
             var validFrom = new DateTimeOffset(2025, 3, 1, 0, 0, 0, TimeSpan.Zero);
             var validTo   = new DateTimeOffset(2025, 9, 30, 0, 0, 0, TimeSpan.Zero);
             var entity = BuildEntity(segmentId, typeId,
-                agentId: 20, itemId: 200,
+                agentId: 20,
                 commissionPercentage: 7.5m,
                 validityFrom: validFrom,
                 validityTo: validTo);
@@ -212,7 +211,6 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCommissionConfig
             saved.Should().NotBeNull();
             saved!.AgentId.Should().Be(20);
             saved.SalesSegmentId.Should().Be(segmentId);
-            saved.ItemId.Should().Be(200);
             saved.CommissionTypeId.Should().Be(typeId);
             saved.CommissionPercentage.Should().Be(7.5m);
             saved.ValidityFrom.Should().Be(validFrom);
@@ -249,7 +247,7 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCommissionConfig
             await ClearTableAsync(ctx);
 
             var id = await CreateRepository(ctx).CreateAsync(
-                BuildEntity(segmentId, typeId, agentId: 10, itemId: 100, commissionPercentage: 5.0m));
+                BuildEntity(segmentId, typeId, agentId: 10, commissionPercentage: 5.0m));
             ctx.ChangeTracker.Clear();
 
             var newFrom = new DateTimeOffset(2025, 6, 1, 0, 0, 0, TimeSpan.Zero);
@@ -259,10 +257,8 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCommissionConfig
                 Id = id,
                 AgentId = 15,
                 SalesSegmentId = segmentId,
-                ItemId = 999,
                 CommissionTypeId = typeId,
                 CommissionPercentage = 10.0m,
-                SubAgentPercentage = 3.0m,
                 ValidityFrom = newFrom,
                 ValidityTo = newTo,
                 IsActive = Status.Inactive
@@ -275,9 +271,7 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCommissionConfig
 
             var saved = await ctx.AgentCommissionConfig.FirstOrDefaultAsync(x => x.Id == id);
             saved!.AgentId.Should().Be(15);
-            saved.ItemId.Should().Be(999);
             saved.CommissionPercentage.Should().Be(10.0m);
-            saved.SubAgentPercentage.Should().Be(3.0m);
             saved.ValidityFrom.Should().Be(newFrom);
             saved.ValidityTo.Should().Be(newTo);
             saved.IsActive.Should().Be(Status.Inactive);
@@ -293,7 +287,6 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCommissionConfig
                 Id = 99999,
                 AgentId = 1,
                 SalesSegmentId = 1,
-                ItemId = 1,
                 CommissionTypeId = 1,
                 CommissionPercentage = 5.0m,
                 ValidityFrom = DateTimeOffset.UtcNow,
@@ -321,7 +314,6 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCommissionConfig
                 Id = id,
                 AgentId = 10,
                 SalesSegmentId = segmentId,
-                ItemId = 100,
                 CommissionTypeId = typeId,
                 CommissionPercentage = 8.0m,
                 ValidityFrom = new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero),

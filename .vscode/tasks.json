@@ -1,16 +1,25 @@
 {
-    "version": "2.0.0",
-    "tasks": [
-      {
-        "label": "build-api",
-        "command": "dotnet",
-        "type": "process",
-        "args": [
-          "build",
-          "${workspaceFolder}/src/BSOFT.Api/BSOFT.Api.csproj"
-        ],
-        "problemMatcher": "$msCompile"
-      }
-    ]
-  }
-  
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build-api",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "build",
+        "${workspaceFolder}/src/BSOFT.Api/BSOFT.Api.csproj"
+      ],
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "build-worker",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "build",
+        "${workspaceFolder}/src/BSOFT.Worker/BSOFT.Worker.csproj"
+      ],
+      "problemMatcher": "$msCompile"
+    }
+  ]
+}

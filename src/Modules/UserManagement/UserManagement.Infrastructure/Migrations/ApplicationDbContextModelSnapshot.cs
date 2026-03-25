@@ -2266,6 +2266,66 @@ namespace UserManagement.Infrastructure.Migrations
                     b.ToTable("UserDivision", "AppSecurity");
                 });
 
+            modelBuilder.Entity("UserManagement.Domain.Entities.UserFavoriteMenu", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CreatedByName")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("CreatedIP")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<int>("MenuId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ModifiedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MenuId");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("UserId", "MenuId")
+                        .IsUnique();
+
+                    b.ToTable("UserFavoriteMenu", "AppData");
+                });
+
             modelBuilder.Entity("UserManagement.Domain.Entities.UserGroup", b =>
                 {
                     b.Property<int>("Id")
@@ -2952,6 +3012,17 @@ namespace UserManagement.Infrastructure.Migrations
                     b.Navigation("Division");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("UserManagement.Domain.Entities.UserFavoriteMenu", b =>
+                {
+                    b.HasOne("UserManagement.Domain.Entities.Menu", "Menu")
+                        .WithMany()
+                        .HasForeignKey("MenuId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Menu");
                 });
 
             modelBuilder.Entity("UserManagement.Domain.Entities.UserRoleAllocation", b =>

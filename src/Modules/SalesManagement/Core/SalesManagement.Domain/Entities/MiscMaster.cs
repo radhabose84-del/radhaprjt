@@ -56,5 +56,9 @@ namespace SalesManagement.Domain.Entities
         // Reverse navigation (StoReceipt)
         public ICollection<StoReceiptHeader>? StoReceiptHeadersAsStatus { get; set; }
         public ICollection<StoReceiptDetail>? StoReceiptDetailsAsLineStatus { get; set; }
+
+        // Reverse navigation (AgentCommissionConfig)
+        public ICollection<AgentCommissionConfig>? AgentCommissionConfigsAsCommissionBasis { get; set; }
+        public ICollection<AgentCommissionConfig>? AgentCommissionConfigsAsApplicableLevel { get; set; }
     }
 }

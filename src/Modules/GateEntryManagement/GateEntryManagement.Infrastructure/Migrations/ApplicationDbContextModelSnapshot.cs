@@ -166,6 +166,142 @@ namespace GateEntryManagement.Infrastructure.Migrations
                     b.ToTable("MiscTypeMaster", "Gate");
                 });
 
+            modelBuilder.Entity("GateEntryManagement.Domain.Entities.VehicleMovementRecord", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<string>("DriverLicenseNo")
+                        .HasColumnType("varchar(25)")
+                        .HasColumnName("DriverLicenseNo");
+
+                    b.Property<string>("DriverMobileNo")
+                        .IsRequired()
+                        .HasColumnType("varchar(10)")
+                        .HasColumnName("DriverMobileNo");
+
+                    b.Property<string>("DriverName")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("DriverName");
+
+                    b.Property<string>("GateInBy")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("GateInBy");
+
+                    b.Property<DateTimeOffset>("GateInTime")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("GateInTime");
+
+                    b.Property<string>("GateOutBy")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("GateOutBy");
+
+                    b.Property<DateTimeOffset?>("GateOutTime")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("GateOutTime");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<int>("PurposeOfVisitId")
+                        .HasColumnType("int")
+                        .HasColumnName("PurposeOfVisitId");
+
+                    b.Property<string>("ReferenceDocNo")
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("ReferenceDocNo");
+
+                    b.Property<int?>("ReferenceDocTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("ReferenceDocTypeId");
+
+                    b.Property<string>("Remarks")
+                        .HasColumnType("varchar(250)")
+                        .HasColumnName("Remarks");
+
+                    b.Property<int>("StatusId")
+                        .HasColumnType("int")
+                        .HasColumnName("StatusId");
+
+                    b.Property<int?>("TransporterId")
+                        .HasColumnType("int")
+                        .HasColumnName("TransporterId");
+
+                    b.Property<int>("UnitId")
+                        .HasColumnType("int")
+                        .HasColumnName("UnitId");
+
+                    b.Property<string>("VehicleMovementId")
+                        .IsRequired()
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("VehicleMovementId");
+
+                    b.Property<string>("VehicleNumber")
+                        .IsRequired()
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("VehicleNumber");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PurposeOfVisitId");
+
+                    b.HasIndex("ReferenceDocTypeId");
+
+                    b.HasIndex("StatusId");
+
+                    b.HasIndex("UnitId");
+
+                    b.HasIndex("VehicleMovementId")
+                        .IsUnique();
+
+                    b.HasIndex("VehicleNumber");
+
+                    b.ToTable("VehicleMovementRecord", "Gate");
+                });
+
             modelBuilder.Entity("GateEntryManagement.Domain.Entities.MiscMaster", b =>
                 {
                     b.HasOne("GateEntryManagement.Domain.Entities.MiscTypeMaster", "MiscTypeMaster")
@@ -175,6 +311,41 @@ namespace GateEntryManagement.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("MiscTypeMaster");
+                });
+
+            modelBuilder.Entity("GateEntryManagement.Domain.Entities.VehicleMovementRecord", b =>
+                {
+                    b.HasOne("GateEntryManagement.Domain.Entities.MiscMaster", "PurposeOfVisit")
+                        .WithMany("VehicleMovementRecordsAsPurposeOfVisit")
+                        .HasForeignKey("PurposeOfVisitId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("GateEntryManagement.Domain.Entities.MiscMaster", "ReferenceDocType")
+                        .WithMany("VehicleMovementRecordsAsReferenceDocType")
+                        .HasForeignKey("ReferenceDocTypeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("GateEntryManagement.Domain.Entities.MiscMaster", "StatusMisc")
+                        .WithMany("VehicleMovementRecordsAsStatus")
+                        .HasForeignKey("StatusId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("PurposeOfVisit");
+
+                    b.Navigation("ReferenceDocType");
+
+                    b.Navigation("StatusMisc");
+                });
+
+            modelBuilder.Entity("GateEntryManagement.Domain.Entities.MiscMaster", b =>
+                {
+                    b.Navigation("VehicleMovementRecordsAsPurposeOfVisit");
+
+                    b.Navigation("VehicleMovementRecordsAsReferenceDocType");
+
+                    b.Navigation("VehicleMovementRecordsAsStatus");
                 });
 
             modelBuilder.Entity("GateEntryManagement.Domain.Entities.MiscTypeMaster", b =>

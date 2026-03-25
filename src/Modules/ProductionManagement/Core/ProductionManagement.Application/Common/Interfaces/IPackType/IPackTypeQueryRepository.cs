@@ -9,6 +9,7 @@ namespace ProductionManagement.Application.Common.Interfaces.IPackType
         Task<IReadOnlyList<PackTypeLookupDto>> AutocompleteAsync(string term, CancellationToken ct);
         Task<bool> AlreadyExistsAsync(string packTypeCode, int? id = null);
         Task<bool> NotFoundAsync(int id);
+        Task<bool> PackMaterialExistsAsync(int packMaterialId);
         Task<bool> SoftDeleteValidationAsync(int id);
     }
 }

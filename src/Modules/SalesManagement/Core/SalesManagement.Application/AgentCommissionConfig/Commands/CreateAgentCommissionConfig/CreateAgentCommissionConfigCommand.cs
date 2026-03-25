@@ -7,12 +7,11 @@ namespace SalesManagement.Application.AgentCommissionConfig.Commands.CreateAgent
     {
         public int AgentId { get; set; }
         public int SalesSegmentId { get; set; }
-        public int ItemId { get; set; }
         public int CommissionTypeId { get; set; }
-        public int? UomId { get; set; }
+        public int? CommissionBasisId { get; set; }
+        public int? ApplicableLevelId { get; set; }
         public decimal CommissionPercentage { get; set; }
         public int? CurrencyId { get; set; }
-        public decimal? SubAgentPercentage { get; set; }
         public DateTimeOffset ValidityFrom { get; set; }
         public DateTimeOffset ValidityTo { get; set; }
     }
