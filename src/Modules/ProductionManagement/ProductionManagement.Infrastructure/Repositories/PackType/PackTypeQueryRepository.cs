@@ -25,11 +25,14 @@ namespace ProductionManagement.Infrastructure.Repositories.PackType
 
                 SELECT pt.Id, pt.PackTypeCode, pt.PackTypeName,
                     pt.NetWeight, pt.TareWeight, pt.GrossWeight,
-                    pt.ConesPerBag, pt.ProductionAllowed,
+                    pt.ConesPerBag, pt.PackMaterialId,
+                    mm.Description AS PackMaterialName,
+                    pt.ProductionAllowed,
                     pt.IsActive, pt.IsDeleted,
                     pt.CreatedBy, pt.CreatedDate, pt.CreatedByName, pt.CreatedIP,
                     pt.ModifiedBy, pt.ModifiedDate, pt.ModifiedByName, pt.ModifiedIP
                 FROM Production.PackType pt
+                LEFT JOIN Production.MiscMaster mm ON pt.PackMaterialId = mm.Id AND mm.IsDeleted = 0
                 WHERE pt.IsDeleted = 0
                 {{(string.IsNullOrWhiteSpace(searchTerm) ? "" : "AND (pt.PackTypeCode LIKE @Search OR pt.PackTypeName LIKE @Search)")}}
                 ORDER BY pt.Id DESC
@@ -51,11 +54,14 @@ namespace ProductionManagement.Infrastructure.Repositories.PackType
             const string sql = @"
                 SELECT pt.Id, pt.PackTypeCode, pt.PackTypeName,
                     pt.NetWeight, pt.TareWeight, pt.GrossWeight,
-                    pt.ConesPerBag, pt.ProductionAllowed,
+                    pt.ConesPerBag, pt.PackMaterialId,
+                    mm.Description AS PackMaterialName,
+                    pt.ProductionAllowed,
                     pt.IsActive, pt.IsDeleted,
                     pt.CreatedBy, pt.CreatedDate, pt.CreatedByName, pt.CreatedIP,
                     pt.ModifiedBy, pt.ModifiedDate, pt.ModifiedByName, pt.ModifiedIP
                 FROM Production.PackType pt
+                LEFT JOIN Production.MiscMaster mm ON pt.PackMaterialId = mm.Id AND mm.IsDeleted = 0
                 WHERE pt.Id = @Id AND pt.IsDeleted = 0";
 
             return await _dbConnection.QueryFirstOrDefaultAsync<PackTypeDto>(sql, new { Id = id });
@@ -99,6 +105,17 @@ namespace ProductionManagement.Infrastructure.Repositories.PackType
 
             var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = id });
             return count == 0;
+        }
+
+        public async Task<bool> PackMaterialExistsAsync(int packMaterialId)
+        {
+            const string sql = @"
+                SELECT COUNT(1)
+                FROM Production.MiscMaster
+                WHERE Id = @Id AND IsActive = 1 AND IsDeleted = 0";
+
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = packMaterialId });
+            return count > 0;
         }
 
         public async Task<bool> SoftDeleteValidationAsync(int id)

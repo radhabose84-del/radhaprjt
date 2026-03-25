@@ -34,6 +34,7 @@ namespace ProductionManagement.Infrastructure.Repositories.PackType
             existingEntity.TareWeight = entity.TareWeight;
             existingEntity.GrossWeight = entity.GrossWeight;
             existingEntity.ConesPerBag = entity.ConesPerBag;
+            existingEntity.PackMaterialId = entity.PackMaterialId;
             existingEntity.ProductionAllowed = entity.ProductionAllowed;
             existingEntity.IsActive = entity.IsActive;
 

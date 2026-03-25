@@ -10,21 +10,19 @@ namespace SalesManagement.Application.AgentCommissionConfig.Dto
         public int SalesSegmentId { get; set; }
         public string? SegmentName { get; set; }
 
-        public int ItemId { get; set; }
-        public string? ItemName { get; set; }
-
         public int CommissionTypeId { get; set; }
         public string? CommissionTypeName { get; set; }
 
-        public int? UomId { get; set; }
-        public string? UomName { get; set; }
+        public int? CommissionBasisId { get; set; }
+        public string? CommissionBasisName { get; set; }
+
+        public int? ApplicableLevelId { get; set; }
+        public string? ApplicableLevelName { get; set; }
 
         public decimal CommissionPercentage { get; set; }
 
         public int? CurrencyId { get; set; }
         public string? CurrencyCode { get; set; }
-
-        public decimal? SubAgentPercentage { get; set; }
 
         public DateTimeOffset ValidityFrom { get; set; }
         public DateTimeOffset ValidityTo { get; set; }
