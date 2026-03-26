@@ -9,6 +9,8 @@ using SalesManagement.Application.Complaint.Queries.GetComplaintById;
 using SalesManagement.Application.Complaint.Queries.GetComplaintAutoComplete;
 using SalesManagement.Application.Complaint.Queries.GetCustomerInvoices;
 using SalesManagement.Application.Complaint.Queries.GetInvoiceLineDetails;
+using SalesManagement.Application.Complaint.Queries.GetPendingComplaint;
+using SalesManagement.Application.Complaint.Queries.SearchInvoices;
 
 namespace SalesManagement.Presentation.Controllers
 {
@@ -24,6 +26,29 @@ namespace SalesManagement.Presentation.Controllers
             [FromQuery] string? SearchTerm = null)
         {
             var result = await Mediator.Send(new GetAllComplaintQuery
+            {
+                PageNumber = PageNumber,
+                PageSize = PageSize,
+                SearchTerm = SearchTerm
+            });
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result.Data,
+                TotalCount = result.TotalCount,
+                PageNumber = result.PageNumber,
+                PageSize = result.PageSize
+            });
+        }
+
+        [HttpGet("pending")]
+        public async Task<IActionResult> GetPendingComplaintAsync(
+            [FromQuery] int PageNumber,
+            [FromQuery] int PageSize,
+            [FromQuery] string? SearchTerm = null)
+        {
+            var result = await Mediator.Send(new GetPendingComplaintQuery
             {
                 PageNumber = PageNumber,
                 PageSize = PageSize,
@@ -81,6 +106,33 @@ namespace SalesManagement.Presentation.Controllers
             {
                 StatusCode = StatusCodes.Status200OK,
                 data = result
+            });
+        }
+
+        [HttpGet("search-invoices")]
+        public async Task<IActionResult> SearchInvoicesAsync(
+            [FromQuery] int partyId,
+            [FromQuery] int PageNumber,
+            [FromQuery] int PageSize,
+            [FromQuery] string? SearchTerm = null,
+            [FromQuery] bool LastOneYear = false)
+        {
+            var result = await Mediator.Send(new SearchInvoicesQuery
+            {
+                PartyId = partyId,
+                SearchTerm = SearchTerm,
+                LastOneYear = LastOneYear,
+                PageNumber = PageNumber,
+                PageSize = PageSize
+            });
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result.Data,
+                TotalCount = result.TotalCount,
+                PageNumber = result.PageNumber,
+                PageSize = result.PageSize
             });
         }
 
