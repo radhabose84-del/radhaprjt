@@ -1,4 +1,6 @@
+using Contracts.Interfaces.Lookups.Finance;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using GateEntryManagement.Application.Common.Interfaces.IGatePass;
 using GateEntryManagement.Domain.Entities;
 using GateEntryManagement.Infrastructure.Data;
@@ -9,10 +11,14 @@ namespace GateEntryManagement.Infrastructure.Repositories.GatePass
     public class GatePassCommandRepository : IGatePassCommandRepository
     {
         private readonly ApplicationDbContext _applicationDbContext;
+        private readonly IDocumentSequenceLookup _documentSequenceLookup;
 
-        public GatePassCommandRepository(ApplicationDbContext applicationDbContext)
+        public GatePassCommandRepository(
+            ApplicationDbContext applicationDbContext,
+            IDocumentSequenceLookup documentSequenceLookup)
         {
             _applicationDbContext = applicationDbContext;
+            _documentSequenceLookup = documentSequenceLookup;
         }
 
         public async Task<int> CreateAsync(GatePassHdr entity, int transactionTypeId)
@@ -21,17 +27,18 @@ namespace GateEntryManagement.Infrastructure.Repositories.GatePass
 
             return await strategy.ExecuteAsync(async () =>
             {
-                await using var transaction = await _applicationDbContext.Database.BeginTransactionAsync();
+                using var transaction = await _applicationDbContext.Database.BeginTransactionAsync();
                 try
                 {
                     await _applicationDbContext.GatePassHdr.AddAsync(entity);
                     await _applicationDbContext.SaveChangesAsync();
 
-                    // Increment DocNo — same DbContext connection, same transaction
-                    await _applicationDbContext.Database.ExecuteSqlRawAsync(
-                        "UPDATE [Finance].[DocumentSequence] SET DocNo = DocNo + 1 WHERE TransactionTypeId = {0} AND IsDeleted = 0",
-                        transactionTypeId);
+                    // Increment DocNo via lookup — same connection + transaction
+                    var dbConnection = _applicationDbContext.Database.GetDbConnection();
+                    var dbTransaction = transaction.GetDbTransaction();
+                    await _documentSequenceLookup.IncrementDocNoAsync(transactionTypeId, dbConnection, dbTransaction);
 
+                    await _applicationDbContext.SaveChangesAsync();
                     await transaction.CommitAsync();
                     return entity.Id;
                 }
