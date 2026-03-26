@@ -14,6 +14,7 @@ using UserManagement.Infrastructure;
 using PartyManagement.Infrastructure;
 using WarehouseManagement.Infrastructure;
 using ProjectManagement.Infrastructure;
+using FinanceManagement.Infrastructure;
 using ProductionManagement.Infrastructure;
 using SalesManagement.Infrastructure;
 
@@ -61,6 +62,7 @@ builder.Services.AddInfrastructureServices(builder.Configuration, builder.Servic
 builder.Services.AddUserManagementInfrastructure(builder.Configuration, builder.Environment);
 builder.Services.AddPartyInfrastructure(builder.Configuration, builder.Environment);
 builder.Services.AddWarehouseInfrastructure(builder.Configuration, builder.Environment);
+builder.Services.AddFinanceInfrastructureServices(builder.Configuration, builder.Environment);
 builder.Services.AddProductionInfrastructureServices(builder.Configuration, builder.Environment);
 // Business module infrastructure (consumers and their command/query repos)
 builder.Services.AddPurchaseInfrastructureServices(builder.Configuration, builder.Environment);

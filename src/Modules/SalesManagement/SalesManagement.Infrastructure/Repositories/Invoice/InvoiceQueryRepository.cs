@@ -74,7 +74,7 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                     h.CGST, h.SGST, h.IGST, h.TaxAmount,
                     h.TCSPercentage, h.TCS, h.RoundOff,
                     h.InvoiceAmountBeforeTCS, h.InvoiceAmount,
-                    h.Remarks, h.IsActive, h.IsDeleted,
+                    h.Remarks, h.GEFlag, h.IsActive, h.IsDeleted,
                     h.CreatedBy, h.CreatedDate
                 FROM Sales.InvoiceHeader h
                 LEFT JOIN Sales.MiscMaster mm  ON h.InvoiceType   = mm.Id  AND mm.IsDeleted = 0
@@ -145,7 +145,7 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                     h.CGST, h.SGST, h.IGST, h.TaxAmount,
                     h.TCSPercentage, h.TCS, h.RoundOff,
                     h.InvoiceAmountBeforeTCS, h.InvoiceAmount,
-                    h.Remarks, h.IsActive, h.IsDeleted,
+                    h.Remarks, h.GEFlag, h.IsActive, h.IsDeleted,
                     h.CreatedBy, h.CreatedDate
                 FROM Sales.InvoiceHeader h
                 LEFT JOIN Sales.MiscMaster mm  ON h.InvoiceType   = mm.Id  AND mm.IsDeleted = 0

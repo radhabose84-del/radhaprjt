@@ -43,6 +43,7 @@ namespace SalesManagement.Application.Invoice.Dto
         public decimal InvoiceAmountBeforeTCS { get; set; }
         public decimal InvoiceAmount { get; set; }
         public string? Remarks { get; set; }
+        public bool GEFlag { get; set; }
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }
         public int CreatedBy { get; set; }

@@ -1,4 +1,6 @@
+using Contracts.Interfaces.Lookups.Finance;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using SalesManagement.Application.Common.Interfaces.IStoReceipt;
 using SalesManagement.Domain.Entities;
 using SalesManagement.Infrastructure.Data;
@@ -9,10 +11,14 @@ namespace SalesManagement.Infrastructure.Repositories.StoReceipt
     public class StoReceiptCommandRepository : IStoReceiptCommandRepository
     {
         private readonly ApplicationDbContext _dbContext;
+        private readonly IDocumentSequenceLookup _documentSequenceLookup;
 
-        public StoReceiptCommandRepository(ApplicationDbContext dbContext)
+        public StoReceiptCommandRepository(
+            ApplicationDbContext dbContext,
+            IDocumentSequenceLookup documentSequenceLookup)
         {
             _dbContext = dbContext;
+            _documentSequenceLookup = documentSequenceLookup;
         }
 
         public async Task<int> CreateAsync(StoReceiptHeader entity, int packedStatusId, int damagedStatusId, int dispatchedStatusId, int typeId)
@@ -119,10 +125,10 @@ namespace SalesManagement.Infrastructure.Repositories.StoReceipt
                         }
                     }
 
-                    // Increment DocNo in Finance.DocumentSequence
-                    await _dbContext.Database.ExecuteSqlRawAsync(
-                        "UPDATE [Finance].[DocumentSequence] SET DocNo = DocNo + 1 WHERE TransactionTypeId = {0} AND IsDeleted = 0",
-                        typeId);
+                    // Increment DocNo via Finance lookup (within same transaction)
+                    var dbConnection = _dbContext.Database.GetDbConnection();
+                    var dbTransaction = transaction.GetDbTransaction();
+                    await _documentSequenceLookup.IncrementDocNoAsync(typeId, dbConnection, dbTransaction);
 
                     await transaction.CommitAsync();
                     newId = entity.Id;

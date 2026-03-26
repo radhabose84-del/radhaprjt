@@ -1,4 +1,6 @@
+using Contracts.Interfaces.Lookups.Finance;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using SalesManagement.Application.Common.Interfaces.IDeliveryChallan;
 using SalesManagement.Domain.Common;
 using SalesManagement.Infrastructure.Data;
@@ -9,10 +11,14 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
     public class DeliveryChallanCommandRepository : IDeliveryChallanCommandRepository
     {
         private readonly ApplicationDbContext _dbContext;
+        private readonly IDocumentSequenceLookup _documentSequenceLookup;
 
-        public DeliveryChallanCommandRepository(ApplicationDbContext dbContext)
+        public DeliveryChallanCommandRepository(
+            ApplicationDbContext dbContext,
+            IDocumentSequenceLookup documentSequenceLookup)
         {
             _dbContext = dbContext;
+            _documentSequenceLookup = documentSequenceLookup;
         }
 
         public async Task<int> CreateAsync(Domain.Entities.DeliveryChallanHeader entity, int packedStatusId, int reservedStatusId, int typeId)
@@ -69,10 +75,10 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
                         await _dbContext.SaveChangesAsync();
                     }
 
-                    // Increment DocNo in Finance.DocumentSequence
-                    await _dbContext.Database.ExecuteSqlRawAsync(
-                        "UPDATE [Finance].[DocumentSequence] SET DocNo = DocNo + 1 WHERE TransactionTypeId = {0} AND IsDeleted = 0",
-                        typeId);
+                    // Increment DocNo via Finance lookup (within same transaction)
+                    var dbConnection = _dbContext.Database.GetDbConnection();
+                    var dbTransaction = transaction.GetDbTransaction();
+                    await _documentSequenceLookup.IncrementDocNoAsync(typeId, dbConnection, dbTransaction);
 
                     await transaction.CommitAsync();
                     newId = entity.Id;

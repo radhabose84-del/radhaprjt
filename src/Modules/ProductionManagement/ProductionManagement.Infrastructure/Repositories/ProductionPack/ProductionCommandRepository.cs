@@ -1,9 +1,9 @@
-using System.Data;
-using Dapper;
+using Contracts.Dtos.Stock;
+using Contracts.Interfaces.Lookups.Finance;
+using Contracts.Interfaces.Lookups.Sales;
 using Microsoft.EntityFrameworkCore;
-using ProductionManagement.Application.Common.Interfaces.IMiscMaster;
+using Microsoft.EntityFrameworkCore.Storage;
 using ProductionManagement.Application.Common.Interfaces.IProductionPack;
-using ProductionManagement.Domain.Common;
 using ProductionManagement.Domain.Entities;
 using ProductionManagement.Infrastructure.Data;
 using static ProductionManagement.Domain.Common.BaseEntity;
@@ -13,17 +13,20 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
     public class ProductionCommandRepository : IProductionCommandRepository
     {
         private readonly ApplicationDbContext _applicationDbContext;
-        private readonly IMiscMasterQueryRepository _miscMasterQueryRepository;
-        private readonly IDbConnection _dbConnection;
+        private readonly ISalesMiscMasterLookup _salesMiscMasterLookup;
+        private readonly ISalesStockLedgerLookup _salesStockLedgerLookup;
+        private readonly IDocumentSequenceLookup _documentSequenceLookup;
 
         public ProductionCommandRepository(
             ApplicationDbContext applicationDbContext,
-            IMiscMasterQueryRepository miscMasterQueryRepository,
-            IDbConnection dbConnection)
+            ISalesMiscMasterLookup salesMiscMasterLookup,
+            ISalesStockLedgerLookup salesStockLedgerLookup,
+            IDocumentSequenceLookup documentSequenceLookup)
         {
             _applicationDbContext = applicationDbContext;
-            _miscMasterQueryRepository = miscMasterQueryRepository;
-            _dbConnection = dbConnection;
+            _salesMiscMasterLookup = salesMiscMasterLookup;
+            _salesStockLedgerLookup = salesStockLedgerLookup;
+            _documentSequenceLookup = documentSequenceLookup;
         }
 
         public async Task<int> CreateAsync(ProductionPackHeader entity, int typeId)
@@ -50,22 +53,15 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
                         await _applicationDbContext.ProductionPackDetail.AddRangeAsync(details);
                         await _applicationDbContext.SaveChangesAsync();
 
-                        var packedStatus = await _miscMasterQueryRepository.GetMiscMasterByCode(
-                             MiscEnumEntity.Packed);
+                        var packedStatus = await _salesMiscMasterLookup.GetByCodeAsync("Packed");
                         var packedStatusId = packedStatus?.Id ?? 0;
 
-                        // Insert StockLedger rows via Dapper (cross-module write to Sales.StockLedger)
-                        const string insertSql = @"
-                            INSERT INTO Sales.StockLedger
-                                (UnitId, DocType, DocNo, DetailDocNo, DocDate, ItemId, LotId, PackNo, PackTypeId, WarehouseId, BinId, TotalQty, TotalValue, StatusId)
-                            VALUES
-                                (@UnitId, @DocType, @DocNo, @DetailDocNo, @DocDate, @ItemId, @LotId, @PackNo, @PackTypeId, @WarehouseId, @BinId, @TotalQty, @TotalValue, @StatusId)";
-
+                        var stockEntries = new List<SalesStockLedgerDto>();
                         foreach (var detail in details)
                         {
                             for (int packNo = detail.StartPackNo; packNo <= detail.EndPackNo; packNo++)
                             {
-                                await _dbConnection.ExecuteAsync(insertSql, new
+                                stockEntries.Add(new SalesStockLedgerDto
                                 {
                                     UnitId = entity.UnitId,
                                     DocType = "PROD",
@@ -84,11 +80,13 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
                                 });
                             }
                         }
+
+                        await _salesStockLedgerLookup.InsertAsync(stockEntries);
                     }
 
-                    await _applicationDbContext.Database.ExecuteSqlRawAsync(
-                        "UPDATE [Finance].[DocumentSequence] SET DocNo = DocNo + 1 WHERE TransactionTypeId = {0} AND IsDeleted = 0",
-                        typeId);
+                    var dbConnection = _applicationDbContext.Database.GetDbConnection();
+                    var dbTransaction = transaction.GetDbTransaction();
+                    await _documentSequenceLookup.IncrementDocNoAsync(typeId, dbConnection, dbTransaction);
 
                     await transaction.CommitAsync();
                     return entity.Id;
@@ -128,12 +126,9 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
                     existingEntity.Remarks = entity.Remarks;
                     existingEntity.IsActive = entity.IsActive;
 
-                    // Delete old StockLedger entries via Dapper (cross-module write to Sales.StockLedger)
                     if (existingEntity.ProductionPackDetails != null && existingEntity.ProductionPackDetails.Any())
                     {
-                        await _dbConnection.ExecuteAsync(
-                            "DELETE FROM Sales.StockLedger WHERE DocType = 'PROD' AND DocNo = @DocNo",
-                            new { DocNo = existingEntity.Id });
+                        await _salesStockLedgerLookup.DeleteByDocAsync("PROD", existingEntity.Id);
 
                         _applicationDbContext.ProductionPackDetail.RemoveRange(existingEntity.ProductionPackDetails);
                     }
@@ -148,22 +143,15 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
                         await _applicationDbContext.ProductionPackDetail.AddRangeAsync(newDetails);
                         await _applicationDbContext.SaveChangesAsync();
 
-                        var packedStatus = await _miscMasterQueryRepository.GetMiscMasterByCode(
-                                                MiscEnumEntity.Packed);
+                        var packedStatus = await _salesMiscMasterLookup.GetByCodeAsync("Packed");
                         var packedStatusId = packedStatus?.Id ?? 0;
 
-                        // Insert new StockLedger rows via Dapper
-                        const string insertSql = @"
-                            INSERT INTO Sales.StockLedger
-                                (UnitId, DocType, DocNo, DetailDocNo, DocDate, ItemId, LotId, PackNo, PackTypeId, WarehouseId, BinId, TotalQty, TotalValue, StatusId)
-                            VALUES
-                                (@UnitId, @DocType, @DocNo, @DetailDocNo, @DocDate, @ItemId, @LotId, @PackNo, @PackTypeId, @WarehouseId, @BinId, @TotalQty, @TotalValue, @StatusId)";
-
+                        var stockEntries = new List<SalesStockLedgerDto>();
                         foreach (var detail in newDetails)
                         {
                             for (int packNo = detail.StartPackNo; packNo <= detail.EndPackNo; packNo++)
                             {
-                                await _dbConnection.ExecuteAsync(insertSql, new
+                                stockEntries.Add(new SalesStockLedgerDto
                                 {
                                     UnitId = existingEntity.UnitId,
                                     DocType = "PROD",
@@ -182,6 +170,8 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
                                 });
                             }
                         }
+
+                        await _salesStockLedgerLookup.InsertAsync(stockEntries);
                     }
 
                     _applicationDbContext.ProductionPackHeader.Update(existingEntity);
