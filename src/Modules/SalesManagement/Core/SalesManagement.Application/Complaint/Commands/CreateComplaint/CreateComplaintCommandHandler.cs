@@ -88,7 +88,7 @@ namespace SalesManagement.Application.Complaint.Commands.CreateComplaint
             entity.ComplaintNumber = complaintNumber
                 ?? throw new ExceptionRules("No document sequence configured for Complaint.");
 
-            var newId = await _commandRepository.CreateAsync(entity);
+            var newId = await _commandRepository.CreateAsync(entity, typeId.Value);
 
             // Publish workflow approval request via Outbox
             var correlationId = Guid.NewGuid();
