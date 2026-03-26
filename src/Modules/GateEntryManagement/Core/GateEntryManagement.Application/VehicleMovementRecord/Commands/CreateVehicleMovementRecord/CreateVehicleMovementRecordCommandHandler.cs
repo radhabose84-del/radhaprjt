@@ -62,7 +62,7 @@ namespace GateEntryManagement.Application.VehicleMovementRecord.Commands.CreateV
             entity.StatusId = statusMisc?.Id
                 ?? throw new ExceptionRules("VMR Status 'Inside Premises' not found in MiscMaster.");
 
-            var newId = await _commandRepository.CreateAsync(entity);
+            var newId = await _commandRepository.CreateAsync(entity, typeId.Value);
 
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Create",

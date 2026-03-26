@@ -11,6 +11,7 @@ using PartyManagement.Application.PartyMaster.Queries.GetPartyMasterById;
 using PartyManagement.Application.PartyMaster.Queries.GetPartyMasterPending;
 using PartyManagement.Domain.Common;
 using Contracts.Interfaces.Lookups.Purchase;
+using Contracts.Interfaces.Lookups.Sales;
 using Contracts.Interfaces.Lookups.Users;
 using Dapper;
 
@@ -26,11 +27,12 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
         private readonly IStateLookup _stateLookup;
         private readonly ICountryLookup _countryLookup;
         private readonly IDataAccessFilter _dataAccessFilter;
+        private readonly ISalesSegmentLookup _salesSegmentLookup;
 
         public PartyMasterQueryRepository(IDbConnection dbConnection, IIPAddressService ipAddressService,
             IIncotermLookup incotermLookup, IPaymentTermLookup paymentTermLookup,
             ICityLookup cityLookup, IStateLookup stateLookup, ICountryLookup countryLookup,
-            IDataAccessFilter dataAccessFilter)
+            IDataAccessFilter dataAccessFilter, ISalesSegmentLookup salesSegmentLookup)
         {
             _dbConnection = dbConnection;
             _ipAddressService = ipAddressService;
@@ -40,6 +42,7 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
             _stateLookup = stateLookup;
             _countryLookup = countryLookup;
             _dataAccessFilter = dataAccessFilter;
+            _salesSegmentLookup = salesSegmentLookup;
         }
         public async Task<List<PartyGroupLoadDto>> GetPartyGroupsAsync(List<int> groupTypeIds)
         {
@@ -415,6 +418,36 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
                                 ContactTypeId = c.ContactTypeId,
                                 ContactTypeName = c.ContactTypeName,
                                 ContactBy = c.ContactBy,
+                            }).ToList();
+                        }
+                    }
+                }
+
+                // ─── Step 4: Fetch SalesTypes with SalesSegment names ───
+                const string salesTypeSql = @"
+                    SELECT Id, PartyId, SalesSegmentId
+                    FROM Party.SalesType
+                    WHERE PartyId IN @PartyIds";
+
+                var flatSalesTypes = (await _dbConnection.QueryAsync<SalesTypeFlatDto>(salesTypeSql, new { PartyIds = partyIds })).ToList();
+
+                if (flatSalesTypes.Count > 0)
+                {
+                    var allSegments = await _salesSegmentLookup.GetAllSalesSegmentAsync();
+                    var segmentDict = allSegments.ToDictionary(s => s.Id, s => s.SegmentName);
+
+                    var salesTypesByParty = flatSalesTypes.GroupBy(st => st.PartyId).ToDictionary(g => g.Key, g => g.ToList());
+
+                    foreach (var party in result)
+                    {
+                        if (salesTypesByParty.TryGetValue(party.Id, out var salesTypes))
+                        {
+                            party.SalesTypes = salesTypes.Select(st => new SalesTypeAutoCompleteDto
+                            {
+                                Id = st.Id,
+                                SalesSegmentId = st.SalesSegmentId,
+                                SegmentName = st.SalesSegmentId.HasValue && segmentDict.TryGetValue(st.SalesSegmentId.Value, out var name)
+                                    ? name : null
                             }).ToList();
                         }
                     }

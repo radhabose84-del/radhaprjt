@@ -34,5 +34,8 @@ namespace GateEntryManagement.Domain.Entities
         public MiscMaster? PurposeOfVisit { get; set; }
         public MiscMaster? ReferenceDocType { get; set; }
         public MiscMaster? StatusMisc { get; set; }
+
+        // Reverse navigation (GatePass)
+        public ICollection<GatePassHdr>? GatePassHeaders { get; set; }
     }
 }

@@ -93,6 +93,17 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("varchar(50)")
                 .IsRequired(false);
 
+            builder.Property(t => t.UnitId)
+                .HasColumnName("UnitId")
+                .HasColumnType("int")
+                .IsRequired();
+
+            builder.Property(t => t.InvFlg)
+                .HasColumnName("InvFlg")
+                .HasColumnType("bit")
+                .IsRequired()
+                .HasDefaultValue(false);
+
             // Status & Audit
             builder.Property(b => b.IsActive)
                 .HasColumnName("IsActive")

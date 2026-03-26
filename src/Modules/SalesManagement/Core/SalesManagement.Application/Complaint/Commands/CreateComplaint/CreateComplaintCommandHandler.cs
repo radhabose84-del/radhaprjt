@@ -1,14 +1,17 @@
 using AutoMapper;
+using Contracts.Commands.Workflow;
 using Contracts.Common;
 using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Finance;
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.IComplaint;
 using SalesManagement.Application.Common.Interfaces.IMiscMaster;
+using SalesManagement.Application.Common.Interfaces.IOutbox;
 using SalesManagement.Application.Complaint.Dto;
 using SalesManagement.Domain.Common;
 using SalesManagement.Domain.Entities;
 using SalesManagement.Domain.Events;
+using System.Text.Json;
 
 namespace SalesManagement.Application.Complaint.Commands.CreateComplaint
 {
@@ -18,6 +21,7 @@ namespace SalesManagement.Application.Complaint.Commands.CreateComplaint
         private readonly IMiscMasterQueryRepository _miscMasterQueryRepository;
         private readonly IDocumentSequenceLookup _documentSequenceLookup;
         private readonly IIPAddressService _ipAddressService;
+        private readonly IOutboxEventPublisher _outboxEventPublisher;
         private readonly IMediator _mediator;
         private readonly IMapper _mapper;
 
@@ -26,6 +30,7 @@ namespace SalesManagement.Application.Complaint.Commands.CreateComplaint
             IMiscMasterQueryRepository miscMasterQueryRepository,
             IDocumentSequenceLookup documentSequenceLookup,
             IIPAddressService ipAddressService,
+            IOutboxEventPublisher outboxEventPublisher,
             IMediator mediator,
             IMapper mapper)
         {
@@ -33,6 +38,7 @@ namespace SalesManagement.Application.Complaint.Commands.CreateComplaint
             _miscMasterQueryRepository = miscMasterQueryRepository;
             _documentSequenceLookup = documentSequenceLookup;
             _ipAddressService = ipAddressService;
+            _outboxEventPublisher = outboxEventPublisher;
             _mediator = mediator;
             _mapper = mapper;
         }
@@ -41,10 +47,10 @@ namespace SalesManagement.Application.Complaint.Commands.CreateComplaint
         {
             var entity = _mapper.Map<ComplaintHeader>(request);
 
-            // Set Open status from ComplaintStatus
-            var openStatus = await _miscMasterQueryRepository.GetMiscMasterByName(
-                "ComplaintStatus", "Open");
-            entity.StatusId = openStatus?.Id ?? 0;
+            // Set Pending status from ApprovalStatus
+            var pendingStatus = await _miscMasterQueryRepository.GetMiscMasterByName(
+                MiscEnumEntity.ComplaintApprovalStatus, MiscEnumEntity.ComplaintApprovalPending);
+            entity.StatusId = pendingStatus?.Id ?? 0;
 
             // Map details
             if (request.Details != null && request.Details.Count > 0)
@@ -82,7 +88,31 @@ namespace SalesManagement.Application.Complaint.Commands.CreateComplaint
             entity.ComplaintNumber = complaintNumber
                 ?? throw new ExceptionRules("No document sequence configured for Complaint.");
 
-            var newId = await _commandRepository.CreateAsync(entity);
+            var newId = await _commandRepository.CreateAsync(entity, typeId.Value);
+
+            // Publish workflow approval request via Outbox
+            var correlationId = Guid.NewGuid();
+            var payload = JsonSerializer.Serialize(new
+            {
+                Header = new
+                {
+                    Id = newId,
+                    ComplaintNumber = complaintNumber,
+                    CustomerId = request.CustomerId,
+                    UnitId = unitId ?? 0,
+                    StatusId = entity.StatusId
+                },
+                Lines = new List<object>()
+            });
+
+            var workflowEvent = new CreateApprovalRequestCommand
+            {
+                CorrelationId = correlationId,
+                ModuleTypeName = MiscEnumEntity.ComplaintModuleTypeName,
+                ModuleTransactionId = newId,
+                Payload = payload
+            };
+            await _outboxEventPublisher.ScheduleAsync(workflowEvent, correlationId, cancellationToken);
 
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Create",

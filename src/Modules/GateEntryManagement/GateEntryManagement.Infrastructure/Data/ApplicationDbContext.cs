@@ -25,12 +25,16 @@ namespace GateEntryManagement.Infrastructure.Data
         public DbSet<MiscTypeMaster> MiscTypeMaster { get; set; } = null!;
         public DbSet<MiscMaster> MiscMaster { get; set; } = null!;
         public DbSet<VehicleMovementRecord> VehicleMovementRecord { get; set; } = null!;
+        public DbSet<GatePassHdr> GatePassHdr { get; set; } = null!;
+        public DbSet<GatePassDtl> GatePassDtl { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfiguration(new MiscTypeMasterConfiguration());
             modelBuilder.ApplyConfiguration(new MiscMasterConfiguration());
             modelBuilder.ApplyConfiguration(new VehicleMovementRecordConfiguration());
+            modelBuilder.ApplyConfiguration(new GatePassHdrConfiguration());
+            modelBuilder.ApplyConfiguration(new GatePassDtlConfiguration());
                // Global convention: set explicit precision/scale for all decimal properties
             // This prevents EF Core runtime warnings about silent truncation
             foreach (var property in modelBuilder.Model.GetEntityTypes()

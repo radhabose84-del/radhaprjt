@@ -14,11 +14,32 @@ namespace GateEntryManagement.Infrastructure.Repositories.VehicleMovementRecord
             _applicationDbContext = applicationDbContext;
         }
 
-        public async Task<int> CreateAsync(Domain.Entities.VehicleMovementRecord entity)
+        public async Task<int> CreateAsync(Domain.Entities.VehicleMovementRecord entity, int transactionTypeId)
         {
-            await _applicationDbContext.VehicleMovementRecord.AddAsync(entity);
-            await _applicationDbContext.SaveChangesAsync();
-            return entity.Id;
+            var strategy = _applicationDbContext.Database.CreateExecutionStrategy();
+
+            return await strategy.ExecuteAsync(async () =>
+            {
+                await using var transaction = await _applicationDbContext.Database.BeginTransactionAsync();
+                try
+                {
+                    await _applicationDbContext.VehicleMovementRecord.AddAsync(entity);
+                    await _applicationDbContext.SaveChangesAsync();
+
+                    // Increment DocNo — same DbContext connection, same transaction
+                    await _applicationDbContext.Database.ExecuteSqlRawAsync(
+                        "UPDATE [Finance].[DocumentSequence] SET DocNo = DocNo + 1 WHERE TransactionTypeId = {0} AND IsDeleted = 0",
+                        transactionTypeId);
+
+                    await transaction.CommitAsync();
+                    return entity.Id;
+                }
+                catch
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
+            });
         }
 
         public async Task<int> UpdateAsync(Domain.Entities.VehicleMovementRecord entity)
@@ -29,7 +50,6 @@ namespace GateEntryManagement.Infrastructure.Repositories.VehicleMovementRecord
             if (existingEntity == null)
                 return 0;
 
-            // Editable fields (until Gate Out)
             existingEntity.VehicleNumber = entity.VehicleNumber;
             existingEntity.DriverName = entity.DriverName;
             existingEntity.DriverLicenseNo = entity.DriverLicenseNo;

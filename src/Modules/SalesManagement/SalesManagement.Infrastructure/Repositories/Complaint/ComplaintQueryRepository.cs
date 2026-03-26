@@ -1,6 +1,8 @@
 using System.Data;
+using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Party;
+using Contracts.Interfaces.Lookups.Production;
 using Contracts.Interfaces.Lookups.Users;
 using Dapper;
 using SalesManagement.Application.Common.Interfaces.IComplaint;
@@ -13,18 +15,30 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
         private readonly IDbConnection _dbConnection;
         private readonly IPartyLookup _partyLookup;
         private readonly IItemLookup _itemLookup;
+        private readonly ILotMasterLookup _lotLookup;
         private readonly IDivisionLookup _divisionLookup;
+        private readonly IUnitLookup _unitLookup;
+        private readonly IUOMLookup _uomLookup;
+        private readonly IIPAddressService _ipAddressService;
 
         public ComplaintQueryRepository(
             IDbConnection dbConnection,
             IPartyLookup partyLookup,
             IItemLookup itemLookup,
-            IDivisionLookup divisionLookup)
+            ILotMasterLookup lotLookup,
+            IDivisionLookup divisionLookup,
+            IUnitLookup unitLookup,
+            IUOMLookup uomLookup,
+            IIPAddressService ipAddressService)
         {
             _dbConnection = dbConnection;
             _partyLookup = partyLookup;
             _itemLookup = itemLookup;
+            _lotLookup = lotLookup;
             _divisionLookup = divisionLookup;
+            _unitLookup = unitLookup;
+            _uomLookup = uomLookup;
+            _ipAddressService = ipAddressService;
         }
 
         public async Task<(List<ComplaintHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
@@ -151,7 +165,7 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
             var party = await _partyLookup.GetByIdAsync(header.CustomerId);
             header.CustomerName = party?.PartyName;
 
-            // Fetch details with same-module JOINs
+            // Fetch details with same-module JOINs only
             const string detailSql = @"
                 SELECT
                     d.Id,
@@ -162,7 +176,6 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                     d.InvoiceTypeId,
                     mt.Description AS InvoiceTypeName,
                     d.LotId,
-                    lm.LotCode,
                     d.ItemId,
                     d.NumberOfPacks,
                     d.NetWeight,
@@ -171,7 +184,6 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                 FROM Sales.ComplaintDetail d
                 LEFT JOIN Sales.InvoiceHeader ih ON d.InvoiceHeaderId = ih.Id AND ih.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster mt ON d.InvoiceTypeId = mt.Id AND mt.IsDeleted = 0
-                LEFT JOIN Production.LotMaster lm ON d.LotId = lm.Id AND lm.IsDeleted = 0
                 WHERE d.ComplaintHeaderId = @HeaderId AND d.IsDeleted = 0;";
 
             var details = (await _dbConnection.QueryAsync<ComplaintDetailDto>(detailSql, new { HeaderId = id })).ToList();
@@ -182,6 +194,10 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                 var itemIds = details.Select(d => d.ItemId).Distinct();
                 var items = await _itemLookup.GetByIdsAsync(itemIds);
                 var itemDict = items.ToDictionary(i => i.Id, i => (i.ItemCode, i.ItemName));
+
+                var lotIds = details.Where(d => d.LotId.HasValue).Select(d => d.LotId!.Value).Distinct();
+                var lots = await _lotLookup.GetByIdsAsync(lotIds);
+                var lotDict = lots.ToDictionary(l => l.Id, l => l.LotCode);
 
                 var divisionIds = details.Where(d => d.DivisionId.HasValue).Select(d => d.DivisionId!.Value).Distinct();
                 var divisions = await _divisionLookup.GetByIdsAsync(divisionIds);
@@ -194,6 +210,7 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                         detail.ItemCode = itemInfo.ItemCode;
                         detail.ItemName = itemInfo.ItemName;
                     }
+                    detail.LotCode = detail.LotId.HasValue && lotDict.TryGetValue(detail.LotId.Value, out var lotCode) ? lotCode : null;
                     detail.DivisionName = detail.DivisionId.HasValue && divisionDict.TryGetValue(detail.DivisionId.Value, out var divName) ? divName : null;
                 }
 
@@ -318,7 +335,6 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                     ih.InvoiceType,
                     mm.Description AS InvoiceTypeName,
                     id.LotId,
-                    lm.LotCode,
                     id.ItemId,
                     id.NoOfBags,
                     id.Quantity,
@@ -326,17 +342,20 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                 FROM Sales.InvoiceDetail id
                 INNER JOIN Sales.InvoiceHeader ih ON id.InvoiceHeaderId = ih.Id AND ih.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster mm ON ih.InvoiceType = mm.Id AND mm.IsDeleted = 0
-                LEFT JOIN Production.LotMaster lm ON id.LotId = lm.Id AND lm.IsDeleted = 0
                 WHERE id.InvoiceHeaderId = @InvoiceHeaderId;";
 
             var result = (await _dbConnection.QueryAsync<InvoiceLineDetailDto>(sql, new { InvoiceHeaderId = invoiceHeaderId })).ToList();
 
-            // Populate ItemCode/ItemName via cross-module lookup
+            // Populate cross-module lookups
             if (result.Count > 0)
             {
                 var itemIds = result.Select(r => r.ItemId).Distinct();
                 var items = await _itemLookup.GetByIdsAsync(itemIds);
                 var itemDict = items.ToDictionary(i => i.Id, i => (i.ItemCode, i.ItemName));
+
+                var lotIds = result.Where(r => r.LotId.HasValue).Select(r => r.LotId!.Value).Distinct();
+                var lots = await _lotLookup.GetByIdsAsync(lotIds);
+                var lotDict = lots.ToDictionary(l => l.Id, l => l.LotCode);
 
                 foreach (var line in result)
                 {
@@ -345,10 +364,235 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                         line.ItemCode = itemInfo.ItemCode;
                         line.ItemName = itemInfo.ItemName;
                     }
+                    line.LotCode = line.LotId.HasValue && lotDict.TryGetValue(line.LotId.Value, out var lotCode) ? lotCode : null;
                 }
             }
 
             return result;
+        }
+
+        public async Task<(List<InvoiceSearchDto>, int)> SearchInvoicesAsync(int partyId, string? searchTerm, bool lastOneYear, int pageNumber, int pageSize)
+        {
+            var dateFilter = lastOneYear
+                ? " AND ih.InvoiceDate >= DATEADD(YEAR, -1, GETDATE())"
+                : string.Empty;
+
+            var searchFilter = string.IsNullOrWhiteSpace(searchTerm)
+                ? string.Empty
+                : @" AND (ih.InvoiceNo LIKE @SearchTerm
+                       OR mm.Description LIKE @SearchTerm
+                       OR mm.Code LIKE @SearchTerm)";
+
+            var countSql = $@"
+                SELECT COUNT(*)
+                FROM Sales.InvoiceDetail id
+                INNER JOIN Sales.InvoiceHeader ih ON id.InvoiceHeaderId = ih.Id AND ih.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster mm ON ih.InvoiceType = mm.Id AND mm.IsDeleted = 0
+                WHERE ih.PartyId = @PartyId {dateFilter} {searchFilter};";
+
+            var dataSql = $@"
+                SELECT
+                    ROW_NUMBER() OVER (ORDER BY ih.InvoiceDate DESC, ih.Id, id.ItemSno) AS Sno,
+                    id.Id AS InvoiceDetailId,
+                    ih.Id AS InvoiceHeaderId,
+                    ih.InvoiceDate,
+                    ih.InvoiceType AS InvoiceTypeId,
+                    mm.Description AS InvoiceTypeName,
+                    ih.InvoiceNo,
+                    mm.Code AS ShortCode,
+                    id.ItemId,
+                    id.LotId,
+                    ih.UnitId,
+                    id.NoOfBags AS Packs,
+                    id.Quantity AS NetWeight,
+                    id.TotalAmount AS InvAmount,
+                    id.UOMId
+                FROM Sales.InvoiceDetail id
+                INNER JOIN Sales.InvoiceHeader ih ON id.InvoiceHeaderId = ih.Id AND ih.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster mm ON ih.InvoiceType = mm.Id AND mm.IsDeleted = 0
+                WHERE ih.PartyId = @PartyId {dateFilter} {searchFilter}
+                ORDER BY ih.InvoiceDate DESC, ih.Id, id.ItemSno
+                OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;";
+
+            var parameters = new
+            {
+                PartyId = partyId,
+                SearchTerm = $"%{searchTerm}%",
+                Offset = (pageNumber - 1) * pageSize,
+                PageSize = pageSize
+            };
+
+            using var multi = await _dbConnection.QueryMultipleAsync(countSql + dataSql, parameters);
+            var totalCount = await multi.ReadFirstAsync<int>();
+            var data = (await multi.ReadAsync<InvoiceSearchDto>()).ToList();
+
+            if (data.Count > 0)
+            {
+                // Populate ProductCode/ProductName via cross-module item lookup
+                var itemIds = data.Select(d => d.ItemId).Distinct();
+                var items = await _itemLookup.GetByIdsAsync(itemIds);
+                var itemDict = items.ToDictionary(i => i.Id, i => (i.ItemCode, i.ItemName));
+
+                // Populate LotNum via cross-module lot lookup
+                var lotIds = data.Where(d => d.LotId.HasValue).Select(d => d.LotId!.Value).Distinct();
+                var lots = await _lotLookup.GetByIdsAsync(lotIds);
+                var lotDict = lots.ToDictionary(l => l.Id, l => l.LotCode);
+
+                // Populate DivisionCode via UnitId → Unit.DivisionId → Division.ShortName
+                var unitIds = data.Select(d => d.UnitId).Where(u => u > 0).Distinct();
+                var units = await _unitLookup.GetByIdsAsync(unitIds);
+                var unitDivisionMap = units.ToDictionary(u => u.UnitId, u => u.DivisionId);
+
+                var divisionIds = unitDivisionMap.Values.Where(d => d > 0).Distinct();
+                var divisions = await _divisionLookup.GetByIdsAsync(divisionIds);
+                var divDict = divisions.ToDictionary(d => d.Id, d => d.ShortName);
+
+                // Populate UOM names
+                var uomIds = data.Where(d => d.UOMId.HasValue).Select(d => d.UOMId!.Value).Distinct();
+                var uoms = await _uomLookup.GetByIdsAsync(uomIds);
+                var uomDict = uoms.ToDictionary(u => u.Id, u => u.UOMName);
+
+                foreach (var row in data)
+                {
+                    if (itemDict.TryGetValue(row.ItemId, out var itemInfo))
+                    {
+                        row.ProductCode = itemInfo.ItemCode;
+                        row.ProductName = itemInfo.ItemName;
+                    }
+
+                    row.LotNum = row.LotId.HasValue && lotDict.TryGetValue(row.LotId.Value, out var lotCode) ? lotCode : null;
+
+                    if (unitDivisionMap.TryGetValue(row.UnitId, out var divId) && divDict.TryGetValue(divId, out var divShort))
+                    {
+                        row.DivisionId = divId;
+                        row.DivisionCode = divShort;
+                    }
+
+                    if (row.UOMId.HasValue && uomDict.TryGetValue(row.UOMId.Value, out var uomName))
+                    {
+                        row.UOMName = uomName;
+                    }
+                }
+            }
+
+            return (data, totalCount);
+        }
+
+        public async Task<(List<ComplaintHeaderDto>, int)> GetPendingAsync(int pageNumber, int pageSize, string? searchTerm)
+        {
+            var currentUserId = _ipAddressService.GetUserId();
+
+            // Get Pending status Id from ApprovalStatus MiscType (Sales module)
+            const string pendingIdSql = @"
+                SELECT m.Id FROM Sales.MiscMaster m
+                INNER JOIN Sales.MiscTypeMaster mt ON mt.Id = m.MiscTypeId AND mt.IsDeleted = 0
+                WHERE m.Code = 'Pending' AND mt.MiscTypeCode = 'ApprovalStatus' AND m.IsDeleted = 0;";
+
+            var pendingStatusId = await _dbConnection.ExecuteScalarAsync<int?>(pendingIdSql);
+            if (!pendingStatusId.HasValue)
+                return (new List<ComplaintHeaderDto>(), 0);
+
+            // Get Pending status Id from AppData MiscMaster (Workflow module)
+            const string appPendingIdSql = @"
+                SELECT m.Id FROM AppData.MiscMaster m
+                INNER JOIN AppData.MiscTypeMaster mt ON mt.Id = m.MiscTypeId AND mt.IsDeleted = 0
+                WHERE m.Code = 'Pending' AND mt.MiscTypeCode = 'ApprovalStatus' AND m.IsDeleted = 0;";
+
+            var appPendingStatusId = await _dbConnection.ExecuteScalarAsync<int?>(appPendingIdSql);
+            if (!appPendingStatusId.HasValue)
+                return (new List<ComplaintHeaderDto>(), 0);
+
+            var searchFilter = string.IsNullOrWhiteSpace(searchTerm)
+                ? string.Empty
+                : @" AND (h.ComplaintNumber LIKE @SearchTerm
+                       OR ms.Description LIKE @SearchTerm
+                       OR h.Remarks LIKE @SearchTerm)";
+
+            // Filter by logged-in approver via AppData.ApprovalRequest
+            const string approverFilter = @"
+                AND h.Id IN (
+                    SELECT ar.ModuleTransactionId
+                    FROM AppData.ApprovalRequest ar
+                    WHERE ar.WorkflowType = 'Complaint'
+                      AND ar.ApproverValue = @CurrentUserId
+                      AND ar.StatusId = @AppPendingStatusId
+                )";
+
+            var countSql = $@"
+                SELECT COUNT(*)
+                FROM Sales.ComplaintHeader h
+                LEFT JOIN Sales.MiscMaster ms ON h.StatusId = ms.Id AND ms.IsDeleted = 0
+                WHERE h.IsDeleted = 0 AND h.StatusId = @PendingStatusId {approverFilter} {searchFilter};";
+
+            var dataSql = $@"
+                SELECT
+                    h.Id,
+                    h.ComplaintNumber,
+                    h.ComplaintDate,
+                    h.PartyId AS CustomerId,
+                    h.Address AS CustomerAddress,
+                    h.PIN AS CustomerPIN,
+                    h.Mobile AS CustomerMobile,
+                    h.Email AS CustomerEmail,
+                    h.PAN AS CustomerPAN,
+                    h.GSTNo AS CustomerGSTNo,
+                    h.CreditLimit,
+                    h.TotalOS,
+                    h.Outstanding,
+                    h.BalanceCredit,
+                    h.Delay,
+                    h.Ledger,
+                    h.StatusId,
+                    ms.Description AS StatusName,
+                    h.Remarks,
+                    h.IsActive,
+                    h.IsDeleted,
+                    h.CreatedBy,
+                    h.CreatedDate,
+                    h.CreatedByName,
+                    h.CreatedIP,
+                    h.ModifiedBy,
+                    h.ModifiedDate,
+                    h.ModifiedByName,
+                    h.ModifiedIP
+                FROM Sales.ComplaintHeader h
+                LEFT JOIN Sales.MiscMaster ms ON h.StatusId = ms.Id AND ms.IsDeleted = 0
+                WHERE h.IsDeleted = 0 AND h.StatusId = @PendingStatusId {approverFilter} {searchFilter}
+                ORDER BY h.Id DESC
+                OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;";
+
+            var parameters = new
+            {
+                PendingStatusId = pendingStatusId.Value,
+                AppPendingStatusId = appPendingStatusId.Value,
+                CurrentUserId = currentUserId,
+                SearchTerm = $"%{searchTerm}%",
+                Offset = (pageNumber - 1) * pageSize,
+                PageSize = pageSize
+            };
+
+            using var multi = await _dbConnection.QueryMultipleAsync(countSql + dataSql, parameters);
+            var totalCount = await multi.ReadFirstAsync<int>();
+            var data = (await multi.ReadAsync<ComplaintHeaderDto>()).ToList();
+
+            // Populate cross-module customer name
+            if (data.Count > 0)
+            {
+                var partyIds = data.Select(d => d.CustomerId).Distinct();
+                var parties = await _partyLookup.GetByIdsAsync(partyIds);
+                var partyDict = parties.ToDictionary(p => p.Id, p => (p.PartyCode, p.PartyName));
+
+                foreach (var item in data)
+                {
+                    if (partyDict.TryGetValue(item.CustomerId, out var partyInfo))
+                    {
+                        item.CustomerCode = partyInfo.PartyCode;
+                        item.CustomerName = partyInfo.PartyName;
+                    }
+                }
+            }
+
+            return (data, totalCount);
         }
     }
 }

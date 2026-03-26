@@ -24,7 +24,7 @@ namespace Contracts.Events.Notifications
         public const string Sent = "Sent";
         public const string Failed = "Failed";
         public const string Delivered = "Delivered";
-        public const string Unread = "Unread";
+        public const string Unread = "UnRead";
         public const string Success = "Success";
 
         // NotificationEvent codes

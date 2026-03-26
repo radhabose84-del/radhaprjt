@@ -1168,6 +1168,12 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("varchar(100)")
                         .HasColumnName("DriverName");
 
+                    b.Property<bool>("InvFlg")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false)
+                        .HasColumnName("InvFlg");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit")
                         .HasColumnName("IsActive");
@@ -1226,6 +1232,10 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Property<int?>("TransporterId")
                         .HasColumnType("int")
                         .HasColumnName("TransporterId");
+
+                    b.Property<int>("UnitId")
+                        .HasColumnType("int")
+                        .HasColumnName("UnitId");
 
                     b.Property<string>("VehicleNo")
                         .HasColumnType("varchar(20)")
@@ -2979,18 +2989,6 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("DiscountPlanId");
 
-                    b.Property<int?>("DispatchDepotId")
-                        .HasColumnType("int")
-                        .HasColumnName("DispatchDepotId");
-
-                    b.Property<int>("DispatchLocationType")
-                        .HasColumnType("int")
-                        .HasColumnName("DispatchLocationType");
-
-                    b.Property<int?>("DispatchUnitId")
-                        .HasColumnType("int")
-                        .HasColumnName("DispatchUnitId");
-
                     b.Property<int>("EnquiryType")
                         .HasColumnType("int")
                         .HasColumnName("EnquiryType");
@@ -3138,8 +3136,6 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.HasIndex("CountListId");
 
                     b.HasIndex("DiscountPlanId");
-
-                    b.HasIndex("DispatchLocationType");
 
                     b.HasIndex("EnquiryType");
 
@@ -4519,12 +4515,6 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasForeignKey("DiscountPlanId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "DispatchLocationTypeMisc")
-                        .WithMany("SalesOrderHeadersAsDispatchLocationType")
-                        .HasForeignKey("DispatchLocationType")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "EnquiryTypeMisc")
                         .WithMany("SalesOrderHeadersAsEnquiryType")
                         .HasForeignKey("EnquiryType")
@@ -4566,8 +4556,6 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("CountList");
 
                     b.Navigation("DiscountPlan");
-
-                    b.Navigation("DispatchLocationTypeMisc");
 
                     b.Navigation("EnquiryTypeMisc");
 
@@ -4852,8 +4840,6 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("SalesOrderHeadersAsCountList");
 
                     b.Navigation("SalesOrderHeadersAsDiscountPlan");
-
-                    b.Navigation("SalesOrderHeadersAsDispatchLocationType");
 
                     b.Navigation("SalesOrderHeadersAsEnquiryType");
 
