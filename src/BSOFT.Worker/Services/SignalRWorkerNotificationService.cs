@@ -7,6 +7,7 @@ public sealed class SignalRWorkerNotificationService : IWorkerNotificationServic
 {
     private readonly ILogger<SignalRWorkerNotificationService> _logger;
     private readonly HubConnection _connection;
+    private readonly SemaphoreSlim _connectionLock = new(1, 1);
 
     public SignalRWorkerNotificationService(
         IConfiguration configuration,
@@ -14,7 +15,7 @@ public sealed class SignalRWorkerNotificationService : IWorkerNotificationServic
     {
         _logger = logger;
 
-        var hubUrl = configuration["SignalR:HubUrl"] ?? "https://localhost:7001/notificationHub";
+        var hubUrl = configuration["SignalR:HubUrl"] ?? "http://localhost:5050/notificationHub";
 
         _connection = new HubConnectionBuilder()
             .WithUrl(hubUrl)
@@ -26,17 +27,42 @@ public sealed class SignalRWorkerNotificationService : IWorkerNotificationServic
     {
         try
         {
+            await EnsureConnectedAsync();
+            await _connection.InvokeAsync("BroadcastFromWorker", method, payload);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send SignalR notification. Method: {Method}", method);
+        }
+    }
+
+    private async Task EnsureConnectedAsync()
+    {
+        if (_connection.State == HubConnectionState.Connected)
+            return;
+
+        await _connectionLock.WaitAsync();
+        try
+        {
+            // Double-check after acquiring lock
             if (_connection.State == HubConnectionState.Disconnected)
             {
                 await _connection.StartAsync();
                 _logger.LogInformation("SignalR connection established to hub.");
             }
 
-            await _connection.InvokeAsync("BroadcastFromWorker", method, payload);
+            // Wait for connection if it's in Connecting/Reconnecting state
+            var timeout = TimeSpan.FromSeconds(10);
+            var start = DateTime.UtcNow;
+            while (_connection.State != HubConnectionState.Connected
+                && DateTime.UtcNow - start < timeout)
+            {
+                await Task.Delay(100);
+            }
         }
-        catch (Exception ex)
+        finally
         {
-            _logger.LogError(ex, "Failed to send SignalR notification. Method: {Method}", method);
+            _connectionLock.Release();
         }
     }
 
@@ -46,5 +72,6 @@ public sealed class SignalRWorkerNotificationService : IWorkerNotificationServic
         {
             await _connection.DisposeAsync();
         }
+        _connectionLock.Dispose();
     }
 }

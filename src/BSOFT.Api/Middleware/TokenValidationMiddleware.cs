@@ -26,6 +26,15 @@ namespace BSOFT.Api.Middleware
         {
             var systemTimeZoneId = _timeZoneService.GetSystemTimeZone();
             var currentTime = _timeZoneService.GetCurrentTime(systemTimeZoneId);
+
+            // Skip authentication for SignalR hub negotiate/connect requests
+            var path = context.Request.Path;
+            if (path.StartsWithSegments("/notificationHub", StringComparison.OrdinalIgnoreCase))
+            {
+                await _next(context);
+                return;
+            }
+
             var endpoint = context.GetEndpoint();
             if (endpoint?.Metadata?.GetMetadata<IAllowAnonymous>() != null)
             {

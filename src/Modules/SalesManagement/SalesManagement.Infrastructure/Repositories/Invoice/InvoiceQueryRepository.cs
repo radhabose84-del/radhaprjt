@@ -2,6 +2,7 @@ using System.Data;
 using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Party;
+using Contracts.Interfaces.Lookups.Production;
 using Contracts.Interfaces.Lookups.Users;
 using Dapper;
 using SalesManagement.Application.Common.Interfaces.IInvoice;
@@ -19,6 +20,8 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
         private readonly IItemLookup _itemLookup;
         private readonly IUOMLookup _uomLookup;
         private readonly IFinancialYearLookup _financialYearLookup;
+        private readonly IPackTypeLookup _packTypeLookup;
+        private readonly ILotMasterLookup _lotMasterLookup;
         private readonly IIPAddressService _ipAddressService;
 
         public InvoiceQueryRepository(
@@ -28,6 +31,8 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
             IItemLookup itemLookup,
             IUOMLookup uomLookup,
             IFinancialYearLookup financialYearLookup,
+            IPackTypeLookup packTypeLookup,
+            ILotMasterLookup lotMasterLookup,
             IIPAddressService ipAddressService)
         {
             _dbConnection = dbConnection;
@@ -36,6 +41,8 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
             _itemLookup = itemLookup;
             _uomLookup = uomLookup;
             _financialYearLookup = financialYearLookup;
+            _packTypeLookup = packTypeLookup;
+            _lotMasterLookup = lotMasterLookup;
             _ipAddressService = ipAddressService;
         }
 
@@ -153,17 +160,14 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
 
             const string detailSql = @"
                 SELECT d.Id, d.InvoiceHeaderId, d.ItemSno, d.ItemId,
-                    d.HsnCode, d.GstPercentage, d.LotId, lm.LotCode AS LotNo,
+                    d.HsnCode, d.GstPercentage, d.LotId,
                     d.NoOfBags, d.Quantity,
                     d.RatePerKg, d.Discount, d.TaxableAmount,
                     d.CgstPercentage, d.SgstPercentage, d.IgstPercentage,
                     d.CGST, d.SGST, d.IGST, d.TaxAmount,
                     d.PackTypeId,
-                    pt.PackTypeName,
                     d.UOMId, d.TotalAmount
                 FROM Sales.InvoiceDetail d
-                LEFT JOIN Production.PackType  pt ON d.PackTypeId = pt.Id  AND pt.IsDeleted = 0
-                LEFT JOIN Production.LotMaster lm ON d.LotId      = lm.Id  AND lm.IsDeleted = 0
                 WHERE d.InvoiceHeaderId = @HeaderId
                 ORDER BY d.ItemSno";
 
@@ -195,10 +199,20 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                 var uoms = await _uomLookup.GetByIdsAsync(uomIds);
                 var uomDict = uoms.ToDictionary(u => u.Id, u => u.UOMName);
 
+                var packTypeIds = details.Where(d => d.PackTypeId.HasValue).Select(d => d.PackTypeId!.Value).Distinct();
+                var packTypes = await _packTypeLookup.GetByIdsAsync(packTypeIds);
+                var packTypeDict = packTypes.ToDictionary(p => p.Id, p => p.PackTypeName);
+
+                var lotIds = details.Where(d => d.LotId.HasValue).Select(d => d.LotId!.Value).Distinct();
+                var lots = await _lotMasterLookup.GetByIdsAsync(lotIds);
+                var lotDict = lots.ToDictionary(l => l.Id, l => l.LotCode);
+
                 foreach (var detail in details)
                 {
-                    detail.ItemName = itemDict.TryGetValue(detail.ItemId, out var iName) ? iName : null;
-                    detail.UOMName  = detail.UOMId.HasValue && uomDict.TryGetValue(detail.UOMId.Value, out var uName) ? uName : null;
+                    detail.ItemName     = itemDict.TryGetValue(detail.ItemId, out var iName) ? iName : null;
+                    detail.UOMName      = detail.UOMId.HasValue && uomDict.TryGetValue(detail.UOMId.Value, out var uName) ? uName : null;
+                    detail.PackTypeName = detail.PackTypeId.HasValue && packTypeDict.TryGetValue(detail.PackTypeId.Value, out var ptName) ? ptName : null;
+                    detail.LotNo        = detail.LotId.HasValue && lotDict.TryGetValue(detail.LotId.Value, out var lotCode) ? lotCode : null;
                 }
             }
 
@@ -385,7 +399,6 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                         d.HsnCode,
                         d.GstPercentage,
                         d.LotId,
-                        lm.LotCode          AS LotNo,
                         d.NoOfBags,
                         d.Quantity,
                         d.RatePerKg,
@@ -399,7 +412,6 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                         d.IGST               AS IGST_Detail,
                         d.TaxAmount          AS TaxAmount_Detail,
                         d.PackTypeId,
-                        pt.PackTypeName,
                         d.UOMId,
                         d.TotalAmount
                     FROM Sales.InvoiceHeader h
@@ -408,8 +420,6 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                     LEFT JOIN Sales.MiscMaster mmTrans  ON h.TransportMode = mmTrans.Id  AND mmTrans.IsDeleted = 0
                     LEFT JOIN Sales.MiscMaster mmStatus ON h.StatusId      = mmStatus.Id AND mmStatus.IsDeleted = 0
                     LEFT JOIN Sales.DispatchAdviceHeader da ON h.DispatchAdviceId = da.Id AND da.IsDeleted = 0
-                    LEFT JOIN Production.PackType  pt ON d.PackTypeId = pt.Id AND pt.IsDeleted = 0
-                    LEFT JOIN Production.LotMaster lm ON d.LotId      = lm.Id AND lm.IsDeleted = 0
                     WHERE h.IsDeleted = 0
                       AND h.IsActive  = 1
                       AND h.UnitId    = @UnitId
@@ -478,13 +488,13 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                 SELECT
                     f.Id AS InvoiceId,
                     f.ItemSno, f.ItemId, f.HsnCode, f.GstPercentage,
-                    f.LotId, f.LotNo, f.NoOfBags, f.Quantity,
+                    f.LotId, f.NoOfBags, f.Quantity,
                     f.RatePerKg, f.Discount_Detail AS Discount,
                     f.TaxableAmount,
                     f.CgstPercentage, f.SgstPercentage, f.IgstPercentage,
                     f.CGST_Detail AS CGST, f.SGST_Detail AS SGST,
                     f.IGST_Detail AS IGST, f.TaxAmount_Detail AS TaxAmount,
-                    f.PackTypeId, f.PackTypeName, f.UOMId, f.TotalAmount
+                    f.PackTypeId, f.UOMId, f.TotalAmount
                 FROM #filtered f
                 JOIN #pg p ON p.Id = f.Id
                 ORDER BY f.Id DESC, f.ItemSno ASC;
@@ -513,6 +523,24 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
 
             // Result set 3: detail rows with InvoiceId for grouping
             var details = (await multi.ReadAsync<GetInvoicePendingDto.GetInvoicePendingDetailDto>()).ToList();
+
+            // Populate PackTypeName and LotNo via cross-module lookups
+            if (details.Count > 0)
+            {
+                var packTypeIds = details.Where(d => d.PackTypeId.HasValue).Select(d => d.PackTypeId!.Value).Distinct();
+                var packTypes = await _packTypeLookup.GetByIdsAsync(packTypeIds);
+                var packTypeDict = packTypes.ToDictionary(p => p.Id, p => p.PackTypeName);
+
+                var lotIds = details.Where(d => d.LotId.HasValue).Select(d => d.LotId!.Value).Distinct();
+                var lots = await _lotMasterLookup.GetByIdsAsync(lotIds);
+                var lotDict = lots.ToDictionary(l => l.Id, l => l.LotCode);
+
+                foreach (var d in details)
+                {
+                    d.PackTypeName = d.PackTypeId.HasValue && packTypeDict.TryGetValue(d.PackTypeId.Value, out var ptName) ? ptName : null;
+                    d.LotNo        = d.LotId.HasValue && lotDict.TryGetValue(d.LotId.Value, out var lotCode) ? lotCode : null;
+                }
+            }
 
             // Group details into their parent headers
             var detailLookup = details.ToLookup(d => d.InvoiceId);

@@ -4,7 +4,8 @@
     {
       "name": "Api + Worker",
       "configurations": ["BSOFT.Api", "BSOFT.Worker"],
-      "preLaunchTask": "build-api"
+      "preLaunchTask": "build-api",
+      "stopAll": true
     }
   ],
   "configurations": [
@@ -15,7 +16,12 @@
       "preLaunchTask": "build-api",
       "program": "${workspaceFolder}/src/BSOFT.Api/bin/Debug/net8.0/BSOFT.Api.dll",
       "args": [],
-      "cwd": "${workspaceFolder}/src/BSOFT.Api"
+      "cwd": "${workspaceFolder}/src/BSOFT.Api",
+      "console": "integratedTerminal",
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "DOTNET_WATCH_SUPPRESS_LAUNCH_BROWSER": "true"
+      }
     },
     {
       "name": "BSOFT.Worker",
@@ -24,7 +30,11 @@
       "preLaunchTask": "build-worker",
       "program": "${workspaceFolder}/src/BSOFT.Worker/bin/Debug/net8.0/BSOFT.Worker.dll",
       "args": [],
-      "cwd": "${workspaceFolder}/src/BSOFT.Worker"
+      "cwd": "${workspaceFolder}/src/BSOFT.Worker",
+      "console": "integratedTerminal",
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
     }
   ]
 }
