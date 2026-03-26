@@ -3,6 +3,7 @@ using Contracts.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces;
 using MaintenanceManagement.Application.Common.Interfaces.IOutbox;
 using MaintenanceManagement.Domain.Entities.Outbox;
+using MassTransit;
 using Microsoft.Extensions.Logging;
 
 namespace MaintenanceManagement.Infrastructure.Services.Outbox
@@ -17,6 +18,7 @@ namespace MaintenanceManagement.Infrastructure.Services.Outbox
         private readonly IIPAddressService _ipAddressService;
         private readonly ITimeZoneService _timeZoneService;
         private readonly ILogger<OutboxEventPublisher> _logger;
+        private readonly IPublishEndpoint _publishEndpoint;
 
         private static readonly JsonSerializerOptions JsonOptions = new()
         {
@@ -28,12 +30,14 @@ namespace MaintenanceManagement.Infrastructure.Services.Outbox
             IOutboxRepository outboxRepository,
             IIPAddressService ipAddressService,
             ITimeZoneService timeZoneService,
-            ILogger<OutboxEventPublisher> logger)
+            ILogger<OutboxEventPublisher> logger,
+            IPublishEndpoint publishEndpoint)
         {
             _outboxRepository = outboxRepository;
             _ipAddressService = ipAddressService;
             _timeZoneService = timeZoneService;
             _logger = logger;
+            _publishEndpoint = publishEndpoint;
         }
 
         public async Task ScheduleAsync<TEvent>(
@@ -83,6 +87,35 @@ namespace MaintenanceManagement.Infrastructure.Services.Outbox
             foreach (var @event in events)
             {
                 await ScheduleWithoutSaveAsync(@event, correlationId, processorHint, cancellationToken);
+            }
+        }
+
+        public async Task PublishDirectAsync<TEvent>(
+            TEvent @event,
+            Guid correlationId,
+            CancellationToken cancellationToken = default) where TEvent : class
+        {
+            try
+            {
+                await _publishEndpoint.Publish(@event, cancellationToken);
+
+                // Mark outbox message as Published so sql-outbox-processor skips it
+                var outboxMessage = await _outboxRepository.GetByCorrelationIdAsync(correlationId, cancellationToken);
+                if (outboxMessage != null)
+                {
+                    await _outboxRepository.MarkAsPublishedAsync(outboxMessage.Id, cancellationToken);
+                }
+
+                _logger.LogInformation(
+                    "Direct-published event to RabbitMQ and marked outbox as Published. CorrelationId: {CorrelationId}",
+                    correlationId);
+            }
+            catch (Exception ex)
+            {
+                // Don't throw — the outbox processor will pick it up as a fallback
+                _logger.LogWarning(ex,
+                    "Direct publish failed (outbox will retry). CorrelationId: {CorrelationId}",
+                    correlationId);
             }
         }
 
