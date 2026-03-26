@@ -71,7 +71,7 @@ namespace SalesManagement.Domain.Common
         // Complaint Workflow
         public const string ComplaintApprovalStatus = "ApprovalStatus";
         public const string ComplaintApprovalPending = "Pending";
-        public const string ComplaintModuleTypeName = "Complaint";
+        public const string ComplaintModuleTypeName = "Complaints";
         public const string TransactionTypeComplaint = "Complaint";
 
         // STO Receipt Status
