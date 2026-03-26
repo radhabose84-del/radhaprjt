@@ -67,6 +67,12 @@ namespace SalesManagement.Domain.Common
         public const string TransactionTypeStogr = "STO Goods Receipt";
         public const string ModuleSales = "Sales";
 
+        // Complaint Workflow
+        public const string ComplaintApprovalStatus = "ApprovalStatus";
+        public const string ComplaintApprovalPending = "Pending";
+        public const string ComplaintModuleTypeName = "Complaint";
+        public const string TransactionTypeComplaint = "Complaint";
+
         // STO Receipt Status
         public const string StoReceiptLineStatus = "StoReceiptLineStatus";
         public const string StoReceiptStatusPending = "Pending";
