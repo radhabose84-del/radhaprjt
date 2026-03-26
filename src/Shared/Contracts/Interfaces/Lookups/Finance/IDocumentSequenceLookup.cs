@@ -7,5 +7,6 @@ namespace Contracts.Interfaces.Lookups.Finance
         Task<int?> GetTransactionTypeIdAsync(string typeName, string moduleName, int unitId);
         Task<IReadOnlyList<string>> GenerateDocumentNumber(int transactionTypeId);
         Task<List<TransactionTypeLookupDto>> GetTransactionTypesForYearAsync(int financialYearId, int unitId, int? moduleId = null, int? menuId = null, CancellationToken ct = default);
+ 		Task IncrementDocNoAsync(int transactionTypeId, IDbConnection connection, IDbTransaction transaction);
     }
 }

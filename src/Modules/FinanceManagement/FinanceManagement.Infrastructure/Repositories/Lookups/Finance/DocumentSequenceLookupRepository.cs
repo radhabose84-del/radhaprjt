@@ -99,6 +99,15 @@ namespace FinanceManagement.Infrastructure.Repositories.Lookups.Finance
             return result.ToList();
         }
 
+   		public async Task IncrementDocNoAsync(int transactionTypeId, IDbConnection connection, IDbTransaction transaction)
+        {
+            const string sql = @"
+                UPDATE [Finance].[DocumentSequence]
+                SET DocNo = DocNo + 1
+                WHERE TransactionTypeId = @TransactionTypeId AND IsDeleted = 0";
+
+            await connection.ExecuteAsync(sql, new { TransactionTypeId = transactionTypeId }, transaction);
+        }
         private sealed class DocSeqRow
         {
             public int Id { get; set; }

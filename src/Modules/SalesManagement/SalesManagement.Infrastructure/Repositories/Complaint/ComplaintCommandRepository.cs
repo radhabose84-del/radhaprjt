@@ -15,11 +15,32 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
             _dbContext = dbContext;
         }
 
-        public async Task<int> CreateAsync(ComplaintHeader entity)
+        public async Task<int> CreateAsync(ComplaintHeader entity, int typeId)
         {
-            await _dbContext.ComplaintHeader.AddAsync(entity);
-            await _dbContext.SaveChangesAsync();
-            return entity.Id;
+            var strategy = _dbContext.Database.CreateExecutionStrategy();
+
+            return await strategy.ExecuteAsync(async () =>
+            {
+                using var transaction = await _dbContext.Database.BeginTransactionAsync();
+                try
+                {
+                    await _dbContext.ComplaintHeader.AddAsync(entity);
+                    await _dbContext.SaveChangesAsync();
+
+                    // Increment DocNo in Finance.DocumentSequence (same EF Core connection = atomic)
+                    await _dbContext.Database.ExecuteSqlRawAsync(
+                        "UPDATE [Finance].[DocumentSequence] SET DocNo = DocNo + 1 WHERE TransactionTypeId = {0} AND IsDeleted = 0",
+                        typeId);
+
+                    await transaction.CommitAsync();
+                    return entity.Id;
+                }
+                catch
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
+            });
         }
 
         public async Task<int> UpdateAsync(ComplaintHeader entity, List<ComplaintDetail> details)

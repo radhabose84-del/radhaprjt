@@ -5,6 +5,7 @@ using Contracts.Dtos.Lookups.Users;
 using Contracts.Dtos.Lookups.Warehouse;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Party;
+using Contracts.Interfaces.Lookups.Production;
 using Contracts.Interfaces.Lookups.Users;
 using Contracts.Interfaces.Lookups.Warehouse;
 using Dapper;
@@ -20,6 +21,7 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
         private readonly IWarehouseLookup _warehouseLookup;
         private readonly IPartyLookup _partyLookup;
         private readonly IItemLookup _itemLookup;
+        private readonly ILotMasterLookup _lotLookup;
         private readonly IUOMLookup _uomLookup;
         private readonly IIPAddressService _ipAddressService;
 
@@ -29,6 +31,7 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
             IWarehouseLookup warehouseLookup,
             IPartyLookup partyLookup,
             IItemLookup itemLookup,
+            ILotMasterLookup lotLookup,
             IUOMLookup uomLookup,
             IIPAddressService ipAddressService)
         {
@@ -37,6 +40,7 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
             _warehouseLookup = warehouseLookup;
             _partyLookup = partyLookup;
             _itemLookup = itemLookup;
+            _lotLookup = lotLookup;
             _uomLookup = uomLookup;
             _ipAddressService = ipAddressService;
         }
@@ -194,7 +198,7 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
             var transporter = await _partyLookup.GetByIdAsync(header.TransporterId);
             header.TransporterName = transporter?.PartyName;
 
-            // Fetch details with Lot JOIN
+            // Fetch details (same-module only)
             const string detailSql = @"
                 SELECT
                     d.Id,
@@ -202,7 +206,6 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
                     d.StoDetailId,
                     d.ItemId,
                     d.LotId,
-                    lm.LotCode,
                     d.StartPackNo,
                     d.EndPackNo,
                     d.DispatchQuantity,
@@ -214,17 +217,20 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
                     d.ExMillRate,
                     d.LineMovementValue
                 FROM Sales.DeliveryChallanDetail d
-                LEFT JOIN Production.LotMaster lm ON d.LotId = lm.Id AND lm.IsDeleted = 0
                 WHERE d.DeliveryChallanHeaderId = @HeaderId;";
 
             var details = (await _dbConnection.QueryAsync<DeliveryChallanDetailDto>(detailSql, new { HeaderId = id })).ToList();
 
-            // Populate cross-module detail lookups (Item, UOM)
+            // Populate cross-module detail lookups (Item, Lot, UOM)
             if (details.Count > 0)
             {
                 var itemIds = details.Select(d => d.ItemId).Distinct();
                 var items = await _itemLookup.GetByIdsAsync(itemIds);
                 var itemDict = items.ToDictionary(i => i.Id, i => (i.ItemCode, i.ItemName));
+
+                var lotIds = details.Where(d => d.LotId > 0).Select(d => d.LotId).Distinct();
+                var lots = await _lotLookup.GetByIdsAsync(lotIds);
+                var lotDict = lots.ToDictionary(l => l.Id, l => l.LotCode);
 
                 var uomIds = details.Select(d => d.UOMId).Distinct();
                 var uoms = await _uomLookup.GetByIdsAsync(uomIds);
@@ -237,6 +243,7 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
                         detail.ItemCode = itemInfo.ItemCode;
                         detail.ItemName = itemInfo.ItemName;
                     }
+                    detail.LotCode = lotDict.TryGetValue(detail.LotId, out var lotCode) ? lotCode : null;
                     detail.UOMName = uomDict.TryGetValue(detail.UOMId, out var uomName) ? uomName : null;
                 }
             }
@@ -290,13 +297,8 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
 
         public async Task<bool> LotExistsAsync(int lotId)
         {
-            const string sql = @"
-                SELECT COUNT(1)
-                FROM Production.LotMaster
-                WHERE Id = @Id AND IsActive = 1 AND IsDeleted = 0;";
-
-            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = lotId });
-            return count > 0;
+            var lots = await _lotLookup.GetByIdsAsync(new[] { lotId });
+            return lots.Count > 0;
         }
 
         public async Task<StoOpenQtyDto?> GetStoOpenQtyAsync(int stoDetailId)
