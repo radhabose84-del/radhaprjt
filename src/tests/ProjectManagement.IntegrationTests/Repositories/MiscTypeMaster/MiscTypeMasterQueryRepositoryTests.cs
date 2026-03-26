@@ -40,6 +40,7 @@ namespace ProjectManagement.IntegrationTests.Repositories.MiscTypeMaster
         {
             await using var conn = new SqlConnection(_fixture.ConnectionString);
             await conn.OpenAsync();
+            await conn.ExecuteAsync("DELETE FROM [Project].[MiscMaster]");
             await conn.ExecuteAsync("DELETE FROM [Project].[MiscTypeMaster]");
         }
 

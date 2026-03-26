@@ -30,6 +30,7 @@ namespace ProjectManagement.IntegrationTests.Repositories.MiscTypeMaster
 
         private async Task ClearTableAsync(ProjectManagement.Infrastructure.Data.ApplicationDbContext ctx)
         {
+            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Project].[MiscMaster]");
             await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Project].[MiscTypeMaster]");
         }
 

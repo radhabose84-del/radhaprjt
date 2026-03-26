@@ -41,6 +41,7 @@ namespace PurchaseManagement.IntegrationTests.Repositories.MiscTypeMaster
             await using var conn = new SqlConnection(_fixture.ConnectionString);
             await conn.OpenAsync();
             await conn.ExecuteAsync("DELETE FROM Purchase.PortMaster");
+            await conn.ExecuteAsync("DELETE FROM Purchase.DutyMaster");
             await conn.ExecuteAsync("DELETE FROM Purchase.MiscMaster");
             await conn.ExecuteAsync("DELETE FROM [Purchase].[MiscTypeMaster]");
         }
