@@ -10,6 +10,7 @@ namespace ProductionManagement.Infrastructure.Data
     {
         public DbSet<CountGroup> CountGroup => Set<CountGroup>();
         public DbSet<CountMaster> CountMaster => Set<CountMaster>();
+        public DbSet<YarnType> YarnType => Set<YarnType>();
         public DbSet<MiscTypeMaster> MiscTypeMaster => Set<MiscTypeMaster>();
         public DbSet<MiscMaster> MiscMaster => Set<MiscMaster>();
         public DbSet<LotMaster> LotMaster => Set<LotMaster>();

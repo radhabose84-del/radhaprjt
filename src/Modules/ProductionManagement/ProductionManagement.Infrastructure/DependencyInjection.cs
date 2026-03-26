@@ -8,6 +8,7 @@ using MongoDB.Driver;
 using ProductionManagement.Application.Common.Interfaces;
 using ProductionManagement.Application.Common.Interfaces.AuditLog;
 using ProductionManagement.Application.Common.Interfaces.ICountGroup;
+using ProductionManagement.Application.Common.Interfaces.IYarnType;
 using ProductionManagement.Application.Common.Interfaces.ICountMaster;
 using ProductionManagement.Application.Common.Interfaces.ILotMaster;
 using ProductionManagement.Application.Common.Interfaces.IMiscMaster;
@@ -20,6 +21,7 @@ using ProductionManagement.Infrastructure.Data;
 using ProductionManagement.Infrastructure.Persistence;
 using ProductionManagement.Infrastructure.Repositories.AuditLog;
 using ProductionManagement.Infrastructure.Repositories.CountGroup;
+using ProductionManagement.Infrastructure.Repositories.YarnType;
 using ProductionManagement.Infrastructure.Repositories.CountMaster;
 using ProductionManagement.Infrastructure.Repositories.MiscMaster;
 using ProductionManagement.Infrastructure.Repositories.MiscTypeMaster;
@@ -97,6 +99,10 @@ namespace ProductionManagement.Infrastructure
             services.AddScoped<ICountGroupCommandRepository, CountGroupCommandRepository>();
             services.AddScoped<ICountGroupQueryRepository, CountGroupQueryRepository>();
 
+            // YarnType repositories
+            services.AddScoped<IYarnTypeCommandRepository, YarnTypeCommandRepository>();
+            services.AddScoped<IYarnTypeQueryRepository, YarnTypeQueryRepository>();
+
             // CountMaster repositories
             services.AddScoped<ICountMasterCommandRepository, CountMasterCommandRepository>();
             services.AddScoped<ICountMasterQueryRepository, CountMasterQueryRepository>();
@@ -122,6 +128,7 @@ namespace ProductionManagement.Infrastructure
             services.AddScoped<IProductionQueryRepository, Repositories.ProductionPack.ProductionQueryRepository>();
 
             // Lookup registration — caching is handled globally by AddLookupCaching() in Program.cs
+            services.AddScoped<IYarnTypeLookup, YarnTypeLookupRepository>();
             services.AddScoped<ICountGroupLookup, CountGroupLookupRepository>();
             services.AddScoped<ICountMasterLookup, CountMasterLookupRepository>();
             services.AddScoped<ILotMasterLookup, LotMasterLookupRepository>();
