@@ -35,6 +35,11 @@ namespace SalesManagement.Application.StoHeader.Dto
         public int? HeaderStatusId { get; set; }
         public string? HeaderStatusName { get; set; }
 
+        // Workflow fields (populated only in GetPendingAsync, null/0 in GetAll)
+        public int ApproverId { get; set; }
+        public string? ApproverName { get; set; }
+        public int ApprovalRequestHeaderId { get; set; }
+
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }
 
