@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Contracts.Interfaces.Lookups.Finance;
 using GateEntryManagement.Application.Common.Interfaces.IVehicleMovementRecord;
 using GateEntryManagement.Infrastructure.Data;
 using static GateEntryManagement.Domain.Common.BaseEntity;
@@ -9,14 +8,10 @@ namespace GateEntryManagement.Infrastructure.Repositories.VehicleMovementRecord
     public class VehicleMovementRecordCommandRepository : IVehicleMovementRecordCommandRepository
     {
         private readonly ApplicationDbContext _applicationDbContext;
-        private readonly IDocumentSequenceLookup _documentSequenceLookup;
 
-        public VehicleMovementRecordCommandRepository(
-            ApplicationDbContext applicationDbContext,
-            IDocumentSequenceLookup documentSequenceLookup)
+        public VehicleMovementRecordCommandRepository(ApplicationDbContext applicationDbContext)
         {
             _applicationDbContext = applicationDbContext;
-            _documentSequenceLookup = documentSequenceLookup;
         }
 
         public async Task<int> CreateAsync(Domain.Entities.VehicleMovementRecord entity, int transactionTypeId)
@@ -31,8 +26,10 @@ namespace GateEntryManagement.Infrastructure.Repositories.VehicleMovementRecord
                     await _applicationDbContext.VehicleMovementRecord.AddAsync(entity);
                     await _applicationDbContext.SaveChangesAsync();
 
-                    // Increment DocNo via Finance lookup (both in same transaction)
-                    await _documentSequenceLookup.IncrementDocNoAsync(transactionTypeId);
+                    // Increment DocNo — same DbContext connection, same transaction
+                    await _applicationDbContext.Database.ExecuteSqlRawAsync(
+                        "UPDATE [Finance].[DocumentSequence] SET DocNo = DocNo + 1 WHERE TransactionTypeId = {0} AND IsDeleted = 0",
+                        transactionTypeId);
 
                     await transaction.CommitAsync();
                     return entity.Id;
@@ -53,7 +50,6 @@ namespace GateEntryManagement.Infrastructure.Repositories.VehicleMovementRecord
             if (existingEntity == null)
                 return 0;
 
-            // Editable fields (until Gate Out)
             existingEntity.VehicleNumber = entity.VehicleNumber;
             existingEntity.DriverName = entity.DriverName;
             existingEntity.DriverLicenseNo = entity.DriverLicenseNo;

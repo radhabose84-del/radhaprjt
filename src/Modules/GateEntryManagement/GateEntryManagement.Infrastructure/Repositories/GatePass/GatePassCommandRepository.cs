@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Contracts.Interfaces.Lookups.Finance;
 using GateEntryManagement.Application.Common.Interfaces.IGatePass;
 using GateEntryManagement.Domain.Entities;
 using GateEntryManagement.Infrastructure.Data;
@@ -10,14 +9,10 @@ namespace GateEntryManagement.Infrastructure.Repositories.GatePass
     public class GatePassCommandRepository : IGatePassCommandRepository
     {
         private readonly ApplicationDbContext _applicationDbContext;
-        private readonly IDocumentSequenceLookup _documentSequenceLookup;
 
-        public GatePassCommandRepository(
-            ApplicationDbContext applicationDbContext,
-            IDocumentSequenceLookup documentSequenceLookup)
+        public GatePassCommandRepository(ApplicationDbContext applicationDbContext)
         {
             _applicationDbContext = applicationDbContext;
-            _documentSequenceLookup = documentSequenceLookup;
         }
 
         public async Task<int> CreateAsync(GatePassHdr entity, int transactionTypeId)
@@ -32,8 +27,10 @@ namespace GateEntryManagement.Infrastructure.Repositories.GatePass
                     await _applicationDbContext.GatePassHdr.AddAsync(entity);
                     await _applicationDbContext.SaveChangesAsync();
 
-                    // Increment DocNo via Finance lookup (both in same transaction)
-                    await _documentSequenceLookup.IncrementDocNoAsync(transactionTypeId);
+                    // Increment DocNo — same DbContext connection, same transaction
+                    await _applicationDbContext.Database.ExecuteSqlRawAsync(
+                        "UPDATE [Finance].[DocumentSequence] SET DocNo = DocNo + 1 WHERE TransactionTypeId = {0} AND IsDeleted = 0",
+                        transactionTypeId);
 
                     await transaction.CommitAsync();
                     return entity.Id;
