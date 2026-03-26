@@ -1,6 +1,7 @@
 using System.Data;
 using System.Text;
 using Contracts.Interfaces.Lookups.Inventory;
+using Contracts.Interfaces.Lookups.Production;
 using Contracts.Interfaces.Lookups.Users;
 using Contracts.Interfaces.Lookups.Warehouse;
 using Dapper;
@@ -16,19 +17,25 @@ namespace SalesManagement.Infrastructure.Repositories.Reports.StockLedger
         private readonly IItemLookup _itemLookup;
         private readonly IWarehouseLookup _warehouseLookup;
         private readonly IBinLookup _binLookup;
+        private readonly IPackTypeLookup _packTypeLookup;
+        private readonly ILotMasterLookup _lotMasterLookup;
 
         public StockLedgerReportRepository(
             IDbConnection dbConnection,
             IUnitLookup unitLookup,
             IItemLookup itemLookup,
             IWarehouseLookup warehouseLookup,
-            IBinLookup binLookup)
+            IBinLookup binLookup,
+            IPackTypeLookup packTypeLookup,
+            ILotMasterLookup lotMasterLookup)
         {
             _dbConnection = dbConnection;
             _unitLookup = unitLookup;
             _itemLookup = itemLookup;
             _warehouseLookup = warehouseLookup;
             _binLookup = binLookup;
+            _packTypeLookup = packTypeLookup;
+            _lotMasterLookup = lotMasterLookup;
         }
 
         public async Task<(List<StockLedgerReportDto>, int)> GetReportAsync(
@@ -64,16 +71,12 @@ namespace SalesManagement.Infrastructure.Repositories.Reports.StockLedger
                 SELECT
                     sl.Id, sl.UnitId, sl.DocType, sl.DocNo, sl.DetailDocNo, sl.DocDate,
                     sl.ItemId, sl.LotId,
-                    lm.LotCode,
                     sl.PackNo, sl.PackTypeId,
-                    pt.PackTypeName,
                     sl.WarehouseId, sl.BinId,
                     sl.TotalQty, sl.TotalValue,
                     sl.StatusId,
                     mm.Description AS StatusName
                 FROM Sales.StockLedger sl
-                LEFT JOIN Production.LotMaster lm  ON sl.LotId       = lm.Id  AND lm.IsDeleted  = 0
-                LEFT JOIN Production.PackType  pt  ON sl.PackTypeId   = pt.Id  AND pt.IsDeleted  = 0
                 LEFT JOIN Sales.MiscMaster mm ON sl.StatusId     = mm.Id  AND mm.IsDeleted  = 0
                 LEFT JOIN Sales.MiscTypeMaster mtm ON mm.MiscTypeId = mtm.Id
                                                    AND mtm.MiscTypeCode = 'StockStatus'
@@ -121,12 +124,22 @@ namespace SalesManagement.Infrastructure.Repositories.Reports.StockLedger
             var bins = await _binLookup.GetAllAsync();
             var binDict = bins.ToDictionary(b => b.Id, b => b.BinName);
 
+            var packTypeIds = list.Where(x => x.PackTypeId > 0).Select(x => x.PackTypeId).Distinct();
+            var packTypes = packTypeIds.Any() ? await _packTypeLookup.GetByIdsAsync(packTypeIds) : [];
+            var packTypeDict = packTypes.ToDictionary(p => p.Id, p => p.PackTypeName);
+
+            var lotIds = list.Where(x => x.LotId > 0).Select(x => x.LotId).Distinct();
+            var lots = lotIds.Any() ? await _lotMasterLookup.GetByIdsAsync(lotIds) : [];
+            var lotDict = lots.ToDictionary(l => l.Id, l => l.LotCode);
+
             foreach (var row in list)
             {
                 row.UnitName      = unitDict.TryGetValue(row.UnitId,      out var un) ? un : null;
                 row.ItemName      = itemDict.TryGetValue(row.ItemId,      out var im) ? im : null;
                 row.WarehouseName = warehouseDict.TryGetValue(row.WarehouseId, out var wn) ? wn : null;
                 row.BinName       = binDict.TryGetValue(row.BinId,        out var bn) ? bn : null;
+                row.PackTypeName  = packTypeDict.TryGetValue(row.PackTypeId, out var pn) ? pn : null;
+                row.LotCode       = lotDict.TryGetValue(row.LotId,       out var lc) ? lc : null;
             }
 
             return (list, total);
