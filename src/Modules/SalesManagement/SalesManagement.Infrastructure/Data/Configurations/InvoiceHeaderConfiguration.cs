@@ -66,6 +66,7 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             builder.Property(t => t.InvoiceAmountBeforeTCS).HasColumnName("InvoiceAmountBeforeTCS").HasColumnType("decimal(18,6)").IsRequired();
             builder.Property(t => t.InvoiceAmount).HasColumnName("InvoiceAmount").HasColumnType("decimal(18,6)").IsRequired();
             builder.Property(t => t.Remarks).HasColumnName("Remarks").HasColumnType("varchar(500)").IsRequired(false);
+            builder.Property(t => t.GEFlag).HasColumnName("GEFlag").HasColumnType("bit").HasDefaultValue(false).IsRequired();
 
             builder.Property(b => b.IsActive).HasColumnName("IsActive").HasColumnType("bit").HasConversion(statusConverter).IsRequired();
             builder.Property(b => b.IsDeleted).HasColumnName("IsDeleted").HasColumnType("bit").HasConversion(isDeleteConverter).IsRequired();
