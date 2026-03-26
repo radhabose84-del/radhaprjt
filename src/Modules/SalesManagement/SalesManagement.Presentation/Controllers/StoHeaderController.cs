@@ -6,6 +6,7 @@ using SalesManagement.Application.StoHeader.Commands.DeleteStoHeader;
 using SalesManagement.Application.StoHeader.Commands.UpdateStoHeader;
 using SalesManagement.Application.StoHeader.Queries.GetAllStoHeader;
 using SalesManagement.Application.StoHeader.Queries.GetPendingStoHeader;
+using SalesManagement.Application.StoHeader.Queries.GetPendingStoHeaderById;
 using SalesManagement.Application.StoHeader.Queries.GetStoHeaderAutoComplete;
 using SalesManagement.Application.StoHeader.Queries.GetStoHeaderById;
 
@@ -70,6 +71,18 @@ namespace SalesManagement.Presentation.Controllers
                 TotalCount = result.TotalCount,
                 PageNumber = result.PageNumber,
                 PageSize = result.PageSize
+            });
+        }
+
+        [HttpGet("pending/{id}")]
+        public async Task<IActionResult> GetPendingStoHeaderByIdAsync(int id)
+        {
+            var result = await Mediator.Send(new GetPendingStoHeaderByIdQuery { Id = id });
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result
             });
         }
 

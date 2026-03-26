@@ -1,29 +1,31 @@
-namespace SalesManagement.Application.StoHeader.Dto
+using SalesManagement.Application.StoHeader.Dto;
+
+namespace SalesManagement.Application.StoHeader.Queries.GetPendingStoHeaderById
 {
-    public class StoHeaderDto
+    public class PendingStoHeaderByIdDto
     {
         public int Id { get; set; }
         public string? StoNumber { get; set; }
         public DateOnly DocumentDate { get; set; }
         public DateOnly ExpectedDeliveryDate { get; set; }
 
-        // STO Type (same-module JOIN)
+        // STO Type
         public int StoTypeId { get; set; }
         public string? StoTypeCode { get; set; }
         public string? StoTypeName { get; set; }
 
-        // Movement Type (same-module JOIN)
+        // Movement Type
         public int MovementTypeId { get; set; }
         public string? MovementCode { get; set; }
         public string? MovementDescription { get; set; }
 
-        // Supplying Plant & Storage Location (cross-module lookup)
+        // Supplying Plant & Storage Location
         public int SupplyingPlantId { get; set; }
         public string? SupplyingPlantName { get; set; }
         public int SupplyingStorageLocationId { get; set; }
         public string? SupplyingStorageLocationName { get; set; }
 
-        // Receiving Plant & Storage Location (cross-module lookup)
+        // Receiving Plant & Storage Location
         public int ReceivingPlantId { get; set; }
         public string? ReceivingPlantName { get; set; }
         public int ReceivingStorageLocationId { get; set; }
@@ -31,29 +33,16 @@ namespace SalesManagement.Application.StoHeader.Dto
 
         public string? Remarks { get; set; }
 
-        // Header Status (same-module JOIN)
+        // Header Status
         public int? HeaderStatusId { get; set; }
         public string? HeaderStatusName { get; set; }
 
-        // Workflow fields (populated only in GetPendingAsync, null/0 in GetAll)
+        // Workflow fields
         public int ApproverId { get; set; }
         public string? ApproverName { get; set; }
         public int ApprovalRequestHeaderId { get; set; }
 
-        public bool IsActive { get; set; }
-        public bool IsDeleted { get; set; }
-
-        // Audit fields
-        public int CreatedBy { get; set; }
-        public DateTimeOffset? CreatedDate { get; set; }
-        public string? CreatedByName { get; set; }
-        public string? CreatedIP { get; set; }
-        public int? ModifiedBy { get; set; }
-        public DateTimeOffset? ModifiedDate { get; set; }
-        public string? ModifiedByName { get; set; }
-        public string? ModifiedIP { get; set; }
-
-        // Child details (populated only in GetById, null in GetAll)
+        // Detail lines
         public List<StoDetailDto>? StoDetails { get; set; }
     }
 }
