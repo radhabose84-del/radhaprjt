@@ -513,7 +513,7 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                 AND h.Id IN (
                     SELECT ar.ModuleTransactionId
                     FROM AppData.ApprovalRequest ar
-                    WHERE ar.WorkflowType = 'Complaint'
+                    WHERE ar.WorkflowType = 'Complaints'
                       AND ar.ApproverValue = @CurrentUserId
                       AND ar.StatusId = @AppPendingStatusId
                 )";
