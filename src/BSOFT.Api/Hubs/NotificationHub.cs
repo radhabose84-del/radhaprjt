@@ -9,10 +9,6 @@ public class NotificationHub : Hub
     {
         await Clients.All.SendAsync("ReceiveNotification", message);
     }
-
-    /// <summary>
-    /// Called by BSOFT.Worker via SignalR client to broadcast events to all connected clients.
-    /// </summary>
     public async Task BroadcastFromWorker(string method, object payload)
     {
         await Clients.All.SendAsync(method, payload);
