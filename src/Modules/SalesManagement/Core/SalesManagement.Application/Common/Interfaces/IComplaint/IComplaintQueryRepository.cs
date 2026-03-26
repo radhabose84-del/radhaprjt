@@ -12,5 +12,7 @@ namespace SalesManagement.Application.Common.Interfaces.IComplaint
         Task<bool> InvoiceBelongsToCustomerAsync(int invoiceHeaderId, int customerId);
         Task<List<CustomerInvoiceDto>> GetCustomerInvoicesAsync(int customerId);
         Task<List<InvoiceLineDetailDto>> GetInvoiceLineDetailsAsync(int invoiceHeaderId);
+        Task<(List<InvoiceSearchDto>, int)> SearchInvoicesAsync(int partyId, string? searchTerm, bool lastOneYear, int pageNumber, int pageSize);
+        Task<(List<ComplaintHeaderDto>, int)> GetPendingAsync(int pageNumber, int pageSize, string? searchTerm);
     }
 }

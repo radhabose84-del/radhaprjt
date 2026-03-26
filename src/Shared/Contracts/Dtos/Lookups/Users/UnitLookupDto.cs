@@ -10,6 +10,7 @@ namespace Contracts.Dtos.Lookups.Users
         public int? SpindlesCapacity { get; set; }
         public int UnitTypeId { get; set; }
         public string? UnitTypeName { get; set; }
+        public int DivisionId { get; set; }
 
     }
 }

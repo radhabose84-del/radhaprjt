@@ -17,6 +17,8 @@ namespace SalesManagement.Domain.Entities
         public string? VehicleNo { get; set; }
         public string? DriverName { get; set; }
         public string? LRNo { get; set; }
+        public int UnitId { get; set; }                    // Cross-module FK → UserManagement
+        public bool InvFlg { get; set; }                   // Invoice flag: false=N, true=Y
 
         // Same-module navigation properties
         public MiscMaster? StatusMisc { get; set; }
