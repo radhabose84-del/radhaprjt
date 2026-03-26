@@ -1,6 +1,4 @@
-using BackgroundService.Infrastructure.Jobs;
 using Hangfire;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace BSOFT.Worker.Configurations;
 
@@ -22,14 +20,10 @@ public static class HangfireJobsSetup
         // handles both purchase.OutboxMessages and maintenance.OutboxMessages.
         jobManager.RemoveIfExists("maintenance-outbox-processor");
 
-        // Centralized SQL outbox processor — polls purchase.OutboxMessages and
-        // maintenance.OutboxMessages every minute, publishes pending events to
-        // RabbitMQ via MassTransit, and applies exponential-backoff retry logic.
-        jobManager.AddOrUpdate<SqlOutboxProcessorJob>(
-            recurringJobId: "sql-outbox-processor",
-            queue:          "sql-outbox-queue",
-            methodCall:     job => job.ProcessAsync(CancellationToken.None),
-            cronExpression: Cron.Minutely());
+        // Remove the old Hangfire recurring outbox job — replaced by
+        // OutboxPollingHostedService (PeriodicTimer @ 15 s) for sub-minute polling.
+        // Hangfire recurring jobs only support minute-level cron (5 fields).
+        jobManager.RemoveIfExists("sql-outbox-processor");
 
         return host;
     }
