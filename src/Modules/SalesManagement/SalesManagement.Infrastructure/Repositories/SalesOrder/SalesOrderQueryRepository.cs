@@ -284,8 +284,8 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 var uomDict = uomList.ToDictionary(u => u.Id, u => u.UOMName);
 
                 var packTypeIds = details.Where(d => d.PackTypeId.HasValue).Select(d => d.PackTypeId!.Value).Distinct();
-                var packTypeList = packTypeIds.Any() ? await _packTypeLookup.GetByIdsAsync(packTypeIds) : [];
-                var packTypeDict = packTypeList.ToDictionary(p => p.Id, p => p.PackTypeName);
+                var packTypes = packTypeIds.Any() ? await _packTypeLookup.GetByIdsAsync(packTypeIds) : [];
+                var packTypeDict = packTypes.ToDictionary(p => p.Id, p => p.PackTypeName);
 
                 foreach (var detail in details)
                 {
@@ -295,7 +295,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     detail.HSNCode = hsnDict.TryGetValue(detail.HSNId, out var hCode) ? hCode : null;
                     detail.UOMName = uomDict.TryGetValue(detail.SaleUOMId, out var uName) ? uName : null;
                     if (detail.PackTypeId.HasValue)
-                        detail.PackTypeName = packTypeDict.TryGetValue(detail.PackTypeId.Value, out var pName) ? pName : null;
+                        detail.PackTypeName = packTypeDict.TryGetValue(detail.PackTypeId.Value, out var ptName) ? ptName : null;
                 }
             }
 
