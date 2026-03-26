@@ -13,6 +13,9 @@ namespace GateEntryManagement.Domain.Common
         // GatePass
         public const string TransactionTypeGatePass = "Gate Outward";
 
+        // GateInward
+        public const string TransactionTypeGateInward = "Gate Inward";
+
         // Document Sequence
         public const string TransactionTypeGateEntry = "Gate Entry";
         public const string ModuleGateEntry = "Sales";

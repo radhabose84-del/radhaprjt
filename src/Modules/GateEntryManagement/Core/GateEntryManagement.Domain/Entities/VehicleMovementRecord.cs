@@ -37,5 +37,8 @@ namespace GateEntryManagement.Domain.Entities
 
         // Reverse navigation (GatePass)
         public ICollection<GatePassHdr>? GatePassHeaders { get; set; }
+
+        // Reverse navigation (GateInward)
+        public ICollection<GateInwardHdr>? GateInwardHeaders { get; set; }
     }
 }
