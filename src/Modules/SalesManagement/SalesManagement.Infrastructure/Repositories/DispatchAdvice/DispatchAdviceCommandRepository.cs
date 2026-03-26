@@ -1,4 +1,6 @@
+using Contracts.Interfaces.Lookups.Finance;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using SalesManagement.Application.Common.Interfaces.IDispatchAdvice;
 using SalesManagement.Domain.Entities;
 using SalesManagement.Infrastructure.Data;
@@ -9,36 +11,17 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
     public class DispatchAdviceCommandRepository : IDispatchAdviceCommandRepository
     {
         private readonly ApplicationDbContext _applicationDbContext;
+        private readonly IDocumentSequenceLookup _documentSequenceLookup;
 
-        public DispatchAdviceCommandRepository(ApplicationDbContext applicationDbContext)
+        public DispatchAdviceCommandRepository(
+            ApplicationDbContext applicationDbContext,
+            IDocumentSequenceLookup documentSequenceLookup)
         {
             _applicationDbContext = applicationDbContext;
+            _documentSequenceLookup = documentSequenceLookup;
         }
 
-        public async Task<string> GenerateNextDispatchNoAsync(int unitId, CancellationToken ct = default)
-        {
-            var prefix = $"DA-{unitId}-";
-
-            var lastDispatch = await _applicationDbContext.DispatchAdviceHeader
-                .Where(x => x.DispatchNo != null && x.DispatchNo.StartsWith(prefix))
-                .OrderByDescending(x => x.Id)
-                .Select(x => x.DispatchNo)
-                .FirstOrDefaultAsync(ct);
-
-            int nextSeq = 1;
-            if (lastDispatch != null)
-            {
-                var parts = lastDispatch.Split('-');
-                if (parts.Length == 3 && int.TryParse(parts[2], out var lastSeq))
-                {
-                    nextSeq = lastSeq + 1;
-                }
-            }
-
-            return $"{prefix}{nextSeq:D5}";
-        }
-
-        public async Task<int> CreateAsync(DispatchAdviceHeader entity, int unitId, int packedStatusId, int reservedStatusId)
+        public async Task<int> CreateAsync(DispatchAdviceHeader entity, int unitId, int packedStatusId, int reservedStatusId, int transactionTypeId)
         {
             var strategy = _applicationDbContext.Database.CreateExecutionStrategy();
 
@@ -84,6 +67,12 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
                         await _applicationDbContext.SaveChangesAsync();
                     }
 
+                    // Increment DocNo via lookup — same connection + transaction
+                    var dbConnection = _applicationDbContext.Database.GetDbConnection();
+                    var dbTransaction = transaction.GetDbTransaction();
+                    await _documentSequenceLookup.IncrementDocNoAsync(transactionTypeId, dbConnection, dbTransaction);
+
+                    await _applicationDbContext.SaveChangesAsync();
                     await transaction.CommitAsync();
                     return entity.Id;
                 }
