@@ -1,3 +1,5 @@
+using System.Data;
+
 namespace Contracts.Interfaces.Lookups.Finance
 {
     public interface IDocumentSequenceLookup
