@@ -61,6 +61,7 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
                     da.DispatchAddressName,
                     h.TransporterId,
                     h.VehicleNo, h.DriverName, h.LRNo,
+                    h.UnitId, h.InvFlg,
                     h.IsActive, h.IsDeleted,
                     h.CreatedBy, h.CreatedDate, h.CreatedByName,
                     h.ModifiedBy, h.ModifiedDate, h.ModifiedByName
@@ -119,6 +120,7 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
                     da.DispatchAddressName,
                     h.TransporterId,
                     h.VehicleNo, h.DriverName, h.LRNo,
+                    h.UnitId, h.InvFlg,
                     h.IsActive, h.IsDeleted,
                     h.CreatedBy, h.CreatedDate, h.CreatedByName,
                     h.ModifiedBy, h.ModifiedDate, h.ModifiedByName
