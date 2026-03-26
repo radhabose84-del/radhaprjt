@@ -2,6 +2,7 @@ using System.Data;
 using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Party;
+using Contracts.Interfaces.Lookups.Production;
 using Contracts.Interfaces.Lookups.Users;
 using Dapper;
 using SalesManagement.Application.Common.Interfaces.IComplaint;
@@ -14,6 +15,7 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
         private readonly IDbConnection _dbConnection;
         private readonly IPartyLookup _partyLookup;
         private readonly IItemLookup _itemLookup;
+        private readonly ILotMasterLookup _lotLookup;
         private readonly IDivisionLookup _divisionLookup;
         private readonly IUnitLookup _unitLookup;
         private readonly IUOMLookup _uomLookup;
@@ -23,6 +25,7 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
             IDbConnection dbConnection,
             IPartyLookup partyLookup,
             IItemLookup itemLookup,
+            ILotMasterLookup lotLookup,
             IDivisionLookup divisionLookup,
             IUnitLookup unitLookup,
             IUOMLookup uomLookup,
@@ -31,6 +34,7 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
             _dbConnection = dbConnection;
             _partyLookup = partyLookup;
             _itemLookup = itemLookup;
+            _lotLookup = lotLookup;
             _divisionLookup = divisionLookup;
             _unitLookup = unitLookup;
             _uomLookup = uomLookup;
@@ -161,7 +165,7 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
             var party = await _partyLookup.GetByIdAsync(header.CustomerId);
             header.CustomerName = party?.PartyName;
 
-            // Fetch details with same-module JOINs
+            // Fetch details with same-module JOINs only
             const string detailSql = @"
                 SELECT
                     d.Id,
@@ -172,7 +176,6 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                     d.InvoiceTypeId,
                     mt.Description AS InvoiceTypeName,
                     d.LotId,
-                    lm.LotCode,
                     d.ItemId,
                     d.NumberOfPacks,
                     d.NetWeight,
@@ -181,7 +184,6 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                 FROM Sales.ComplaintDetail d
                 LEFT JOIN Sales.InvoiceHeader ih ON d.InvoiceHeaderId = ih.Id AND ih.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster mt ON d.InvoiceTypeId = mt.Id AND mt.IsDeleted = 0
-                LEFT JOIN Production.LotMaster lm ON d.LotId = lm.Id AND lm.IsDeleted = 0
                 WHERE d.ComplaintHeaderId = @HeaderId AND d.IsDeleted = 0;";
 
             var details = (await _dbConnection.QueryAsync<ComplaintDetailDto>(detailSql, new { HeaderId = id })).ToList();
@@ -192,6 +194,10 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                 var itemIds = details.Select(d => d.ItemId).Distinct();
                 var items = await _itemLookup.GetByIdsAsync(itemIds);
                 var itemDict = items.ToDictionary(i => i.Id, i => (i.ItemCode, i.ItemName));
+
+                var lotIds = details.Where(d => d.LotId.HasValue).Select(d => d.LotId!.Value).Distinct();
+                var lots = await _lotLookup.GetByIdsAsync(lotIds);
+                var lotDict = lots.ToDictionary(l => l.Id, l => l.LotCode);
 
                 var divisionIds = details.Where(d => d.DivisionId.HasValue).Select(d => d.DivisionId!.Value).Distinct();
                 var divisions = await _divisionLookup.GetByIdsAsync(divisionIds);
@@ -204,6 +210,7 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                         detail.ItemCode = itemInfo.ItemCode;
                         detail.ItemName = itemInfo.ItemName;
                     }
+                    detail.LotCode = detail.LotId.HasValue && lotDict.TryGetValue(detail.LotId.Value, out var lotCode) ? lotCode : null;
                     detail.DivisionName = detail.DivisionId.HasValue && divisionDict.TryGetValue(detail.DivisionId.Value, out var divName) ? divName : null;
                 }
 
@@ -328,7 +335,6 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                     ih.InvoiceType,
                     mm.Description AS InvoiceTypeName,
                     id.LotId,
-                    lm.LotCode,
                     id.ItemId,
                     id.NoOfBags,
                     id.Quantity,
@@ -336,17 +342,20 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                 FROM Sales.InvoiceDetail id
                 INNER JOIN Sales.InvoiceHeader ih ON id.InvoiceHeaderId = ih.Id AND ih.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster mm ON ih.InvoiceType = mm.Id AND mm.IsDeleted = 0
-                LEFT JOIN Production.LotMaster lm ON id.LotId = lm.Id AND lm.IsDeleted = 0
                 WHERE id.InvoiceHeaderId = @InvoiceHeaderId;";
 
             var result = (await _dbConnection.QueryAsync<InvoiceLineDetailDto>(sql, new { InvoiceHeaderId = invoiceHeaderId })).ToList();
 
-            // Populate ItemCode/ItemName via cross-module lookup
+            // Populate cross-module lookups
             if (result.Count > 0)
             {
                 var itemIds = result.Select(r => r.ItemId).Distinct();
                 var items = await _itemLookup.GetByIdsAsync(itemIds);
                 var itemDict = items.ToDictionary(i => i.Id, i => (i.ItemCode, i.ItemName));
+
+                var lotIds = result.Where(r => r.LotId.HasValue).Select(r => r.LotId!.Value).Distinct();
+                var lots = await _lotLookup.GetByIdsAsync(lotIds);
+                var lotDict = lots.ToDictionary(l => l.Id, l => l.LotCode);
 
                 foreach (var line in result)
                 {
@@ -355,6 +364,7 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                         line.ItemCode = itemInfo.ItemCode;
                         line.ItemName = itemInfo.ItemName;
                     }
+                    line.LotCode = line.LotId.HasValue && lotDict.TryGetValue(line.LotId.Value, out var lotCode) ? lotCode : null;
                 }
             }
 
@@ -371,15 +381,13 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                 ? string.Empty
                 : @" AND (ih.InvoiceNo LIKE @SearchTerm
                        OR mm.Description LIKE @SearchTerm
-                       OR mm.Code LIKE @SearchTerm
-                       OR lm.LotCode LIKE @SearchTerm)";
+                       OR mm.Code LIKE @SearchTerm)";
 
             var countSql = $@"
                 SELECT COUNT(*)
                 FROM Sales.InvoiceDetail id
                 INNER JOIN Sales.InvoiceHeader ih ON id.InvoiceHeaderId = ih.Id AND ih.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster mm ON ih.InvoiceType = mm.Id AND mm.IsDeleted = 0
-                LEFT JOIN Production.LotMaster lm ON id.LotId = lm.Id AND lm.IsDeleted = 0
                 WHERE ih.PartyId = @PartyId {dateFilter} {searchFilter};";
 
             var dataSql = $@"
@@ -394,7 +402,6 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                     mm.Code AS ShortCode,
                     id.ItemId,
                     id.LotId,
-                    lm.LotCode AS LotNum,
                     ih.UnitId,
                     id.NoOfBags AS Packs,
                     id.Quantity AS NetWeight,
@@ -403,7 +410,6 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                 FROM Sales.InvoiceDetail id
                 INNER JOIN Sales.InvoiceHeader ih ON id.InvoiceHeaderId = ih.Id AND ih.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster mm ON ih.InvoiceType = mm.Id AND mm.IsDeleted = 0
-                LEFT JOIN Production.LotMaster lm ON id.LotId = lm.Id AND lm.IsDeleted = 0
                 WHERE ih.PartyId = @PartyId {dateFilter} {searchFilter}
                 ORDER BY ih.InvoiceDate DESC, ih.Id, id.ItemSno
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;";
@@ -427,6 +433,11 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                 var items = await _itemLookup.GetByIdsAsync(itemIds);
                 var itemDict = items.ToDictionary(i => i.Id, i => (i.ItemCode, i.ItemName));
 
+                // Populate LotNum via cross-module lot lookup
+                var lotIds = data.Where(d => d.LotId.HasValue).Select(d => d.LotId!.Value).Distinct();
+                var lots = await _lotLookup.GetByIdsAsync(lotIds);
+                var lotDict = lots.ToDictionary(l => l.Id, l => l.LotCode);
+
                 // Populate DivisionCode via UnitId → Unit.DivisionId → Division.ShortName
                 var unitIds = data.Select(d => d.UnitId).Where(u => u > 0).Distinct();
                 var units = await _unitLookup.GetByIdsAsync(unitIds);
@@ -448,6 +459,8 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                         row.ProductCode = itemInfo.ItemCode;
                         row.ProductName = itemInfo.ItemName;
                     }
+
+                    row.LotNum = row.LotId.HasValue && lotDict.TryGetValue(row.LotId.Value, out var lotCode) ? lotCode : null;
 
                     if (unitDivisionMap.TryGetValue(row.UnitId, out var divId) && divDict.TryGetValue(divId, out var divShort))
                     {
