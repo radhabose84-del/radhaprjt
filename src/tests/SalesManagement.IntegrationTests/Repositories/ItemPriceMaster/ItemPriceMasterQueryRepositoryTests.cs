@@ -1,12 +1,14 @@
 using Contracts.Dtos.Lookups.Inventory;
 using Contracts.Dtos.Lookups.Purchase;
 using Contracts.Dtos.Lookups.Users;
+using Contracts.Interfaces.Lookups.Finance;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Purchase;
 using Contracts.Interfaces.Lookups.Users;
 using Dapper;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Moq;
 using SalesManagement.Infrastructure.Data;
 using SalesManagement.Infrastructure.Repositories.ItemPriceMaster;
 using SalesManagement.IntegrationTests.Common;
@@ -55,8 +57,10 @@ namespace SalesManagement.IntegrationTests.Repositories.ItemPriceMaster
                 paymentTermLookup.Object);
         }
 
+        private static readonly Mock<IDocumentSequenceLookup> _mockDocSeqLookup = new(MockBehavior.Loose);
+
         private ItemPriceMasterCommandRepository CreateCommandRepo(ApplicationDbContext ctx)
-            => new ItemPriceMasterCommandRepository(ctx);
+            => new ItemPriceMasterCommandRepository(ctx, _mockDocSeqLookup.Object);
 
         private Mock<IItemLookup> BuildDefaultItemLookup(int itemId = 100)
         {

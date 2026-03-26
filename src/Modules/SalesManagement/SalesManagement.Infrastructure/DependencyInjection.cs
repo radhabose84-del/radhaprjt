@@ -283,6 +283,12 @@ namespace SalesManagement.Infrastructure
             // ── Stock Ledger Report Repository ───────────────────────────────────
             services.AddScoped<IStockLedgerReportRepository, StockLedgerReportRepository>();
 
+            // ── Sales Stock Ledger Lookup (cross-module) ────────────────────────
+            services.AddScoped<ISalesStockLedgerLookup, SalesStockLedgerLookupRepository>();
+
+            // ── Sales MiscMaster Lookup (cross-module) ──────────────────────────
+            services.AddScoped<ISalesMiscMasterLookup, SalesMiscMasterLookupRepository>();
+
             // ═══════════════════════════════════════════════════════════════
             // OUTBOX PATTERN SERVICES (SQL-based for transaction atomicity)
             // ═══════════════════════════════════════════════════════════════

@@ -36,6 +36,7 @@ namespace SalesManagement.Domain.Entities
         public decimal InvoiceAmountBeforeTCS { get; set; }
         public decimal InvoiceAmount { get; set; }
         public string? Remarks { get; set; }
+        public bool GEFlag { get; set; }
 
         // Same-module navigation properties
         public MiscMaster? InvoiceTypeMisc { get; set; }
