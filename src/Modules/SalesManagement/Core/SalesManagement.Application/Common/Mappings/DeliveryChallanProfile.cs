@@ -1,5 +1,6 @@
 using AutoMapper;
 using SalesManagement.Application.DeliveryChallan.Dto;
+using SalesManagement.Application.DeliveryChallan.Queries.GetPendingDeliveryChallanById;
 using SalesManagement.Domain.Entities;
 using static SalesManagement.Domain.Common.BaseEntity;
 
@@ -26,6 +27,9 @@ namespace SalesManagement.Application.Common.Mappings
             // Entity → DTO (for query mapping)
             CreateMap<DeliveryChallanHeader, DeliveryChallanHeaderDto>();
             CreateMap<DeliveryChallanDetail, DeliveryChallanDetailDto>();
+
+            // Pending: DeliveryChallanHeaderDto → PendingDeliveryChallanByIdDto
+            CreateMap<DeliveryChallanHeaderDto, PendingDeliveryChallanByIdDto>();
         }
     }
 }
