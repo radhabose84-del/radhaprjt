@@ -6,6 +6,7 @@ using GateEntryManagement.Application.GatePass.Commands.DeleteGatePass;
 using GateEntryManagement.Application.GatePass.Queries.GetAllGatePass;
 using GateEntryManagement.Application.GatePass.Queries.GetGatePassById;
 using GateEntryManagement.Application.GatePass.Queries.GetGatePassAutoComplete;
+using GateEntryManagement.Application.GatePass.Queries.GetGatePassDocTypes;
 
 namespace GateEntryManagement.Presentation.Controllers
 {
@@ -41,6 +42,24 @@ namespace GateEntryManagement.Presentation.Controllers
         public async Task<IActionResult> GetGatePassByIdAsync(int id)
         {
             var result = await Mediator.Send(new GetGatePassByIdQuery { Id = id });
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result
+            });
+        }
+
+        [HttpGet("doc-types")]
+        public async Task<IActionResult> GetGatePassDocTypesAsync(
+            [FromQuery] int? ModuleId = null,
+            [FromQuery] int? MenuId = null)
+        {
+            var result = await Mediator.Send(new GetGatePassDocTypesQuery
+            {
+                ModuleId = ModuleId,
+                MenuId = MenuId
+            });
 
             return Ok(new
             {
