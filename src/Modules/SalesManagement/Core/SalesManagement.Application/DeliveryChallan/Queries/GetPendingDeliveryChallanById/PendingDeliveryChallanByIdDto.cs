@@ -1,28 +1,30 @@
-namespace SalesManagement.Application.DeliveryChallan.Dto
+using SalesManagement.Application.DeliveryChallan.Dto;
+
+namespace SalesManagement.Application.DeliveryChallan.Queries.GetPendingDeliveryChallanById
 {
-    public class DeliveryChallanHeaderDto
+    public class PendingDeliveryChallanByIdDto
     {
         public int Id { get; set; }
         public string? DeliveryNumber { get; set; }
         public DateOnly DeliveryDate { get; set; }
 
-        // STO Reference (same-module JOIN)
+        // STO Reference
         public int StoHeaderId { get; set; }
         public string? StoNumber { get; set; }
 
-        // From Plant & Storage Location (cross-module lookup)
+        // From Plant & Storage Location
         public int FromPlantId { get; set; }
         public string? FromPlantName { get; set; }
         public int FromStorageLocationId { get; set; }
         public string? FromStorageLocationName { get; set; }
 
-        // To Plant & Storage Location (cross-module lookup)
+        // To Plant & Storage Location
         public int ToPlantId { get; set; }
         public string? ToPlantName { get; set; }
         public int ToStorageLocationId { get; set; }
         public string? ToStorageLocationName { get; set; }
 
-        // Transporter (cross-module lookup)
+        // Transporter
         public int TransporterId { get; set; }
         public string? TransporterName { get; set; }
         public string? VehicleNumber { get; set; }
@@ -32,31 +34,18 @@ namespace SalesManagement.Application.DeliveryChallan.Dto
         public decimal DeliveryValue { get; set; }
         public decimal ConsignmentValue { get; set; }
 
-        // Status (same-module JOIN)
+        // Status
         public int StatusId { get; set; }
         public string? StatusName { get; set; }
 
         public string? Remarks { get; set; }
 
-        // Workflow fields (populated only in GetPendingAsync, null/0 in GetAll)
+        // Workflow fields
         public int ApproverId { get; set; }
         public string? ApproverName { get; set; }
         public int ApprovalRequestHeaderId { get; set; }
 
-        public bool IsActive { get; set; }
-        public bool IsDeleted { get; set; }
-
-        // Audit fields
-        public int CreatedBy { get; set; }
-        public DateTimeOffset? CreatedDate { get; set; }
-        public string? CreatedByName { get; set; }
-        public string? CreatedIP { get; set; }
-        public int? ModifiedBy { get; set; }
-        public DateTimeOffset? ModifiedDate { get; set; }
-        public string? ModifiedByName { get; set; }
-        public string? ModifiedIP { get; set; }
-
-        // Child details (populated only in GetById, null in GetAll)
+        // Detail lines
         public List<DeliveryChallanDetailDto>? DeliveryChallanDetails { get; set; }
     }
 }

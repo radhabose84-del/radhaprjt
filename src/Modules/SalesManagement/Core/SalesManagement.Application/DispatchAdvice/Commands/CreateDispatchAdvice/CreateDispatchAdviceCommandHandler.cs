@@ -1,5 +1,7 @@
 using AutoMapper;
 using Contracts.Common;
+using Contracts.Interfaces;
+using Contracts.Interfaces.Lookups.Finance;
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.IDispatchAdvice;
 using SalesManagement.Application.Common.Interfaces.IMiscMaster;
@@ -14,6 +16,8 @@ namespace SalesManagement.Application.DispatchAdvice.Commands.CreateDispatchAdvi
         private readonly IDispatchAdviceCommandRepository _commandRepository;
         private readonly IDispatchAdviceQueryRepository _queryRepository;
         private readonly IMiscMasterQueryRepository _miscMasterQueryRepository;
+        private readonly IDocumentSequenceLookup _documentSequenceLookup;
+        private readonly IIPAddressService _ipAddressService;
         private readonly IMediator _mediator;
         private readonly IMapper _mapper;
 
@@ -21,12 +25,16 @@ namespace SalesManagement.Application.DispatchAdvice.Commands.CreateDispatchAdvi
             IDispatchAdviceCommandRepository commandRepository,
             IDispatchAdviceQueryRepository queryRepository,
             IMiscMasterQueryRepository miscMasterQueryRepository,
+            IDocumentSequenceLookup documentSequenceLookup,
+            IIPAddressService ipAddressService,
             IMediator mediator,
             IMapper mapper)
         {
             _commandRepository = commandRepository;
             _queryRepository = queryRepository;
             _miscMasterQueryRepository = miscMasterQueryRepository;
+            _documentSequenceLookup = documentSequenceLookup;
+            _ipAddressService = ipAddressService;
             _mediator = mediator;
             _mapper = mapper;
         }
@@ -40,10 +48,20 @@ namespace SalesManagement.Application.DispatchAdvice.Commands.CreateDispatchAdvi
                 MiscEnumEntity.StockStatus, MiscEnumEntity.Pending);
             entity.StatusId = draftStatus?.Id ?? 0;
 
-            // Generate auto-number (unit-based from SalesOrder)
-            var unitId = await _queryRepository.GetSalesOrderUnitIdAsync(request.SalesOrderId);
-            var dispatchNo = await _commandRepository.GenerateNextDispatchNoAsync(unitId, cancellationToken);
-            entity.DispatchNo = dispatchNo;
+            // Get UnitId from JWT or SalesOrder
+            var unitId = _ipAddressService.GetUnitId() ?? await _queryRepository.GetSalesOrderUnitIdAsync(request.SalesOrderId);
+            entity.UnitId = unitId;
+
+            // Generate DispatchNo from DocumentSequence
+            var typeId = await _documentSequenceLookup.GetTransactionTypeIdAsync(
+                MiscEnumEntity.TransactionTypeDispatchAdvice, MiscEnumEntity.ModuleSales, unitId);
+            if (!typeId.HasValue)
+                throw new ExceptionRules("Transaction Type 'Dispatch Advice' not found for Sales module.");
+
+            var sequences = await _documentSequenceLookup.GenerateDocumentNumber(typeId.Value);
+            var dispatchNo = sequences.Count > 0 ? sequences[^1] : null;
+            entity.DispatchNo = dispatchNo
+                ?? throw new ExceptionRules("No document sequence configured for Dispatch Advice.");
 
             // Resolve Packed and Reserved status IDs for StockLedger update
             var packedStatus = await _miscMasterQueryRepository.GetMiscMasterByName(
@@ -54,8 +72,8 @@ namespace SalesManagement.Application.DispatchAdvice.Commands.CreateDispatchAdvi
                 MiscEnumEntity.StockStatus, MiscEnumEntity.Reserved);
             var reservedStatusId = reservedStatus?.Id ?? 0;
 
-            // CreateAsync inserts header + details and updates StockLedger per PackNo
-            var newId = await _commandRepository.CreateAsync(entity, unitId, packedStatusId, reservedStatusId);
+            // CreateAsync inserts header + details, updates StockLedger, increments DocNo
+            var newId = await _commandRepository.CreateAsync(entity, unitId, packedStatusId, reservedStatusId, typeId.Value);
 
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Create",

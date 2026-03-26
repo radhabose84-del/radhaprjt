@@ -1,4 +1,6 @@
+using Contracts.Interfaces.Lookups.Finance;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using GateEntryManagement.Application.Common.Interfaces.IVehicleMovementRecord;
 using GateEntryManagement.Infrastructure.Data;
 using static GateEntryManagement.Domain.Common.BaseEntity;
@@ -8,10 +10,14 @@ namespace GateEntryManagement.Infrastructure.Repositories.VehicleMovementRecord
     public class VehicleMovementRecordCommandRepository : IVehicleMovementRecordCommandRepository
     {
         private readonly ApplicationDbContext _applicationDbContext;
+        private readonly IDocumentSequenceLookup _documentSequenceLookup;
 
-        public VehicleMovementRecordCommandRepository(ApplicationDbContext applicationDbContext)
+        public VehicleMovementRecordCommandRepository(
+            ApplicationDbContext applicationDbContext,
+            IDocumentSequenceLookup documentSequenceLookup)
         {
             _applicationDbContext = applicationDbContext;
+            _documentSequenceLookup = documentSequenceLookup;
         }
 
         public async Task<int> CreateAsync(Domain.Entities.VehicleMovementRecord entity, int transactionTypeId)
@@ -20,17 +26,18 @@ namespace GateEntryManagement.Infrastructure.Repositories.VehicleMovementRecord
 
             return await strategy.ExecuteAsync(async () =>
             {
-                await using var transaction = await _applicationDbContext.Database.BeginTransactionAsync();
+                using var transaction = await _applicationDbContext.Database.BeginTransactionAsync();
                 try
                 {
                     await _applicationDbContext.VehicleMovementRecord.AddAsync(entity);
                     await _applicationDbContext.SaveChangesAsync();
 
-                    // Increment DocNo — same DbContext connection, same transaction
-                    await _applicationDbContext.Database.ExecuteSqlRawAsync(
-                        "UPDATE [Finance].[DocumentSequence] SET DocNo = DocNo + 1 WHERE TransactionTypeId = {0} AND IsDeleted = 0",
-                        transactionTypeId);
+                    // Increment DocNo via lookup — same connection + transaction
+                    var dbConnection = _applicationDbContext.Database.GetDbConnection();
+                    var dbTransaction = transaction.GetDbTransaction();
+                    await _documentSequenceLookup.IncrementDocNoAsync(transactionTypeId, dbConnection, dbTransaction);
 
+                    await _applicationDbContext.SaveChangesAsync();
                     await transaction.CommitAsync();
                     return entity.Id;
                 }

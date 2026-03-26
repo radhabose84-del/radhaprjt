@@ -1,6 +1,8 @@
 using AutoMapper;
 using SalesManagement.Application.StoHeader.Commands.CreateStoHeader;
 using SalesManagement.Application.StoHeader.Commands.UpdateStoHeader;
+using SalesManagement.Application.StoHeader.Dto;
+using SalesManagement.Application.StoHeader.Queries.GetPendingStoHeaderById;
 using static SalesManagement.Domain.Common.BaseEntity;
 
 namespace SalesManagement.Application.Common.Mappings
@@ -22,6 +24,9 @@ namespace SalesManagement.Application.Common.Mappings
                     src.IsActive == 1 ? Status.Active : Status.Inactive));
 
             CreateMap<UpdateStoDetailDto, Domain.Entities.StoDetail>();
+
+            // Pending: StoHeaderDto → PendingStoHeaderByIdDto
+            CreateMap<StoHeaderDto, PendingStoHeaderByIdDto>();
         }
     }
 }

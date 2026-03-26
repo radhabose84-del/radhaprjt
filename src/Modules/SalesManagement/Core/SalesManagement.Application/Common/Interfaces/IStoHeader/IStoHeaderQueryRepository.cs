@@ -11,5 +11,6 @@ namespace SalesManagement.Application.Common.Interfaces.IStoHeader
         Task<bool> StoTypeExistsAsync(int id);
         Task<bool> MovementTypeExistsAsync(int id);
         Task<(List<StoHeaderDto>, int)> GetPendingAsync(int pageNumber, int pageSize, string? searchTerm);
+        Task<StoHeaderDto?> GetPendingByIdAsync(int id);
     }
 }

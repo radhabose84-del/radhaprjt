@@ -59,6 +59,7 @@ namespace SalesManagement.Domain.Common
         public const string TransactionTypeSalesOrder = "Sales Order";
 
         // Document Sequence - Transaction Types
+        public const string TransactionTypeDispatchAdvice = "Dispatch Advice";
         public const string TransactionTypeInvoice = "Invoice";
         public const string TransactionTypePriceMaster = "PriceMaster";
         public const string TransactionTypePackMaster = "PackMaster";
@@ -70,7 +71,7 @@ namespace SalesManagement.Domain.Common
         // Complaint Workflow
         public const string ComplaintApprovalStatus = "ApprovalStatus";
         public const string ComplaintApprovalPending = "Pending";
-        public const string ComplaintModuleTypeName = "Complaint";
+        public const string ComplaintModuleTypeName = "Complaints";
         public const string TransactionTypeComplaint = "Complaint";
 
         // STO Receipt Status
