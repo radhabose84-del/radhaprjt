@@ -8,6 +8,7 @@ namespace ProductionManagement.Infrastructure.Data
 {
     public class ApplicationDbContext : DbContext
     {
+        public DbSet<CountGroup> CountGroup => Set<CountGroup>();
         public DbSet<CountMaster> CountMaster => Set<CountMaster>();
         public DbSet<MiscTypeMaster> MiscTypeMaster => Set<MiscTypeMaster>();
         public DbSet<MiscMaster> MiscMaster => Set<MiscMaster>();
