@@ -21,7 +21,6 @@ namespace SalesManagement.Domain.Entities
         public ICollection<SalesOrderHeader>? SalesOrderHeadersAsFreightType { get; set; }
         public ICollection<SalesOrderHeader>? SalesOrderHeadersAsCountList { get; set; }
         public ICollection<SalesOrderHeader>? SalesOrderHeadersAsEnquiryType { get; set; }
-        public ICollection<SalesOrderHeader>? SalesOrderHeadersAsDispatchLocationType { get; set; }
         public ICollection<SalesOrderHeader>? SalesOrderHeadersAsStatus { get; set; }
         public ICollection<SalesOrderDetail>? SalesOrderDetailsAsLineItemStatus { get; set; }
 
@@ -56,5 +55,9 @@ namespace SalesManagement.Domain.Entities
         // Reverse navigation (StoReceipt)
         public ICollection<StoReceiptHeader>? StoReceiptHeadersAsStatus { get; set; }
         public ICollection<StoReceiptDetail>? StoReceiptDetailsAsLineStatus { get; set; }
+
+        // Reverse navigation (AgentCommissionConfig)
+        public ICollection<AgentCommissionConfig>? AgentCommissionConfigsAsCommissionBasis { get; set; }
+        public ICollection<AgentCommissionConfig>? AgentCommissionConfigsAsApplicableLevel { get; set; }
     }
 }

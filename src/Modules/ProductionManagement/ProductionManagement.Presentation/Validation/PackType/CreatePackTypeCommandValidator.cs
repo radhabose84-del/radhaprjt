@@ -69,6 +69,13 @@ namespace ProductionManagement.Presentation.Validation.PackType
                             .When(x => !string.IsNullOrWhiteSpace(x.PackTypeCode));
                         break;
 
+                    case "FKColumnDelete":
+                        RuleFor(x => x.PackMaterialId)
+                            .MustAsync(async (id, ct) => await _queryRepository.PackMaterialExistsAsync(id!.Value))
+                            .WithMessage($"{nameof(CreatePackTypeCommand.PackMaterialId)} {rule.Error}")
+                            .When(x => x.PackMaterialId.HasValue && x.PackMaterialId > 0);
+                        break;
+
                     case "GreaterThan":
                         RuleFor(x => x.NetWeight)
                             .GreaterThan(0)

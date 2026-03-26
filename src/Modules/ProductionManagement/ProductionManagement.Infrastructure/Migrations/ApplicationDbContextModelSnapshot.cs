@@ -390,6 +390,10 @@ namespace ProductionManagement.Infrastructure.Migrations
                         .HasColumnType("decimal(18,2)")
                         .HasColumnName("NetWeight");
 
+                    b.Property<int?>("PackMaterialId")
+                        .HasColumnType("int")
+                        .HasColumnName("PackMaterialId");
+
                     b.Property<string>("PackTypeCode")
                         .IsRequired()
                         .HasColumnType("varchar(20)")
@@ -411,6 +415,8 @@ namespace ProductionManagement.Infrastructure.Migrations
                         .HasColumnName("TareWeight");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("PackMaterialId");
 
                     b.HasIndex("PackTypeCode")
                         .IsUnique();
@@ -648,6 +654,16 @@ namespace ProductionManagement.Infrastructure.Migrations
                     b.Navigation("MiscTypeMaster");
                 });
 
+            modelBuilder.Entity("ProductionManagement.Domain.Entities.PackType", b =>
+                {
+                    b.HasOne("ProductionManagement.Domain.Entities.MiscMaster", "PackMaterial")
+                        .WithMany("PackTypesAsPackMaterial")
+                        .HasForeignKey("PackMaterialId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("PackMaterial");
+                });
+
             modelBuilder.Entity("ProductionManagement.Domain.Entities.ProductionPackDetail", b =>
                 {
                     b.HasOne("ProductionManagement.Domain.Entities.LotMaster", "LotMaster")
@@ -697,6 +713,8 @@ namespace ProductionManagement.Infrastructure.Migrations
                     b.Navigation("LotMastersAsLotType");
 
                     b.Navigation("LotMastersAsStatus");
+
+                    b.Navigation("PackTypesAsPackMaterial");
 
                     b.Navigation("ProductionPackDetailsAsQualityStatus");
                 });

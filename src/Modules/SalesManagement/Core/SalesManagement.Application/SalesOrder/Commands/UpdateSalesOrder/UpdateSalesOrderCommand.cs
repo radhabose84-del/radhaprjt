@@ -32,11 +32,6 @@ namespace SalesManagement.Application.SalesOrder.Commands.UpdateSalesOrder
         public string? VisitNotesAttachment { get; set; }
         public string? AgentPOAttachment { get; set; }
 
-        // Dispatch Location
-        public int DispatchLocationType { get; set; }
-        public int? DispatchDepotId { get; set; }
-        public int? DispatchUnitId { get; set; }
-
         // Derived Summary Fields
         public int TotalBags { get; set; }
         public decimal TotalWeightKgs { get; set; }

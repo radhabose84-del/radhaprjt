@@ -39,14 +39,6 @@ namespace SalesManagement.Application.SalesOrder.Queries.GetPendingSalesOrderByI
         public string? CountListName { get; set; }
         public string? Remarks { get; set; }
 
-        // Dispatch Location
-        public int DispatchLocationType { get; set; }
-        public string? DispatchLocationTypeName { get; set; }
-        public int? DispatchDepotId { get; set; }
-        public string? DispatchDepotName { get; set; }
-        public int? DispatchUnitId { get; set; }
-        public string? DispatchUnitName { get; set; }
-
         // Summary
         public int TotalBags { get; set; }
         public decimal TotalWeightKgs { get; set; }

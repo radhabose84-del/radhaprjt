@@ -35,6 +35,14 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("AgentId");
 
+                    b.Property<int?>("ApplicableLevelId")
+                        .HasColumnType("int")
+                        .HasColumnName("ApplicableLevelId");
+
+                    b.Property<int?>("CommissionBasisId")
+                        .HasColumnType("int")
+                        .HasColumnName("CommissionBasisId");
+
                     b.Property<decimal>("CommissionPercentage")
                         .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,4)")
@@ -72,10 +80,6 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("bit")
                         .HasColumnName("IsDeleted");
 
-                    b.Property<int>("ItemId")
-                        .HasColumnType("int")
-                        .HasColumnName("ItemId");
-
                     b.Property<int?>("ModifiedBy")
                         .HasColumnType("int")
                         .HasColumnName("ModifiedBy");
@@ -96,15 +100,6 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("SalesSegmentId");
 
-                    b.Property<decimal?>("SubAgentPercentage")
-                        .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,4)")
-                        .HasColumnName("SubAgentPercentage");
-
-                    b.Property<int?>("UomId")
-                        .HasColumnType("int")
-                        .HasColumnName("UomId");
-
                     b.Property<DateTimeOffset>("ValidityFrom")
                         .HasColumnType("datetimeoffset")
                         .HasColumnName("ValidityFrom");
@@ -117,15 +112,17 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     b.HasIndex("AgentId");
 
-                    b.HasIndex("CommissionTypeId");
+                    b.HasIndex("ApplicableLevelId");
 
-                    b.HasIndex("ItemId");
+                    b.HasIndex("CommissionBasisId");
+
+                    b.HasIndex("CommissionTypeId");
 
                     b.HasIndex("SalesSegmentId");
 
-                    b.HasIndex("ValidityFrom", "ValidityTo");
+                    b.HasIndex("AgentId", "SalesSegmentId");
 
-                    b.HasIndex("AgentId", "SalesSegmentId", "ItemId");
+                    b.HasIndex("ValidityFrom", "ValidityTo");
 
                     b.ToTable("AgentCommissionConfig", "Sales");
                 });
@@ -2982,18 +2979,6 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("DiscountPlanId");
 
-                    b.Property<int?>("DispatchDepotId")
-                        .HasColumnType("int")
-                        .HasColumnName("DispatchDepotId");
-
-                    b.Property<int>("DispatchLocationType")
-                        .HasColumnType("int")
-                        .HasColumnName("DispatchLocationType");
-
-                    b.Property<int?>("DispatchUnitId")
-                        .HasColumnType("int")
-                        .HasColumnName("DispatchUnitId");
-
                     b.Property<int>("EnquiryType")
                         .HasColumnType("int")
                         .HasColumnName("EnquiryType");
@@ -3141,8 +3126,6 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.HasIndex("CountListId");
 
                     b.HasIndex("DiscountPlanId");
-
-                    b.HasIndex("DispatchLocationType");
 
                     b.HasIndex("EnquiryType");
 
@@ -4041,6 +4024,16 @@ namespace SalesManagement.Infrastructure.Migrations
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.AgentCommissionConfig", b =>
                 {
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "ApplicableLevel")
+                        .WithMany("AgentCommissionConfigsAsApplicableLevel")
+                        .HasForeignKey("ApplicableLevelId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "CommissionBasis")
+                        .WithMany("AgentCommissionConfigsAsCommissionBasis")
+                        .HasForeignKey("CommissionBasisId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "MiscMaster")
                         .WithMany()
                         .HasForeignKey("CommissionTypeId")
@@ -4052,6 +4045,10 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasForeignKey("SalesSegmentId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("ApplicableLevel");
+
+                    b.Navigation("CommissionBasis");
 
                     b.Navigation("MiscMaster");
 
@@ -4508,12 +4505,6 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasForeignKey("DiscountPlanId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "DispatchLocationTypeMisc")
-                        .WithMany("SalesOrderHeadersAsDispatchLocationType")
-                        .HasForeignKey("DispatchLocationType")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "EnquiryTypeMisc")
                         .WithMany("SalesOrderHeadersAsEnquiryType")
                         .HasForeignKey("EnquiryType")
@@ -4555,8 +4546,6 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("CountList");
 
                     b.Navigation("DiscountPlan");
-
-                    b.Navigation("DispatchLocationTypeMisc");
 
                     b.Navigation("EnquiryTypeMisc");
 
@@ -4810,6 +4799,10 @@ namespace SalesManagement.Infrastructure.Migrations
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.MiscMaster", b =>
                 {
+                    b.Navigation("AgentCommissionConfigsAsApplicableLevel");
+
+                    b.Navigation("AgentCommissionConfigsAsCommissionBasis");
+
                     b.Navigation("DeliveryChallanHeadersAsStatus");
 
                     b.Navigation("DispatchAddressMappings");
@@ -4837,8 +4830,6 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("SalesOrderHeadersAsCountList");
 
                     b.Navigation("SalesOrderHeadersAsDiscountPlan");
-
-                    b.Navigation("SalesOrderHeadersAsDispatchLocationType");
 
                     b.Navigation("SalesOrderHeadersAsEnquiryType");
 

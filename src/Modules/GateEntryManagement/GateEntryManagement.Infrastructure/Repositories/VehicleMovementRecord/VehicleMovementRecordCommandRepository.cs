@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Contracts.Interfaces.Lookups.Finance;
 using GateEntryManagement.Application.Common.Interfaces.IVehicleMovementRecord;
 using GateEntryManagement.Infrastructure.Data;
 using static GateEntryManagement.Domain.Common.BaseEntity;
@@ -8,17 +9,40 @@ namespace GateEntryManagement.Infrastructure.Repositories.VehicleMovementRecord
     public class VehicleMovementRecordCommandRepository : IVehicleMovementRecordCommandRepository
     {
         private readonly ApplicationDbContext _applicationDbContext;
+        private readonly IDocumentSequenceLookup _documentSequenceLookup;
 
-        public VehicleMovementRecordCommandRepository(ApplicationDbContext applicationDbContext)
+        public VehicleMovementRecordCommandRepository(
+            ApplicationDbContext applicationDbContext,
+            IDocumentSequenceLookup documentSequenceLookup)
         {
             _applicationDbContext = applicationDbContext;
+            _documentSequenceLookup = documentSequenceLookup;
         }
 
-        public async Task<int> CreateAsync(Domain.Entities.VehicleMovementRecord entity)
+        public async Task<int> CreateAsync(Domain.Entities.VehicleMovementRecord entity, int transactionTypeId)
         {
-            await _applicationDbContext.VehicleMovementRecord.AddAsync(entity);
-            await _applicationDbContext.SaveChangesAsync();
-            return entity.Id;
+            var strategy = _applicationDbContext.Database.CreateExecutionStrategy();
+
+            return await strategy.ExecuteAsync(async () =>
+            {
+                await using var transaction = await _applicationDbContext.Database.BeginTransactionAsync();
+                try
+                {
+                    await _applicationDbContext.VehicleMovementRecord.AddAsync(entity);
+                    await _applicationDbContext.SaveChangesAsync();
+
+                    // Increment DocNo via Finance lookup (both in same transaction)
+                    await _documentSequenceLookup.IncrementDocNoAsync(transactionTypeId);
+
+                    await transaction.CommitAsync();
+                    return entity.Id;
+                }
+                catch
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
+            });
         }
 
         public async Task<int> UpdateAsync(Domain.Entities.VehicleMovementRecord entity)
