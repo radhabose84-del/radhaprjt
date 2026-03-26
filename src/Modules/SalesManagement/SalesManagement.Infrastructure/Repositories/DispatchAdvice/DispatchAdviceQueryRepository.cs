@@ -2,6 +2,7 @@ using System.Data;
 using Dapper;
 using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Inventory;
+using Contracts.Interfaces.Lookups.Production;
 using Contracts.Interfaces;
 using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Application.Common.Interfaces.IDispatchAdvice;
@@ -16,19 +17,25 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
         private readonly IItemLookup _itemLookup;
         private readonly IHSNLookup _hsnLookup;
         private readonly IIPAddressService _ipAddressService;
+        private readonly IPackTypeLookup _packTypeLookup;
+        private readonly ILotMasterLookup _lotMasterLookup;
 
         public DispatchAdviceQueryRepository(
             IDbConnection dbConnection,
             IPartyLookup partyLookup,
             IItemLookup itemLookup,
             IHSNLookup hsnLookup,
-            IIPAddressService ipAddressService)
+            IIPAddressService ipAddressService,
+            IPackTypeLookup packTypeLookup,
+            ILotMasterLookup lotMasterLookup)
         {
             _dbConnection = dbConnection;
             _partyLookup = partyLookup;
             _itemLookup = itemLookup;
             _hsnLookup = hsnLookup;
             _ipAddressService = ipAddressService;
+            _packTypeLookup = packTypeLookup;
+            _lotMasterLookup = lotMasterLookup;
         }
 
         public async Task<(List<DispatchAdviceHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
@@ -54,6 +61,7 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
                     da.DispatchAddressName,
                     h.TransporterId,
                     h.VehicleNo, h.DriverName, h.LRNo,
+                    h.UnitId, h.InvFlg,
                     h.IsActive, h.IsDeleted,
                     h.CreatedBy, h.CreatedDate, h.CreatedByName,
                     h.ModifiedBy, h.ModifiedDate, h.ModifiedByName
@@ -112,6 +120,7 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
                     da.DispatchAddressName,
                     h.TransporterId,
                     h.VehicleNo, h.DriverName, h.LRNo,
+                    h.UnitId, h.InvFlg,
                     h.IsActive, h.IsDeleted,
                     h.CreatedBy, h.CreatedDate, h.CreatedByName,
                     h.ModifiedBy, h.ModifiedDate, h.ModifiedByName
@@ -132,10 +141,8 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
                     d.SalesOrderDetailId,
                     d.ItemId,
                     d.LotId,
-                    lm.LotCode,
                     d.StartPackNo, d.EndPackNo, d.DispatchQty,
                     d.PackTypeId,
-                    pt.PackTypeName,
                     sod.HSNId,
                     sod.ExMillRate,
                     sod.TaxableAmount,
@@ -146,8 +153,6 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
                     sod.NetAmount,
                     sod.BagWeight
                 FROM Sales.DispatchAdviceDetail d
-                LEFT JOIN Production.LotMaster lm ON d.LotId = lm.Id AND lm.IsDeleted = 0
-                LEFT JOIN Production.PackType pt ON d.PackTypeId = pt.Id AND pt.IsDeleted = 0
                 LEFT JOIN Sales.SalesOrderDetail sod ON d.SalesOrderDetailId = sod.Id
                 WHERE d.DispatchAdviceHeaderId = @HeaderId";
 
@@ -176,12 +181,26 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
                 var hsnList = await _hsnLookup.GetByIdsAsync(hsnIds);
                 var hsnDict = hsnList.ToDictionary(h => h.Id, h => h.HSNCode);
 
+                var lotIds = details.Where(d => d.LotId > 0).Select(d => d.LotId).Distinct();
+                var lotList = lotIds.Any() ? await _lotMasterLookup.GetByIdsAsync(lotIds) : [];
+                var lotDict = lotList.ToDictionary(l => l.Id, l => l.LotCode);
+
+                var packTypeIds = details.Where(d => d.PackTypeId > 0).Select(d => d.PackTypeId).Distinct();
+                var packTypeList = packTypeIds.Any() ? await _packTypeLookup.GetByIdsAsync(packTypeIds) : [];
+                var packTypeDict = packTypeList.ToDictionary(p => p.Id, p => p.PackTypeName);
+
                 foreach (var detail in details)
                 {
                     detail.ItemName = itemDict.TryGetValue(detail.ItemId, out var iName) ? iName : null;
 
                     if (detail.HSNId.HasValue)
                         detail.HSNCode = hsnDict.TryGetValue(detail.HSNId.Value, out var hCode) ? hCode : null;
+
+                    if (detail.LotId > 0)
+                        detail.LotCode = lotDict.TryGetValue(detail.LotId, out var lCode) ? lCode : null;
+
+                    if (detail.PackTypeId > 0)
+                        detail.PackTypeName = packTypeDict.TryGetValue(detail.PackTypeId, out var pName) ? pName : null;
                 }
             }
 
@@ -227,17 +246,35 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
 
             const string sql = @"
                 SELECT Sum(S.TotalQty) AS Qty, Sum(S.TotalValue) AS Value,
-                    S.PackTypeId, P.PackTypeCode, P.PackTypeName,
-                    P.NetWeight, P.TareWeight, P.GrossWeight, P.ConesPerBag
+                    S.PackTypeId
                 FROM Sales.StockLedger S
-                INNER JOIN Production.PackType P ON S.PackTypeId = P.Id
                 WHERE S.UnitId = @UnitId AND S.ItemId = @ItemId AND S.StatusId = @StatusId AND S.LotId = @LotId
-                GROUP BY S.PackTypeId, P.PackTypeCode, P.PackTypeName,
-                    P.NetWeight, P.TareWeight, P.GrossWeight, P.ConesPerBag";
+                GROUP BY S.PackTypeId";
 
-            var result = await _dbConnection.QueryAsync<DispatchAdviceStockDto>(sql,
-                new { UnitId = unitId, ItemId = itemId, StatusId = statusId, LotId = lotId });
-            return result.ToList();
+            var result = (await _dbConnection.QueryAsync<DispatchAdviceStockDto>(sql,
+                new { UnitId = unitId, ItemId = itemId, StatusId = statusId, LotId = lotId })).ToList();
+
+            // Populate PackType details via lookup
+            var packTypeIds = result.Select(r => r.PackTypeId).Distinct();
+            if (packTypeIds.Any())
+            {
+                var packTypes = await _packTypeLookup.GetByIdsAsync(packTypeIds);
+                var ptDict = packTypes.ToDictionary(p => p.Id);
+                foreach (var item in result)
+                {
+                    if (ptDict.TryGetValue(item.PackTypeId, out var pt))
+                    {
+                        item.PackTypeCode = pt.PackTypeCode;
+                        item.PackTypeName = pt.PackTypeName;
+                        item.NetWeight = pt.NetWeight;
+                        item.TareWeight = pt.TareWeight;
+                        item.GrossWeight = pt.GrossWeight;
+                        item.ConesPerBag = pt.ConesPerBag;
+                    }
+                }
+            }
+
+            return result;
         }
 
 
@@ -261,17 +298,18 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
             var unitId = _ipAddressService.GetUnitId() ?? 0;
 
             const string sql = @"
-                SELECT S.PackNo, S.ItemId, S.LotId, S.PackTypeId,
-                    L.LotCode AS LotName, P.PackTypeName
+                SELECT S.PackNo, S.ItemId, S.LotId, S.PackTypeId
                 FROM Sales.StockLedger S
-                INNER JOIN Production.LotMaster L ON S.LotId = L.Id AND L.IsDeleted = 0
-                INNER JOIN Production.PackType P ON S.PackTypeId = P.Id AND P.IsDeleted = 0
                 WHERE S.UnitId = @UnitId AND S.ItemId = @ItemId AND S.StatusId = @StatusId
                     AND S.LotId = @LotId AND S.PackTypeId = @PackTypeId
                 ORDER BY S.PackNo";
 
             var rows = (await _dbConnection.QueryAsync<dynamic>(sql,
                 new { UnitId = unitId, ItemId = itemId, StatusId = statusId, LotId = lotId, PackTypeId = packTypeId })).ToList();
+
+            // Resolve LotName and PackTypeName via lookups
+            var lotLookupList = await _lotMasterLookup.GetByIdsAsync(new[] { lotId });
+            var packTypeLookupList = await _packTypeLookup.GetByIdsAsync(new[] { packTypeId });
 
             if (rows.Count == 0)
                 return new List<DispatchAdvicePackRangeDto>();
@@ -280,9 +318,8 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
             var items = await _itemLookup.GetByIdsAsync(new[] { itemId });
             var itemName = items.FirstOrDefault()?.ItemName;
 
-            var firstRow = rows[0];
-            string? lotName = firstRow.LotName;
-            string? packTypeName = firstRow.PackTypeName;
+            string? lotName = lotLookupList.FirstOrDefault()?.LotCode;
+            string? packTypeName = packTypeLookupList.FirstOrDefault()?.PackTypeName;
 
             // Collect all PackNos sorted
             var packNos = rows.Select(r => (int)r.PackNo).OrderBy(p => p).ToList();

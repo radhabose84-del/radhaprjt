@@ -58,7 +58,7 @@ namespace GateEntryManagement.Application.GatePass.Commands.CreateGatePass
                 entity.GatePassDetails = _mapper.Map<List<GatePassDtl>>(request.GatePassDetails);
             }
 
-            var newId = await _commandRepository.CreateAsync(entity);
+            var newId = await _commandRepository.CreateAsync(entity, typeId.Value);
 
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Create",

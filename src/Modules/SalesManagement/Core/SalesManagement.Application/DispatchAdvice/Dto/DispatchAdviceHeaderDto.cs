@@ -21,6 +21,9 @@ namespace SalesManagement.Application.DispatchAdvice.Dto
         public string? VehicleNo { get; set; }
         public string? DriverName { get; set; }
         public string? LRNo { get; set; }
+        public int UnitId { get; set; }
+        public string? UnitName { get; set; }
+        public bool InvFlg { get; set; }
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }
         public int CreatedBy { get; set; }

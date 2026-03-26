@@ -113,5 +113,29 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
             await _dbContext.SaveChangesAsync(ct);
             return true;
         }
+
+        public async Task UpdateApprovalStatusAsync(int id, string status, CancellationToken ct)
+        {
+            var existing = await _dbContext.ComplaintHeader
+                .FirstOrDefaultAsync(x => x.Id == id && x.IsDeleted == IsDelete.NotDeleted, ct);
+
+            if (existing == null)
+                return;
+
+            // Resolve the status Id from MiscMaster
+            var statusEntity = await _dbContext.MiscMaster
+                .Include(m => m.MiscTypeMaster)
+                .FirstOrDefaultAsync(m =>
+                    m.MiscTypeMaster != null &&
+                    m.MiscTypeMaster.MiscTypeCode == "ApprovalStatus" &&
+                    m.Code == status &&
+                    m.IsDeleted == IsDelete.NotDeleted, ct);
+
+            if (statusEntity != null)
+            {
+                existing.StatusId = statusEntity.Id;
+                await _dbContext.SaveChangesAsync(ct);
+            }
+        }
     }
 }

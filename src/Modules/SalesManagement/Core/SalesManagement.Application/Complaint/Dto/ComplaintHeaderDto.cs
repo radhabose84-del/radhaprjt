@@ -6,6 +6,7 @@ namespace SalesManagement.Application.Complaint.Dto
         public string? ComplaintNumber { get; set; }
         public DateOnly ComplaintDate { get; set; }
         public int CustomerId { get; set; }
+        public string? CustomerCode { get; set; }
         public string? CustomerName { get; set; }
 
         // Customer Snapshot

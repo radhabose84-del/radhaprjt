@@ -17,6 +17,7 @@ namespace SalesManagement.Application.DispatchAdvice.Commands.CreateDispatchAdvi
         public string? VehicleNo { get; set; }
         public string? DriverName { get; set; }
         public string? LRNo { get; set; }
+        public int UnitId { get; set; }
         public List<CreateDispatchAdviceDetailDto>? Details { get; set; }
     }
 }

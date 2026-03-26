@@ -8,18 +8,15 @@ namespace FinanceManagement.Infrastructure.Repositories.Lookups.Finance
     internal sealed class DocumentSequenceLookupRepository : IDocumentSequenceLookup
     {
         private readonly IDbConnection _dbConnection;
-        private readonly IUnitLookup _unitLookup;
         private readonly IFinancialYearLookup _financialYearLookup;
         private readonly IModuleLookup _moduleLookup;
 
         public DocumentSequenceLookupRepository(
             IDbConnection dbConnection,
-            IUnitLookup unitLookup,
             IFinancialYearLookup financialYearLookup,
             IModuleLookup moduleLookup)
         {
             _dbConnection = dbConnection;
-            _unitLookup = unitLookup;
             _financialYearLookup = financialYearLookup;
             _moduleLookup = moduleLookup;
         }
@@ -62,21 +59,28 @@ namespace FinanceManagement.Infrastructure.Repositories.Lookups.Finance
             if (rows.Count == 0)
                 return new List<string>();
 
-            var units = await _unitLookup.GetAllUnitAsync();
-            var unitDict = units.ToDictionary(u => u.UnitId, u => u.ShortName);
-
             var years = await _financialYearLookup.GetAllFinancialYearAsync();
             var yearDict = years.ToDictionary(y => y.FinancialYearId, y => y.FinancialYearName);
 
             var result = new List<string>();
             foreach (var item in rows)
             {
-                var unitShortName = unitDict.TryGetValue(item.UnitId, out var u) ? u : null;
                 var yearName = yearDict.TryGetValue(item.FinancialYearId, out var y) ? y : null;
-                result.Add($"{unitShortName ?? "?"}-{item.TypeShortName ?? "?"}-{yearName ?? "?"}-{item.DocNo.ToString().PadLeft(4, '0')}".ToUpper());
+                var yearShort = yearName?.Length >= 2 ? yearName[^2..] : yearName ?? "??";
+                result.Add($"{item.TypeShortName ?? "?"}/{yearShort}{item.DocNo.ToString().PadLeft(4, '0')}".ToUpper());
             }
 
             return result;
+        }
+
+        public async Task IncrementDocNoAsync(int transactionTypeId)
+        {
+            const string sql = @"
+                UPDATE [Finance].[DocumentSequence]
+                SET DocNo = DocNo + 1
+                WHERE TransactionTypeId = @TransactionTypeId AND IsDeleted = 0";
+
+            await _dbConnection.ExecuteAsync(sql, new { TransactionTypeId = transactionTypeId });
         }
 
         private sealed class DocSeqRow

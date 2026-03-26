@@ -130,16 +130,12 @@ namespace FinanceManagement.Infrastructure.Repositories.DocumentSequence
             if (rows.Count == 0)
                 return new List<string>();
 
-            var units = await _unitLookup.GetAllUnitAsync();
-            var unitDict = units.ToDictionary(u => u.UnitId, u => u.ShortName);
-
             var years = await _financialYearLookup.GetAllFinancialYearAsync();
             var yearDict = years.ToDictionary(y => y.FinancialYearId, y => y.FinancialYearName);
 
             var result = new List<string>();
             foreach (var item in rows)
             {
-                var unitShortName = unitDict.TryGetValue(item.UnitId, out var uName) ? uName : null;
                 var financialYearName = yearDict.TryGetValue(item.FinancialYearId, out var yName) ? yName : null;
                 result.Add(BuildDocNumber(item.TypeShortName, financialYearName, item.DocNo));
             }
@@ -212,7 +208,8 @@ namespace FinanceManagement.Infrastructure.Repositories.DocumentSequence
 
         private static string BuildDocNumber(string? typeShortName, string? financialYearName, int docNo)
         {
-            return $"{typeShortName ?? "?"}/{financialYearName ?? "?"}{docNo.ToString().PadLeft(4, '0')}".ToUpper();
+            var yearShort = financialYearName?.Length >= 2 ? financialYearName[^2..] : financialYearName ?? "??";
+            return $"{typeShortName ?? "?"}/{yearShort}{docNo.ToString().PadLeft(4, '0')}".ToUpper();
         }
     }
 }
