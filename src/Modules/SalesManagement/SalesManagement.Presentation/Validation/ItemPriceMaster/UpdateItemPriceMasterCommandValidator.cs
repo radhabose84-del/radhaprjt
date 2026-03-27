@@ -89,6 +89,13 @@ namespace SalesManagement.Presentation.Validation.ItemPriceMaster
                             .WithMessage($"{nameof(UpdateItemPriceMasterCommand.CurrencyId)} {rule.Error}");
                         break;
 
+                    case "GreaterThanOrEqualToZero":
+                        RuleFor(x => x.TolerancePercentage)
+                            .GreaterThanOrEqualTo(0)
+                            .WithMessage($"{nameof(UpdateItemPriceMasterCommand.TolerancePercentage)} {rule.Error}")
+                            .When(x => x.TolerancePercentage.HasValue);
+                        break;
+
                     case "AlreadyExists":
                         // Overlap check — exclude self (current Id)
                         RuleFor(x => x)
