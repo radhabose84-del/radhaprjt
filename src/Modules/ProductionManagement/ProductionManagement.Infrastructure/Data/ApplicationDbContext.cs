@@ -15,6 +15,7 @@ namespace ProductionManagement.Infrastructure.Data
         public DbSet<MiscMaster> MiscMaster => Set<MiscMaster>();
         public DbSet<LotMaster> LotMaster => Set<LotMaster>();
         public DbSet<PackType> PackType => Set<PackType>();
+        public DbSet<ProcessMaster> ProcessMaster => Set<ProcessMaster>();
         public DbSet<ProductionPackHeader> ProductionPackHeader => Set<ProductionPackHeader>();
         public DbSet<ProductionPackDetail> ProductionPackDetail => Set<ProductionPackDetail>();
 
