@@ -14,10 +14,11 @@ namespace SalesManagement.Application.Common.Interfaces.IInvoice
         Task<bool> NotFoundAsync(int id);
         Task<bool> DispatchAdviceExistsAsync(int dispatchAdviceId);
         Task<bool> IsAlreadyInvoicedAsync(int dispatchAdviceId);
-        Task<bool> InvoiceTypeExistsAsync(int invoiceTypeId);
+
         Task<(int bags, decimal qty)> GetDispatchedQuantityAsync(int dispatchAdviceId, int itemId);
         Task<bool> IsCustomerTCSEnabledAsync(int partyId);
         Task<DateOnly> GetDispatchAdviceDateAsync(int dispatchAdviceId);
         Task<bool> IsInvoicePendingAsync(int invoiceId);
+        Task<InvoicePrintDto?> GetPrintDetailsAsync(int id);
     }
 }

@@ -5,6 +5,7 @@ using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Purchase;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Production;
+using Contracts.Interfaces.Lookups.Finance;
 using Contracts.Interfaces;
 using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Application.Common.Interfaces.ISalesOrder;
@@ -26,6 +27,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
         private readonly IIPAddressService _ipAddressService;
         private readonly ICompanyLookup _companyLookup;
         private readonly IPackTypeLookup _packTypeLookup;
+        private readonly ITransactionTypeLookup _transactionTypeLookup;
 
         public SalesOrderQueryRepository(
             IDbConnection dbConnection,
@@ -37,7 +39,8 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             IUOMLookup uomLookup,
             IIPAddressService ipAddressService,
             ICompanyLookup companyLookup,
-            IPackTypeLookup packTypeLookup)
+            IPackTypeLookup packTypeLookup,
+            ITransactionTypeLookup transactionTypeLookup)
         {
             _dbConnection = dbConnection;
             _unitLookup = unitLookup;
@@ -49,6 +52,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             _ipAddressService = ipAddressService;
             _companyLookup = companyLookup;
             _packTypeLookup = packTypeLookup;
+            _transactionTypeLookup = transactionTypeLookup;
         }
 
         public async Task<(List<SalesOrderHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
@@ -73,6 +77,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     h.EnquiryType,
                     et.Description AS EnquiryTypeName,
                     h.UnitId, h.PartyId, h.AgentId,
+                    h.SalesOrderTypeId,
                     h.DiscountPlanId,
                     dp.Description AS DiscountPlanName,
                     h.PaymentTermsId,
@@ -135,6 +140,10 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 var paymentTerms = await _paymentTermLookup.GetAllPaymentTermAsync();
                 var ptDict = paymentTerms.ToDictionary(p => p.Id, p => p.Description);
 
+                var soTypeIds = list.Where(x => x.SalesOrderTypeId.HasValue).Select(x => x.SalesOrderTypeId!.Value).Distinct();
+                var soTypes = soTypeIds.Any() ? await _transactionTypeLookup.GetByIdsAsync(soTypeIds) : [];
+                var soTypeDict = soTypes.ToDictionary(t => t.Id, t => t.TypeName);
+
                 foreach (var item in list)
                 {
                     item.UnitName = unitDict.TryGetValue(item.UnitId, out var uName) ? uName : null;
@@ -142,6 +151,8 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     if (item.AgentId.HasValue)
                         item.AgentName = agentDict.TryGetValue(item.AgentId.Value, out var aName) ? aName : null;
                     item.PaymentTermsName = ptDict.TryGetValue(item.PaymentTermsId, out var ptName) ? ptName : null;
+                    if (item.SalesOrderTypeId.HasValue)
+                        item.SalesOrderTypeName = soTypeDict.TryGetValue(item.SalesOrderTypeId.Value, out var stName) ? stName : null;
                 }
 
                 // Construct full attachment paths
@@ -172,6 +183,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     h.EnquiryType,
                     et.Description AS EnquiryTypeName,
                     h.UnitId, h.PartyId, h.AgentId,
+                    h.SalesOrderTypeId,
                     h.DiscountPlanId,
                     dp.Description AS DiscountPlanName,
                     h.PaymentTermsId,
@@ -252,6 +264,12 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
 
             var paymentTerms = await _paymentTermLookup.GetAllPaymentTermAsync();
             header.PaymentTermsName = paymentTerms.FirstOrDefault(p => p.Id == header.PaymentTermsId)?.Description;
+
+            if (header.SalesOrderTypeId.HasValue)
+            {
+                var soTypes = await _transactionTypeLookup.GetByIdsAsync(new[] { header.SalesOrderTypeId.Value });
+                header.SalesOrderTypeName = soTypes.FirstOrDefault()?.TypeName;
+            }
 
             // Construct full attachment paths
             if (!string.IsNullOrWhiteSpace(header.VisitNotesAttachment))

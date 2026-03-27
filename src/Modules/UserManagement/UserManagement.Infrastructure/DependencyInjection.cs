@@ -293,6 +293,8 @@ namespace UserManagement.Infrastructure
             services.AddScoped<IUnitCommandRepository, UnitCommandRepository>();
             services.AddScoped<IUnitQueryRepository, UnitQueryRepository>();
             services.AddScoped<IUnitLookup, UnitLookupRepository>();
+            services.AddScoped<ICompanyDetailLookup, CompanyDetailLookupRepository>();
+            services.AddScoped<IUnitDetailLookup, UnitDetailLookupRepository>();
             services.AddScoped<IModuleLookup, ModuleLookupRepository>();
 
             services.AddScoped<IEntityCommandRepository, EntityCommandRepository>();

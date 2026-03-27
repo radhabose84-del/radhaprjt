@@ -7,7 +7,6 @@ namespace SalesManagement.Application.Invoice.Commands.CreateInvoice
     public class CreateInvoiceCommand : IRequest<ApiResponseDTO<int>>
     {
         public DateOnly InvoiceDate { get; set; }
-        public int InvoiceType { get; set; }
         public int DispatchAdviceId { get; set; }
         public int PartyId { get; set; }
         public int? AgentId { get; set; }

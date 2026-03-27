@@ -129,7 +129,6 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
 
                     // Step 2: Update updatable fields — preserve immutable: InvoiceNo, DispatchAdviceId, PartyId, UnitId, FinancialYearId
                     existing.InvoiceDate             = entity.InvoiceDate;
-                    existing.InvoiceType             = entity.InvoiceType;
                     existing.AgentId                 = entity.AgentId;
                     existing.TransportMode           = entity.TransportMode;
                     existing.VehicleNumber           = entity.VehicleNumber;
