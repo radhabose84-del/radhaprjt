@@ -1,4 +1,6 @@
+using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Finance;
+using Dapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using GateEntryManagement.Application.Common.Interfaces.IGatePass;
@@ -12,16 +14,19 @@ namespace GateEntryManagement.Infrastructure.Repositories.GatePass
     {
         private readonly ApplicationDbContext _applicationDbContext;
         private readonly IDocumentSequenceLookup _documentSequenceLookup;
+        private readonly IEnumerable<IGatePassDocumentHandler> _documentHandlers;
 
         public GatePassCommandRepository(
             ApplicationDbContext applicationDbContext,
-            IDocumentSequenceLookup documentSequenceLookup)
+            IDocumentSequenceLookup documentSequenceLookup,
+            IEnumerable<IGatePassDocumentHandler> documentHandlers)
         {
             _applicationDbContext = applicationDbContext;
             _documentSequenceLookup = documentSequenceLookup;
+            _documentHandlers = documentHandlers;
         }
 
-        public async Task<int> CreateAsync(GatePassHdr entity, int transactionTypeId)
+        public async Task<int> CreateAsync(GatePassHdr entity, int transactionTypeId, int vmrOutStatusId)
         {
             var strategy = _applicationDbContext.Database.CreateExecutionStrategy();
 
@@ -33,10 +38,45 @@ namespace GateEntryManagement.Infrastructure.Repositories.GatePass
                     await _applicationDbContext.GatePassHdr.AddAsync(entity);
                     await _applicationDbContext.SaveChangesAsync();
 
-                    // Increment DocNo via lookup — same connection + transaction
                     var dbConnection = _applicationDbContext.Database.GetDbConnection();
                     var dbTransaction = transaction.GetDbTransaction();
+
+                    // Increment DocNo
                     await _documentSequenceLookup.IncrementDocNoAsync(transactionTypeId, dbConnection, dbTransaction);
+
+                    // Mark documents as gate-passed via Strategy pattern
+                    if (entity.GatePassDetails != null && entity.GatePassDetails.Count > 0)
+                    {
+                        // Build handler lookup: DocTypeId → TypeName → Handler
+                        var docTypeIds = entity.GatePassDetails.Select(d => d.DocTypeId).Distinct().ToList();
+                        var typeNameMap = await ResolveDocTypeNamesAsync(docTypeIds, dbConnection, dbTransaction);
+
+                        foreach (var detail in entity.GatePassDetails)
+                        {
+                            if (!int.TryParse(detail.DocNo, out var docId)) continue;
+
+                            if (typeNameMap.TryGetValue(detail.DocTypeId, out var typeName))
+                            {
+                                var handler = _documentHandlers.FirstOrDefault(
+                                    h => string.Equals(h.DocumentType, typeName, StringComparison.OrdinalIgnoreCase));
+
+                                if (handler != null)
+                                {
+                                    await handler.MarkAsGatePassedAsync(docId, dbConnection, dbTransaction);
+                                }
+                            }
+                        }
+                    }
+
+                    // Update VMR: StatusId = OUT, set GateOutTime
+                    var vmr = await _applicationDbContext.VehicleMovementRecord
+                        .FirstOrDefaultAsync(v => v.Id == entity.VehicleMovementRecordId && v.IsDeleted == IsDelete.NotDeleted);
+                    if (vmr != null)
+                    {
+                        vmr.StatusId = vmrOutStatusId;
+                        vmr.GateOutTime = DateTimeOffset.UtcNow;
+                        _applicationDbContext.VehicleMovementRecord.Update(vmr);
+                    }
 
                     await _applicationDbContext.SaveChangesAsync();
                     await transaction.CommitAsync();
@@ -62,6 +102,21 @@ namespace GateEntryManagement.Infrastructure.Repositories.GatePass
             _applicationDbContext.GatePassHdr.Update(existing);
             await _applicationDbContext.SaveChangesAsync(ct);
             return true;
+        }
+
+        /// <summary>
+        /// Resolves DocTypeId → TypeName from Finance.TransactionTypeMaster
+        /// </summary>
+        private static async Task<Dictionary<int, string>> ResolveDocTypeNamesAsync(
+            List<int> docTypeIds, System.Data.Common.DbConnection connection, System.Data.Common.DbTransaction transaction)
+        {
+            const string sql = @"
+                SELECT Id, TypeName
+                FROM [Finance].[TransactionTypeMaster]
+                WHERE Id IN @Ids AND IsDeleted = 0";
+
+            var rows = await connection.QueryAsync<(int Id, string TypeName)>(sql, new { Ids = docTypeIds }, transaction);
+            return rows.ToDictionary(r => r.Id, r => r.TypeName);
         }
     }
 }

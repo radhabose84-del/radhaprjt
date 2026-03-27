@@ -98,6 +98,12 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("nvarchar(500)")
                 .IsRequired(false);
 
+            builder.Property(t => t.GEFlag)
+                .HasColumnName("GEFlag")
+                .HasColumnType("bit")
+                .IsRequired()
+                .HasDefaultValue(false);
+
             // Status & Audit
             builder.Property(b => b.IsActive)
                 .HasColumnName("IsActive")

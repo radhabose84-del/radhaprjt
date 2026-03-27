@@ -83,9 +83,15 @@ builder.Services.AddHangfireServer(options =>
         "forgot_password_queue",
         "user_unlock_queue",
     };
+    // Disable RecurringJobScheduler in Worker — BSOFT.Api owns all recurring jobs
+    // (e.g. maintenance-outbox-processor). Without this, Worker's scheduler tries to
+    // deserialize MaintenanceOutboxProcessorJob from MaintenanceManagement.Infrastructure
+    // which isn't loaded here, causing FileNotFoundException every 15 seconds.
+    options.SchedulePollingInterval = TimeSpan.FromHours(24);
 });
 
 // ── Outbox polling — replaces Hangfire recurring job for sub-minute granularity ─
+// Polls every 15 seconds as a fallback for outbox messages not directly published.
 builder.Services.AddHostedService<OutboxPollingHostedService>();
 
 // ── SignalR client – pushes from Worker to the hub hosted in BSOFT.Api ────────

@@ -3,6 +3,7 @@ using Contracts.Common;
 using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Finance;
 using GateEntryManagement.Application.Common.Interfaces.IGatePass;
+using GateEntryManagement.Application.Common.Interfaces.IMiscMaster;
 using GateEntryManagement.Application.GatePass.Dto;
 using GateEntryManagement.Domain.Common;
 using GateEntryManagement.Domain.Entities;
@@ -15,6 +16,7 @@ namespace GateEntryManagement.Application.GatePass.Commands.CreateGatePass
     {
         private readonly IGatePassCommandRepository _commandRepository;
         private readonly IGatePassQueryRepository _queryRepository;
+        private readonly IMiscMasterQueryRepository _miscMasterQueryRepository;
         private readonly IDocumentSequenceLookup _documentSequenceLookup;
         private readonly IMediator _mediator;
         private readonly IMapper _mapper;
@@ -23,6 +25,7 @@ namespace GateEntryManagement.Application.GatePass.Commands.CreateGatePass
         public CreateGatePassCommandHandler(
             IGatePassCommandRepository commandRepository,
             IGatePassQueryRepository queryRepository,
+            IMiscMasterQueryRepository miscMasterQueryRepository,
             IDocumentSequenceLookup documentSequenceLookup,
             IMediator mediator,
             IMapper mapper,
@@ -30,6 +33,7 @@ namespace GateEntryManagement.Application.GatePass.Commands.CreateGatePass
         {
             _commandRepository = commandRepository;
             _queryRepository = queryRepository;
+            _miscMasterQueryRepository = miscMasterQueryRepository;
             _documentSequenceLookup = documentSequenceLookup;
             _mediator = mediator;
             _mapper = mapper;
@@ -58,7 +62,13 @@ namespace GateEntryManagement.Application.GatePass.Commands.CreateGatePass
                 entity.GatePassDetails = _mapper.Map<List<GatePassDtl>>(request.GatePassDetails);
             }
 
-            var newId = await _commandRepository.CreateAsync(entity, typeId.Value);
+            // Resolve VMR OUT status
+            var outStatus = await _miscMasterQueryRepository.GetMiscMasterByName(
+                MiscEnumEntity.VMRStatus, MiscEnumEntity.VMRStatusExited);
+            var vmrOutStatusId = outStatus?.Id
+                ?? throw new ExceptionRules("VMR Status 'OUT' not found in MiscMaster.");
+
+            var newId = await _commandRepository.CreateAsync(entity, typeId.Value, vmrOutStatusId);
 
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Create",
