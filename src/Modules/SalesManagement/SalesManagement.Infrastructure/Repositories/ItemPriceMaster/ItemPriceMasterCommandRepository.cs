@@ -58,6 +58,7 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
             existingEntity.ItemId = entity.ItemId;
             existingEntity.SalesSegmentId = entity.SalesSegmentId;
             existingEntity.BaseRate = entity.BaseRate;
+            existingEntity.TolerancePercentage = entity.TolerancePercentage;
             existingEntity.CurrencyId = entity.CurrencyId;
             existingEntity.ValidFrom = entity.ValidFrom;
             existingEntity.ValidTo = entity.ValidTo;

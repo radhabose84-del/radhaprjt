@@ -63,6 +63,11 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("date")
                 .IsRequired();
 
+            builder.Property(t => t.TolerancePercentage)
+                .HasColumnName("TolerancePercentage")
+                .HasColumnType("decimal(5,2)")
+                .IsRequired(false);
+
             builder.Property(t => t.StatusId)
                 .HasColumnName("StatusId")
                 .HasColumnType("int")
