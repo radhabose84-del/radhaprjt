@@ -16,6 +16,7 @@ namespace SalesManagement.Application.Common.Mappings
                 .ForMember(dest => dest.DeliveryNumber, opt => opt.Ignore())
                 .ForMember(dest => dest.StatusId, opt => opt.Ignore())
                 .ForMember(dest => dest.DeliveryValue, opt => opt.Ignore())
+                .ForMember(dest => dest.GEFlag, opt => opt.MapFrom(src => false))
                 .ForMember(dest => dest.DeliveryChallanDetails, opt => opt.MapFrom(src => src.Details))
                 .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => Status.Active))
                 .ForMember(dest => dest.IsDeleted, opt => opt.MapFrom(src => IsDelete.NotDeleted));
