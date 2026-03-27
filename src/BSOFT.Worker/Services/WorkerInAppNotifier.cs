@@ -51,19 +51,24 @@ internal sealed class WorkerInAppNotifier : IInAppNotifier
             return false;
         }
 
-        try
+        // Resolve MiscMaster IDs dynamically
+        var successMisc = await _appDataMiscLookup.GetMiscMasterByNameAsync(NotificationEnum.NotificationStatus, NotificationEnum.Success);
+        var unreadMisc = await _appDataMiscLookup.GetMiscMasterByNameAsync(NotificationEnum.NotificationReadStatus, NotificationEnum.Unread);
+        var channelMisc = await _appDataMiscLookup.GetMiscMasterByNameAsync(NotificationEnum.NotificationChannel, NotificationEnum.InApp);
+
+        var systemTimeZoneId = _timeZoneService.GetSystemTimeZone();
+        var currentTime = _timeZoneService.GetCurrentTime(systemTimeZoneId);
+
+        var dbSaved = 0;
+        var signalRSent = 0;
+
+        // FIX #4: Per-user isolation — one user's failure does NOT block others
+        foreach (var id in userIds)
         {
-            // Resolve MiscMaster IDs dynamically
-            var successMisc = await _appDataMiscLookup.GetMiscMasterByNameAsync(NotificationEnum.NotificationStatus, NotificationEnum.Success);
-            var unreadMisc = await _appDataMiscLookup.GetMiscMasterByNameAsync(NotificationEnum.NotificationReadStatus, NotificationEnum.Unread);
-            var channelMisc = await _appDataMiscLookup.GetMiscMasterByNameAsync(NotificationEnum.NotificationChannel, NotificationEnum.InApp);
-
-            var systemTimeZoneId = _timeZoneService.GetSystemTimeZone();
-            var currentTime = _timeZoneService.GetCurrentTime(systemTimeZoneId);
-
-            foreach (var id in userIds)
+            // Step 1: ALWAYS save to DB first (source of truth)
+            int savedLogId;
+            try
             {
-                // 1. Persist the notification event log to SQL Server (same as InAppNotifier)
                 var log = new NotificationEventLog
                 {
                     NotificationLevelRuleId = context.EventRuleId,
@@ -82,11 +87,18 @@ internal sealed class WorkerInAppNotifier : IInAppNotifier
                     Value = value
                 };
 
-                var savedLogId = await _notificationLogger.LogAsync(log);
+                savedLogId = await _notificationLogger.LogAsync(log);
+                dbSaved++;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "WorkerInAppNotifier: DB save failed for user {UserId}.", id);
+                continue; // Skip SignalR — but continue to next user
+            }
 
-                // 2. Push to Angular via SignalR client → BSOFT.Api hub → Angular
-                //    (IHubContext<NotificationHub> cannot be used here — Angular clients
-                //     connect to BSOFT.Api's hub, not to the Worker process)
+            // Step 2: Push via SignalR (best-effort per user)
+            try
+            {
                 await _workerNotificationService.SendAsync("ReceiveNotification", new
                 {
                     LogId = savedLogId,
@@ -97,14 +109,21 @@ internal sealed class WorkerInAppNotifier : IInAppNotifier
                     UserId = id.ToString(),
                     Value = value
                 });
+                signalRSent++;
             }
+            catch (Exception ex)
+            {
+                // SignalR failed for THIS user only — DB log exists, user can fetch on reconnect
+                _logger.LogWarning(ex,
+                    "WorkerInAppNotifier: SignalR push failed for user {UserId} (LogId={LogId}). DB log saved.",
+                    id, savedLogId);
+            }
+        }
 
-            return true;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "WorkerInAppNotifier: Failed to send in-app notification to users.");
-            return false;
-        }
+        _logger.LogInformation(
+            "WorkerInAppNotifier: Users={Total}, DB_Saved={DbSaved}, SignalR_Sent={Sent}",
+            userIds.Count, dbSaved, signalRSent);
+
+        return dbSaved > 0;
     }
 }

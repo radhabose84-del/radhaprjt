@@ -14,17 +14,17 @@ public static class HangfireJobsSetup
     {
         using var scope = host.Services.CreateScope();
         var jobManager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
-
-        // Remove stale orphaned job from previous architecture where MaintenanceManagement
-        // had its own outbox processor. SqlOutboxProcessorJob (sql-outbox-processor) already
-        // handles both purchase.OutboxMessages and maintenance.OutboxMessages.
-        jobManager.RemoveIfExists("maintenance-outbox-processor");
-
+        //jobManager.RemoveIfExists("maintenance-outbox-processor");
         // Remove the old Hangfire recurring outbox job — replaced by
         // OutboxPollingHostedService (PeriodicTimer @ 15 s) for sub-minute polling.
         // Hangfire recurring jobs only support minute-level cron (5 fields).
         jobManager.RemoveIfExists("sql-outbox-processor");
 
+        // NOTE: Do NOT remove "maintenance-outbox-processor" here — it is owned by BSOFT.Api
+        // and runs on the "maintenance-jobs" queue for scheduling events
+        // (MachineWiseScheduleCreationEvent, HeaderUpdateEvent, NextSchedulerCreatedEvent).
+
         return host;
     }
 }
+
