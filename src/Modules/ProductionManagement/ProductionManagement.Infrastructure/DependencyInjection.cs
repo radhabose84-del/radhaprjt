@@ -15,8 +15,10 @@ using ProductionManagement.Application.Common.Interfaces.IMiscMaster;
 using ProductionManagement.Application.Common.Interfaces.IMiscTypeMaster;
 using ProductionManagement.Application.Common.Interfaces.IPackType;
 using ProductionManagement.Application.Common.Interfaces.IProductionPack;
+using ProductionManagement.Application.Common.Interfaces.IProcessMaster;
 using Contracts.Interfaces.Lookups.Production;
 using ProductionManagement.Infrastructure.Repositories.Lookups.Production;
+using ProductionManagement.Infrastructure.Repositories.ProcessMaster;
 using ProductionManagement.Infrastructure.Data;
 using ProductionManagement.Infrastructure.Persistence;
 using ProductionManagement.Infrastructure.Repositories.AuditLog;
@@ -127,12 +129,17 @@ namespace ProductionManagement.Infrastructure
             services.AddScoped<IProductionCommandRepository, Repositories.ProductionPack.ProductionCommandRepository>();
             services.AddScoped<IProductionQueryRepository, Repositories.ProductionPack.ProductionQueryRepository>();
 
+            // ProcessMaster repositories
+            services.AddScoped<IProcessMasterCommandRepository, ProcessMasterCommandRepository>();
+            services.AddScoped<IProcessMasterQueryRepository, ProcessMasterQueryRepository>();
+
             // Lookup registration — caching is handled globally by AddLookupCaching() in Program.cs
             services.AddScoped<IYarnTypeLookup, YarnTypeLookupRepository>();
             services.AddScoped<ICountGroupLookup, CountGroupLookupRepository>();
             services.AddScoped<ICountMasterLookup, CountMasterLookupRepository>();
             services.AddScoped<ILotMasterLookup, LotMasterLookupRepository>();
             services.AddScoped<IPackTypeLookup, PackTypeLookupRepository>();
+            services.AddScoped<IProcessMasterLookup, ProcessMasterLookupRepository>();
 
             return services;
         }
