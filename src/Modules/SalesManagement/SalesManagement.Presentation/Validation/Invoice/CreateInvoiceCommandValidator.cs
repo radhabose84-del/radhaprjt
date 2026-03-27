@@ -37,10 +37,6 @@ namespace SalesManagement.Presentation.Validation.Invoice
                             .NotEmpty()
                             .WithMessage($"{nameof(CreateInvoiceCommand.DispatchAdviceId)} {rule.Error}");
 
-                        RuleFor(x => x.InvoiceType)
-                            .NotEmpty()
-                            .WithMessage($"{nameof(CreateInvoiceCommand.InvoiceType)} {rule.Error}");
-
                         RuleFor(x => x.PartyId)
                             .NotEmpty()
                             .WithMessage($"{nameof(CreateInvoiceCommand.PartyId)} {rule.Error}");
@@ -85,11 +81,6 @@ namespace SalesManagement.Presentation.Validation.Invoice
                             .WithMessage($"{nameof(CreateInvoiceCommand.DispatchAdviceId)} {rule.Error}")
                             .When(x => x.DispatchAdviceId > 0);
 
-                        RuleFor(x => x.InvoiceType)
-                            .MustAsync(async (id, ct) => await _queryRepository.InvoiceTypeExistsAsync(id))
-                            .WithMessage($"{nameof(CreateInvoiceCommand.InvoiceType)} {rule.Error}")
-                            .When(x => x.InvoiceType > 0);
-                     
                         break;
 
                     case "AlreadyExists":

@@ -6,7 +6,6 @@ namespace SalesManagement.Domain.Entities
     {
         public string? InvoiceNo { get; set; }
         public DateOnly InvoiceDate { get; set; }
-        public int InvoiceType { get; set; }              // FK → Sales.MiscMaster
         public int DispatchAdviceId { get; set; }         // FK → Sales.DispatchAdviceHeader
         public int PartyId { get; set; }                  // Cross-module FK → PartyManagement
         public int? AgentId { get; set; }                 // FK → Sales.OfficerAgent
@@ -39,7 +38,6 @@ namespace SalesManagement.Domain.Entities
         public bool GEFlag { get; set; }
 
         // Same-module navigation properties
-        public MiscMaster? InvoiceTypeMisc { get; set; }
         public MiscMaster? TransportModeMisc { get; set; }
         public MiscMaster? StatusMisc { get; set; }
         public DispatchAdviceHeader? DispatchAdviceHeader { get; set; }

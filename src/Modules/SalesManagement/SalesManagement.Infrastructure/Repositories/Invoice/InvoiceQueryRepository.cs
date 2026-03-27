@@ -1,5 +1,6 @@
 using System.Data;
 using Contracts.Interfaces;
+using Contracts.Interfaces.Lookups.Finance;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Production;
@@ -24,6 +25,15 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
         private readonly IPackTypeLookup _packTypeLookup;
         private readonly ILotMasterLookup _lotMasterLookup;
         private readonly IIPAddressService _ipAddressService;
+        private readonly IStateLookup _stateLookup;
+        private readonly ICityLookup _cityLookup;
+        private readonly ITransactionTypeLookup _transactionTypeLookup;
+        private readonly ICompanyDetailLookup _companyDetailLookup;
+        private readonly IUnitDetailLookup _unitDetailLookup;
+        private readonly IPartyDetailLookup _partyDetailLookup;
+        private readonly IPartyBankLookup _partyBankLookup;
+        private readonly IEInvoiceLookup _eInvoiceLookup;
+        private readonly IEWaybillLookup _eWaybillLookup;
 
         public InvoiceQueryRepository(
             IDbConnection dbConnection,
@@ -34,7 +44,16 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
             IFinancialYearLookup financialYearLookup,
             IPackTypeLookup packTypeLookup,
             ILotMasterLookup lotMasterLookup,
-            IIPAddressService ipAddressService)
+            IIPAddressService ipAddressService,
+            IStateLookup stateLookup,
+            ICityLookup cityLookup,
+            ITransactionTypeLookup transactionTypeLookup,
+            ICompanyDetailLookup companyDetailLookup,
+            IUnitDetailLookup unitDetailLookup,
+            IPartyDetailLookup partyDetailLookup,
+            IPartyBankLookup partyBankLookup,
+            IEInvoiceLookup eInvoiceLookup,
+            IEWaybillLookup eWaybillLookup)
         {
             _dbConnection = dbConnection;
             _partyLookup = partyLookup;
@@ -45,6 +64,15 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
             _packTypeLookup = packTypeLookup;
             _lotMasterLookup = lotMasterLookup;
             _ipAddressService = ipAddressService;
+            _stateLookup = stateLookup;
+            _cityLookup = cityLookup;
+            _transactionTypeLookup = transactionTypeLookup;
+            _companyDetailLookup = companyDetailLookup;
+            _unitDetailLookup = unitDetailLookup;
+            _partyDetailLookup = partyDetailLookup;
+            _partyBankLookup = partyBankLookup;
+            _eInvoiceLookup = eInvoiceLookup;
+            _eWaybillLookup = eWaybillLookup;
         }
 
         public async Task<(List<InvoiceHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
@@ -60,8 +88,6 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                 WHERE h.IsDeleted = 0 {searchFilter};
 
                 SELECT h.Id, h.InvoiceNo, h.InvoiceDate,
-                    h.InvoiceType,
-                    mm.Description AS InvoiceTypeName,
                     h.DispatchAdviceId,
                     da.DispatchNo,
                     h.PartyId, h.AgentId, h.UnitId, h.FinancialYearId,
@@ -78,7 +104,6 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                     h.Remarks, h.GEFlag, h.IsActive, h.IsDeleted,
                     h.CreatedBy, h.CreatedDate
                 FROM Sales.InvoiceHeader h
-                LEFT JOIN Sales.MiscMaster mm  ON h.InvoiceType   = mm.Id  AND mm.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster tm  ON h.TransportMode = tm.Id  AND tm.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster sm  ON h.StatusId      = sm.Id  AND sm.IsDeleted = 0
                 LEFT JOIN Sales.DispatchAdviceHeader da ON h.DispatchAdviceId = da.Id AND da.IsDeleted = 0
@@ -115,12 +140,16 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                 var finYears = await _financialYearLookup.GetByIdsAsync(finYearIds);
                 var finYearDict = finYears.ToDictionary(f => f.FinancialYearId, f => f.FinancialYearName);
 
+                // Derive InvoiceTypeName via DA → SO → SalesOrderTypeId → TransactionTypeLookup
+                var invoiceTypeMap = await GetInvoiceTypeNameMapAsync(list.Select(h => h.Id));
+
                 foreach (var item in list)
                 {
                     item.PartyName          = partyDict.TryGetValue(item.PartyId, out var pn) ? pn : null;
                     item.AgentName          = item.AgentId.HasValue && partyDict.TryGetValue(item.AgentId.Value, out var an) ? an : null;
                     item.UnitName           = unitDict.TryGetValue(item.UnitId, out var un) ? un : null;
                     item.FinancialYearName  = finYearDict.TryGetValue(item.FinancialYearId, out var fy) ? fy : null;
+                    item.InvoiceTypeName    = invoiceTypeMap.TryGetValue(item.Id, out var itn) ? itn : null;
                 }
             }
 
@@ -131,8 +160,6 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
         {
             const string headerSql = @"
                 SELECT h.Id, h.InvoiceNo, h.InvoiceDate,
-                    h.InvoiceType,
-                    mm.Description AS InvoiceTypeName,
                     h.DispatchAdviceId,
                     da.DispatchNo,
                     h.PartyId, h.AgentId, h.UnitId, h.FinancialYearId,
@@ -149,7 +176,6 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                     h.Remarks, h.GEFlag, h.IsActive, h.IsDeleted,
                     h.CreatedBy, h.CreatedDate
                 FROM Sales.InvoiceHeader h
-                LEFT JOIN Sales.MiscMaster mm  ON h.InvoiceType   = mm.Id  AND mm.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster tm  ON h.TransportMode = tm.Id  AND tm.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster sm  ON h.StatusId      = sm.Id  AND sm.IsDeleted = 0
                 LEFT JOIN Sales.DispatchAdviceHeader da ON h.DispatchAdviceId = da.Id AND da.IsDeleted = 0
@@ -189,6 +215,10 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
 
             var finYear = await _financialYearLookup.GetByIdAsync(header.FinancialYearId);
             header.FinancialYearName = finYear?.FinancialYearName;
+
+            // Derive InvoiceTypeName via DA → SO → SalesOrderTypeId → TransactionTypeLookup
+            var invoiceTypeMap = await GetInvoiceTypeNameMapAsync(new[] { header.Id });
+            header.InvoiceTypeName = invoiceTypeMap.TryGetValue(header.Id, out var typeName) ? typeName : null;
 
             if (details.Count > 0)
             {
@@ -262,13 +292,6 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
         {
             const string sql = "SELECT COUNT(1) FROM Sales.InvoiceHeader WHERE DispatchAdviceId = @Id AND IsDeleted = 0";
             var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = dispatchAdviceId });
-            return count > 0;
-        }
-
-        public async Task<bool> InvoiceTypeExistsAsync(int invoiceTypeId)
-        {
-            const string sql = "SELECT COUNT(1) FROM Sales.MiscMaster WHERE Id = @Id AND IsActive = 1 AND IsDeleted = 0";
-            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = invoiceTypeId });
             return count > 0;
         }
 
@@ -357,8 +380,6 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                         h.Id,
                         h.InvoiceNo,
                         h.InvoiceDate,
-                        h.InvoiceType,
-                        mmType.Description  AS InvoiceTypeName,
                         h.DispatchAdviceId,
                         da.DispatchNo,
                         h.PartyId,
@@ -417,7 +438,6 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                         d.TotalAmount
                     FROM Sales.InvoiceHeader h
                     JOIN Sales.InvoiceDetail d ON d.InvoiceHeaderId = h.Id
-                    LEFT JOIN Sales.MiscMaster mmType   ON h.InvoiceType   = mmType.Id   AND mmType.IsDeleted = 0
                     LEFT JOIN Sales.MiscMaster mmTrans  ON h.TransportMode = mmTrans.Id  AND mmTrans.IsDeleted = 0
                     LEFT JOIN Sales.MiscMaster mmStatus ON h.StatusId      = mmStatus.Id AND mmStatus.IsDeleted = 0
                     LEFT JOIN Sales.DispatchAdviceHeader da ON h.DispatchAdviceId = da.Id AND da.IsDeleted = 0
@@ -440,7 +460,7 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
 
                 -- Distinct headers for pagination
                 SELECT DISTINCT
-                    Id, InvoiceNo, InvoiceDate, InvoiceType, InvoiceTypeName,
+                    Id, InvoiceNo, InvoiceDate,
                     DispatchAdviceId, DispatchNo, PartyId, AgentId, UnitId, FinancialYearId,
                     TransportMode, TransportModeName, StatusId, StatusName,
                     VehicleNumber, TransporterName, LRNumber, LRDate,
@@ -470,7 +490,6 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                 -- Result set 2: Paged headers only
                 SELECT
                     p.Id, p.InvoiceNo, p.InvoiceDate,
-                    p.InvoiceType, p.InvoiceTypeName,
                     p.DispatchAdviceId, p.DispatchNo,
                     p.PartyId, p.AgentId, p.UnitId, p.FinancialYearId,
                     p.TransportMode, p.TransportModeName,
@@ -550,6 +569,14 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                 h.InvoiceDetails = detailLookup[h.Id].ToList();
             }
 
+            // Derive InvoiceTypeName via DA → SO → SalesOrderTypeId → TransactionTypeLookup
+            if (headers.Count > 0)
+            {
+                var invoiceTypeMap = await GetInvoiceTypeNameMapAsync(headers.Select(h => h.Id));
+                foreach (var h in headers)
+                    h.InvoiceTypeName = invoiceTypeMap.TryGetValue(h.Id, out var itn) ? itn : null;
+            }
+
             return (headers, total);
         }
 
@@ -569,8 +596,6 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
 
                 -- Result set 1: Headers
                 SELECT h.Id, h.InvoiceNo, h.InvoiceDate,
-                    h.InvoiceType,
-                    mm.Description AS InvoiceTypeName,
                     h.DispatchAdviceId,
                     da.DispatchNo,
                     h.PartyId, h.AgentId, h.UnitId, h.FinancialYearId,
@@ -587,7 +612,6 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                     h.Remarks, h.GEFlag, h.IsActive, h.IsDeleted,
                     h.CreatedBy, h.CreatedByName, h.CreatedDate
                 FROM Sales.InvoiceHeader h
-                LEFT JOIN Sales.MiscMaster mm  ON h.InvoiceType   = mm.Id  AND mm.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster tm  ON h.TransportMode = tm.Id  AND tm.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster sm  ON h.StatusId      = sm.Id  AND sm.IsDeleted = 0
                 LEFT JOIN Sales.DispatchAdviceHeader da ON h.DispatchAdviceId = da.Id AND da.IsDeleted = 0
@@ -653,7 +677,530 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                 h.InvoiceDetails = detailLookup[h.Id].ToList();
             }
 
+            // Derive InvoiceTypeName via DA → SO → SalesOrderTypeId → TransactionTypeLookup
+            if (headers.Count > 0)
+            {
+                var invoiceTypeMap = await GetInvoiceTypeNameMapAsync(headers.Select(h => h.Id));
+                foreach (var h in headers)
+                    h.InvoiceTypeName = invoiceTypeMap.TryGetValue(h.Id, out var itn) ? itn : null;
+            }
+
             return headers;
+        }
+
+        public async Task<InvoicePrintDto?> GetPrintDetailsAsync(int id)
+        {
+            // 1. Fetch invoice header with same-module JOINs
+            const string headerSql = @"
+                SELECT h.Id, h.InvoiceNo, h.InvoiceDate,
+                    h.DispatchAdviceId, h.PartyId, h.AgentId, h.UnitId,
+                    h.TransportMode, tm.Description AS TransportModeName,
+                    h.VehicleNumber, h.TransporterName, h.LRNumber, h.LRDate,
+                    h.TotalBags, h.TotalWeight, h.TaxableValue, h.Discount,
+                    h.Freight, h.Insurance, h.HandlingCharge, h.OtherCharges,
+                    h.CGST, h.SGST, h.IGST, h.TaxAmount,
+                    h.TCSPercentage, h.TCS, h.RoundOff,
+                    h.InvoiceAmountBeforeTCS, h.InvoiceAmount,
+                    h.Remarks, h.CreatedDate
+                FROM Sales.InvoiceHeader h
+                LEFT JOIN Sales.MiscMaster tm ON h.TransportMode = tm.Id AND tm.IsDeleted = 0
+                WHERE h.Id = @Id AND h.IsDeleted = 0";
+
+            var header = await _dbConnection.QueryFirstOrDefaultAsync<PrintHeaderRawDto>(headerSql, new { Id = id });
+            if (header == null)
+                return null;
+
+            // 2. Fetch invoice details
+            const string detailSql = @"
+                SELECT d.ItemSno, d.ItemId, d.HsnCode, d.NoOfBags, d.Quantity,
+                    d.RatePerKg, d.TaxableAmount, d.LotId,
+                    d.CgstPercentage, d.SgstPercentage, d.IgstPercentage
+                FROM Sales.InvoiceDetail d
+                WHERE d.InvoiceHeaderId = @HeaderId
+                ORDER BY d.ItemSno";
+
+            var details = (await _dbConnection.QueryAsync<PrintDetailRawDto>(detailSql, new { HeaderId = id })).ToList();
+
+            // 3. Fetch dispatch advice header (SalesOrderId, DispatchAddressId)
+            const string dispatchSql = @"
+                SELECT da.SalesOrderId, da.DispatchAddressId, da.TransporterId
+                FROM Sales.DispatchAdviceHeader da
+                WHERE da.Id = @DispatchAdviceId AND da.IsDeleted = 0";
+
+            var dispatch = await _dbConnection.QueryFirstOrDefaultAsync<PrintDispatchRawDto>(
+                dispatchSql, new { DispatchAdviceId = header.DispatchAdviceId });
+
+            // 4. Fetch dispatch advice details (for bag serial numbers)
+            const string dispatchDetailSql = @"
+                SELECT dad.ItemId, dad.StartPackNo, dad.EndPackNo
+                FROM Sales.DispatchAdviceDetail dad
+                WHERE dad.DispatchAdviceHeaderId = @DispatchAdviceId
+                ORDER BY dad.ItemId, dad.StartPackNo";
+
+            var dispatchDetails = (await _dbConnection.QueryAsync<PrintBagRawDto>(
+                dispatchDetailSql, new { DispatchAdviceId = header.DispatchAdviceId })).ToList();
+
+            // 5. Fetch sales order (CustomerPO + SalesOrderTypeId for InvoiceTypeName)
+            string? customerPO = null;
+            int? salesOrderTypeId = null;
+            if (dispatch?.SalesOrderId > 0)
+            {
+                const string orderSql = @"
+                    SELECT so.SalesOrderNo, so.SalesOrderTypeId
+                    FROM Sales.SalesOrderHeader so
+                    WHERE so.Id = @SalesOrderId AND so.IsDeleted = 0";
+
+                var salesOrder = await _dbConnection.QueryFirstOrDefaultAsync<(string? SalesOrderNo, int? SalesOrderTypeId)>(
+                    orderSql, new { SalesOrderId = dispatch.SalesOrderId });
+                customerPO = salesOrder.SalesOrderNo;
+                salesOrderTypeId = salesOrder.SalesOrderTypeId;
+            }
+
+            // Derive InvoiceTypeName via SalesOrderTypeId → TransactionTypeLookup
+            string? invoiceTypeName = null;
+            if (salesOrderTypeId.HasValue)
+            {
+                var types = await _transactionTypeLookup.GetByIdsAsync(new[] { salesOrderTypeId.Value });
+                invoiceTypeName = types.FirstOrDefault()?.TypeName;
+            }
+            header.InvoiceTypeName = invoiceTypeName;
+
+            // 6. Fetch consignee (dispatch address)
+            PrintConsigneeRawDto? consignee = null;
+            if (dispatch?.DispatchAddressId > 0)
+            {
+                const string consigneeSql = @"
+                    SELECT dam.DispatchAddressName, dam.AddressLine1, dam.AddressLine2,
+                        dam.CityId, dam.StateId, dam.PinCode, dam.ContactPerson,
+                        dam.MobileNumber, dam.GSTIN
+                    FROM Sales.DispatchAddressMaster dam
+                    WHERE dam.Id = @DispatchAddressId AND dam.IsDeleted = 0";
+
+                consignee = await _dbConnection.QueryFirstOrDefaultAsync<PrintConsigneeRawDto>(
+                    consigneeSql, new { DispatchAddressId = dispatch.DispatchAddressId });
+            }
+
+            // 7. Fetch company detail via lookup (seller info — UserManagement module)
+            var company = await _companyDetailLookup.GetByUnitIdAsync(header.UnitId);
+
+            // 8. Fetch unit detail via lookup (CIN, registered office — UserManagement module)
+            var unit = await _unitDetailLookup.GetByIdAsync(header.UnitId);
+
+            // 9. Fetch billed-to party details via lookup (PartyManagement module)
+            var party = await _partyDetailLookup.GetByIdAsync(header.PartyId);
+
+            // 10. Fetch agent details via same-module OfficerAgent → PartyDetailLookup
+            Contracts.Dtos.Lookups.Party.PartyDetailLookupDto? agentParty = null;
+            if (header.AgentId.HasValue)
+            {
+                // OfficerAgent is same-module — direct SQL is correct here
+                const string officerAgentSql = @"
+                    SELECT oa.AgentId
+                    FROM Sales.OfficerAgent oa
+                    WHERE oa.Id = @AgentId AND oa.IsDeleted = 0";
+
+                var agentPartyId = await _dbConnection.QueryFirstOrDefaultAsync<int?>(
+                    officerAgentSql, new { AgentId = header.AgentId.Value });
+
+                if (agentPartyId.HasValue)
+                    agentParty = await _partyDetailLookup.GetByIdAsync(agentPartyId.Value);
+            }
+
+            // 11. Fetch e-invoice via lookup (FinanceManagement module)
+            var einvoice = await _eInvoiceLookup.GetByInvoiceAsync(header.InvoiceNo ?? string.Empty, header.UnitId);
+
+            // 12. Fetch e-waybill via lookup (FinanceManagement module)
+            var eway = await _eWaybillLookup.GetByInvoiceAsync(header.InvoiceNo ?? string.Empty, header.UnitId);
+            var ewayBillNo = eway?.EWBNumber;
+            var ewayDate = eway?.GeneratedDate;
+
+            // 13. Fetch seller bank via lookup (PartyManagement module — keyed by Company GSTIN)
+            var bank = company?.GstNumber != null
+                ? await _partyBankLookup.GetDefaultBankByGstAsync(company.GstNumber)
+                : null;
+
+            // --- Resolve lookups ---
+
+            // State/City lookups for all addresses
+            var stateIds = new HashSet<int>();
+            var cityIds = new HashSet<int>();
+
+            if (consignee != null)
+            {
+                stateIds.Add(consignee.StateId);
+                cityIds.Add(consignee.CityId);
+            }
+            if (party != null && party.StateId > 0)
+            {
+                stateIds.Add(party.StateId);
+                cityIds.Add(party.CityId);
+            }
+            if (company != null)
+            {
+                if (company.StateId > 0) stateIds.Add(company.StateId);
+                if (company.CityId > 0) cityIds.Add(company.CityId);
+            }
+            if (unit != null)
+            {
+                if (unit.StateId > 0) stateIds.Add(unit.StateId);
+                if (unit.CityId > 0) cityIds.Add(unit.CityId);
+            }
+
+            var states = await _stateLookup.GetByIdsAsync(stateIds);
+            var stateDict = states.ToDictionary(s => s.StateId, s => s.StateName);
+
+            var cities = await _cityLookup.GetByIdsAsync(cityIds);
+            var cityDict = cities.ToDictionary(c => c.CityId, c => c.CityName);
+
+            // Item lookup for line items
+            var itemIds = details.Select(d => d.ItemId).Distinct();
+            var items = await _itemLookup.GetByIdsAsync(itemIds);
+            var itemDict = items.ToDictionary(i => i.Id, i => i);
+
+            // Lot lookup
+            var lotIds = details.Where(d => d.LotId.HasValue).Select(d => d.LotId!.Value).Distinct();
+            var lots = await _lotMasterLookup.GetByIdsAsync(lotIds);
+            var lotDict = lots.ToDictionary(l => l.Id, l => l.LotCode);
+
+            // Bag serial numbers grouped by ItemId
+            var bagsByItem = dispatchDetails
+                .GroupBy(d => d.ItemId)
+                .ToDictionary(g => g.Key, g => FormatBagSerialNumbers(g.ToList()));
+
+            // --- Assemble DTO ---
+
+            var companyCity = company?.CityId > 0 && cityDict.TryGetValue(company.CityId, out var cc) ? cc : null;
+            var companyState = company?.StateId > 0 && stateDict.TryGetValue(company.StateId, out var cs) ? cs : null;
+            var unitCity = unit?.CityId > 0 && cityDict.TryGetValue(unit.CityId, out var uc) ? uc : null;
+            var unitState = unit?.StateId > 0 && stateDict.TryGetValue(unit.StateId, out var us) ? us : null;
+
+            // Build unit address string for company section (unit is the selling entity)
+            var unitAddrParts = new List<string>();
+            if (!string.IsNullOrWhiteSpace(unit?.AddressLine1)) unitAddrParts.Add(unit.AddressLine1);
+            if (!string.IsNullOrWhiteSpace(unit?.AddressLine2)) unitAddrParts.Add(unit.AddressLine2);
+            var unitAddress = string.Join(", ", unitAddrParts);
+
+            var unitCityPin = unitCity;
+            if (unit != null && unit.PinCode > 0)
+                unitCityPin = $"{unitCity} - {unit.PinCode}";
+
+            // Company section (shows the UNIT info as the selling entity)
+            var companyDto = new InvoicePrintCompanyDto
+            {
+                Name = company != null ? $"{company.LegalName ?? company.CompanyName} {unit?.UnitName}".Trim() : unit?.UnitName,
+                Address = unitAddress,
+                City = unitCityPin,
+                Gstin = company?.GstNumber,
+                Pan = company?.PanNumber,
+                Cin = unit?.CINNO,
+                Email = company?.Email,
+                Web = company?.Website,
+                Phone = unit?.Phone
+            };
+
+            // Registered office (company HQ)
+            var regAddrParts = new List<string>();
+            if (!string.IsNullOrWhiteSpace(company?.AddressLine1)) regAddrParts.Add(company.AddressLine1);
+            if (!string.IsNullOrWhiteSpace(company?.AddressLine2)) regAddrParts.Add(company.AddressLine2);
+
+            var registeredOffice = company != null ? new InvoicePrintRegisteredOfficeDto
+            {
+                Name = company.LegalName ?? company.CompanyName,
+                Address = string.Join(", ", regAddrParts),
+                City = companyCity != null
+                    ? $"{companyCity}{(companyState != null ? " " + companyState : "")}-{company.PinCode}"
+                    : null,
+                Phone = company.Phone
+            } : null;
+
+            // Invoice header
+            var cgstRate = details.FirstOrDefault()?.CgstPercentage ?? 0;
+            var sgstRate = details.FirstOrDefault()?.SgstPercentage ?? 0;
+            var igstRate = details.FirstOrDefault()?.IgstPercentage ?? 0;
+
+            // Determine place of supply from consignee state
+            var placeOfSupply = consignee != null && stateDict.TryGetValue(consignee.StateId, out var consState)
+                ? consState : null;
+
+            var invoiceDto = new InvoicePrintHeaderDto
+            {
+                Type = header.InvoiceTypeName,
+                SerialNumber = header.InvoiceNo,
+                Date = header.InvoiceDate.ToString("dd/MM/yyyy"),
+                CustomerPO = customerPO,
+                PaymentTerms = party?.CreditDays > 0 ? $"{party.CreditDays} Days" : null,
+                PlaceOfSupply = placeOfSupply,
+                DateTimeOfSupply = header.CreatedDate?.ToString("dd/MM/yyyy  hh:mm tt"),
+                InvoiceTypeFull = "TAX INVOICE -(SUPPLY of GOODS)",
+                IrNo = einvoice?.IrnNumber,
+                AckNo = einvoice?.AckNo,
+                AckDate = einvoice?.AckDate?.ToString("dd/MM/yyyy HH:mm"),
+                EWayBillNo = ewayBillNo,
+                EWayDate = ewayDate?.ToString("dd/MM/yyyy HH:mm"),
+                ReverseCharge = party?.IsGstReverseCharge == true ? "YES" : "NO"
+            };
+
+            // Transport
+            var transportDto = new InvoicePrintTransportDto
+            {
+                TransporterName = header.TransporterName,
+                VehicleNo = header.VehicleNumber
+            };
+
+            // Agent
+            InvoicePrintAgentDto? agentDto = null;
+            if (agentParty != null)
+            {
+                agentDto = new InvoicePrintAgentDto
+                {
+                    Name = agentParty.PartyName,
+                    Code = agentParty.PartyCode,
+                    Phone = agentParty.MobileNo ?? agentParty.Phone,
+                    Pan = agentParty.PAN
+                };
+            }
+
+            // Billed-to
+            InvoicePrintPartyDto? billedToDto = null;
+            if (party != null)
+            {
+                var partyCityName = party.CityId > 0 && cityDict.TryGetValue(party.CityId, out var pcity) ? pcity : null;
+                var partyStateName = party.StateId > 0 && stateDict.TryGetValue(party.StateId, out var pstate) ? pstate : null;
+
+                billedToDto = new InvoicePrintPartyDto
+                {
+                    NameCode = $"{party.PartyName} & {agentParty?.PartyCode ?? party.PartyCode}",
+                    Address = party.AddressLine1,
+                    Street = party.AddressLine2,
+                    City = partyCityName != null
+                        ? $"{partyCityName}{(!string.IsNullOrWhiteSpace(party.PostalCode) ? " - " + party.PostalCode : "")}"
+                        : null,
+                    State = partyStateName,
+                    StateCode = party.GSTStateCode?.ToString(),
+                    Gstin = party.GSTNumber,
+                    Pan = party.PAN,
+                    Phone = party.MobileNo ?? party.Phone
+                };
+            }
+
+            // Consignee
+            InvoicePrintPartyDto? consigneeDto = null;
+            if (consignee != null)
+            {
+                var consCityName = consignee.CityId > 0 && cityDict.TryGetValue(consignee.CityId, out var ccity) ? ccity : null;
+                var consStateName = consignee.StateId > 0 && stateDict.TryGetValue(consignee.StateId, out var cstate) ? cstate : null;
+                var consStateCode = consignee.StateId > 0 ? consignee.StateId.ToString() : null;
+
+                // Look up GSTIN state code from consignee GSTIN (first 2 digits)
+                if (!string.IsNullOrWhiteSpace(consignee.GSTIN) && consignee.GSTIN.Length >= 2)
+                    consStateCode = consignee.GSTIN[..2];
+
+                // Try to get PAN from consignee GSTIN (characters 3-12)
+                string? consPan = null;
+                if (!string.IsNullOrWhiteSpace(consignee.GSTIN) && consignee.GSTIN.Length >= 12)
+                    consPan = consignee.GSTIN.Substring(2, 10);
+
+                consigneeDto = new InvoicePrintPartyDto
+                {
+                    NameCode = consignee.ContactPerson ?? consignee.DispatchAddressName,
+                    Address = consignee.AddressLine1,
+                    Street = consignee.AddressLine2,
+                    City = consCityName != null
+                        ? $"{consCityName}{(!string.IsNullOrWhiteSpace(consignee.PinCode) ? " - " + consignee.PinCode : "")}"
+                        : null,
+                    State = consStateName,
+                    StateCode = consStateCode,
+                    Gstin = consignee.GSTIN,
+                    Pan = consPan,
+                    Phone = consignee.MobileNumber
+                };
+            }
+
+            // Line items
+            var printItems = details.Select(d =>
+            {
+                var item = itemDict.TryGetValue(d.ItemId, out var i) ? i : null;
+                var lotNo = d.LotId.HasValue && lotDict.TryGetValue(d.LotId.Value, out var lc) ? lc : null;
+                var bagSNo = bagsByItem.TryGetValue(d.ItemId, out var bs) ? bs : null;
+
+                return new InvoicePrintItemDto
+                {
+                    SNo = d.ItemSno,
+                    HsnCode = d.HsnCode,
+                    HsnGroup = item?.ParentItemName,
+                    Description = item?.ItemName,
+                    LotNo = lotNo,
+                    BagSNo = bagSNo,
+                    NoBags = d.NoOfBags,
+                    QuantityKg = d.Quantity,
+                    Rate = d.RatePerKg,
+                    Value = d.TaxableAmount
+                };
+            }).ToList();
+
+            // Totals
+            var totalsDto = new InvoicePrintTotalsDto
+            {
+                TotalBags = header.TotalBags,
+                TotalQtyKg = header.TotalWeight,
+                TotalValue = header.TaxableValue,
+                Discount = header.Discount,
+                Freight = header.Freight,
+                Insurance = header.Insurance,
+                HandlingCharges = header.HandlingCharge,
+                OtherCharges = header.OtherCharges,
+                ValueOfSupply = header.TaxableValue - header.Discount + header.Freight
+                    + header.Insurance + header.HandlingCharge + header.OtherCharges,
+                CgstRate = cgstRate,
+                CgstAmount = header.CGST,
+                SgstRate = sgstRate,
+                SgstAmount = header.SGST,
+                IgstRate = igstRate,
+                IgstAmount = header.IGST,
+                TcsRate = header.TCSPercentage,
+                TcsAmount = header.TCS,
+                RoundOff = header.RoundOff,
+                InvoiceAmount = header.InvoiceAmount,
+                InvoiceAmountWords = ConvertAmountToWords(header.InvoiceAmount),
+                Remarks = header.Remarks
+            };
+
+            // Bank
+            InvoicePrintBankDto? bankDto = null;
+            if (bank != null)
+            {
+                bankDto = new InvoicePrintBankDto
+                {
+                    Name = bank.BankName,
+                    Branch = bank.BankBranch,
+                    AccountNo = bank.BankAccountNumber,
+                    Ifsc = bank.IFSCCode
+                };
+            }
+
+            return new InvoicePrintDto
+            {
+                Company = companyDto,
+                RegisteredOffice = registeredOffice,
+                Invoice = invoiceDto,
+                Transport = transportDto,
+                Agent = agentDto,
+                BilledTo = billedToDto,
+                Consignee = consigneeDto,
+                Items = printItems,
+                Totals = totalsDto,
+                Bank = bankDto
+            };
+        }
+
+
+        // --- Derive InvoiceTypeName via DA → SO → SalesOrderTypeId → TransactionTypeLookup ---
+        private async Task<Dictionary<int, string?>> GetInvoiceTypeNameMapAsync(IEnumerable<int> invoiceIds)
+        {
+            var idList = invoiceIds.ToList();
+            if (idList.Count == 0)
+                return new Dictionary<int, string?>();
+
+            const string sql = @"
+                SELECT h.Id AS InvoiceId, so.SalesOrderTypeId
+                FROM Sales.InvoiceHeader h
+                INNER JOIN Sales.DispatchAdviceHeader da ON h.DispatchAdviceId = da.Id AND da.IsDeleted = 0
+                INNER JOIN Sales.SalesOrderHeader so ON da.SalesOrderId = so.Id AND so.IsDeleted = 0
+                WHERE h.Id IN @Ids AND so.SalesOrderTypeId IS NOT NULL";
+
+            var mappings = (await _dbConnection.QueryAsync<(int InvoiceId, int SalesOrderTypeId)>(
+                sql, new { Ids = idList })).ToList();
+
+            if (mappings.Count == 0)
+                return new Dictionary<int, string?>();
+
+            var typeIds = mappings.Select(m => m.SalesOrderTypeId).Distinct();
+            var types = await _transactionTypeLookup.GetByIdsAsync(typeIds);
+            var typeDict = types.ToDictionary(t => t.Id, t => t.TypeName);
+
+            return mappings.ToDictionary(
+                m => m.InvoiceId,
+                m => typeDict.TryGetValue(m.SalesOrderTypeId, out var name) ? name : null);
+        }
+
+        // --- Bag serial number formatting ---
+        private static string FormatBagSerialNumbers(List<PrintBagRawDto> bags)
+        {
+            if (bags.Count == 0)
+                return string.Empty;
+
+            var parts = new List<string>();
+            foreach (var bag in bags)
+            {
+                if (bag.StartPackNo == bag.EndPackNo)
+                    parts.Add(bag.StartPackNo.ToString());
+                else
+                    parts.Add($"{bag.StartPackNo}-{bag.EndPackNo}");
+            }
+            return string.Join(", ", parts);
+        }
+
+        // --- Amount to words conversion ---
+        private static string ConvertAmountToWords(decimal amount)
+        {
+            var wholeAmount = (long)Math.Floor(Math.Abs(amount));
+            if (wholeAmount == 0)
+                return "Rs. Zero only";
+
+            var result = ConvertNumberToWords(wholeAmount);
+            return $"Rs. {result} only";
+        }
+
+        private static string ConvertNumberToWords(long number)
+        {
+            if (number == 0) return "zero";
+
+            var parts = new List<string>();
+
+            if (number >= 10000000)
+            {
+                parts.Add(ConvertNumberToWords(number / 10000000) + " crore");
+                number %= 10000000;
+            }
+            if (number >= 100000)
+            {
+                parts.Add(ConvertNumberToWords(number / 100000) + " lakh");
+                number %= 100000;
+            }
+            if (number >= 1000)
+            {
+                parts.Add(ConvertNumberToWords(number / 1000) + " thousand");
+                number %= 1000;
+            }
+            if (number >= 100)
+            {
+                parts.Add(ConvertNumberToWords(number / 100) + " hundred");
+                number %= 100;
+            }
+            if (number > 0)
+            {
+                if (parts.Count > 0) parts.Add("and");
+
+                string[] ones = { "", "one", "two", "three", "four", "five", "six", "seven",
+                    "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen",
+                    "fifteen", "sixteen", "seventeen", "eighteen", "nineteen" };
+                string[] tens = { "", "", "twenty", "thirty", "forty", "fifty",
+                    "sixty", "seventy", "eighty", "ninety" };
+
+                if (number < 20)
+                {
+                    parts.Add(ones[number]);
+                }
+                else
+                {
+                    var tenPart = tens[number / 10];
+                    var onePart = ones[number % 10];
+                    parts.Add(string.IsNullOrEmpty(onePart) ? tenPart : $"{tenPart}-{onePart}");
+                }
+            }
+
+            var text = string.Join(" ", parts);
+            return char.ToUpper(text[0]) + text[1..];
         }
     }
 }

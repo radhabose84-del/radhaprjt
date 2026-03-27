@@ -45,7 +45,7 @@ namespace BackgroundService.Infrastructure.Repositories.Notification.Notificatio
                     INNER JOIN AppData.MiscMaster MM1 ON MM1.Id = NH.TargetTypeId
                     INNER JOIN AppData.MiscMaster MM4 ON MM4.Id = L.ReadStatusId
                     WHERE CAST(L.SendTo AS NVARCHAR(500)) = @userId AND L.IsDeleted = 0 AND L.UnitId = @UnitId
-                    ORDER BY L.Timestamp DESC";
+                    ORDER BY L.Id desc ";
 
             var notifications = await _dbConnection.QueryAsync<GetNotificationDetailDto>(query, new { userId, UnitId });
             return notifications.ToList();

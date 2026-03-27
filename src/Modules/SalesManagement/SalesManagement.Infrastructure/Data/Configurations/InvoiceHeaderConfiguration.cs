@@ -36,7 +36,6 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             builder.Property(t => t.Id).HasColumnName("Id").HasColumnType("int").IsRequired();
             builder.Property(t => t.InvoiceNo).HasColumnName("InvoiceNo").HasColumnType("varchar(30)").IsRequired(false);
             builder.Property(t => t.InvoiceDate).HasColumnName("InvoiceDate").HasColumnType("date").HasConversion(dateOnlyConverter).IsRequired();
-            builder.Property(t => t.InvoiceType).HasColumnName("InvoiceType").HasColumnType("int").IsRequired();
             builder.Property(t => t.DispatchAdviceId).HasColumnName("DispatchAdviceId").HasColumnType("int").IsRequired();
             builder.Property(t => t.PartyId).HasColumnName("PartyId").HasColumnType("int").IsRequired();
             builder.Property(t => t.AgentId).HasColumnName("AgentId").HasColumnType("int").IsRequired(false);
@@ -80,11 +79,6 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             builder.Property(t => t.ModifiedIP).HasColumnName("ModifiedIP").HasColumnType("varchar(50)");
 
             // Same-module FK constraints
-            builder.HasOne(t => t.InvoiceTypeMisc)
-                .WithMany(m => m.InvoiceHeadersAsInvoiceType)
-                .HasForeignKey(t => t.InvoiceType)
-                .OnDelete(DeleteBehavior.Restrict);
-
             builder.HasOne(t => t.TransportModeMisc)
                 .WithMany(m => m.InvoiceHeadersAsTransportMode)
                 .HasForeignKey(t => t.TransportMode)
