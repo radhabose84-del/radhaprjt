@@ -108,6 +108,18 @@ namespace FinanceManagement.Infrastructure.Repositories.Lookups.Finance
 
             await connection.ExecuteAsync(sql, new { TransactionTypeId = transactionTypeId }, transaction);
         }
+        public async Task<IReadOnlyList<TransactionTypeLookupDto>> GetTransactionTypesByIdsAsync(IEnumerable<int> ids, CancellationToken ct = default)
+        {
+            const string sql = @"
+                SELECT Id, TypeName, ShortName, Description
+                FROM [Finance].[TransactionTypeMaster]
+                WHERE Id IN @Ids AND IsDeleted = 0";
+
+            var result = await _dbConnection.QueryAsync<TransactionTypeLookupDto>(
+                new CommandDefinition(sql, new { Ids = ids }, cancellationToken: ct));
+            return result.ToList();
+        }
+
         private sealed class DocSeqRow
         {
             public int Id { get; set; }
