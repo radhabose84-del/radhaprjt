@@ -567,37 +567,14 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                   AND mm.Code = @StatusCode
                   AND mm.IsDeleted = 0;
 
-                -- Header rows: GEFlag=0, Approved status, unit-filtered
                 SELECT h.Id, h.InvoiceNo, h.InvoiceDate,
-                    h.InvoiceType,
-                    mmType.Description AS InvoiceTypeName,
-                    h.DispatchAdviceId,
-                    da.DispatchNo,
                     h.PartyId, h.UnitId,
-                    h.VehicleNumber, h.TransporterName,
-                    h.LRNumber, h.LRDate,
-                    h.TotalBags, h.TotalWeight, h.InvoiceAmount,
-                    h.Remarks,
                     h.CreatedByName, h.CreatedDate
                 FROM Sales.InvoiceHeader h
-                LEFT JOIN Sales.MiscMaster mmType ON h.InvoiceType = mmType.Id AND mmType.IsDeleted = 0
-                LEFT JOIN Sales.DispatchAdviceHeader da ON h.DispatchAdviceId = da.Id AND da.IsDeleted = 0
                 WHERE h.IsDeleted = 0 AND h.GEFlag = 0
                 AND h.UnitId = @UnitId
                 AND h.StatusId = @ApprovedStatusId
                 ORDER BY h.Id DESC;
-
-                -- Detail rows
-                SELECT d.InvoiceHeaderId AS InvoiceId,
-                    d.ItemId, d.NoOfBags, d.Quantity, d.RatePerKg,
-                    d.TaxableAmount, d.TaxAmount, d.TotalAmount,
-                    d.HsnCode
-                FROM Sales.InvoiceDetail d
-                INNER JOIN Sales.InvoiceHeader h ON d.InvoiceHeaderId = h.Id
-                WHERE h.IsDeleted = 0 AND h.GEFlag = 0
-                AND h.UnitId = @UnitId
-                AND h.StatusId = @ApprovedStatusId
-                ORDER BY d.InvoiceHeaderId, d.Id;
             ";
 
             var parameters = new
@@ -607,18 +584,7 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                 StatusCode = MiscEnumEntity.InvoiceStatusApproved
             };
 
-            using var multi = await _dbConnection.QueryMultipleAsync(sql, parameters);
-
-            var headers = (await multi.ReadAsync<GetInvoiceGatePassPendingDto>()).ToList();
-            var details = (await multi.ReadAsync<GetInvoiceGatePassPendingDto.GetInvoiceGatePassPendingDetailDto>()).ToList();
-
-            var detailLookup = details.ToLookup(d => d.InvoiceId);
-            foreach (var h in headers)
-            {
-                h.InvoiceDetails = detailLookup[h.Id].ToList();
-            }
-
-            return headers;
+            return (await _dbConnection.QueryAsync<GetInvoiceGatePassPendingDto>(sql, parameters)).ToList();
         }
     }
 }
