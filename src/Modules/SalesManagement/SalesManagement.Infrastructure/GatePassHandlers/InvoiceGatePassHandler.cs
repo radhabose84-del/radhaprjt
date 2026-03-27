@@ -1,12 +1,13 @@
 using System.Data.Common;
 using Contracts.Interfaces;
 using Dapper;
+using SalesManagement.Domain.Common;
 
 namespace SalesManagement.Infrastructure.GatePassHandlers
 {
     internal sealed class InvoiceGatePassHandler : IGatePassDocumentHandler
     {
-        public string DocumentType => "Invoice";
+        public string DocumentType => MiscEnumEntity.TransactionTypeInvoice;
 
         public async Task MarkAsGatePassedAsync(int documentId, DbConnection connection, DbTransaction transaction)
         {
