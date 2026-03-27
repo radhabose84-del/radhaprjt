@@ -14,15 +14,18 @@ namespace GateEntryManagement.Infrastructure.Repositories.GatePass
         private readonly ApplicationDbContext _applicationDbContext;
         private readonly IDocumentSequenceLookup _documentSequenceLookup;
         private readonly IEnumerable<IGatePassDocumentHandler> _documentHandlers;
+        private readonly IIPAddressService _ipAddressService;
 
         public GatePassCommandRepository(
             ApplicationDbContext applicationDbContext,
             IDocumentSequenceLookup documentSequenceLookup,
-            IEnumerable<IGatePassDocumentHandler> documentHandlers)
+            IEnumerable<IGatePassDocumentHandler> documentHandlers,
+            IIPAddressService ipAddressService)
         {
             _applicationDbContext = applicationDbContext;
             _documentSequenceLookup = documentSequenceLookup;
             _documentHandlers = documentHandlers;
+            _ipAddressService = ipAddressService;
         }
 
         public async Task<int> CreateAsync(GatePassHdr entity, int transactionTypeId, int vmrOutStatusId)
@@ -75,6 +78,7 @@ namespace GateEntryManagement.Infrastructure.Repositories.GatePass
                     {
                         vmr.StatusId = vmrOutStatusId;
                         vmr.GateOutTime = DateTimeOffset.UtcNow;
+                        vmr.GateOutBy = _ipAddressService.GetUserName();
                         _applicationDbContext.VehicleMovementRecord.Update(vmr);
                     }
 
@@ -90,18 +94,74 @@ namespace GateEntryManagement.Infrastructure.Repositories.GatePass
             });
         }
 
-        public async Task<bool> SoftDeleteAsync(int id, CancellationToken ct)
+        public async Task<bool> SoftDeleteAsync(int id, int vmrInStatusId, CancellationToken ct)
         {
-            var existing = await _applicationDbContext.GatePassHdr
-                .FirstOrDefaultAsync(x => x.Id == id && x.IsDeleted == IsDelete.NotDeleted, ct);
+            var strategy = _applicationDbContext.Database.CreateExecutionStrategy();
 
-            if (existing == null)
-                return false;
+            return await strategy.ExecuteAsync(async () =>
+            {
+                using var transaction = await _applicationDbContext.Database.BeginTransactionAsync(ct);
+                try
+                {
+                    var existing = await _applicationDbContext.GatePassHdr
+                        .Include(g => g.GatePassDetails)
+                        .FirstOrDefaultAsync(x => x.Id == id && x.IsDeleted == IsDelete.NotDeleted, ct);
 
-            existing.IsDeleted = IsDelete.Deleted;
-            _applicationDbContext.GatePassHdr.Update(existing);
-            await _applicationDbContext.SaveChangesAsync(ct);
-            return true;
+                    if (existing == null)
+                        return false;
+
+                    var dbConnection = _applicationDbContext.Database.GetDbConnection();
+                    var dbTransaction = transaction.GetDbTransaction();
+
+                    // Revert GEFlag = 0 on linked documents (Invoice, DC) via Strategy pattern
+                    if (existing.GatePassDetails != null && existing.GatePassDetails.Count > 0)
+                    {
+                        var docTypeIds = existing.GatePassDetails.Select(d => d.DocTypeId).Distinct().ToList();
+                        var transactionTypes = await _documentSequenceLookup.GetTransactionTypesByIdsAsync(docTypeIds, ct);
+                        var typeNameMap = transactionTypes.ToDictionary(t => t.Id, t => t.TypeName ?? string.Empty);
+
+                        foreach (var detail in existing.GatePassDetails)
+                        {
+                            if (!int.TryParse(detail.DocNo, out var docId)) continue;
+
+                            if (typeNameMap.TryGetValue(detail.DocTypeId, out var typeName))
+                            {
+                                var handler = _documentHandlers.FirstOrDefault(
+                                    h => string.Equals(h.DocumentType, typeName, StringComparison.OrdinalIgnoreCase));
+
+                                if (handler != null)
+                                {
+                                    await handler.RevertGatePassAsync(docId, dbConnection, dbTransaction);
+                                }
+                            }
+                        }
+                    }
+
+                    // Revert VMR: StatusId = IN, clear GateOutTime
+                    var vmr = await _applicationDbContext.VehicleMovementRecord
+                        .FirstOrDefaultAsync(v => v.Id == existing.VehicleMovementRecordId && v.IsDeleted == IsDelete.NotDeleted, ct);
+                    if (vmr != null)
+                    {
+                        vmr.StatusId = vmrInStatusId;
+                        vmr.GateOutTime =null;
+                        vmr.GateOutBy=null;
+                        _applicationDbContext.VehicleMovementRecord.Update(vmr);
+                    }
+
+                    // Soft-delete the gate pass
+                    existing.IsDeleted = IsDelete.Deleted;
+                    _applicationDbContext.GatePassHdr.Update(existing);
+
+                    await _applicationDbContext.SaveChangesAsync(ct);
+                    await transaction.CommitAsync(ct);
+                    return true;
+                }
+                catch
+                {
+                    await transaction.RollbackAsync(ct);
+                    throw;
+                }
+            });
         }
 
     }
