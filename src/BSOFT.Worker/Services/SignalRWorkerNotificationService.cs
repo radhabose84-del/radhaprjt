@@ -1,11 +1,8 @@
+#nullable disable
 using Microsoft.AspNetCore.SignalR.Client;
 
 namespace BSOFT.Worker.Services;
 
-/// <summary>
-/// SignalR client that connects from BSOFT.Worker to the NotificationHub hosted in BSOFT.Api.
-/// Registered as Singleton — maintains a single persistent connection with automatic reconnect.
-/// </summary>
 public sealed class SignalRWorkerNotificationService : IWorkerNotificationService, IAsyncDisposable
 {
     private readonly ILogger<SignalRWorkerNotificationService> _logger;
@@ -33,15 +30,9 @@ public sealed class SignalRWorkerNotificationService : IWorkerNotificationServic
             })
             .Build();
 
-        _connection.Closed += async (error) =>
+        _connection.Closed += (error) =>
         {
-            _logger.LogWarning(error, "SignalR connection closed. Will attempt reconnect.");
-            await Task.CompletedTask;
-        };
-
-        _connection.Reconnecting += (error) =>
-        {
-            _logger.LogInformation("SignalR reconnecting... {Error}", error?.Message);
+            _logger.LogWarning(error, "SignalR connection closed. Auto-reconnect will attempt.");
             return Task.CompletedTask;
         };
 
@@ -51,59 +42,27 @@ public sealed class SignalRWorkerNotificationService : IWorkerNotificationServic
             return Task.CompletedTask;
         };
 
-        // Fire-and-forget startup connection — don't block DI
+        // FIX #2: Pre-connect at startup so first notification is fast
         _ = ConnectWithRetryAsync();
     }
 
-    /// <summary>
-    /// Sends a notification to a specific user's SignalR group via the hub's SendToUser method.
-    /// </summary>
-    public async Task SendToUserAsync(string userId, string method, object payload)
+    public async Task SendAsync(string method, object payload)
     {
-        if (_disposed) return;
-
-        try
-        {
-            await EnsureConnectedAsync();
-            await _connection.InvokeAsync("SendToUser", userId, method, payload);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex,
-                "Failed to send SignalR notification to user {UserId}. Method: {Method}",
-                userId, method);
-            throw; // Let caller decide how to handle
-        }
+        // FIX #1: No try/catch — let exception propagate to WorkerInAppNotifier
+        // so it knows this user's push failed and can continue with next user
+        await EnsureConnectedAsync();
+        await _connection.InvokeAsync("BroadcastFromWorker", method, payload);
     }
 
-    /// <summary>
-    /// Broadcasts a notification to ALL connected clients via the hub's BroadcastFromWorker method.
-    /// </summary>
-    public async Task BroadcastAsync(string method, object payload)
-    {
-        if (_disposed) return;
-
-        try
-        {
-            await EnsureConnectedAsync();
-            await _connection.InvokeAsync("BroadcastFromWorker", method, payload);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to broadcast SignalR notification. Method: {Method}", method);
-            throw;
-        }
-    }
-
-    /// <summary>
-    /// Ensures the hub connection is active. Uses a semaphore to prevent concurrent connect attempts.
-    /// </summary>
     private async Task EnsureConnectedAsync()
     {
         if (_connection.State == HubConnectionState.Connected)
             return;
 
-        await _connectionLock.WaitAsync(TimeSpan.FromSeconds(15));
+        // FIX #3: Timeout the lock acquisition — don't wait forever
+        if (!await _connectionLock.WaitAsync(TimeSpan.FromSeconds(15)))
+            throw new TimeoutException("SignalR connection lock acquisition timed out.");
+
         try
         {
             if (_connection.State == HubConnectionState.Connected)
@@ -113,39 +72,40 @@ public sealed class SignalRWorkerNotificationService : IWorkerNotificationServic
             {
                 await _connection.StartAsync();
                 _logger.LogInformation("SignalR connection established to hub.");
+                return;
             }
-            else
-            {
-                // Connecting or Reconnecting — wait briefly
-                var sw = System.Diagnostics.Stopwatch.StartNew();
-                while (_connection.State != HubConnectionState.Connected && sw.Elapsed < TimeSpan.FromSeconds(10))
-                {
-                    await Task.Delay(200);
-                }
-
-                if (_connection.State != HubConnectionState.Connected)
-                {
-                    throw new InvalidOperationException(
-                        $"SignalR connection stuck in {_connection.State} state after 10s timeout.");
-                }
-            }
+            // Connecting or Reconnecting — release lock and wait outside
         }
         finally
         {
             _connectionLock.Release();
         }
+
+        // FIX #3: Wait for Connecting/Reconnecting WITHOUT holding the lock
+        // so other SendAsync calls aren't blocked
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        while (_connection.State != HubConnectionState.Connected && sw.Elapsed < TimeSpan.FromSeconds(10))
+        {
+            await Task.Delay(200);
+        }
+
+        if (_connection.State != HubConnectionState.Connected)
+            throw new InvalidOperationException(
+                $"SignalR connection stuck in {_connection.State} state after 10s.");
     }
 
     /// <summary>
-    /// Attempts to connect at startup with retry. Runs in background so DI doesn't block.
+    /// FIX #2: Connects at startup with retry so first notification doesn't hit cold connection.
+    /// Runs in background — does not block DI.
     /// </summary>
     private async Task ConnectWithRetryAsync()
     {
-        var delays = new[] { 1, 2, 5, 10, 30 };
+        int[] delays = { 1, 2, 5, 10, 30 };
         for (var i = 0; i < delays.Length; i++)
         {
             try
             {
+                if (_disposed) return;
                 if (_connection.State == HubConnectionState.Disconnected)
                 {
                     await _connection.StartAsync();
@@ -156,13 +116,12 @@ public sealed class SignalRWorkerNotificationService : IWorkerNotificationServic
             catch (Exception ex)
             {
                 _logger.LogWarning(
-                    "SignalR startup connect attempt {Attempt}/{Max} failed: {Error}. Retrying in {Delay}s.",
+                    "SignalR startup attempt {Attempt}/{Max} failed: {Error}. Retry in {Delay}s.",
                     i + 1, delays.Length, ex.Message, delays[i]);
                 await Task.Delay(TimeSpan.FromSeconds(delays[i]));
             }
         }
-
-        _logger.LogError("SignalR startup connection failed after all retries. Will connect on first notification.");
+        _logger.LogError("SignalR startup failed after all retries. Will connect on first notification.");
     }
 
     public async ValueTask DisposeAsync()
@@ -173,16 +132,13 @@ public sealed class SignalRWorkerNotificationService : IWorkerNotificationServic
         try
         {
             if (_connection.State != HubConnectionState.Disconnected)
-            {
                 await _connection.StopAsync();
-            }
             await _connection.DisposeAsync();
         }
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Error during SignalR connection disposal.");
         }
-
         _connectionLock.Dispose();
     }
 }

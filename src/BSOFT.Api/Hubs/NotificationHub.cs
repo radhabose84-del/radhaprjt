@@ -1,9 +1,17 @@
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Logging;
 
 namespace BSOFT.Api.Hubs;
 
 public class NotificationHub : Hub
 {
+    private readonly ILogger<NotificationHub> _logger;
+
+    public NotificationHub(ILogger<NotificationHub> logger)
+    {
+        _logger = logger;
+    }
+
     /// <summary>
     /// Called by Angular clients after connecting to join their user-specific group.
     /// Usage from Angular: hubConnection.invoke('JoinUserGroup', userId.toString());
@@ -13,7 +21,7 @@ public class NotificationHub : Hub
         if (!string.IsNullOrWhiteSpace(userId))
         {
             await Groups.AddToGroupAsync(Context.ConnectionId, $"user-{userId}");
-            Console.WriteLine($"Client {Context.ConnectionId} joined group user-{userId}");
+            _logger.LogInformation("Client {ConnectionId} joined group user-{UserId}", Context.ConnectionId, userId);
         }
     }
 
@@ -47,13 +55,13 @@ public class NotificationHub : Hub
 
     public override Task OnConnectedAsync()
     {
-        Console.WriteLine($"Client connected: {Context.ConnectionId}");
+        _logger.LogInformation("Client connected: {ConnectionId}", Context.ConnectionId);
         return base.OnConnectedAsync();
     }
 
     public override Task OnDisconnectedAsync(Exception? exception)
     {
-        Console.WriteLine($"Client disconnected: {Context.ConnectionId}");
+        _logger.LogInformation("Client disconnected: {ConnectionId}", Context.ConnectionId);
         return base.OnDisconnectedAsync(exception);
     }
 }

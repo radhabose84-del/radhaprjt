@@ -1,3 +1,4 @@
+#nullable disable
 using BackgroundService.Application.DTO;
 using Contracts.Interfaces.Lookups.Common;
 using BackgroundService.Application.Interfaces.Notification;
@@ -9,14 +10,11 @@ namespace BSOFT.Worker.Services;
 
 /// <summary>
 /// Worker-aware implementation of <see cref="IInAppNotifier"/>.
-/// Pushes notifications through <see cref="IWorkerNotificationService"/>
+/// Unlike <c>InAppNotifier</c> (which uses IHubContext&lt;NotificationHub&gt; and therefore only
+/// reaches Angular clients that have connected directly to the Worker process),
+/// this implementation pushes notifications through <see cref="IWorkerNotificationService"/>
 /// — a SignalR CLIENT that relays the payload to the hub hosted in BSOFT.Api,
 /// where real Angular clients are connected.
-///
-/// Reliability strategy:
-/// 1. ALWAYS save to DB first (source of truth) — this never fails silently
-/// 2. THEN push via SignalR (best-effort per user) — isolated failures per user
-/// 3. If SignalR fails for a user, the DB log still exists — Angular can fetch on reconnect
 /// </summary>
 internal sealed class WorkerInAppNotifier : IInAppNotifier
 {
@@ -61,14 +59,13 @@ internal sealed class WorkerInAppNotifier : IInAppNotifier
         var systemTimeZoneId = _timeZoneService.GetSystemTimeZone();
         var currentTime = _timeZoneService.GetCurrentTime(systemTimeZoneId);
 
-        var totalUsers = userIds.Count;
         var dbSaved = 0;
         var signalRSent = 0;
-        var signalRFailed = 0;
 
-        foreach (var userId in userIds)
+        // FIX #4: Per-user isolation — one user's failure does NOT block others
+        foreach (var id in userIds)
         {
-            // ── Step 1: ALWAYS save to DB first (source of truth) ──
+            // Step 1: ALWAYS save to DB first (source of truth)
             int savedLogId;
             try
             {
@@ -77,7 +74,7 @@ internal sealed class WorkerInAppNotifier : IInAppNotifier
                     NotificationLevelRuleId = context.EventRuleId,
                     NotificationStatusId = successMisc?.Id ?? 0,
                     ReadStatusId = unreadMisc?.Id ?? 0,
-                    SendTo = userId.ToString(),
+                    SendTo = id.ToString(),
                     ActionStatus = "Sent",
                     ChannelId = channelMisc?.Id ?? 0,
                     MessageText = message,
@@ -95,44 +92,38 @@ internal sealed class WorkerInAppNotifier : IInAppNotifier
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex,
-                    "WorkerInAppNotifier: Failed to save notification log for user {UserId}. Skipping SignalR push.",
-                    userId);
-                continue; // Skip SignalR for this user — DB is source of truth
+                _logger.LogError(ex, "WorkerInAppNotifier: DB save failed for user {UserId}.", id);
+                continue; // Skip SignalR — but continue to next user
             }
 
-            // ── Step 2: Push via SignalR (best-effort, isolated per user) ──
+            // Step 2: Push via SignalR (best-effort per user)
             try
             {
-                await _workerNotificationService.SendToUserAsync(userId.ToString(), "ReceiveNotification", new
+                await _workerNotificationService.SendAsync("ReceiveNotification", new
                 {
                     LogId = savedLogId,
                     Message = message,
                     Title = title,
                     Timestamp = currentTime,
                     Type = "info",
-                    UserId = userId.ToString(),
+                    UserId = id.ToString(),
                     Value = value
                 });
                 signalRSent++;
             }
             catch (Exception ex)
             {
-                signalRFailed++;
+                // SignalR failed for THIS user only — DB log exists, user can fetch on reconnect
                 _logger.LogWarning(ex,
-                    "WorkerInAppNotifier: SignalR push failed for user {UserId} (LogId={LogId}). " +
-                    "Notification saved to DB — user can fetch on reconnect.",
-                    userId, savedLogId);
-                // Do NOT throw — continue to next user
+                    "WorkerInAppNotifier: SignalR push failed for user {UserId} (LogId={LogId}). DB log saved.",
+                    id, savedLogId);
             }
         }
 
         _logger.LogInformation(
-            "WorkerInAppNotifier: Completed. Users={Total}, DB_Saved={DbSaved}, SignalR_Sent={Sent}, SignalR_Failed={Failed}",
-            totalUsers, dbSaved, signalRSent, signalRFailed);
+            "WorkerInAppNotifier: Users={Total}, DB_Saved={DbSaved}, SignalR_Sent={Sent}",
+            userIds.Count, dbSaved, signalRSent);
 
-        // Return true as long as at least one DB save succeeded
-        // (SignalR failures are acceptable — DB is the source of truth)
         return dbSaved > 0;
     }
 }
