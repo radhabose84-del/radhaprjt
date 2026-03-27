@@ -1,6 +1,5 @@
 using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Finance;
-using Dapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using GateEntryManagement.Application.Common.Interfaces.IGatePass;
@@ -45,28 +44,29 @@ namespace GateEntryManagement.Infrastructure.Repositories.GatePass
                     await _documentSequenceLookup.IncrementDocNoAsync(transactionTypeId, dbConnection, dbTransaction);
 
                     // Mark documents as gate-passed via Strategy pattern
-                    // if (entity.GatePassDetails != null && entity.GatePassDetails.Count > 0)
-                    // {
-                    //     // Build handler lookup: DocTypeId → TypeName → Handler
-                    //     var docTypeIds = entity.GatePassDetails.Select(d => d.DocTypeId).Distinct().ToList();
-                    //     var typeNameMap = await ResolveDocTypeNamesAsync(docTypeIds, dbConnection, dbTransaction);
+                    if (entity.GatePassDetails != null && entity.GatePassDetails.Count > 0)
+                    {
+                        // Build handler lookup: DocTypeId → TypeName → Handler
+                        var docTypeIds = entity.GatePassDetails.Select(d => d.DocTypeId).Distinct().ToList();
+                        var transactionTypes = await _documentSequenceLookup.GetTransactionTypesByIdsAsync(docTypeIds);
+                        var typeNameMap = transactionTypes.ToDictionary(t => t.Id, t => t.TypeName ?? string.Empty);
 
-                    //     foreach (var detail in entity.GatePassDetails)
-                    //     {
-                    //         if (!int.TryParse(detail.DocNo, out var docId)) continue;
+                        foreach (var detail in entity.GatePassDetails)
+                        {
+                            if (!int.TryParse(detail.DocNo, out var docId)) continue;
 
-                    //         if (typeNameMap.TryGetValue(detail.DocTypeId, out var typeName))
-                    //         {
-                    //             var handler = _documentHandlers.FirstOrDefault(
-                    //                 h => string.Equals(h.DocumentType, typeName, StringComparison.OrdinalIgnoreCase));
+                            if (typeNameMap.TryGetValue(detail.DocTypeId, out var typeName))
+                            {
+                                var handler = _documentHandlers.FirstOrDefault(
+                                    h => string.Equals(h.DocumentType, typeName, StringComparison.OrdinalIgnoreCase));
 
-                    //             if (handler != null)
-                    //             {
-                    //                 await handler.MarkAsGatePassedAsync(docId, dbConnection, dbTransaction);
-                    //             }
-                    //         }
-                    //     }
-                    // }
+                                if (handler != null)
+                                {
+                                    await handler.MarkAsGatePassedAsync(docId, dbConnection, dbTransaction);
+                                }
+                            }
+                        }
+                    }
 
                     // Update VMR: StatusId = OUT, set GateOutTime
                     var vmr = await _applicationDbContext.VehicleMovementRecord
@@ -104,19 +104,5 @@ namespace GateEntryManagement.Infrastructure.Repositories.GatePass
             return true;
         }
 
-        /// <summary>
-        /// Resolves DocTypeId → TypeName from Finance.TransactionTypeMaster
-        /// </summary>
-        private static async Task<Dictionary<int, string>> ResolveDocTypeNamesAsync(
-            List<int> docTypeIds, System.Data.Common.DbConnection connection, System.Data.Common.DbTransaction transaction)
-        {
-            const string sql = @"
-                SELECT Id, TypeName
-                FROM [Finance].[TransactionTypeMaster]
-                WHERE Id IN @Ids AND IsDeleted = 0";
-
-            var rows = await connection.QueryAsync<(int Id, string TypeName)>(sql, new { Ids = docTypeIds }, transaction);
-            return rows.ToDictionary(r => r.Id, r => r.TypeName);
-        }
     }
 }
