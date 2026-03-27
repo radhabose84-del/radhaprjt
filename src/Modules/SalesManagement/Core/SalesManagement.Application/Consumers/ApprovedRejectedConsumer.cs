@@ -6,6 +6,7 @@ using SalesManagement.Application.Common.Interfaces.IDeliveryChallan;
 using SalesManagement.Application.Common.Interfaces.IInvoice;
 using SalesManagement.Application.Common.Interfaces.IMiscMaster;
 using SalesManagement.Application.Common.Interfaces.ISalesOrder;
+using SalesManagement.Application.Common.Interfaces.IComplaint;
 using SalesManagement.Application.Common.Interfaces.IStoHeader;
 using SalesManagement.Domain.Common;
 
@@ -18,6 +19,7 @@ namespace SalesManagement.Application.Consumers
         private readonly IMiscMasterQueryRepository _miscMasterQueryRepository;
         private readonly IStoHeaderCommandRepository _stoHeaderCommandRepo;
         private readonly IDeliveryChallanCommandRepository _dcCommandRepo;
+        private readonly IComplaintCommandRepository _complaintCommandRepo;
         private readonly ILogger<ApprovedRejectedConsumer> _logger;
 
         public ApprovedRejectedConsumer(
@@ -26,6 +28,7 @@ namespace SalesManagement.Application.Consumers
             IMiscMasterQueryRepository miscMasterQueryRepository,
             IStoHeaderCommandRepository stoHeaderCommandRepo,
             IDeliveryChallanCommandRepository dcCommandRepo,
+            IComplaintCommandRepository complaintCommandRepo,
             ILogger<ApprovedRejectedConsumer> logger)
         {
             _invoiceCommandRepo = invoiceCommandRepo;
@@ -33,6 +36,7 @@ namespace SalesManagement.Application.Consumers
             _miscMasterQueryRepository = miscMasterQueryRepository;
             _stoHeaderCommandRepo = stoHeaderCommandRepo;
             _dcCommandRepo = dcCommandRepo;
+            _complaintCommandRepo = complaintCommandRepo;
             _logger = logger;
         }
 
@@ -70,6 +74,14 @@ namespace SalesManagement.Application.Consumers
                             msg.ModuleTransactionId, msg.Status, context.CancellationToken);
                         _logger.LogInformation(
                             "DeliveryChallan {Id} status updated to {Status}",
+                            msg.ModuleTransactionId, msg.Status);
+                        break;
+
+                    case MiscEnumEntity.ComplaintModuleTypeName:
+                        await _complaintCommandRepo.UpdateApprovalStatusAsync(
+                            msg.ModuleTransactionId, msg.Status, context.CancellationToken);
+                        _logger.LogInformation(
+                            "Complaint {Id} status updated to {Status}",
                             msg.ModuleTransactionId, msg.Status);
                         break;
 

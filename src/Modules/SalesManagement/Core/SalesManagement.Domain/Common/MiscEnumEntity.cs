@@ -75,6 +75,37 @@ namespace SalesManagement.Domain.Common
         public const string ComplaintModuleTypeName = "Complaints";
         public const string TransactionTypeComplaint = "Complaint";
 
+        // QC Review
+        public const string PhysicalVerificationStatus = "PhysicalVerification";
+        public const string PhysicalVerificationPending = "Pending";
+        public const string PhysicalVerificationInProgress = "In Progress";
+        public const string PhysicalVerificationCompleted = "Completed";
+
+        public const string QCComplaintStatus = "QCComplaintStatus";
+        public const string QCAccepted = "QC Accepted";
+        public const string QCRejected = "QC Rejected";
+
+        public const string ComplaintSeverity = "ComplaintSeverity";
+        public const string SeverityMinor = "Minor";
+        public const string SeverityMajor = "Major";
+        public const string SeverityCritical = "Critical";
+
+        public const string CompensationStructure = "CompStructure";
+        public const string CompensationCreditNote = "Credit Note";
+        public const string CompensationReplacement = "Replacement";
+        public const string CompensationReprocess = "Reprocess";
+        public const string CompensationNone = "No Compensation";
+
+        public const string QCAssignmentRole = "QCAssignmentRole";
+        public const string RoleProductionFM = "Production/FM";
+        public const string RoleMaintenance = "Maintenance";
+        public const string RoleQCLab = "QC Lab";
+        public const string RoleOthers = "Others";
+
+        public const string QCAssignmentStatus = "QCAssignmentStatus";
+        public const string AssignmentPending = "Pending";
+        public const string AssignmentSubmitted = "Submitted";
+
         // STO Receipt Status
         public const string StoReceiptLineStatus = "StoReceiptLineStatus";
         public const string StoReceiptStatusPending = "Pending";
