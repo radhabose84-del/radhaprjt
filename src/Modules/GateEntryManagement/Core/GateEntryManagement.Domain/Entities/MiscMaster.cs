@@ -15,5 +15,8 @@ namespace GateEntryManagement.Domain.Entities
         public ICollection<VehicleMovementRecord>? VehicleMovementRecordsAsPurposeOfVisit { get; set; }
         public ICollection<VehicleMovementRecord>? VehicleMovementRecordsAsReferenceDocType { get; set; }
         public ICollection<VehicleMovementRecord>? VehicleMovementRecordsAsStatus { get; set; }
+
+        // Reverse navigation (GateInward)
+        public ICollection<GateInwardHdr>? GateInwardHdrsAsQAStatus { get; set; }
     }
 }

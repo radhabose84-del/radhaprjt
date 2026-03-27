@@ -149,6 +149,9 @@ namespace MaintenanceManagement.Application.MaintenanceRequest.Command.CreateMai
             var machineName = machineInfo.Value.MachineName;
             var departmentId = machineInfo.Value.DepartmentId;
 
+            // Declared outside if-block so it's available for direct publish after CommitAsync
+            NotificationCreatedEvent notificationEvent = null;
+
             // Step 2: Save WorkOrder immediately to obtain its generated Id (needed for param1 in notification)
             if (internalTypeId.HasValue && maintenanceRequest.RequestTypeId == internalTypeId.Value)
             {
@@ -185,7 +188,7 @@ namespace MaintenanceManagement.Application.MaintenanceRequest.Command.CreateMai
                 var createdBy = workOrder.CreatedByName ?? string.Empty;
 
                 // Step 3: Track OutboxMessage (no save yet — participates in same transaction)
-                var notificationEvent = CreateNotificationEvent(
+                notificationEvent = CreateNotificationEvent(
                     correlationId: correlationId,
                     workOrder: workOrder,
                     isBreakdown: request.MaintenanceTypeId == breakDownCode.Id,
@@ -207,6 +210,14 @@ namespace MaintenanceManagement.Application.MaintenanceRequest.Command.CreateMai
             //   (MaintenanceRequest + WorkOrder already saved in Steps 1 & 2)
             // ═══════════════════════════════════════════════════════════════════
             await _maintenanceRequestCommandRepository.CommitAsync(cancellationToken);
+
+            // Publish directly to RabbitMQ for immediate notification delivery.
+            // The outbox message (saved above) serves as a durable safety net if this fails.
+            // Consumer inbox dedup prevents duplicate processing.
+            if (notificationEvent != null)
+            {
+                await _outboxEventPublisher.PublishDirectAsync(notificationEvent, correlationId, cancellationToken);
+            }
 
             _logger.LogInformation(
                 "Outbox event tracked. CorrelationId: {CorrelationId}, MaintenanceRequestId: {Id}",

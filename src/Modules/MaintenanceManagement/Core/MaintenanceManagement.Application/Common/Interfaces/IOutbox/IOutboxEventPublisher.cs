@@ -46,6 +46,17 @@ namespace MaintenanceManagement.Application.Common.Interfaces.IOutbox
             CancellationToken cancellationToken = default) where TEvent : class;
 
         /// <summary>
+        /// Publishes an event directly to the message broker (RabbitMQ) for immediate delivery.
+        /// Call this AFTER CommitAsync() succeeds to bypass the outbox polling delay.
+        /// Also marks the outbox message as Published so the outbox processor skips it.
+        /// If direct publish fails, the outbox message stays Pending for the processor to retry.
+        /// </summary>
+        Task PublishDirectAsync<TEvent>(
+            TEvent @event,
+            Guid correlationId,
+            CancellationToken cancellationToken = default) where TEvent : class;
+
+        /// <summary>
         /// Schedules multiple events WITHOUT saving — participates in caller's transaction.
         /// </summary>
         Task ScheduleBatchWithoutSaveAsync<TEvent>(

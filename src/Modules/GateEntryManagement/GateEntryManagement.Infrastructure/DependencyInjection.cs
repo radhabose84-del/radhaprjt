@@ -9,12 +9,14 @@ using GateEntryManagement.Application.Common.Interfaces;
 using GateEntryManagement.Application.Common.Interfaces.AuditLog;
 using GateEntryManagement.Application.Common.Interfaces.IMiscMaster;
 using GateEntryManagement.Application.Common.Interfaces.IMiscTypeMaster;
+using GateEntryManagement.Application.Common.Interfaces.IGateInward;
 using GateEntryManagement.Application.Common.Interfaces.IGatePass;
 using GateEntryManagement.Application.Common.Interfaces.IVehicleMovementRecord;
 using GateEntryManagement.Infrastructure.Data;
 using GateEntryManagement.Infrastructure.Persistence;
 using GateEntryManagement.Infrastructure.Repositories.AuditLog;
 using GateEntryManagement.Infrastructure.Repositories.MiscMaster;
+using GateEntryManagement.Infrastructure.Repositories.GateInward;
 using GateEntryManagement.Infrastructure.Repositories.GatePass;
 using GateEntryManagement.Infrastructure.Repositories.VehicleMovementRecord;
 using GateEntryManagement.Infrastructure.Repositories.MiscTypeMaster;
@@ -108,6 +110,10 @@ namespace GateEntryManagement.Infrastructure
             // ── Gate Pass Repositories ────────────────────────────────────
             services.AddScoped<IGatePassCommandRepository, GatePassCommandRepository>();
             services.AddScoped<IGatePassQueryRepository, GatePassQueryRepository>();
+
+            // ── Gate Inward Repositories ──────────────────────────────────
+            services.AddScoped<IGateInwardCommandRepository, GateInwardCommandRepository>();
+            services.AddScoped<IGateInwardQueryRepository, GateInwardQueryRepository>();
 
             return services;
         }
