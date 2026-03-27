@@ -76,6 +76,8 @@ using SalesManagement.Infrastructure.Repositories.Outbox;
 using SalesManagement.Infrastructure.Services.Outbox;
 using SalesManagement.Application.Common.Interfaces.IComplaint;
 using SalesManagement.Infrastructure.Repositories.Complaint;
+using SalesManagement.Application.Common.Interfaces.IComplaintQCReview;
+using SalesManagement.Infrastructure.Repositories.ComplaintQCReview;
 using Contracts.Interfaces.Lookups.Sales;
 using SalesManagement.Infrastructure.Repositories.Lookups.Sales;
 
@@ -279,6 +281,10 @@ namespace SalesManagement.Infrastructure
             // ── Complaint Repositories ─────────────────────────────────────────────
             services.AddScoped<IComplaintCommandRepository, ComplaintCommandRepository>();
             services.AddScoped<IComplaintQueryRepository, ComplaintQueryRepository>();
+
+            // ── Complaint QC Review Repositories ─────────────────────────────────
+            services.AddScoped<IComplaintQCReviewCommandRepository, ComplaintQCReviewCommandRepository>();
+            services.AddScoped<IComplaintQCReviewQueryRepository, ComplaintQCReviewQueryRepository>();
 
             // ── Stock Ledger Report Repository ───────────────────────────────────
             services.AddScoped<IStockLedgerReportRepository, StockLedgerReportRepository>();
