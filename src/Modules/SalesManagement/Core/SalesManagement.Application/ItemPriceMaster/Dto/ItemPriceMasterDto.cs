@@ -14,6 +14,7 @@ namespace SalesManagement.Application.ItemPriceMaster.Dto
         public string? SalesSegmentName { get; set; }
 
         public decimal BaseRate { get; set; }
+        public decimal? TolerancePercentage { get; set; }
 
         public int CurrencyId { get; set; }
         public string? CurrencyCode { get; set; }
