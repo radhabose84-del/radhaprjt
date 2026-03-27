@@ -8,6 +8,7 @@ using SalesManagement.Application.DeliveryChallan.Queries.GetDeliveryChallanById
 using SalesManagement.Application.DeliveryChallan.Queries.GetDeliveryChallanAutoComplete;
 using SalesManagement.Application.DeliveryChallan.Queries.GetPendingDeliveryChallan;
 using SalesManagement.Application.DeliveryChallan.Queries.GetPendingDeliveryChallanById;
+using SalesManagement.Application.DeliveryChallan.Queries.GetDCGatePassPending;
 using SalesManagement.Application.DeliveryChallan.Queries.GetStoOpenQty;
 
 namespace SalesManagement.Presentation.Controllers
@@ -122,6 +123,24 @@ namespace SalesManagement.Presentation.Controllers
                 isSuccess = result.IsSuccess,
                 message = result.Message,
                 data = result.Data
+            });
+        }
+
+        [HttpGet("gatepass-pending")]
+        public async Task<IActionResult> GetDCGatePassPendingAsync(
+            [FromQuery] string? vehicleNo = null,
+            CancellationToken ct = default)
+        {
+            var result = await Mediator.Send(new GetDCGatePassPendingQuery
+            {
+                VehicleNo = vehicleNo
+            }, ct);
+
+            return Ok(new
+            {
+                statusCode = StatusCodes.Status200OK,
+                data = result,
+                message = "DC Gate Pass Pending details fetched successfully."
             });
         }
 

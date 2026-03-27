@@ -11,6 +11,8 @@ using Contracts.Interfaces.Lookups.Warehouse;
 using Dapper;
 using SalesManagement.Application.Common.Interfaces.IDeliveryChallan;
 using SalesManagement.Application.DeliveryChallan.Dto;
+using SalesManagement.Application.DeliveryChallan.Queries.GetDCGatePassPending;
+using SalesManagement.Domain.Common;
 
 namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
 {
@@ -661,6 +663,107 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
 
             var result = await _dbConnection.ExecuteScalarAsync<int>(sql, new { StoHeaderId = stoHeaderId });
             return result == 1;
+        }
+
+        public async Task<List<GetDCGatePassPendingDto>> GetDCGatePassPendingAsync(string? vehicleNo)
+        {
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
+
+            const string sql = @"
+                -- Resolve Approved StatusId from ApprovalStatus
+                DECLARE @ApprovedStatusId INT;
+                SELECT @ApprovedStatusId = mm.Id
+                FROM Sales.MiscMaster mm
+                INNER JOIN Sales.MiscTypeMaster mt ON mm.MiscTypeId = mt.Id AND mt.IsDeleted = 0
+                WHERE mt.Description = @MiscType
+                  AND mm.Code = @StatusCode
+                  AND mm.IsDeleted = 0;
+
+                -- Result set 1: Headers
+                SELECT
+                    h.Id,
+                    h.DeliveryNumber,
+                    h.DeliveryDate,
+                    h.StoHeaderId,
+                    sh.StoNumber,
+                    h.FromPlantId,
+                    h.FromStorageLocationId,
+                    h.ToPlantId,
+                    h.ToStorageLocationId,
+                    h.TransporterId,
+                    h.VehicleNumber,
+                    h.TransportDistance,
+                    h.DeliveryValue,
+                    h.ConsignmentValue,
+                    h.StatusId,
+                    ms.Description AS StatusName,
+                    h.Remarks,
+                    h.GEFlag,
+                    h.IsActive,
+                    h.IsDeleted,
+                    h.CreatedBy,
+                    h.CreatedDate,
+                    h.CreatedByName,
+                    h.CreatedIP,
+                    h.ModifiedBy,
+                    h.ModifiedDate,
+                    h.ModifiedByName,
+                    h.ModifiedIP
+                FROM Sales.DeliveryChallanHeader h
+                LEFT JOIN Sales.StoHeader sh ON h.StoHeaderId = sh.Id AND sh.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster ms ON h.StatusId = ms.Id AND ms.IsDeleted = 0
+                WHERE h.IsDeleted = 0 AND h.GEFlag = 0
+                  AND h.FromPlantId = @UnitId
+                  AND h.StatusId = @ApprovedStatusId
+                  AND (@VehicleNo IS NULL OR h.VehicleNumber LIKE '%' + @VehicleNo + '%')
+                ORDER BY h.Id DESC;
+
+                -- Result set 2: Detail rows for all matching headers
+                SELECT
+                    d.DeliveryChallanHeaderId AS DCHeaderId,
+                    d.StoDetailId,
+                    d.ItemId,
+                    d.LotId,
+                    d.StartPackNo,
+                    d.EndPackNo,
+                    d.DispatchQuantity,
+                    d.UOMId,
+                    d.BagCount,
+                    d.BaleCount,
+                    d.NetWeight,
+                    d.GrossWeight,
+                    d.ExMillRate,
+                    d.LineMovementValue
+                FROM Sales.DeliveryChallanDetail d
+                INNER JOIN Sales.DeliveryChallanHeader h ON d.DeliveryChallanHeaderId = h.Id
+                WHERE h.IsDeleted = 0 AND h.GEFlag = 0
+                  AND h.FromPlantId = @UnitId
+                  AND h.StatusId = @ApprovedStatusId
+                  AND (@VehicleNo IS NULL OR h.VehicleNumber LIKE '%' + @VehicleNo + '%')
+                ORDER BY d.DeliveryChallanHeaderId DESC;
+            ";
+
+            var parameters = new
+            {
+                UnitId = unitId,
+                VehicleNo = string.IsNullOrWhiteSpace(vehicleNo) ? null : vehicleNo,
+                MiscType = MiscEnumEntity.StoApprovalStatus,
+                StatusCode = MiscEnumEntity.StoApprovalApproved
+            };
+
+            using var multi = await _dbConnection.QueryMultipleAsync(sql, parameters);
+
+            var headers = (await multi.ReadAsync<GetDCGatePassPendingDto>()).ToList();
+            var details = (await multi.ReadAsync<GetDCGatePassPendingDto.GetDCGatePassPendingDetailDto>()).ToList();
+
+            // Group details into their parent headers
+            var detailLookup = details.ToLookup(d => d.DCHeaderId);
+            foreach (var h in headers)
+            {
+                h.DeliveryChallanDetails = detailLookup[h.Id].ToList();
+            }
+
+            return headers;
         }
     }
 }
