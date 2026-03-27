@@ -553,7 +553,7 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
             return (headers, total);
         }
 
-        public async Task<List<GetInvoiceGatePassPendingDto>> GetInvoiceGatePassPendingAsync()
+        public async Task<List<GetInvoiceGatePassPendingDto>> GetInvoiceGatePassPendingAsync(string? vehicleNo)
         {
             var unitId = _ipAddressService.GetUnitId() ?? 0;
 
@@ -567,24 +567,93 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                   AND mm.Code = @StatusCode
                   AND mm.IsDeleted = 0;
 
+                -- Result set 1: Headers
                 SELECT h.Id, h.InvoiceNo, h.InvoiceDate,
-                    h.PartyId, h.UnitId,
-                    h.CreatedByName, h.CreatedDate
+                    h.InvoiceType,
+                    mm.Description AS InvoiceTypeName,
+                    h.DispatchAdviceId,
+                    da.DispatchNo,
+                    h.PartyId, h.AgentId, h.UnitId, h.FinancialYearId,
+                    h.TransportMode,
+                    tm.Description AS TransportModeName,
+                    h.StatusId,
+                    sm.Description AS StatusName,
+                    h.VehicleNumber, h.TransporterName, h.LRNumber, h.LRDate,
+                    h.TotalBags, h.TotalWeight, h.TaxableValue, h.Discount,
+                    h.Freight, h.Insurance, h.HandlingCharge, h.OtherCharges,
+                    h.CGST, h.SGST, h.IGST, h.TaxAmount,
+                    h.TCSPercentage, h.TCS, h.RoundOff,
+                    h.InvoiceAmountBeforeTCS, h.InvoiceAmount,
+                    h.Remarks, h.GEFlag, h.IsActive, h.IsDeleted,
+                    h.CreatedBy, h.CreatedByName, h.CreatedDate
                 FROM Sales.InvoiceHeader h
+                LEFT JOIN Sales.MiscMaster mm  ON h.InvoiceType   = mm.Id  AND mm.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster tm  ON h.TransportMode = tm.Id  AND tm.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster sm  ON h.StatusId      = sm.Id  AND sm.IsDeleted = 0
+                LEFT JOIN Sales.DispatchAdviceHeader da ON h.DispatchAdviceId = da.Id AND da.IsDeleted = 0
                 WHERE h.IsDeleted = 0 AND h.GEFlag = 0
-                AND h.UnitId = @UnitId
-                AND h.StatusId = @ApprovedStatusId
+                  AND h.UnitId = @UnitId
+                  AND h.StatusId = @ApprovedStatusId
+                  AND (@VehicleNo IS NULL OR h.VehicleNumber LIKE '%' + @VehicleNo + '%')
                 ORDER BY h.Id DESC;
+
+                -- Result set 2: Detail rows for all matching headers
+                SELECT
+                    d.InvoiceHeaderId AS InvoiceId,
+                    d.ItemSno, d.ItemId, d.HsnCode, d.GstPercentage,
+                    d.LotId, d.NoOfBags, d.Quantity,
+                    d.RatePerKg, d.Discount, d.TaxableAmount,
+                    d.CgstPercentage, d.SgstPercentage, d.IgstPercentage,
+                    d.CGST, d.SGST, d.IGST, d.TaxAmount,
+                    d.PackTypeId, d.UOMId, d.TotalAmount
+                FROM Sales.InvoiceDetail d
+                INNER JOIN Sales.InvoiceHeader h ON d.InvoiceHeaderId = h.Id
+                WHERE h.IsDeleted = 0 AND h.GEFlag = 0
+                  AND h.UnitId = @UnitId
+                  AND h.StatusId = @ApprovedStatusId
+                  AND (@VehicleNo IS NULL OR h.VehicleNumber LIKE '%' + @VehicleNo + '%')
+                ORDER BY d.InvoiceHeaderId DESC, d.ItemSno ASC;
             ";
 
             var parameters = new
             {
                 UnitId = unitId,
+                VehicleNo = string.IsNullOrWhiteSpace(vehicleNo) ? null : vehicleNo,
                 MiscType = MiscEnumEntity.InvoiceApprovalStatus,
                 StatusCode = MiscEnumEntity.InvoiceStatusApproved
             };
 
-            return (await _dbConnection.QueryAsync<GetInvoiceGatePassPendingDto>(sql, parameters)).ToList();
+            using var multi = await _dbConnection.QueryMultipleAsync(sql, parameters);
+
+            var headers = (await multi.ReadAsync<GetInvoiceGatePassPendingDto>()).ToList();
+            var details = (await multi.ReadAsync<GetInvoiceGatePassPendingDto.GetInvoiceGatePassPendingDetailDto>()).ToList();
+
+            // Populate PackTypeName and LotNo via cross-module lookups
+            if (details.Count > 0)
+            {
+                var packTypeIds = details.Where(d => d.PackTypeId.HasValue).Select(d => d.PackTypeId!.Value).Distinct();
+                var packTypes = await _packTypeLookup.GetByIdsAsync(packTypeIds);
+                var packTypeDict = packTypes.ToDictionary(p => p.Id, p => p.PackTypeName);
+
+                var lotIds = details.Where(d => d.LotId.HasValue).Select(d => d.LotId!.Value).Distinct();
+                var lots = await _lotMasterLookup.GetByIdsAsync(lotIds);
+                var lotDict = lots.ToDictionary(l => l.Id, l => l.LotCode);
+
+                foreach (var d in details)
+                {
+                    d.PackTypeName = d.PackTypeId.HasValue && packTypeDict.TryGetValue(d.PackTypeId.Value, out var ptName) ? ptName : null;
+                    d.LotNo = d.LotId.HasValue && lotDict.TryGetValue(d.LotId.Value, out var lotCode) ? lotCode : null;
+                }
+            }
+
+            // Group details into their parent headers
+            var detailLookup = details.ToLookup(d => d.InvoiceId);
+            foreach (var h in headers)
+            {
+                h.InvoiceDetails = detailLookup[h.Id].ToList();
+            }
+
+            return headers;
         }
     }
 }
