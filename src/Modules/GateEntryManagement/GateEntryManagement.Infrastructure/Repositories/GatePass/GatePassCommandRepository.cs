@@ -45,28 +45,28 @@ namespace GateEntryManagement.Infrastructure.Repositories.GatePass
                     await _documentSequenceLookup.IncrementDocNoAsync(transactionTypeId, dbConnection, dbTransaction);
 
                     // Mark documents as gate-passed via Strategy pattern
-                    if (entity.GatePassDetails != null && entity.GatePassDetails.Count > 0)
-                    {
-                        // Build handler lookup: DocTypeId → TypeName → Handler
-                        var docTypeIds = entity.GatePassDetails.Select(d => d.DocTypeId).Distinct().ToList();
-                        var typeNameMap = await ResolveDocTypeNamesAsync(docTypeIds, dbConnection, dbTransaction);
+                    // if (entity.GatePassDetails != null && entity.GatePassDetails.Count > 0)
+                    // {
+                    //     // Build handler lookup: DocTypeId → TypeName → Handler
+                    //     var docTypeIds = entity.GatePassDetails.Select(d => d.DocTypeId).Distinct().ToList();
+                    //     var typeNameMap = await ResolveDocTypeNamesAsync(docTypeIds, dbConnection, dbTransaction);
 
-                        foreach (var detail in entity.GatePassDetails)
-                        {
-                            if (!int.TryParse(detail.DocNo, out var docId)) continue;
+                    //     foreach (var detail in entity.GatePassDetails)
+                    //     {
+                    //         if (!int.TryParse(detail.DocNo, out var docId)) continue;
 
-                            if (typeNameMap.TryGetValue(detail.DocTypeId, out var typeName))
-                            {
-                                var handler = _documentHandlers.FirstOrDefault(
-                                    h => string.Equals(h.DocumentType, typeName, StringComparison.OrdinalIgnoreCase));
+                    //         if (typeNameMap.TryGetValue(detail.DocTypeId, out var typeName))
+                    //         {
+                    //             var handler = _documentHandlers.FirstOrDefault(
+                    //                 h => string.Equals(h.DocumentType, typeName, StringComparison.OrdinalIgnoreCase));
 
-                                if (handler != null)
-                                {
-                                    await handler.MarkAsGatePassedAsync(docId, dbConnection, dbTransaction);
-                                }
-                            }
-                        }
-                    }
+                    //             if (handler != null)
+                    //             {
+                    //                 await handler.MarkAsGatePassedAsync(docId, dbConnection, dbTransaction);
+                    //             }
+                    //         }
+                    //     }
+                    // }
 
                     // Update VMR: StatusId = OUT, set GateOutTime
                     var vmr = await _applicationDbContext.VehicleMovementRecord

@@ -12,6 +12,7 @@ namespace SalesManagement.Application.ItemPriceMaster.Commands.UpdateItemPriceMa
         public int CurrencyId { get; set; }
         public DateOnly ValidFrom { get; set; }
         public DateOnly ValidTo { get; set; }
+        public decimal? TolerancePercentage { get; set; }
         public int? StatusId { get; set; }
         public int IsActive { get; set; }
     }

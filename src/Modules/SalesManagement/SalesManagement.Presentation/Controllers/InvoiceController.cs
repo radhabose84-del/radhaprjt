@@ -114,9 +114,14 @@ namespace SalesManagement.Presentation.Controllers
         }
 
         [HttpGet("gatepass-pending")]
-        public async Task<IActionResult> GetGatePassPendingAsync(CancellationToken ct = default)
+        public async Task<IActionResult> GetGatePassPendingAsync(
+            [FromQuery] string? vehicleNo = null,
+            CancellationToken ct = default)
         {
-            var result = await Mediator.Send(new GetInvoiceGatePassPendingQuery(), ct);
+            var result = await Mediator.Send(new GetInvoiceGatePassPendingQuery
+            {
+                VehicleNo = vehicleNo
+            }, ct);
 
             return Ok(new
             {
