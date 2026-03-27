@@ -18,7 +18,7 @@ internal sealed class DivisionLookupRepository : IDivisionLookup
     {
         const string sql = @"
             SELECT Id, ShortName, Name
-            FROM UserManagement.Division
+            FROM AppData.Division
             WHERE IsActive = 1 AND IsDeleted = 0
             ORDER BY Name ASC;";
 
@@ -34,7 +34,7 @@ internal sealed class DivisionLookupRepository : IDivisionLookup
 
         const string sql = @"
             SELECT Id, ShortName, Name
-            FROM UserManagement.Division
+            FROM AppData.Division
             WHERE Id IN @Ids AND IsDeleted = 0
             ORDER BY Name ASC;";
 
