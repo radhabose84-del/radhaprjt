@@ -81,11 +81,12 @@ builder.Services.AddHangfireServer(options =>
     options.Queues = new[]
     {
         "forgot_password_queue",
-        "user_unlock_queue",
+        "user_unlock_queue", "sql-outbox-queue"
     };
 });
 
 // ── Outbox polling — replaces Hangfire recurring job for sub-minute granularity ─
+// Polls every 15 seconds as a fallback for outbox messages not directly published.
 builder.Services.AddHostedService<OutboxPollingHostedService>();
 
 // ── SignalR client – pushes from Worker to the hub hosted in BSOFT.Api ────────
