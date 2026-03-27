@@ -656,7 +656,7 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
                     INNER JOIN Sales.DeliveryChallanHeader dch ON dcd.DeliveryChallanHeaderId = dch.Id AND dch.IsDeleted = 0
                     GROUP BY dcd.StoDetailId
                 ) dispatched ON sd.Id = dispatched.StoDetailId
-                WHERE sd.StoHeaderId = @StoHeaderId AND sd.IsDeleted = 0
+                WHERE sd.StoHeaderId = @StoHeaderId
                   AND (sd.Quantity - ISNULL(dispatched.TotalDispatched, 0)) > 0;";
 
             var result = await _dbConnection.ExecuteScalarAsync<int>(sql, new { StoHeaderId = stoHeaderId });
