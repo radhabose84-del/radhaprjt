@@ -8,7 +8,7 @@ namespace SalesManagement.Application.Common.Interfaces.IInvoice
     {
         Task<(List<InvoiceHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm);
         Task<(List<GetInvoicePendingDto>, int)> GetInvoicePendingAsync(int pageNumber, int pageSize, string? searchTerm);
-        Task<List<GetInvoiceGatePassPendingDto>> GetInvoiceGatePassPendingAsync();
+        Task<List<GetInvoiceGatePassPendingDto>> GetInvoiceGatePassPendingAsync(string? vehicleNo);
         Task<InvoiceHeaderDto?> GetByIdAsync(int id);
         Task<IReadOnlyList<InvoiceLookupDto>> AutocompleteAsync(string term, CancellationToken ct);
         Task<bool> NotFoundAsync(int id);
