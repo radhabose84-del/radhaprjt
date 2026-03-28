@@ -2,6 +2,7 @@ using System.Text.Json;
 using AutoMapper;
 using Contracts.Common;
 using Contracts.Commands.Workflow;
+using Contracts.Interfaces.Lookups.Finance;
 using Contracts.Interfaces.Lookups.Users;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -18,33 +19,33 @@ namespace SalesManagement.Application.SalesOrder.Commands.CreateSalesOrder
     public class CreateSalesOrderCommandHandler : IRequestHandler<CreateSalesOrderCommand, ApiResponseDTO<int>>
     {
         private readonly ISalesOrderCommandRepository _commandRepository;
-        private readonly ISalesOrderQueryRepository _queryRepository;
         private readonly IMapper _mapper;
         private readonly IMediator _mediator;
         private readonly IIPAddressService _ipAddressService;
         private readonly ICompanyLookup _companyLookup;
         private readonly IUnitLookup _unitLookup;
+        private readonly IDocumentSequenceLookup _documentSequenceLookup;
         private readonly ILogger<CreateSalesOrderCommandHandler> _logger;
         private readonly IOutboxEventPublisher _outboxEventPublisher;
 
         public CreateSalesOrderCommandHandler(
             ISalesOrderCommandRepository commandRepository,
-            ISalesOrderQueryRepository queryRepository,
             IMapper mapper,
             IMediator mediator,
             IIPAddressService ipAddressService,
             ICompanyLookup companyLookup,
             IUnitLookup unitLookup,
+            IDocumentSequenceLookup documentSequenceLookup,
             ILogger<CreateSalesOrderCommandHandler> logger,
             IOutboxEventPublisher outboxEventPublisher)
         {
             _commandRepository = commandRepository;
-            _queryRepository = queryRepository;
             _mapper = mapper;
             _mediator = mediator;
             _ipAddressService = ipAddressService;
             _companyLookup = companyLookup;
             _unitLookup = unitLookup;
+            _documentSequenceLookup = documentSequenceLookup;
             _logger = logger;
             _outboxEventPublisher = outboxEventPublisher;
         }
@@ -91,13 +92,18 @@ namespace SalesManagement.Application.SalesOrder.Commands.CreateSalesOrder
 
             var entity = _mapper.Map<SalesOrderHeader>(details);
 
-            // Generate auto-number
-            var salesOrderNo = await _commandRepository.GenerateNextSalesOrderNoAsync(
-                details!.UnitId, cancellationToken);
-            entity.SalesOrderNo = salesOrderNo;
-            entity.OrderDate = DateOnly.FromDateTime(DateTime.UtcNow);
+            // Generate SalesOrderNo from DocumentSequence
+            if (!details!.SalesOrderTypeId.HasValue)
+                throw new ExceptionRules("SalesOrderTypeId is required.");
 
-            var newId = await _commandRepository.CreateAsync(entity);
+            var sequences = await _documentSequenceLookup.GenerateDocumentNumber(details.SalesOrderTypeId.Value);
+            var salesOrderNo = sequences.Count > 0 ? sequences[^1] : null;
+            entity.SalesOrderNo = salesOrderNo
+                ?? throw new ExceptionRules("No document sequence configured for Sales Order.");
+            entity.OrderDate = DateOnly.FromDateTime(DateTime.UtcNow);
+            entity.OrderUnitId = _ipAddressService.GetUnitId();
+
+            var newId = await _commandRepository.CreateAsync(entity, details.SalesOrderTypeId.Value);
 
             // Post-save: rename VisitNotesAttachment to {companyName}-{unitName}-{salesOrderId}.ext
             if (!string.IsNullOrWhiteSpace(details.VisitNotesAttachment) && visitNotesUploadPath != null)

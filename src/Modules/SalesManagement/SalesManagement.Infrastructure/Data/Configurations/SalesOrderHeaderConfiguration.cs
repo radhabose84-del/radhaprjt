@@ -75,6 +75,12 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("int")
                 .IsRequired(false);
 
+            // Order Unit (cross-module FK — no DB constraint)
+            builder.Property(t => t.OrderUnitId)
+                .HasColumnName("OrderUnitId")
+                .HasColumnType("int")
+                .IsRequired(false);
+
             // Commercial Details
             builder.Property(t => t.DiscountPlanId)
                 .HasColumnName("DiscountPlanId")

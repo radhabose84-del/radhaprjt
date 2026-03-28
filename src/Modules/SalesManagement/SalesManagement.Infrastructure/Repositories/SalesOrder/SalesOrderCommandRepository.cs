@@ -1,4 +1,6 @@
+using Contracts.Interfaces.Lookups.Finance;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using SalesManagement.Application.Common.Interfaces.IMiscMaster;
 using SalesManagement.Application.Common.Interfaces.ISalesOrder;
 using SalesManagement.Application.SalesOrder.Commands.CreateSalesOrder;
@@ -13,70 +15,71 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
     {
         private readonly ApplicationDbContext _applicationDbContext;
         private readonly IMiscMasterQueryRepository _miscMasterQueryRepository;
+        private readonly IDocumentSequenceLookup _documentSequenceLookup;
 
         public SalesOrderCommandRepository(
             ApplicationDbContext applicationDbContext,
-            IMiscMasterQueryRepository miscMasterQueryRepository)
+            IMiscMasterQueryRepository miscMasterQueryRepository,
+            IDocumentSequenceLookup documentSequenceLookup)
         {
             _applicationDbContext = applicationDbContext;
             _miscMasterQueryRepository = miscMasterQueryRepository;
+            _documentSequenceLookup = documentSequenceLookup;
         }
 
-        public async Task<string> GenerateNextSalesOrderNoAsync(int unitId, CancellationToken ct = default)
+        public async Task<int> CreateAsync(SalesOrderHeader entity, int transactionTypeId)
         {
-            var prefix = $"SO-{unitId}-";
+            var strategy = _applicationDbContext.Database.CreateExecutionStrategy();
 
-            var lastOrder = await _applicationDbContext.SalesOrderHeader
-                .Where(x => x.SalesOrderNo != null && x.SalesOrderNo.StartsWith(prefix))
-                .OrderByDescending(x => x.Id)
-                .Select(x => x.SalesOrderNo)
-                .FirstOrDefaultAsync(ct);
-
-            int nextSeq = 1;
-            if (lastOrder != null)
+            return await strategy.ExecuteAsync(async () =>
             {
-                var parts = lastOrder.Split('-');
-                if (parts.Length == 3 && int.TryParse(parts[2], out var lastSeq))
+                using var transaction = await _applicationDbContext.Database.BeginTransactionAsync();
+                try
                 {
-                    nextSeq = lastSeq + 1;
+                    // Separate details from header
+                    var details = entity.SalesOrderDetails?.ToList();
+                    entity.SalesOrderDetails = null;
+
+                    // Set default StatusId to "Pending"
+                    var pendingStatus = await _miscMasterQueryRepository.GetMiscMasterByName(
+                        MiscEnumEntity.SalesOrderApprovalStatus, MiscEnumEntity.SalesOrderStatusPending);
+                    entity.StatusId = pendingStatus?.Id;
+
+                    // Fetch "Open" line item status id
+                    var openStatus = await _miscMasterQueryRepository.GetMiscMasterByName(
+                        MiscEnumEntity.LineItemApprovalStatus, MiscEnumEntity.LineStatusOpen);
+
+                    // Insert header into SalesOrderHeader table
+                    await _applicationDbContext.SalesOrderHeader.AddAsync(entity);
+                    await _applicationDbContext.SaveChangesAsync();
+
+                    // Insert details into SalesOrderDetail table
+                    if (details != null && details.Count > 0)
+                    {
+                        foreach (var detail in details)
+                        {
+                            detail.SalesOrderHeaderId = entity.Id;
+                            detail.LineItemStatusId = openStatus?.Id;
+                            await _applicationDbContext.SalesOrderDetail.AddAsync(detail);
+                        }
+                        await _applicationDbContext.SaveChangesAsync();
+                    }
+
+                    // Increment DocNo via lookup — same connection + transaction
+                    var dbConnection = _applicationDbContext.Database.GetDbConnection();
+                    var dbTransaction = transaction.GetDbTransaction();
+                    await _documentSequenceLookup.IncrementDocNoAsync(transactionTypeId, dbConnection, dbTransaction);
+
+                    await _applicationDbContext.SaveChangesAsync();
+                    await transaction.CommitAsync();
+                    return entity.Id;
                 }
-            }
-
-            return $"{prefix}{nextSeq:D5}";
-        }
-
-        public async Task<int> CreateAsync(SalesOrderHeader entity)
-        {
-            // Separate details from header
-            var details = entity.SalesOrderDetails?.ToList();
-            entity.SalesOrderDetails = null;
-
-            // Set default StatusId to "Pending"
-            var pendingStatus = await _miscMasterQueryRepository.GetMiscMasterByName(
-                MiscEnumEntity.SalesOrderApprovalStatus, MiscEnumEntity.SalesOrderStatusPending);
-            entity.StatusId = pendingStatus?.Id;
-
-            // Fetch "Open" line item status id
-            var openStatus = await _miscMasterQueryRepository.GetMiscMasterByName(
-                MiscEnumEntity.LineItemApprovalStatus, MiscEnumEntity.LineStatusOpen);
-
-            // Insert header into SalesOrderHeader table
-            await _applicationDbContext.SalesOrderHeader.AddAsync(entity);
-            await _applicationDbContext.SaveChangesAsync();
-
-            // Insert details into SalesOrderDetail table
-            if (details != null && details.Count > 0)
-            {
-                foreach (var detail in details)
+                catch
                 {
-                    detail.SalesOrderHeaderId = entity.Id;
-                    detail.LineItemStatusId = openStatus?.Id;
-                    await _applicationDbContext.SalesOrderDetail.AddAsync(detail);
+                    await transaction.RollbackAsync();
+                    throw;
                 }
-                await _applicationDbContext.SaveChangesAsync();
-            }
-
-            return entity.Id;
+            });
         }
 
         public async Task<int> UpdateAsync(SalesOrderHeader entity)
@@ -194,7 +197,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     SalesOrderNo = x.SalesOrderNo,
                     StatusId = x.StatusId,
                     StatusName = x.StatusMisc != null ? x.StatusMisc.Description : null,
-                    UnitId = x.UnitId
+                    UnitId = x.OrderUnitId
                 })
                 .FirstOrDefaultAsync();
 
