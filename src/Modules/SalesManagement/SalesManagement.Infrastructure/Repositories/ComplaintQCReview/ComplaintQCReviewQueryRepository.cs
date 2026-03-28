@@ -57,13 +57,26 @@ namespace SalesManagement.Infrastructure.Repositories.ComplaintQCReview
                     qcs.Description AS ComplaintStatusName,
                     sev.Description AS SeverityName,
                     r.ReviewedBy,
-                    r.ReviewedDate
+                    r.ReviewedDate,
+                    CASE
+                        WHEN NOT EXISTS (
+                            SELECT 1 FROM Sales.ComplaintQCReviewAssignment a WHERE a.ComplaintQCReviewId = r.Id AND a.IsDeleted = 0
+                        ) THEN 'Pending'
+                        WHEN COUNT(a2.Id) = SUM(
+                            CASE WHEN LOWER(ast.Code) = 'submitted' THEN 1 ELSE 0 END
+                        ) THEN 'All Feedback Received'
+                        ELSE 'Pending'
+                    END AS ReviewStatus
                 FROM Sales.ComplaintQCReview r
                 INNER JOIN Sales.ComplaintHeader ch ON r.ComplaintHeaderId = ch.Id AND ch.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster pv ON r.PhysicalVerificationId = pv.Id AND pv.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster qcs ON r.ComplaintStatusId = qcs.Id AND qcs.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster sev ON r.SeverityId = sev.Id AND sev.IsDeleted = 0
+                LEFT JOIN Sales.ComplaintQCReviewAssignment a2 ON a2.ComplaintQCReviewId = r.Id AND a2.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster ast ON a2.AssignmentStatusId = ast.Id AND ast.IsDeleted = 0
                 WHERE r.IsDeleted = 0 {searchFilter} {statusFilterSql}
+                GROUP BY r.Id, r.ComplaintHeaderId, ch.ComplaintNumber, ch.ComplaintDate, ch.CustomerId,
+                    pv.Description, qcs.Description, sev.Description, r.ReviewedBy, r.ReviewedDate
                 ORDER BY r.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;";
 
@@ -282,6 +295,18 @@ namespace SalesManagement.Infrastructure.Repositories.ComplaintQCReview
             }
 
             review.Assignments = assignments;
+
+            // Derive ReviewStatus from assignment statuses
+            if (assignments.Count == 0)
+            {
+                review.ReviewStatus = "Pending";
+            }
+            else
+            {
+                var allSubmitted = assignments.All(a =>
+                    string.Equals(a.AssignmentStatusName, "Submitted", StringComparison.OrdinalIgnoreCase));
+                review.ReviewStatus = allSubmitted ? "All Feedback Received" : "Pending";
+            }
 
             return review;
         }
