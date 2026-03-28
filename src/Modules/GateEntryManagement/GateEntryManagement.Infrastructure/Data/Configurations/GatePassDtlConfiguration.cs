@@ -26,6 +26,11 @@ namespace GateEntryManagement.Infrastructure.Data.Configurations
                 .HasColumnType("int")
                 .IsRequired();
 
+            builder.Property(t => t.DocId)
+                .HasColumnName("DocId")
+                .HasColumnType("int")
+                .IsRequired();
+
             builder.Property(t => t.DocNo)
                 .HasColumnName("DocNo")
                 .HasColumnType("varchar(20)")

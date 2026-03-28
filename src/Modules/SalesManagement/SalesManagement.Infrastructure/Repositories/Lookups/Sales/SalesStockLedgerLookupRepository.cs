@@ -35,4 +35,30 @@ internal sealed class SalesStockLedgerLookupRepository : ISalesStockLedgerLookup
         var affected = await _dbConnection.ExecuteAsync(sql, new { DocType = docType, DocNo = docNo });
         return affected > 0;
     }
+
+    public async Task<bool> UpdateStatusByPackRangeAsync(
+        string docType, int docNo,
+        int startPackNo, int endPackNo,
+        int currentStatusId, int newStatusId,
+        CancellationToken ct = default)
+    {
+        const string sql = @"
+            UPDATE Sales.StockLedger
+            SET StatusId = @NewStatusId
+            WHERE DocType      = @DocType
+              AND DocNo        = @DocNo
+              AND PackNo      BETWEEN @StartPackNo AND @EndPackNo
+              AND StatusId     = @CurrentStatusId";
+
+        var affected = await _dbConnection.ExecuteAsync(sql, new
+        {
+            DocType        = docType,
+            DocNo          = docNo,
+            StartPackNo    = startPackNo,
+            EndPackNo      = endPackNo,
+            CurrentStatusId = currentStatusId,
+            NewStatusId    = newStatusId
+        });
+        return affected > 0;
+    }
 }

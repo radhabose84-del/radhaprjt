@@ -173,6 +173,10 @@ namespace GateEntryManagement.Infrastructure.Migrations
                         .HasColumnType("date")
                         .HasColumnName("DocDate");
 
+                    b.Property<int>("DocId")
+                        .HasColumnType("int")
+                        .HasColumnName("DocId");
+
                     b.Property<string>("DocNo")
                         .IsRequired()
                         .HasColumnType("varchar(20)")

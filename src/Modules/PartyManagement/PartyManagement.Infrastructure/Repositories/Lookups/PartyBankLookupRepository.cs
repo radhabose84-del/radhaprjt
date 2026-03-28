@@ -19,7 +19,7 @@ namespace PartyManagement.Infrastructure.Repositories.Lookups
             const string sql = @"
                 SELECT TOP 1 pb.BankName, pb.BankAccountNumber, pb.BankBranch, pb.IFSCCode
                 FROM Party.PartyBank pb
-                INNER JOIN Party.PartyMaster pm ON pb.PartyId = pm.Id AND pm.IsDeleted = 0
+                INNER JOIN Party.PartyMaster pm ON pb.PartyId = pm.Id
                 WHERE pm.GSTNumber = @GstNumber
                     AND (pb.IsDefaultAccount = 1 OR pb.IsPrimaryAccount = 1)";
 
