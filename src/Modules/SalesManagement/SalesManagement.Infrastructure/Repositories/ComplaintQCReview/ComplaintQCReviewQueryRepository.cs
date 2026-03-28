@@ -1,4 +1,5 @@
 using System.Data;
+using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Users;
 using Dapper;
@@ -12,15 +13,18 @@ namespace SalesManagement.Infrastructure.Repositories.ComplaintQCReview
         private readonly IDbConnection _dbConnection;
         private readonly IUserLookup _userLookup;
         private readonly IPartyLookup _partyLookup;
+        private readonly IItemLookup _itemLookup;
 
         public ComplaintQCReviewQueryRepository(
             IDbConnection dbConnection,
             IUserLookup userLookup,
-            IPartyLookup partyLookup)
+            IPartyLookup partyLookup,
+            IItemLookup itemLookup)
         {
             _dbConnection = dbConnection;
             _userLookup = userLookup;
             _partyLookup = partyLookup;
+            _itemLookup = itemLookup;
         }
 
         public async Task<(List<QCReviewListDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm, string? statusFilter)
@@ -53,8 +57,7 @@ namespace SalesManagement.Infrastructure.Repositories.ComplaintQCReview
                     qcs.Description AS ComplaintStatusName,
                     sev.Description AS SeverityName,
                     r.ReviewedBy,
-                    r.ReviewedDate,
-                    ch.CustomerId
+                    r.ReviewedDate
                 FROM Sales.ComplaintQCReview r
                 INNER JOIN Sales.ComplaintHeader ch ON r.ComplaintHeaderId = ch.Id AND ch.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster pv ON r.PhysicalVerificationId = pv.Id AND pv.IsDeleted = 0
@@ -78,7 +81,7 @@ namespace SalesManagement.Infrastructure.Repositories.ComplaintQCReview
             // Populate cross-module lookup names
             if (data.Count > 0)
             {
-                // Get customer IDs from complaint headers
+                // Populate CustomerName from party lookup
                 var customerIdList = data.Where(d => d.CustomerId > 0).Select(d => d.CustomerId).Distinct().ToList();
                 if (customerIdList.Count > 0)
                 {
@@ -101,6 +104,36 @@ namespace SalesManagement.Infrastructure.Repositories.ComplaintQCReview
                     {
                         if (userDict.TryGetValue(item.ReviewedBy!.Value, out var name))
                             item.ReviewedByName = name;
+                    }
+                }
+
+                // Populate ItemName from first complaint detail via item lookup
+                var complaintIds = data.Select(d => d.ComplaintHeaderId).Distinct().ToList();
+                var itemSql = @"
+                    SELECT cd.ComplaintHeaderId, cd.ItemId
+                    FROM Sales.ComplaintDetail cd
+                    WHERE cd.ComplaintHeaderId IN @Ids AND cd.IsDeleted = 0;";
+                var detailItems = (await _dbConnection.QueryAsync<(int ComplaintHeaderId, int ItemId)>(
+                    itemSql, new { Ids = complaintIds })).ToList();
+
+                if (detailItems.Count > 0)
+                {
+                    var itemIds = detailItems.Select(d => d.ItemId).Distinct().ToList();
+                    var items = await _itemLookup.GetByIdsAsync(itemIds);
+                    var itemDict = items.ToDictionary(i => i.Id, i => i.ItemName);
+
+                    // Use first item per complaint
+                    var complaintItemDict = detailItems
+                        .GroupBy(d => d.ComplaintHeaderId)
+                        .ToDictionary(g => g.Key, g => g.First().ItemId);
+
+                    foreach (var item in data)
+                    {
+                        if (complaintItemDict.TryGetValue(item.ComplaintHeaderId, out var itemId) &&
+                            itemDict.TryGetValue(itemId, out var itemName))
+                        {
+                            item.ItemName = itemName;
+                        }
                     }
                 }
             }
@@ -152,10 +185,38 @@ namespace SalesManagement.Infrastructure.Repositories.ComplaintQCReview
                 LEFT JOIN Sales.MiscMaster comp ON r.CompensationStructureId = comp.Id AND comp.IsDeleted = 0
                 WHERE r.IsDeleted = 0 AND {whereClause};";
 
-            var review = await _dbConnection.QueryFirstOrDefaultAsync<ComplaintQCReviewDto>(sql, parameters);
-
-            if (review == null)
+            // Use dynamic to capture CustomerId which is not on the DTO
+            var rows = (await _dbConnection.QueryAsync(sql, parameters)).ToList();
+            if (rows.Count == 0)
                 return null;
+
+            var row = rows[0];
+            var review = new ComplaintQCReviewDto
+            {
+                Id = (int)row.Id,
+                ComplaintHeaderId = (int)row.ComplaintHeaderId,
+                ComplaintNumber = (string?)row.ComplaintNumber,
+                ComplaintDate = row.ComplaintDate != null ? DateOnly.FromDateTime((DateTime)row.ComplaintDate) : null,
+                PhysicalVerificationId = (int)row.PhysicalVerificationId,
+                PhysicalVerificationName = (string?)row.PhysicalVerificationName,
+                ComplaintStatusId = (int?)row.ComplaintStatusId,
+                ComplaintStatusName = (string?)row.ComplaintStatusName,
+                SeverityId = (int?)row.SeverityId,
+                SeverityName = (string?)row.SeverityName,
+                CompensationStructureId = (int?)row.CompensationStructureId,
+                CompensationStructureName = (string?)row.CompensationStructureName,
+                LabVerificationRequired = (bool)row.LabVerificationRequired,
+                LabResponsiblePersonId = (int?)row.LabResponsiblePersonId,
+                ExpectedResolutionDate = row.ExpectedResolutionDate != null ? DateOnly.FromDateTime((DateTime)row.ExpectedResolutionDate) : null,
+                Comments = (string?)row.Comments,
+                ReviewedBy = (int?)row.ReviewedBy,
+                ReviewedDate = (DateTimeOffset?)row.ReviewedDate,
+                DecisionTimestamp = (DateTimeOffset?)row.DecisionTimestamp,
+                IsActive = (bool)row.IsActive,
+                IsDeleted = (bool)row.IsDeleted
+            };
+
+            int? customerId = (int?)row.CustomerId;
 
             // Get assignments
             var assignmentSql = @"
@@ -201,12 +262,23 @@ namespace SalesManagement.Infrastructure.Repositories.ComplaintQCReview
             }
 
             // Populate customer name
-            var customerIdSql = "SELECT CustomerId FROM Sales.ComplaintHeader WHERE Id = @Id AND IsDeleted = 0;";
-            var customerId = await _dbConnection.ExecuteScalarAsync<int?>(customerIdSql, new { Id = review.ComplaintHeaderId });
             if (customerId.HasValue)
             {
                 var party = await _partyLookup.GetByIdAsync(customerId.Value);
                 review.CustomerName = party?.PartyName;
+            }
+
+            // Populate item name from first complaint detail
+            var itemSql = @"
+                SELECT TOP 1 cd.ItemId
+                FROM Sales.ComplaintDetail cd
+                WHERE cd.ComplaintHeaderId = @ComplaintHeaderId AND cd.IsDeleted = 0;";
+            var itemId = await _dbConnection.ExecuteScalarAsync<int?>(itemSql, new { review.ComplaintHeaderId });
+            if (itemId.HasValue)
+            {
+                var items = await _itemLookup.GetByIdsAsync(new[] { itemId.Value });
+                var item = items.FirstOrDefault();
+                review.ItemName = item?.ItemName;
             }
 
             review.Assignments = assignments;
