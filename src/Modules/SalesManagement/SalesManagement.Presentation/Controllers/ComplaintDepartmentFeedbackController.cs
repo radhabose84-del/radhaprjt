@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using SalesManagement.Application.ComplaintDepartmentFeedback.Commands.RequestRework;
 using SalesManagement.Application.ComplaintDepartmentFeedback.Commands.SubmitFeedback;
 using SalesManagement.Application.ComplaintDepartmentFeedback.Commands.UpdateFeedback;
+using SalesManagement.Application.ComplaintDepartmentFeedback.Commands.UploadAttachment;
 using SalesManagement.Application.ComplaintDepartmentFeedback.Queries.GetAllFeedback;
 using SalesManagement.Application.ComplaintDepartmentFeedback.Queries.GetFeedbackByAssignment;
 using SalesManagement.Application.ComplaintDepartmentFeedback.Queries.GetFeedbackById;
@@ -93,6 +94,20 @@ namespace SalesManagement.Presentation.Controllers
                 StatusCode = StatusCodes.Status200OK,
                 data = result.Data,
                 TotalCount = result.TotalCount
+            });
+        }
+
+        [HttpPost("upload-attachment")]
+        public async Task<IActionResult> UploadAttachment([FromForm] UploadFeedbackAttachmentCommand command)
+        {
+            var result = await Mediator.Send(command);
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                isSuccess = true,
+                message = "Attachment uploaded successfully.",
+                data = result
             });
         }
 
