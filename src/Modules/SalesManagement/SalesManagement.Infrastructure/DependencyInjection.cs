@@ -79,7 +79,9 @@ using SalesManagement.Infrastructure.Repositories.Complaint;
 using SalesManagement.Application.Common.Interfaces.IComplaintQCReview;
 using SalesManagement.Infrastructure.Repositories.ComplaintQCReview;
 using SalesManagement.Application.Common.Interfaces.IComplaintDepartmentFeedback;
+using SalesManagement.Application.Common.Interfaces.IComplaintResolution;
 using SalesManagement.Infrastructure.Repositories.ComplaintDepartmentFeedback;
+using SalesManagement.Infrastructure.Repositories.ComplaintResolution;
 using Contracts.Interfaces.Lookups.Sales;
 using SalesManagement.Infrastructure.Repositories.Lookups.Sales;
 
@@ -291,6 +293,10 @@ namespace SalesManagement.Infrastructure
             // ── Complaint Department Feedback Repositories ──────────────────────
             services.AddScoped<IComplaintDepartmentFeedbackCommandRepository, ComplaintDepartmentFeedbackCommandRepository>();
             services.AddScoped<IComplaintDepartmentFeedbackQueryRepository, ComplaintDepartmentFeedbackQueryRepository>();
+
+            // ── Complaint Resolution Repositories ───────────────────────────────
+            services.AddScoped<IComplaintResolutionCommandRepository, ComplaintResolutionCommandRepository>();
+            services.AddScoped<IComplaintResolutionQueryRepository, ComplaintResolutionQueryRepository>();
 
             // ── Stock Ledger Report Repository ───────────────────────────────────
             services.AddScoped<IStockLedgerReportRepository, StockLedgerReportRepository>();

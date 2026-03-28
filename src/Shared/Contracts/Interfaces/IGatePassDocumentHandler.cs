@@ -20,12 +20,12 @@ namespace Contracts.Interfaces
         /// Marks the document as gate-passed (e.g. sets GEFlag = 1).
         /// Called within the GatePass creation transaction for atomicity.
         /// </summary>
-        Task MarkAsGatePassedAsync(int documentId, DbConnection connection, DbTransaction transaction);
+        Task MarkAsGatePassedAsync(int documentId, int unitId, DbConnection connection, DbTransaction transaction);
 
         /// <summary>
         /// Reverts the gate-passed flag (e.g. sets GEFlag = 0).
         /// Called within the GatePass deletion transaction for atomicity.
         /// </summary>
-        Task RevertGatePassAsync(int documentId, DbConnection connection, DbTransaction transaction);
+        Task RevertGatePassAsync(int documentId, int unitId, DbConnection connection, DbTransaction transaction);
     }
 }

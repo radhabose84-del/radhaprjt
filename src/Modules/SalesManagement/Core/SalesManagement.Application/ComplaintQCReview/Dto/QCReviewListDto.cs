@@ -15,5 +15,6 @@ namespace SalesManagement.Application.ComplaintQCReview.Dto
         public string? ReviewedByName { get; set; }
         public DateTimeOffset? ReviewedDate { get; set; }
         public int CustomerId { get; set; }
+        public string? ReviewStatus { get; set; }
     }
 }

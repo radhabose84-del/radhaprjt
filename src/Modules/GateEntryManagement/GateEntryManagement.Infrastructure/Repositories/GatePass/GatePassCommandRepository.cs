@@ -49,6 +49,8 @@ namespace GateEntryManagement.Infrastructure.Repositories.GatePass
                     // Mark documents as gate-passed via Strategy pattern
                     if (entity.GatePassDetails != null && entity.GatePassDetails.Count > 0)
                     {
+                        var unitId = _ipAddressService.GetUnitId() ?? 0;
+
                         // Build handler lookup: DocTypeId → TypeName → Handler
                         var docTypeIds = entity.GatePassDetails.Select(d => d.DocTypeId).Distinct().ToList();
                         var transactionTypes = await _documentSequenceLookup.GetTransactionTypesByIdsAsync(docTypeIds);
@@ -65,7 +67,7 @@ namespace GateEntryManagement.Infrastructure.Repositories.GatePass
 
                                 if (handler != null)
                                 {
-                                    await handler.MarkAsGatePassedAsync(detail.DocId, dbConnection, dbTransaction);
+                                    await handler.MarkAsGatePassedAsync(detail.DocId, unitId, dbConnection, dbTransaction);
                                 }
                             }
                         }
@@ -116,6 +118,8 @@ namespace GateEntryManagement.Infrastructure.Repositories.GatePass
                     // Revert GEFlag = 0 on linked documents (Invoice, DC) via Strategy pattern
                     if (existing.GatePassDetails != null && existing.GatePassDetails.Count > 0)
                     {
+                        var unitId = _ipAddressService.GetUnitId() ?? 0;
+
                         var docTypeIds = existing.GatePassDetails.Select(d => d.DocTypeId).Distinct().ToList();
                         var transactionTypes = await _documentSequenceLookup.GetTransactionTypesByIdsAsync(docTypeIds, ct);
                         var typeNameMap = transactionTypes.ToDictionary(t => t.Id, t => t.TypeName ?? string.Empty);
@@ -131,7 +135,7 @@ namespace GateEntryManagement.Infrastructure.Repositories.GatePass
 
                                 if (handler != null)
                                 {
-                                    await handler.RevertGatePassAsync(detail.DocId, dbConnection, dbTransaction);
+                                    await handler.RevertGatePassAsync(detail.DocId, unitId, dbConnection, dbTransaction);
                                 }
                             }
                         }
