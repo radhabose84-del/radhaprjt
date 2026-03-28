@@ -1,3 +1,4 @@
+using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Workflow;
 using FluentValidation;
 using SalesManagement.Application.Common.Interfaces.ISalesOrder;
@@ -13,14 +14,17 @@ namespace SalesManagement.Presentation.Validation.SalesOrder
         private readonly List<ValidationRule> _validationRules;
         private readonly ISalesOrderQueryRepository _queryRepository;
         private readonly IWorkflowLookup _workflowLookup;
+        private readonly IIPAddressService _ipAddressService;
 
         public CreateSalesOrderCommandValidator(
             MaxLengthProvider maxLengthProvider,
             ISalesOrderQueryRepository queryRepository,
-            IWorkflowLookup workflowLookup)
+            IWorkflowLookup workflowLookup,
+            IIPAddressService ipAddressService)
         {
             _queryRepository = queryRepository;
             _workflowLookup = workflowLookup;
+            _ipAddressService = ipAddressService;
 
             var maxLengthRemarks = maxLengthProvider.GetMaxLength<Domain.Entities.SalesOrderHeader>("Remarks") ?? 500;
 
@@ -79,6 +83,13 @@ namespace SalesManagement.Presentation.Validation.SalesOrder
                             .WithMessage($"EnquiryType {rule.Error}")
                             .NotEmpty()
                             .WithMessage($"EnquiryType {rule.Error}")
+                            .When(x => x.SalesOrderDetails != null);
+
+                        RuleFor(x => x.SalesOrderDetails!.SalesOrderTypeId)
+                            .NotNull()
+                            .WithMessage($"SalesOrderTypeId {rule.Error}")
+                            .NotEmpty()
+                            .WithMessage($"SalesOrderTypeId {rule.Error}")
                             .When(x => x.SalesOrderDetails != null);
 
                         RuleFor(x => x.SalesOrderDetails!.SalesOrderDetails)
@@ -241,14 +252,18 @@ namespace SalesManagement.Presentation.Validation.SalesOrder
                         break;
 
                     case "Workflow":
-                        RuleFor(x => x.SalesOrderDetails!.UnitId)
-                            .MustAsync(async (unitId, cancellation) =>
-                                await _workflowLookup.IsApproveWorkflowConfigureAsync(
+                        RuleFor(x => x.SalesOrderDetails)
+                            .MustAsync(async (details, cancellation) =>
+                            {
+                                var orderUnitId = _ipAddressService.GetUnitId() ?? 0;
+                                if (orderUnitId <= 0) return false;
+                                return await _workflowLookup.IsApproveWorkflowConfigureAsync(
                                     MiscEnumEntity.TransactionTypeSalesOrder,
-                                    unitId,
-                                    0))
+                                    orderUnitId,
+                                    0);
+                            })
                             .WithMessage(rule.Error)
-                            .When(x => x.SalesOrderDetails != null && x.SalesOrderDetails.UnitId > 0);
+                            .When(x => x.SalesOrderDetails != null);
                         break;
 
                     default:
