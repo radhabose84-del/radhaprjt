@@ -115,6 +115,25 @@ namespace SalesManagement.Domain.Common
         // Root Cause Category
         public const string RootCauseCategory = "RootCauseCategory";
 
+        // Resolution Type
+        public const string ResolutionType = "ResolutionType";
+        public const string ResolutionSalesReturn = "Sales Return";
+        public const string ResolutionCreditNote = "Credit Note";
+        public const string ResolutionReplacement = "Replacement";
+        public const string ResolutionReprocess = "Reprocess";
+        public const string ResolutionNoAction = "No Action";
+
+        // Return Status
+        public const string ReturnStatus = "ReturnStatus";
+        public const string ReturnStatusPending = "Pending";
+        public const string ReturnStatusReceived = "Received";
+
+        // Closure Status
+        public const string ClosureStatus = "ClosureStatus";
+        public const string ClosureStatusOpen = "Open";
+        public const string ClosureStatusReadyForClosure = "Ready for Closure";
+        public const string ClosureStatusClosed = "Closed";
+
         // STO Receipt Status
         public const string StoReceiptLineStatus = "StoReceiptLineStatus";
         public const string StoReceiptStatusPending = "Pending";

@@ -43,6 +43,9 @@ namespace SalesManagement.Application.ComplaintQCReview.Dto
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }
 
+        // Derived Review Status (based on assignment feedbacks)
+        public string? ReviewStatus { get; set; }
+
         // Assignments
         public List<ComplaintQCReviewAssignmentDto>? Assignments { get; set; }
     }

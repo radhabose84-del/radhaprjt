@@ -26,6 +26,7 @@ namespace InventoryManagement.Domain.Entities
         public ICollection<ItemInventory>? ItemInventoryRequestType { get; set; }
         public ICollection<ItemInventory>? ItemInventoryValuationMethod { get; set; }
         public ICollection<ItemInventory>? ItemInventoryDefaultMaterialRequestType { get; set; }
+        public ICollection<ItemSale>? ItemSaleValuationMethod { get; set; }
         public ICollection<ItemManufacture>? ItemManufactureType { get; set; }
         public ICollection<ItemQuality>? ItemQualityCertificateType { get; set; }
         public ICollection<ItemVariantAttribute>? ItemAttribute { get; set; }

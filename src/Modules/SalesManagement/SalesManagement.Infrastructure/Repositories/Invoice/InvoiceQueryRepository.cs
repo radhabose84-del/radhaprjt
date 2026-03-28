@@ -797,7 +797,7 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                 const string officerAgentSql = @"
                     SELECT oa.AgentId
                     FROM Sales.OfficerAgent oa
-                    WHERE oa.Id = @AgentId AND oa.IsDeleted = 0";
+                    WHERE oa.Id = @AgentId AND oa.IsActive = 1";
 
                 var agentPartyId = await _dbConnection.QueryFirstOrDefaultAsync<int?>(
                     officerAgentSql, new { AgentId = header.AgentId.Value });

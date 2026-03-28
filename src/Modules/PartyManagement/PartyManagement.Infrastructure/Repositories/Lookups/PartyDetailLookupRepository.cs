@@ -26,7 +26,7 @@ namespace PartyManagement.Infrastructure.Repositories.Lookups
                 FROM Party.PartyMaster pm
                 LEFT JOIN Party.PartyAddress pa ON pa.PartyId = pm.Id
                 LEFT JOIN Party.PartyContact pc ON pc.PartyId = pm.Id
-                WHERE pm.Id = @PartyId AND pm.IsDeleted = 0";
+                WHERE pm.Id = @PartyId";
 
             return await _dbConnection.QueryFirstOrDefaultAsync<PartyDetailLookupDto>(
                 new CommandDefinition(sql, new { PartyId = partyId }, cancellationToken: ct));
