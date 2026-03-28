@@ -27,6 +27,10 @@ namespace SalesManagement.Application.SalesOrder.Dto
         public int? SalesOrderTypeId { get; set; }
         public string? SalesOrderTypeName { get; set; }
 
+        // Order Unit (captured from JWT at creation)
+        public int? OrderUnitId { get; set; }
+        public string? OrderUnitName { get; set; }
+
         // Commercial Details
         public int? DiscountPlanId { get; set; }
         public string? DiscountPlanName { get; set; }
