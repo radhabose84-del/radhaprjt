@@ -15,6 +15,7 @@ using ProductionManagement.Application.Common.Interfaces.IMiscMaster;
 using ProductionManagement.Application.Common.Interfaces.IMiscTypeMaster;
 using ProductionManagement.Application.Common.Interfaces.IPackType;
 using ProductionManagement.Application.Common.Interfaces.IProductionPack;
+using ProductionManagement.Application.Common.Interfaces.IRepacking;
 using ProductionManagement.Application.Common.Interfaces.IProcessMaster;
 using ProductionManagement.Application.Common.Interfaces.IQualityMaster;
 using ProductionManagement.Application.Common.Interfaces.ICertificationMaster;
@@ -134,6 +135,10 @@ namespace ProductionManagement.Infrastructure
             // Pack Allocation repositories
             services.AddScoped<IProductionCommandRepository, Repositories.ProductionPack.ProductionCommandRepository>();
             services.AddScoped<IProductionQueryRepository, Repositories.ProductionPack.ProductionQueryRepository>();
+
+            // Repacking repositories
+            services.AddScoped<IRepackingCommandRepository, Repositories.Repacking.RepackingCommandRepository>();
+            services.AddScoped<IRepackingQueryRepository, Repositories.Repacking.RepackingQueryRepository>();
 
             // ProcessMaster repositories
             services.AddScoped<IProcessMasterCommandRepository, ProcessMasterCommandRepository>();

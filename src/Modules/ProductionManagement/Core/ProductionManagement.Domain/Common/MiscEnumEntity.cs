@@ -13,8 +13,12 @@ namespace ProductionManagement.Domain.Common
         public const string QualityStatus = "QualityStatus";
         public const string Packed = "Packed";
 
+        // Stock Status
+        public const string Deleted = "Deleted";
+
         // Document Sequence - Transaction Types
         public const string TransactionTypePackMaster = "PackMaster";
+        public const string TransactionTypeRePackMaster = "RePackEntry";
         public const string ModuleSales = "Sales";
     }
 }

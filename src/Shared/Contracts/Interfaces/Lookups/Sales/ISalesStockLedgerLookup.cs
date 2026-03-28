@@ -6,5 +6,16 @@ namespace Contracts.Interfaces.Lookups.Sales
     {
         Task<bool> InsertAsync(List<SalesStockLedgerDto> entries, CancellationToken ct = default);
         Task<bool> DeleteByDocAsync(string docType, int docNo, CancellationToken ct = default);
+
+        /// <summary>
+        /// Updates StatusId for all packs in the given range within a document,
+        /// only if their current StatusId matches <paramref name="currentStatusId"/>.
+        /// Used by Repacking to mark source packs as Deleted before inserting new RPK entries.
+        /// </summary>
+        Task<bool> UpdateStatusByPackRangeAsync(
+            string docType, int docNo,
+            int startPackNo, int endPackNo,
+            int currentStatusId, int newStatusId,
+            CancellationToken ct = default);
     }
 }
