@@ -8,6 +8,7 @@ using SalesManagement.Application.Invoice.Queries.GetInvoiceAutoComplete;
 using SalesManagement.Application.Invoice.Queries.GetInvoiceById;
 using SalesManagement.Application.Invoice.Queries.GetInvoiceGatePassPending;
 using SalesManagement.Application.Invoice.Queries.GetInvoicePending;
+using SalesManagement.Application.Invoice.Queries.GetInvoicePrintDetails;
 
 namespace SalesManagement.Presentation.Controllers
 {
@@ -110,6 +111,18 @@ namespace SalesManagement.Presentation.Controllers
                 statusCode = StatusCodes.Status200OK,
                 data = new { rows, totalCount = total, pageNumber, pageSize, searchTerm },
                 message = "Pending Invoice details fetched successfully."
+            });
+        }
+
+        [HttpGet("{id}/print")]
+        public async Task<IActionResult> GetInvoicePrintDetailsAsync(int id)
+        {
+            var result = await Mediator.Send(new GetInvoicePrintDetailsQuery(id));
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result
             });
         }
 

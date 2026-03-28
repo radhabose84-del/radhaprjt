@@ -114,6 +114,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             existingEntity.TCSPercentage = entity.TCSPercentage;
             existingEntity.TotalTCS = entity.TotalTCS;
             existingEntity.FinalAmount = entity.FinalAmount;
+            existingEntity.SalesOrderTypeId = entity.SalesOrderTypeId;
             existingEntity.IsActive = entity.IsActive;
 
             // Remove existing details from SalesOrderDetail table

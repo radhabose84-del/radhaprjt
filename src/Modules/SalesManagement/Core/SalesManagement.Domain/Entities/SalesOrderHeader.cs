@@ -15,6 +15,9 @@ namespace SalesManagement.Domain.Entities
         public int PartyId { get; set; }                 // Cross-module FK (PartyManagement)
         public int? AgentId { get; set; }                // Cross-module FK (PartyManagement) — nullable
 
+        // Sales Order Type (cross-module FK → Finance.TransactionTypeMaster)
+        public int? SalesOrderTypeId { get; set; }
+
         // Commercial Details
         public int? DiscountPlanId { get; set; }
         public int PaymentTermsId { get; set; }          // Cross-module FK (PurchaseManagement)

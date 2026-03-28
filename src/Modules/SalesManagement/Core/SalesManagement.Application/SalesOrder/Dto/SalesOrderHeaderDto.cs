@@ -23,6 +23,10 @@ namespace SalesManagement.Application.SalesOrder.Dto
         public int? AgentId { get; set; }
         public string? AgentName { get; set; }
 
+        // Sales Order Type
+        public int? SalesOrderTypeId { get; set; }
+        public string? SalesOrderTypeName { get; set; }
+
         // Commercial Details
         public int? DiscountPlanId { get; set; }
         public string? DiscountPlanName { get; set; }

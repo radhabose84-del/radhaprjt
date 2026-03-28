@@ -16,9 +16,13 @@ using ProductionManagement.Application.Common.Interfaces.IMiscTypeMaster;
 using ProductionManagement.Application.Common.Interfaces.IPackType;
 using ProductionManagement.Application.Common.Interfaces.IProductionPack;
 using ProductionManagement.Application.Common.Interfaces.IProcessMaster;
+using ProductionManagement.Application.Common.Interfaces.IQualityMaster;
+using ProductionManagement.Application.Common.Interfaces.ICertificationMaster;
 using Contracts.Interfaces.Lookups.Production;
 using ProductionManagement.Infrastructure.Repositories.Lookups.Production;
 using ProductionManagement.Infrastructure.Repositories.ProcessMaster;
+using ProductionManagement.Infrastructure.Repositories.QualityMaster;
+using ProductionManagement.Infrastructure.Repositories.CertificationMaster;
 using ProductionManagement.Infrastructure.Data;
 using ProductionManagement.Infrastructure.Persistence;
 using ProductionManagement.Infrastructure.Repositories.AuditLog;
@@ -133,6 +137,14 @@ namespace ProductionManagement.Infrastructure
             services.AddScoped<IProcessMasterCommandRepository, ProcessMasterCommandRepository>();
             services.AddScoped<IProcessMasterQueryRepository, ProcessMasterQueryRepository>();
 
+            // QualityMaster repositories
+            services.AddScoped<IQualityMasterCommandRepository, QualityMasterCommandRepository>();
+            services.AddScoped<IQualityMasterQueryRepository, QualityMasterQueryRepository>();
+
+            // CertificationMaster repositories
+            services.AddScoped<ICertificationMasterCommandRepository, CertificationMasterCommandRepository>();
+            services.AddScoped<ICertificationMasterQueryRepository, CertificationMasterQueryRepository>();
+
             // Lookup registration — caching is handled globally by AddLookupCaching() in Program.cs
             services.AddScoped<IYarnTypeLookup, YarnTypeLookupRepository>();
             services.AddScoped<ICountGroupLookup, CountGroupLookupRepository>();
@@ -140,6 +152,8 @@ namespace ProductionManagement.Infrastructure
             services.AddScoped<ILotMasterLookup, LotMasterLookupRepository>();
             services.AddScoped<IPackTypeLookup, PackTypeLookupRepository>();
             services.AddScoped<IProcessMasterLookup, ProcessMasterLookupRepository>();
+            services.AddScoped<IQualityMasterLookup, QualityMasterLookupRepository>();
+            services.AddScoped<ICertificationMasterLookup, CertificationMasterLookupRepository>();
 
             return services;
         }

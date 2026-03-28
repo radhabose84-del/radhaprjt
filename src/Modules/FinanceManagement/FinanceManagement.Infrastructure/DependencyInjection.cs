@@ -112,6 +112,9 @@ namespace FinanceManagement.Infrastructure
 
             // ── Lookup repositories (consumed by other modules via Contracts) ──
             services.AddScoped<IDocumentSequenceLookup, DocumentSequenceLookupRepository>();
+            services.AddScoped<ITransactionTypeLookup, TransactionTypeLookupRepository>();
+            services.AddScoped<IEInvoiceLookup, EInvoiceLookupRepository>();
+            services.AddScoped<IEWaybillLookup, EWaybillLookupRepository>();
 
             // ── NIC E-Invoice service ─────────────────────────────────────────
             // Named HttpClient for NIC API calls; base address is set dynamically

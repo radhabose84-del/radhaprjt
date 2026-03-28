@@ -1670,10 +1670,6 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("varchar(30)")
                         .HasColumnName("InvoiceNo");
 
-                    b.Property<int>("InvoiceType")
-                        .HasColumnType("int")
-                        .HasColumnName("InvoiceType");
-
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit")
                         .HasColumnName("IsActive");
@@ -1789,8 +1785,6 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.HasIndex("InvoiceNo")
                         .IsUnique()
                         .HasFilter("[InvoiceNo] IS NOT NULL");
-
-                    b.HasIndex("InvoiceType");
 
                     b.HasIndex("PartyId");
 
@@ -3277,6 +3271,10 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("varchar(30)")
                         .HasColumnName("SalesOrderNo");
 
+                    b.Property<int?>("SalesOrderTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("SalesOrderTypeId");
+
                     b.Property<int?>("SalesQuotationHeaderId")
                         .HasColumnType("int")
                         .HasColumnName("SalesQuotationHeaderId");
@@ -4563,12 +4561,6 @@ namespace SalesManagement.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "InvoiceTypeMisc")
-                        .WithMany("InvoiceHeadersAsInvoiceType")
-                        .HasForeignKey("InvoiceType")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "StatusMisc")
                         .WithMany("InvoiceHeadersAsStatus")
                         .HasForeignKey("StatusId")
@@ -4580,8 +4572,6 @@ namespace SalesManagement.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("DispatchAdviceHeader");
-
-                    b.Navigation("InvoiceTypeMisc");
 
                     b.Navigation("StatusMisc");
 
@@ -5102,8 +5092,6 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("DispatchAddressMappings");
 
                     b.Navigation("DispatchAdviceHeadersAsStatus");
-
-                    b.Navigation("InvoiceHeadersAsInvoiceType");
 
                     b.Navigation("InvoiceHeadersAsStatus");
 

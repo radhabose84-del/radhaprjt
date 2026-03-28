@@ -1,0 +1,19 @@
+namespace Contracts.Dtos.Lookups.Users
+{
+    public sealed class CompanyDetailLookupDto
+    {
+        public int CompanyId { get; set; }
+        public string? CompanyName { get; set; }
+        public string? LegalName { get; set; }
+        public string? GstNumber { get; set; }
+        public string? PanNumber { get; set; }
+        public string? Website { get; set; }
+        public string? AddressLine1 { get; set; }
+        public string? AddressLine2 { get; set; }
+        public int CityId { get; set; }
+        public int StateId { get; set; }
+        public string? PinCode { get; set; }
+        public string? Phone { get; set; }
+        public string? Email { get; set; }
+    }
+}
