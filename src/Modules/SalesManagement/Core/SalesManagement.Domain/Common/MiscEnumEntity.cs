@@ -106,6 +106,15 @@ namespace SalesManagement.Domain.Common
         public const string AssignmentPending = "Pending";
         public const string AssignmentSubmitted = "Submitted";
 
+        // Department Feedback Status
+        public const string FeedbackStatus = "FeedbackStatus";
+        public const string FeedbackPending = "Pending";
+        public const string FeedbackSubmitted = "Submitted";
+        public const string FeedbackReworkRequired = "Rework Required";
+
+        // Root Cause Category
+        public const string RootCauseCategory = "RootCauseCategory";
+
         // STO Receipt Status
         public const string StoReceiptLineStatus = "StoReceiptLineStatus";
         public const string StoReceiptStatusPending = "Pending";

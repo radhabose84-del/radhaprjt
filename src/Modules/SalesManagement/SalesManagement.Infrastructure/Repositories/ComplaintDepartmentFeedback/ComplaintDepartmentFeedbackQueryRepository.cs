@@ -1,0 +1,414 @@
+using System.Data;
+using Contracts.Interfaces.Lookups.Inventory;
+using Contracts.Interfaces.Lookups.Party;
+using Contracts.Interfaces.Lookups.Users;
+using Dapper;
+using SalesManagement.Application.Common.Interfaces.IComplaintDepartmentFeedback;
+using SalesManagement.Application.ComplaintDepartmentFeedback.Dto;
+
+namespace SalesManagement.Infrastructure.Repositories.ComplaintDepartmentFeedback
+{
+    public class ComplaintDepartmentFeedbackQueryRepository : IComplaintDepartmentFeedbackQueryRepository
+    {
+        private readonly IDbConnection _dbConnection;
+        private readonly IUserLookup _userLookup;
+        private readonly IPartyLookup _partyLookup;
+        private readonly IItemLookup _itemLookup;
+
+        public ComplaintDepartmentFeedbackQueryRepository(
+            IDbConnection dbConnection,
+            IUserLookup userLookup,
+            IPartyLookup partyLookup,
+            IItemLookup itemLookup)
+        {
+            _dbConnection = dbConnection;
+            _userLookup = userLookup;
+            _partyLookup = partyLookup;
+            _itemLookup = itemLookup;
+        }
+
+        public async Task<(List<FeedbackListDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
+        {
+            var searchFilter = string.IsNullOrWhiteSpace(searchTerm)
+                ? string.Empty
+                : @" AND (ch.ComplaintNumber LIKE @SearchTerm OR f.CorrectiveAction LIKE @SearchTerm OR f.RootCauseText LIKE @SearchTerm)";
+
+            var countSql = $@"
+                SELECT COUNT(*)
+                FROM Sales.ComplaintDepartmentFeedback f
+                INNER JOIN Sales.ComplaintQCReviewAssignment a ON f.AssignmentId = a.Id AND a.IsDeleted = 0
+                INNER JOIN Sales.ComplaintQCReview r ON a.ComplaintQCReviewId = r.Id AND r.IsDeleted = 0
+                INNER JOIN Sales.ComplaintHeader ch ON r.ComplaintHeaderId = ch.Id AND ch.IsDeleted = 0
+                WHERE f.IsDeleted = 0 {searchFilter};";
+
+            var dataSql = $@"
+                SELECT
+                    f.Id,
+                    f.AssignmentId,
+                    ch.ComplaintNumber,
+                    ch.CustomerId,
+                    role.Description AS RoleName,
+                    a.ResponsiblePersonId,
+                    fs.Description AS FeedbackStatusName,
+                    f.SubmittedDate,
+                    f.ReworkCount,
+                    a.IsMandatory,
+                    sev.Description AS SeverityName
+                FROM Sales.ComplaintDepartmentFeedback f
+                INNER JOIN Sales.ComplaintQCReviewAssignment a ON f.AssignmentId = a.Id AND a.IsDeleted = 0
+                INNER JOIN Sales.ComplaintQCReview r ON a.ComplaintQCReviewId = r.Id AND r.IsDeleted = 0
+                INNER JOIN Sales.ComplaintHeader ch ON r.ComplaintHeaderId = ch.Id AND ch.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster role ON a.RoleId = role.Id AND role.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster fs ON f.FeedbackStatusId = fs.Id AND fs.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster sev ON r.SeverityId = sev.Id AND sev.IsDeleted = 0
+                WHERE f.IsDeleted = 0 {searchFilter}
+                ORDER BY f.Id DESC
+                OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;";
+
+            var parameters = new
+            {
+                SearchTerm = $"%{searchTerm}%",
+                Offset = (pageNumber - 1) * pageSize,
+                PageSize = pageSize
+            };
+
+            var totalCount = await _dbConnection.ExecuteScalarAsync<int>(countSql, parameters);
+            var data = (await _dbConnection.QueryAsync<FeedbackListDto>(dataSql, parameters)).ToList();
+
+            if (data.Count > 0)
+            {
+                await PopulateListLookupNames(data);
+            }
+
+            return (data, totalCount);
+        }
+
+        public async Task<ComplaintDepartmentFeedbackDto?> GetByIdAsync(int id)
+        {
+            return await GetFeedbackAsync("f.Id = @Id", new { Id = id });
+        }
+
+        public async Task<ComplaintDepartmentFeedbackDto?> GetByAssignmentIdAsync(int assignmentId)
+        {
+            return await GetFeedbackAsync("f.AssignmentId = @AssignmentId", new { AssignmentId = assignmentId });
+        }
+
+        public async Task<List<FeedbackListDto>> GetByComplaintIdAsync(int complaintHeaderId)
+        {
+            const string sql = @"
+                SELECT
+                    f.Id,
+                    f.AssignmentId,
+                    ch.ComplaintNumber,
+                    ch.CustomerId,
+                    role.Description AS RoleName,
+                    a.ResponsiblePersonId,
+                    fs.Description AS FeedbackStatusName,
+                    f.SubmittedDate,
+                    f.ReworkCount,
+                    a.IsMandatory,
+                    sev.Description AS SeverityName
+                FROM Sales.ComplaintDepartmentFeedback f
+                INNER JOIN Sales.ComplaintQCReviewAssignment a ON f.AssignmentId = a.Id AND a.IsDeleted = 0
+                INNER JOIN Sales.ComplaintQCReview r ON a.ComplaintQCReviewId = r.Id AND r.IsDeleted = 0
+                INNER JOIN Sales.ComplaintHeader ch ON r.ComplaintHeaderId = ch.Id AND ch.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster role ON a.RoleId = role.Id AND role.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster fs ON f.FeedbackStatusId = fs.Id AND fs.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster sev ON r.SeverityId = sev.Id AND sev.IsDeleted = 0
+                WHERE f.IsDeleted = 0 AND r.ComplaintHeaderId = @ComplaintHeaderId
+                ORDER BY f.Id DESC;";
+
+            var data = (await _dbConnection.QueryAsync<FeedbackListDto>(sql, new { ComplaintHeaderId = complaintHeaderId })).ToList();
+
+            if (data.Count > 0)
+            {
+                await PopulateListLookupNames(data);
+            }
+
+            return data;
+        }
+
+        public async Task<List<MyPendingFeedbackDto>> GetMyPendingAsync(int userId)
+        {
+            const string sql = @"
+                SELECT
+                    a.Id AS AssignmentId,
+                    f.Id AS FeedbackId,
+                    ch.ComplaintNumber,
+                    ch.CustomerId,
+                    ch.Remarks AS ComplaintDescription,
+                    sev.Description AS SeverityName,
+                    r.ExpectedResolutionDate,
+                    role.Description AS RoleName,
+                    CASE
+                        WHEN f.Id IS NULL THEN 'Pending'
+                        ELSE fs.Description
+                    END AS FeedbackStatus,
+                    f.ReworkReason
+                FROM Sales.ComplaintQCReviewAssignment a
+                INNER JOIN Sales.ComplaintQCReview r ON a.ComplaintQCReviewId = r.Id AND r.IsDeleted = 0
+                INNER JOIN Sales.ComplaintHeader ch ON r.ComplaintHeaderId = ch.Id AND ch.IsDeleted = 0
+                LEFT JOIN Sales.ComplaintDepartmentFeedback f ON f.AssignmentId = a.Id AND f.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster role ON a.RoleId = role.Id AND role.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster sev ON r.SeverityId = sev.Id AND sev.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster fs ON f.FeedbackStatusId = fs.Id AND fs.IsDeleted = 0
+                WHERE a.IsDeleted = 0
+                    AND a.ResponsiblePersonId = @UserId
+                    AND (f.Id IS NULL OR fs.Description IN ('Pending', 'Rework Required'))
+                ORDER BY a.Id DESC;";
+
+            var data = (await _dbConnection.QueryAsync<MyPendingFeedbackDto>(sql, new { UserId = userId })).ToList();
+
+            if (data.Count > 0)
+            {
+                // Populate CustomerName
+                var customerIds = data.Where(d => d.CustomerId > 0).Select(d => d.CustomerId).Distinct().ToList();
+                if (customerIds.Count > 0)
+                {
+                    var parties = await _partyLookup.GetByIdsAsync(customerIds);
+                    var partyDict = parties.ToDictionary(p => p.Id, p => p.PartyName);
+                    foreach (var item in data.Where(d => d.CustomerId > 0))
+                    {
+                        if (partyDict.TryGetValue(item.CustomerId, out var custName))
+                            item.CustomerName = custName;
+                    }
+                }
+
+                // Populate ProductName from first complaint detail
+                var complaintNumbers = data.Select(d => d.ComplaintNumber).Distinct().ToList();
+                var itemSql = @"
+                    SELECT ch.ComplaintNumber, cd.ItemId
+                    FROM Sales.ComplaintDetail cd
+                    INNER JOIN Sales.ComplaintHeader ch ON cd.ComplaintHeaderId = ch.Id
+                    WHERE ch.ComplaintNumber IN @Numbers AND cd.IsDeleted = 0;";
+                var detailItems = (await _dbConnection.QueryAsync<(string ComplaintNumber, int ItemId)>(
+                    itemSql, new { Numbers = complaintNumbers })).ToList();
+
+                if (detailItems.Count > 0)
+                {
+                    var itemIds = detailItems.Select(d => d.ItemId).Distinct().ToList();
+                    var items = await _itemLookup.GetByIdsAsync(itemIds);
+                    var itemDict = items.ToDictionary(i => i.Id, i => i.ItemName);
+
+                    var complaintItemDict = detailItems
+                        .GroupBy(d => d.ComplaintNumber)
+                        .ToDictionary(g => g.Key, g => g.First().ItemId);
+
+                    foreach (var item in data)
+                    {
+                        if (item.ComplaintNumber != null &&
+                            complaintItemDict.TryGetValue(item.ComplaintNumber, out var itemId) &&
+                            itemDict.TryGetValue(itemId, out var itemName))
+                        {
+                            item.ProductName = itemName;
+                        }
+                    }
+                }
+            }
+
+            return data;
+        }
+
+        public async Task<bool> NotFoundAsync(int id)
+        {
+            const string sql = "SELECT COUNT(1) FROM Sales.ComplaintDepartmentFeedback WHERE Id = @Id AND IsDeleted = 0;";
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = id });
+            return count == 0;
+        }
+
+        public async Task<bool> AssignmentExistsAsync(int assignmentId)
+        {
+            const string sql = "SELECT COUNT(1) FROM Sales.ComplaintQCReviewAssignment WHERE Id = @Id AND IsDeleted = 0;";
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = assignmentId });
+            return count > 0;
+        }
+
+        public async Task<bool> FeedbackAlreadyExistsForAssignmentAsync(int assignmentId)
+        {
+            const string sql = "SELECT COUNT(1) FROM Sales.ComplaintDepartmentFeedback WHERE AssignmentId = @AssignmentId AND IsDeleted = 0;";
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { AssignmentId = assignmentId });
+            return count > 0;
+        }
+
+        public async Task<int> GetResponsiblePersonIdAsync(int assignmentId)
+        {
+            const string sql = "SELECT ResponsiblePersonId FROM Sales.ComplaintQCReviewAssignment WHERE Id = @Id AND IsDeleted = 0;";
+            return await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = assignmentId });
+        }
+
+        public async Task<int> GetFeedbackStatusIdAsync(int feedbackId)
+        {
+            const string sql = "SELECT FeedbackStatusId FROM Sales.ComplaintDepartmentFeedback WHERE Id = @Id AND IsDeleted = 0;";
+            return await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = feedbackId });
+        }
+
+        public async Task<int> GetAssignmentIdByFeedbackIdAsync(int feedbackId)
+        {
+            const string sql = "SELECT AssignmentId FROM Sales.ComplaintDepartmentFeedback WHERE Id = @Id AND IsDeleted = 0;";
+            return await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = feedbackId });
+        }
+
+        public async Task<bool> MiscMasterExistsAsync(int id)
+        {
+            const string sql = "SELECT COUNT(1) FROM Sales.MiscMaster WHERE Id = @Id AND IsActive = 1 AND IsDeleted = 0;";
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = id });
+            return count > 0;
+        }
+
+        public async Task<(int ReworkCount, int FeedbackStatusId)> GetReworkInfoAsync(int feedbackId)
+        {
+            const string sql = "SELECT ReworkCount, FeedbackStatusId FROM Sales.ComplaintDepartmentFeedback WHERE Id = @Id AND IsDeleted = 0;";
+            var result = await _dbConnection.QueryFirstOrDefaultAsync<(int ReworkCount, int FeedbackStatusId)?>(sql, new { Id = feedbackId });
+            return result ?? (0, 0);
+        }
+
+        private async Task<ComplaintDepartmentFeedbackDto?> GetFeedbackAsync(string whereClause, object parameters)
+        {
+            var sql = $@"
+                SELECT
+                    f.Id,
+                    f.AssignmentId,
+                    r.ComplaintHeaderId,
+                    ch.ComplaintNumber,
+                    ch.ComplaintDate,
+                    ch.CustomerId,
+                    sev.Description AS SeverityName,
+                    r.ExpectedResolutionDate,
+                    role.Description AS RoleName,
+                    a.ResponsiblePersonId,
+                    a.IsMandatory,
+                    f.RootCauseText,
+                    f.RootCauseCategoryId,
+                    rcc.Description AS RootCauseCategoryName,
+                    f.CorrectiveAction,
+                    f.PreventiveAction,
+                    f.Remarks,
+                    f.FeedbackStatusId,
+                    fs.Description AS FeedbackStatusName,
+                    f.SubmittedBy,
+                    f.SubmittedDate,
+                    f.ReworkCount,
+                    f.ReworkReason,
+                    f.IsActive,
+                    f.CreatedBy,
+                    f.CreatedByName,
+                    f.CreatedDate,
+                    f.ModifiedBy,
+                    f.ModifiedByName,
+                    f.ModifiedDate
+                FROM Sales.ComplaintDepartmentFeedback f
+                INNER JOIN Sales.ComplaintQCReviewAssignment a ON f.AssignmentId = a.Id AND a.IsDeleted = 0
+                INNER JOIN Sales.ComplaintQCReview r ON a.ComplaintQCReviewId = r.Id AND r.IsDeleted = 0
+                INNER JOIN Sales.ComplaintHeader ch ON r.ComplaintHeaderId = ch.Id AND ch.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster role ON a.RoleId = role.Id AND role.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster fs ON f.FeedbackStatusId = fs.Id AND fs.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster sev ON r.SeverityId = sev.Id AND sev.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster rcc ON f.RootCauseCategoryId = rcc.Id AND rcc.IsDeleted = 0
+                WHERE f.IsDeleted = 0 AND {whereClause};";
+
+            var rows = (await _dbConnection.QueryAsync(sql, parameters)).ToList();
+            if (rows.Count == 0)
+                return null;
+
+            var row = rows[0];
+            var dto = new ComplaintDepartmentFeedbackDto
+            {
+                Id = (int)row.Id,
+                AssignmentId = (int)row.AssignmentId,
+                ComplaintHeaderId = (int)row.ComplaintHeaderId,
+                ComplaintNumber = (string?)row.ComplaintNumber,
+                ComplaintDate = row.ComplaintDate != null ? DateOnly.FromDateTime((DateTime)row.ComplaintDate) : null,
+                SeverityName = (string?)row.SeverityName,
+                ExpectedResolutionDate = row.ExpectedResolutionDate != null ? DateOnly.FromDateTime((DateTime)row.ExpectedResolutionDate) : null,
+                RoleName = (string?)row.RoleName,
+                ResponsiblePersonId = (int)row.ResponsiblePersonId,
+                IsMandatory = (bool)row.IsMandatory,
+                RootCauseText = (string?)row.RootCauseText,
+                RootCauseCategoryId = (int?)row.RootCauseCategoryId,
+                RootCauseCategoryName = (string?)row.RootCauseCategoryName,
+                CorrectiveAction = (string?)row.CorrectiveAction,
+                PreventiveAction = (string?)row.PreventiveAction,
+                Remarks = (string?)row.Remarks,
+                FeedbackStatusId = (int)row.FeedbackStatusId,
+                FeedbackStatusName = (string?)row.FeedbackStatusName,
+                SubmittedBy = (int?)row.SubmittedBy,
+                SubmittedDate = (DateTimeOffset?)row.SubmittedDate,
+                ReworkCount = (int)row.ReworkCount,
+                ReworkReason = (string?)row.ReworkReason,
+                IsActive = (bool)row.IsActive,
+                CreatedBy = (int)row.CreatedBy,
+                CreatedByName = (string?)row.CreatedByName,
+                CreatedDate = (DateTimeOffset?)row.CreatedDate,
+                ModifiedBy = (int?)row.ModifiedBy,
+                ModifiedByName = (string?)row.ModifiedByName,
+                ModifiedDate = (DateTimeOffset?)row.ModifiedDate
+            };
+
+            int? customerId = (int?)row.CustomerId;
+
+            // Populate cross-module user names
+            var userIds = new List<int>();
+            if (dto.SubmittedBy.HasValue) userIds.Add(dto.SubmittedBy.Value);
+            userIds.Add(dto.ResponsiblePersonId);
+
+            if (userIds.Count > 0)
+            {
+                var users = await _userLookup.GetByIdsAsync(userIds.Distinct());
+                var userDict = users.ToDictionary(u => u.UserId, u => $"{u.FirstName} {u.LastName}".Trim());
+
+                if (dto.SubmittedBy.HasValue && userDict.TryGetValue(dto.SubmittedBy.Value, out var submitterName))
+                    dto.SubmittedByName = submitterName;
+
+                if (userDict.TryGetValue(dto.ResponsiblePersonId, out var personName))
+                    dto.ResponsiblePersonName = personName;
+            }
+
+            // Populate customer name
+            if (customerId.HasValue)
+            {
+                var party = await _partyLookup.GetByIdAsync(customerId.Value);
+                dto.CustomerName = party?.PartyName;
+            }
+
+            // Get attachments
+            const string attachmentSql = @"
+                SELECT Id, FeedbackId, FileName, FilePath, FileType, FileSize
+                FROM Sales.ComplaintFeedbackAttachment
+                WHERE FeedbackId = @FeedbackId AND IsDeleted = 0;";
+
+            dto.Attachments = (await _dbConnection.QueryAsync<ComplaintFeedbackAttachmentDto>(
+                attachmentSql, new { FeedbackId = dto.Id })).ToList();
+
+            return dto;
+        }
+
+        private async Task PopulateListLookupNames(List<FeedbackListDto> data)
+        {
+            // Populate CustomerName from party lookup
+            var customerIds = data.Where(d => d.CustomerId > 0).Select(d => d.CustomerId).Distinct().ToList();
+            if (customerIds.Count > 0)
+            {
+                var parties = await _partyLookup.GetByIdsAsync(customerIds);
+                var partyDict = parties.ToDictionary(p => p.Id, p => p.PartyName);
+                foreach (var item in data.Where(d => d.CustomerId > 0))
+                {
+                    if (partyDict.TryGetValue(item.CustomerId, out var custName))
+                        item.CustomerName = custName;
+                }
+            }
+
+            // Populate ResponsiblePersonName from user lookup
+            var personIds = data.Select(d => d.ResponsiblePersonId).Distinct().ToList();
+            if (personIds.Count > 0)
+            {
+                var users = await _userLookup.GetByIdsAsync(personIds);
+                var userDict = users.ToDictionary(u => u.UserId, u => $"{u.FirstName} {u.LastName}".Trim());
+                foreach (var item in data)
+                {
+                    if (userDict.TryGetValue(item.ResponsiblePersonId, out var name))
+                        item.ResponsiblePersonName = name;
+                }
+            }
+        }
+    }
+}

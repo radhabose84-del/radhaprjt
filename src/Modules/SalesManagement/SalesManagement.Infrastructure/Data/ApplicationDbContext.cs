@@ -70,6 +70,8 @@ namespace SalesManagement.Infrastructure.Data
         public DbSet<ComplaintDetailNature> ComplaintDetailNature { get; set; }
         public DbSet<ComplaintQCReview> ComplaintQCReview { get; set; }
         public DbSet<ComplaintQCReviewAssignment> ComplaintQCReviewAssignment { get; set; }
+        public DbSet<ComplaintDepartmentFeedback> ComplaintDepartmentFeedback { get; set; }
+        public DbSet<ComplaintFeedbackAttachment> ComplaintFeedbackAttachment { get; set; }
 
         // ── Outbox (SQL-based for workflow transaction atomicity) ─────────
         public DbSet<OutboxMessage> OutboxMessages { get; set; }
@@ -121,6 +123,8 @@ namespace SalesManagement.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new ComplaintDetailNatureConfiguration());
             modelBuilder.ApplyConfiguration(new ComplaintQCReviewConfiguration());
             modelBuilder.ApplyConfiguration(new ComplaintQCReviewAssignmentConfiguration());
+            modelBuilder.ApplyConfiguration(new ComplaintDepartmentFeedbackConfiguration());
+            modelBuilder.ApplyConfiguration(new ComplaintFeedbackAttachmentConfiguration());
             // ── Outbox (SQL-based for workflow) ─────────────────────────────
             modelBuilder.ApplyConfiguration(new OutboxMessageConfiguration());
 
