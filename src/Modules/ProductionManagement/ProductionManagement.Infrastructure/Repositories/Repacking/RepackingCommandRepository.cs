@@ -85,7 +85,7 @@ namespace ProductionManagement.Infrastructure.Repositories.Repacking
                                 newStockEntries.Add(new SalesStockLedgerDto
                                 {
                                     UnitId      = entity.UnitId,
-                                    DocType     = "RPK",
+                                    DocType     = "RPAK",
                                     DocNo       = entity.Id,
                                     DetailDocNo = detail.Id,
                                     DocDate     = entity.RepackingDate.ToDateTime(TimeOnly.MinValue),

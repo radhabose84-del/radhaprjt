@@ -17,5 +17,13 @@ namespace Contracts.Interfaces.Lookups.Sales
             int startPackNo, int endPackNo,
             int currentStatusId, int newStatusId,
             CancellationToken ct = default);
+
+        /// <summary>
+        /// Returns the distinct PackNos in the given range whose status Description = 'Packed'.
+        /// Used by Production query repo to filter details that still have available packed stock.
+        /// </summary>
+        Task<IReadOnlyList<int>> GetPackedPackNosAsync(
+            int startPackNo, int endPackNo,
+            CancellationToken ct = default);
     }
 }

@@ -1,5 +1,6 @@
 using System.Data;
 using System.Text;
+using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Production;
 using Contracts.Interfaces.Lookups.Users;
@@ -19,6 +20,7 @@ namespace SalesManagement.Infrastructure.Repositories.Reports.StockLedger
         private readonly IBinLookup _binLookup;
         private readonly IPackTypeLookup _packTypeLookup;
         private readonly ILotMasterLookup _lotMasterLookup;
+        private readonly IIPAddressService _ipAddressService;
 
         public StockLedgerReportRepository(
             IDbConnection dbConnection,
@@ -27,19 +29,20 @@ namespace SalesManagement.Infrastructure.Repositories.Reports.StockLedger
             IWarehouseLookup warehouseLookup,
             IBinLookup binLookup,
             IPackTypeLookup packTypeLookup,
-            ILotMasterLookup lotMasterLookup)
+            ILotMasterLookup lotMasterLookup,
+            IIPAddressService ipAddressService)
         {
-            _dbConnection = dbConnection;
-            _unitLookup = unitLookup;
-            _itemLookup = itemLookup;
+            _dbConnection    = dbConnection;
+            _unitLookup      = unitLookup;
+            _itemLookup      = itemLookup;
             _warehouseLookup = warehouseLookup;
-            _binLookup = binLookup;
-            _packTypeLookup = packTypeLookup;
+            _binLookup       = binLookup;
+            _packTypeLookup  = packTypeLookup;
             _lotMasterLookup = lotMasterLookup;
+            _ipAddressService = ipAddressService;
         }
 
         public async Task<(List<StockLedgerReportDto>, int)> GetReportAsync(
-            int unitId,
             int pageNumber,
             int pageSize,
             int? itemId,
@@ -51,8 +54,10 @@ namespace SalesManagement.Infrastructure.Repositories.Reports.StockLedger
             DateOnly? dateFrom,
             DateOnly? dateTo)
         {
-            var where = new StringBuilder("sl.UnitId = @UnitId");
+            var unitId = _ipAddressService.GetUnitId();
+            var where = new StringBuilder("1=1");
 
+            if (unitId.HasValue)      where.Append(" AND sl.UnitId = @UnitId");
             if (itemId.HasValue)      where.Append(" AND sl.ItemId = @ItemId");
             if (lotId.HasValue)       where.Append(" AND sl.LotId = @LotId");
             if (warehouseId.HasValue) where.Append(" AND sl.WarehouseId = @WarehouseId");

@@ -77,6 +77,8 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
 
         public async Task<(List<InvoiceHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
         {
+            var unitId = _ipAddressService.GetUnitId();
+            var unitFilter = unitId.HasValue ? "AND h.UnitId = @UnitId" : "";
             var searchFilter = string.IsNullOrWhiteSpace(searchTerm)
                 ? ""
                 : "AND (h.InvoiceNo LIKE @Search OR h.VehicleNumber LIKE @Search OR h.LRNumber LIKE @Search)";
@@ -85,7 +87,7 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                 DECLARE @TotalCount INT;
                 SELECT @TotalCount = COUNT(*)
                 FROM Sales.InvoiceHeader h
-                WHERE h.IsDeleted = 0 {searchFilter};
+                WHERE h.IsDeleted = 0 {unitFilter} {searchFilter};
 
                 SELECT h.Id, h.InvoiceNo, h.InvoiceDate,
                     h.DispatchAdviceId,
@@ -107,7 +109,7 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                 LEFT JOIN Sales.MiscMaster tm  ON h.TransportMode = tm.Id  AND tm.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster sm  ON h.StatusId      = sm.Id  AND sm.IsDeleted = 0
                 LEFT JOIN Sales.DispatchAdviceHeader da ON h.DispatchAdviceId = da.Id AND da.IsDeleted = 0
-                WHERE h.IsDeleted = 0 {searchFilter}
+                WHERE h.IsDeleted = 0 {unitFilter} {searchFilter}
                 ORDER BY h.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
 
@@ -115,6 +117,7 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
 
             var parameters = new
             {
+                UnitId = unitId,
                 Search = $"%{searchTerm}%",
                 Offset = (pageNumber - 1) * pageSize,
                 PageSize = pageSize
@@ -158,7 +161,10 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
 
         public async Task<InvoiceHeaderDto?> GetByIdAsync(int id)
         {
-            const string headerSql = @"
+            var unitId = _ipAddressService.GetUnitId();
+            var unitFilter = unitId.HasValue ? "AND h.UnitId = @UnitId" : "";
+
+            var headerSql = $@"
                 SELECT h.Id, h.InvoiceNo, h.InvoiceDate,
                     h.DispatchAdviceId,
                     da.DispatchNo,
@@ -179,9 +185,9 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                 LEFT JOIN Sales.MiscMaster tm  ON h.TransportMode = tm.Id  AND tm.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster sm  ON h.StatusId      = sm.Id  AND sm.IsDeleted = 0
                 LEFT JOIN Sales.DispatchAdviceHeader da ON h.DispatchAdviceId = da.Id AND da.IsDeleted = 0
-                WHERE h.Id = @Id AND h.IsDeleted = 0";
+                WHERE h.Id = @Id AND h.IsDeleted = 0 {unitFilter}";
 
-            var header = await _dbConnection.QueryFirstOrDefaultAsync<InvoiceHeaderDto>(headerSql, new { Id = id });
+            var header = await _dbConnection.QueryFirstOrDefaultAsync<InvoiceHeaderDto>(headerSql, new { Id = id, UnitId = unitId });
             if (header == null)
                 return null;
 
@@ -253,14 +259,18 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
 
         public async Task<IReadOnlyList<InvoiceLookupDto>> AutocompleteAsync(string term, CancellationToken ct)
         {
-            const string sql = @"
+            var unitId = _ipAddressService.GetUnitId();
+            var unitFilter = unitId.HasValue ? "AND h.UnitId = @UnitId" : "";
+
+            var sql = $@"
                 SELECT  h.Id, h.InvoiceNo, h.InvoiceDate, h.PartyId
                 FROM Sales.InvoiceHeader h
                 WHERE h.IsActive = 1 AND h.IsDeleted = 0
+                {unitFilter}
                 AND h.InvoiceNo LIKE @Term
                 ORDER BY h.InvoiceNo ASC";
 
-            var result = (await _dbConnection.QueryAsync<InvoiceLookupDto>(sql, new { Term = $"%{term}%" })).ToList();
+            var result = (await _dbConnection.QueryAsync<InvoiceLookupDto>(sql, new { Term = $"%{term}%", UnitId = unitId })).ToList();
 
             if (result.Count > 0)
             {
@@ -335,18 +345,23 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
 
         public async Task<bool> IsInvoicePendingAsync(int invoiceId)
         {
-            const string sql = @"
+            var unitId = _ipAddressService.GetUnitId();
+            var unitFilter = unitId.HasValue ? "AND h.UnitId = @UnitId" : "";
+
+            var sql = $@"
                 SELECT COUNT(1)
                 FROM Sales.InvoiceHeader h
                 INNER JOIN Sales.MiscMaster mm ON h.StatusId = mm.Id AND mm.IsDeleted = 0
                 INNER JOIN Sales.MiscTypeMaster mt ON mm.MiscTypeId = mt.Id AND mt.IsDeleted = 0
                 WHERE h.Id = @Id AND h.IsDeleted = 0
+                  {unitFilter}
                   AND mt.Description = @MiscType
                   AND mm.Code = @StatusCode";
 
             var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new
             {
                 Id = invoiceId,
+                UnitId = unitId,
                 MiscType = MiscEnumEntity.InvoiceApprovalStatus,
                 StatusCode = MiscEnumEntity.InvoiceStatusPending
             });
@@ -690,8 +705,11 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
 
         public async Task<InvoicePrintDto?> GetPrintDetailsAsync(int id)
         {
+            var unitId = _ipAddressService.GetUnitId();
+            var unitFilter = unitId.HasValue ? "AND h.UnitId = @UnitId" : "";
+
             // 1. Fetch invoice header with same-module JOINs
-            const string headerSql = @"
+            var headerSql = $@"
                 SELECT h.Id, h.InvoiceNo, h.InvoiceDate,
                     h.DispatchAdviceId, h.PartyId, h.AgentId, h.UnitId,
                     h.TransportMode, tm.Description AS TransportModeName,
@@ -704,9 +722,9 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                     h.Remarks, h.CreatedDate
                 FROM Sales.InvoiceHeader h
                 LEFT JOIN Sales.MiscMaster tm ON h.TransportMode = tm.Id AND tm.IsDeleted = 0
-                WHERE h.Id = @Id AND h.IsDeleted = 0";
+                WHERE h.Id = @Id AND h.IsDeleted = 0 {unitFilter}";
 
-            var header = await _dbConnection.QueryFirstOrDefaultAsync<PrintHeaderRawDto>(headerSql, new { Id = id });
+            var header = await _dbConnection.QueryFirstOrDefaultAsync<PrintHeaderRawDto>(headerSql, new { Id = id, UnitId = unitId });
             if (header == null)
                 return null;
 

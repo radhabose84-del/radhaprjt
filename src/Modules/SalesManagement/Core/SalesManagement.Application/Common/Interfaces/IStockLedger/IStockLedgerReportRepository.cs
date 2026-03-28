@@ -5,7 +5,6 @@ namespace SalesManagement.Application.Common.Interfaces.IStockLedger
     public interface IStockLedgerReportRepository
     {
         Task<(List<StockLedgerReportDto>, int)> GetReportAsync(
-            int unitId,
             int pageNumber,
             int pageSize,
             int? itemId,
