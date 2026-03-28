@@ -1,4 +1,5 @@
 using System.Data;
+using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Users;
 using Contracts.Interfaces.Lookups.Warehouse;
@@ -15,25 +16,31 @@ namespace ProductionManagement.Infrastructure.Repositories.Repacking
         private readonly IItemLookup _itemLookup;
         private readonly IWarehouseLookup _warehouseLookup;
         private readonly IBinLookup _binLookup;
+        private readonly IIPAddressService _ipAddressService;
 
         public RepackingQueryRepository(
             IDbConnection dbConnection,
             IUnitLookup unitLookup,
             IItemLookup itemLookup,
             IWarehouseLookup warehouseLookup,
-            IBinLookup binLookup)
+            IBinLookup binLookup,
+            IIPAddressService ipAddressService)
         {
-            _dbConnection = dbConnection;
-            _unitLookup   = unitLookup;
-            _itemLookup   = itemLookup;
+            _dbConnection    = dbConnection;
+            _unitLookup      = unitLookup;
+            _itemLookup      = itemLookup;
             _warehouseLookup = warehouseLookup;
-            _binLookup    = binLookup;
+            _binLookup       = binLookup;
+            _ipAddressService = ipAddressService;
         }
 
         public async Task<(List<RepackingHeaderDto>, int)> GetAllAsync(
             int pageNumber, int pageSize, string? searchTerm)
         {
-            const string sql = @"
+            var unitId = _ipAddressService.GetUnitId();
+            var unitFilter = unitId.HasValue ? "AND h.UnitId = @UnitId" : "";
+
+            var sql = $@"
                 SELECT
                     h.Id, h.UnitId, h.ProductionYear, h.RepackingNo, h.RepackingDate,
                     h.TotalBags, h.NetWeight, h.LooseConeKgs,
@@ -49,17 +56,19 @@ namespace ProductionManagement.Infrastructure.Repositories.Repacking
                 LEFT JOIN Production.MiscMaster m
                     ON h.LooseHandlingId = m.Id AND m.IsDeleted = 0
                 WHERE h.IsDeleted = 0
+                  {unitFilter}
                   AND (@SearchTerm IS NULL OR h.RepackingNo LIKE '%' + @SearchTerm + '%')
                 ORDER BY h.Id DESC
                 OFFSET (@PageNumber - 1) * @PageSize ROWS FETCH NEXT @PageSize ROWS ONLY;
 
                 SELECT COUNT(1)
-                FROM Production.RepackingHeader
-                WHERE IsDeleted = 0
-                  AND (@SearchTerm IS NULL OR RepackingNo LIKE '%' + @SearchTerm + '%');";
+                FROM Production.RepackingHeader h
+                WHERE h.IsDeleted = 0
+                  {unitFilter}
+                  AND (@SearchTerm IS NULL OR h.RepackingNo LIKE '%' + @SearchTerm + '%');";
 
             using var multi = await _dbConnection.QueryMultipleAsync(sql,
-                new { PageNumber = pageNumber, PageSize = pageSize, SearchTerm = searchTerm });
+                new { PageNumber = pageNumber, PageSize = pageSize, SearchTerm = searchTerm, UnitId = unitId });
 
             var items      = (await multi.ReadAsync<RepackingHeaderDto>()).ToList();
             var totalCount = await multi.ReadFirstAsync<int>();
@@ -78,7 +87,10 @@ namespace ProductionManagement.Infrastructure.Repositories.Repacking
 
         public async Task<RepackingHeaderDto?> GetByIdAsync(int id)
         {
-            const string headerSql = @"
+            var unitId = _ipAddressService.GetUnitId();
+            var unitFilter = unitId.HasValue ? "AND h.UnitId = @UnitId" : "";
+
+            var headerSql = $@"
                 SELECT
                     h.Id, h.UnitId, h.ProductionYear, h.RepackingNo, h.RepackingDate,
                     h.TotalBags, h.NetWeight, h.LooseConeKgs,
@@ -93,7 +105,7 @@ namespace ProductionManagement.Infrastructure.Repositories.Repacking
                     ON h.OldPackHeaderId = p.Id AND p.IsDeleted = 0
                 LEFT JOIN Production.MiscMaster m
                     ON h.LooseHandlingId = m.Id AND m.IsDeleted = 0
-                WHERE h.Id = @Id AND h.IsDeleted = 0;";
+                WHERE h.Id = @Id AND h.IsDeleted = 0 {unitFilter};";
 
             const string detailSql = @"
                 SELECT
@@ -109,25 +121,51 @@ namespace ProductionManagement.Infrastructure.Repositories.Repacking
                     ON d.PackTypeId = pt.Id AND pt.IsDeleted = 0
                 WHERE d.RepackingHeaderId = @Id;";
 
+            const string oldDetailSql = @"
+                SELECT
+                    pd.Id, pd.ProductionPackHeaderId,
+                    ph.PackNo AS OldPackNo,
+                    pd.LotId, l.LotCode,
+                    pd.ItemId,
+                    pd.PackTypeId, pt.PackTypeName,
+                    pd.StartPackNo, pd.EndPackNo,
+                    pd.NoOfBags, pd.TotalBags,
+                    pd.NetWeightPerPack, pd.TotalNetWeight,
+                    pd.BinId,
+                    pd.QualityStatusId,
+                    pd.LineRemarks
+                FROM Production.ProductionPackDetail pd
+                INNER JOIN Production.ProductionPackHeader ph
+                    ON pd.ProductionPackHeaderId = ph.Id
+                LEFT JOIN Production.LotMaster l
+                    ON pd.LotId = l.Id AND l.IsDeleted = 0
+                LEFT JOIN Production.PackType pt
+                    ON pd.PackTypeId = pt.Id AND pt.IsDeleted = 0
+                WHERE pd.ProductionPackHeaderId = (
+                    SELECT OldPackHeaderId FROM Production.RepackingHeader WHERE Id = @Id AND IsDeleted = 0
+                );";
+
             var header = await _dbConnection.QueryFirstOrDefaultAsync<RepackingHeaderDto>(
-                headerSql, new { Id = id });
+                headerSql, new { Id = id, UnitId = unitId });
 
             if (header == null)
                 return null;
 
-            var details = (await _dbConnection.QueryAsync<RepackingDetailDto>(
-                detailSql, new { Id = id })).ToList();
+            var details    = (await _dbConnection.QueryAsync<RepackingDetailDto>(detailSql, new { Id = id })).ToList();
+            var oldDetails = (await _dbConnection.QueryAsync<OldPackDetailDto>(oldDetailSql, new { Id = id })).ToList();
 
             var units      = await _unitLookup.GetAllUnitAsync();
-            var itemIds    = details.Select(d => d.ItemId).Distinct();
-            var items      = await _itemLookup.GetByIdsAsync(itemIds);
-            var warehouses = await _warehouseLookup.GetAllAsync();
+            var allItemIds = details.Select(d => d.ItemId)
+                                    .Concat(oldDetails.Select(o => o.ItemId))
+                                    .Distinct();
+            var items      = await _itemLookup.GetByIdsAsync(allItemIds);
             var bins       = await _binLookup.GetAllAsync();
+            var warehouses = await _warehouseLookup.GetAllAsync();
 
             var unitDict      = units.ToDictionary(u => u.UnitId, u => u.UnitName);
             var itemDict      = items.ToDictionary(i => i.Id, i => i.ItemName);
-            var warehouseDict = warehouses.ToDictionary(w => w.Id, w => w.WarehouseName);
             var binDict       = bins.ToDictionary(b => b.Id, b => b.BinName);
+            var warehouseDict = warehouses.ToDictionary(w => w.Id, w => w.WarehouseName);
 
             if (unitDict.TryGetValue(header.UnitId, out var unitName))
                 header.UnitName = unitName;
@@ -139,20 +177,31 @@ namespace ProductionManagement.Infrastructure.Repositories.Repacking
                 if (binDict.TryGetValue(detail.BinId,            out var binName))       detail.BinName       = binName;
             }
 
+            foreach (var old in oldDetails)
+            {
+                if (itemDict.TryGetValue(old.ItemId, out var oldItemName)) old.ItemName = oldItemName;
+                if (binDict.TryGetValue(old.BinId,   out var oldBinName))  old.BinName  = oldBinName;
+            }
+
             header.RepackingDetails = details;
+            header.OldDetails       = oldDetails;
             return header;
         }
 
         public async Task<IReadOnlyList<RepackingLookupDto>> AutocompleteAsync(string term, CancellationToken ct)
         {
-            const string sql = @"
+            var unitId = _ipAddressService.GetUnitId();
+            var unitFilter = unitId.HasValue ? "AND UnitId = @UnitId" : "";
+
+            var sql = $@"
                 SELECT Id, RepackingNo
                 FROM Production.RepackingHeader
                 WHERE IsActive = 1 AND IsDeleted = 0
+                  {unitFilter}
                   AND (@Term = '' OR RepackingNo LIKE @Term + '%')
                 ORDER BY RepackingNo ASC;";
 
-            var result = await _dbConnection.QueryAsync<RepackingLookupDto>(sql, new { Term = term });
+            var result = await _dbConnection.QueryAsync<RepackingLookupDto>(sql, new { Term = term, UnitId = unitId });
             return result.ToList().AsReadOnly();
         }
 

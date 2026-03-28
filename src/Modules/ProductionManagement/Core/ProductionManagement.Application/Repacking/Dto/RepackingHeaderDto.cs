@@ -21,5 +21,6 @@ namespace ProductionManagement.Application.Repacking.Dto
         public int CreatedBy { get; set; }
         public DateTimeOffset? CreatedDate { get; set; }
         public List<RepackingDetailDto>? RepackingDetails { get; set; }
+        public List<OldPackDetailDto>? OldDetails { get; set; }
     }
 }

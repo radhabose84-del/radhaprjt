@@ -1,8 +1,10 @@
 using System.Data;
-using Dapper;
+using Contracts.Interfaces;
+using Contracts.Interfaces.Lookups.Inventory;
+using Contracts.Interfaces.Lookups.Sales;
 using Contracts.Interfaces.Lookups.Users;
 using Contracts.Interfaces.Lookups.Warehouse;
-using Contracts.Interfaces.Lookups.Inventory;
+using Dapper;
 using ProductionManagement.Application.Common.Interfaces.IProductionPack;
 using ProductionManagement.Application.ProductionPack.Dto;
 
@@ -15,33 +17,43 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
         private readonly IWarehouseLookup _warehouseLookup;
         private readonly IBinLookup _binLookup;
         private readonly IItemLookup _itemLookup;
+        private readonly IIPAddressService _ipAddressService;
+        private readonly ISalesStockLedgerLookup _stockLedgerLookup;
 
         public ProductionQueryRepository(
             IDbConnection dbConnection,
             IUnitLookup unitLookup,
             IWarehouseLookup warehouseLookup,
             IBinLookup binLookup,
-            IItemLookup itemLookup)
+            IItemLookup itemLookup,
+            IIPAddressService ipAddressService,
+            ISalesStockLedgerLookup stockLedgerLookup)
         {
-            _dbConnection = dbConnection;
-            _unitLookup = unitLookup;
-            _warehouseLookup = warehouseLookup;
-            _binLookup = binLookup;
-            _itemLookup = itemLookup;
+            _dbConnection      = dbConnection;
+            _unitLookup        = unitLookup;
+            _warehouseLookup   = warehouseLookup;
+            _binLookup         = binLookup;
+            _itemLookup        = itemLookup;
+            _ipAddressService  = ipAddressService;
+            _stockLedgerLookup = stockLedgerLookup;
         }
 
         public async Task<(List<ProductionPackHeaderDto>, int)> GetAllAsync(
             int pageNumber, int pageSize, string? searchTerm)
         {
+            var unitId = _ipAddressService.GetUnitId();
+
             var searchFilter = string.IsNullOrWhiteSpace(searchTerm)
                 ? ""
                 : "AND (h.PackNo LIKE @Search OR h.Remarks LIKE @Search)";
+
+            var unitFilter = unitId.HasValue ? "AND h.UnitId = @UnitId" : "";
 
             var query = $@"
                 DECLARE @TotalCount INT;
                 SELECT @TotalCount = COUNT(*)
                 FROM Production.ProductionPackHeader h
-                WHERE h.IsDeleted = 0 {searchFilter};
+                WHERE h.IsDeleted = 0 {unitFilter} {searchFilter};
 
                 SELECT h.Id, h.PackNo, h.PackDate, h.ProductionYear,
                     h.UnitId, h.WarehouseId,
@@ -52,7 +64,7 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
                     h.CreatedBy, h.CreatedDate, h.CreatedByName,
                     h.ModifiedBy, h.ModifiedDate, h.ModifiedByName
                 FROM Production.ProductionPackHeader h
-                WHERE h.IsDeleted = 0 {searchFilter}
+                WHERE h.IsDeleted = 0 {unitFilter} {searchFilter}
                 ORDER BY h.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
 
@@ -60,6 +72,7 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
 
             var parameters = new
             {
+                UnitId = unitId,
                 Search = $"%{searchTerm}%",
                 Offset = (pageNumber - 1) * pageSize,
                 PageSize = pageSize
@@ -93,7 +106,10 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
 
         public async Task<ProductionPackHeaderDto?> GetByIdAsync(int id)
         {
-            const string headerSql = @"
+            var unitId = _ipAddressService.GetUnitId();
+            var unitFilter = unitId.HasValue ? "AND h.UnitId = @UnitId" : "";
+
+            var headerSql = $@"
                 SELECT h.Id, h.PackNo, h.PackDate, h.ProductionYear,
                     h.UnitId, h.WarehouseId,
                     h.TotalBags, h.TotalNetWeight,
@@ -103,10 +119,10 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
                     h.CreatedBy, h.CreatedDate, h.CreatedByName,
                     h.ModifiedBy, h.ModifiedDate, h.ModifiedByName
                 FROM Production.ProductionPackHeader h
-                WHERE h.Id = @Id AND h.IsDeleted = 0";
+                WHERE h.Id = @Id AND h.IsDeleted = 0 {unitFilter}";
 
             var header = await _dbConnection.QueryFirstOrDefaultAsync<ProductionPackHeaderDto>(
-                headerSql, new { Id = id });
+                headerSql, new { Id = id, UnitId = unitId });
 
             if (header == null)
                 return null;
@@ -168,15 +184,19 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
         public async Task<IReadOnlyList<ProductionLookupDto>> AutocompleteAsync(
             string term, CancellationToken ct)
         {
-            const string sql = @"
+            var unitId = _ipAddressService.GetUnitId();
+            var unitFilter = unitId.HasValue ? "AND UnitId = @UnitId" : "";
+
+            var sql = $@"
                 SELECT Id, PackNo, PackDate
                 FROM Production.ProductionPackHeader
                 WHERE IsActive = 1 AND IsDeleted = 0
                     AND PackNo LIKE @Search
+                    {unitFilter}
                 ORDER BY PackNo";
 
             var result = await _dbConnection.QueryAsync<ProductionLookupDto>(
-                sql, new { Search = $"%{term}%" });
+                sql, new { Search = $"%{term}%", UnitId = unitId });
 
             return result.ToList();
         }
@@ -259,14 +279,93 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
 
         public async Task<int> GetLastEndPackNoAsync(int productionYear)
         {
-            const string sql = @"
+            var unitId = _ipAddressService.GetUnitId();
+            var unitFilter = unitId.HasValue ? "AND h.UnitId = @UnitId" : "";
+
+            var sql = $@"
                 SELECT ISNULL(MAX(d.EndPackNo), 0)
                 FROM Production.ProductionPackDetail d
                 INNER JOIN Production.ProductionPackHeader h ON d.ProductionPackHeaderId = h.Id
                 WHERE h.ProductionYear = @ProductionYear
-                    AND h.IsDeleted = 0";
+                    AND h.IsDeleted = 0
+                    {unitFilter}";
 
-            return await _dbConnection.ExecuteScalarAsync<int>(sql, new { ProductionYear = productionYear });
+            return await _dbConnection.ExecuteScalarAsync<int>(sql,
+                new { ProductionYear = productionYear, UnitId = unitId });
+        }
+
+        public async Task<List<ProductionPackDetailDto>> GetByPackRangeAsync(
+            int startPackNo, int endPackNo, CancellationToken ct = default)
+        {
+            var unitId = _ipAddressService.GetUnitId();
+            var unitFilter = unitId.HasValue ? "AND h.UnitId = @UnitId" : "";
+
+            var sql = $@"
+                SELECT d.Id, d.ProductionPackHeaderId,
+                    h.PackNo, h.PackDate, h.ProductionYear,
+                    h.UnitId, h.WarehouseId,
+                    d.ItemSno,
+                    d.LotId, lm.LotCode,
+                    d.ItemId,
+                    d.PackTypeId, pt.PackTypeName,
+                    d.NetWeightPerPack,
+                    d.StartPackNo, d.EndPackNo,
+                    d.NoOfBags,
+                    d.TotalBags, d.TotalNetWeight,
+                    d.BinId,
+                    d.QualityStatusId,
+                    qs.Description AS QualityStatusName,
+                    d.LineRemarks
+                FROM Production.ProductionPackDetail d
+                INNER JOIN Production.ProductionPackHeader h
+                    ON d.ProductionPackHeaderId = h.Id AND h.IsDeleted = 0
+                    {unitFilter}
+                LEFT JOIN Production.LotMaster  lm ON d.LotId          = lm.Id AND lm.IsDeleted = 0
+                LEFT JOIN Production.PackType   pt ON d.PackTypeId      = pt.Id AND pt.IsDeleted = 0
+                LEFT JOIN Production.MiscMaster qs ON d.QualityStatusId = qs.Id AND qs.IsDeleted = 0
+                WHERE d.StartPackNo = @StartPackNo
+                  AND d.EndPackNo   = @EndPackNo
+                ORDER BY d.StartPackNo;";
+
+            var details = (await _dbConnection.QueryAsync<ProductionPackDetailDto>(
+                sql, new { StartPackNo = startPackNo, EndPackNo = endPackNo, UnitId = unitId })).ToList();
+
+            if (details.Count == 0)
+                return details;
+
+            // Filter: only keep details that have at least one 'Packed' pack in Sales.StockLedger
+            var packedNos = await _stockLedgerLookup.GetPackedPackNosAsync(startPackNo, endPackNo, ct);
+            var packedSet = new HashSet<int>(packedNos);
+            details = details.Where(d => packedSet.Contains(d.StartPackNo)).ToList();
+
+            if (details.Count > 0)
+            {
+                var itemIds  = details.Select(d => d.ItemId).Distinct();
+                var items    = await _itemLookup.GetByIdsAsync(itemIds);
+                var itemDict = items.ToDictionary(i => i.Id, i => i.ItemName);
+
+                var binIds  = details.Select(d => d.BinId).Distinct();
+                var bins    = await _binLookup.GetByIdsAsync(binIds);
+                var binDict = bins.ToDictionary(b => b.Id, b => b.BinName);
+
+                var unitIds    = details.Where(d => d.UnitId.HasValue).Select(d => d.UnitId!.Value).Distinct();
+                var units      = await _unitLookup.GetByIdsAsync(unitIds, ct);
+                var unitDict   = units.ToDictionary(u => u.UnitId, u => u.UnitName);
+
+                var whIds      = details.Where(d => d.WarehouseId.HasValue).Select(d => d.WarehouseId!.Value).Distinct();
+                var warehouses = await _warehouseLookup.GetByIdsAsync(whIds, ct);
+                var whDict     = warehouses.ToDictionary(w => w.Id, w => w.WarehouseName);
+
+                foreach (var detail in details)
+                {
+                    detail.ItemName      = itemDict.TryGetValue(detail.ItemId, out var iName) ? iName : null;
+                    detail.BinName       = binDict.TryGetValue(detail.BinId,   out var bName) ? bName : null;
+                    detail.UnitName      = detail.UnitId.HasValue && unitDict.TryGetValue(detail.UnitId.Value,      out var uName) ? uName : null;
+                    detail.WarehouseName = detail.WarehouseId.HasValue && whDict.TryGetValue(detail.WarehouseId.Value, out var wName) ? wName : null;
+                }
+            }
+
+            return details;
         }
 
         public async Task<bool> PackOverlapExistsAsync(
