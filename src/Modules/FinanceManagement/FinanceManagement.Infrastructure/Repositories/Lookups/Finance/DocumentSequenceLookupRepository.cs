@@ -67,8 +67,8 @@ namespace FinanceManagement.Infrastructure.Repositories.Lookups.Finance
             foreach (var item in rows)
             {
                 var yearName = yearDict.TryGetValue(item.FinancialYearId, out var y) ? y : null;
-                var yearShort = yearName?.Length >= 2 ? yearName[^2..] : yearName ?? "??";
-                result.Add($"{item.TypeShortName ?? "?"}/{yearShort}{item.DocNo.ToString().PadLeft(4, '0')}".ToUpper());
+                var yearFull = yearName?.Length >= 4 ? yearName[..4] : yearName ?? "????";
+                result.Add($"{item.TypeShortName ?? "?"}/{yearFull}/{item.DocNo.ToString().PadLeft(4, '0')}".ToUpper());
             }
 
             return result;
