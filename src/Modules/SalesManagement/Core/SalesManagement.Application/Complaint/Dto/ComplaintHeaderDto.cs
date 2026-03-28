@@ -25,6 +25,7 @@ namespace SalesManagement.Application.Complaint.Dto
 
         public int? StatusId { get; set; }
         public string? StatusName { get; set; }
+        public string? ComplaintStage { get; set; }
         public string? Remarks { get; set; }
 
         public bool IsActive { get; set; }
