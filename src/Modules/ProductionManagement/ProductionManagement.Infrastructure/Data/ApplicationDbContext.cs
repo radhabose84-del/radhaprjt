@@ -20,6 +20,8 @@ namespace ProductionManagement.Infrastructure.Data
         public DbSet<CertificationMaster> CertificationMaster => Set<CertificationMaster>();
         public DbSet<ProductionPackHeader> ProductionPackHeader => Set<ProductionPackHeader>();
         public DbSet<ProductionPackDetail> ProductionPackDetail => Set<ProductionPackDetail>();
+        public DbSet<RepackingHeader> RepackingHeader => Set<RepackingHeader>();
+        public DbSet<RepackingDetail> RepackingDetail => Set<RepackingDetail>();
 
         private readonly IIPAddressService _ipAddressService;
         private readonly ITimeZoneService _timeZoneService;
