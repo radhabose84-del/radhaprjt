@@ -56,7 +56,7 @@ namespace GateEntryManagement.Infrastructure.Repositories.GatePass
 
                         foreach (var detail in entity.GatePassDetails)
                         {
-                            if (!int.TryParse(detail.DocNo, out var docId)) continue;
+                            if (detail.DocId <= 0) continue;
 
                             if (typeNameMap.TryGetValue(detail.DocTypeId, out var typeName))
                             {
@@ -65,7 +65,7 @@ namespace GateEntryManagement.Infrastructure.Repositories.GatePass
 
                                 if (handler != null)
                                 {
-                                    await handler.MarkAsGatePassedAsync(docId, dbConnection, dbTransaction);
+                                    await handler.MarkAsGatePassedAsync(detail.DocId, dbConnection, dbTransaction);
                                 }
                             }
                         }
@@ -122,7 +122,7 @@ namespace GateEntryManagement.Infrastructure.Repositories.GatePass
 
                         foreach (var detail in existing.GatePassDetails)
                         {
-                            if (!int.TryParse(detail.DocNo, out var docId)) continue;
+                            if (detail.DocId <= 0) continue;
 
                             if (typeNameMap.TryGetValue(detail.DocTypeId, out var typeName))
                             {
@@ -131,7 +131,7 @@ namespace GateEntryManagement.Infrastructure.Repositories.GatePass
 
                                 if (handler != null)
                                 {
-                                    await handler.RevertGatePassAsync(docId, dbConnection, dbTransaction);
+                                    await handler.RevertGatePassAsync(detail.DocId, dbConnection, dbTransaction);
                                 }
                             }
                         }

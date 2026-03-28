@@ -5,6 +5,7 @@ namespace GateEntryManagement.Domain.Entities
         public int Id { get; set; }
         public int GatePassHdrId { get; set; }
         public int DocTypeId { get; set; }
+        public int DocId { get; set; }
         public string? DocNo { get; set; }
         public string? PartyName { get; set; }
         public string? PartyCode { get; set; }

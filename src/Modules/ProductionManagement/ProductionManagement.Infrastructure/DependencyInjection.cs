@@ -19,11 +19,13 @@ using ProductionManagement.Application.Common.Interfaces.IRepacking;
 using ProductionManagement.Application.Common.Interfaces.IProcessMaster;
 using ProductionManagement.Application.Common.Interfaces.IQualityMaster;
 using ProductionManagement.Application.Common.Interfaces.ICertificationMaster;
+using ProductionManagement.Application.Common.Interfaces.IYarnTwistMaster;
 using Contracts.Interfaces.Lookups.Production;
 using ProductionManagement.Infrastructure.Repositories.Lookups.Production;
 using ProductionManagement.Infrastructure.Repositories.ProcessMaster;
 using ProductionManagement.Infrastructure.Repositories.QualityMaster;
 using ProductionManagement.Infrastructure.Repositories.CertificationMaster;
+using ProductionManagement.Infrastructure.Repositories.YarnTwistMaster;
 using ProductionManagement.Infrastructure.Data;
 using ProductionManagement.Infrastructure.Persistence;
 using ProductionManagement.Infrastructure.Repositories.AuditLog;
@@ -150,6 +152,10 @@ namespace ProductionManagement.Infrastructure
             services.AddScoped<ICertificationMasterCommandRepository, CertificationMasterCommandRepository>();
             services.AddScoped<ICertificationMasterQueryRepository, CertificationMasterQueryRepository>();
 
+            // YarnTwistMaster repositories
+            services.AddScoped<IYarnTwistMasterCommandRepository, YarnTwistMasterCommandRepository>();
+            services.AddScoped<IYarnTwistMasterQueryRepository, YarnTwistMasterQueryRepository>();
+
             // Lookup registration — caching is handled globally by AddLookupCaching() in Program.cs
             services.AddScoped<IYarnTypeLookup, YarnTypeLookupRepository>();
             services.AddScoped<ICountGroupLookup, CountGroupLookupRepository>();
@@ -159,6 +165,7 @@ namespace ProductionManagement.Infrastructure
             services.AddScoped<IProcessMasterLookup, ProcessMasterLookupRepository>();
             services.AddScoped<IQualityMasterLookup, QualityMasterLookupRepository>();
             services.AddScoped<ICertificationMasterLookup, CertificationMasterLookupRepository>();
+            services.AddScoped<IYarnTwistMasterLookup, YarnTwistMasterLookupRepository>();
 
             return services;
         }

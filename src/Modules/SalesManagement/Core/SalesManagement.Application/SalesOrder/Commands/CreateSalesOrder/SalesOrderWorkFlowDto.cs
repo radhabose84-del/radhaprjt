@@ -6,6 +6,6 @@ namespace SalesManagement.Application.SalesOrder.Commands.CreateSalesOrder
         public string? SalesOrderNo { get; set; }
         public int? StatusId { get; set; }
         public string? StatusName { get; set; }
-        public int UnitId { get; set; }
+        public int? UnitId { get; set; }
     }
 }

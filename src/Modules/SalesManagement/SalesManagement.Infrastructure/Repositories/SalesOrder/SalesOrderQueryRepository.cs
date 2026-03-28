@@ -66,7 +66,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 DECLARE @TotalCount INT;
                 SELECT @TotalCount = COUNT(*)
                 FROM Sales.SalesOrderHeader h
-                WHERE h.IsDeleted = 0 AND h.UnitId = @UnitId {searchFilter};
+                WHERE h.IsDeleted = 0 AND h.OrderUnitId = @UnitId {searchFilter};
 
                 SELECT h.Id, h.SalesOrderNo, h.OrderDate,
                     h.SalesQuotationHeaderId,
@@ -78,6 +78,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     et.Description AS EnquiryTypeName,
                     h.UnitId, h.PartyId, h.AgentId,
                     h.SalesOrderTypeId,
+                    h.OrderUnitId,
                     h.DiscountPlanId,
                     dp.Description AS DiscountPlanName,
                     h.PaymentTermsId,
@@ -106,7 +107,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 LEFT JOIN Sales.MiscMaster ft ON h.FreightTypeId = ft.Id AND ft.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster cl ON h.CountListId = cl.Id AND cl.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster st ON h.StatusId = st.Id AND st.IsDeleted = 0
-                WHERE h.IsDeleted = 0 AND h.UnitId = @UnitId {searchFilter}
+                WHERE h.IsDeleted = 0 AND h.OrderUnitId = @UnitId {searchFilter}
                 ORDER BY h.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
 
@@ -125,8 +126,10 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             if (list.Count > 0)
             {
                 // Populate cross-module lookup names
-                var unitIds = list.Select(x => x.UnitId).Distinct();
-                var units = await _unitLookup.GetByIdsAsync(unitIds);
+                var allUnitIds = list.Select(x => x.UnitId)
+                    .Concat(list.Where(x => x.OrderUnitId.HasValue).Select(x => x.OrderUnitId!.Value))
+                    .Distinct();
+                var units = await _unitLookup.GetByIdsAsync(allUnitIds);
                 var unitDict = units.ToDictionary(u => u.UnitId, u => u.UnitName);
 
                 var partyIds = list.Select(x => x.PartyId).Distinct();
@@ -153,6 +156,8 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     item.PaymentTermsName = ptDict.TryGetValue(item.PaymentTermsId, out var ptName) ? ptName : null;
                     if (item.SalesOrderTypeId.HasValue)
                         item.SalesOrderTypeName = soTypeDict.TryGetValue(item.SalesOrderTypeId.Value, out var stName) ? stName : null;
+                    if (item.OrderUnitId.HasValue)
+                        item.OrderUnitName = unitDict.TryGetValue(item.OrderUnitId.Value, out var ouName) ? ouName : null;
                 }
 
                 // Construct full attachment paths
@@ -184,6 +189,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     et.Description AS EnquiryTypeName,
                     h.UnitId, h.PartyId, h.AgentId,
                     h.SalesOrderTypeId,
+                    h.OrderUnitId,
                     h.DiscountPlanId,
                     dp.Description AS DiscountPlanName,
                     h.PaymentTermsId,
@@ -252,6 +258,12 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             // Populate cross-module header lookups
             var unitLookup = await _unitLookup.GetByIdAsync(header.UnitId);
             header.UnitName = unitLookup?.UnitName;
+
+            if (header.OrderUnitId.HasValue)
+            {
+                var orderUnitLookup = await _unitLookup.GetByIdAsync(header.OrderUnitId.Value);
+                header.OrderUnitName = orderUnitLookup?.UnitName;
+            }
 
             var parties = await _partyLookup.GetByIdsAsync(new[] { header.PartyId });
             header.PartyName = parties.FirstOrDefault()?.PartyName;
@@ -330,7 +342,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             const string sql = @"
                 SELECT h.Id, h.SalesOrderNo, h.OrderDate, h.PartyId
                 FROM Sales.SalesOrderHeader h
-                WHERE h.IsActive = 1 AND h.IsDeleted = 0 AND h.UnitId = @UnitId
+                WHERE h.IsActive = 1 AND h.IsDeleted = 0 AND h.OrderUnitId = @UnitId
                 AND (@Term = '' OR h.SalesOrderNo LIKE '%' + @Term + '%')
                 ORDER BY h.Id DESC;";
 
@@ -474,7 +486,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 FROM Sales.SalesOrderHeader h
                 INNER JOIN Sales.MiscMaster stf ON h.StatusId = stf.Id AND stf.IsDeleted = 0
                 INNER JOIN Sales.MiscTypeMaster mtf ON stf.MiscTypeId = mtf.Id AND mtf.IsDeleted = 0
-                WHERE h.IsDeleted = 0 AND h.UnitId = @UnitId
+                WHERE h.IsDeleted = 0 AND h.OrderUnitId = @UnitId
                 AND LOWER(mtf.MiscTypeCode) = LOWER('ApprovalStatus')
                 AND LOWER(stf.Code) = LOWER('Pending')
                 {searchFilter};
@@ -499,7 +511,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 LEFT JOIN Sales.MiscMaster st2 ON h.StatusId = st2.Id AND st2.IsDeleted = 0
                 INNER JOIN Sales.MiscMaster stf ON h.StatusId = stf.Id AND stf.IsDeleted = 0
                 INNER JOIN Sales.MiscTypeMaster mtf ON stf.MiscTypeId = mtf.Id AND mtf.IsDeleted = 0
-                WHERE h.IsDeleted = 0 AND h.UnitId = @UnitId
+                WHERE h.IsDeleted = 0 AND h.OrderUnitId = @UnitId
                 AND LOWER(mtf.MiscTypeCode) = LOWER('ApprovalStatus')
                 AND LOWER(stf.Code) = LOWER('Pending')
                 {searchFilter}

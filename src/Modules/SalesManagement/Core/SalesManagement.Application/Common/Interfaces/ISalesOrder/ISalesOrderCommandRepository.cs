@@ -5,8 +5,7 @@ namespace SalesManagement.Application.Common.Interfaces.ISalesOrder
 {
     public interface ISalesOrderCommandRepository
     {
-        Task<string> GenerateNextSalesOrderNoAsync(int unitId, CancellationToken ct = default);
-        Task<int> CreateAsync(SalesOrderHeader entity);
+        Task<int> CreateAsync(SalesOrderHeader entity, int transactionTypeId);
         Task<int> UpdateAsync(SalesOrderHeader entity);
         Task<bool> SoftDeleteAsync(int id, CancellationToken ct);
         Task<bool> UpdateVisitNotesAttachmentAsync(int id, string fileName, CancellationToken ct);

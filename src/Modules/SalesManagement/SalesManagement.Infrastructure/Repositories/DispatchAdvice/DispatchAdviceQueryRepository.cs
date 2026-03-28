@@ -233,7 +233,7 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
         public async Task<int> GetSalesOrderUnitIdAsync(int salesOrderId)
         {
             const string sql = @"
-                SELECT UnitId
+                SELECT OrderUnitId
                 FROM Sales.SalesOrderHeader
                 WHERE Id = @Id AND IsDeleted = 0";
 

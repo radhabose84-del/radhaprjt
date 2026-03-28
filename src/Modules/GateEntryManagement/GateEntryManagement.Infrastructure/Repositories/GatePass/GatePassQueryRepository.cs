@@ -79,7 +79,7 @@ namespace GateEntryManagement.Infrastructure.Repositories.GatePass
                 WHERE h.Id = @Id AND h.IsDeleted = 0";
 
             const string detailSql = @"
-                SELECT d.Id, d.GatePassHdrId, d.DocTypeId, d.DocNo,
+                SELECT d.Id, d.GatePassHdrId, d.DocTypeId, d.DocId, d.DocNo,
                     d.PartyName, d.PartyCode, d.DocDate, d.TotalQty
                 FROM Gate.GatePassDtl d
                 WHERE d.GatePassHdrId = @Id";
