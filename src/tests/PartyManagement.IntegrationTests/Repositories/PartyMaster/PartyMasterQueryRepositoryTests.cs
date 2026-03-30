@@ -48,7 +48,7 @@ namespace PartyManagement.IntegrationTests.Repositories.PartyMaster
                 _salesSegmentLookup.Object);
         }
 
-        private async Task SeedApprovalStatusAsync()
+        private async Task<int> SeedApprovalStatusAsync()
         {
             await using var ctx1 = _fixture.CreateFreshDbContext();
             var mt = await new MiscTypeMasterCommandRepository(ctx1).CreateAsync(new PartyManagement.Domain.Entities.MiscTypeMaster
@@ -69,11 +69,42 @@ namespace PartyManagement.IntegrationTests.Repositories.PartyMaster
                 IsActive = BaseEntity.Status.Active,
                 IsDeleted = BaseEntity.IsDelete.NotDeleted
             });
+
+            return await SeedRegistrationTypeAsync();
+        }
+
+        /// <summary>
+        /// Seeds a RegistrationType MiscTypeMaster and a GST MiscMaster entry.
+        /// RegistrationTypeId is NOT NULL in the DB, so every PartyMaster insert needs a valid FK.
+        /// Returns the seeded MiscMaster Id to use as RegistrationTypeId.
+        /// </summary>
+        private async Task<int> SeedRegistrationTypeAsync()
+        {
+            await using var ctx1 = _fixture.CreateFreshDbContext();
+            var mt = await new MiscTypeMasterCommandRepository(ctx1).CreateAsync(new PartyManagement.Domain.Entities.MiscTypeMaster
+            {
+                MiscTypeCode = "RegistrationType",
+                Description = "Registration Type",
+                IsActive = BaseEntity.Status.Active,
+                IsDeleted = BaseEntity.IsDelete.NotDeleted
+            });
+
+            await using var ctx2 = _fixture.CreateFreshDbContext();
+            var mm = await new MiscMasterCommandRepository(ctx2).CreateAsync(new PartyManagement.Domain.Entities.MiscMaster
+            {
+                MiscTypeId = mt.Id,
+                Code = "GST",
+                Description = "GST Registered",
+                SortOrder = 1,
+                IsActive = BaseEntity.Status.Active,
+                IsDeleted = BaseEntity.IsDelete.NotDeleted
+            });
+            return mm.Id;
         }
 
         private async Task<int> SeedPartyMasterAsync(string code = "PQ0001", string name = "Query Test Party")
         {
-            await SeedApprovalStatusAsync();
+            var regTypeId = await SeedApprovalStatusAsync();
 
             await using var ctx = _fixture.CreateFreshDbContext();
             var cmdRepo = new PartyMasterCommandRepository(ctx, _fixture.IpMock.Object);
@@ -82,6 +113,7 @@ namespace PartyManagement.IntegrationTests.Repositories.PartyMaster
                 PartyCode = code,
                 PartyName = name,
                 UnitId = 1,
+                RegistrationTypeId = regTypeId,
                 IsActive = BaseEntity.Status.Active,
                 IsDeleted = BaseEntity.IsDelete.NotDeleted
             });
