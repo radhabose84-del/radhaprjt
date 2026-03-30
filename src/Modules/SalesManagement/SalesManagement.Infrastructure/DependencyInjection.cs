@@ -313,9 +313,10 @@ namespace SalesManagement.Infrastructure
             services.AddScoped<IOutboxRepository, OutboxRepository>();
             services.AddScoped<IOutboxEventPublisher, OutboxEventPublisher>();
 
-            // ── GatePass Document Handlers (Strategy pattern) ─────────────
-            services.AddScoped<Contracts.Interfaces.IGatePassDocumentHandler, GatePassHandlers.InvoiceGatePassHandler>();
-            services.AddScoped<Contracts.Interfaces.IGatePassDocumentHandler, GatePassHandlers.DeliveryChallanGatePassHandler>();
+            // ── GatePass Document Processors (Strategy pattern) ─────────────
+            services.AddScoped<Contracts.Interfaces.IGatePassDocumentProcessor, Repositories.GatePass.InvoiceGatePassProcessor>();
+            services.AddScoped<Contracts.Interfaces.IGatePassDocumentProcessor, Repositories.GatePass.DeliveryChallanGatePassProcessor>();
+            
 
             return services;
         }

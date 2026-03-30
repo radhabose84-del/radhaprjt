@@ -3,9 +3,9 @@ using Contracts.Interfaces;
 using Dapper;
 using SalesManagement.Domain.Common;
 
-namespace SalesManagement.Infrastructure.GatePassHandlers
+namespace SalesManagement.Infrastructure.Repositories.GatePass
 {
-    internal sealed class InvoiceGatePassHandler : IGatePassDocumentHandler
+    internal sealed class InvoiceGatePassProcessor : IGatePassDocumentProcessor
     {
         public string DocumentType => MiscEnumEntity.TransactionTypeInvoice;
 
