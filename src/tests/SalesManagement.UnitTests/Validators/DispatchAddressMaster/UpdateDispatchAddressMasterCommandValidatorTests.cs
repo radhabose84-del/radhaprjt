@@ -197,7 +197,7 @@ namespace SalesManagement.UnitTests.Validators.DispatchAddressMaster
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.MobileNumber)
-                  .WithErrorMessage("MobileNumber must be a 10-digit numeric value.");
+                  .WithErrorMessage("MobileNumber Mobile number must be exactly 10 digits.");
         }
 
         [Fact]

@@ -5,7 +5,7 @@
     },
     {
         "rule": "Email",
-        "pattern": "^[\\w.-]+@(gmail\\.com|bannarimills\\.co\\.in)$",
+        "pattern": "^[\\w.+-]+@[\\w-]+(\\.[\\w-]+)*\\.[a-zA-Z]{2,}$",
         "error": "Invalid email address format."
     },
     {

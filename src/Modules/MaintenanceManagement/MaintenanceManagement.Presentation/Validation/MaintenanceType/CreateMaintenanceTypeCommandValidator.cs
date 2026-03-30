@@ -42,8 +42,9 @@ namespace MaintenanceManagement.Presentation.Validation.MaintenanceType
                             RuleFor(x => x.TypeName)
                            .MustAsync(async (TypeName, cancellation) => !await _imaintenanceTypeCommandRepository.ExistsByCodeAsync(TypeName))
                            .WithName("MachineTypeName")
-                           .WithMessage($"{rule.Error}");
-                            break; 
+                           .WithMessage($"{rule.Error}")
+                           .When(x => !string.IsNullOrWhiteSpace(x.TypeName));
+                            break;
     
                 }
             }

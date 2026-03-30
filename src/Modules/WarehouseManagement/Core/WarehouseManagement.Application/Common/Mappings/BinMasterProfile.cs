@@ -10,7 +10,8 @@ namespace WarehouseManagement.Application.Common.Mappings
 
         public BinMasterProfile()
         {
-            CreateMap<WarehouseManagement.Domain.Entities.BinMaster, BinMasterDto>();
+            CreateMap<WarehouseManagement.Domain.Entities.BinMaster, BinMasterDto>()
+                .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => (byte)src.IsActive));
 
             CreateMap<CreateBinMasterCommand, WarehouseManagement.Domain.Entities.BinMaster>();
 

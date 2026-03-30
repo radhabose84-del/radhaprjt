@@ -10,7 +10,9 @@ namespace WarehouseManagement.Application.Common.Mappings
 
         public RackMasterProfile()
         {
-            CreateMap<WarehouseManagement.Domain.Entities.RackMaster, RackMasterDto>();
+            CreateMap<WarehouseManagement.Domain.Entities.RackMaster, RackMasterDto>()
+                .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive == WarehouseManagement.Domain.Common.BaseEntity.Status.Active))
+                .ForMember(dest => dest.IsDeleted, opt => opt.MapFrom(src => src.IsDeleted == WarehouseManagement.Domain.Common.BaseEntity.IsDelete.Deleted));
 
             CreateMap<CreateRackMasterCommand, WarehouseManagement.Domain.Entities.RackMaster>();
 

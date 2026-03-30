@@ -49,7 +49,8 @@ namespace BudgetManagement.Presentation.Validation.MiscTypeMaster
                             .MustAsync(async (command, cancellation) =>
                                 !await _miscTypeMasterQueryRepository.AlreadyExistsAsync(command.MiscTypeCode!, command.Id))
                             .WithName(nameof(UpdateMiscTypeMasterCommand.MiscTypeCode))
-                            .WithMessage("MiscTypeCode already exists.");  
+                            .WithMessage("MiscTypeCode already exists.")
+                            .When(x => !string.IsNullOrWhiteSpace(x.MiscTypeCode));
                         break;
                         case "NotFound":
                            RuleFor(x => x.Id )

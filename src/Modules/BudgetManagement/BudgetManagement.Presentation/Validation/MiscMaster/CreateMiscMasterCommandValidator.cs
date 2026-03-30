@@ -57,8 +57,9 @@ namespace BudgetManagement.Presentation.Validation.MiscMaster
                                 return !await _miscMasterQuery.AlreadyExistsAsync(command.Code!, command.MiscTypeId);
                             })
                             .WithMessage($"{rule.Error}")
-                            .WithName("Misc Code");
-                        break;                       
+                            .WithName("Misc Code")
+                            .When(x => !string.IsNullOrWhiteSpace(x.Code));
+                        break;
 
                 }
 
