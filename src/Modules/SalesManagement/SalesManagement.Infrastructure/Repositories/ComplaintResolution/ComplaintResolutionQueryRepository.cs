@@ -139,7 +139,7 @@ namespace SalesManagement.Infrastructure.Repositories.ComplaintResolution
 
             // Populate item name and complaint quantity from first complaint detail
             var detailSql = @"
-                SELECT TOP 1 cd.ItemId, cd.Quantity
+                SELECT TOP 1 cd.ItemId, cd.NetWeight
                 FROM Sales.ComplaintDetail cd
                 WHERE cd.ComplaintHeaderId = @ComplaintHeaderId AND cd.IsDeleted = 0;";
             var detail = await _dbConnection.QueryFirstOrDefaultAsync<dynamic>(detailSql, new { resolution.ComplaintHeaderId });
@@ -152,7 +152,7 @@ namespace SalesManagement.Infrastructure.Repositories.ComplaintResolution
                     var item = items.FirstOrDefault();
                     resolution.ItemName = item?.ItemName;
                 }
-                resolution.ComplaintQuantity = (decimal?)detail.Quantity;
+                resolution.ComplaintQuantity = (decimal?)detail.NetWeight;
             }
 
             return resolution;

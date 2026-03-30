@@ -61,4 +61,22 @@ internal sealed class SalesStockLedgerLookupRepository : ISalesStockLedgerLookup
         });
         return affected > 0;
     }
+
+    public async Task<IReadOnlyList<int>> GetPackedPackNosAsync(
+        int startPackNo, int endPackNo,
+        CancellationToken ct = default)
+    {
+        const string sql = @"
+            SELECT DISTINCT sl.PackNo
+            FROM Sales.StockLedger sl
+            INNER JOIN Sales.MiscMaster mm ON sl.StatusId = mm.Id AND mm.IsDeleted = 0
+            WHERE sl.PackNo BETWEEN @StartPackNo AND @EndPackNo
+              AND mm.Description = 'Packed'
+            ORDER BY sl.PackNo;";
+
+        var result = await _dbConnection.QueryAsync<int>(sql,
+            new { StartPackNo = startPackNo, EndPackNo = endPackNo });
+
+        return result.ToList().AsReadOnly();
+    }
 }
