@@ -9,6 +9,7 @@ using PurchaseManagement.Application.GRN.GRNEntry.Queries.GetGrnPending;
 using PurchaseManagement.Application.GRN.GRNEntry.Queries.GetGrnPendingDetails;
 using PurchaseManagement.Application.GRN.GRNEntry.Queries.GetGrnPendingHeader;
 using PurchaseManagement.Application.GRN.GRNEntry.Queries.GetGrnQCCompletedDetails;
+using PurchaseManagement.Application.GRN.GRNEntry.Queries.GetPoPending;
 using MediatR; // ✅ correct namespace
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
@@ -330,6 +331,19 @@ namespace PurchaseManagement.Presentation.Controllers.GRN
                 StatusCode = StatusCodes.Status200OK,
                 data = partyMaster,
                 message = "ID fetched successfully"
+            });
+        }
+
+        [HttpGet("po-pending")]
+        public async Task<IActionResult> GetPoPendingAsync()
+        {
+            var result = await _mediator.Send(new GetPoPendingQuery());
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result,
+                message = "Pending PO list fetched successfully"
             });
         }
 
