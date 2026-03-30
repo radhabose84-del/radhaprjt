@@ -1,4 +1,3 @@
-#nullable disable
 using UserManagement.Application.Common.Interfaces;
 using UserManagement.Application.Users.Commands.ChangeUserPassword;
 using FluentValidation.TestHelper;
@@ -20,14 +19,14 @@ namespace UserManagement.UnitTests.Validators.Users
             NewPassword = "Aa1!aaaa" // len 8, has upper/lower/digit/special
         };
 
-        private static string Hash(string plain) => BCrypt.Net.BCrypt.HashPassword(plain);
+        private static string Hash(string? plain) => BCrypt.Net.BCrypt.HashPassword(plain!);
 
         [Fact]
         public async Task Valid_payload_passes()
         {
             var cmd = Valid();
 
-            _changePassword.Setup(x => x.ValidatePassword(cmd.UserId, cmd.NewPassword))
+            _changePassword.Setup(x => x.ValidatePassword(cmd.UserId, cmd.NewPassword!))
                            .ReturnsAsync(false);  // not used before
             _changePassword.Setup(x => x.ValidateFirstTimeUser(cmd.UserId))
                            .ReturnsAsync(false);  // not first-time
@@ -95,7 +94,7 @@ namespace UserManagement.UnitTests.Validators.Users
             var cmd = Valid();
             cmd.NewPassword = pwd;
 
-            _changePassword.Setup(x => x.ValidatePassword(cmd.UserId, cmd.NewPassword))
+            _changePassword.Setup(x => x.ValidatePassword(cmd.UserId, cmd.NewPassword!))
                            .ReturnsAsync(false);
             _changePassword.Setup(x => x.ValidateFirstTimeUser(cmd.UserId))
                            .ReturnsAsync(false);
@@ -124,7 +123,7 @@ namespace UserManagement.UnitTests.Validators.Users
             var cmd = Valid();
             cmd.NewPassword = "aa1!aaaa"; // no uppercase
 
-            _changePassword.Setup(x => x.ValidatePassword(cmd.UserId, cmd.NewPassword))
+            _changePassword.Setup(x => x.ValidatePassword(cmd.UserId, cmd.NewPassword!))
                            .ReturnsAsync(false);
             _changePassword.Setup(x => x.ValidateFirstTimeUser(cmd.UserId))
                            .ReturnsAsync(false);
@@ -143,7 +142,7 @@ namespace UserManagement.UnitTests.Validators.Users
             var cmd = Valid();
             cmd.NewPassword = "AA1!AAAA"; // no lowercase
 
-            _changePassword.Setup(x => x.ValidatePassword(cmd.UserId, cmd.NewPassword))
+            _changePassword.Setup(x => x.ValidatePassword(cmd.UserId, cmd.NewPassword!))
                            .ReturnsAsync(false);
             _changePassword.Setup(x => x.ValidateFirstTimeUser(cmd.UserId))
                            .ReturnsAsync(false);
@@ -162,7 +161,7 @@ namespace UserManagement.UnitTests.Validators.Users
             var cmd = Valid();
             cmd.NewPassword = "Aa!aaaaa"; // no digit
 
-            _changePassword.Setup(x => x.ValidatePassword(cmd.UserId, cmd.NewPassword))
+            _changePassword.Setup(x => x.ValidatePassword(cmd.UserId, cmd.NewPassword!))
                            .ReturnsAsync(false);
             _changePassword.Setup(x => x.ValidateFirstTimeUser(cmd.UserId))
                            .ReturnsAsync(false);
@@ -181,7 +180,7 @@ namespace UserManagement.UnitTests.Validators.Users
             var cmd = Valid();
             cmd.NewPassword = "Aa1aaaaa"; // no special
 
-            _changePassword.Setup(x => x.ValidatePassword(cmd.UserId, cmd.NewPassword))
+            _changePassword.Setup(x => x.ValidatePassword(cmd.UserId, cmd.NewPassword!))
                            .ReturnsAsync(false);
             _changePassword.Setup(x => x.ValidateFirstTimeUser(cmd.UserId))
                            .ReturnsAsync(false);
@@ -199,7 +198,7 @@ namespace UserManagement.UnitTests.Validators.Users
         {
             var cmd = Valid();
 
-            _changePassword.Setup(x => x.ValidatePassword(cmd.UserId, cmd.NewPassword))
+            _changePassword.Setup(x => x.ValidatePassword(cmd.UserId, cmd.NewPassword!))
                            .ReturnsAsync(true); // used before
             _changePassword.Setup(x => x.ValidateFirstTimeUser(cmd.UserId))
                            .ReturnsAsync(false);
@@ -217,7 +216,7 @@ namespace UserManagement.UnitTests.Validators.Users
         {
             var cmd = Valid();
 
-            _changePassword.Setup(x => x.ValidatePassword(cmd.UserId, cmd.NewPassword))
+            _changePassword.Setup(x => x.ValidatePassword(cmd.UserId, cmd.NewPassword!))
                            .ReturnsAsync(false);
             _changePassword.Setup(x => x.ValidateFirstTimeUser(cmd.UserId))
                            .ReturnsAsync(true); // first-time -> invalid path here
@@ -236,7 +235,7 @@ namespace UserManagement.UnitTests.Validators.Users
             var cmd = Valid();
             cmd.OldPassword = "Wrong#Old1";
 
-            _changePassword.Setup(x => x.ValidatePassword(cmd.UserId, cmd.NewPassword))
+            _changePassword.Setup(x => x.ValidatePassword(cmd.UserId, cmd.NewPassword!))
                            .ReturnsAsync(false);
             _changePassword.Setup(x => x.ValidateFirstTimeUser(cmd.UserId))
                            .ReturnsAsync(false);
@@ -259,7 +258,7 @@ namespace UserManagement.UnitTests.Validators.Users
         {
             var cmd = Valid();
 
-            _changePassword.Setup(x => x.ValidatePassword(cmd.UserId, cmd.NewPassword))
+            _changePassword.Setup(x => x.ValidatePassword(cmd.UserId, cmd.NewPassword!))
                            .ReturnsAsync(false);
             _changePassword.Setup(x => x.ValidateFirstTimeUser(cmd.UserId))
                            .ReturnsAsync(false);

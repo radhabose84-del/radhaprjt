@@ -46,8 +46,9 @@ namespace MaintenanceManagement.Presentation.Validation.MaintenanceCategory
                             RuleFor(x => x.CategoryName)
                            .MustAsync(async (CategoryName, cancellation) => !await _iMaintenanceCategoryCommandRepository.ExistsByCodeAsync(CategoryName))
                            .WithName("CategoryName")
-                           .WithMessage($"{rule.Error}");
-                            break; 
+                           .WithMessage($"{rule.Error}")
+                           .When(x => !string.IsNullOrWhiteSpace(x.CategoryName));
+                            break;
     
                 }
             }

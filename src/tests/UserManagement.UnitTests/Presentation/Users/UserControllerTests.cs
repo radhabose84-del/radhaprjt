@@ -1,4 +1,3 @@
-#nullable disable
 using UserManagement.Application.Users.Commands.ChangeUserPassword;
 using UserManagement.Application.Users.Commands.CreateUser;
 using UserManagement.Application.Users.Commands.DeleteUser;
@@ -7,6 +6,7 @@ using UserManagement.Application.Users.Commands.ResetUserPassword;
 using UserManagement.Application.Users.Commands.UpdateFirstTimeUserPassword;
 using UserManagement.Application.Users.Commands.UpdateUser;
 using UserManagement.Application.Users.Queries.GetUserById;
+using Contracts.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -18,6 +18,7 @@ using MassTransit;
 using FValidationResult = FluentValidation.Results.ValidationResult;
 using FValidationFailure = FluentValidation.Results.ValidationFailure;
 using UserManagement.Application.Users.Queries.GetUsers;
+using UserManagement.Application.Common.Interfaces;
 using UserManagement.Presentation.Controllers;
 
 namespace UserManagement.UnitTests.Presentation.Users;
@@ -38,13 +39,32 @@ public sealed class UserControllerTests
     private readonly ApplicationDbContext _db;
     private readonly UserController _sut;
 
-    // Minimal derived DbContext to satisfy the ctor (your controller never uses it directly)
+    // Minimal derived DbContext to satisfy the ctor (controller never uses it directly)
     private sealed class TestDbContext : ApplicationDbContext
     {
+        private static IIPAddressService CreateMockIp()
+        {
+            var mock = new Mock<IIPAddressService>(MockBehavior.Loose);
+            mock.Setup(x => x.GetSystemIPAddress()).Returns("127.0.0.1");
+            mock.Setup(x => x.GetUserName()).Returns("test-user");
+            mock.Setup(x => x.GetUserId()).Returns(1);
+            mock.Setup(x => x.GetCompanyId()).Returns(1);
+            mock.Setup(x => x.GetUnitId()).Returns(1);
+            mock.Setup(x => x.GetGroupCode()).Returns("ADMIN");
+            return mock.Object;
+        }
+
+        private static ITimeZoneService CreateMockTz()
+        {
+            var mock = new Mock<ITimeZoneService>(MockBehavior.Loose);
+            mock.Setup(x => x.GetCurrentTime(It.IsAny<string>())).Returns(DateTime.UtcNow);
+            return mock.Object;
+        }
+
         public TestDbContext()
             : base(new DbContextOptionsBuilder<ApplicationDbContext>()
                     .UseInMemoryDatabase(Guid.NewGuid().ToString())
-                    .Options, null!, null!)
+                    .Options, CreateMockIp(), CreateMockTz())
         { }
     }
 
@@ -81,7 +101,7 @@ public sealed class UserControllerTests
 
         // IMPORTANT: return the correct TResponse type (UserByIdDTO?) not object
         _sender.Setup(m => m.Send(It.Is<GetUserByIdQuery>(q => q.UserId == id), It.IsAny<CancellationToken>()))
-               .ReturnsAsync((UserByIdDTO)null);
+               .ReturnsAsync((UserByIdDTO?)null);
 
         var result = await _sut.GetByIdAsync(id);
 

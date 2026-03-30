@@ -114,6 +114,7 @@ namespace FAM.Infrastructure.Repositories.MiscMaster
                 FROM FixedAsset.MiscMaster
                 WHERE Code = @Code
                 AND MiscTypeId = @MiscTypeId
+                AND IsDeleted = 0
                 AND (@Id IS NULL OR Id != @Id)";
 
             var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new

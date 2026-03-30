@@ -13,7 +13,7 @@ namespace MaintenanceManagement.Domain.Entities
         public string? Code { get; set; }
         public string? Description { get; set; }
         public int SortOrder { get; set; }
-        public new Status IsActive { get; set; }
+        public new Status IsActive { get; set; } = Status.Active;
         public MiscTypeMaster? MiscTypeMaster { get; set; }
         public ICollection<MaintenanceRequest>? RequestType { get; set; }
         public ICollection<MaintenanceRequest>? MaintenanceType { get; set; }
