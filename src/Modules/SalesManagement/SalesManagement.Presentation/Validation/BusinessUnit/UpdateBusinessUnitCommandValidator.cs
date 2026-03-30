@@ -50,6 +50,13 @@ namespace SalesManagement.Presentation.Validation.BusinessUnit
                             .When(x => !string.IsNullOrWhiteSpace(x.Description));
                         break;
 
+                    case "AlreadyExists":
+                        RuleFor(x => x.BusinessUnitName)
+                            .MustAsync(async (cmd, name, ct) => !await _queryRepository.NameAlreadyExistsAsync(name!, cmd.Id))
+                            .WithMessage($"{nameof(UpdateBusinessUnitCommand.BusinessUnitName)} {rule.Error}")
+                            .When(x => !string.IsNullOrWhiteSpace(x.BusinessUnitName));
+                        break;
+
                     case "NotFound":
                         RuleFor(x => x.Id)
                             .GreaterThan(0).WithMessage("Valid Business Unit ID is required.")
