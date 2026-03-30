@@ -22,6 +22,8 @@ namespace SalesManagement.Application.SalesOrder.Dto
         public string? PartyName { get; set; }
         public int? AgentId { get; set; }
         public string? AgentName { get; set; }
+        public int? SubAgentId { get; set; }
+        public string? SubAgentName { get; set; }
 
         // Sales Order Type
         public int? SalesOrderTypeId { get; set; }

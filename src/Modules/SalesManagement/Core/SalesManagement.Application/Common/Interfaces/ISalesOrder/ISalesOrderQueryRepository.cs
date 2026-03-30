@@ -23,5 +23,6 @@ namespace SalesManagement.Application.Common.Interfaces.ISalesOrder
         Task<bool> SalesQuotationHeaderExistsAsync(int id);
         Task<bool> PackTypeExistsAsync(int packTypeId);
         Task<bool> AgentExistsAsync(int agentId);
+        Task<bool> SubAgentExistsAsync(int subAgentId);
     }
 }
