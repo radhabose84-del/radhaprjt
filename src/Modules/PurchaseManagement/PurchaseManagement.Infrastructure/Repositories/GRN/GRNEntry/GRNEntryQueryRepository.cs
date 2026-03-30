@@ -10,6 +10,7 @@ using PurchaseManagement.Application.GRN.GRNEntry.Queries.GetGrnPending;
 using PurchaseManagement.Application.GRN.GRNEntry.Queries.GetGrnPendingDetails;
 using PurchaseManagement.Application.GRN.GRNEntry.Queries.GetGrnPendingHeader;
 using PurchaseManagement.Application.GRN.GRNEntry.Queries.GetGrnQCCompletedDetails;
+using PurchaseManagement.Application.GRN.GRNEntry.Queries.GetPoPending;
 using PurchaseManagement.Domain.Common;
 using Dapper;
 
@@ -1529,6 +1530,113 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
             );
 
             return result.ToList();
+        }
+
+        public async Task<List<GetPoPendingDto>> GetPoPendingAsync()
+        {
+            var UnitId = _ipAddressService.GetUnitId() ?? 0;
+            var query = @"
+                    WITH GrnSummary AS
+                    (
+                        SELECT
+                            gd.PoId,
+                            SUM(gd.DcQuantity) AS TotalGrnQty
+                        FROM Purchase.GrnDetail gd
+                        INNER JOIN Purchase.GrnHeader gh ON gd.GrnId = gh.Id
+                        GROUP BY gd.PoId
+                    ),
+
+                    -- ============================
+                    -- LOCAL PO BLOCK
+                    -- ============================
+                    LocalPO AS
+                    (
+                        SELECT
+                            poh.Id AS PoId,
+                            poh.PoDate,
+                            poh.PONumber,
+                            poh.UnitId,
+                            poh.CreatedDate,
+                            poh.CreatedByName,
+                            poh.VendorId,
+                            poh.POCategoryId,
+                            poh.POMethodId,
+                            SUM(pod.Quantity) AS TotalOrderQty
+                        FROM Purchase.PurchaseOrderHeader poh
+                        INNER JOIN Purchase.PurchaseLocalHeader plh ON poh.Id = plh.PurchaseOrderId
+                        INNER JOIN Purchase.PurchaseLocalDetail pod ON plh.Id = pod.PurchaseLocalId
+                        INNER JOIN Purchase.MiscMaster MM ON poh.StatusId = MM.Id
+                        WHERE MM.Description = @MiscTypeCode AND poh.UnitId = @UnitId AND poh.IsDeleted = 0
+                        GROUP BY
+                            poh.Id, poh.PoDate, poh.PONumber, poh.UnitId, poh.CreatedDate, poh.CreatedByName,
+                            poh.VendorId, poh.POCategoryId, poh.POMethodId
+                    ),
+
+                    -- ============================
+                    -- IMPORT PO BLOCK
+                    -- ============================
+                    ImportPO AS
+                    (
+                        SELECT
+                            poh.Id AS PoId,
+                            poh.PoDate,
+                            poh.PONumber,
+                            poh.UnitId,
+                            poh.CreatedDate,
+                            poh.CreatedByName,
+                            poh.VendorId,
+                            poh.POCategoryId,
+                            poh.POMethodId,
+                            SUM(poid.Quantity) AS TotalOrderQty
+                        FROM Purchase.PurchaseOrderHeader poh
+                        INNER JOIN Purchase.PurchaseOrderImportHeader poih ON poh.Id = poih.PurchaseOrderId
+                        INNER JOIN Purchase.PurchaseOrderImportDetail poid ON poih.Id = poid.PurchaseHeaderId
+                        INNER JOIN Purchase.MiscMaster MM ON poh.StatusId = MM.Id
+                        WHERE MM.Description = @MiscTypeCode AND poh.UnitId = @UnitId AND poh.IsDeleted = 0
+                        GROUP BY
+                            poh.Id, poh.PoDate, poh.PONumber, poh.UnitId, poh.CreatedDate, poh.CreatedByName,
+                            poh.VendorId, poh.POCategoryId, poh.POMethodId
+                    ),
+
+                    -- ============================
+                    -- COMBINE LOCAL + IMPORT PO
+                    -- ============================
+                    AllPO AS
+                    (
+                        SELECT * FROM LocalPO
+                        UNION ALL
+                        SELECT * FROM ImportPO
+                    )
+
+                    -- ============================
+                    -- FINAL SELECT
+                    -- ============================
+                    SELECT
+                        ap.PoId,
+                        ap.PoDate,
+                        ap.PONumber,
+                        ap.UnitId,
+                        ap.CreatedDate,
+                        ap.CreatedByName,
+                        ap.VendorId,
+                        ap.POCategoryId,
+                        ap.POMethodId,
+                        ap.TotalOrderQty,
+                        ISNULL(gs.TotalGrnQty, 0) AS TotalGrnQty,
+                        ap.TotalOrderQty - ISNULL(gs.TotalGrnQty, 0) AS PendingQty
+                    FROM AllPO ap
+                    LEFT JOIN GrnSummary gs ON gs.PoId = ap.PoId
+                    WHERE ap.UnitId = @UnitId
+                    AND (ap.TotalOrderQty - ISNULL(gs.TotalGrnQty, 0)) > 0
+                    ORDER BY ap.PoId;
+                    ";
+
+            var result = await _dbConnection.QueryAsync<GetPoPendingDto>(
+                query,
+                new { UnitId = UnitId, MiscTypeCode = MiscEnumEntity.Approved }
+            );
+
+            return result.AsList();
         }
 
     }
