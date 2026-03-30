@@ -3,9 +3,9 @@ using Contracts.Interfaces;
 using Dapper;
 using SalesManagement.Domain.Common;
 
-namespace SalesManagement.Infrastructure.GatePassHandlers
+namespace SalesManagement.Infrastructure.Repositories.GatePass
 {
-    internal sealed class DeliveryChallanGatePassHandler : IGatePassDocumentHandler
+    internal sealed class DeliveryChallanGatePassProcessor : IGatePassDocumentProcessor
     {
         public string DocumentType => MiscEnumEntity.TransactionTypeStodc;
 
