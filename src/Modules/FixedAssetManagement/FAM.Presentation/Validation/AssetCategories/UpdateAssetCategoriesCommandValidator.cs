@@ -60,9 +60,7 @@ namespace FAM.Presentation.Validation.AssetCategories
                             .WithMessage($"{nameof(UpdateAssetCategoriesCommand.AssetGroupId)} {rule.Error} {CategoryIdMaxLength}");
                         break;
                     case "Alphanumeric":
-                        RuleFor(x => x.CategoryName)
-                            .Matches(new System.Text.RegularExpressions.Regex(rule.Pattern))
-                            .WithMessage($"{nameof(UpdateAssetCategoriesCommand.CategoryName)} {rule.Error}");
+                        // CategoryName is a name field, not a code field — no alphanumeric restriction
                         break;
                     case "AlphabeticOnly":
                          RuleFor(x => x.Description)
