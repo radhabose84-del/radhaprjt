@@ -55,6 +55,8 @@ namespace InventoryManagement.IntegrationTests.Repositories.MiscMaster
         {
             await using var conn = new SqlConnection(_fixture.ConnectionString);
             await conn.OpenAsync();
+            await conn.ExecuteAsync("DELETE FROM [Inventory].[UOMConversion]");
+            await conn.ExecuteAsync("DELETE FROM [Inventory].[UOM]");
             await conn.ExecuteAsync("DELETE FROM [Inventory].[MiscMaster]");
             await conn.ExecuteAsync("DELETE FROM [Inventory].[MiscTypeMaster]");
         }
