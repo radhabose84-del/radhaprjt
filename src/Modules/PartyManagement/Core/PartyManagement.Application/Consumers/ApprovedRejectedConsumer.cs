@@ -236,8 +236,8 @@ namespace PartyManagement.Application.Consumers
                     {
                         CorrelationId = Guid.NewGuid(),
                         PartyId = party.Id,
-                        PartyCode = party.PartyCode,
-                        PartyName = party.PartyName,
+                        PartyCode = party.PartyCode ?? string.Empty,
+                        PartyName = party.PartyName ?? string.Empty,
                         Email = contact?.EmailID?.Trim() ?? "",
                         Mobile = contact?.MobileNo?.Trim() ?? "",
                         IsPortalAccessEnabled = true,

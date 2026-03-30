@@ -47,17 +47,19 @@ namespace MaintenanceManagement.Presentation.Validation.MaintenanceCategory
                         break;
                       case "AlreadyExists":
                         RuleFor(x => x.CategoryName)
-                            .MustAsync(async (x, CategoryName, cancellation) => 
+                            .MustAsync(async (x, CategoryName, cancellation) =>
                                 !await _iMaintenanceCategoryCommandRepository.IsNameDuplicateAsync(CategoryName, x.Id))
                             .WithName("CategoryName")
-                            .WithMessage($"{rule.Error}");
+                            .WithMessage($"{rule.Error}")
+                            .When(x => !string.IsNullOrWhiteSpace(x.CategoryName));
                         break;
-                    case "RecordNotFound":
+                    case "NotFound":
                         RuleFor(x => x.Id)
-                            .MustAsync(async (id, cancellation) => 
-                                (await _iMaintenanceCategoryQueryRepository.GetByIdAsync(id)) != null) 
+                            .MustAsync(async (id, cancellation) =>
+                                (await _iMaintenanceCategoryQueryRepository.GetByIdAsync(id)) != null)
                             .WithName("Id")
-                            .WithMessage($"{rule.Error}");
+                            .WithMessage($"{rule.Error}")
+                            .When(x => x.Id > 0 && !string.IsNullOrWhiteSpace(x.CategoryName));
                             break;
     
                 }

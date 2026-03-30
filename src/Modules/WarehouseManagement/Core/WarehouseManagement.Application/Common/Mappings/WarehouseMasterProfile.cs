@@ -11,7 +11,8 @@ namespace WarehouseManagement.Application.Common.Mappings
 
         public WarehouseMasterProfile()
         {
-            CreateMap<WarehouseManagement.Domain.Entities.WarehouseMaster, WarehouseMasterDto>();
+            CreateMap<WarehouseManagement.Domain.Entities.WarehouseMaster, WarehouseMasterDto>()
+                .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => (byte)src.IsActive));
 
             CreateMap<CreateWarehouseMasterCommand, WarehouseManagement.Domain.Entities.WarehouseMaster>()
                 .ForMember(dest => dest.AllowedItemGroups, opt => opt.Ignore());

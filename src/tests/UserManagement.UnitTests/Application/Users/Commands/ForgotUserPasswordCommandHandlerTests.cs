@@ -96,7 +96,7 @@ namespace UserManagement.UnitTests.Application.Users.Commands
                         d.Module == "ResetUserPassword" &&
                         d.ActionDetail == "ResetUserPassword" &&
                         d.ActionName == "neo" &&
-                        d.ActionCode == generatedCode),
+                        d.ActionCode == "PASSWORD_RESET_REQUEST"),
                     It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);
 
@@ -111,8 +111,8 @@ namespace UserManagement.UnitTests.Application.Users.Commands
             // Assert response
             result.IsSuccess.Should().BeTrue();
             result.Data.Should().NotBeNull();
-            result.Data!.Email.Should().Be("neo@gmail.com");
-            result.Data.Mobile.Should().Be("9990001111");
+            result.Data!.Email.Should().Be("****@gmail.com");
+            result.Data.Mobile.Should().Be("99******11");
             result.Data.PasswordResetCodeExpiryMinutes.Should().Be(expiryMinutes);
             result.Data.Message.Should().Contain("Verification code sent");
 
@@ -185,8 +185,8 @@ namespace UserManagement.UnitTests.Application.Users.Commands
             // Assert
             result.IsSuccess.Should().BeTrue();
             result.Data.Should().NotBeNull();
-            result.Data!.Email.Should().Be("trinity@company.com");
-            result.Data.Mobile.Should().Be("8887776666");
+            result.Data!.Email.Should().Be("tr***ty@company.com");
+            result.Data.Mobile.Should().Be("88******66");
             result.Data.PasswordResetCodeExpiryMinutes.Should().Be(expiryMinutes);
 
             _userQuery.VerifyAll();

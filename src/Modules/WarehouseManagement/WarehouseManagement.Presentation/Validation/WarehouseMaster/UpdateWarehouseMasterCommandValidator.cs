@@ -1,4 +1,3 @@
-#nullable disable
 using WarehouseManagement.Application.Common.Interfaces.IWarehouseMaster;
 using WarehouseManagement.Application.WarehouseMaster.Command.UpdateWarehouseMaster;
 using FluentValidation;
@@ -18,10 +17,13 @@ namespace WarehouseManagement.Presentation.Validation.WarehouseMaster
 
             RuleFor(x => x.WarehouseName)
                 .NotEmpty().WithMessage("Warehouse Name is required.")
-                .MaximumLength(100).WithMessage("Warehouse Name cannot exceed 100 characters.")
+                .MaximumLength(100).WithMessage("Warehouse Name cannot exceed 100 characters.");
+
+            RuleFor(x => x.WarehouseName)
                 .MustAsync(async (cmd, name, cancellation) =>
-                    !await _warehouseMasterQueryRepository.ExistsByNameAsync(name, cmd.Id))
-                .WithMessage(cmd => $"Warehouse name '{cmd.WarehouseName}' already exists.");
+                    !await _warehouseMasterQueryRepository.ExistsByNameAsync(name!, cmd.Id))
+                .WithMessage(cmd => $"Warehouse name '{cmd.WarehouseName}' already exists.")
+                .When(x => !string.IsNullOrWhiteSpace(x.WarehouseName));
 
             RuleFor(x => x.UnitId)
                 .NotEmpty().WithMessage("Unit is required.");
@@ -33,14 +35,18 @@ namespace WarehouseManagement.Presentation.Validation.WarehouseMaster
                 .NotEmpty().WithMessage("Storage Type is required.");
 
             RuleFor(x => x.CapacityUOMId)
-                .NotEmpty().WithMessage("Capacity UOM is required.");           
+                .NotEmpty().WithMessage("Capacity UOM is required.");
 
             RuleFor(x => x.Pincode)
                 .MaximumLength(10).WithMessage("Pincode cannot exceed 10 characters.");
 
             RuleFor(x => x.AllowedItemGroupIds)
-                .NotNull().WithMessage("Allowed Item Group must not be null.")
-                .Must(list => list.Count > 0).WithMessage("At least one Allowed Item Group must be selected.");
+                .NotNull().WithMessage("Allowed Item Group must not be null.");
+
+            RuleFor(x => x.AllowedItemGroupIds)
+                .Must(list => list != null && list.Count > 0)
+                .WithMessage("At least one Allowed Item Group must be selected.")
+                .When(x => x.AllowedItemGroupIds != null);
         }
     }
 }

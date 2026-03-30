@@ -5,15 +5,16 @@ namespace BudgetManagement.Presentation.Validation.Common
 {
     public class MaxLengthProvider : IMaxLengthProvider
     {
-        private readonly IModel _model;
+        private readonly IModel? _model;
 
         public MaxLengthProvider(ApplicationDbContext dbContext)
         {
-            _model = dbContext.Model;
+            _model = dbContext?.Model;
         }
 
         public int? GetMaxLength<T>(string propertyName) where T : class
         {
+            if (_model is null) return null;
             var entityType = _model.FindEntityType(typeof(T));
             if (entityType is null)
                 throw new InvalidOperationException($"Entity type {typeof(T).Name} not found in the model.");

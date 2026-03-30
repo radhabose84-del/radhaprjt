@@ -3616,6 +3616,10 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("StatusId");
 
+                    b.Property<int?>("SubAgentId")
+                        .HasColumnType("int")
+                        .HasColumnName("SubAgentId");
+
                     b.Property<decimal>("TCSPercentage")
                         .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,3)")
@@ -3696,6 +3700,8 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.HasIndex("SalesSegmentId");
 
                     b.HasIndex("StatusId");
+
+                    b.HasIndex("SubAgentId");
 
                     b.ToTable("SalesOrderHeader", "Sales");
                 });

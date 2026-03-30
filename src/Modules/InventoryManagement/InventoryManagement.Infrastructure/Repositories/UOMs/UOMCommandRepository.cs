@@ -46,7 +46,7 @@ namespace InventoryManagement.Infrastructure.Repositories.UOMs
 
         public async Task<int> GetMaxSortOrderAsync()
         {
-            return await _applicationDbContext.UOMs.MaxAsync(ac => (int?)ac.SortOrder) ?? -1;
+            return await _applicationDbContext.UOMs.MaxAsync(ac => (int?)ac.SortOrder) ?? 0;
 
         }
 

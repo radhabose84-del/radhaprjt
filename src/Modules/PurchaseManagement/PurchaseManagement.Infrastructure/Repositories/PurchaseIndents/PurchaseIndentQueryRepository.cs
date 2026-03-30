@@ -90,7 +90,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseIndents
                     if (indentDetail is not null)
                     {
                         indentDetail.Status = lineStatus is null
-                            ? null
+                            ? null!
                             : new PurchaseManagement.Domain.Entities.MiscMaster
                             {
                                 Id = lineStatus.Id,
@@ -159,7 +159,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseIndents
             return count == 0; // true = NOT found (matches !NotFoundAsync pattern in validators)
         }
 
-        public async Task<(List<PendingIndentDto>, int)> GetPendingPurchaseIndentAsync(int PageNumber, int PageSize, string SearchTerm)
+        public async Task<(List<PendingIndentDto>, int)> GetPendingPurchaseIndentAsync(int PageNumber, int PageSize, string? SearchTerm)
         {
             var unitId = _ipAddressService.GetUnitId() ?? 0;
 
@@ -236,7 +236,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseIndents
             return (result, totalCount);
         }
 
-        public async Task<List<IndentHeader>> GetPurchaseIndentAutoCompleteAsync(string status, string searchTerm, bool allIndents = false)
+        public async Task<List<IndentHeader>> GetPurchaseIndentAutoCompleteAsync(string status, string? searchTerm, bool allIndents = false)
         {
             var unitId = _ipAddressService.GetUnitId() ?? 0;
 

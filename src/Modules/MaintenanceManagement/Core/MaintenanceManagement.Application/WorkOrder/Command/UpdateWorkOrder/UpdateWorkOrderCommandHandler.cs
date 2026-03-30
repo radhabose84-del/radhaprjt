@@ -69,7 +69,7 @@ namespace MaintenanceManagement.Application.WorkOrder.Command.UpdateWorkOrder
 
         public async Task<ApiResponseDTO<bool>> Handle(UpdateWorkOrderCommand request, CancellationToken cancellationToken)
         {
-            await _preventiveScheduleLogService.CaptureLogs(null, request.WorkOrder.PreventiveScheduleId, "Work Order Update", JsonConvert.SerializeObject(request));
+            await _preventiveScheduleLogService.CaptureLogs(null, request.WorkOrder!.PreventiveScheduleId, "Work Order Update", JsonConvert.SerializeObject(request));
 
             var updatedEntity = _mapper.Map<MaintenanceManagement.Domain.Entities.WorkOrderMaster.WorkOrder>(request.WorkOrder);
 
