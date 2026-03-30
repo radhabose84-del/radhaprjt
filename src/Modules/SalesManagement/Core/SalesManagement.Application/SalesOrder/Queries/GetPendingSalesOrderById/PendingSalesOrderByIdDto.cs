@@ -25,6 +25,8 @@ namespace SalesManagement.Application.SalesOrder.Queries.GetPendingSalesOrderByI
         public string? PartyName { get; set; }
         public int? AgentId { get; set; }
         public string? AgentName { get; set; }
+        public int? SubAgentId { get; set; }
+        public string? SubAgentName { get; set; }
 
         // Commercial Details
         public int? DiscountPlanId { get; set; }
