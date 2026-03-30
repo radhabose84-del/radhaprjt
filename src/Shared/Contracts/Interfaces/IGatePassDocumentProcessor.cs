@@ -6,9 +6,9 @@ namespace Contracts.Interfaces
     /// <summary>
     /// Strategy interface for handling GatePass document updates.
     /// Each module implements this for its own document types (Invoice, Delivery Challan, PO, etc.).
-    /// Implementations are resolved via IEnumerable&lt;IGatePassDocumentHandler&gt; in DI.
+    /// Implementations are resolved via IEnumerable&lt;IGatePassDocumentProcessor&gt; in DI.
     /// </summary>
-    public interface IGatePassDocumentHandler
+    public interface IGatePassDocumentProcessor
     {
         /// <summary>
         /// The document type name matching Finance.TransactionTypeMaster.TypeName
