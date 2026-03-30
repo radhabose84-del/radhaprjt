@@ -89,6 +89,19 @@ namespace SalesManagement.Infrastructure.Repositories.BusinessUnit
             return count > 0;
         }
 
+        public async Task<bool> NameAlreadyExistsAsync(string businessUnitName, int? id = null)
+        {
+            var sql = "SELECT COUNT(1) FROM Sales.BusinessUnit WHERE BusinessUnitName = @BusinessUnitName AND IsDeleted = 0";
+
+            if (id.HasValue)
+            {
+                sql += " AND Id != @Id";
+            }
+
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { BusinessUnitName = businessUnitName, Id = id });
+            return count > 0;
+        }
+
         public async Task<bool> NotFoundAsync(int id)
         {
             const string sql = "SELECT COUNT(1) FROM Sales.BusinessUnit WHERE Id = @Id AND IsDeleted = 0";
