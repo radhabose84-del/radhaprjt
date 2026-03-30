@@ -12,6 +12,10 @@ namespace SalesManagement.Application.SalesOrder.Dto
         public int UnitId { get; set; }
         public int PartyId { get; set; }
         public int? AgentId { get; set; }
+        public int? SubAgentId { get; set; }
+
+        // Sales Order Type (cross-module FK → Finance.TransactionTypeMaster)
+        public int? SalesOrderTypeId { get; set; }
 
         // Commercial Details
         public int? DiscountPlanId { get; set; }

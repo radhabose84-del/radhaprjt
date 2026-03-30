@@ -1,4 +1,6 @@
+using Contracts.Interfaces.Lookups.Finance;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using SalesManagement.Application.Common.Interfaces.IItemPriceMaster;
 using SalesManagement.Infrastructure.Data;
 using static SalesManagement.Domain.Common.BaseEntity;
@@ -8,10 +10,14 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
     public class ItemPriceMasterCommandRepository : IItemPriceMasterCommandRepository
     {
         private readonly ApplicationDbContext _applicationDbContext;
+        private readonly IDocumentSequenceLookup _documentSequenceLookup;
 
-        public ItemPriceMasterCommandRepository(ApplicationDbContext applicationDbContext)
+        public ItemPriceMasterCommandRepository(
+            ApplicationDbContext applicationDbContext,
+            IDocumentSequenceLookup documentSequenceLookup)
         {
             _applicationDbContext = applicationDbContext;
+            _documentSequenceLookup = documentSequenceLookup;
         }
 
         public async Task<int> CreateAsync(Domain.Entities.ItemPriceMaster entity, int typeId)
@@ -26,10 +32,9 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
                     await _applicationDbContext.ItemPriceMaster.AddAsync(entity);
                     await _applicationDbContext.SaveChangesAsync();
 
-                    // Increment DocNo in Finance.DocumentSequence
-                    await _applicationDbContext.Database.ExecuteSqlRawAsync(
-                        "UPDATE [Finance].[DocumentSequence] SET DocNo = DocNo + 1 WHERE TransactionTypeId = {0} AND IsDeleted = 0",
-                        typeId);
+                    var dbConnection = _applicationDbContext.Database.GetDbConnection();
+                    var dbTransaction = transaction.GetDbTransaction();
+                    await _documentSequenceLookup.IncrementDocNoAsync(typeId, dbConnection, dbTransaction);
 
                     await transaction.CommitAsync();
                     return entity.Id;
@@ -53,6 +58,7 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
             existingEntity.ItemId = entity.ItemId;
             existingEntity.SalesSegmentId = entity.SalesSegmentId;
             existingEntity.BaseRate = entity.BaseRate;
+            existingEntity.TolerancePercentage = entity.TolerancePercentage;
             existingEntity.CurrencyId = entity.CurrencyId;
             existingEntity.ValidFrom = entity.ValidFrom;
             existingEntity.ValidTo = entity.ValidTo;

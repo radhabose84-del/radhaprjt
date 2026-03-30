@@ -1,4 +1,6 @@
+using Contracts.Interfaces.Lookups.Finance;
 using Microsoft.EntityFrameworkCore;
+using Moq;
 using SalesManagement.Infrastructure.Data;
 using SalesManagement.Infrastructure.Repositories.ItemPriceMaster;
 using SalesManagement.IntegrationTests.Common;
@@ -26,8 +28,10 @@ namespace SalesManagement.IntegrationTests.Repositories.ItemPriceMaster
             _fixture = fixture;
         }
 
+        private static readonly Mock<IDocumentSequenceLookup> _mockDocSeqLookup = new(MockBehavior.Loose);
+
         private ItemPriceMasterCommandRepository CreateRepository(ApplicationDbContext ctx)
-            => new ItemPriceMasterCommandRepository(ctx);
+            => new ItemPriceMasterCommandRepository(ctx, _mockDocSeqLookup.Object);
 
         // ── Prerequisites ─────────────────────────────────────────────────────
 

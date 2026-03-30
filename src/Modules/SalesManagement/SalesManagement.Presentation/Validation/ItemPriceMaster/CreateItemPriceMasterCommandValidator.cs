@@ -78,6 +78,13 @@ namespace SalesManagement.Presentation.Validation.ItemPriceMaster
                             .WithMessage($"{nameof(CreateItemPriceMasterCommand.CurrencyId)} {rule.Error}");
                         break;
 
+                    case "GreaterThanOrEqualToZero":
+                        RuleFor(x => x.TolerancePercentage)
+                            .GreaterThanOrEqualTo(0)
+                            .WithMessage($"{nameof(CreateItemPriceMasterCommand.TolerancePercentage)} {rule.Error}")
+                            .When(x => x.TolerancePercentage.HasValue);
+                        break;
+
                     case "AlreadyExists":
                         // Overlap check (same Item + Segment with overlapping dates)
                         RuleFor(x => x)

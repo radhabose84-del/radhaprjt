@@ -7,17 +7,30 @@ using Microsoft.Extensions.Hosting;
 using MongoDB.Driver;
 using ProductionManagement.Application.Common.Interfaces;
 using ProductionManagement.Application.Common.Interfaces.AuditLog;
+using ProductionManagement.Application.Common.Interfaces.ICountGroup;
+using ProductionManagement.Application.Common.Interfaces.IYarnType;
 using ProductionManagement.Application.Common.Interfaces.ICountMaster;
 using ProductionManagement.Application.Common.Interfaces.ILotMaster;
 using ProductionManagement.Application.Common.Interfaces.IMiscMaster;
 using ProductionManagement.Application.Common.Interfaces.IMiscTypeMaster;
 using ProductionManagement.Application.Common.Interfaces.IPackType;
 using ProductionManagement.Application.Common.Interfaces.IProductionPack;
+using ProductionManagement.Application.Common.Interfaces.IRepacking;
+using ProductionManagement.Application.Common.Interfaces.IProcessMaster;
+using ProductionManagement.Application.Common.Interfaces.IQualityMaster;
+using ProductionManagement.Application.Common.Interfaces.ICertificationMaster;
+using ProductionManagement.Application.Common.Interfaces.IYarnTwistMaster;
 using Contracts.Interfaces.Lookups.Production;
 using ProductionManagement.Infrastructure.Repositories.Lookups.Production;
+using ProductionManagement.Infrastructure.Repositories.ProcessMaster;
+using ProductionManagement.Infrastructure.Repositories.QualityMaster;
+using ProductionManagement.Infrastructure.Repositories.CertificationMaster;
+using ProductionManagement.Infrastructure.Repositories.YarnTwistMaster;
 using ProductionManagement.Infrastructure.Data;
 using ProductionManagement.Infrastructure.Persistence;
 using ProductionManagement.Infrastructure.Repositories.AuditLog;
+using ProductionManagement.Infrastructure.Repositories.CountGroup;
+using ProductionManagement.Infrastructure.Repositories.YarnType;
 using ProductionManagement.Infrastructure.Repositories.CountMaster;
 using ProductionManagement.Infrastructure.Repositories.MiscMaster;
 using ProductionManagement.Infrastructure.Repositories.MiscTypeMaster;
@@ -91,6 +104,14 @@ namespace ProductionManagement.Infrastructure
             services.AddTransient<IJwtTokenHelper, JwtTokenHelper>();
             services.AddScoped<ILogQueryService, LogQueryService>();
 
+            // CountGroup repositories
+            services.AddScoped<ICountGroupCommandRepository, CountGroupCommandRepository>();
+            services.AddScoped<ICountGroupQueryRepository, CountGroupQueryRepository>();
+
+            // YarnType repositories
+            services.AddScoped<IYarnTypeCommandRepository, YarnTypeCommandRepository>();
+            services.AddScoped<IYarnTypeQueryRepository, YarnTypeQueryRepository>();
+
             // CountMaster repositories
             services.AddScoped<ICountMasterCommandRepository, CountMasterCommandRepository>();
             services.AddScoped<ICountMasterQueryRepository, CountMasterQueryRepository>();
@@ -115,10 +136,36 @@ namespace ProductionManagement.Infrastructure
             services.AddScoped<IProductionCommandRepository, Repositories.ProductionPack.ProductionCommandRepository>();
             services.AddScoped<IProductionQueryRepository, Repositories.ProductionPack.ProductionQueryRepository>();
 
+            // Repacking repositories
+            services.AddScoped<IRepackingCommandRepository, Repositories.Repacking.RepackingCommandRepository>();
+            services.AddScoped<IRepackingQueryRepository, Repositories.Repacking.RepackingQueryRepository>();
+
+            // ProcessMaster repositories
+            services.AddScoped<IProcessMasterCommandRepository, ProcessMasterCommandRepository>();
+            services.AddScoped<IProcessMasterQueryRepository, ProcessMasterQueryRepository>();
+
+            // QualityMaster repositories
+            services.AddScoped<IQualityMasterCommandRepository, QualityMasterCommandRepository>();
+            services.AddScoped<IQualityMasterQueryRepository, QualityMasterQueryRepository>();
+
+            // CertificationMaster repositories
+            services.AddScoped<ICertificationMasterCommandRepository, CertificationMasterCommandRepository>();
+            services.AddScoped<ICertificationMasterQueryRepository, CertificationMasterQueryRepository>();
+
+            // YarnTwistMaster repositories
+            services.AddScoped<IYarnTwistMasterCommandRepository, YarnTwistMasterCommandRepository>();
+            services.AddScoped<IYarnTwistMasterQueryRepository, YarnTwistMasterQueryRepository>();
+
             // Lookup registration — caching is handled globally by AddLookupCaching() in Program.cs
+            services.AddScoped<IYarnTypeLookup, YarnTypeLookupRepository>();
+            services.AddScoped<ICountGroupLookup, CountGroupLookupRepository>();
             services.AddScoped<ICountMasterLookup, CountMasterLookupRepository>();
             services.AddScoped<ILotMasterLookup, LotMasterLookupRepository>();
             services.AddScoped<IPackTypeLookup, PackTypeLookupRepository>();
+            services.AddScoped<IProcessMasterLookup, ProcessMasterLookupRepository>();
+            services.AddScoped<IQualityMasterLookup, QualityMasterLookupRepository>();
+            services.AddScoped<ICertificationMasterLookup, CertificationMasterLookupRepository>();
+            services.AddScoped<IYarnTwistMasterLookup, YarnTwistMasterLookupRepository>();
 
             return services;
         }

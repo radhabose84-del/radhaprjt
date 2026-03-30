@@ -118,8 +118,9 @@ namespace GateEntryManagement.Infrastructure.Repositories.VehicleMovementRecord
         }
 
         public async Task<List<PendingVehicleDto>> GetPendingVehiclesAsync(
-            int unitId, string? vehicleMovementId, string? vehicleNumber, CancellationToken ct)
+            string? vehicleMovementId, string? vehicleNumber, CancellationToken ct)
         {
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
             var whereClause = @"vmr.IsDeleted = 0 AND vmr.IsActive = 1
                 AND vmr.GateOutTime IS NULL
                 AND vmr.UnitId = @UnitId

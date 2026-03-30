@@ -23,7 +23,7 @@ namespace GateEntryManagement.Application.VehicleMovementRecord.Queries.GetPendi
         public async Task<ApiResponseDTO<List<PendingVehicleDto>>> Handle(GetPendingVehicleQuery request, CancellationToken cancellationToken)
         {
             var data = await _queryRepository.GetPendingVehiclesAsync(
-                request.UnitId, request.VehicleMovementId, request.VehicleNumber, cancellationToken);
+                request.VehicleMovementId, request.VehicleNumber, cancellationToken);
 
             var domainEvent = new AuditLogsDomainEvent(
                 actionDetail: "GetPendingVehicleQuery",

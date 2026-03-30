@@ -14,6 +14,13 @@ namespace SalesManagement.Domain.Entities
         public int UnitId { get; set; }                  // Cross-module FK (UserManagement)
         public int PartyId { get; set; }                 // Cross-module FK (PartyManagement)
         public int? AgentId { get; set; }                // Cross-module FK (PartyManagement) — nullable
+        public int? SubAgentId { get; set; }             // Cross-module FK (PartyManagement) — nullable
+
+        // Sales Order Type (cross-module FK → Finance.TransactionTypeMaster)
+        public int? SalesOrderTypeId { get; set; }
+
+        // Order Unit — captured from JWT at creation time (cross-module FK)
+        public int? OrderUnitId { get; set; }
 
         // Commercial Details
         public int? DiscountPlanId { get; set; }

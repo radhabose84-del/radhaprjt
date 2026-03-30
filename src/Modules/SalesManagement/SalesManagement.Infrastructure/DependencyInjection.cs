@@ -76,6 +76,12 @@ using SalesManagement.Infrastructure.Repositories.Outbox;
 using SalesManagement.Infrastructure.Services.Outbox;
 using SalesManagement.Application.Common.Interfaces.IComplaint;
 using SalesManagement.Infrastructure.Repositories.Complaint;
+using SalesManagement.Application.Common.Interfaces.IComplaintQCReview;
+using SalesManagement.Infrastructure.Repositories.ComplaintQCReview;
+using SalesManagement.Application.Common.Interfaces.IComplaintDepartmentFeedback;
+using SalesManagement.Application.Common.Interfaces.IComplaintResolution;
+using SalesManagement.Infrastructure.Repositories.ComplaintDepartmentFeedback;
+using SalesManagement.Infrastructure.Repositories.ComplaintResolution;
 using Contracts.Interfaces.Lookups.Sales;
 using SalesManagement.Infrastructure.Repositories.Lookups.Sales;
 
@@ -280,14 +286,36 @@ namespace SalesManagement.Infrastructure
             services.AddScoped<IComplaintCommandRepository, ComplaintCommandRepository>();
             services.AddScoped<IComplaintQueryRepository, ComplaintQueryRepository>();
 
+            // ── Complaint QC Review Repositories ─────────────────────────────────
+            services.AddScoped<IComplaintQCReviewCommandRepository, ComplaintQCReviewCommandRepository>();
+            services.AddScoped<IComplaintQCReviewQueryRepository, ComplaintQCReviewQueryRepository>();
+
+            // ── Complaint Department Feedback Repositories ──────────────────────
+            services.AddScoped<IComplaintDepartmentFeedbackCommandRepository, ComplaintDepartmentFeedbackCommandRepository>();
+            services.AddScoped<IComplaintDepartmentFeedbackQueryRepository, ComplaintDepartmentFeedbackQueryRepository>();
+
+            // ── Complaint Resolution Repositories ───────────────────────────────
+            services.AddScoped<IComplaintResolutionCommandRepository, ComplaintResolutionCommandRepository>();
+            services.AddScoped<IComplaintResolutionQueryRepository, ComplaintResolutionQueryRepository>();
+
             // ── Stock Ledger Report Repository ───────────────────────────────────
             services.AddScoped<IStockLedgerReportRepository, StockLedgerReportRepository>();
+
+            // ── Sales Stock Ledger Lookup (cross-module) ────────────────────────
+            services.AddScoped<ISalesStockLedgerLookup, SalesStockLedgerLookupRepository>();
+
+            // ── Sales MiscMaster Lookup (cross-module) ──────────────────────────
+            services.AddScoped<ISalesMiscMasterLookup, SalesMiscMasterLookupRepository>();
 
             // ═══════════════════════════════════════════════════════════════
             // OUTBOX PATTERN SERVICES (SQL-based for transaction atomicity)
             // ═══════════════════════════════════════════════════════════════
             services.AddScoped<IOutboxRepository, OutboxRepository>();
             services.AddScoped<IOutboxEventPublisher, OutboxEventPublisher>();
+
+            // ── GatePass Document Handlers (Strategy pattern) ─────────────
+            services.AddScoped<Contracts.Interfaces.IGatePassDocumentHandler, GatePassHandlers.InvoiceGatePassHandler>();
+            services.AddScoped<Contracts.Interfaces.IGatePassDocumentHandler, GatePassHandlers.DeliveryChallanGatePassHandler>();
 
             return services;
         }

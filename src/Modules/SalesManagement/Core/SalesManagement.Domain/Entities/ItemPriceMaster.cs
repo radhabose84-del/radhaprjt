@@ -11,6 +11,7 @@ namespace SalesManagement.Domain.Entities
         public int CurrencyId { get; set; }
         public DateOnly ValidFrom { get; set; }
         public DateOnly ValidTo { get; set; }
+        public decimal? TolerancePercentage { get; set; }
         public int? StatusId { get; set; }                // FK → Sales.MiscMaster
 
         // Navigation properties (same-module FK)

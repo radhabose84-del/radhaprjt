@@ -27,6 +27,8 @@ namespace GateEntryManagement.Infrastructure.Data
         public DbSet<VehicleMovementRecord> VehicleMovementRecord { get; set; } = null!;
         public DbSet<GatePassHdr> GatePassHdr { get; set; } = null!;
         public DbSet<GatePassDtl> GatePassDtl { get; set; } = null!;
+        public DbSet<GateInwardHdr> GateInwardHdr { get; set; } = null!;
+        public DbSet<GateInwardDtl> GateInwardDtl { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -35,6 +37,8 @@ namespace GateEntryManagement.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new VehicleMovementRecordConfiguration());
             modelBuilder.ApplyConfiguration(new GatePassHdrConfiguration());
             modelBuilder.ApplyConfiguration(new GatePassDtlConfiguration());
+            modelBuilder.ApplyConfiguration(new GateInwardHdrConfiguration());
+            modelBuilder.ApplyConfiguration(new GateInwardDtlConfiguration());
                // Global convention: set explicit precision/scale for all decimal properties
             // This prevents EF Core runtime warnings about silent truncation
             foreach (var property in modelBuilder.Model.GetEntityTypes()

@@ -22,6 +22,119 @@ namespace ProductionManagement.Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("ProductionManagement.Domain.Entities.CertificationMaster", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CertificationName")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CertificationName")
+                        .IsUnique();
+
+                    b.ToTable("CertificationMaster", "Production");
+                });
+
+            modelBuilder.Entity("ProductionManagement.Domain.Entities.CountGroup", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CountGroupCode")
+                        .IsRequired()
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<string>("CountGroupName")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CountGroupCode")
+                        .IsUnique();
+
+                    b.HasIndex("CountGroupName")
+                        .IsUnique();
+
+                    b.ToTable("CountGroup", "Production");
+                });
+
             modelBuilder.Entity("ProductionManagement.Domain.Entities.CountMaster", b =>
                 {
                     b.Property<int>("Id")
@@ -424,6 +537,64 @@ namespace ProductionManagement.Infrastructure.Migrations
                     b.ToTable("PackType", "Production");
                 });
 
+            modelBuilder.Entity("ProductionManagement.Domain.Entities.ProcessMaster", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("CombingRequired")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("ProcessName")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProcessName")
+                        .IsUnique();
+
+                    b.ToTable("ProcessMaster", "Production");
+                });
+
             modelBuilder.Entity("ProductionManagement.Domain.Entities.ProductionPackDetail", b =>
                 {
                     b.Property<int>("Id")
@@ -606,6 +777,312 @@ namespace ProductionManagement.Infrastructure.Migrations
                     b.ToTable("ProductionPackHeader", "Production");
                 });
 
+            modelBuilder.Entity("ProductionManagement.Domain.Entities.QualityMaster", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("QualityName")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("QualityName")
+                        .IsUnique();
+
+                    b.ToTable("QualityMaster", "Production");
+                });
+
+            modelBuilder.Entity("ProductionManagement.Domain.Entities.RepackingDetail", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BinId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("EndPackNo")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ItemId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("LotId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("NetWeight")
+                        .HasColumnType("decimal(18,3)");
+
+                    b.Property<decimal>("NetWeightPerPack")
+                        .HasColumnType("decimal(18,3)");
+
+                    b.Property<int>("OldPackDetailId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PackTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RepackingHeaderId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("StartPackNo")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalBags")
+                        .HasColumnType("int");
+
+                    b.Property<int>("WarehouseId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LotId");
+
+                    b.HasIndex("OldPackDetailId");
+
+                    b.HasIndex("PackTypeId");
+
+                    b.HasIndex("RepackingHeaderId");
+
+                    b.ToTable("RepackingDetail", "Production");
+                });
+
+            modelBuilder.Entity("ProductionManagement.Domain.Entities.RepackingHeader", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal>("LooseConeKgs")
+                        .HasColumnType("decimal(18,3)");
+
+                    b.Property<int?>("LooseHandlingId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<decimal>("NetWeight")
+                        .HasColumnType("decimal(18,3)");
+
+                    b.Property<int>("OldPackHeaderId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ProductionYear")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Remarks")
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime>("RepackingDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("RepackingNo")
+                        .IsRequired()
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<int>("TotalBags")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UnitId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LooseHandlingId");
+
+                    b.HasIndex("OldPackHeaderId");
+
+                    b.HasIndex("RepackingDate");
+
+                    b.HasIndex("RepackingNo")
+                        .IsUnique();
+
+                    b.ToTable("RepackingHeader", "Production");
+                });
+
+            modelBuilder.Entity("ProductionManagement.Domain.Entities.YarnTwistMaster", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("TwistName")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TwistName")
+                        .IsUnique();
+
+                    b.ToTable("YarnTwistMaster", "Production");
+                });
+
+            modelBuilder.Entity("ProductionManagement.Domain.Entities.YarnType", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("YarnTypeCode")
+                        .IsRequired()
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<string>("YarnTypeName")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("YarnTypeCode")
+                        .IsUnique();
+
+                    b.HasIndex("YarnTypeName")
+                        .IsUnique();
+
+                    b.ToTable("YarnType", "Production");
+                });
+
             modelBuilder.Entity("ProductionManagement.Domain.Entities.CountMaster", b =>
                 {
                     b.HasOne("ProductionManagement.Domain.Entities.MiscMaster", "CountCategory")
@@ -699,6 +1176,59 @@ namespace ProductionManagement.Infrastructure.Migrations
                     b.Navigation("QualityStatusMisc");
                 });
 
+            modelBuilder.Entity("ProductionManagement.Domain.Entities.RepackingDetail", b =>
+                {
+                    b.HasOne("ProductionManagement.Domain.Entities.LotMaster", "LotMaster")
+                        .WithMany()
+                        .HasForeignKey("LotId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ProductionManagement.Domain.Entities.ProductionPackDetail", "OldPackDetail")
+                        .WithMany()
+                        .HasForeignKey("OldPackDetailId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ProductionManagement.Domain.Entities.PackType", "PackType")
+                        .WithMany()
+                        .HasForeignKey("PackTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ProductionManagement.Domain.Entities.RepackingHeader", "RepackingHeader")
+                        .WithMany("RepackingDetails")
+                        .HasForeignKey("RepackingHeaderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("LotMaster");
+
+                    b.Navigation("OldPackDetail");
+
+                    b.Navigation("PackType");
+
+                    b.Navigation("RepackingHeader");
+                });
+
+            modelBuilder.Entity("ProductionManagement.Domain.Entities.RepackingHeader", b =>
+                {
+                    b.HasOne("ProductionManagement.Domain.Entities.MiscMaster", "LooseHandling")
+                        .WithMany()
+                        .HasForeignKey("LooseHandlingId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("ProductionManagement.Domain.Entities.ProductionPackHeader", "OldPackHeader")
+                        .WithMany()
+                        .HasForeignKey("OldPackHeaderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("LooseHandling");
+
+                    b.Navigation("OldPackHeader");
+                });
+
             modelBuilder.Entity("ProductionManagement.Domain.Entities.LotMaster", b =>
                 {
                     b.Navigation("ProductionPackDetails");
@@ -732,6 +1262,11 @@ namespace ProductionManagement.Infrastructure.Migrations
             modelBuilder.Entity("ProductionManagement.Domain.Entities.ProductionPackHeader", b =>
                 {
                     b.Navigation("ProductionPackDetails");
+                });
+
+            modelBuilder.Entity("ProductionManagement.Domain.Entities.RepackingHeader", b =>
+                {
+                    b.Navigation("RepackingDetails");
                 });
 #pragma warning restore 612, 618
         }

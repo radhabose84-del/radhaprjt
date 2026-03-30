@@ -8,7 +8,6 @@ namespace SalesManagement.Application.Invoice.Commands.UpdateInvoice
     {
         public int Id { get; set; }
         public DateOnly InvoiceDate { get; set; }
-        public int InvoiceType { get; set; }
         public int? AgentId { get; set; }
         public int? TransportMode { get; set; }
         public int? StatusId { get; set; }

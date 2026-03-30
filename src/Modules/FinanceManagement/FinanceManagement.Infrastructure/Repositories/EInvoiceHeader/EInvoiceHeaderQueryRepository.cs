@@ -1,4 +1,5 @@
 using System.Data;
+using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Party;
 using Dapper;
 using FinanceManagement.Application.Common.Interfaces.IEInvoiceHeader;
@@ -10,24 +11,29 @@ namespace FinanceManagement.Infrastructure.Repositories.EInvoiceHeader
     {
         private readonly IDbConnection _dbConnection;
         private readonly IPartyLookup _partyLookup;
+        private readonly IIPAddressService _ipAddressService;
 
-        public EInvoiceHeaderQueryRepository(IDbConnection dbConnection, IPartyLookup partyLookup)
+        public EInvoiceHeaderQueryRepository(IDbConnection dbConnection, IPartyLookup partyLookup, IIPAddressService ipAddressService)
         {
             _dbConnection = dbConnection;
             _partyLookup = partyLookup;
+            _ipAddressService = ipAddressService;
         }
 
         public async Task<(List<EInvoiceHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
         {
             var offset = (pageNumber - 1) * pageSize;
             var search = string.IsNullOrWhiteSpace(searchTerm) ? null : $"%{searchTerm}%";
+            var unitId = _ipAddressService.GetUnitId();
+            var unitFilter = unitId.HasValue ? "AND UnitId = @UnitId" : "";
 
-            const string countSql = @"
+            var countSql = $@"
                 SELECT COUNT(*) FROM [Finance].[EInvoiceHeader]
                 WHERE IsDeleted = 0
+                {unitFilter}
                 AND (@Search IS NULL OR InvoiceNo LIKE @Search OR IrnNumber LIKE @Search)";
 
-            const string dataSql = @"
+            var dataSql = $@"
                 SELECT Id, UnitId, DocType, SupplyType, InvoiceNo, InvoiceDate, PlaceOfSupply,
                        IrnNumber, AckNo, AckDate, SignInvoice, SignQrCode,
                        IrnStatus, ErrorCode, ErrorMessage,
@@ -39,11 +45,12 @@ namespace FinanceManagement.Infrastructure.Repositories.EInvoiceHeader
                        ModifiedBy, ModifiedDate, ModifiedByName, ModifiedIP
                 FROM [Finance].[EInvoiceHeader]
                 WHERE IsDeleted = 0
+                {unitFilter}
                 AND (@Search IS NULL OR InvoiceNo LIKE @Search OR IrnNumber LIKE @Search)
                 ORDER BY Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
 
-            var parameters = new { Search = search, Offset = offset, PageSize = pageSize };
+            var parameters = new { Search = search, Offset = offset, PageSize = pageSize, UnitId = unitId };
             var totalCount = await _dbConnection.ExecuteScalarAsync<int>(countSql, parameters);
             var rows = (await _dbConnection.QueryAsync<EInvoiceHeaderDto>(dataSql, parameters)).ToList();
 
@@ -61,7 +68,10 @@ namespace FinanceManagement.Infrastructure.Repositories.EInvoiceHeader
 
         public async Task<EInvoiceHeaderDto?> GetByIdAsync(int id)
         {
-            const string sql = @"
+            var unitId = _ipAddressService.GetUnitId();
+            var unitFilter = unitId.HasValue ? "AND UnitId = @UnitId" : "";
+
+            var sql = $@"
                 SELECT Id, UnitId, DocType, SupplyType, InvoiceNo, InvoiceDate, PlaceOfSupply,
                        IrnNumber, AckNo, AckDate, SignInvoice, SignQrCode,
                        IrnStatus, ErrorCode, ErrorMessage,
@@ -72,7 +82,7 @@ namespace FinanceManagement.Infrastructure.Repositories.EInvoiceHeader
                        CreatedBy, CreatedDate, CreatedByName, CreatedIP,
                        ModifiedBy, ModifiedDate, ModifiedByName, ModifiedIP
                 FROM [Finance].[EInvoiceHeader]
-                WHERE Id = @Id AND IsDeleted = 0;
+                WHERE Id = @Id AND IsDeleted = 0 {unitFilter};
 
                 SELECT Id, EInvoiceHeaderId, ItemSno, ItemId, ItemName, HsnNo,
                        NoOfBags, Qty, UnitPrice, Rate, Discount, GrossAmount, TaxableAmount,
@@ -81,7 +91,7 @@ namespace FinanceManagement.Infrastructure.Repositories.EInvoiceHeader
                 FROM [Finance].[EInvoiceDetail]
                 WHERE EInvoiceHeaderId = @Id;";
 
-            using var multi = await _dbConnection.QueryMultipleAsync(sql, new { Id = id });
+            using var multi = await _dbConnection.QueryMultipleAsync(sql, new { Id = id, UnitId = unitId });
             var dto = await multi.ReadFirstOrDefaultAsync<EInvoiceHeaderDto>();
 
             if (dto != null)
@@ -97,15 +107,19 @@ namespace FinanceManagement.Infrastructure.Repositories.EInvoiceHeader
 
         public async Task<IReadOnlyList<EInvoiceHeaderLookupDto>> AutocompleteAsync(string term, CancellationToken ct)
         {
-            const string sql = @"
+            var unitId = _ipAddressService.GetUnitId();
+            var unitFilter = unitId.HasValue ? "AND UnitId = @UnitId" : "";
+
+            var sql = $@"
                 SELECT TOP 20 Id, InvoiceNo, IrnNumber
                 FROM [Finance].[EInvoiceHeader]
                 WHERE IsDeleted = 0 AND IsActive = 1
+                {unitFilter}
                 AND (InvoiceNo LIKE @Term OR IrnNumber LIKE @Term)
                 ORDER BY InvoiceNo ASC";
 
             var result = await _dbConnection.QueryAsync<EInvoiceHeaderLookupDto>(
-                new CommandDefinition(sql, new { Term = $"%{term}%" }, cancellationToken: ct));
+                new CommandDefinition(sql, new { Term = $"%{term}%", UnitId = unitId }, cancellationToken: ct));
             return result.ToList();
         }
 

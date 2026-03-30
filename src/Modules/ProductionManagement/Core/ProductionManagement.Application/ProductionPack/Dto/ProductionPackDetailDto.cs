@@ -4,6 +4,16 @@ namespace ProductionManagement.Application.ProductionPack.Dto
     {
         public int Id { get; set; }
         public int ProductionPackHeaderId { get; set; }
+
+        // Header info (populated in GetByPackRangeAsync)
+        public string? PackNo { get; set; }
+        public DateOnly? PackDate { get; set; }
+        public int? ProductionYear { get; set; }
+        public int? UnitId { get; set; }
+        public string? UnitName { get; set; }
+        public int? WarehouseId { get; set; }
+        public string? WarehouseName { get; set; }
+
         public int ItemSno { get; set; }
         public int LotId { get; set; }
         public string? LotCode { get; set; }

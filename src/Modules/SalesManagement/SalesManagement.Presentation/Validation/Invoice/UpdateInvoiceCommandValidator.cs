@@ -36,10 +36,6 @@ namespace SalesManagement.Presentation.Validation.Invoice
                             .NotEmpty()
                             .WithMessage($"{nameof(UpdateInvoiceCommand.Id)} {rule.Error}");
 
-                        RuleFor(x => x.InvoiceType)
-                            .NotEmpty()
-                            .WithMessage($"{nameof(UpdateInvoiceCommand.InvoiceType)} {rule.Error}");
-
                         RuleFor(x => x.Details)
                             .NotNull()
                             .WithMessage($"Details {rule.Error}")
@@ -70,11 +66,6 @@ namespace SalesManagement.Presentation.Validation.Invoice
                         break;
 
                     case "FKColumnDelete":
-                        RuleFor(x => x.InvoiceType)
-                            .MustAsync(async (id, ct) => await _queryRepository.InvoiceTypeExistsAsync(id))
-                            .WithMessage($"{nameof(UpdateInvoiceCommand.InvoiceType)} {rule.Error}")
-                            .When(x => x.InvoiceType > 0);
-                     
                         break;
 
                     case "NotFound":

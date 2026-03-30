@@ -984,12 +984,18 @@ namespace InventoryManagement.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("UomId");
 
+                    b.Property<int?>("ValuationMethodId")
+                        .HasColumnType("int")
+                        .HasColumnName("ValuationMethodId");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ItemId")
                         .IsUnique();
 
                     b.HasIndex("UomId");
+
+                    b.HasIndex("ValuationMethodId");
 
                     b.ToTable("ItemSale", "Inventory");
                 });
@@ -2472,7 +2478,14 @@ namespace InventoryManagement.Infrastructure.Migrations
                         .HasForeignKey("UomId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("InventoryManagement.Domain.Entities.MiscMaster", "MiscValuationMethod")
+                        .WithMany("ItemSaleValuationMethod")
+                        .HasForeignKey("ValuationMethodId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("Item");
+
+                    b.Navigation("MiscValuationMethod");
 
                     b.Navigation("SalesUOM");
                 });
@@ -2840,6 +2853,8 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.Navigation("ItemPurchaseSource");
 
                     b.Navigation("ItemQualityCertificateType");
+
+                    b.Navigation("ItemSaleValuationMethod");
 
                     b.Navigation("MrsDetailsHeader");
 

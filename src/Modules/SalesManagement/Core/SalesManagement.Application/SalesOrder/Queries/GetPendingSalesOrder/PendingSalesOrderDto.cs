@@ -18,6 +18,8 @@ namespace SalesManagement.Application.SalesOrder.Queries.GetPendingSalesOrder
         public string? PartyName { get; set; }
         public int? AgentId { get; set; }
         public string? AgentName { get; set; }
+        public int? SubAgentId { get; set; }
+        public string? SubAgentName { get; set; }
         public int? StatusId { get; set; }
         public string? StatusName { get; set; }
         public string? Remarks { get; set; }

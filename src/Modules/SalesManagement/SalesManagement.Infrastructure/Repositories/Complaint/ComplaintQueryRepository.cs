@@ -114,6 +114,12 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                 {
                     item.CustomerName = partyDict.TryGetValue(item.CustomerId, out var name) ? name : null;
                 }
+
+                // Derive ComplaintStage for each complaint
+                foreach (var item in data)
+                {
+                    item.ComplaintStage = await DeriveComplaintStageAsync(item.Id);
+                }
             }
 
             return (data, totalCount);
@@ -235,7 +241,74 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
             }
 
             header.ComplaintDetails = details;
+
+            // Derive ComplaintStage from related tables
+            header.ComplaintStage = await DeriveComplaintStageAsync(header.Id);
+
             return header;
+        }
+
+        private async Task<string> DeriveComplaintStageAsync(int complaintHeaderId)
+        {
+            const string sql = @"
+                SELECT
+                    qr.Id AS QCReviewId,
+                    qcs.Code AS QCDecision,
+                    cr.Id AS ResolutionId,
+                    cs.Code AS ClosureStatusCode,
+                    (SELECT COUNT(*) FROM Sales.ComplaintQCReviewAssignment a
+                     WHERE a.ComplaintQCReviewId = qr.Id AND a.IsDeleted = 0) AS TotalAssignments,
+                    (SELECT COUNT(*) FROM Sales.ComplaintQCReviewAssignment a
+                     INNER JOIN Sales.MiscMaster ast ON a.AssignmentStatusId = ast.Id
+                     WHERE a.ComplaintQCReviewId = qr.Id AND a.IsDeleted = 0
+                     AND LOWER(ast.Code) = 'submitted') AS SubmittedAssignments
+                FROM Sales.ComplaintHeader ch
+                LEFT JOIN Sales.ComplaintQCReview qr ON qr.ComplaintHeaderId = ch.Id AND qr.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster qcs ON qr.ComplaintStatusId = qcs.Id AND qcs.IsDeleted = 0
+                LEFT JOIN Sales.ComplaintResolution cr ON cr.ComplaintHeaderId = ch.Id AND cr.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster cs ON cr.ClosureStatusId = cs.Id AND cs.IsDeleted = 0
+                WHERE ch.Id = @ComplaintHeaderId AND ch.IsDeleted = 0;";
+
+            var row = await _dbConnection.QueryFirstOrDefaultAsync<dynamic>(sql, new { ComplaintHeaderId = complaintHeaderId });
+
+            if (row == null)
+                return "Registered";
+
+            int? qcReviewId = (int?)row.QCReviewId;
+            string? qcDecision = (string?)row.QCDecision;
+            int? resolutionId = (int?)row.ResolutionId;
+            string? closureStatus = (string?)row.ClosureStatusCode;
+            int totalAssignments = (int?)row.TotalAssignments ?? 0;
+            int submittedAssignments = (int?)row.SubmittedAssignments ?? 0;
+
+            // Resolution + Closure
+            if (resolutionId.HasValue)
+            {
+                return closureStatus?.ToLower() switch
+                {
+                    "closed" => "Closed",
+                    "ready for closure" => "Ready for Closure",
+                    _ => "Resolution In Progress"
+                };
+            }
+
+            // QC Review exists
+            if (qcReviewId.HasValue)
+            {
+                if (string.Equals(qcDecision, "QC Rejected", StringComparison.OrdinalIgnoreCase))
+                    return "QC Rejected";
+
+                // QC Accepted — check feedback
+                if (totalAssignments > 0 && totalAssignments == submittedAssignments)
+                    return "Feedback Completed";
+
+                if (totalAssignments > 0)
+                    return "Awaiting Department Feedback";
+
+                return "Under QC Review";
+            }
+
+            return "Pending QC Review";
         }
 
         public async Task<IReadOnlyList<ComplaintLookupDto>> AutocompleteAsync(string term, CancellationToken ct)
@@ -513,7 +586,7 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                 AND h.Id IN (
                     SELECT ar.ModuleTransactionId
                     FROM AppData.ApprovalRequest ar
-                    WHERE ar.WorkflowType = 'Complaint'
+                    WHERE ar.WorkflowType = 'Complaints'
                       AND ar.ApproverValue = @CurrentUserId
                       AND ar.StatusId = @AppPendingStatusId
                 )";
@@ -529,13 +602,13 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                     h.Id,
                     h.ComplaintNumber,
                     h.ComplaintDate,
-                    h.PartyId AS CustomerId,
-                    h.Address AS CustomerAddress,
-                    h.PIN AS CustomerPIN,
-                    h.Mobile AS CustomerMobile,
-                    h.Email AS CustomerEmail,
-                    h.PAN AS CustomerPAN,
-                    h.GSTNo AS CustomerGSTNo,
+                    h.CustomerId,
+                    h.CustomerAddress,
+                    h.CustomerPIN,
+                    h.CustomerMobile,
+                    h.CustomerEmail,
+                    h.CustomerPAN,
+                    h.CustomerGSTNo,
                     h.CreditLimit,
                     h.TotalOS,
                     h.Outstanding,

@@ -1,4 +1,6 @@
+using Contracts.Interfaces.Lookups.Finance;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using SalesManagement.Application.Common.Interfaces.IStoHeader;
 using SalesManagement.Domain.Common;
 using SalesManagement.Infrastructure.Data;
@@ -9,55 +11,74 @@ namespace SalesManagement.Infrastructure.Repositories.StoHeader
     public class StoHeaderCommandRepository : IStoHeaderCommandRepository
     {
         private readonly ApplicationDbContext _dbContext;
+        private readonly IDocumentSequenceLookup _documentSequenceLookup;
 
-        public StoHeaderCommandRepository(ApplicationDbContext dbContext)
+        public StoHeaderCommandRepository(
+            ApplicationDbContext dbContext,
+            IDocumentSequenceLookup documentSequenceLookup)
         {
             _dbContext = dbContext;
+            _documentSequenceLookup = documentSequenceLookup;
         }
 
         public async Task<int> CreateAsync(Domain.Entities.StoHeader entity, int typeId)
         {
-            // Separate details from header
-            var details = entity.StoDetails?.ToList();
-            entity.StoDetails = null;
+            var strategy = _dbContext.Database.CreateExecutionStrategy();
 
-            // Set default header status to Draft
-            entity.HeaderStatusId = await GetDraftHeaderStatusIdAsync();
-
-            // Save header first to get auto-generated Id
-            await _dbContext.StoHeader.AddAsync(entity);
-            await _dbContext.SaveChangesAsync();
-
-            // Insert details with header FK and default LineStatus
-            if (details != null && details.Count > 0)
+            return await strategy.ExecuteAsync(async () =>
             {
-                // Fetch default line status ID via direct Dapper scalar query
-                var draftStatusId = await GetDraftLineStatusIdAsync();
-
-                foreach (var detail in details)
+                using var transaction = await _dbContext.Database.BeginTransactionAsync();
+                try
                 {
-                    // Create fresh entity to avoid EF change-tracker interference
-                    var newDetail = new Domain.Entities.StoDetail
+                    // Separate details from header
+                    var details = entity.StoDetails?.ToList();
+                    entity.StoDetails = null;
+
+                    // Set default header status to Draft
+                    entity.HeaderStatusId = await GetDraftHeaderStatusIdAsync();
+
+                    // Save header first to get auto-generated Id
+                    await _dbContext.StoHeader.AddAsync(entity);
+                    await _dbContext.SaveChangesAsync();
+
+                    // Insert details with header FK and default LineStatus
+                    if (details != null && details.Count > 0)
                     {
-                        StoHeaderId = entity.Id,
-                        ItemId = detail.ItemId,
-                        Quantity = detail.Quantity,
-                        UOMId = detail.UOMId,
-                        TransferPrice = detail.TransferPrice,
-                        LineStatusId = draftStatusId
-                    };
-                    await _dbContext.StoDetail.AddAsync(newDetail);
+                        // Fetch default line status ID via direct Dapper scalar query
+                        var draftStatusId = await GetDraftLineStatusIdAsync();
+
+                        foreach (var detail in details)
+                        {
+                            // Create fresh entity to avoid EF change-tracker interference
+                            var newDetail = new Domain.Entities.StoDetail
+                            {
+                                StoHeaderId = entity.Id,
+                                ItemId = detail.ItemId,
+                                Quantity = detail.Quantity,
+                                UOMId = detail.UOMId,
+                                TransferPrice = detail.TransferPrice,
+                                LineStatusId = draftStatusId
+                            };
+                            await _dbContext.StoDetail.AddAsync(newDetail);
+                        }
+
+                        await _dbContext.SaveChangesAsync();
+                    }
+
+                    // Increment DocNo via Finance lookup (within same transaction)
+                    var dbConnection = _dbContext.Database.GetDbConnection();
+                    var dbTransaction = transaction.GetDbTransaction();
+                    await _documentSequenceLookup.IncrementDocNoAsync(typeId, dbConnection, dbTransaction);
+
+                    await transaction.CommitAsync();
+                    return entity.Id;
                 }
-
-                await _dbContext.SaveChangesAsync();
-            }
-
-            // Increment DocNo in Finance.DocumentSequence
-            await _dbContext.Database.ExecuteSqlRawAsync(
-                "UPDATE [Finance].[DocumentSequence] SET DocNo = DocNo + 1 WHERE TransactionTypeId = {0} AND IsDeleted = 0",
-                typeId);
-
-            return entity.Id;
+                catch
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
+            });
         }
 
         public async Task<int> UpdateAsync(Domain.Entities.StoHeader entity)

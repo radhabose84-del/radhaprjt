@@ -291,6 +291,116 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.ToTable("BusinessUnit", "Sales");
                 });
 
+            modelBuilder.Entity("SalesManagement.Domain.Entities.ComplaintDepartmentFeedback", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AssignmentId")
+                        .HasColumnType("int")
+                        .HasColumnName("AssignmentId");
+
+                    b.Property<string>("CorrectiveAction")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(2000)")
+                        .HasColumnName("CorrectiveAction");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<int>("FeedbackStatusId")
+                        .HasColumnType("int")
+                        .HasColumnName("FeedbackStatusId");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<string>("PreventiveAction")
+                        .HasColumnType("nvarchar(2000)")
+                        .HasColumnName("PreventiveAction");
+
+                    b.Property<string>("Remarks")
+                        .HasColumnType("nvarchar(1000)")
+                        .HasColumnName("Remarks");
+
+                    b.Property<int>("ReworkCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0)
+                        .HasColumnName("ReworkCount");
+
+                    b.Property<string>("ReworkReason")
+                        .HasColumnType("nvarchar(1000)")
+                        .HasColumnName("ReworkReason");
+
+                    b.Property<int?>("RootCauseCategoryId")
+                        .HasColumnType("int")
+                        .HasColumnName("RootCauseCategoryId");
+
+                    b.Property<string>("RootCauseText")
+                        .HasColumnType("nvarchar(2000)")
+                        .HasColumnName("RootCauseText");
+
+                    b.Property<int?>("SubmittedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("SubmittedBy");
+
+                    b.Property<DateTimeOffset?>("SubmittedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("SubmittedDate");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AssignmentId")
+                        .IsUnique();
+
+                    b.HasIndex("FeedbackStatusId");
+
+                    b.HasIndex("RootCauseCategoryId");
+
+                    b.HasIndex("SubmittedBy");
+
+                    b.ToTable("ComplaintDepartmentFeedback", "Sales");
+                });
+
             modelBuilder.Entity("SalesManagement.Domain.Entities.ComplaintDetail", b =>
                 {
                     b.Property<int>("Id")
@@ -419,6 +529,84 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.HasIndex("NatureOfComplaintId");
 
                     b.ToTable("ComplaintDetailNature", "Sales");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.ComplaintFeedbackAttachment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<int>("FeedbackId")
+                        .HasColumnType("int")
+                        .HasColumnName("FeedbackId");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(255)")
+                        .HasColumnName("FileName");
+
+                    b.Property<string>("FilePath")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("FilePath");
+
+                    b.Property<long?>("FileSize")
+                        .HasColumnType("bigint")
+                        .HasColumnName("FileSize");
+
+                    b.Property<string>("FileType")
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("FileType");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FeedbackId");
+
+                    b.ToTable("ComplaintFeedbackAttachment", "Sales");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.ComplaintHeader", b =>
@@ -555,6 +743,338 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.HasIndex("StatusId");
 
                     b.ToTable("ComplaintHeader", "Sales");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.ComplaintQCReview", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Comments")
+                        .HasColumnType("nvarchar(1000)")
+                        .HasColumnName("Comments");
+
+                    b.Property<int?>("CompensationStructureId")
+                        .HasColumnType("int")
+                        .HasColumnName("CompensationStructureId");
+
+                    b.Property<int>("ComplaintHeaderId")
+                        .HasColumnType("int")
+                        .HasColumnName("ComplaintHeaderId");
+
+                    b.Property<int?>("ComplaintStatusId")
+                        .HasColumnType("int")
+                        .HasColumnName("ComplaintStatusId");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<DateTimeOffset?>("DecisionTimestamp")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("DecisionTimestamp");
+
+                    b.Property<DateTime?>("ExpectedResolutionDate")
+                        .HasColumnType("date")
+                        .HasColumnName("ExpectedResolutionDate");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<int?>("LabResponsiblePersonId")
+                        .HasColumnType("int")
+                        .HasColumnName("LabResponsiblePersonId");
+
+                    b.Property<bool>("LabVerificationRequired")
+                        .HasColumnType("bit")
+                        .HasColumnName("LabVerificationRequired");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<int>("PhysicalVerificationId")
+                        .HasColumnType("int")
+                        .HasColumnName("PhysicalVerificationId");
+
+                    b.Property<int?>("ReviewedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ReviewedBy");
+
+                    b.Property<DateTimeOffset?>("ReviewedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ReviewedDate");
+
+                    b.Property<int?>("SeverityId")
+                        .HasColumnType("int")
+                        .HasColumnName("SeverityId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompensationStructureId");
+
+                    b.HasIndex("ComplaintHeaderId")
+                        .IsUnique();
+
+                    b.HasIndex("ComplaintStatusId");
+
+                    b.HasIndex("PhysicalVerificationId");
+
+                    b.HasIndex("SeverityId");
+
+                    b.ToTable("ComplaintQCReview", "Sales");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.ComplaintQCReviewAssignment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AssignmentStatusId")
+                        .HasColumnType("int")
+                        .HasColumnName("AssignmentStatusId");
+
+                    b.Property<int>("ComplaintQCReviewId")
+                        .HasColumnType("int")
+                        .HasColumnName("ComplaintQCReviewId");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<bool>("IsMandatory")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsMandatory");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<int>("ResponsiblePersonId")
+                        .HasColumnType("int")
+                        .HasColumnName("ResponsiblePersonId");
+
+                    b.Property<int>("RoleId")
+                        .HasColumnType("int")
+                        .HasColumnName("RoleId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AssignmentStatusId");
+
+                    b.HasIndex("ComplaintQCReviewId");
+
+                    b.HasIndex("ResponsiblePersonId");
+
+                    b.HasIndex("RoleId");
+
+                    b.ToTable("ComplaintQCReviewAssignment", "Sales");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.ComplaintResolution", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ActionDescription")
+                        .HasColumnType("nvarchar(2000)")
+                        .HasColumnName("ActionDescription");
+
+                    b.Property<int?>("ClosedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ClosedBy");
+
+                    b.Property<DateTimeOffset?>("ClosedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ClosedDate");
+
+                    b.Property<string>("ClosureRemarks")
+                        .HasColumnType("nvarchar(2000)")
+                        .HasColumnName("ClosureRemarks");
+
+                    b.Property<int?>("ClosureStatusId")
+                        .HasColumnType("int")
+                        .HasColumnName("ClosureStatusId");
+
+                    b.Property<int>("ComplaintHeaderId")
+                        .HasColumnType("int")
+                        .HasColumnName("ComplaintHeaderId");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<decimal?>("CreditAmount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("CreditAmount");
+
+                    b.Property<string>("DispatchReference")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("DispatchReference");
+
+                    b.Property<string>("FinanceReference")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("FinanceReference");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<decimal?>("ReplacementQuantity")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,4)")
+                        .HasColumnName("ReplacementQuantity");
+
+                    b.Property<string>("ResolutionSummary")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(2000)")
+                        .HasColumnName("ResolutionSummary");
+
+                    b.Property<int>("ResolutionTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("ResolutionTypeId");
+
+                    b.Property<int?>("ResolvedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ResolvedBy");
+
+                    b.Property<DateTimeOffset?>("ResolvedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ResolvedDate");
+
+                    b.Property<int?>("ReturnLocationId")
+                        .HasColumnType("int")
+                        .HasColumnName("ReturnLocationId");
+
+                    b.Property<decimal?>("ReturnQuantity")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,4)")
+                        .HasColumnName("ReturnQuantity");
+
+                    b.Property<int?>("ReturnStatusId")
+                        .HasColumnType("int")
+                        .HasColumnName("ReturnStatusId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClosureStatusId");
+
+                    b.HasIndex("ComplaintHeaderId")
+                        .IsUnique();
+
+                    b.HasIndex("ResolutionTypeId");
+
+                    b.HasIndex("ReturnLocationId");
+
+                    b.HasIndex("ReturnStatusId");
+
+                    b.ToTable("ComplaintResolution", "Sales");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.CustomerVisit", b =>
@@ -797,6 +1317,12 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Property<int>("FromStorageLocationId")
                         .HasColumnType("int")
                         .HasColumnName("FromStorageLocationId");
+
+                    b.Property<bool>("GEFlag")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false)
+                        .HasColumnName("GEFlag");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit")
@@ -1430,6 +1956,12 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("decimal(18,6)")
                         .HasColumnName("Freight");
 
+                    b.Property<bool>("GEFlag")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false)
+                        .HasColumnName("GEFlag");
+
                     b.Property<decimal>("HandlingCharge")
                         .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,6)")
@@ -1462,10 +1994,6 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Property<string>("InvoiceNo")
                         .HasColumnType("varchar(30)")
                         .HasColumnName("InvoiceNo");
-
-                    b.Property<int>("InvoiceType")
-                        .HasColumnType("int")
-                        .HasColumnName("InvoiceType");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit")
@@ -1583,8 +2111,6 @@ namespace SalesManagement.Infrastructure.Migrations
                         .IsUnique()
                         .HasFilter("[InvoiceNo] IS NOT NULL");
 
-                    b.HasIndex("InvoiceType");
-
                     b.HasIndex("PartyId");
 
                     b.HasIndex("StatusId");
@@ -1670,6 +2196,11 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Property<int?>("StatusId")
                         .HasColumnType("int")
                         .HasColumnName("StatusId");
+
+                    b.Property<decimal?>("TolerancePercentage")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(5,2)")
+                        .HasColumnName("TolerancePercentage");
 
                     b.Property<DateOnly>("ValidFrom")
                         .HasColumnType("date")
@@ -3040,6 +3571,10 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("date")
                         .HasColumnName("OrderDate");
 
+                    b.Property<int?>("OrderUnitId")
+                        .HasColumnType("int")
+                        .HasColumnName("OrderUnitId");
+
                     b.Property<int>("PartyId")
                         .HasColumnType("int")
                         .HasColumnName("PartyId");
@@ -3065,6 +3600,10 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("varchar(30)")
                         .HasColumnName("SalesOrderNo");
 
+                    b.Property<int?>("SalesOrderTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("SalesOrderTypeId");
+
                     b.Property<int?>("SalesQuotationHeaderId")
                         .HasColumnType("int")
                         .HasColumnName("SalesQuotationHeaderId");
@@ -3076,6 +3615,10 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Property<int?>("StatusId")
                         .HasColumnType("int")
                         .HasColumnName("StatusId");
+
+                    b.Property<int?>("SubAgentId")
+                        .HasColumnType("int")
+                        .HasColumnName("SubAgentId");
 
                     b.Property<decimal>("TCSPercentage")
                         .HasPrecision(18, 6)
@@ -3157,6 +3700,8 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.HasIndex("SalesSegmentId");
 
                     b.HasIndex("StatusId");
+
+                    b.HasIndex("SubAgentId");
 
                     b.ToTable("SalesOrderHeader", "Sales");
                 });
@@ -4076,6 +4621,32 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("SalesSegment");
                 });
 
+            modelBuilder.Entity("SalesManagement.Domain.Entities.ComplaintDepartmentFeedback", b =>
+                {
+                    b.HasOne("SalesManagement.Domain.Entities.ComplaintQCReviewAssignment", "Assignment")
+                        .WithMany()
+                        .HasForeignKey("AssignmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "FeedbackStatus")
+                        .WithMany()
+                        .HasForeignKey("FeedbackStatusId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "RootCauseCategory")
+                        .WithMany()
+                        .HasForeignKey("RootCauseCategoryId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Assignment");
+
+                    b.Navigation("FeedbackStatus");
+
+                    b.Navigation("RootCauseCategory");
+                });
+
             modelBuilder.Entity("SalesManagement.Domain.Entities.ComplaintDetail", b =>
                 {
                     b.HasOne("SalesManagement.Domain.Entities.ComplaintHeader", "ComplaintHeader")
@@ -4122,6 +4693,17 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("NatureOfComplaintMisc");
                 });
 
+            modelBuilder.Entity("SalesManagement.Domain.Entities.ComplaintFeedbackAttachment", b =>
+                {
+                    b.HasOne("SalesManagement.Domain.Entities.ComplaintDepartmentFeedback", "Feedback")
+                        .WithMany("Attachments")
+                        .HasForeignKey("FeedbackId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Feedback");
+                });
+
             modelBuilder.Entity("SalesManagement.Domain.Entities.ComplaintHeader", b =>
                 {
                     b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "Status")
@@ -4130,6 +4712,113 @@ namespace SalesManagement.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Status");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.ComplaintQCReview", b =>
+                {
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "CompensationStructure")
+                        .WithMany()
+                        .HasForeignKey("CompensationStructureId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("SalesManagement.Domain.Entities.ComplaintHeader", "ComplaintHeader")
+                        .WithMany()
+                        .HasForeignKey("ComplaintHeaderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "ComplaintStatus")
+                        .WithMany()
+                        .HasForeignKey("ComplaintStatusId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "PhysicalVerification")
+                        .WithMany()
+                        .HasForeignKey("PhysicalVerificationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "Severity")
+                        .WithMany()
+                        .HasForeignKey("SeverityId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("CompensationStructure");
+
+                    b.Navigation("ComplaintHeader");
+
+                    b.Navigation("ComplaintStatus");
+
+                    b.Navigation("PhysicalVerification");
+
+                    b.Navigation("Severity");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.ComplaintQCReviewAssignment", b =>
+                {
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "AssignmentStatus")
+                        .WithMany()
+                        .HasForeignKey("AssignmentStatusId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SalesManagement.Domain.Entities.ComplaintQCReview", "ComplaintQCReview")
+                        .WithMany("Assignments")
+                        .HasForeignKey("ComplaintQCReviewId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "Role")
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AssignmentStatus");
+
+                    b.Navigation("ComplaintQCReview");
+
+                    b.Navigation("Role");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.ComplaintResolution", b =>
+                {
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "ClosureStatus")
+                        .WithMany()
+                        .HasForeignKey("ClosureStatusId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("SalesManagement.Domain.Entities.ComplaintHeader", "ComplaintHeader")
+                        .WithMany()
+                        .HasForeignKey("ComplaintHeaderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "ResolutionType")
+                        .WithMany()
+                        .HasForeignKey("ResolutionTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "ReturnLocation")
+                        .WithMany()
+                        .HasForeignKey("ReturnLocationId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "ReturnStatus")
+                        .WithMany()
+                        .HasForeignKey("ReturnStatusId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("ClosureStatus");
+
+                    b.Navigation("ComplaintHeader");
+
+                    b.Navigation("ResolutionType");
+
+                    b.Navigation("ReturnLocation");
+
+                    b.Navigation("ReturnStatus");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.CustomerVisit", b =>
@@ -4284,12 +4973,6 @@ namespace SalesManagement.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "InvoiceTypeMisc")
-                        .WithMany("InvoiceHeadersAsInvoiceType")
-                        .HasForeignKey("InvoiceType")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "StatusMisc")
                         .WithMany("InvoiceHeadersAsStatus")
                         .HasForeignKey("StatusId")
@@ -4301,8 +4984,6 @@ namespace SalesManagement.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("DispatchAdviceHeader");
-
-                    b.Navigation("InvoiceTypeMisc");
 
                     b.Navigation("StatusMisc");
 
@@ -4756,6 +5437,11 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("SalesSegments");
                 });
 
+            modelBuilder.Entity("SalesManagement.Domain.Entities.ComplaintDepartmentFeedback", b =>
+                {
+                    b.Navigation("Attachments");
+                });
+
             modelBuilder.Entity("SalesManagement.Domain.Entities.ComplaintDetail", b =>
                 {
                     b.Navigation("ComplaintDetailNatures");
@@ -4764,6 +5450,11 @@ namespace SalesManagement.Infrastructure.Migrations
             modelBuilder.Entity("SalesManagement.Domain.Entities.ComplaintHeader", b =>
                 {
                     b.Navigation("ComplaintDetails");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.ComplaintQCReview", b =>
+                {
+                    b.Navigation("Assignments");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.CustomerVisit", b =>
@@ -4818,8 +5509,6 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("DispatchAddressMappings");
 
                     b.Navigation("DispatchAdviceHeadersAsStatus");
-
-                    b.Navigation("InvoiceHeadersAsInvoiceType");
 
                     b.Navigation("InvoiceHeadersAsStatus");
 

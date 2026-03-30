@@ -42,7 +42,7 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
                 SELECT
                     sipm.Id, sipm.PriceCode,
                     sipm.ItemId, sipm.SalesSegmentId,
-                    sipm.BaseRate, sipm.CurrencyId,
+                    sipm.BaseRate, sipm.TolerancePercentage, sipm.CurrencyId,
                     sipm.ValidFrom, sipm.ValidTo,
                     sipm.StatusId,
                     sm.Description AS StatusName,
@@ -107,7 +107,7 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
                 SELECT
                     sipm.Id, sipm.PriceCode,
                     sipm.ItemId, sipm.SalesSegmentId,
-                    sipm.BaseRate, sipm.CurrencyId,
+                    sipm.BaseRate, sipm.TolerancePercentage, sipm.CurrencyId,
                     sipm.ValidFrom, sipm.ValidTo,
                     sipm.StatusId,
                     sm.Description AS StatusName,
@@ -285,7 +285,7 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
                 SELECT
                     sipm.Id, sipm.PriceCode,
                     sipm.ItemId, sipm.SalesSegmentId,
-                    sipm.BaseRate, sipm.CurrencyId,
+                    sipm.BaseRate, sipm.TolerancePercentage, sipm.CurrencyId,
                     sipm.ValidFrom, sipm.ValidTo,
                     sipm.StatusId,
                     sm.Description AS StatusName,

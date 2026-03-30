@@ -212,6 +212,12 @@ namespace SalesManagement.Presentation.Validation.SalesOrder
                             .WithMessage($"CountListId {rule.Error}")
                             .When(x => x.CountListId.HasValue && x.CountListId > 0);
 
+                        RuleFor(x => x.SubAgentId)
+                            .MustAsync(async (subAgentId, ct) =>
+                                await _queryRepository.SubAgentExistsAsync(subAgentId!.Value))
+                            .WithMessage($"SubAgentId {rule.Error}")
+                            .When(x => x.SubAgentId.HasValue && x.SubAgentId > 0);
+
                         // Detail-level FK validation
                         RuleForEach(x => x.SalesOrderDetails)
                             .ChildRules(detail =>

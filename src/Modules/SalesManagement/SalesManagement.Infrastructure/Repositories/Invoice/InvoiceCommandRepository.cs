@@ -1,4 +1,6 @@
+using Contracts.Interfaces.Lookups.Finance;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using SalesManagement.Application.Common.Interfaces.IInvoice;
 using SalesManagement.Domain.Entities;
 using SalesManagement.Infrastructure.Data;
@@ -9,10 +11,14 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
     public class InvoiceCommandRepository : IInvoiceCommandRepository
     {
         private readonly ApplicationDbContext _dbContext;
+        private readonly IDocumentSequenceLookup _documentSequenceLookup;
 
-        public InvoiceCommandRepository(ApplicationDbContext dbContext)
+        public InvoiceCommandRepository(
+            ApplicationDbContext dbContext,
+            IDocumentSequenceLookup documentSequenceLookup)
         {
             _dbContext = dbContext;
+            _documentSequenceLookup = documentSequenceLookup;
         }
        
         public async Task<int> CreateAsync(InvoiceHeader entity, int unitId, int dispatchedStatusId, int invoicedStatusId, int typeId)
@@ -59,10 +65,18 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                             stock.StatusId = invoicedStatusId;
                     }
 
-                    // Increment DocNo in Finance.DocumentSequence
-                    await _dbContext.Database.ExecuteSqlRawAsync(
-                        "UPDATE [Finance].[DocumentSequence] SET DocNo = DocNo + 1 WHERE TransactionTypeId = {0} AND IsDeleted = 0",
-                        typeId);
+                    // Update DispatchAdviceHeader.InvFlg = true
+                    var dispatchAdvice = await _dbContext.DispatchAdviceHeader
+                        .FirstOrDefaultAsync(d => d.Id == entity.DispatchAdviceId && d.IsDeleted == IsDelete.NotDeleted);
+                    if (dispatchAdvice != null)
+                    {
+                        dispatchAdvice.InvFlg = true;
+                        _dbContext.DispatchAdviceHeader.Update(dispatchAdvice);
+                    }
+
+                    var dbConnection = _dbContext.Database.GetDbConnection();
+                    var dbTransaction = transaction.GetDbTransaction();
+                    await _documentSequenceLookup.IncrementDocNoAsync(typeId, dbConnection, dbTransaction);
 
                     await _dbContext.SaveChangesAsync();
                     await transaction.CommitAsync();
@@ -115,7 +129,6 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
 
                     // Step 2: Update updatable fields — preserve immutable: InvoiceNo, DispatchAdviceId, PartyId, UnitId, FinancialYearId
                     existing.InvoiceDate             = entity.InvoiceDate;
-                    existing.InvoiceType             = entity.InvoiceType;
                     existing.AgentId                 = entity.AgentId;
                     existing.TransportMode           = entity.TransportMode;
                     existing.VehicleNumber           = entity.VehicleNumber;
@@ -140,6 +153,7 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                     existing.InvoiceAmountBeforeTCS  = entity.InvoiceAmountBeforeTCS;
                     existing.InvoiceAmount           = entity.InvoiceAmount;
                     existing.Remarks                 = entity.Remarks;
+                    existing.GEFlag                  = entity.GEFlag;
                     existing.IsActive                = entity.IsActive;
 
                     // Step 3: Replace detail lines: delete existing, insert new

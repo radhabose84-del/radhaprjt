@@ -1,4 +1,5 @@
 using System.Data;
+using Contracts.Dtos.Lookups.Finance;
 using Contracts.Interfaces.Lookups.Finance;
 using Contracts.Interfaces.Lookups.Users;
 using Dapper;
@@ -71,6 +72,52 @@ namespace FinanceManagement.Infrastructure.Repositories.Lookups.Finance
             }
 
             return result;
+        }
+
+        public async Task<List<TransactionTypeLookupDto>> GetTransactionTypesForYearAsync(
+            int financialYearId, int unitId, int? moduleId = null, int? menuId = null, CancellationToken ct = default)
+        {
+            var whereClause = @"ttm.IsDeleted = 0 AND ttm.IsActive = 1
+                AND ttm.UnitId = @UnitId
+                AND ds.FinancialYearId = @FinancialYearId";
+
+            if (moduleId.HasValue && moduleId.Value > 0)
+                whereClause += " AND ttm.ModuleId = @ModuleId";
+
+            if (menuId.HasValue && menuId.Value > 0)
+                whereClause += " AND ttm.MenuId = @MenuId";
+
+            var sql = $@"
+                SELECT DISTINCT ttm.Id, ttm.TypeName, ttm.ShortName, ttm.Description
+                FROM [Finance].[TransactionTypeMaster] ttm
+                INNER JOIN [Finance].[DocumentSequence] ds ON ds.TransactionTypeId = ttm.Id AND ds.IsDeleted = 0
+                WHERE {whereClause}
+                ORDER BY ttm.TypeName ASC";
+
+            var result = await _dbConnection.QueryAsync<TransactionTypeLookupDto>(
+                new CommandDefinition(sql, new { FinancialYearId = financialYearId, UnitId = unitId, ModuleId = moduleId, MenuId = menuId }, cancellationToken: ct));
+            return result.ToList();
+        }
+
+   		public async Task IncrementDocNoAsync(int transactionTypeId, IDbConnection connection, IDbTransaction transaction)
+        {
+            const string sql = @"
+                UPDATE [Finance].[DocumentSequence]
+                SET DocNo = DocNo + 1
+                WHERE TransactionTypeId = @TransactionTypeId AND IsDeleted = 0";
+
+            await connection.ExecuteAsync(sql, new { TransactionTypeId = transactionTypeId }, transaction);
+        }
+        public async Task<IReadOnlyList<TransactionTypeLookupDto>> GetTransactionTypesByIdsAsync(IEnumerable<int> ids, CancellationToken ct = default)
+        {
+            const string sql = @"
+                SELECT Id, TypeName, ShortName, Description
+                FROM [Finance].[TransactionTypeMaster]
+                WHERE Id IN @Ids AND IsDeleted = 0";
+
+            var result = await _dbConnection.QueryAsync<TransactionTypeLookupDto>(
+                new CommandDefinition(sql, new { Ids = ids }, cancellationToken: ct));
+            return result.ToList();
         }
 
         private sealed class DocSeqRow

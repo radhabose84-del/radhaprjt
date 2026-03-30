@@ -11,6 +11,8 @@ using Contracts.Interfaces.Lookups.Warehouse;
 using Dapper;
 using SalesManagement.Application.Common.Interfaces.IDeliveryChallan;
 using SalesManagement.Application.DeliveryChallan.Dto;
+using SalesManagement.Application.DeliveryChallan.Queries.GetDCGatePassPending;
+using SalesManagement.Domain.Common;
 
 namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
 {
@@ -23,6 +25,7 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
         private readonly IItemLookup _itemLookup;
         private readonly ILotMasterLookup _lotLookup;
         private readonly IUOMLookup _uomLookup;
+        private readonly IUserLookup _userLookup;
         private readonly IIPAddressService _ipAddressService;
 
         public DeliveryChallanQueryRepository(
@@ -33,6 +36,7 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
             IItemLookup itemLookup,
             ILotMasterLookup lotLookup,
             IUOMLookup uomLookup,
+            IUserLookup userLookup,
             IIPAddressService ipAddressService)
         {
             _dbConnection = dbConnection;
@@ -42,6 +46,7 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
             _itemLookup = itemLookup;
             _lotLookup = lotLookup;
             _uomLookup = uomLookup;
+            _userLookup = userLookup;
             _ipAddressService = ipAddressService;
         }
 
@@ -454,6 +459,31 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
                 var transporters = await _partyLookup.GetByIdsAsync(transporterIds);
                 var transporterDict = transporters.ToDictionary(t => t.Id, t => t.PartyName);
 
+                // Workflow enrichment: fetch ApprovalRequestId and ApproverValue for each record
+                var moduleIds = data.Select(d => d.Id).ToList();
+                const string approvalSql = @"
+                    SELECT ar.ModuleTransactionId, ar.Id AS ApprovalRequestId, ar.ApproverValue
+                    FROM AppData.ApprovalRequest ar
+                    WHERE ar.WorkflowType = 'Delivery Challan'
+                      AND ar.ApproverValue = @CurrentUserId
+                      AND ar.StatusId = @AppPendingStatusId
+                      AND ar.ModuleTransactionId IN @ModuleIds;";
+
+                var approvals = (await _dbConnection.QueryAsync<dynamic>(approvalSql, new
+                {
+                    CurrentUserId = currentUserId,
+                    AppPendingStatusId = appPendingStatusId.Value,
+                    ModuleIds = moduleIds
+                })).ToList();
+
+                var approvalDict = approvals.ToDictionary(
+                    a => (int)a.ModuleTransactionId,
+                    a => (ApprovalRequestId: (int)a.ApprovalRequestId, ApproverValue: Convert.ToInt32(a.ApproverValue)));
+
+                // Resolve approver names
+                var users = await _userLookup.GetAllUserAsync();
+                var userNameMap = users.ToDictionary(u => u.UserId, u => u.UserName ?? string.Empty);
+
                 foreach (var item in data)
                 {
                     item.FromPlantName = plantDict.TryGetValue(item.FromPlantId, out var fpName) ? fpName : null;
@@ -461,10 +491,134 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
                     item.FromStorageLocationName = warehouseDict.TryGetValue(item.FromStorageLocationId, out var fsName) ? fsName : null;
                     item.ToStorageLocationName = warehouseDict.TryGetValue(item.ToStorageLocationId, out var tsName) ? tsName : null;
                     item.TransporterName = transporterDict.TryGetValue(item.TransporterId, out var trName) ? trName : null;
+
+                    if (approvalDict.TryGetValue(item.Id, out var approval))
+                    {
+                        item.ApprovalRequestHeaderId = approval.ApprovalRequestId;
+                        item.ApproverId = approval.ApproverValue;
+                        if (userNameMap.TryGetValue(item.ApproverId, out var name))
+                            item.ApproverName = name;
+                    }
                 }
             }
 
             return (data, totalCount);
+        }
+
+        public async Task<DeliveryChallanHeaderDto?> GetPendingByIdAsync(int id)
+        {
+            var currentUserId = _ipAddressService.GetUserId();
+
+            // Get Pending status Id from ApprovalStatus MiscType (Sales module)
+            const string pendingIdSql = @"
+                SELECT m.Id FROM Sales.MiscMaster m
+                INNER JOIN Sales.MiscTypeMaster mt ON mt.Id = m.MiscTypeId AND mt.IsDeleted = 0
+                WHERE m.Code = 'Pending' AND mt.MiscTypeCode = 'ApprovalStatus' AND m.IsDeleted = 0;";
+
+            var pendingStatusId = await _dbConnection.ExecuteScalarAsync<int?>(pendingIdSql);
+            if (!pendingStatusId.HasValue)
+                return null;
+
+            // Get Pending status Id from AppData MiscMaster (Workflow module)
+            const string appPendingIdSql = @"
+                SELECT m.Id FROM AppData.MiscMaster m
+                INNER JOIN AppData.MiscTypeMaster mt ON mt.Id = m.MiscTypeId AND mt.IsDeleted = 0
+                WHERE m.Code = 'Pending' AND mt.MiscTypeCode = 'ApprovalStatus' AND m.IsDeleted = 0;";
+
+            var appPendingStatusId = await _dbConnection.ExecuteScalarAsync<int?>(appPendingIdSql);
+            if (!appPendingStatusId.HasValue)
+                return null;
+
+            const string headerSql = @"
+                SELECT
+                    h.Id, h.DeliveryNumber, h.DeliveryDate,
+                    h.StoHeaderId, sh.StoNumber,
+                    h.FromPlantId, h.FromStorageLocationId,
+                    h.ToPlantId, h.ToStorageLocationId,
+                    h.TransporterId, h.VehicleNumber, h.TransportDistance,
+                    h.DeliveryValue, h.ConsignmentValue,
+                    h.StatusId, ms.Description AS StatusName,
+                    h.Remarks,
+                    h.IsActive, h.IsDeleted,
+                    h.CreatedBy, h.CreatedDate, h.CreatedByName, h.CreatedIP,
+                    h.ModifiedBy, h.ModifiedDate, h.ModifiedByName, h.ModifiedIP
+                FROM Sales.DeliveryChallanHeader h
+                LEFT JOIN Sales.StoHeader sh ON h.StoHeaderId = sh.Id AND sh.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster ms ON h.StatusId = ms.Id AND ms.IsDeleted = 0
+                WHERE h.Id = @Id AND h.IsDeleted = 0 AND h.StatusId = @PendingStatusId
+                  AND h.Id IN (
+                      SELECT ar.ModuleTransactionId
+                      FROM AppData.ApprovalRequest ar
+                      WHERE ar.WorkflowType = 'Delivery Challan'
+                        AND ar.ApproverValue = @CurrentUserId
+                        AND ar.StatusId = @AppPendingStatusId
+                  );";
+
+            var header = await _dbConnection.QueryFirstOrDefaultAsync<DeliveryChallanHeaderDto>(
+                headerSql, new { Id = id, PendingStatusId = pendingStatusId.Value, AppPendingStatusId = appPendingStatusId.Value, CurrentUserId = currentUserId });
+
+            if (header == null)
+                return null;
+
+            // Populate cross-module header lookups
+            var fromPlant = await _unitLookup.GetByIdAsync(header.FromPlantId);
+            header.FromPlantName = fromPlant?.UnitName;
+
+            var toPlant = await _unitLookup.GetByIdAsync(header.ToPlantId);
+            header.ToPlantName = toPlant?.UnitName;
+
+            var warehouses = await _warehouseLookup.GetByIdsAsync(
+                new[] { header.FromStorageLocationId, header.ToStorageLocationId });
+            var warehouseDict = warehouses.ToDictionary(w => w.Id, w => w.WarehouseName);
+            header.FromStorageLocationName = warehouseDict.TryGetValue(header.FromStorageLocationId, out var fsName) ? fsName : null;
+            header.ToStorageLocationName = warehouseDict.TryGetValue(header.ToStorageLocationId, out var tsName) ? tsName : null;
+
+            var transporter = await _partyLookup.GetByIdAsync(header.TransporterId);
+            header.TransporterName = transporter?.PartyName;
+
+            // Fetch details
+            const string detailSql = @"
+                SELECT
+                    d.Id, d.DeliveryChallanHeaderId, d.StoDetailId,
+                    d.ItemId, d.LotId, d.StartPackNo, d.EndPackNo,
+                    d.DispatchQuantity, d.UOMId,
+                    d.BagCount, d.BaleCount,
+                    d.NetWeight, d.GrossWeight,
+                    d.ExMillRate, d.LineMovementValue
+                FROM Sales.DeliveryChallanDetail d
+                WHERE d.DeliveryChallanHeaderId = @HeaderId;";
+
+            var details = (await _dbConnection.QueryAsync<DeliveryChallanDetailDto>(detailSql, new { HeaderId = id })).ToList();
+
+            // Populate cross-module detail lookups (Item, Lot, UOM)
+            if (details.Count > 0)
+            {
+                var itemIds = details.Select(d => d.ItemId).Distinct();
+                var items = await _itemLookup.GetByIdsAsync(itemIds);
+                var itemDict = items.ToDictionary(i => i.Id, i => (i.ItemCode, i.ItemName));
+
+                var lotIds = details.Where(d => d.LotId > 0).Select(d => d.LotId).Distinct();
+                var lots = await _lotLookup.GetByIdsAsync(lotIds);
+                var lotDict = lots.ToDictionary(l => l.Id, l => l.LotCode);
+
+                var uomIds = details.Select(d => d.UOMId).Distinct();
+                var uoms = await _uomLookup.GetByIdsAsync(uomIds);
+                var uomDict = uoms.ToDictionary(u => u.Id, u => u.UOMName);
+
+                foreach (var detail in details)
+                {
+                    if (itemDict.TryGetValue(detail.ItemId, out var itemInfo))
+                    {
+                        detail.ItemCode = itemInfo.ItemCode;
+                        detail.ItemName = itemInfo.ItemName;
+                    }
+                    detail.LotCode = lotDict.TryGetValue(detail.LotId, out var lotCode) ? lotCode : null;
+                    detail.UOMName = uomDict.TryGetValue(detail.UOMId, out var uomName) ? uomName : null;
+                }
+            }
+
+            header.DeliveryChallanDetails = details;
+            return header;
         }
 
         public async Task<bool> HasStoReceiptAsync(int dcHeaderId)
@@ -504,11 +658,112 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
                     INNER JOIN Sales.DeliveryChallanHeader dch ON dcd.DeliveryChallanHeaderId = dch.Id AND dch.IsDeleted = 0
                     GROUP BY dcd.StoDetailId
                 ) dispatched ON sd.Id = dispatched.StoDetailId
-                WHERE sd.StoHeaderId = @StoHeaderId AND sd.IsDeleted = 0
+                WHERE sd.StoHeaderId = @StoHeaderId
                   AND (sd.Quantity - ISNULL(dispatched.TotalDispatched, 0)) > 0;";
 
             var result = await _dbConnection.ExecuteScalarAsync<int>(sql, new { StoHeaderId = stoHeaderId });
             return result == 1;
+        }
+
+        public async Task<List<GetDCGatePassPendingDto>> GetDCGatePassPendingAsync(string? vehicleNo)
+        {
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
+
+            const string sql = @"
+                -- Resolve Approved StatusId from ApprovalStatus
+                DECLARE @ApprovedStatusId INT;
+                SELECT @ApprovedStatusId = mm.Id
+                FROM Sales.MiscMaster mm
+                INNER JOIN Sales.MiscTypeMaster mt ON mm.MiscTypeId = mt.Id AND mt.IsDeleted = 0
+                WHERE mt.Description = @MiscType
+                  AND mm.Code = @StatusCode
+                  AND mm.IsDeleted = 0;
+
+                -- Result set 1: Headers
+                SELECT
+                    h.Id,
+                    h.DeliveryNumber,
+                    h.DeliveryDate,
+                    h.StoHeaderId,
+                    sh.StoNumber,
+                    h.FromPlantId,
+                    h.FromStorageLocationId,
+                    h.ToPlantId,
+                    h.ToStorageLocationId,
+                    h.TransporterId,
+                    h.VehicleNumber,
+                    h.TransportDistance,
+                    h.DeliveryValue,
+                    h.ConsignmentValue,
+                    h.StatusId,
+                    ms.Description AS StatusName,
+                    h.Remarks,
+                    h.GEFlag,
+                    h.IsActive,
+                    h.IsDeleted,
+                    h.CreatedBy,
+                    h.CreatedDate,
+                    h.CreatedByName,
+                    h.CreatedIP,
+                    h.ModifiedBy,
+                    h.ModifiedDate,
+                    h.ModifiedByName,
+                    h.ModifiedIP
+                FROM Sales.DeliveryChallanHeader h
+                LEFT JOIN Sales.StoHeader sh ON h.StoHeaderId = sh.Id AND sh.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster ms ON h.StatusId = ms.Id AND ms.IsDeleted = 0
+                WHERE h.IsDeleted = 0 AND h.GEFlag = 0
+                  AND h.FromPlantId = @UnitId
+                  AND h.StatusId = @ApprovedStatusId
+                  AND (@VehicleNo IS NULL OR h.VehicleNumber LIKE '%' + @VehicleNo + '%')
+                ORDER BY h.Id DESC;
+
+                -- Result set 2: Detail rows for all matching headers
+                SELECT
+                    d.DeliveryChallanHeaderId AS DCHeaderId,
+                    d.StoDetailId,
+                    d.ItemId,
+                    d.LotId,
+                    d.StartPackNo,
+                    d.EndPackNo,
+                    d.DispatchQuantity,
+                    d.UOMId,
+                    d.BagCount,
+                    d.BaleCount,
+                    d.NetWeight,
+                    d.GrossWeight,
+                    d.ExMillRate,
+                    d.LineMovementValue
+                FROM Sales.DeliveryChallanDetail d
+                INNER JOIN Sales.DeliveryChallanHeader h ON d.DeliveryChallanHeaderId = h.Id
+                WHERE h.IsDeleted = 0 AND h.GEFlag = 0
+                  AND h.FromPlantId = @UnitId
+                  AND h.StatusId = @ApprovedStatusId
+                  AND (@VehicleNo IS NULL OR h.VehicleNumber LIKE '%' + @VehicleNo + '%')
+                ORDER BY d.DeliveryChallanHeaderId DESC;
+            ";
+
+            var parameters = new
+            {
+                UnitId = unitId,
+                VehicleNo = string.IsNullOrWhiteSpace(vehicleNo) ? null : vehicleNo,
+                MiscType = MiscEnumEntity.StoApprovalStatus,
+                StatusCode = MiscEnumEntity.StoApprovalApproved
+            };
+
+            using var multi = await _dbConnection.QueryMultipleAsync(sql, parameters);
+
+            var headers = (await multi.ReadAsync<GetDCGatePassPendingDto>()).ToList();
+            var details = (await multi.ReadAsync<GetDCGatePassPendingDto.GetDCGatePassPendingDetailDto>()).ToList();
+
+            // Group details into their parent headers
+            var detailLookup = details.ToLookup(d => d.DCHeaderId);
+            foreach (var h in headers)
+            {
+                h.DeliveryChallanDetails = detailLookup[h.Id].ToList();
+            }
+
+            return headers;
         }
     }
 }

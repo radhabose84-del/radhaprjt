@@ -59,6 +59,15 @@ namespace InventoryManagement.Infrastructure.Data.Configurations.Item.ItemDetail
              .HasColumnName("CountId")
              .HasColumnType("int")
              .IsRequired(false);
+
+            b.Property(x => x.ValuationMethodId)
+             .HasColumnName("ValuationMethodId")
+             .HasColumnType("int")
+             .IsRequired(false);
+            b.HasOne(x => x.MiscValuationMethod)
+             .WithMany(g => g.ItemSaleValuationMethod)
+             .HasForeignKey(x => x.ValuationMethodId)
+             .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

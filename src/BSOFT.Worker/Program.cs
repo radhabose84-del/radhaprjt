@@ -14,6 +14,7 @@ using UserManagement.Infrastructure;
 using PartyManagement.Infrastructure;
 using WarehouseManagement.Infrastructure;
 using ProjectManagement.Infrastructure;
+using FinanceManagement.Infrastructure;
 using ProductionManagement.Infrastructure;
 using SalesManagement.Infrastructure;
 
@@ -61,6 +62,7 @@ builder.Services.AddInfrastructureServices(builder.Configuration, builder.Servic
 builder.Services.AddUserManagementInfrastructure(builder.Configuration, builder.Environment);
 builder.Services.AddPartyInfrastructure(builder.Configuration, builder.Environment);
 builder.Services.AddWarehouseInfrastructure(builder.Configuration, builder.Environment);
+builder.Services.AddFinanceInfrastructureServices(builder.Configuration, builder.Environment);
 builder.Services.AddProductionInfrastructureServices(builder.Configuration, builder.Environment);
 // Business module infrastructure (consumers and their command/query repos)
 builder.Services.AddPurchaseInfrastructureServices(builder.Configuration, builder.Environment);
@@ -80,9 +82,17 @@ builder.Services.AddHangfireServer(options =>
     {
         "forgot_password_queue",
         "user_unlock_queue",
-        "sql-outbox-queue",    // SqlOutboxProcessorJob — polls purchase/maintenance outbox tables
     };
+    // Disable RecurringJobScheduler in Worker — BSOFT.Api owns all recurring jobs
+    // (e.g. maintenance-outbox-processor). Without this, Worker's scheduler tries to
+    // deserialize MaintenanceOutboxProcessorJob from MaintenanceManagement.Infrastructure
+    // which isn't loaded here, causing FileNotFoundException every 15 seconds.
+    options.SchedulePollingInterval = TimeSpan.FromHours(24);
 });
+
+// ── Outbox polling — replaces Hangfire recurring job for sub-minute granularity ─
+// Polls every 15 seconds as a fallback for outbox messages not directly published.
+builder.Services.AddHostedService<OutboxPollingHostedService>();
 
 // ── SignalR client – pushes from Worker to the hub hosted in BSOFT.Api ────────
 builder.Services.AddSingleton<IWorkerNotificationService, SignalRWorkerNotificationService>();

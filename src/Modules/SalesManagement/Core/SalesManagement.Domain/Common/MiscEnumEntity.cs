@@ -25,6 +25,7 @@ namespace SalesManagement.Domain.Common
         // Invoice Approval Status
         public const string InvoiceApprovalStatus = "ApprovalStatus";
         public const string InvoiceStatusPending = "Pending";
+        public const string InvoiceStatusApproved = "Approved";
 
         // SalesOrder Approval Status
         public const string SalesOrderApprovalStatus = "ApprovalStatus";
@@ -59,6 +60,7 @@ namespace SalesManagement.Domain.Common
         public const string TransactionTypeSalesOrder = "Sales Order";
 
         // Document Sequence - Transaction Types
+        public const string TransactionTypeDispatchAdvice = "Dispatch Advice";
         public const string TransactionTypeInvoice = "Invoice";
         public const string TransactionTypePriceMaster = "PriceMaster";
         public const string TransactionTypePackMaster = "PackMaster";
@@ -70,8 +72,67 @@ namespace SalesManagement.Domain.Common
         // Complaint Workflow
         public const string ComplaintApprovalStatus = "ApprovalStatus";
         public const string ComplaintApprovalPending = "Pending";
-        public const string ComplaintModuleTypeName = "Complaint";
+        public const string ComplaintModuleTypeName = "Complaints";
         public const string TransactionTypeComplaint = "Complaint";
+
+        // QC Review
+        public const string PhysicalVerificationStatus = "PhysicalVerification";
+        public const string PhysicalVerificationPending = "Pending";
+        public const string PhysicalVerificationInProgress = "In Progress";
+        public const string PhysicalVerificationCompleted = "Completed";
+
+        public const string QCComplaintStatus = "QCComplaintStatus";
+        public const string QCAccepted = "QC Accepted";
+        public const string QCRejected = "QC Rejected";
+
+        public const string ComplaintSeverity = "ComplaintSeverity";
+        public const string SeverityMinor = "Minor";
+        public const string SeverityMajor = "Major";
+        public const string SeverityCritical = "Critical";
+
+        public const string CompensationStructure = "CompStructure";
+        public const string CompensationCreditNote = "Credit Note";
+        public const string CompensationReplacement = "Replacement";
+        public const string CompensationReprocess = "Reprocess";
+        public const string CompensationNone = "No Compensation";
+
+        public const string QCAssignmentRole = "QCAssignmentRole";
+        public const string RoleProductionFM = "Production/FM";
+        public const string RoleMaintenance = "Maintenance";
+        public const string RoleQCLab = "QC Lab";
+        public const string RoleOthers = "Others";
+
+        public const string QCAssignmentStatus = "QCAssignmentStatus";
+        public const string AssignmentPending = "Pending";
+        public const string AssignmentSubmitted = "Submitted";
+
+        // Department Feedback Status
+        public const string FeedbackStatus = "FeedbackStatus";
+        public const string FeedbackPending = "Pending";
+        public const string FeedbackSubmitted = "Submitted";
+        public const string FeedbackReworkRequired = "Rework Required";
+
+        // Root Cause Category
+        public const string RootCauseCategory = "RootCauseCategory";
+
+        // Resolution Type
+        public const string ResolutionType = "ResolutionType";
+        public const string ResolutionSalesReturn = "Sales Return";
+        public const string ResolutionCreditNote = "Credit Note";
+        public const string ResolutionReplacement = "Replacement";
+        public const string ResolutionReprocess = "Reprocess";
+        public const string ResolutionNoAction = "No Action";
+
+        // Return Status
+        public const string ReturnStatus = "ReturnStatus";
+        public const string ReturnStatusPending = "Pending";
+        public const string ReturnStatusReceived = "Received";
+
+        // Closure Status
+        public const string ClosureStatus = "ClosureStatus";
+        public const string ClosureStatusOpen = "Open";
+        public const string ClosureStatusReadyForClosure = "Ready for Closure";
+        public const string ClosureStatusClosed = "Closed";
 
         // STO Receipt Status
         public const string StoReceiptLineStatus = "StoReceiptLineStatus";

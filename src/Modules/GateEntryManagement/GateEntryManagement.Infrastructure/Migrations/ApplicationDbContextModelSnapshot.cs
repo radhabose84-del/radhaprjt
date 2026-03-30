@@ -22,6 +22,144 @@ namespace GateEntryManagement.Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("GateEntryManagement.Domain.Entities.GateInwardDtl", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("GateInwardHdrId")
+                        .HasColumnType("int")
+                        .HasColumnName("GateInwardHdrId");
+
+                    b.Property<string>("PartyName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("PartyName");
+
+                    b.Property<string>("ReferenceDocNo")
+                        .IsRequired()
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("ReferenceDocNo");
+
+                    b.Property<int>("ReferenceDocTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("ReferenceDocTypeId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GateInwardHdrId");
+
+                    b.ToTable("GateInwardDtl", "Gate");
+                });
+
+            modelBuilder.Entity("GateEntryManagement.Domain.Entities.GateInwardHdr", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<string>("GateEntryNo")
+                        .IsRequired()
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("GateEntryNo");
+
+                    b.Property<decimal?>("GrossWeight")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(10,3)")
+                        .HasColumnName("GrossWeight");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<decimal?>("NetWeight")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(10,3)")
+                        .HasColumnName("NetWeight");
+
+                    b.Property<bool>("QAInspectionRequired")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false)
+                        .HasColumnName("QAInspectionRequired");
+
+                    b.Property<int?>("QAStatusId")
+                        .HasColumnType("int")
+                        .HasColumnName("QAStatusId");
+
+                    b.Property<string>("Remarks")
+                        .HasColumnType("varchar(250)")
+                        .HasColumnName("Remarks");
+
+                    b.Property<decimal?>("TareWeight")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(10,3)")
+                        .HasColumnName("TareWeight");
+
+                    b.Property<int>("UnitId")
+                        .HasColumnType("int")
+                        .HasColumnName("UnitId");
+
+                    b.Property<int>("VehicleMovementRecordId")
+                        .HasColumnType("int")
+                        .HasColumnName("VehicleMovementRecordId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GateEntryNo")
+                        .IsUnique();
+
+                    b.HasIndex("QAStatusId");
+
+                    b.HasIndex("UnitId");
+
+                    b.HasIndex("VehicleMovementRecordId");
+
+                    b.ToTable("GateInwardHdr", "Gate");
+                });
+
             modelBuilder.Entity("GateEntryManagement.Domain.Entities.GatePassDtl", b =>
                 {
                     b.Property<int>("Id")
@@ -34,6 +172,10 @@ namespace GateEntryManagement.Infrastructure.Migrations
                     b.Property<DateOnly?>("DocDate")
                         .HasColumnType("date")
                         .HasColumnName("DocDate");
+
+                    b.Property<int>("DocId")
+                        .HasColumnType("int")
+                        .HasColumnName("DocId");
 
                     b.Property<string>("DocNo")
                         .IsRequired()
@@ -470,6 +612,35 @@ namespace GateEntryManagement.Infrastructure.Migrations
                     b.ToTable("VehicleMovementRecord", "Gate");
                 });
 
+            modelBuilder.Entity("GateEntryManagement.Domain.Entities.GateInwardDtl", b =>
+                {
+                    b.HasOne("GateEntryManagement.Domain.Entities.GateInwardHdr", "GateInwardHdr")
+                        .WithMany("GateInwardDetails")
+                        .HasForeignKey("GateInwardHdrId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("GateInwardHdr");
+                });
+
+            modelBuilder.Entity("GateEntryManagement.Domain.Entities.GateInwardHdr", b =>
+                {
+                    b.HasOne("GateEntryManagement.Domain.Entities.MiscMaster", "QAStatusMisc")
+                        .WithMany("GateInwardHdrsAsQAStatus")
+                        .HasForeignKey("QAStatusId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("GateEntryManagement.Domain.Entities.VehicleMovementRecord", "VehicleMovementRecord")
+                        .WithMany("GateInwardHeaders")
+                        .HasForeignKey("VehicleMovementRecordId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("QAStatusMisc");
+
+                    b.Navigation("VehicleMovementRecord");
+                });
+
             modelBuilder.Entity("GateEntryManagement.Domain.Entities.GatePassDtl", b =>
                 {
                     b.HasOne("GateEntryManagement.Domain.Entities.GatePassHdr", "GatePassHdr")
@@ -529,6 +700,11 @@ namespace GateEntryManagement.Infrastructure.Migrations
                     b.Navigation("StatusMisc");
                 });
 
+            modelBuilder.Entity("GateEntryManagement.Domain.Entities.GateInwardHdr", b =>
+                {
+                    b.Navigation("GateInwardDetails");
+                });
+
             modelBuilder.Entity("GateEntryManagement.Domain.Entities.GatePassHdr", b =>
                 {
                     b.Navigation("GatePassDetails");
@@ -536,6 +712,8 @@ namespace GateEntryManagement.Infrastructure.Migrations
 
             modelBuilder.Entity("GateEntryManagement.Domain.Entities.MiscMaster", b =>
                 {
+                    b.Navigation("GateInwardHdrsAsQAStatus");
+
                     b.Navigation("VehicleMovementRecordsAsPurposeOfVisit");
 
                     b.Navigation("VehicleMovementRecordsAsReferenceDocType");
@@ -550,6 +728,8 @@ namespace GateEntryManagement.Infrastructure.Migrations
 
             modelBuilder.Entity("GateEntryManagement.Domain.Entities.VehicleMovementRecord", b =>
                 {
+                    b.Navigation("GateInwardHeaders");
+
                     b.Navigation("GatePassHeaders");
                 });
 #pragma warning restore 612, 618

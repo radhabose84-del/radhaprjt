@@ -1,4 +1,5 @@
 using SalesManagement.Application.DeliveryChallan.Dto;
+using SalesManagement.Application.DeliveryChallan.Queries.GetDCGatePassPending;
 
 namespace SalesManagement.Application.Common.Interfaces.IDeliveryChallan
 {
@@ -15,5 +16,7 @@ namespace SalesManagement.Application.Common.Interfaces.IDeliveryChallan
         Task<bool> IsStoApprovedAsync(int stoHeaderId);
         Task<bool> IsStoFullyDispatchedAsync(int stoHeaderId);
         Task<(List<DeliveryChallanHeaderDto>, int)> GetPendingAsync(int pageNumber, int pageSize, string? searchTerm);
+        Task<DeliveryChallanHeaderDto?> GetPendingByIdAsync(int id);
+        Task<List<GetDCGatePassPendingDto>> GetDCGatePassPendingAsync(string? vehicleNo);
     }
 }

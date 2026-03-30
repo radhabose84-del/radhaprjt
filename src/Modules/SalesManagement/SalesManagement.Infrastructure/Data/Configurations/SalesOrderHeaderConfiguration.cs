@@ -69,6 +69,23 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("int")
                 .IsRequired(false);
 
+            builder.Property(t => t.SubAgentId)
+                .HasColumnName("SubAgentId")
+                .HasColumnType("int")
+                .IsRequired(false);
+
+            // Sales Order Type (cross-module FK — no DB constraint)
+            builder.Property(t => t.SalesOrderTypeId)
+                .HasColumnName("SalesOrderTypeId")
+                .HasColumnType("int")
+                .IsRequired(false);
+
+            // Order Unit (cross-module FK — no DB constraint)
+            builder.Property(t => t.OrderUnitId)
+                .HasColumnName("OrderUnitId")
+                .HasColumnType("int")
+                .IsRequired(false);
+
             // Commercial Details
             builder.Property(t => t.DiscountPlanId)
                 .HasColumnName("DiscountPlanId")
@@ -262,6 +279,7 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             builder.HasIndex(t => t.SalesOrderNo).IsUnique();
             builder.HasIndex(t => t.PartyId);
             builder.HasIndex(t => t.AgentId);
+            builder.HasIndex(t => t.SubAgentId);
             builder.HasIndex(t => t.SalesGroupId);
             builder.HasIndex(t => t.OrderDate);
             builder.HasIndex(t => t.SalesQuotationHeaderId);

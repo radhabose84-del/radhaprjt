@@ -1,4 +1,5 @@
 using System.Data;
+using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Users;
 using Dapper;
@@ -12,25 +13,30 @@ namespace FinanceManagement.Infrastructure.Repositories.EWaybillHeader
         private readonly IDbConnection _dbConnection;
         private readonly IUnitLookup _unitLookup;
         private readonly IPartyLookup _partyLookup;
+        private readonly IIPAddressService _ipAddressService;
 
-        public EWaybillHeaderQueryRepository(IDbConnection dbConnection, IUnitLookup unitLookup, IPartyLookup partyLookup)
+        public EWaybillHeaderQueryRepository(IDbConnection dbConnection, IUnitLookup unitLookup, IPartyLookup partyLookup, IIPAddressService ipAddressService)
         {
             _dbConnection = dbConnection;
             _unitLookup = unitLookup;
             _partyLookup = partyLookup;
+            _ipAddressService = ipAddressService;
         }
 
         public async Task<(List<EWaybillHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
         {
             var offset = (pageNumber - 1) * pageSize;
             var search = string.IsNullOrWhiteSpace(searchTerm) ? null : $"%{searchTerm}%";
+            var unitId = _ipAddressService.GetUnitId();
+            var unitFilter = unitId.HasValue ? "AND UnitId = @UnitId" : "";
 
-            const string countSql = @"
+            var countSql = $@"
                 SELECT COUNT(*) FROM [Finance].[EWaybillHeader]
                 WHERE IsDeleted = 0
+                {unitFilter}
                 AND (@Search IS NULL OR EWBNumber LIKE @Search OR InvoiceNo LIKE @Search)";
 
-            const string dataSql = @"
+            var dataSql = $@"
                 SELECT Id, EInvoiceHeaderId, UnitId, EWBNumber, InvoiceNo, InvoiceDate, InvoiceValue,
                        SupplyType, SubSupplyType, DocumentType, TransactionType,
                        FromGSTIN, FromTradeName, ToGSTIN, ToTradeName,
@@ -44,11 +50,12 @@ namespace FinanceManagement.Infrastructure.Repositories.EWaybillHeader
                        ModifiedBy, ModifiedDate, ModifiedByName, ModifiedIP
                 FROM [Finance].[EWaybillHeader]
                 WHERE IsDeleted = 0
+                {unitFilter}
                 AND (@Search IS NULL OR EWBNumber LIKE @Search OR InvoiceNo LIKE @Search)
                 ORDER BY Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
 
-            var parameters = new { Search = search, Offset = offset, PageSize = pageSize };
+            var parameters = new { Search = search, Offset = offset, PageSize = pageSize, UnitId = unitId };
             var totalCount = await _dbConnection.ExecuteScalarAsync<int>(countSql, parameters);
             var rows = (await _dbConnection.QueryAsync<EWaybillHeaderDto>(dataSql, parameters)).ToList();
 
@@ -72,7 +79,10 @@ namespace FinanceManagement.Infrastructure.Repositories.EWaybillHeader
 
         public async Task<EWaybillHeaderDto?> GetByIdAsync(int id)
         {
-            const string sql = @"
+            var unitId = _ipAddressService.GetUnitId();
+            var unitFilter = unitId.HasValue ? "AND UnitId = @UnitId" : "";
+
+            var sql = $@"
                 SELECT Id, EInvoiceHeaderId, UnitId, EWBNumber, InvoiceNo, InvoiceDate, InvoiceValue,
                        SupplyType, SubSupplyType, DocumentType, TransactionType,
                        FromGSTIN, FromTradeName, ToGSTIN, ToTradeName,
@@ -85,9 +95,9 @@ namespace FinanceManagement.Infrastructure.Repositories.EWaybillHeader
                        CreatedBy, CreatedDate, CreatedByName, CreatedIP,
                        ModifiedBy, ModifiedDate, ModifiedByName, ModifiedIP
                 FROM [Finance].[EWaybillHeader]
-                WHERE Id = @Id AND IsDeleted = 0";
+                WHERE Id = @Id AND IsDeleted = 0 {unitFilter}";
 
-            var dto = await _dbConnection.QueryFirstOrDefaultAsync<EWaybillHeaderDto>(sql, new { Id = id });
+            var dto = await _dbConnection.QueryFirstOrDefaultAsync<EWaybillHeaderDto>(sql, new { Id = id, UnitId = unitId });
 
             if (dto != null)
             {
@@ -106,15 +116,19 @@ namespace FinanceManagement.Infrastructure.Repositories.EWaybillHeader
 
         public async Task<IReadOnlyList<EWaybillHeaderLookupDto>> AutocompleteAsync(string term, CancellationToken ct)
         {
-            const string sql = @"
+            var unitId = _ipAddressService.GetUnitId();
+            var unitFilter = unitId.HasValue ? "AND UnitId = @UnitId" : "";
+
+            var sql = $@"
                 SELECT TOP 20 Id, EWBNumber, InvoiceNo, EwbStatus
                 FROM [Finance].[EWaybillHeader]
                 WHERE IsDeleted = 0 AND IsActive = 1
+                {unitFilter}
                 AND (EWBNumber LIKE @Term OR InvoiceNo LIKE @Term)
                 ORDER BY EWBNumber ASC";
 
             var result = await _dbConnection.QueryAsync<EWaybillHeaderLookupDto>(
-                new CommandDefinition(sql, new { Term = $"%{term}%" }, cancellationToken: ct));
+                new CommandDefinition(sql, new { Term = $"%{term}%", UnitId = unitId }, cancellationToken: ct));
             return result.ToList();
         }
 

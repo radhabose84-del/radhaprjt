@@ -65,13 +65,11 @@ namespace GateEntryManagement.Presentation.Controllers
 
         [HttpGet("pending")]
         public async Task<IActionResult> GetPendingVehiclesAsync(
-            [FromQuery] int UnitId,
             [FromQuery] string? VehicleMovementId = null,
             [FromQuery] string? VehicleNumber = null)
         {
             var result = await Mediator.Send(new GetPendingVehicleQuery
             {
-                UnitId = UnitId,
                 VehicleMovementId = VehicleMovementId,
                 VehicleNumber = VehicleNumber
             });

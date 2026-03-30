@@ -5,6 +5,7 @@ using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Purchase;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Production;
+using Contracts.Interfaces.Lookups.Finance;
 using Contracts.Interfaces;
 using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Application.Common.Interfaces.ISalesOrder;
@@ -26,6 +27,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
         private readonly IIPAddressService _ipAddressService;
         private readonly ICompanyLookup _companyLookup;
         private readonly IPackTypeLookup _packTypeLookup;
+        private readonly ITransactionTypeLookup _transactionTypeLookup;
 
         public SalesOrderQueryRepository(
             IDbConnection dbConnection,
@@ -37,7 +39,8 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             IUOMLookup uomLookup,
             IIPAddressService ipAddressService,
             ICompanyLookup companyLookup,
-            IPackTypeLookup packTypeLookup)
+            IPackTypeLookup packTypeLookup,
+            ITransactionTypeLookup transactionTypeLookup)
         {
             _dbConnection = dbConnection;
             _unitLookup = unitLookup;
@@ -49,10 +52,12 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             _ipAddressService = ipAddressService;
             _companyLookup = companyLookup;
             _packTypeLookup = packTypeLookup;
+            _transactionTypeLookup = transactionTypeLookup;
         }
 
         public async Task<(List<SalesOrderHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
         {
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
             var searchFilter = string.IsNullOrWhiteSpace(searchTerm)
                 ? ""
                 : "AND (h.SalesOrderNo LIKE @Search OR h.Remarks LIKE @Search)";
@@ -61,7 +66,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 DECLARE @TotalCount INT;
                 SELECT @TotalCount = COUNT(*)
                 FROM Sales.SalesOrderHeader h
-                WHERE h.IsDeleted = 0 {searchFilter};
+                WHERE h.IsDeleted = 0 AND h.OrderUnitId = @UnitId {searchFilter};
 
                 SELECT h.Id, h.SalesOrderNo, h.OrderDate,
                     h.SalesQuotationHeaderId,
@@ -71,7 +76,9 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     ss.SegmentName AS SegmentName,
                     h.EnquiryType,
                     et.Description AS EnquiryTypeName,
-                    h.UnitId, h.PartyId, h.AgentId,
+                    h.UnitId, h.PartyId, h.AgentId, h.SubAgentId,
+                    h.SalesOrderTypeId,
+                    h.OrderUnitId,
                     h.DiscountPlanId,
                     dp.Description AS DiscountPlanName,
                     h.PaymentTermsId,
@@ -100,7 +107,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 LEFT JOIN Sales.MiscMaster ft ON h.FreightTypeId = ft.Id AND ft.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster cl ON h.CountListId = cl.Id AND cl.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster st ON h.StatusId = st.Id AND st.IsDeleted = 0
-                WHERE h.IsDeleted = 0 {searchFilter}
+                WHERE h.IsDeleted = 0 AND h.OrderUnitId = @UnitId {searchFilter}
                 ORDER BY h.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
 
@@ -108,6 +115,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
 
             var result = await _dbConnection.QueryMultipleAsync(query, new
             {
+                UnitId = unitId,
                 Search = $"%{searchTerm}%",
                 Offset = (pageNumber - 1) * pageSize,
                 PageSize = pageSize
@@ -118,8 +126,10 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             if (list.Count > 0)
             {
                 // Populate cross-module lookup names
-                var unitIds = list.Select(x => x.UnitId).Distinct();
-                var units = await _unitLookup.GetByIdsAsync(unitIds);
+                var allUnitIds = list.Select(x => x.UnitId)
+                    .Concat(list.Where(x => x.OrderUnitId.HasValue).Select(x => x.OrderUnitId!.Value))
+                    .Distinct();
+                var units = await _unitLookup.GetByIdsAsync(allUnitIds);
                 var unitDict = units.ToDictionary(u => u.UnitId, u => u.UnitName);
 
                 var partyIds = list.Select(x => x.PartyId).Distinct();
@@ -127,11 +137,17 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 var partyDict = parties.ToDictionary(p => p.Id, p => p.PartyName);
 
                 var agentIds = list.Where(x => x.AgentId.HasValue).Select(x => x.AgentId!.Value).Distinct();
-                var agents = agentIds.Any() ? await _partyLookup.GetByIdsAsync(agentIds) : [];
+                var subAgentIds = list.Where(x => x.SubAgentId.HasValue).Select(x => x.SubAgentId!.Value).Distinct();
+                var allAgentIds = agentIds.Concat(subAgentIds).Distinct();
+                var agents = allAgentIds.Any() ? await _partyLookup.GetByIdsAsync(allAgentIds) : [];
                 var agentDict = agents.ToDictionary(a => a.Id, a => a.PartyName);
 
                 var paymentTerms = await _paymentTermLookup.GetAllPaymentTermAsync();
                 var ptDict = paymentTerms.ToDictionary(p => p.Id, p => p.Description);
+
+                var soTypeIds = list.Where(x => x.SalesOrderTypeId.HasValue).Select(x => x.SalesOrderTypeId!.Value).Distinct();
+                var soTypes = soTypeIds.Any() ? await _transactionTypeLookup.GetByIdsAsync(soTypeIds) : [];
+                var soTypeDict = soTypes.ToDictionary(t => t.Id, t => t.TypeName);
 
                 foreach (var item in list)
                 {
@@ -139,7 +155,13 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     item.PartyName = partyDict.TryGetValue(item.PartyId, out var pName) ? pName : null;
                     if (item.AgentId.HasValue)
                         item.AgentName = agentDict.TryGetValue(item.AgentId.Value, out var aName) ? aName : null;
+                    if (item.SubAgentId.HasValue)
+                        item.SubAgentName = agentDict.TryGetValue(item.SubAgentId.Value, out var saName) ? saName : null;
                     item.PaymentTermsName = ptDict.TryGetValue(item.PaymentTermsId, out var ptName) ? ptName : null;
+                    if (item.SalesOrderTypeId.HasValue)
+                        item.SalesOrderTypeName = soTypeDict.TryGetValue(item.SalesOrderTypeId.Value, out var stName) ? stName : null;
+                    if (item.OrderUnitId.HasValue)
+                        item.OrderUnitName = unitDict.TryGetValue(item.OrderUnitId.Value, out var ouName) ? ouName : null;
                 }
 
                 // Construct full attachment paths
@@ -169,7 +191,9 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     ss.SegmentName AS SegmentName,
                     h.EnquiryType,
                     et.Description AS EnquiryTypeName,
-                    h.UnitId, h.PartyId, h.AgentId,
+                    h.UnitId, h.PartyId, h.AgentId, h.SubAgentId,
+                    h.SalesOrderTypeId,
+                    h.OrderUnitId,
                     h.DiscountPlanId,
                     dp.Description AS DiscountPlanName,
                     h.PaymentTermsId,
@@ -239,6 +263,12 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             var unitLookup = await _unitLookup.GetByIdAsync(header.UnitId);
             header.UnitName = unitLookup?.UnitName;
 
+            if (header.OrderUnitId.HasValue)
+            {
+                var orderUnitLookup = await _unitLookup.GetByIdAsync(header.OrderUnitId.Value);
+                header.OrderUnitName = orderUnitLookup?.UnitName;
+            }
+
             var parties = await _partyLookup.GetByIdsAsync(new[] { header.PartyId });
             header.PartyName = parties.FirstOrDefault()?.PartyName;
 
@@ -248,8 +278,20 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 header.AgentName = agentList.FirstOrDefault()?.PartyName;
             }
 
+            if (header.SubAgentId.HasValue)
+            {
+                var subAgentList = await _partyLookup.GetByIdsAsync(new[] { header.SubAgentId.Value });
+                header.SubAgentName = subAgentList.FirstOrDefault()?.PartyName;
+            }
+
             var paymentTerms = await _paymentTermLookup.GetAllPaymentTermAsync();
             header.PaymentTermsName = paymentTerms.FirstOrDefault(p => p.Id == header.PaymentTermsId)?.Description;
+
+            if (header.SalesOrderTypeId.HasValue)
+            {
+                var soTypes = await _transactionTypeLookup.GetByIdsAsync(new[] { header.SalesOrderTypeId.Value });
+                header.SalesOrderTypeName = soTypes.FirstOrDefault()?.TypeName;
+            }
 
             // Construct full attachment paths
             if (!string.IsNullOrWhiteSpace(header.VisitNotesAttachment))
@@ -305,14 +347,16 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
 
         public async Task<IReadOnlyList<SalesOrderLookupDto>> AutocompleteAsync(string term, CancellationToken ct)
         {
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
+
             const string sql = @"
                 SELECT h.Id, h.SalesOrderNo, h.OrderDate, h.PartyId
                 FROM Sales.SalesOrderHeader h
-                WHERE h.IsActive = 1 AND h.IsDeleted = 0
+                WHERE h.IsActive = 1 AND h.IsDeleted = 0 AND h.OrderUnitId = @UnitId
                 AND (@Term = '' OR h.SalesOrderNo LIKE '%' + @Term + '%')
                 ORDER BY h.Id DESC;";
 
-            var command = new CommandDefinition(sql, new { Term = term }, cancellationToken: ct);
+            var command = new CommandDefinition(sql, new { Term = term, UnitId = unitId }, cancellationToken: ct);
             var list = (await _dbConnection.QueryAsync<SalesOrderLookupDto>(command)).ToList();
 
             if (list.Count > 0)
@@ -438,9 +482,16 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             return agents.Any();
         }
 
+        public async Task<bool> SubAgentExistsAsync(int subAgentId)
+        {
+            var subAgents = await _partyLookup.GetByIdsAsync(new[] { subAgentId });
+            return subAgents.Any();
+        }
+
         public async Task<(List<PendingSalesOrderDto>, int)> GetPendingSalesOrderAsync(
             int pageNumber, int pageSize, string? searchTerm)
         {
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
             var searchFilter = string.IsNullOrWhiteSpace(searchTerm)
                 ? ""
                 : "AND (h.SalesOrderNo LIKE @Search OR h.Remarks LIKE @Search)";
@@ -449,11 +500,11 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 DECLARE @TotalCount INT;
                 SELECT @TotalCount = COUNT(*)
                 FROM Sales.SalesOrderHeader h
-                INNER JOIN Sales.MiscMaster st ON h.StatusId = st.Id AND st.IsDeleted = 0
-                INNER JOIN Sales.MiscTypeMaster mt ON st.MiscTypeId = mt.Id AND mt.IsDeleted = 0
-                WHERE h.IsDeleted = 0
-                AND LOWER(mt.MiscTypeCode) = LOWER('ApprovalStatus')
-                AND LOWER(st.Code) = LOWER('Pending')
+                INNER JOIN Sales.MiscMaster stf ON h.StatusId = stf.Id AND stf.IsDeleted = 0
+                INNER JOIN Sales.MiscTypeMaster mtf ON stf.MiscTypeId = mtf.Id AND mtf.IsDeleted = 0
+                WHERE h.IsDeleted = 0 AND h.OrderUnitId = @UnitId
+                AND LOWER(mtf.MiscTypeCode) = LOWER('ApprovalStatus')
+                AND LOWER(stf.Code) = LOWER('Pending')
                 {searchFilter};
 
                 SELECT h.Id, h.SalesOrderNo, h.OrderDate,
@@ -463,7 +514,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     ss.SegmentName AS SegmentName,
                     h.EnquiryType,
                     et.Description AS EnquiryTypeName,
-                    h.UnitId, h.PartyId, h.AgentId,
+                    h.UnitId, h.PartyId, h.AgentId, h.SubAgentId,
                     h.StatusId,
                     st2.Description AS StatusName,
                     h.Remarks,
@@ -476,7 +527,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 LEFT JOIN Sales.MiscMaster st2 ON h.StatusId = st2.Id AND st2.IsDeleted = 0
                 INNER JOIN Sales.MiscMaster stf ON h.StatusId = stf.Id AND stf.IsDeleted = 0
                 INNER JOIN Sales.MiscTypeMaster mtf ON stf.MiscTypeId = mtf.Id AND mtf.IsDeleted = 0
-                WHERE h.IsDeleted = 0
+                WHERE h.IsDeleted = 0 AND h.OrderUnitId = @UnitId
                 AND LOWER(mtf.MiscTypeCode) = LOWER('ApprovalStatus')
                 AND LOWER(stf.Code) = LOWER('Pending')
                 {searchFilter}
@@ -487,6 +538,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
 
             var result = await _dbConnection.QueryMultipleAsync(query, new
             {
+                UnitId = unitId,
                 Search = $"%{searchTerm}%",
                 Offset = (pageNumber - 1) * pageSize,
                 PageSize = pageSize

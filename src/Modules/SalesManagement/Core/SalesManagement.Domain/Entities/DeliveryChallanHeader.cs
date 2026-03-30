@@ -31,6 +31,7 @@ namespace SalesManagement.Domain.Entities
         public int StatusId { get; set; }
 
         public string? Remarks { get; set; }
+        public bool GEFlag { get; set; }
 
         // Navigation properties (same-module FKs only)
         public StoHeader? StoHeader { get; set; }

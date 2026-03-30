@@ -1,5 +1,6 @@
 using AutoMapper;
 using SalesManagement.Application.DeliveryChallan.Dto;
+using SalesManagement.Application.DeliveryChallan.Queries.GetPendingDeliveryChallanById;
 using SalesManagement.Domain.Entities;
 using static SalesManagement.Domain.Common.BaseEntity;
 
@@ -15,6 +16,7 @@ namespace SalesManagement.Application.Common.Mappings
                 .ForMember(dest => dest.DeliveryNumber, opt => opt.Ignore())
                 .ForMember(dest => dest.StatusId, opt => opt.Ignore())
                 .ForMember(dest => dest.DeliveryValue, opt => opt.Ignore())
+                .ForMember(dest => dest.GEFlag, opt => opt.MapFrom(src => false))
                 .ForMember(dest => dest.DeliveryChallanDetails, opt => opt.MapFrom(src => src.Details))
                 .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => Status.Active))
                 .ForMember(dest => dest.IsDeleted, opt => opt.MapFrom(src => IsDelete.NotDeleted));
@@ -26,6 +28,9 @@ namespace SalesManagement.Application.Common.Mappings
             // Entity → DTO (for query mapping)
             CreateMap<DeliveryChallanHeader, DeliveryChallanHeaderDto>();
             CreateMap<DeliveryChallanDetail, DeliveryChallanDetailDto>();
+
+            // Pending: DeliveryChallanHeaderDto → PendingDeliveryChallanByIdDto
+            CreateMap<DeliveryChallanHeaderDto, PendingDeliveryChallanByIdDto>();
         }
     }
 }
