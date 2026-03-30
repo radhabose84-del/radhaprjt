@@ -36,8 +36,8 @@ namespace FAM.Presentation.Validation.Locations
                             // .NotEmpty()
                             // .WithMessage($"{nameof(UpdateLocationCommand.Description)} {rule.Error}");
                             RuleFor(x => x.SortOrder)
-                            .NotEmpty()
-                            .WithMessage($"{nameof(UpdateLocationCommand.SortOrder)} {rule.Error}");
+                            .GreaterThanOrEqualTo(0)
+                            .WithMessage($"{nameof(UpdateLocationCommand.SortOrder)} must be zero or positive.");
                         break;
                     case "MaxLength":
                         // Apply MaxLength validation using dynamic max length values

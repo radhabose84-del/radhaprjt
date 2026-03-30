@@ -109,7 +109,7 @@ namespace FAM.Infrastructure.Repositories.AssetCategories
         {
             const string query = @"
         SELECT TOP 1 1
-        FROM [FixedAsset].[FixedAsset].[AssetSubCategories]
+        FROM [FixedAsset].[AssetSubCategories]
         WHERE IsDeleted = 0 AND AssetCategoriesId = @categoryId;
         ";
 
