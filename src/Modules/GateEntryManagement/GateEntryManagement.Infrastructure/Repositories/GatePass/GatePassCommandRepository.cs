@@ -13,18 +13,18 @@ namespace GateEntryManagement.Infrastructure.Repositories.GatePass
     {
         private readonly ApplicationDbContext _applicationDbContext;
         private readonly IDocumentSequenceLookup _documentSequenceLookup;
-        private readonly IEnumerable<IGatePassDocumentHandler> _documentHandlers;
+        private readonly IEnumerable<IGatePassDocumentProcessor> _documentProcessors;
         private readonly IIPAddressService _ipAddressService;
 
         public GatePassCommandRepository(
             ApplicationDbContext applicationDbContext,
             IDocumentSequenceLookup documentSequenceLookup,
-            IEnumerable<IGatePassDocumentHandler> documentHandlers,
+            IEnumerable<IGatePassDocumentProcessor> documentHandlers,
             IIPAddressService ipAddressService)
         {
             _applicationDbContext = applicationDbContext;
             _documentSequenceLookup = documentSequenceLookup;
-            _documentHandlers = documentHandlers;
+            _documentProcessors = documentHandlers;
             _ipAddressService = ipAddressService;
         }
 
@@ -62,7 +62,7 @@ namespace GateEntryManagement.Infrastructure.Repositories.GatePass
 
                             if (typeNameMap.TryGetValue(detail.DocTypeId, out var typeName))
                             {
-                                var handler = _documentHandlers.FirstOrDefault(
+                                var handler = _documentProcessors.FirstOrDefault(
                                     h => string.Equals(h.DocumentType, typeName, StringComparison.OrdinalIgnoreCase));
 
                                 if (handler != null)
@@ -130,7 +130,7 @@ namespace GateEntryManagement.Infrastructure.Repositories.GatePass
 
                             if (typeNameMap.TryGetValue(detail.DocTypeId, out var typeName))
                             {
-                                var handler = _documentHandlers.FirstOrDefault(
+                                var handler = _documentProcessors.FirstOrDefault(
                                     h => string.Equals(h.DocumentType, typeName, StringComparison.OrdinalIgnoreCase));
 
                                 if (handler != null)

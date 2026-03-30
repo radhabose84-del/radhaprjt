@@ -64,6 +64,11 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("int")
                 .IsRequired();
 
+            builder.Property(t => t.PartyAddress)
+                .HasColumnName("PartyAddress")
+                .HasColumnType("nvarchar(500)")
+                .IsRequired(false);
+
             builder.Property(t => t.AgentId)
                 .HasColumnName("AgentId")
                 .HasColumnType("int")
