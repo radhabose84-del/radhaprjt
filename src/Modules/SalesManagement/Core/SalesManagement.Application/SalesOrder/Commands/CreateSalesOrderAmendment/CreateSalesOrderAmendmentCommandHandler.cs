@@ -52,6 +52,18 @@ namespace SalesManagement.Application.SalesOrder.Commands.CreateSalesOrderAmendm
                 RevisionNumber = revisionNumber,
                 AmendmentDate = DateOnly.FromDateTime(DateTime.UtcNow),
                 Reason = request.Reason,
+                TotalBags = request.TotalBags,
+                TotalWeightKgs = request.TotalWeightKgs,
+                TotalDiscountPerKg = request.TotalDiscountPerKg,
+                ItemValue = request.ItemValue,
+                TotalFreight = request.TotalFreight,
+                TaxableAmount = request.TaxableAmount,
+                GSTPercentage = request.GSTPercentage,
+                TotalGST = request.TotalGST,
+                TotalWithGST = request.TotalWithGST,
+                TCSPercentage = request.TCSPercentage,
+                TotalTCS = request.TotalTCS,
+                FinalAmount = request.FinalAmount,
                 IsActive = Status.Active,
                 IsDeleted = IsDelete.NotDeleted
             };
@@ -82,7 +94,13 @@ namespace SalesManagement.Application.SalesOrder.Commands.CreateSalesOrderAmendm
                     OldExpectedDeliveryDate = soDetail.ExpectedDeliveryDate,
                     NewQtyInBags = dto.NewQtyInBags,
                     NewExMillRate = dto.NewExMillRate,
-                    NewExpectedDeliveryDate = dto.NewExpectedDeliveryDate
+                    NewExpectedDeliveryDate = dto.NewExpectedDeliveryDate,
+                    TaxableAmount = dto.TaxableAmount,
+                    TaxAmount = dto.TaxAmount,
+                    TCSAmount = dto.TCSAmount,
+                    NetAmount = dto.NetAmount,
+                    NetRatePerKg = dto.NetRatePerKg,
+                    PendingQty = dto.PendingQty
                 });
             }
 

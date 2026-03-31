@@ -58,6 +58,20 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("nvarchar(500)")
                 .IsRequired();
 
+            // Header-level Summary Fields
+            builder.Property(t => t.TotalBags).HasColumnName("TotalBags").HasColumnType("int").IsRequired();
+            builder.Property(t => t.TotalWeightKgs).HasColumnName("TotalWeightKgs").HasColumnType("decimal(18,3)").IsRequired();
+            builder.Property(t => t.TotalDiscountPerKg).HasColumnName("TotalDiscountPerKg").HasColumnType("decimal(18,3)").IsRequired();
+            builder.Property(t => t.ItemValue).HasColumnName("ItemValue").HasColumnType("decimal(18,3)").IsRequired();
+            builder.Property(t => t.TotalFreight).HasColumnName("TotalFreight").HasColumnType("decimal(18,3)").IsRequired();
+            builder.Property(t => t.TaxableAmount).HasColumnName("TaxableAmount").HasColumnType("decimal(18,3)").IsRequired();
+            builder.Property(t => t.GSTPercentage).HasColumnName("GSTPercentage").HasColumnType("decimal(18,3)").IsRequired();
+            builder.Property(t => t.TotalGST).HasColumnName("TotalGST").HasColumnType("decimal(18,3)").IsRequired();
+            builder.Property(t => t.TotalWithGST).HasColumnName("TotalWithGST").HasColumnType("decimal(18,3)").IsRequired();
+            builder.Property(t => t.TCSPercentage).HasColumnName("TCSPercentage").HasColumnType("decimal(18,3)").IsRequired();
+            builder.Property(t => t.TotalTCS).HasColumnName("TotalTCS").HasColumnType("decimal(18,3)").IsRequired();
+            builder.Property(t => t.FinalAmount).HasColumnName("FinalAmount").HasColumnType("decimal(18,3)").IsRequired();
+
             builder.Property(t => t.StatusId)
                 .HasColumnName("StatusId")
                 .HasColumnType("int")

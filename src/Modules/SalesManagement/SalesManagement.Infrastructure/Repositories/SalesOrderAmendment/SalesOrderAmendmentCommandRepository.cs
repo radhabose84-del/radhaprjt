@@ -120,6 +120,14 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrderAmendment
                                     if (detail.NewExpectedDeliveryDate.HasValue)
                                         soDetail.ExpectedDeliveryDate = detail.NewExpectedDeliveryDate.Value;
 
+                                    // Update detail-level computed fields
+                                    soDetail.TaxableAmount = detail.TaxableAmount;
+                                    soDetail.TaxAmount = detail.TaxAmount;
+                                    soDetail.TCSAmount = detail.TCSAmount;
+                                    soDetail.NetAmount = detail.NetAmount;
+                                    soDetail.NetRatePerKg = detail.NetRatePerKg;
+                                    soDetail.PendingQty = detail.PendingQty;
+
                                     _dbContext.SalesOrderDetail.Update(soDetail);
                                 }
                                 else if (detail.ChangeType == "Removed")
@@ -133,6 +141,20 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrderAmendment
                                     _dbContext.SalesOrderDetail.Update(soDetail);
                                 }
                             }
+
+                            // Update header-level summary fields from amendment
+                            soHeader.TotalBags = amendmentHeader.TotalBags;
+                            soHeader.TotalWeightKgs = amendmentHeader.TotalWeightKgs;
+                            soHeader.TotalDiscountPerKg = amendmentHeader.TotalDiscountPerKg;
+                            soHeader.ItemValue = amendmentHeader.ItemValue;
+                            soHeader.TotalFreight = amendmentHeader.TotalFreight;
+                            soHeader.TaxableAmount = amendmentHeader.TaxableAmount;
+                            soHeader.GSTPercentage = amendmentHeader.GSTPercentage;
+                            soHeader.TotalGST = amendmentHeader.TotalGST;
+                            soHeader.TotalWithGST = amendmentHeader.TotalWithGST;
+                            soHeader.TCSPercentage = amendmentHeader.TCSPercentage;
+                            soHeader.TotalTCS = amendmentHeader.TotalTCS;
+                            soHeader.FinalAmount = amendmentHeader.FinalAmount;
 
                             // Increment RevisionNumber
                             soHeader.RevisionNumber = amendmentHeader.RevisionNumber;
