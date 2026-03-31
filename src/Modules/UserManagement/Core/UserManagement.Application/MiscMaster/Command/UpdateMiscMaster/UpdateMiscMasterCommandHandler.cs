@@ -27,7 +27,14 @@ namespace UserManagement.Application.MiscMaster.Command.UpdateMiscMaster
 
            public async Task<bool> Handle(UpdateMiscMasterCommand request, CancellationToken cancellationToken)
         {
-                          
+                // Inactivate guard — MUST run BEFORE persisting the update
+                if (request.IsActive == 0)
+                {
+                    var linked = await _miscMasterQueryRepository.IsMiscMasterLinkedAsync(request.Id);
+                    if (linked)
+                        throw new FluentValidation.ValidationException("This master is linked with other records. You cannot inactivate this record.");
+                }
+
                  var miscmaster  = _imapper.Map<UserManagement.Domain.Entities.MiscMaster>(request);         
                 var MiscMasterresult = await _miscMasterCommandRepository.UpdateAsync(request.Id, miscmaster);                
 

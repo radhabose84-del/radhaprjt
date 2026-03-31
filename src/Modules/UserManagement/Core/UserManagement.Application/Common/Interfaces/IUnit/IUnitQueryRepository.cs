@@ -17,6 +17,8 @@ namespace UserManagement.Application.Common.Interfaces.IUnit
         Task<bool> IsUnitUsedByAnyUserAsync(int unitId);
         Task<bool> MiscMasterExistsAsync(int id);
 
+        /// <summary>Returns true if any non-deleted record references this unit (delete guard).</summary>
+        Task<bool> SoftDeleteValidationAsync(int id);
     }
     
    

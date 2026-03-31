@@ -271,6 +271,9 @@ namespace MaintenanceManagement.Infrastructure
             // Unit of work — wraps EF Core transaction for atomic domain writes + outbox insert
             services.AddScoped<IMaintenanceUnitOfWork, MaintenanceUnitOfWork>();
 
+            // Validation repositories — cross-module referential integrity (Rule 25)
+            services.AddScoped<Contracts.Interfaces.Validations.MaintenanceManagement.IMaintenanceDepartmentValidation, Repositories.Validations.MaintenanceDepartmentValidationRepository>();
+
             return services;
         }
     }

@@ -114,18 +114,25 @@ namespace UserManagement.Infrastructure.Repositories.MiscTypeMaster
 
          public async Task<bool> SoftDeleteValidation(int Id)
         {
+             // Checks if any non-deleted MiscMaster references this MiscType
              const string query = @"
-                           SELECT 1 
-                           FROM  AppData.MiscTypeMaster
-                           WHERE Id  = @Id AND IsDeleted = 0;";
-                    
-                       using var multi = await _dbConnection.QueryMultipleAsync(query, new { Id = Id });
-                    
-                       var shiftMasterDetailExists = await multi.ReadFirstOrDefaultAsync<int?>();
-                    
-                       return shiftMasterDetailExists.HasValue;
+                SELECT CASE WHEN
+                    EXISTS (SELECT 1 FROM [AppData].[MiscMaster] WHERE MiscTypeId = @Id AND IsDeleted = 0)
+                THEN 1 ELSE 0 END";
+
+             return await _dbConnection.ExecuteScalarAsync<bool>(query, new { Id });
         }
 
-        
+        /// <inheritdoc />
+        public async Task<bool> IsMiscTypeMasterLinkedAsync(int id)
+        {
+            // Check if any active, non-deleted MiscMaster references this MiscType
+            const string sql = @"
+                SELECT CASE WHEN
+                    EXISTS (SELECT 1 FROM [AppData].[MiscMaster] WHERE MiscTypeId = @Id AND IsDeleted = 0 AND IsActive = 1)
+                THEN 1 ELSE 0 END";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { Id = id });
+        }
     }
 }

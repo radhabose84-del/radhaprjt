@@ -25,8 +25,16 @@ namespace UserManagement.Application.Units.Commands.UpdateUnit
 
         public async Task<int> Handle(UpdateUnitCommand request, CancellationToken cancellationToken)
         {
-       
             _logger.LogInformation($"Starting update process for UnitId: {request.UpdateUnitDto.Id}");
+
+            // Inactivate guard — MUST run BEFORE persisting the update
+            if (request.UpdateUnitDto.IsActive == 0)
+            {
+                var linked = await _iunitQueryRepository.IsUnitUsedByAnyUserAsync(request.UpdateUnitDto.Id);
+                if (linked)
+                    throw new ValidationException("This master is linked with other records. You cannot inactivate this record.");
+            }
+
             //  First, check if the ID exists in the database
             var existingUnit = await _iunitQueryRepository.GetByIdAsync(request.UpdateUnitDto.Id);
             if (existingUnit is null )

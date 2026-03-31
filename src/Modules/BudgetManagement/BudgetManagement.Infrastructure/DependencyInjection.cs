@@ -120,6 +120,10 @@ namespace BudgetManagement.Infrastructure
             services.AddScoped<IBudgetAllocationLookup, BudgetAllocationLookupRepository>();
             services.AddScoped<IBudgetGroupLookup, BudgetGroupLookupRepository>();
 
+            // Validation repositories — cross-module referential integrity (Rule 25)
+            services.AddScoped<Contracts.Interfaces.Validations.BudgetManagement.IBudgetCurrencyValidation, Repositories.Validations.BudgetCurrencyValidationRepository>();
+            services.AddScoped<Contracts.Interfaces.Validations.BudgetManagement.IBudgetDepartmentValidation, Repositories.Validations.BudgetDepartmentValidationRepository>();
+
             return services;
         }
     }

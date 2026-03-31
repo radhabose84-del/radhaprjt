@@ -324,6 +324,9 @@ namespace SalesManagement.Infrastructure
             services.AddScoped<Contracts.Interfaces.IGatePassDocumentProcessor, Repositories.GatePass.DeliveryChallanGatePassProcessor>();
             
 
+            // Validation repositories — cross-module referential integrity (Rule 25)
+            services.AddScoped<Contracts.Interfaces.Validations.SalesManagement.ISalesCurrencyValidation, Repositories.Validations.SalesCurrencyValidationRepository>();
+
             return services;
         }
     }

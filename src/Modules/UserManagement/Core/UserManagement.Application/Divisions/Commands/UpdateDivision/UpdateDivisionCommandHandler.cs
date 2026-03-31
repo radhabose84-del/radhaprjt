@@ -23,12 +23,20 @@ namespace UserManagement.Application.Divisions.Commands.UpdateDivision
         }
           public async Task<bool> Handle(UpdateDivisionCommand request, CancellationToken cancellationToken)
         {
+                // Inactivate guard — MUST run BEFORE persisting the update
+                if (request.IsActive == 0)
+                {
+                    var linked = await _divisionQueryRepository.IsDivisionLinkedAsync(request.Id);
+                    if (linked)
+                        throw new ValidationException("This master is linked with other records. You cannot inactivate this record.");
+                }
+
                 var existingDivision = await _divisionQueryRepository.GetByDivisionnameAsync(request.Name, request.Id);
 
                 if (existingDivision != null)
                 {
                     throw new ValidationException("Division already exists");
-                    
+
                 }
                  var division  = _imapper.Map<Division>(request);
          

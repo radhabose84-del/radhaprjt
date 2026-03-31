@@ -135,6 +135,10 @@ namespace WarehouseManagement.Infrastructure
                  typeof(BinMasterProfile)
 
             );
+
+            // Validation repositories — cross-module referential integrity (Rule 25)
+            services.AddScoped<Contracts.Interfaces.Validations.WarehouseManagement.IWarehouseDepartmentValidation, Repositories.Validations.WarehouseDepartmentValidationRepository>();
+
             return services;
         }
 
