@@ -57,7 +57,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrderAmendment
             });
         }
 
-        public async Task<bool> ApplyAmendmentAsync(int amendmentHeaderId, string status, CancellationToken ct)
+        public async Task<bool> ApplyAmendmentAsync(int amendmentHeaderId, string status, int modifiedBy, string? modifiedByName, string? modifiedIP, CancellationToken ct)
         {
             var strategy = _dbContext.Database.CreateExecutionStrategy();
 
@@ -84,7 +84,12 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrderAmendment
                     amendmentHeader.StatusId = isApproved
                         ? approvedStatus?.Id
                         : rejectedStatus?.Id;
+                    amendmentHeader.ApprovedBy = modifiedBy;
                     amendmentHeader.ApprovedDate = DateTimeOffset.UtcNow;
+                    amendmentHeader.ModifiedBy = modifiedBy;
+                    amendmentHeader.ModifiedByName = modifiedByName;
+                    amendmentHeader.ModifiedIP = modifiedIP;
+                    amendmentHeader.ModifiedDate = DateTimeOffset.UtcNow;
 
                     _dbContext.SalesOrderAmendmentHeader.Update(amendmentHeader);
 
@@ -119,7 +124,13 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrderAmendment
                                 }
                                 else if (detail.ChangeType == "Removed")
                                 {
-                                    _dbContext.SalesOrderDetail.Remove(soDetail);
+                                    // Soft delete — physical delete blocked by AmendmentDetail FK
+                                    soDetail.PendingQty = 0;
+                                    soDetail.QtyInBags = 0;
+                                    var closedStatus = await _miscMasterQueryRepository.GetMiscMasterByName(
+                                        MiscEnumEntity.LineItemApprovalStatus, MiscEnumEntity.LineStatusDeleted);
+                                    soDetail.LineItemStatusId = closedStatus?.Id;
+                                    _dbContext.SalesOrderDetail.Update(soDetail);
                                 }
                             }
 

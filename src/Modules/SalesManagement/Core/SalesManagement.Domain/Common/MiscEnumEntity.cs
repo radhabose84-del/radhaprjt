@@ -9,6 +9,7 @@ namespace SalesManagement.Domain.Common
         public const string LineStatusOpen  = "Open";
         public const string LineStatusPartiallyDispatched = "Partially Dispatched";
         public const string LineStatusClosed = "Closed";
+        public const string LineStatusDeleted = "Deleted";
         public const string SalesOrderVisitPath = "SalesOrderVisitPath";
         public const string AgentPoDocument = "AgentPoDocument";
         public const string QualityStatus = "QualityStatus";
