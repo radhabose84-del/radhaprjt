@@ -313,6 +313,9 @@ namespace SalesManagement.Infrastructure
             // ── Sales MiscMaster Lookup (cross-module) ──────────────────────────
             services.AddScoped<ISalesMiscMasterLookup, SalesMiscMasterLookupRepository>();
 
+            // ── Sales Invoice Lookup (cross-module, for Finance EInvoice creation) ──
+            services.AddScoped<ISalesInvoiceLookup, SalesInvoiceLookupRepository>();
+
             // ═══════════════════════════════════════════════════════════════
             // OUTBOX PATTERN SERVICES (SQL-based for transaction atomicity)
             // ═══════════════════════════════════════════════════════════════

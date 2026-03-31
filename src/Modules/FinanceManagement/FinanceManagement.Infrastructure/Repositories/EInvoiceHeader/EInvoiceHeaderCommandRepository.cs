@@ -80,6 +80,44 @@ namespace FinanceManagement.Infrastructure.Repositories.EInvoiceHeader
             return true;
         }
 
+        public async Task HardDeleteWithDetailsAsync(int id, CancellationToken ct)
+        {
+            var details = await _dbContext.EInvoiceDetail
+                .Where(d => d.EInvoiceHeaderId == id)
+                .ToListAsync(ct);
+
+            if (details.Count > 0)
+                _dbContext.EInvoiceDetail.RemoveRange(details);
+
+            var header = await _dbContext.EInvoiceHeader
+                .FirstOrDefaultAsync(x => x.Id == id, ct);
+
+            if (header != null)
+                _dbContext.EInvoiceHeader.Remove(header);
+
+            await _dbContext.SaveChangesAsync(ct);
+        }
+
+        public async Task HardDeleteIncompleteByInvoiceNoAsync(string invoiceNo, CancellationToken ct)
+        {
+            var orphans = await _dbContext.EInvoiceHeader
+                .Where(h => h.InvoiceNo == invoiceNo && h.IrnNumber == null)
+                .ToListAsync(ct);
+
+            if (orphans.Count == 0) return;
+
+            var orphanIds = orphans.Select(h => h.Id).ToList();
+            var details = await _dbContext.EInvoiceDetail
+                .Where(d => orphanIds.Contains(d.EInvoiceHeaderId))
+                .ToListAsync(ct);
+
+            if (details.Count > 0)
+                _dbContext.EInvoiceDetail.RemoveRange(details);
+
+            _dbContext.EInvoiceHeader.RemoveRange(orphans);
+            await _dbContext.SaveChangesAsync(ct);
+        }
+
         public async Task<bool> UpdateIrnDetailsAsync(
             int id,
             string? irn,

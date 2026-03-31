@@ -1,6 +1,9 @@
+using System.Text.Json;
+using Contracts.Commands.Finance;
 using Contracts.Commands.Sales;
 using Contracts.Events.Sales;
 using MassTransit;
+using MediatR;
 using Microsoft.Extensions.Logging;
 using SalesManagement.Application.Common.Interfaces.IDeliveryChallan;
 using SalesManagement.Application.Common.Interfaces.IInvoice;
@@ -22,6 +25,7 @@ namespace SalesManagement.Application.Consumers
         private readonly IStoHeaderCommandRepository _stoHeaderCommandRepo;
         private readonly IDeliveryChallanCommandRepository _dcCommandRepo;
         private readonly IComplaintCommandRepository _complaintCommandRepo;
+        private readonly IMediator _mediator;
         private readonly ILogger<ApprovedRejectedConsumer> _logger;
 
         public ApprovedRejectedConsumer(
@@ -32,6 +36,7 @@ namespace SalesManagement.Application.Consumers
             IStoHeaderCommandRepository stoHeaderCommandRepo,
             IDeliveryChallanCommandRepository dcCommandRepo,
             IComplaintCommandRepository complaintCommandRepo,
+            IMediator mediator,
             ILogger<ApprovedRejectedConsumer> logger)
         {
             _invoiceCommandRepo = invoiceCommandRepo;
@@ -41,6 +46,7 @@ namespace SalesManagement.Application.Consumers
             _stoHeaderCommandRepo = stoHeaderCommandRepo;
             _dcCommandRepo = dcCommandRepo;
             _complaintCommandRepo = complaintCommandRepo;
+            _mediator = mediator;
             _logger = logger;
         }
 
@@ -58,8 +64,7 @@ namespace SalesManagement.Application.Consumers
                 switch (msg.ModuleTypeName)
                 {
                     case MiscEnumEntity.TransactionTypeInvoice:
-                        await _invoiceCommandRepo.UpdateApprovalStatusAsync(
-                            msg.ModuleTransactionId, msg.Status, context.CancellationToken);
+                        await HandleInvoiceApprovalAsync(msg, msg.DynamicFields, context.CancellationToken);
                         break;
 
                     case MiscEnumEntity.TransactionTypeSalesOrder:
@@ -90,6 +95,22 @@ namespace SalesManagement.Application.Consumers
                             msg.ModuleTransactionId, msg.Status, context.CancellationToken);
                         _logger.LogInformation(
                             "Complaint {Id} status updated to {Status}",
+                            msg.ModuleTransactionId, msg.Status);
+                        break;
+
+                    case MiscEnumEntity.ComplaintQCReviewModuleTypeName:
+                        await _complaintCommandRepo.UpdateQCReviewApprovalStatusAsync(
+                            msg.ModuleTransactionId, msg.Status, context.CancellationToken);
+                        _logger.LogInformation(
+                            "Complaint QC Review {Id} approval status updated to {Status}",
+                            msg.ModuleTransactionId, msg.Status);
+                        break;
+
+                    case MiscEnumEntity.ComplaintResolutionModuleTypeName:
+                        await _complaintCommandRepo.UpdateResolutionApprovalStatusAsync(
+                            msg.ModuleTransactionId, msg.Status, context.CancellationToken);
+                        _logger.LogInformation(
+                            "Complaint Resolution {Id} approval status updated to {Status}",
                             msg.ModuleTransactionId, msg.Status);
                         break;
 
@@ -127,7 +148,8 @@ namespace SalesManagement.Application.Consumers
                 return;
 
             var result = await _amendmentCommandRepo.ApplyAmendmentAsync(
-                msg.ModuleTransactionId, status, ct);
+                msg.ModuleTransactionId, status,
+                msg.ModifiedBy, msg.ModifiedByName, msg.ModifiedIP, ct);
 
             if (!result)
             {
@@ -140,6 +162,68 @@ namespace SalesManagement.Application.Consumers
             _logger.LogInformation(
                 "SalesOrderAmendment Id={Id} status updated to {Status}",
                 msg.ModuleTransactionId, status);
+        }
+
+        private async Task HandleInvoiceApprovalAsync(
+            UpdateApprovedRejectedSalesCommand msg,
+            List<JsonElement> dynamicFields,
+            CancellationToken ct)
+        {
+            // 1. Always update Invoice approval status
+            await _invoiceCommandRepo.UpdateApprovalStatusAsync(
+                msg.ModuleTransactionId, msg.Status, ct);
+
+            // 2. Only proceed with EInvoice on Approval (not Rejection)
+            if (msg.Status != MiscEnumEntity.InvoiceStatusApproved)
+                return;
+
+            // 3. Parse DynamicFields for withInvoice / withEwaybill flags
+            bool withInvoice = ReadBool(dynamicFields, "withInvoice");
+            bool withEwaybill = ReadBool(dynamicFields, "withEwaybill");
+
+            if (!withInvoice)
+            {
+                _logger.LogInformation(
+                    "Invoice {Id} approved. withInvoice=false, skipping EInvoice creation.",
+                    msg.ModuleTransactionId);
+                return;
+            }
+
+            // 4. Create EInvoice via Finance module (Contracts command → Finance handler)
+            try
+            {
+                var command = new CreateEInvoiceFromSalesCommand
+                {
+                    InvoiceId = msg.ModuleTransactionId,
+                    IsEwaybillCreate = withEwaybill
+                };
+
+                var result = await _mediator.Send(command, ct);
+
+                if (!result.IsSuccess)
+                {
+                    throw new InvalidOperationException(
+                        $"EInvoice creation failed for Invoice {msg.ModuleTransactionId}: {result.Message}");
+                }
+
+                _logger.LogInformation(
+                    "EInvoice created for Invoice {InvoiceId}: EInvoiceHeaderId={EInvoiceId}, IRN={Irn}, EwbNo={EwbNo}",
+                    msg.ModuleTransactionId,
+                    result.Data?.EInvoiceHeaderId,
+                    result.Data?.Irn,
+                    result.Data?.EwbNo);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex,
+                    "EInvoice creation failed for Invoice {Id}, rolling back to Pending",
+                    msg.ModuleTransactionId);
+
+                await _invoiceCommandRepo.UpdateApprovalStatusAsync(
+                    msg.ModuleTransactionId,
+                    MiscEnumEntity.InvoiceStatusPending,
+                    ct);
+            }
         }
 
         private async Task HandleSalesOrderApprovalAsync(
@@ -157,7 +241,7 @@ namespace SalesManagement.Application.Consumers
 
             // Resolve Approved and Rejected MiscMaster Ids
             var statusApproved = await _miscMasterQueryRepository.GetMiscMasterByName(
-                MiscEnumEntity.SalesOrderApprovalStatus,MiscEnumEntity.SalesOrderStatusApproved);
+                MiscEnumEntity.SalesOrderApprovalStatus, MiscEnumEntity.SalesOrderStatusApproved);
 
             var statusRejected = await _miscMasterQueryRepository.GetMiscMasterByName(
                 MiscEnumEntity.SalesOrderApprovalStatus, MiscEnumEntity.SalesOrderStatusRejected);
@@ -184,6 +268,30 @@ namespace SalesManagement.Application.Consumers
             _logger.LogInformation(
                 "SalesOrder Id={SalesOrderId} status updated to {Status} (StatusId={StatusId})",
                 salesOrderId, status, finalStatusId);
+        }
+
+        /// <summary>
+        /// Reads a boolean value from the first DynamicFields JsonElement that contains the property.
+        /// Expected format: [{ "withInvoice": true, "withEwaybill": false }]
+        /// </summary>
+        private static bool ReadBool(List<JsonElement> dynamicFields, string propertyName)
+        {
+            foreach (var element in dynamicFields)
+            {
+                if (element.ValueKind == JsonValueKind.Object &&
+                    element.TryGetProperty(propertyName, out var prop))
+                {
+                    if (prop.ValueKind == JsonValueKind.True)
+                        return true;
+                    if (prop.ValueKind == JsonValueKind.False)
+                        return false;
+                    // Handle string "true"/"false"
+                    if (prop.ValueKind == JsonValueKind.String &&
+                        bool.TryParse(prop.GetString(), out var parsed))
+                        return parsed;
+                }
+            }
+            return false;
         }
     }
 }
