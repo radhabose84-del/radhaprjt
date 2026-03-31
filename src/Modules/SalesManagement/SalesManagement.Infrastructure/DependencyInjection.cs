@@ -52,6 +52,8 @@ using SalesManagement.Application.Common.Interfaces.ICustomerVisit;
 using SalesManagement.Infrastructure.Repositories.CustomerVisit;
 using SalesManagement.Application.Common.Interfaces.ISalesOrder;
 using SalesManagement.Infrastructure.Repositories.SalesOrder;
+using SalesManagement.Application.Common.Interfaces.ISalesOrderAmendment;
+using SalesManagement.Infrastructure.Repositories.SalesOrderAmendment;
 using SalesManagement.Application.Common.Interfaces.IMovementTypeConfig;
 using SalesManagement.Infrastructure.Repositories.MovementTypeConfig;
 using SalesManagement.Application.Common.Interfaces.IDispatchAdvice;
@@ -253,6 +255,10 @@ namespace SalesManagement.Infrastructure
             // ── Sales Order Repositories ──────────────────────────────────
             services.AddScoped<ISalesOrderCommandRepository, SalesOrderCommandRepository>();
             services.AddScoped<ISalesOrderQueryRepository, SalesOrderQueryRepository>();
+
+            // ── Sales Order Amendment Repositories ────────────────────────
+            services.AddScoped<ISalesOrderAmendmentCommandRepository, SalesOrderAmendmentCommandRepository>();
+            services.AddScoped<ISalesOrderAmendmentQueryRepository, SalesOrderAmendmentQueryRepository>();
 
             // ── Movement Type Config Repositories ─────────────────────────────
             services.AddScoped<IMovementTypeConfigCommandRepository, MovementTypeConfigCommandRepository>();

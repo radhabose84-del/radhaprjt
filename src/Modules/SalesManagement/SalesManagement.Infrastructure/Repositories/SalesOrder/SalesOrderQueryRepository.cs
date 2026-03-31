@@ -96,6 +96,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     h.TCSPercentage, h.TotalTCS, h.FinalAmount,
                     h.StatusId,
                     st.Description AS StatusName,
+                    h.RevisionNumber,
                     h.IsActive, h.IsDeleted,
                     h.CreatedBy, h.CreatedDate, h.CreatedByName
                 FROM Sales.SalesOrderHeader h
@@ -211,6 +212,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     h.TCSPercentage, h.TotalTCS, h.FinalAmount,
                     h.StatusId,
                     st.Description AS StatusName,
+                    h.RevisionNumber,
                     h.IsActive, h.IsDeleted,
                     h.CreatedBy, h.CreatedDate, h.CreatedByName
                 FROM Sales.SalesOrderHeader h
