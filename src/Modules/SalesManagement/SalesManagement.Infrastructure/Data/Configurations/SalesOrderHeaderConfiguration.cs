@@ -64,8 +64,18 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("int")
                 .IsRequired();
 
+            builder.Property(t => t.PartyAddress)
+                .HasColumnName("PartyAddress")
+                .HasColumnType("nvarchar(500)")
+                .IsRequired(false);
+
             builder.Property(t => t.AgentId)
                 .HasColumnName("AgentId")
+                .HasColumnType("int")
+                .IsRequired(false);
+
+            builder.Property(t => t.SubAgentId)
+                .HasColumnName("SubAgentId")
                 .HasColumnType("int")
                 .IsRequired(false);
 
@@ -274,6 +284,7 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             builder.HasIndex(t => t.SalesOrderNo).IsUnique();
             builder.HasIndex(t => t.PartyId);
             builder.HasIndex(t => t.AgentId);
+            builder.HasIndex(t => t.SubAgentId);
             builder.HasIndex(t => t.SalesGroupId);
             builder.HasIndex(t => t.OrderDate);
             builder.HasIndex(t => t.SalesQuotationHeaderId);

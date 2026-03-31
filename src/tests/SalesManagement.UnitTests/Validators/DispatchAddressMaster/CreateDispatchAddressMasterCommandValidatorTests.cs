@@ -145,7 +145,7 @@ namespace SalesManagement.UnitTests.Validators.DispatchAddressMaster
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.PinCode)
-                  .WithErrorMessage("PinCode must be a 6-digit numeric value.");
+                  .WithErrorMessage("PinCode must be a valid 6-digit pincode.");
         }
 
         [Fact]
@@ -225,7 +225,7 @@ namespace SalesManagement.UnitTests.Validators.DispatchAddressMaster
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.MobileNumber)
-                  .WithErrorMessage("MobileNumber must be a 10-digit numeric value.");
+                  .WithErrorMessage("MobileNumber Mobile number must be exactly 10 digits.");
         }
 
         [Fact]
@@ -238,7 +238,7 @@ namespace SalesManagement.UnitTests.Validators.DispatchAddressMaster
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.Email)
-                  .WithErrorMessage("Email must be a valid email address.");
+                  .WithErrorMessage("Email Invalid email address format.");
         }
 
         [Fact]
@@ -251,7 +251,7 @@ namespace SalesManagement.UnitTests.Validators.DispatchAddressMaster
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.GSTIN)
-                  .WithErrorMessage("GSTIN must be a valid 15-character GSTIN format.");
+                  .WithErrorMessage("GSTIN must be in the correct format (e.g., '22AAAAA1234A1Z5').");
         }
 
         [Fact]

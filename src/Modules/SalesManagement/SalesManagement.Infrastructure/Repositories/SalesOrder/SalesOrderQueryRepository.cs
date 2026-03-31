@@ -76,7 +76,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     ss.SegmentName AS SegmentName,
                     h.EnquiryType,
                     et.Description AS EnquiryTypeName,
-                    h.UnitId, h.PartyId, h.AgentId,
+                    h.UnitId, h.PartyId, h.PartyAddress, h.AgentId, h.SubAgentId,
                     h.SalesOrderTypeId,
                     h.OrderUnitId,
                     h.DiscountPlanId,
@@ -137,7 +137,9 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 var partyDict = parties.ToDictionary(p => p.Id, p => p.PartyName);
 
                 var agentIds = list.Where(x => x.AgentId.HasValue).Select(x => x.AgentId!.Value).Distinct();
-                var agents = agentIds.Any() ? await _partyLookup.GetByIdsAsync(agentIds) : [];
+                var subAgentIds = list.Where(x => x.SubAgentId.HasValue).Select(x => x.SubAgentId!.Value).Distinct();
+                var allAgentIds = agentIds.Concat(subAgentIds).Distinct();
+                var agents = allAgentIds.Any() ? await _partyLookup.GetByIdsAsync(allAgentIds) : [];
                 var agentDict = agents.ToDictionary(a => a.Id, a => a.PartyName);
 
                 var paymentTerms = await _paymentTermLookup.GetAllPaymentTermAsync();
@@ -153,6 +155,8 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     item.PartyName = partyDict.TryGetValue(item.PartyId, out var pName) ? pName : null;
                     if (item.AgentId.HasValue)
                         item.AgentName = agentDict.TryGetValue(item.AgentId.Value, out var aName) ? aName : null;
+                    if (item.SubAgentId.HasValue)
+                        item.SubAgentName = agentDict.TryGetValue(item.SubAgentId.Value, out var saName) ? saName : null;
                     item.PaymentTermsName = ptDict.TryGetValue(item.PaymentTermsId, out var ptName) ? ptName : null;
                     if (item.SalesOrderTypeId.HasValue)
                         item.SalesOrderTypeName = soTypeDict.TryGetValue(item.SalesOrderTypeId.Value, out var stName) ? stName : null;
@@ -187,7 +191,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     ss.SegmentName AS SegmentName,
                     h.EnquiryType,
                     et.Description AS EnquiryTypeName,
-                    h.UnitId, h.PartyId, h.AgentId,
+                    h.UnitId, h.PartyId, h.PartyAddress, h.AgentId, h.SubAgentId,
                     h.SalesOrderTypeId,
                     h.OrderUnitId,
                     h.DiscountPlanId,
@@ -272,6 +276,12 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             {
                 var agentList = await _partyLookup.GetByIdsAsync(new[] { header.AgentId.Value });
                 header.AgentName = agentList.FirstOrDefault()?.PartyName;
+            }
+
+            if (header.SubAgentId.HasValue)
+            {
+                var subAgentList = await _partyLookup.GetByIdsAsync(new[] { header.SubAgentId.Value });
+                header.SubAgentName = subAgentList.FirstOrDefault()?.PartyName;
             }
 
             var paymentTerms = await _paymentTermLookup.GetAllPaymentTermAsync();
@@ -472,6 +482,12 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             return agents.Any();
         }
 
+        public async Task<bool> SubAgentExistsAsync(int subAgentId)
+        {
+            var subAgents = await _partyLookup.GetByIdsAsync(new[] { subAgentId });
+            return subAgents.Any();
+        }
+
         public async Task<(List<PendingSalesOrderDto>, int)> GetPendingSalesOrderAsync(
             int pageNumber, int pageSize, string? searchTerm)
         {
@@ -498,7 +514,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     ss.SegmentName AS SegmentName,
                     h.EnquiryType,
                     et.Description AS EnquiryTypeName,
-                    h.UnitId, h.PartyId, h.AgentId,
+                    h.UnitId, h.PartyId, h.PartyAddress, h.AgentId, h.SubAgentId,
                     h.StatusId,
                     st2.Description AS StatusName,
                     h.Remarks,

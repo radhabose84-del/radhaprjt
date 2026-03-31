@@ -3575,6 +3575,10 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("OrderUnitId");
 
+                    b.Property<string>("PartyAddress")
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("PartyAddress");
+
                     b.Property<int>("PartyId")
                         .HasColumnType("int")
                         .HasColumnName("PartyId");
@@ -3615,6 +3619,10 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Property<int?>("StatusId")
                         .HasColumnType("int")
                         .HasColumnName("StatusId");
+
+                    b.Property<int?>("SubAgentId")
+                        .HasColumnType("int")
+                        .HasColumnName("SubAgentId");
 
                     b.Property<decimal>("TCSPercentage")
                         .HasPrecision(18, 6)
@@ -3696,6 +3704,8 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.HasIndex("SalesSegmentId");
 
                     b.HasIndex("StatusId");
+
+                    b.HasIndex("SubAgentId");
 
                     b.ToTable("SalesOrderHeader", "Sales");
                 });

@@ -13,7 +13,9 @@ namespace SalesManagement.Domain.Entities
         public int EnquiryType { get; set; }            // 1=Unit, 2=Combined
         public int UnitId { get; set; }                  // Cross-module FK (UserManagement)
         public int PartyId { get; set; }                 // Cross-module FK (PartyManagement)
+        public string? PartyAddress { get; set; }           // Free-text address (numbers, letters, special chars allowed)
         public int? AgentId { get; set; }                // Cross-module FK (PartyManagement) — nullable
+        public int? SubAgentId { get; set; }             // Cross-module FK (PartyManagement) — nullable
 
         // Sales Order Type (cross-module FK → Finance.TransactionTypeMaster)
         public int? SalesOrderTypeId { get; set; }

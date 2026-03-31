@@ -21,6 +21,8 @@ namespace UserManagement.Infrastructure.Repositories.Lookups.Users
                     S.Id AS StateId,
                     S.StateName
                 FROM [AppData].[State] S
+                INNER JOIN [AppData].[Country] CO ON S.CountryId = CO.Id
+                    AND CO.IsActive = 1 AND CO.IsDeleted = 0
                 WHERE S.IsDeleted = 0
                 AND S.IsActive = 1
                 ORDER BY S.Id DESC;
@@ -39,6 +41,8 @@ namespace UserManagement.Infrastructure.Repositories.Lookups.Users
                     S.Id AS StateId,
                     S.StateName
                 FROM [AppData].[State] S
+                INNER JOIN [AppData].[Country] CO ON S.CountryId = CO.Id
+                    AND CO.IsActive = 1 AND CO.IsDeleted = 0
                 WHERE S.Id = @StateId
                 AND S.IsDeleted = 0
                 AND S.IsActive = 1;
@@ -63,6 +67,8 @@ namespace UserManagement.Infrastructure.Repositories.Lookups.Users
                     S.Id AS StateId,
                     S.StateName
                 FROM [AppData].[State] S
+                INNER JOIN [AppData].[Country] CO ON S.CountryId = CO.Id
+                    AND CO.IsActive = 1 AND CO.IsDeleted = 0
                 WHERE S.Id IN @Ids
                 AND S.IsDeleted = 0
                 AND S.IsActive = 1;

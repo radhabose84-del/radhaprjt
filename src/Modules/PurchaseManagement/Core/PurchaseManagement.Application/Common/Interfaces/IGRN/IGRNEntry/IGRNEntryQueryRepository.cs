@@ -5,6 +5,7 @@ using PurchaseManagement.Application.GRN.GRNEntry.Queries.GetGrnPending;
 using PurchaseManagement.Application.GRN.GRNEntry.Queries.GetGrnPendingDetails;
 using PurchaseManagement.Application.GRN.GRNEntry.Queries.GetGrnPendingHeader;
 using PurchaseManagement.Application.GRN.GRNEntry.Queries.GetGrnQCCompletedDetails;
+using PurchaseManagement.Application.GRN.GRNEntry.Queries.GetPoPending;
 
 
 namespace PurchaseManagement.Application.Common.Interfaces.IGRN.IGRNEntry
@@ -21,6 +22,7 @@ namespace PurchaseManagement.Application.Common.Interfaces.IGRN.IGRNEntry
         Task<(List<GetGrnQCCompletedDetailsDto>, int)> GetGrnQcCompletedHeader(DateTimeOffset? fromDate, DateTimeOffset? toDate, int PageNumber, int PageSize, string? SearchTerm);
         Task<List<GetGrnQCCompletedDto>> GetGrnQcCompletedDetails(int? GrnId, int? ItemId);
         Task<decimal?> GetUnitPriceAsync(int poId, int itemId, int poSlNoLocal);   
-        Task<List<PoValueDetailsDto>> GetPoOtherDetails(int PoId, int PoSlNoLocal,int PoCategoryId, int PoMethodId, int ItemId);     
+        Task<List<PoValueDetailsDto>> GetPoOtherDetails(int PoId, int PoSlNoLocal,int PoCategoryId, int PoMethodId, int ItemId);
+        Task<List<GetPoPendingDto>> GetPoPendingAsync();
     }
 }

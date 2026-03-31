@@ -43,6 +43,7 @@ namespace MaintenanceManagement.Application.PreventiveSchedulers.Commands.Active
             _preventiveSchedulerQuery = preventiveSchedulerQuery;
             _machineMasterQueryRepository = machineMasterQueryRepository;
             _miscMasterQueryRepository = miscMasterQueryRepository;
+            _workOrderRepository = workOrderRepository;
             _mapper = mapper;
             _backgroundServiceClient = backgroundServiceClient;
             _preventiveScheduleLogService = preventiveScheduleLogService;

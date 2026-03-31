@@ -29,7 +29,7 @@ namespace InventoryManagement.Presentation.Validation.MiscMaster
             {
              switch (rule.Rule)
                 {
-                    case "Notempty": 
+                    case "NotEmpty":
                      // Apply NotEmpty validation
                         RuleFor(x => x.Code)
                             .NotEmpty()

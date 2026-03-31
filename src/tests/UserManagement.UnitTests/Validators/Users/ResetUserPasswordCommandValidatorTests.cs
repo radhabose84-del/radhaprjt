@@ -1,4 +1,3 @@
-#nullable disable
 using UserManagement.Application.Common.Interfaces;
 using UserManagement.Application.Common.Interfaces.IUser;
 using UserManagement.Application.Common.Utilities;
@@ -53,15 +52,15 @@ namespace UserManagement.UnitTests.Validators.Users
             ClearForgotCache();
             var cmd = ValidCommand();
 
-            _userRepo.Setup(r => r.GetByUsernameAsync(cmd.UserName))
+            _userRepo.Setup(r => r.GetByUsernameAsync(cmd.UserName!))
                      .ReturnsAsync(MakeUser("Old#Pass1"));
 
-            _changePassword.Setup(c => c.ValidatePasswordbyUserName(cmd.UserName, cmd.Password))
+            _changePassword.Setup(c => c.ValidatePasswordbyUserName(cmd.UserName!, cmd.Password!))
                            .ReturnsAsync(false);
 
             var now = DateTime.UtcNow;
             SetupClockUtc(now);
-            PutCode(cmd.UserName, cmd.VerificationCode!, now.AddMinutes(10));
+            PutCode(cmd.UserName!, cmd.VerificationCode!, now.AddMinutes(10));
 
             var v = CreateValidator();
             var result = await v.TestValidateAsync(cmd);
@@ -102,15 +101,15 @@ namespace UserManagement.UnitTests.Validators.Users
             ClearForgotCache();
             var cmd = ValidCommand();
 
-            _userRepo.Setup(r => r.GetByUsernameAsync(cmd.UserName))
+            _userRepo.Setup(r => r.GetByUsernameAsync(cmd.UserName!))
                      .ReturnsAsync((User)null!);
 
-            _changePassword.Setup(c => c.ValidatePasswordbyUserName(cmd.UserName, cmd.Password))
+            _changePassword.Setup(c => c.ValidatePasswordbyUserName(cmd.UserName!, cmd.Password!))
                            .ReturnsAsync(false);
 
             var now = DateTime.UtcNow;
             SetupClockUtc(now);
-            PutCode(cmd.UserName, cmd.VerificationCode!, now.AddMinutes(5));
+            PutCode(cmd.UserName!, cmd.VerificationCode!, now.AddMinutes(5));
 
             var v = CreateValidator();
             var result = await v.TestValidateAsync(cmd);
@@ -126,15 +125,15 @@ namespace UserManagement.UnitTests.Validators.Users
             ClearForgotCache();
             var cmd = ValidCommand();
 
-            _userRepo.Setup(r => r.GetByUsernameAsync(cmd.UserName))
+            _userRepo.Setup(r => r.GetByUsernameAsync(cmd.UserName!))
                      .ReturnsAsync(MakeUser("Old#Pass1"));
 
-            _changePassword.Setup(c => c.ValidatePasswordbyUserName(cmd.UserName, cmd.Password))
+            _changePassword.Setup(c => c.ValidatePasswordbyUserName(cmd.UserName!, cmd.Password!))
                            .ReturnsAsync(false);
 
             var now = DateTime.UtcNow;
             SetupClockUtc(now);
-            PutCode(cmd.UserName, cmd.VerificationCode!, now.AddMinutes(-1));
+            PutCode(cmd.UserName!, cmd.VerificationCode!, now.AddMinutes(-1));
 
             var v = CreateValidator();
             var result = await v.TestValidateAsync(cmd);
@@ -151,10 +150,10 @@ namespace UserManagement.UnitTests.Validators.Users
             var cmd = ValidCommand();
             var now = DateTime.UtcNow;
 
-            _userRepo.Setup(r => r.GetByUsernameAsync(cmd.UserName))
+            _userRepo.Setup(r => r.GetByUsernameAsync(cmd.UserName!))
                      .ReturnsAsync(MakeUser("Old#Pass1"));
 
-            _changePassword.Setup(c => c.ValidatePasswordbyUserName(cmd.UserName, cmd.Password))
+            _changePassword.Setup(c => c.ValidatePasswordbyUserName(cmd.UserName!, cmd.Password!))
                            .ReturnsAsync(false);
 
             SetupClockUtc(now);
@@ -174,15 +173,15 @@ namespace UserManagement.UnitTests.Validators.Users
             ClearForgotCache();
             var cmd = ValidCommand();
 
-            _userRepo.Setup(r => r.GetByUsernameAsync(cmd.UserName))
+            _userRepo.Setup(r => r.GetByUsernameAsync(cmd.UserName!))
                      .ReturnsAsync(MakeUser("Old#Pass1"));
 
-            _changePassword.Setup(c => c.ValidatePasswordbyUserName(cmd.UserName, cmd.Password))
+            _changePassword.Setup(c => c.ValidatePasswordbyUserName(cmd.UserName!, cmd.Password!))
                            .ReturnsAsync(true); // indicates reuse
 
             var now = DateTime.UtcNow;
             SetupClockUtc(now);
-            PutCode(cmd.UserName, cmd.VerificationCode!, now.AddMinutes(10));
+            PutCode(cmd.UserName!, cmd.VerificationCode!, now.AddMinutes(10));
 
             var v = CreateValidator();
             var result = await v.TestValidateAsync(cmd);
@@ -205,15 +204,15 @@ namespace UserManagement.UnitTests.Validators.Users
                 VerificationCode = currentPassword // rule compares verification code to old password (by design)
             };
 
-            _userRepo.Setup(r => r.GetByUsernameAsync(cmd.UserName))
+            _userRepo.Setup(r => r.GetByUsernameAsync(cmd.UserName!))
                      .ReturnsAsync(MakeUser(currentPassword));
 
-            _changePassword.Setup(c => c.ValidatePasswordbyUserName(cmd.UserName, cmd.Password))
+            _changePassword.Setup(c => c.ValidatePasswordbyUserName(cmd.UserName!, cmd.Password!))
                            .ReturnsAsync(false);
 
             var now = DateTime.UtcNow;
             SetupClockUtc(now);
-            PutCode(cmd.UserName, cmd.VerificationCode!, now.AddMinutes(10));
+            PutCode(cmd.UserName!, cmd.VerificationCode!, now.AddMinutes(10));
 
             var v = CreateValidator();
             var result = await v.TestValidateAsync(cmd);

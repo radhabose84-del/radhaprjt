@@ -2,6 +2,7 @@ using AutoMapper;
 using PurchaseManagement.Application.GRN.GRNEntry.Commands.CreateGRNEntry;
 using PurchaseManagement.Application.GRN.GRNEntry.Commands.CreateGRNPutaway;
 using PurchaseManagement.Application.GRN.GRNEntry.Commands.UpdateGRNEntry;
+using PurchaseManagement.Application.GRN.GRNEntry.Queries.GetPoPending;
 using PurchaseManagement.Domain.Entities.GRN.GRNEntry;
 using static PurchaseManagement.Application.GRN.GRNEntry.Commands.CreateGRNEntry.CreateGRNEntryDto;
 using static PurchaseManagement.Application.GRN.GRNEntry.Commands.UpdateGRNEntry.UpdateGRNEntryDto;
@@ -59,8 +60,8 @@ namespace PurchaseManagement.Application.Common.Mappings.GRN.GRNEntry
             // Optionally set PutAwayDate if you want to default to now
             .ForMember(dest => dest.PutAwayDate, opt => opt.Ignore());
 
-
-
+            // PO Pending (identity map — repo returns same DTO type)
+            CreateMap<GetPoPendingDto, GetPoPendingDto>();
 
         }
     }

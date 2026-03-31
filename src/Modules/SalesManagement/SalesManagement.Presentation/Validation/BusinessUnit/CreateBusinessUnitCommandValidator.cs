@@ -73,6 +73,11 @@ namespace SalesManagement.Presentation.Validation.BusinessUnit
                             .MustAsync(async (code, ct) => !await _queryRepository.AlreadyExistsAsync(code!))
                             .WithMessage($"{nameof(CreateBusinessUnitCommand.BusinessUnitCode)} {rule.Error}")
                             .When(x => !string.IsNullOrWhiteSpace(x.BusinessUnitCode));
+
+                        RuleFor(x => x.BusinessUnitName)
+                            .MustAsync(async (name, ct) => !await _queryRepository.NameAlreadyExistsAsync(name!))
+                            .WithMessage($"{nameof(CreateBusinessUnitCommand.BusinessUnitName)} {rule.Error}")
+                            .When(x => !string.IsNullOrWhiteSpace(x.BusinessUnitName));
                         break;
 
                     default:

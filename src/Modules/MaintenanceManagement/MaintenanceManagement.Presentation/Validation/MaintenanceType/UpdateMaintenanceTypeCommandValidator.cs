@@ -41,17 +41,19 @@ namespace MaintenanceManagement.Presentation.Validation.MaintenanceType
                         break;
                      case "AlreadyExists":
                         RuleFor(x => x.TypeName)
-                            .MustAsync(async (x, TypeName, cancellation) => 
+                            .MustAsync(async (x, TypeName, cancellation) =>
                                 !await _imaintenanceTypeCommandRepository.IsNameDuplicateAsync(TypeName, x.Id))
                             .WithName("MachineType Name")
-                            .WithMessage($"{rule.Error}");
+                            .WithMessage($"{rule.Error}")
+                            .When(x => !string.IsNullOrWhiteSpace(x.TypeName));
                         break;
-                      case "RecordNotFound":
+                      case "NotFound":
                         RuleFor(x => x.Id)
-                            .MustAsync(async (id, cancellation) => 
-                                (await _imaintenanceTypeQueryRepository.GetByIdAsync(id)) != null) 
+                            .MustAsync(async (id, cancellation) =>
+                                (await _imaintenanceTypeQueryRepository.GetByIdAsync(id)) != null)
                             .WithName("Id")
-                            .WithMessage($"{rule.Error}");
+                            .WithMessage($"{rule.Error}")
+                            .When(x => x.Id > 0 && !string.IsNullOrWhiteSpace(x.TypeName));
                             break;
                          case "MaxLength":
                         RuleFor(x => x.TypeName)

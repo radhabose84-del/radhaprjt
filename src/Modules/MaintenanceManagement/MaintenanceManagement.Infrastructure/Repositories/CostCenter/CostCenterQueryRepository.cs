@@ -175,7 +175,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.CostCenter
         {
             const string query = @"
         SELECT TOP 1 1
-        FROM [Maintenance].[Maintenance].[MachineMaster]
+        FROM [Maintenance].[MachineMaster]
         WHERE IsDeleted = 0 AND CostCenterId = @id;
         ";
 

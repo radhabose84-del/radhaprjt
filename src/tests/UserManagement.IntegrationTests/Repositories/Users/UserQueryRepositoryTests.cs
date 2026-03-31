@@ -31,7 +31,7 @@ namespace UserManagement.IntegrationTests.Repositories.Users
         /// - Inserts users with DepartmentId (NOT NULL)
         /// - Links users to Unit
         /// </summary>
-        private async Task SeedBasicUsersAsync()
+        private async Task<int> SeedBasicUsersAsync()
         {
             await using var cnn = OpenSql();
             await cnn.OpenAsync();
@@ -358,6 +358,10 @@ END
                 await tx.RollbackAsync();
                 throw;
             }
+
+            // Return the actual unit ID used for the seeded users
+            return await cnn.ExecuteScalarAsync<int>(
+                "SELECT TOP 1 UnitId FROM AppSecurity.UserUnit WHERE UserId = 2");
         }
 
         private IUserQueryRepository CreateRepo(string groupCode, int unitId = 1, int companyId = 1, int entityId = 1)
@@ -385,9 +389,9 @@ END
         [Fact]
         public async Task GetAllUsersAsync_super_admin_paging_and_search()
         {
-            await SeedBasicUsersAsync();
+            var seededUnitId = await SeedBasicUsersAsync();
 
-            var repo = CreateRepo(groupCode: "SUPER_ADMIN", unitId: 1, companyId: 1, entityId: 1);
+            var repo = CreateRepo(groupCode: "SUPER_ADMIN", unitId: seededUnitId, companyId: 1, entityId: 1);
 
             var (usersPage1, total) = await repo.GetAllUsersAsync(PageNumber: 1, PageSize: 2, SearchTerm: "i");
 
@@ -413,9 +417,9 @@ END
         [Fact]
         public async Task GetAllUsersAsync_admin_filtered_by_entity()
         {
-            await SeedBasicUsersAsync();
+            var seededUnitId = await SeedBasicUsersAsync();
 
-            var repo = CreateRepo(groupCode: "ADMIN", unitId: 1, companyId: 1, entityId: 1);
+            var repo = CreateRepo(groupCode: "ADMIN", unitId: seededUnitId, companyId: 1, entityId: 1);
 
             var (users, total) = await repo.GetAllUsersAsync(1, 10, null);
 
@@ -426,9 +430,9 @@ END
         [Fact]
         public async Task GetAllUsersAsync_user_filtered_by_unit()
         {
-            await SeedBasicUsersAsync();
+            var seededUnitId = await SeedBasicUsersAsync();
 
-            var repo = CreateRepo(groupCode: "USER", unitId: 1);
+            var repo = CreateRepo(groupCode: "USER", unitId: seededUnitId);
 
             var (users, total) = await repo.GetAllUsersAsync(1, 10, null);
 
@@ -494,9 +498,9 @@ UPDATE AppSecurity.Users SET UserGroupId = @gid WHERE UserName = 'smith';
         [Fact]
         public async Task GetByUsernameAsync_filters_by_unit_only()
         {
-            await SeedBasicUsersAsync();
+            var seededUnitId = await SeedBasicUsersAsync();
 
-            var repo = CreateRepo(groupCode: "SUPER_ADMIN", unitId: 1);
+            var repo = CreateRepo(groupCode: "SUPER_ADMIN", unitId: seededUnitId);
 
             var user = await repo.GetByUsernameAsync("smith");
             user.Should().NotBeNull();
@@ -506,9 +510,9 @@ UPDATE AppSecurity.Users SET UserGroupId = @gid WHERE UserName = 'smith';
         [Fact(Skip = "Repo SQL uses unqualified 'UserId' in optional-id branch; causes 'Ambiguous column name UserId'. Kept for future repo fix.")]
         public async Task GetByUsernameAsync_optional_id_excludes_record()
         {
-            await SeedBasicUsersAsync();
+            var seededUnitId = await SeedBasicUsersAsync();
 
-            var repo = CreateRepo(groupCode: "SUPER_ADMIN", unitId: 1);
+            var repo = CreateRepo(groupCode: "SUPER_ADMIN", unitId: seededUnitId);
 
             var u1 = await repo.GetByUsernameAsync("smith");
             u1.Should().NotBeNull();

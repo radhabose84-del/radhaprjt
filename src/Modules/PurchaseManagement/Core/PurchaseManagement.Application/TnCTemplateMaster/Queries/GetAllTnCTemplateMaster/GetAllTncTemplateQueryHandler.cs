@@ -25,10 +25,11 @@ namespace PurchaseManagement.Application.TnCTemplateMaster.Queries.GetAllTnCTemp
             
             return new ApiResponseDTO<List<TncTemplateMasterDto>>
             {
+                IsSuccess = true,
                 StatusCode = 200,
                 Message = items.Count > 0 ? "TnC templates fetched successfully." : "No TnC templates found.",
                 Data = items,
-            
+
                 TotalCount = totalCount,
                 PageNumber = request.PageNumber,
                 PageSize = request.PageSize

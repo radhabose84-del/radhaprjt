@@ -14,10 +14,13 @@ namespace WarehouseManagement.Presentation.Validation.WarehouseMaster
 
             RuleFor(x => x.WarehouseName)
                 .NotEmpty().WithMessage("Warehouse Name is required.")
-                .MaximumLength(100).WithMessage("Warehouse Name cannot exceed 100 characters.")
-                .MustAsync(async (name, _) => 
+                .MaximumLength(100).WithMessage("Warehouse Name cannot exceed 100 characters.");
+
+            RuleFor(x => x.WarehouseName)
+                .MustAsync(async (name, _) =>
                     !await _warehouseMasterQueryRepository.ExistsByNameAsync(name))
-                .WithMessage(x => $"Warehouse name '{x.WarehouseName}' already exists.");
+                .WithMessage(x => $"Warehouse name '{x.WarehouseName}' already exists.")
+                .When(x => !string.IsNullOrWhiteSpace(x.WarehouseName));
 
             RuleFor(x => x.UnitId)
                 .GreaterThan(0).WithMessage("Unit Id must be greater than 0.");

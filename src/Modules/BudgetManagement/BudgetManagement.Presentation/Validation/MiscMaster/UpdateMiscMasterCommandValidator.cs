@@ -28,7 +28,7 @@ namespace BudgetManagement.Presentation.Validation.MiscMaster
             {
              switch (rule.Rule)
                 {
-                    case "Notempty": 
+                    case "NotEmpty":
                      // Apply NotEmpty validation
                         RuleFor(x => x.Code)
                             .NotEmpty()
@@ -61,8 +61,9 @@ namespace BudgetManagement.Presentation.Validation.MiscMaster
                                 return !await _miscMasterQuery.AlreadyExistsAsync(command.Code!, command.MiscTypeId,command.Id);
                             })
                             .WithMessage($"{rule.Error}")
-                            .WithName("Misc Code");
-                            break; 
+                            .WithName("Misc Code")
+                            .When(x => !string.IsNullOrWhiteSpace(x.Code));
+                            break;
                     case "NotFound":
                            RuleFor(x => x.Id )
                            .MustAsync(async (Id, cancellation) => 

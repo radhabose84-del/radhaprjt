@@ -45,6 +45,9 @@ namespace SalesManagement.IntegrationTests.Common
 
             // 5. Create all tables from the EF model (no migrations needed)
             await DbContext.Database.EnsureCreatedAsync();
+
+            // 6. Create cross-module stub tables (Finance.DocumentSequence for ItemPriceMaster)
+            await EnsureCrossModuleDependenciesAsync();
         }
 
         private void ConfigureMocks()
@@ -93,6 +96,42 @@ CREATE DATABASE [{DbName}];
             await DbContext.Database.ExecuteSqlRawAsync(@"
 IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'Sales')
     EXEC('CREATE SCHEMA Sales');
+");
+        }
+
+        private async Task EnsureCrossModuleDependenciesAsync()
+        {
+            await using var conn = new SqlConnection(TestDbConnection);
+            await conn.OpenAsync();
+
+            // ItemPriceMasterCommandRepository.CreateAsync increments Finance.DocumentSequence.DocNo
+            await conn.ExecuteAsync(@"
+IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'Finance')
+    EXEC('CREATE SCHEMA Finance');
+
+IF NOT EXISTS (SELECT * FROM sys.tables t JOIN sys.schemas s ON t.schema_id = s.schema_id WHERE s.name = 'Finance' AND t.name = 'DocumentSequence')
+BEGIN
+    CREATE TABLE [Finance].[DocumentSequence] (
+        Id              INT IDENTITY(1,1) PRIMARY KEY,
+        TransactionTypeId INT NOT NULL,
+        FinancialYearId INT NULL,
+        DocNo           INT NOT NULL DEFAULT 0,
+        IsActive        BIT NOT NULL DEFAULT 1,
+        IsDeleted       BIT NOT NULL DEFAULT 0,
+        CreatedBy       INT NOT NULL DEFAULT 0,
+        CreatedDate     DATETIMEOFFSET NULL,
+        CreatedByName   NVARCHAR(100) NULL,
+        CreatedIP       NVARCHAR(50) NULL,
+        ModifiedBy      INT NULL,
+        ModifiedDate    DATETIMEOFFSET NULL,
+        ModifiedByName  NVARCHAR(100) NULL,
+        ModifiedIP      NVARCHAR(50) NULL
+    );
+
+    -- Seed rows for common transaction types used by ItemPriceMaster
+    INSERT INTO [Finance].[DocumentSequence] (TransactionTypeId, FinancialYearId, DocNo)
+    VALUES (1, 1, 0), (2, 1, 0), (3, 1, 0), (4, 1, 0), (5, 1, 0);
+END
 ");
         }
 
