@@ -257,9 +257,21 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     WHERE dah.IsDeleted = 0
                     GROUP BY dad.SalesOrderDetailId
                 ) da ON da.SalesOrderDetailId = d.Id
-                WHERE d.SalesOrderHeaderId = @HeaderId";
+                WHERE d.SalesOrderHeaderId = @HeaderId
+                AND NOT EXISTS (
+                    SELECT 1 FROM Sales.MiscMaster mm2
+                    INNER JOIN Sales.MiscTypeMaster mt ON mm2.MiscTypeId = mt.Id AND mt.IsDeleted = 0
+                    WHERE mm2.Id = d.LineItemStatusId
+                    AND LOWER(mt.MiscTypeCode) = LOWER(@LineItemStatus)
+                    AND LOWER(mm2.Code) = LOWER(@LineStatusDeleted)
+                )";
 
-            var details = (await _dbConnection.QueryAsync<SalesOrderDetailDto>(detailSql, new { HeaderId = id })).ToList();
+            var detailParams = new DynamicParameters();
+            detailParams.Add("@HeaderId", id);
+            detailParams.Add("@LineItemStatus", MiscEnumEntity.LineItemApprovalStatus);
+            detailParams.Add("@LineStatusDeleted", MiscEnumEntity.LineStatusDeleted);
+
+            var details = (await _dbConnection.QueryAsync<SalesOrderDetailDto>(detailSql, detailParams)).ToList();
 
             // Populate cross-module header lookups
             var unitLookup = await _unitLookup.GetByIdAsync(header.UnitId);
@@ -354,11 +366,21 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             const string sql = @"
                 SELECT h.Id, h.SalesOrderNo, h.OrderDate, h.PartyId
                 FROM Sales.SalesOrderHeader h
+                INNER JOIN Sales.MiscMaster st ON h.StatusId = st.Id AND st.IsDeleted = 0
+                INNER JOIN Sales.MiscTypeMaster mt ON st.MiscTypeId = mt.Id AND mt.IsDeleted = 0
                 WHERE h.IsActive = 1 AND h.IsDeleted = 0 AND h.OrderUnitId = @UnitId
+                AND LOWER(mt.MiscTypeCode) = LOWER(@ApprovalStatus)
+                AND LOWER(st.Code) = LOWER(@ApprovedStatus)
                 AND (@Term = '' OR h.SalesOrderNo LIKE '%' + @Term + '%')
                 ORDER BY h.Id DESC;";
 
-            var command = new CommandDefinition(sql, new { Term = term, UnitId = unitId }, cancellationToken: ct);
+            var parameters = new DynamicParameters();
+            parameters.Add("@Term", term);
+            parameters.Add("@UnitId", unitId);
+            parameters.Add("@ApprovalStatus", MiscEnumEntity.SalesOrderApprovalStatus);
+            parameters.Add("@ApprovedStatus", MiscEnumEntity.SalesOrderStatusApproved);
+
+            var command = new CommandDefinition(sql, parameters, cancellationToken: ct);
             var list = (await _dbConnection.QueryAsync<SalesOrderLookupDto>(command)).ToList();
 
             if (list.Count > 0)

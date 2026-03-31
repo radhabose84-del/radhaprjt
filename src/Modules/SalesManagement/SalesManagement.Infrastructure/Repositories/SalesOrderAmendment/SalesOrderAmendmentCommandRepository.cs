@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using SalesManagement.Application.Common.Interfaces.IMiscMaster;
 using SalesManagement.Application.Common.Interfaces.ISalesOrderAmendment;
+using SalesManagement.Application.SalesOrder.Commands.CreateSalesOrderAmendment;
 using SalesManagement.Domain.Common;
 using SalesManagement.Domain.Entities;
 using SalesManagement.Infrastructure.Data;
@@ -56,7 +57,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrderAmendment
             });
         }
 
-        public async Task<bool> ApplyAmendmentAsync(int amendmentHeaderId, string status, CancellationToken ct)
+        public async Task<bool> ApplyAmendmentAsync(int amendmentHeaderId, string status, int modifiedBy, string? modifiedByName, string? modifiedIP, CancellationToken ct)
         {
             var strategy = _dbContext.Database.CreateExecutionStrategy();
 
@@ -83,7 +84,12 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrderAmendment
                     amendmentHeader.StatusId = isApproved
                         ? approvedStatus?.Id
                         : rejectedStatus?.Id;
+                    amendmentHeader.ApprovedBy = modifiedBy;
                     amendmentHeader.ApprovedDate = DateTimeOffset.UtcNow;
+                    amendmentHeader.ModifiedBy = modifiedBy;
+                    amendmentHeader.ModifiedByName = modifiedByName;
+                    amendmentHeader.ModifiedIP = modifiedIP;
+                    amendmentHeader.ModifiedDate = DateTimeOffset.UtcNow;
 
                     _dbContext.SalesOrderAmendmentHeader.Update(amendmentHeader);
 
@@ -114,13 +120,41 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrderAmendment
                                     if (detail.NewExpectedDeliveryDate.HasValue)
                                         soDetail.ExpectedDeliveryDate = detail.NewExpectedDeliveryDate.Value;
 
+                                    // Update detail-level computed fields
+                                    soDetail.TaxableAmount = detail.TaxableAmount;
+                                    soDetail.TaxAmount = detail.TaxAmount;
+                                    soDetail.TCSAmount = detail.TCSAmount;
+                                    soDetail.NetAmount = detail.NetAmount;
+                                    soDetail.NetRatePerKg = detail.NetRatePerKg;
+                                    soDetail.PendingQty = detail.PendingQty;
+
                                     _dbContext.SalesOrderDetail.Update(soDetail);
                                 }
                                 else if (detail.ChangeType == "Removed")
                                 {
-                                    _dbContext.SalesOrderDetail.Remove(soDetail);
+                                    // Soft delete — physical delete blocked by AmendmentDetail FK
+                                    soDetail.PendingQty = 0;
+                                    soDetail.QtyInBags = 0;
+                                    var closedStatus = await _miscMasterQueryRepository.GetMiscMasterByName(
+                                        MiscEnumEntity.LineItemApprovalStatus, MiscEnumEntity.LineStatusDeleted);
+                                    soDetail.LineItemStatusId = closedStatus?.Id;
+                                    _dbContext.SalesOrderDetail.Update(soDetail);
                                 }
                             }
+
+                            // Update header-level summary fields from amendment
+                            soHeader.TotalBags = amendmentHeader.TotalBags;
+                            soHeader.TotalWeightKgs = amendmentHeader.TotalWeightKgs;
+                            soHeader.TotalDiscountPerKg = amendmentHeader.TotalDiscountPerKg;
+                            soHeader.ItemValue = amendmentHeader.ItemValue;
+                            soHeader.TotalFreight = amendmentHeader.TotalFreight;
+                            soHeader.TaxableAmount = amendmentHeader.TaxableAmount;
+                            soHeader.GSTPercentage = amendmentHeader.GSTPercentage;
+                            soHeader.TotalGST = amendmentHeader.TotalGST;
+                            soHeader.TotalWithGST = amendmentHeader.TotalWithGST;
+                            soHeader.TCSPercentage = amendmentHeader.TCSPercentage;
+                            soHeader.TotalTCS = amendmentHeader.TotalTCS;
+                            soHeader.FinalAmount = amendmentHeader.FinalAmount;
 
                             // Increment RevisionNumber
                             soHeader.RevisionNumber = amendmentHeader.RevisionNumber;
@@ -152,6 +186,25 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrderAmendment
             return await _dbContext.SalesOrderHeader
                 .Include(h => h.SalesOrderDetails)
                 .FirstOrDefaultAsync(h => h.Id == salesOrderHeaderId && h.IsDeleted == IsDelete.NotDeleted);
+        }
+
+        public async Task<AmendmentWorkFlowDto> GetByIdAmendmentWorkFlowAsync(int id)
+        {
+            var entity = await _dbContext.SalesOrderAmendmentHeader
+                .Where(x => x.Id == id)
+                .Select(x => new AmendmentWorkFlowDto
+                {
+                    Id = x.Id,
+                    AmendmentNo = x.AmendmentNo,
+                    SalesOrderHeaderId = x.SalesOrderHeaderId,
+                    SalesOrderNo = x.SalesOrderHeader != null ? x.SalesOrderHeader.SalesOrderNo : null,
+                    StatusId = x.StatusId,
+                    StatusName = x.StatusMisc != null ? x.StatusMisc.Description : null,
+                    UnitId = x.UnitId
+                })
+                .FirstOrDefaultAsync();
+
+            return entity!;
         }
     }
 }

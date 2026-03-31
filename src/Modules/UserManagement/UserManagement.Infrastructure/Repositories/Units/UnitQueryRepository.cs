@@ -298,6 +298,20 @@ namespace UserManagement.Infrastructure.Repositories.Units
       return count > 0;
     }
 
+    /// <inheritdoc />
+    public async Task<bool> SoftDeleteValidationAsync(int id)
+    {
+      // Same-module: check if any non-deleted UnitAddress or UnitContacts or UserUnit references this unit
+      const string sql = @"
+        SELECT CASE WHEN
+            EXISTS (SELECT 1 FROM [AppData].[UnitAddress]  WHERE UnitId = @Id)
+            OR EXISTS (SELECT 1 FROM [AppData].[UnitContacts] WHERE UnitId = @Id)
+            OR EXISTS (SELECT 1 FROM [AppSecurity].[UserUnit] WHERE UnitId = @Id AND IsActive = 1)
+        THEN 1 ELSE 0 END";
+
+      return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { Id = id });
+    }
+
   }
 
     }

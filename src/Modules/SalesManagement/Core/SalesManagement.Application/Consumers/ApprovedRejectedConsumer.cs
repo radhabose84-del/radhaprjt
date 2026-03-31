@@ -98,6 +98,22 @@ namespace SalesManagement.Application.Consumers
                             msg.ModuleTransactionId, msg.Status);
                         break;
 
+                    case MiscEnumEntity.ComplaintQCReviewModuleTypeName:
+                        await _complaintCommandRepo.UpdateQCReviewApprovalStatusAsync(
+                            msg.ModuleTransactionId, msg.Status, context.CancellationToken);
+                        _logger.LogInformation(
+                            "Complaint QC Review {Id} approval status updated to {Status}",
+                            msg.ModuleTransactionId, msg.Status);
+                        break;
+
+                    case MiscEnumEntity.ComplaintResolutionModuleTypeName:
+                        await _complaintCommandRepo.UpdateResolutionApprovalStatusAsync(
+                            msg.ModuleTransactionId, msg.Status, context.CancellationToken);
+                        _logger.LogInformation(
+                            "Complaint Resolution {Id} approval status updated to {Status}",
+                            msg.ModuleTransactionId, msg.Status);
+                        break;
+
                     default:
                         _logger.LogWarning("Unknown Sales ModuleTypeName: {Type}", msg.ModuleTypeName);
                         return;
@@ -132,7 +148,8 @@ namespace SalesManagement.Application.Consumers
                 return;
 
             var result = await _amendmentCommandRepo.ApplyAmendmentAsync(
-                msg.ModuleTransactionId, status, ct);
+                msg.ModuleTransactionId, status,
+                msg.ModifiedBy, msg.ModifiedByName, msg.ModifiedIP, ct);
 
             if (!result)
             {

@@ -52,6 +52,18 @@ namespace SalesManagement.Application.SalesOrder.Commands.CreateSalesOrderAmendm
                 RevisionNumber = revisionNumber,
                 AmendmentDate = DateOnly.FromDateTime(DateTime.UtcNow),
                 Reason = request.Reason,
+                TotalBags = request.TotalBags,
+                TotalWeightKgs = request.TotalWeightKgs,
+                TotalDiscountPerKg = request.TotalDiscountPerKg,
+                ItemValue = request.ItemValue,
+                TotalFreight = request.TotalFreight,
+                TaxableAmount = request.TaxableAmount,
+                GSTPercentage = request.GSTPercentage,
+                TotalGST = request.TotalGST,
+                TotalWithGST = request.TotalWithGST,
+                TCSPercentage = request.TCSPercentage,
+                TotalTCS = request.TotalTCS,
+                FinalAmount = request.FinalAmount,
                 IsActive = Status.Active,
                 IsDeleted = IsDelete.NotDeleted
             };
@@ -82,7 +94,13 @@ namespace SalesManagement.Application.SalesOrder.Commands.CreateSalesOrderAmendm
                     OldExpectedDeliveryDate = soDetail.ExpectedDeliveryDate,
                     NewQtyInBags = dto.NewQtyInBags,
                     NewExMillRate = dto.NewExMillRate,
-                    NewExpectedDeliveryDate = dto.NewExpectedDeliveryDate
+                    NewExpectedDeliveryDate = dto.NewExpectedDeliveryDate,
+                    TaxableAmount = dto.TaxableAmount,
+                    TaxAmount = dto.TaxAmount,
+                    TCSAmount = dto.TCSAmount,
+                    NetAmount = dto.NetAmount,
+                    NetRatePerKg = dto.NetRatePerKg,
+                    PendingQty = dto.PendingQty
                 });
             }
 
@@ -95,14 +113,23 @@ namespace SalesManagement.Application.SalesOrder.Commands.CreateSalesOrderAmendm
                 details: $"Sales Order Amendment '{amendmentNo}' created for SO Id {request.SalesOrderHeaderId} with Id {newId}.",
                 module: "SalesOrderAmendment"), cancellationToken);
 
-            // Trigger approval workflow via outbox
+            // Fetch entity for workflow payload
+            var workFlowEntity = await _commandRepository.GetByIdAmendmentWorkFlowAsync(newId);
+            var reverseMap = new CreateSalesOrderAmendmentReverseDto
+            {
+                Header = workFlowEntity,
+                Lines = null
+            };
+            string serializedPayload = JsonSerializer.Serialize(reverseMap);
+
+            // Schedule Outbox Event (SQL Transactional Outbox)
             var correlationId = Guid.NewGuid();
             var @event = new CreateApprovalRequestCommand
             {
                 CorrelationId = correlationId,
                 ModuleTypeName = MiscEnumEntity.TransactionTypeSalesOrderAmendment,
                 ModuleTransactionId = newId,
-                Payload = JsonSerializer.Serialize(new { AmendmentId = newId, SalesOrderHeaderId = request.SalesOrderHeaderId })
+                Payload = serializedPayload
             };
             await _outboxEventPublisher.ScheduleAsync(@event, correlationId, cancellationToken);
 

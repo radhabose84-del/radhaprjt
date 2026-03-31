@@ -163,15 +163,15 @@ namespace UserManagement.Infrastructure.Repositories.Divisions
                 var CompanyId = _ipAddressService.GetCompanyId() ?? 0;
 
                 var query = $@"
-                 SELECT Id, Name 
-                 FROM AppData.Division 
-                 WHERE IsDeleted = 0 
+                 SELECT Id, Name
+                 FROM AppData.Division
+                 WHERE IsDeleted = 0
                  AND Name LIKE @SearchPattern
                  AND CompanyId=@CompanyId";
 
 
-                var parameters = new 
-                  { 
+                var parameters = new
+                  {
                       SearchPattern = $"%{searchPattern ?? string.Empty}%",
                       CompanyId =CompanyId
                   };
@@ -179,5 +179,17 @@ namespace UserManagement.Infrastructure.Repositories.Divisions
                 var divisions = await _dbConnection.QueryAsync<Division>(query, parameters);
                 return divisions.ToList();
             }
+
+        /// <inheritdoc />
+        public async Task<bool> IsDivisionLinkedAsync(int divisionId)
+        {
+            // Same-module: check if any active, non-deleted Unit references this division
+            const string sql = @"
+                SELECT CASE WHEN
+                    EXISTS (SELECT 1 FROM [AppData].[Unit] WHERE DivisionId = @Id AND IsDeleted = 0 AND IsActive = 1)
+                THEN 1 ELSE 0 END";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { Id = divisionId });
+        }
     }
 }

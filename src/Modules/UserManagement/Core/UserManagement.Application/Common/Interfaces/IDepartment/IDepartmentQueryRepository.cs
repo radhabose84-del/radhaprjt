@@ -23,9 +23,7 @@ namespace UserManagement.Application.Common.Interfaces.IDepartment
         Task<bool> IsDepartmentUsedByAnyUserAsync(int departmentId);
         Task<bool> IsDepartmentLinkedAsync(int departmentId);
 
-
-    
-         
-        
+        /// <summary>Returns true if any non-deleted record across all modules references this department (delete guard).</summary>
+        Task<bool> SoftDeleteValidationAsync(int id);
     }
 }
