@@ -148,7 +148,8 @@ namespace SalesManagement.Application.Consumers
                 return;
 
             var result = await _amendmentCommandRepo.ApplyAmendmentAsync(
-                msg.ModuleTransactionId, status, ct);
+                msg.ModuleTransactionId, status,
+                msg.ModifiedBy, msg.ModifiedByName, msg.ModifiedIP, ct);
 
             if (!result)
             {
