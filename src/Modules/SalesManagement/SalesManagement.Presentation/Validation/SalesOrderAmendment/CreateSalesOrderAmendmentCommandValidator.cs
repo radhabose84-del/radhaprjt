@@ -1,6 +1,9 @@
+using Contracts.Interfaces;
+using Contracts.Interfaces.Lookups.Workflow;
 using FluentValidation;
 using SalesManagement.Application.Common.Interfaces.ISalesOrderAmendment;
 using SalesManagement.Application.SalesOrder.Commands.CreateSalesOrderAmendment;
+using SalesManagement.Domain.Common;
 using SalesManagement.Domain.Entities;
 using SalesManagement.Presentation.Validation.Common;
 using Shared.Validation.Common;
@@ -12,12 +15,18 @@ namespace SalesManagement.Presentation.Validation.SalesOrderAmendment
     {
         private readonly List<ValidationRule> _validationRules;
         private readonly ISalesOrderAmendmentQueryRepository _queryRepo;
+        private readonly IWorkflowLookup _workflowLookup;
+        private readonly IIPAddressService _ipAddressService;
 
         public CreateSalesOrderAmendmentCommandValidator(
             MaxLengthProvider maxLengthProvider,
-            ISalesOrderAmendmentQueryRepository queryRepo)
+            ISalesOrderAmendmentQueryRepository queryRepo,
+            IWorkflowLookup workflowLookup,
+            IIPAddressService ipAddressService)
         {
             _queryRepo = queryRepo;
+            _workflowLookup = workflowLookup;
+            _ipAddressService = ipAddressService;
 
             var maxLengthReason = maxLengthProvider.GetMaxLength<SalesOrderAmendmentHeader>("Reason") ?? 500;
 
@@ -95,6 +104,23 @@ namespace SalesManagement.Presentation.Validation.SalesOrderAmendment
                                     .When(d => d.NewExMillRate.HasValue);
                             })
                             .When(x => x.AmendmentDetails != null && x.AmendmentDetails.Count > 0);
+                        break;
+
+                    
+
+                    case "Workflow":
+                        RuleFor(x => x.AmendmentDetails)
+                            .MustAsync(async (details, cancellation) =>
+                            {
+                                var orderUnitId = _ipAddressService.GetUnitId() ?? 0;
+                                if (orderUnitId <= 0) return false;
+                                return await _workflowLookup.IsApproveWorkflowConfigureAsync(
+                                    MiscEnumEntity.TransactionTypeSalesOrderAmendment,
+                                    orderUnitId,
+                                    0);
+                            })
+                            .WithMessage(rule.Error)
+                            .When(x => x.AmendmentDetails != null);
                         break;
 
                     default:
