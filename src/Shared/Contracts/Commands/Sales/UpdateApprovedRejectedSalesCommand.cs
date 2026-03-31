@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Contracts.Dtos.Purchase;
 using MassTransit;
 
@@ -10,6 +11,7 @@ namespace Contracts.Commands.Sales
         public string ModuleTypeName { get; set; } = default!;
         public string Status { get; set; } = default!;
         public ICollection<UpdateLineStatusDto> LineStatus { get; set; } = default!;
+        public List<JsonElement> DynamicFields { get; set; } = new();
         public int ModifiedBy { get; set; }
         public string? ModifiedByName { get; set; }
         public string? ModifiedIP { get; set; }

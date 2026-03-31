@@ -77,6 +77,20 @@ namespace BackgroundService.Infrastructure.Repositories.Workflow.ApprovalRequest
             return false;
         }
 
+        public async Task RevertStatusAsync(int approvalRequestHeaderId, int statusId, CancellationToken ct)
+        {
+            var entity = await _notificationDbContext.ApprovalRequest
+                .FirstOrDefaultAsync(u => u.Id == approvalRequestHeaderId, ct);
+            if (entity != null)
+            {
+                entity.StatusId = statusId;
+                entity.ModifiedBy = _ipAddressService.GetUserId();
+                entity.ModifiedByName = _ipAddressService.GetUserName();
+                entity.ModifiedIP = _ipAddressService.GetSystemIPAddress();
+                await _notificationDbContext.SaveChangesAsync(ct);
+            }
+        }
+
         public async Task<bool> CreateBulkAsync(string workflowType, int transactionId, string contextJson)
         {
             try
