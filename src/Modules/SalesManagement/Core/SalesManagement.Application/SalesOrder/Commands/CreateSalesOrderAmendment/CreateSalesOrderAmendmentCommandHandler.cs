@@ -95,14 +95,23 @@ namespace SalesManagement.Application.SalesOrder.Commands.CreateSalesOrderAmendm
                 details: $"Sales Order Amendment '{amendmentNo}' created for SO Id {request.SalesOrderHeaderId} with Id {newId}.",
                 module: "SalesOrderAmendment"), cancellationToken);
 
-            // Trigger approval workflow via outbox
+            // Fetch entity for workflow payload
+            var workFlowEntity = await _commandRepository.GetByIdAmendmentWorkFlowAsync(newId);
+            var reverseMap = new CreateSalesOrderAmendmentReverseDto
+            {
+                Header = workFlowEntity,
+                Lines = null
+            };
+            string serializedPayload = JsonSerializer.Serialize(reverseMap);
+
+            // Schedule Outbox Event (SQL Transactional Outbox)
             var correlationId = Guid.NewGuid();
             var @event = new CreateApprovalRequestCommand
             {
                 CorrelationId = correlationId,
                 ModuleTypeName = MiscEnumEntity.TransactionTypeSalesOrderAmendment,
                 ModuleTransactionId = newId,
-                Payload = JsonSerializer.Serialize(new { AmendmentId = newId, SalesOrderHeaderId = request.SalesOrderHeaderId })
+                Payload = serializedPayload
             };
             await _outboxEventPublisher.ScheduleAsync(@event, correlationId, cancellationToken);
 
