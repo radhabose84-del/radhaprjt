@@ -17,7 +17,7 @@ namespace SalesManagement.Application.Complaint.Dto
         public string? LotNum { get; set; }             // Lot Code
         public int UnitId { get; set; }            // Internal — used for Division resolution
         public int? DivisionId { get; set; }
-        public string? DivisionCode { get; set; }       // Division ShortName
+        public string? DivisionName { get; set; }
         public int Packs { get; set; }                  // NoOfBags
         public decimal NetWeight { get; set; }          // Quantity
         public decimal InvAmount { get; set; }          // TotalAmount

@@ -1,36 +1,45 @@
 using AutoMapper;
+using Contracts.Commands.Workflow;
 using Contracts.Common;
 using Contracts.Interfaces;
 using MediatR;
 using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Application.Common.Interfaces.IComplaintResolution;
 using SalesManagement.Application.Common.Interfaces.IMiscMaster;
+using SalesManagement.Application.Common.Interfaces.IOutbox;
 using SalesManagement.Domain.Common;
 using SalesManagement.Domain.Events;
+using System.Text.Json;
 
 namespace SalesManagement.Application.ComplaintResolution.Commands.UpdateResolution
 {
     public class UpdateResolutionCommandHandler : IRequestHandler<UpdateResolutionCommand, ApiResponseDTO<int>>
     {
         private readonly IComplaintResolutionCommandRepository _commandRepository;
+        private readonly IComplaintResolutionQueryRepository _queryRepository;
         private readonly IMiscMasterQueryRepository _miscMasterQueryRepository;
         private readonly IIPAddressService _ipAddressService;
         private readonly ITimeZoneService _timeZoneService;
+        private readonly IOutboxEventPublisher _outboxEventPublisher;
         private readonly IMediator _mediator;
         private readonly IMapper _mapper;
 
         public UpdateResolutionCommandHandler(
             IComplaintResolutionCommandRepository commandRepository,
+            IComplaintResolutionQueryRepository queryRepository,
             IMiscMasterQueryRepository miscMasterQueryRepository,
             IIPAddressService ipAddressService,
             ITimeZoneService timeZoneService,
+            IOutboxEventPublisher outboxEventPublisher,
             IMediator mediator,
             IMapper mapper)
         {
             _commandRepository = commandRepository;
+            _queryRepository = queryRepository;
             _miscMasterQueryRepository = miscMasterQueryRepository;
             _ipAddressService = ipAddressService;
             _timeZoneService = timeZoneService;
+            _outboxEventPublisher = outboxEventPublisher;
             _mediator = mediator;
             _mapper = mapper;
         }
@@ -56,6 +65,37 @@ namespace SalesManagement.Application.ComplaintResolution.Commands.UpdateResolut
             }
 
             var resultId = await _commandRepository.UpdateAsync(entity);
+
+            // Get ComplaintHeaderId from existing Resolution
+            var existingResolution = await _queryRepository.GetByIdAsync(request.Id);
+            if (existingResolution != null)
+            {
+                // Publish workflow approval request via Outbox
+                var correlationId = Guid.NewGuid();
+                var unitId = _ipAddressService.GetUnitId();
+                var payload = JsonSerializer.Serialize(new
+                {
+                    Header = new
+                    {
+                        Id = existingResolution.ComplaintHeaderId,
+                        ResolutionId = request.Id,
+                        ResolutionTypeId = request.ResolutionTypeId,
+                        ClosureStatusId = request.ClosureStatusId,
+                        CreditAmount = request.CreditAmount,
+                        UnitId = unitId ?? 0
+                    },
+                    Lines = new List<object>()
+                });
+
+                var workflowEvent = new CreateApprovalRequestCommand
+                {
+                    CorrelationId = correlationId,
+                    ModuleTypeName = MiscEnumEntity.ComplaintResolutionModuleTypeName,
+                    ModuleTransactionId = existingResolution.ComplaintHeaderId,
+                    Payload = payload
+                };
+                await _outboxEventPublisher.ScheduleAsync(workflowEvent, correlationId, cancellationToken);
+            }
 
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Update",
