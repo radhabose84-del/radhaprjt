@@ -46,8 +46,7 @@ namespace ProductionManagement.Infrastructure.Repositories.RepackingMaster
 
                 SELECT
                     rm.Id, rm.UnitId, rm.ProductionYear, rm.RepackDocNo, rm.RepackDate,
-                    rm.ItemId, rm.SelectionModeId,
-                    sm.Description AS SelectionModeName,
+                    rm.ItemId, 
                     rm.OldPackTypeId,
                     opt.PackTypeName AS OldPackTypeName,
                     rm.OldNetWeightPerPack, rm.OldStartPackNo, rm.OldEndPackNo,
@@ -66,8 +65,7 @@ namespace ProductionManagement.Infrastructure.Repositories.RepackingMaster
                     rm.ModifiedBy, rm.ModifiedDate, rm.ModifiedByName
                 FROM Production.RepackingMaster rm
                 LEFT JOIN Production.PackType opt ON rm.OldPackTypeId = opt.Id AND opt.IsDeleted = 0
-                LEFT JOIN Production.PackType npt ON rm.PackTypeId = npt.Id AND npt.IsDeleted = 0
-                LEFT JOIN Production.MiscMaster sm ON rm.SelectionModeId = sm.Id AND sm.IsDeleted = 0
+                LEFT JOIN Production.PackType npt ON rm.PackTypeId = npt.Id AND npt.IsDeleted = 0                
                 LEFT JOIN Production.MiscMaster lh ON rm.LooseHandlingId = lh.Id AND lh.IsDeleted = 0
                 WHERE rm.IsDeleted = 0
                   AND (@SearchTerm IS NULL
@@ -101,8 +99,7 @@ namespace ProductionManagement.Infrastructure.Repositories.RepackingMaster
             const string sql = @"
                 SELECT
                     rm.Id, rm.UnitId, rm.ProductionYear, rm.RepackDocNo, rm.RepackDate,
-                    rm.ItemId, rm.SelectionModeId,
-                    sm.Description AS SelectionModeName,
+                    rm.ItemId, 
                     rm.OldPackTypeId,
                     opt.PackTypeName AS OldPackTypeName,
                     rm.OldNetWeightPerPack, rm.OldStartPackNo, rm.OldEndPackNo,
@@ -121,8 +118,7 @@ namespace ProductionManagement.Infrastructure.Repositories.RepackingMaster
                     rm.ModifiedBy, rm.ModifiedDate, rm.ModifiedByName
                 FROM Production.RepackingMaster rm
                 LEFT JOIN Production.PackType opt ON rm.OldPackTypeId = opt.Id AND opt.IsDeleted = 0
-                LEFT JOIN Production.PackType npt ON rm.PackTypeId = npt.Id AND npt.IsDeleted = 0
-                LEFT JOIN Production.MiscMaster sm ON rm.SelectionModeId = sm.Id AND sm.IsDeleted = 0
+                LEFT JOIN Production.PackType npt ON rm.PackTypeId = npt.Id AND npt.IsDeleted = 0                
                 LEFT JOIN Production.MiscMaster lh ON rm.LooseHandlingId = lh.Id AND lh.IsDeleted = 0
                 WHERE rm.Id = @Id AND rm.IsDeleted = 0";
 

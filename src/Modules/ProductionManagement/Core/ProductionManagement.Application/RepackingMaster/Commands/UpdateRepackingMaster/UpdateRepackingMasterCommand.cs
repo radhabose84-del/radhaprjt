@@ -7,8 +7,7 @@ namespace ProductionManagement.Application.RepackingMaster.Commands.UpdateRepack
     {
         public int Id { get; set; }
         public DateOnly RepackDate { get; set; }
-        public int ItemId { get; set; }
-        public int? SelectionModeId { get; set; }
+        public int ItemId { get; set; }        
 
         // Source (Old)
         public int OldPackTypeId { get; set; }

@@ -140,11 +140,6 @@ namespace ProductionManagement.Presentation.Validation.RepackingMaster
                             .WithMessage($"{nameof(UpdateRepackingMasterCommand.PackTypeId)} {rule.Error}")
                             .When(x => x.PackTypeId > 0);
 
-                        RuleFor(x => x.SelectionModeId)
-                            .MustAsync(async (id, ct) => await _queryRepo.MiscMasterExistsAsync(id!.Value))
-                            .WithMessage($"{nameof(UpdateRepackingMasterCommand.SelectionModeId)} {rule.Error}")
-                            .When(x => x.SelectionModeId.HasValue && x.SelectionModeId > 0);
-
                         RuleFor(x => x.LooseHandlingId)
                             .MustAsync(async (id, ct) => await _queryRepo.MiscMasterExistsAsync(id!.Value))
                             .WithMessage($"{nameof(UpdateRepackingMasterCommand.LooseHandlingId)} {rule.Error}")

@@ -10,9 +10,6 @@ namespace ProductionManagement.Application.RepackingMaster.Dto
         public DateOnly RepackDate { get; set; }
         public int ItemId { get; set; }
         public string? ItemName { get; set; }
-        public int? SelectionModeId { get; set; }
-        public string? SelectionModeName { get; set; }
-
         // Source (Old)
         public int OldPackTypeId { get; set; }
         public string? OldPackTypeName { get; set; }

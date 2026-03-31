@@ -153,8 +153,7 @@ namespace ProductionManagement.Infrastructure.Repositories.RepackingMaster
 
                     // Update entity fields
                     existingEntity.RepackDate = entity.RepackDate;
-                    existingEntity.ItemId = entity.ItemId;
-                    existingEntity.SelectionModeId = entity.SelectionModeId;
+                    existingEntity.ItemId = entity.ItemId;                    
                     existingEntity.OldPackTypeId = entity.OldPackTypeId;
                     existingEntity.OldNetWeightPerPack = entity.OldNetWeightPerPack;
                     existingEntity.OldStartPackNo = entity.OldStartPackNo;

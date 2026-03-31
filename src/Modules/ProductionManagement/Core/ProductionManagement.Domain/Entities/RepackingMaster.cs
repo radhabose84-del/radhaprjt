@@ -13,9 +13,6 @@ namespace ProductionManagement.Domain.Entities
         // Item
         public int ItemId { get; set; }
 
-        // Selection
-        public int? SelectionModeId { get; set; }
-
         // Source (Old)
         public int OldPackTypeId { get; set; }
         public decimal OldNetWeightPerPack { get; set; }
@@ -45,8 +42,7 @@ namespace ProductionManagement.Domain.Entities
 
         // Same-module navigations
         public PackType? OldPackType { get; set; }
-        public PackType? NewPackType { get; set; }
-        public MiscMaster? SelectionMode { get; set; }
+        public PackType? NewPackType { get; set; }        
         public MiscMaster? LooseHandling { get; set; }
     }
 }

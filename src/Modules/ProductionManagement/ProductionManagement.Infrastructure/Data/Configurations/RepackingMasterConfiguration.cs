@@ -47,11 +47,7 @@ namespace ProductionManagement.Infrastructure.Data.Configurations
             builder.Property(t => t.ItemId)
                 .HasColumnType("int")
                 .IsRequired();
-
-            // Selection
-            builder.Property(t => t.SelectionModeId)
-                .HasColumnType("int");
-
+          
             // Source (Old)
             builder.Property(t => t.OldPackTypeId)
                 .HasColumnType("int")
@@ -166,11 +162,6 @@ namespace ProductionManagement.Infrastructure.Data.Configurations
             builder.HasOne(t => t.NewPackType)
                 .WithMany()
                 .HasForeignKey(t => t.PackTypeId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            builder.HasOne(t => t.SelectionMode)
-                .WithMany()
-                .HasForeignKey(t => t.SelectionModeId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne(t => t.LooseHandling)

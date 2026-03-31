@@ -6,8 +6,7 @@ namespace ProductionManagement.Application.RepackingMaster.Commands.CreateRepack
     public class CreateRepackingMasterCommand : IRequest<ApiResponseDTO<int>>
     {
         public DateOnly RepackDate { get; set; }
-        public int ItemId { get; set; }
-        public int? SelectionModeId { get; set; }
+        public int ItemId { get; set; }        
 
         // Source (Old)
         public int OldPackTypeId { get; set; }
