@@ -20,5 +20,6 @@ namespace SalesManagement.Application.Common.Interfaces.IInvoice
         Task<DateOnly> GetDispatchAdviceDateAsync(int dispatchAdviceId);
         Task<bool> IsInvoicePendingAsync(int invoiceId);
         Task<InvoicePrintDto?> GetPrintDetailsAsync(int id);
+        Task<InvoiceForEInvoiceDto?> GetInvoiceForEInvoiceAsync(int invoiceId);
     }
 }

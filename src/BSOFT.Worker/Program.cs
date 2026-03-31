@@ -17,6 +17,7 @@ using ProjectManagement.Infrastructure;
 using FinanceManagement.Infrastructure;
 using ProductionManagement.Infrastructure;
 using SalesManagement.Infrastructure;
+using FinanceManagement.Application.EInvoiceHeader.Commands.CreateEInvoiceFromSales;
 
 var builder = Host.CreateApplicationBuilder(args);
 
@@ -70,6 +71,14 @@ builder.Services.AddBudgetInfrastructure(builder.Configuration, builder.Environm
 builder.Services.AddInventoryInfrastructure(builder.Configuration, builder.Environment);
 builder.Services.AddProjectInfrastructure(builder.Configuration, builder.Environment);
 builder.Services.AddSalesInfrastructureServices(builder.Configuration, builder.Environment);
+
+// ── Finance Application layer — MediatR handlers + AutoMapper profiles ──────
+// Required: Sales consumer (ApprovedRejectedConsumer) dispatches Finance commands
+// via MediatR (CreateEInvoiceFromSalesCommand → CreateEInvoiceHeader → GenerateIrn → GenerateEwb).
+// AddFinanceInfrastructureServices (above) registers repos + services only; we also need handlers + mapper.
+var financeAppAssembly = typeof(CreateEInvoiceFromSalesCommandHandler).Assembly;
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(financeAppAssembly));
+builder.Services.AddAutoMapper(financeAppAssembly);
 
 // ── Hangfire server — BSOFT.Worker handles infrastructure jobs only ───────────
 //    BSOFT.Api runs its own Hangfire server for business-domain jobs (e.g. ScheduleWorkOrderJob)
