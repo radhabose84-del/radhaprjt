@@ -6,7 +6,7 @@ namespace SalesManagement.Application.Common.Interfaces.ISalesOrderAmendment
     public interface ISalesOrderAmendmentCommandRepository
     {
         Task<int> CreateAsync(SalesOrderAmendmentHeader entity, List<SalesOrderAmendmentDetail> details);
-        Task<bool> ApplyAmendmentAsync(int amendmentHeaderId, string status, CancellationToken ct);
+        Task<bool> ApplyAmendmentAsync(int amendmentHeaderId, string status, int modifiedBy, string? modifiedByName, string? modifiedIP, CancellationToken ct);
         Task<SalesOrderAmendmentHeader?> GetByIdEntityAsync(int id);
         Task<SalesOrderHeader?> GetSalesOrderEntityAsync(int salesOrderHeaderId);
         Task<AmendmentWorkFlowDto> GetByIdAmendmentWorkFlowAsync(int id);
