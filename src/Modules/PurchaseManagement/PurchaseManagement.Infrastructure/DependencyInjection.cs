@@ -316,6 +316,9 @@ namespace PurchaseManagement.Infrastructure
 
             services.AddScoped<IEventPublisher, EventPublisher>();
 
+            // Validation repositories — cross-module referential integrity (Rule 25)
+            services.AddScoped<Contracts.Interfaces.Validations.PurchaseManagement.IPurchaseCurrencyValidation, Repositories.Validations.PurchaseCurrencyValidationRepository>();
+
             return services;
         }
 

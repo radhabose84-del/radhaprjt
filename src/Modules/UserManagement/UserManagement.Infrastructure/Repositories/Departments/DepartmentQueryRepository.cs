@@ -7,6 +7,10 @@ using UserManagement.Application.Departments.Queries.GetDepartments;
 using Contracts.Interfaces;
 using UserManagement.Application.Common.Interfaces;
 using UserManagement.Application.Departments.Queries.GetDepartmentByGroupWithControl;
+using Contracts.Interfaces.Validations.MaintenanceManagement;
+using Contracts.Interfaces.Validations.BudgetManagement;
+using Contracts.Interfaces.Validations.ProjectManagement;
+using Contracts.Interfaces.Validations.WarehouseManagement;
 
 namespace UserManagement.Infrastructure.Repositories.Departments
 {
@@ -14,11 +18,25 @@ namespace UserManagement.Infrastructure.Repositories.Departments
   {
     private readonly IDbConnection _dbConnection;
     private readonly IIPAddressService _ipAddressService;
+    private readonly IMaintenanceDepartmentValidation _maintenanceDeptValidation;
+    private readonly IBudgetDepartmentValidation _budgetDeptValidation;
+    private readonly IProjectDepartmentValidation _projectDeptValidation;
+    private readonly IWarehouseDepartmentValidation _warehouseDeptValidation;
 
-    public DepartmentQueryRepository(IDbConnection dbConnection, IIPAddressService ipAddressService)
+    public DepartmentQueryRepository(
+        IDbConnection dbConnection,
+        IIPAddressService ipAddressService,
+        IMaintenanceDepartmentValidation maintenanceDeptValidation,
+        IBudgetDepartmentValidation budgetDeptValidation,
+        IProjectDepartmentValidation projectDeptValidation,
+        IWarehouseDepartmentValidation warehouseDeptValidation)
     {
       _dbConnection = dbConnection;
       _ipAddressService = ipAddressService;
+      _maintenanceDeptValidation = maintenanceDeptValidation;
+      _budgetDeptValidation = budgetDeptValidation;
+      _projectDeptValidation = projectDeptValidation;
+      _warehouseDeptValidation = warehouseDeptValidation;
     }
    
 
@@ -194,23 +212,43 @@ namespace UserManagement.Infrastructure.Repositories.Departments
 
     public async Task<bool> IsDepartmentLinkedAsync(int departmentId)
     {
+      // Same-module: check UserDepartment
       const string userDeptQuery = @"
-        SELECT TOP 1 1
-        FROM [AppSecurity].[UserDepartment]
-        WHERE DepartmentId = @departmentId;
-      ";
+        SELECT CASE WHEN
+            EXISTS (SELECT 1 FROM [AppSecurity].[UserDepartment] WHERE DepartmentId = @departmentId AND IsActive = 1)
+        THEN 1 ELSE 0 END";
 
-      const string costCenterQuery = @"
-        SELECT TOP 1 1
-        FROM [Maintenance].[Maintenance].[CostCenter]
-        WHERE IsDeleted = 0 AND DepartmentId = @departmentId;
-      ";
+      var userLinked = await _dbConnection.ExecuteScalarAsync<bool>(userDeptQuery, new { departmentId });
+      if (userLinked) return true;
 
-      var userLinked = await _dbConnection.QueryFirstOrDefaultAsync<int?>(userDeptQuery, new { departmentId });
-      if (userLinked.HasValue) return true;
+      // Cross-module checks via validation interfaces
+      if (await _maintenanceDeptValidation.HasActiveDepartmentAsync(departmentId)) return true;
+      if (await _budgetDeptValidation.HasActiveDepartmentAsync(departmentId)) return true;
+      if (await _projectDeptValidation.HasActiveDepartmentAsync(departmentId)) return true;
+      if (await _warehouseDeptValidation.HasActiveDepartmentAsync(departmentId)) return true;
 
-      var costLinked = await _dbConnection.QueryFirstOrDefaultAsync<int?>(costCenterQuery, new { departmentId });
-      return costLinked.HasValue;
+      return false;
+    }
+
+    /// <inheritdoc />
+    public async Task<bool> SoftDeleteValidationAsync(int id)
+    {
+      // Same-module: check UserDepartment
+      const string sql = @"
+        SELECT CASE WHEN
+            EXISTS (SELECT 1 FROM [AppSecurity].[UserDepartment] WHERE DepartmentId = @Id AND IsActive = 1)
+        THEN 1 ELSE 0 END";
+
+      var inModule = await _dbConnection.ExecuteScalarAsync<bool>(sql, new { Id = id });
+      if (inModule) return true;
+
+      // Cross-module checks via validation interfaces
+      if (await _maintenanceDeptValidation.HasLinkedDepartmentAsync(id)) return true;
+      if (await _budgetDeptValidation.HasLinkedDepartmentAsync(id)) return true;
+      if (await _projectDeptValidation.HasLinkedDepartmentAsync(id)) return true;
+      if (await _warehouseDeptValidation.HasLinkedDepartmentAsync(id)) return true;
+
+      return false;
     }
   }
 }

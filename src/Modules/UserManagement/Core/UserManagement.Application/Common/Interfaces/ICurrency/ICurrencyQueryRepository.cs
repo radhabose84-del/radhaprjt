@@ -7,5 +7,11 @@ namespace UserManagement.Application.Common.Interfaces.ICurrency
     Task<UserManagement.Domain.Entities.Currency?> GetByIdAsync(int Id);
     Task<List<UserManagement.Domain.Entities.Currency>> GetByCurrencyNameAsync(string currency);
       Task<List<UserManagement.Domain.Entities.Currency>> GetByIdsAsync(IEnumerable<int> ids, CancellationToken ct = default);
+
+    /// <summary>Returns true if any non-deleted record across all modules references this currency (delete guard).</summary>
+    Task<bool> SoftDeleteValidationAsync(int id);
+
+    /// <summary>Returns true if any active record across all modules references this currency (inactivate guard).</summary>
+    Task<bool> IsCurrencyLinkedAsync(int id);
     }
 }

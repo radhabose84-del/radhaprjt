@@ -13,7 +13,9 @@ namespace UserManagement.Application.Common.Interfaces.IMiscTypeMaster
 
             Task<bool> NotFoundAsync(int Id );
 
-            Task<bool> SoftDeleteValidation(int Id); 
-        
+            Task<bool> SoftDeleteValidation(int Id);
+
+            /// <summary>Returns true if any active MiscMaster record references this MiscType (inactivate guard).</summary>
+            Task<bool> IsMiscTypeMasterLinkedAsync(int id);
     }
 }
