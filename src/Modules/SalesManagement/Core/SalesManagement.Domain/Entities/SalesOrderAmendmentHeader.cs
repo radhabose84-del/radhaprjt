@@ -14,6 +14,20 @@ namespace SalesManagement.Domain.Entities
         // Approval Status (same-module FK to MiscMaster)
         public int? StatusId { get; set; }
 
+        // Header-level Summary Fields (captured at amendment time)
+        public int TotalBags { get; set; }
+        public decimal TotalWeightKgs { get; set; }
+        public decimal TotalDiscountPerKg { get; set; }
+        public decimal ItemValue { get; set; }
+        public decimal TotalFreight { get; set; }
+        public decimal TaxableAmount { get; set; }
+        public decimal GSTPercentage { get; set; }
+        public decimal TotalGST { get; set; }
+        public decimal TotalWithGST { get; set; }
+        public decimal TCSPercentage { get; set; }
+        public decimal TotalTCS { get; set; }
+        public decimal FinalAmount { get; set; }
+
         // Who approved/rejected
         public int? ApprovedBy { get; set; }
         public DateTimeOffset? ApprovedDate { get; set; }
