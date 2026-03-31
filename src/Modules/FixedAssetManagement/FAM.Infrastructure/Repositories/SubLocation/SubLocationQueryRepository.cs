@@ -144,7 +144,7 @@ namespace FAM.Infrastructure.Repositories.SubLocation
         {
             const string query = @"
         SELECT TOP 1 1
-        FROM [FixedAsset].[FixedAsset].[AssetLocation]
+        FROM [FixedAsset].[AssetLocation]
         WHERE SubLocationId = @id;
         ";
 

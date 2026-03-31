@@ -9,6 +9,7 @@ namespace SalesManagement.Application.Common.Interfaces.IBusinessUnit
         Task<BusinessUnitDto?> GetByIdAsync(int id);
         Task<IReadOnlyList<BusinessUnitLookupDto>> AutocompleteAsync(string term, CancellationToken cancellationToken);
         Task<bool> AlreadyExistsAsync(string businessUnitCode, int? id = null);
+        Task<bool> NameAlreadyExistsAsync(string businessUnitName, int? id = null);
         Task<bool> NotFoundAsync(int id);
         Task<bool> SoftDeleteValidationAsync(int id);
     }
