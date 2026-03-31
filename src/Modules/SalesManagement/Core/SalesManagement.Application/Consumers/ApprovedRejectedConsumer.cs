@@ -6,6 +6,7 @@ using SalesManagement.Application.Common.Interfaces.IDeliveryChallan;
 using SalesManagement.Application.Common.Interfaces.IInvoice;
 using SalesManagement.Application.Common.Interfaces.IMiscMaster;
 using SalesManagement.Application.Common.Interfaces.ISalesOrder;
+using SalesManagement.Application.Common.Interfaces.ISalesOrderAmendment;
 using SalesManagement.Application.Common.Interfaces.IComplaint;
 using SalesManagement.Application.Common.Interfaces.IStoHeader;
 using SalesManagement.Domain.Common;
@@ -16,6 +17,7 @@ namespace SalesManagement.Application.Consumers
     {
         private readonly IInvoiceCommandRepository _invoiceCommandRepo;
         private readonly ISalesOrderCommandRepository _salesOrderCommandRepo;
+        private readonly ISalesOrderAmendmentCommandRepository _amendmentCommandRepo;
         private readonly IMiscMasterQueryRepository _miscMasterQueryRepository;
         private readonly IStoHeaderCommandRepository _stoHeaderCommandRepo;
         private readonly IDeliveryChallanCommandRepository _dcCommandRepo;
@@ -25,6 +27,7 @@ namespace SalesManagement.Application.Consumers
         public ApprovedRejectedConsumer(
             IInvoiceCommandRepository invoiceCommandRepo,
             ISalesOrderCommandRepository salesOrderCommandRepo,
+            ISalesOrderAmendmentCommandRepository amendmentCommandRepo,
             IMiscMasterQueryRepository miscMasterQueryRepository,
             IStoHeaderCommandRepository stoHeaderCommandRepo,
             IDeliveryChallanCommandRepository dcCommandRepo,
@@ -33,6 +36,7 @@ namespace SalesManagement.Application.Consumers
         {
             _invoiceCommandRepo = invoiceCommandRepo;
             _salesOrderCommandRepo = salesOrderCommandRepo;
+            _amendmentCommandRepo = amendmentCommandRepo;
             _miscMasterQueryRepository = miscMasterQueryRepository;
             _stoHeaderCommandRepo = stoHeaderCommandRepo;
             _dcCommandRepo = dcCommandRepo;
@@ -60,6 +64,10 @@ namespace SalesManagement.Application.Consumers
 
                     case MiscEnumEntity.TransactionTypeSalesOrder:
                         await HandleSalesOrderApprovalAsync(msg, context.CancellationToken);
+                        break;
+
+                    case MiscEnumEntity.TransactionTypeSalesOrderAmendment:
+                        await HandleSalesOrderAmendmentApprovalAsync(msg, context.CancellationToken);
                         break;
                     case MiscEnumEntity.StoModuleTypeName:
                         await _stoHeaderCommandRepo.UpdateApprovalStatusAsync(
@@ -104,6 +112,34 @@ namespace SalesManagement.Application.Consumers
                     msg.ModuleTransactionId);
                 throw; // MassTransit retry policy handles retries
             }
+        }
+
+        private async Task HandleSalesOrderAmendmentApprovalAsync(
+            UpdateApprovedRejectedSalesCommand msg, CancellationToken ct)
+        {
+            _logger.LogInformation(
+                "SalesOrderAmendment Approval: Id={Id}, Status={Status}",
+                msg.ModuleTransactionId, msg.Status);
+
+            var status = msg.Status;
+            if (status != MiscEnumEntity.SalesOrderStatusApproved &&
+                status != MiscEnumEntity.SalesOrderStatusRejected)
+                return;
+
+            var result = await _amendmentCommandRepo.ApplyAmendmentAsync(
+                msg.ModuleTransactionId, status, ct);
+
+            if (!result)
+            {
+                _logger.LogWarning(
+                    "SalesOrderAmendment not found or already processed: Id={Id}",
+                    msg.ModuleTransactionId);
+                return;
+            }
+
+            _logger.LogInformation(
+                "SalesOrderAmendment Id={Id} status updated to {Status}",
+                msg.ModuleTransactionId, status);
         }
 
         private async Task HandleSalesOrderApprovalAsync(

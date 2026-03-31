@@ -71,6 +71,9 @@ namespace SalesManagement.Application.SalesOrder.Dto
         public int? StatusId { get; set; }
         public string? StatusName { get; set; }
 
+        // Revision tracking
+        public int RevisionNumber { get; set; }
+
         // Status & Audit
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }
