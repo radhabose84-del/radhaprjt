@@ -50,6 +50,9 @@ namespace BackgroundService.Application.Workflow.ApprovalRequests.Commands.Appro
 
             result.Total = request.Items.Count;
 
+            // Track which invoice IDs were successfully approved (used to guard EInvoice creation below)
+            var successfullyApprovedInvoiceIds = new HashSet<int>();
+
             foreach (var item in request.Items)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -80,7 +83,11 @@ namespace BackgroundService.Application.Workflow.ApprovalRequests.Commands.Appro
 
                     result.ProcessedCount++;
 
-                    if (item.IsApproved == 1) result.ApprovedCount++;
+                    if (item.IsApproved == 1)
+                    {
+                        result.ApprovedCount++;
+                        successfullyApprovedInvoiceIds.Add(item.ModuleTransactionId);
+                    }
                     else result.RejectedCount++;
                 }
                 catch (Exception ex)
@@ -106,6 +113,10 @@ namespace BackgroundService.Application.Workflow.ApprovalRequests.Commands.Appro
             foreach (var item in request.Items)
             {
                 if (item == null || item.IsApproved != 1)
+                    continue;
+
+                // Only attempt EInvoice for items whose approval command actually succeeded
+                if (!successfullyApprovedInvoiceIds.Contains(item.ModuleTransactionId))
                     continue;
 
                 bool withInvoice = ReadBool(item.DynamicFields, "withInvoice");
@@ -138,6 +149,17 @@ namespace BackgroundService.Application.Workflow.ApprovalRequests.Commands.Appro
                         _logger.LogInformation(
                             "EInvoice/IRN created for Invoice {InvoiceId}, IRN={Irn}",
                             item.ModuleTransactionId, eInvoiceResult.Data?.Irn);
+
+                        result.EInvoiceResults.Add(new EInvoiceBatchResultItem
+                        {
+                            InvoiceId        = item.ModuleTransactionId,
+                            EInvoiceHeaderId = eInvoiceResult.Data?.EInvoiceHeaderId ?? 0,
+                            Irn              = eInvoiceResult.Data?.Irn,
+                            AckNo            = eInvoiceResult.Data?.AckNo,
+                            AckDate          = eInvoiceResult.Data?.AckDate,
+                            EwbNo            = eInvoiceResult.Data?.EwbNo,
+                            EwbDate          = eInvoiceResult.Data?.EwbDate
+                        });
                     }
                 }
                 catch (Exception ex)
