@@ -59,7 +59,7 @@ public class ApprovalResultDispatcherConsumer : IConsumer<ApprovedRejectedEvent>
         "Delivery Challan",
         "Complaints",
         "QC Review",
-        "Resolution"
+        "Resolution",
         "Complaints",
         "Sales Order Amendment"
     };    private readonly IInboxRepository _inbox;
