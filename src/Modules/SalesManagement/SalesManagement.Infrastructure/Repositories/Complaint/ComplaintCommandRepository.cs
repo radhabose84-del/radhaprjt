@@ -158,5 +158,89 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                 await _dbContext.SaveChangesAsync(ct);
             }
         }
+
+        public async Task UpdateQCReviewApprovalStatusAsync(int complaintHeaderId, string status, CancellationToken ct)
+        {
+            var existing = await _dbContext.ComplaintHeader
+                .FirstOrDefaultAsync(x => x.Id == complaintHeaderId && x.IsDeleted == IsDelete.NotDeleted, ct);
+
+            if (existing == null)
+                return;
+
+            if (status == "Approved")
+            {
+                // Read QC decision from ComplaintQCReview
+                var qcReview = await _dbContext.ComplaintQCReview
+                    .FirstOrDefaultAsync(x => x.ComplaintHeaderId == complaintHeaderId && x.IsDeleted == IsDelete.NotDeleted, ct);
+
+                if (qcReview?.ComplaintStatusId != null)
+                {
+                    // Set header status to QC's decision (QC Accepted or QC Rejected)
+                    existing.StatusId = qcReview.ComplaintStatusId.Value;
+                    await _dbContext.SaveChangesAsync(ct);
+                }
+            }
+            else if (status == "Rejected")
+            {
+                // Workflow rejected → revert to Approved status (back to QC for re-review)
+                var approvedStatus = await _dbContext.MiscMaster
+                    .Include(m => m.MiscTypeMaster)
+                    .FirstOrDefaultAsync(m =>
+                        m.MiscTypeMaster != null &&
+                        m.MiscTypeMaster.MiscTypeCode == "ApprovalStatus" &&
+                        m.Code == "Approved" &&
+                        m.IsDeleted == IsDelete.NotDeleted, ct);
+
+                if (approvedStatus != null)
+                {
+                    existing.StatusId = approvedStatus.Id;
+                    await _dbContext.SaveChangesAsync(ct);
+                }
+            }
+        }
+
+        public async Task UpdateResolutionApprovalStatusAsync(int complaintHeaderId, string status, CancellationToken ct)
+        {
+            var existing = await _dbContext.ComplaintHeader
+                .FirstOrDefaultAsync(x => x.Id == complaintHeaderId && x.IsDeleted == IsDelete.NotDeleted, ct);
+
+            if (existing == null)
+                return;
+
+            if (status == "Approved")
+            {
+                // Resolution approved → set to Closed
+                var closedStatus = await _dbContext.MiscMaster
+                    .Include(m => m.MiscTypeMaster)
+                    .FirstOrDefaultAsync(m =>
+                        m.MiscTypeMaster != null &&
+                        m.MiscTypeMaster.MiscTypeCode == "ClosureStatus" &&
+                        m.Code == "Closed" &&
+                        m.IsDeleted == IsDelete.NotDeleted, ct);
+
+                if (closedStatus != null)
+                {
+                    existing.StatusId = closedStatus.Id;
+                    await _dbContext.SaveChangesAsync(ct);
+                }
+            }
+            else if (status == "Rejected")
+            {
+                // Workflow rejected → revert to RCA Completed (back to resolution re-work)
+                var rcaCompletedStatus = await _dbContext.MiscMaster
+                    .Include(m => m.MiscTypeMaster)
+                    .FirstOrDefaultAsync(m =>
+                        m.MiscTypeMaster != null &&
+                        m.MiscTypeMaster.MiscTypeCode == "FeedbackStatus" &&
+                        m.Code == "Submitted" &&
+                        m.IsDeleted == IsDelete.NotDeleted, ct);
+
+                if (rcaCompletedStatus != null)
+                {
+                    existing.StatusId = rcaCompletedStatus.Id;
+                    await _dbContext.SaveChangesAsync(ct);
+                }
+            }
+        }
     }
 }

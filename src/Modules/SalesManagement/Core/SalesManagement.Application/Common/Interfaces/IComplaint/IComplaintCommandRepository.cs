@@ -8,5 +8,7 @@ namespace SalesManagement.Application.Common.Interfaces.IComplaint
         Task<int> UpdateAsync(ComplaintHeader entity, List<ComplaintDetail> details);
         Task<bool> SoftDeleteAsync(int id, CancellationToken ct);
         Task UpdateApprovalStatusAsync(int id, string status, CancellationToken ct);
+        Task UpdateQCReviewApprovalStatusAsync(int complaintHeaderId, string status, CancellationToken ct);
+        Task UpdateResolutionApprovalStatusAsync(int complaintHeaderId, string status, CancellationToken ct);
     }
 }

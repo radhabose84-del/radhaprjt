@@ -57,7 +57,9 @@ public class ApprovalResultDispatcherConsumer : IConsumer<ApprovedRejectedEvent>
         "Sales Order",
         "STO",
         "Delivery Challan",
-        "Complaints"
+        "Complaints",
+        "QC Review",
+        "Resolution"
     };    private readonly IInboxRepository _inbox;
     private readonly ILogger<ApprovalResultDispatcherConsumer> _logger;
 
