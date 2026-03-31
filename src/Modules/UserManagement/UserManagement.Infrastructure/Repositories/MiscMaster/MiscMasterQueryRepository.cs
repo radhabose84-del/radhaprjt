@@ -168,9 +168,30 @@ namespace UserManagement.Infrastructure.Repositories.MiscMaster
 
             var miscmaster = await _dbConnection.QueryFirstOrDefaultAsync<UserManagement.Domain.Entities.MiscMaster>(query, parameters);
             return miscmaster;
-        }      
+        }
 
+        /// <inheritdoc />
+        public async Task<bool> SoftDeleteValidationAsync(int id)
+        {
+            // MiscMaster is used as FK in Unit (UnitTypeId) — check same-module dependents
+            const string sql = @"
+                SELECT CASE WHEN
+                    EXISTS (SELECT 1 FROM [AppData].[Unit] WHERE UnitTypeId = @Id AND IsDeleted = 0)
+                THEN 1 ELSE 0 END";
 
-        
+            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { Id = id });
+        }
+
+        /// <inheritdoc />
+        public async Task<bool> IsMiscMasterLinkedAsync(int id)
+        {
+            // Check if any active, non-deleted Unit references this MiscMaster as UnitTypeId
+            const string sql = @"
+                SELECT CASE WHEN
+                    EXISTS (SELECT 1 FROM [AppData].[Unit] WHERE UnitTypeId = @Id AND IsDeleted = 0 AND IsActive = 1)
+                THEN 1 ELSE 0 END";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { Id = id });
+        }
     }
 }

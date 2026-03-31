@@ -33,11 +33,16 @@ namespace UserManagement.Presentation.Validation.MiscMaster
                         break;                   
                         case "NotFound":
                            RuleFor(x => x.Id )
-                           .MustAsync(async (Id, cancellation) => 
-                        await _miscMasterQueryRepository.NotFoundAsync(Id))             
+                           .MustAsync(async (Id, cancellation) =>
+                        await _miscMasterQueryRepository.NotFoundAsync(Id))
                            .WithName("MiscMaster Id")
                             .WithMessage($"{rule.Error}");
-                            break; 
+                            break;
+                    case "SoftDelete":
+                        RuleFor(x => x.Id)
+                            .MustAsync(async (id, ct) => !await _miscMasterQueryRepository.SoftDeleteValidationAsync(id))
+                            .WithMessage("This master is linked with other records. You cannot delete this record.");
+                        break;
                     default:
                         
                         break;

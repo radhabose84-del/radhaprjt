@@ -38,7 +38,7 @@ namespace UserManagement.Application.Country.Commands.UpdateCountry
             {
                 var linked = await _countryQueryRepo.IsLinkedWithStatesAsync(request.Id);
                 if (linked)
-                    throw new ValidationException("This master is linked with Maintenance System. You cannot inactivate this record.");
+                    throw new ValidationException("This master is linked with other records. You cannot inactivate this record.");
             }
 
             // Keep old values for audit

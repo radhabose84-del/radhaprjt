@@ -35,35 +35,26 @@ namespace UserManagement.Application.Departments.Commands.UpdateDepartment
     
 
        public async Task<bool> Handle(UpdateDepartmentCommand request, CancellationToken cancellationToken)
-       {            
+       {
             _logger.LogInformation("Starting UpdateDepartmentCommandHandler for request: {@Request}", request);
-      
 
-            _logger.LogInformation("Department with ID {DepartmentId} retrieved successfully.", request.Id);
-
-            var departmentMap  = _Imapper.Map<Department>(request);
-            // Save updates to the repository
-            var result = await _IDepartmentCommandRepository.UpdateAsync(request.Id, departmentMap);
-           // var resultCode = result ?? 0;
-            if(result <= 0)
-            {
-                _logger.LogWarning("Failed to update Department with ID {DepartmentId}.", request.Id);
-                throw new ValidationException("Failed to update department");
-                
-            }
+            // Inactivate guard — MUST run BEFORE persisting the update
             if (request.IsActive == 0)
             {
                 var linked = await _departmentQueryRepository.IsDepartmentLinkedAsync(request.Id);
                 if (linked)
                     throw new ValidationException("This master is linked with other records. You cannot inactivate this record.");
             }
-            
-              var duplicateCheck = await _IDepartmentCommandRepository.ExistsByNameupdateAsync(request.DeptName, request.Id);
-                if (duplicateCheck)
-                {
-                    throw new ValidationException("Department Name  Already Exists");
-                   
-                }
+
+            var departmentMap  = _Imapper.Map<Department>(request);
+            // Save updates to the repository
+            var result = await _IDepartmentCommandRepository.UpdateAsync(request.Id, departmentMap);
+            if(result <= 0)
+            {
+                _logger.LogWarning("Failed to update Department with ID {DepartmentId}.", request.Id);
+                throw new ValidationException("Failed to update department");
+
+            }
 
             _logger.LogInformation("Department with ID {DepartmentId} updated successfully.", request.Id);
 
