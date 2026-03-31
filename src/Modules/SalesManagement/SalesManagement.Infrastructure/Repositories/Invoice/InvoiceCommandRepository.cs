@@ -206,9 +206,11 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
 
             if (entity == null) return;
 
-            // Resolve the MiscMaster Id for the given approval status string
+            // Resolve the MiscMaster Id scoped to ApprovalStatus type
             var statusMisc = await _dbContext.MiscMaster
+                .Include(m => m.MiscTypeMaster)
                 .FirstOrDefaultAsync(m => m.Code == status
+                    && m.MiscTypeMaster!.MiscTypeCode == "ApprovalStatus"
                     && m.IsDeleted == IsDelete.NotDeleted, ct);
 
             if (statusMisc != null)
@@ -217,6 +219,18 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                 _dbContext.InvoiceHeader.Update(entity);
                 await _dbContext.SaveChangesAsync(ct);
             }
+        }
+
+        public async Task UpdateInvoiceStatusIdAsync(int id, int statusId, CancellationToken ct)
+        {
+            var entity = await _dbContext.InvoiceHeader
+                .FirstOrDefaultAsync(x => x.Id == id && x.IsDeleted == IsDelete.NotDeleted, ct);
+
+            if (entity == null) return;
+
+            entity.StatusId = statusId;
+            _dbContext.InvoiceHeader.Update(entity);
+            await _dbContext.SaveChangesAsync(ct);
         }
 
     }

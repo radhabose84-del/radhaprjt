@@ -582,14 +582,14 @@ namespace FinanceManagement.Infrastructure.Services
 
         public async Task<NicEwbResultDto> GenerateEwbAsync(
             int eInvoiceHeaderId,
-            string transporterId,
-            string transporterName,
-            string transMode,
+            string? transporterId,
+            string? transporterName,
+            string? transMode,
             int distance,
-            string transDocNo,
-            string transDocDt,
-            string vehicleNo,
-            string vehicleType,
+            string? transDocNo,
+            string? transDocDt,
+            string? vehicleNo,
+            string? vehicleType,
             CancellationToken ct = default)
         {
             try
@@ -637,11 +637,17 @@ namespace FinanceManagement.Infrastructure.Services
                 }
 
                 // 3. Build e-Waybill request JSON
+                // NIC TransMode must be "1"/"2"/"3"/"4". Use DB value if valid; default to "1" (Road)
+                // when VehicleNo or TransDocNo is present (NIC error 4028 if omitted in that case).
+                var nicTransMode = transMode is "1" or "2" or "3" or "4" ? transMode : null;
+                if (nicTransMode == null && (!string.IsNullOrWhiteSpace(vehicleNo) || !string.IsNullOrWhiteSpace(transDocNo)))
+                    nicTransMode = "1";
+
                 var ewbPayload = new
                 {
                     Irn = irnNumber,
                     Distance = distance,
-                    TransMode = transMode,
+                    TransMode = nicTransMode,
                     TransId = transporterId,
                     TransName = transporterName,
                     TrnDocDt = transDocDt,
@@ -1140,6 +1146,12 @@ namespace FinanceManagement.Infrastructure.Services
             // NIC generates both IRN + e-Waybill in a single call
             if (ewb is not null && ewb.Distance > 0)
             {
+                // NIC TransMode must be "1"/"2"/"3"/"4". Use DB value if valid; default to "1" (Road)
+                // when VehicleNo or TransDocNo is present (NIC error 4028 if omitted in that case).
+                var ewbTransMode = ewb.TransMode is "1" or "2" or "3" or "4" ? ewb.TransMode : null;
+                if (ewbTransMode == null && (!string.IsNullOrWhiteSpace(ewb.VehNo) || !string.IsNullOrWhiteSpace(ewb.TransDocNo)))
+                    ewbTransMode = "1";
+
                 payload["EwbDtls"] = new
                 {
                     TransId = ewb.TransId,
@@ -1149,7 +1161,7 @@ namespace FinanceManagement.Infrastructure.Services
                     TransDocDt = ewb.TransDocDt,
                     VehNo = ewb.VehNo,
                     VehType = ewb.VehType ?? "R",
-                    TransMode = ewb.TransMode ?? "1"
+                    TransMode = ewbTransMode
                 };
             }
 

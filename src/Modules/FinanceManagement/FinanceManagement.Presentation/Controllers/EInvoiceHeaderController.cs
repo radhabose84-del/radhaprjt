@@ -1,3 +1,4 @@
+using Contracts.Commands.Finance;
 using FinanceManagement.Application.EInvoiceHeader.Commands.CancelEwb;
 using FinanceManagement.Application.EInvoiceHeader.Commands.CancelIrn;
 using FinanceManagement.Application.EInvoiceHeader.Commands.CreateEInvoiceHeader;
@@ -196,6 +197,24 @@ namespace FinanceManagement.Presentation.Controllers
         public async Task<IActionResult> GetEwbDetails(int id)
         {
             var result = await Mediator.Send(new GetEwbDetailsQuery { EInvoiceHeaderId = id });
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                isSuccess = result.IsSuccess,
+                message = result.Message,
+                data = result.Data
+            });
+        }
+
+        /// <summary>
+        /// Creates an EInvoice from a Sales Invoice by fetching data via shared lookup,
+        /// then generates IRN and optionally e-Waybill.
+        /// </summary>
+        [HttpPost("create-from-sales")]
+        public async Task<IActionResult> CreateEInvoiceFromSales(
+            [FromBody] CreateEInvoiceFromSalesCommand command)
+        {
+            var result = await Mediator.Send(command);
             return Ok(new
             {
                 StatusCode = StatusCodes.Status200OK,

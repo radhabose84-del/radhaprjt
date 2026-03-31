@@ -138,5 +138,21 @@ namespace FinanceManagement.Infrastructure.Repositories.EInvoiceHeader
             var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = id });
             return count == 0;
         }
+
+        public async Task<bool> ExistsByInvoiceNoAsync(string invoiceNo, CancellationToken ct)
+        {
+            const string sql = @"SELECT COUNT(1) FROM [Finance].[EInvoiceHeader] WHERE InvoiceNo = @InvoiceNo AND IsDeleted = 0 AND IrnNumber IS NOT NULL";
+            var count = await _dbConnection.ExecuteScalarAsync<int>(
+                new CommandDefinition(sql, new { InvoiceNo = invoiceNo }, cancellationToken: ct));
+            return count > 0;
+        }
+
+        public async Task<int?> GetIdByInvoiceNoAsync(string invoiceNo, CancellationToken ct)
+        {
+            const string sql = @"SELECT TOP 1 Id FROM [Finance].[EInvoiceHeader] WHERE InvoiceNo = @InvoiceNo AND IrnNumber IS NOT NULL AND IsDeleted = 0 ORDER BY Id DESC";
+            var id = await _dbConnection.ExecuteScalarAsync<int?>(
+                new CommandDefinition(sql, new { InvoiceNo = invoiceNo }, cancellationToken: ct));
+            return id;
+        }
     }
 }

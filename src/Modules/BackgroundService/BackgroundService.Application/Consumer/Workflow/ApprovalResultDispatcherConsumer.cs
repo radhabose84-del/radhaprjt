@@ -168,6 +168,7 @@ public class ApprovalResultDispatcherConsumer : IConsumer<ApprovedRejectedEvent>
                 ModuleTypeName = msg.ModuleTypeName,
                 Status = msg.Status,
                 LineStatus = msg.LineStatus,
+                DynamicFields = msg.DynamicFields,
                 ModifiedBy = msg.ModifiedBy,
                 ModifiedByName = msg.ModifiedByName,
                 ModifiedIP = msg.ModifiedIP
