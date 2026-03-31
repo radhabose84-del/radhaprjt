@@ -1,13 +1,16 @@
 using AutoMapper;
+using Contracts.Commands.Workflow;
 using Contracts.Common;
 using Contracts.Interfaces;
 using MediatR;
 using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Application.Common.Interfaces.IComplaintQCReview;
 using SalesManagement.Application.Common.Interfaces.IMiscMaster;
+using SalesManagement.Application.Common.Interfaces.IOutbox;
 using SalesManagement.Domain.Common;
 using SalesManagement.Domain.Entities;
 using SalesManagement.Domain.Events;
+using System.Text.Json;
 using static SalesManagement.Domain.Common.BaseEntity;
 
 namespace SalesManagement.Application.ComplaintQCReview.Commands.SubmitQCReview
@@ -19,6 +22,7 @@ namespace SalesManagement.Application.ComplaintQCReview.Commands.SubmitQCReview
         private readonly IMiscMasterQueryRepository _miscMasterQueryRepository;
         private readonly IIPAddressService _ipAddressService;
         private readonly ITimeZoneService _timeZoneService;
+        private readonly IOutboxEventPublisher _outboxEventPublisher;
         private readonly IMediator _mediator;
         private readonly IMapper _mapper;
 
@@ -28,6 +32,7 @@ namespace SalesManagement.Application.ComplaintQCReview.Commands.SubmitQCReview
             IMiscMasterQueryRepository miscMasterQueryRepository,
             IIPAddressService ipAddressService,
             ITimeZoneService timeZoneService,
+            IOutboxEventPublisher outboxEventPublisher,
             IMediator mediator,
             IMapper mapper)
         {
@@ -36,6 +41,7 @@ namespace SalesManagement.Application.ComplaintQCReview.Commands.SubmitQCReview
             _miscMasterQueryRepository = miscMasterQueryRepository;
             _ipAddressService = ipAddressService;
             _timeZoneService = timeZoneService;
+            _outboxEventPublisher = outboxEventPublisher;
             _mediator = mediator;
             _mapper = mapper;
         }
@@ -78,6 +84,32 @@ namespace SalesManagement.Application.ComplaintQCReview.Commands.SubmitQCReview
             }
 
             var newId = await _commandRepository.CreateAsync(entity);
+
+            // Publish workflow approval request via Outbox
+            var correlationId = Guid.NewGuid();
+            var unitId = _ipAddressService.GetUnitId();
+            var payload = JsonSerializer.Serialize(new
+            {
+                Header = new
+                {
+                    Id = request.ComplaintHeaderId,
+                    QCReviewId = newId,
+                    QCDecision = request.ComplaintStatusId,
+                    SeverityId = request.SeverityId,
+                    CompensationStructureId = request.CompensationStructureId,
+                    UnitId = unitId ?? 0
+                },
+                Lines = new List<object>()
+            });
+
+            var workflowEvent = new CreateApprovalRequestCommand
+            {
+                CorrelationId = correlationId,
+                ModuleTypeName = MiscEnumEntity.ComplaintQCReviewModuleTypeName,
+                ModuleTransactionId = request.ComplaintHeaderId,
+                Payload = payload
+            };
+            await _outboxEventPublisher.ScheduleAsync(workflowEvent, correlationId, cancellationToken);
 
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Create",

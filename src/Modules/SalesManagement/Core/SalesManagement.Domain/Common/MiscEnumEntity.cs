@@ -74,6 +74,8 @@ namespace SalesManagement.Domain.Common
         public const string ComplaintApprovalStatus = "ApprovalStatus";
         public const string ComplaintApprovalPending = "Pending";
         public const string ComplaintModuleTypeName = "Complaints";
+        public const string ComplaintQCReviewModuleTypeName = "QC Review";
+        public const string ComplaintResolutionModuleTypeName = "Resolution";
         public const string TransactionTypeComplaint = "Complaint";
 
         // QC Review
