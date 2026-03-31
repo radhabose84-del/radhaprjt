@@ -55,6 +55,9 @@ namespace SalesManagement.Domain.Entities
         // Approval Status (same-module FK to MiscMaster)
         public int? StatusId { get; set; }
 
+        // Revision tracking (incremented on each approved amendment)
+        public int RevisionNumber { get; set; }  // Default 0 (original)
+
         // Navigation Properties (Same-Module FKs only)
         public SalesQuotationHeader? SalesQuotation { get; set; }
         public SalesGroup? SalesGroup { get; set; }
@@ -71,5 +74,8 @@ namespace SalesManagement.Domain.Entities
 
         // Reverse navigation (DispatchAdvice)
         public ICollection<DispatchAdviceHeader>? DispatchAdviceHeaders { get; set; }
+
+        // Reverse navigation (Amendment)
+        public ICollection<SalesOrderAmendmentHeader>? SalesOrderAmendmentHeaders { get; set; }
     }
 }

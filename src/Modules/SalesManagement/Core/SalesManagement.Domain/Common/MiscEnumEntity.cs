@@ -58,6 +58,7 @@ namespace SalesManagement.Domain.Common
 
         // Workflow Module Type Names
         public const string TransactionTypeSalesOrder = "Sales Order";
+        public const string TransactionTypeSalesOrderAmendment = "Sales Order Amendment";
 
         // Document Sequence - Transaction Types
         public const string TransactionTypeDispatchAdvice = "Dispatch Advice";

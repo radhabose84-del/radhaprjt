@@ -1,14 +1,12 @@
-using System.Text.Json;
-using Contracts.Commands.Finance;
 using Contracts.Commands.Sales;
 using Contracts.Events.Sales;
 using MassTransit;
-using MediatR;
 using Microsoft.Extensions.Logging;
 using SalesManagement.Application.Common.Interfaces.IDeliveryChallan;
 using SalesManagement.Application.Common.Interfaces.IInvoice;
 using SalesManagement.Application.Common.Interfaces.IMiscMaster;
 using SalesManagement.Application.Common.Interfaces.ISalesOrder;
+using SalesManagement.Application.Common.Interfaces.ISalesOrderAmendment;
 using SalesManagement.Application.Common.Interfaces.IComplaint;
 using SalesManagement.Application.Common.Interfaces.IStoHeader;
 using SalesManagement.Domain.Common;
@@ -19,37 +17,36 @@ namespace SalesManagement.Application.Consumers
     {
         private readonly IInvoiceCommandRepository _invoiceCommandRepo;
         private readonly ISalesOrderCommandRepository _salesOrderCommandRepo;
+        private readonly ISalesOrderAmendmentCommandRepository _amendmentCommandRepo;
         private readonly IMiscMasterQueryRepository _miscMasterQueryRepository;
         private readonly IStoHeaderCommandRepository _stoHeaderCommandRepo;
         private readonly IDeliveryChallanCommandRepository _dcCommandRepo;
         private readonly IComplaintCommandRepository _complaintCommandRepo;
-        private readonly IMediator _mediator;
         private readonly ILogger<ApprovedRejectedConsumer> _logger;
 
         public ApprovedRejectedConsumer(
             IInvoiceCommandRepository invoiceCommandRepo,
             ISalesOrderCommandRepository salesOrderCommandRepo,
+            ISalesOrderAmendmentCommandRepository amendmentCommandRepo,
             IMiscMasterQueryRepository miscMasterQueryRepository,
             IStoHeaderCommandRepository stoHeaderCommandRepo,
             IDeliveryChallanCommandRepository dcCommandRepo,
             IComplaintCommandRepository complaintCommandRepo,
-            IMediator mediator,
             ILogger<ApprovedRejectedConsumer> logger)
         {
             _invoiceCommandRepo = invoiceCommandRepo;
             _salesOrderCommandRepo = salesOrderCommandRepo;
+            _amendmentCommandRepo = amendmentCommandRepo;
             _miscMasterQueryRepository = miscMasterQueryRepository;
             _stoHeaderCommandRepo = stoHeaderCommandRepo;
             _dcCommandRepo = dcCommandRepo;
             _complaintCommandRepo = complaintCommandRepo;
-            _mediator = mediator;
             _logger = logger;
         }
 
         public async Task Consume(ConsumeContext<UpdateApprovedRejectedSalesCommand> context)
         {
             var msg = context.Message;
-            var dynamicFields = msg.DynamicFields ?? new List<JsonElement>();
 
             _logger.LogInformation(
                 "ApprovedRejectedSalesConsumer: ModuleTypeName={ModuleType}, Status={Status}, TransactionId={Id}",
@@ -61,11 +58,16 @@ namespace SalesManagement.Application.Consumers
                 switch (msg.ModuleTypeName)
                 {
                     case MiscEnumEntity.TransactionTypeInvoice:
-                        await HandleInvoiceApprovalAsync(msg, dynamicFields, context.CancellationToken);
+                        await _invoiceCommandRepo.UpdateApprovalStatusAsync(
+                            msg.ModuleTransactionId, msg.Status, context.CancellationToken);
                         break;
 
                     case MiscEnumEntity.TransactionTypeSalesOrder:
                         await HandleSalesOrderApprovalAsync(msg, context.CancellationToken);
+                        break;
+
+                    case MiscEnumEntity.TransactionTypeSalesOrderAmendment:
+                        await HandleSalesOrderAmendmentApprovalAsync(msg, context.CancellationToken);
                         break;
                     case MiscEnumEntity.StoModuleTypeName:
                         await _stoHeaderCommandRepo.UpdateApprovalStatusAsync(
@@ -112,7 +114,35 @@ namespace SalesManagement.Application.Consumers
             }
         }
 
-        private async Task HandleInvoiceApprovalAsync(
+        private async Task HandleSalesOrderAmendmentApprovalAsync(
+            UpdateApprovedRejectedSalesCommand msg, CancellationToken ct)
+        {
+            _logger.LogInformation(
+                "SalesOrderAmendment Approval: Id={Id}, Status={Status}",
+                msg.ModuleTransactionId, msg.Status);
+
+            var status = msg.Status;
+            if (status != MiscEnumEntity.SalesOrderStatusApproved &&
+                status != MiscEnumEntity.SalesOrderStatusRejected)
+                return;
+
+            var result = await _amendmentCommandRepo.ApplyAmendmentAsync(
+                msg.ModuleTransactionId, status, ct);
+
+            if (!result)
+            {
+                _logger.LogWarning(
+                    "SalesOrderAmendment not found or already processed: Id={Id}",
+                    msg.ModuleTransactionId);
+                return;
+            }
+
+            _logger.LogInformation(
+                "SalesOrderAmendment Id={Id} status updated to {Status}",
+                msg.ModuleTransactionId, status);
+        }
+
+   private async Task HandleInvoiceApprovalAsync(
             UpdateApprovedRejectedSalesCommand msg,
             List<JsonElement> dynamicFields,
             CancellationToken ct)
@@ -137,7 +167,7 @@ namespace SalesManagement.Application.Consumers
                 return;
             }
 
-            // 4. Create EInvoice via Finance module (Contracts command → Finance handler)
+            // 4. Create EInvoice via Finance module (Contracts command ? Finance handler)
             try
             {
                 var command = new CreateEInvoiceFromSalesCommand
@@ -173,7 +203,6 @@ namespace SalesManagement.Application.Consumers
                     ct);
             }
         }
-
         private async Task HandleSalesOrderApprovalAsync(
             UpdateApprovedRejectedSalesCommand msg, CancellationToken ct)
         {
@@ -189,7 +218,7 @@ namespace SalesManagement.Application.Consumers
 
             // Resolve Approved and Rejected MiscMaster Ids
             var statusApproved = await _miscMasterQueryRepository.GetMiscMasterByName(
-                MiscEnumEntity.SalesOrderApprovalStatus, MiscEnumEntity.SalesOrderStatusApproved);
+                MiscEnumEntity.SalesOrderApprovalStatus,MiscEnumEntity.SalesOrderStatusApproved);
 
             var statusRejected = await _miscMasterQueryRepository.GetMiscMasterByName(
                 MiscEnumEntity.SalesOrderApprovalStatus, MiscEnumEntity.SalesOrderStatusRejected);
@@ -217,8 +246,7 @@ namespace SalesManagement.Application.Consumers
                 "SalesOrder Id={SalesOrderId} status updated to {Status} (StatusId={StatusId})",
                 salesOrderId, status, finalStatusId);
         }
-
-        /// <summary>
+ /// <summary>
         /// Reads a boolean value from the first DynamicFields JsonElement that contains the property.
         /// Expected format: [{ "withInvoice": true, "withEwaybill": false }]
         /// </summary>

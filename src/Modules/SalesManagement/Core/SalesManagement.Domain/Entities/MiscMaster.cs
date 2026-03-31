@@ -58,5 +58,8 @@ namespace SalesManagement.Domain.Entities
         // Reverse navigation (AgentCommissionConfig)
         public ICollection<AgentCommissionConfig>? AgentCommissionConfigsAsCommissionBasis { get; set; }
         public ICollection<AgentCommissionConfig>? AgentCommissionConfigsAsApplicableLevel { get; set; }
+
+        // Reverse navigation (SalesOrderAmendment)
+        public ICollection<SalesOrderAmendmentHeader>? SalesOrderAmendmentHeadersAsStatus { get; set; }
     }
 }
