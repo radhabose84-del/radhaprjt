@@ -93,6 +93,10 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("int")
                 .IsRequired();
 
+            builder.Property(t => t.TypeId)
+                .HasColumnName("TypeId")
+                .HasColumnType("int");
+
             // Unique composite index — prevents duplicate pack entries
             builder.HasIndex(t => new { t.DocType, t.DocNo, t.PackNo }).IsUnique();
 

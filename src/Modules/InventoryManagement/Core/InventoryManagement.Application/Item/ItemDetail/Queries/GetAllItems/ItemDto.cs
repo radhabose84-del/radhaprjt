@@ -109,6 +109,8 @@
             public string? SalesUOM { get; set; }
             public int? CountId { get; set; }
             public string? CountName { get; set; }
+            public int? ValuationMethodId { get; set; }
+            public string? ValuationMethodName { get; set; }
         }
         public class ItemSupplierDto
         {

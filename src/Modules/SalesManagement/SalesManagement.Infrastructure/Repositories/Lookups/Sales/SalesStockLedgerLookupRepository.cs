@@ -21,9 +21,9 @@ internal sealed class SalesStockLedgerLookupRepository : ISalesStockLedgerLookup
 
         const string sql = @"
             INSERT INTO Sales.StockLedger
-                (UnitId, DocType, DocNo, DetailDocNo, DocDate, ItemId, LotId, PackNo, PackTypeId, WarehouseId, BinId, TotalQty, TotalValue, StatusId)
+                (UnitId, DocType, DocNo, DetailDocNo, DocDate, ItemId, LotId, PackNo, PackTypeId, WarehouseId, BinId, TotalQty, TotalValue, StatusId, TypeId)
             VALUES
-                (@UnitId, @DocType, @DocNo, @DetailDocNo, @DocDate, @ItemId, @LotId, @PackNo, @PackTypeId, @WarehouseId, @BinId, @TotalQty, @TotalValue, @StatusId)";
+                (@UnitId, @DocType, @DocNo, @DetailDocNo, @DocDate, @ItemId, @LotId, @PackNo, @PackTypeId, @WarehouseId, @BinId, @TotalQty, @TotalValue, @StatusId, @TypeId)";
 
         await _dbConnection.ExecuteAsync(sql, entries);
         return true;
@@ -76,6 +76,29 @@ internal sealed class SalesStockLedgerLookupRepository : ISalesStockLedgerLookup
 
         var result = await _dbConnection.QueryAsync<int>(sql,
             new { StartPackNo = startPackNo, EndPackNo = endPackNo });
+
+        return result.ToList().AsReadOnly();
+    }
+
+    public async Task<IReadOnlyList<StockItemSummaryDto>> GetStockItemsAsync(
+        int? packTypeId = null,
+        CancellationToken ct = default)
+    {
+        const string sql = @"
+            SELECT
+                sl.ItemId,
+                sl.PackTypeId,
+                COUNT(sl.PackNo) AS TotalPackedBags,
+                SUM(sl.TotalValue) AS TotalNetWeight
+            FROM Sales.StockLedger sl
+            INNER JOIN Sales.MiscMaster mm ON sl.StatusId = mm.Id AND mm.IsDeleted = 0
+            WHERE mm.Description = 'Packed'
+              AND (@PackTypeId IS NULL OR sl.PackTypeId = @PackTypeId)
+            GROUP BY sl.ItemId, sl.PackTypeId
+            ORDER BY sl.ItemId;";
+
+        var result = await _dbConnection.QueryAsync<StockItemSummaryDto>(sql,
+            new { PackTypeId = packTypeId });
 
         return result.ToList().AsReadOnly();
     }

@@ -25,5 +25,9 @@ namespace Contracts.Interfaces.Lookups.Sales
         Task<IReadOnlyList<int>> GetPackedPackNosAsync(
             int startPackNo, int endPackNo,
             CancellationToken ct = default);
+
+        Task<IReadOnlyList<StockItemSummaryDto>> GetStockItemsAsync(
+            int? packTypeId = null,
+            CancellationToken ct = default);
     }
 }
