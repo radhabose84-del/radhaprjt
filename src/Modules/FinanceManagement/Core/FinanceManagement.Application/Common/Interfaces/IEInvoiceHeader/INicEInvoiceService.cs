@@ -19,9 +19,9 @@ namespace FinanceManagement.Application.Common.Interfaces.IEInvoiceHeader
         /// Generates an e-Waybill from an existing IRN by calling the NIC e-Waybill API
         /// with transport details. The EInvoiceHeader must already have a valid IrnNumber.
         /// </summary>
-        Task<NicEwbResultDto> GenerateEwbAsync(int eInvoiceHeaderId, string transporterId, string transporterName,
-            string transMode, int distance, string transDocNo, string transDocDt,
-            string vehicleNo, string vehicleType, CancellationToken ct = default);
+        Task<NicEwbResultDto> GenerateEwbAsync(int eInvoiceHeaderId, string? transporterId, string? transporterName,
+            string? transMode, int distance, string? transDocNo, string? transDocDt,
+            string? vehicleNo, string? vehicleType, CancellationToken ct = default);
 
         /// <summary>
         /// Cancels an IRN within 24 hours of generation.

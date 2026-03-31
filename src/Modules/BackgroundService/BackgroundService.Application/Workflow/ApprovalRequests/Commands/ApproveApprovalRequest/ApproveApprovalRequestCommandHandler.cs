@@ -49,6 +49,14 @@ namespace BackgroundService.Application.Workflow.ApprovalRequests.Commands.Appro
             if (request.ModuleTransactionId <= 0)
                 throw new InvalidOperationException("ModuleTransactionId is required.");
 
+            // Prevent double-approval: check current aggregate status before proceeding
+            var currentStatus = await _approvalRequestQuery.HeaderLevelApprovalStatus(
+                request.ApprovalRequestHeaderId,
+                request.ModuleTransactionId);
+            var currentStatusMap = _imapper.Map<HeaderStatusDto>(currentStatus);
+            if (currentStatusMap?.StatusCode == MiscEnumEntity.Approved)
+                throw new InvalidOperationException("This Id is already approved.");
+
             var statusApproved = await _miscMasterQuery.GetMiscMasterByName(MiscEnumEntity.ApprovalStatus, MiscEnumEntity.Approved);
             var statusRejected = await _miscMasterQuery.GetMiscMasterByName(MiscEnumEntity.ApprovalStatus, MiscEnumEntity.Rejected);
 

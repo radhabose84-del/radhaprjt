@@ -1,7 +1,12 @@
-using FluentValidation;
+using Contracts.Commands.Finance;
+using Contracts.Common;
+using Contracts.Dtos.Finance;
 using FinanceManagement.Application.Common.Mappings;
+using FinanceManagement.Application.EInvoiceHeader.Commands.CreateEInvoiceFromSales;
 using FinanceManagement.Infrastructure;
 using FinanceManagement.Presentation.Validation.Common;
+using FluentValidation;
+using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -24,6 +29,11 @@ namespace FinanceManagement.Module
 
             // ✅ 2) MediatR handlers from Application (register ALL handlers)
             services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(applicationAssembly));
+
+            // ✅ 2b) Explicit registration for cross-module command handler
+            // MediatR 12.x TryAddTransient may skip handlers when AddMediatR is called multiple times
+            services.AddTransient<IRequestHandler<CreateEInvoiceFromSalesCommand, ApiResponseDTO<EInvoiceCreationResultDto>>,
+                CreateEInvoiceFromSalesCommandHandler>();
 
             // ✅ 3) AutoMapper profiles from Application (register ALL profiles)
             services.AddAutoMapper(applicationAssembly);

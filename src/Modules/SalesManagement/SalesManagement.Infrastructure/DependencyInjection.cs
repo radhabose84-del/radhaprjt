@@ -52,6 +52,8 @@ using SalesManagement.Application.Common.Interfaces.ICustomerVisit;
 using SalesManagement.Infrastructure.Repositories.CustomerVisit;
 using SalesManagement.Application.Common.Interfaces.ISalesOrder;
 using SalesManagement.Infrastructure.Repositories.SalesOrder;
+using SalesManagement.Application.Common.Interfaces.ISalesOrderAmendment;
+using SalesManagement.Infrastructure.Repositories.SalesOrderAmendment;
 using SalesManagement.Application.Common.Interfaces.IMovementTypeConfig;
 using SalesManagement.Infrastructure.Repositories.MovementTypeConfig;
 using SalesManagement.Application.Common.Interfaces.IDispatchAdvice;
@@ -254,6 +256,10 @@ namespace SalesManagement.Infrastructure
             services.AddScoped<ISalesOrderCommandRepository, SalesOrderCommandRepository>();
             services.AddScoped<ISalesOrderQueryRepository, SalesOrderQueryRepository>();
 
+            // ── Sales Order Amendment Repositories ────────────────────────
+            services.AddScoped<ISalesOrderAmendmentCommandRepository, SalesOrderAmendmentCommandRepository>();
+            services.AddScoped<ISalesOrderAmendmentQueryRepository, SalesOrderAmendmentQueryRepository>();
+
             // ── Movement Type Config Repositories ─────────────────────────────
             services.AddScoped<IMovementTypeConfigCommandRepository, MovementTypeConfigCommandRepository>();
             services.AddScoped<IMovementTypeConfigQueryRepository, MovementTypeConfigQueryRepository>();
@@ -306,6 +312,9 @@ namespace SalesManagement.Infrastructure
 
             // ── Sales MiscMaster Lookup (cross-module) ──────────────────────────
             services.AddScoped<ISalesMiscMasterLookup, SalesMiscMasterLookupRepository>();
+
+            // ── Sales Invoice Lookup (cross-module, for Finance EInvoice creation) ──
+            services.AddScoped<ISalesInvoiceLookup, SalesInvoiceLookupRepository>();
 
             // ═══════════════════════════════════════════════════════════════
             // OUTBOX PATTERN SERVICES (SQL-based for transaction atomicity)

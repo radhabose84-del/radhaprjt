@@ -21,6 +21,10 @@ namespace UserManagement.Infrastructure.Repositories.Lookups.Users
                     C.Id AS CityId,
                     C.CityName
                 FROM [AppData].[City] C
+                INNER JOIN [AppData].[State] S ON C.StateId = S.Id
+                    AND S.IsActive = 1 AND S.IsDeleted = 0
+                INNER JOIN [AppData].[Country] CO ON S.CountryId = CO.Id
+                    AND CO.IsActive = 1 AND CO.IsDeleted = 0
                 WHERE C.IsDeleted = 0
                 AND C.IsActive = 1
                 ORDER BY C.Id DESC;";
@@ -37,6 +41,10 @@ namespace UserManagement.Infrastructure.Repositories.Lookups.Users
                         C.Id AS CityId,
                         C.CityName
                     FROM [AppData].[City] C
+                    INNER JOIN [AppData].[State] S ON C.StateId = S.Id
+                        AND S.IsActive = 1 AND S.IsDeleted = 0
+                    INNER JOIN [AppData].[Country] CO ON S.CountryId = CO.Id
+                        AND CO.IsActive = 1 AND CO.IsDeleted = 0
                     WHERE C.Id = @CityId
                     AND C.IsDeleted = 0
                     AND C.IsActive = 1;
@@ -61,6 +69,10 @@ namespace UserManagement.Infrastructure.Repositories.Lookups.Users
                     C.Id AS CityId,
                     C.CityName
                 FROM [AppData].[City] C
+                INNER JOIN [AppData].[State] S ON C.StateId = S.Id
+                    AND S.IsActive = 1 AND S.IsDeleted = 0
+                INNER JOIN [AppData].[Country] CO ON S.CountryId = CO.Id
+                    AND CO.IsActive = 1 AND CO.IsDeleted = 0
                 WHERE C.Id IN @Ids
                 AND C.IsDeleted = 0
                 AND C.IsActive = 1;

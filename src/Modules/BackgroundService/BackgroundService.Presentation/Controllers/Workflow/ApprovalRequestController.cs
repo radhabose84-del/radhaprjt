@@ -44,11 +44,13 @@ namespace BackgroundService.Presentation.Controllers.Workflow
             var message =
                 result.FailedCount > 0
                     ? $"Approved completed with errors. Approved={result.ApprovedCount}, Rejected={result.RejectedCount}, Failed={result.FailedCount}"
+                : result.Errors.Count > 0 && result.ApprovedCount > 0
+                    ? "Approval failed EInvoice/IRN generation failed."
                 : result.RejectedCount > 0 && result.ApprovedCount == 0
                     ? $"{result.RejectedCount} Items Rejected successfully."
                 : result.ApprovedCount > 0 && result.RejectedCount == 0
-                    ? $" {result.ApprovedCount} Items Approved successfully."
-                : $"Partially {result.ApprovedCount} Items Approved  and {result.RejectedCount} Items Rejected successfully.";
+                    ? $"{result.ApprovedCount} Items Approved successfully."
+                : $"Partially {result.ApprovedCount} Items Approved and {result.RejectedCount} Items Rejected successfully.";
 
             return Ok(new
             {

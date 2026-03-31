@@ -64,6 +64,11 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("int")
                 .IsRequired();
 
+            builder.Property(t => t.PartyAddress)
+                .HasColumnName("PartyAddress")
+                .HasColumnType("nvarchar(500)")
+                .IsRequired(false);
+
             builder.Property(t => t.AgentId)
                 .HasColumnName("AgentId")
                 .HasColumnType("int")
@@ -223,6 +228,13 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("int")
                 .IsRequired(false);
 
+            // Revision tracking
+            builder.Property(t => t.RevisionNumber)
+                .HasColumnName("RevisionNumber")
+                .HasColumnType("int")
+                .HasDefaultValue(0)
+                .IsRequired();
+
             // Same-module FK constraints
             builder.HasOne(t => t.SalesGroup)
                 .WithMany(g => g.SalesOrderHeaders)
@@ -274,6 +286,7 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .WithOne(d => d.SalesOrderHeader)
                 .HasForeignKey(d => d.SalesOrderHeaderId)
                 .OnDelete(DeleteBehavior.Restrict);
+
 
             // Indexes
             builder.HasIndex(t => t.SalesOrderNo).IsUnique();

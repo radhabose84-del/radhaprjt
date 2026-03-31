@@ -1112,6 +1112,83 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
         }
 
 
+        public async Task<InvoiceForEInvoiceDto?> GetInvoiceForEInvoiceAsync(int invoiceId)
+        {
+            // 1. Fetch header + dispatch advice transport + sales order type via same-module JOINs
+            const string headerSql = @"
+                SELECT h.Id, h.InvoiceNo, h.InvoiceDate, h.UnitId, h.PartyId,
+                    h.TaxableValue, h.Discount, h.Freight, h.Insurance,
+                    h.HandlingCharge, h.OtherCharges,
+                    h.CGST, h.SGST, h.IGST, h.TCS, h.RoundOff,
+                    h.InvoiceAmount, h.Remarks,
+                    da.TransporterId, da.VehicleNo,
+                    h.TransportMode,
+                    so.SalesOrderTypeId
+                FROM Sales.InvoiceHeader h
+                LEFT JOIN Sales.DispatchAdviceHeader da
+                    ON h.DispatchAdviceId = da.Id AND da.IsDeleted = 0
+                LEFT JOIN Sales.SalesOrderHeader so
+                    ON da.SalesOrderId = so.Id AND so.IsDeleted = 0
+                WHERE h.Id = @Id AND h.IsDeleted = 0";
+
+            var header = await _dbConnection.QueryFirstOrDefaultAsync<InvoiceForEInvoiceDto>(
+                headerSql, new { Id = invoiceId });
+
+            if (header == null)
+                return null;
+
+            // 2. Fetch detail lines
+            const string detailSql = @"
+                SELECT d.ItemSno, d.ItemId, d.HsnCode, d.NoOfBags, d.Quantity,
+                    d.RatePerKg, d.Discount, d.TaxableAmount, d.GstPercentage,
+                    d.CGST, d.SGST, d.IGST, d.TotalAmount,
+                    d.PackTypeId, d.UOMId
+                FROM Sales.InvoiceDetail d
+                WHERE d.InvoiceHeaderId = @HeaderId
+                ORDER BY d.ItemSno";
+
+            var details = (await _dbConnection.QueryAsync<InvoiceDetailForEInvoiceDto>(
+                detailSql, new { HeaderId = invoiceId })).ToList();
+
+            // 3. Populate party GST details via cross-module lookup
+            var party = await _partyDetailLookup.GetByIdAsync(header.PartyId);
+            if (party != null)
+            {
+                header.GstNo = party.GSTNumber;
+                header.ReverseCharge = party.IsGstReverseCharge;
+                header.PlaceOfSupply = party.GSTStateCode?.ToString("D2");
+            }
+
+            // 4. Populate transporter GSTIN via cross-module lookup
+            if (header.TransporterId.HasValue && header.TransporterId.Value > 0)
+            {
+                var transporter = await _partyDetailLookup.GetByIdAsync(header.TransporterId.Value);
+                header.TransporterGstin = transporter?.GSTNumber;
+                header.TransporterName = transporter?.PartyName;
+            }
+
+            // 5. Populate item names and UOM via cross-module lookups
+            if (details.Count > 0)
+            {
+                var itemIds = details.Select(d => d.ItemId).Distinct();
+                var items = await _itemLookup.GetByIdsAsync(itemIds);
+                var itemDict = items.ToDictionary(i => i.Id, i => i.ItemName);
+
+                var uomIds = details.Where(d => d.UOMId.HasValue).Select(d => d.UOMId!.Value).Distinct();
+                var uoms = await _uomLookup.GetByIdsAsync(uomIds);
+                var uomDict = uoms.ToDictionary(u => u.Id, u => u.UOMName);
+
+                foreach (var detail in details)
+                {
+                    detail.ItemName = itemDict.TryGetValue(detail.ItemId, out var iName) ? iName : null;
+                    detail.UOMName = detail.UOMId.HasValue && uomDict.TryGetValue(detail.UOMId.Value, out var uName) ? uName : null;
+                }
+            }
+
+            header.Details = details;
+            return header;
+        }
+
         // --- Derive InvoiceTypeName via DA → SO → SalesOrderTypeId → TransactionTypeLookup ---
         private async Task<Dictionary<int, string?>> GetInvoiceTypeNameMapAsync(IEnumerable<int> invoiceIds)
         {

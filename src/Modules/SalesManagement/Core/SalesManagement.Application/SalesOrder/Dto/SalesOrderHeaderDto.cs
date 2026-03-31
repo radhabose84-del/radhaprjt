@@ -20,6 +20,7 @@ namespace SalesManagement.Application.SalesOrder.Dto
         public string? UnitName { get; set; }
         public int PartyId { get; set; }
         public string? PartyName { get; set; }
+        public string? PartyAddress { get; set; }
         public int? AgentId { get; set; }
         public string? AgentName { get; set; }
         public int? SubAgentId { get; set; }
@@ -69,6 +70,9 @@ namespace SalesManagement.Application.SalesOrder.Dto
         // Approval Status
         public int? StatusId { get; set; }
         public string? StatusName { get; set; }
+
+        // Revision tracking
+        public int RevisionNumber { get; set; }
 
         // Status & Audit
         public bool IsActive { get; set; }

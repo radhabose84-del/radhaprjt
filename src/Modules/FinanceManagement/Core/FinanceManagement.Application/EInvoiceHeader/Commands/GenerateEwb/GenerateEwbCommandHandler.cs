@@ -29,14 +29,14 @@ namespace FinanceManagement.Application.EInvoiceHeader.Commands.GenerateEwb
         {
             var result = await _nicEInvoiceService.GenerateEwbAsync(
                 request.EInvoiceHeaderId,
-                request.TransporterId ?? string.Empty,
-                request.TransporterName ?? string.Empty,
-                request.TransMode ?? "1",
+                string.IsNullOrWhiteSpace(request.TransporterId) ? null : request.TransporterId,
+                string.IsNullOrWhiteSpace(request.TransporterName) ? null : request.TransporterName,
+                request.TransMode,
                 request.Distance,
-                request.TransDocNo ?? string.Empty,
-                request.TransDocDt ?? string.Empty,
-                request.VehicleNo ?? string.Empty,
-                request.VehicleType ?? "R",
+                string.IsNullOrWhiteSpace(request.TransDocNo) ? null : request.TransDocNo,
+                string.IsNullOrWhiteSpace(request.TransDocDt) ? null : request.TransDocDt,
+                string.IsNullOrWhiteSpace(request.VehicleNo) ? null : request.VehicleNo,
+                string.IsNullOrWhiteSpace(request.VehicleType) ? null : request.VehicleType,
                 cancellationToken);
 
             if (result.IsSuccess)

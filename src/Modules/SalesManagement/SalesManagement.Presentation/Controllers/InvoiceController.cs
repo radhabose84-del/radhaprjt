@@ -1,3 +1,4 @@
+using Contracts.Commands.Finance;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -141,6 +142,26 @@ namespace SalesManagement.Presentation.Controllers
                 statusCode = StatusCodes.Status200OK,
                 data = result,
                 message = "Gate Pass Pending Invoice details fetched successfully."
+            });
+        }
+
+        [HttpPost("generate-einvoice")]
+        public async Task<IActionResult> GenerateEInvoice(
+            [FromQuery] int invoiceId,
+            [FromQuery] bool withEwaybill = false)
+        {
+            var result = await Mediator.Send(new CreateEInvoiceFromSalesCommand
+            {
+                InvoiceId = invoiceId,
+                IsEwaybillCreate = withEwaybill
+            });
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                isSuccess = result.IsSuccess,
+                message = result.Message,
+                data = result.Data
             });
         }
     }

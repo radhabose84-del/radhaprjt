@@ -3346,6 +3346,168 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.ToTable("SalesOffice", "Sales");
                 });
 
+            modelBuilder.Entity("SalesManagement.Domain.Entities.SalesOrderAmendmentDetail", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ChangeType")
+                        .IsRequired()
+                        .HasColumnType("varchar(10)")
+                        .HasColumnName("ChangeType");
+
+                    b.Property<decimal?>("NewExMillRate")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,3)")
+                        .HasColumnName("NewExMillRate");
+
+                    b.Property<DateOnly?>("NewExpectedDeliveryDate")
+                        .HasColumnType("date")
+                        .HasColumnName("NewExpectedDeliveryDate");
+
+                    b.Property<int?>("NewQtyInBags")
+                        .HasColumnType("int")
+                        .HasColumnName("NewQtyInBags");
+
+                    b.Property<decimal>("OldExMillRate")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,3)")
+                        .HasColumnName("OldExMillRate");
+
+                    b.Property<DateOnly>("OldExpectedDeliveryDate")
+                        .HasColumnType("date")
+                        .HasColumnName("OldExpectedDeliveryDate");
+
+                    b.Property<int>("OldItemId")
+                        .HasColumnType("int")
+                        .HasColumnName("OldItemId");
+
+                    b.Property<int>("OldQtyInBags")
+                        .HasColumnType("int")
+                        .HasColumnName("OldQtyInBags");
+
+                    b.Property<int>("SalesOrderAmendmentHeaderId")
+                        .HasColumnType("int")
+                        .HasColumnName("SalesOrderAmendmentHeaderId");
+
+                    b.Property<int>("SalesOrderDetailId")
+                        .HasColumnType("int")
+                        .HasColumnName("SalesOrderDetailId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SalesOrderAmendmentHeaderId");
+
+                    b.HasIndex("SalesOrderDetailId");
+
+                    b.ToTable("SalesOrderAmendmentDetail", "Sales");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.SalesOrderAmendmentHeader", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateOnly>("AmendmentDate")
+                        .HasColumnType("date")
+                        .HasColumnName("AmendmentDate");
+
+                    b.Property<string>("AmendmentNo")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("AmendmentNo");
+
+                    b.Property<int?>("ApprovedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ApprovedBy");
+
+                    b.Property<DateTimeOffset?>("ApprovedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ApprovedDate");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("Reason");
+
+                    b.Property<int>("RevisionNumber")
+                        .HasColumnType("int")
+                        .HasColumnName("RevisionNumber");
+
+                    b.Property<int>("SalesOrderHeaderId")
+                        .HasColumnType("int")
+                        .HasColumnName("SalesOrderHeaderId");
+
+                    b.Property<int?>("StatusId")
+                        .HasColumnType("int")
+                        .HasColumnName("StatusId");
+
+                    b.Property<int>("UnitId")
+                        .HasColumnType("int")
+                        .HasColumnName("UnitId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AmendmentNo")
+                        .IsUnique();
+
+                    b.HasIndex("SalesOrderHeaderId");
+
+                    b.HasIndex("StatusId");
+
+                    b.HasIndex("UnitId");
+
+                    b.ToTable("SalesOrderAmendmentHeader", "Sales");
+                });
+
             modelBuilder.Entity("SalesManagement.Domain.Entities.SalesOrderDetail", b =>
                 {
                     b.Property<int>("Id")
@@ -3575,6 +3737,10 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("OrderUnitId");
 
+                    b.Property<string>("PartyAddress")
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("PartyAddress");
+
                     b.Property<int>("PartyId")
                         .HasColumnType("int")
                         .HasColumnName("PartyId");
@@ -3590,6 +3756,12 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Property<string>("Remarks")
                         .HasColumnType("nvarchar(500)")
                         .HasColumnName("Remarks");
+
+                    b.Property<int>("RevisionNumber")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0)
+                        .HasColumnName("RevisionNumber");
 
                     b.Property<int>("SalesGroupId")
                         .HasColumnType("int")
@@ -5166,6 +5338,43 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("SalesOrganisation");
                 });
 
+            modelBuilder.Entity("SalesManagement.Domain.Entities.SalesOrderAmendmentDetail", b =>
+                {
+                    b.HasOne("SalesManagement.Domain.Entities.SalesOrderAmendmentHeader", "SalesOrderAmendmentHeader")
+                        .WithMany("SalesOrderAmendmentDetails")
+                        .HasForeignKey("SalesOrderAmendmentHeaderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SalesManagement.Domain.Entities.SalesOrderDetail", "SalesOrderDetail")
+                        .WithMany()
+                        .HasForeignKey("SalesOrderDetailId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("SalesOrderAmendmentHeader");
+
+                    b.Navigation("SalesOrderDetail");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.SalesOrderAmendmentHeader", b =>
+                {
+                    b.HasOne("SalesManagement.Domain.Entities.SalesOrderHeader", "SalesOrderHeader")
+                        .WithMany("SalesOrderAmendmentHeaders")
+                        .HasForeignKey("SalesOrderHeaderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "StatusMisc")
+                        .WithMany("SalesOrderAmendmentHeadersAsStatus")
+                        .HasForeignKey("StatusId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("SalesOrderHeader");
+
+                    b.Navigation("StatusMisc");
+                });
+
             modelBuilder.Entity("SalesManagement.Domain.Entities.SalesOrderDetail", b =>
                 {
                     b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "LineItemStatus")
@@ -5524,6 +5733,8 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     b.Navigation("SalesContacts");
 
+                    b.Navigation("SalesOrderAmendmentHeadersAsStatus");
+
                     b.Navigation("SalesOrderDetailsAsLineItemStatus");
 
                     b.Navigation("SalesOrderHeadersAsCountList");
@@ -5592,6 +5803,11 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("SalesGroups");
                 });
 
+            modelBuilder.Entity("SalesManagement.Domain.Entities.SalesOrderAmendmentHeader", b =>
+                {
+                    b.Navigation("SalesOrderAmendmentDetails");
+                });
+
             modelBuilder.Entity("SalesManagement.Domain.Entities.SalesOrderDetail", b =>
                 {
                     b.Navigation("DispatchAdviceDetails");
@@ -5600,6 +5816,8 @@ namespace SalesManagement.Infrastructure.Migrations
             modelBuilder.Entity("SalesManagement.Domain.Entities.SalesOrderHeader", b =>
                 {
                     b.Navigation("DispatchAdviceHeaders");
+
+                    b.Navigation("SalesOrderAmendmentHeaders");
 
                     b.Navigation("SalesOrderDetails");
                 });

@@ -76,7 +76,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     ss.SegmentName AS SegmentName,
                     h.EnquiryType,
                     et.Description AS EnquiryTypeName,
-                    h.UnitId, h.PartyId, h.AgentId, h.SubAgentId,
+                    h.UnitId, h.PartyId, h.PartyAddress, h.AgentId, h.SubAgentId,
                     h.SalesOrderTypeId,
                     h.OrderUnitId,
                     h.DiscountPlanId,
@@ -96,6 +96,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     h.TCSPercentage, h.TotalTCS, h.FinalAmount,
                     h.StatusId,
                     st.Description AS StatusName,
+                    h.RevisionNumber,
                     h.IsActive, h.IsDeleted,
                     h.CreatedBy, h.CreatedDate, h.CreatedByName
                 FROM Sales.SalesOrderHeader h
@@ -191,7 +192,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     ss.SegmentName AS SegmentName,
                     h.EnquiryType,
                     et.Description AS EnquiryTypeName,
-                    h.UnitId, h.PartyId, h.AgentId, h.SubAgentId,
+                    h.UnitId, h.PartyId, h.PartyAddress, h.AgentId, h.SubAgentId,
                     h.SalesOrderTypeId,
                     h.OrderUnitId,
                     h.DiscountPlanId,
@@ -211,6 +212,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     h.TCSPercentage, h.TotalTCS, h.FinalAmount,
                     h.StatusId,
                     st.Description AS StatusName,
+                    h.RevisionNumber,
                     h.IsActive, h.IsDeleted,
                     h.CreatedBy, h.CreatedDate, h.CreatedByName
                 FROM Sales.SalesOrderHeader h
@@ -514,7 +516,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     ss.SegmentName AS SegmentName,
                     h.EnquiryType,
                     et.Description AS EnquiryTypeName,
-                    h.UnitId, h.PartyId, h.AgentId, h.SubAgentId,
+                    h.UnitId, h.PartyId, h.PartyAddress, h.AgentId, h.SubAgentId,
                     h.StatusId,
                     st2.Description AS StatusName,
                     h.Remarks,

@@ -13,6 +13,7 @@ namespace SalesManagement.Domain.Entities
         public int EnquiryType { get; set; }            // 1=Unit, 2=Combined
         public int UnitId { get; set; }                  // Cross-module FK (UserManagement)
         public int PartyId { get; set; }                 // Cross-module FK (PartyManagement)
+        public string? PartyAddress { get; set; }           // Free-text address (numbers, letters, special chars allowed)
         public int? AgentId { get; set; }                // Cross-module FK (PartyManagement) — nullable
         public int? SubAgentId { get; set; }             // Cross-module FK (PartyManagement) — nullable
 
@@ -54,6 +55,9 @@ namespace SalesManagement.Domain.Entities
         // Approval Status (same-module FK to MiscMaster)
         public int? StatusId { get; set; }
 
+        // Revision tracking (incremented on each approved amendment)
+        public int RevisionNumber { get; set; }  // Default 0 (original)
+
         // Navigation Properties (Same-Module FKs only)
         public SalesQuotationHeader? SalesQuotation { get; set; }
         public SalesGroup? SalesGroup { get; set; }
@@ -70,5 +74,8 @@ namespace SalesManagement.Domain.Entities
 
         // Reverse navigation (DispatchAdvice)
         public ICollection<DispatchAdviceHeader>? DispatchAdviceHeaders { get; set; }
+
+        // Reverse navigation (Amendment)
+        public ICollection<SalesOrderAmendmentHeader>? SalesOrderAmendmentHeaders { get; set; }
     }
 }
