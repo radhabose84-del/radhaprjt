@@ -1,6 +1,9 @@
+using System.Text.Json;
+using Contracts.Commands.Finance;
 using Contracts.Commands.Sales;
 using Contracts.Events.Sales;
 using MassTransit;
+using MediatR;
 using Microsoft.Extensions.Logging;
 using SalesManagement.Application.Common.Interfaces.IDeliveryChallan;
 using SalesManagement.Application.Common.Interfaces.IInvoice;
@@ -22,6 +25,7 @@ namespace SalesManagement.Application.Consumers
         private readonly IStoHeaderCommandRepository _stoHeaderCommandRepo;
         private readonly IDeliveryChallanCommandRepository _dcCommandRepo;
         private readonly IComplaintCommandRepository _complaintCommandRepo;
+        private readonly IMediator _mediator;
         private readonly ILogger<ApprovedRejectedConsumer> _logger;
 
         public ApprovedRejectedConsumer(
@@ -32,6 +36,7 @@ namespace SalesManagement.Application.Consumers
             IStoHeaderCommandRepository stoHeaderCommandRepo,
             IDeliveryChallanCommandRepository dcCommandRepo,
             IComplaintCommandRepository complaintCommandRepo,
+            IMediator mediator,
             ILogger<ApprovedRejectedConsumer> logger)
         {
             _invoiceCommandRepo = invoiceCommandRepo;
@@ -41,6 +46,7 @@ namespace SalesManagement.Application.Consumers
             _stoHeaderCommandRepo = stoHeaderCommandRepo;
             _dcCommandRepo = dcCommandRepo;
             _complaintCommandRepo = complaintCommandRepo;
+            _mediator = mediator;
             _logger = logger;
         }
 
@@ -58,8 +64,7 @@ namespace SalesManagement.Application.Consumers
                 switch (msg.ModuleTypeName)
                 {
                     case MiscEnumEntity.TransactionTypeInvoice:
-                        await _invoiceCommandRepo.UpdateApprovalStatusAsync(
-                            msg.ModuleTransactionId, msg.Status, context.CancellationToken);
+                        await HandleInvoiceApprovalAsync(msg, msg.DynamicFields, context.CancellationToken);
                         break;
 
                     case MiscEnumEntity.TransactionTypeSalesOrder:
@@ -142,7 +147,7 @@ namespace SalesManagement.Application.Consumers
                 msg.ModuleTransactionId, status);
         }
 
-   private async Task HandleInvoiceApprovalAsync(
+        private async Task HandleInvoiceApprovalAsync(
             UpdateApprovedRejectedSalesCommand msg,
             List<JsonElement> dynamicFields,
             CancellationToken ct)
@@ -167,7 +172,7 @@ namespace SalesManagement.Application.Consumers
                 return;
             }
 
-            // 4. Create EInvoice via Finance module (Contracts command ? Finance handler)
+            // 4. Create EInvoice via Finance module (Contracts command → Finance handler)
             try
             {
                 var command = new CreateEInvoiceFromSalesCommand
@@ -203,6 +208,7 @@ namespace SalesManagement.Application.Consumers
                     ct);
             }
         }
+
         private async Task HandleSalesOrderApprovalAsync(
             UpdateApprovedRejectedSalesCommand msg, CancellationToken ct)
         {
@@ -218,7 +224,7 @@ namespace SalesManagement.Application.Consumers
 
             // Resolve Approved and Rejected MiscMaster Ids
             var statusApproved = await _miscMasterQueryRepository.GetMiscMasterByName(
-                MiscEnumEntity.SalesOrderApprovalStatus,MiscEnumEntity.SalesOrderStatusApproved);
+                MiscEnumEntity.SalesOrderApprovalStatus, MiscEnumEntity.SalesOrderStatusApproved);
 
             var statusRejected = await _miscMasterQueryRepository.GetMiscMasterByName(
                 MiscEnumEntity.SalesOrderApprovalStatus, MiscEnumEntity.SalesOrderStatusRejected);
@@ -246,7 +252,8 @@ namespace SalesManagement.Application.Consumers
                 "SalesOrder Id={SalesOrderId} status updated to {Status} (StatusId={StatusId})",
                 salesOrderId, status, finalStatusId);
         }
- /// <summary>
+
+        /// <summary>
         /// Reads a boolean value from the first DynamicFields JsonElement that contains the property.
         /// Expected format: [{ "withInvoice": true, "withEwaybill": false }]
         /// </summary>
