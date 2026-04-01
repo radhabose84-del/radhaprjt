@@ -1,44 +1,90 @@
-using ProductionManagement.Application.Common.Interfaces.IRepacking;
-using ProductionManagement.Application.Repacking.Queries.GetAllRepacking;
-using ProductionManagement.Application.Repacking.Dto;
+using ProductionManagement.Application.Common.Interfaces.IRepackingMaster;
+using ProductionManagement.Application.RepackingMaster.Dto;
+using ProductionManagement.Application.RepackingMaster.Queries.GetAllRepackingMaster;
 
 namespace ProductionManagement.UnitTests.Application.Repacking.Queries
 {
-    public sealed class GetAllRepackingQueryHandlerTests
+    public sealed class GetAllRepackingMasterQueryHandlerTests
     {
-        private readonly Mock<IRepackingQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
+        private readonly Mock<IRepackingMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
         private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Loose);
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Loose);
 
-        private GetAllRepackingQueryHandler CreateSut() =>
+        private GetAllRepackingMasterQueryHandler CreateSut() =>
             new(_mockQueryRepo.Object, _mockMapper.Object, _mockMediator.Object);
+
+        private static RepackingMasterDto BuildDto(int id = 1) => new()
+        {
+            Id = id,
+            RepackDocNo = "REPACK-001",
+            RepackDate = DateOnly.FromDateTime(DateTime.Today),
+            ItemId = 1,
+            ItemName = "Test Item",
+            IsActive = true,
+            IsDeleted = false
+        };
 
         [Fact]
         public async Task Handle_ReturnsSuccess()
         {
-            var dtoList = new List<RepackingHeaderDto> { new() };
+            var dtoList = new List<RepackingMasterDto> { BuildDto() };
             _mockQueryRepo.Setup(r => r.GetAllAsync(1, 10, null)).ReturnsAsync((dtoList, 1));
-            _mockMapper.Setup(m => m.Map<List<RepackingHeaderDto>>(It.IsAny<object>())).Returns(dtoList);
             _mockMediator.Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 
-            var result = await CreateSut().Handle(new GetAllRepackingQuery { PageNumber = 1, PageSize = 10 }, CancellationToken.None);
+            var result = await CreateSut().Handle(
+                new GetAllRepackingMasterQuery { PageNumber = 1, PageSize = 10 },
+                CancellationToken.None);
 
             result.IsSuccess.Should().BeTrue();
             result.Data.Should().HaveCount(1);
         }
 
         [Fact]
-        public async Task Handle_EmptyResult_ReturnsSuccess()
+        public async Task Handle_ReturnsPaginationMetadata()
         {
-            var dtoList = new List<RepackingHeaderDto>();
-            _mockQueryRepo.Setup(r => r.GetAllAsync(1, 10, null)).ReturnsAsync((dtoList, 0));
-            _mockMapper.Setup(m => m.Map<List<RepackingHeaderDto>>(It.IsAny<object>())).Returns(dtoList);
+            var dtoList = new List<RepackingMasterDto> { BuildDto() };
+            _mockQueryRepo.Setup(r => r.GetAllAsync(2, 5, "search")).ReturnsAsync((dtoList, 11));
             _mockMediator.Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 
-            var result = await CreateSut().Handle(new GetAllRepackingQuery { PageNumber = 1, PageSize = 10 }, CancellationToken.None);
+            var result = await CreateSut().Handle(
+                new GetAllRepackingMasterQuery { PageNumber = 2, PageSize = 5, SearchTerm = "search" },
+                CancellationToken.None);
+
+            result.PageNumber.Should().Be(2);
+            result.PageSize.Should().Be(5);
+            result.TotalCount.Should().Be(11);
+        }
+
+        [Fact]
+        public async Task Handle_EmptyResult_ReturnsSuccess()
+        {
+            _mockQueryRepo.Setup(r => r.GetAllAsync(1, 10, null)).ReturnsAsync((new List<RepackingMasterDto>(), 0));
+            _mockMediator.Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+
+            var result = await CreateSut().Handle(
+                new GetAllRepackingMasterQuery { PageNumber = 1, PageSize = 10 },
+                CancellationToken.None);
 
             result.IsSuccess.Should().BeTrue();
             result.Data.Should().BeEmpty();
+        }
+
+        [Fact]
+        public async Task Handle_PublishesAuditEvent()
+        {
+            var dtoList = new List<RepackingMasterDto> { BuildDto() };
+            _mockQueryRepo.Setup(r => r.GetAllAsync(1, 10, null)).ReturnsAsync((dtoList, 1));
+            _mockMediator.Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+
+            await CreateSut().Handle(
+                new GetAllRepackingMasterQuery { PageNumber = 1, PageSize = 10 },
+                CancellationToken.None);
+
+            _mockMediator.Verify(
+                m => m.Publish(
+                    It.Is<AuditLogsDomainEvent>(e => e.ActionCode == "Get"),
+                    It.IsAny<CancellationToken>()),
+                Times.Once);
         }
     }
 }
