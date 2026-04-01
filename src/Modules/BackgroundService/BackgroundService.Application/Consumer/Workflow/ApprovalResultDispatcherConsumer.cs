@@ -57,7 +57,10 @@ public class ApprovalResultDispatcherConsumer : IConsumer<ApprovedRejectedEvent>
         "Sales Order",
         "STO",
         "Delivery Challan",
-        "Complaints"
+        "Complaints",
+        "QC Review",
+        "Resolution",
+        "Sales Order Amendment"
     };    private readonly IInboxRepository _inbox;
     private readonly ILogger<ApprovalResultDispatcherConsumer> _logger;
 
@@ -167,6 +170,7 @@ public class ApprovalResultDispatcherConsumer : IConsumer<ApprovedRejectedEvent>
                 ModuleTypeName = msg.ModuleTypeName,
                 Status = msg.Status,
                 LineStatus = msg.LineStatus,
+                DynamicFields = msg.DynamicFields,
                 ModifiedBy = msg.ModifiedBy,
                 ModifiedByName = msg.ModifiedByName,
                 ModifiedIP = msg.ModifiedIP

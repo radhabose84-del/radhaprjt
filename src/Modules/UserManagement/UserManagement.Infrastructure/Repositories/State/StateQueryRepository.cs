@@ -98,9 +98,9 @@ namespace UserManagement.Infrastructure.Repositories
         public async Task<bool>SoftDeleteValidation(int Id)
         {
             const string query = @"
-                    SELECT * 
-                    FROM [AppData].[City] 
-                    WHERE StateId = @Id AND IsDeleted = 1";
+                    SELECT *
+                    FROM [AppData].[City]
+                    WHERE StateId = @Id AND IsDeleted = 0";
                     var cities = await _dbConnection.QueryFirstOrDefaultAsync<UserManagement.Domain.Entities.Cities>(query, new { Id });
 
             if (cities != null)

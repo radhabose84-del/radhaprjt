@@ -7,6 +7,18 @@ namespace FinanceManagement.Application.Common.Interfaces.IEInvoiceHeader
         Task<bool> SoftDeleteAsync(int id, CancellationToken ct);
 
         /// <summary>
+        /// Hard-deletes an EInvoice header and all its detail rows.
+        /// Used to clean up orphaned records when IRN generation fails before any external reference (IRN/EWB) is created.
+        /// </summary>
+        Task HardDeleteWithDetailsAsync(int id, CancellationToken ct);
+
+        /// <summary>
+        /// Hard-deletes all EInvoice headers (and their details) for a given InvoiceNo where IrnNumber IS NULL.
+        /// Used to clean up incomplete records before recreating from Sales.
+        /// </summary>
+        Task HardDeleteIncompleteByInvoiceNoAsync(string invoiceNo, CancellationToken ct);
+
+        /// <summary>
         /// Updates only the IRN-related fields after a call to the NIC API.
         /// Called by GenerateIrnCommandHandler after a successful or failed NIC API call.
         /// </summary>

@@ -71,6 +71,12 @@ namespace SalesManagement.Application.SalesOrder.Dto
         public int? StatusId { get; set; }
         public string? StatusName { get; set; }
 
+        // Dispatch Advice Flag — 'Y'/'N' for Approved orders, null for others
+        public string? DAFlag { get; set; }
+
+        // Revision tracking
+        public int RevisionNumber { get; set; }
+
         // Status & Audit
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }

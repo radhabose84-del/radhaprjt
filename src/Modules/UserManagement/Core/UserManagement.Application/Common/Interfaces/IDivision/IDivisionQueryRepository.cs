@@ -13,5 +13,8 @@ namespace UserManagement.Application.Common.Interfaces.IDivision
         Task<bool> FKColumnExistValidation(int Id);
         Task<List<Division>> GetDivision_SuperAdmin(string searchPattern);
         Task<List<GetUnitsByDivisionDto>> GetUnitsByDivisionAsync(int companyId, int divisionId);
+
+        /// <summary>Returns true if any active record references this division (inactivate guard).</summary>
+        Task<bool> IsDivisionLinkedAsync(int divisionId);
     }
 }

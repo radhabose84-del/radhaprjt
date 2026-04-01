@@ -127,6 +127,11 @@ namespace ProjectManagement.Infrastructure
 
 
              );
+
+            // Validation repositories — cross-module referential integrity (Rule 25)
+            services.AddScoped<Contracts.Interfaces.Validations.ProjectManagement.IProjectCurrencyValidation, Repositories.Validations.ProjectCurrencyValidationRepository>();
+            services.AddScoped<Contracts.Interfaces.Validations.ProjectManagement.IProjectDepartmentValidation, Repositories.Validations.ProjectDepartmentValidationRepository>();
+
             return services;
         }
     }

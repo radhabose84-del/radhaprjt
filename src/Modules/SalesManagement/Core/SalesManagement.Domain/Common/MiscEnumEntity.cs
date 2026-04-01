@@ -9,6 +9,7 @@ namespace SalesManagement.Domain.Common
         public const string LineStatusOpen  = "Open";
         public const string LineStatusPartiallyDispatched = "Partially Dispatched";
         public const string LineStatusClosed = "Closed";
+        public const string LineStatusDeleted = "Deleted";
         public const string SalesOrderVisitPath = "SalesOrderVisitPath";
         public const string AgentPoDocument = "AgentPoDocument";
         public const string QualityStatus = "QualityStatus";
@@ -58,6 +59,7 @@ namespace SalesManagement.Domain.Common
 
         // Workflow Module Type Names
         public const string TransactionTypeSalesOrder = "Sales Order";
+        public const string TransactionTypeSalesOrderAmendment = "Sales Order Amendment";
 
         // Document Sequence - Transaction Types
         public const string TransactionTypeDispatchAdvice = "Dispatch Advice";
@@ -73,6 +75,8 @@ namespace SalesManagement.Domain.Common
         public const string ComplaintApprovalStatus = "ApprovalStatus";
         public const string ComplaintApprovalPending = "Pending";
         public const string ComplaintModuleTypeName = "Complaints";
+        public const string ComplaintQCReviewModuleTypeName = "QC Review";
+        public const string ComplaintResolutionModuleTypeName = "Resolution";
         public const string TransactionTypeComplaint = "Complaint";
 
         // QC Review
