@@ -17,7 +17,6 @@ namespace ProductionManagement.Application.Common.Interfaces.IProductionPack
         Task<bool> ItemExistsAsync(int itemId);
         Task<bool> QualityStatusExistsAsync(int qualityStatusId);
         Task<int> GetLastEndPackNoAsync(int productionYear);
-        Task<bool> PackOverlapExistsAsync(int lotId, int startPackNo, int endPackNo, int? excludeDetailId = null);
-        Task<List<ProductionPackDetailDto>> GetByPackRangeAsync(int startPackNo, int endPackNo, CancellationToken ct = default);
+        Task<bool> PackOverlapExistsAsync(int lotId, int startPackNo, int endPackNo, int? excludeDetailId = null);        
     }
 }

@@ -14,7 +14,8 @@ namespace SalesManagement.Application.Common.Interfaces.IStockLedger
             int? statusId,
             int? packNo,
             DateOnly? dateFrom,
-            DateOnly? dateTo);
+            DateOnly? dateTo,
+            int? productionYear);
 
         Task<List<StockLedgerReportDto>> GetByPackRangeAsync(
             int itemId,
@@ -22,6 +23,14 @@ namespace SalesManagement.Application.Common.Interfaces.IStockLedger
             int startPackNo,
             int endPackNo,
             int productionYear,
+            CancellationToken ct = default);
+
+        Task<List<PackRangeSummaryDto>> GetPackRangeSummaryAsync(
+            int productionYear,
+            int? itemId,
+            int? packTypeId,
+            int? startPackNo,
+            int? endPackNo,
             CancellationToken ct = default);
     }
 }
