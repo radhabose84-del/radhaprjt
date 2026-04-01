@@ -1,4 +1,4 @@
-using System.Data;
+﻿using System.Data;
 using FAM.Application.Common.Interfaces.IMiscMaster;
 using Dapper;
 
@@ -147,54 +147,54 @@ namespace FAM.Infrastructure.Repositories.MiscMaster
             -- AssetAmc
             EXISTS (
                 SELECT 1
-                FROM [FixedAsset].[FixedAsset].[AssetAmc] amc
-                WHERE amc.IsDeleted = 0
+                FROM [FixedAsset].[AssetAmc] amc
+                WHERE amc.IsDeleted = 0 AND amc.IsActive = 1
                   AND (amc.CoverageType = @id OR amc.RenewalStatus = @id)
             )
 
             -- AssetDisposal
             OR EXISTS (
                 SELECT 1
-                FROM [FixedAsset].[FixedAsset].[AssetDisposal] ad
-                WHERE ad.IsDeleted = 0 AND ad.DisposalType = @id
+                FROM [FixedAsset].[AssetDisposal] ad
+                WHERE ad.IsDeleted = 0 AND ad.IsActive = 1 AND ad.DisposalType = @id
             )
 
             -- AssetMaster
             OR EXISTS (
                 SELECT 1
-                FROM [FixedAsset].[FixedAsset].[AssetMaster] am
-                WHERE am.IsDeleted = 0
+                FROM [FixedAsset].[AssetMaster] am
+                WHERE am.IsDeleted = 0 AND am.IsActive = 1
                   AND (am.AssetType = @id OR am.WorkingStatus = @id)
             )
 
             -- AssetWarranty
             OR EXISTS (
                 SELECT 1
-                FROM [FixedAsset].[FixedAsset].[AssetWarranty] aw
-                WHERE aw.IsDeleted = 0
+                FROM [FixedAsset].[AssetWarranty] aw
+                WHERE aw.IsDeleted = 0 AND aw.IsActive = 1
                   AND (aw.ServiceClaimStatus = @id OR aw.WarrantyType = @id)
             )
 
             -- DepreciationGroups
             OR EXISTS (
                 SELECT 1
-                FROM [FixedAsset].[FixedAsset].[DepreciationGroups] dg
-                WHERE dg.IsDeleted = 0
+                FROM [FixedAsset].[DepreciationGroups] dg
+                WHERE dg.IsDeleted = 0 AND dg.IsActive = 1
                   AND (dg.BookType = @id OR dg.DepreciationMethod = @id)
             )
 
             -- Manufacture
             OR EXISTS (
                 SELECT 1
-                FROM [FixedAsset].[FixedAsset].[Manufacture] m
-                WHERE m.IsDeleted = 0 AND m.ManufactureType = @id
+                FROM [FixedAsset].[Manufacture] m
+                WHERE m.IsDeleted = 0 AND m.IsActive = 1 AND m.ManufactureType = @id
             )
 
             -- UOM
             OR EXISTS (
                 SELECT 1
-                FROM [FixedAsset].[FixedAsset].[UOM] u
-                WHERE u.IsDeleted = 0 AND u.UOMTypeId = @id
+                FROM [FixedAsset].[UOM] u
+                WHERE u.IsDeleted = 0 AND u.IsActive = 1 AND u.UOMTypeId = @id
             )
 
         THEN 1 ELSE 0 END;
@@ -205,7 +205,53 @@ namespace FAM.Infrastructure.Repositories.MiscMaster
         }
 
 
-    }   
-
     
-} 
+        public async Task<bool> SoftDeleteValidationAsync(int id)
+        {
+            const string query = @"
+        SELECT CASE WHEN
+            EXISTS (
+                SELECT 1
+                FROM [FixedAsset].[AssetAmc] amc
+                WHERE amc.IsDeleted = 0
+                  AND (amc.CoverageType = @id OR amc.RenewalStatus = @id)
+            )
+            OR EXISTS (
+                SELECT 1
+                FROM [FixedAsset].[AssetDisposal] ad
+                WHERE ad.IsDeleted = 0 AND ad.DisposalType = @id
+            )
+            OR EXISTS (
+                SELECT 1
+                FROM [FixedAsset].[AssetMaster] am
+                WHERE am.IsDeleted = 0
+                  AND (am.AssetType = @id OR am.WorkingStatus = @id)
+            )
+            OR EXISTS (
+                SELECT 1
+                FROM [FixedAsset].[AssetWarranty] aw
+                WHERE aw.IsDeleted = 0
+                  AND (aw.ServiceClaimStatus = @id OR aw.WarrantyType = @id)
+            )
+            OR EXISTS (
+                SELECT 1
+                FROM [FixedAsset].[DepreciationGroups] dg
+                WHERE dg.IsDeleted = 0
+                  AND (dg.BookType = @id OR dg.DepreciationMethod = @id)
+            )
+            OR EXISTS (
+                SELECT 1
+                FROM [FixedAsset].[Manufacture] m
+                WHERE m.IsDeleted = 0 AND m.ManufactureType = @id
+            )
+            OR EXISTS (
+                SELECT 1
+                FROM [FixedAsset].[UOM] u
+                WHERE u.IsDeleted = 0 AND u.UOMTypeId = @id
+            )
+        THEN 1 ELSE 0 END;";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(query, new { id });
+        }
+    }
+}

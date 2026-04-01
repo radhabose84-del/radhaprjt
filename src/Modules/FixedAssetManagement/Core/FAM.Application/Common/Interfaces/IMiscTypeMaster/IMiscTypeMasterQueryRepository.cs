@@ -11,7 +11,11 @@ namespace FAM.Application.Common.Interfaces.IMiscTypeMaster
 
             Task<FAM.Domain.Entities.MiscTypeMaster?> GetByMiscTypeMasterCodeAsync(string name,int? id = null);
 
-           
+            /// <summary>Delete guard: checks if any MiscMaster references this MiscTypeMaster.</summary>
+            Task<bool> SoftDeleteValidationAsync(int id);
+
+            /// <summary>Inactivate guard: checks if any active MiscMaster references this MiscTypeMaster.</summary>
+            Task<bool> IsMiscTypeMasterLinkedAsync(int id);
 
     }
 }

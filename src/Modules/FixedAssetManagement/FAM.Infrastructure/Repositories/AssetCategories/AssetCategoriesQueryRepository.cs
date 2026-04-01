@@ -1,4 +1,4 @@
-using System.Data;
+﻿using System.Data;
 using FAM.Application.AssetCategories.Queries.GetAssetCategories;
 using FAM.Application.Common.Interfaces.IAssetCategories;
 using Dapper;
@@ -110,12 +110,31 @@ namespace FAM.Infrastructure.Repositories.AssetCategories
             const string query = @"
         SELECT TOP 1 1
         FROM [FixedAsset].[AssetSubCategories]
-        WHERE IsDeleted = 0 AND AssetCategoriesId = @categoryId;
+        WHERE IsDeleted = 0 AND IsActive = 1 AND AssetCategoriesId = @categoryId;
         ";
 
             var result = await _dbConnection.QueryFirstOrDefaultAsync<int?>(query, new { categoryId });
             return result.HasValue; 
         }
     
+    
+        public async Task<bool> SoftDeleteValidationAsync(int id)
+        {
+            const string query = @"
+        SELECT CASE WHEN
+            EXISTS (
+                SELECT 1
+                FROM [FixedAsset].[AssetSubCategories]
+                WHERE IsDeleted = 0 AND AssetCategoriesId = @id
+            )
+            OR EXISTS (
+                SELECT 1
+                FROM [FixedAsset].[AssetMaster]
+                WHERE IsDeleted = 0 AND AssetCategoryId = @id
+            )
+        THEN 1 ELSE 0 END;";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(query, new { id });
+        }
     }
 }

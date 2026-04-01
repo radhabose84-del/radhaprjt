@@ -26,7 +26,7 @@ namespace FAM.Application.AssetMaster.AssetWarranty.Commands.UpdateAssetWarranty
         {
             var assetWarranty = await _assetWarrantyQueryRepository.GetByIdAsync(request.Id);
             if (assetWarranty is null)
-            throw new ValidationException("Invalid DepreciationGroupID. The specified Name does not exist");
+            throw new ValidationException("Asset Warranty not found. The specified record does not exist.");
            
            
             var oldAssetWarranty= assetWarranty.Id;            
