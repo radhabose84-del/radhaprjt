@@ -201,5 +201,9 @@
     {
         "rule": "DateCompare",
         "error": "must be greater than or equal to"
+    },
+    {
+        "rule": "DispatchAdviceExists",
+        "error": "Cannot cancel / Amend - Dispatch Advice has already been generated for this order."
     }
 ]
