@@ -602,5 +602,15 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
 
             return $"{basePath.TrimEnd('/', '\\')}/{companyName}/{unitName}";
         }
+
+        public async Task<bool> HasDispatchAdviceAsync(int salesOrderHeaderId)
+        {
+            const string sql = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1 FROM Sales.DispatchAdviceHeader
+                    WHERE SalesOrderId = @Id AND IsDeleted = 0
+                ) THEN 1 ELSE 0 END;";
+            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { Id = salesOrderHeaderId });
+        }
     }
 }
