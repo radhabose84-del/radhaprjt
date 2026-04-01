@@ -22,6 +22,7 @@ namespace ProductionManagement.Infrastructure.Data
         public DbSet<ProductionPackHeader> ProductionPackHeader => Set<ProductionPackHeader>();
         public DbSet<ProductionPackDetail> ProductionPackDetail => Set<ProductionPackDetail>();
         public DbSet<RepackingMaster> RepackingMaster => Set<RepackingMaster>();
+        public DbSet<YarnConversionHeader> YarnConversionHeader => Set<YarnConversionHeader>();
 
         private readonly IIPAddressService _ipAddressService;
         private readonly ITimeZoneService _timeZoneService;

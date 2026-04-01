@@ -20,6 +20,7 @@ using ProductionManagement.Application.Common.Interfaces.IQualityMaster;
 using ProductionManagement.Application.Common.Interfaces.ICertificationMaster;
 using ProductionManagement.Application.Common.Interfaces.IYarnTwistMaster;
 using ProductionManagement.Application.Common.Interfaces.IRepackingMaster;
+using ProductionManagement.Application.Common.Interfaces.IYarnConversionHeader;
 using Contracts.Interfaces.Lookups.Production;
 using ProductionManagement.Infrastructure.Repositories.Lookups.Production;
 using ProductionManagement.Infrastructure.Repositories.ProcessMaster;
@@ -156,6 +157,10 @@ namespace ProductionManagement.Infrastructure
             // RepackingMaster repositories
             services.AddScoped<IRepackingMasterCommandRepository, Repositories.RepackingMaster.RepackingMasterCommandRepository>();
             services.AddScoped<IRepackingMasterQueryRepository, Repositories.RepackingMaster.RepackingMasterQueryRepository>();
+
+            // YarnConversionHeader repositories
+            services.AddScoped<IYarnConversionHeaderCommandRepository, Repositories.YarnConversionHeader.YarnConversionHeaderCommandRepository>();
+            services.AddScoped<IYarnConversionHeaderQueryRepository, Repositories.YarnConversionHeader.YarnConversionHeaderQueryRepository>();
 
             // Lookup registration — caching is handled globally by AddLookupCaching() in Program.cs
             services.AddScoped<IYarnTypeLookup, YarnTypeLookupRepository>();
