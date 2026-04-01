@@ -225,18 +225,54 @@ namespace MaintenanceManagement.Infrastructure.Repositories.MachineMaster
         SELECT CASE WHEN
             EXISTS (
                 SELECT 1
-                FROM [Maintenance].[Maintenance].[MachineSpecification] ms
-                WHERE ms.MachineId = @id
+                FROM [Maintenance].[MachineSpecification] ms
+                WHERE ms.IsDeleted = 0 AND ms.IsActive = 1 AND ms.MachineId = @id
             )
             OR EXISTS (
                 SELECT 1
-                FROM [Maintenance].[Maintenance].[MaintenanceRequest] mr
-                WHERE mr.MachineId = @id
+                FROM [Maintenance].[MaintenanceRequest] mr
+                WHERE mr.IsDeleted = 0 AND mr.IsActive = 1 AND mr.MachineId = @id
             )
             OR EXISTS (
                 SELECT 1
-                FROM [Maintenance].[Maintenance].[PreventiveSchedulerDetail] psd
-                WHERE psd.MachineId = @id
+                FROM [Maintenance].[PreventiveSchedulerDetail] psd
+                WHERE psd.IsDeleted = 0 AND psd.IsActive = 1 AND psd.MachineId = @id
+            )
+            OR EXISTS (
+                SELECT 1
+                FROM [Maintenance].[GeneratorConsumption] gc
+                WHERE gc.IsDeleted = 0 AND gc.IsActive = 1 AND gc.GeneratorId = @id
+            )
+        THEN 1 ELSE 0 END;
+    ";
+
+            var exists = await _dbConnection.QueryFirstOrDefaultAsync<int>(query, new { id });
+            return exists == 1;
+        }
+
+        public async Task<bool> SoftDeleteValidationAsync(int id)
+        {
+            const string query = @"
+        SELECT CASE WHEN
+            EXISTS (
+                SELECT 1
+                FROM [Maintenance].[MachineSpecification] ms
+                WHERE ms.IsDeleted = 0 AND ms.MachineId = @id
+            )
+            OR EXISTS (
+                SELECT 1
+                FROM [Maintenance].[MaintenanceRequest] mr
+                WHERE mr.IsDeleted = 0 AND mr.MachineId = @id
+            )
+            OR EXISTS (
+                SELECT 1
+                FROM [Maintenance].[PreventiveSchedulerDetail] psd
+                WHERE psd.IsDeleted = 0 AND psd.MachineId = @id
+            )
+            OR EXISTS (
+                SELECT 1
+                FROM [Maintenance].[GeneratorConsumption] gc
+                WHERE gc.IsDeleted = 0 AND gc.GeneratorId = @id
             )
         THEN 1 ELSE 0 END;
     ";

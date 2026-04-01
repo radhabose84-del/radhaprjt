@@ -29,11 +29,17 @@ namespace MaintenanceManagement.Presentation.Validation.MachineGroup
                         break;                   
                         case "NotFound":
                            RuleFor(x => x.Id )
-                           .MustAsync(async (Id, cancellation) => 
-                        await _machineGroupQueryRepository.NotFoundAsync(Id))             
+                           .MustAsync(async (Id, cancellation) =>
+                        await _machineGroupQueryRepository.NotFoundAsync(Id))
                            .WithName("MachineGroup Id")
                             .WithMessage($"{rule.Error}");
-                            break; 
+                            break;
+                        case "SoftDelete":
+                            RuleFor(x => x.Id)
+                                .MustAsync(async (Id, cancellation) =>
+                                    !await _machineGroupQueryRepository.SoftDeleteValidationAsync(Id))
+                                .WithMessage("This master is linked with other records. You cannot delete this record.");
+                            break;
                     default:
                         
                         break;

@@ -19,6 +19,7 @@ namespace ProductionManagement.Domain.Common
         // Document Sequence - Transaction Types
         public const string TransactionTypePackMaster = "PackMaster";
         public const string TransactionTypeRePackMaster = "RePackEntry";
+        public const string TransactionTypeYarnConversion = "YarnConversion";
         public const string ModuleSales = "Sales";
     }
 }

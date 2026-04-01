@@ -3746,6 +3746,18 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("nvarchar(500)")
                         .HasColumnName("AgentPOAttachment");
 
+                    b.Property<string>("CancelledByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CancelledByName");
+
+                    b.Property<DateTimeOffset?>("CancelledDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CancelledDate");
+
+                    b.Property<string>("CancelledIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CancelledIP");
+
                     b.Property<int?>("CountListId")
                         .HasColumnType("int")
                         .HasColumnName("CountListId");
@@ -3778,6 +3790,18 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,3)")
                         .HasColumnName("FinalAmount");
+
+                    b.Property<string>("ForeClosedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ForeClosedByName");
+
+                    b.Property<DateTimeOffset?>("ForeClosedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ForeClosedDate");
+
+                    b.Property<string>("ForeClosedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ForeClosedIP");
 
                     b.Property<int>("FreightTypeId")
                         .HasColumnType("int")
@@ -4814,6 +4838,10 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,3)")
                         .HasColumnName("TotalValue");
+
+                    b.Property<int?>("TypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("TypeId");
 
                     b.Property<int>("UnitId")
                         .HasColumnType("int")

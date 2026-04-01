@@ -1,6 +1,7 @@
 #nullable disable
 using AutoMapper;
 using Contracts.Common;
+using FluentValidation;
 using MaintenanceManagement.Application.Common.Interfaces.IWorkCenter;
 using MaintenanceManagement.Domain.Events;
 using MediatR;
@@ -36,6 +37,13 @@ namespace MaintenanceManagement.Application.WorkCenter.Command.UpdateWorkCenter
             // };
             // }
        
+            if (request.IsActive == 0)
+            {
+                var linked = await _iWorkCenterQueryRepository.IsWorkCenterLinkedAsync(request.Id);
+                if (linked)
+                    throw new ValidationException("This master is linked with other records. You cannot inactivate this record.");
+            }
+
             var workCenter = _Imapper.Map<MaintenanceManagement.Domain.Entities.WorkCenter>(request);
             var result = await _iWorkCenterCommandRepository.UpdateAsync(request.Id, workCenter);
             if (result <= 0) // WorkCenter not found

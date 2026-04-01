@@ -14,13 +14,13 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
     {
         private readonly ApplicationDbContext _applicationDbContext;
         private readonly ISalesMiscMasterLookup _salesMiscMasterLookup;
-        private readonly ISalesStockLedgerLookup _salesStockLedgerLookup;
+        private readonly ISalesStockLedgerService _salesStockLedgerLookup;
         private readonly IDocumentSequenceLookup _documentSequenceLookup;
 
         public ProductionCommandRepository(
             ApplicationDbContext applicationDbContext,
             ISalesMiscMasterLookup salesMiscMasterLookup,
-            ISalesStockLedgerLookup salesStockLedgerLookup,
+            ISalesStockLedgerService salesStockLedgerLookup,
             IDocumentSequenceLookup documentSequenceLookup)
         {
             _applicationDbContext = applicationDbContext;
@@ -128,7 +128,7 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
 
                     if (existingEntity.ProductionPackDetails != null && existingEntity.ProductionPackDetails.Any())
                     {
-                        await _salesStockLedgerLookup.DeleteByDocAsync("PROD", existingEntity.Id);
+                        await _salesStockLedgerLookup.DeleteByDocAsync("PROD", existingEntity.Id, existingEntity.ProductionYear, existingEntity.UnitId);
 
                         _applicationDbContext.ProductionPackDetail.RemoveRange(existingEntity.ProductionPackDetails);
                     }

@@ -7,6 +7,7 @@ namespace MaintenanceManagement.Application.Common.Interfaces.IWorkCenter
         Task<List<MaintenanceManagement.Domain.Entities.WorkCenter>> GetWorkCenterGroups(string searchPattern);
         Task<bool> SoftDeleteValidation(int Id); 
         Task<bool> IsWorkCenterLinkedAsync(int id);
+        Task<bool> NotFoundAsync(int id);
 
     }
 }

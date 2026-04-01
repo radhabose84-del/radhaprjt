@@ -97,6 +97,8 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     h.StatusId,
                     st.Description AS StatusName,
                     h.RevisionNumber,
+                    h.CancelledDate, h.CancelledByName, h.CancelledIP,
+                    h.ForeClosedDate, h.ForeClosedByName, h.ForeClosedIP,
                     h.IsActive, h.IsDeleted,
                     h.CreatedBy, h.CreatedDate, h.CreatedByName,
                     CASE
@@ -221,6 +223,8 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     h.StatusId,
                     st.Description AS StatusName,
                     h.RevisionNumber,
+                    h.CancelledDate, h.CancelledByName, h.CancelledIP,
+                    h.ForeClosedDate, h.ForeClosedByName, h.ForeClosedIP,
                     h.IsActive, h.IsDeleted,
                     h.CreatedBy, h.CreatedDate, h.CreatedByName
                 FROM Sales.SalesOrderHeader h

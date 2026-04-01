@@ -190,8 +190,68 @@ namespace MaintenanceManagement.Infrastructure.Repositories.MiscMaster
 
 
 
-                  
-    }   
+        public async Task<bool> SoftDeleteValidationAsync(int id)
+        {
+            const string query = @"
+                SELECT TOP 1 1
+                FROM (
+                    SELECT ActivityType AS FkId FROM [Maintenance].[ActivityMaster] WHERE IsDeleted = 0 AND ActivityType = @id
+                    UNION ALL
+                    SELECT FeederTypeId FROM [Maintenance].[Feeder] WHERE IsDeleted = 0 AND FeederTypeId = @id
+                    UNION ALL
+                    SELECT PurposeId FROM [Maintenance].[GeneratorConsumption] WHERE IsDeleted = 0 AND PurposeId = @id
+                    UNION ALL
+                    SELECT [LineNo] FROM [Maintenance].[MachineMaster] WHERE IsDeleted = 0 AND [LineNo] = @id
+                    UNION ALL
+                    SELECT SpecificationId FROM [Maintenance].[MachineSpecification] WHERE IsDeleted = 0 AND SpecificationId = @id
+                    UNION ALL
+                    SELECT MaintenanceTypeId FROM [Maintenance].[MaintenanceRequest] WHERE IsDeleted = 0
+                        AND (MaintenanceTypeId = @id OR ModeOfDispatchId = @id OR RequestStatusId = @id
+                             OR RequestTypeId = @id OR ServiceLocationId = @id OR ServiceTypeId = @id OR SparesTypeId = @id)
+                    UNION ALL
+                    SELECT FeederTypeId FROM [Maintenance].[PowerConsumption] WHERE IsDeleted = 0 AND FeederTypeId = @id
+                    UNION ALL
+                    SELECT FrequencyTypeId FROM [Maintenance].[PreventiveSchedulerDetail] WHERE IsDeleted = 0
+                        AND (FrequencyTypeId = @id OR FrequencyUnitId = @id OR ScheduleId = @id)
+                    UNION ALL
+                    SELECT FrequencyTypeId FROM [Maintenance].[PreventiveSchedulerHeader] WHERE IsDeleted = 0
+                        AND (FrequencyTypeId = @id OR FrequencyUnitId = @id OR MaintenanceCategoryId = @id OR ScheduleId = @id)
+                ) AS LinkedRecords;";
 
-    
-} 
+            var exists = await _dbConnection.QueryFirstOrDefaultAsync<int?>(query, new { id });
+            return exists.HasValue;
+        }
+
+        public async Task<bool> IsMiscMasterLinkedAsync(int id)
+        {
+            const string query = @"
+                SELECT TOP 1 1
+                FROM (
+                    SELECT ActivityType AS FkId FROM [Maintenance].[ActivityMaster] WHERE IsDeleted = 0 AND IsActive = 1 AND ActivityType = @id
+                    UNION ALL
+                    SELECT FeederTypeId FROM [Maintenance].[Feeder] WHERE IsDeleted = 0 AND IsActive = 1 AND FeederTypeId = @id
+                    UNION ALL
+                    SELECT PurposeId FROM [Maintenance].[GeneratorConsumption] WHERE IsDeleted = 0 AND IsActive = 1 AND PurposeId = @id
+                    UNION ALL
+                    SELECT [LineNo] FROM [Maintenance].[MachineMaster] WHERE IsDeleted = 0 AND IsActive = 1 AND [LineNo] = @id
+                    UNION ALL
+                    SELECT SpecificationId FROM [Maintenance].[MachineSpecification] WHERE IsDeleted = 0 AND IsActive = 1 AND SpecificationId = @id
+                    UNION ALL
+                    SELECT MaintenanceTypeId FROM [Maintenance].[MaintenanceRequest] WHERE IsDeleted = 0 AND IsActive = 1
+                        AND (MaintenanceTypeId = @id OR ModeOfDispatchId = @id OR RequestStatusId = @id
+                             OR RequestTypeId = @id OR ServiceLocationId = @id OR ServiceTypeId = @id OR SparesTypeId = @id)
+                    UNION ALL
+                    SELECT FeederTypeId FROM [Maintenance].[PowerConsumption] WHERE IsDeleted = 0 AND IsActive = 1 AND FeederTypeId = @id
+                    UNION ALL
+                    SELECT FrequencyTypeId FROM [Maintenance].[PreventiveSchedulerDetail] WHERE IsDeleted = 0 AND IsActive = 1
+                        AND (FrequencyTypeId = @id OR FrequencyUnitId = @id OR ScheduleId = @id)
+                    UNION ALL
+                    SELECT FrequencyTypeId FROM [Maintenance].[PreventiveSchedulerHeader] WHERE IsDeleted = 0 AND IsActive = 1
+                        AND (FrequencyTypeId = @id OR FrequencyUnitId = @id OR MaintenanceCategoryId = @id OR ScheduleId = @id)
+                ) AS LinkedRecords;";
+
+            var exists = await _dbConnection.QueryFirstOrDefaultAsync<int?>(query, new { id });
+            return exists.HasValue;
+        }
+    }
+}

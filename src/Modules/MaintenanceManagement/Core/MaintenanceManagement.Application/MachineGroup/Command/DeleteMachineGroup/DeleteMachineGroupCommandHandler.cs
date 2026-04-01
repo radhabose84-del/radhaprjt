@@ -3,7 +3,6 @@ using Contracts.Common;
 using MaintenanceManagement.Application.Common.Interfaces.IMachineGroup;
 using MaintenanceManagement.Domain.Events;
 using MediatR;
-using FluentValidation;
 
 namespace MaintenanceManagement.Application.MachineGroup.Command.DeleteMachineGroup
 {
@@ -29,14 +28,6 @@ namespace MaintenanceManagement.Application.MachineGroup.Command.DeleteMachineGr
 
              // Map the request to the entity
             var machineGroup = _imapper.Map<MaintenanceManagement.Domain.Entities.MachineGroup>(request);
-
-            var linked = await _machineGroupQueryRepository.IsMachineGroupLinkedAsync(request.Id);
-            if (linked)
-            {
-             throw new ValidationException("This master is linked with other records. You cannot delete this record.");
-            }
-    
-
 
             // Perform the delete operation
             var isDeleted = await _machineGroupRepository.DeleteAsync(request.Id, machineGroup);

@@ -75,19 +75,23 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
             _eWaybillLookup = eWaybillLookup;
         }
 
-        public async Task<(List<InvoiceHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
+        public async Task<(List<InvoiceHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm, string? status = null)
         {
             var unitId = _ipAddressService.GetUnitId();
             var unitFilter = unitId.HasValue ? "AND h.UnitId = @UnitId" : "";
             var searchFilter = string.IsNullOrWhiteSpace(searchTerm)
                 ? ""
                 : "AND (h.InvoiceNo LIKE @Search OR h.VehicleNumber LIKE @Search OR h.LRNumber LIKE @Search)";
+            var statusFilter = string.IsNullOrWhiteSpace(status)
+                ? ""
+                : "AND sm.Description = @Status";
 
             var query = $@"
                 DECLARE @TotalCount INT;
                 SELECT @TotalCount = COUNT(*)
                 FROM Sales.InvoiceHeader h
-                WHERE h.IsDeleted = 0 {unitFilter} {searchFilter};
+                LEFT JOIN Sales.MiscMaster sm  ON h.StatusId = sm.Id AND sm.IsDeleted = 0
+                WHERE h.IsDeleted = 0 {unitFilter} {searchFilter} {statusFilter};
 
                 SELECT h.Id, h.InvoiceNo, h.InvoiceDate,
                     h.DispatchAdviceId,
@@ -109,7 +113,7 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                 LEFT JOIN Sales.MiscMaster tm  ON h.TransportMode = tm.Id  AND tm.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster sm  ON h.StatusId      = sm.Id  AND sm.IsDeleted = 0
                 LEFT JOIN Sales.DispatchAdviceHeader da ON h.DispatchAdviceId = da.Id AND da.IsDeleted = 0
-                WHERE h.IsDeleted = 0 {unitFilter} {searchFilter}
+                WHERE h.IsDeleted = 0 {unitFilter} {searchFilter} {statusFilter}
                 ORDER BY h.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
 
@@ -119,6 +123,7 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
             {
                 UnitId = unitId,
                 Search = $"%{searchTerm}%",
+                Status = status,
                 Offset = (pageNumber - 1) * pageSize,
                 PageSize = pageSize
             };
