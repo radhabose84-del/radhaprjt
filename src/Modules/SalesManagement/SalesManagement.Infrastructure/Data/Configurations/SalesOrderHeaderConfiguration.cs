@@ -235,6 +235,36 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasDefaultValue(0)
                 .IsRequired();
 
+            // Cancelled fields
+            builder.Property(t => t.CancelledDate)
+                .HasColumnName("CancelledDate")
+                .IsRequired(false);
+
+            builder.Property(t => t.CancelledByName)
+                .HasColumnName("CancelledByName")
+                .HasColumnType("varchar(100)")
+                .IsRequired(false);
+
+            builder.Property(t => t.CancelledIP)
+                .HasColumnName("CancelledIP")
+                .HasColumnType("varchar(50)")
+                .IsRequired(false);
+
+            // ForeClosed fields
+            builder.Property(t => t.ForeClosedDate)
+                .HasColumnName("ForeClosedDate")
+                .IsRequired(false);
+
+            builder.Property(t => t.ForeClosedByName)
+                .HasColumnName("ForeClosedByName")
+                .HasColumnType("varchar(100)")
+                .IsRequired(false);
+
+            builder.Property(t => t.ForeClosedIP)
+                .HasColumnName("ForeClosedIP")
+                .HasColumnType("varchar(50)")
+                .IsRequired(false);
+
             // Same-module FK constraints
             builder.HasOne(t => t.SalesGroup)
                 .WithMany(g => g.SalesOrderHeaders)

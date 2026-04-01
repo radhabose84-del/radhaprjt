@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using SalesManagement.Application.SalesOrder.Commands.CreateSalesOrder;
 using SalesManagement.Application.SalesOrder.Commands.UpdateSalesOrder;
 using SalesManagement.Application.SalesOrder.Commands.CancelSalesOrder;
+using SalesManagement.Application.SalesOrder.Commands.ForecloseSalesOrder;
 using SalesManagement.Application.SalesOrder.Commands.UploadSalesOrderDocument;
 using SalesManagement.Application.SalesOrder.Commands.DeleteSalesOrderDocument;
 using SalesManagement.Application.SalesOrder.Commands.UploadSalesOrderImage;
@@ -141,6 +142,19 @@ namespace SalesManagement.Presentation.Controllers
                 StatusCode = StatusCodes.Status200OK,
                 isSuccess = result,
                 message = result ? "Sales Order cancelled successfully." : "Failed to cancel Sales Order."
+            });
+        }
+
+        [HttpPut("foreclose/{id}")]
+        public async Task<IActionResult> ForecloseSalesOrder(int id)
+        {
+            var result = await Mediator.Send(new ForecloseSalesOrderCommand(id));
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                isSuccess = result,
+                message = result ? "Sales Order foreclosed successfully." : "Failed to foreclose Sales Order."
             });
         }
 

@@ -1,3 +1,4 @@
+using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Finance;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -16,15 +17,18 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
         private readonly ApplicationDbContext _applicationDbContext;
         private readonly IMiscMasterQueryRepository _miscMasterQueryRepository;
         private readonly IDocumentSequenceLookup _documentSequenceLookup;
+        private readonly IIPAddressService _ipAddressService;
 
         public SalesOrderCommandRepository(
             ApplicationDbContext applicationDbContext,
             IMiscMasterQueryRepository miscMasterQueryRepository,
-            IDocumentSequenceLookup documentSequenceLookup)
+            IDocumentSequenceLookup documentSequenceLookup,
+            IIPAddressService ipAddressService)
         {
             _applicationDbContext = applicationDbContext;
             _miscMasterQueryRepository = miscMasterQueryRepository;
             _documentSequenceLookup = documentSequenceLookup;
+            _ipAddressService = ipAddressService;
         }
 
         public async Task<int> CreateAsync(SalesOrderHeader entity, int transactionTypeId)
@@ -156,6 +160,31 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             var cancelledStatus = await _miscMasterQueryRepository.GetMiscMasterByName(
                 MiscEnumEntity.SalesOrderApprovalStatus, MiscEnumEntity.SalesOrderStatusCancelled);
             existing.StatusId = cancelledStatus?.Id;
+
+            existing.CancelledDate = DateTimeOffset.UtcNow;
+            existing.CancelledByName = _ipAddressService.GetUserName();
+            existing.CancelledIP = _ipAddressService.GetUserIPAddress();
+
+            _applicationDbContext.SalesOrderHeader.Update(existing);
+            await _applicationDbContext.SaveChangesAsync(ct);
+            return true;
+        }
+
+        public async Task<bool> ForecloseAsync(int id, CancellationToken ct)
+        {
+            var existing = await _applicationDbContext.SalesOrderHeader
+                .FirstOrDefaultAsync(x => x.Id == id && x.IsDeleted == IsDelete.NotDeleted, ct);
+
+            if (existing == null)
+                return false;
+
+            var foreclosedStatus = await _miscMasterQueryRepository.GetMiscMasterByName(
+                MiscEnumEntity.SalesOrderApprovalStatus, MiscEnumEntity.SalesOrderStatusForeClosed);
+            existing.StatusId = foreclosedStatus?.Id;
+
+            existing.ForeClosedDate = DateTimeOffset.UtcNow;
+            existing.ForeClosedByName = _ipAddressService.GetUserName();
+            existing.ForeClosedIP = _ipAddressService.GetUserIPAddress();
 
             _applicationDbContext.SalesOrderHeader.Update(existing);
             await _applicationDbContext.SaveChangesAsync(ct);
