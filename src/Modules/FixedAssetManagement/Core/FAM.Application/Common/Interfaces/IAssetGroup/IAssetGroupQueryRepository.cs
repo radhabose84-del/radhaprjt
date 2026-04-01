@@ -6,7 +6,7 @@ namespace FAM.Application.Common.Interfaces.IAssetGroup
         Task<(List<FAM.Domain.Entities.AssetGroup>, int)> GetAllAssetGroupAsync(int PageNumber, int PageSize, string? SearchTerm);
         Task<List<FAM.Domain.Entities.AssetGroup>> GetAssetGroups(string searchPattern);
         Task<List<FAM.Domain.Entities.AssetGroup>> GetByIdsAsync(IEnumerable<int> ids);
-        Task<bool> IsAssetGroupLinkedAsync(int assetGroupId); //IsActive And Delete Validation 
-     
+        Task<bool> IsAssetGroupLinkedAsync(int assetGroupId); //IsActive And Delete Validation
+        Task<bool> SoftDeleteValidationAsync(int id);
     }
 }

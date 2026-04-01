@@ -1,4 +1,4 @@
-using System.Data;
+﻿using System.Data;
 using FAM.Application.Common.Interfaces.IAssetSubGroup;
 using Dapper;
 
@@ -99,12 +99,12 @@ namespace FAM.Infrastructure.Repositories.AssetSubGroup
         SELECT CASE WHEN
             EXISTS (
                 SELECT 1
-                FROM [FixedAsset].[FixedAsset].[AssetMaster] am
-                WHERE am.IsDeleted = 0 AND am.AssetSubGroupId = @id
+                FROM [FixedAsset].[AssetMaster] am
+                WHERE am.IsDeleted = 0 AND am.IsActive = 1 AND am.AssetSubGroupId = @id
             )
             OR EXISTS (
                 SELECT 1
-                FROM [FixedAsset].[FixedAsset].[WDVDepreciationDetail] wdv
+                FROM [FixedAsset].[WDVDepreciationDetail] wdv
                 WHERE wdv.AssetSubGroupId = @id
             )
         THEN 1 ELSE 0 END;
@@ -112,6 +112,25 @@ namespace FAM.Infrastructure.Repositories.AssetSubGroup
 
             var exists = await _dbConnection.QueryFirstOrDefaultAsync<int>(query, new { id });
             return exists == 1;
+        }
+
+        public async Task<bool> SoftDeleteValidationAsync(int id)
+        {
+            const string query = @"
+        SELECT CASE WHEN
+            EXISTS (
+                SELECT 1
+                FROM [FixedAsset].[AssetMaster]
+                WHERE IsDeleted = 0 AND AssetSubGroupId = @id
+            )
+            OR EXISTS (
+                SELECT 1
+                FROM [FixedAsset].[WDVDepreciationDetail]
+                WHERE AssetSubGroupId = @id
+            )
+        THEN 1 ELSE 0 END;";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(query, new { id });
         }
     }
 }

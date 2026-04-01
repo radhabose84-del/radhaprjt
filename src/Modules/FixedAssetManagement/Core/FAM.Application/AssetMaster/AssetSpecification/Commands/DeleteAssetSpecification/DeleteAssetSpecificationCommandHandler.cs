@@ -28,7 +28,7 @@ namespace FAM.Application.AssetMaster.AssetSpecification.Commands.DeleteAssetSpe
             var assetSpecifications = await _assetSpecificationQueryRepository.GetByIdAsync(request.Id);
             if (assetSpecifications is null )
             {
-                throw new ValidationException("Invalid DepreciationGroupID.");
+                throw new ValidationException("Asset Specification not found.");
                
             }
             var assetSpecificationDelete = _mapper.Map<AssetSpecifications>(request);      

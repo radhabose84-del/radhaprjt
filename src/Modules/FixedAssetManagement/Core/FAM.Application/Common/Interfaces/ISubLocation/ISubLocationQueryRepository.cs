@@ -9,6 +9,6 @@ namespace FAM.Application.Common.Interfaces.ISubLocation
         Task<bool> IsParentLocationActiveAsync(int locationId);
         Task<FAM.Domain.Entities.SubLocation?> GetBySubLocationCodeAsync(string code, int DepartmentId, int LocationId, int UnitId, int? id = null);
         Task<bool> IsSubLocationLinkedAsync(int id);
-
+        Task<bool> SoftDeleteValidationAsync(int id);
     }
 }

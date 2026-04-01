@@ -1,4 +1,5 @@
-using System.Data;
+﻿using System.Data;
+using Contracts.Interfaces.Validations.MaintenanceManagement;
 using FAM.Application.Common.Interfaces.IUOM;
 using FAM.Application.UOM.Queries.GetUOMTypeAutoComplete;
 using FAM.Domain.Entities;
@@ -9,10 +10,12 @@ namespace FAM.Infrastructure.Repositories.UOMs
     public class UOMQueryRepository : IUOMQueryRepository
     {
         private readonly IDbConnection _dbConnection;
-        public UOMQueryRepository(IDbConnection dbConnection)
+        private readonly IMaintenanceUomValidation _uomValidation;
+
+        public UOMQueryRepository(IDbConnection dbConnection, IMaintenanceUomValidation uomValidation)
         {
             _dbConnection = dbConnection;
-            
+            _uomValidation = uomValidation;
         }        
         public async Task<(List<UOM>, int)> GetAllUOMAsync(int PageNumber, int PageSize, string? SearchTerm)
         {
@@ -102,15 +105,22 @@ namespace FAM.Infrastructure.Repositories.UOMs
             return uoms.ToList();
         }
         public async Task<bool> IsUomLinkedAsync(int uomId)
-        {
-            const string query = @"
-        SELECT TOP 1 1
-        FROM [Maintenance].[Maintenance].[MachineMaster]
-        WHERE IsDeleted = 0 AND UomId = @uomId;
-        ";
+            => await _uomValidation.HasActiveUomAsync(uomId);
 
-            var result = await _dbConnection.QueryFirstOrDefaultAsync<int?>(query, new { uomId });
-            return result.HasValue;
+        public async Task<bool> SoftDeleteValidationAsync(int id)
+        {
+            // Check same-module FAM reference
+            const string sql = @"
+        SELECT CASE WHEN EXISTS (
+            SELECT 1 FROM [FixedAsset].[AssetMaster]
+            WHERE IsDeleted = 0 AND UOMId = @id
+        ) THEN 1 ELSE 0 END;";
+
+            var famLinked = await _dbConnection.ExecuteScalarAsync<bool>(sql, new { id });
+            if (famLinked) return true;
+
+            // Check cross-module Maintenance reference via validation interface
+            return await _uomValidation.HasLinkedUomAsync(id);
         }
     }
 }
