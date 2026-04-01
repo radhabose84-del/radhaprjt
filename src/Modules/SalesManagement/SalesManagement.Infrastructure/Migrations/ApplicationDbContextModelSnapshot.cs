@@ -4815,6 +4815,10 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("decimal(18,3)")
                         .HasColumnName("TotalValue");
 
+                    b.Property<int?>("TypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("TypeId");
+
                     b.Property<int>("UnitId")
                         .HasColumnType("int")
                         .HasColumnName("UnitId");

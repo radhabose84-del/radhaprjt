@@ -15,5 +15,13 @@ namespace SalesManagement.Application.Common.Interfaces.IStockLedger
             int? packNo,
             DateOnly? dateFrom,
             DateOnly? dateTo);
+
+        Task<List<StockLedgerReportDto>> GetByPackRangeAsync(
+            int itemId,
+            int packTypeId,
+            int startPackNo,
+            int endPackNo,
+            int productionYear,
+            CancellationToken ct = default);
     }
 }

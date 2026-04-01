@@ -16,5 +16,6 @@ namespace Contracts.Dtos.Stock
         public int TotalQty { get; set; }
         public decimal TotalValue { get; set; }
         public int StatusId { get; set; }
+        public int? TypeId { get; set; }
     }
 }

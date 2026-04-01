@@ -18,7 +18,7 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
         private readonly IBinLookup _binLookup;
         private readonly IItemLookup _itemLookup;
         private readonly IIPAddressService _ipAddressService;
-        private readonly ISalesStockLedgerLookup _stockLedgerLookup;
+        private readonly ISalesStockLedgerService _stockLedgerLookup;
 
         public ProductionQueryRepository(
             IDbConnection dbConnection,
@@ -27,7 +27,7 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
             IBinLookup binLookup,
             IItemLookup itemLookup,
             IIPAddressService ipAddressService,
-            ISalesStockLedgerLookup stockLedgerLookup)
+            ISalesStockLedgerService stockLedgerLookup)
         {
             _dbConnection      = dbConnection;
             _unitLookup        = unitLookup;
@@ -279,19 +279,8 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
 
         public async Task<int> GetLastEndPackNoAsync(int productionYear)
         {
-            var unitId = _ipAddressService.GetUnitId();
-            var unitFilter = unitId.HasValue ? "AND h.UnitId = @UnitId" : "";
-
-            var sql = $@"
-                SELECT ISNULL(MAX(d.EndPackNo), 0)
-                FROM Production.ProductionPackDetail d
-                INNER JOIN Production.ProductionPackHeader h ON d.ProductionPackHeaderId = h.Id
-                WHERE h.ProductionYear = @ProductionYear
-                    AND h.IsDeleted = 0
-                    {unitFilter}";
-
-            return await _dbConnection.ExecuteScalarAsync<int>(sql,
-                new { ProductionYear = productionYear, UnitId = unitId });
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
+            return await _stockLedgerLookup.GetLastPackNoByYearAsync(productionYear, unitId);
         }
 
         public async Task<List<ProductionPackDetailDto>> GetByPackRangeAsync(
@@ -334,7 +323,9 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
                 return details;
 
             // Filter: only keep details that have at least one 'Packed' pack in Sales.StockLedger
-            var packedNos = await _stockLedgerLookup.GetPackedPackNosAsync(startPackNo, endPackNo, ct);
+            var productionYear = details[0].ProductionYear ?? 0;
+            var resolvedUnitId = unitId ?? 0;
+            var packedNos = await _stockLedgerLookup.GetPackedPackNosAsync(startPackNo, endPackNo, productionYear, resolvedUnitId, ct);
             var packedSet = new HashSet<int>(packedNos);
             details = details.Where(d => packedSet.Contains(d.StartPackNo)).ToList();
 

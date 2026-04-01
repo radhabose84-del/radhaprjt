@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using SalesManagement.Application.StockLedger.Queries.GetStockByPackRange;
 using SalesManagement.Application.StockLedger.Queries.GetStockLedgerReport;
 
 namespace SalesManagement.Presentation.Controllers
@@ -44,6 +45,31 @@ namespace SalesManagement.Presentation.Controllers
                 TotalCount = result.TotalCount,
                 PageNumber = result.PageNumber,
                 PageSize   = result.PageSize
+            });
+        }
+
+        [HttpGet("by-pack-range")]
+        public async Task<IActionResult> GetStockByPackRangeAsync(
+            [FromQuery] int ItemId,
+            [FromQuery] int PackTypeId,
+            [FromQuery] int StartPackNo,
+            [FromQuery] int EndPackNo,
+            [FromQuery] int ProductionYear)
+        {
+            var result = await Mediator.Send(new GetStockByPackRangeQuery
+            {
+                ItemId        = ItemId,
+                PackTypeId    = PackTypeId,
+                StartPackNo   = StartPackNo,
+                EndPackNo     = EndPackNo,
+                ProductionYear = ProductionYear
+            });
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data       = result.Data,
+                TotalCount = result.TotalCount
             });
         }
     }

@@ -253,7 +253,9 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                         DeliveryLeadTime = i.Sale.DeliveryLeadTime,
                         Discount = i.Sale.Discount,
                         SalesUOM = i.Sale.SalesUOM != null ? i.Sale.SalesUOM.UOMName : null,
-                        CountId = i.Sale.CountId
+                        CountId = i.Sale.CountId,
+                        ValuationMethodId = i.Sale.ValuationMethodId,
+                        ValuationMethodName = i.Sale.MiscValuationMethod != null ? i.Sale.MiscValuationMethod.Description : null
                     },
 
                     // ---------- collections ----------

@@ -6,7 +6,7 @@ namespace SalesManagement.Application.Common.Interfaces.IInvoice
 {
     public interface IInvoiceQueryRepository
     {
-        Task<(List<InvoiceHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm);
+        Task<(List<InvoiceHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm, string? status = null);
         Task<(List<GetInvoicePendingDto>, int)> GetInvoicePendingAsync(int pageNumber, int pageSize, string? searchTerm);
         Task<List<GetInvoiceGatePassPendingDto>> GetInvoiceGatePassPendingAsync(string? vehicleNo);
         Task<InvoiceHeaderDto?> GetByIdAsync(int id);

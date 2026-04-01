@@ -9,5 +9,6 @@ namespace SalesManagement.Application.Invoice.Queries.GetAllInvoice
         public int PageNumber { get; set; }
         public int PageSize { get; set; }
         public string? SearchTerm { get; set; }
+        public string? Status { get; set; }
     }
 }

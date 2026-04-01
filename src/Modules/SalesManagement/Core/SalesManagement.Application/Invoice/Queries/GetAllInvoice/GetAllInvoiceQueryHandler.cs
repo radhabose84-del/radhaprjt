@@ -22,7 +22,7 @@ namespace SalesManagement.Application.Invoice.Queries.GetAllInvoice
 
         public async Task<ApiResponseDTO<List<InvoiceHeaderDto>>> Handle(GetAllInvoiceQuery request, CancellationToken cancellationToken)
         {
-            var (data, totalCount) = await _queryRepository.GetAllAsync(request.PageNumber, request.PageSize, request.SearchTerm);
+            var (data, totalCount) = await _queryRepository.GetAllAsync(request.PageNumber, request.PageSize, request.SearchTerm, request.Status);
 
             var domainEvent = new AuditLogsDomainEvent(
                 actionDetail: "GetAllInvoiceQuery",

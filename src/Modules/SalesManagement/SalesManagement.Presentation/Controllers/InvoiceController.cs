@@ -22,13 +22,15 @@ namespace SalesManagement.Presentation.Controllers
         public async Task<IActionResult> GetAllInvoiceAsync(
             [FromQuery] int PageNumber,
             [FromQuery] int PageSize,
-            [FromQuery] string? SearchTerm = null)
+            [FromQuery] string? SearchTerm = null,
+            [FromQuery] string? Status = null)
         {
             var result = await Mediator.Send(new GetAllInvoiceQuery
             {
                 PageNumber = PageNumber,
                 PageSize = PageSize,
-                SearchTerm = SearchTerm
+                SearchTerm = SearchTerm,
+                Status = Status
             });
 
             return Ok(new

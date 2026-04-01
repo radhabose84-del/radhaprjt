@@ -283,10 +283,15 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
             var unitId = _ipAddressService.GetUnitId() ?? 0;
 
             const string sql = @"
-                SELECT PackNo
-                FROM Sales.StockLedger
-                WHERE UnitId = @UnitId AND ItemId = @ItemId AND StatusId = @StatusId AND LotId = @LotId
-                AND PackNo BETWEEN @StartPackNo AND @EndPackNo AND PackTypeId = @PackTypeId";
+                SELECT DISTINCT sl.PackNo
+                FROM Sales.StockLedger sl
+                WHERE sl.UnitId     = @UnitId
+                  AND sl.ItemId     = @ItemId
+                  AND sl.LotId      = @LotId
+                  AND sl.PackTypeId = @PackTypeId
+                  AND sl.StatusId   = @StatusId
+                  AND sl.PackNo    BETWEEN @StartPackNo AND @EndPackNo
+                ORDER BY sl.PackNo";
 
             var result = await _dbConnection.QueryAsync<int>(sql,
                 new { UnitId = unitId, ItemId = itemId, StatusId = statusId, LotId = lotId, StartPackNo = startPackNo, EndPackNo = endPackNo, PackTypeId = packTypeId });
