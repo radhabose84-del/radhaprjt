@@ -134,13 +134,44 @@ namespace MaintenanceManagement.Infrastructure.Repositories.MachineGroup
         SELECT CASE WHEN
             EXISTS (
                 SELECT 1
-                FROM [Maintenance].[Maintenance].[MachineMaster] mm
+                FROM [Maintenance].[MachineMaster] mm
+                WHERE mm.IsDeleted = 0 AND mm.IsActive = 1 AND mm.MachineGroupId = @id
+            )
+            OR EXISTS (
+                SELECT 1
+                FROM [Maintenance].[MachineGroupUser] mgu
+                WHERE mgu.IsDeleted = 0 AND mgu.IsActive = 1 AND mgu.MachineGroupId = @id
+            )
+            OR EXISTS (
+                SELECT 1
+                FROM [Maintenance].[PreventiveSchedulerHeader] psh
+                WHERE psh.IsDeleted = 0 AND psh.IsActive = 1 AND psh.MachineGroupId = @id
+            )
+        THEN 1 ELSE 0 END;
+    ";
+
+            var exists = await _dbConnection.QueryFirstOrDefaultAsync<int>(query, new { id });
+            return exists == 1;
+        }
+
+        public async Task<bool> SoftDeleteValidationAsync(int id)
+        {
+            const string query = @"
+        SELECT CASE WHEN
+            EXISTS (
+                SELECT 1
+                FROM [Maintenance].[MachineMaster] mm
                 WHERE mm.IsDeleted = 0 AND mm.MachineGroupId = @id
             )
             OR EXISTS (
                 SELECT 1
-                FROM [Maintenance].[Maintenance].[MachineGroupUser] mgu
+                FROM [Maintenance].[MachineGroupUser] mgu
                 WHERE mgu.IsDeleted = 0 AND mgu.MachineGroupId = @id
+            )
+            OR EXISTS (
+                SELECT 1
+                FROM [Maintenance].[PreventiveSchedulerHeader] psh
+                WHERE psh.IsDeleted = 0 AND psh.MachineGroupId = @id
             )
         THEN 1 ELSE 0 END;
     ";

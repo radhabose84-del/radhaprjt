@@ -1,6 +1,7 @@
 #nullable disable
 using AutoMapper;
 using Contracts.Common;
+using FluentValidation;
 using MaintenanceManagement.Application.Common.Interfaces.IMiscMaster;
 using MaintenanceManagement.Domain.Events;
 using MediatR;
@@ -27,7 +28,13 @@ namespace MaintenanceManagement.Application.MiscMaster.Command.UpdateMiscMaster
 
            public async Task<bool> Handle(UpdateMiscMasterCommand request, CancellationToken cancellationToken)
         {
-                          
+                if (request.IsActive == 0)
+                {
+                    var linked = await _miscMasterQueryRepository.IsMiscMasterLinkedAsync(request.Id);
+                    if (linked)
+                        throw new ValidationException("This master is linked with other records. You cannot inactivate this record.");
+                }
+
                  var miscmaster  = _imapper.Map<MaintenanceManagement.Domain.Entities.MiscMaster>(request);         
                 var MiscMasterresult = await _miscMasterCommandRepository.UpdateAsync(request.Id, miscmaster);                
 
