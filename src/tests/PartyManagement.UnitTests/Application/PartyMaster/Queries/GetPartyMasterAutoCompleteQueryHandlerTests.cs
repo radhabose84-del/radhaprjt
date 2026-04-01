@@ -1,4 +1,3 @@
-using AutoMapper;
 using MediatR;
 using PartyManagement.Application.Common.Interfaces.IPartyMaster;
 using PartyManagement.Application.PartyMaster.Queries.GetPartMasterAutoComplete;
@@ -9,11 +8,10 @@ namespace PartyManagement.UnitTests.Application.PartyMaster.Queries
     public sealed class GetPartyMasterAutoCompleteQueryHandlerTests
     {
         private readonly Mock<IPartyMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
-        private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Loose);
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Loose);
 
         private GetPartyMasterAutoCompleteQueryHandler CreateSut() =>
-            new(_mockQueryRepo.Object, _mockMapper.Object, _mockMediator.Object);
+            new(_mockQueryRepo.Object, _mockMediator.Object);
 
         [Fact]
         public async Task Handle_ReturnsMatchingResults()
@@ -26,10 +24,6 @@ namespace PartyManagement.UnitTests.Application.PartyMaster.Queries
             _mockQueryRepo
                 .Setup(r => r.GetPartyMasterAutoComplete(It.IsAny<List<int>>(), It.IsAny<string>()))
                 .ReturnsAsync(resultList);
-
-            _mockMapper
-                .Setup(m => m.Map<List<GetPartyMasterAutoCompleteDto>>(It.IsAny<object>()))
-                .Returns(resultList);
 
             var result = await CreateSut().Handle(
                 new GetPartyMasterAutoCompleteQuery { SearchPattern = "Test" },
@@ -48,10 +42,6 @@ namespace PartyManagement.UnitTests.Application.PartyMaster.Queries
                 .Setup(r => r.GetPartyMasterAutoComplete(It.IsAny<List<int>>(), It.IsAny<string>()))
                 .ReturnsAsync(emptyList);
 
-            _mockMapper
-                .Setup(m => m.Map<List<GetPartyMasterAutoCompleteDto>>(It.IsAny<object>()))
-                .Returns(emptyList);
-
             var result = await CreateSut().Handle(
                 new GetPartyMasterAutoCompleteQuery { SearchPattern = null },
                 CancellationToken.None);
@@ -65,10 +55,6 @@ namespace PartyManagement.UnitTests.Application.PartyMaster.Queries
             _mockQueryRepo
                 .Setup(r => r.GetPartyMasterAutoComplete(It.IsAny<List<int>>(), It.IsAny<string>()))
                 .ReturnsAsync(new List<GetPartyMasterAutoCompleteDto>());
-
-            _mockMapper
-                .Setup(m => m.Map<List<GetPartyMasterAutoCompleteDto>>(It.IsAny<object>()))
-                .Returns(new List<GetPartyMasterAutoCompleteDto>());
 
             await CreateSut().Handle(
                 new GetPartyMasterAutoCompleteQuery { SearchPattern = "PAR" },

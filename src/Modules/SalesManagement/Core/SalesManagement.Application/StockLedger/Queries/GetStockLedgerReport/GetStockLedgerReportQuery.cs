@@ -16,5 +16,6 @@ namespace SalesManagement.Application.StockLedger.Queries.GetStockLedgerReport
         public int? PackNo { get; set; }
         public DateOnly? DateFrom { get; set; }
         public DateOnly? DateTo { get; set; }
+        public int? ProductionYear { get; set; }
     }
 }

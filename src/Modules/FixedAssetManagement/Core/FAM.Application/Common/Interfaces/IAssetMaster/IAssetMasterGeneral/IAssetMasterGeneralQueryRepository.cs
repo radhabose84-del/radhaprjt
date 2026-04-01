@@ -17,6 +17,9 @@ namespace FAM.Application.Common.Interfaces.IAssetMaster.IAssetMasterGeneral
         Task<(dynamic AssetResult, dynamic LocationResult, IEnumerable<dynamic> PurchaseDetails, IEnumerable<dynamic> Spec, IEnumerable<dynamic> Warranty,IEnumerable<dynamic> Amc,dynamic Disposal, IEnumerable<dynamic> Insurance , IEnumerable<dynamic> AdditionalCost)> GetAssetMasterByIdAsync(int assetId);
         Task<(dynamic AssetResult, dynamic LocationResult, IEnumerable<dynamic> PurchaseDetails,  IEnumerable<dynamic> AdditionalCost)> GetAssetMasterSplitByIdAsync(int assetId);
         //Task<(string CompanyName, string UnitName)> GetCompanyUnitAsync(int companyId,int unitId);           
-        Task<string> GetDocumentDirectoryAsync();           
+        Task<string> GetDocumentDirectoryAsync();
+
+        /// <summary>Inactivate guard: checks if any active child records reference this asset.</summary>
+        Task<bool> IsAssetMasterLinkedAsync(int assetId);
     }
 }

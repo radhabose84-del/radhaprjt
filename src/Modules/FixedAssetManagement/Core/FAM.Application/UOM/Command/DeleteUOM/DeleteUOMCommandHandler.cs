@@ -21,14 +21,15 @@ namespace FAM.Application.UOM.Command.DeleteUOM
         }
         public async Task<bool> Handle(DeleteUOMCommand request, CancellationToken cancellationToken)
         {
-            var uom  = _mapper.Map<FAM.Domain.Entities.UOM>(request);
-            var uomresult = await _uomCommandRepository.DeleteAsync(request.Id, uom);
-
+            // Linked guard — MUST run BEFORE persisting the delete
             var isLinked = await _uomQueryRepository.IsUomLinkedAsync(request.Id);
             if (isLinked)
             {
-                 throw new ValidationException("This master is linked with other records and cannot be deleted.");
+                 throw new ValidationException("This master is linked with other records. You cannot delete this record.");
             }
+
+            var uom  = _mapper.Map<FAM.Domain.Entities.UOM>(request);
+            var uomresult = await _uomCommandRepository.DeleteAsync(request.Id, uom);
              
 
                   //Domain Event  

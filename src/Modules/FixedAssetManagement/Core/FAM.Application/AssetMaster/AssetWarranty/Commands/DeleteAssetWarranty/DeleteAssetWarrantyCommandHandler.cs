@@ -28,7 +28,7 @@ namespace FAM.Application.AssetMaster.AssetWarranty.Commands.DeleteAssetWarranty
             var assetWarranty = await _assetWarrantyQueryRepository.GetByIdAsync(request.Id);
             if (assetWarranty is null )
             {
-                throw new ValidationException("Invalid DepreciationGroupID.");
+                throw new ValidationException("Asset Warranty not found.");
               
             }
             var assetWarrantyDelete = _mapper.Map<AssetWarranties>(request);      

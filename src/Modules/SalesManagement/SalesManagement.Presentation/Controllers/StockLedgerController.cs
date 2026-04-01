@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using SalesManagement.Application.StockLedger.Queries.GetStockByPackRange;
 using SalesManagement.Application.StockLedger.Queries.GetStockLedgerReport;
 
 namespace SalesManagement.Presentation.Controllers
@@ -21,7 +22,8 @@ namespace SalesManagement.Presentation.Controllers
             [FromQuery] int? StatusId = null,
             [FromQuery] int? PackNo = null,
             [FromQuery] DateOnly? DateFrom = null,
-            [FromQuery] DateOnly? DateTo = null)
+            [FromQuery] DateOnly? DateTo = null,
+            [FromQuery] int? ProductionYear = null)
         {
             var result = await Mediator.Send(new GetStockLedgerReportQuery
             {
@@ -34,7 +36,8 @@ namespace SalesManagement.Presentation.Controllers
                 StatusId    = StatusId,
                 PackNo      = PackNo,
                 DateFrom    = DateFrom,
-                DateTo      = DateTo
+                DateTo      = DateTo,
+                ProductionYear = ProductionYear
             });
 
             return Ok(new
@@ -44,6 +47,31 @@ namespace SalesManagement.Presentation.Controllers
                 TotalCount = result.TotalCount,
                 PageNumber = result.PageNumber,
                 PageSize   = result.PageSize
+            });
+        }
+
+        [HttpGet("by-pack-range")]
+        public async Task<IActionResult> GetStockByPackRangeAsync(
+            [FromQuery] int ProductionYear,
+            [FromQuery] int? ItemId = null,
+            [FromQuery] int? StartPackNo = null,
+            [FromQuery] int? EndPackNo = null,
+            [FromQuery] int? PackTypeId = null)
+        {
+            var result = await Mediator.Send(new GetStockByPackRangeQuery
+            {
+                ItemId         = ItemId,
+                ProductionYear = ProductionYear,
+                StartPackNo    = StartPackNo,
+                EndPackNo      = EndPackNo,
+                PackTypeId     = PackTypeId
+            });
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data       = result.Data,
+                TotalCount = result.TotalCount
             });
         }
     }

@@ -7,7 +7,6 @@ using ProductionManagement.Application.ProductionPack.Queries.GetAllProduction;
 using ProductionManagement.Application.ProductionPack.Queries.GetProductionAutoComplete;
 using ProductionManagement.Application.ProductionPack.Queries.GetLastEndPackNo;
 using ProductionManagement.Application.ProductionPack.Queries.GetProductionById;
-using ProductionManagement.Application.ProductionPack.Queries.GetProductionByPackRange;
 
 namespace ProductionManagement.Presentation.Controllers
 {
@@ -67,24 +66,6 @@ namespace ProductionManagement.Presentation.Controllers
         public async Task<IActionResult> GetProductionByIdAsync(int id)
         {
             var result = await Mediator.Send(new GetProductionByIdQuery { Id = id });
-
-            return Ok(new
-            {
-                StatusCode = StatusCodes.Status200OK,
-                data = result
-            });
-        }
-
-        [HttpGet("by-pack-range")]
-        public async Task<IActionResult> GetProductionByPackRangeAsync(
-            [FromQuery] int StartPackNo,
-            [FromQuery] int EndPackNo)
-        {
-            var result = await Mediator.Send(new GetProductionByPackRangeQuery
-            {
-                StartPackNo = StartPackNo,
-                EndPackNo   = EndPackNo
-            });
 
             return Ok(new
             {

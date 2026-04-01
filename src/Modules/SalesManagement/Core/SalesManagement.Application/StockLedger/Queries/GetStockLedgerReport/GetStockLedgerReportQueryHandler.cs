@@ -33,7 +33,8 @@ namespace SalesManagement.Application.StockLedger.Queries.GetStockLedgerReport
                 request.StatusId,
                 request.PackNo,
                 request.DateFrom,
-                request.DateTo);
+                request.DateTo,
+                request.ProductionYear);
 
             var domainEvent = new AuditLogsDomainEvent(
                 actionDetail: "GetStockLedgerReport",

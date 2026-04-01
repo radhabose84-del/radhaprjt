@@ -118,10 +118,10 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetWarranty
         public async Task<bool> SoftDeleteValidation(int Id)
         {
             const string query = @"
-                SELECT 1 AM.Id
+                SELECT 1
                 FROM FixedAsset.AssetMaster AM
-                inner join  FixedAsset.AssetWarranty AW on AW.AssetId = AM.Id
-                WHERE AW.Id = @Id AND   AM.IsDeleted = 0;";        
+                INNER JOIN FixedAsset.AssetWarranty AW ON AW.AssetId = AM.Id
+                WHERE AW.Id = @Id AND AM.IsDeleted = 0;";        
             using var multi = await _dbConnection.QueryMultipleAsync(query, new { Id = Id });        
             var warrantyExists = await multi.ReadFirstOrDefaultAsync<int?>();          
             return warrantyExists.HasValue ;
