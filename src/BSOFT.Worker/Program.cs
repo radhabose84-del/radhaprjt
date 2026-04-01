@@ -18,6 +18,9 @@ using FinanceManagement.Infrastructure;
 using FinanceManagement.Application;
 using ProductionManagement.Infrastructure;
 using SalesManagement.Infrastructure;
+using MaintenanceManagement.Infrastructure;
+using FAM.Infrastructure;
+
 
 var builder = Host.CreateApplicationBuilder(args);
 
@@ -65,6 +68,8 @@ builder.Services.AddPartyInfrastructure(builder.Configuration, builder.Environme
 builder.Services.AddWarehouseInfrastructure(builder.Configuration, builder.Environment);
 builder.Services.AddFinanceInfrastructureServices(builder.Configuration, builder.Environment);
 builder.Services.AddProductionInfrastructureServices(builder.Configuration, builder.Environment);
+builder.Services.AddMaintenanceInfrastructure(builder.Configuration, builder.Environment);
+builder.Services.AddFAMInfrastructure(builder.Configuration, builder.Environment);
 // Business module infrastructure (consumers and their command/query repos)
 builder.Services.AddPurchaseInfrastructureServices(builder.Configuration, builder.Environment);
 builder.Services.AddBudgetInfrastructure(builder.Configuration, builder.Environment);

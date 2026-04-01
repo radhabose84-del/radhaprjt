@@ -74,6 +74,7 @@ using MaintenanceManagement.Infrastructure.Repositories.Outbox;
 using MaintenanceManagement.Infrastructure.Services.Outbox;
 
 using MassTransit;
+using Microsoft.Extensions.Hosting;
 
 namespace MaintenanceManagement.Infrastructure
 {
@@ -81,7 +82,7 @@ namespace MaintenanceManagement.Infrastructure
     {
         public static IServiceCollection AddMaintenanceInfrastructure(
             this IServiceCollection services,
-            IConfiguration configuration)
+            IConfiguration configuration,IHostEnvironment environment)
         {
             var connectionString = (configuration.GetConnectionString("DefaultConnection") ?? string.Empty)
                                                 .Replace("{SERVER}", Environment.GetEnvironmentVariable("DATABASE_SERVER") ?? "")

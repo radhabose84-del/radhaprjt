@@ -3324,6 +3324,217 @@ EF Core auto-generates migration files with lowercase class names that trigger C
 
 ---
 
+### 25. **Master Entity Delete & Inactivate Validation When Dependents Exist**
+
+#### When This Rule Applies
+
+When implementing **Entity B** that has a FK referencing **Master A**, you MUST go back and update Master A's validation to check the new dependent table. The rule fires **at the time of implementing the dependent entity**, not when the master is first created.
+
+> ✅ Same-module dependents → **direct Dapper SQL** (`EXISTS` query)
+> ✅ Cross-module dependents → **validation interface** (consistent with lookup interface pattern — do NOT use direct SQL to another module's table)
+
+---
+
+#### Step-by-Step: What to Update on Master A
+
+**Step 1 — Add methods to `I{MasterEntity}QueryRepository` interface**
+
+```csharp
+Task<bool> SoftDeleteValidationAsync(int id);       // for Delete validator
+Task<bool> Is{MasterEntity}LinkedAsync(int id);     // for Inactivate (Update handler)
+```
+
+**Step 2a — Implement in `{MasterEntity}QueryRepository` (same-module dependent)**
+
+```csharp
+// Same-module: direct Dapper SQL — dependent table is in the same schema
+public async Task<bool> SoftDeleteValidationAsync(int id)
+{
+    const string sql = @"
+        SELECT CASE WHEN EXISTS (
+            SELECT 1 FROM {Schema}.{DependentTable}
+            WHERE {MasterEntity}Id = @Id AND IsDeleted = 0
+        ) THEN 1 ELSE 0 END";
+
+    return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { Id = id });
+}
+
+public async Task<bool> Is{MasterEntity}LinkedAsync(int id)
+{
+    const string sql = @"
+        SELECT CASE WHEN EXISTS (
+            SELECT 1 FROM {Schema}.{DependentTable}
+            WHERE {MasterEntity}Id = @Id AND IsDeleted = 0 AND IsActive = 1
+        ) THEN 1 ELSE 0 END";
+
+    return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { Id = id });
+}
+```
+
+**Step 2b — Cross-module dependent: create a Validation Interface**
+
+When the dependent table belongs to a different module, follow the same pattern as lookup interfaces:
+
+**File:** `src/Shared/Contracts/Interfaces/Validations/{DependentModule}/I{DependentEntity}Validation.cs`
+```csharp
+namespace Contracts.Interfaces.Validations.{DependentModule};
+
+public interface I{DependentEntity}Validation
+{
+    Task<bool> HasLinked{MasterEntity}Async(int masterEntityId);
+}
+```
+
+**File:** `src/Modules/{DependentModule}/{DependentModule}.Infrastructure/Repositories/Validations/{DependentEntity}ValidationRepository.cs`
+```csharp
+internal sealed class {DependentEntity}ValidationRepository : I{DependentEntity}Validation
+{
+    private readonly IDbConnection _dbConnection;
+
+    public {DependentEntity}ValidationRepository(IDbConnection dbConnection)
+    {
+        _dbConnection = dbConnection;
+    }
+
+    public async Task<bool> HasLinked{MasterEntity}Async(int masterEntityId)
+    {
+        const string sql = @"
+            SELECT CASE WHEN EXISTS (
+                SELECT 1 FROM {DependentSchema}.{DependentTable}
+                WHERE {MasterEntity}Id = @Id AND IsDeleted = 0
+            ) THEN 1 ELSE 0 END";
+
+        return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { Id = masterEntityId });
+    }
+}
+```
+
+Register in dependent module's `DependencyInjection.cs`:
+```csharp
+services.AddScoped<I{DependentEntity}Validation, {DependentEntity}ValidationRepository>();
+```
+
+Inject `I{DependentEntity}Validation` into Master A's `{MasterEntity}QueryRepository` and delegate the cross-module check to it.
+
+**Step 3 — Delete Validator (`Delete{MasterEntity}CommandValidator`)**
+
+Add `SoftDelete` case to the `switch`:
+
+```csharp
+case "SoftDelete":
+    RuleFor(x => x.Id)
+        .MustAsync(async (id, ct) =>
+            !await _queryRepository.SoftDeleteValidationAsync(id))
+        .WithMessage(
+            "This master is linked with other records. You cannot delete this record.");
+    break;
+```
+
+**Step 4 — Update Handler (`Update{MasterEntity}CommandHandler`)**
+
+Add the inactivate guard BEFORE mapping and persisting:
+
+```csharp
+public async Task<ApiResponseDTO<int>> Handle(
+    Update{MasterEntity}Command request, CancellationToken cancellationToken)
+{
+    if (request.IsActive == 0)
+    {
+        var isLinked = await _queryRepository.Is{MasterEntity}LinkedAsync(request.Id);
+        if (isLinked)
+            throw new ExceptionRules(
+                "This master is linked with other records. You cannot inactivate this record.");
+    }
+
+    var entity = _mapper.Map<Domain.Entities.{MasterEntity}>(request);
+    var result = await _commandRepository.UpdateAsync(entity);
+
+    var auditEvent = new AuditLogsDomainEvent(
+        actionDetail: "Update",
+        actionCode: "{MASTER}_UPDATE",
+        actionName: request.Id.ToString(),
+        details: $"{MasterEntity} with Id {request.Id} updated successfully.",
+        module: "{MasterEntity}"
+    );
+    await _mediator.Publish(auditEvent, cancellationToken);
+
+    return new ApiResponseDTO<int>
+    {
+        IsSuccess = true,
+        Message = "{MasterEntity} updated successfully.",
+        Data = result
+    };
+}
+```
+
+---
+
+#### SQL Rules
+
+| Check | Filter Required |
+|---|---|
+| `SoftDeleteValidationAsync` | `WHERE IsDeleted = 0` on dependent table |
+| `Is{MasterEntity}LinkedAsync` | `WHERE IsDeleted = 0 AND IsActive = 1` on dependent table |
+
+> ❌ **NEVER check already-deleted or already-inactive records** — they are irrelevant to blocking.
+
+---
+
+#### Multiple Dependents — Use `OR EXISTS`
+
+If Master A is referenced by more than one table, check all in a single query:
+
+```csharp
+public async Task<bool> SoftDeleteValidationAsync(int id)
+{
+    const string sql = @"
+        SELECT CASE WHEN
+            EXISTS (SELECT 1 FROM {Schema}.{TableB} WHERE {MasterEntity}Id = @Id AND IsDeleted = 0)
+            OR
+            EXISTS (SELECT 1 FROM {Schema}.{TableC} WHERE {MasterEntity}Id = @Id AND IsDeleted = 0)
+        THEN 1 ELSE 0 END";
+
+    return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { Id = id });
+}
+```
+
+---
+
+#### Error Message Format (fixed — do not customise)
+
+| Operation | Error Message |
+|---|---|
+| Delete | `"This master is linked with other records. You cannot delete this record."` |
+| Inactivate | `"This master is linked with other records. You cannot inactivate this record."` |
+
+---
+
+#### Response Format on Block (400)
+
+```json
+{
+  "isSuccess": false,
+  "message": "Validation failed",
+  "errors": [
+    "This master is linked with other records. You cannot delete this record."
+  ],
+  "statusCode": 400
+}
+```
+
+---
+
+#### Summary Table
+
+| Dependent Type | Validation Approach | Where SQL Lives |
+|---|---|---|
+| Same-module | Direct Dapper `EXISTS` SQL | Master's own `QueryRepository` |
+| Cross-module | Validation interface (`I{DependentEntity}Validation`) | Dependent module's `Infrastructure` |
+
+> ⚠️ **This rule is triggered when implementing the DEPENDENT entity (Entity B), not when creating the master (Master A).** If Master A already exists without these checks, they must be added retroactively when Entity B is implemented.
+
+---
+
 ## 📄 Technical Documentation Templates
 
 All generated documentation lives in `d:\BSOFT\docs\` using the naming:

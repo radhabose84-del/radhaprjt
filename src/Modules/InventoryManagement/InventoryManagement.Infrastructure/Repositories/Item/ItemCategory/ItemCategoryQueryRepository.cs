@@ -135,7 +135,7 @@ namespace  InventoryManagement.Infrastructure.Repositories.Item.ItemCategory
         {
             var query = "SELECT COUNT(1) FROM Inventory.ItemCategory WHERE Id = @Id AND IsDeleted = 0";
             var count = await _dbConnection.ExecuteScalarAsync<int>(query, new { Id = Id });
-            return count > 0;
+            return count == 0;
         }
         public async Task<List<ItemCategoryAutoCompleteDto>> GetItemCategoryAutoCompleteAsync(
             int? groupId,

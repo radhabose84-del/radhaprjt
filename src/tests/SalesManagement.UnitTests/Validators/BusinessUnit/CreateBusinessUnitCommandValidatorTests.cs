@@ -31,6 +31,13 @@ namespace SalesManagement.UnitTests.Validators.BusinessUnit
                 .ReturnsAsync(true);
         }
 
+        private void SetupNameNotExists()
+        {
+            _mockQueryRepo
+                .Setup(r => r.NameAlreadyExistsAsync(It.IsAny<string>(), null))
+                .ReturnsAsync(false);
+        }
+
         /// <summary>
         /// Use when the test doesn't care about uniqueness.
         /// FluentValidation runs ALL rules regardless of earlier failures.
@@ -49,6 +56,7 @@ namespace SalesManagement.UnitTests.Validators.BusinessUnit
         {
             var command = BusinessUnitBuilders.ValidCreateCommand();
             SetupCodeNotExists("BU001");
+            SetupNameNotExists();
 
             var result = await CreateValidator().TestValidateAsync(command);
 
@@ -63,6 +71,7 @@ namespace SalesManagement.UnitTests.Validators.BusinessUnit
         public async Task BusinessUnitCode_Empty_FailsValidation(string? code)
         {
             var command = BusinessUnitBuilders.ValidCreateCommand(code: code);
+            SetupNameNotExists();
 
             var result = await CreateValidator().TestValidateAsync(command);
 
@@ -77,6 +86,7 @@ namespace SalesManagement.UnitTests.Validators.BusinessUnit
             var longCode = new string('A', 21);
             var command = BusinessUnitBuilders.ValidCreateCommand(code: longCode);
             SetupAnyCodeNotExists();
+            SetupNameNotExists();
 
             var result = await CreateValidator().TestValidateAsync(command);
 
@@ -95,6 +105,7 @@ namespace SalesManagement.UnitTests.Validators.BusinessUnit
             // AlreadyExistsAsync still fires even when Matches rule fails
             var command = BusinessUnitBuilders.ValidCreateCommand(code: code);
             SetupAnyCodeNotExists();
+            SetupNameNotExists();
 
             var result = await CreateValidator().TestValidateAsync(command);
 
@@ -107,6 +118,7 @@ namespace SalesManagement.UnitTests.Validators.BusinessUnit
         {
             var command = BusinessUnitBuilders.ValidCreateCommand(code: "BU001");
             SetupCodeAlreadyExists("BU001");
+            SetupNameNotExists();
 
             var result = await CreateValidator().TestValidateAsync(command);
 
@@ -119,6 +131,7 @@ namespace SalesManagement.UnitTests.Validators.BusinessUnit
         {
             var command = BusinessUnitBuilders.ValidCreateCommand(code: "BU999");
             SetupCodeNotExists("BU999");
+            SetupNameNotExists();
 
             var result = await CreateValidator().TestValidateAsync(command);
 
@@ -131,6 +144,7 @@ namespace SalesManagement.UnitTests.Validators.BusinessUnit
             var maxCode = new string('A', 20);
             var command = BusinessUnitBuilders.ValidCreateCommand(code: maxCode);
             SetupCodeNotExists(maxCode);
+            SetupNameNotExists();
 
             var result = await CreateValidator().TestValidateAsync(command);
 
@@ -146,6 +160,7 @@ namespace SalesManagement.UnitTests.Validators.BusinessUnit
         {
             var command = BusinessUnitBuilders.ValidCreateCommand(name: name);
             SetupCodeNotExists("BU001");
+            SetupNameNotExists();
 
             var result = await CreateValidator().TestValidateAsync(command);
 
@@ -159,6 +174,7 @@ namespace SalesManagement.UnitTests.Validators.BusinessUnit
             var longName = new string('A', 101);
             var command = BusinessUnitBuilders.ValidCreateCommand(name: longName);
             SetupCodeNotExists("BU001");
+            SetupNameNotExists();
 
             var result = await CreateValidator().TestValidateAsync(command);
 
@@ -172,6 +188,7 @@ namespace SalesManagement.UnitTests.Validators.BusinessUnit
             var maxName = new string('A', 100);
             var command = BusinessUnitBuilders.ValidCreateCommand(name: maxName);
             SetupCodeNotExists("BU001");
+            SetupNameNotExists();
 
             var result = await CreateValidator().TestValidateAsync(command);
 
@@ -186,6 +203,7 @@ namespace SalesManagement.UnitTests.Validators.BusinessUnit
             var longDesc = new string('A', 501);
             var command = BusinessUnitBuilders.ValidCreateCommand(description: longDesc);
             SetupCodeNotExists("BU001");
+            SetupNameNotExists();
 
             var result = await CreateValidator().TestValidateAsync(command);
 
@@ -198,6 +216,7 @@ namespace SalesManagement.UnitTests.Validators.BusinessUnit
         {
             var command = BusinessUnitBuilders.ValidCreateCommand(description: null);
             SetupCodeNotExists("BU001");
+            SetupNameNotExists();
 
             var result = await CreateValidator().TestValidateAsync(command);
 

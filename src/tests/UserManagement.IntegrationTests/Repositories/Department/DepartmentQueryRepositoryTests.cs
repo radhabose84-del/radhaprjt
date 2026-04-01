@@ -1,6 +1,6 @@
 using Contracts.Interfaces;
-using Contracts.Interfaces.Validations.BudgetManagement;
 using Contracts.Interfaces.Validations.MaintenanceManagement;
+using Contracts.Interfaces.Validations.BudgetManagement;
 using Contracts.Interfaces.Validations.ProjectManagement;
 using Contracts.Interfaces.Validations.WarehouseManagement;
 using UserManagement.Application.Common.Interfaces;
@@ -57,13 +57,13 @@ namespace UserManagement.IntegrationTests.Repositories.Department
             ipMock.Setup(x => x.GetUserId()).Returns(1);
             ipMock.Setup(x => x.GetGroupCode()).Returns("SUPER_ADMIN");
 
-            var maintenanceMock = new Mock<IMaintenanceDepartmentValidation>(MockBehavior.Loose);
-            var budgetMock = new Mock<IBudgetDepartmentValidation>(MockBehavior.Loose);
-            var projectMock = new Mock<IProjectDepartmentValidation>(MockBehavior.Loose);
-            var warehouseMock = new Mock<IWarehouseDepartmentValidation>(MockBehavior.Loose);
+            var maintenanceVal = new Mock<IMaintenanceDepartmentValidation>(MockBehavior.Loose);
+            var budgetVal = new Mock<IBudgetDepartmentValidation>(MockBehavior.Loose);
+            var projectVal = new Mock<IProjectDepartmentValidation>(MockBehavior.Loose);
+            var warehouseVal = new Mock<IWarehouseDepartmentValidation>(MockBehavior.Loose);
 
             var conn = new SqlConnection(_fixture.ConnectionString);
-            return new DepartmentQueryRepository(conn, ipMock.Object, maintenanceMock.Object, budgetMock.Object, projectMock.Object, warehouseMock.Object);
+            return new DepartmentQueryRepository(conn, ipMock.Object, maintenanceVal.Object, budgetVal.Object, projectVal.Object, warehouseVal.Object);
         }
 
         private async Task<int> EnsureDepartmentGroupAsync(ApplicationDbContext ctx)

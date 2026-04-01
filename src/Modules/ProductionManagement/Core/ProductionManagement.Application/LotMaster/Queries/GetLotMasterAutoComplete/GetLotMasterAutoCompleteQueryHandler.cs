@@ -1,7 +1,7 @@
 using AutoMapper;
+using Contracts.Dtos.Lookups.Production;
 using MediatR;
 using ProductionManagement.Application.Common.Interfaces.ILotMaster;
-using ProductionManagement.Application.LotMaster.Dto;
 using ProductionManagement.Domain.Events;
 
 namespace ProductionManagement.Application.LotMaster.Queries.GetLotMasterAutoComplete

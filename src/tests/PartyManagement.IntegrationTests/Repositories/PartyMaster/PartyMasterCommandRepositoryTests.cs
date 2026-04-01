@@ -23,9 +23,10 @@ namespace PartyManagement.IntegrationTests.Repositories.PartyMaster
 
         /// <summary>
         /// Seeds the required ApprovalStatus MiscTypeMaster and Pending MiscMaster entries.
-        /// CreateAsync looks up MiscTypeCode="ApprovalStatus", Code="Pending" to set StatusId.
+        /// Also seeds a RegistrationType MiscMaster (required NOT NULL FK on PartyMaster).
+        /// Returns the seeded RegistrationType MiscMaster Id.
         /// </summary>
-        private async Task SeedApprovalStatusAsync()
+        private async Task<int> SeedApprovalStatusAsync()
         {
             await using var ctx1 = _fixture.CreateFreshDbContext();
             var mt = await new MiscTypeMasterCommandRepository(ctx1).CreateAsync(new PartyManagement.Domain.Entities.MiscTypeMaster
@@ -46,16 +47,49 @@ namespace PartyManagement.IntegrationTests.Repositories.PartyMaster
                 IsActive = BaseEntity.Status.Active,
                 IsDeleted = BaseEntity.IsDelete.NotDeleted
             });
+
+            return await SeedRegistrationTypeAsync();
+        }
+
+        /// <summary>
+        /// Seeds a RegistrationType MiscTypeMaster and a GST MiscMaster entry.
+        /// RegistrationTypeId is NOT NULL in the DB, so every PartyMaster insert needs a valid FK.
+        /// Returns the seeded MiscMaster Id to use as RegistrationTypeId.
+        /// </summary>
+        private async Task<int> SeedRegistrationTypeAsync()
+        {
+            await using var ctx1 = _fixture.CreateFreshDbContext();
+            var mt = await new MiscTypeMasterCommandRepository(ctx1).CreateAsync(new PartyManagement.Domain.Entities.MiscTypeMaster
+            {
+                MiscTypeCode = "RegistrationType",
+                Description = "Registration Type",
+                IsActive = BaseEntity.Status.Active,
+                IsDeleted = BaseEntity.IsDelete.NotDeleted
+            });
+
+            await using var ctx2 = _fixture.CreateFreshDbContext();
+            var mm = await new MiscMasterCommandRepository(ctx2).CreateAsync(new PartyManagement.Domain.Entities.MiscMaster
+            {
+                MiscTypeId = mt.Id,
+                Code = "GST",
+                Description = "GST Registered",
+                SortOrder = 1,
+                IsActive = BaseEntity.Status.Active,
+                IsDeleted = BaseEntity.IsDelete.NotDeleted
+            });
+            return mm.Id;
         }
 
         private static PartyManagement.Domain.Entities.PartyMaster BuildEntity(
             string code = "P0001",
-            string name = "Test Party") =>
+            string name = "Test Party",
+            int registrationTypeId = 0) =>
             new PartyManagement.Domain.Entities.PartyMaster
             {
                 PartyCode = code,
                 PartyName = name,
                 UnitId = 1,
+                RegistrationTypeId = registrationTypeId,
                 IsActive = BaseEntity.Status.Active,
                 IsDeleted = BaseEntity.IsDelete.NotDeleted
             };
@@ -88,10 +122,10 @@ namespace PartyManagement.IntegrationTests.Repositories.PartyMaster
         public async Task CreateAsync_Should_Return_Id_GreaterThanZero()
         {
             await ClearTablesAsync();
-            await SeedApprovalStatusAsync();
+            var regTypeId = await SeedApprovalStatusAsync();
 
             await using var ctx = _fixture.CreateFreshDbContext();
-            var id = await CreateRepository(ctx).CreateAsync(BuildEntity());
+            var id = await CreateRepository(ctx).CreateAsync(BuildEntity(registrationTypeId: regTypeId));
 
             id.Should().BeGreaterThan(0);
         }
@@ -100,10 +134,10 @@ namespace PartyManagement.IntegrationTests.Repositories.PartyMaster
         public async Task CreateAsync_Should_Persist_PartyName()
         {
             await ClearTablesAsync();
-            await SeedApprovalStatusAsync();
+            var regTypeId = await SeedApprovalStatusAsync();
 
             await using var ctx = _fixture.CreateFreshDbContext();
-            var id = await CreateRepository(ctx).CreateAsync(BuildEntity("P0001", "Persisted Party"));
+            var id = await CreateRepository(ctx).CreateAsync(BuildEntity("P0001", "Persisted Party", regTypeId));
             ctx.ChangeTracker.Clear();
 
             var saved = await ctx.PartyMaster.FirstOrDefaultAsync(x => x.Id == id);
@@ -116,10 +150,10 @@ namespace PartyManagement.IntegrationTests.Repositories.PartyMaster
         public async Task CreateAsync_Should_Populate_Audit_Fields()
         {
             await ClearTablesAsync();
-            await SeedApprovalStatusAsync();
+            var regTypeId = await SeedApprovalStatusAsync();
 
             await using var ctx = _fixture.CreateFreshDbContext();
-            var id = await CreateRepository(ctx).CreateAsync(BuildEntity());
+            var id = await CreateRepository(ctx).CreateAsync(BuildEntity(registrationTypeId: regTypeId));
             ctx.ChangeTracker.Clear();
 
             var saved = await ctx.PartyMaster.FirstOrDefaultAsync(x => x.Id == id);
@@ -133,10 +167,10 @@ namespace PartyManagement.IntegrationTests.Repositories.PartyMaster
         public async Task CreateAsync_Should_Set_StatusId_From_PendingMiscMaster()
         {
             await ClearTablesAsync();
-            await SeedApprovalStatusAsync();
+            var regTypeId = await SeedApprovalStatusAsync();
 
             await using var ctx = _fixture.CreateFreshDbContext();
-            var id = await CreateRepository(ctx).CreateAsync(BuildEntity("P0001", "Status Test Party"));
+            var id = await CreateRepository(ctx).CreateAsync(BuildEntity("P0001", "Status Test Party", regTypeId));
             ctx.ChangeTracker.Clear();
 
             var saved = await ctx.PartyMaster.FirstOrDefaultAsync(x => x.Id == id);
@@ -151,10 +185,10 @@ namespace PartyManagement.IntegrationTests.Repositories.PartyMaster
         public async Task DeleteAsync_Should_Return_True_When_Found()
         {
             await ClearTablesAsync();
-            await SeedApprovalStatusAsync();
+            var regTypeId = await SeedApprovalStatusAsync();
 
             await using var ctx = _fixture.CreateFreshDbContext();
-            var id = await CreateRepository(ctx).CreateAsync(BuildEntity("P0001", "Delete Test Party"));
+            var id = await CreateRepository(ctx).CreateAsync(BuildEntity("P0001", "Delete Test Party", regTypeId));
             ctx.ChangeTracker.Clear();
 
             var result = await CreateRepository(ctx).DeleteAsync(id,
@@ -167,10 +201,10 @@ namespace PartyManagement.IntegrationTests.Repositories.PartyMaster
         public async Task DeleteAsync_Should_Set_IsDeleted_Flag()
         {
             await ClearTablesAsync();
-            await SeedApprovalStatusAsync();
+            var regTypeId = await SeedApprovalStatusAsync();
 
             await using var ctx = _fixture.CreateFreshDbContext();
-            var id = await CreateRepository(ctx).CreateAsync(BuildEntity("P0001", "Soft Delete Party"));
+            var id = await CreateRepository(ctx).CreateAsync(BuildEntity("P0001", "Soft Delete Party", regTypeId));
             ctx.ChangeTracker.Clear();
 
             await CreateRepository(ctx).DeleteAsync(id,
@@ -202,10 +236,10 @@ namespace PartyManagement.IntegrationTests.Repositories.PartyMaster
         public async Task ExistsAsync_Should_Return_True_When_PartyName_Exists()
         {
             await ClearTablesAsync();
-            await SeedApprovalStatusAsync();
+            var regTypeId = await SeedApprovalStatusAsync();
 
             await using var ctx = _fixture.CreateFreshDbContext();
-            await CreateRepository(ctx).CreateAsync(BuildEntity("P0001", "Existing Party"));
+            await CreateRepository(ctx).CreateAsync(BuildEntity("P0001", "Existing Party", regTypeId));
             ctx.ChangeTracker.Clear();
 
             var exists = await CreateRepository(ctx).ExistsAsync("Existing Party");
@@ -228,10 +262,10 @@ namespace PartyManagement.IntegrationTests.Repositories.PartyMaster
         public async Task ExistsAsync_IsCaseInsensitive()
         {
             await ClearTablesAsync();
-            await SeedApprovalStatusAsync();
+            var regTypeId = await SeedApprovalStatusAsync();
 
             await using var ctx = _fixture.CreateFreshDbContext();
-            await CreateRepository(ctx).CreateAsync(BuildEntity("P0001", "Case Party"));
+            await CreateRepository(ctx).CreateAsync(BuildEntity("P0001", "Case Party", regTypeId));
             ctx.ChangeTracker.Clear();
 
             // ExistsAsync uses Collate CI_AS (case-insensitive)
@@ -246,10 +280,10 @@ namespace PartyManagement.IntegrationTests.Repositories.PartyMaster
         public async Task ExistsForUpdateAsync_Should_Return_False_When_Same_Id()
         {
             await ClearTablesAsync();
-            await SeedApprovalStatusAsync();
+            var regTypeId = await SeedApprovalStatusAsync();
 
             await using var ctx = _fixture.CreateFreshDbContext();
-            var id = await CreateRepository(ctx).CreateAsync(BuildEntity("P0001", "Update Check Party"));
+            var id = await CreateRepository(ctx).CreateAsync(BuildEntity("P0001", "Update Check Party", regTypeId));
             ctx.ChangeTracker.Clear();
 
             // Checking its own name — should return false (not a duplicate for update)
@@ -262,13 +296,13 @@ namespace PartyManagement.IntegrationTests.Repositories.PartyMaster
         public async Task ExistsForUpdateAsync_Should_Return_True_When_Another_Party_Has_Same_Name()
         {
             await ClearTablesAsync();
-            await SeedApprovalStatusAsync();
+            var regTypeId = await SeedApprovalStatusAsync();
 
             await using var ctx1 = _fixture.CreateFreshDbContext();
-            await CreateRepository(ctx1).CreateAsync(BuildEntity("P0001", "Shared Name Party"));
+            await CreateRepository(ctx1).CreateAsync(BuildEntity("P0001", "Shared Name Party", regTypeId));
 
             await using var ctx2 = _fixture.CreateFreshDbContext();
-            var id2 = await CreateRepository(ctx2).CreateAsync(BuildEntity("P0002", "My Party"));
+            var id2 = await CreateRepository(ctx2).CreateAsync(BuildEntity("P0002", "My Party", regTypeId));
             ctx2.ChangeTracker.Clear();
 
             // Trying to rename P0002 to the name that P0001 already has

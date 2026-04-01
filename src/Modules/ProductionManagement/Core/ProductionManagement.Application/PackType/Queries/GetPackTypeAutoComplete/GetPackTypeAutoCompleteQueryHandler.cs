@@ -1,7 +1,7 @@
 using AutoMapper;
+using Contracts.Dtos.Lookups.Production;
 using MediatR;
 using ProductionManagement.Application.Common.Interfaces.IPackType;
-using ProductionManagement.Application.PackType.Dto;
 using ProductionManagement.Domain.Events;
 
 namespace ProductionManagement.Application.PackType.Queries.GetPackTypeAutoComplete
