@@ -35,7 +35,12 @@ namespace MaintenanceManagement.Presentation.Validation.ActivityCheckListMaster
                                 (await _activityCheckListMasterQueryRepository.GetByIdAsync(id)) != null)
                             .WithName("Id")
                             .WithMessage($"{rule.Error}");
-                        break;                    
+                        break;
+                    case "SoftDelete":
+                        RuleFor(x => x.Id)
+                            .MustAsync(async (id, ct) => !await _activityCheckListMasterQueryRepository.SoftDeleteValidationAsync(id))
+                            .WithMessage("This master is linked with other records. You cannot delete this record.");
+                        break;
 
                     default:
                         break;

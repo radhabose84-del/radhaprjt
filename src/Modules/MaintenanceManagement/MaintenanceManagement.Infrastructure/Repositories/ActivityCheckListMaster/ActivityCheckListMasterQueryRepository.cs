@@ -191,12 +191,21 @@ namespace MaintenanceManagement.Infrastructure.Repositories.ActivityCheckListMas
         {
             const string query = @"
         SELECT TOP 1 1
-        FROM [Maintenance].[Maintenance].[WorkOrderCheckList]
+        FROM [Maintenance].[WorkOrderCheckList]
         WHERE CheckListId = @id;
         ";
 
             var exists = await _dbConnection.QueryFirstOrDefaultAsync<int?>(query, new { id });
             return exists.HasValue;
+        }
+
+        public async Task<bool> SoftDeleteValidationAsync(int id)
+        {
+            const string query = @"
+                SELECT COUNT(1) FROM [Maintenance].[WorkOrderCheckList]
+                WHERE CheckListId = @Id";
+            var count = await _dbConnection.ExecuteScalarAsync<int>(query, new { Id = id });
+            return count > 0;
         }
 
     }

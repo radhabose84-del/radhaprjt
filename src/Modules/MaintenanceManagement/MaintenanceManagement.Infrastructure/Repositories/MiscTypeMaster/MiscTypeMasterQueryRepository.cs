@@ -115,19 +115,23 @@ namespace MaintenanceManagement.Infrastructure.Repositories.MiscTypeMaster
          public async Task<bool> SoftDeleteValidation(int Id)
         {
              const string query = @"
-                           SELECT 1 
-                           FROM  Maintenance.MiscTypeMaster
-                           WHERE Id  = @Id AND IsDeleted = 0;";
-                    
-                       using var multi = await _dbConnection.QueryMultipleAsync(query, new { Id = Id });
-                    
-                       var shiftMasterDetailExists = await multi.ReadFirstOrDefaultAsync<int?>();
-                    
-                       return shiftMasterDetailExists.HasValue;
+                SELECT TOP 1 1
+                FROM [Maintenance].[MiscMaster]
+                WHERE MiscTypeId = @Id AND IsDeleted = 0;";
+
+                var exists = await _dbConnection.QueryFirstOrDefaultAsync<int?>(query, new { Id });
+                return exists.HasValue;
         }
 
+        public async Task<bool> IsMiscTypeMasterLinkedAsync(int id)
+        {
+            const string query = @"
+                SELECT TOP 1 1
+                FROM [Maintenance].[MiscMaster]
+                WHERE MiscTypeId = @id AND IsDeleted = 0 AND IsActive = 1;";
 
-        
-        
+            var exists = await _dbConnection.QueryFirstOrDefaultAsync<int?>(query, new { id });
+            return exists.HasValue;
+        }
     }
 }

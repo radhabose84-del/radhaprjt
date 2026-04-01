@@ -1,6 +1,7 @@
 #nullable disable
 using AutoMapper;
 using Contracts.Common;
+using FluentValidation;
 using MaintenanceManagement.Application.Common.Interfaces.IMiscTypeMaster;
 using MaintenanceManagement.Domain.Events;
 using MediatR;
@@ -25,6 +26,12 @@ namespace MaintenanceManagement.Application.MiscTypeMaster.Command.UpdateMiscTyp
 
           public async Task<ApiResponseDTO<bool>> Handle(UpdateMiscTypeMasterCommand request, CancellationToken cancellationToken)
         {
+                if (request.IsActive == 0)
+                {
+                    var linked = await _miscTypeMasterQueryRepository.IsMiscTypeMasterLinkedAsync(request.Id);
+                    if (linked)
+                        throw new ValidationException("This master is linked with other records. You cannot inactivate this record.");
+                }
 
                 var existingMisctype = await _miscTypeMasterQueryRepository.GetByMiscTypeMasterCodeAsync(request.MiscTypeCode,request.Id);
 

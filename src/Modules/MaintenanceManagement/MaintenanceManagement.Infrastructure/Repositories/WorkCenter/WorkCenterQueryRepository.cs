@@ -109,12 +109,20 @@ namespace MaintenanceManagement.Infrastructure.Repositories.WorkCenter
         {
             const string query = @"
         SELECT TOP 1 1
-        FROM [Maintenance].[Maintenance].[MachineMaster]
-        WHERE IsDeleted = 0 AND WorkCenterId = @id;
+        FROM [Maintenance].[MachineMaster]
+        WHERE IsDeleted = 0 AND IsActive = 1 AND WorkCenterId = @id;
       ";
 
             var exists = await _dbConnection.QueryFirstOrDefaultAsync<int?>(query, new { id });
             return exists.HasValue;
+        }
+
+        public async Task<bool> NotFoundAsync(int id)
+        {
+            const string query = @"
+                SELECT COUNT(1) FROM Maintenance.WorkCenter WHERE Id = @Id AND IsDeleted = 0";
+            var count = await _dbConnection.ExecuteScalarAsync<int>(query, new { Id = id });
+            return count > 0;
         }
     }
 }

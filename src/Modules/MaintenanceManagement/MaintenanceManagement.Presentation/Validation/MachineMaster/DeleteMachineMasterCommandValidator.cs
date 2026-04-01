@@ -33,11 +33,12 @@ namespace MaintenanceManagement.Presentation.Validation.MachineMaster
                             .WithName("Id")
                             .WithMessage($"{rule.Error}");
                             break;
-                    // case "SoftDelete":
-                    //      RuleFor(x => x.Id)
-                    //   .MustAsync(async (Id, cancellation) => !await _iCostCenterQueryRepository.SoftDeleteValidation(Id))
-                    //     .WithMessage($"{rule.Error}");
-                    //     break;
+                    case "SoftDelete":
+                        RuleFor(x => x.Id)
+                            .MustAsync(async (Id, cancellation) =>
+                                !await _iMachineMasterQueryRepository.SoftDeleteValidationAsync(Id))
+                            .WithMessage("This master is linked with other records. You cannot delete this record.");
+                        break;
                     default:
                         
                         break;

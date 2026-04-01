@@ -33,7 +33,9 @@ namespace MaintenanceManagement.Application.Common.Interfaces.IActivityMaster
 
         Task<List<GetActivityByMachineGroupDto>> GetActivityByMachinGroupId(int MachineGroupId);
         Task<bool> IsActivityMasterLinkedAsync(int id);
-           
-        
+        Task<bool> SoftDeleteValidationAsync(int id);
+        Task<bool> NotFoundAsync(int id);
+
+
     }
 }
