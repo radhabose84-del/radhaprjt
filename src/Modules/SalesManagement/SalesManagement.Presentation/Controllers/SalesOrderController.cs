@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SalesManagement.Application.SalesOrder.Commands.CreateSalesOrder;
 using SalesManagement.Application.SalesOrder.Commands.UpdateSalesOrder;
-using SalesManagement.Application.SalesOrder.Commands.DeleteSalesOrder;
+using SalesManagement.Application.SalesOrder.Commands.CancelSalesOrder;
 using SalesManagement.Application.SalesOrder.Commands.UploadSalesOrderDocument;
 using SalesManagement.Application.SalesOrder.Commands.DeleteSalesOrderDocument;
 using SalesManagement.Application.SalesOrder.Commands.UploadSalesOrderImage;
@@ -131,16 +131,16 @@ namespace SalesManagement.Presentation.Controllers
             });
         }
 
-        [HttpDelete]
-        public async Task<IActionResult> DeleteSalesOrder(int id)
+        [HttpPut("cancel/{id}")]
+        public async Task<IActionResult> CancelSalesOrder(int id)
         {
-            var result = await Mediator.Send(new DeleteSalesOrderCommand(id));
+            var result = await Mediator.Send(new CancelSalesOrderCommand(id));
 
             return Ok(new
             {
                 StatusCode = StatusCodes.Status200OK,
                 isSuccess = result,
-                message = result ? "Sales Order deleted successfully." : "Failed to delete Sales Order."
+                message = result ? "Sales Order cancelled successfully." : "Failed to cancel Sales Order."
             });
         }
 

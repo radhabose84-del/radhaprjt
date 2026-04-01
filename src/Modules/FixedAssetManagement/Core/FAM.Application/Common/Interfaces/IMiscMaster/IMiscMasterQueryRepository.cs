@@ -17,6 +17,6 @@ namespace FAM.Application.Common.Interfaces.IMiscMaster
     Task<FAM.Domain.Entities.MiscMaster?> GetByMiscTypeIdAndCodeAsync(int miscTypeId, string code);
     
     Task<bool> IsMiscMasterLinkedAsync(int id);
-            
+    Task<bool> SoftDeleteValidationAsync(int id);
     }
 }

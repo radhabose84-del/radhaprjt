@@ -68,18 +68,20 @@ namespace SalesManagement.Presentation.Validation.SalesOrderAmendment
                             .WithMessage("Only approved sales orders can be amended.")
                             .When(x => x.SalesOrderHeaderId > 0);
 
-                        // E3: No Dispatch Advice
-                        RuleFor(x => x.SalesOrderHeaderId)
-                            .MustAsync(async (id, ct) =>
-                                !await _queryRepo.HasDispatchAdviceAsync(id))
-                            .WithMessage("Amendment not allowed - dispatch advice already created.")
-                            .When(x => x.SalesOrderHeaderId > 0);
-
                         // E5: No pending amendment
                         RuleFor(x => x.SalesOrderHeaderId)
                             .MustAsync(async (id, ct) =>
                                 !await _queryRepo.HasPendingAmendmentAsync(id))
                             .WithMessage("An amendment is already pending approval for this order.")
+                            .When(x => x.SalesOrderHeaderId > 0);
+                        break;
+
+                    case "DispatchAdviceExists":
+                        // E3: No Dispatch Advice
+                        RuleFor(x => x.SalesOrderHeaderId)
+                            .MustAsync(async (id, ct) =>
+                                !await _queryRepo.HasDispatchAdviceAsync(id))
+                            .WithMessage(rule.Error)
                             .When(x => x.SalesOrderHeaderId > 0);
                         break;
 

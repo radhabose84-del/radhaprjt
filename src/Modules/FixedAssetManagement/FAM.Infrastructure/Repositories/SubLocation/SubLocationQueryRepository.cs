@@ -1,4 +1,4 @@
-using System.Data;
+﻿using System.Data;
 using FAM.Application.Common.Interfaces.ISubLocation;
 using Dapper;
 
@@ -144,12 +144,26 @@ namespace FAM.Infrastructure.Repositories.SubLocation
         {
             const string query = @"
         SELECT TOP 1 1
-        FROM [FixedAsset].[AssetLocation]
-        WHERE SubLocationId = @id;
+        FROM [FixedAsset].[AssetLocation] al
+        INNER JOIN [FixedAsset].[AssetMaster] am ON am.Id = al.AssetId AND am.IsDeleted = 0 AND am.IsActive = 1
+        WHERE al.SubLocationId = @id;
         ";
 
             var exists = await _dbConnection.QueryFirstOrDefaultAsync<int?>(query, new { id });
             return exists.HasValue;
+        }
+
+        public async Task<bool> SoftDeleteValidationAsync(int id)
+        {
+            const string query = @"
+        SELECT CASE WHEN EXISTS (
+            SELECT 1
+            FROM [FixedAsset].[AssetLocation] al
+            INNER JOIN [FixedAsset].[AssetMaster] am ON am.Id = al.AssetId AND am.IsDeleted = 0
+            WHERE al.SubLocationId = @id
+        ) THEN 1 ELSE 0 END;";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(query, new { id });
         }
     }
 }

@@ -33,6 +33,8 @@ namespace SalesManagement.Domain.Common
         public const string SalesOrderStatusPending = "Pending";
         public const string SalesOrderStatusApproved = "Approved";
         public const string SalesOrderStatusRejected = "Rejected";
+        public const string SalesOrderStatusCancelled = "Cancelled";
+        public const string SalesOrderStatusForeClosed = "ForeClosed";
 
         // STO Line Item Status
         public const string StoLineItemStatus = "StoLineItemStatus";

@@ -98,7 +98,15 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     st.Description AS StatusName,
                     h.RevisionNumber,
                     h.IsActive, h.IsDeleted,
-                    h.CreatedBy, h.CreatedDate, h.CreatedByName
+                    h.CreatedBy, h.CreatedDate, h.CreatedByName,
+                    CASE
+                        WHEN LOWER(st.Code) = LOWER('Approved')
+                        THEN CASE WHEN EXISTS (
+                            SELECT 1 FROM Sales.DispatchAdviceHeader da
+                            WHERE da.SalesOrderId = h.Id AND da.IsDeleted = 0
+                        ) THEN 'Y' ELSE 'N' END
+                        ELSE NULL
+                    END AS DAFlag
                 FROM Sales.SalesOrderHeader h
                 LEFT JOIN Sales.SalesGroup sg ON h.SalesGroupId = sg.Id AND sg.IsDeleted = 0
                 LEFT JOIN Sales.SalesSegment ss ON h.SalesSegmentId = ss.Id AND ss.IsDeleted = 0
@@ -593,6 +601,16 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             var unitName = units.FirstOrDefault(u => u.UnitId == (_ipAddressService.GetUnitId() ?? 0))?.UnitName ?? string.Empty;
 
             return $"{basePath.TrimEnd('/', '\\')}/{companyName}/{unitName}";
+        }
+
+        public async Task<bool> HasDispatchAdviceAsync(int salesOrderHeaderId)
+        {
+            const string sql = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1 FROM Sales.DispatchAdviceHeader
+                    WHERE SalesOrderId = @Id AND IsDeleted = 0
+                ) THEN 1 ELSE 0 END;";
+            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { Id = salesOrderHeaderId });
         }
     }
 }

@@ -179,12 +179,32 @@ namespace FAM.Infrastructure.Repositories.Locations
         {
             const string query = @"
         SELECT TOP 1 1
-        FROM [FixedAsset].[FixedAsset].[SubLocation]
-        WHERE IsDeleted = 0 AND LocationId = @locationId;
+        FROM [FixedAsset].[SubLocation]
+        WHERE IsDeleted = 0 AND IsActive = 1 AND LocationId = @locationId;
         ";
 
             var result = await _dbConnection.QueryFirstOrDefaultAsync<int?>(query, new { locationId });
             return result.HasValue;
+        }
+
+        public async Task<bool> SoftDeleteValidationAsync(int id)
+        {
+            const string query = @"
+        SELECT CASE WHEN
+            EXISTS (
+                SELECT 1
+                FROM [FixedAsset].[SubLocation]
+                WHERE IsDeleted = 0 AND LocationId = @id
+            )
+            OR EXISTS (
+                SELECT 1
+                FROM [FixedAsset].[AssetLocation] al
+                INNER JOIN [FixedAsset].[AssetMaster] am ON am.Id = al.AssetId AND am.IsDeleted = 0
+                WHERE al.LocationId = @id
+            )
+        THEN 1 ELSE 0 END;";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(query, new { id });
         }
     }
 }
