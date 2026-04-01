@@ -4,8 +4,7 @@ namespace ProductionManagement.Application.ProductionPack.Dto
     {
         public int Id { get; set; }
         public int ProductionPackHeaderId { get; set; }
-
-        // Header info (populated in GetByPackRangeAsync)
+        
         public string? PackNo { get; set; }
         public DateOnly? PackDate { get; set; }
         public int? ProductionYear { get; set; }
