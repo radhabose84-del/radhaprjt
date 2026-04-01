@@ -112,10 +112,44 @@ namespace FAM.Infrastructure.Repositories.AssetGroup
 
             var result = await _dbConnection.QueryFirstOrDefaultAsync<int?>(
                 query, new { Id = assetGroupId });
-           
+
             return result.HasValue;
         }
-    
+
+        public async Task<bool> SoftDeleteValidationAsync(int id)
+        {
+            const string query = @"
+        SELECT CASE WHEN
+            EXISTS (
+                SELECT 1
+                FROM [FixedAsset].[AssetCategories]
+                WHERE AssetGroupId = @Id AND IsDeleted = 0
+            )
+            OR EXISTS (
+                SELECT 1
+                FROM [FixedAsset].[AssetSubGroup]
+                WHERE GroupId = @Id AND IsDeleted = 0
+            )
+            OR EXISTS (
+                SELECT 1
+                FROM [FixedAsset].[SpecificationMaster]
+                WHERE AssetGroupId = @Id AND IsDeleted = 0
+            )
+            OR EXISTS (
+                SELECT 1
+                FROM [FixedAsset].[DepreciationGroups]
+                WHERE AssetGroupId = @Id AND IsDeleted = 0
+            )
+            OR EXISTS (
+                SELECT 1
+                FROM [FixedAsset].[AssetMaster]
+                WHERE AssetGroupId = @Id AND IsDeleted = 0
+            )
+        THEN 1 ELSE 0 END;";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(query, new { Id = id });
+        }
+
 
     }
 }

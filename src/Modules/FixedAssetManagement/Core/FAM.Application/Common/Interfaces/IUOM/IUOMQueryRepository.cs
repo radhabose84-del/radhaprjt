@@ -10,7 +10,7 @@ namespace FAM.Application.Common.Interfaces.IUOM
         Task<List<UOMTypeAutoCompleteDto>> GetUOMType(string searchPattern);
 
         Task<FAM.Domain.Entities.UOM?> GetByUOMNameAsync(string name,int? id = null);
-        Task<bool> IsUomLinkedAsync(int uomId); // IsActive And Delete Validation 
-
+        Task<bool> IsUomLinkedAsync(int uomId); // IsActive And Delete Validation
+        Task<bool> SoftDeleteValidationAsync(int id);
     }
 }

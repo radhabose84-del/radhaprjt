@@ -7,5 +7,6 @@ namespace FAM.Application.Common.Interfaces.IAssetSubGroup
         Task<(List<FAM.Domain.Entities.AssetSubGroup>, int)> GetAllAssetSubGroupAsync(int PageNumber, int PageSize, string? SearchTerm);
         Task<List<FAM.Domain.Entities.AssetSubGroup>> GetAssetSubGroups(string searchPattern);
         Task<bool> IsAssetSubGroupLinkedAsync(int id);
+        Task<bool> SoftDeleteValidationAsync(int id);
     }
 }

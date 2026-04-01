@@ -145,7 +145,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             return existingEntity.Id;
         }
 
-        public async Task<bool> SoftDeleteAsync(int id, CancellationToken ct)
+        public async Task<bool> CancelAsync(int id, CancellationToken ct)
         {
             var existing = await _applicationDbContext.SalesOrderHeader
                 .FirstOrDefaultAsync(x => x.Id == id && x.IsDeleted == IsDelete.NotDeleted, ct);
@@ -153,7 +153,10 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             if (existing == null)
                 return false;
 
-            existing.IsDeleted = IsDelete.Deleted;
+            var cancelledStatus = await _miscMasterQueryRepository.GetMiscMasterByName(
+                MiscEnumEntity.SalesOrderApprovalStatus, MiscEnumEntity.SalesOrderStatusCancelled);
+            existing.StatusId = cancelledStatus?.Id;
+
             _applicationDbContext.SalesOrderHeader.Update(existing);
             await _applicationDbContext.SaveChangesAsync(ct);
             return true;

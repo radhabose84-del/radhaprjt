@@ -29,8 +29,14 @@ namespace FAM.Presentation.Validation.AssetMaster.AssetSpecification
                             .NotEmpty()
                             .WithMessage($"{nameof(DeleteAssetSpecificationCommand.Id)} {rule.Error}");
                         break;
-               
-                    default:                        
+
+                    case "SoftDelete":
+                        RuleFor(x => x.Id)
+                            .MustAsync(async (Id, cancellation) => !await _assetQueryRepository.SoftDeleteValidation(Id))
+                            .WithMessage("This master is linked with other records. You cannot delete this record.");
+                        break;
+
+                    default:
                         break;
                 }
             }

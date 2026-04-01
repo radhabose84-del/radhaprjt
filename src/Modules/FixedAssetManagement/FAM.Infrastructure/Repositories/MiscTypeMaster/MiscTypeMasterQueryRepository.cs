@@ -88,7 +88,28 @@ namespace FAM.Infrastructure.Repositories.MiscTypeMaster
             var misctypemaster = await _dbConnection.QueryAsync<FAM.Domain.Entities.MiscTypeMaster>(query, parameters);
             return misctypemaster.ToList();
         }
-        
-        
+
+
+        /// <inheritdoc />
+        public async Task<bool> SoftDeleteValidationAsync(int id)
+        {
+            const string sql = @"
+                SELECT CASE WHEN
+                    EXISTS (SELECT 1 FROM [FixedAsset].[MiscMaster] WHERE MiscTypeId = @Id AND IsDeleted = 0)
+                THEN 1 ELSE 0 END";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { Id = id });
+        }
+
+        /// <inheritdoc />
+        public async Task<bool> IsMiscTypeMasterLinkedAsync(int id)
+        {
+            const string sql = @"
+                SELECT CASE WHEN
+                    EXISTS (SELECT 1 FROM [FixedAsset].[MiscMaster] WHERE MiscTypeId = @Id AND IsDeleted = 0 AND IsActive = 1)
+                THEN 1 ELSE 0 END";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { Id = id });
+        }
     }
 }

@@ -88,8 +88,8 @@ namespace FAM.Infrastructure.Repositories.SpecificationMaster
         {
             const string query = @"
         SELECT TOP 1 1
-        FROM [FixedAsset].[FixedAsset].[AssetSpecifications]
-        WHERE IsDeleted = 0 AND SpecificationId = @id;
+        FROM [FixedAsset].[AssetSpecifications]
+        WHERE IsDeleted = 0 AND IsActive = 1 AND SpecificationId = @id;
     ";
 
             var exists = await _dbConnection.QueryFirstOrDefaultAsync<int?>(query, new { id });

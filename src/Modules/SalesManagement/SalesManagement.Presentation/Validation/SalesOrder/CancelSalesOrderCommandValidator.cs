@@ -1,16 +1,16 @@
 using FluentValidation;
 using SalesManagement.Application.Common.Interfaces.ISalesOrder;
-using SalesManagement.Application.SalesOrder.Commands.DeleteSalesOrder;
+using SalesManagement.Application.SalesOrder.Commands.CancelSalesOrder;
 using Shared.Validation.Common;
 
 namespace SalesManagement.Presentation.Validation.SalesOrder
 {
-    public class DeleteSalesOrderCommandValidator : AbstractValidator<DeleteSalesOrderCommand>
+    public class CancelSalesOrderCommandValidator : AbstractValidator<CancelSalesOrderCommand>
     {
         private readonly List<ValidationRule> _validationRules;
         private readonly ISalesOrderQueryRepository _queryRepository;
 
-        public DeleteSalesOrderCommandValidator(ISalesOrderQueryRepository queryRepository)
+        public CancelSalesOrderCommandValidator(ISalesOrderQueryRepository queryRepository)
         {
             _queryRepository = queryRepository;
             _validationRules = ValidationRuleLoader.LoadValidationRules();
@@ -26,13 +26,20 @@ namespace SalesManagement.Presentation.Validation.SalesOrder
                     case "NotEmpty":
                         RuleFor(x => x.Id)
                             .NotEmpty()
-                            .WithMessage($"{nameof(DeleteSalesOrderCommand.Id)} {rule.Error}");
+                            .WithMessage($"{nameof(CancelSalesOrderCommand.Id)} {rule.Error}");
                         break;
 
                     case "NotFound":
                         RuleFor(x => x.Id)
                             .MustAsync(async (id, ct) => !await _queryRepository.NotFoundAsync(id))
                             .WithMessage($"SalesOrder {rule.Error}");
+                        break;
+
+                    case "DispatchAdviceExists":
+                        RuleFor(x => x.Id)
+                            .MustAsync(async (id, ct) => !await _queryRepository.HasDispatchAdviceAsync(id))
+                            .WithMessage(rule.Error)
+                            .When(x => x.Id > 0);
                         break;
 
                     default:

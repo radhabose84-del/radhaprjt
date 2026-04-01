@@ -10,7 +10,6 @@ namespace FAM.Application.Common.Interfaces.ILocation
         Task<FAM.Domain.Entities.Location?> GetByLocationNameAsync(string name, int DepartmentId, int UnitId, int? id = null);
         Task<bool> IsLinkedWithSubLocationsAsync(int locationId);
         Task<(List<LocationDto>,int)> GetAllLocationListAsync(int PageNumber, int PageSize, string? SearchTerm);
-
-        
+        Task<bool> SoftDeleteValidationAsync(int id);
     }
 }

@@ -610,5 +610,26 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetMasterGeneral
             var result = await _dbConnection.QueryAsync<string>(query,parameters);
             return result.FirstOrDefault() ?? string.Empty;
         }
+
+        /// <inheritdoc />
+        public async Task<bool> IsAssetMasterLinkedAsync(int assetId)
+        {
+            const string sql = @"
+            SELECT CASE WHEN
+                EXISTS (SELECT 1 FROM [FixedAsset].[AssetLocation]           WHERE AssetId = @Id)
+                OR EXISTS (SELECT 1 FROM [FixedAsset].[AssetPurchaseDetails]  WHERE AssetId = @Id)
+                OR EXISTS (SELECT 1 FROM [FixedAsset].[AssetWarranty]         WHERE AssetId = @Id AND IsDeleted = 0)
+                OR EXISTS (SELECT 1 FROM [FixedAsset].[AssetSpecifications]   WHERE AssetId = @Id AND IsDeleted = 0)
+                OR EXISTS (SELECT 1 FROM [FixedAsset].[AssetAmc]              WHERE AssetId = @Id AND IsDeleted = 0)
+                OR EXISTS (SELECT 1 FROM [FixedAsset].[AssetInsurance]        WHERE AssetId = @Id AND IsDeleted = 0)
+                OR EXISTS (SELECT 1 FROM [FixedAsset].[AssetAdditionalCost]   WHERE AssetId = @Id)
+                OR EXISTS (SELECT 1 FROM [FixedAsset].[AssetDisposal]         WHERE AssetId = @Id AND IsDeleted = 0)
+                OR EXISTS (SELECT 1 FROM [FixedAsset].[DepreciationDetail]    WHERE AssetId = @Id)
+                OR EXISTS (SELECT 1 FROM [FixedAsset].[AssetTransferIssueDtl] WHERE AssetId = @Id)
+                OR EXISTS (SELECT 1 FROM [FixedAsset].[AssetTransferReceiptDtl] WHERE AssetId = @Id)
+            THEN 1 ELSE 0 END";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { Id = assetId });
+        }
     }
 }

@@ -11,6 +11,7 @@ namespace FAM.Application.Common.Interfaces.IManufacture
         Task<bool> CountrySoftDeleteValidation(int countryId);
         Task<bool> CitySoftDeleteValidation(int cityId);
         Task<bool> StateSoftDeleteValidation(int stateId);
-        Task<bool> IsManufactureLinkedAsync(int manufacturerId); //IsActive And Delete Validation 
+        Task<bool> IsManufactureLinkedAsync(int manufacturerId); //IsActive And Delete Validation
+        Task<bool> SoftDeleteValidationAsync(int id);
     }
 }

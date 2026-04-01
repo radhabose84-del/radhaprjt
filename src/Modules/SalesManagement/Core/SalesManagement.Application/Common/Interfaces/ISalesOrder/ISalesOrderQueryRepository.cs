@@ -24,5 +24,6 @@ namespace SalesManagement.Application.Common.Interfaces.ISalesOrder
         Task<bool> PackTypeExistsAsync(int packTypeId);
         Task<bool> AgentExistsAsync(int agentId);
         Task<bool> SubAgentExistsAsync(int subAgentId);
+        Task<bool> HasDispatchAdviceAsync(int salesOrderHeaderId);
     }
 }

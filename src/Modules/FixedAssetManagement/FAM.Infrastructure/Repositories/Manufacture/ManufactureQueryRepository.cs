@@ -1,5 +1,5 @@
 using System.Data;
-// using Contracts.Interfaces.External.IUser;
+using Contracts.Interfaces.Validations.MaintenanceManagement;
 using FAM.Application.Common.Interfaces.IManufacture;
 using FAM.Application.Manufacture.Queries.GetManufacture;
 using FAM.Domain.Common;
@@ -10,9 +10,12 @@ namespace FAM.Infrastructure.Repositories.Manufacture
     public class ManufactureQueryRepository : IManufactureQueryRepository
     {
         private readonly IDbConnection _dbConnection;
-        public ManufactureQueryRepository(IDbConnection dbConnection)
+        private readonly IMaintenanceManufacturerValidation _manufacturerValidation;
+
+        public ManufactureQueryRepository(IDbConnection dbConnection, IMaintenanceManufacturerValidation manufacturerValidation)
         {
             _dbConnection = dbConnection;
+            _manufacturerValidation = manufacturerValidation;
         }
         public async Task<(List<ManufactureDTO>, int)> GetAllManufactureAsync(int PageNumber, int PageSize, string? SearchTerm)
         {
@@ -144,15 +147,9 @@ namespace FAM.Infrastructure.Repositories.Manufacture
 
         //Handling IsActive And Delete Validation
         public async Task<bool> IsManufactureLinkedAsync(int manufacturerId)
-        {
-            const string query = @"
-        SELECT TOP 1 1
-        FROM [Maintenance].[Maintenance].[MachineGroup]  
-        WHERE IsDeleted = 0 AND [Manufacturer] = @manufacturerId;
-        ";
+            => await _manufacturerValidation.HasActiveManufacturerAsync(manufacturerId);
 
-            var result = await _dbConnection.QueryFirstOrDefaultAsync<int?>(query, new { manufacturerId });
-            return result.HasValue;
-        }
+        public async Task<bool> SoftDeleteValidationAsync(int id)
+            => await _manufacturerValidation.HasLinkedManufacturerAsync(id);
     }
 }

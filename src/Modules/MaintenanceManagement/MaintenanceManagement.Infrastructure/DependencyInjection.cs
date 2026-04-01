@@ -273,6 +273,8 @@ namespace MaintenanceManagement.Infrastructure
 
             // Validation repositories — cross-module referential integrity (Rule 25)
             services.AddScoped<Contracts.Interfaces.Validations.MaintenanceManagement.IMaintenanceDepartmentValidation, Repositories.Validations.MaintenanceDepartmentValidationRepository>();
+            services.AddScoped<Contracts.Interfaces.Validations.MaintenanceManagement.IMaintenanceManufacturerValidation, Repositories.Validations.MaintenanceManufacturerValidationRepository>();
+            services.AddScoped<Contracts.Interfaces.Validations.MaintenanceManagement.IMaintenanceUomValidation, Repositories.Validations.MaintenanceUomValidationRepository>();
 
             return services;
         }

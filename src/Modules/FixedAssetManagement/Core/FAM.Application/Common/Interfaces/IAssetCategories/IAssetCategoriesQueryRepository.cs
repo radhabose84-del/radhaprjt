@@ -9,6 +9,6 @@ namespace FAM.Application.Common.Interfaces.IAssetCategories
         Task<List<FAM.Domain.Entities.AssetCategories>> GetAssetCategories(string searchPattern);
         Task<List<AssetCategoriesAutoCompleteDto?>> GetByAssetgroupIdAsync(int AssetGroupId);
         Task<bool> IsAssetCategoryLinkedAsync(int assetCategoryId); //IsActive And Delete Validation
-
+        Task<bool> SoftDeleteValidationAsync(int id);
     }
 }
