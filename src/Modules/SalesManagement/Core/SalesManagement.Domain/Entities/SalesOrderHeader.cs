@@ -58,6 +58,16 @@ namespace SalesManagement.Domain.Entities
         // Revision tracking (incremented on each approved amendment)
         public int RevisionNumber { get; set; }  // Default 0 (original)
 
+        // Cancelled fields
+        public DateTimeOffset? CancelledDate { get; set; }
+        public string? CancelledByName { get; set; }
+        public string? CancelledIP { get; set; }
+
+        // ForeClosed fields
+        public DateTimeOffset? ForeClosedDate { get; set; }
+        public string? ForeClosedByName { get; set; }
+        public string? ForeClosedIP { get; set; }
+
         // Navigation Properties (Same-Module FKs only)
         public SalesQuotationHeader? SalesQuotation { get; set; }
         public SalesGroup? SalesGroup { get; set; }

@@ -77,6 +77,16 @@ namespace SalesManagement.Application.SalesOrder.Dto
         // Revision tracking
         public int RevisionNumber { get; set; }
 
+        // Cancelled fields
+        public DateTimeOffset? CancelledDate { get; set; }
+        public string? CancelledByName { get; set; }
+        public string? CancelledIP { get; set; }
+
+        // ForeClosed fields
+        public DateTimeOffset? ForeClosedDate { get; set; }
+        public string? ForeClosedByName { get; set; }
+        public string? ForeClosedIP { get; set; }
+
         // Status & Audit
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }

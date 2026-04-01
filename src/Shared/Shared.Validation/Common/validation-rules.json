@@ -205,5 +205,9 @@
     {
         "rule": "DispatchAdviceExists",
         "error": "Cannot cancel / Amend - Dispatch Advice has already been generated for this order."
+    },
+    {
+        "rule": "DispatchAdviceRequired",
+        "error": "Sales Order cannot be foreclosed without a Dispatch Advice. Use Cancel instead."
     }
 ]
