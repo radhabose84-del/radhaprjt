@@ -98,7 +98,15 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     st.Description AS StatusName,
                     h.RevisionNumber,
                     h.IsActive, h.IsDeleted,
-                    h.CreatedBy, h.CreatedDate, h.CreatedByName
+                    h.CreatedBy, h.CreatedDate, h.CreatedByName,
+                    CASE
+                        WHEN LOWER(st.Code) = LOWER('Approved')
+                        THEN CASE WHEN EXISTS (
+                            SELECT 1 FROM Sales.DispatchAdviceHeader da
+                            WHERE da.SalesOrderId = h.Id AND da.IsDeleted = 0
+                        ) THEN 'Y' ELSE 'N' END
+                        ELSE NULL
+                    END AS DAFlag
                 FROM Sales.SalesOrderHeader h
                 LEFT JOIN Sales.SalesGroup sg ON h.SalesGroupId = sg.Id AND sg.IsDeleted = 0
                 LEFT JOIN Sales.SalesSegment ss ON h.SalesSegmentId = ss.Id AND ss.IsDeleted = 0

@@ -10,5 +10,13 @@ namespace SalesManagement.Application.SalesOrder.Dto
         public int? NewQtyInBags { get; set; }
         public decimal? NewExMillRate { get; set; }
         public DateOnly? NewExpectedDeliveryDate { get; set; }
+
+        // Detail-level Computed Fields
+        public decimal TaxableAmount { get; set; }
+        public decimal TaxAmount { get; set; }
+        public decimal TCSAmount { get; set; }
+        public decimal NetAmount { get; set; }
+        public decimal NetRatePerKg { get; set; }
+        public int PendingQty { get; set; }
     }
 }
