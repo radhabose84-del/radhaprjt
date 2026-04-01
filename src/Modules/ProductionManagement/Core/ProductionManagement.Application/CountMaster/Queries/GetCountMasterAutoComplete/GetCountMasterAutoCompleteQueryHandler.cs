@@ -1,7 +1,7 @@
 using AutoMapper;
+using Contracts.Dtos.Lookups.Production;
 using MediatR;
 using ProductionManagement.Application.Common.Interfaces.ICountMaster;
-using ProductionManagement.Application.CountMaster.Dto;
 using ProductionManagement.Domain.Events;
 
 namespace ProductionManagement.Application.CountMaster.Queries.GetCountMasterAutoComplete

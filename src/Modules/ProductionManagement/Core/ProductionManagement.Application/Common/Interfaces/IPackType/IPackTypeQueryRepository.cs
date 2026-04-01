@@ -1,3 +1,4 @@
+using Contracts.Dtos.Lookups.Production;
 using ProductionManagement.Application.PackType.Dto;
 
 namespace ProductionManagement.Application.Common.Interfaces.IPackType

@@ -1,4 +1,8 @@
 using Contracts.Interfaces;
+using Contracts.Interfaces.Validations.SalesManagement;
+using Contracts.Interfaces.Validations.PurchaseManagement;
+using Contracts.Interfaces.Validations.BudgetManagement;
+using Contracts.Interfaces.Validations.ProjectManagement;
 using UserManagement.Application.Common.Interfaces;
 using UserManagement.Domain.Enums.Common;
 using FluentAssertions;
@@ -46,7 +50,11 @@ namespace UserManagement.IntegrationTests.Repositories.Currency
         private CurrencyQueryRepository CreateQueryRepo()
         {
             var conn = new SqlConnection(_fixture.ConnectionString);
-            return new CurrencyQueryRepository(conn);
+            var salesVal = new Mock<ISalesCurrencyValidation>(MockBehavior.Loose);
+            var purchaseVal = new Mock<IPurchaseCurrencyValidation>(MockBehavior.Loose);
+            var budgetVal = new Mock<IBudgetCurrencyValidation>(MockBehavior.Loose);
+            var projectVal = new Mock<IProjectCurrencyValidation>(MockBehavior.Loose);
+            return new CurrencyQueryRepository(conn, salesVal.Object, purchaseVal.Object, budgetVal.Object, projectVal.Object);
         }
 
         private async Task<int> SeedEntityAsync(string code = "USD", string name = "US Dollar")

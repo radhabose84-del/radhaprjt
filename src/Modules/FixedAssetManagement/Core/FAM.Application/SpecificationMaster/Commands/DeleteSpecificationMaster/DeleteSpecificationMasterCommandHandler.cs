@@ -29,7 +29,12 @@ namespace FAM.Application.SpecificationMaster.Commands.DeleteSpecificationMaster
             if (specificationMaster is null )
             {
                 throw new ValidationException("Invalid SpecificationMasterID.");
-               
+
+            }
+            var isLinked = await _specificationMasterQueryRepository.IsSpecificationMasterLinkedAsync(request.Id);
+            if (isLinked)
+            {
+                throw new ValidationException("This master is linked with other records. You cannot delete this record.");
             }
             var specificationMasterDelete = _mapper.Map<SpecificationMasters>(request);
             var updateResult = await _specificationMasterRepository.DeleteAsync(request.Id, specificationMasterDelete);

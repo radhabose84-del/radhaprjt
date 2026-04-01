@@ -1,5 +1,5 @@
+using Contracts.Dtos.Lookups.Production;
 using MediatR;
-using ProductionManagement.Application.CountMaster.Dto;
 
 namespace ProductionManagement.Application.CountMaster.Queries.GetCountMasterAutoComplete
 {

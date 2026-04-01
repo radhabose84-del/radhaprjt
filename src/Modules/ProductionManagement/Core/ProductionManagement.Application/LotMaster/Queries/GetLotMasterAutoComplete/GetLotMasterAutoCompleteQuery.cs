@@ -1,5 +1,5 @@
+using Contracts.Dtos.Lookups.Production;
 using MediatR;
-using ProductionManagement.Application.LotMaster.Dto;
 
 namespace ProductionManagement.Application.LotMaster.Queries.GetLotMasterAutoComplete
 {
