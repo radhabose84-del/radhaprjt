@@ -14,13 +14,13 @@ namespace ProductionManagement.Infrastructure.Repositories.RepackingMaster
     {
         private readonly ApplicationDbContext _applicationDbContext;
         private readonly ISalesMiscMasterLookup _salesMiscMasterLookup;
-        private readonly ISalesStockLedgerLookup _salesStockLedgerLookup;
+        private readonly ISalesStockLedgerService _salesStockLedgerLookup;
         private readonly IDocumentSequenceLookup _documentSequenceLookup;
 
         public RepackingMasterCommandRepository(
             ApplicationDbContext applicationDbContext,
             ISalesMiscMasterLookup salesMiscMasterLookup,
-            ISalesStockLedgerLookup salesStockLedgerLookup,
+            ISalesStockLedgerService salesStockLedgerLookup,
             IDocumentSequenceLookup documentSequenceLookup)
         {
             _applicationDbContext = applicationDbContext;
@@ -50,7 +50,7 @@ namespace ProductionManagement.Infrastructure.Repositories.RepackingMaster
                     var repackingTypeId = repackingType?.Id;
 
                     // Get last pack number for continuous numbering
-                    var lastPackNo = await GetLastPackNoAsync(entity.ProductionYear, entity.UnitId);
+                    var lastPackNo = await _salesStockLedgerLookup.GetLastPackNoByYearAsync(entity.ProductionYear, entity.UnitId);
                     entity.StartPackNo = lastPackNo + 1;
                     entity.EndPackNo = entity.StartPackNo + entity.TotalBags - 1;
 
@@ -60,9 +60,13 @@ namespace ProductionManagement.Infrastructure.Repositories.RepackingMaster
 
                     // Mark source packs as Deleted in StockLedger
                     await _salesStockLedgerLookup.UpdateStatusByPackRangeAsync(
-                        "PROD", 0,
+                        "PROD",
                         entity.OldStartPackNo, entity.OldEndPackNo,
-                        packedStatusId, deletedStatusId);
+                        packedStatusId, deletedStatusId,
+                        entity.ProductionYear, entity.UnitId);
+
+                    // Inherit LotId from source packs
+                    var lotId = await _salesStockLedgerLookup.GetLotIdByPackRangeAsync(entity.OldStartPackNo, entity.OldEndPackNo, entity.ProductionYear, entity.UnitId);
 
                     // Insert new packs into StockLedger
                     var stockEntries = new List<SalesStockLedgerDto>();
@@ -76,7 +80,7 @@ namespace ProductionManagement.Infrastructure.Repositories.RepackingMaster
                             DetailDocNo = 0,
                             DocDate = entity.RepackDate.ToDateTime(TimeOnly.MinValue),
                             ItemId = entity.ItemId,
-                            LotId = 0,
+                            LotId = lotId,
                             PackNo = packNo,
                             PackTypeId = entity.PackTypeId,
                             WarehouseId = entity.WarehouseId,
@@ -133,21 +137,23 @@ namespace ProductionManagement.Infrastructure.Repositories.RepackingMaster
 
                     // Restore old source packs back to Packed
                     await _salesStockLedgerLookup.UpdateStatusByPackRangeAsync(
-                        "PROD", 0,
+                        "PROD",
                         existingEntity.OldStartPackNo, existingEntity.OldEndPackNo,
-                        deletedStatusId, packedStatusId);
+                        deletedStatusId, packedStatusId,
+                        existingEntity.ProductionYear, existingEntity.UnitId);
 
                     // Delete old RPK StockLedger entries
-                    await _salesStockLedgerLookup.DeleteByDocAsync("PROD", existingEntity.Id);
+                    await _salesStockLedgerLookup.DeleteByDocAsync("PROD", existingEntity.Id, existingEntity.ProductionYear, existingEntity.UnitId);
 
                     // Mark new source packs as Deleted
                     await _salesStockLedgerLookup.UpdateStatusByPackRangeAsync(
-                        "PROD", 0,
+                        "PROD",
                         entity.OldStartPackNo, entity.OldEndPackNo,
-                        packedStatusId, deletedStatusId);
+                        packedStatusId, deletedStatusId,
+                        entity.ProductionYear, entity.UnitId);
 
                     // Recalculate target pack numbers
-                    var lastPackNo = await GetLastPackNoAsync(entity.ProductionYear, entity.UnitId);
+                    var lastPackNo = await _salesStockLedgerLookup.GetLastPackNoByYearAsync(entity.ProductionYear, entity.UnitId);
                     entity.StartPackNo = lastPackNo + 1;
                     entity.EndPackNo = entity.StartPackNo + entity.TotalBags - 1;
 
@@ -178,6 +184,9 @@ namespace ProductionManagement.Infrastructure.Repositories.RepackingMaster
                     _applicationDbContext.RepackingMaster.Update(existingEntity);
                     await _applicationDbContext.SaveChangesAsync();
 
+                    // Inherit LotId from new source packs
+                    var lotId = await _salesStockLedgerLookup.GetLotIdByPackRangeAsync(existingEntity.OldStartPackNo, existingEntity.OldEndPackNo, existingEntity.ProductionYear, existingEntity.UnitId);
+
                     // Insert new StockLedger entries
                     var stockEntries = new List<SalesStockLedgerDto>();
                     for (int packNo = existingEntity.StartPackNo; packNo <= existingEntity.EndPackNo; packNo++)
@@ -190,7 +199,7 @@ namespace ProductionManagement.Infrastructure.Repositories.RepackingMaster
                             DetailDocNo = 0,
                             DocDate = existingEntity.RepackDate.ToDateTime(TimeOnly.MinValue),
                             ItemId = existingEntity.ItemId,
-                            LotId = 0,
+                            LotId = lotId,
                             PackNo = packNo,
                             PackTypeId = existingEntity.PackTypeId,
                             WarehouseId = existingEntity.WarehouseId,
@@ -238,13 +247,13 @@ namespace ProductionManagement.Infrastructure.Repositories.RepackingMaster
 
                     // Restore source packs back to Packed
                     await _salesStockLedgerLookup.UpdateStatusByPackRangeAsync(
-                        "PROD", 0,
-                        existing.OldStartPackNo, existing.OldEndPackNo,
+                        "PROD", existing.OldStartPackNo, existing.OldEndPackNo,
                         deletedStatusId, packedStatusId,
+                        existing.ProductionYear, existing.UnitId,
                         ct);
 
                     // Delete RPK StockLedger entries
-                    await _salesStockLedgerLookup.DeleteByDocAsync("PROD", existing.Id, ct);
+                    await _salesStockLedgerLookup.DeleteByDocAsync("PROD", existing.Id, existing.ProductionYear, existing.UnitId, ct);
 
                     // Soft delete the entity
                     existing.IsDeleted = IsDelete.Deleted;
@@ -262,29 +271,5 @@ namespace ProductionManagement.Infrastructure.Repositories.RepackingMaster
             });
         }
 
-        private async Task<int> GetLastPackNoAsync(int productionYear, int unitId)
-        {
-            var sql = @"
-                SELECT ISNULL(MAX(d.EndPackNo), 0)
-                FROM Production.ProductionPackDetail d
-                INNER JOIN Production.ProductionPackHeader h ON d.ProductionPackHeaderId = h.Id
-                WHERE h.ProductionYear = @ProductionYear
-                    AND h.IsDeleted = 0
-                    AND h.UnitId = @UnitId
-
-                UNION ALL
-
-                SELECT ISNULL(MAX(rm.EndPackNo), 0)
-                FROM Production.RepackingMaster rm
-                WHERE rm.ProductionYear = @ProductionYear
-                    AND rm.IsDeleted = 0
-                    AND rm.UnitId = @UnitId";
-
-            var dbConnection = _applicationDbContext.Database.GetDbConnection();
-            var results = await Dapper.SqlMapper.QueryAsync<int>(dbConnection, sql,
-                new { ProductionYear = productionYear, UnitId = unitId });
-
-            return results.Max();
-        }
     }
 }

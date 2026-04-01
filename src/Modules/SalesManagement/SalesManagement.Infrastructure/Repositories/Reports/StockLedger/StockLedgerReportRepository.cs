@@ -149,5 +149,80 @@ namespace SalesManagement.Infrastructure.Repositories.Reports.StockLedger
 
             return (list, total);
         }
+
+        public async Task<List<StockLedgerReportDto>> GetByPackRangeAsync(
+            int itemId,
+            int packTypeId,
+            int startPackNo,
+            int endPackNo,
+            int productionYear,
+            CancellationToken ct = default)
+        {
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
+
+            const string sql = @"
+                SELECT
+                    sl.Id, sl.UnitId, sl.DocType, sl.DocNo, sl.DetailDocNo, sl.DocDate,
+                    sl.ItemId, sl.LotId,
+                    sl.PackNo, sl.PackTypeId,
+                    sl.WarehouseId, sl.BinId,
+                    sl.TotalQty, sl.TotalValue,
+                    sl.StatusId,
+                    mm.Description AS StatusName
+                FROM Sales.StockLedger sl
+                INNER JOIN Sales.MiscMaster mm ON sl.StatusId = mm.Id AND mm.IsDeleted = 0
+                INNER JOIN Sales.MiscTypeMaster mtm ON mm.MiscTypeId = mtm.Id
+                                                    AND mtm.MiscTypeCode = 'StockStatus'
+                                                    AND mtm.IsDeleted = 0
+                WHERE sl.ItemId      = @ItemId
+                  AND sl.PackTypeId  = @PackTypeId
+                  AND sl.PackNo     BETWEEN @StartPackNo AND @EndPackNo
+                  AND YEAR(sl.DocDate) = @ProductionYear
+                  AND sl.UnitId      = @UnitId
+                  AND mm.Description = 'Packed'
+                ORDER BY sl.PackNo ASC;";
+
+            var list = (await _dbConnection.QueryAsync<StockLedgerReportDto>(
+                new CommandDefinition(sql, new
+                {
+                    ItemId      = itemId,
+                    PackTypeId  = packTypeId,
+                    StartPackNo = startPackNo,
+                    EndPackNo   = endPackNo,
+                    ProductionYear = productionYear,
+                    UnitId      = unitId
+                }, cancellationToken: ct))).ToList();
+
+            if (list.Count == 0)
+                return list;
+
+            var units = await _unitLookup.GetAllUnitAsync();
+            var unitDict = units.ToDictionary(u => u.UnitId, u => u.UnitName);
+
+            var itemIds = list.Select(x => x.ItemId).Distinct();
+            var items = await _itemLookup.GetByIdsAsync(itemIds);
+            var itemDict = items.ToDictionary(i => i.Id, i => i.ItemName);
+
+            var warehouses = await _warehouseLookup.GetAllAsync();
+            var warehouseDict = warehouses.ToDictionary(w => w.Id, w => w.WarehouseName);
+
+            var bins = await _binLookup.GetAllAsync();
+            var binDict = bins.ToDictionary(b => b.Id, b => b.BinName);
+
+            var packTypeIds = list.Where(x => x.PackTypeId > 0).Select(x => x.PackTypeId).Distinct();
+            var packTypes = packTypeIds.Any() ? await _packTypeLookup.GetByIdsAsync(packTypeIds) : [];
+            var packTypeDict = packTypes.ToDictionary(p => p.Id, p => p.PackTypeName);
+
+            foreach (var row in list)
+            {
+                row.UnitName      = unitDict.TryGetValue(row.UnitId,      out var un) ? un : null;
+                row.ItemName      = itemDict.TryGetValue(row.ItemId,      out var im) ? im : null;
+                row.WarehouseName = warehouseDict.TryGetValue(row.WarehouseId, out var wn) ? wn : null;
+                row.BinName       = binDict.TryGetValue(row.BinId,        out var bn) ? bn : null;
+                row.PackTypeName  = packTypeDict.TryGetValue(row.PackTypeId, out var pn) ? pn : null;
+            }
+
+            return list;
+        }
     }
 }

@@ -307,8 +307,8 @@ namespace SalesManagement.Infrastructure
             // ── Stock Ledger Report Repository ───────────────────────────────────
             services.AddScoped<IStockLedgerReportRepository, StockLedgerReportRepository>();
 
-            // ── Sales Stock Ledger Lookup (cross-module) ────────────────────────
-            services.AddScoped<ISalesStockLedgerLookup, SalesStockLedgerLookupRepository>();
+            // ── Sales Stock Ledger Service (cross-module, non-cached — transactional table) ──
+            services.AddScoped<ISalesStockLedgerService, SalesStockLedgerLookupRepository>();
 
             // ── Sales MiscMaster Lookup (cross-module) ──────────────────────────
             services.AddScoped<ISalesMiscMasterLookup, SalesMiscMasterLookupRepository>();

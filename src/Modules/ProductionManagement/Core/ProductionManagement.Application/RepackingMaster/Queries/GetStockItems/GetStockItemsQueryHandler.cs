@@ -1,4 +1,5 @@
 using Contracts.Dtos.Stock;
+using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Production;
 using Contracts.Interfaces.Lookups.Sales;
@@ -10,28 +11,32 @@ namespace ProductionManagement.Application.RepackingMaster.Queries.GetStockItems
     public class GetStockItemsQueryHandler
         : IRequestHandler<GetStockItemsQuery, IReadOnlyList<StockItemSummaryDto>>
     {
-        private readonly ISalesStockLedgerLookup _stockLedgerLookup;
+        private readonly ISalesStockLedgerService _stockLedgerLookup;
         private readonly IItemLookup _itemLookup;
         private readonly IPackTypeLookup _packTypeLookup;
         private readonly IMediator _mediator;
+        private readonly IIPAddressService _ipAddressService;
 
         public GetStockItemsQueryHandler(
-            ISalesStockLedgerLookup stockLedgerLookup,
+            ISalesStockLedgerService stockLedgerLookup,
             IItemLookup itemLookup,
             IPackTypeLookup packTypeLookup,
-            IMediator mediator)
+            IMediator mediator,
+            IIPAddressService ipAddressService)
         {
             _stockLedgerLookup = stockLedgerLookup;
             _itemLookup = itemLookup;
             _packTypeLookup = packTypeLookup;
             _mediator = mediator;
+            _ipAddressService = ipAddressService;
         }
 
         public async Task<IReadOnlyList<StockItemSummaryDto>> Handle(
             GetStockItemsQuery request,
             CancellationToken cancellationToken)
         {
-            var items = await _stockLedgerLookup.GetStockItemsAsync(request.PackTypeId, cancellationToken);
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
+            var items = await _stockLedgerLookup.GetStockItemsAsync(request.ProductionYear, unitId, request.PackTypeId, cancellationToken);
 
             // Populate names from cross-module lookups
             var itemIds = items.Select(i => i.ItemId).Distinct();

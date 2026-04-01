@@ -62,9 +62,11 @@ namespace ProductionManagement.Presentation.Controllers
         }
 
         [HttpGet("getstockitems")]
-        public async Task<IActionResult> GetStockItemsAsync([FromQuery] int? packTypeId = null)
+        public async Task<IActionResult> GetStockItemsAsync(
+            [FromQuery] int productionYear,
+            [FromQuery] int? packTypeId = null)
         {
-            var result = await Mediator.Send(new GetStockItemsQuery { PackTypeId = packTypeId });
+            var result = await Mediator.Send(new GetStockItemsQuery { ProductionYear = productionYear, PackTypeId = packTypeId });
             return Ok(new
             {
                 StatusCode = StatusCodes.Status200OK,
