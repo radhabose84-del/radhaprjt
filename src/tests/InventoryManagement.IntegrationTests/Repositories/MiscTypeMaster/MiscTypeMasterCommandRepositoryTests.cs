@@ -30,6 +30,10 @@ namespace InventoryManagement.IntegrationTests.Repositories.MiscTypeMaster
 
         private async Task ClearTableAsync(InventoryManagement.Infrastructure.Data.ApplicationDbContext ctx)
         {
+            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Inventory].[IssueDetail]");
+            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Inventory].[IssueHeader]");
+            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Inventory].[MrsDetail]");
+            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Inventory].[MrsHeader]");
             await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Inventory].[UOMConversion]");
             await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Inventory].[UOM]");
             await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Inventory].[MiscMaster]");

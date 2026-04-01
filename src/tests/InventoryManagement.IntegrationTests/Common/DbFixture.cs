@@ -64,7 +64,7 @@ END;
 
 CREATE DATABASE [{DbName}];
 ";
-            await cnn.ExecuteAsync(sql);
+            await cnn.ExecuteAsync(sql, commandTimeout: 120);
         }
 
         private async Task CreateDbContextAsync()
