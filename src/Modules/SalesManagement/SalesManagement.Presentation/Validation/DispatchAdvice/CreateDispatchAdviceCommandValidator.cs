@@ -68,6 +68,13 @@ namespace SalesManagement.Presentation.Validation.DispatchAdvice
                             .When(x => !string.IsNullOrWhiteSpace(x.LRNo));
                         break;
 
+                    case "AmendmentPending":
+                        RuleFor(x => x.SalesOrderId)
+                            .MustAsync(async (id, ct) => !await _queryRepository.HasPendingAmendmentAsync(id))
+                            .WithMessage(rule.Error)
+                            .When(x => x.SalesOrderId > 0);
+                        break;
+
                     case "FKColumnDelete":
                         RuleFor(x => x.SalesOrderId)
                             .MustAsync(async (id, ct) => await _queryRepository.SalesOrderExistsAsync(id))

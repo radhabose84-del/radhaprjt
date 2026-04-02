@@ -219,6 +219,27 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
             return count > 0;
         }
 
+        public async Task<bool> HasPendingAmendmentAsync(int salesOrderId)
+        {
+            const string sql = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1
+                    FROM Sales.SalesOrderAmendmentHeader ah
+                    INNER JOIN (
+                        SELECT SalesOrderHeaderId, MAX(RevisionNumber) AS MaxRevision
+                        FROM Sales.SalesOrderAmendmentHeader
+                        WHERE IsDeleted = 0
+                        GROUP BY SalesOrderHeaderId
+                    ) latest ON ah.SalesOrderHeaderId = latest.SalesOrderHeaderId
+                              AND ah.RevisionNumber = latest.MaxRevision
+                    INNER JOIN Sales.MiscMaster mm ON ah.StatusId = mm.Id AND mm.IsDeleted = 0
+                    WHERE ah.SalesOrderHeaderId = @Id AND ah.IsDeleted = 0
+                      AND LOWER(mm.Code) = LOWER('Pending')
+                ) THEN 1 ELSE 0 END";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { Id = salesOrderId });
+        }
+
         public async Task<bool> DispatchAddressExistsAsync(int dispatchAddressId)
         {
             const string sql = @"
