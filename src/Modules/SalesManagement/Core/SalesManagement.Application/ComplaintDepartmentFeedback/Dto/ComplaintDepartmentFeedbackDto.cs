@@ -9,9 +9,14 @@ namespace SalesManagement.Application.ComplaintDepartmentFeedback.Dto
         public int ComplaintHeaderId { get; set; }
         public string? ComplaintNumber { get; set; }
         public DateOnly? ComplaintDate { get; set; }
+        public int CustomerId { get; set; }
         public string? CustomerName { get; set; }
         public string? SeverityName { get; set; }
         public DateOnly? ExpectedResolutionDate { get; set; }
+        public string? ProductName { get; set; }
+        public string? LotNo { get; set; }
+        public string? PackDetails { get; set; }
+        public string? ComplaintDescription { get; set; }
 
         // Assignment Context
         public string? RoleName { get; set; }
