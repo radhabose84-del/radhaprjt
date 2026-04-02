@@ -9,5 +9,9 @@ namespace SalesManagement.Application.SalesOrder.Queries.GetAllSalesOrder
         public int PageNumber { get; set; }
         public int PageSize { get; set; }
         public string? SearchTerm { get; set; }
+        public DateOnly? OrderDateFrom { get; set; }
+        public DateOnly? OrderDateTo { get; set; }
+        public string? PartyName { get; set; }
+        public string? StatusName { get; set; }
     }
 }

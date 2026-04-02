@@ -5,7 +5,7 @@ namespace SalesManagement.Application.Common.Interfaces.ISalesOrder
 {
     public interface ISalesOrderQueryRepository
     {
-        Task<(List<SalesOrderHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm);
+        Task<(List<SalesOrderHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm, DateOnly? orderDateFrom = null, DateOnly? orderDateTo = null, string? partyName = null, string? statusName = null);
         Task<(List<PendingSalesOrderDto>, int)> GetPendingSalesOrderAsync(int pageNumber, int pageSize, string? searchTerm);
         Task<SalesOrderHeaderDto?> GetByIdAsync(int id);
         Task<IReadOnlyList<SalesOrderLookupDto>> AutocompleteAsync(string term, CancellationToken ct);

@@ -7,6 +7,7 @@ namespace SalesManagement.Application.Common.Interfaces.IDispatchAdvice
         Task<(List<DispatchAdviceHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm);
         Task<DispatchAdviceHeaderDto?> GetByIdAsync(int id);
         Task<bool> SalesOrderExistsAsync(int salesOrderId);
+        Task<bool> HasPendingAmendmentAsync(int salesOrderId);
         Task<bool> DispatchAddressExistsAsync(int dispatchAddressId);
         Task<int> GetSalesOrderUnitIdAsync(int salesOrderId);
         Task<List<DispatchAdviceStockDto>> GetStockAsync(int itemId, int lotId, int statusId);

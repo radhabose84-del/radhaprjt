@@ -97,6 +97,47 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrderAmendment
             return header;
         }
 
+        public async Task<List<SalesOrderAmendmentHeaderDto>> GetBySalesOrderHeaderIdAsync(int salesOrderHeaderId)
+        {
+            var sql = @"
+                SELECT
+                    ah.Id, ah.SalesOrderHeaderId, ah.UnitId,
+                    soh.SalesOrderNo,
+                    ah.AmendmentNo, ah.RevisionNumber,
+                    ah.AmendmentDate, ah.Reason,
+                    ah.StatusId,
+                    mm.Description AS StatusName,
+                    ah.ApprovedBy, ah.ApprovedDate,
+                    ah.CreatedByName, ah.CreatedDate
+                FROM Sales.SalesOrderAmendmentHeader ah
+                INNER JOIN Sales.SalesOrderHeader soh ON ah.SalesOrderHeaderId = soh.Id
+                LEFT JOIN Sales.MiscMaster mm ON ah.StatusId = mm.Id AND mm.IsDeleted = 0
+                WHERE ah.SalesOrderHeaderId = @SalesOrderHeaderId AND ah.IsDeleted = 0
+                ORDER BY ah.Id DESC;
+
+                SELECT
+                    d.Id, d.SalesOrderAmendmentHeaderId,
+                    d.ChangeType, d.SalesOrderDetailId,
+                    d.OldItemId, d.OldQtyInBags, d.OldExMillRate, d.OldExpectedDeliveryDate,
+                    d.NewQtyInBags, d.NewExMillRate, d.NewExpectedDeliveryDate
+                FROM Sales.SalesOrderAmendmentDetail d
+                INNER JOIN Sales.SalesOrderAmendmentHeader ah ON d.SalesOrderAmendmentHeaderId = ah.Id
+                WHERE ah.SalesOrderHeaderId = @SalesOrderHeaderId AND ah.IsDeleted = 0;";
+
+            using var multi = await _dbConnection.QueryMultipleAsync(sql, new { SalesOrderHeaderId = salesOrderHeaderId });
+            var headers = (await multi.ReadAsync<SalesOrderAmendmentHeaderDto>()).ToList();
+            var allDetails = (await multi.ReadAsync<SalesOrderAmendmentDetailDto>()).ToList();
+
+            foreach (var header in headers)
+            {
+                header.SalesOrderAmendmentDetails = allDetails
+                    .Where(d => d.SalesOrderAmendmentHeaderId == header.Id)
+                    .ToList();
+            }
+
+            return headers;
+        }
+
         public async Task<(List<PendingSalesOrderAmendmentDto>, int)> GetPendingAsync(
             int pageNumber, int pageSize, string? searchTerm)
         {
