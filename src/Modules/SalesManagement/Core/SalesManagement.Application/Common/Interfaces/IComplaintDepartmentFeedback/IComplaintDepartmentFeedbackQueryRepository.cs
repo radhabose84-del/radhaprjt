@@ -17,5 +17,6 @@ namespace SalesManagement.Application.Common.Interfaces.IComplaintDepartmentFeed
         Task<int> GetAssignmentIdByFeedbackIdAsync(int feedbackId);
         Task<bool> MiscMasterExistsAsync(int id);
         Task<(int ReworkCount, int FeedbackStatusId)> GetReworkInfoAsync(int feedbackId);
+        Task<string?> GetAttachmentFilePathAsync(int id);
     }
 }

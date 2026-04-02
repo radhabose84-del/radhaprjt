@@ -35,34 +35,39 @@ namespace SalesManagement.Infrastructure.Repositories.ComplaintDepartmentFeedbac
 
             var countSql = $@"
                 SELECT COUNT(*)
-                FROM Sales.ComplaintDepartmentFeedback f
-                INNER JOIN Sales.ComplaintQCReviewAssignment a ON f.AssignmentId = a.Id AND a.IsDeleted = 0
+                FROM Sales.ComplaintQCReviewAssignment a
                 INNER JOIN Sales.ComplaintQCReview r ON a.ComplaintQCReviewId = r.Id AND r.IsDeleted = 0
                 INNER JOIN Sales.ComplaintHeader ch ON r.ComplaintHeaderId = ch.Id AND ch.IsDeleted = 0
-                WHERE f.IsDeleted = 0 {searchFilter};";
+                LEFT JOIN Sales.ComplaintDepartmentFeedback f ON f.AssignmentId = a.Id AND f.IsDeleted = 0
+                WHERE a.IsDeleted = 0 {searchFilter};";
 
             var dataSql = $@"
                 SELECT
-                    f.Id,
-                    f.AssignmentId,
+                    f.Id AS FeedbackId,
+                    a.Id AS AssignmentId,
                     ch.ComplaintNumber,
+                    ch.ComplaintDate,
                     ch.CustomerId,
                     role.Description AS RoleName,
                     a.ResponsiblePersonId,
-                    fs.Description AS FeedbackStatusName,
+                    CASE
+                        WHEN f.Id IS NULL THEN 'Pending'
+                        ELSE fs.Description
+                    END AS FeedbackStatusName,
+                    sev.Description AS SeverityName,
+                    r.ExpectedResolutionDate,
                     f.SubmittedDate,
-                    f.ReworkCount,
-                    a.IsMandatory,
-                    sev.Description AS SeverityName
-                FROM Sales.ComplaintDepartmentFeedback f
-                INNER JOIN Sales.ComplaintQCReviewAssignment a ON f.AssignmentId = a.Id AND a.IsDeleted = 0
+                    ISNULL(f.ReworkCount, 0) AS ReworkCount,
+                    a.IsMandatory
+                FROM Sales.ComplaintQCReviewAssignment a
                 INNER JOIN Sales.ComplaintQCReview r ON a.ComplaintQCReviewId = r.Id AND r.IsDeleted = 0
                 INNER JOIN Sales.ComplaintHeader ch ON r.ComplaintHeaderId = ch.Id AND ch.IsDeleted = 0
+                LEFT JOIN Sales.ComplaintDepartmentFeedback f ON f.AssignmentId = a.Id AND f.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster role ON a.RoleId = role.Id AND role.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster fs ON f.FeedbackStatusId = fs.Id AND fs.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster sev ON r.SeverityId = sev.Id AND sev.IsDeleted = 0
-                WHERE f.IsDeleted = 0 {searchFilter}
-                ORDER BY f.Id DESC
+                WHERE a.IsDeleted = 0 {searchFilter}
+                ORDER BY a.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;";
 
             var parameters = new
@@ -97,26 +102,31 @@ namespace SalesManagement.Infrastructure.Repositories.ComplaintDepartmentFeedbac
         {
             const string sql = @"
                 SELECT
-                    f.Id,
-                    f.AssignmentId,
+                    f.Id AS FeedbackId,
+                    a.Id AS AssignmentId,
                     ch.ComplaintNumber,
+                    ch.ComplaintDate,
                     ch.CustomerId,
                     role.Description AS RoleName,
                     a.ResponsiblePersonId,
-                    fs.Description AS FeedbackStatusName,
+                    CASE
+                        WHEN f.Id IS NULL THEN 'Pending'
+                        ELSE fs.Description
+                    END AS FeedbackStatusName,
+                    sev.Description AS SeverityName,
+                    r.ExpectedResolutionDate,
                     f.SubmittedDate,
-                    f.ReworkCount,
-                    a.IsMandatory,
-                    sev.Description AS SeverityName
-                FROM Sales.ComplaintDepartmentFeedback f
-                INNER JOIN Sales.ComplaintQCReviewAssignment a ON f.AssignmentId = a.Id AND a.IsDeleted = 0
+                    ISNULL(f.ReworkCount, 0) AS ReworkCount,
+                    a.IsMandatory
+                FROM Sales.ComplaintQCReviewAssignment a
                 INNER JOIN Sales.ComplaintQCReview r ON a.ComplaintQCReviewId = r.Id AND r.IsDeleted = 0
                 INNER JOIN Sales.ComplaintHeader ch ON r.ComplaintHeaderId = ch.Id AND ch.IsDeleted = 0
+                LEFT JOIN Sales.ComplaintDepartmentFeedback f ON f.AssignmentId = a.Id AND f.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster role ON a.RoleId = role.Id AND role.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster fs ON f.FeedbackStatusId = fs.Id AND fs.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster sev ON r.SeverityId = sev.Id AND sev.IsDeleted = 0
-                WHERE f.IsDeleted = 0 AND r.ComplaintHeaderId = @ComplaintHeaderId
-                ORDER BY f.Id DESC;";
+                WHERE a.IsDeleted = 0 AND r.ComplaintHeaderId = @ComplaintHeaderId
+                ORDER BY a.Id DESC;";
 
             var data = (await _dbConnection.QueryAsync<FeedbackListDto>(sql, new { ComplaintHeaderId = complaintHeaderId })).ToList();
 
@@ -207,6 +217,14 @@ namespace SalesManagement.Infrastructure.Repositories.ComplaintDepartmentFeedbac
             }
 
             return data;
+        }
+
+        public async Task<string?> GetAttachmentFilePathAsync(int id)
+        {
+            const string sql = @"
+                SELECT FilePath FROM Sales.ComplaintFeedbackAttachment
+                WHERE Id = @Id AND IsDeleted = 0;";
+            return await _dbConnection.ExecuteScalarAsync<string?>(sql, new { Id = id });
         }
 
         public async Task<bool> NotFoundAsync(int id)
@@ -407,6 +425,40 @@ namespace SalesManagement.Infrastructure.Repositories.ComplaintDepartmentFeedbac
                 {
                     if (userDict.TryGetValue(item.ResponsiblePersonId, out var name))
                         item.ResponsiblePersonName = name;
+                }
+            }
+
+            // Populate ProductName from first complaint detail item
+            var complaintNumbers = data.Where(d => d.ComplaintNumber != null).Select(d => d.ComplaintNumber).Distinct().ToList();
+            if (complaintNumbers.Count > 0)
+            {
+                var itemSql = @"
+                    SELECT ch.ComplaintNumber, cd.ItemId
+                    FROM Sales.ComplaintDetail cd
+                    INNER JOIN Sales.ComplaintHeader ch ON cd.ComplaintHeaderId = ch.Id
+                    WHERE ch.ComplaintNumber IN @Numbers AND cd.IsDeleted = 0;";
+                var detailItems = (await _dbConnection.QueryAsync<(string ComplaintNumber, int ItemId)>(
+                    itemSql, new { Numbers = complaintNumbers })).ToList();
+
+                if (detailItems.Count > 0)
+                {
+                    var itemIds = detailItems.Select(d => d.ItemId).Distinct().ToList();
+                    var items = await _itemLookup.GetByIdsAsync(itemIds);
+                    var itemDict = items.ToDictionary(i => i.Id, i => i.ItemName);
+
+                    var complaintItemDict = detailItems
+                        .GroupBy(d => d.ComplaintNumber)
+                        .ToDictionary(g => g.Key!, g => g.First().ItemId);
+
+                    foreach (var item in data)
+                    {
+                        if (item.ComplaintNumber != null &&
+                            complaintItemDict.TryGetValue(item.ComplaintNumber, out var itemId) &&
+                            itemDict.TryGetValue(itemId, out var itemName))
+                        {
+                            item.ProductName = itemName;
+                        }
+                    }
                 }
             }
         }
