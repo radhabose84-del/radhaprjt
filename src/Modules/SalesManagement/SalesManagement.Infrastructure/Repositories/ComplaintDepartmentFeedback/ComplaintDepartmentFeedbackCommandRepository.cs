@@ -100,6 +100,20 @@ namespace SalesManagement.Infrastructure.Repositories.ComplaintDepartmentFeedbac
             return existing.Id;
         }
 
+        public async Task<bool> DeleteAttachmentAsync(int id, CancellationToken ct)
+        {
+            var existing = await _dbContext.ComplaintFeedbackAttachment
+                .FirstOrDefaultAsync(x => x.Id == id && x.IsDeleted == IsDelete.NotDeleted, ct);
+
+            if (existing == null)
+                return false;
+
+            existing.IsDeleted = IsDelete.Deleted;
+            _dbContext.ComplaintFeedbackAttachment.Update(existing);
+            await _dbContext.SaveChangesAsync(ct);
+            return true;
+        }
+
         public async Task<int> UpdateAssignmentStatusAsync(int assignmentId, int assignmentStatusId)
         {
             var assignment = await _dbContext.ComplaintQCReviewAssignment
