@@ -1,16 +1,16 @@
 using FluentValidation;
-using InventoryManagement.Application.Common.Interfaces.IUsageType;
-using InventoryManagement.Application.UsageType.Commands.DeleteUsageType;
+using InventoryManagement.Application.Common.Interfaces.IUOM;
+using InventoryManagement.Application.UOM.Command.DeleteUOM;
 using Shared.Validation.Common;
 
-namespace InventoryManagement.Presentation.Validation.UsageType
+namespace InventoryManagement.Presentation.Validation.UOM
 {
-    public class DeleteUsageTypeCommandValidator : AbstractValidator<DeleteUsageTypeCommand>
+    public class DeleteUOMCommandValidator : AbstractValidator<DeleteUOMCommand>
     {
         private readonly List<ValidationRule> _validationRules;
-        private readonly IUsageTypeQueryRepository _queryRepository;
+        private readonly IUOMQueryRepository _queryRepository;
 
-        public DeleteUsageTypeCommandValidator(IUsageTypeQueryRepository queryRepository)
+        public DeleteUOMCommandValidator(IUOMQueryRepository queryRepository)
         {
             _queryRepository = queryRepository;
             _validationRules = ValidationRuleLoader.LoadValidationRules();
@@ -26,18 +26,18 @@ namespace InventoryManagement.Presentation.Validation.UsageType
                     case "NotEmpty":
                         RuleFor(x => x.Id)
                             .NotEmpty()
-                            .WithMessage($"{nameof(DeleteUsageTypeCommand.Id)} {rule.Error}");
+                            .WithMessage($"{nameof(DeleteUOMCommand.Id)} {rule.Error}");
                         break;
 
                     case "NotFound":
                         RuleFor(x => x.Id)
                             .MustAsync(async (id, ct) => !await _queryRepository.NotFoundAsync(id))
-                            .WithMessage($"UsageType {rule.Error}");
+                            .WithMessage($"UOM {rule.Error}");
                         break;
 
                     case "SoftDelete":
                         RuleFor(x => x.Id)
-                            .MustAsync(async (id, ct) => !await _queryRepository.SoftDeleteValidationAsync(id))
+                            .MustAsync(async (id, ct) => !await _queryRepository.SoftDeleteValidation(id))
                             .WithMessage("This master is linked with other records. You cannot delete this record.");
                         break;
 

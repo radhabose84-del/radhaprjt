@@ -113,15 +113,37 @@ namespace InventoryManagement.Infrastructure.Repositories.MiscTypeMaster
         public async Task<bool> SoftDeleteValidation(int Id)
         {
             const string query = @"
-                           SELECT 1 
-                           FROM  Inventory.MiscTypeMaster
-                           WHERE Id  = @Id AND IsDeleted = 0;";
+                SELECT CASE WHEN
+                    EXISTS (
+                        SELECT 1 FROM [Inventory].[MiscMaster]
+                        WHERE MiscTypeId = @Id AND IsDeleted = 0
+                    )
+                    OR EXISTS (
+                        SELECT 1 FROM [Inventory].[ItemVariantAttribute]
+                        WHERE AttributeGroupId = @Id
+                    )
+                THEN 1 ELSE 0 END;";
 
-            using var multi = await _dbConnection.QueryMultipleAsync(query, new { Id = Id });
+            var result = await _dbConnection.QueryFirstOrDefaultAsync<int>(query, new { Id });
+            return result == 1;
+        }
 
-            var shiftMasterDetailExists = await multi.ReadFirstOrDefaultAsync<int?>();
+        public async Task<bool> IsMiscTypeMasterLinkedAsync(int id)
+        {
+            const string query = @"
+                SELECT CASE WHEN
+                    EXISTS (
+                        SELECT 1 FROM [Inventory].[MiscMaster]
+                        WHERE MiscTypeId = @id AND IsDeleted = 0 AND IsActive = 1
+                    )
+                    OR EXISTS (
+                        SELECT 1 FROM [Inventory].[ItemVariantAttribute]
+                        WHERE AttributeGroupId = @id
+                    )
+                THEN 1 ELSE 0 END;";
 
-            return shiftMasterDetailExists.HasValue;
+            var result = await _dbConnection.QueryFirstOrDefaultAsync<int>(query, new { id });
+            return result == 1;
         }
     }
 }
