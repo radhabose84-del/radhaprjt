@@ -209,5 +209,9 @@
     {
         "rule": "DispatchAdviceRequired",
         "error": "Sales Order cannot be foreclosed without a Dispatch Advice. Use Cancel instead."
+    },
+    {
+        "rule": "AmendmentPending",
+        "error": "Sales Order Amendment approval is pending. Approve or Reject the amendment to proceed with Dispatch Advice."
     }
 ]

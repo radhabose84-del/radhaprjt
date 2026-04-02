@@ -74,6 +74,13 @@ namespace SalesManagement.Application.SalesOrder.Dto
         // Dispatch Advice Flag — 'Y'/'N' for Approved orders, null for others
         public string? DAFlag { get; set; }
 
+        // Total Pending Qty (OrderQty - DispatchedQty, excluding deleted lines)
+        public decimal TotalPendingQty { get; set; }
+
+        // Latest Amendment Status (populated for Approved orders only — last RevisionNumber)
+        public int? AmendmentStatusId { get; set; }
+        public string? AmendmentStatusName { get; set; }
+
         // Revision tracking
         public int RevisionNumber { get; set; }
 

@@ -38,10 +38,10 @@ namespace SalesManagement.Presentation.Controllers
             });
         }
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetByIdAsync(int id)
+        [HttpGet("{salesOrderHeaderId}")]
+        public async Task<IActionResult> GetBySalesOrderHeaderIdAsync(int salesOrderHeaderId)
         {
-            var result = await Mediator.Send(new GetSalesOrderAmendmentByIdQuery { Id = id });
+            var result = await Mediator.Send(new GetSalesOrderAmendmentByIdQuery { SalesOrderHeaderId = salesOrderHeaderId });
             return Ok(new { StatusCode = StatusCodes.Status200OK, data = result.Data });
         }
 
