@@ -23,13 +23,15 @@ namespace SalesManagement.Presentation.Controllers
         public async Task<IActionResult> GetAllAsync(
             [FromQuery] int PageNumber,
             [FromQuery] int PageSize,
-            [FromQuery] string? SearchTerm = null)
+            [FromQuery] string? SearchTerm = null,
+            [FromQuery] string? StatusFilter = null)
         {
             var result = await Mediator.Send(new GetAllComplaintDepartmentFeedbackQuery
             {
                 PageNumber = PageNumber,
                 PageSize = PageSize,
-                SearchTerm = SearchTerm
+                SearchTerm = SearchTerm,
+                StatusFilter = StatusFilter
             });
 
             return Ok(new
