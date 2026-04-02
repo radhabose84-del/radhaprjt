@@ -18,5 +18,8 @@ namespace SalesManagement.Application.SalesOrder.Dto
         public int? NewQtyInBags { get; set; }
         public decimal? NewExMillRate { get; set; }
         public DateOnly? NewExpectedDeliveryDate { get; set; }
+
+        // Auto-generated remarks describing what changed
+        public string? Remarks { get; set; }
     }
 }
