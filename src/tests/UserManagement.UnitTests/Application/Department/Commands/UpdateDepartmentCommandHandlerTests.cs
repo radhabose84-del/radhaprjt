@@ -111,27 +111,18 @@ namespace UserManagement.UnitTests.Application.Department.Commands
         }
 
         [Fact]
-        public async Task Handle_DuplicateName_ThrowsValidationException()
+        public async Task Handle_InactivateWhileLinked_ThrowsValidationException()
         {
-            var command = DepartmentBuilders.ValidUpdateCommand();
-            var entity = DepartmentBuilders.ValidEntity();
+            var command = DepartmentBuilders.ValidUpdateCommand(isActive: Status.Inactive);
 
-            _mockMapper
-                .Setup(m => m.Map<UserManagement.Domain.Entities.Department>(command))
-                .Returns(entity);
-
-            _mockCommandRepo
-                .Setup(r => r.UpdateAsync(command.Id, It.IsAny<UserManagement.Domain.Entities.Department>()))
-                .ReturnsAsync(1);
-
-            _mockCommandRepo
-                .Setup(r => r.ExistsByNameupdateAsync(command.DeptName!, command.Id))
+            _mockQueryRepo
+                .Setup(r => r.IsDepartmentLinkedAsync(command.Id))
                 .ReturnsAsync(true);
 
             Func<Task> act = async () => await CreateSut().Handle(command, CancellationToken.None);
 
             await act.Should().ThrowAsync<ValidationException>()
-                .WithMessage("*Already Exists*");
+                .WithMessage("*linked with other records*");
         }
     }
 }

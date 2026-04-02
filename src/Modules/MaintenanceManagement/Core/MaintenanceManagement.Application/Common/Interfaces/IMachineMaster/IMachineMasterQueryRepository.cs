@@ -17,6 +17,7 @@ namespace MaintenanceManagement.Application.Common.Interfaces.IMachineMaster
         Task<MachineDepartmentGroupDto?> GetMachineDepartment(int MachineGroupId);
         Task<bool> NotFoundAsync(int id);
         Task<bool> IsMachineLinkedAsync(int id);
+        Task<bool> SoftDeleteValidationAsync(int id);
 
     }
 }

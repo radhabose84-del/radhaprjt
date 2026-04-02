@@ -133,8 +133,8 @@ namespace MaintenanceManagement.Infrastructure.Repositories.Power.FeederGroup
         {
             const string query = @"
         SELECT TOP 1 1
-        FROM [Maintenance].[Maintenance].[Feeder]
-        WHERE IsDeleted = 0 AND FeederGroupId = @id;
+        FROM [Maintenance].[Feeder]
+        WHERE IsDeleted = 0 AND IsActive = 1 AND FeederGroupId = @id;
         ";
 
             var exists = await _dbConnection.QueryFirstOrDefaultAsync<int?>(query, new { id });

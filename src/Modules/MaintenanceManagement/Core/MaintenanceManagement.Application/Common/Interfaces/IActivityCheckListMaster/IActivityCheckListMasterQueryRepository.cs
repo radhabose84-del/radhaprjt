@@ -17,7 +17,7 @@ namespace MaintenanceManagement.Application.Common.Interfaces.IActivityCheckList
 
         Task<List<GetActivityCheckListByActivityIdDto>> GetCheckListByActivityIdsAsync(List<int> ids, int? workOrderId = null);
 
-        //    Task<bool> SoftDeleteValidation(int Id); 
+        Task<bool> SoftDeleteValidationAsync(int id);
 
         Task<bool> IsActivityCheckListMasterLinkedAsync(int id);
 

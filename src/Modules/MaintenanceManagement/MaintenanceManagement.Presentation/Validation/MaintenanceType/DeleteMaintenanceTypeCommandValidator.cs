@@ -34,11 +34,6 @@ namespace MaintenanceManagement.Presentation.Validation.MaintenanceType
                             .WithMessage($"{rule.Error}")
                             .When(x => x.Id > 0);
                             break;
-                    // case "SoftDelete":
-                    //      RuleFor(x => x.Id)
-                    //   .MustAsync(async (Id, cancellation) => !await _iCostCenterQueryRepository.SoftDeleteValidation(Id))
-                    //     .WithMessage($"{rule.Error}");
-                    //     break;
                     default:
                         
                         break;

@@ -4,7 +4,6 @@ using Contracts.Common;
 using MaintenanceManagement.Application.Common.Interfaces.IActivityCheckListMaster;
 using MaintenanceManagement.Domain.Events;
 using MediatR;
-using FluentValidation;
 
 namespace MaintenanceManagement.Application.ActivityCheckListMaster.Command.DeleteActivityCheckListMaster
 {
@@ -30,13 +29,6 @@ namespace MaintenanceManagement.Application.ActivityCheckListMaster.Command.Dele
 
             var activityCheckListMaster = _imapper.Map<MaintenanceManagement.Domain.Entities.ActivityCheckListMaster>(request);
              var result = await _activityCheckListMasterCommandRepository.DeleteAsync(request.Id,activityCheckListMaster);
-
-
-            {
-                var linked = await _activityChecklistqueryRepo.IsActivityCheckListMasterLinkedAsync(request.Id);
-                if (linked)
-                    throw new ValidationException("This master is linked with other records. You cannot delete this record.");
-            }
             
             //Domain Event
             var domainEvent = new AuditLogsDomainEvent(

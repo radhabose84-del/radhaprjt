@@ -3,7 +3,6 @@ using Contracts.Common;
 using MaintenanceManagement.Application.Common.Interfaces.IShiftMaster;
 using MaintenanceManagement.Domain.Events;
 using MediatR;
-using FluentValidation;
 
 namespace MaintenanceManagement.Application.ShiftMasters.Commands.DeleteShiftMaster
 {
@@ -23,13 +22,6 @@ namespace MaintenanceManagement.Application.ShiftMasters.Commands.DeleteShiftMas
         public async Task<ApiResponseDTO<bool>> Handle(DeleteShiftMasterCommand request, CancellationToken cancellationToken)
         {
               var shiftMaster  = _mapper.Map<MaintenanceManagement.Domain.Entities.ShiftMaster>(request);
-
-
-        var linked = await _shiftMasterQueryRepo.IsShiftMasterLinkedAsync(request.Id);
-            if (linked)
-            {
-         throw new ValidationException("This master is linked with other records. You cannot delete this record.");
-           }
 
             var shiftMasterresult = await _shiftMasterCommand.DeleteAsync(request.Id,shiftMaster);
 

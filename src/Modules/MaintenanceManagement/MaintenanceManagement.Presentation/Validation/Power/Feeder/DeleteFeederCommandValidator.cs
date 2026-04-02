@@ -35,6 +35,11 @@ namespace MaintenanceManagement.Presentation.Validation.Power.Feeder
                             await _feederQueryRepository.NotFoundAsync(Id))
                             .WithName("Feeder Id")
                             .WithMessage($"{rule.Error}"); break;
+                    case "SoftDelete":
+                        RuleFor(x => x.Id)
+                            .MustAsync(async (Id, cancellation) => !await _feederQueryRepository.SoftDeleteValidationAsync(Id))
+                            .WithMessage("This master is linked with other records. You cannot delete this record.");
+                        break;
                     default:
                         break;
                 }

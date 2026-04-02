@@ -19,8 +19,9 @@ namespace MaintenanceManagement.Application.Common.Interfaces.IMachineGroup
     //  Task<bool> GetByMachineGroupCodeAsync(string groupName); 
 
        // Task<bool> ExistsByMachineGroupNameAsync(string? GroupName);
-        Task<bool> IsMachineGroupLinkedAsync(int id);  
-        
+        Task<bool> IsMachineGroupLinkedAsync(int id);
+        Task<bool> SoftDeleteValidationAsync(int id);
+
     }
 
     

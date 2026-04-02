@@ -39,6 +39,13 @@ namespace SalesManagement.UnitTests.Validators.BusinessUnit
                 .ReturnsAsync(true);
         }
 
+        private void SetupNameNotExists()
+        {
+            _mockQueryRepo
+                .Setup(r => r.NameAlreadyExistsAsync(It.IsAny<string>(), It.IsAny<int?>()))
+                .ReturnsAsync(false);
+        }
+
         // ── Happy Path ────────────────────────────────────────────────────────
 
         [Fact]
@@ -46,6 +53,7 @@ namespace SalesManagement.UnitTests.Validators.BusinessUnit
         {
             var command = BusinessUnitBuilders.ValidUpdateCommand(id: 1);
             SetupIdExists(1);
+            SetupNameNotExists();
 
             var result = await CreateValidator().TestValidateAsync(command);
 
@@ -64,6 +72,7 @@ namespace SalesManagement.UnitTests.Validators.BusinessUnit
             _mockQueryRepo
                 .Setup(r => r.NotFoundAsync(id))
                 .ReturnsAsync(true); // entity not found (irrelevant, just satisfies strict mock)
+            SetupNameNotExists();
 
             var command = BusinessUnitBuilders.ValidUpdateCommand(id: id);
 
@@ -78,6 +87,7 @@ namespace SalesManagement.UnitTests.Validators.BusinessUnit
         {
             var command = BusinessUnitBuilders.ValidUpdateCommand(id: 99);
             SetupIdNotFound(99);
+            SetupNameNotExists();
 
             var result = await CreateValidator().TestValidateAsync(command);
 
@@ -94,6 +104,7 @@ namespace SalesManagement.UnitTests.Validators.BusinessUnit
         {
             var command = BusinessUnitBuilders.ValidUpdateCommand(id: 1, name: name);
             SetupIdExists(1);
+            SetupNameNotExists();
 
             var result = await CreateValidator().TestValidateAsync(command);
 
@@ -107,6 +118,7 @@ namespace SalesManagement.UnitTests.Validators.BusinessUnit
             var longName = new string('A', 101);
             var command = BusinessUnitBuilders.ValidUpdateCommand(id: 1, name: longName);
             SetupIdExists(1);
+            SetupNameNotExists();
 
             var result = await CreateValidator().TestValidateAsync(command);
 
@@ -122,6 +134,7 @@ namespace SalesManagement.UnitTests.Validators.BusinessUnit
             var longDesc = new string('A', 501);
             var command = BusinessUnitBuilders.ValidUpdateCommand(id: 1, description: longDesc);
             SetupIdExists(1);
+            SetupNameNotExists();
 
             var result = await CreateValidator().TestValidateAsync(command);
 
@@ -134,6 +147,7 @@ namespace SalesManagement.UnitTests.Validators.BusinessUnit
         {
             var command = BusinessUnitBuilders.ValidUpdateCommand(id: 1, description: null);
             SetupIdExists(1);
+            SetupNameNotExists();
 
             var result = await CreateValidator().TestValidateAsync(command);
 
@@ -149,6 +163,7 @@ namespace SalesManagement.UnitTests.Validators.BusinessUnit
         {
             var command = BusinessUnitBuilders.ValidUpdateCommand(id: 1, isActive: isActive);
             SetupIdExists(1);
+            SetupNameNotExists();
 
             var result = await CreateValidator().TestValidateAsync(command);
 
@@ -162,6 +177,7 @@ namespace SalesManagement.UnitTests.Validators.BusinessUnit
         {
             var command = BusinessUnitBuilders.ValidUpdateCommand(id: 1, isActive: isActive);
             SetupIdExists(1);
+            SetupNameNotExists();
 
             var result = await CreateValidator().TestValidateAsync(command);
 

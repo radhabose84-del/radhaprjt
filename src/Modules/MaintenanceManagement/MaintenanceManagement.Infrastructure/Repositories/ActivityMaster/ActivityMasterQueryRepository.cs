@@ -258,13 +258,30 @@ namespace MaintenanceManagement.Infrastructure.Repositories.ActivityMaster
         {
         const string query = @"
         SELECT TOP 1 1
-        FROM [Maintenance].[Maintenance].[ActivityCheckListMaster]
-        WHERE IsDeleted = 0 AND ActivityID = @id;
+        FROM [Maintenance].[ActivityCheckListMaster]
+        WHERE IsDeleted = 0 AND IsActive = 1 AND ActivityID = @id;
         ";
 
             var exists = await _dbConnection.QueryFirstOrDefaultAsync<int?>(query, new { id });
             return exists.HasValue;
         }
-        
+
+        public async Task<bool> SoftDeleteValidationAsync(int id)
+        {
+            const string query = @"
+                SELECT COUNT(1) FROM [Maintenance].[ActivityCheckListMaster]
+                WHERE ActivityID = @Id AND IsDeleted = 0";
+            var count = await _dbConnection.ExecuteScalarAsync<int>(query, new { Id = id });
+            return count > 0;
+        }
+
+        public async Task<bool> NotFoundAsync(int id)
+        {
+            const string query = @"
+                SELECT COUNT(1) FROM Maintenance.ActivityMaster WHERE Id = @Id AND IsDeleted = 0";
+            var count = await _dbConnection.ExecuteScalarAsync<int>(query, new { Id = id });
+            return count > 0;
+        }
+
     }
 }

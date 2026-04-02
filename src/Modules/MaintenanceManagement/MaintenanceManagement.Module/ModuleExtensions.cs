@@ -18,7 +18,7 @@ namespace MaintenanceManagement.Module
             IHostEnvironment env)
         {
             // ✅ 1) Register Infrastructure first (repos, db, services)
-            services.AddMaintenanceInfrastructure(configuration);
+            services.AddMaintenanceInfrastructure(configuration, env);
 
             // ✅ 2) Use compile-time assemblies (NO Assembly.Load)
             var applicationAssembly = typeof(MachineGroupProfile).Assembly;                 // MaintenanceManagement.Application
