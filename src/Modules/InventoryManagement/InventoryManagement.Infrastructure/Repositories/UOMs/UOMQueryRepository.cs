@@ -106,10 +106,43 @@ namespace InventoryManagement.Infrastructure.Repositories.UOMs
 
         public async Task<bool> NotFoundAsync(int id)
         {
-            var query = "SELECT COUNT(1) FROM Inventory.MiscMaster WHERE Id = @Id AND IsDeleted = 0";
-
+            var query = "SELECT COUNT(1) FROM Inventory.UOM WHERE Id = @Id AND IsDeleted = 0";
             var count = await _dbConnection.ExecuteScalarAsync<int>(query, new { Id = id });
-            return count > 0;
+            return count == 0;
+        }
+
+        public async Task<bool> SoftDeleteValidation(int id)
+        {
+            const string query = @"
+                SELECT CASE WHEN
+                    EXISTS (SELECT 1 FROM [Inventory].[UOMConversion] WHERE FromUOMId = @id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[UOMConversion] WHERE ToUOMId = @id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[ItemMaster] WHERE StockUomId = @id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[ItemUOM] WHERE ConversionUOMId = @id)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[ItemPurchase] WHERE PurchaseUomId = @id)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[ItemSale] WHERE UomId = @id)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[ItemInventory] WHERE WeightUomId = @id)
+                THEN 1 ELSE 0 END;";
+
+            var result = await _dbConnection.QueryFirstOrDefaultAsync<int>(query, new { id });
+            return result == 1;
+        }
+
+        public async Task<bool> IsUOMLinkedAsync(int id)
+        {
+            const string query = @"
+                SELECT CASE WHEN
+                    EXISTS (SELECT 1 FROM [Inventory].[UOMConversion] WHERE FromUOMId = @id AND IsDeleted = 0 AND IsActive = 1)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[UOMConversion] WHERE ToUOMId = @id AND IsDeleted = 0 AND IsActive = 1)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[ItemMaster] WHERE StockUomId = @id AND IsDeleted = 0 AND IsActive = 1)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[ItemUOM] WHERE ConversionUOMId = @id)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[ItemPurchase] WHERE PurchaseUomId = @id)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[ItemSale] WHERE UomId = @id)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[ItemInventory] WHERE WeightUomId = @id)
+                THEN 1 ELSE 0 END;";
+
+            var result = await _dbConnection.QueryFirstOrDefaultAsync<int>(query, new { id });
+            return result == 1;
         }
 
         public async Task<List<UOMDto>> GetUOMAsync()

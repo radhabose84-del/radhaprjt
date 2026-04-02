@@ -72,11 +72,6 @@ namespace InventoryManagement.Presentation.Validation.Item.ItemGroup
                             .MustAsync(async (cmd, code, ct) =>
                                 !await _itemGroupCommandRepository.IsCodeDuplicateAsync(code, cmd.Id))
                             .WithMessage("A Group Code already exists in this Group.");
-
-                        RuleFor(x => x.ItemGroupName)
-                            .MustAsync(async (cmd, name, ct) =>
-                                !await _itemGroupCommandRepository.ExistsByNameAsync(name, ct))
-                            .WithMessage("Item Group Name already exists.");
                         break;
 
                     case "RecordNotFound":

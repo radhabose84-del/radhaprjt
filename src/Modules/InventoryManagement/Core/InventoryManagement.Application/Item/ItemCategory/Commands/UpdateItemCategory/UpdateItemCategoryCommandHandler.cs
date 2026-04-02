@@ -10,17 +10,27 @@ namespace InventoryManagement.Application.Item.ItemCategory.Commands.UpdateItemC
     public class UpdateItemCategoryCommandHandler  : IRequestHandler<UpdateItemCategoryCommand, int>
     {
         private readonly IItemCategoryCommandRepository _itemCategoryCommandRepository;
+        private readonly IItemCategoryQueryRepository _itemCategoryQueryRepository;
         private readonly IMediator _mediator;
         private readonly IMapper _mapper;
-        public UpdateItemCategoryCommandHandler(IItemCategoryCommandRepository itemCategoryCommandRepository, IMediator mediator, IMapper mapper)
+        public UpdateItemCategoryCommandHandler(IItemCategoryCommandRepository itemCategoryCommandRepository, IItemCategoryQueryRepository itemCategoryQueryRepository, IMediator mediator, IMapper mapper)
         {
             _itemCategoryCommandRepository = itemCategoryCommandRepository;
+            _itemCategoryQueryRepository = itemCategoryQueryRepository;
             _mediator = mediator;
             _mapper = mapper;
         }
 
         public async Task<int> Handle(UpdateItemCategoryCommand request, CancellationToken cancellationToken)
-        {       
+        {
+            if (request.IsActive == 0)
+            {
+                var isLinked = await _itemCategoryQueryRepository.IsLinkedWithActiveItemsAsync(request.Id);
+                if (isLinked)
+                    throw new ExceptionRules(
+                        "This master is linked with other records. You cannot inactivate this record.");
+            }
+
             var itemCategory = _mapper.Map<InventoryManagement.Domain.Entities.Item.ItemCategory>(request);
             var result = await _itemCategoryCommandRepository.UpdateAsync(request.Id, itemCategory);
             

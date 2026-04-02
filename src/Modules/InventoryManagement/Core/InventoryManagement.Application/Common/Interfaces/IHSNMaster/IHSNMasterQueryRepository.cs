@@ -12,10 +12,7 @@ namespace InventoryManagement.Application.Common.Interfaces.IHSNMaster
         Task<bool> AlreadyExistsAsync(string hsnCode, int? id = null);
         Task<bool> NotFoundAsync(int id);
         Task<bool> FKColumnValidation(int id);        
-        Task<bool> SoftDeleteValidation(int Id);     
-        
-
-               
-
+        Task<bool> SoftDeleteValidation(int Id);
+        Task<bool> IsHSNMasterLinkedAsync(int id);
     }
 }

@@ -65,7 +65,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemGroup
         public async Task<bool> IsNameDuplicateAsync(string name, int excludeId)
         {
             return await _applicationDbContext.ItemGroup
-            .Where(cc => cc.ItemGroupName == name && cc.Id != excludeId)
+            .Where(cc => cc.ItemGroupName == name && cc.Id != excludeId && cc.IsDeleted == 0)
             .AnyAsync();
         }
         public async Task<bool> IsCodeDuplicateAsync(string? code, int excludeId)

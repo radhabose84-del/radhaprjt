@@ -9,5 +9,7 @@ namespace InventoryManagement.Application.Common.Interfaces.Item.Templates
         Task<IReadOnlyList<InspectionTemplate>> GetAutoCompleteAsync(string? search, int take, CancellationToken ct);
         Task<bool> ExistsByNameAsync(string name, int? excludeId, CancellationToken ct);
         Task<bool> ExistsByIdAsync(int id, CancellationToken ct);
+        Task<bool> SoftDeleteValidationAsync(int id, CancellationToken ct);
+        Task<bool> IsTemplateLinkedAsync(int id, CancellationToken ct);
     }
 }

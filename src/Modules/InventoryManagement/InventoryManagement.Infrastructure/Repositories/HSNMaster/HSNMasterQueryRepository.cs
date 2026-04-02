@@ -186,18 +186,27 @@ namespace InventoryManagement.Infrastructure.Repositories.HSNMaster
          public async Task<bool> SoftDeleteValidation(int id)
         {
             const string query = @"
-                SELECT 1
-                FROM Inventory.HSNMaster H
-                WHERE H.Id = @Id
-                AND H.IsDeleted = 0;
-            ";
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1 FROM [Inventory].[ItemMaster]
+                    WHERE HSNId = @id AND IsDeleted = 0
+                ) THEN 1 ELSE 0 END;";
 
-            using var multi = await _dbConnection.QueryMultipleAsync(query, new { Id = id });
-            var recordExists = await multi.ReadFirstOrDefaultAsync<int?>();
-
-            return recordExists.HasValue;
+            var result = await _dbConnection.QueryFirstOrDefaultAsync<int>(query, new { id });
+            return result == 1;
         }
-        
+
+        public async Task<bool> IsHSNMasterLinkedAsync(int id)
+        {
+            const string query = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1 FROM [Inventory].[ItemMaster]
+                    WHERE HSNId = @id AND IsDeleted = 0 AND IsActive = 1
+                ) THEN 1 ELSE 0 END;";
+
+            var result = await _dbConnection.QueryFirstOrDefaultAsync<int>(query, new { id });
+            return result == 1;
+        }
+
         public async Task<bool> FKColumnValidation(int hsnMasterId)
         {
             // Find all referencing tables and columns dynamically
