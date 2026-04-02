@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using SalesManagement.Application.ComplaintDepartmentFeedback.Commands.DeleteAttachment;
 using SalesManagement.Application.ComplaintDepartmentFeedback.Commands.RequestRework;
 using SalesManagement.Application.ComplaintDepartmentFeedback.Commands.SubmitFeedback;
 using SalesManagement.Application.ComplaintDepartmentFeedback.Commands.UpdateFeedback;
@@ -134,6 +135,17 @@ namespace SalesManagement.Presentation.Controllers
                 isSuccess = result.IsSuccess,
                 message = result.Message,
                 data = result.Data
+            });
+        }
+
+        [HttpDelete("delete-attachment/{id}")]
+        public async Task<IActionResult> DeleteAttachment(int id)
+        {
+            var result = await Mediator.Send(new DeleteFeedbackAttachmentCommand(id));
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result
             });
         }
 

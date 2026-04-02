@@ -219,6 +219,14 @@ namespace SalesManagement.Infrastructure.Repositories.ComplaintDepartmentFeedbac
             return data;
         }
 
+        public async Task<string?> GetAttachmentFilePathAsync(int id)
+        {
+            const string sql = @"
+                SELECT FilePath FROM Sales.ComplaintFeedbackAttachment
+                WHERE Id = @Id AND IsDeleted = 0;";
+            return await _dbConnection.ExecuteScalarAsync<string?>(sql, new { Id = id });
+        }
+
         public async Task<bool> NotFoundAsync(int id)
         {
             const string sql = "SELECT COUNT(1) FROM Sales.ComplaintDepartmentFeedback WHERE Id = @Id AND IsDeleted = 0;";
