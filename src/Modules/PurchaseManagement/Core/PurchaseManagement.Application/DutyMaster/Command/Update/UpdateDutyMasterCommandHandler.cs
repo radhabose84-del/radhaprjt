@@ -1,4 +1,5 @@
 using AutoMapper;
+using Contracts.Common;
 using PurchaseManagement.Application.Common.Interfaces.IDutyMaster;
 using PurchaseManagement.Application.Common.Interfaces.IPurchase.DutyMaster;
 using PurchaseManagement.Application.Purchase.DutyMaster.Command.Update;
@@ -15,6 +16,14 @@ namespace PurchaseManagement.Application.Purchase.DutyMaster.Update
         public async Task<bool> Handle(UpdateDutyMasterCommand r, CancellationToken ct)
         {
             if (r.Model is null || r.Model.Id <= 0) return false;
+
+            if (r.Model.IsActive == 0)
+            {
+                var isLinked = await read.SoftDeleteValidationAsync(r.Model.Id);
+                if (isLinked)
+                    throw new ExceptionRules(
+                        "This master is linked with other records. You cannot inactivate this record.");
+            }
 
             var existing = await read.GetByIdAsync(r.Model.Id, ct);
             if (existing is null) return false;

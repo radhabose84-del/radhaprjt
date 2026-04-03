@@ -23,7 +23,14 @@ namespace PurchaseManagement.Application.TnCTemplateMaster.Command.UpdateTnCTemp
         
         public async Task<bool> Handle(UpdateTnCTemplateMasterCommand request, CancellationToken cancellationToken)
         {
-           
+            if (request.IsActive == 0)
+            {
+                var isLinked = await _tnCTemplateMasterQueryRepository.IsTnCTemplateLinkedAsync(request.Id);
+                if (isLinked)
+                    throw new ExceptionRules(
+                        "This master is linked with other records. You cannot inactivate this record.");
+            }
+
             var existing = await _tnCTemplateMasterQueryRepository.GetByIdAsync(request.Id);
 
             if (existing is null)

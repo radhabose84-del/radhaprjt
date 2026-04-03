@@ -13,6 +13,7 @@ namespace PurchaseManagement.Application.Common.Interfaces.IMiscTypeMaster
 
         Task<bool> NotFoundAsync(int Id );
 
-        Task<bool> SoftDeleteValidation(int Id); 
+        Task<bool> SoftDeleteValidation(int Id);
+        Task<bool> IsMiscTypeMasterLinkedAsync(int id);
     }
 }

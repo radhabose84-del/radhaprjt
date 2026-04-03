@@ -88,7 +88,7 @@ namespace SalesManagement.Application.SalesOrder.Commands.CreateSalesOrderAmendm
                 {
                     ChangeType = changeType,
                     SalesOrderDetailId = dto.SalesOrderDetailId,
-                    OldItemId = soDetail.ItemId,
+                    OldItemId = soDetail.VariantId ?? 0,
                     OldQtyInBags = soDetail.QtyInBags,
                     OldExMillRate = soDetail.ExMillRate,
                     OldExpectedDeliveryDate = soDetail.ExpectedDeliveryDate,
