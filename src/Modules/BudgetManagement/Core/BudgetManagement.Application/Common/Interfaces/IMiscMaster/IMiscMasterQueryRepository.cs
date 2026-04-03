@@ -14,5 +14,7 @@ namespace BudgetManagement.Application.Common.Interfaces.IMiscMaster
         Task<bool> FKColumnValidation(int ShiftMasterId);
         Task<BudgetManagement.Domain.Entities.MiscMaster?> GetMiscMasterByName(string miscTypeCode, string miscTypeName);
         Task<Domain.Entities.MiscMaster?> GetByTypeAndCodeAsync(string miscTypeCode, string code, CancellationToken ct = default);
+        Task<bool> SoftDeleteValidation(int id);
+        Task<bool> IsMiscMasterLinkedAsync(int id);
     }
 }

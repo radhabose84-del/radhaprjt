@@ -297,15 +297,28 @@ const string sql = @"
         // SOFT DELETE VALIDATION
         public async Task<bool> SoftDeleteValidation(int id, CancellationToken ct = default)
         {
-           const string sql = @"
-           SELECT COUNT(1) 
-           FROM [Budget].[BudgetGroup] WITH (NOLOCK)
-           WHERE ParentBudgetGroupId = @Id
-           AND IsDeleted = 0;";
+            const string sql = @"
+                SELECT CASE WHEN
+                    EXISTS (SELECT 1 FROM [Budget].[BudgetGroup] WHERE ParentBudgetGroupId = @Id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM [Budget].[BudgetAllocation] WHERE BudgetGroupId = @Id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM [Budget].[BudgetRequest] WHERE BudgetGroupId = @Id AND IsDeleted = 0)
+                THEN 1 ELSE 0 END;";
 
-           var count = await _db.ExecuteScalarAsync<int>(sql, new { Id = id });
+            var result = await _db.QueryFirstOrDefaultAsync<int>(sql, new { Id = id });
+            return result == 1;
+        }
 
-           return count > 0;
+        public async Task<bool> IsBudgetGroupLinkedAsync(int id, CancellationToken ct = default)
+        {
+            const string sql = @"
+                SELECT CASE WHEN
+                    EXISTS (SELECT 1 FROM [Budget].[BudgetGroup] WHERE ParentBudgetGroupId = @Id AND IsDeleted = 0 AND IsActive = 1)
+                    OR EXISTS (SELECT 1 FROM [Budget].[BudgetAllocation] WHERE BudgetGroupId = @Id AND IsDeleted = 0 AND IsActive = 1)
+                    OR EXISTS (SELECT 1 FROM [Budget].[BudgetRequest] WHERE BudgetGroupId = @Id AND IsDeleted = 0 AND IsActive = 1)
+                THEN 1 ELSE 0 END;";
+
+            var result = await _db.QueryFirstOrDefaultAsync<int>(sql, new { Id = id });
+            return result == 1;
         }
 
         public async Task<List<BudgetGroupAutoCompleteDto>> GetBudgetGroupByDepartmentAsync(int departmentId, string? searchPattern, CancellationToken ct = default)

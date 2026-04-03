@@ -183,6 +183,42 @@ namespace BudgetManagement.Infrastructure.Repositories.MiscMaster
             });
         }
 
-        
+
+        public async Task<bool> SoftDeleteValidation(int id)
+        {
+            const string query = @"
+                SELECT CASE WHEN
+                    EXISTS (SELECT 1 FROM [Budget].[BudgetGroup] WHERE AllocationRuleId = @id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM [Budget].[BudgetGroup] WHERE BudgetTypeId = @id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM [Budget].[BudgetRequest] WHERE RequestTypeId = @id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM [Budget].[BudgetRequest] WHERE RequestById = @id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM [Budget].[BudgetRequest] WHERE RequestMonthId = @id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM [Budget].[BudgetAllocation] WHERE AllocationTypeId = @id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM [Budget].[BudgetAllocation] WHERE RequestById = @id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM [Budget].[BudgetAllocation] WHERE RequestMonthId = @id AND IsDeleted = 0)
+                THEN 1 ELSE 0 END;";
+
+            var result = await _dbConnection.QueryFirstOrDefaultAsync<int>(query, new { id });
+            return result == 1;
+        }
+
+        public async Task<bool> IsMiscMasterLinkedAsync(int id)
+        {
+            const string query = @"
+                SELECT CASE WHEN
+                    EXISTS (SELECT 1 FROM [Budget].[BudgetGroup] WHERE AllocationRuleId = @id AND IsDeleted = 0 AND IsActive = 1)
+                    OR EXISTS (SELECT 1 FROM [Budget].[BudgetGroup] WHERE BudgetTypeId = @id AND IsDeleted = 0 AND IsActive = 1)
+                    OR EXISTS (SELECT 1 FROM [Budget].[BudgetRequest] WHERE RequestTypeId = @id AND IsDeleted = 0 AND IsActive = 1)
+                    OR EXISTS (SELECT 1 FROM [Budget].[BudgetRequest] WHERE RequestById = @id AND IsDeleted = 0 AND IsActive = 1)
+                    OR EXISTS (SELECT 1 FROM [Budget].[BudgetRequest] WHERE RequestMonthId = @id AND IsDeleted = 0 AND IsActive = 1)
+                    OR EXISTS (SELECT 1 FROM [Budget].[BudgetAllocation] WHERE AllocationTypeId = @id AND IsDeleted = 0 AND IsActive = 1)
+                    OR EXISTS (SELECT 1 FROM [Budget].[BudgetAllocation] WHERE RequestById = @id AND IsDeleted = 0 AND IsActive = 1)
+                    OR EXISTS (SELECT 1 FROM [Budget].[BudgetAllocation] WHERE RequestMonthId = @id AND IsDeleted = 0 AND IsActive = 1)
+                THEN 1 ELSE 0 END;";
+
+            var result = await _dbConnection.QueryFirstOrDefaultAsync<int>(query, new { id });
+            return result == 1;
+        }
+
     }
 }
