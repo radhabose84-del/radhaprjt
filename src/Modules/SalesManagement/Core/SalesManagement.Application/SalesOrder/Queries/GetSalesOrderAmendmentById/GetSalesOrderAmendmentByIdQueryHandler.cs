@@ -7,7 +7,7 @@ using SalesManagement.Domain.Events;
 namespace SalesManagement.Application.SalesOrder.Queries.GetSalesOrderAmendmentById
 {
     public class GetSalesOrderAmendmentByIdQueryHandler
-        : IRequestHandler<GetSalesOrderAmendmentByIdQuery, ApiResponseDTO<SalesOrderAmendmentHeaderDto>>
+        : IRequestHandler<GetSalesOrderAmendmentByIdQuery, ApiResponseDTO<List<SalesOrderAmendmentHeaderDto>>>
     {
         private readonly ISalesOrderAmendmentQueryRepository _queryRepository;
         private readonly IMediator _mediator;
@@ -20,26 +20,19 @@ namespace SalesManagement.Application.SalesOrder.Queries.GetSalesOrderAmendmentB
             _mediator = mediator;
         }
 
-        public async Task<ApiResponseDTO<SalesOrderAmendmentHeaderDto>> Handle(
+        public async Task<ApiResponseDTO<List<SalesOrderAmendmentHeaderDto>>> Handle(
             GetSalesOrderAmendmentByIdQuery request, CancellationToken cancellationToken)
         {
-            var result = await _queryRepository.GetByIdAsync(request.Id);
-            if (result == null)
-                return new ApiResponseDTO<SalesOrderAmendmentHeaderDto>
-                {
-                    IsSuccess = false,
-                    Message = "Sales Order Amendment not found.",
-                    Data = null
-                };
+            var result = await _queryRepository.GetBySalesOrderHeaderIdAsync(request.SalesOrderHeaderId);
 
             await _mediator.Publish(new AuditLogsDomainEvent(
-                actionDetail: "GetById",
+                actionDetail: "GetBySalesOrderHeaderId",
                 actionCode: "GetSalesOrderAmendmentByIdQuery",
-                actionName: result.Id.ToString(),
-                details: $"Sales Order Amendment Id {result.Id} fetched.",
+                actionName: request.SalesOrderHeaderId.ToString(),
+                details: $"Sales Order Amendments for SO Id {request.SalesOrderHeaderId} fetched. Count: {result.Count}.",
                 module: "SalesOrderAmendment"), cancellationToken);
 
-            return new ApiResponseDTO<SalesOrderAmendmentHeaderDto>
+            return new ApiResponseDTO<List<SalesOrderAmendmentHeaderDto>>
             {
                 IsSuccess = true,
                 Message = "Success",

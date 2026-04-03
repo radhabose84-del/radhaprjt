@@ -41,5 +41,8 @@ namespace SalesManagement.Application.Complaint.Dto
 
         // Details (populated in GetById)
         public List<ComplaintDetailDto>? ComplaintDetails { get; set; }
+
+        // Attachments (populated in GetById)
+        public List<ComplaintAttachmentDto>? Attachments { get; set; }
     }
 }

@@ -1,5 +1,5 @@
+using Contracts.Dtos.Lookups.Production;
 using MediatR;
-using ProductionManagement.Application.PackType.Dto;
 
 namespace ProductionManagement.Application.PackType.Queries.GetPackTypeAutoComplete;
 

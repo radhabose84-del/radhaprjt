@@ -25,7 +25,9 @@ namespace SalesManagement.Application.SalesOrder.Queries.GetAllSalesOrder
 
         public async Task<ApiResponseDTO<List<SalesOrderHeaderDto>>> Handle(GetAllSalesOrderQuery request, CancellationToken cancellationToken)
         {
-            var (data, totalCount) = await _queryRepository.GetAllAsync(request.PageNumber, request.PageSize, request.SearchTerm);
+            var (data, totalCount) = await _queryRepository.GetAllAsync(
+                request.PageNumber, request.PageSize, request.SearchTerm,
+                request.OrderDateFrom, request.OrderDateTo, request.PartyName, request.StatusName);
 
             var domainEvent = new AuditLogsDomainEvent(
                 actionDetail: "GetAllSalesOrderQuery",

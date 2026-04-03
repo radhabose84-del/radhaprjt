@@ -27,6 +27,11 @@ namespace InventoryManagement.Presentation.Validation.HSNMaster
                     !await _hsnMasterQueryRepository.FKColumnValidation(id))
                 .WithMessage("HSN Master cannot be deleted as it is referenced by other records.");
 
+            RuleFor(x => x.Id)
+                .MustAsync(async (id, cancellation) =>
+                    !await _hsnMasterQueryRepository.SoftDeleteValidation(id))
+                .WithMessage("This master is linked with other records. You cannot delete this record.");
+
         }
         
     }

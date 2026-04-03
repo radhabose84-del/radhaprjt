@@ -10,6 +10,8 @@ using SalesManagement.Application.Complaint.Queries.GetComplaintAutoComplete;
 using SalesManagement.Application.Complaint.Queries.GetCustomerInvoices;
 using SalesManagement.Application.Complaint.Queries.GetInvoiceLineDetails;
 using SalesManagement.Application.Complaint.Queries.GetPendingComplaint;
+using SalesManagement.Application.Complaint.Commands.UploadAttachment;
+using SalesManagement.Application.Complaint.Commands.DeleteAttachment;
 using SalesManagement.Application.Complaint.Queries.SearchInvoices;
 
 namespace SalesManagement.Presentation.Controllers
@@ -166,6 +168,30 @@ namespace SalesManagement.Presentation.Controllers
         public async Task<IActionResult> DeleteComplaint(int id)
         {
             var result = await Mediator.Send(new DeleteComplaintCommand(id));
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result
+            });
+        }
+
+        [HttpPost("upload-attachment")]
+        public async Task<IActionResult> UploadAttachment([FromForm] UploadComplaintAttachmentCommand command)
+        {
+            var result = await Mediator.Send(command);
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                isSuccess = true,
+                message = "Attachment uploaded successfully.",
+                data = result
+            });
+        }
+
+        [HttpDelete("delete-attachment/{id}")]
+        public async Task<IActionResult> DeleteAttachment(int id)
+        {
+            var result = await Mediator.Send(new DeleteComplaintAttachmentCommand(id));
             return Ok(new
             {
                 StatusCode = StatusCodes.Status200OK,

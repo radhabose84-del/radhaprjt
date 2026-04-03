@@ -123,19 +123,20 @@ namespace  InventoryManagement.Infrastructure.Repositories.Item.ItemCategory
         public async Task<bool> SoftDeleteValidation(int Id)
         {
             const string query = @"
-                    SELECT 1 
-                    FROM Inventory.ItemCategory 
-                    WHERE ParentCategoryId = @Id AND IsDeleted = 0;                 
-                    ";
-            using var multi = await _dbConnection.QueryMultipleAsync(query, new { Id = Id });
-            var notificationConfigExists = await multi.ReadFirstOrDefaultAsync<int?>();
-            return notificationConfigExists.HasValue;
+                SELECT CASE WHEN
+                    EXISTS (SELECT 1 FROM [Inventory].[ItemCategory] WHERE ParentCategoryId = @Id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[ItemMaster] WHERE ItemCategoryId = @Id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[PutAwayRule] WHERE ItemCategoryId = @Id AND IsDeleted = 0)
+                THEN 1 ELSE 0 END;";
+
+            var result = await _dbConnection.QueryFirstOrDefaultAsync<int>(query, new { Id });
+            return result == 1;
         }
         public async Task<bool> NotFoundAsync(int Id)
         {
             var query = "SELECT COUNT(1) FROM Inventory.ItemCategory WHERE Id = @Id AND IsDeleted = 0";
             var count = await _dbConnection.ExecuteScalarAsync<int>(query, new { Id = Id });
-            return count > 0;
+            return count == 0;
         }
         public async Task<List<ItemCategoryAutoCompleteDto>> GetItemCategoryAutoCompleteAsync(
             int? groupId,
@@ -193,15 +194,14 @@ namespace  InventoryManagement.Infrastructure.Repositories.Item.ItemCategory
         public async Task<bool> IsLinkedWithActiveItemsAsync(int itemCategoryId)
         {
             const string query = @"
-                SELECT 1
-                FROM Inventory.ItemMaster IM
-                WHERE IM.ItemCategoryId = @ItemCategoryId
-                AND IM.IsDeleted = 0; 
-            ";
+                SELECT CASE WHEN
+                    EXISTS (SELECT 1 FROM [Inventory].[ItemCategory] WHERE ParentCategoryId = @ItemCategoryId AND IsDeleted = 0 AND IsActive = 1)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[ItemMaster] WHERE ItemCategoryId = @ItemCategoryId AND IsDeleted = 0 AND IsActive = 1)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[PutAwayRule] WHERE ItemCategoryId = @ItemCategoryId AND IsDeleted = 0 AND IsActive = 1)
+                THEN 1 ELSE 0 END;";
 
-            using var multi = await _dbConnection.QueryMultipleAsync(query, new { ItemCategoryId = itemCategoryId });
-            var exists = await multi.ReadFirstOrDefaultAsync<int?>();
-            return exists.HasValue;   
+            var result = await _dbConnection.QueryFirstOrDefaultAsync<int>(query, new { ItemCategoryId = itemCategoryId });
+            return result == 1;
         }
     }
 }

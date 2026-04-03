@@ -30,7 +30,12 @@ namespace MaintenanceManagement.Presentation.Validation.MiscMaster
                         RuleFor(x => x.Id)
                             .NotEmpty()
                             .WithMessage($"{nameof(DeleteMiscMasterCommand.Id)} {rule.Error}");
-                        break;                   
+                        break;
+                    case "SoftDelete":
+                        RuleFor(x => x.Id)
+                            .MustAsync(async (Id, cancellation) => !await _miscMasterQueryRepository.SoftDeleteValidationAsync(Id))
+                            .WithMessage("This master is linked with other records. You cannot delete this record.");
+                        break;
                         case "NotFound":
                            RuleFor(x => x.Id )
                            .MustAsync(async (Id, cancellation) => 

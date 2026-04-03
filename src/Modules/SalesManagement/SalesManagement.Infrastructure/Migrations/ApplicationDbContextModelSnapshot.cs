@@ -291,6 +291,66 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.ToTable("BusinessUnit", "Sales");
                 });
 
+            modelBuilder.Entity("SalesManagement.Domain.Entities.ComplaintAttachment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ComplaintHeaderId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("FileName")
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("FilePath")
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<long?>("FileSize")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("FileType")
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ComplaintHeaderId");
+
+                    b.ToTable("ComplaintAttachment", "Sales");
+                });
+
             modelBuilder.Entity("SalesManagement.Domain.Entities.ComplaintDepartmentFeedback", b =>
                 {
                     b.Property<int>("Id")
@@ -4907,6 +4967,17 @@ namespace SalesManagement.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("SalesSegment");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.ComplaintAttachment", b =>
+                {
+                    b.HasOne("SalesManagement.Domain.Entities.ComplaintHeader", "ComplaintHeader")
+                        .WithMany()
+                        .HasForeignKey("ComplaintHeaderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ComplaintHeader");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.ComplaintDepartmentFeedback", b =>

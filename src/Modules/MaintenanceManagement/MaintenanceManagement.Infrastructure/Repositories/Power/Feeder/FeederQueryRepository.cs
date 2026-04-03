@@ -148,19 +148,32 @@ namespace MaintenanceManagement.Infrastructure.Repositories.Power.Feeder
         {
             const string query = @"
         SELECT TOP 1 1
-        FROM [Maintenance].[Maintenance].[PowerConsumption]
-        WHERE IsDeleted = 0 AND FeederId = @id;
+        FROM [Maintenance].[PowerConsumption]
+        WHERE IsDeleted = 0 AND IsActive = 1 AND FeederId = @id
+        UNION ALL
+        SELECT TOP 1 1
+        FROM [Maintenance].[Feeder]
+        WHERE ParentFeederId = @id AND IsDeleted = 0 AND IsActive = 1;
     ";
 
             var exists = await _dbConnection.QueryFirstOrDefaultAsync<int?>(query, new { id });
             return exists.HasValue;
         }
 
-       
+        public async Task<bool> SoftDeleteValidationAsync(int id)
+        {
+            const string query = @"
+                SELECT 1
+                FROM [Maintenance].[PowerConsumption]
+                WHERE FeederId = @Id AND IsDeleted = 0
+                UNION ALL
+                SELECT 1
+                FROM [Maintenance].[Feeder]
+                WHERE ParentFeederId = @Id AND IsDeleted = 0";
 
-        
- 
-
+            var exists = await _dbConnection.QueryFirstOrDefaultAsync<int?>(query, new { Id = id });
+            return exists.HasValue;
+        }
 
     }
 }

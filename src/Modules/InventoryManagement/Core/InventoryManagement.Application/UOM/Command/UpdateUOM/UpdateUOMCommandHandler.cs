@@ -22,6 +22,14 @@ namespace InventoryManagement.Application.UOM.Command.UpdateUOM
         }
         public async Task<ApiResponseDTO<bool>> Handle(UpdateUOMCommand request, CancellationToken cancellationToken)
         {
+            if (request.IsActive == 0)
+            {
+                var isLinked = await _uomQueryRepository.IsUOMLinkedAsync(request.Id);
+                if (isLinked)
+                    throw new ExceptionRules(
+                        "This master is linked with other records. You cannot inactivate this record.");
+            }
+
             var existinguom = await _uomQueryRepository.GetByUOMNameAsync(request.UOMName, request.Id);
 
                 if (existinguom != null)

@@ -1,4 +1,5 @@
 using System.Data;
+using Contracts.Dtos.Lookups.Production;
 using Dapper;
 using ProductionManagement.Application.Common.Interfaces.IPackType;
 using ProductionManagement.Application.PackType.Dto;

@@ -7,6 +7,7 @@ namespace SalesManagement.Application.Common.Interfaces.ISalesOrderAmendment
     {
         Task<(List<SalesOrderAmendmentHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm);
         Task<SalesOrderAmendmentHeaderDto?> GetByIdAsync(int id);
+        Task<List<SalesOrderAmendmentHeaderDto>> GetBySalesOrderHeaderIdAsync(int salesOrderHeaderId);
         Task<(List<PendingSalesOrderAmendmentDto>, int)> GetPendingAsync(int pageNumber, int pageSize, string? searchTerm);
         Task<bool> SalesOrderExistsAndApprovedAsync(int salesOrderHeaderId);
         Task<bool> HasDispatchAdviceAsync(int salesOrderHeaderId);

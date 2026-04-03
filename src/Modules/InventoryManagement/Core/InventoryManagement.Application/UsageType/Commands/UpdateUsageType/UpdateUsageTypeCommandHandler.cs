@@ -27,6 +27,14 @@ namespace InventoryManagement.Application.UsageType.Commands.UpdateUsageType
 
         public async Task<ApiResponseDTO<int>> Handle(UpdateUsageTypeCommand request, CancellationToken cancellationToken)
         {
+            if (request.IsActive == 0)
+            {
+                var isLinked = await _queryRepository.IsUsageTypeLinkedAsync(request.Id);
+                if (isLinked)
+                    throw new ExceptionRules(
+                        "This master is linked with other records. You cannot inactivate this record.");
+            }
+
             var entity = _mapper.Map<Domain.Entities.UsageType>(request);
 
             var result = await _commandRepository.UpdateAsync(entity);

@@ -109,15 +109,20 @@ namespace MaintenanceManagement.Infrastructure.Repositories.ShiftMaster
         public async Task<bool> SoftDeleteValidation(int Id)
         {
              const string query = @"
-                           SELECT 1 
+                           SELECT 1
                            FROM [Maintenance].[ShiftMasterDetails]
+                           WHERE ShiftMasterId = @Id AND IsDeleted = 0;
+
+                           SELECT 1
+                           FROM [Maintenance].[MachineMaster]
                            WHERE ShiftMasterId = @Id AND IsDeleted = 0;";
-                    
+
                        using var multi = await _dbConnection.QueryMultipleAsync(query, new { Id = Id });
-                    
+
                        var shiftMasterDetailExists = await multi.ReadFirstOrDefaultAsync<int?>();
-                    
-                       return shiftMasterDetailExists.HasValue;
+                       var machineMasterExists = await multi.ReadFirstOrDefaultAsync<int?>();
+
+                       return shiftMasterDetailExists.HasValue || machineMasterExists.HasValue;
         }
         
         public async Task<bool> IsShiftMasterLinkedAsync(int id)
@@ -126,13 +131,13 @@ namespace MaintenanceManagement.Infrastructure.Repositories.ShiftMaster
         SELECT CASE WHEN
             EXISTS (
                 SELECT 1
-                FROM [Maintenance].[Maintenance].[MachineMaster] mm
-                WHERE mm.IsDeleted = 0 AND mm.ShiftMasterId = @id
+                FROM [Maintenance].[MachineMaster] mm
+                WHERE mm.IsDeleted = 0 AND mm.IsActive = 1 AND mm.ShiftMasterId = @id
             )
             OR EXISTS (
                 SELECT 1
-                FROM [Maintenance].[Maintenance].[ShiftMasterDetails] smd
-                WHERE smd.IsDeleted = 0 AND smd.ShiftMasterId = @id
+                FROM [Maintenance].[ShiftMasterDetails] smd
+                WHERE smd.IsDeleted = 0 AND smd.IsActive = 1 AND smd.ShiftMasterId = @id
             )
         THEN 1 ELSE 0 END;
     ";

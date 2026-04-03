@@ -3,7 +3,6 @@ using Contracts.Common;
 using MaintenanceManagement.Application.Common.Interfaces.Power.IFeederGroup;
 using MaintenanceManagement.Domain.Events;
 using MediatR;
-using FluentValidation;
 
 namespace MaintenanceManagement.Application.Power.FeederGroup.Command.DeleteFeederGroup
 {
@@ -26,12 +25,6 @@ namespace MaintenanceManagement.Application.Power.FeederGroup.Command.DeleteFeed
         public async Task<bool> Handle(DeleteFeederGroupCommand request, CancellationToken cancellationToken)
         {
             var feederGroup = _imapper.Map<MaintenanceManagement.Domain.Entities.Power.FeederGroup>(request);
-
-            var linked = await _feederGroupQueryRepo.IsFeederGroupLinkedAsync(request.Id);
-            if (linked)
-            {
-            throw new ValidationException("This master is linked with other records. You cannot delete this record.");
-            }     
 
             // Perform the delete operation
             var isDeleted = await _feederGroupCommandRepository.DeleteAsync(request.Id,feederGroup);

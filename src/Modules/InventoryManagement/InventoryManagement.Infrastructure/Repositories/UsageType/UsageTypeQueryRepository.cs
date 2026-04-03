@@ -139,5 +139,27 @@ namespace InventoryManagement.Infrastructure.Repositories.UsageType
 
             return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { ModuleId = moduleId });
         }
+
+        public async Task<bool> SoftDeleteValidationAsync(int id)
+        {
+            const string query = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1 FROM [Inventory].[ItemUsageTypeMapping] WHERE UsageTypeId = @id
+                ) THEN 1 ELSE 0 END;";
+
+            var result = await _dbConnection.QueryFirstOrDefaultAsync<int>(query, new { id });
+            return result == 1;
+        }
+
+        public async Task<bool> IsUsageTypeLinkedAsync(int id)
+        {
+            const string query = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1 FROM [Inventory].[ItemUsageTypeMapping] WHERE UsageTypeId = @id
+                ) THEN 1 ELSE 0 END;";
+
+            var result = await _dbConnection.QueryFirstOrDefaultAsync<int>(query, new { id });
+            return result == 1;
+        }
     }
 }

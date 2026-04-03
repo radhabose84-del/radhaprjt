@@ -42,6 +42,8 @@
     <ProjectReference Include="..\Modules\WarehouseManagement\WarehouseManagement.Infrastructure\WarehouseManagement.Infrastructure.csproj" />
     <ProjectReference Include="..\Modules\ProductionManagement\ProductionManagement.Infrastructure\ProductionManagement.Infrastructure.csproj" />
     <ProjectReference Include="..\Modules\SalesManagement\SalesManagement.Infrastructure\SalesManagement.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\MaintenanceManagement\MaintenanceManagement.Infrastructure\MaintenanceManagement.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\FixedAssetManagement\FAM.Infrastructure\FAM.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -51,6 +53,13 @@
     <None Update="settings\serilogsetting.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+
+  <!-- Exclude appsettings from publish to prevent overwriting production configs -->
+  <ItemGroup>
+    <Content Update="appsettings.json" CopyToPublishDirectory="Never" />
+    <Content Update="appsettings.Development.json" CopyToPublishDirectory="Never" />
+    <Content Update="appsettings.QA.json" CopyToPublishDirectory="Never" />
   </ItemGroup>
 
 </Project>

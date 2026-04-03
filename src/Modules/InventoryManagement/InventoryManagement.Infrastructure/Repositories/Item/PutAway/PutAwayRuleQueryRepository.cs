@@ -480,5 +480,17 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.Templates
 
             return rules;
         }
+
+        public async Task<bool> SoftDeleteValidationAsync(int id)
+        {
+            const string query = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1 FROM [Inventory].[PutAwayStrategy]
+                    WHERE PutAwayRuleId = @id AND IsDeleted = 0
+                ) THEN 1 ELSE 0 END;";
+
+            var result = await _db.QueryFirstOrDefaultAsync<int>(query, new { id });
+            return result == 1;
+        }
     }
 }

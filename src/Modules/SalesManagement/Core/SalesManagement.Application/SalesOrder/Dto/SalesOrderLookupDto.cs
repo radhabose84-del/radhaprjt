@@ -7,5 +7,7 @@ namespace SalesManagement.Application.SalesOrder.Dto
         public DateOnly OrderDate { get; set; }
         public int PartyId { get; set; }
         public string? PartyName { get; set; }
+        public int? AmendmentStatusId { get; set; }
+        public string? AmendmentStatusName { get; set; }
     }
 }

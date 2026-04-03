@@ -42,7 +42,8 @@ public static class HangfireJobsSetup
 
         try
         {
-            var connectionString = (config.GetConnectionString("DefaultConnection") ?? string.Empty)
+            // CRITICAL: Hangfire jobs live in the Hangfire DB, NOT DefaultConnection (BannariERP).
+            var connectionString = (config.GetConnectionString("HangfireConnection") ?? string.Empty)
                 .Replace("{SERVER}", Environment.GetEnvironmentVariable("DATABASE_SERVER") ?? "")
                 .Replace("{USER_ID}", Environment.GetEnvironmentVariable("DATABASE_USERID") ?? "")
                 .Replace("{ENC_PASSWORD}", Environment.GetEnvironmentVariable("DATABASE_PASSWORD") ?? "");
@@ -53,28 +54,52 @@ public static class HangfireJobsSetup
             using var connection = new SqlConnection(connectionString);
             connection.Open();
 
-            // Delete all Scheduled/Enqueued/Retrying jobs that reference the dead INotificationHandler interface.
-            // These jobs can never succeed — INotificationHandler<T> has no implementations.
-            const string deleteSql = @"
-                DELETE FROM [HangFire].[Job]
-                WHERE InvocationData LIKE '%INotificationHandler%'
-                  AND StateName IN ('Scheduled', 'Enqueued', 'Awaiting', 'Processing');
+            // Step 1: Collect all zombie job IDs before deleting (needed for Set/State cleanup).
+            const string collectSql = @"
+                SELECT Id FROM [HangFire].[Job]
+                WHERE InvocationData LIKE '%INotificationHandler%';
+            ";
+            var zombieIds = connection.Query<long>(collectSql).ToList();
 
+            if (zombieIds.Count == 0)
+            {
+                logger.LogDebug("HangfireJobsSetup: No zombie INotificationHandler jobs found.");
+                return;
+            }
+
+            // Step 2: Delete retry/schedule sets, state entries, and job parameters for these IDs.
+            const string cleanupSql = @"
+                -- Remove from retry set
                 DELETE FROM [HangFire].[Set]
                 WHERE [Key] LIKE 'retries:%'
-                  AND [Value] IN (
-                    SELECT CAST(j.Id AS NVARCHAR(20))
-                    FROM [HangFire].[Job] j
-                    WHERE j.InvocationData LIKE '%INotificationHandler%'
-                      AND j.StateName = 'Scheduled'
-                  );
+                  AND [Value] IN (SELECT CAST(Id AS NVARCHAR(20)) FROM [HangFire].[Job] WHERE InvocationData LIKE '%INotificationHandler%');
+
+                -- Remove from schedule set
+                DELETE FROM [HangFire].[Set]
+                WHERE [Key] LIKE 'schedule%'
+                  AND [Value] IN (SELECT CAST(Id AS NVARCHAR(20)) FROM [HangFire].[Job] WHERE InvocationData LIKE '%INotificationHandler%');
+
+                -- Remove state history
+                DELETE FROM [HangFire].[State]
+                WHERE JobId IN (SELECT Id FROM [HangFire].[Job] WHERE InvocationData LIKE '%INotificationHandler%');
+
+                -- Remove job parameters
+                DELETE FROM [HangFire].[JobParameter]
+                WHERE JobId IN (SELECT Id FROM [HangFire].[Job] WHERE InvocationData LIKE '%INotificationHandler%');
+
+                -- Remove from job queue
+                DELETE FROM [HangFire].[JobQueue]
+                WHERE JobId IN (SELECT Id FROM [HangFire].[Job] WHERE InvocationData LIKE '%INotificationHandler%');
+
+                -- Finally delete the jobs themselves (ALL states: Scheduled, Enqueued, Failed, Processing, etc.)
+                DELETE FROM [HangFire].[Job]
+                WHERE InvocationData LIKE '%INotificationHandler%';
             ";
 
-            var deleted = connection.Execute(deleteSql);
-            if (deleted > 0)
-                logger.LogInformation("HangfireJobsSetup: Cleaned up {Count} zombie INotificationHandler jobs.", deleted);
-            else
-                logger.LogDebug("HangfireJobsSetup: No zombie INotificationHandler jobs found.");
+            var deleted = connection.Execute(cleanupSql);
+            logger.LogInformation(
+                "HangfireJobsSetup: Cleaned up {Count} zombie INotificationHandler jobs ({Ids}).",
+                zombieIds.Count, string.Join(", ", zombieIds.Take(20)));
         }
         catch (Exception ex)
         {

@@ -182,6 +182,60 @@ namespace InventoryManagement.Infrastructure.Repositories.MiscMaster
 
 
 
-        
+
+        public async Task<bool> SoftDeleteValidation(int id)
+        {
+            const string query = @"
+                SELECT CASE WHEN
+                    EXISTS (SELECT 1 FROM [Inventory].[HSNMaster] WHERE TypeId = @id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[HSNMaster] WHERE GSTCategoryId = @id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[ItemMaster] WHERE ItemClassificationId = @id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[ItemMaster] WHERE XPlantMaterialStatusId = @id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[ItemMaster] WHERE IssueRuleId = @id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[UOM] WHERE UOMTypeId = @id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[PutAwayStrategy] WHERE StorageTypeId = @id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[PutAwayStrategy] WHERE PriorityId = @id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[ItemInventory] WHERE RequestTypeId = @id)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[ItemInventory] WHERE ValuationMethodId = @id)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[ItemInventory] WHERE DefaultMaterialRequestTypeId = @id)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[ItemManufacture] WHERE ManufacturingTypeId = @id)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[ItemPurchase] WHERE SourceOfItem = @id)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[ItemQuality] WHERE CertificateTypeId = @id)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[ItemSale] WHERE ValuationMethodId = @id)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[ItemVariantAttribute] WHERE VariantBasedOn = @id)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[ItemVariantAttribute] WHERE AttributeId = @id)
+                THEN 1 ELSE 0 END;";
+
+            var result = await _dbConnection.QueryFirstOrDefaultAsync<int>(query, new { id });
+            return result == 1;
+        }
+
+        public async Task<bool> IsMiscMasterLinkedAsync(int id)
+        {
+            const string query = @"
+                SELECT CASE WHEN
+                    EXISTS (SELECT 1 FROM [Inventory].[HSNMaster] WHERE TypeId = @id AND IsDeleted = 0 AND IsActive = 1)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[HSNMaster] WHERE GSTCategoryId = @id AND IsDeleted = 0 AND IsActive = 1)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[ItemMaster] WHERE ItemClassificationId = @id AND IsDeleted = 0 AND IsActive = 1)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[ItemMaster] WHERE XPlantMaterialStatusId = @id AND IsDeleted = 0 AND IsActive = 1)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[ItemMaster] WHERE IssueRuleId = @id AND IsDeleted = 0 AND IsActive = 1)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[UOM] WHERE UOMTypeId = @id AND IsDeleted = 0 AND IsActive = 1)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[PutAwayStrategy] WHERE StorageTypeId = @id AND IsDeleted = 0 AND IsActive = 1)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[PutAwayStrategy] WHERE PriorityId = @id AND IsDeleted = 0 AND IsActive = 1)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[ItemInventory] WHERE RequestTypeId = @id)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[ItemInventory] WHERE ValuationMethodId = @id)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[ItemInventory] WHERE DefaultMaterialRequestTypeId = @id)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[ItemManufacture] WHERE ManufacturingTypeId = @id)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[ItemPurchase] WHERE SourceOfItem = @id)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[ItemQuality] WHERE CertificateTypeId = @id)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[ItemSale] WHERE ValuationMethodId = @id)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[ItemVariantAttribute] WHERE VariantBasedOn = @id)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[ItemVariantAttribute] WHERE AttributeId = @id)
+                THEN 1 ELSE 0 END;";
+
+            var result = await _dbConnection.QueryFirstOrDefaultAsync<int>(query, new { id });
+            return result == 1;
+        }
+
     }
 }

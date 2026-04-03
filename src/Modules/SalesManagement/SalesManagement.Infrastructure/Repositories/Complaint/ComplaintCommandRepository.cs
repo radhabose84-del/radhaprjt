@@ -199,6 +199,27 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
             }
         }
 
+        public async Task<int> AddAttachmentAsync(ComplaintAttachment attachment)
+        {
+            await _dbContext.ComplaintAttachment.AddAsync(attachment);
+            await _dbContext.SaveChangesAsync();
+            return attachment.Id;
+        }
+
+        public async Task<bool> DeleteAttachmentAsync(int id, CancellationToken ct)
+        {
+            var existing = await _dbContext.ComplaintAttachment
+                .FirstOrDefaultAsync(x => x.Id == id && x.IsDeleted == IsDelete.NotDeleted, ct);
+
+            if (existing == null)
+                return false;
+
+            existing.IsDeleted = IsDelete.Deleted;
+            _dbContext.ComplaintAttachment.Update(existing);
+            await _dbContext.SaveChangesAsync(ct);
+            return true;
+        }
+
         public async Task UpdateResolutionApprovalStatusAsync(int complaintHeaderId, string status, CancellationToken ct)
         {
             var existing = await _dbContext.ComplaintHeader

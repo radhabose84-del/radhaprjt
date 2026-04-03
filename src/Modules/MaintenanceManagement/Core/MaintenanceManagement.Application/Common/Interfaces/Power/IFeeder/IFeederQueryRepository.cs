@@ -11,8 +11,8 @@ namespace MaintenanceManagement.Application.Common.Interfaces.Power.IFeeder
         Task<bool> NotFoundAsync(int id);
 
         Task<List<Feeder>> GetFeederAutoComplete(string searchPattern);
-        Task<bool> IsFeederLinkedAsync(int id); 
-          
-        
+        Task<bool> IsFeederLinkedAsync(int id);
+        Task<bool> SoftDeleteValidationAsync(int id);
+
     }
 }
