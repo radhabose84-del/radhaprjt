@@ -38,6 +38,7 @@ namespace ProductionManagement.Domain.Entities
         // Other
         public string? Remarks { get; set; }
         public int? LotId { get; set; }
+        public int? TypeId { get; set; }
 
         // Same-module navigations
         public PackType? OldPackType { get; set; }
@@ -46,6 +47,7 @@ namespace ProductionManagement.Domain.Entities
         public MiscMaster? Fault { get; set; }
         public MiscMaster? WasteType { get; set; }
         public LotMaster? Lot { get; set; }
+        public MiscMaster? Type { get; set; }
 
         // Child collection
         public ICollection<RepackingDetail>? RepackingDetails { get; set; }

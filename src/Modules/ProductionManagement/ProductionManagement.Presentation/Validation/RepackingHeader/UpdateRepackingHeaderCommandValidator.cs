@@ -132,7 +132,6 @@ namespace ProductionManagement.Presentation.Validation.RepackingHeader
                             .MustAsync(async (id, ct) => await _queryRepo.LotMasterExistsAsync(id!.Value))
                             .WithMessage($"{nameof(UpdateRepackingHeaderCommand.LotId)} {rule.Error}")
                             .When(x => x.LotId.HasValue && x.LotId > 0);
-
                         RuleFor(x => x.ItemId)
                             .MustAsync(async (id, ct) =>
                             {

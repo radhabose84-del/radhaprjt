@@ -126,7 +126,6 @@ namespace ProductionManagement.Presentation.Validation.RepackingHeader
                             .MustAsync(async (id, ct) => await _queryRepo.LotMasterExistsAsync(id!.Value))
                             .WithMessage($"{nameof(CreateRepackingHeaderCommand.LotId)} {rule.Error}")
                             .When(x => x.LotId.HasValue && x.LotId > 0);
-
                         // Cross-module FKs
                         RuleFor(x => x.ItemId)
                             .MustAsync(async (id, ct) =>

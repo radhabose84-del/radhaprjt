@@ -119,6 +119,9 @@ namespace ProductionManagement.Infrastructure.Data.Configurations
             builder.Property(t => t.LotId)
                 .HasColumnType("int");
 
+            builder.Property(t => t.TypeId)
+                .HasColumnType("int");
+
             // Base entity
             builder.Property(b => b.IsActive)
                 .HasColumnType("bit")
@@ -149,6 +152,7 @@ namespace ProductionManagement.Infrastructure.Data.Configurations
             builder.HasIndex(t => t.WarehouseId);
             builder.HasIndex(t => t.BinId);
             builder.HasIndex(t => t.LotId);
+            builder.HasIndex(t => t.TypeId);
 
             // Same-module FK constraints
             builder.HasOne(t => t.OldPackType)
@@ -179,6 +183,11 @@ namespace ProductionManagement.Infrastructure.Data.Configurations
             builder.HasOne(t => t.Lot)
                 .WithMany()
                 .HasForeignKey(t => t.LotId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasOne(t => t.Type)
+                .WithMany()
+                .HasForeignKey(t => t.TypeId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // Header → Detail relationship

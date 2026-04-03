@@ -28,7 +28,7 @@ namespace ProductionManagement.Application.RepackingHeader.Queries.GetRepackingH
             CancellationToken cancellationToken)
         {
             var result = await _queryRepository.AutocompleteAsync(
-                request.Term ?? string.Empty, cancellationToken);
+                request.Term ?? string.Empty, cancellationToken, request.TypeId);
 
             var domainEvent = new AuditLogsDomainEvent(
                 actionDetail: "GetAll",

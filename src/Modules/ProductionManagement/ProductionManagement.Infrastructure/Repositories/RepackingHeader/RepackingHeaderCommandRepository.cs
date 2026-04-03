@@ -50,6 +50,7 @@ namespace ProductionManagement.Infrastructure.Repositories.RepackingHeader
                     var typeCode = isRepacking ? "Repacking" : "YarnConversion";
                     var stockType = await _salesMiscMasterLookup.GetByCodeAsync(typeCode);
                     var stockTypeId = stockType?.Id;
+                    entity.TypeId = stockTypeId;
 
                     // Fetch source info per detail (provides OldTotalBags for pack-no calc)
                     var sourceInfoMap = new Dictionary<int, StockPackSourceDto?>();
@@ -231,6 +232,7 @@ namespace ProductionManagement.Infrastructure.Repositories.RepackingHeader
                     existingEntity.WasteReason = entity.WasteReason;
                     existingEntity.Remarks = entity.Remarks;
                     existingEntity.LotId = entity.LotId;
+                    existingEntity.TypeId = stockTypeId;
                     existingEntity.IsActive = entity.IsActive;
 
                     // Replace details: remove old, add new
