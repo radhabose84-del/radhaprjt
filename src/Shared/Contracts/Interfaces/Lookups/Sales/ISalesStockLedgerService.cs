@@ -48,5 +48,13 @@ namespace Contracts.Interfaces.Lookups.Sales
         /// Returns the LotId of the first pack found in the given pack range for a specific year and unit.
         /// </summary>
         Task<int> GetLotIdByPackRangeAsync(int startPackNo, int endPackNo, int productionYear, int unitId, CancellationToken ct = default);
+
+        /// <summary>
+        /// Returns all Packed packs from StockLedger filtered by ItemId and LotId.
+        /// Used for source pack selection in repacking / yarn conversion.
+        /// </summary>
+        Task<IReadOnlyList<StockPackByItemLotDto>> GetPacksByItemAndLotAsync(
+            int itemId, int lotId, int productionYear, int unitId,
+            CancellationToken ct = default);
     }
 }

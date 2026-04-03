@@ -167,4 +167,31 @@ internal sealed class SalesStockLedgerLookupRepository : ISalesStockLedgerServic
         return await _dbConnection.ExecuteScalarAsync<int>(sql,
             new { StartPackNo = startPackNo, EndPackNo = endPackNo, ProductionYear = productionYear, UnitId = unitId });
     }
+
+    public async Task<IReadOnlyList<StockPackByItemLotDto>> GetPacksByItemAndLotAsync(
+        int itemId, int lotId, int productionYear, int unitId,
+        CancellationToken ct = default)
+    {
+        const string sql = @"
+            SELECT
+                sl.PackNo,
+                sl.PackTypeId,
+                sl.WarehouseId,
+                sl.BinId,
+                sl.TotalValue AS NetWeight,
+                sl.LotId,
+                sl.ItemId
+            FROM Sales.StockLedger sl
+            INNER JOIN Sales.MiscMaster mm ON sl.StatusId = mm.Id AND mm.IsDeleted = 0
+            WHERE mm.Description = 'Packed'
+              AND sl.ItemId        = @ItemId
+              AND sl.LotId         = @LotId
+              AND YEAR(sl.DocDate) = @ProductionYear
+              AND sl.UnitId        = @UnitId
+            ORDER BY sl.PackNo;";
+
+        var result = await _dbConnection.QueryAsync<StockPackByItemLotDto>(sql,
+            new { ItemId = itemId, LotId = lotId, ProductionYear = productionYear, UnitId = unitId });
+        return result.ToList().AsReadOnly();
+    }
 }
