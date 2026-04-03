@@ -21,9 +21,9 @@ namespace PurchaseManagement.Presentation.Validation.PaymentTermMaster
                 .WithMessage(id => $"Payment term not found for Id={id}.");
 
             // business rule: block delete when referenced
-            // RuleFor(x => x.Id)
-            //     .MustAsync(async (id, ct) => !await _paymentTermMasterQueryRepository.IsUsedAsync(id))
-            //     .WithMessage("Cannot delete: payment term is referenced by other transactions.");
+            RuleFor(x => x.Id)
+                .MustAsync(async (id, ct) => !await _paymentTermMasterQueryRepository.SoftDeleteValidationAsync(id))
+                .WithMessage("This master is linked with other records. You cannot delete this record.");
 
         }
     }

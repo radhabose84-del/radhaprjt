@@ -30,6 +30,14 @@ namespace PurchaseManagement.Application.Port.Commands.Update
 
         public async Task<PortMasterDto> Handle(UpdatePortMasterCommand request, CancellationToken ct)
         {
+            if (request.IsActive == 0)
+            {
+                var isLinked = await _queryRepo.IsPortMasterLinkedAsync(request.Id);
+                if (isLinked)
+                    throw new ExceptionRules(
+                        "This master is linked with other records. You cannot inactivate this record.");
+            }
+
             // map request -> entity (Id must be present)
             var toUpdate = _mapper.Map<PortMaster>(request);
 

@@ -19,10 +19,10 @@ namespace PurchaseManagement.Presentation.Validation.TnCTemplateMaster
                 .MustAsync(async (cmd, ct) => await ExistsActiveAsync(repo, cmd.Id))
                 .WithMessage("T&C Template not found or already deleted.");
 
-            // If the template has been used in a transaction, do not allow delete (set Inactive instead)
-            // RuleFor(x => x)
-            //     .MustAsync(async (cmd, ct) => !await repo.IsUsedInTransactionsAsync(cmd.Id, ct))
-            //     .WithMessage("This template is already used in transactions and cannot be deleted. Set it to Inactive instead.");
+            // Block delete when linked with child records
+            RuleFor(x => x.Id)
+                .MustAsync(async (id, ct) => !await repo.SoftDeleteValidationAsync(id))
+                .WithMessage("This master is linked with other records. You cannot delete this record.");
         }
 
            private static async Task<bool> ExistsActiveAsync(

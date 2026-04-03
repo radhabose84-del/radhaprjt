@@ -201,6 +201,71 @@ namespace PurchaseManagement.Infrastructure.Repositories.MiscMaster
 
 
 
-        
+
+        public async Task<bool> SoftDeleteValidation(int id)
+        {
+            const string query = @"
+                SELECT CASE WHEN
+                    EXISTS (SELECT 1 FROM [Purchase].[PaymentTermMaster] WHERE BaselineTypeId = @id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM [Purchase].[PortMaster] WHERE TypeId = @id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM [Purchase].[PortMaster] WHERE PortTypeId = @id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM [Purchase].[DutyMaster] WHERE DutyCategoryId = @id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM [Purchase].[DutyMaster] WHERE CountryOfOriginApplicability = @id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM [Purchase].[TnCTemplateMaster] WHERE TemplateTypeId = @id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM [Purchase].[TnCTemplateApplicability] WHERE ApplicabilityId = @id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM [Purchase].[IndentHeader] WHERE IndentTypeId = @id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM [Purchase].[IndentHeader] WHERE StatusId = @id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM [Purchase].[PurchaseOrderHeader] WHERE POCategoryId = @id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM [Purchase].[PurchaseOrderHeader] WHERE POMethodId = @id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM [Purchase].[PurchaseOrderHeader] WHERE CapitalTypeId = @id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM [Purchase].[PurchaseOrderHeader] WHERE PurchaseTypeId = @id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM [Purchase].[PurchaseLocalHeader] WHERE IncotermsId = @id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM [Purchase].[PurchaseLocalHeader] WHERE ModeOfDispatchId = @id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM [Purchase].[PriceMasterHeader] WHERE SourceFromId = @id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM [Purchase].[PriceMasterHeader] WHERE StatusId = @id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM [Purchase].[QuotationHeader] WHERE PaymentTermsId = @id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM [Purchase].[QuotationHeader] WHERE FreightModeId = @id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM [Purchase].[QuotationHeader] WHERE IncotermsId = @id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM [Purchase].[GateEntryHeader] WHERE ReceivingTypeId = @id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM [Purchase].[PurchaseOrderServiceHeader] WHERE ServiceCategoryId = @id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM [Purchase].[PurchaseOrderServiceHeader] WHERE ContractTypeId = @id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM [Purchase].[PurchaseOrderImportHeader] WHERE IncotermId = @id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM [Purchase].[PurchaseOrderImportHeader] WHERE ModeOfTransportId = @id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM [Purchase].[GateEntryDetail] WHERE PoCategoryId = @id)
+                    OR EXISTS (SELECT 1 FROM [Purchase].[GrnDetail] WHERE PoCategoryId = @id)
+                    OR EXISTS (SELECT 1 FROM [Purchase].[MrsHeader] WHERE RequestCategoryId = @id)
+                THEN 1 ELSE 0 END;";
+
+            var result = await _dbConnection.QueryFirstOrDefaultAsync<int>(query, new { id });
+            return result == 1;
+        }
+
+        public async Task<bool> IsMiscMasterLinkedAsync(int id)
+        {
+            const string query = @"
+                SELECT CASE WHEN
+                    EXISTS (SELECT 1 FROM [Purchase].[PaymentTermMaster] WHERE BaselineTypeId = @id AND IsDeleted = 0 AND IsActive = 1)
+                    OR EXISTS (SELECT 1 FROM [Purchase].[PortMaster] WHERE TypeId = @id AND IsDeleted = 0 AND IsActive = 1)
+                    OR EXISTS (SELECT 1 FROM [Purchase].[PortMaster] WHERE PortTypeId = @id AND IsDeleted = 0 AND IsActive = 1)
+                    OR EXISTS (SELECT 1 FROM [Purchase].[DutyMaster] WHERE DutyCategoryId = @id AND IsDeleted = 0 AND IsActive = 1)
+                    OR EXISTS (SELECT 1 FROM [Purchase].[TnCTemplateMaster] WHERE TemplateTypeId = @id AND IsDeleted = 0 AND IsActive = 1)
+                    OR EXISTS (SELECT 1 FROM [Purchase].[IndentHeader] WHERE IndentTypeId = @id AND IsDeleted = 0 AND IsActive = 1)
+                    OR EXISTS (SELECT 1 FROM [Purchase].[PurchaseOrderHeader] WHERE POCategoryId = @id AND IsDeleted = 0 AND IsActive = 1)
+                    OR EXISTS (SELECT 1 FROM [Purchase].[PurchaseOrderHeader] WHERE POMethodId = @id AND IsDeleted = 0 AND IsActive = 1)
+                    OR EXISTS (SELECT 1 FROM [Purchase].[PurchaseLocalHeader] WHERE IncotermsId = @id AND IsDeleted = 0 AND IsActive = 1)
+                    OR EXISTS (SELECT 1 FROM [Purchase].[PriceMasterHeader] WHERE SourceFromId = @id AND IsDeleted = 0 AND IsActive = 1)
+                    OR EXISTS (SELECT 1 FROM [Purchase].[QuotationHeader] WHERE PaymentTermsId = @id AND IsDeleted = 0 AND IsActive = 1)
+                    OR EXISTS (SELECT 1 FROM [Purchase].[GateEntryHeader] WHERE ReceivingTypeId = @id AND IsDeleted = 0 AND IsActive = 1)
+                    OR EXISTS (SELECT 1 FROM [Purchase].[PurchaseOrderServiceHeader] WHERE ServiceCategoryId = @id AND IsDeleted = 0 AND IsActive = 1)
+                    OR EXISTS (SELECT 1 FROM [Purchase].[PurchaseOrderImportHeader] WHERE IncotermId = @id AND IsDeleted = 0 AND IsActive = 1)
+                    OR EXISTS (SELECT 1 FROM [Purchase].[GateEntryDetail] WHERE PoCategoryId = @id)
+                    OR EXISTS (SELECT 1 FROM [Purchase].[GrnDetail] WHERE PoCategoryId = @id)
+                    OR EXISTS (SELECT 1 FROM [Purchase].[MrsHeader] WHERE RequestCategoryId = @id)
+                THEN 1 ELSE 0 END;";
+
+            var result = await _dbConnection.QueryFirstOrDefaultAsync<int>(query, new { id });
+            return result == 1;
+        }
+
     }
 }

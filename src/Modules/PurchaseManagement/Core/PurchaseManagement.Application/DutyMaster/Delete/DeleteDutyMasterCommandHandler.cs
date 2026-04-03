@@ -8,9 +8,9 @@ namespace PurchaseManagement.Application.Purchase.DutyMaster.Delete
 {
     public class DeleteDutyMasterCommandHandler(
         IDutyMasterQueryRepository read,
-        IDutyMasterCommandRepository write,IMediator mediator) : IRequestHandler<DeleteDutyMasterCommand>
+        IDutyMasterCommandRepository write,IMediator mediator) : IRequestHandler<DeleteDutyMasterCommand, bool>
     {
-        public async Task Handle(DeleteDutyMasterCommand r, CancellationToken ct)
+        public async Task<bool> Handle(DeleteDutyMasterCommand r, CancellationToken ct)
         {
             var existing = await read.GetByIdAsync(r.Id, ct)
                            ?? throw new KeyNotFoundException("DutyMaster not found");
@@ -26,6 +26,8 @@ namespace PurchaseManagement.Application.Purchase.DutyMaster.Delete
                 module: "DutyMaster"
             );
             await mediator.Publish(audit, ct);
+
+            return true;
         }
     }
 }
