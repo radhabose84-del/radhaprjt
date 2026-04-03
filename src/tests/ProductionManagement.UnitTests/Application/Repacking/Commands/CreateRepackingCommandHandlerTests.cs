@@ -1,28 +1,28 @@
 using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Finance;
-using ProductionManagement.Application.Common.Interfaces.IRepackingMaster;
-using ProductionManagement.Application.RepackingMaster.Commands.CreateRepackingMaster;
+using ProductionManagement.Application.Common.Interfaces.IRepackingHeader;
+using ProductionManagement.Application.RepackingHeader.Commands.CreateRepackingHeader;
 using ProductionManagement.Domain.Common;
 
 namespace ProductionManagement.UnitTests.Application.Repacking.Commands
 {
-    public sealed class CreateRepackingMasterCommandHandlerTests
+    public sealed class CreateRepackingHeaderCommandHandlerTests
     {
-        private readonly Mock<IRepackingMasterCommandRepository> _mockCommandRepo = new(MockBehavior.Strict);
+        private readonly Mock<IRepackingHeaderCommandRepository> _mockCommandRepo = new(MockBehavior.Strict);
         private readonly Mock<IDocumentSequenceLookup> _mockDocSeq = new(MockBehavior.Strict);
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Loose);
         private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Loose);
         private readonly Mock<IIPAddressService> _mockIpService = new(MockBehavior.Loose);
 
-        private CreateRepackingMasterCommandHandler CreateSut() =>
+        private CreateRepackingHeaderCommandHandler CreateSut() =>
             new(_mockCommandRepo.Object, _mockDocSeq.Object, _mockMediator.Object, _mockMapper.Object, _mockIpService.Object);
 
         private void SetupHappyPath(int newId = 1)
         {
             _mockIpService.Setup(s => s.GetUnitId()).Returns(1);
 
-            _mockMapper.Setup(m => m.Map<ProductionManagement.Domain.Entities.RepackingMaster>(It.IsAny<CreateRepackingMasterCommand>()))
-                .Returns(new ProductionManagement.Domain.Entities.RepackingMaster());
+            _mockMapper.Setup(m => m.Map<ProductionManagement.Domain.Entities.RepackingHeader>(It.IsAny<CreateRepackingHeaderCommand>()))
+                .Returns(new ProductionManagement.Domain.Entities.RepackingHeader());
 
             _mockDocSeq.Setup(d => d.GetTransactionTypeIdAsync(
                     MiscEnumEntity.TransactionTypeRePackMaster, MiscEnumEntity.ModuleSales, 1))
@@ -31,25 +31,19 @@ namespace ProductionManagement.UnitTests.Application.Repacking.Commands
             _mockDocSeq.Setup(d => d.GenerateDocumentNumber(6))
                 .ReturnsAsync(new List<string> { "REPACK-001" });
 
-            _mockCommandRepo.Setup(r => r.CreateAsync(It.IsAny<ProductionManagement.Domain.Entities.RepackingMaster>(), 6))
+            _mockCommandRepo.Setup(r => r.CreateAsync(It.IsAny<ProductionManagement.Domain.Entities.RepackingHeader>(), 6))
                 .ReturnsAsync(newId);
 
             _mockMediator.Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);
         }
 
-        private static CreateRepackingMasterCommand BuildValidCommand() => new()
+        private static CreateRepackingHeaderCommand BuildValidCommand() => new()
         {
             RepackDate = DateOnly.FromDateTime(DateTime.Today),
             ItemId = 1,
+            OldItemId = 1,
             OldPackTypeId = 1,
-            OldNetWeightPerPack = 50m,
-            OldStartPackNo = 1,
-            OldEndPackNo = 10,
-            OldTotalBags = 10,
-            OldNetWeight = 500m,
-            OldWarehouseId = 1,
-            OldBinId = 1,
             PackTypeId = 2,
             NetWeightPerPack = 25m,
             TotalBags = 20,
@@ -57,7 +51,11 @@ namespace ProductionManagement.UnitTests.Application.Repacking.Commands
             WarehouseId = 2,
             BinId = 2,
             LooseConeKgs = 0m,
-            Remarks = "Test repack"
+            Remarks = "Test repack",
+            Details = new List<CreateRepackingDetailItem>
+            {
+                new() { OldStartPackNo = 1, OldEndPackNo = 10 }
+            }
         };
 
         [Fact]
@@ -81,7 +79,7 @@ namespace ProductionManagement.UnitTests.Application.Repacking.Commands
         {
             SetupHappyPath();
             await CreateSut().Handle(BuildValidCommand(), CancellationToken.None);
-            _mockCommandRepo.Verify(r => r.CreateAsync(It.IsAny<ProductionManagement.Domain.Entities.RepackingMaster>(), 6), Times.Once);
+            _mockCommandRepo.Verify(r => r.CreateAsync(It.IsAny<ProductionManagement.Domain.Entities.RepackingHeader>(), 6), Times.Once);
         }
 
         [Fact]
@@ -102,16 +100,16 @@ namespace ProductionManagement.UnitTests.Application.Repacking.Commands
         public async Task Handle_ValidCommand_SetsRepackDocNo()
         {
             SetupHappyPath();
-            ProductionManagement.Domain.Entities.RepackingMaster? capturedEntity = null;
+            ProductionManagement.Domain.Entities.RepackingHeader? capturedEntity = null;
 
-            _mockMapper.Setup(m => m.Map<ProductionManagement.Domain.Entities.RepackingMaster>(It.IsAny<CreateRepackingMasterCommand>()))
+            _mockMapper.Setup(m => m.Map<ProductionManagement.Domain.Entities.RepackingHeader>(It.IsAny<CreateRepackingHeaderCommand>()))
                 .Returns(() =>
                 {
-                    capturedEntity = new ProductionManagement.Domain.Entities.RepackingMaster();
+                    capturedEntity = new ProductionManagement.Domain.Entities.RepackingHeader();
                     return capturedEntity;
                 });
 
-            _mockCommandRepo.Setup(r => r.CreateAsync(It.IsAny<ProductionManagement.Domain.Entities.RepackingMaster>(), 6))
+            _mockCommandRepo.Setup(r => r.CreateAsync(It.IsAny<ProductionManagement.Domain.Entities.RepackingHeader>(), 6))
                 .ReturnsAsync(1);
 
             await CreateSut().Handle(BuildValidCommand(), CancellationToken.None);
@@ -124,8 +122,8 @@ namespace ProductionManagement.UnitTests.Application.Repacking.Commands
         public async Task Handle_NoTransactionTypeId_ThrowsException()
         {
             _mockIpService.Setup(s => s.GetUnitId()).Returns(1);
-            _mockMapper.Setup(m => m.Map<ProductionManagement.Domain.Entities.RepackingMaster>(It.IsAny<CreateRepackingMasterCommand>()))
-                .Returns(new ProductionManagement.Domain.Entities.RepackingMaster());
+            _mockMapper.Setup(m => m.Map<ProductionManagement.Domain.Entities.RepackingHeader>(It.IsAny<CreateRepackingHeaderCommand>()))
+                .Returns(new ProductionManagement.Domain.Entities.RepackingHeader());
 
             _mockDocSeq.Setup(d => d.GetTransactionTypeIdAsync(
                     MiscEnumEntity.TransactionTypeRePackMaster, MiscEnumEntity.ModuleSales, 1))
@@ -141,8 +139,8 @@ namespace ProductionManagement.UnitTests.Application.Repacking.Commands
         public async Task Handle_EmptyDocumentSequence_ThrowsException()
         {
             _mockIpService.Setup(s => s.GetUnitId()).Returns(1);
-            _mockMapper.Setup(m => m.Map<ProductionManagement.Domain.Entities.RepackingMaster>(It.IsAny<CreateRepackingMasterCommand>()))
-                .Returns(new ProductionManagement.Domain.Entities.RepackingMaster());
+            _mockMapper.Setup(m => m.Map<ProductionManagement.Domain.Entities.RepackingHeader>(It.IsAny<CreateRepackingHeaderCommand>()))
+                .Returns(new ProductionManagement.Domain.Entities.RepackingHeader());
 
             _mockDocSeq.Setup(d => d.GetTransactionTypeIdAsync(
                     MiscEnumEntity.TransactionTypeRePackMaster, MiscEnumEntity.ModuleSales, 1))

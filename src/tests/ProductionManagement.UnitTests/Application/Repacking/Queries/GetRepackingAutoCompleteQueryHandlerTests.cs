@@ -1,22 +1,22 @@
-using ProductionManagement.Application.Common.Interfaces.IRepackingMaster;
-using ProductionManagement.Application.RepackingMaster.Dto;
-using ProductionManagement.Application.RepackingMaster.Queries.GetRepackingMasterAutoComplete;
+using ProductionManagement.Application.Common.Interfaces.IRepackingHeader;
+using ProductionManagement.Application.RepackingHeader.Dto;
+using ProductionManagement.Application.RepackingHeader.Queries.GetRepackingHeaderAutoComplete;
 
 namespace ProductionManagement.UnitTests.Application.Repacking.Queries
 {
-    public sealed class GetRepackingMasterAutoCompleteQueryHandlerTests
+    public sealed class GetRepackingHeaderAutoCompleteQueryHandlerTests
     {
-        private readonly Mock<IRepackingMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
+        private readonly Mock<IRepackingHeaderQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
         private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Loose);
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Loose);
 
-        private GetRepackingMasterAutoCompleteQueryHandler CreateSut() =>
+        private GetRepackingHeaderAutoCompleteQueryHandler CreateSut() =>
             new(_mockQueryRepo.Object, _mockMapper.Object, _mockMediator.Object);
 
         [Fact]
         public async Task Handle_ReturnsResults()
         {
-            var lookups = new List<RepackingMasterLookupDto>
+            var lookups = new List<RepackingHeaderLookupDto>
             {
                 new() { Id = 1, RepackDocNo = "REPACK-001", RepackDate = DateOnly.FromDateTime(DateTime.Today) }
             };
@@ -25,7 +25,7 @@ namespace ProductionManagement.UnitTests.Application.Repacking.Queries
             _mockMediator.Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 
             var result = await CreateSut().Handle(
-                new GetRepackingMasterAutoCompleteQuery("REPACK"),
+                new GetRepackingHeaderAutoCompleteQuery("REPACK"),
                 CancellationToken.None);
 
             result.Should().HaveCount(1);
@@ -36,11 +36,11 @@ namespace ProductionManagement.UnitTests.Application.Repacking.Queries
         public async Task Handle_EmptyTerm_PassesEmptyString()
         {
             _mockQueryRepo.Setup(r => r.AutocompleteAsync(string.Empty, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new List<RepackingMasterLookupDto>());
+                .ReturnsAsync(new List<RepackingHeaderLookupDto>());
             _mockMediator.Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 
             var result = await CreateSut().Handle(
-                new GetRepackingMasterAutoCompleteQuery(null!),
+                new GetRepackingHeaderAutoCompleteQuery(null!),
                 CancellationToken.None);
 
             result.Should().BeEmpty();
@@ -49,7 +49,7 @@ namespace ProductionManagement.UnitTests.Application.Repacking.Queries
         [Fact]
         public async Task Handle_PublishesAuditEvent()
         {
-            var lookups = new List<RepackingMasterLookupDto>
+            var lookups = new List<RepackingHeaderLookupDto>
             {
                 new() { Id = 1, RepackDocNo = "REPACK-001", RepackDate = DateOnly.FromDateTime(DateTime.Today) }
             };
@@ -58,12 +58,12 @@ namespace ProductionManagement.UnitTests.Application.Repacking.Queries
             _mockMediator.Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 
             await CreateSut().Handle(
-                new GetRepackingMasterAutoCompleteQuery("test"),
+                new GetRepackingHeaderAutoCompleteQuery("test"),
                 CancellationToken.None);
 
             _mockMediator.Verify(
                 m => m.Publish(
-                    It.Is<AuditLogsDomainEvent>(e => e.ActionCode == "GetRepackingMasterAutoCompleteQuery"),
+                    It.Is<AuditLogsDomainEvent>(e => e.ActionCode == "GetRepackingHeaderAutoCompleteQuery"),
                     It.IsAny<CancellationToken>()),
                 Times.Once);
         }

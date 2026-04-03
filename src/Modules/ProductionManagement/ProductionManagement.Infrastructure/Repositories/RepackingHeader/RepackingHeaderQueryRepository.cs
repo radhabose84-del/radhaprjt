@@ -1,5 +1,6 @@
 using System.Data;
 using Contracts.Interfaces.Lookups.Inventory;
+using Contracts.Interfaces.Lookups.Sales;
 using Contracts.Interfaces.Lookups.Users;
 using Contracts.Interfaces.Lookups.Warehouse;
 using Dapper;
@@ -15,19 +16,22 @@ namespace ProductionManagement.Infrastructure.Repositories.RepackingHeader
         private readonly IItemLookup _itemLookup;
         private readonly IWarehouseLookup _warehouseLookup;
         private readonly IBinLookup _binLookup;
+        private readonly ISalesStockLedgerService _salesStockLedgerService;
 
         public RepackingHeaderQueryRepository(
             IDbConnection dbConnection,
             IUnitLookup unitLookup,
             IItemLookup itemLookup,
             IWarehouseLookup warehouseLookup,
-            IBinLookup binLookup)
+            IBinLookup binLookup,
+            ISalesStockLedgerService salesStockLedgerService)
         {
             _dbConnection = dbConnection;
             _unitLookup = unitLookup;
             _itemLookup = itemLookup;
             _warehouseLookup = warehouseLookup;
             _binLookup = binLookup;
+            _salesStockLedgerService = salesStockLedgerService;
         }
 
         public async Task<(List<RepackingHeaderDto>, int)> GetAllAsync(
@@ -54,7 +58,7 @@ namespace ProductionManagement.Infrastructure.Repositories.RepackingHeader
                     h.ModifiedBy, h.ModifiedDate, h.ModifiedByName,
                     pt.PackTypeName AS PackTypeName,
                     opt.PackTypeName AS OldPackTypeName,
-                    lm.LotNo AS LotName,
+                    lm.LotCode AS LotName,
                     lh.Description AS LooseHandlingName,
                     f.Description AS FaultName,
                     wt.Description AS WasteTypeName
@@ -105,7 +109,7 @@ namespace ProductionManagement.Infrastructure.Repositories.RepackingHeader
                     h.ModifiedBy, h.ModifiedDate, h.ModifiedByName,
                     pt.PackTypeName AS PackTypeName,
                     opt.PackTypeName AS OldPackTypeName,
-                    lm.LotNo AS LotName,
+                    lm.LotCode AS LotName,
                     lh.Description AS LooseHandlingName,
                     f.Description AS FaultName,
                     wt.Description AS WasteTypeName
@@ -121,9 +125,8 @@ namespace ProductionManagement.Infrastructure.Repositories.RepackingHeader
             const string detailSql = @"
                 SELECT
                     d.Id, d.RepackHeaderId,
-                    d.OldStartPackNo, d.OldEndPackNo,
-                    d.OldNetWeightPerPack, d.OldTotalBags, d.OldNetWeight,
-                    d.OldWarehouseId, d.OldBinId
+                    d.StartPackNo, d.EndPackNo,
+                    d.OldStartPackNo, d.OldEndPackNo
                 FROM Production.RepackingDetail d
                 WHERE d.RepackHeaderId = @Id
                 ORDER BY d.Id";
@@ -141,22 +144,45 @@ namespace ProductionManagement.Infrastructure.Repositories.RepackingHeader
             // Fetch details
             var details = (await _dbConnection.QueryAsync<RepackingDetailDto>(detailSql, new { Id = id })).ToList();
 
-            // Populate cross-module names for details (OldWarehouse, OldBin)
+            // Populate detail fields from Sales.StockLedger
             if (details.Count > 0)
             {
-                var warehouseIds = details.Select(d => d.OldWarehouseId).Distinct();
-                var binIds = details.Select(d => d.OldBinId).Distinct();
-
-                var warehouses = await _warehouseLookup.GetByIdsAsync(warehouseIds);
-                var warehouseDict = warehouses.ToDictionary(w => w.Id, w => w.WarehouseName);
-
-                var bins = await _binLookup.GetByIdsAsync(binIds);
-                var binDict = bins.ToDictionary(b => b.Id, b => b.BinName);
+                var warehouseIds = new HashSet<int>();
+                var binIds = new HashSet<int>();
 
                 foreach (var detail in details)
                 {
-                    detail.OldWarehouseName = warehouseDict.TryGetValue(detail.OldWarehouseId, out var wn) ? wn : null;
-                    detail.OldBinName = binDict.TryGetValue(detail.OldBinId, out var bn) ? bn : null;
+                    var sourceInfo = await _salesStockLedgerService.GetPackSourceInfoAsync(
+                        detail.OldStartPackNo, detail.OldEndPackNo,
+                        header.ProductionYear, header.UnitId);
+
+                    if (sourceInfo != null)
+                    {
+                        detail.OldNetWeightPerPack = sourceInfo.OldNetWeightPerPack;
+                        detail.OldTotalBags = sourceInfo.OldTotalBags;
+                        detail.OldNetWeight = sourceInfo.OldNetWeight;
+                        detail.OldLotId = sourceInfo.LotId;
+                        detail.OldWarehouseId = sourceInfo.WarehouseId;
+                        detail.OldBinId = sourceInfo.BinId;
+
+                        if (sourceInfo.WarehouseId > 0) warehouseIds.Add(sourceInfo.WarehouseId);
+                        if (sourceInfo.BinId > 0) binIds.Add(sourceInfo.BinId);
+                    }
+                }
+
+                if (warehouseIds.Count > 0)
+                {
+                    var warehouses = await _warehouseLookup.GetByIdsAsync(warehouseIds);
+                    var warehouseDict = warehouses.ToDictionary(w => w.Id, w => w.WarehouseName);
+
+                    var bins = await _binLookup.GetByIdsAsync(binIds);
+                    var binDict = bins.ToDictionary(b => b.Id, b => b.BinName);
+
+                    foreach (var detail in details)
+                    {
+                        detail.OldWarehouseName = warehouseDict.TryGetValue(detail.OldWarehouseId, out var wn) ? wn : null;
+                        detail.OldBinName = binDict.TryGetValue(detail.OldBinId, out var bn) ? bn : null;
+                    }
                 }
             }
 

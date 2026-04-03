@@ -51,7 +51,32 @@ namespace ProductionManagement.Infrastructure.Repositories.RepackingHeader
                     var stockType = await _salesMiscMasterLookup.GetByCodeAsync(typeCode);
                     var stockTypeId = stockType?.Id;
 
-                    // Save header + details (StartPackNo/EndPackNo come from payload)
+                    // Fetch source info per detail (provides OldTotalBags for pack-no calc)
+                    var sourceInfoMap = new Dictionary<int, StockPackSourceDto?>();
+                    if (entity.RepackingDetails != null)
+                    {
+                        foreach (var detail in entity.RepackingDetails)
+                        {
+                            sourceInfoMap[detail.OldStartPackNo] = await _salesStockLedgerService.GetPackSourceInfoAsync(
+                                detail.OldStartPackNo, detail.OldEndPackNo,
+                                entity.ProductionYear, entity.UnitId);
+                        }
+                    }
+
+                    // Auto-calculate StartPackNo/EndPackNo for each detail from header.StartPackNo
+                    int nextPackNo = entity.StartPackNo;
+                    if (entity.RepackingDetails != null)
+                    {
+                        foreach (var detail in entity.RepackingDetails)
+                        {
+                            var oldTotalBags = sourceInfoMap.GetValueOrDefault(detail.OldStartPackNo)?.OldTotalBags ?? 0;
+                            detail.StartPackNo = nextPackNo;
+                            detail.EndPackNo = nextPackNo + oldTotalBags - 1;
+                            nextPackNo = detail.EndPackNo + 1;
+                        }
+                    }
+
+                    // Save header + details
                     await _applicationDbContext.RepackingHeader.AddAsync(entity);
                     await _applicationDbContext.SaveChangesAsync();
 
@@ -80,12 +105,13 @@ namespace ProductionManagement.Infrastructure.Repositories.RepackingHeader
 
                     // Insert new target packs per detail row (DetailDocNo = RepackingDetail.Id)
                     var stockEntries = new List<SalesStockLedgerDto>();
-                    int currentPackNo = entity.StartPackNo;
                     if (entity.RepackingDetails != null)
                     {
                         foreach (var detail in entity.RepackingDetails)
                         {
-                            for (int i = 0; i < detail.OldTotalBags; i++)
+                            int currentPackNo = detail.StartPackNo;
+                            int packCount = detail.EndPackNo - detail.StartPackNo + 1;
+                            for (int i = 0; i < packCount; i++)
                             {
                                 stockEntries.Add(new SalesStockLedgerDto
                                 {
@@ -213,6 +239,31 @@ namespace ProductionManagement.Infrastructure.Repositories.RepackingHeader
                         _applicationDbContext.RepackingDetail.RemoveRange(existingEntity.RepackingDetails);
                     }
 
+                    // Fetch source info per detail (provides OldTotalBags for pack-no calc)
+                    var sourceInfoMapUpd = new Dictionary<int, StockPackSourceDto?>();
+                    if (entity.RepackingDetails != null)
+                    {
+                        foreach (var detail in entity.RepackingDetails)
+                        {
+                            sourceInfoMapUpd[detail.OldStartPackNo] = await _salesStockLedgerService.GetPackSourceInfoAsync(
+                                detail.OldStartPackNo, detail.OldEndPackNo,
+                                existingEntity.ProductionYear, existingEntity.UnitId);
+                        }
+                    }
+
+                    // Auto-calculate StartPackNo/EndPackNo for each detail from header.StartPackNo
+                    int nextPackNoUpd = existingEntity.StartPackNo;
+                    if (entity.RepackingDetails != null)
+                    {
+                        foreach (var detail in entity.RepackingDetails)
+                        {
+                            var oldTotalBags = sourceInfoMapUpd.GetValueOrDefault(detail.OldStartPackNo)?.OldTotalBags ?? 0;
+                            detail.StartPackNo = nextPackNoUpd;
+                            detail.EndPackNo = nextPackNoUpd + oldTotalBags - 1;
+                            nextPackNoUpd = detail.EndPackNo + 1;
+                        }
+                    }
+
                     if (entity.RepackingDetails != null)
                     {
                         foreach (var detail in entity.RepackingDetails)
@@ -237,13 +288,14 @@ namespace ProductionManagement.Infrastructure.Repositories.RepackingHeader
 
                     // Insert new target packs per detail row (DetailDocNo = RepackingDetail.Id)
                     var stockEntries = new List<SalesStockLedgerDto>();
-                    int currentPackNo = existingEntity.StartPackNo;
                     var savedDetails = await _applicationDbContext.RepackingDetail
                         .Where(d => d.RepackHeaderId == existingEntity.Id)
                         .ToListAsync();
                     foreach (var detail in savedDetails)
                     {
-                        for (int i = 0; i < detail.OldTotalBags; i++)
+                        int currentPackNo = detail.StartPackNo;
+                        int packCount = detail.EndPackNo - detail.StartPackNo + 1;
+                        for (int i = 0; i < packCount; i++)
                         {
                             stockEntries.Add(new SalesStockLedgerDto
                             {

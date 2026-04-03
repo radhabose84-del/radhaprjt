@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ProductionManagement.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using ProductionManagement.Infrastructure.Data;
 namespace ProductionManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260403063143_AddOldLotIdToRepackingDetail")]
+    partial class AddOldLotIdToRepackingDetail
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -841,10 +844,28 @@ namespace ProductionManagement.Infrastructure.Migrations
                     b.Property<int>("EndPackNo")
                         .HasColumnType("int");
 
+                    b.Property<int>("OldBinId")
+                        .HasColumnType("int");
+
                     b.Property<int>("OldEndPackNo")
                         .HasColumnType("int");
 
+                    b.Property<int>("OldLotId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("OldNetWeight")
+                        .HasColumnType("decimal(18,3)");
+
+                    b.Property<decimal>("OldNetWeightPerPack")
+                        .HasColumnType("decimal(18,3)");
+
                     b.Property<int>("OldStartPackNo")
+                        .HasColumnType("int");
+
+                    b.Property<int>("OldTotalBags")
+                        .HasColumnType("int");
+
+                    b.Property<int>("OldWarehouseId")
                         .HasColumnType("int");
 
                     b.Property<int>("RepackHeaderId")
@@ -854,6 +875,10 @@ namespace ProductionManagement.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("OldBinId");
+
+                    b.HasIndex("OldWarehouseId");
 
                     b.HasIndex("RepackHeaderId");
 

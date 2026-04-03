@@ -1,14 +1,14 @@
-using ProductionManagement.Application.Common.Interfaces.IRepackingMaster;
-using ProductionManagement.Application.RepackingMaster.Commands.DeleteRepackingMaster;
+using ProductionManagement.Application.Common.Interfaces.IRepackingHeader;
+using ProductionManagement.Application.RepackingHeader.Commands.DeleteRepackingHeader;
 
 namespace ProductionManagement.UnitTests.Application.Repacking.Commands
 {
-    public sealed class DeleteRepackingMasterCommandHandlerTests
+    public sealed class DeleteRepackingHeaderCommandHandlerTests
     {
-        private readonly Mock<IRepackingMasterCommandRepository> _mockCommandRepo = new(MockBehavior.Strict);
+        private readonly Mock<IRepackingHeaderCommandRepository> _mockCommandRepo = new(MockBehavior.Strict);
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Loose);
 
-        private DeleteRepackingMasterCommandHandler CreateSut() =>
+        private DeleteRepackingHeaderCommandHandler CreateSut() =>
             new(_mockCommandRepo.Object, _mockMediator.Object);
 
         [Fact]
@@ -17,7 +17,7 @@ namespace ProductionManagement.UnitTests.Application.Repacking.Commands
             _mockCommandRepo.Setup(r => r.SoftDeleteAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(true);
             _mockMediator.Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 
-            var result = await CreateSut().Handle(new DeleteRepackingMasterCommand(1), CancellationToken.None);
+            var result = await CreateSut().Handle(new DeleteRepackingHeaderCommand(1), CancellationToken.None);
 
             result.Should().BeTrue();
         }
@@ -27,7 +27,7 @@ namespace ProductionManagement.UnitTests.Application.Repacking.Commands
         {
             _mockCommandRepo.Setup(r => r.SoftDeleteAsync(999, It.IsAny<CancellationToken>())).ReturnsAsync(false);
 
-            Func<Task> act = () => CreateSut().Handle(new DeleteRepackingMasterCommand(999), CancellationToken.None);
+            Func<Task> act = () => CreateSut().Handle(new DeleteRepackingHeaderCommand(999), CancellationToken.None);
 
             await act.Should().ThrowAsync<ExceptionRules>()
                 .WithMessage("*not found*");
@@ -39,7 +39,7 @@ namespace ProductionManagement.UnitTests.Application.Repacking.Commands
             _mockCommandRepo.Setup(r => r.SoftDeleteAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(true);
             _mockMediator.Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 
-            await CreateSut().Handle(new DeleteRepackingMasterCommand(1), CancellationToken.None);
+            await CreateSut().Handle(new DeleteRepackingHeaderCommand(1), CancellationToken.None);
 
             _mockMediator.Verify(
                 m => m.Publish(
@@ -55,7 +55,7 @@ namespace ProductionManagement.UnitTests.Application.Repacking.Commands
         {
             _mockCommandRepo.Setup(r => r.SoftDeleteAsync(999, It.IsAny<CancellationToken>())).ReturnsAsync(false);
 
-            try { await CreateSut().Handle(new DeleteRepackingMasterCommand(999), CancellationToken.None); }
+            try { await CreateSut().Handle(new DeleteRepackingHeaderCommand(999), CancellationToken.None); }
             catch { /* expected */ }
 
             _mockMediator.Verify(
@@ -69,7 +69,7 @@ namespace ProductionManagement.UnitTests.Application.Repacking.Commands
             _mockCommandRepo.Setup(r => r.SoftDeleteAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(true);
             _mockMediator.Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 
-            await CreateSut().Handle(new DeleteRepackingMasterCommand(1), CancellationToken.None);
+            await CreateSut().Handle(new DeleteRepackingHeaderCommand(1), CancellationToken.None);
 
             _mockCommandRepo.Verify(r => r.SoftDeleteAsync(1, It.IsAny<CancellationToken>()), Times.Once);
         }

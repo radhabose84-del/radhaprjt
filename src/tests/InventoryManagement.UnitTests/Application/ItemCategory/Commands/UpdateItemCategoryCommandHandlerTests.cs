@@ -10,11 +10,12 @@ namespace InventoryManagement.UnitTests.Application.ItemCategory.Commands
     public sealed class UpdateItemCategoryCommandHandlerTests
     {
         private readonly Mock<IItemCategoryCommandRepository> _mockCommandRepo = new(MockBehavior.Strict);
+        private readonly Mock<IItemCategoryQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Loose);
         private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Loose);
 
         private UpdateItemCategoryCommandHandler CreateSut() =>
-            new(_mockCommandRepo.Object, _mockMediator.Object, _mockMapper.Object);
+            new(_mockCommandRepo.Object, _mockQueryRepo.Object, _mockMediator.Object, _mockMapper.Object);
 
         private static UpdateItemCategoryCommand ValidCommand(int id = 1) =>
             new() { Id = id, ItemCategoryName = "Updated Category", ItemGroupId = 1, IsActive = 1 };

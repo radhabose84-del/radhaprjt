@@ -76,11 +76,10 @@ namespace ProductionManagement.Presentation.Controllers
 
         [HttpGet("getstockitems")]
         public async Task<IActionResult> GetStockItemsAsync(
-            [FromQuery] int productionYear,
-            [FromQuery] int? packTypeId = null)
+            [FromQuery] int productionYear)
         {
             var unitId = _ipAddressService.GetUnitId() ?? 0;
-            var result = await _stockLedgerService.GetStockItemsAsync(productionYear, unitId, packTypeId);
+            var result = await _stockLedgerService.GetStockItemsAsync(productionYear, unitId);
             return Ok(new
             {
                 StatusCode = StatusCodes.Status200OK,
@@ -91,7 +90,7 @@ namespace ProductionManagement.Presentation.Controllers
         [HttpGet("get-packs-by-item-lot")]
         public async Task<IActionResult> GetPacksByItemAndLotAsync(
             [FromQuery] int itemId,
-            [FromQuery] int lotId,
+            [FromQuery] int? lotId,
             [FromQuery] int productionYear)
         {
             var unitId = _ipAddressService.GetUnitId() ?? 0;

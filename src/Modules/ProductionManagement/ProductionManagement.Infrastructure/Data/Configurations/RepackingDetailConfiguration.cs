@@ -15,6 +15,14 @@ namespace ProductionManagement.Infrastructure.Data.Configurations
                 .HasColumnType("int")
                 .IsRequired();
 
+            builder.Property(t => t.StartPackNo)
+                .HasColumnType("int")
+                .IsRequired();
+
+            builder.Property(t => t.EndPackNo)
+                .HasColumnType("int")
+                .IsRequired();
+
             builder.Property(t => t.OldStartPackNo)
                 .HasColumnType("int")
                 .IsRequired();
@@ -23,30 +31,8 @@ namespace ProductionManagement.Infrastructure.Data.Configurations
                 .HasColumnType("int")
                 .IsRequired();
 
-            builder.Property(t => t.OldNetWeightPerPack)
-                .HasColumnType("decimal(18,3)")
-                .IsRequired();
-
-            builder.Property(t => t.OldTotalBags)
-                .HasColumnType("int")
-                .IsRequired();
-
-            builder.Property(t => t.OldNetWeight)
-                .HasColumnType("decimal(18,3)")
-                .IsRequired();
-
-            builder.Property(t => t.OldWarehouseId)
-                .HasColumnType("int")
-                .IsRequired();
-
-            builder.Property(t => t.OldBinId)
-                .HasColumnType("int")
-                .IsRequired();
-
             // Indexes
             builder.HasIndex(t => t.RepackHeaderId);
-            builder.HasIndex(t => t.OldWarehouseId);
-            builder.HasIndex(t => t.OldBinId);
 
             // FK to header is configured in RepackingHeaderConfiguration via HasMany
             // Cross-module FKs (OldWarehouseId, OldBinId) — NO DB constraint

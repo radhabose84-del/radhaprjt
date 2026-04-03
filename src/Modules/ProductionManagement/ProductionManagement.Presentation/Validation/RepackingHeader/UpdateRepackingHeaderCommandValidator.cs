@@ -78,15 +78,6 @@ namespace ProductionManagement.Presentation.Validation.RepackingHeader
                             detail.RuleFor(d => d.OldEndPackNo)
                                 .GreaterThan(0)
                                 .WithMessage($"{nameof(CreateRepackingDetailItem.OldEndPackNo)} {rule.Error}");
-                            detail.RuleFor(d => d.OldTotalBags)
-                                .GreaterThan(0)
-                                .WithMessage($"{nameof(CreateRepackingDetailItem.OldTotalBags)} {rule.Error}");
-                            detail.RuleFor(d => d.OldWarehouseId)
-                                .GreaterThan(0)
-                                .WithMessage($"{nameof(CreateRepackingDetailItem.OldWarehouseId)} {rule.Error}");
-                            detail.RuleFor(d => d.OldBinId)
-                                .GreaterThan(0)
-                                .WithMessage($"{nameof(CreateRepackingDetailItem.OldBinId)} {rule.Error}");
                         });
                         break;
 
@@ -103,16 +94,6 @@ namespace ProductionManagement.Presentation.Validation.RepackingHeader
                         RuleFor(x => x.WasteQuantity)
                             .GreaterThanOrEqualTo(0)
                             .WithMessage($"{nameof(UpdateRepackingHeaderCommand.WasteQuantity)} {rule.Error}");
-
-                        RuleForEach(x => x.Details).ChildRules(detail =>
-                        {
-                            detail.RuleFor(d => d.OldNetWeightPerPack)
-                                .GreaterThanOrEqualTo(0)
-                                .WithMessage($"{nameof(CreateRepackingDetailItem.OldNetWeightPerPack)} {rule.Error}");
-                            detail.RuleFor(d => d.OldNetWeight)
-                                .GreaterThanOrEqualTo(0)
-                                .WithMessage($"{nameof(CreateRepackingDetailItem.OldNetWeight)} {rule.Error}");
-                        });
                         break;
 
                     case "MaxLength":
@@ -185,25 +166,6 @@ namespace ProductionManagement.Presentation.Validation.RepackingHeader
                             .WithMessage($"{nameof(UpdateRepackingHeaderCommand.BinId)} {rule.Error}")
                             .When(x => x.BinId > 0);
 
-                        RuleForEach(x => x.Details).ChildRules(detail =>
-                        {
-                            detail.RuleFor(d => d.OldWarehouseId)
-                                .MustAsync(async (id, ct) =>
-                                {
-                                    var wh = await _warehouseLookup.GetByIdsAsync(new[] { id }, ct);
-                                    return wh.Count > 0;
-                                })
-                                .WithMessage($"{nameof(CreateRepackingDetailItem.OldWarehouseId)} {rule.Error}")
-                                .When(d => d.OldWarehouseId > 0);
-                            detail.RuleFor(d => d.OldBinId)
-                                .MustAsync(async (id, ct) =>
-                                {
-                                    var bins = await _binLookup.GetByIdsAsync(new[] { id }, ct);
-                                    return bins.Count > 0;
-                                })
-                                .WithMessage($"{nameof(CreateRepackingDetailItem.OldBinId)} {rule.Error}")
-                                .When(d => d.OldBinId > 0);
-                        });
                         break;
 
                     case "ByteValue":
