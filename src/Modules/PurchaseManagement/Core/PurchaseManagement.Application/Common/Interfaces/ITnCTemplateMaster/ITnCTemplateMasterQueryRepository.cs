@@ -13,5 +13,7 @@ namespace PurchaseManagement.Application.Common.Interfaces.ITnCTemplateMaster
         Task<bool> IsUsedInTransactionsAsync(int templateId, CancellationToken ct = default);
 
         Task<List<TnCAutoCompleteDto>> GetTnCTemplateAutoCompleteAsync(string? search, int? templateTypeId, int? applicabilityId);
+        Task<bool> SoftDeleteValidationAsync(int id);
+        Task<bool> IsTnCTemplateLinkedAsync(int id);
     }
 }

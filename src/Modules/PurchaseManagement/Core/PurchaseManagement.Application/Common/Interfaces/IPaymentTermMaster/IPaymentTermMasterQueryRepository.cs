@@ -13,7 +13,8 @@ namespace PurchaseManagement.Application.Common.Interfaces.IPaymentTermMaster
 
         Task<bool> ExistsByIdAsync(int id);
 
-        Task<List<AutoCompleteDto>> GetPaymentTermAutoComplete(string? searchPattern, string? paymentTermCode);       
-
+        Task<List<AutoCompleteDto>> GetPaymentTermAutoComplete(string? searchPattern, string? paymentTermCode);
+        Task<bool> SoftDeleteValidationAsync(int id);
+        Task<bool> IsPaymentTermLinkedAsync(int id);
     }
 }

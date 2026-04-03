@@ -25,6 +25,14 @@ namespace PurchaseManagement.Application.PaymentTermMaster.Command.UpdatePayment
 
         public async Task<bool> Handle(UpdatePaymentTermMasterCommand request , CancellationToken cancellationToken)
         {
+            if (!request.IsActive)
+            {
+                var isLinked = await _paymentTermMasterQueryRepository.IsPaymentTermLinkedAsync(request.Id);
+                if (isLinked)
+                    throw new ExceptionRules(
+                        "This master is linked with other records. You cannot inactivate this record.");
+            }
+
              var existing = await _paymentTermMasterQueryRepository.GetByIdAsync(request.Id);
             if (existing is null)
                 throw new ExceptionRules($"Payment term not found for Id={request.Id}.");

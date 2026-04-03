@@ -38,8 +38,13 @@ namespace PurchaseManagement.Presentation.Validation.MiscMaster
                            .WithName("MiscMaster Id")
                             .WithMessage($"{rule.Error}");
                             break; 
+                    case "SoftDelete":
+                        RuleFor(x => x.Id)
+                            .MustAsync(async (id, ct) => !await _miscMasterQueryRepository.SoftDeleteValidation(id))
+                            .WithMessage("This master is linked with other records. You cannot delete this record.");
+                        break;
                     default:
-                        
+
                         break;
                 }
             }

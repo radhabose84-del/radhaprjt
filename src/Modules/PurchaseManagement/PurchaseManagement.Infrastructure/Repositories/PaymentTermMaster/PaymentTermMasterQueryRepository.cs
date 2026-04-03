@@ -171,5 +171,29 @@ namespace PurchaseManagement.Infrastructure.Repositories.PaymentTermMaster
 
             return rows.AsList();
         }
+
+        public async Task<bool> SoftDeleteValidationAsync(int id)
+        {
+            const string query = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1 FROM [Purchase].[PaymentTermInstallment]
+                    WHERE PaymentTermId = @id AND IsDeleted = 0
+                ) THEN 1 ELSE 0 END;";
+
+            var result = await _dbConnection.QueryFirstOrDefaultAsync<int>(query, new { id });
+            return result == 1;
+        }
+
+        public async Task<bool> IsPaymentTermLinkedAsync(int id)
+        {
+            const string query = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1 FROM [Purchase].[PaymentTermInstallment]
+                    WHERE PaymentTermId = @id AND IsDeleted = 0 AND IsActive = 1
+                ) THEN 1 ELSE 0 END;";
+
+            var result = await _dbConnection.QueryFirstOrDefaultAsync<int>(query, new { id });
+            return result == 1;
+        }
 }
 }

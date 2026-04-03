@@ -79,4 +79,35 @@ public sealed class PortMasterQueryRepository : IPortMasterQueryRepository
         var rows = await _db.QueryAsync<PortLookupDto>(cmd);
         return rows.AsList();
     }
+
+    public async Task<bool> NotFoundAsync(int id, CancellationToken ct)
+    {
+        const string sql = "SELECT COUNT(1) FROM [Purchase].[PortMaster] WHERE Id = @Id AND IsDeleted = 0";
+        var count = await _db.ExecuteScalarAsync<int>(new CommandDefinition(sql, new { Id = id }, cancellationToken: ct));
+        return count == 0;
+    }
+
+    public async Task<bool> SoftDeleteValidationAsync(int id)
+    {
+        const string query = @"
+            SELECT CASE WHEN
+                EXISTS (SELECT 1 FROM [Purchase].[PurchaseOrderImportHeader] WHERE ShippingPortId = @id AND IsDeleted = 0)
+                OR EXISTS (SELECT 1 FROM [Purchase].[PurchaseOrderImportHeader] WHERE DestinationPortId = @id AND IsDeleted = 0)
+            THEN 1 ELSE 0 END;";
+
+        var result = await _db.QueryFirstOrDefaultAsync<int>(query, new { id });
+        return result == 1;
+    }
+
+    public async Task<bool> IsPortMasterLinkedAsync(int id)
+    {
+        const string query = @"
+            SELECT CASE WHEN
+                EXISTS (SELECT 1 FROM [Purchase].[PurchaseOrderImportHeader] WHERE ShippingPortId = @id AND IsDeleted = 0 AND IsActive = 1)
+                OR EXISTS (SELECT 1 FROM [Purchase].[PurchaseOrderImportHeader] WHERE DestinationPortId = @id AND IsDeleted = 0 AND IsActive = 1)
+            THEN 1 ELSE 0 END;";
+
+        var result = await _db.QueryFirstOrDefaultAsync<int>(query, new { id });
+        return result == 1;
+    }
 }
