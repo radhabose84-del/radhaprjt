@@ -35,7 +35,6 @@ namespace Contracts.Interfaces.Lookups.Sales
 
         Task<IReadOnlyList<StockItemSummaryDto>> GetStockItemsAsync(
             int productionYear, int unitId,
-            int? packTypeId = null,
             CancellationToken ct = default);
 
         /// <summary>
@@ -48,5 +47,22 @@ namespace Contracts.Interfaces.Lookups.Sales
         /// Returns the LotId of the first pack found in the given pack range for a specific year and unit.
         /// </summary>
         Task<int> GetLotIdByPackRangeAsync(int startPackNo, int endPackNo, int productionYear, int unitId, CancellationToken ct = default);
+
+        /// <summary>
+        /// Returns the LotId, WarehouseId, and BinId of the first packed pack found in the given range.
+        /// Used to auto-populate OldLotId, OldWarehouseId, OldBinId on RepackingDetail from source packs.
+        /// </summary>
+        Task<StockPackSourceDto?> GetPackSourceInfoAsync(
+            int startPackNo, int endPackNo, int productionYear, int unitId,
+            CancellationToken ct = default);
+
+        /// <summary>
+        /// Returns packed packs grouped by PackType + Lot, filtered by ItemId and optional LotId.
+        /// If lotId is null, all lots are returned.
+        /// Used for source pack selection in repacking / yarn conversion.
+        /// </summary>
+        Task<IReadOnlyList<StockPackSummaryDto>> GetPacksByItemAndLotAsync(
+            int itemId, int? lotId, int productionYear, int unitId,
+            CancellationToken ct = default);
     }
 }

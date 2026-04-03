@@ -8,15 +8,19 @@ namespace InventoryManagement.UnitTests.Validators.Item.PutAway
     public sealed class DeletePutAwayRuleCommandValidatorTests
     {
         private readonly Mock<IPutAwayRuleCommandRepository> _mockRuleRepo = new(MockBehavior.Loose);
+        private readonly Mock<IPutAwayRuleQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
 
         public DeletePutAwayRuleCommandValidatorTests()
         {
             _mockRuleRepo
                 .Setup(r => r.ExistsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(true);
+            _mockQueryRepo
+                .Setup(r => r.SoftDeleteValidationAsync(It.IsAny<int>()))
+                .ReturnsAsync(false);
         }
 
-        private DeletePutAwayRuleCommandValidator CreateValidator() => new(_mockRuleRepo.Object);
+        private DeletePutAwayRuleCommandValidator CreateValidator() => new(_mockRuleRepo.Object, _mockQueryRepo.Object);
 
         [Fact]
         public async Task Validate_ValidId_PassesValidation()

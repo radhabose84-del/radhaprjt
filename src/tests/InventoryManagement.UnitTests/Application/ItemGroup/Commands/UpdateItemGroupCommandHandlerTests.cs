@@ -10,11 +10,12 @@ namespace InventoryManagement.UnitTests.Application.ItemGroup.Commands
     public sealed class UpdateItemGroupCommandHandlerTests
     {
         private readonly Mock<IItemGroupCommandRepository> _mockCommandRepo = new(MockBehavior.Strict);
+        private readonly Mock<IItemGroupQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
         private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Loose);
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Loose);
 
         private UpdateItemGroupCommandHandler CreateSut() =>
-            new(_mockCommandRepo.Object, _mockMediator.Object, _mockMapper.Object);
+            new(_mockCommandRepo.Object, _mockQueryRepo.Object, _mockMediator.Object, _mockMapper.Object);
 
         private void SetupHappyPath(int result = 1)
         {

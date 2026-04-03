@@ -3,21 +3,22 @@ using Contracts.Dtos.Lookups.Warehouse;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Warehouse;
 using FluentValidation.TestHelper;
-using ProductionManagement.Application.Common.Interfaces.IRepackingMaster;
-using ProductionManagement.Application.RepackingMaster.Commands.UpdateRepackingMaster;
-using ProductionManagement.Presentation.Validation.RepackingMaster;
+using ProductionManagement.Application.Common.Interfaces.IRepackingHeader;
+using ProductionManagement.Application.RepackingHeader.Commands.CreateRepackingHeader;
+using ProductionManagement.Application.RepackingHeader.Commands.UpdateRepackingHeader;
+using ProductionManagement.Presentation.Validation.RepackingHeader;
 using ProductionManagement.UnitTests.TestHelpers;
 
 namespace ProductionManagement.UnitTests.Validators.Repacking
 {
-    public sealed class UpdateRepackingMasterCommandValidatorTests
+    public sealed class UpdateRepackingHeaderCommandValidatorTests
     {
-        private readonly Mock<IRepackingMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
+        private readonly Mock<IRepackingHeaderQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
         private readonly Mock<IItemLookup> _mockItemLookup = new(MockBehavior.Strict);
         private readonly Mock<IWarehouseLookup> _mockWarehouseLookup = new(MockBehavior.Strict);
         private readonly Mock<IBinLookup> _mockBinLookup = new(MockBehavior.Strict);
 
-        private UpdateRepackingMasterCommandValidator CreateValidator() =>
+        private UpdateRepackingHeaderCommandValidator CreateValidator() =>
             new(TestMaxLengthProviderFactory.Create(), _mockQueryRepo.Object,
                 _mockItemLookup.Object, _mockWarehouseLookup.Object, _mockBinLookup.Object);
 
@@ -41,28 +42,26 @@ namespace ProductionManagement.UnitTests.Validators.Repacking
                 .ReturnsAsync(new List<BinLookupDto> { new() { Id = 1 } });
         }
 
-        private static UpdateRepackingMasterCommand BuildValidCommand(int id = 1) => new()
+        private static UpdateRepackingHeaderCommand BuildValidCommand(int id = 1) => new()
         {
             Id = id,
             RepackDate = DateOnly.FromDateTime(DateTime.Today),
             ItemId = 1,
+            OldItemId = 1,
             OldPackTypeId = 1,
-            OldNetWeightPerPack = 50m,
-            OldStartPackNo = 1,
-            OldEndPackNo = 10,
-            OldTotalBags = 10,
-            OldNetWeight = 500m,
-            OldWarehouseId = 1,
-            OldBinId = 1,
             PackTypeId = 2,
             NetWeightPerPack = 25m,
             TotalBags = 20,
             NetWeight = 500m,
-            WarehouseId = 2,
-            BinId = 2,
+            WarehouseId = 1,
+            BinId = 1,
             LooseConeKgs = 0m,
             Remarks = "Updated",
-            IsActive = 1
+            IsActive = 1,
+            Details = new List<CreateRepackingDetailItem>
+            {
+                new() { OldStartPackNo = 1, OldEndPackNo = 10 }
+            }
         };
 
         [Fact]
@@ -130,12 +129,12 @@ namespace ProductionManagement.UnitTests.Validators.Repacking
         public async Task Validate_OldEndPackNo_LessThan_OldStartPackNo_FailsValidation()
         {
             var command = BuildValidCommand();
-            command.OldStartPackNo = 10;
-            command.OldEndPackNo = 5;
+            command.Details[0].OldStartPackNo = 10;
+            command.Details[0].OldEndPackNo = 5;
             SetupAllAsyncMocks();
 
             var result = await CreateValidator().TestValidateAsync(command);
-            result.ShouldHaveValidationErrorFor(x => x.OldEndPackNo);
+            result.ShouldHaveValidationErrorFor("Details[0].OldEndPackNo");
         }
 
         [Fact]

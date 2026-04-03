@@ -1,4 +1,5 @@
 using FluentValidation.TestHelper;
+using InventoryManagement.Application.Common.Interfaces.Item.Templates;
 using InventoryManagement.Application.Item.Templates.Commands.DeleteTemplate;
 using InventoryManagement.Presentation.Validation.Item.Templates;
 
@@ -6,7 +7,19 @@ namespace InventoryManagement.UnitTests.Validators.Item.Templates
 {
     public sealed class DeleteTemplateCommandValidatorTests
     {
-        private DeleteTemplateCommandValidator CreateValidator() => new();
+        private readonly Mock<ITemplateQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
+
+        public DeleteTemplateCommandValidatorTests()
+        {
+            _mockQueryRepo
+                .Setup(r => r.ExistsByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(true);
+            _mockQueryRepo
+                .Setup(r => r.SoftDeleteValidationAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(false);
+        }
+
+        private DeleteTemplateCommandValidator CreateValidator() => new(_mockQueryRepo.Object);
 
         [Fact]
         public async Task Validate_ValidId_PassesValidation()

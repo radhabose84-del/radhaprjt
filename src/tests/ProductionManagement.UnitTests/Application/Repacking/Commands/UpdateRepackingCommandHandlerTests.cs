@@ -1,31 +1,26 @@
-using ProductionManagement.Application.Common.Interfaces.IRepackingMaster;
-using ProductionManagement.Application.RepackingMaster.Commands.UpdateRepackingMaster;
+using ProductionManagement.Application.Common.Interfaces.IRepackingHeader;
+using ProductionManagement.Application.RepackingHeader.Commands.CreateRepackingHeader;
+using ProductionManagement.Application.RepackingHeader.Commands.UpdateRepackingHeader;
 
 namespace ProductionManagement.UnitTests.Application.Repacking.Commands
 {
-    public sealed class UpdateRepackingMasterCommandHandlerTests
+    public sealed class UpdateRepackingHeaderCommandHandlerTests
     {
-        private readonly Mock<IRepackingMasterCommandRepository> _mockCommandRepo = new(MockBehavior.Strict);
-        private readonly Mock<IRepackingMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
+        private readonly Mock<IRepackingHeaderCommandRepository> _mockCommandRepo = new(MockBehavior.Strict);
+        private readonly Mock<IRepackingHeaderQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Loose);
         private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Loose);
 
-        private UpdateRepackingMasterCommandHandler CreateSut() =>
+        private UpdateRepackingHeaderCommandHandler CreateSut() =>
             new(_mockCommandRepo.Object, _mockQueryRepo.Object, _mockMediator.Object, _mockMapper.Object);
 
-        private static UpdateRepackingMasterCommand BuildValidCommand(int id = 1) => new()
+        private static UpdateRepackingHeaderCommand BuildValidCommand(int id = 1) => new()
         {
             Id = id,
             RepackDate = DateOnly.FromDateTime(DateTime.Today),
             ItemId = 1,
+            OldItemId = 1,
             OldPackTypeId = 1,
-            OldNetWeightPerPack = 50m,
-            OldStartPackNo = 1,
-            OldEndPackNo = 10,
-            OldTotalBags = 10,
-            OldNetWeight = 500m,
-            OldWarehouseId = 1,
-            OldBinId = 1,
             PackTypeId = 2,
             NetWeightPerPack = 25m,
             TotalBags = 20,
@@ -34,15 +29,19 @@ namespace ProductionManagement.UnitTests.Application.Repacking.Commands
             BinId = 2,
             LooseConeKgs = 0m,
             Remarks = "Updated repack",
-            IsActive = 1
+            IsActive = 1,
+            Details = new List<CreateRepackingDetailItem>
+            {
+                new() { OldStartPackNo = 1, OldEndPackNo = 10 }
+            }
         };
 
         private void SetupHappyPath(int returnId = 1)
         {
-            _mockMapper.Setup(m => m.Map<ProductionManagement.Domain.Entities.RepackingMaster>(It.IsAny<UpdateRepackingMasterCommand>()))
-                .Returns(new ProductionManagement.Domain.Entities.RepackingMaster { Id = 1 });
+            _mockMapper.Setup(m => m.Map<ProductionManagement.Domain.Entities.RepackingHeader>(It.IsAny<UpdateRepackingHeaderCommand>()))
+                .Returns(new ProductionManagement.Domain.Entities.RepackingHeader { Id = 1 });
 
-            _mockCommandRepo.Setup(r => r.UpdateAsync(It.IsAny<ProductionManagement.Domain.Entities.RepackingMaster>()))
+            _mockCommandRepo.Setup(r => r.UpdateAsync(It.IsAny<ProductionManagement.Domain.Entities.RepackingHeader>()))
                 .ReturnsAsync(returnId);
 
             _mockMediator.Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>()))
@@ -71,7 +70,7 @@ namespace ProductionManagement.UnitTests.Application.Repacking.Commands
         {
             SetupHappyPath();
             await CreateSut().Handle(BuildValidCommand(), CancellationToken.None);
-            _mockCommandRepo.Verify(r => r.UpdateAsync(It.IsAny<ProductionManagement.Domain.Entities.RepackingMaster>()), Times.Once);
+            _mockCommandRepo.Verify(r => r.UpdateAsync(It.IsAny<ProductionManagement.Domain.Entities.RepackingHeader>()), Times.Once);
         }
 
         [Fact]
@@ -94,7 +93,7 @@ namespace ProductionManagement.UnitTests.Application.Repacking.Commands
             SetupHappyPath();
             var command = BuildValidCommand(5);
             await CreateSut().Handle(command, CancellationToken.None);
-            _mockMapper.Verify(m => m.Map<ProductionManagement.Domain.Entities.RepackingMaster>(command), Times.Once);
+            _mockMapper.Verify(m => m.Map<ProductionManagement.Domain.Entities.RepackingHeader>(command), Times.Once);
         }
     }
 }

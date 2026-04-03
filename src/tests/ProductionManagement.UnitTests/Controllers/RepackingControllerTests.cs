@@ -1,36 +1,41 @@
+using Contracts.Interfaces;
+using Contracts.Interfaces.Lookups.Sales;
 using Microsoft.AspNetCore.Mvc;
-using ProductionManagement.Application.RepackingMaster.Commands.CreateRepackingMaster;
-using ProductionManagement.Application.RepackingMaster.Commands.DeleteRepackingMaster;
-using ProductionManagement.Application.RepackingMaster.Commands.UpdateRepackingMaster;
-using ProductionManagement.Application.RepackingMaster.Dto;
-using ProductionManagement.Application.RepackingMaster.Queries.GetAllRepackingMaster;
-using ProductionManagement.Application.RepackingMaster.Queries.GetRepackingMasterAutoComplete;
-using ProductionManagement.Application.RepackingMaster.Queries.GetRepackingMasterById;
+using ProductionManagement.Application.RepackingHeader.Commands.CreateRepackingHeader;
+using ProductionManagement.Application.RepackingHeader.Commands.DeleteRepackingHeader;
+using ProductionManagement.Application.RepackingHeader.Commands.UpdateRepackingHeader;
+using ProductionManagement.Application.RepackingHeader.Dto;
+using ProductionManagement.Application.RepackingHeader.Queries.GetAllRepackingHeader;
+using ProductionManagement.Application.RepackingHeader.Queries.GetRepackingHeaderAutoComplete;
+using ProductionManagement.Application.RepackingHeader.Queries.GetRepackingHeaderById;
 using ProductionManagement.Presentation.Controllers;
 
 namespace ProductionManagement.UnitTests.Controllers
 {
-    public sealed class RepackingMasterControllerTests
+    public sealed class RepackingHeaderControllerTests
     {
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Strict);
+        private readonly Mock<ISalesStockLedgerService> _mockStockLedger = new(MockBehavior.Loose);
+        private readonly Mock<IIPAddressService> _mockIpService = new(MockBehavior.Loose);
 
-        private RepackingMasterController CreateSut() => new(_mockMediator.Object);
+        private RepackingHeaderController CreateSut() =>
+            new(_mockMediator.Object, _mockStockLedger.Object, _mockIpService.Object);
 
         [Fact]
         public async Task GetAll_ReturnsOkResult()
         {
             _mockMediator
-                .Setup(m => m.Send(It.IsAny<GetAllRepackingMasterQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new ApiResponseDTO<List<RepackingMasterDto>>
+                .Setup(m => m.Send(It.IsAny<GetAllRepackingHeaderQuery>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ApiResponseDTO<List<RepackingHeaderDto>>
                 {
                     IsSuccess = true,
-                    Data = new List<RepackingMasterDto>(),
+                    Data = new List<RepackingHeaderDto>(),
                     TotalCount = 0,
                     PageNumber = 1,
                     PageSize = 10
                 });
 
-            var result = await CreateSut().GetAllRepackingMasterAsync(1, 10);
+            var result = await CreateSut().GetAllRepackingHeaderAsync(1, 10);
             result.Should().BeOfType<OkObjectResult>();
         }
 
@@ -38,19 +43,19 @@ namespace ProductionManagement.UnitTests.Controllers
         public async Task GetAll_CallsMediatorSend_Once()
         {
             _mockMediator
-                .Setup(m => m.Send(It.IsAny<GetAllRepackingMasterQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new ApiResponseDTO<List<RepackingMasterDto>>
+                .Setup(m => m.Send(It.IsAny<GetAllRepackingHeaderQuery>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ApiResponseDTO<List<RepackingHeaderDto>>
                 {
                     IsSuccess = true,
-                    Data = new List<RepackingMasterDto>(),
+                    Data = new List<RepackingHeaderDto>(),
                     TotalCount = 0,
                     PageNumber = 1,
                     PageSize = 10
                 });
 
-            await CreateSut().GetAllRepackingMasterAsync(1, 10);
+            await CreateSut().GetAllRepackingHeaderAsync(1, 10);
             _mockMediator.Verify(
-                m => m.Send(It.IsAny<GetAllRepackingMasterQuery>(), It.IsAny<CancellationToken>()),
+                m => m.Send(It.IsAny<GetAllRepackingHeaderQuery>(), It.IsAny<CancellationToken>()),
                 Times.Once);
         }
 
@@ -58,10 +63,10 @@ namespace ProductionManagement.UnitTests.Controllers
         public async Task GetById_ReturnsOkResult()
         {
             _mockMediator
-                .Setup(m => m.Send(It.IsAny<GetRepackingMasterByIdQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new RepackingMasterDto { Id = 1 });
+                .Setup(m => m.Send(It.IsAny<GetRepackingHeaderByIdQuery>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new RepackingHeaderDto { Id = 1 });
 
-            var result = await CreateSut().GetRepackingMasterByIdAsync(1);
+            var result = await CreateSut().GetRepackingHeaderByIdAsync(1);
             result.Should().BeOfType<OkObjectResult>();
         }
 
@@ -69,10 +74,10 @@ namespace ProductionManagement.UnitTests.Controllers
         public async Task AutoComplete_ReturnsOkResult()
         {
             _mockMediator
-                .Setup(m => m.Send(It.IsAny<GetRepackingMasterAutoCompleteQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new List<RepackingMasterLookupDto>());
+                .Setup(m => m.Send(It.IsAny<GetRepackingHeaderAutoCompleteQuery>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new List<RepackingHeaderLookupDto>());
 
-            var result = await CreateSut().GetRepackingMasterAutoCompleteAsync("test");
+            var result = await CreateSut().GetRepackingHeaderAutoCompleteAsync("test");
             result.Should().BeOfType<OkObjectResult>();
         }
 
@@ -80,10 +85,10 @@ namespace ProductionManagement.UnitTests.Controllers
         public async Task Create_ReturnsOkResult()
         {
             _mockMediator
-                .Setup(m => m.Send(It.IsAny<CreateRepackingMasterCommand>(), It.IsAny<CancellationToken>()))
+                .Setup(m => m.Send(It.IsAny<CreateRepackingHeaderCommand>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ApiResponseDTO<int> { IsSuccess = true, Message = "Created", Data = 1 });
 
-            var result = await CreateSut().CreateRepackingMaster(new CreateRepackingMasterCommand());
+            var result = await CreateSut().CreateRepackingHeader(new CreateRepackingHeaderCommand());
             result.Should().BeOfType<OkObjectResult>();
         }
 
@@ -91,10 +96,10 @@ namespace ProductionManagement.UnitTests.Controllers
         public async Task Update_ReturnsOkResult()
         {
             _mockMediator
-                .Setup(m => m.Send(It.IsAny<UpdateRepackingMasterCommand>(), It.IsAny<CancellationToken>()))
+                .Setup(m => m.Send(It.IsAny<UpdateRepackingHeaderCommand>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ApiResponseDTO<int> { IsSuccess = true, Message = "Updated", Data = 1 });
 
-            var result = await CreateSut().UpdateRepackingMaster(new UpdateRepackingMasterCommand());
+            var result = await CreateSut().UpdateRepackingHeader(new UpdateRepackingHeaderCommand());
             result.Should().BeOfType<OkObjectResult>();
         }
 
@@ -102,10 +107,10 @@ namespace ProductionManagement.UnitTests.Controllers
         public async Task Delete_ReturnsOkResult()
         {
             _mockMediator
-                .Setup(m => m.Send(It.IsAny<DeleteRepackingMasterCommand>(), It.IsAny<CancellationToken>()))
+                .Setup(m => m.Send(It.IsAny<DeleteRepackingHeaderCommand>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(true);
 
-            var result = await CreateSut().DeleteRepackingMaster(1);
+            var result = await CreateSut().DeleteRepackingHeader(1);
             result.Should().BeOfType<OkObjectResult>();
         }
 
@@ -113,12 +118,12 @@ namespace ProductionManagement.UnitTests.Controllers
         public async Task Delete_CallsMediatorSend_Once()
         {
             _mockMediator
-                .Setup(m => m.Send(It.IsAny<DeleteRepackingMasterCommand>(), It.IsAny<CancellationToken>()))
+                .Setup(m => m.Send(It.IsAny<DeleteRepackingHeaderCommand>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(true);
 
-            await CreateSut().DeleteRepackingMaster(1);
+            await CreateSut().DeleteRepackingHeader(1);
             _mockMediator.Verify(
-                m => m.Send(It.IsAny<DeleteRepackingMasterCommand>(), It.IsAny<CancellationToken>()),
+                m => m.Send(It.IsAny<DeleteRepackingHeaderCommand>(), It.IsAny<CancellationToken>()),
                 Times.Once);
         }
     }
