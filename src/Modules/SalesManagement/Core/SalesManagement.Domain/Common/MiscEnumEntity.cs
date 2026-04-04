@@ -133,6 +133,16 @@ namespace SalesManagement.Domain.Common
         public const string ReturnStatus = "ReturnStatus";
         public const string ReturnStatusPending = "Pending";
         public const string ReturnStatusReceived = "Received";
+        public const string ReturnStatusPartiallyReturned = "Partially Returned";
+        public const string ReturnStatusFullyReturned = "Fully Returned";
+
+        // Bag Status
+        public const string BagStatus = "BagStatus";
+        public const string BagStatusDefect = "Defect";
+        public const string BagStatusDamaged = "Damaged";
+
+        // Sales Return
+        public const string TransactionTypeSalesReturn = "Sales Return";
 
         // Closure Status
         public const string ClosureStatus = "ClosureStatus";
