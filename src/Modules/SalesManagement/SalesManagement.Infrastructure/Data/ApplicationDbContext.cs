@@ -75,6 +75,8 @@ namespace SalesManagement.Infrastructure.Data
         public DbSet<ComplaintDepartmentFeedback> ComplaintDepartmentFeedback { get; set; }
         public DbSet<ComplaintFeedbackAttachment> ComplaintFeedbackAttachment { get; set; }
         public DbSet<ComplaintAttachment> ComplaintAttachment { get; set; }
+        public DbSet<SalesReturnHeader> SalesReturnHeader { get; set; }
+        public DbSet<SalesReturnDetail> SalesReturnDetail { get; set; }
         public DbSet<ComplaintResolution> ComplaintResolution { get; set; }
 
         // ── Outbox (SQL-based for workflow transaction atomicity) ─────────
@@ -132,6 +134,8 @@ namespace SalesManagement.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new ComplaintDepartmentFeedbackConfiguration());
             modelBuilder.ApplyConfiguration(new ComplaintFeedbackAttachmentConfiguration());
             modelBuilder.ApplyConfiguration(new ComplaintAttachmentConfiguration());
+            modelBuilder.ApplyConfiguration(new SalesReturnHeaderConfiguration());
+            modelBuilder.ApplyConfiguration(new SalesReturnDetailConfiguration());
             modelBuilder.ApplyConfiguration(new ComplaintResolutionConfiguration());
             // ── Outbox (SQL-based for workflow) ─────────────────────────────
             modelBuilder.ApplyConfiguration(new OutboxMessageConfiguration());
