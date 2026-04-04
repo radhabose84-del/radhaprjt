@@ -84,6 +84,8 @@ using SalesManagement.Application.Common.Interfaces.IComplaintDepartmentFeedback
 using SalesManagement.Application.Common.Interfaces.IComplaintResolution;
 using SalesManagement.Application.Common.Interfaces.ISalesReturn;
 using SalesManagement.Infrastructure.Repositories.SalesReturn;
+using SalesManagement.Application.Common.Interfaces.IDiscountMaster;
+using SalesManagement.Infrastructure.Repositories.DiscountMaster;
 using SalesManagement.Infrastructure.Repositories.ComplaintDepartmentFeedback;
 using SalesManagement.Infrastructure.Repositories.ComplaintResolution;
 using Contracts.Interfaces.Lookups.Sales;
@@ -309,6 +311,10 @@ namespace SalesManagement.Infrastructure
             // ── Sales Return Repositories ──────────────────────────────────────
             services.AddScoped<ISalesReturnCommandRepository, SalesReturnCommandRepository>();
             services.AddScoped<ISalesReturnQueryRepository, SalesReturnQueryRepository>();
+
+            // ── Discount Master ────────────────────────────────────────────────
+            services.AddScoped<IDiscountMasterCommandRepository, DiscountMasterCommandRepository>();
+            services.AddScoped<IDiscountMasterQueryRepository, DiscountMasterQueryRepository>();
 
             // ── Stock Ledger Report Repository ───────────────────────────────────
             services.AddScoped<IStockLedgerReportRepository, StockLedgerReportRepository>();
