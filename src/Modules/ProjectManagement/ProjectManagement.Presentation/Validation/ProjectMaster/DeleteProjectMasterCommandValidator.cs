@@ -1,16 +1,16 @@
-using ProjectManagement.Application.Common.Interfaces.IProjectWorkBreakdownStructure;
-using ProjectManagement.Application.ProjectWorkBreakdownStructure.Command.SoftDeleteProjectWorkBreakdownStructureCommand;
+using ProjectManagement.Application.Common.Interfaces.IProjectMaster;
+using ProjectManagement.Application.ProjectMaster.Command.DeleteProjectMaster;
 using FluentValidation;
 using Shared.Validation.Common;
 
-namespace ProjectManagement.Presentation.Validation.ProjectWorkBreakdownStructure
+namespace ProjectManagement.Presentation.Validation.ProjectMaster
 {
-    public class DeleteProjectWorkBreakdownStructureCommandValidator : AbstractValidator<DeleteProjectWorkBreakdownStructureCommand>
+    public class DeleteProjectMasterCommandValidator : AbstractValidator<DeleteProjectMasterCommand>
     {
         private readonly List<ValidationRule> _validationRules;
-        private readonly IProjectWorkBreakdownStructureQueryRepository _queryRepository;
+        private readonly IProjectMasterQueryRepository _queryRepository;
 
-        public DeleteProjectWorkBreakdownStructureCommandValidator(IProjectWorkBreakdownStructureQueryRepository queryRepository)
+        public DeleteProjectMasterCommandValidator(IProjectMasterQueryRepository queryRepository)
         {
             _queryRepository = queryRepository;
             _validationRules = ValidationRuleLoader.LoadValidationRules();
@@ -26,13 +26,13 @@ namespace ProjectManagement.Presentation.Validation.ProjectWorkBreakdownStructur
                     case "NotEmpty":
                         RuleFor(x => x.Id)
                             .NotEmpty()
-                            .WithMessage($"{nameof(DeleteProjectWorkBreakdownStructureCommand.Id)} {rule.Error}");
+                            .WithMessage($"{nameof(DeleteProjectMasterCommand.Id)} {rule.Error}");
                         break;
 
                     case "NotFound":
                         RuleFor(x => x.Id)
                             .MustAsync(async (id, ct) => !await _queryRepository.NotFoundAsync(id))
-                            .WithMessage($"ProjectWorkBreakdownStructure {rule.Error}");
+                            .WithMessage($"ProjectMaster {rule.Error}");
                         break;
 
                     case "SoftDelete":

@@ -13,8 +13,8 @@ namespace ProjectManagement.Application.Common.Interfaces.IMiscTypeMaster
 
         Task<bool> NotFoundAsync(int Id);
 
-        Task<bool> SoftDeleteValidation(int Id); 
-        
-        
+        Task<bool> SoftDeleteValidationAsync(int id);
+
+        Task<bool> IsMiscTypeMasterLinkedAsync(int id);
     }
 }
