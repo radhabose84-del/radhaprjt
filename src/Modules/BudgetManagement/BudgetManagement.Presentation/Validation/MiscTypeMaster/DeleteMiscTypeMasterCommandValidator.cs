@@ -36,8 +36,8 @@ namespace BudgetManagement.Presentation.Validation.MiscTypeMaster
                         break;
                         case "NotFound":
                            RuleFor(x => x.Id )
-                           .MustAsync(async (Id, cancellation) => 
-                        await _miscTypeMasterQueryRepository.NotFoundAsync(Id))             
+                           .MustAsync(async (Id, cancellation) =>
+                        !await _miscTypeMasterQueryRepository.NotFoundAsync(Id))             
                            .WithName("MiscType Id")
                             .WithMessage($"{rule.Error}");
                             break; 

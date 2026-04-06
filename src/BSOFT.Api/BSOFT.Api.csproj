@@ -99,6 +99,10 @@
     <ProjectReference Include="..\Modules\ProductionManagement\ProductionManagement.Module\ProductionManagement.Module.csproj" />
     <ProjectReference Include="..\Modules\ProductionManagement\ProductionManagement.Infrastructure\ProductionManagement.Infrastructure.csproj" />
 
+    <!-- Add Logistics module -->
+    <ProjectReference Include="..\Modules\LogisticsManagement\LogisticsManagement.Module\LogisticsManagement.Module.csproj" />
+    <ProjectReference Include="..\Modules\LogisticsManagement\LogisticsManagement.Infrastructure\LogisticsManagement.Infrastructure.csproj" />
+
     <ProjectReference Include="..\Shared\Contracts\Contracts.csproj" />
     <ProjectReference Include="..\Shared\Shared.Infrastructure\Shared.Infrastructure.csproj" />
     <ProjectReference Include="..\Shared\Shared.Validation\Shared.Validation.csproj" />

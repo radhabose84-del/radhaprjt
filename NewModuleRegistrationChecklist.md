@@ -70,6 +70,7 @@ Copy these files from any existing module (e.g., `FinanceManagement`) and replac
 |---|---|
 | `ApplicationDbContext.cs` | `Data/ApplicationDbContext.cs` |
 | `MongoDbContext.cs` | `Data/MongoDbContext.cs` |
+| `Configurations/` | `Data/Configurations/` (empty — populated when entities are added) |
 | `OutboxMessage.cs` | `Persistence/OutboxMessage.cs` |
 | `DesignTimeDbContextFactory.cs` | `DesignTimeDbContextFactory.cs` |
 | `AuditLogMongoRepository.cs` | `Repositories/AuditLog/AuditLogMongoRepository.cs` |

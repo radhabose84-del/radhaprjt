@@ -384,6 +384,23 @@ namespace ProjectManagement.Infrastructure.Repositories.ProjectWorkBreakdownStru
 
                 return result.ToList();
             }
-            
+
+        public async Task<bool> NotFoundAsync(int id)
+        {
+            const string query = "SELECT COUNT(1) FROM [Project].[ProjectWorkBreakdownStructure] WHERE Id = @id AND IsDeleted = 0";
+            var count = await _dbConnection.ExecuteScalarAsync<int>(query, new { id });
+            return count == 0;
+        }
+
+        public async Task<bool> SoftDeleteValidationAsync(int id)
+        {
+            const string query = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1 FROM [Project].[ProjectWorkBreakdownStructure]
+                    WHERE ParentWorkBreakdownStructureId = @id AND IsDeleted = 0
+                ) THEN 1 ELSE 0 END;";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(query, new { id });
+        }
     }
 }
