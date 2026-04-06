@@ -1,26 +1,30 @@
 using FinanceManagement.Infrastructure.Data;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace FinanceManagement.Presentation.Validation.Common
 {
     public class MaxLengthProvider : IMaxLengthProvider
     {
-        private readonly ApplicationDbContext _dbContext;
+        private readonly IModel? _model;
 
         public MaxLengthProvider(ApplicationDbContext dbContext)
         {
-            _dbContext = dbContext;
+            _model = dbContext?.Model;
         }
 
         public int? GetMaxLength<TEntity>(string propertyName)
         {
-            var entityType = _dbContext.Model.FindEntityType(typeof(TEntity));
-            if (entityType == null) return null;
+            if (_model is null) return null;
+
+            var entityType = _model.FindEntityType(typeof(TEntity));
+            if (entityType is null) return null;
 
             var property = entityType.FindProperty(propertyName);
-            if (property == null) return null;
+            if (property is null) return null;
 
-            var columnType = property.GetColumnType();
+            var columnType = property.GetAnnotations()
+                .FirstOrDefault(a => a.Name is "Relational:ColumnType")?.Value?.ToString();
+
             if (string.IsNullOrWhiteSpace(columnType)) return null;
 
             var match = System.Text.RegularExpressions.Regex.Match(columnType, @"\((\d+)\)");
