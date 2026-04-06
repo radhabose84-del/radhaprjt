@@ -93,11 +93,6 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("decimal(9,6)")
                 .IsRequired(false);
 
-            builder.Property(t => t.FreightId)
-                .HasColumnName("FreightId")
-                .HasColumnType("int")
-                .IsRequired(false);
-
             builder.Property(b => b.IsActive)
                 .HasColumnName("IsActive")
                 .HasColumnType("bit")
@@ -135,15 +130,6 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             builder.HasIndex(t => t.CountryId)
                 .HasDatabaseName("IX_DispatchAddressMaster_CountryId");
 
-            builder.HasIndex(t => t.FreightId)
-                .HasDatabaseName("IX_DispatchAddressMaster_FreightId");
-
-            // Same-module FK to FreightMaster
-            builder.HasOne(t => t.FreightMaster)
-                .WithMany(f => f.DispatchAddressMasters)
-                .HasForeignKey(t => t.FreightId)
-                .IsRequired(false)
-                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

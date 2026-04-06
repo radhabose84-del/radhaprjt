@@ -42,7 +42,6 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAddressMaster
             existingEntity.GSTIN = entity.GSTIN;
             existingEntity.Latitude = entity.Latitude;
             existingEntity.Longitude = entity.Longitude;
-            existingEntity.FreightId = entity.FreightId;
             existingEntity.IsActive = entity.IsActive;
 
             _applicationDbContext.DispatchAddressMaster.Update(existingEntity);
