@@ -11,6 +11,8 @@ namespace SalesManagement.Application.SalesReturn.Dto
         public string? CustomerName { get; set; }
         public int WarehouseId { get; set; }
         public string? WarehouseName { get; set; }
+        public int? ResolutionTypeId { get; set; }
+        public string? ResolutionTypeName { get; set; }
         public string? StatusName { get; set; }
         public int DetailCount { get; set; }
     }

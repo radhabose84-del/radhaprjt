@@ -5,6 +5,7 @@ namespace SalesManagement.Application.Common.Interfaces.IComplaintResolution
     public interface IComplaintResolutionQueryRepository
     {
         Task<(List<ResolutionListDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm, string? statusFilter);
+        Task<ComplaintResolutionFormDataDto?> GetFormDataByComplaintIdAsync(int complaintHeaderId);
         Task<ComplaintResolutionDto?> GetByIdAsync(int id);
         Task<ComplaintResolutionDto?> GetByComplaintHeaderIdAsync(int complaintHeaderId);
         Task<bool> NotFoundAsync(int id);
