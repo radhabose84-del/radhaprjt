@@ -19,6 +19,10 @@ namespace SalesManagement.Application.DispatchAddressMaster.Dto
         public string? GSTIN { get; set; }
         public decimal? Latitude { get; set; }
         public decimal? Longitude { get; set; }
+        public int FreightId { get; set; }
+        public string? FreightModeName { get; set; }
+        public string? RateMethodName { get; set; }
+        public decimal? FreightRate { get; set; }
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }
         public int CreatedBy { get; set; }
