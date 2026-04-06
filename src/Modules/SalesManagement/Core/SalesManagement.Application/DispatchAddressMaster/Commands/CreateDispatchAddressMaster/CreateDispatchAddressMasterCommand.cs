@@ -18,6 +18,6 @@ namespace SalesManagement.Application.DispatchAddressMaster.Commands.CreateDispa
         public string? GSTIN { get; set; }
         public decimal? Latitude { get; set; }
         public decimal? Longitude { get; set; }
-        public int FreightId { get; set; }
+        public int? FreightId { get; set; }
     }
 }

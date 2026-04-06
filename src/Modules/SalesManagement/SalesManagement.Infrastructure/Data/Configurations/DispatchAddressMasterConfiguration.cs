@@ -96,8 +96,7 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             builder.Property(t => t.FreightId)
                 .HasColumnName("FreightId")
                 .HasColumnType("int")
-                .HasDefaultValue(0)
-                .IsRequired();
+                .IsRequired(false);
 
             builder.Property(b => b.IsActive)
                 .HasColumnName("IsActive")

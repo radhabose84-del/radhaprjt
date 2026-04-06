@@ -17,7 +17,7 @@ namespace SalesManagement.Domain.Entities
         public string? GSTIN { get; set; }
         public decimal? Latitude { get; set; }
         public decimal? Longitude { get; set; }
-        public int FreightId { get; set; }
+        public int? FreightId { get; set; }
 
         // Navigation properties (same-module FK to FreightMaster)
         public FreightMaster? FreightMaster { get; set; }

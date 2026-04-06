@@ -102,9 +102,9 @@ namespace SalesManagement.Presentation.Validation.DispatchAddressMaster
                             .When(x => x.CountryId > 0);
 
                         RuleFor(x => x.FreightId)
-                            .MustAsync(async (id, ct) => await _queryRepo.FreightMasterExistsAsync(id))
+                            .MustAsync(async (id, ct) => await _queryRepo.FreightMasterExistsAsync(id!.Value))
                             .WithMessage($"{nameof(UpdateDispatchAddressMasterCommand.FreightId)} {rule.Error}")
-                            .When(x => x.FreightId > 0);
+                            .When(x => x.FreightId.HasValue && x.FreightId > 0);
                         break;
 
                     case "AlreadyExists":
