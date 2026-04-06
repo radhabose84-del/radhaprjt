@@ -5,6 +5,7 @@ using SalesManagement.Application.ComplaintResolution.Commands.SubmitResolution;
 using SalesManagement.Application.ComplaintResolution.Commands.UpdateResolution;
 using SalesManagement.Application.ComplaintResolution.Queries.GetAllResolution;
 using SalesManagement.Application.ComplaintResolution.Queries.GetResolutionByComplaintId;
+using SalesManagement.Application.ComplaintResolution.Queries.GetResolutionFormData;
 
 namespace SalesManagement.Presentation.Controllers
 {
@@ -35,6 +36,22 @@ namespace SalesManagement.Presentation.Controllers
                 TotalCount = result.TotalCount,
                 PageNumber = result.PageNumber,
                 PageSize = result.PageSize
+            });
+        }
+
+        [HttpGet("form-data/{complaintHeaderId}")]
+        public async Task<IActionResult> GetFormDataAsync(int complaintHeaderId)
+        {
+            var result = await Mediator.Send(new GetResolutionFormDataQuery
+            {
+                ComplaintHeaderId = complaintHeaderId
+            });
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                isSuccess = result.IsSuccess,
+                message = result.Message,
+                data = result.Data
             });
         }
 
