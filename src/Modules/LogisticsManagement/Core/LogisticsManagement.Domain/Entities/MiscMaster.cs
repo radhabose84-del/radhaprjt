@@ -10,5 +10,9 @@ namespace LogisticsManagement.Domain.Entities
         public int SortOrder { get; set; }
 
         public MiscTypeMaster? MiscTypeMaster { get; set; }
+
+        // Reverse navigation (FreightMaster)
+        public ICollection<FreightMaster>? FreightMastersAsFreightMode { get; set; }
+        public ICollection<FreightMaster>? FreightMastersAsRateMethod { get; set; }
     }
 }

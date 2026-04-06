@@ -70,8 +70,5 @@ namespace SalesManagement.Domain.Entities
         public ICollection<DiscountMaster>? DiscountMastersAsValueType { get; set; }
         public ICollection<DiscountMaster>? DiscountMastersAsSlabType { get; set; }
 
-        // Reverse navigation (FreightMaster)
-        public ICollection<FreightMaster>? FreightMastersAsFreightMode { get; set; }
-        public ICollection<FreightMaster>? FreightMastersAsRateMethod { get; set; }
     }
 }
