@@ -132,6 +132,7 @@ namespace MaintenanceManagement.IntegrationTests.Repositories.MachineMaster
 
         private async Task ClearTablesAsync(MaintenanceManagement.Infrastructure.Data.ApplicationDbContext ctx)
         {
+            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Maintenance].[MachineSpecification]");
             await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Maintenance].[MachineMaster]");
             await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Maintenance].[MachineGroup]");
             await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Maintenance].[ShiftMasterDetails]");
@@ -238,6 +239,7 @@ namespace MaintenanceManagement.IntegrationTests.Repositories.MachineMaster
                 LineNo = lineNoId,
                 AssetId = 0,
                 IsProductionMachine = false,
+                InstallationDate = DateTimeOffset.UtcNow,
                 IsActive = BaseEntity.Status.Active
             });
 
@@ -272,6 +274,7 @@ namespace MaintenanceManagement.IntegrationTests.Repositories.MachineMaster
                 LineNo = lineNoId,
                 AssetId = 0,
                 IsProductionMachine = false,
+                InstallationDate = DateTimeOffset.UtcNow,
                 IsActive = BaseEntity.Status.Active
             });
             ctx.ChangeTracker.Clear();

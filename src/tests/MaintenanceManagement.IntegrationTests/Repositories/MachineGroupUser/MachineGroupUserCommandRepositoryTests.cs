@@ -51,6 +51,8 @@ namespace MaintenanceManagement.IntegrationTests.Repositories.MachineGroupUser
         private async Task ClearTablesAsync(MaintenanceManagement.Infrastructure.Data.ApplicationDbContext ctx)
         {
             await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Maintenance].[MachineGroupUser]");
+            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Maintenance].[MachineSpecification]");
+            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Maintenance].[MachineMaster]");
             await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Maintenance].[MachineGroup]");
         }
 

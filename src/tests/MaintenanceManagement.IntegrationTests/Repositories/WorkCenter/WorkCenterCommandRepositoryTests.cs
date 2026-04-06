@@ -32,8 +32,12 @@ namespace MaintenanceManagement.IntegrationTests.Repositories.WorkCenter
                 IsDeleted = BaseEntity.IsDelete.NotDeleted
             };
 
-        private async Task ClearTableAsync(MaintenanceManagement.Infrastructure.Data.ApplicationDbContext ctx) =>
+        private async Task ClearTableAsync(MaintenanceManagement.Infrastructure.Data.ApplicationDbContext ctx)
+        {
+            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Maintenance].[MachineSpecification]");
+            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Maintenance].[MachineMaster]");
             await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Maintenance].[WorkCenter]");
+        }
 
         // --- CREATE ---
 
