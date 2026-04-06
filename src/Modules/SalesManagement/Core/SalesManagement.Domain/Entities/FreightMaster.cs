@@ -12,7 +12,5 @@ namespace SalesManagement.Domain.Entities
         public MiscMaster? FreightMode { get; set; }
         public MiscMaster? RateMethod { get; set; }
 
-        // Reverse navigation (DispatchAddressMaster)
-        public ICollection<DispatchAddressMaster>? DispatchAddressMasters { get; set; }
     }
 }
