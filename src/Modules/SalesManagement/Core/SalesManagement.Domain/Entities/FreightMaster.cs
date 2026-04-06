@@ -11,5 +11,6 @@ namespace SalesManagement.Domain.Entities
         // Navigation properties (same-module FK to MiscMaster)
         public MiscMaster? FreightMode { get; set; }
         public MiscMaster? RateMethod { get; set; }
+
     }
 }

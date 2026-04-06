@@ -84,6 +84,8 @@ using SalesManagement.Application.Common.Interfaces.IComplaintDepartmentFeedback
 using SalesManagement.Application.Common.Interfaces.IComplaintResolution;
 using SalesManagement.Application.Common.Interfaces.ISalesReturn;
 using SalesManagement.Infrastructure.Repositories.SalesReturn;
+using SalesManagement.Application.Common.Interfaces.IAgentPortal;
+using SalesManagement.Infrastructure.Repositories.AgentPortal;
 using SalesManagement.Application.Common.Interfaces.IDiscountMaster;
 using SalesManagement.Infrastructure.Repositories.DiscountMaster;
 using SalesManagement.Application.Common.Interfaces.IFreightMaster;
@@ -313,6 +315,9 @@ namespace SalesManagement.Infrastructure
             // ── Sales Return Repositories ──────────────────────────────────────
             services.AddScoped<ISalesReturnCommandRepository, SalesReturnCommandRepository>();
             services.AddScoped<ISalesReturnQueryRepository, SalesReturnQueryRepository>();
+
+            // ── Agent Portal Repository ────────────────────────────────────────
+            services.AddScoped<IAgentPortalQueryRepository, AgentPortalQueryRepository>();
 
             // ── Discount Master ────────────────────────────────────────────────
             services.AddScoped<IDiscountMasterCommandRepository, DiscountMasterCommandRepository>();

@@ -158,5 +158,6 @@ namespace SalesManagement.Infrastructure.Repositories.FreightMaster
                 _ => false
             };
         }
+
     }
 }

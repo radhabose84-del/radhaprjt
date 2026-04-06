@@ -121,10 +121,10 @@ namespace InventoryManagement.Infrastructure.Repositories.HSNMaster
             h.[Description]      AS HSNDescription,
             m.[Code]             AS TypeCode,     -- 'HSN' or 'SAC'
             m.Id                 AS TypeId
-        FROM Inventory.Inventory.HSNMaster h
-        JOIN Inventory.Inventory.MiscMaster m
+        FROM Inventory.HSNMaster h
+        JOIN Inventory.MiscMaster m
         ON m.Id = h.TypeId
-        JOIN Inventory.Inventory.MiscTypeMaster mt
+        JOIN Inventory.MiscTypeMaster mt
         ON mt.Id = m.MiscTypeId
         AND mt.MiscTypeCode = 'HSNType'
         WHERE
