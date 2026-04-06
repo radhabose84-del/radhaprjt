@@ -55,10 +55,14 @@ namespace SalesManagement.Infrastructure.Repositories.SalesReturn
                     ch.ComplaintNumber,
                     h.CustomerId,
                     h.WarehouseId,
+                    cr.ResolutionTypeId,
+                    rt.Description AS ResolutionTypeName,
                     ms.Description AS StatusName,
                     (SELECT COUNT(*) FROM Sales.SalesReturnDetail d WHERE d.SalesReturnHeaderId = h.Id AND d.IsDeleted = 0) AS DetailCount
                 FROM Sales.SalesReturnHeader h
                 INNER JOIN Sales.ComplaintHeader ch ON h.ComplaintHeaderId = ch.Id AND ch.IsDeleted = 0
+                LEFT JOIN Sales.ComplaintResolution cr ON cr.ComplaintHeaderId = ch.Id AND cr.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster rt ON cr.ResolutionTypeId = rt.Id AND rt.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster ms ON h.StatusId = ms.Id AND ms.IsDeleted = 0
                 WHERE h.IsDeleted = 0 {searchFilter}
                 ORDER BY h.Id DESC
@@ -131,13 +135,13 @@ namespace SalesManagement.Infrastructure.Repositories.SalesReturn
                 header.CustomerName = party?.PartyName;
             }
 
-            // Get complaint detail items with invoice info
+            // Get complaint detail items with invoice info and actual InvoiceDetail.Id
             const string detailSql = @"
                 SELECT
                     cd.InvoiceHeaderId,
                     ih.InvoiceNo,
                     ih.InvoiceDate,
-                    cd.Id AS InvoiceDetailId,
+                    id.Id AS InvoiceDetailId,
                     cd.ItemId,
                     cd.LotId,
                     cd.NumberOfPacks,
@@ -145,6 +149,8 @@ namespace SalesManagement.Infrastructure.Repositories.SalesReturn
                     cd.InvoiceAmount
                 FROM Sales.ComplaintDetail cd
                 INNER JOIN Sales.InvoiceHeader ih ON cd.InvoiceHeaderId = ih.Id AND ih.IsDeleted = 0
+                LEFT JOIN Sales.InvoiceDetail id ON id.InvoiceHeaderId = ih.Id AND id.ItemId = cd.ItemId
+                    AND (id.LotId = cd.LotId OR (id.LotId IS NULL AND cd.LotId IS NULL))
                 WHERE cd.ComplaintHeaderId = @ComplaintHeaderId AND cd.IsDeleted = 0;";
 
             var details = (await _dbConnection.QueryAsync<ComplaintInvoiceItemDto>(detailSql, new { ComplaintHeaderId = complaintHeaderId })).ToList();
