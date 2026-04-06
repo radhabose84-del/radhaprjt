@@ -35,9 +35,5 @@ namespace ProductionManagement.Domain.Entities
 
         public string? Remarks { get; set; }
 
-        // Same-module navigations
-        public LotMaster? LotMaster { get; set; }
-        public PackType? PackType { get; set; }
-        public MiscMaster? QualityStatusMisc { get; set; }
     }
 }

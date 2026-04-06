@@ -73,16 +73,36 @@ namespace ProductionManagement.Infrastructure.Repositories.RepackingHeader
                     // Auto-calculate StartPackNo/EndPackNo for each detail
                     if (isRepacking)
                     {
-                        // Repacking: assign sequential new pack numbers starting from header.StartPackNo
-                        int nextPackNo = entity.StartPackNo;
+                        // Repacking: distribute new pack range (header.StartPackNo–EndPackNo) across details.
+                        // For a single detail the entire header range is assigned directly.
+                        // For multiple details packs are distributed proportionally by old bag count,
+                        // with the last detail anchored to header.EndPackNo to absorb any rounding.
+                        int totalNewBags = entity.EndPackNo - entity.StartPackNo + 1;
+                        int totalOldBags = entity.RepackingDetails?.Sum(d =>
+                            sourceInfoMap.GetValueOrDefault(d.OldStartPackNo)?.OldTotalBags ?? 0) ?? 0;
+
                         if (entity.RepackingDetails != null)
                         {
-                            foreach (var detail in entity.RepackingDetails)
+                            int nextPackNo = entity.StartPackNo;
+                            var detailList = entity.RepackingDetails.ToList();
+                            for (int idx = 0; idx < detailList.Count; idx++)
                             {
-                                var oldTotalBags = sourceInfoMap.GetValueOrDefault(detail.OldStartPackNo)?.OldTotalBags ?? 0;
+                                var detail = detailList[idx];
+                                bool isLast = idx == detailList.Count - 1;
                                 detail.StartPackNo = nextPackNo;
-                                detail.EndPackNo = nextPackNo + oldTotalBags - 1;
-                                nextPackNo = detail.EndPackNo + 1;
+                                if (isLast)
+                                {
+                                    detail.EndPackNo = entity.EndPackNo;
+                                }
+                                else
+                                {
+                                    var oldBags = sourceInfoMap.GetValueOrDefault(detail.OldStartPackNo)?.OldTotalBags ?? 0;
+                                    int newBags = totalOldBags > 0
+                                        ? (int)Math.Round((double)oldBags / totalOldBags * totalNewBags)
+                                        : 0;
+                                    detail.EndPackNo = nextPackNo + newBags - 1;
+                                    nextPackNo = detail.EndPackNo + 1;
+                                }
                             }
                         }
                     }
@@ -284,15 +304,32 @@ namespace ProductionManagement.Infrastructure.Repositories.RepackingHeader
                     // Auto-calculate StartPackNo/EndPackNo for each detail
                     if (isRepacking)
                     {
-                        int nextPackNoUpd = existingEntity.StartPackNo;
+                        int totalNewBagsUpd = existingEntity.EndPackNo - existingEntity.StartPackNo + 1;
+                        int totalOldBagsUpd = entity.RepackingDetails?.Sum(d =>
+                            sourceInfoMapUpd.GetValueOrDefault(d.OldStartPackNo)?.OldTotalBags ?? 0) ?? 0;
+
                         if (entity.RepackingDetails != null)
                         {
-                            foreach (var detail in entity.RepackingDetails)
+                            int nextPackNoUpd = existingEntity.StartPackNo;
+                            var detailListUpd = entity.RepackingDetails.ToList();
+                            for (int idx = 0; idx < detailListUpd.Count; idx++)
                             {
-                                var oldTotalBags = sourceInfoMapUpd.GetValueOrDefault(detail.OldStartPackNo)?.OldTotalBags ?? 0;
+                                var detail = detailListUpd[idx];
+                                bool isLast = idx == detailListUpd.Count - 1;
                                 detail.StartPackNo = nextPackNoUpd;
-                                detail.EndPackNo = nextPackNoUpd + oldTotalBags - 1;
-                                nextPackNoUpd = detail.EndPackNo + 1;
+                                if (isLast)
+                                {
+                                    detail.EndPackNo = existingEntity.EndPackNo;
+                                }
+                                else
+                                {
+                                    var oldBags = sourceInfoMapUpd.GetValueOrDefault(detail.OldStartPackNo)?.OldTotalBags ?? 0;
+                                    int newBags = totalOldBagsUpd > 0
+                                        ? (int)Math.Round((double)oldBags / totalOldBagsUpd * totalNewBagsUpd)
+                                        : 0;
+                                    detail.EndPackNo = nextPackNoUpd + newBags - 1;
+                                    nextPackNoUpd = detail.EndPackNo + 1;
+                                }
                             }
                         }
                     }

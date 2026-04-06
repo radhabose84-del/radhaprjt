@@ -85,37 +85,5 @@ namespace ProductionManagement.UnitTests.Domain
             entity.Remarks.Should().BeNull();
         }
 
-        [Fact]
-        public void ProductionPackDetail_NavigationProperties_ShouldAcceptNull()
-        {
-            var entity = new ProductionPackDetail
-            {
-                LotMaster = null,
-                PackType = null,
-                QualityStatusMisc = null
-            };
-            entity.LotMaster.Should().BeNull();
-            entity.PackType.Should().BeNull();
-            entity.QualityStatusMisc.Should().BeNull();
-        }
-
-        [Fact]
-        public void ProductionPackDetail_NavigationProperties_ShouldBeAssignable()
-        {
-            var lot = new LotMaster { Id = 5, LotCode = "LOT001" };
-            var packType = new PackType { Id = 3, PackTypeCode = "PT001" };
-            var qualityStatus = new MiscMaster { Id = 1, Description = "A Grade" };
-
-            var entity = new ProductionPackDetail
-            {
-                LotMaster = lot,
-                PackType = packType,
-                QualityStatusMisc = qualityStatus
-            };
-
-            entity.LotMaster.Should().BeSameAs(lot);
-            entity.PackType.Should().BeSameAs(packType);
-            entity.QualityStatusMisc.Should().BeSameAs(qualityStatus);
-        }
     }
 }

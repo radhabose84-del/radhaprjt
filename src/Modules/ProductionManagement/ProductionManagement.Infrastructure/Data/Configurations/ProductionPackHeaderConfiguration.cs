@@ -52,11 +52,6 @@ namespace ProductionManagement.Infrastructure.Data.Configurations
             builder.Property(t => t.ModifiedByName).HasColumnName("ModifiedByName").HasColumnType("varchar(100)");
             builder.Property(t => t.ModifiedIP).HasColumnName("ModifiedIP").HasColumnType("varchar(50)");
 
-            // Same-module FK relationships
-            builder.HasOne(t => t.LotMaster).WithMany().HasForeignKey(t => t.LotId).OnDelete(DeleteBehavior.Restrict);
-            builder.HasOne(t => t.PackType).WithMany().HasForeignKey(t => t.PackTypeId).IsRequired(false).OnDelete(DeleteBehavior.Restrict);
-            builder.HasOne(t => t.QualityStatusMisc).WithMany().HasForeignKey(t => t.QualityStatusId).OnDelete(DeleteBehavior.Restrict);
-
             builder.HasIndex(t => new { t.PackNo, t.ProductionYear });
             builder.HasIndex(t => t.LotId);
             builder.HasIndex(t => t.ItemId);
