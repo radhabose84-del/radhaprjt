@@ -74,7 +74,7 @@ namespace UserManagement.IntegrationTests.Repositories.Department
             if (existing != null)
                 return existing.Id;
 
-            var group = new DepartmentGroup
+            var group = new UserManagement.Domain.Entities.DepartmentGroup
             {
                 DepartmentGroupCode = "QRYGRP",
                 DepartmentGroupName = "Query Test Group",

@@ -165,11 +165,34 @@ namespace ProjectManagement.Infrastructure.Repositories.MiscMaster
 
             var p = new { MiscTypeCode = miscTypeCode, MiscTypeName = miscTypeName };
             return await _dbConnection.QueryFirstOrDefaultAsync<ProjectManagement.Domain.Entities.MiscMaster>(sql, p);
-        } 
-      
+        }
 
+        public async Task<bool> SoftDeleteValidationAsync(int id)
+        {
+            const string query = @"
+                SELECT CASE WHEN
+                    EXISTS (SELECT 1 FROM [Project].[ProjectMaster] WHERE ProjectTypeId = @id AND IsDeleted = 0)
+                    OR
+                    EXISTS (SELECT 1 FROM [Project].[ProjectMaster] WHERE ProjectCategoryId = @id AND IsDeleted = 0)
+                    OR
+                    EXISTS (SELECT 1 FROM [Project].[ProjectMaster] WHERE StatusId = @id AND IsDeleted = 0)
+                THEN 1 ELSE 0 END;";
 
+            return await _dbConnection.ExecuteScalarAsync<bool>(query, new { id });
+        }
 
-        
+        public async Task<bool> IsMiscMasterLinkedAsync(int id)
+        {
+            const string query = @"
+                SELECT CASE WHEN
+                    EXISTS (SELECT 1 FROM [Project].[ProjectMaster] WHERE ProjectTypeId = @id AND IsDeleted = 0 AND IsActive = 1)
+                    OR
+                    EXISTS (SELECT 1 FROM [Project].[ProjectMaster] WHERE ProjectCategoryId = @id AND IsDeleted = 0 AND IsActive = 1)
+                    OR
+                    EXISTS (SELECT 1 FROM [Project].[ProjectMaster] WHERE StatusId = @id AND IsDeleted = 0 AND IsActive = 1)
+                THEN 1 ELSE 0 END;";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(query, new { id });
+        }
     }
 }

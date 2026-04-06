@@ -43,12 +43,6 @@ namespace PartyManagement.Application.PartyMaster.Command.CreatePartyMaster
         public int UnitId { get; set; }
         public decimal? InsuranceLimit { get; set; }
         public byte IsPortalAccessEnabled { get; set; }
-        public int? TransportModeId { get; set; }
-        public int? VehicleTypeId { get; set; }
-        public int? DefaultFreightTypeId { get; set; }
-        public decimal? DefaultFreightRate { get; set; }
-        public string? LicenseNo { get; set; }
-        public DateTimeOffset? LicenseExpiryDate { get; set; }
         public string? FreightExpensesGl { get; set; }
 
         public List<PartyUnitCompanyDto>? PartyUnitCompanies { get; set; } 
@@ -59,6 +53,7 @@ namespace PartyManagement.Application.PartyMaster.Command.CreatePartyMaster
         public List<PartyDocumentDto>? PartyDocuments { get; set; }
         public List<SalesTypeDto>? SalesTypes { get; set; }
         public List<AgentConfigDto>? AgentConfigs { get; set; }
+        public List<TransportDetailDto>? TransportDetails { get; set; }
 
         public class PartyUnitCompanyDto
         {
@@ -145,6 +140,18 @@ namespace PartyManagement.Application.PartyMaster.Command.CreatePartyMaster
             public decimal? TargetAmount { get; set; }
             public string? TargetPeriod { get; set; }
             public byte Status { get; set; }
+        }
+
+        public class TransportDetailDto
+        {
+            public int? TransportModeId { get; set; }
+            public int? VehicleTypeId { get; set; }
+            public int? DefaultFreightTypeId { get; set; }
+            public decimal? DefaultFreightRate { get; set; }
+            public string? LicenseNo { get; set; }
+            public DateTimeOffset? LicenseExpiryDate { get; set; }
+            public string? VehicleNo { get; set; }
+            public byte Status { get; set; } = 1;
         }
 
     }

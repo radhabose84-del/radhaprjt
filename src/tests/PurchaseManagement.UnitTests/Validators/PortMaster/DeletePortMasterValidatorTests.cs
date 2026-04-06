@@ -1,4 +1,5 @@
 using FluentValidation.TestHelper;
+using PurchaseManagement.Application.Common.Interfaces.IPortMaster;
 using PurchaseManagement.Presentation.Validation;
 using PurchaseManagement.UnitTests.TestData;
 
@@ -6,11 +7,25 @@ namespace PurchaseManagement.UnitTests.Validators.PortMaster
 {
     public sealed class DeletePortMasterValidatorTests
     {
-        private static DeletePortMasterValidator CreateValidator() => new();
+        private readonly Mock<IPortMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
+
+        private DeletePortMasterValidator CreateValidator() => new(_mockQueryRepo.Object);
+
+        private void SetupValid(int id = 1)
+        {
+            _mockQueryRepo
+                .Setup(r => r.NotFoundAsync(id, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(false);
+
+            _mockQueryRepo
+                .Setup(r => r.SoftDeleteValidationAsync(id))
+                .ReturnsAsync(false);
+        }
 
         [Fact]
         public async Task Validate_ValidId_PassesValidation()
         {
+            SetupValid(1);
             var command = PortMasterBuilders.ValidDeleteCommand(1);
 
             var result = await CreateValidator().TestValidateAsync(command);

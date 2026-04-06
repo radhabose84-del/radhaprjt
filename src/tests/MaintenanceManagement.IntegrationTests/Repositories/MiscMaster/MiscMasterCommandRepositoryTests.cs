@@ -47,6 +47,8 @@ namespace MaintenanceManagement.IntegrationTests.Repositories.MiscMaster
 
         private async Task ClearTablesAsync(MaintenanceManagement.Infrastructure.Data.ApplicationDbContext ctx)
         {
+            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Maintenance].[MachineSpecification]");
+            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Maintenance].[MachineMaster]");
             await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Maintenance].[MiscMaster]");
             await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Maintenance].[MiscTypeMaster]");
         }

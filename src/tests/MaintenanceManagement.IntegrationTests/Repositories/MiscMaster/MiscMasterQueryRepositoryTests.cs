@@ -55,6 +55,8 @@ namespace MaintenanceManagement.IntegrationTests.Repositories.MiscMaster
         {
             await using var conn = new SqlConnection(_fixture.ConnectionString);
             await conn.OpenAsync();
+            await conn.ExecuteAsync("DELETE FROM [Maintenance].[MachineSpecification]");
+            await conn.ExecuteAsync("DELETE FROM [Maintenance].[MachineMaster]");
             await conn.ExecuteAsync("DELETE FROM [Maintenance].[MiscMaster]");
             await conn.ExecuteAsync("DELETE FROM [Maintenance].[MiscTypeMaster]");
         }
