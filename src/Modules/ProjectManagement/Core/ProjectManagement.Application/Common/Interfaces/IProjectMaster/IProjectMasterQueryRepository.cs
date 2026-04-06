@@ -32,5 +32,8 @@ namespace ProjectManagement.Application.Common.Interfaces.IProjectMaster
             int pendingStatusId,
             CancellationToken ct = default);
 
+        Task<bool> NotFoundAsync(int id);
+
+        Task<bool> SoftDeleteValidationAsync(int id);
     }
 }

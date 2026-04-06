@@ -31,9 +31,9 @@ namespace ProjectManagement.Presentation.Validation.MiscTypeMaster
                             .WithMessage($"{nameof(DeleteMiscTypeMasterCommand.Id)} {rule.Error}");
                         break;
                     case "SoftDelete":
-                         RuleFor(x => x.Id)
-                      .MustAsync(async (Id, cancellation) => !await _miscTypeMasterQueryRepository.SoftDeleteValidation(Id))
-                        .WithMessage($"{rule.Error}");
+                        RuleFor(x => x.Id)
+                            .MustAsync(async (id, ct) => !await _miscTypeMasterQueryRepository.SoftDeleteValidationAsync(id))
+                            .WithMessage("This master is linked with other records. You cannot delete this record.");
                         break;
                         case "NotFound":
                            RuleFor(x => x.Id )
