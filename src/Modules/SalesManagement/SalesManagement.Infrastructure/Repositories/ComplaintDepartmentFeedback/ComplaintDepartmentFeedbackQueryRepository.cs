@@ -31,11 +31,15 @@ namespace SalesManagement.Infrastructure.Repositories.ComplaintDepartmentFeedbac
             _lotLookup = lotLookup;
         }
 
-        public async Task<(List<FeedbackListDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm, string? statusFilter)
+        public async Task<(List<FeedbackListDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm, string? statusFilter, int? responsiblePersonId = null)
         {
             var searchFilter = string.IsNullOrWhiteSpace(searchTerm)
                 ? string.Empty
                 : @" AND (ch.ComplaintNumber LIKE @SearchTerm OR f.CorrectiveAction LIKE @SearchTerm OR f.RootCauseText LIKE @SearchTerm)";
+
+            var personFilter = responsiblePersonId.HasValue
+                ? " AND a.ResponsiblePersonId = @ResponsiblePersonId"
+                : string.Empty;
 
             var statusCondition = string.Empty;
             if (!string.IsNullOrWhiteSpace(statusFilter))
@@ -53,7 +57,7 @@ namespace SalesManagement.Infrastructure.Repositories.ComplaintDepartmentFeedbac
                 INNER JOIN Sales.ComplaintHeader ch ON r.ComplaintHeaderId = ch.Id AND ch.IsDeleted = 0
                 LEFT JOIN Sales.ComplaintDepartmentFeedback f ON f.AssignmentId = a.Id AND f.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster fs ON f.FeedbackStatusId = fs.Id AND fs.IsDeleted = 0
-                WHERE a.IsDeleted = 0 {searchFilter} {statusCondition};";
+                WHERE a.IsDeleted = 0 {searchFilter} {statusCondition} {personFilter};";
 
             var dataSql = $@"
                 SELECT
@@ -80,7 +84,7 @@ namespace SalesManagement.Infrastructure.Repositories.ComplaintDepartmentFeedbac
                 LEFT JOIN Sales.MiscMaster role ON a.RoleId = role.Id AND role.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster fs ON f.FeedbackStatusId = fs.Id AND fs.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster sev ON r.SeverityId = sev.Id AND sev.IsDeleted = 0
-                WHERE a.IsDeleted = 0 {searchFilter} {statusCondition}
+                WHERE a.IsDeleted = 0 {searchFilter} {statusCondition} {personFilter}
                 ORDER BY a.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;";
 
@@ -88,6 +92,7 @@ namespace SalesManagement.Infrastructure.Repositories.ComplaintDepartmentFeedbac
             {
                 SearchTerm = $"%{searchTerm}%",
                 StatusFilter = statusFilter,
+                ResponsiblePersonId = responsiblePersonId,
                 Offset = (pageNumber - 1) * pageSize,
                 PageSize = pageSize
             };

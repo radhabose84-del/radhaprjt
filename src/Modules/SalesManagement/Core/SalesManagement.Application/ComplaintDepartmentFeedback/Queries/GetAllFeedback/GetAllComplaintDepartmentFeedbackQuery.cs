@@ -10,5 +10,6 @@ namespace SalesManagement.Application.ComplaintDepartmentFeedback.Queries.GetAll
         public int PageSize { get; set; }
         public string? SearchTerm { get; set; }
         public string? StatusFilter { get; set; }
+        public bool MyPendingOnly { get; set; }
     }
 }

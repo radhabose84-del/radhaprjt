@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SalesManagement.Application.ComplaintResolution.Commands.SubmitResolution;
 using SalesManagement.Application.ComplaintResolution.Commands.UpdateResolution;
+using SalesManagement.Application.ComplaintResolution.Queries.GetAllResolution;
 using SalesManagement.Application.ComplaintResolution.Queries.GetResolutionByComplaintId;
 
 namespace SalesManagement.Presentation.Controllers
@@ -11,6 +12,31 @@ namespace SalesManagement.Presentation.Controllers
     public class ComplaintResolutionController : ApiControllerBase
     {
         public ComplaintResolutionController(IMediator mediator) : base(mediator) { }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAllAsync(
+            [FromQuery] int PageNumber,
+            [FromQuery] int PageSize,
+            [FromQuery] string? SearchTerm = null,
+            [FromQuery] string? StatusFilter = null)
+        {
+            var result = await Mediator.Send(new GetAllResolutionQuery
+            {
+                PageNumber = PageNumber,
+                PageSize = PageSize,
+                SearchTerm = SearchTerm,
+                StatusFilter = StatusFilter
+            });
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result.Data,
+                TotalCount = result.TotalCount,
+                PageNumber = result.PageNumber,
+                PageSize = result.PageSize
+            });
+        }
 
         [HttpGet("by-complaint/{complaintHeaderId}")]
         public async Task<IActionResult> GetByComplaintIdAsync(int complaintHeaderId)
