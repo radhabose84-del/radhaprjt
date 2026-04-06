@@ -266,11 +266,11 @@ ORDER BY p.CreatedDate DESC, p.Id DESC, ta.Id ASC;";
         {
             const string sql = @"
                 SELECT TOP 1 1
-                FROM Purchase.Purchase.PurchaseOrder po WITH (NOLOCK)
+                FROM Purchase.PurchaseOrder po WITH (NOLOCK)
                 WHERE po.TnCTemplateId = @Id
                 UNION ALL
                 SELECT TOP 1 1
-                FROM Sales.Sales.SalesOrder so WITH (NOLOCK)
+                FROM Sales.SalesOrder so WITH (NOLOCK)
                 WHERE so.TnCTemplateId = @Id;";
 
             var used = await _dbConnection.ExecuteScalarAsync<int?>(sql, new { Id = templateId });
@@ -294,8 +294,8 @@ ORDER BY p.CreatedDate DESC, p.Id DESC, ta.Id ASC;";
                 t.Id                       AS Id,
                 t.TemplateName             AS TemplateName,
                 t.TemplateCode             AS Code
-            FROM   Purchase.Purchase.TnCTemplateMaster t
-                LEFT JOIN Purchase.Purchase.TnCTemplateApplicability a
+            FROM   Purchase.TnCTemplateMaster t
+                LEFT JOIN Purchase.TnCTemplateApplicability a
                         ON a.TnCTemplateMasterId = t.Id
                         AND a.IsDeleted = 0
             WHERE  t.IsDeleted = 0
