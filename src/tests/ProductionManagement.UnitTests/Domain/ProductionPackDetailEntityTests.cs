@@ -37,7 +37,6 @@ namespace ProductionManagement.UnitTests.Domain
                 NetWeightPerPack = 50.0m,
                 StartPackNo = 1,
                 EndPackNo = 10,
-                NoOfBags = 10,
                 TotalBags = 10,
                 TotalNetWeight = 500.0m,
                 ProductionKgs = 490.0m,
@@ -55,7 +54,6 @@ namespace ProductionManagement.UnitTests.Domain
             entity.NetWeightPerPack.Should().Be(50.0m);
             entity.StartPackNo.Should().Be(1);
             entity.EndPackNo.Should().Be(10);
-            entity.NoOfBags.Should().Be(10);
             entity.TotalBags.Should().Be(10);
             entity.TotalNetWeight.Should().Be(500.0m);
             entity.ProductionKgs.Should().Be(490.0m);

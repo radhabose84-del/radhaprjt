@@ -25,7 +25,6 @@ namespace ProductionManagement.UnitTests.Validators.Production
             BinId = 1,
             QualityStatusId = 1,
             NetWeightPerPack = 10m,
-            NoOfBags = 5,
             TotalBags = 5,
             TotalNetWeight = 50m,
             ProductionKgs = 48m,

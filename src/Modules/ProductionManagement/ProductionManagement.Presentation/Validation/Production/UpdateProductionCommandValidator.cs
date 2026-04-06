@@ -46,11 +46,6 @@ namespace ProductionManagement.Presentation.Validation.Production
                             .NotEmpty()
                             .WithMessage($"LotId {rule.Error}")
                             .When(x => x.ProductionPackDetails != null);
-
-                        RuleFor(x => x.ProductionPackDetails!.PackTypeId)
-                            .NotEmpty()
-                            .WithMessage($"PackTypeId {rule.Error}")
-                            .When(x => x.ProductionPackDetails != null);
                         break;
 
                     case "MaxLength":
@@ -89,13 +84,18 @@ namespace ProductionManagement.Presentation.Validation.Production
                             .GreaterThan(0).WithMessage($"LotId {rule.Error}")
                             .When(x => x.ProductionPackDetails != null);
 
+                        // PackTypeId and NetWeightPerPack only required when a bag range is specified
                         RuleFor(x => x.ProductionPackDetails!.PackTypeId)
                             .GreaterThan(0).WithMessage($"PackTypeId {rule.Error}")
-                            .When(x => x.ProductionPackDetails != null);
+                            .When(x => x.ProductionPackDetails != null
+                                       && x.ProductionPackDetails.StartPackNo.HasValue
+                                       && x.ProductionPackDetails.PackTypeId.HasValue);
 
                         RuleFor(x => x.ProductionPackDetails!.NetWeightPerPack)
                             .GreaterThan(0).WithMessage($"NetWeightPerPack {rule.Error}")
-                            .When(x => x.ProductionPackDetails != null);
+                            .When(x => x.ProductionPackDetails != null
+                                       && x.ProductionPackDetails.StartPackNo.HasValue
+                                       && x.ProductionPackDetails.NetWeightPerPack.HasValue);
 
                         RuleFor(x => x.ProductionPackDetails!.StartPackNo)
                             .GreaterThan(0).WithMessage($"StartPackNo {rule.Error}")
@@ -131,9 +131,11 @@ namespace ProductionManagement.Presentation.Validation.Production
                             .When(x => x.ProductionPackDetails != null && x.ProductionPackDetails.ItemId > 0);
 
                         RuleFor(x => x.ProductionPackDetails!.PackTypeId)
-                            .MustAsync(async (id, ct) => await _queryRepository.PackTypeExistsAsync(id))
+                            .MustAsync(async (id, ct) => await _queryRepository.PackTypeExistsAsync(id!.Value))
                             .WithMessage($"PackTypeId {rule.Error}")
-                            .When(x => x.ProductionPackDetails != null && x.ProductionPackDetails.PackTypeId > 0);
+                            .When(x => x.ProductionPackDetails != null
+                                       && x.ProductionPackDetails.PackTypeId.HasValue
+                                       && x.ProductionPackDetails.PackTypeId > 0);
 
                         RuleFor(x => x.ProductionPackDetails!.BinId)
                             .MustAsync(async (id, ct) => await _queryRepository.BinExistsAsync(id!.Value))
@@ -150,6 +152,17 @@ namespace ProductionManagement.Presentation.Validation.Production
                         break;
                 }
             }
+
+            // When bag range is specified, PackTypeId and NetWeightPerPack are required
+            RuleFor(x => x.ProductionPackDetails!.PackTypeId)
+                .NotNull()
+                .WithMessage("PackTypeId is required when a pack range is specified.")
+                .When(x => x.ProductionPackDetails != null && x.ProductionPackDetails.StartPackNo.HasValue);
+
+            RuleFor(x => x.ProductionPackDetails!.NetWeightPerPack)
+                .NotNull()
+                .WithMessage("NetWeightPerPack is required when a pack range is specified.")
+                .When(x => x.ProductionPackDetails != null && x.ProductionPackDetails.StartPackNo.HasValue);
 
             // EndPackNo >= StartPackNo (when both supplied)
             RuleFor(x => x.ProductionPackDetails!.EndPackNo)

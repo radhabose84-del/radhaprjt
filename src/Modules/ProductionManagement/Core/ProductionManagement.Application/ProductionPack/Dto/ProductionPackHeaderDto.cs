@@ -16,16 +16,15 @@ namespace ProductionManagement.Application.ProductionPack.Dto
         public string? ItemName { get; set; }
         public int LotId { get; set; }
         public string? LotCode { get; set; }
-        public int PackTypeId { get; set; }
+        public int? PackTypeId { get; set; }
         public string? PackTypeName { get; set; }
-        public decimal NetWeightPerPack { get; set; }
+        public decimal? NetWeightPerPack { get; set; }
 
         // Pack range
         public int? StartPackNo { get; set; }
         public int? EndPackNo { get; set; }
 
         // Totals
-        public int NoOfBags { get; set; }
         public int TotalBags { get; set; }
         public decimal TotalNetWeight { get; set; }
         public decimal ProductionKgs { get; set; }

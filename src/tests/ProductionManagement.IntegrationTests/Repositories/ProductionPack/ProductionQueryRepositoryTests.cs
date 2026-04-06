@@ -270,7 +270,6 @@ namespace ProductionManagement.IntegrationTests.Repositories.ProductionPack
                         NetWeightPerPack = 25.0m,
                         StartPackNo = 1,
                         EndPackNo = 5,
-                        NoOfBags = 5,
                         TotalBags = 5,
                         TotalNetWeight = 125.0m,
                         BinId = 1,

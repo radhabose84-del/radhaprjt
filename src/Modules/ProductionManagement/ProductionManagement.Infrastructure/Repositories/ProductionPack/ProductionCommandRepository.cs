@@ -55,16 +55,16 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
                                 UnitId      = entity.UnitId,
                                 DocType     = "PROD",
                                 DocNo       = entity.Id,
-                                DetailDocNo = entity.Id,
+                                DetailDocNo = 0,
                                 DocDate     = entity.PackDate.ToDateTime(TimeOnly.MinValue),
                                 ItemId      = entity.ItemId,
                                 LotId       = entity.LotId,
                                 PackNo      = packNo,
-                                PackTypeId  = entity.PackTypeId,
+                                PackTypeId  = entity.PackTypeId ?? 0,
                                 WarehouseId = entity.WarehouseId,
                                 BinId       = entity.BinId ?? 0,
                                 TotalQty    = 1,
-                                TotalValue  = entity.NetWeightPerPack,
+                                TotalValue  = entity.NetWeightPerPack ?? 0,
                                 StatusId    = packedStatusId
                             });
                         }
@@ -112,7 +112,6 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
                     existingEntity.NetWeightPerPack = entity.NetWeightPerPack;
                     existingEntity.StartPackNo    = entity.StartPackNo;
                     existingEntity.EndPackNo      = entity.EndPackNo;
-                    existingEntity.NoOfBags       = entity.NoOfBags;
                     existingEntity.TotalBags      = entity.TotalBags;
                     existingEntity.TotalNetWeight = entity.TotalNetWeight;
                     existingEntity.ProductionKgs  = entity.ProductionKgs;
@@ -144,11 +143,11 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
                                 ItemId      = existingEntity.ItemId,
                                 LotId       = existingEntity.LotId,
                                 PackNo      = packNo,
-                                PackTypeId  = existingEntity.PackTypeId,
+                                PackTypeId  = existingEntity.PackTypeId ?? 0,
                                 WarehouseId = existingEntity.WarehouseId,
                                 BinId       = existingEntity.BinId ?? 0,
                                 TotalQty    = 1,
-                                TotalValue  = existingEntity.NetWeightPerPack,
+                                TotalValue  = existingEntity.NetWeightPerPack ?? 0,
                                 StatusId    = packedStatusId
                             });
                         }

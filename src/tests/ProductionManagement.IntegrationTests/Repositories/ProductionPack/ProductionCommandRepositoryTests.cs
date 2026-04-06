@@ -175,7 +175,6 @@ namespace ProductionManagement.IntegrationTests.Repositories.ProductionPack
                         NetWeightPerPack = 25.0m,
                         StartPackNo = 1,
                         EndPackNo = 5,
-                        NoOfBags = 5,
                         TotalBags = 5,
                         TotalNetWeight = 125.0m,
                         BinId = 1,
@@ -250,7 +249,6 @@ namespace ProductionManagement.IntegrationTests.Repositories.ProductionPack
             details[0].NetWeightPerPack.Should().Be(25.0m);
             details[0].StartPackNo.Should().Be(1);
             details[0].EndPackNo.Should().Be(5);
-            details[0].NoOfBags.Should().Be(5);
             details[0].TotalBags.Should().Be(5);
             details[0].TotalNetWeight.Should().Be(125.0m);
             details[0].BinId.Should().Be(1);
@@ -342,7 +340,6 @@ namespace ProductionManagement.IntegrationTests.Repositories.ProductionPack
                         NetWeightPerPack = 25.0m,
                         StartPackNo = 1,
                         EndPackNo = 10,
-                        NoOfBags = 10,
                         TotalBags = 10,
                         TotalNetWeight = 250.0m,
                         BinId = 1,
@@ -401,7 +398,6 @@ namespace ProductionManagement.IntegrationTests.Repositories.ProductionPack
                         NetWeightPerPack = 25.0m,
                         StartPackNo = 1,
                         EndPackNo = 3,
-                        NoOfBags = 3,
                         TotalBags = 3,
                         TotalNetWeight = 75.0m,
                         BinId = 1,

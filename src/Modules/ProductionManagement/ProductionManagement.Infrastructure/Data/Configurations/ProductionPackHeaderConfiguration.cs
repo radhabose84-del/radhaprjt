@@ -29,11 +29,10 @@ namespace ProductionManagement.Infrastructure.Data.Configurations
             builder.Property(t => t.WarehouseId).HasColumnName("WarehouseId").HasColumnType("int").IsRequired();
             builder.Property(t => t.ItemId).HasColumnName("ItemId").HasColumnType("int").IsRequired();
             builder.Property(t => t.LotId).HasColumnName("LotId").HasColumnType("int").IsRequired();
-            builder.Property(t => t.PackTypeId).HasColumnName("PackTypeId").HasColumnType("int").IsRequired();
-            builder.Property(t => t.NetWeightPerPack).HasColumnName("NetWeightPerPack").HasColumnType("decimal(18,3)").IsRequired();
+            builder.Property(t => t.PackTypeId).HasColumnName("PackTypeId").HasColumnType("int").IsRequired(false);
+            builder.Property(t => t.NetWeightPerPack).HasColumnName("NetWeightPerPack").HasColumnType("decimal(18,3)").IsRequired(false);
             builder.Property(t => t.StartPackNo).HasColumnName("StartPackNo").HasColumnType("int").IsRequired(false);
             builder.Property(t => t.EndPackNo).HasColumnName("EndPackNo").HasColumnType("int").IsRequired(false);
-            builder.Property(t => t.NoOfBags).HasColumnName("NoOfBags").HasColumnType("int").IsRequired();
             builder.Property(t => t.TotalBags).HasColumnName("TotalBags").HasColumnType("int").IsRequired();
             builder.Property(t => t.TotalNetWeight).HasColumnName("TotalNetWeight").HasColumnType("decimal(18,3)").IsRequired();
             builder.Property(t => t.ProductionKgs).HasColumnName("ProductionKgs").HasColumnType("decimal(18,3)").IsRequired();
@@ -55,7 +54,7 @@ namespace ProductionManagement.Infrastructure.Data.Configurations
 
             // Same-module FK relationships
             builder.HasOne(t => t.LotMaster).WithMany().HasForeignKey(t => t.LotId).OnDelete(DeleteBehavior.Restrict);
-            builder.HasOne(t => t.PackType).WithMany().HasForeignKey(t => t.PackTypeId).OnDelete(DeleteBehavior.Restrict);
+            builder.HasOne(t => t.PackType).WithMany().HasForeignKey(t => t.PackTypeId).IsRequired(false).OnDelete(DeleteBehavior.Restrict);
             builder.HasOne(t => t.QualityStatusMisc).WithMany().HasForeignKey(t => t.QualityStatusId).OnDelete(DeleteBehavior.Restrict);
 
             builder.HasIndex(t => new { t.PackNo, t.ProductionYear });
