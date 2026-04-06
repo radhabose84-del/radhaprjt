@@ -38,6 +38,7 @@ namespace PartyManagement.Infrastructure.Data
         public DbSet<BankMaster> BankMaster { get; set; }
         public DbSet<SalesType> SalesType { get; set; }
         public DbSet<AgentConfig> AgentConfig { get; set; }
+        public DbSet<TransportDetail> TransportDetail { get; set; }
         public DbSet<OutboxMessage> OutboxMessages { get; set; }
 
 
@@ -58,6 +59,7 @@ namespace PartyManagement.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new BankMasterConfiguration());
             modelBuilder.ApplyConfiguration(new SalesTypeConfiguration());
             modelBuilder.ApplyConfiguration(new AgentConfigConfiguration());
+            modelBuilder.ApplyConfiguration(new TransportDetailConfiguration());
             modelBuilder.ApplyConfiguration(new OutboxMessageConfiguration());
 
 
