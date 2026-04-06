@@ -1,26 +1,26 @@
-using ProductionManagement.Application.Common.Interfaces.IRepackingMaster;
-using ProductionManagement.Application.RepackingMaster.Commands.UpdateRepackingMaster;
+using ProductionManagement.Application.Common.Interfaces.IRepackingHeader;
+using ProductionManagement.Application.RepackingHeader.Commands.UpdateRepackingHeader;
 
 namespace ProductionManagement.UnitTests.Application.RepackingMaster.Commands
 {
     public sealed class UpdateRepackingMasterCommandHandlerTests
     {
-        private readonly Mock<IRepackingMasterCommandRepository> _mockCommandRepo = new(MockBehavior.Strict);
-        private readonly Mock<IRepackingMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
+        private readonly Mock<IRepackingHeaderCommandRepository> _mockCommandRepo = new(MockBehavior.Strict);
+        private readonly Mock<IRepackingHeaderQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Loose);
         private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Loose);
 
-        private UpdateRepackingMasterCommandHandler CreateSut() =>
+        private UpdateRepackingHeaderCommandHandler CreateSut() =>
             new(_mockCommandRepo.Object, _mockQueryRepo.Object, _mockMediator.Object, _mockMapper.Object);
 
         private void SetupHappyPath(int result = 1)
         {
             _mockMapper
-                .Setup(m => m.Map<ProductionManagement.Domain.Entities.RepackingMaster>(It.IsAny<UpdateRepackingMasterCommand>()))
-                .Returns(new ProductionManagement.Domain.Entities.RepackingMaster());
+                .Setup(m => m.Map<ProductionManagement.Domain.Entities.RepackingHeader>(It.IsAny<UpdateRepackingHeaderCommand>()))
+                .Returns(new ProductionManagement.Domain.Entities.RepackingHeader());
 
             _mockCommandRepo
-                .Setup(r => r.UpdateAsync(It.IsAny<ProductionManagement.Domain.Entities.RepackingMaster>()))
+                .Setup(r => r.UpdateAsync(It.IsAny<ProductionManagement.Domain.Entities.RepackingHeader>()))
                 .ReturnsAsync(result);
 
             _mockMediator
@@ -32,7 +32,7 @@ namespace ProductionManagement.UnitTests.Application.RepackingMaster.Commands
         public async Task Handle_ValidCommand_ReturnsSuccess()
         {
             SetupHappyPath();
-            var result = await CreateSut().Handle(new UpdateRepackingMasterCommand { Id = 1 }, CancellationToken.None);
+            var result = await CreateSut().Handle(new UpdateRepackingHeaderCommand { Id = 1 }, CancellationToken.None);
             result.IsSuccess.Should().BeTrue();
         }
 
@@ -40,7 +40,7 @@ namespace ProductionManagement.UnitTests.Application.RepackingMaster.Commands
         public async Task Handle_ValidCommand_ReturnsUpdatedId()
         {
             SetupHappyPath(result: 5);
-            var result = await CreateSut().Handle(new UpdateRepackingMasterCommand { Id = 5 }, CancellationToken.None);
+            var result = await CreateSut().Handle(new UpdateRepackingHeaderCommand { Id = 5 }, CancellationToken.None);
             result.Data.Should().Be(5);
         }
 
@@ -48,9 +48,9 @@ namespace ProductionManagement.UnitTests.Application.RepackingMaster.Commands
         public async Task Handle_ValidCommand_CallsUpdateOnce()
         {
             SetupHappyPath();
-            await CreateSut().Handle(new UpdateRepackingMasterCommand { Id = 1 }, CancellationToken.None);
+            await CreateSut().Handle(new UpdateRepackingHeaderCommand { Id = 1 }, CancellationToken.None);
             _mockCommandRepo.Verify(
-                r => r.UpdateAsync(It.IsAny<ProductionManagement.Domain.Entities.RepackingMaster>()),
+                r => r.UpdateAsync(It.IsAny<ProductionManagement.Domain.Entities.RepackingHeader>()),
                 Times.Once);
         }
 
@@ -58,7 +58,7 @@ namespace ProductionManagement.UnitTests.Application.RepackingMaster.Commands
         public async Task Handle_ValidCommand_PublishesAuditEvent()
         {
             SetupHappyPath();
-            await CreateSut().Handle(new UpdateRepackingMasterCommand { Id = 1 }, CancellationToken.None);
+            await CreateSut().Handle(new UpdateRepackingHeaderCommand { Id = 1 }, CancellationToken.None);
             _mockMediator.Verify(
                 m => m.Publish(
                     It.Is<AuditLogsDomainEvent>(e =>
@@ -72,9 +72,9 @@ namespace ProductionManagement.UnitTests.Application.RepackingMaster.Commands
         public async Task Handle_ValidCommand_UsesMapper()
         {
             SetupHappyPath();
-            await CreateSut().Handle(new UpdateRepackingMasterCommand { Id = 1 }, CancellationToken.None);
+            await CreateSut().Handle(new UpdateRepackingHeaderCommand { Id = 1 }, CancellationToken.None);
             _mockMapper.Verify(
-                m => m.Map<ProductionManagement.Domain.Entities.RepackingMaster>(It.IsAny<UpdateRepackingMasterCommand>()),
+                m => m.Map<ProductionManagement.Domain.Entities.RepackingHeader>(It.IsAny<UpdateRepackingHeaderCommand>()),
                 Times.Once);
         }
     }

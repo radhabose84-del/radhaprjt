@@ -1,19 +1,19 @@
 using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Finance;
-using ProductionManagement.Application.Common.Interfaces.IRepackingMaster;
-using ProductionManagement.Application.RepackingMaster.Commands.CreateRepackingMaster;
+using ProductionManagement.Application.Common.Interfaces.IRepackingHeader;
+using ProductionManagement.Application.RepackingHeader.Commands.CreateRepackingHeader;
 
 namespace ProductionManagement.UnitTests.Application.RepackingMaster.Commands
 {
     public sealed class CreateRepackingMasterCommandHandlerTests
     {
-        private readonly Mock<IRepackingMasterCommandRepository> _mockCommandRepo = new(MockBehavior.Strict);
+        private readonly Mock<IRepackingHeaderCommandRepository> _mockCommandRepo = new(MockBehavior.Strict);
         private readonly Mock<IDocumentSequenceLookup> _mockDocSequence = new(MockBehavior.Strict);
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Loose);
         private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Loose);
         private readonly Mock<IIPAddressService> _mockIpService = new(MockBehavior.Loose);
 
-        private CreateRepackingMasterCommandHandler CreateSut() =>
+        private CreateRepackingHeaderCommandHandler CreateSut() =>
             new(_mockCommandRepo.Object, _mockDocSequence.Object, _mockMediator.Object, _mockMapper.Object, _mockIpService.Object);
 
         private void SetupHappyPath(int newId = 1)
@@ -21,8 +21,8 @@ namespace ProductionManagement.UnitTests.Application.RepackingMaster.Commands
             _mockIpService.Setup(s => s.GetUnitId()).Returns(1);
 
             _mockMapper
-                .Setup(m => m.Map<ProductionManagement.Domain.Entities.RepackingMaster>(It.IsAny<CreateRepackingMasterCommand>()))
-                .Returns(new ProductionManagement.Domain.Entities.RepackingMaster());
+                .Setup(m => m.Map<ProductionManagement.Domain.Entities.RepackingHeader>(It.IsAny<CreateRepackingHeaderCommand>()))
+                .Returns(new ProductionManagement.Domain.Entities.RepackingHeader());
 
             _mockDocSequence
                 .Setup(d => d.GetTransactionTypeIdAsync(
@@ -36,7 +36,7 @@ namespace ProductionManagement.UnitTests.Application.RepackingMaster.Commands
                 .ReturnsAsync(new List<string> { "RPK-001" } as IReadOnlyList<string>);
 
             _mockCommandRepo
-                .Setup(r => r.CreateAsync(It.IsAny<ProductionManagement.Domain.Entities.RepackingMaster>(), 10))
+                .Setup(r => r.CreateAsync(It.IsAny<ProductionManagement.Domain.Entities.RepackingHeader>(), 10))
                 .ReturnsAsync(newId);
 
             _mockMediator
@@ -48,7 +48,7 @@ namespace ProductionManagement.UnitTests.Application.RepackingMaster.Commands
         public async Task Handle_ValidCommand_ReturnsSuccess()
         {
             SetupHappyPath();
-            var result = await CreateSut().Handle(new CreateRepackingMasterCommand(), CancellationToken.None);
+            var result = await CreateSut().Handle(new CreateRepackingHeaderCommand(), CancellationToken.None);
             result.IsSuccess.Should().BeTrue();
         }
 
@@ -56,7 +56,7 @@ namespace ProductionManagement.UnitTests.Application.RepackingMaster.Commands
         public async Task Handle_ValidCommand_ReturnsNewId()
         {
             SetupHappyPath(newId: 42);
-            var result = await CreateSut().Handle(new CreateRepackingMasterCommand(), CancellationToken.None);
+            var result = await CreateSut().Handle(new CreateRepackingHeaderCommand(), CancellationToken.None);
             result.Data.Should().Be(42);
         }
 
@@ -64,9 +64,9 @@ namespace ProductionManagement.UnitTests.Application.RepackingMaster.Commands
         public async Task Handle_ValidCommand_CallsCreateOnce()
         {
             SetupHappyPath();
-            await CreateSut().Handle(new CreateRepackingMasterCommand(), CancellationToken.None);
+            await CreateSut().Handle(new CreateRepackingHeaderCommand(), CancellationToken.None);
             _mockCommandRepo.Verify(
-                r => r.CreateAsync(It.IsAny<ProductionManagement.Domain.Entities.RepackingMaster>(), 10),
+                r => r.CreateAsync(It.IsAny<ProductionManagement.Domain.Entities.RepackingHeader>(), 10),
                 Times.Once);
         }
 
@@ -74,7 +74,7 @@ namespace ProductionManagement.UnitTests.Application.RepackingMaster.Commands
         public async Task Handle_ValidCommand_PublishesAuditEvent()
         {
             SetupHappyPath();
-            await CreateSut().Handle(new CreateRepackingMasterCommand(), CancellationToken.None);
+            await CreateSut().Handle(new CreateRepackingHeaderCommand(), CancellationToken.None);
             _mockMediator.Verify(
                 m => m.Publish(
                     It.Is<AuditLogsDomainEvent>(e =>
@@ -89,13 +89,13 @@ namespace ProductionManagement.UnitTests.Application.RepackingMaster.Commands
         {
             _mockIpService.Setup(s => s.GetUnitId()).Returns(1);
             _mockMapper
-                .Setup(m => m.Map<ProductionManagement.Domain.Entities.RepackingMaster>(It.IsAny<CreateRepackingMasterCommand>()))
-                .Returns(new ProductionManagement.Domain.Entities.RepackingMaster());
+                .Setup(m => m.Map<ProductionManagement.Domain.Entities.RepackingHeader>(It.IsAny<CreateRepackingHeaderCommand>()))
+                .Returns(new ProductionManagement.Domain.Entities.RepackingHeader());
             _mockDocSequence
                 .Setup(d => d.GetTransactionTypeIdAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()))
                 .ReturnsAsync((int?)null);
 
-            Func<Task> act = async () => await CreateSut().Handle(new CreateRepackingMasterCommand(), CancellationToken.None);
+            Func<Task> act = async () => await CreateSut().Handle(new CreateRepackingHeaderCommand(), CancellationToken.None);
 
             await act.Should().ThrowAsync<ExceptionRules>()
                 .WithMessage("*Transaction Type*");
@@ -106,8 +106,8 @@ namespace ProductionManagement.UnitTests.Application.RepackingMaster.Commands
         {
             _mockIpService.Setup(s => s.GetUnitId()).Returns(1);
             _mockMapper
-                .Setup(m => m.Map<ProductionManagement.Domain.Entities.RepackingMaster>(It.IsAny<CreateRepackingMasterCommand>()))
-                .Returns(new ProductionManagement.Domain.Entities.RepackingMaster());
+                .Setup(m => m.Map<ProductionManagement.Domain.Entities.RepackingHeader>(It.IsAny<CreateRepackingHeaderCommand>()))
+                .Returns(new ProductionManagement.Domain.Entities.RepackingHeader());
             _mockDocSequence
                 .Setup(d => d.GetTransactionTypeIdAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()))
                 .ReturnsAsync(10);
@@ -115,7 +115,7 @@ namespace ProductionManagement.UnitTests.Application.RepackingMaster.Commands
                 .Setup(d => d.GenerateDocumentNumber(10))
                 .ReturnsAsync(new List<string>() as IReadOnlyList<string>);
 
-            Func<Task> act = async () => await CreateSut().Handle(new CreateRepackingMasterCommand(), CancellationToken.None);
+            Func<Task> act = async () => await CreateSut().Handle(new CreateRepackingHeaderCommand(), CancellationToken.None);
 
             await act.Should().ThrowAsync<ExceptionRules>()
                 .WithMessage("*document sequence*");
@@ -126,13 +126,13 @@ namespace ProductionManagement.UnitTests.Application.RepackingMaster.Commands
         {
             _mockIpService.Setup(s => s.GetUnitId()).Returns(1);
             _mockMapper
-                .Setup(m => m.Map<ProductionManagement.Domain.Entities.RepackingMaster>(It.IsAny<CreateRepackingMasterCommand>()))
-                .Returns(new ProductionManagement.Domain.Entities.RepackingMaster());
+                .Setup(m => m.Map<ProductionManagement.Domain.Entities.RepackingHeader>(It.IsAny<CreateRepackingHeaderCommand>()))
+                .Returns(new ProductionManagement.Domain.Entities.RepackingHeader());
             _mockDocSequence
                 .Setup(d => d.GetTransactionTypeIdAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()))
                 .ReturnsAsync((int?)null);
 
-            try { await CreateSut().Handle(new CreateRepackingMasterCommand(), CancellationToken.None); }
+            try { await CreateSut().Handle(new CreateRepackingHeaderCommand(), CancellationToken.None); }
             catch { /* expected */ }
 
             _mockMediator.Verify(
