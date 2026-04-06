@@ -43,12 +43,6 @@ namespace PartyManagement.Application.PartyMaster.Command.UpdatePartyMaster
         public decimal? InsuranceLimit { get; set; }
         public byte IsActive { get; set; }
         public byte IsPortalAccessEnabled { get; set; }
-        public int? TransportModeId { get; set; }
-        public int? VehicleTypeId { get; set; }
-        public int? DefaultFreightTypeId { get; set; }
-        public decimal? DefaultFreightRate { get; set; }
-        public string? LicenseNo { get; set; }
-        public DateTimeOffset? LicenseExpiryDate { get; set; }
         public string? FreightExpensesGl { get; set; }
         public List<UpdatePartyUniCompanyDto>? PartyUnitCompaniesUpdate { get; set; }
         public List<UpdatePartyTypeDto>? PartyTypesUpdate { get; set; }
@@ -58,6 +52,7 @@ namespace PartyManagement.Application.PartyMaster.Command.UpdatePartyMaster
         public List<UpdatePartyDocumentDto>? PartyDocumentsUpdate { get; set; }
         public List<UpdateSalesTypeDto>? SalesTypesUpdate { get; set; }
         public List<UpdateAgentConfigDto>? AgentConfigsUpdate { get; set; }
+        public List<UpdateTransportDetailDto>? TransportDetailsUpdate { get; set; }
 
          public class UpdatePartyUniCompanyDto
         {
@@ -155,6 +150,20 @@ namespace PartyManagement.Application.PartyMaster.Command.UpdatePartyMaster
             public decimal? TargetAmount { get; set; }
             public string? TargetPeriod { get; set; }
             public byte Status { get; set; }
+        }
+
+        public class UpdateTransportDetailDto
+        {
+            public int Id { get; set; }
+            public int PartyId { get; set; }
+            public int? TransportModeId { get; set; }
+            public int? VehicleTypeId { get; set; }
+            public int? DefaultFreightTypeId { get; set; }
+            public decimal? DefaultFreightRate { get; set; }
+            public string? LicenseNo { get; set; }
+            public DateTimeOffset? LicenseExpiryDate { get; set; }
+            public string? VehicleNo { get; set; }
+            public byte Status { get; set; } = 1;
         }
 
     }
