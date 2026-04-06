@@ -1,5 +1,9 @@
 using System.Data;
 using LogisticsManagement.Application.Common.Interfaces;
+using LogisticsManagement.Application.Common.Interfaces.IMiscMaster;
+using LogisticsManagement.Application.Common.Interfaces.IMiscTypeMaster;
+using LogisticsManagement.Infrastructure.Repositories.MiscMaster;
+using LogisticsManagement.Infrastructure.Repositories.MiscTypeMaster;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -74,6 +78,14 @@ namespace LogisticsManagement.Infrastructure
             services.AddSingleton<ITimeZoneService, TimeZoneService>();
             services.AddTransient<IJwtTokenHelper, JwtTokenHelper>();
             services.AddScoped<ILogQueryService, LogQueryService>();
+
+            // MiscTypeMaster repositories
+            services.AddScoped<IMiscTypeMasterCommandRepository, MiscTypeMasterCommandRepository>();
+            services.AddScoped<IMiscTypeMasterQueryRepository, MiscTypeMasterQueryRepository>();
+
+            // MiscMaster repositories
+            services.AddScoped<IMiscMasterCommandRepository, MiscMasterCommandRepository>();
+            services.AddScoped<IMiscMasterQueryRepository, MiscMasterQueryRepository>();
 
             return services;
         }

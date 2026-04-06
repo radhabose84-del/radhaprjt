@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Contracts.Interfaces;
 using LogisticsManagement.Application.Common.Interfaces;
 using LogisticsManagement.Domain.Common;
+using LogisticsManagement.Domain.Entities;
+using LogisticsManagement.Infrastructure.Data.Configurations;
 
 namespace LogisticsManagement.Infrastructure.Data
 {
@@ -18,8 +20,15 @@ namespace LogisticsManagement.Infrastructure.Data
             _timeZoneService = timeZoneService;
         }
 
+        // ── DbSets ────────────────────────────────────────────────────────────
+        public DbSet<MiscTypeMaster> MiscTypeMaster { get; set; }
+        public DbSet<MiscMaster> MiscMaster { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.ApplyConfiguration(new MiscTypeMasterConfiguration());
+            modelBuilder.ApplyConfiguration(new MiscMasterConfiguration());
+
             // Global convention: set explicit precision/scale for all decimal properties
             foreach (var property in modelBuilder.Model.GetEntityTypes()
                 .SelectMany(e => e.GetProperties())
