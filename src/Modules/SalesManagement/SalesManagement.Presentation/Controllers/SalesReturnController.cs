@@ -2,7 +2,6 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SalesManagement.Application.SalesReturn.Commands.CreateSalesReturn;
-using SalesManagement.Application.SalesReturn.Commands.UpdateSalesReturn;
 using SalesManagement.Application.SalesReturn.Commands.DeleteSalesReturn;
 using SalesManagement.Application.SalesReturn.Queries.GetAllSalesReturn;
 using SalesManagement.Application.SalesReturn.Queries.GetSalesReturnById;
@@ -86,19 +85,6 @@ namespace SalesManagement.Presentation.Controllers
 
         [HttpPost]
         public async Task<IActionResult> CreateSalesReturn([FromBody] CreateSalesReturnCommand command)
-        {
-            var result = await Mediator.Send(command);
-            return Ok(new
-            {
-                StatusCode = StatusCodes.Status200OK,
-                isSuccess = result.IsSuccess,
-                message = result.Message,
-                data = result.Data
-            });
-        }
-
-        [HttpPut]
-        public async Task<IActionResult> UpdateSalesReturn([FromBody] UpdateSalesReturnCommand command)
         {
             var result = await Mediator.Send(command);
             return Ok(new
