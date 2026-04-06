@@ -19,8 +19,7 @@ using ProductionManagement.Application.Common.Interfaces.IProcessMaster;
 using ProductionManagement.Application.Common.Interfaces.IQualityMaster;
 using ProductionManagement.Application.Common.Interfaces.ICertificationMaster;
 using ProductionManagement.Application.Common.Interfaces.IYarnTwistMaster;
-using ProductionManagement.Application.Common.Interfaces.IRepackingMaster;
-using ProductionManagement.Application.Common.Interfaces.IYarnConversionHeader;
+using ProductionManagement.Application.Common.Interfaces.IRepackingHeader;
 using Contracts.Interfaces.Lookups.Production;
 using ProductionManagement.Infrastructure.Repositories.Lookups.Production;
 using ProductionManagement.Infrastructure.Repositories.ProcessMaster;
@@ -154,13 +153,9 @@ namespace ProductionManagement.Infrastructure
             services.AddScoped<IYarnTwistMasterCommandRepository, YarnTwistMasterCommandRepository>();
             services.AddScoped<IYarnTwistMasterQueryRepository, YarnTwistMasterQueryRepository>();
 
-            // RepackingMaster repositories
-            services.AddScoped<IRepackingMasterCommandRepository, Repositories.RepackingMaster.RepackingMasterCommandRepository>();
-            services.AddScoped<IRepackingMasterQueryRepository, Repositories.RepackingMaster.RepackingMasterQueryRepository>();
-
-            // YarnConversionHeader repositories
-            services.AddScoped<IYarnConversionHeaderCommandRepository, Repositories.YarnConversionHeader.YarnConversionHeaderCommandRepository>();
-            services.AddScoped<IYarnConversionHeaderQueryRepository, Repositories.YarnConversionHeader.YarnConversionHeaderQueryRepository>();
+            // RepackingHeader repositories
+            services.AddScoped<IRepackingHeaderCommandRepository, Repositories.RepackingHeader.RepackingHeaderCommandRepository>();
+            services.AddScoped<IRepackingHeaderQueryRepository, Repositories.RepackingHeader.RepackingHeaderQueryRepository>();
 
             // Lookup registration — caching is handled globally by AddLookupCaching() in Program.cs
             services.AddScoped<IYarnTypeLookup, YarnTypeLookupRepository>();

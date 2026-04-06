@@ -4,8 +4,8 @@ using SalesManagement.Application.SalesOrder.Dto;
 
 namespace SalesManagement.Application.SalesOrder.Queries.GetSalesOrderAmendmentById
 {
-    public class GetSalesOrderAmendmentByIdQuery : IRequest<ApiResponseDTO<SalesOrderAmendmentHeaderDto>>
+    public class GetSalesOrderAmendmentByIdQuery : IRequest<ApiResponseDTO<List<SalesOrderAmendmentHeaderDto>>>
     {
-        public int Id { get; set; }
+        public int SalesOrderHeaderId { get; set; }
     }
 }

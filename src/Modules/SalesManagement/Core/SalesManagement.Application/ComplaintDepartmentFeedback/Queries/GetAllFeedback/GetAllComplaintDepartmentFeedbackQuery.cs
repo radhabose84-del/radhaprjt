@@ -9,5 +9,6 @@ namespace SalesManagement.Application.ComplaintDepartmentFeedback.Queries.GetAll
         public int PageNumber { get; set; }
         public int PageSize { get; set; }
         public string? SearchTerm { get; set; }
+        public string? StatusFilter { get; set; }
     }
 }

@@ -13,5 +13,8 @@ namespace InventoryManagement.Application.Common.Interfaces.IUOM
         Task<InventoryManagement.Domain.Entities.UOM?> GetByUOMNameAsync(string name, int? id = null);
 
         Task<List<UOMDto>> GetUOMAsync();
+        Task<bool> NotFoundAsync(int id);
+        Task<bool> SoftDeleteValidation(int id);
+        Task<bool> IsUOMLinkedAsync(int id);
     }
 }

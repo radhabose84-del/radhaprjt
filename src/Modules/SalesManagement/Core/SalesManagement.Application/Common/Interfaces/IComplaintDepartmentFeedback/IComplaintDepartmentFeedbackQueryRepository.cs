@@ -4,7 +4,7 @@ namespace SalesManagement.Application.Common.Interfaces.IComplaintDepartmentFeed
 {
     public interface IComplaintDepartmentFeedbackQueryRepository
     {
-        Task<(List<FeedbackListDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm);
+        Task<(List<FeedbackListDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm, string? statusFilter);
         Task<ComplaintDepartmentFeedbackDto?> GetByIdAsync(int id);
         Task<ComplaintDepartmentFeedbackDto?> GetByAssignmentIdAsync(int assignmentId);
         Task<List<FeedbackListDto>> GetByComplaintIdAsync(int complaintHeaderId);
@@ -17,5 +17,6 @@ namespace SalesManagement.Application.Common.Interfaces.IComplaintDepartmentFeed
         Task<int> GetAssignmentIdByFeedbackIdAsync(int feedbackId);
         Task<bool> MiscMasterExistsAsync(int id);
         Task<(int ReworkCount, int FeedbackStatusId)> GetReworkInfoAsync(int feedbackId);
+        Task<string?> GetAttachmentFilePathAsync(int id);
     }
 }

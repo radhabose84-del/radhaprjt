@@ -58,13 +58,27 @@ namespace  InventoryManagement.Infrastructure.Repositories.Item.ItemGroup
         public async Task<bool> SoftDeleteValidation(int Id)
         {
             const string query = @"
-                    SELECT 1 
-                    FROM Inventory.ItemCategory 
-                    WHERE ItemGroupId = @Id AND IsDeleted = 0;                 
-                    ";
-            using var multi = await _dbConnection.QueryMultipleAsync(query, new { Id = Id });
-            var notificationConfigExists = await multi.ReadFirstOrDefaultAsync<int?>();
-            return notificationConfigExists.HasValue;
+                SELECT CASE WHEN
+                    EXISTS (SELECT 1 FROM [Inventory].[ItemCategory] WHERE ItemGroupId = @Id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[ItemMaster] WHERE ItemGroupId = @Id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[PutAwayRule] WHERE ItemGroupId = @Id AND IsDeleted = 0)
+                THEN 1 ELSE 0 END;";
+
+            var result = await _dbConnection.QueryFirstOrDefaultAsync<int>(query, new { Id });
+            return result == 1;
+        }
+
+        public async Task<bool> IsItemGroupLinkedAsync(int id)
+        {
+            const string query = @"
+                SELECT CASE WHEN
+                    EXISTS (SELECT 1 FROM [Inventory].[ItemCategory] WHERE ItemGroupId = @id AND IsDeleted = 0 AND IsActive = 1)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[ItemMaster] WHERE ItemGroupId = @id AND IsDeleted = 0 AND IsActive = 1)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[PutAwayRule] WHERE ItemGroupId = @id AND IsDeleted = 0 AND IsActive = 1)
+                THEN 1 ELSE 0 END;";
+
+            var result = await _dbConnection.QueryFirstOrDefaultAsync<int>(query, new { id });
+            return result == 1;
         }
         public async Task<bool> NotFoundAsync(int Id)
         {

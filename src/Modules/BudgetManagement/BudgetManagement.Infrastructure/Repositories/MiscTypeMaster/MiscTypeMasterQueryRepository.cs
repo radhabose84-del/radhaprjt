@@ -112,15 +112,25 @@ namespace BudgetManagement.Infrastructure.Repositories
          public async Task<bool> SoftDeleteValidation(int Id)
         {
             const string query = @"
-                           SELECT 1 
-                           FROM  Budget.MiscTypeMaster
-                           WHERE Id  = @Id AND IsDeleted = 0;";
-                    
-            using var multi = await _dbConnection.QueryMultipleAsync(query, new { Id = Id });
-                    
-            var shiftMasterDetailExists = await multi.ReadFirstOrDefaultAsync<int?>();
-                    
-            return shiftMasterDetailExists.HasValue;
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1 FROM [Budget].[MiscMaster]
+                    WHERE MiscTypeId = @Id AND IsDeleted = 0
+                ) THEN 1 ELSE 0 END;";
+
+            var result = await _dbConnection.QueryFirstOrDefaultAsync<int>(query, new { Id });
+            return result == 1;
+        }
+
+        public async Task<bool> IsMiscTypeMasterLinkedAsync(int id)
+        {
+            const string query = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1 FROM [Budget].[MiscMaster]
+                    WHERE MiscTypeId = @id AND IsDeleted = 0 AND IsActive = 1
+                ) THEN 1 ELSE 0 END;";
+
+            var result = await _dbConnection.QueryFirstOrDefaultAsync<int>(query, new { id });
+            return result == 1;
         }
 
     }

@@ -55,18 +55,23 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             _transactionTypeLookup = transactionTypeLookup;
         }
 
-        public async Task<(List<SalesOrderHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
+        public async Task<(List<SalesOrderHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm, DateOnly? orderDateFrom = null, DateOnly? orderDateTo = null, string? partyName = null, string? statusName = null)
         {
             var unitId = _ipAddressService.GetUnitId() ?? 0;
             var searchFilter = string.IsNullOrWhiteSpace(searchTerm)
                 ? ""
                 : "AND (h.SalesOrderNo LIKE @Search OR h.Remarks LIKE @Search)";
 
+            var dateFromFilter = orderDateFrom.HasValue ? "AND h.OrderDate >= @OrderDateFrom" : "";
+            var dateToFilter = orderDateTo.HasValue ? "AND h.OrderDate <= @OrderDateTo" : "";
+            var statusFilter = string.IsNullOrWhiteSpace(statusName) ? "" : "AND st.Description LIKE @StatusName";
+
             var query = $@"
                 DECLARE @TotalCount INT;
                 SELECT @TotalCount = COUNT(*)
                 FROM Sales.SalesOrderHeader h
-                WHERE h.IsDeleted = 0 AND h.OrderUnitId = @UnitId {searchFilter};
+                LEFT JOIN Sales.MiscMaster st ON h.StatusId = st.Id AND st.IsDeleted = 0
+                WHERE h.IsDeleted = 0 AND h.OrderUnitId = @UnitId {searchFilter} {dateFromFilter} {dateToFilter} {statusFilter};
 
                 SELECT h.Id, h.SalesOrderNo, h.OrderDate,
                     h.SalesQuotationHeaderId,
@@ -108,7 +113,10 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                             WHERE da.SalesOrderId = h.Id AND da.IsDeleted = 0
                         ) THEN 'Y' ELSE 'N' END
                         ELSE NULL
-                    END AS DAFlag
+                    END AS DAFlag,
+                    ISNULL(pending.TotalPendingQty, 0) AS TotalPendingQty,
+                    amd_latest.StatusId AS AmendmentStatusId,
+                    amd_mm.Description AS AmendmentStatusName
                 FROM Sales.SalesOrderHeader h
                 LEFT JOIN Sales.SalesGroup sg ON h.SalesGroupId = sg.Id AND sg.IsDeleted = 0
                 LEFT JOIN Sales.SalesSegment ss ON h.SalesSegmentId = ss.Id AND ss.IsDeleted = 0
@@ -118,19 +126,54 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 LEFT JOIN Sales.MiscMaster ft ON h.FreightTypeId = ft.Id AND ft.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster cl ON h.CountListId = cl.Id AND cl.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster st ON h.StatusId = st.Id AND st.IsDeleted = 0
-                WHERE h.IsDeleted = 0 AND h.OrderUnitId = @UnitId {searchFilter}
+                LEFT JOIN (
+                    SELECT d.SalesOrderHeaderId,
+                           SUM(d.QtyInBags) - ISNULL((
+                               SELECT SUM(dad.DispatchQty)
+                               FROM Sales.DispatchAdviceDetail dad
+                               INNER JOIN Sales.DispatchAdviceHeader dah ON dad.DispatchAdviceHeaderId = dah.Id
+                               WHERE dah.SalesOrderId = d.SalesOrderHeaderId
+                                 AND dah.IsActive = 1 AND dah.IsDeleted = 0
+                           ), 0) AS TotalPendingQty
+                    FROM Sales.SalesOrderDetail d
+                    LEFT JOIN Sales.MiscMaster mm2 ON d.LineItemStatusId = mm2.Id AND mm2.IsDeleted = 0
+                    LEFT JOIN Sales.MiscTypeMaster mt2 ON mm2.MiscTypeId = mt2.Id AND mt2.IsDeleted = 0
+                    WHERE (mt2.MiscTypeCode IS NULL OR LOWER(mt2.MiscTypeCode) != LOWER(@LineItemStatus)
+                           OR LOWER(mm2.Code) != LOWER(@LineStatusDeleted))
+                    GROUP BY d.SalesOrderHeaderId
+                ) pending ON pending.SalesOrderHeaderId = h.Id
+                LEFT JOIN (
+                    SELECT ah.SalesOrderHeaderId, ah.StatusId
+                    FROM Sales.SalesOrderAmendmentHeader ah
+                    INNER JOIN (
+                        SELECT SalesOrderHeaderId, MAX(RevisionNumber) AS MaxRevision
+                        FROM Sales.SalesOrderAmendmentHeader
+                        WHERE IsDeleted = 0
+                        GROUP BY SalesOrderHeaderId
+                    ) latest ON ah.SalesOrderHeaderId = latest.SalesOrderHeaderId
+                              AND ah.RevisionNumber = latest.MaxRevision
+                    WHERE ah.IsDeleted = 0
+                ) amd_latest ON amd_latest.SalesOrderHeaderId = h.Id
+                    AND LOWER(st.Code) = LOWER('Approved')
+                LEFT JOIN Sales.MiscMaster amd_mm ON amd_latest.StatusId = amd_mm.Id AND amd_mm.IsDeleted = 0
+                WHERE h.IsDeleted = 0 AND h.OrderUnitId = @UnitId {searchFilter} {dateFromFilter} {dateToFilter} {statusFilter}
                 ORDER BY h.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
 
                 SELECT @TotalCount AS TotalCount;";
 
-            var result = await _dbConnection.QueryMultipleAsync(query, new
-            {
-                UnitId = unitId,
-                Search = $"%{searchTerm}%",
-                Offset = (pageNumber - 1) * pageSize,
-                PageSize = pageSize
-            });
+            var param = new DynamicParameters();
+            param.Add("@UnitId", unitId);
+            param.Add("@Search", $"%{searchTerm}%");
+            param.Add("@Offset", (pageNumber - 1) * pageSize);
+            param.Add("@PageSize", pageSize);
+            param.Add("@LineItemStatus", MiscEnumEntity.LineItemApprovalStatus);
+            param.Add("@LineStatusDeleted", MiscEnumEntity.LineStatusDeleted);
+            if (orderDateFrom.HasValue) param.Add("@OrderDateFrom", orderDateFrom.Value);
+            if (orderDateTo.HasValue) param.Add("@OrderDateTo", orderDateTo.Value);
+            if (!string.IsNullOrWhiteSpace(statusName)) param.Add("@StatusName", $"%{statusName}%");
+
+            var result = await _dbConnection.QueryMultipleAsync(query, param);
             var list = (await result.ReadAsync<SalesOrderHeaderDto>()).ToList();
             var totalCount = await result.ReadFirstAsync<int>();
 
@@ -186,6 +229,14 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     if (!string.IsNullOrWhiteSpace(item.AgentPOAttachment))
                         item.AgentPOAttachmentPath = $"{agentPOBasePath}/{item.AgentPOAttachment}";
                 }
+            }
+
+            // Apply PartyName filter in-memory (cross-module lookup, cannot filter in SQL)
+            if (!string.IsNullOrWhiteSpace(partyName))
+            {
+                list = list.Where(x => x.PartyName != null
+                    && x.PartyName.Contains(partyName, StringComparison.OrdinalIgnoreCase)).ToList();
+                totalCount = list.Count;
             }
 
             return (list, totalCount);
@@ -376,10 +427,25 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             var unitId = _ipAddressService.GetUnitId() ?? 0;
 
             const string sql = @"
-                SELECT h.Id, h.SalesOrderNo, h.OrderDate, h.PartyId
+                SELECT h.Id, h.SalesOrderNo, h.OrderDate, h.PartyId,
+                    amd_latest.StatusId AS AmendmentStatusId,
+                    amd_mm.Description AS AmendmentStatusName
                 FROM Sales.SalesOrderHeader h
                 INNER JOIN Sales.MiscMaster st ON h.StatusId = st.Id AND st.IsDeleted = 0
                 INNER JOIN Sales.MiscTypeMaster mt ON st.MiscTypeId = mt.Id AND mt.IsDeleted = 0
+                LEFT JOIN (
+                    SELECT ah.SalesOrderHeaderId, ah.StatusId
+                    FROM Sales.SalesOrderAmendmentHeader ah
+                    INNER JOIN (
+                        SELECT SalesOrderHeaderId, MAX(RevisionNumber) AS MaxRevision
+                        FROM Sales.SalesOrderAmendmentHeader
+                        WHERE IsDeleted = 0
+                        GROUP BY SalesOrderHeaderId
+                    ) latest ON ah.SalesOrderHeaderId = latest.SalesOrderHeaderId
+                              AND ah.RevisionNumber = latest.MaxRevision
+                    WHERE ah.IsDeleted = 0
+                ) amd_latest ON amd_latest.SalesOrderHeaderId = h.Id
+                LEFT JOIN Sales.MiscMaster amd_mm ON amd_latest.StatusId = amd_mm.Id AND amd_mm.IsDeleted = 0
                 WHERE h.IsActive = 1 AND h.IsDeleted = 0 AND h.OrderUnitId = @UnitId
                 AND LOWER(mt.MiscTypeCode) = LOWER(@ApprovalStatus)
                 AND LOWER(st.Code) = LOWER(@ApprovedStatus)

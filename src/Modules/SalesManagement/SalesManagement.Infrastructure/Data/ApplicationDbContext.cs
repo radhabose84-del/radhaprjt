@@ -74,7 +74,15 @@ namespace SalesManagement.Infrastructure.Data
         public DbSet<ComplaintQCReviewAssignment> ComplaintQCReviewAssignment { get; set; }
         public DbSet<ComplaintDepartmentFeedback> ComplaintDepartmentFeedback { get; set; }
         public DbSet<ComplaintFeedbackAttachment> ComplaintFeedbackAttachment { get; set; }
+        public DbSet<ComplaintAttachment> ComplaintAttachment { get; set; }
+        public DbSet<SalesReturnHeader> SalesReturnHeader { get; set; }
+        public DbSet<SalesReturnDetail> SalesReturnDetail { get; set; }
         public DbSet<ComplaintResolution> ComplaintResolution { get; set; }
+        public DbSet<DiscountMaster> DiscountMaster { get; set; }
+        public DbSet<DiscountSlab> DiscountSlab { get; set; }
+        public DbSet<DiscountSalesGroup> DiscountSalesGroup { get; set; }
+        public DbSet<DiscountPaymentTerm> DiscountPaymentTerm { get; set; }
+        public DbSet<FreightMaster> FreightMaster { get; set; }
 
         // ── Outbox (SQL-based for workflow transaction atomicity) ─────────
         public DbSet<OutboxMessage> OutboxMessages { get; set; }
@@ -130,7 +138,15 @@ namespace SalesManagement.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new ComplaintQCReviewAssignmentConfiguration());
             modelBuilder.ApplyConfiguration(new ComplaintDepartmentFeedbackConfiguration());
             modelBuilder.ApplyConfiguration(new ComplaintFeedbackAttachmentConfiguration());
+            modelBuilder.ApplyConfiguration(new ComplaintAttachmentConfiguration());
+            modelBuilder.ApplyConfiguration(new SalesReturnHeaderConfiguration());
+            modelBuilder.ApplyConfiguration(new SalesReturnDetailConfiguration());
             modelBuilder.ApplyConfiguration(new ComplaintResolutionConfiguration());
+            modelBuilder.ApplyConfiguration(new DiscountMasterConfiguration());
+            modelBuilder.ApplyConfiguration(new DiscountSlabConfiguration());
+            modelBuilder.ApplyConfiguration(new DiscountSalesGroupConfiguration());
+            modelBuilder.ApplyConfiguration(new DiscountPaymentTermConfiguration());
+            modelBuilder.ApplyConfiguration(new FreightMasterConfiguration());
             // ── Outbox (SQL-based for workflow) ─────────────────────────────
             modelBuilder.ApplyConfiguration(new OutboxMessageConfiguration());
 

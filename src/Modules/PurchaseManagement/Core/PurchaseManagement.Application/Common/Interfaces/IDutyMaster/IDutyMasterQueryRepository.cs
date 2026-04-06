@@ -14,6 +14,8 @@ namespace PurchaseManagement.Application.Common.Interfaces.IPurchase.DutyMaster
         IEnumerable<string> hsnCodes,
         DateTimeOffset onDate,
         CancellationToken ct = default);
+        Task<bool> NotFoundAsync(int id, CancellationToken ct);
+        Task<bool> SoftDeleteValidationAsync(int id);
     }
 }
 

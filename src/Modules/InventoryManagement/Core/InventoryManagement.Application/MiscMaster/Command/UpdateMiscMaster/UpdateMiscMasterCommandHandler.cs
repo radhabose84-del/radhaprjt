@@ -27,7 +27,14 @@ namespace InventoryManagement.Application.MiscMaster.Command.UpdateMiscMaster
 
            public async Task<bool> Handle(UpdateMiscMasterCommand request, CancellationToken cancellationToken)
         {
-                          
+                if (request.IsActive == 0)
+                {
+                    var isLinked = await _miscMasterQueryRepository.IsMiscMasterLinkedAsync(request.Id);
+                    if (isLinked)
+                        throw new ExceptionRules(
+                            "This master is linked with other records. You cannot inactivate this record.");
+                }
+
                  var miscmaster  = _imapper.Map<InventoryManagement.Domain.Entities.MiscMaster>(request);         
                 var MiscMasterresult = await _miscMasterCommandRepository.UpdateAsync(request.Id, miscmaster);                
 

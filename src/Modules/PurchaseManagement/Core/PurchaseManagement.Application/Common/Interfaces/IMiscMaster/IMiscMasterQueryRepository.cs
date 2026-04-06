@@ -13,6 +13,8 @@ namespace PurchaseManagement.Application.Common.Interfaces.IMiscMaster
         Task<bool> FKColumnValidation(int ShiftMasterId);
         Task<PurchaseManagement.Domain.Entities.MiscMaster> GetMiscMasterByName(string miscTypeCode, string miscTypeName);  
          Task<(int LocalId, int ImportId)> GetPoMethodIdsAsync(CancellationToken ct);
-        Task<bool> IsValidPoMethodIdAsync(int id, CancellationToken ct);        
+        Task<bool> IsValidPoMethodIdAsync(int id, CancellationToken ct);
+        Task<bool> SoftDeleteValidation(int id);
+        Task<bool> IsMiscMasterLinkedAsync(int id);
     }
 }

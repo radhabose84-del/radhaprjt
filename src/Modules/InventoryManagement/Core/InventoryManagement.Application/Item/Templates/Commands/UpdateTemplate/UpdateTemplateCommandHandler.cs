@@ -1,4 +1,5 @@
 using AutoMapper;
+using Contracts.Common;
 using InventoryManagement.Application.Common.Interfaces.Item.Templates;
 using InventoryManagement.Application.Item.Templates.Commands.UpdateTemplate;
 using InventoryManagement.Domain.Common;
@@ -24,6 +25,14 @@ public sealed class UpdateTemplateCommandHandler : IRequestHandler<UpdateTemplat
 
     public async Task<bool> Handle(UpdateTemplateCommand request, CancellationToken ct)
     {
+        if (request.IsActive == 0)
+        {
+            var isLinked = await _qry.IsTemplateLinkedAsync(request.Id, ct);
+            if (isLinked)
+                throw new ExceptionRules(
+                    "This master is linked with other records. You cannot inactivate this record.");
+        }
+
         var entity = await _qry.GetByIdAsync(request.Id, ct);
         if (entity is null) return false;
 
@@ -33,7 +42,7 @@ public sealed class UpdateTemplateCommandHandler : IRequestHandler<UpdateTemplat
             ? BaseEntity.Status.Active
             : BaseEntity.Status.Inactive;
 
-                  entity.IsActive = status;
+        entity.IsActive = status;
 
         // Build incoming parameters graph
         var newParams = new List<InspectionParameter>();

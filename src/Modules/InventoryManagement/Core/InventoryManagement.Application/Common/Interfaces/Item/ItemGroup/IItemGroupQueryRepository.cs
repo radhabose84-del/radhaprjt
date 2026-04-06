@@ -9,7 +9,8 @@ namespace InventoryManagement.Application.Common.Interfaces.Item.ItemGroup
         Task<(IEnumerable<dynamic>, int)> GetAllItemGroupAsync(int PageNumber, int PageSize, string? SearchTerm);
         Task<List<ItemGroupAutoCompleteDto>> GetItemGroupAutoCompleteAsync(string searchPattern);
         Task<bool> SoftDeleteValidation(int Id);
-        Task<List<InventoryManagement.Domain.Entities.Item.ItemGroup>> GetAllItemGroupsAsync();       
-            
+        Task<bool> IsItemGroupLinkedAsync(int id);
+        Task<List<InventoryManagement.Domain.Entities.Item.ItemGroup>> GetAllItemGroupsAsync();
+
     }
 }

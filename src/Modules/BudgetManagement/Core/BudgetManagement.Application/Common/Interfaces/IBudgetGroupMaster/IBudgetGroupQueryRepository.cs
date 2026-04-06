@@ -8,6 +8,7 @@ namespace BudgetManagement.Application.Common.Interfaces.IBudgetGroupMaster
         Task<BudgetGroupDto?> GetByIdAsync(int id, CancellationToken ct = default);
         Task<List<BudgetGroupAutoCompleteDto>> GetBudgetGroupAutoCompleteAsync(string searchPattern, CancellationToken ct = default);
         Task<bool> SoftDeleteValidation(int id, CancellationToken ct = default);
+        Task<bool> IsBudgetGroupLinkedAsync(int id, CancellationToken ct = default);
         Task<List<BudgetGroupAutoCompleteDto>> GetBudgetGroupByDepartmentAsync(int departmentId, string? searchPattern, CancellationToken ct = default);
     }
 }

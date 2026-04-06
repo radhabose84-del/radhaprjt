@@ -26,6 +26,14 @@ namespace InventoryManagement.Application.HSNMaster.Command.UpdateHSNMaster
 
         public async Task<ApiResponseDTO<int>> Handle(UpdateHSNMasterCommand request, CancellationToken cancellationToken)
         {
+            if (request.IsActive == 0)
+            {
+                var isLinked = await _hSNMasterQueryRepository.IsHSNMasterLinkedAsync(request.Id);
+                if (isLinked)
+                    throw new ExceptionRules(
+                        "This master is linked with other records. You cannot inactivate this record.");
+            }
+
             var entity = _mapper.Map<Domain.Entities.HSNMaster>(request);
 
             // ✅ 5. Update

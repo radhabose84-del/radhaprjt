@@ -239,6 +239,14 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
 
             header.ComplaintDetails = details;
 
+            // Fetch attachments
+            const string attachmentSql = @"
+                SELECT Id, ComplaintHeaderId, FileName, FilePath, FileType, FileSize
+                FROM Sales.ComplaintAttachment
+                WHERE ComplaintHeaderId = @HeaderId AND IsDeleted = 0;";
+            header.Attachments = [.. await _dbConnection.QueryAsync<ComplaintAttachmentDto>(
+                attachmentSql, new { HeaderId = id })];
+
             // Derive ComplaintStage from related tables
             header.ComplaintStage = await DeriveComplaintStageAsync(header.Id);
 
@@ -346,6 +354,14 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
             }
 
             return list;
+        }
+
+        public async Task<string?> GetAttachmentFilePathAsync(int id)
+        {
+            const string sql = @"
+                SELECT FilePath FROM Sales.ComplaintAttachment
+                WHERE Id = @Id AND IsDeleted = 0;";
+            return await _dbConnection.ExecuteScalarAsync<string?>(sql, new { Id = id });
         }
 
         public async Task<bool> NotFoundAsync(int id)

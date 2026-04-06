@@ -10,5 +10,7 @@ namespace InventoryManagement.Application.Common.Interfaces.IUsageType
         Task<bool> NotFoundAsync(int id);
         Task<bool> AlreadyExistsAsync(string usageTypeCode, int? id = null);
         Task<bool> ModuleExistsAsync(int moduleId);
+        Task<bool> SoftDeleteValidationAsync(int id);
+        Task<bool> IsUsageTypeLinkedAsync(int id);
     }
 }
