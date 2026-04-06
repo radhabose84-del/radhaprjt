@@ -45,17 +45,11 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAddressMaster
                 SELECT dam.Id, dam.DispatchAddressName, dam.AddressLine1, dam.AddressLine2,
                     dam.CityId, dam.StateId, dam.CountryId, dam.PinCode,
                     dam.ContactPerson, dam.MobileNumber, dam.Email, dam.GSTIN,
-                    dam.Latitude, dam.Longitude, dam.FreightId,
-                    fmode.Description AS FreightModeName,
-                    fmethod.Description AS RateMethodName,
-                    fm.Rate AS FreightRate,
+                    dam.Latitude, dam.Longitude,
                     dam.IsActive, dam.IsDeleted,
                     dam.CreatedBy, dam.CreatedDate, dam.CreatedByName, dam.CreatedIP,
                     dam.ModifiedBy, dam.ModifiedDate, dam.ModifiedByName, dam.ModifiedIP
                 FROM Sales.DispatchAddressMaster dam
-                LEFT JOIN Sales.FreightMaster fm ON dam.FreightId = fm.Id AND fm.IsDeleted = 0
-                LEFT JOIN Sales.MiscMaster fmode ON fm.FreightModeId = fmode.Id AND fmode.IsDeleted = 0
-                LEFT JOIN Sales.MiscMaster fmethod ON fm.RateMethodId = fmethod.Id AND fmethod.IsDeleted = 0
                 WHERE dam.IsDeleted = 0
                 {{(string.IsNullOrWhiteSpace(searchTerm) ? "" : "AND (dam.DispatchAddressName LIKE @Search OR dam.AddressLine1 LIKE @Search)")}}
                 ORDER BY dam.Id DESC
@@ -85,17 +79,11 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAddressMaster
                 SELECT dam.Id, dam.DispatchAddressName, dam.AddressLine1, dam.AddressLine2,
                     dam.CityId, dam.StateId, dam.CountryId, dam.PinCode,
                     dam.ContactPerson, dam.MobileNumber, dam.Email, dam.GSTIN,
-                    dam.Latitude, dam.Longitude, dam.FreightId,
-                    fmode.Description AS FreightModeName,
-                    fmethod.Description AS RateMethodName,
-                    fm.Rate AS FreightRate,
+                    dam.Latitude, dam.Longitude,
                     dam.IsActive, dam.IsDeleted,
                     dam.CreatedBy, dam.CreatedDate, dam.CreatedByName, dam.CreatedIP,
                     dam.ModifiedBy, dam.ModifiedDate, dam.ModifiedByName, dam.ModifiedIP
                 FROM Sales.DispatchAddressMaster dam
-                LEFT JOIN Sales.FreightMaster fm ON dam.FreightId = fm.Id AND fm.IsDeleted = 0
-                LEFT JOIN Sales.MiscMaster fmode ON fm.FreightModeId = fmode.Id AND fmode.IsDeleted = 0
-                LEFT JOIN Sales.MiscMaster fmethod ON fm.RateMethodId = fmethod.Id AND fmethod.IsDeleted = 0
                 WHERE dam.Id = @Id AND dam.IsDeleted = 0";
 
             var dto = await _dbConnection.QueryFirstOrDefaultAsync<DispatchAddressMasterDto>(sql, new { Id = id });
@@ -179,17 +167,6 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAddressMaster
                 row.CityName = cityDict.TryGetValue(row.CityId, out var cn) ? cn : null;
 
             return rows;
-        }
-
-        public async Task<bool> FreightMasterExistsAsync(int freightId)
-        {
-            const string sql = @"
-                SELECT CASE WHEN EXISTS (
-                    SELECT 1 FROM Sales.FreightMaster
-                    WHERE Id = @Id AND IsActive = 1 AND IsDeleted = 0
-                ) THEN 1 ELSE 0 END";
-
-            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { Id = freightId });
         }
 
         public async Task<bool> SoftDeleteValidationAsync(int id)
