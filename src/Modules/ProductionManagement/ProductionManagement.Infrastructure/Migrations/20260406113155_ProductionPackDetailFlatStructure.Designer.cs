@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ProductionManagement.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using ProductionManagement.Infrastructure.Data;
 namespace ProductionManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260406113155_ProductionPackDetailFlatStructure")]
+    partial class ProductionPackDetailFlatStructure
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -722,9 +725,13 @@ namespace ProductionManagement.Infrastructure.Migrations
                         .HasColumnType("varchar(50)")
                         .HasColumnName("ModifiedIP");
 
-                    b.Property<decimal?>("NetWeightPerPack")
+                    b.Property<decimal>("NetWeightPerPack")
                         .HasColumnType("decimal(18,3)")
                         .HasColumnName("NetWeightPerPack");
+
+                    b.Property<int>("NoOfBags")
+                        .HasColumnType("int")
+                        .HasColumnName("NoOfBags");
 
                     b.Property<DateTime>("PackDate")
                         .HasColumnType("date")
@@ -734,9 +741,12 @@ namespace ProductionManagement.Infrastructure.Migrations
                         .HasColumnType("varchar(30)")
                         .HasColumnName("PackNo");
 
-                    b.Property<int?>("PackTypeId")
+                    b.Property<int>("PackTypeId")
                         .HasColumnType("int")
                         .HasColumnName("PackTypeId");
+
+                    b.Property<int?>("PackTypeId1")
+                        .HasColumnType("int");
 
                     b.Property<decimal>("ProductionKgs")
                         .HasColumnType("decimal(18,3)")
@@ -793,6 +803,10 @@ namespace ProductionManagement.Infrastructure.Migrations
                     b.HasIndex("PackDate");
 
                     b.HasIndex("PackTypeId");
+
+                    b.HasIndex("PackTypeId1");
+
+                    b.HasIndex("QualityStatusId");
 
                     b.HasIndex("PackNo", "ProductionYear");
 
@@ -1200,6 +1214,12 @@ namespace ProductionManagement.Infrastructure.Migrations
 
             modelBuilder.Entity("ProductionManagement.Domain.Entities.ProductionPackDetail", b =>
                 {
+                    b.HasOne("ProductionManagement.Domain.Entities.LotMaster", "LotMaster")
+                        .WithMany()
+                        .HasForeignKey("LotId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("ProductionManagement.Domain.Entities.LotMaster", null)
                         .WithMany("ProductionPackDetails")
                         .HasForeignKey("LotMasterId");
@@ -1208,9 +1228,26 @@ namespace ProductionManagement.Infrastructure.Migrations
                         .WithMany("ProductionPackDetailsAsQualityStatus")
                         .HasForeignKey("MiscMasterId");
 
+                    b.HasOne("ProductionManagement.Domain.Entities.PackType", "PackType")
+                        .WithMany()
+                        .HasForeignKey("PackTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("ProductionManagement.Domain.Entities.PackType", null)
                         .WithMany("ProductionPackDetails")
-                        .HasForeignKey("PackTypeId");
+                        .HasForeignKey("PackTypeId1");
+
+                    b.HasOne("ProductionManagement.Domain.Entities.MiscMaster", "QualityStatusMisc")
+                        .WithMany()
+                        .HasForeignKey("QualityStatusId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("LotMaster");
+
+                    b.Navigation("PackType");
+
+                    b.Navigation("QualityStatusMisc");
                 });
 
             modelBuilder.Entity("ProductionManagement.Domain.Entities.RepackingDetail", b =>

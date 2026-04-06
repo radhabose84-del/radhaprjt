@@ -3,40 +3,40 @@ using ProductionManagement.Domain.Entities;
 
 namespace ProductionManagement.UnitTests.Domain
 {
-    public class ProductionPackHeaderEntityTests
+    public class ProductionPackDetailHeaderEntityTests
     {
         [Fact]
-        public void ProductionPackHeader_DefaultIsActive_ShouldBeActive()
+        public void ProductionPackDetail_DefaultIsActive_ShouldBeActive()
         {
-            var entity = new ProductionPackHeader();
+            var entity = new ProductionPackDetail();
             entity.IsActive.Should().Be(Status.Active);
         }
 
         [Fact]
-        public void ProductionPackHeader_DefaultIsDeleted_ShouldBeNotDeleted()
+        public void ProductionPackDetail_DefaultIsDeleted_ShouldBeNotDeleted()
         {
-            var entity = new ProductionPackHeader();
+            var entity = new ProductionPackDetail();
             entity.IsDeleted.Should().Be(IsDelete.NotDeleted);
         }
 
         [Fact]
-        public void ProductionPackHeader_ShouldInheritFromBaseEntity()
+        public void ProductionPackDetail_ShouldInheritFromBaseEntity()
         {
-            typeof(BaseEntity).IsAssignableFrom(typeof(ProductionPackHeader)).Should().BeTrue();
+            typeof(BaseEntity).IsAssignableFrom(typeof(ProductionPackDetail)).Should().BeTrue();
         }
 
         [Fact]
-        public void ProductionPackHeader_DefaultProductionYear_ShouldBeCurrentYear()
+        public void ProductionPackDetail_DefaultProductionYear_ShouldBeCurrentYear()
         {
-            var entity = new ProductionPackHeader();
+            var entity = new ProductionPackDetail();
             entity.ProductionYear.Should().Be(DateTime.Now.Year);
         }
 
         [Fact]
-        public void ProductionPackHeader_Properties_ShouldBeAssignable()
+        public void ProductionPackDetail_Properties_ShouldBeAssignable()
         {
             var packDate = new DateOnly(2025, 6, 1);
-            var entity = new ProductionPackHeader
+            var entity = new ProductionPackDetail
             {
                 Id = 1,
                 PackNo = "PKG-2025-001",
@@ -62,34 +62,23 @@ namespace ProductionManagement.UnitTests.Domain
         }
 
         [Fact]
-        public void ProductionPackHeader_NullableProperties_ShouldAcceptNull()
+        public void ProductionPackDetail_NullableProperties_ShouldAcceptNull()
         {
-            var entity = new ProductionPackHeader
+            var entity = new ProductionPackDetail
             {
                 PackNo = null,
-                Remarks = null
+                Remarks = null,
+                StartPackNo = null,
+                EndPackNo = null,
+                BinId = null,
+                QualityStatusId = null
             };
             entity.PackNo.Should().BeNull();
             entity.Remarks.Should().BeNull();
-        }
-
-        [Fact]
-        public void ProductionPackHeader_CollectionNavigation_ShouldAcceptNull()
-        {
-            var entity = new ProductionPackHeader { ProductionPackDetails = null };
-            entity.ProductionPackDetails.Should().BeNull();
-        }
-
-        [Fact]
-        public void ProductionPackHeader_CollectionNavigation_ShouldBeAssignable()
-        {
-            var details = new List<ProductionPackDetail>
-            {
-                new ProductionPackDetail { Id = 1, ItemId = 10 },
-                new ProductionPackDetail { Id = 2, ItemId = 11 }
-            };
-            var entity = new ProductionPackHeader { ProductionPackDetails = details };
-            entity.ProductionPackDetails.Should().HaveCount(2);
+            entity.StartPackNo.Should().BeNull();
+            entity.EndPackNo.Should().BeNull();
+            entity.BinId.Should().BeNull();
+            entity.QualityStatusId.Should().BeNull();
         }
     }
 }

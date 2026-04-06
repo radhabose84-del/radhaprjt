@@ -29,7 +29,7 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
             _documentSequenceLookup = documentSequenceLookup;
         }
 
-        public async Task<int> CreateAsync(ProductionPackHeader entity, int typeId)
+        public async Task<int> CreateAsync(ProductionPackDetail entity, int typeId)
         {
             var strategy = _applicationDbContext.Database.CreateExecutionStrategy();
 
@@ -38,53 +38,41 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
                 using var transaction = await _applicationDbContext.Database.BeginTransactionAsync();
                 try
                 {
-                    var details = entity.ProductionPackDetails?.ToList();
-                    entity.ProductionPackDetails = null;
-
-                    await _applicationDbContext.ProductionPackHeader.AddAsync(entity);
+                    await _applicationDbContext.ProductionPackDetail.AddAsync(entity);
                     await _applicationDbContext.SaveChangesAsync();
 
-                    if (details != null && details.Count > 0)
+                    // Insert one StockLedger row per physical bag (only when pack range exists)
+                    if (entity.StartPackNo.HasValue && entity.EndPackNo.HasValue)
                     {
-                        foreach (var detail in details)
-                        {
-                            detail.ProductionPackHeaderId = entity.Id;
-                        }
-                        await _applicationDbContext.ProductionPackDetail.AddRangeAsync(details);
-                        await _applicationDbContext.SaveChangesAsync();
-
                         var packedStatus = await _salesMiscMasterLookup.GetByCodeAsync("Packed");
                         var packedStatusId = packedStatus?.Id ?? 0;
 
                         var stockEntries = new List<SalesStockLedgerDto>();
-                        foreach (var detail in details)
+                        for (int packNo = entity.StartPackNo.Value; packNo <= entity.EndPackNo.Value; packNo++)
                         {
-                            for (int packNo = detail.StartPackNo; packNo <= detail.EndPackNo; packNo++)
+                            stockEntries.Add(new SalesStockLedgerDto
                             {
-                                stockEntries.Add(new SalesStockLedgerDto
-                                {
-                                    UnitId = entity.UnitId,
-                                    DocType = "PROD",
-                                    DocNo = entity.Id,
-                                    DetailDocNo = detail.Id,
-                                    DocDate = entity.PackDate.ToDateTime(TimeOnly.MinValue),
-                                    ItemId = detail.ItemId,
-                                    LotId = detail.LotId,
-                                    PackNo = packNo,
-                                    PackTypeId = detail.PackTypeId,
-                                    WarehouseId = entity.WarehouseId,
-                                    BinId = detail.BinId,
-                                    TotalQty = 1,
-                                    TotalValue = detail.NetWeightPerPack,
-                                    StatusId = packedStatusId
-                                });
-                            }
+                                UnitId      = entity.UnitId,
+                                DocType     = "PROD",
+                                DocNo       = entity.Id,
+                                DetailDocNo = 0,
+                                DocDate     = entity.PackDate.ToDateTime(TimeOnly.MinValue),
+                                ItemId      = entity.ItemId,
+                                LotId       = entity.LotId,
+                                PackNo      = packNo,
+                                PackTypeId  = entity.PackTypeId ?? 0,
+                                WarehouseId = entity.WarehouseId,
+                                BinId       = entity.BinId ?? 0,
+                                TotalQty    = 1,
+                                TotalValue  = entity.NetWeightPerPack ?? 0,
+                                StatusId    = packedStatusId
+                            });
                         }
 
                         await _salesStockLedgerLookup.InsertAsync(stockEntries);
                     }
 
-                    var dbConnection = _applicationDbContext.Database.GetDbConnection();
+                    var dbConnection  = _applicationDbContext.Database.GetDbConnection();
                     var dbTransaction = transaction.GetDbTransaction();
                     await _documentSequenceLookup.IncrementDocNoAsync(typeId, dbConnection, dbTransaction);
 
@@ -99,10 +87,9 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
             });
         }
 
-        public async Task<int> UpdateAsync(ProductionPackHeader entity)
+        public async Task<int> UpdateAsync(ProductionPackDetail entity)
         {
-            var existingEntity = await _applicationDbContext.ProductionPackHeader
-                .Include(h => h.ProductionPackDetails)
+            var existingEntity = await _applicationDbContext.ProductionPackDetail
                 .FirstOrDefaultAsync(x => x.Id == entity.Id && x.IsDeleted == IsDelete.NotDeleted);
 
             if (existingEntity == null)
@@ -115,66 +102,60 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
                 using var transaction = await _applicationDbContext.Database.BeginTransactionAsync();
                 try
                 {
-                    existingEntity.PackDate = entity.PackDate;
+                    existingEntity.PackDate       = entity.PackDate;
                     existingEntity.ProductionYear = entity.ProductionYear;
-                    existingEntity.UnitId = entity.UnitId;
-                    existingEntity.WarehouseId = entity.WarehouseId;
-                    existingEntity.TotalBags = entity.TotalBags;
+                    existingEntity.UnitId         = entity.UnitId;
+                    existingEntity.WarehouseId    = entity.WarehouseId;
+                    existingEntity.ItemId         = entity.ItemId;
+                    existingEntity.LotId          = entity.LotId;
+                    existingEntity.PackTypeId     = entity.PackTypeId;
+                    existingEntity.NetWeightPerPack = entity.NetWeightPerPack;
+                    existingEntity.StartPackNo    = entity.StartPackNo;
+                    existingEntity.EndPackNo      = entity.EndPackNo;
+                    existingEntity.TotalBags      = entity.TotalBags;
                     existingEntity.TotalNetWeight = entity.TotalNetWeight;
-                    existingEntity.ProductionKgs = entity.ProductionKgs;
-                    existingEntity.LooseConeKgs = entity.LooseConeKgs;
-                    existingEntity.Remarks = entity.Remarks;
-                    existingEntity.IsActive = entity.IsActive;
+                    existingEntity.ProductionKgs  = entity.ProductionKgs;
+                    existingEntity.LooseConeKgs   = entity.LooseConeKgs;
+                    existingEntity.BinId          = entity.BinId;
+                    existingEntity.QualityStatusId = entity.QualityStatusId;
+                    existingEntity.Remarks        = entity.Remarks;
+                    existingEntity.IsActive       = entity.IsActive;
 
-                    if (existingEntity.ProductionPackDetails != null && existingEntity.ProductionPackDetails.Any())
+                    // Delete existing stock ledger rows for this doc, then re-insert
+                    await _salesStockLedgerLookup.DeleteByDocAsync(
+                        "PROD", existingEntity.Id, existingEntity.ProductionYear, existingEntity.UnitId);
+
+                    if (existingEntity.StartPackNo.HasValue && existingEntity.EndPackNo.HasValue)
                     {
-                        await _salesStockLedgerLookup.DeleteByDocAsync("PROD", existingEntity.Id, existingEntity.ProductionYear, existingEntity.UnitId);
-
-                        _applicationDbContext.ProductionPackDetail.RemoveRange(existingEntity.ProductionPackDetails);
-                    }
-
-                    if (entity.ProductionPackDetails != null && entity.ProductionPackDetails.Any())
-                    {
-                        var newDetails = entity.ProductionPackDetails.ToList();
-                        foreach (var detail in newDetails)
-                        {
-                            detail.ProductionPackHeaderId = existingEntity.Id;
-                        }
-                        await _applicationDbContext.ProductionPackDetail.AddRangeAsync(newDetails);
-                        await _applicationDbContext.SaveChangesAsync();
-
                         var packedStatus = await _salesMiscMasterLookup.GetByCodeAsync("Packed");
                         var packedStatusId = packedStatus?.Id ?? 0;
 
                         var stockEntries = new List<SalesStockLedgerDto>();
-                        foreach (var detail in newDetails)
+                        for (int packNo = existingEntity.StartPackNo.Value; packNo <= existingEntity.EndPackNo.Value; packNo++)
                         {
-                            for (int packNo = detail.StartPackNo; packNo <= detail.EndPackNo; packNo++)
+                            stockEntries.Add(new SalesStockLedgerDto
                             {
-                                stockEntries.Add(new SalesStockLedgerDto
-                                {
-                                    UnitId = existingEntity.UnitId,
-                                    DocType = "PROD",
-                                    DocNo = existingEntity.Id,
-                                    DetailDocNo = detail.Id,
-                                    DocDate = existingEntity.PackDate.ToDateTime(TimeOnly.MinValue),
-                                    ItemId = detail.ItemId,
-                                    LotId = detail.LotId,
-                                    PackNo = packNo,
-                                    PackTypeId = detail.PackTypeId,
-                                    WarehouseId = existingEntity.WarehouseId,
-                                    BinId = detail.BinId,
-                                    TotalQty = 1,
-                                    TotalValue = detail.NetWeightPerPack,
-                                    StatusId = packedStatusId
-                                });
-                            }
+                                UnitId      = existingEntity.UnitId,
+                                DocType     = "PROD",
+                                DocNo       = existingEntity.Id,
+                                DetailDocNo = existingEntity.Id,
+                                DocDate     = existingEntity.PackDate.ToDateTime(TimeOnly.MinValue),
+                                ItemId      = existingEntity.ItemId,
+                                LotId       = existingEntity.LotId,
+                                PackNo      = packNo,
+                                PackTypeId  = existingEntity.PackTypeId ?? 0,
+                                WarehouseId = existingEntity.WarehouseId,
+                                BinId       = existingEntity.BinId ?? 0,
+                                TotalQty    = 1,
+                                TotalValue  = existingEntity.NetWeightPerPack ?? 0,
+                                StatusId    = packedStatusId
+                            });
                         }
 
                         await _salesStockLedgerLookup.InsertAsync(stockEntries);
                     }
 
-                    _applicationDbContext.ProductionPackHeader.Update(existingEntity);
+                    _applicationDbContext.ProductionPackDetail.Update(existingEntity);
                     await _applicationDbContext.SaveChangesAsync();
                     await transaction.CommitAsync();
                     return existingEntity.Id;

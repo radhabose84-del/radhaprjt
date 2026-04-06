@@ -19,8 +19,8 @@ namespace ProductionManagement.Infrastructure.Data
         public DbSet<QualityMaster> QualityMaster => Set<QualityMaster>();
         public DbSet<CertificationMaster> CertificationMaster => Set<CertificationMaster>();
         public DbSet<YarnTwistMaster> YarnTwistMaster => Set<YarnTwistMaster>();
-        public DbSet<ProductionPackHeader> ProductionPackHeader => Set<ProductionPackHeader>();
         public DbSet<ProductionPackDetail> ProductionPackDetail => Set<ProductionPackDetail>();
+        public DbSet<LooseConeLedger> LooseConeLedger => Set<LooseConeLedger>();
         public DbSet<RepackingHeader> RepackingHeader => Set<RepackingHeader>();
         public DbSet<RepackingDetail> RepackingDetail => Set<RepackingDetail>();
 

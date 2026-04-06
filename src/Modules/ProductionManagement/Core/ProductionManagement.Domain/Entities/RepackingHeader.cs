@@ -37,7 +37,7 @@ namespace ProductionManagement.Domain.Entities
 
         // Other
         public string? Remarks { get; set; }
-        public int? LotId { get; set; }
+        public int LotId { get; set; }
         public int? TypeId { get; set; }
 
         // Same-module navigations

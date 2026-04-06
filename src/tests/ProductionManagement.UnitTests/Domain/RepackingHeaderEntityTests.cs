@@ -87,8 +87,7 @@ namespace ProductionManagement.UnitTests.Domain
                 Remarks = null,
                 FaultId = null,
                 WasteTypeId = null,
-                WasteReason = null,
-                LotId = null
+                WasteReason = null
             };
             entity.RepackDocNo.Should().BeNull();
             entity.LooseHandlingId.Should().BeNull();
@@ -96,7 +95,6 @@ namespace ProductionManagement.UnitTests.Domain
             entity.FaultId.Should().BeNull();
             entity.WasteTypeId.Should().BeNull();
             entity.WasteReason.Should().BeNull();
-            entity.LotId.Should().BeNull();
         }
 
         [Fact]

@@ -48,9 +48,15 @@ namespace ProductionManagement.Infrastructure.Repositories.RepackingHeader
                     // Determine type based on ItemId == OldItemId
                     bool isRepacking = entity.ItemId == entity.OldItemId;
                     var typeCode = isRepacking ? "Repacking" : "YarnConversion";
-                    var stockType = await _salesMiscMasterLookup.GetByCodeAsync(typeCode);
-                    var stockTypeId = stockType?.Id;
-                    entity.TypeId = stockTypeId;
+
+                    // TypeId for RepackingHeader → Production.MiscMaster
+                    var prodTypeMaster = await _applicationDbContext.MiscMaster
+                        .FirstOrDefaultAsync(m => m.Code == typeCode && m.IsDeleted == IsDelete.NotDeleted);
+                    entity.TypeId = prodTypeMaster?.Id;
+
+                    // TypeId for Sales.StockLedger entries → Sales.MiscMaster
+                    var salesStockType = await _salesMiscMasterLookup.GetByCodeAsync(typeCode);
+                    var salesStockTypeId = salesStockType?.Id;
 
                     // Fetch source info per detail (provides OldTotalBags for pack-no calc)
                     var sourceInfoMap = new Dictionary<int, StockPackSourceDto?>();
@@ -64,16 +70,52 @@ namespace ProductionManagement.Infrastructure.Repositories.RepackingHeader
                         }
                     }
 
-                    // Auto-calculate StartPackNo/EndPackNo for each detail from header.StartPackNo
-                    int nextPackNo = entity.StartPackNo;
-                    if (entity.RepackingDetails != null)
+                    // Auto-calculate StartPackNo/EndPackNo for each detail
+                    if (isRepacking)
                     {
-                        foreach (var detail in entity.RepackingDetails)
+                        // Repacking: distribute new pack range (header.StartPackNo–EndPackNo) across details.
+                        // For a single detail the entire header range is assigned directly.
+                        // For multiple details packs are distributed proportionally by old bag count,
+                        // with the last detail anchored to header.EndPackNo to absorb any rounding.
+                        int totalNewBags = entity.EndPackNo - entity.StartPackNo + 1;
+                        int totalOldBags = entity.RepackingDetails?.Sum(d =>
+                            sourceInfoMap.GetValueOrDefault(d.OldStartPackNo)?.OldTotalBags ?? 0) ?? 0;
+
+                        if (entity.RepackingDetails != null)
                         {
-                            var oldTotalBags = sourceInfoMap.GetValueOrDefault(detail.OldStartPackNo)?.OldTotalBags ?? 0;
-                            detail.StartPackNo = nextPackNo;
-                            detail.EndPackNo = nextPackNo + oldTotalBags - 1;
-                            nextPackNo = detail.EndPackNo + 1;
+                            int nextPackNo = entity.StartPackNo;
+                            var detailList = entity.RepackingDetails.ToList();
+                            for (int idx = 0; idx < detailList.Count; idx++)
+                            {
+                                var detail = detailList[idx];
+                                bool isLast = idx == detailList.Count - 1;
+                                detail.StartPackNo = nextPackNo;
+                                if (isLast)
+                                {
+                                    detail.EndPackNo = entity.EndPackNo;
+                                }
+                                else
+                                {
+                                    var oldBags = sourceInfoMap.GetValueOrDefault(detail.OldStartPackNo)?.OldTotalBags ?? 0;
+                                    int newBags = totalOldBags > 0
+                                        ? (int)Math.Round((double)oldBags / totalOldBags * totalNewBags)
+                                        : 0;
+                                    detail.EndPackNo = nextPackNo + newBags - 1;
+                                    nextPackNo = detail.EndPackNo + 1;
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // YarnConversion: keep same pack numbers — source packs deleted, new items inserted at same PackNos
+                        if (entity.RepackingDetails != null)
+                        {
+                            foreach (var detail in entity.RepackingDetails)
+                            {
+                                detail.StartPackNo = detail.OldStartPackNo;
+                                detail.EndPackNo = detail.OldEndPackNo;
+                            }
                         }
                     }
 
@@ -95,7 +137,7 @@ namespace ProductionManagement.Infrastructure.Repositories.RepackingHeader
                     }
 
                     // Inherit LotId from source packs (for repacking; yarn conversion uses header LotId)
-                    var lotId = entity.LotId ?? 0;
+                    var lotId = entity.LotId;
                     if (isRepacking && entity.RepackingDetails?.Count > 0)
                     {
                         var firstDetail = entity.RepackingDetails.First();
@@ -130,7 +172,7 @@ namespace ProductionManagement.Infrastructure.Repositories.RepackingHeader
                                     TotalQty = 1,
                                     TotalValue = entity.NetWeightPerPack,
                                     StatusId = packedStatusId,
-                                    TypeId = stockTypeId
+                                    TypeId = salesStockTypeId
                                 });
                             }
                         }
@@ -178,8 +220,14 @@ namespace ProductionManagement.Infrastructure.Repositories.RepackingHeader
 
                     bool isRepacking = entity.ItemId == entity.OldItemId;
                     var typeCode = isRepacking ? "Repacking" : "YarnConversion";
-                    var stockType = await _salesMiscMasterLookup.GetByCodeAsync(typeCode);
-                    var stockTypeId = stockType?.Id;
+
+                    // TypeId for RepackingHeader → Production.MiscMaster
+                    var prodTypeMaster = await _applicationDbContext.MiscMaster
+                        .FirstOrDefaultAsync(m => m.Code == typeCode && m.IsDeleted == IsDelete.NotDeleted);
+
+                    // TypeId for Sales.StockLedger entries → Sales.MiscMaster
+                    var salesStockType = await _salesMiscMasterLookup.GetByCodeAsync(typeCode);
+                    var salesStockTypeId = salesStockType?.Id;
 
                     // Restore old source packs back to Packed (from existing details)
                     if (existingEntity.RepackingDetails != null)
@@ -232,7 +280,7 @@ namespace ProductionManagement.Infrastructure.Repositories.RepackingHeader
                     existingEntity.WasteReason = entity.WasteReason;
                     existingEntity.Remarks = entity.Remarks;
                     existingEntity.LotId = entity.LotId;
-                    existingEntity.TypeId = stockTypeId;
+                    existingEntity.TypeId = prodTypeMaster?.Id;
                     existingEntity.IsActive = entity.IsActive;
 
                     // Replace details: remove old, add new
@@ -253,16 +301,48 @@ namespace ProductionManagement.Infrastructure.Repositories.RepackingHeader
                         }
                     }
 
-                    // Auto-calculate StartPackNo/EndPackNo for each detail from header.StartPackNo
-                    int nextPackNoUpd = existingEntity.StartPackNo;
-                    if (entity.RepackingDetails != null)
+                    // Auto-calculate StartPackNo/EndPackNo for each detail
+                    if (isRepacking)
                     {
-                        foreach (var detail in entity.RepackingDetails)
+                        int totalNewBagsUpd = existingEntity.EndPackNo - existingEntity.StartPackNo + 1;
+                        int totalOldBagsUpd = entity.RepackingDetails?.Sum(d =>
+                            sourceInfoMapUpd.GetValueOrDefault(d.OldStartPackNo)?.OldTotalBags ?? 0) ?? 0;
+
+                        if (entity.RepackingDetails != null)
                         {
-                            var oldTotalBags = sourceInfoMapUpd.GetValueOrDefault(detail.OldStartPackNo)?.OldTotalBags ?? 0;
-                            detail.StartPackNo = nextPackNoUpd;
-                            detail.EndPackNo = nextPackNoUpd + oldTotalBags - 1;
-                            nextPackNoUpd = detail.EndPackNo + 1;
+                            int nextPackNoUpd = existingEntity.StartPackNo;
+                            var detailListUpd = entity.RepackingDetails.ToList();
+                            for (int idx = 0; idx < detailListUpd.Count; idx++)
+                            {
+                                var detail = detailListUpd[idx];
+                                bool isLast = idx == detailListUpd.Count - 1;
+                                detail.StartPackNo = nextPackNoUpd;
+                                if (isLast)
+                                {
+                                    detail.EndPackNo = existingEntity.EndPackNo;
+                                }
+                                else
+                                {
+                                    var oldBags = sourceInfoMapUpd.GetValueOrDefault(detail.OldStartPackNo)?.OldTotalBags ?? 0;
+                                    int newBags = totalOldBagsUpd > 0
+                                        ? (int)Math.Round((double)oldBags / totalOldBagsUpd * totalNewBagsUpd)
+                                        : 0;
+                                    detail.EndPackNo = nextPackNoUpd + newBags - 1;
+                                    nextPackNoUpd = detail.EndPackNo + 1;
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // YarnConversion: keep same pack numbers — source packs deleted, new items inserted at same PackNos
+                        if (entity.RepackingDetails != null)
+                        {
+                            foreach (var detail in entity.RepackingDetails)
+                            {
+                                detail.StartPackNo = detail.OldStartPackNo;
+                                detail.EndPackNo = detail.OldEndPackNo;
+                            }
                         }
                     }
 
@@ -279,7 +359,7 @@ namespace ProductionManagement.Infrastructure.Repositories.RepackingHeader
                     await _applicationDbContext.SaveChangesAsync();
 
                     // Inherit LotId from source packs (for repacking)
-                    var lotId = existingEntity.LotId ?? 0;
+                    var lotId = existingEntity.LotId;
                     if (isRepacking && entity.RepackingDetails?.Count > 0)
                     {
                         var firstDetail = entity.RepackingDetails.First();
@@ -315,7 +395,7 @@ namespace ProductionManagement.Infrastructure.Repositories.RepackingHeader
                                 TotalQty = 1,
                                 TotalValue = existingEntity.NetWeightPerPack,
                                 StatusId = packedStatusId,
-                                TypeId = stockTypeId
+                                TypeId = salesStockTypeId
                             });
                         }
                     }

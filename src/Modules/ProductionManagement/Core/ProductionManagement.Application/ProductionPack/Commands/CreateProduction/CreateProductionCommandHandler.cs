@@ -40,11 +40,9 @@ namespace ProductionManagement.Application.ProductionPack.Commands.CreateProduct
         {
             var details = request.ProductionPackDetails!;
 
-            var entity = _mapper.Map<ProductionPackHeader>(details);
-            entity.UnitId = _ipAddressService.GetUnitId() ?? 0;
-
-            // Get UnitId from JWT token
+            var entity = _mapper.Map<ProductionPackDetail>(details);
             var unitId = _ipAddressService.GetUnitId() ?? 0;
+            entity.UnitId = unitId;
 
             // Generate PackNo from DocumentSequence
             var typeId = await _documentSequenceLookup.GetTransactionTypeIdAsync(

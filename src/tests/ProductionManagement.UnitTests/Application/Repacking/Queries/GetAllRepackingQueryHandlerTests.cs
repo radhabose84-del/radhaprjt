@@ -28,7 +28,7 @@ namespace ProductionManagement.UnitTests.Application.Repacking.Queries
         public async Task Handle_ReturnsSuccess()
         {
             var dtoList = new List<RepackingHeaderDto> { BuildDto() };
-            _mockQueryRepo.Setup(r => r.GetAllAsync(1, 10, null, null)).ReturnsAsync((dtoList, 1));
+            _mockQueryRepo.Setup(r => r.GetAllAsync(1, 10, (string?)null, (int?)null)).ReturnsAsync((dtoList, 1));
             _mockMediator.Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 
             var result = await CreateSut().Handle(
@@ -43,7 +43,7 @@ namespace ProductionManagement.UnitTests.Application.Repacking.Queries
         public async Task Handle_ReturnsPaginationMetadata()
         {
             var dtoList = new List<RepackingHeaderDto> { BuildDto() };
-            _mockQueryRepo.Setup(r => r.GetAllAsync(2, 5, "search", null)).ReturnsAsync((dtoList, 11));
+            _mockQueryRepo.Setup(r => r.GetAllAsync(2, 5, "search", (int?)null)).ReturnsAsync((dtoList, 11));
             _mockMediator.Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 
             var result = await CreateSut().Handle(
@@ -58,7 +58,7 @@ namespace ProductionManagement.UnitTests.Application.Repacking.Queries
         [Fact]
         public async Task Handle_EmptyResult_ReturnsSuccess()
         {
-            _mockQueryRepo.Setup(r => r.GetAllAsync(1, 10, null, null)).ReturnsAsync((new List<RepackingHeaderDto>(), 0));
+            _mockQueryRepo.Setup(r => r.GetAllAsync(1, 10, (string?)null, (int?)null)).ReturnsAsync((new List<RepackingHeaderDto>(), 0));
             _mockMediator.Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 
             var result = await CreateSut().Handle(
@@ -73,7 +73,7 @@ namespace ProductionManagement.UnitTests.Application.Repacking.Queries
         public async Task Handle_PublishesAuditEvent()
         {
             var dtoList = new List<RepackingHeaderDto> { BuildDto() };
-            _mockQueryRepo.Setup(r => r.GetAllAsync(1, 10, null, null)).ReturnsAsync((dtoList, 1));
+            _mockQueryRepo.Setup(r => r.GetAllAsync(1, 10, (string?)null, (int?)null)).ReturnsAsync((dtoList, 1));
             _mockMediator.Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 
             await CreateSut().Handle(

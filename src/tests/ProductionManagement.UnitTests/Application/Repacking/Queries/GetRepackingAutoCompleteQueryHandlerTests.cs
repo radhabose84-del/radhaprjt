@@ -20,7 +20,7 @@ namespace ProductionManagement.UnitTests.Application.Repacking.Queries
             {
                 new() { Id = 1, RepackDocNo = "REPACK-001", RepackDate = DateOnly.FromDateTime(DateTime.Today) }
             };
-            _mockQueryRepo.Setup(r => r.AutocompleteAsync("REPACK", It.IsAny<CancellationToken>(), null))
+            _mockQueryRepo.Setup(r => r.AutocompleteAsync("REPACK", It.IsAny<CancellationToken>(), (int?)null))
                 .ReturnsAsync(lookups);
             _mockMediator.Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 
@@ -35,7 +35,7 @@ namespace ProductionManagement.UnitTests.Application.Repacking.Queries
         [Fact]
         public async Task Handle_EmptyTerm_PassesEmptyString()
         {
-            _mockQueryRepo.Setup(r => r.AutocompleteAsync(string.Empty, It.IsAny<CancellationToken>(), null))
+            _mockQueryRepo.Setup(r => r.AutocompleteAsync(string.Empty, It.IsAny<CancellationToken>(), (int?)null))
                 .ReturnsAsync(new List<RepackingHeaderLookupDto>());
             _mockMediator.Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 
@@ -53,7 +53,7 @@ namespace ProductionManagement.UnitTests.Application.Repacking.Queries
             {
                 new() { Id = 1, RepackDocNo = "REPACK-001", RepackDate = DateOnly.FromDateTime(DateTime.Today) }
             };
-            _mockQueryRepo.Setup(r => r.AutocompleteAsync("test", It.IsAny<CancellationToken>(), null))
+            _mockQueryRepo.Setup(r => r.AutocompleteAsync("test", It.IsAny<CancellationToken>(), (int?)null))
                 .ReturnsAsync(lookups);
             _mockMediator.Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 
