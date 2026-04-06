@@ -1,6 +1,5 @@
 using AutoMapper;
 using SalesManagement.Application.SalesReturn.Commands.CreateSalesReturn;
-using SalesManagement.Application.SalesReturn.Commands.UpdateSalesReturn;
 using SalesManagement.Application.SalesReturn.Dto;
 using SalesManagement.Domain.Entities;
 using static SalesManagement.Domain.Common.BaseEntity;
@@ -14,11 +13,6 @@ namespace SalesManagement.Application.Common.Mappings
             CreateMap<CreateSalesReturnCommand, SalesReturnHeader>()
                 .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => Status.Active))
                 .ForMember(dest => dest.IsDeleted, opt => opt.MapFrom(src => IsDelete.NotDeleted))
-                .ForMember(dest => dest.SalesReturnDetails, opt => opt.Ignore());
-
-            CreateMap<UpdateSalesReturnCommand, SalesReturnHeader>()
-                .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src =>
-                    src.IsActive == 1 ? Status.Active : Status.Inactive))
                 .ForMember(dest => dest.SalesReturnDetails, opt => opt.Ignore());
 
             CreateMap<CreateSalesReturnDetailDto, SalesReturnDetail>()

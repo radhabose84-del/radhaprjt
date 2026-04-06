@@ -43,62 +43,6 @@ namespace SalesManagement.Infrastructure.Repositories.SalesReturn
             });
         }
 
-        public async Task<int> UpdateAsync(SalesReturnHeader entity, List<SalesReturnDetail> details)
-        {
-            var strategy = _dbContext.Database.CreateExecutionStrategy();
-            var resultId = 0;
-
-            await strategy.ExecuteAsync(async () =>
-            {
-                using var transaction = await _dbContext.Database.BeginTransactionAsync();
-                try
-                {
-                    var existing = await _dbContext.SalesReturnHeader
-                        .Include(h => h.SalesReturnDetails)
-                        .FirstOrDefaultAsync(x => x.Id == entity.Id && x.IsDeleted == IsDelete.NotDeleted);
-
-                    if (existing == null)
-                    {
-                        resultId = 0;
-                        return;
-                    }
-
-                    existing.WarehouseId = entity.WarehouseId;
-                    existing.BinId = entity.BinId;
-                    existing.Remarks = entity.Remarks;
-                    existing.IsActive = entity.IsActive;
-
-                    // Remove existing details and add new ones
-                    if (existing.SalesReturnDetails != null && existing.SalesReturnDetails.Count > 0)
-                    {
-                        _dbContext.SalesReturnDetail.RemoveRange(existing.SalesReturnDetails);
-                    }
-
-                    if (details.Count > 0)
-                    {
-                        foreach (var detail in details)
-                        {
-                            detail.SalesReturnHeaderId = existing.Id;
-                            detail.IsActive = Status.Active;
-                            detail.IsDeleted = IsDelete.NotDeleted;
-                            await _dbContext.SalesReturnDetail.AddAsync(detail);
-                        }
-                    }
-
-                    await _dbContext.SaveChangesAsync();
-                    await transaction.CommitAsync();
-                    resultId = existing.Id;
-                }
-                catch
-                {
-                    await transaction.RollbackAsync();
-                    throw;
-                }
-            });
-
-            return resultId;
-        }
-
         public async Task<bool> SoftDeleteAsync(int id, CancellationToken ct)
         {
             var existing = await _dbContext.SalesReturnHeader
