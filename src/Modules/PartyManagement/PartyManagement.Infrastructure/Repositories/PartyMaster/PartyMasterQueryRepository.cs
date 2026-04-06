@@ -89,14 +89,8 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
         public async Task<PartyMasterDto> GetByIdPartyMasterAsync(int id)
         {
             var sql = @"
-            SELECT pm.*,
-                   tm.Description AS TransportModeName,
-                   vt.Description AS VehicleTypeName,
-                   dft.Description AS DefaultFreightTypeName
+            SELECT pm.*
             FROM Party.PartyMaster pm
-            LEFT JOIN Party.MiscMaster tm ON pm.TransportModeId = tm.Id AND tm.IsDeleted = 0
-            LEFT JOIN Party.MiscMaster vt ON pm.VehicleTypeId = vt.Id AND vt.IsDeleted = 0
-            LEFT JOIN Party.MiscMaster dft ON pm.DefaultFreightTypeId = dft.Id AND dft.IsDeleted = 0
             WHERE pm.Id = @Id;
             select A.Id,A.PartyId,A.PartyTypeId,A.PartyGroupId,C.description as GlCategory from Party.PartyType A INNER JOIN Party.PartyGroup B ON A.PartyGroupId=B.Id INNER JOIN Party.MiscMaster C ON B.GlCategoryId=C.Id where a.PartyId=@Id;
             SELECT * FROM Party.PartyContact WHERE PartyId = @Id;
@@ -137,6 +131,25 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
             FROM Party.AgentConfig ac
             LEFT JOIN Party.MiscMaster mm ON ac.SettlementCycleId = mm.Id AND mm.IsDeleted = 0
             WHERE ac.PartyId = @Id;
+            SELECT
+                td.Id,
+                td.PartyId,
+                td.TransportModeId,
+                tm.Description AS TransportModeName,
+                td.VehicleTypeId,
+                vt.Description AS VehicleTypeName,
+                td.DefaultFreightTypeId,
+                dft.Description AS DefaultFreightTypeName,
+                td.DefaultFreightRate,
+                td.LicenseNo,
+                td.LicenseExpiryDate,
+                td.VehicleNo,
+                td.Status
+            FROM Party.TransportDetail td
+            LEFT JOIN Party.MiscMaster tm ON td.TransportModeId = tm.Id AND tm.IsDeleted = 0
+            LEFT JOIN Party.MiscMaster vt ON td.VehicleTypeId = vt.Id AND vt.IsDeleted = 0
+            LEFT JOIN Party.MiscMaster dft ON td.DefaultFreightTypeId = dft.Id AND dft.IsDeleted = 0
+            WHERE td.PartyId = @Id;
 
         ";
 
@@ -154,6 +167,7 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
             partyMaster.PartyUnitCompanyMappings = (await multi.ReadAsync<PartyMasterDto.PartyUnitCompanyMappingDto>()).ToList();
             partyMaster.SalesTypes = (await multi.ReadAsync<PartyMasterDto.SalesTypeDto>()).ToList();
             partyMaster.AgentConfigs = (await multi.ReadAsync<PartyMasterDto.AgentConfigDto>()).ToList();
+            partyMaster.TransportDetails = (await multi.ReadAsync<PartyMasterDto.TransportDetailDto>()).ToList();
 
             // Populate cross-module lookup names for SalesTypes
             if (partyMaster.SalesTypes?.Any() == true)
@@ -620,5 +634,29 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
         // Convert to dictionary: key = MiscTypeCode, value = Description
         return result.ToDictionary(x => x.MiscTypeCode, x => x.Description);
     }
+
+        public async Task<bool> TransportDetailDuplicateExistsAsync(int? defaultFreightTypeId, int? vehicleTypeId, string vehicleNo, int? excludeId = null)
+        {
+            var sql = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1 FROM Party.TransportDetail
+                    WHERE DefaultFreightTypeId = @DefaultFreightTypeId
+                      AND VehicleTypeId = @VehicleTypeId
+                      AND VehicleNo = @VehicleNo
+                      AND Status = 1";
+
+            if (excludeId.HasValue)
+                sql += " AND Id != @ExcludeId";
+
+            sql += ") THEN 1 ELSE 0 END";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new
+            {
+                DefaultFreightTypeId = defaultFreightTypeId,
+                VehicleTypeId = vehicleTypeId,
+                VehicleNo = vehicleNo,
+                ExcludeId = excludeId
+            });
+        }
     }
 }
