@@ -12,17 +12,20 @@ namespace BudgetManagement.Application.BudgetGroups.Command.UpdateBudgetGroup
     public class UpdateBudgetGroupCommandHandler : IRequestHandler<UpdateBudgetGroupCommand, int>
     {
         private readonly IBudgetGroupCommandRepository _budgetGroupCommandRepository;
+        private readonly IBudgetGroupQueryRepository _budgetGroupQueryRepository;
         private readonly IMediator _mediator;
         private readonly IMapper _mapper;
         private readonly IMiscMasterQueryRepository _miscMasterQueryRepo;
 
         public UpdateBudgetGroupCommandHandler(
             IBudgetGroupCommandRepository budgetGroupCommandRepository,
+            IBudgetGroupQueryRepository budgetGroupQueryRepository,
             IMediator mediator,
             IMapper mapper,
             IMiscMasterQueryRepository miscMasterQueryRepo)
         {
             _budgetGroupCommandRepository = budgetGroupCommandRepository;
+            _budgetGroupQueryRepository = budgetGroupQueryRepository;
             _mediator = mediator;
             _mapper = mapper;
             _miscMasterQueryRepo = miscMasterQueryRepo;
@@ -30,6 +33,14 @@ namespace BudgetManagement.Application.BudgetGroups.Command.UpdateBudgetGroup
 
         public async Task<int> Handle(UpdateBudgetGroupCommand request, CancellationToken cancellationToken)
         {
+            if (!request.IsActive)
+            {
+                var isLinked = await _budgetGroupQueryRepository.IsBudgetGroupLinkedAsync(request.Id, cancellationToken);
+                if (isLinked)
+                    throw new ExceptionRules(
+                        "This master is linked with other records. You cannot inactivate this record.");
+            }
+
             // Fetch AllocationRule IDs dynamically from MiscMaster
             var allocationRuleByPercentageId = (await _miscMasterQueryRepo.GetMiscMasterByName(MiscEnumEntity.AllocationType, MiscEnumEntity.AllocationTypePercentage))?.Id;
             var allocationRuleBySpindleId = (await _miscMasterQueryRepo.GetMiscMasterByName(MiscEnumEntity.AllocationType, MiscEnumEntity.AllocationTypeSpindle))?.Id;

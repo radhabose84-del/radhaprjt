@@ -1462,6 +1462,338 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.ToTable("DeliveryChallanHeader", "Sales");
                 });
 
+            modelBuilder.Entity("SalesManagement.Domain.Entities.DiscountMaster", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ApplicableLevelId")
+                        .HasColumnType("int")
+                        .HasColumnName("ApplicableLevelId");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<string>("DiscountCode")
+                        .IsRequired()
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("DiscountCode");
+
+                    b.Property<string>("DiscountName")
+                        .IsRequired()
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("DiscountName");
+
+                    b.Property<int>("DiscountTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("DiscountTypeId");
+
+                    b.Property<decimal?>("DiscountValue")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,4)")
+                        .HasColumnName("DiscountValue");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<int?>("MaxDiscountLimitTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("MaxDiscountLimitTypeId");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<bool>("RequiresApproval")
+                        .HasColumnType("bit")
+                        .HasColumnName("RequiresApproval");
+
+                    b.Property<int?>("SlabTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("SlabTypeId");
+
+                    b.Property<int>("TriggerEventId")
+                        .HasColumnType("int")
+                        .HasColumnName("TriggerEventId");
+
+                    b.Property<int>("ValueTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("ValueTypeId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApplicableLevelId");
+
+                    b.HasIndex("DiscountCode")
+                        .IsUnique();
+
+                    b.HasIndex("DiscountTypeId");
+
+                    b.HasIndex("MaxDiscountLimitTypeId");
+
+                    b.HasIndex("SlabTypeId");
+
+                    b.HasIndex("TriggerEventId");
+
+                    b.HasIndex("ValueTypeId");
+
+                    b.ToTable("DiscountMaster", "Sales");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.DiscountPaymentTerm", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<int>("DiscountMasterId")
+                        .HasColumnType("int")
+                        .HasColumnName("DiscountMasterId");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<int>("PaymentTermId")
+                        .HasColumnType("int")
+                        .HasColumnName("PaymentTermId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DiscountMasterId");
+
+                    b.HasIndex("PaymentTermId");
+
+                    b.HasIndex("DiscountMasterId", "PaymentTermId")
+                        .IsUnique();
+
+                    b.ToTable("DiscountPaymentTerm", "Sales");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.DiscountSalesGroup", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<int>("DiscountMasterId")
+                        .HasColumnType("int")
+                        .HasColumnName("DiscountMasterId");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<int>("SalesGroupId")
+                        .HasColumnType("int")
+                        .HasColumnName("SalesGroupId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DiscountMasterId");
+
+                    b.HasIndex("SalesGroupId");
+
+                    b.HasIndex("DiscountMasterId", "SalesGroupId")
+                        .IsUnique();
+
+                    b.ToTable("DiscountSalesGroup", "Sales");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.DiscountSlab", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<int>("DiscountMasterId")
+                        .HasColumnType("int")
+                        .HasColumnName("DiscountMasterId");
+
+                    b.Property<decimal>("DiscountValue")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,4)")
+                        .HasColumnName("DiscountValue");
+
+                    b.Property<decimal>("FromValue")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,4)")
+                        .HasColumnName("FromValue");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<int>("SlabOrder")
+                        .HasColumnType("int")
+                        .HasColumnName("SlabOrder");
+
+                    b.Property<decimal?>("ToValue")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,4)")
+                        .HasColumnName("ToValue");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DiscountMasterId");
+
+                    b.HasIndex("DiscountMasterId", "SlabOrder")
+                        .IsUnique();
+
+                    b.ToTable("DiscountSlab", "Sales");
+                });
+
             modelBuilder.Entity("SalesManagement.Domain.Entities.DispatchAddressMapping", b =>
                 {
                     b.Property<int>("Id")
@@ -4331,6 +4663,165 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.ToTable("SalesQuotationHeader", "Sales");
                 });
 
+            modelBuilder.Entity("SalesManagement.Domain.Entities.SalesReturnDetail", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BagStatusId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<int>("EndPackNo")
+                        .HasColumnType("int");
+
+                    b.Property<int>("InvoiceDetailId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("InvoiceHeaderId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("ItemId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("LotId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<int?>("PackTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("ReturnQty")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,3)");
+
+                    b.Property<int>("SalesReturnHeaderId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("StartPackNo")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BagStatusId");
+
+                    b.HasIndex("InvoiceDetailId");
+
+                    b.HasIndex("InvoiceHeaderId");
+
+                    b.HasIndex("SalesReturnHeaderId");
+
+                    b.ToTable("SalesReturnDetail", "Sales");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.SalesReturnHeader", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BinId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ComplaintHeaderId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<int>("CustomerId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("Remarks")
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateOnly>("ReturnDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("ReturnNumber")
+                        .IsRequired()
+                        .HasColumnType("varchar(30)");
+
+                    b.Property<int>("StatusId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("WarehouseId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ComplaintHeaderId");
+
+                    b.HasIndex("CustomerId");
+
+                    b.HasIndex("ReturnNumber")
+                        .IsUnique();
+
+                    b.HasIndex("StatusId");
+
+                    b.ToTable("SalesReturnHeader", "Sales");
+                });
+
             modelBuilder.Entity("SalesManagement.Domain.Entities.SalesSegment", b =>
                 {
                     b.Property<int>("Id")
@@ -5248,6 +5739,96 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("StoHeader");
                 });
 
+            modelBuilder.Entity("SalesManagement.Domain.Entities.DiscountMaster", b =>
+                {
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "ApplicableLevel")
+                        .WithMany("DiscountMastersAsApplicableLevel")
+                        .HasForeignKey("ApplicableLevelId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "DiscountType")
+                        .WithMany("DiscountMastersAsDiscountType")
+                        .HasForeignKey("DiscountTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "MaxDiscountLimitType")
+                        .WithMany("DiscountMastersAsMaxDiscountLimitType")
+                        .HasForeignKey("MaxDiscountLimitTypeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "SlabType")
+                        .WithMany("DiscountMastersAsSlabType")
+                        .HasForeignKey("SlabTypeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "TriggerEvent")
+                        .WithMany("DiscountMastersAsTriggerEvent")
+                        .HasForeignKey("TriggerEventId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "ValueType")
+                        .WithMany("DiscountMastersAsValueType")
+                        .HasForeignKey("ValueTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ApplicableLevel");
+
+                    b.Navigation("DiscountType");
+
+                    b.Navigation("MaxDiscountLimitType");
+
+                    b.Navigation("SlabType");
+
+                    b.Navigation("TriggerEvent");
+
+                    b.Navigation("ValueType");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.DiscountPaymentTerm", b =>
+                {
+                    b.HasOne("SalesManagement.Domain.Entities.DiscountMaster", "DiscountMaster")
+                        .WithMany("DiscountPaymentTerms")
+                        .HasForeignKey("DiscountMasterId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("DiscountMaster");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.DiscountSalesGroup", b =>
+                {
+                    b.HasOne("SalesManagement.Domain.Entities.DiscountMaster", "DiscountMaster")
+                        .WithMany("DiscountSalesGroups")
+                        .HasForeignKey("DiscountMasterId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SalesManagement.Domain.Entities.SalesGroup", "SalesGroup")
+                        .WithMany("DiscountSalesGroups")
+                        .HasForeignKey("SalesGroupId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("DiscountMaster");
+
+                    b.Navigation("SalesGroup");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.DiscountSlab", b =>
+                {
+                    b.HasOne("SalesManagement.Domain.Entities.DiscountMaster", "DiscountMaster")
+                        .WithMany("DiscountSlabs")
+                        .HasForeignKey("DiscountMasterId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("DiscountMaster");
+                });
+
             modelBuilder.Entity("SalesManagement.Domain.Entities.DispatchAddressMapping", b =>
                 {
                     b.HasOne("SalesManagement.Domain.Entities.DispatchAddressMaster", "DispatchAddress")
@@ -5692,6 +6273,52 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("StatusMisc");
                 });
 
+            modelBuilder.Entity("SalesManagement.Domain.Entities.SalesReturnDetail", b =>
+                {
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "BagStatus")
+                        .WithMany()
+                        .HasForeignKey("BagStatusId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SalesManagement.Domain.Entities.InvoiceHeader", "InvoiceHeader")
+                        .WithMany()
+                        .HasForeignKey("InvoiceHeaderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SalesManagement.Domain.Entities.SalesReturnHeader", "SalesReturnHeader")
+                        .WithMany("SalesReturnDetails")
+                        .HasForeignKey("SalesReturnHeaderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("BagStatus");
+
+                    b.Navigation("InvoiceHeader");
+
+                    b.Navigation("SalesReturnHeader");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.SalesReturnHeader", b =>
+                {
+                    b.HasOne("SalesManagement.Domain.Entities.ComplaintHeader", "ComplaintHeader")
+                        .WithMany()
+                        .HasForeignKey("ComplaintHeaderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "Status")
+                        .WithMany()
+                        .HasForeignKey("StatusId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ComplaintHeader");
+
+                    b.Navigation("Status");
+                });
+
             modelBuilder.Entity("SalesManagement.Domain.Entities.SalesSegment", b =>
                 {
                     b.HasOne("SalesManagement.Domain.Entities.BusinessUnit", "BusinessUnit")
@@ -5870,6 +6497,15 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("StoReceiptHeaders");
                 });
 
+            modelBuilder.Entity("SalesManagement.Domain.Entities.DiscountMaster", b =>
+                {
+                    b.Navigation("DiscountPaymentTerms");
+
+                    b.Navigation("DiscountSalesGroups");
+
+                    b.Navigation("DiscountSlabs");
+                });
+
             modelBuilder.Entity("SalesManagement.Domain.Entities.DispatchAddressMaster", b =>
                 {
                     b.Navigation("DispatchAddressMappings");
@@ -5901,6 +6537,18 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("AgentCommissionConfigsAsCommissionBasis");
 
                     b.Navigation("DeliveryChallanHeadersAsStatus");
+
+                    b.Navigation("DiscountMastersAsApplicableLevel");
+
+                    b.Navigation("DiscountMastersAsDiscountType");
+
+                    b.Navigation("DiscountMastersAsMaxDiscountLimitType");
+
+                    b.Navigation("DiscountMastersAsSlabType");
+
+                    b.Navigation("DiscountMastersAsTriggerEvent");
+
+                    b.Navigation("DiscountMastersAsValueType");
 
                     b.Navigation("DispatchAddressMappings");
 
@@ -5973,6 +6621,8 @@ namespace SalesManagement.Infrastructure.Migrations
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.SalesGroup", b =>
                 {
+                    b.Navigation("DiscountSalesGroups");
+
                     b.Navigation("OfficerSalesGroups");
 
                     b.Navigation("SalesOrderHeaders");
@@ -6021,6 +6671,11 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("SalesOrderHeaders");
 
                     b.Navigation("SalesQuotationDetails");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.SalesReturnHeader", b =>
+                {
+                    b.Navigation("SalesReturnDetails");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.SalesSegment", b =>
