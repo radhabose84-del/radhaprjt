@@ -82,7 +82,6 @@ namespace SalesManagement.Infrastructure.Data
         public DbSet<DiscountSlab> DiscountSlab { get; set; }
         public DbSet<DiscountSalesGroup> DiscountSalesGroup { get; set; }
         public DbSet<DiscountPaymentTerm> DiscountPaymentTerm { get; set; }
-        public DbSet<FreightMaster> FreightMaster { get; set; }
 
         // ── Outbox (SQL-based for workflow transaction atomicity) ─────────
         public DbSet<OutboxMessage> OutboxMessages { get; set; }
@@ -146,7 +145,6 @@ namespace SalesManagement.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new DiscountSlabConfiguration());
             modelBuilder.ApplyConfiguration(new DiscountSalesGroupConfiguration());
             modelBuilder.ApplyConfiguration(new DiscountPaymentTermConfiguration());
-            modelBuilder.ApplyConfiguration(new FreightMasterConfiguration());
             // ── Outbox (SQL-based for workflow) ─────────────────────────────
             modelBuilder.ApplyConfiguration(new OutboxMessageConfiguration());
 

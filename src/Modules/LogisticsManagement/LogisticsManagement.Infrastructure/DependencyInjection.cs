@@ -1,7 +1,9 @@
 using System.Data;
 using LogisticsManagement.Application.Common.Interfaces;
+using LogisticsManagement.Application.Common.Interfaces.IFreightMaster;
 using LogisticsManagement.Application.Common.Interfaces.IMiscMaster;
 using LogisticsManagement.Application.Common.Interfaces.IMiscTypeMaster;
+using LogisticsManagement.Infrastructure.Repositories.FreightMaster;
 using LogisticsManagement.Infrastructure.Repositories.MiscMaster;
 using LogisticsManagement.Infrastructure.Repositories.MiscTypeMaster;
 using Microsoft.Data.SqlClient;
@@ -86,6 +88,10 @@ namespace LogisticsManagement.Infrastructure
             // MiscMaster repositories
             services.AddScoped<IMiscMasterCommandRepository, MiscMasterCommandRepository>();
             services.AddScoped<IMiscMasterQueryRepository, MiscMasterQueryRepository>();
+
+            // FreightMaster repositories
+            services.AddScoped<IFreightMasterCommandRepository, FreightMasterCommandRepository>();
+            services.AddScoped<IFreightMasterQueryRepository, FreightMasterQueryRepository>();
 
             return services;
         }

@@ -140,6 +140,149 @@ namespace SalesManagement.Infrastructure.Repositories.ComplaintResolution
             return (data, totalCount);
         }
 
+        public async Task<ComplaintResolutionFormDataDto?> GetFormDataByComplaintIdAsync(int complaintHeaderId)
+        {
+            // 1. Complaint header info
+            const string headerSql = @"
+                SELECT
+                    ch.Id AS ComplaintHeaderId,
+                    ch.ComplaintNumber,
+                    ch.ComplaintDate,
+                    ch.CustomerId,
+                    ch.Remarks AS ComplaintRemarks
+                FROM Sales.ComplaintHeader ch
+                WHERE ch.Id = @Id AND ch.IsDeleted = 0;";
+
+            var dto = await _dbConnection.QueryFirstOrDefaultAsync<ComplaintResolutionFormDataDto>(headerSql, new { Id = complaintHeaderId });
+            if (dto == null) return null;
+
+            // Populate CustomerName
+            if (dto.CustomerId > 0)
+            {
+                var party = await _partyLookup.GetByIdAsync(dto.CustomerId);
+                dto.CustomerName = party?.PartyName;
+            }
+
+            // 2. QC Review info
+            const string qcSql = @"
+                SELECT
+                    qcs.Description AS QCStatusName,
+                    sev.Description AS SeverityName,
+                    comp.Description AS CompensationStructureName,
+                    qr.Comments AS QCComments,
+                    qr.ExpectedResolutionDate,
+                    (SELECT COUNT(*) FROM Sales.ComplaintQCReviewAssignment a WHERE a.ComplaintQCReviewId = qr.Id AND a.IsDeleted = 0) AS TotalAssignments,
+                    (SELECT COUNT(*) FROM Sales.ComplaintQCReviewAssignment a
+                     INNER JOIN Sales.ComplaintDepartmentFeedback f ON f.AssignmentId = a.Id AND f.IsDeleted = 0
+                     WHERE a.ComplaintQCReviewId = qr.Id AND a.IsDeleted = 0) AS SubmittedFeedbacks
+                FROM Sales.ComplaintQCReview qr
+                LEFT JOIN Sales.MiscMaster qcs ON qr.ComplaintStatusId = qcs.Id AND qcs.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster sev ON qr.SeverityId = sev.Id AND sev.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster comp ON qr.CompensationStructureId = comp.Id AND comp.IsDeleted = 0
+                WHERE qr.ComplaintHeaderId = @Id AND qr.IsDeleted = 0;";
+
+            var qcData = await _dbConnection.QueryFirstOrDefaultAsync<dynamic>(qcSql, new { Id = complaintHeaderId });
+            if (qcData != null)
+            {
+                dto.QCStatusName = (string?)qcData.QCStatusName;
+                dto.SeverityName = (string?)qcData.SeverityName;
+                dto.CompensationStructureName = (string?)qcData.CompensationStructureName;
+                dto.QCComments = (string?)qcData.QCComments;
+                dto.ExpectedResolutionDate = qcData.ExpectedResolutionDate != null ? DateOnly.FromDateTime((DateTime)qcData.ExpectedResolutionDate) : null;
+                dto.TotalAssignments = (int?)qcData.TotalAssignments ?? 0;
+                dto.SubmittedFeedbacks = (int?)qcData.SubmittedFeedbacks ?? 0;
+            }
+
+            // 3. Feedback summary
+            const string feedbackSql = @"
+                SELECT
+                    role.Description AS RoleName,
+                    a.ResponsiblePersonId,
+                    f.RootCauseText,
+                    f.CorrectiveAction,
+                    f.PreventiveAction,
+                    CASE
+                        WHEN f.Id IS NULL THEN 'Pending'
+                        ELSE fs.Description
+                    END AS FeedbackStatusName
+                FROM Sales.ComplaintQCReviewAssignment a
+                INNER JOIN Sales.ComplaintQCReview qr ON a.ComplaintQCReviewId = qr.Id AND qr.IsDeleted = 0
+                LEFT JOIN Sales.ComplaintDepartmentFeedback f ON f.AssignmentId = a.Id AND f.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster role ON a.RoleId = role.Id AND role.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster fs ON f.FeedbackStatusId = fs.Id AND fs.IsDeleted = 0
+                WHERE qr.ComplaintHeaderId = @Id AND a.IsDeleted = 0;";
+
+            var feedbacks = (await _dbConnection.QueryAsync<FeedbackSummaryDto>(feedbackSql, new { Id = complaintHeaderId })).ToList();
+
+            // Populate ResponsiblePersonName
+            if (feedbacks.Count > 0)
+            {
+                var personSql = @"
+                    SELECT a.ResponsiblePersonId
+                    FROM Sales.ComplaintQCReviewAssignment a
+                    INNER JOIN Sales.ComplaintQCReview qr ON a.ComplaintQCReviewId = qr.Id AND qr.IsDeleted = 0
+                    WHERE qr.ComplaintHeaderId = @Id AND a.IsDeleted = 0;";
+                var personIds = (await _dbConnection.QueryAsync<int>(personSql, new { Id = complaintHeaderId })).Distinct().ToList();
+
+                if (personIds.Count > 0)
+                {
+                    var users = await _userLookup.GetByIdsAsync(personIds);
+                    var userDict = users.ToDictionary(u => u.UserId, u => $"{u.FirstName} {u.LastName}".Trim());
+
+                    // Re-query to get ResponsiblePersonId mapping
+                    var assignmentSql = @"
+                        SELECT a.Id, a.ResponsiblePersonId
+                        FROM Sales.ComplaintQCReviewAssignment a
+                        INNER JOIN Sales.ComplaintQCReview qr ON a.ComplaintQCReviewId = qr.Id AND qr.IsDeleted = 0
+                        WHERE qr.ComplaintHeaderId = @Id AND a.IsDeleted = 0
+                        ORDER BY a.Id;";
+                    var assignments = (await _dbConnection.QueryAsync<(int Id, int ResponsiblePersonId)>(assignmentSql, new { Id = complaintHeaderId })).ToList();
+
+                    for (int i = 0; i < feedbacks.Count && i < assignments.Count; i++)
+                    {
+                        if (userDict.TryGetValue(assignments[i].ResponsiblePersonId, out var name))
+                            feedbacks[i].ResponsiblePersonName = name;
+                    }
+                }
+            }
+
+            dto.Feedbacks = feedbacks;
+
+            // 4. Complaint items
+            const string itemsSql = @"
+                SELECT
+                    cd.InvoiceHeaderId,
+                    ih.InvoiceNo,
+                    ih.InvoiceDate,
+                    cd.ItemId,
+                    cd.LotId,
+                    cd.NumberOfPacks,
+                    cd.NetWeight,
+                    cd.InvoiceAmount
+                FROM Sales.ComplaintDetail cd
+                INNER JOIN Sales.InvoiceHeader ih ON cd.InvoiceHeaderId = ih.Id AND ih.IsDeleted = 0
+                WHERE cd.ComplaintHeaderId = @Id AND cd.IsDeleted = 0;";
+
+            var items = (await _dbConnection.QueryAsync<ComplaintItemDto>(itemsSql, new { Id = complaintHeaderId })).ToList();
+
+            if (items.Count > 0)
+            {
+                var itemIds = items.Select(i => i.ItemId).Distinct();
+                var itemLookups = await _itemLookup.GetByIdsAsync(itemIds);
+                var itemDict = itemLookups.ToDictionary(i => i.Id, i => i.ItemName);
+
+                foreach (var item in items)
+                    item.ItemName = itemDict.TryGetValue(item.ItemId, out var name) ? name : null;
+            }
+
+            dto.Items = items;
+
+            // 5. Existing resolution (if any)
+            dto.ExistingResolution = await GetByComplaintHeaderIdAsync(complaintHeaderId);
+
+            return dto;
+        }
+
         public async Task<ComplaintResolutionDto?> GetByIdAsync(int id)
         {
             return await GetResolutionAsync("cr.Id = @Id", new { Id = id });
