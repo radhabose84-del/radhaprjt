@@ -24,14 +24,16 @@ namespace SalesManagement.Presentation.Controllers
             [FromQuery] int PageNumber,
             [FromQuery] int PageSize,
             [FromQuery] string? SearchTerm = null,
-            [FromQuery] string? StatusFilter = null)
+            [FromQuery] string? StatusFilter = null,
+            [FromQuery] bool MyPendingOnly = false)
         {
             var result = await Mediator.Send(new GetAllComplaintDepartmentFeedbackQuery
             {
                 PageNumber = PageNumber,
                 PageSize = PageSize,
                 SearchTerm = SearchTerm,
-                StatusFilter = StatusFilter
+                StatusFilter = StatusFilter,
+                MyPendingOnly = MyPendingOnly
             });
 
             return Ok(new

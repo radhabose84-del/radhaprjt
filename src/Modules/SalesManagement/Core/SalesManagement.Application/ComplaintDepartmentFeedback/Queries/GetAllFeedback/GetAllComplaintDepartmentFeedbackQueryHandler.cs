@@ -1,4 +1,5 @@
 using Contracts.Common;
+using Contracts.Interfaces;
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.IComplaintDepartmentFeedback;
 using SalesManagement.Application.ComplaintDepartmentFeedback.Dto;
@@ -9,19 +10,23 @@ namespace SalesManagement.Application.ComplaintDepartmentFeedback.Queries.GetAll
     public class GetAllComplaintDepartmentFeedbackQueryHandler : IRequestHandler<GetAllComplaintDepartmentFeedbackQuery, ApiResponseDTO<List<FeedbackListDto>>>
     {
         private readonly IComplaintDepartmentFeedbackQueryRepository _queryRepository;
+        private readonly IIPAddressService _ipAddressService;
         private readonly IMediator _mediator;
 
         public GetAllComplaintDepartmentFeedbackQueryHandler(
             IComplaintDepartmentFeedbackQueryRepository queryRepository,
+            IIPAddressService ipAddressService,
             IMediator mediator)
         {
             _queryRepository = queryRepository;
+            _ipAddressService = ipAddressService;
             _mediator = mediator;
         }
 
         public async Task<ApiResponseDTO<List<FeedbackListDto>>> Handle(GetAllComplaintDepartmentFeedbackQuery request, CancellationToken cancellationToken)
         {
-            var (data, totalCount) = await _queryRepository.GetAllAsync(request.PageNumber, request.PageSize, request.SearchTerm, request.StatusFilter);
+            int? responsiblePersonId = request.MyPendingOnly ? _ipAddressService.GetUserId() : null;
+            var (data, totalCount) = await _queryRepository.GetAllAsync(request.PageNumber, request.PageSize, request.SearchTerm, request.StatusFilter, responsiblePersonId);
 
             var domainEvent = new AuditLogsDomainEvent(
                 actionDetail: "GetAll",
