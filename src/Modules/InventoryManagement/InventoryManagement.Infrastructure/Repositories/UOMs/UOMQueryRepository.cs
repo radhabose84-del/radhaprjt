@@ -154,7 +154,7 @@ namespace InventoryManagement.Infrastructure.Repositories.UOMs
                         UOMName, 
                         UOMTypeId, 
                         IsActive 
-                    FROM [Inventory].[Inventory].[uom]  
+                    FROM [Inventory].[UOM]
                     WHERE IsDeleted = 0";
 
                 var result = await _dbConnection.QueryAsync<UOMDto>(query);

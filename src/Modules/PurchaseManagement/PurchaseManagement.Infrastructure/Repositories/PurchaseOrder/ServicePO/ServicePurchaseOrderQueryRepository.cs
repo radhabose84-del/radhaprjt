@@ -650,7 +650,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.ServicePO
                         WHEN EXISTS (
                             SELECT 1
                             FROM Purchase.ServiceEntrySheets ses
-                            INNER JOIN Purchase.Purchase.PurchaseOrderServiceSchedule sch
+                            INNER JOIN Purchase.PurchaseOrderServiceSchedule sch
                                 ON sch.Id = ses.ScheduleId
                                 AND ISNULL(sch.IsDeleted, 0) = 0
                             INNER JOIN Purchase.PurchaseOrderServiceLine l
