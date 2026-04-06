@@ -23,11 +23,13 @@ namespace LogisticsManagement.Infrastructure.Data
         // ── DbSets ────────────────────────────────────────────────────────────
         public DbSet<MiscTypeMaster> MiscTypeMaster { get; set; }
         public DbSet<MiscMaster> MiscMaster { get; set; }
+        public DbSet<FreightMaster> FreightMaster { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfiguration(new MiscTypeMasterConfiguration());
             modelBuilder.ApplyConfiguration(new MiscMasterConfiguration());
+            modelBuilder.ApplyConfiguration(new FreightMasterConfiguration());
 
             // Global convention: set explicit precision/scale for all decimal properties
             foreach (var property in modelBuilder.Model.GetEntityTypes()
