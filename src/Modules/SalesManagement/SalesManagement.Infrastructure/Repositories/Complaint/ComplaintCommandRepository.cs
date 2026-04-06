@@ -156,6 +156,37 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
             {
                 existing.StatusId = statusEntity.Id;
                 await _dbContext.SaveChangesAsync(ct);
+
+                // Auto-create QC Review record when complaint is Approved
+                if (status == "Approved")
+                {
+                    var qcReviewExists = await _dbContext.ComplaintQCReview
+                        .AnyAsync(x => x.ComplaintHeaderId == id && x.IsDeleted == IsDelete.NotDeleted, ct);
+
+                    if (!qcReviewExists)
+                    {
+                        // Get Pending status for PhysicalVerification
+                        var pendingPV = await _dbContext.MiscMaster
+                            .Include(m => m.MiscTypeMaster)
+                            .FirstOrDefaultAsync(m =>
+                                m.MiscTypeMaster != null &&
+                                m.MiscTypeMaster.MiscTypeCode == "PhysicalVerification" &&
+                                m.Code == "Pending" &&
+                                m.IsDeleted == IsDelete.NotDeleted, ct);
+
+                        var qcReview = new Domain.Entities.ComplaintQCReview
+                        {
+                            ComplaintHeaderId = id,
+                            PhysicalVerificationId = pendingPV?.Id ?? 0,
+                            LabVerificationRequired = false,
+                            IsActive = Status.Active,
+                            IsDeleted = IsDelete.NotDeleted
+                        };
+
+                        await _dbContext.ComplaintQCReview.AddAsync(qcReview, ct);
+                        await _dbContext.SaveChangesAsync(ct);
+                    }
+                }
             }
         }
 

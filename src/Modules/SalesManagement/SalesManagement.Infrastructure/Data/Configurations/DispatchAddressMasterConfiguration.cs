@@ -129,6 +129,7 @@ namespace SalesManagement.Infrastructure.Data.Configurations
 
             builder.HasIndex(t => t.CountryId)
                 .HasDatabaseName("IX_DispatchAddressMaster_CountryId");
+
         }
     }
 }

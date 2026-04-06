@@ -2177,6 +2177,80 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.ToTable("DispatchAdviceHeader", "Sales");
                 });
 
+            modelBuilder.Entity("SalesManagement.Domain.Entities.FreightMaster", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<int>("FreightModeId")
+                        .HasColumnType("int")
+                        .HasColumnName("FreightModeId");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<decimal>("Rate")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("Rate");
+
+                    b.Property<int>("RateMethodId")
+                        .HasColumnType("int")
+                        .HasColumnName("RateMethodId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FreightModeId");
+
+                    b.HasIndex("RateMethodId");
+
+                    b.HasIndex("FreightModeId", "RateMethodId")
+                        .IsUnique();
+
+                    b.ToTable("FreightMaster", "Sales");
+                });
+
             modelBuilder.Entity("SalesManagement.Domain.Entities.InvoiceDetail", b =>
                 {
                     b.Property<int>("Id")
@@ -5894,6 +5968,25 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("StatusMisc");
                 });
 
+            modelBuilder.Entity("SalesManagement.Domain.Entities.FreightMaster", b =>
+                {
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "FreightMode")
+                        .WithMany("FreightMastersAsFreightMode")
+                        .HasForeignKey("FreightModeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "RateMethod")
+                        .WithMany("FreightMastersAsRateMethod")
+                        .HasForeignKey("RateMethodId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("FreightMode");
+
+                    b.Navigation("RateMethod");
+                });
+
             modelBuilder.Entity("SalesManagement.Domain.Entities.InvoiceDetail", b =>
                 {
                     b.HasOne("SalesManagement.Domain.Entities.InvoiceHeader", "InvoiceHeader")
@@ -6553,6 +6646,10 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("DispatchAddressMappings");
 
                     b.Navigation("DispatchAdviceHeadersAsStatus");
+
+                    b.Navigation("FreightMastersAsFreightMode");
+
+                    b.Navigation("FreightMastersAsRateMethod");
 
                     b.Navigation("InvoiceHeadersAsStatus");
 

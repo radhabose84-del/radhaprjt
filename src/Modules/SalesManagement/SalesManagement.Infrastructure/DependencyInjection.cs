@@ -84,8 +84,12 @@ using SalesManagement.Application.Common.Interfaces.IComplaintDepartmentFeedback
 using SalesManagement.Application.Common.Interfaces.IComplaintResolution;
 using SalesManagement.Application.Common.Interfaces.ISalesReturn;
 using SalesManagement.Infrastructure.Repositories.SalesReturn;
+using SalesManagement.Application.Common.Interfaces.IAgentPortal;
+using SalesManagement.Infrastructure.Repositories.AgentPortal;
 using SalesManagement.Application.Common.Interfaces.IDiscountMaster;
 using SalesManagement.Infrastructure.Repositories.DiscountMaster;
+using SalesManagement.Application.Common.Interfaces.IFreightMaster;
+using SalesManagement.Infrastructure.Repositories.FreightMaster;
 using SalesManagement.Infrastructure.Repositories.ComplaintDepartmentFeedback;
 using SalesManagement.Infrastructure.Repositories.ComplaintResolution;
 using Contracts.Interfaces.Lookups.Sales;
@@ -312,9 +316,16 @@ namespace SalesManagement.Infrastructure
             services.AddScoped<ISalesReturnCommandRepository, SalesReturnCommandRepository>();
             services.AddScoped<ISalesReturnQueryRepository, SalesReturnQueryRepository>();
 
+            // ── Agent Portal Repository ────────────────────────────────────────
+            services.AddScoped<IAgentPortalQueryRepository, AgentPortalQueryRepository>();
+
             // ── Discount Master ────────────────────────────────────────────────
             services.AddScoped<IDiscountMasterCommandRepository, DiscountMasterCommandRepository>();
             services.AddScoped<IDiscountMasterQueryRepository, DiscountMasterQueryRepository>();
+
+            // ── Freight Master ─────────────────────────────────────────────────
+            services.AddScoped<IFreightMasterCommandRepository, FreightMasterCommandRepository>();
+            services.AddScoped<IFreightMasterQueryRepository, FreightMasterQueryRepository>();
 
             // ── Stock Ledger Report Repository ───────────────────────────────────
             services.AddScoped<IStockLedgerReportRepository, StockLedgerReportRepository>();
