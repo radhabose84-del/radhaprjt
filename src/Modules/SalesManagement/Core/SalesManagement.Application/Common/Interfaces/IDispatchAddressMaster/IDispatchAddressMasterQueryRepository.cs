@@ -12,6 +12,7 @@ namespace SalesManagement.Application.Common.Interfaces.IDispatchAddressMaster
         Task<bool> CityExistsAsync(int cityId);
         Task<bool> StateExistsAsync(int stateId);
         Task<bool> CountryExistsAsync(int countryId);
+        Task<bool> FreightMasterExistsAsync(int freightId);
         Task<bool> SoftDeleteValidationAsync(int id);
     }
 }

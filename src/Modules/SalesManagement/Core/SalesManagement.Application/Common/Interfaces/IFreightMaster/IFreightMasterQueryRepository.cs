@@ -11,5 +11,7 @@ namespace SalesManagement.Application.Common.Interfaces.IFreightMaster
         Task<bool> NotFoundAsync(int id);
         Task<bool> MiscMasterExistsAsync(int id);
         Task<bool> IsValidModeMethodCombinationAsync(int freightModeId, int rateMethodId);
+        Task<bool> SoftDeleteValidationAsync(int id);
+        Task<bool> IsFreightMasterLinkedAsync(int id);
     }
 }
