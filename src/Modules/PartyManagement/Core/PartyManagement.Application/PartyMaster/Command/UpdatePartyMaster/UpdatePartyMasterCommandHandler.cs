@@ -106,6 +106,21 @@ namespace PartyManagement.Application.PartyMaster.Command.UpdatePartyMaster
                     request.UpdatePartyMaster.AgentConfigsUpdate = null;
             }
 
+            // ------------------- Clean TransportDetails -------------------
+            if (request.UpdatePartyMaster.TransportDetailsUpdate != null)
+            {
+                request.UpdatePartyMaster.TransportDetailsUpdate = request.UpdatePartyMaster.TransportDetailsUpdate
+                    .Where(t =>
+                        t.DefaultFreightTypeId != 0 &&
+                        t.VehicleTypeId != 0 &&
+                        t.DefaultFreightRate > 0 &&
+                        !string.IsNullOrWhiteSpace(t.VehicleNo))
+                    .ToList();
+
+                if (request.UpdatePartyMaster.TransportDetailsUpdate.Count == 0)
+                    request.UpdatePartyMaster.TransportDetailsUpdate = null;
+            }
+
             // Map DTO to Entity (Fix: Pass full DTO, not just Id)
             var partyEntity = _mapper.Map<PartyManagement.Domain.Entities.PartyMaster>(request.UpdatePartyMaster);
 

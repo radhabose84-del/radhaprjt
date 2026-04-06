@@ -117,7 +117,7 @@ namespace UserManagement.IntegrationTests.Repositories.Unit
             if (existing != null)
                 return existing.Id;
 
-            var miscType = new MiscTypeMaster
+            var miscType = new UserManagement.Domain.Entities.MiscTypeMaster
             {
                 MiscTypeCode = "UNITTYPE",
                 Description = "Unit Type",
@@ -135,7 +135,7 @@ namespace UserManagement.IntegrationTests.Repositories.Unit
             if (existing != null)
                 return existing.Id;
 
-            var miscMaster = new MiscMaster
+            var miscMaster = new UserManagement.Domain.Entities.MiscMaster
             {
                 MiscTypeId = miscTypeId,
                 Code = "PLANT",

@@ -15,12 +15,13 @@ namespace BudgetManagement.UnitTests.Application.BudgetGroup.Commands
     public sealed class UpdateBudgetGroupCommandHandlerTests
     {
         private readonly Mock<IBudgetGroupCommandRepository> _mockCommandRepo = new(MockBehavior.Strict);
+        private readonly Mock<IBudgetGroupQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Loose);
         private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Loose);
         private readonly Mock<IMiscMasterQueryRepository> _mockMiscMasterQueryRepo = new(MockBehavior.Strict);
 
         private UpdateBudgetGroupCommandHandler CreateSut() =>
-            new(_mockCommandRepo.Object, _mockMediator.Object, _mockMapper.Object, _mockMiscMasterQueryRepo.Object);
+            new(_mockCommandRepo.Object, _mockQueryRepo.Object, _mockMediator.Object, _mockMapper.Object, _mockMiscMasterQueryRepo.Object);
 
         private void SetupMiscMasterLookups()
         {

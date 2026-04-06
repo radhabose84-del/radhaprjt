@@ -30,7 +30,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.ActivityCheckListMas
                     DECLARE @TotalCount INT;
                     SELECT @TotalCount = COUNT(DISTINCT aclm.Id)
                     FROM Maintenance.ActivityCheckListMaster aclm
-                    INNER JOIN Maintenance.ActivityMaster am 
+                    INNER JOIN Maintenance.ActivityMaster am
                         ON aclm.ActivityID = am.Id
                     WHERE aclm.IsDeleted = 0 AND aclm.UnitId = @UnitId   AND am.UnitId = @UnitId  
                     {{(string.IsNullOrEmpty(SearchTerm) ? "" : "AND (am.ActivityName LIKE @Search OR aclm.ActivityChecklist LIKE @Search)")}};

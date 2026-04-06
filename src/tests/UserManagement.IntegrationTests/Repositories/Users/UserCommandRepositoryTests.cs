@@ -41,14 +41,14 @@ public sealed class UserCommandRepositoryTests
                 b.Property(x => x.CreatedIP).IsRequired(false);
             });
 
-            modelBuilder.Entity<MiscTypeMaster>(b =>
+            modelBuilder.Entity<UserManagement.Domain.Entities.MiscTypeMaster>(b =>
             {
                 b.Property(x => x.CreatedByName).IsRequired(false);
                 b.Property(x => x.CreatedIP).IsRequired(false);
                 b.Property(x => x.Description).IsRequired(false);
             });
 
-            modelBuilder.Entity<MiscMaster>(b =>
+            modelBuilder.Entity<UserManagement.Domain.Entities.MiscMaster>(b =>
             {
                 b.Property(x => x.CreatedByName).IsRequired(false);
                 b.Property(x => x.CreatedIP).IsRequired(false);
@@ -251,7 +251,7 @@ public sealed class UserCommandRepositoryTests
     {
         var (sut, db) = CreateSut();
 
-        var type = new MiscTypeMaster
+        var type = new UserManagement.Domain.Entities.MiscTypeMaster
         {
             Id = 77,
             MiscTypeCode = "ROLE",
@@ -260,7 +260,7 @@ public sealed class UserCommandRepositoryTests
             CreatedByName = "test-user",
             CreatedIP = "127.0.0.1"
         };
-        var misc = new MiscMaster
+        var misc = new UserManagement.Domain.Entities.MiscMaster
         {
             Id = 1234,
             MiscTypeId = 77,
@@ -270,8 +270,8 @@ public sealed class UserCommandRepositoryTests
             CreatedByName = "test-user",
             CreatedIP = "127.0.0.1"
         };
-        await db.Set<MiscTypeMaster>().AddAsync(type);
-        await db.Set<MiscMaster>().AddAsync(misc);
+        await db.Set<UserManagement.Domain.Entities.MiscTypeMaster>().AddAsync(type);
+        await db.Set<UserManagement.Domain.Entities.MiscMaster>().AddAsync(misc);
         await db.SaveChangesAsync();
 
         var id = await sut.GetMiscmasterByIdAsync("ROLE", "ADMIN");
