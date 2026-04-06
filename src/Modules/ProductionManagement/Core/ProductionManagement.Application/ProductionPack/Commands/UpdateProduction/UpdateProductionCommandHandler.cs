@@ -36,7 +36,7 @@ namespace ProductionManagement.Application.ProductionPack.Commands.UpdateProduct
             UpdateProductionCommand request,
             CancellationToken cancellationToken)
         {
-            var entity = _mapper.Map<ProductionPackHeader>(request.ProductionPackDetails!);
+            var entity = _mapper.Map<ProductionPackDetail>(request.ProductionPackDetails!);
             entity.UnitId = _ipAddressService.GetUnitId() ?? 0;
 
             var result = await _commandRepository.UpdateAsync(entity);

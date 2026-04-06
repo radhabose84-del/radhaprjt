@@ -14,25 +14,28 @@ namespace ProductionManagement.UnitTests.Validators.Production
         private CreateProductionCommandValidator CreateValidator() =>
             new(TestMaxLengthProviderFactory.Create(), _mockQueryRepo.Object);
 
+        private static CreateProductionDto ValidDto() => new()
+        {
+            WarehouseId = 1,
+            ItemId = 1,
+            LotId = 1,
+            PackTypeId = 1,
+            StartPackNo = 1,
+            EndPackNo = 5,
+            BinId = 1,
+            QualityStatusId = 1,
+            NetWeightPerPack = 10m,
+            NoOfBags = 5,
+            TotalBags = 5,
+            TotalNetWeight = 50m,
+            ProductionKgs = 48m,
+            LooseConeKgs = 2m
+        };
+
         [Fact]
         public async Task Validate_NullDetails_FailsValidation()
         {
             var cmd = new CreateProductionCommand { ProductionPackDetails = null };
-            var result = await CreateValidator().TestValidateAsync(cmd);
-            result.ShouldHaveAnyValidationError();
-        }
-
-        [Fact]
-        public async Task Validate_EmptyDetailLines_FailsValidation()
-        {
-            var cmd = new CreateProductionCommand
-            {
-                ProductionPackDetails = new CreateProductionDto
-                {
-                    WarehouseId = 1,
-                    ProductionPackDetails = new List<CreateProductionPackDetailDto>()
-                }
-            };
             var result = await CreateValidator().TestValidateAsync(cmd);
             result.ShouldHaveAnyValidationError();
         }
@@ -50,14 +53,7 @@ namespace ProductionManagement.UnitTests.Validators.Production
 
             var cmd = new CreateProductionCommand
             {
-                ProductionPackDetails = new CreateProductionDto
-                {
-                    WarehouseId = 1,
-                    ProductionPackDetails = new List<CreateProductionPackDetailDto>
-                    {
-                        new() { LotId = 1, ItemId = 1, PackTypeId = 1, StartPackNo = 1, EndPackNo = 5, BinId = 1, QualityStatusId = 1, NetWeightPerPack = 10m, TotalBags = 5, TotalNetWeight = 50m }
-                    }
-                }
+                ProductionPackDetails = ValidDto()
             };
             var result = await CreateValidator().TestValidateAsync(cmd);
             result.ShouldNotHaveAnyValidationErrors();

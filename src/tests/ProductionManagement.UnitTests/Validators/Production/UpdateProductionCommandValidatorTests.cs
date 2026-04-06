@@ -14,6 +14,26 @@ namespace ProductionManagement.UnitTests.Validators.Production
         private UpdateProductionCommandValidator CreateValidator() =>
             new(TestMaxLengthProviderFactory.Create(), _mockQueryRepo.Object);
 
+        private static UpdateProductionDto ValidDto(int id = 1) => new()
+        {
+            Id = id,
+            WarehouseId = 1,
+            IsActive = 1,
+            ItemId = 1,
+            LotId = 1,
+            PackTypeId = 1,
+            StartPackNo = 1,
+            EndPackNo = 5,
+            BinId = 1,
+            QualityStatusId = 1,
+            NetWeightPerPack = 10m,
+            NoOfBags = 5,
+            TotalBags = 5,
+            TotalNetWeight = 50m,
+            ProductionKgs = 48m,
+            LooseConeKgs = 2m
+        };
+
         [Fact]
         public async Task Validate_NullDetails_FailsValidation()
         {
@@ -28,15 +48,7 @@ namespace ProductionManagement.UnitTests.Validators.Production
             _mockQueryRepo.Setup(r => r.NotFoundAsync(0)).ReturnsAsync(true);
             var cmd = new UpdateProductionCommand
             {
-                ProductionPackDetails = new UpdateProductionDto
-                {
-                    Id = 0,
-                    WarehouseId = 1,
-                    ProductionPackDetails = new List<UpdateProductionPackDetailDto>
-                    {
-                        new() { LotId = 1, ItemId = 1, PackTypeId = 1, StartPackNo = 1, EndPackNo = 5, BinId = 1, QualityStatusId = 1, NetWeightPerPack = 10m, TotalBags = 5, TotalNetWeight = 50m }
-                    }
-                }
+                ProductionPackDetails = ValidDto(id: 0)
             };
             var result = await CreateValidator().TestValidateAsync(cmd);
             result.ShouldHaveAnyValidationError();
@@ -56,16 +68,7 @@ namespace ProductionManagement.UnitTests.Validators.Production
 
             var cmd = new UpdateProductionCommand
             {
-                ProductionPackDetails = new UpdateProductionDto
-                {
-                    Id = 1,
-                    WarehouseId = 1,
-                    IsActive = 1,
-                    ProductionPackDetails = new List<UpdateProductionPackDetailDto>
-                    {
-                        new() { LotId = 1, ItemId = 1, PackTypeId = 1, StartPackNo = 1, EndPackNo = 5, BinId = 1, QualityStatusId = 1, NetWeightPerPack = 10m, TotalBags = 5, TotalNetWeight = 50m }
-                    }
-                }
+                ProductionPackDetails = ValidDto(id: 1)
             };
             var result = await CreateValidator().TestValidateAsync(cmd);
             result.ShouldNotHaveAnyValidationErrors();

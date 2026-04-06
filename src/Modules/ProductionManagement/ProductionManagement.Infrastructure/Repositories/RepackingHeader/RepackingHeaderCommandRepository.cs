@@ -117,7 +117,7 @@ namespace ProductionManagement.Infrastructure.Repositories.RepackingHeader
                     }
 
                     // Inherit LotId from source packs (for repacking; yarn conversion uses header LotId)
-                    var lotId = entity.LotId ?? 0;
+                    var lotId = entity.LotId;
                     if (isRepacking && entity.RepackingDetails?.Count > 0)
                     {
                         var firstDetail = entity.RepackingDetails.First();
@@ -322,7 +322,7 @@ namespace ProductionManagement.Infrastructure.Repositories.RepackingHeader
                     await _applicationDbContext.SaveChangesAsync();
 
                     // Inherit LotId from source packs (for repacking)
-                    var lotId = existingEntity.LotId ?? 0;
+                    var lotId = existingEntity.LotId;
                     if (isRepacking && entity.RepackingDetails?.Count > 0)
                     {
                         var firstDetail = entity.RepackingDetails.First();
