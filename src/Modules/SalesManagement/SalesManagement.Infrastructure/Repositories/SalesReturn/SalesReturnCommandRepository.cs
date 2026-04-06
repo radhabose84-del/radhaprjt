@@ -118,5 +118,17 @@ namespace SalesManagement.Infrastructure.Repositories.SalesReturn
             await _dbContext.StockLedger.AddRangeAsync(entries);
             await _dbContext.SaveChangesAsync();
         }
+
+        public async Task UpdateComplaintResolutionReturnStatusAsync(int complaintHeaderId, int returnStatusId, decimal returnQuantity)
+        {
+            var resolution = await _dbContext.ComplaintResolution
+                .FirstOrDefaultAsync(x => x.ComplaintHeaderId == complaintHeaderId && x.IsDeleted == IsDelete.NotDeleted);
+
+            if (resolution == null) return;
+
+            resolution.ReturnStatusId = returnStatusId;
+            resolution.ReturnQuantity = returnQuantity;
+            await _dbContext.SaveChangesAsync();
+        }
     }
 }

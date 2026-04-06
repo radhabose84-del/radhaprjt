@@ -298,6 +298,30 @@ namespace SalesManagement.Infrastructure.Repositories.SalesReturn
             return count > 0;
         }
 
+        public async Task<(int TotalDispatchedPacks, int TotalReturnedPacks)> GetReturnProgressAsync(int complaintHeaderId)
+        {
+            const string sql = @"
+                SELECT
+                    ISNULL(SUM(da.EndPackNo - da.StartPackNo + 1), 0) AS TotalDispatchedPacks
+                FROM Sales.ComplaintDetail cd
+                INNER JOIN Sales.InvoiceHeader ih ON cd.InvoiceHeaderId = ih.Id AND ih.IsDeleted = 0
+                INNER JOIN Sales.DispatchAdviceHeader dah ON ih.DispatchAdviceId = dah.Id AND dah.IsDeleted = 0
+                INNER JOIN Sales.DispatchAdviceDetail da ON da.DispatchAdviceHeaderId = dah.Id AND da.ItemId = cd.ItemId
+                WHERE cd.ComplaintHeaderId = @ComplaintHeaderId AND cd.IsDeleted = 0;
+
+                SELECT
+                    ISNULL(SUM(srd.EndPackNo - srd.StartPackNo + 1), 0) AS TotalReturnedPacks
+                FROM Sales.SalesReturnDetail srd
+                INNER JOIN Sales.SalesReturnHeader srh ON srd.SalesReturnHeaderId = srh.Id AND srh.IsDeleted = 0
+                WHERE srh.ComplaintHeaderId = @ComplaintHeaderId AND srd.IsDeleted = 0;";
+
+            using var multi = await _dbConnection.QueryMultipleAsync(sql, new { ComplaintHeaderId = complaintHeaderId });
+            var dispatched = await multi.ReadFirstAsync<int>();
+            var returned = await multi.ReadFirstAsync<int>();
+
+            return (dispatched, returned);
+        }
+
         private async Task<SalesReturnHeaderDto?> GetReturnAsync(string whereClause, object parameters)
         {
             var sql = $@"

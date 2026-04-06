@@ -6,5 +6,6 @@ namespace SalesManagement.Application.Common.Interfaces.ISalesReturn
         Task<int> UpdateAsync(Domain.Entities.SalesReturnHeader entity, List<Domain.Entities.SalesReturnDetail> details);
         Task<bool> SoftDeleteAsync(int id, CancellationToken ct);
         Task InsertStockLedgerEntriesAsync(List<Domain.Entities.StockLedger> entries);
+        Task UpdateComplaintResolutionReturnStatusAsync(int complaintHeaderId, int returnStatusId, decimal returnQuantity);
     }
 }

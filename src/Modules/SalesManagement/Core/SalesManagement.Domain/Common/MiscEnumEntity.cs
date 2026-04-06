@@ -133,8 +133,8 @@ namespace SalesManagement.Domain.Common
         public const string ReturnStatus = "ReturnStatus";
         public const string ReturnStatusPending = "Pending";
         public const string ReturnStatusReceived = "Received";
-        public const string ReturnStatusPartiallyReturned = "Partially Returned";
-        public const string ReturnStatusFullyReturned = "Fully Returned";
+        public const string ReturnStatusPartiallyReturned = "PartiallyReturned";
+        public const string ReturnStatusFullyReturned = "FullyReturned";
 
         // Bag Status
         public const string BagStatus = "BagStatus";
@@ -143,6 +143,10 @@ namespace SalesManagement.Domain.Common
 
         // Sales Return
         public const string TransactionTypeSalesReturn = "Sales Return";
+
+        // Stock Entry Type
+        public const string StockEntryType = "StockEntryType";
+        public const string StockEntryTypeSalesReturn = "SalesReturn";
 
         // Closure Status
         public const string ClosureStatus = "ClosureStatus";

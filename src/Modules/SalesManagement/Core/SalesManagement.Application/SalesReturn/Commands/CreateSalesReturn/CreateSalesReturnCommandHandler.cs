@@ -77,6 +77,11 @@ namespace SalesManagement.Application.SalesReturn.Commands.CreateSalesReturn
             // Insert StockLedger entries (one per pack)
             if (request.Details != null && request.Details.Count > 0)
             {
+                // Get StockEntryType Id for Sales Return
+                var stockEntryType = await _miscMasterQueryRepository.GetMiscMasterByName(
+                    MiscEnumEntity.StockEntryType, MiscEnumEntity.StockEntryTypeSalesReturn);
+                var typeId2 = stockEntryType?.Id;
+
                 var stockEntries = new List<Domain.Entities.StockLedger>();
                 foreach (var detail in entity.SalesReturnDetails!)
                 {
@@ -97,7 +102,8 @@ namespace SalesManagement.Application.SalesReturn.Commands.CreateSalesReturn
                             BinId = request.BinId,
                             TotalQty = 1,
                             TotalValue = 0,
-                            StatusId = detail.BagStatusId
+                            StatusId = detail.BagStatusId,
+                            TypeId = typeId2
                         });
                     }
                 }
@@ -107,7 +113,18 @@ namespace SalesManagement.Application.SalesReturn.Commands.CreateSalesReturn
             }
 
             // Update ComplaintResolution return status
-            // This will be handled by checking total dispatched vs returned packs
+            var (totalDispatched, totalReturned) = await _queryRepository.GetReturnProgressAsync(request.ComplaintHeaderId);
+            var returnStatusCode = totalReturned >= totalDispatched
+                ? MiscEnumEntity.ReturnStatusFullyReturned
+                : MiscEnumEntity.ReturnStatusPartiallyReturned;
+
+            var returnStatus = await _miscMasterQueryRepository.GetMiscMasterByName(
+                MiscEnumEntity.ReturnStatus, returnStatusCode);
+            if (returnStatus != null)
+            {
+                await _commandRepository.UpdateComplaintResolutionReturnStatusAsync(
+                    request.ComplaintHeaderId, returnStatus.Id, totalReturned);
+            }
 
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Create",
