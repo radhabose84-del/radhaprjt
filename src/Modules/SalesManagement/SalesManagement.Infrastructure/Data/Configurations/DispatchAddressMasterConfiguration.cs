@@ -93,6 +93,12 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("decimal(9,6)")
                 .IsRequired(false);
 
+            builder.Property(t => t.FreightId)
+                .HasColumnName("FreightId")
+                .HasColumnType("int")
+                .HasDefaultValue(0)
+                .IsRequired();
+
             builder.Property(b => b.IsActive)
                 .HasColumnName("IsActive")
                 .HasColumnType("bit")
