@@ -20,6 +20,7 @@ using ProductionManagement.Infrastructure;
 using SalesManagement.Infrastructure;
 using MaintenanceManagement.Infrastructure;
 using FAM.Infrastructure;
+using LogisticsManagement.Infrastructure;
 
 
 var builder = Host.CreateApplicationBuilder(args);
@@ -75,6 +76,7 @@ builder.Services.AddPurchaseInfrastructureServices(builder.Configuration, builde
 builder.Services.AddBudgetInfrastructure(builder.Configuration, builder.Environment);
 builder.Services.AddInventoryInfrastructure(builder.Configuration, builder.Environment);
 builder.Services.AddProjectInfrastructure(builder.Configuration, builder.Environment);
+builder.Services.AddLogisticsInfrastructure(builder.Configuration, builder.Environment);
 builder.Services.AddSalesInfrastructureServices(builder.Configuration, builder.Environment);
 
 // ── Finance Application layer — MediatR handlers + AutoMapper profiles ──────
