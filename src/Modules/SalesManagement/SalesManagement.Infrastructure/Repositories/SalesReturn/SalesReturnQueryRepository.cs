@@ -110,6 +110,26 @@ namespace SalesManagement.Infrastructure.Repositories.SalesReturn
             return await GetReturnAsync("h.ComplaintHeaderId = @ComplaintHeaderId", new { ComplaintHeaderId = complaintHeaderId });
         }
 
+        public async Task<List<SalesReturnHeaderDto>> GetAllByComplaintIdAsync(int complaintHeaderId)
+        {
+            const string idsSql = @"
+                SELECT Id FROM Sales.SalesReturnHeader
+                WHERE ComplaintHeaderId = @ComplaintHeaderId AND IsDeleted = 0
+                ORDER BY Id DESC;";
+
+            var ids = (await _dbConnection.QueryAsync<int>(idsSql, new { ComplaintHeaderId = complaintHeaderId })).ToList();
+
+            var result = new List<SalesReturnHeaderDto>();
+            foreach (var id in ids)
+            {
+                var item = await GetReturnAsync("h.Id = @Id", new { Id = id });
+                if (item != null)
+                    result.Add(item);
+            }
+
+            return result;
+        }
+
         public async Task<ComplaintReturnDataDto?> GetComplaintReturnDataAsync(int complaintHeaderId)
         {
             // Get complaint header info
