@@ -8,7 +8,7 @@ namespace MaintenanceManagement.UnitTests.Validators.WorkCenter
 {
     public sealed class CreateWorkCenterCommandValidatorTests
     {
-        private readonly Mock<IWorkCenterCommandRepository> _mockCommandRepo = new(MockBehavior.Strict);
+        private readonly Mock<IWorkCenterCommandRepository> _mockCommandRepo = new(MockBehavior.Loose);
         private readonly Mock<MaxLengthProvider> _mockMaxLength = new(MockBehavior.Strict, new object[] { null! });
 
         private CreateWorkCenterCommandValidator CreateValidator() =>

@@ -29,15 +29,15 @@ namespace ProductionManagement.UnitTests.Validators.YarnConversionHeader
 
             _mockItemLookup
                 .Setup(l => l.GetByIdsAsync(It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new List<ItemLookupDto> { new() { Id = 1 } });
+                .ReturnsAsync(new List<ItemLookupDto> { new() { Id = 1 }, new() { Id = 2 } });
 
             _mockWarehouseLookup
                 .Setup(l => l.GetByIdsAsync(It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new List<WarehouseLookupDto> { new() { Id = 1 } });
+                .ReturnsAsync(new List<WarehouseLookupDto> { new() { Id = 1 }, new() { Id = 2 } });
 
             _mockBinLookup
                 .Setup(l => l.GetByIdsAsync(It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new List<BinLookupDto> { new() { Id = 1 } });
+                .ReturnsAsync(new List<BinLookupDto> { new() { Id = 1 }, new() { Id = 2 } });
         }
 
         private static CreateYarnConversionHeaderCommand BuildValidCommand() => new()

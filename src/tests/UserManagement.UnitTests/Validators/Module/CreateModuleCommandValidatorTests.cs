@@ -54,7 +54,7 @@ namespace UserManagement.UnitTests.Validators.Module
         public async Task Validate_ModuleNameExceedsMaxLength_FailsValidation()
         {
             var command = ValidCommand();
-            command.ModuleName = new string('A', 51);
+            command.ModuleName = new string('A', 101);
             var result = await CreateValidator().TestValidateAsync(command);
             result.ShouldHaveValidationErrorFor(x => x.ModuleName);
         }

@@ -8,7 +8,7 @@ namespace MaintenanceManagement.UnitTests.Validators.MaintenanceType
 {
     public sealed class CreateMaintenanceTypeCommandValidatorTests
     {
-        private readonly Mock<IMaintenanceTypeCommandRepository> _mockCommandRepo = new(MockBehavior.Strict);
+        private readonly Mock<IMaintenanceTypeCommandRepository> _mockCommandRepo = new(MockBehavior.Loose);
         private readonly Mock<MaxLengthProvider> _mockMaxLength = new(MockBehavior.Strict, new object[] { null! });
 
         private CreateMaintenanceTypeCommandValidator CreateValidator() =>

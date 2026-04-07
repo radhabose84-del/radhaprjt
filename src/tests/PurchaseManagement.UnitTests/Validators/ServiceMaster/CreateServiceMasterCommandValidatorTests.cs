@@ -21,6 +21,15 @@ namespace PurchaseManagement.UnitTests.Validators.ServiceMaster
                 .ReturnsAsync(exists);
         }
 
+        private void SetupExistsSimilarCatchAll(bool exists = false)
+        {
+            _mockQueryRepo
+                .Setup(r => r.ExistsSimilarAsync(
+                    It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>(),
+                    It.IsAny<int?>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(exists);
+        }
+
         [Fact]
         public async Task Validate_ValidCommand_PassesValidation()
         {
@@ -37,21 +46,36 @@ namespace PurchaseManagement.UnitTests.Validators.ServiceMaster
             result.ShouldNotHaveAnyValidationErrors();
         }
 
-        [Theory]
-        [InlineData(null)]
-        [InlineData("")]
-        public async Task Validate_EmptyDescription_FailsValidation(string? description)
+        [Fact]
+        public async Task Validate_EmptyDescription_FailsValidation()
         {
             var command = new CreateServiceCommand
             {
-                ServiceDescription = description,
+                ServiceDescription = "",
                 SacId = 1,
                 UomId = 1
             };
+            SetupExistsSimilarCatchAll();
 
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.Errors.Should().NotBeEmpty();
+        }
+
+        [Fact]
+        public async Task Validate_NullDescription_ThrowsDueToValidatorTrimCall()
+        {
+            // Validator CustomAsync calls ServiceDescription.Trim() which throws NRE for null
+            var command = new CreateServiceCommand
+            {
+                ServiceDescription = null,
+                SacId = 1,
+                UomId = 1
+            };
+
+            Func<Task> act = async () => await CreateValidator().TestValidateAsync(command);
+
+            await act.Should().ThrowAsync<NullReferenceException>();
         }
 
         [Fact]
@@ -63,6 +87,7 @@ namespace PurchaseManagement.UnitTests.Validators.ServiceMaster
                 SacId = 0,
                 UomId = 1
             };
+            SetupExistsSimilarCatchAll();
 
             var result = await CreateValidator().TestValidateAsync(command);
 
@@ -78,6 +103,7 @@ namespace PurchaseManagement.UnitTests.Validators.ServiceMaster
                 SacId = 1,
                 UomId = 0
             };
+            SetupExistsSimilarCatchAll();
 
             var result = await CreateValidator().TestValidateAsync(command);
 

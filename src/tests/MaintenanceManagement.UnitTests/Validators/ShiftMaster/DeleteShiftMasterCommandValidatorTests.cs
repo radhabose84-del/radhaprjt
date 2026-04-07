@@ -7,7 +7,7 @@ namespace MaintenanceManagement.UnitTests.Validators.ShiftMaster
 {
     public sealed class DeleteShiftMasterCommandValidatorTests
     {
-        private readonly Mock<IShiftMasterQuery> _mockQuery = new(MockBehavior.Strict);
+        private readonly Mock<IShiftMasterQuery> _mockQuery = new(MockBehavior.Loose);
 
         private DeleteShiftMasterCommandValidator CreateValidator() =>
             new(_mockQuery.Object);

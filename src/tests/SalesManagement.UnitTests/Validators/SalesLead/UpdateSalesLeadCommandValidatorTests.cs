@@ -46,6 +46,7 @@ namespace SalesManagement.UnitTests.Validators.SalesLead
         {
             var cmd = ValidCommand();
             cmd.Id = id;
+            _mockQueryRepo.Setup(r => r.NotFoundAsync(id)).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.MobileNumberExistsForProspectAsync("9876543210", It.IsAny<int?>())).ReturnsAsync(false);
             _mockQueryRepo.Setup(r => r.MobileNumberExistsInSalesContactAsync("9876543210")).ReturnsAsync(false);
             _mockQueryRepo.Setup(r => r.MarketingOfficerExistsAsync(1)).ReturnsAsync(true);

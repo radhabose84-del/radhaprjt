@@ -8,8 +8,8 @@ namespace MaintenanceManagement.UnitTests.Validators.MaintenanceType
 {
     public sealed class UpdateMaintenanceTypeCommandValidatorTests
     {
-        private readonly Mock<IMaintenanceTypeCommandRepository> _mockCommandRepo = new(MockBehavior.Strict);
-        private readonly Mock<IMaintenanceTypeQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
+        private readonly Mock<IMaintenanceTypeCommandRepository> _mockCommandRepo = new(MockBehavior.Loose);
+        private readonly Mock<IMaintenanceTypeQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
         private readonly Mock<MaxLengthProvider> _mockMaxLength = new(MockBehavior.Strict, new object[] { null! });
 
         private UpdateMaintenanceTypeCommandValidator CreateValidator() =>

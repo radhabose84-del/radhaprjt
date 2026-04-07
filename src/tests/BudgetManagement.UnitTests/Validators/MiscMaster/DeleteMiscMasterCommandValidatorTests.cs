@@ -19,10 +19,18 @@ namespace BudgetManagement.UnitTests.Validators.MiscMaster
                 .ReturnsAsync(notFound);
         }
 
+        private void SetupSoftDeleteValidation(int id, bool isLinked)
+        {
+            _mockQueryRepo
+                .Setup(r => r.SoftDeleteValidation(id))
+                .ReturnsAsync(isLinked);
+        }
+
         [Fact]
         public async Task Validate_ValidId_PassesValidation()
         {
             SetupNotFound(1, notFound: false);
+            SetupSoftDeleteValidation(1, isLinked: false);
 
             var result = await CreateValidator().TestValidateAsync(new DeleteMiscMasterCommand { Id = 1 });
 
@@ -33,6 +41,7 @@ namespace BudgetManagement.UnitTests.Validators.MiscMaster
         public async Task Validate_ZeroId_FailsValidation()
         {
             SetupNotFound(0, notFound: true);
+            SetupSoftDeleteValidation(0, isLinked: false);
 
             var result = await CreateValidator().TestValidateAsync(new DeleteMiscMasterCommand { Id = 0 });
 
@@ -43,8 +52,20 @@ namespace BudgetManagement.UnitTests.Validators.MiscMaster
         public async Task Validate_NotFound_FailsValidation()
         {
             SetupNotFound(99, notFound: true);
+            SetupSoftDeleteValidation(99, isLinked: false);
 
             var result = await CreateValidator().TestValidateAsync(new DeleteMiscMasterCommand { Id = 99 });
+
+            result.ShouldHaveAnyValidationError();
+        }
+
+        [Fact]
+        public async Task Validate_LinkedWithOtherRecords_FailsValidation()
+        {
+            SetupNotFound(1, notFound: false);
+            SetupSoftDeleteValidation(1, isLinked: true);
+
+            var result = await CreateValidator().TestValidateAsync(new DeleteMiscMasterCommand { Id = 1 });
 
             result.ShouldHaveAnyValidationError();
         }

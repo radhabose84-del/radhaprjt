@@ -28,7 +28,7 @@ namespace BackgroundService.Presentation.Validation.NotificationConfig
                             .NotEmpty()
                             .WithMessage($"{nameof(DeleteNotificationConfigCommand.Id)} {rule.Error}");
                         break;
-                    case "RecordNotFound":
+                    case "NotFound":
                         RuleFor(x => x.Id)
                             .MustAsync(async (Id, cancellation) => 
                                 await _notificationConfigQueryRepository.NotFoundAsync(Id))             
