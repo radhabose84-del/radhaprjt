@@ -131,5 +131,33 @@ namespace ProductionManagement.Infrastructure.Repositories.MiscMaster
             return await _dbConnection.QueryFirstOrDefaultAsync<ProductionManagement.Domain.Entities.MiscMaster>(
                 sql, new { Code = code });
         }
+
+        public async Task<bool> SoftDeleteValidationAsync(int id)
+        {
+            const string sql = @"
+                SELECT CASE WHEN
+                    EXISTS (SELECT 1 FROM [Production].[CountMaster] WHERE (CountTypeId = @Id OR CountCategoryId = @Id) AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM [Production].[LotMaster] WHERE (LotTypeId = @Id OR StatusId = @Id) AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM [Production].[PackType] WHERE PackMaterialId = @Id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM [Production].[ProductionPackDetail] WHERE MiscMasterId = @Id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM [Production].[RepackingHeader] WHERE (FaultId = @Id OR LooseHandlingId = @Id OR WasteTypeId = @Id) AND IsDeleted = 0)
+                THEN 1 ELSE 0 END";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { Id = id });
+        }
+
+        public async Task<bool> IsMiscMasterLinkedAsync(int id)
+        {
+            const string sql = @"
+                SELECT CASE WHEN
+                    EXISTS (SELECT 1 FROM [Production].[CountMaster] WHERE (CountTypeId = @Id OR CountCategoryId = @Id) AND IsDeleted = 0 AND IsActive = 1)
+                    OR EXISTS (SELECT 1 FROM [Production].[LotMaster] WHERE (LotTypeId = @Id OR StatusId = @Id) AND IsDeleted = 0 AND IsActive = 1)
+                    OR EXISTS (SELECT 1 FROM [Production].[PackType] WHERE PackMaterialId = @Id AND IsDeleted = 0 AND IsActive = 1)
+                    OR EXISTS (SELECT 1 FROM [Production].[ProductionPackDetail] WHERE MiscMasterId = @Id AND IsDeleted = 0 AND IsActive = 1)
+                    OR EXISTS (SELECT 1 FROM [Production].[RepackingHeader] WHERE (FaultId = @Id OR LooseHandlingId = @Id OR WasteTypeId = @Id) AND IsDeleted = 0 AND IsActive = 1)
+                THEN 1 ELSE 0 END";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { Id = id });
+        }
     }
 }

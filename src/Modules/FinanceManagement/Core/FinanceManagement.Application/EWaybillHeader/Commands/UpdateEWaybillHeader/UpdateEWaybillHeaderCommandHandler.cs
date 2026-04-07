@@ -27,6 +27,14 @@ namespace FinanceManagement.Application.EWaybillHeader.Commands.UpdateEWaybillHe
 
         public async Task<ApiResponseDTO<int>> Handle(UpdateEWaybillHeaderCommand request, CancellationToken cancellationToken)
         {
+            if (request.IsActive == 0)
+            {
+                var isLinked = await _queryRepository.IsEWaybillHeaderLinkedAsync(request.Id);
+                if (isLinked)
+                    throw new ExceptionRules(
+                        "This master is linked with other records. You cannot inactivate this record.");
+            }
+
             var entity = _mapper.Map<Domain.Entities.EWaybillHeader>(request);
 
             var result = await _commandRepository.UpdateAsync(entity);

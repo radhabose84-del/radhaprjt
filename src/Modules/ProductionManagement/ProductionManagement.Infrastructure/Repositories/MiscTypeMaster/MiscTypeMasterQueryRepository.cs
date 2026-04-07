@@ -105,5 +105,16 @@ namespace ProductionManagement.Infrastructure.Repositories.MiscTypeMaster
             var count = await _dbConnection.QueryFirstAsync<int>(sql, new { Id = id });
             return count > 0;
         }
+
+        public async Task<bool> IsMiscTypeMasterLinkedAsync(int id)
+        {
+            const string sql = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1 FROM [Production].[MiscMaster]
+                    WHERE MiscTypeId = @Id AND IsDeleted = 0 AND IsActive = 1
+                ) THEN 1 ELSE 0 END";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { Id = id });
+        }
     }
 }
