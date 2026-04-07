@@ -21,7 +21,7 @@ namespace LogisticsManagement.Application.FreightMaster.Queries.GetFreightMaster
 
         public async Task<IReadOnlyList<FreightMasterLookupDto>> Handle(GetFreightMasterAutoCompleteQuery request, CancellationToken cancellationToken)
         {
-            var result = await _queryRepository.AutocompleteAsync(request.Term ?? string.Empty, cancellationToken);
+            var result = await _queryRepository.AutocompleteAsync(request.Term ?? string.Empty, request.ModuleId, cancellationToken);
             var dtos = _mapper.Map<List<FreightMasterLookupDto>>(result);
 
             var domainEvent = new AuditLogsDomainEvent(

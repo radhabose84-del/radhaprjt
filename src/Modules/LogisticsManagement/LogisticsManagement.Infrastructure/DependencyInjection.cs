@@ -15,6 +15,8 @@ using MongoDB.Driver;
 using Serilog;
 using LogisticsManagement.Infrastructure.Data;
 using LogisticsManagement.Infrastructure.Services;
+using Contracts.Interfaces.Lookups.Logistics;
+using LogisticsManagement.Infrastructure.Repositories.Lookups.Logistics;
 
 namespace LogisticsManagement.Infrastructure
 {
@@ -92,6 +94,9 @@ namespace LogisticsManagement.Infrastructure
             // FreightMaster repositories
             services.AddScoped<IFreightMasterCommandRepository, FreightMasterCommandRepository>();
             services.AddScoped<IFreightMasterQueryRepository, FreightMasterQueryRepository>();
+
+            // Lookup — caching handled globally by AddLookupCaching() in Program.cs
+            services.AddScoped<IFreightMasterLookup, FreightMasterLookupRepository>();
 
             return services;
         }
