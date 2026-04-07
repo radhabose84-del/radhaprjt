@@ -1,5 +1,6 @@
 
 using AutoMapper;
+using Contracts.Common;
 using Contracts.Interfaces;
 using PartyManagement.Application.Common.Interfaces;
 using PartyManagement.Application.Common.Interfaces.IBankMaster;
@@ -20,6 +21,13 @@ public class UpdateBankMasterCommandHandler : IRequestHandler<UpdateBankMasterCo
 
     public async Task Handle(UpdateBankMasterCommand r, CancellationToken ct)
     {
+        if (r.Dto.IsActive == 0)
+        {
+            var isLinked = await _qry.IsBankMasterLinkedAsync(r.Dto.Id);
+            if (isLinked)
+                throw new ExceptionRules("This master is linked with other records. You cannot inactivate this record.");
+        }
+
         var e = await _qry.GetByIdAsync(r.Dto.Id, ct) ?? throw new KeyNotFoundException("Bank not found.");
 
         if (await _qry.ExistsByBankCodeAsync(r.Dto.BankName, r.Dto.Id, ct))

@@ -3,6 +3,7 @@ using System.Data;
 using InventoryManagement.Application.Common.Interfaces.Item.ItemGroup;
 using InventoryManagement.Application.Item.ItemGroup.Queries.GetItemGroup;
 using InventoryManagement.Application.Item.ItemGroup.Queries.GetItemGroupAutoComplete;
+using Contracts.Interfaces.Validations.WarehouseManagement;
 using Dapper;
 
 namespace  InventoryManagement.Infrastructure.Repositories.Item.ItemGroup
@@ -10,10 +11,13 @@ namespace  InventoryManagement.Infrastructure.Repositories.Item.ItemGroup
     public class ItemGroupQueryRepository : IItemGroupQueryRepository
     {
         private readonly IDbConnection _dbConnection;
+        private readonly IWarehouseItemGroupValidation _warehouseItemGroupValidation;
 
-        public ItemGroupQueryRepository(IDbConnection dbConnection)
+        public ItemGroupQueryRepository(IDbConnection dbConnection,
+            IWarehouseItemGroupValidation warehouseItemGroupValidation)
         {
             _dbConnection = dbConnection;
+            _warehouseItemGroupValidation = warehouseItemGroupValidation;
         }
         public async Task<ItemGroupDto> GetByIdAsync(int Id)
         {
@@ -65,7 +69,12 @@ namespace  InventoryManagement.Infrastructure.Repositories.Item.ItemGroup
                 THEN 1 ELSE 0 END;";
 
             var result = await _dbConnection.QueryFirstOrDefaultAsync<int>(query, new { Id });
-            return result == 1;
+            if (result == 1) return true;
+
+            // Cross-module check
+            if (await _warehouseItemGroupValidation.HasLinkedItemGroupAsync(Id)) return true;
+
+            return false;
         }
 
         public async Task<bool> IsItemGroupLinkedAsync(int id)
@@ -78,7 +87,12 @@ namespace  InventoryManagement.Infrastructure.Repositories.Item.ItemGroup
                 THEN 1 ELSE 0 END;";
 
             var result = await _dbConnection.QueryFirstOrDefaultAsync<int>(query, new { id });
-            return result == 1;
+            if (result == 1) return true;
+
+            // Cross-module check
+            if (await _warehouseItemGroupValidation.HasActiveItemGroupAsync(id)) return true;
+
+            return false;
         }
         public async Task<bool> NotFoundAsync(int Id)
         {
