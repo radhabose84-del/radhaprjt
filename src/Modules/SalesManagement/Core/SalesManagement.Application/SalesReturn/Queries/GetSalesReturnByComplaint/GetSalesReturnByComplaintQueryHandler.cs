@@ -6,7 +6,7 @@ using SalesManagement.Domain.Events;
 
 namespace SalesManagement.Application.SalesReturn.Queries.GetSalesReturnByComplaint
 {
-    public class GetSalesReturnByComplaintQueryHandler : IRequestHandler<GetSalesReturnByComplaintQuery, ApiResponseDTO<SalesReturnHeaderDto>>
+    public class GetSalesReturnByComplaintQueryHandler : IRequestHandler<GetSalesReturnByComplaintQuery, ApiResponseDTO<List<SalesReturnHeaderDto>>>
     {
         private readonly ISalesReturnQueryRepository _queryRepository;
         private readonly IMediator _mediator;
@@ -17,31 +17,24 @@ namespace SalesManagement.Application.SalesReturn.Queries.GetSalesReturnByCompla
             _mediator = mediator;
         }
 
-        public async Task<ApiResponseDTO<SalesReturnHeaderDto>> Handle(GetSalesReturnByComplaintQuery request, CancellationToken cancellationToken)
+        public async Task<ApiResponseDTO<List<SalesReturnHeaderDto>>> Handle(GetSalesReturnByComplaintQuery request, CancellationToken cancellationToken)
         {
-            var data = await _queryRepository.GetByComplaintIdAsync(request.ComplaintHeaderId);
-
-            if (data == null)
-                return new ApiResponseDTO<SalesReturnHeaderDto>
-                {
-                    IsSuccess = false,
-                    Message = "No Sales Return found for this complaint.",
-                    Data = null
-                };
+            var data = await _queryRepository.GetAllByComplaintIdAsync(request.ComplaintHeaderId);
 
             var domainEvent = new AuditLogsDomainEvent(
                 actionDetail: "GetByComplaint",
                 actionCode: "GetSalesReturnByComplaintQuery",
                 actionName: request.ComplaintHeaderId.ToString(),
-                details: $"Sales Return for complaint {request.ComplaintHeaderId} was fetched.",
+                details: $"Sales Returns for complaint {request.ComplaintHeaderId} were fetched.",
                 module: "SalesReturn");
             await _mediator.Publish(domainEvent, cancellationToken);
 
-            return new ApiResponseDTO<SalesReturnHeaderDto>
+            return new ApiResponseDTO<List<SalesReturnHeaderDto>>
             {
                 IsSuccess = true,
                 Message = "Success",
-                Data = data
+                Data = data,
+                TotalCount = data.Count
             };
         }
     }

@@ -2,6 +2,7 @@ using System.Data;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Users;
+using Contracts.Interfaces.Lookups.Warehouse;
 using Dapper;
 using SalesManagement.Application.Common.Interfaces.IComplaintResolution;
 using SalesManagement.Application.ComplaintResolution.Dto;
@@ -14,17 +15,23 @@ namespace SalesManagement.Infrastructure.Repositories.ComplaintResolution
         private readonly IUserLookup _userLookup;
         private readonly IPartyLookup _partyLookup;
         private readonly IItemLookup _itemLookup;
+        private readonly IWarehouseLookup _warehouseLookup;
+        private readonly IBinLookup _binLookup;
 
         public ComplaintResolutionQueryRepository(
             IDbConnection dbConnection,
             IUserLookup userLookup,
             IPartyLookup partyLookup,
-            IItemLookup itemLookup)
+            IItemLookup itemLookup,
+            IWarehouseLookup warehouseLookup,
+            IBinLookup binLookup)
         {
             _dbConnection = dbConnection;
             _userLookup = userLookup;
             _partyLookup = partyLookup;
             _itemLookup = itemLookup;
+            _warehouseLookup = warehouseLookup;
+            _binLookup = binLookup;
         }
 
         public async Task<(List<ResolutionListDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm, string? statusFilter)
@@ -277,7 +284,56 @@ namespace SalesManagement.Infrastructure.Repositories.ComplaintResolution
 
             dto.Items = items;
 
-            // 5. Existing resolution (if any)
+            // 5. Sales Return context from dispatch/stock data
+            const string dispatchQtySql = @"
+                SELECT
+                    ISNULL(SUM(da.EndPackNo - da.StartPackNo + 1), 0) AS MaxReturnQuantity
+                FROM Sales.ComplaintDetail cd
+                INNER JOIN Sales.InvoiceHeader ih ON cd.InvoiceHeaderId = ih.Id AND ih.IsDeleted = 0
+                INNER JOIN Sales.DispatchAdviceHeader dah ON ih.DispatchAdviceId = dah.Id AND dah.IsDeleted = 0
+                INNER JOIN Sales.DispatchAdviceDetail da ON da.DispatchAdviceHeaderId = dah.Id AND da.ItemId = cd.ItemId
+                WHERE cd.ComplaintHeaderId = @Id AND cd.IsDeleted = 0;";
+
+            dto.MaxReturnQuantity = await _dbConnection.ExecuteScalarAsync<decimal>(dispatchQtySql, new { Id = complaintHeaderId });
+
+            // Get warehouse/bin from StockLedger (dispatched packs for this complaint's items)
+            const string stockLocationSql = @"
+                SELECT TOP 1 sl.WarehouseId, sl.BinId
+                FROM Sales.StockLedger sl
+                INNER JOIN Sales.ComplaintDetail cd ON sl.ItemId = cd.ItemId
+                    AND (sl.LotId = cd.LotId OR (cd.LotId IS NULL))
+                WHERE cd.ComplaintHeaderId = @Id AND cd.IsDeleted = 0
+                    AND sl.DocType = 'PROD'
+                ORDER BY sl.Id DESC;";
+
+            var stockLocation = await _dbConnection.QueryFirstOrDefaultAsync<dynamic>(stockLocationSql, new { Id = complaintHeaderId });
+            if (stockLocation != null)
+            {
+                dto.DispatchWarehouseId = (int?)stockLocation.WarehouseId;
+                dto.DispatchBinId = (int?)stockLocation.BinId;
+
+                if (dto.DispatchWarehouseId.HasValue)
+                {
+                    var warehouses = await _warehouseLookup.GetByIdsAsync(new[] { dto.DispatchWarehouseId.Value });
+                    dto.DispatchWarehouseName = warehouses.FirstOrDefault()?.WarehouseName;
+                }
+
+                if (dto.DispatchBinId.HasValue)
+                {
+                    var bins = await _binLookup.GetByIdsAsync(new[] { dto.DispatchBinId.Value });
+                    dto.DispatchBinName = bins.FirstOrDefault()?.BinName;
+                }
+            }
+
+            // Get Sales Return reference if exists
+            const string srRefSql = @"
+                SELECT TOP 1 ReturnNumber
+                FROM Sales.SalesReturnHeader
+                WHERE ComplaintHeaderId = @Id AND IsDeleted = 0
+                ORDER BY Id DESC;";
+            dto.SalesReturnReference = await _dbConnection.ExecuteScalarAsync<string?>(srRefSql, new { Id = complaintHeaderId });
+
+            // 6. Existing resolution (if any)
             dto.ExistingResolution = await GetByComplaintHeaderIdAsync(complaintHeaderId);
 
             return dto;

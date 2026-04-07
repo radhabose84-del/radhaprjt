@@ -69,11 +69,13 @@ namespace LogisticsManagement.Infrastructure.Repositories.FreightMaster
             return await _dbConnection.QueryFirstOrDefaultAsync<FreightMasterDto>(sql, new { Id = id });
         }
 
-        public async Task<IReadOnlyList<FreightMasterLookupDto>> AutocompleteAsync(string term, CancellationToken ct)
+        public async Task<IReadOnlyList<FreightMasterLookupDto>> AutocompleteAsync(string term, int? moduleId, CancellationToken ct)
         {
             var whereClause = "fm.IsDeleted = 0 AND fm.IsActive = 1";
             if (!string.IsNullOrWhiteSpace(term))
                 whereClause += " AND (mmMode.Description LIKE @Term OR mmMethod.Description LIKE @Term)";
+            if (moduleId.HasValue && moduleId.Value > 0)
+                whereClause += " AND fm.ModuleId = @ModuleId";
 
             var sql = $@"
                 SELECT fm.Id, mmMode.Description AS FreightModeName,
@@ -85,22 +87,22 @@ namespace LogisticsManagement.Infrastructure.Repositories.FreightMaster
                 ORDER BY fm.Id ASC";
 
             var result = await _dbConnection.QueryAsync<FreightMasterLookupDto>(
-                new CommandDefinition(sql, new { Term = $"%{term}%" }, cancellationToken: ct));
+                new CommandDefinition(sql, new { Term = $"%{term}%", ModuleId = moduleId }, cancellationToken: ct));
             return result.ToList();
         }
 
-        public async Task<bool> CompositeKeyExistsAsync(int freightModeId, int rateMethodId, int? id = null)
+        public async Task<bool> CompositeKeyExistsAsync(int freightModeId, int rateMethodId, int moduleId, int? id = null)
         {
             var sql = @"
                 SELECT COUNT(1)
                 FROM Logistics.FreightMaster
                 WHERE FreightModeId = @FreightModeId AND RateMethodId = @RateMethodId
-                AND IsDeleted = 0";
+                AND ModuleId = @ModuleId AND IsDeleted = 0";
 
             if (id.HasValue && id.Value > 0)
                 sql += " AND Id != @Id";
 
-            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { FreightModeId = freightModeId, RateMethodId = rateMethodId, Id = id });
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { FreightModeId = freightModeId, RateMethodId = rateMethodId, ModuleId = moduleId, Id = id });
             return count > 0;
         }
 
