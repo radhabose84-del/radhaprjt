@@ -14,6 +14,7 @@ namespace PartyManagement.Application.PartyMaster.Queries.GetPartMasterAutoCompl
         public List<PartyAddressAutoCompleteDto>? PartyAddresses { get; set; }
         public List<PartyContactAutoCompleteDto>? PartyContacts { get; set; }
         public List<SalesTypeAutoCompleteDto>? SalesTypes { get; set; }
+        public List<TransportDetailAutoCompleteDto>? TransportDetails { get; set; }
     }
 
     public class SalesTypeAutoCompleteDto
@@ -36,6 +37,23 @@ namespace PartyManagement.Application.PartyMaster.Queries.GetPartMasterAutoCompl
         public string? StateName { get; set; }
         public int? CountryId { get; set; }
         public string? CountryName { get; set; }
+    }
+
+    public class TransportDetailAutoCompleteDto
+    {
+        public int Id { get; set; }
+        public int PartyId { get; set; }
+        public int? TransportModeId { get; set; }
+        public string? TransportModeName { get; set; }
+        public int? VehicleTypeId { get; set; }
+        public string? VehicleTypeName { get; set; }
+        public int? DefaultFreightTypeId { get; set; }
+        public string? DefaultFreightTypeName { get; set; }
+        public decimal? DefaultFreightRate { get; set; }
+        public string? LicenseNo { get; set; }
+        public DateTimeOffset? LicenseExpiryDate { get; set; }
+        public string? VehicleNo { get; set; }
+        public byte Status { get; set; }
     }
 
     public class PartyContactAutoCompleteDto
