@@ -168,6 +168,10 @@ namespace ProductionManagement.Infrastructure
             services.AddScoped<ICertificationMasterLookup, CertificationMasterLookupRepository>();
             services.AddScoped<IYarnTwistMasterLookup, YarnTwistMasterLookupRepository>();
 
+            // Validation repositories — cross-module referential integrity (Rule 25)
+            services.AddScoped<Contracts.Interfaces.Validations.ProductionManagement.IProductionItemValidation, Repositories.Validations.ProductionItemValidationRepository>();
+            services.AddScoped<Contracts.Interfaces.Validations.ProductionManagement.IProductionUomValidation, Repositories.Validations.ProductionUomValidationRepository>();
+
             return services;
         }
     }

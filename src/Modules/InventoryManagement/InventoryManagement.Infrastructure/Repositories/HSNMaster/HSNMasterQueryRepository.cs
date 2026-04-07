@@ -3,6 +3,8 @@ using System.Data;
 using InventoryManagement.Application.Common.Interfaces.IHSNMaster;
 using InventoryManagement.Application.HSNMaster.Queries.GetAllHSNMaster;
 using InventoryManagement.Application.HSNMaster.Queries.GetHSNMasterAutoComplete;
+using Contracts.Interfaces.Validations.SalesManagement;
+using Contracts.Interfaces.Validations.PurchaseManagement;
 using Dapper;
 
 namespace InventoryManagement.Infrastructure.Repositories.HSNMaster
@@ -10,11 +12,15 @@ namespace InventoryManagement.Infrastructure.Repositories.HSNMaster
     public class HSNMasterQueryRepository : IHSNMasterQueryRepository
     {
         private readonly IDbConnection _dbConnection;
+        private readonly ISalesHsnValidation _salesHsnValidation;
+        private readonly IPurchaseHsnValidation _purchaseHsnValidation;
 
-        public HSNMasterQueryRepository(IDbConnection dbConnection)
+        public HSNMasterQueryRepository(IDbConnection dbConnection,
+            ISalesHsnValidation salesHsnValidation, IPurchaseHsnValidation purchaseHsnValidation)
         {
             _dbConnection = dbConnection;
-
+            _salesHsnValidation = salesHsnValidation;
+            _purchaseHsnValidation = purchaseHsnValidation;
         }
         public async Task<(List<HSNMasterDto>, int)> GetAllAsync(int pageNumber, int pageSize, string searchTerm)
         {
@@ -192,7 +198,13 @@ namespace InventoryManagement.Infrastructure.Repositories.HSNMaster
                 ) THEN 1 ELSE 0 END;";
 
             var result = await _dbConnection.QueryFirstOrDefaultAsync<int>(query, new { id });
-            return result == 1;
+            if (result == 1) return true;
+
+            // Cross-module checks
+            if (await _salesHsnValidation.HasLinkedHsnAsync(id)) return true;
+            if (await _purchaseHsnValidation.HasLinkedHsnAsync(id)) return true;
+
+            return false;
         }
 
         public async Task<bool> IsHSNMasterLinkedAsync(int id)
@@ -204,7 +216,13 @@ namespace InventoryManagement.Infrastructure.Repositories.HSNMaster
                 ) THEN 1 ELSE 0 END;";
 
             var result = await _dbConnection.QueryFirstOrDefaultAsync<int>(query, new { id });
-            return result == 1;
+            if (result == 1) return true;
+
+            // Cross-module checks
+            if (await _salesHsnValidation.HasActiveHsnAsync(id)) return true;
+            if (await _purchaseHsnValidation.HasActiveHsnAsync(id)) return true;
+
+            return false;
         }
 
         public async Task<bool> FKColumnValidation(int hsnMasterId)

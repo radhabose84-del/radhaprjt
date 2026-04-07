@@ -12,6 +12,7 @@ namespace PurchaseManagement.Application.Common.Interfaces.IServiceMaster
         Task<bool> ExistsSimilarAsync(int sacId, int uomId, string description, int? id = null, CancellationToken ct = default);
 
         Task<bool> HasActiveDependenciesAsync(int serviceId, CancellationToken ct = default);
+        Task<bool> IsServiceMasterLinkedAsync(int serviceId, CancellationToken ct = default);
 
         Task<List<ServiceMasterAutoCompleteDto>> ServiceMasterAuotoComplete(string? searchTerm);
 

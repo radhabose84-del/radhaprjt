@@ -150,24 +150,88 @@ namespace PartyManagement.Infrastructure.Repositories.MiscMaster
         }
           public async Task<PartyManagement.Domain.Entities.MiscMaster>  GetMiscMasterByName(string miscTypeCode,string miscTypeName)
         {
-            
+
 
             const string query = @"SELECT M.Id,M.Code ,M.Description  FROM Party.MiscMaster AS M
-                                INNER JOIN Party.MiscTypeMaster AS MT 
+                                INNER JOIN Party.MiscTypeMaster AS MT
                                 ON MT.Id = M.MiscTypeId
                                 WHERE M.IsDeleted = 0 AND MT.IsDeleted = 0 AND M.IsActive = 1 AND MT.MiscTypeCode= @MiscTypeCode AND M.Code=@MiscTypeName  ";
-                
-            
-            var parameters = new 
-              { 
+
+
+            var parameters = new
+              {
                   MiscTypeName = miscTypeName,
-                  MiscTypeCode = miscTypeCode 
-             
+                  MiscTypeCode = miscTypeCode
+
               };
 
             var miscmaster = await _dbConnection.QueryFirstOrDefaultAsync<PartyManagement.Domain.Entities.MiscMaster>(query, parameters);
             return miscmaster;
-        }      
+        }
+
+        public async Task<bool> SoftDeleteValidationAsync(int id)
+        {
+            const string query = @"
+                SELECT CASE WHEN
+                    EXISTS (SELECT 1 FROM Party.PartyMaster WHERE PartyZoneId = @id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM Party.PartyMaster WHERE RegistrationTypeId = @id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM Party.PartyMaster WHERE MSMETypeId = @id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM Party.PartyMaster WHERE PayementModeId = @id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM Party.PartyMaster WHERE DueDateTypeId = @id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM Party.PartyMaster WHERE CustomerTypeId = @id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM Party.PartyMaster WHERE StatusId = @id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM Party.BankAccount WHERE AccountTypeId = @id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM Party.BankAccount WHERE BranchId = @id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM Party.PartyGroup WHERE GroupTypeId = @id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM Party.PartyGroup WHERE GlCategoryId = @id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM Party.PartyContact WHERE GenderId = @id)
+                    OR EXISTS (SELECT 1 FROM Party.PartyContact WHERE PreferredChannelId = @id)
+                    OR EXISTS (SELECT 1 FROM Party.PartyContact WHERE ContactTypeId = @id)
+                    OR EXISTS (SELECT 1 FROM Party.PartyType WHERE PartyTypeId = @id)
+                    OR EXISTS (SELECT 1 FROM Party.PartyDocument WHERE DocumentId = @id)
+                    OR EXISTS (SELECT 1 FROM Party.PartyBank WHERE AccountTypeId = @id)
+                    OR EXISTS (SELECT 1 FROM Party.SalesType WHERE ShippingConditionId = @id)
+                    OR EXISTS (SELECT 1 FROM Party.SalesType WHERE AccountAssignmentId = @id)
+                    OR EXISTS (SELECT 1 FROM Party.TransportDetail WHERE TransportModeId = @id)
+                    OR EXISTS (SELECT 1 FROM Party.TransportDetail WHERE VehicleTypeId = @id)
+                    OR EXISTS (SELECT 1 FROM Party.TransportDetail WHERE DefaultFreightTypeId = @id)
+                    OR EXISTS (SELECT 1 FROM Party.AgentConfig WHERE SettlementCycleId = @id)
+                THEN 1 ELSE 0 END;";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(query, new { id });
+        }
+
+        public async Task<bool> IsMiscMasterLinkedAsync(int id)
+        {
+            const string query = @"
+                SELECT CASE WHEN
+                    EXISTS (SELECT 1 FROM Party.PartyMaster WHERE PartyZoneId = @id AND IsDeleted = 0 AND IsActive = 1)
+                    OR EXISTS (SELECT 1 FROM Party.PartyMaster WHERE RegistrationTypeId = @id AND IsDeleted = 0 AND IsActive = 1)
+                    OR EXISTS (SELECT 1 FROM Party.PartyMaster WHERE MSMETypeId = @id AND IsDeleted = 0 AND IsActive = 1)
+                    OR EXISTS (SELECT 1 FROM Party.PartyMaster WHERE PayementModeId = @id AND IsDeleted = 0 AND IsActive = 1)
+                    OR EXISTS (SELECT 1 FROM Party.PartyMaster WHERE DueDateTypeId = @id AND IsDeleted = 0 AND IsActive = 1)
+                    OR EXISTS (SELECT 1 FROM Party.PartyMaster WHERE CustomerTypeId = @id AND IsDeleted = 0 AND IsActive = 1)
+                    OR EXISTS (SELECT 1 FROM Party.PartyMaster WHERE StatusId = @id AND IsDeleted = 0 AND IsActive = 1)
+                    OR EXISTS (SELECT 1 FROM Party.BankAccount WHERE AccountTypeId = @id AND IsDeleted = 0 AND IsActive = 1)
+                    OR EXISTS (SELECT 1 FROM Party.BankAccount WHERE BranchId = @id AND IsDeleted = 0 AND IsActive = 1)
+                    OR EXISTS (SELECT 1 FROM Party.PartyGroup WHERE GroupTypeId = @id AND IsDeleted = 0 AND IsActive = 1)
+                    OR EXISTS (SELECT 1 FROM Party.PartyGroup WHERE GlCategoryId = @id AND IsDeleted = 0 AND IsActive = 1)
+                    OR EXISTS (SELECT 1 FROM Party.PartyContact WHERE GenderId = @id)
+                    OR EXISTS (SELECT 1 FROM Party.PartyContact WHERE PreferredChannelId = @id)
+                    OR EXISTS (SELECT 1 FROM Party.PartyContact WHERE ContactTypeId = @id)
+                    OR EXISTS (SELECT 1 FROM Party.PartyType WHERE PartyTypeId = @id)
+                    OR EXISTS (SELECT 1 FROM Party.PartyDocument WHERE DocumentId = @id)
+                    OR EXISTS (SELECT 1 FROM Party.PartyBank WHERE AccountTypeId = @id)
+                    OR EXISTS (SELECT 1 FROM Party.SalesType WHERE ShippingConditionId = @id)
+                    OR EXISTS (SELECT 1 FROM Party.SalesType WHERE AccountAssignmentId = @id)
+                    OR EXISTS (SELECT 1 FROM Party.TransportDetail WHERE TransportModeId = @id)
+                    OR EXISTS (SELECT 1 FROM Party.TransportDetail WHERE VehicleTypeId = @id)
+                    OR EXISTS (SELECT 1 FROM Party.TransportDetail WHERE DefaultFreightTypeId = @id)
+                    OR EXISTS (SELECT 1 FROM Party.AgentConfig WHERE SettlementCycleId = @id)
+                THEN 1 ELSE 0 END;";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(query, new { id });
+        }
 
     }
 }

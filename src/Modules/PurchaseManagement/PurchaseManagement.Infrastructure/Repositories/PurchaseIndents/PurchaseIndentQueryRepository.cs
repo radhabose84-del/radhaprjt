@@ -534,5 +534,16 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseIndents
 
             return (data, totalCount);
         }
+
+        public async Task<bool> SoftDeleteValidationAsync(int id)
+        {
+            const string sql = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1 FROM [Purchase].[IndentDetail]
+                    WHERE IndentHeaderId = @id AND IsDeleted = 0
+                ) THEN 1 ELSE 0 END;";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { id });
+        }
     }
 }

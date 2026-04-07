@@ -30,11 +30,21 @@ namespace PartyManagement.Presentation.Validation.PartyMaster
                         break;
                     case "RecordNotFound":
                         RuleFor(x => x.Id)
-                            .MustAsync(async (id, cancellation) => 
-                                (await _ipartymasterQueryRepository.GetByIdPartyMasterAsync(id)) != null) 
+                            .MustAsync(async (id, cancellation) =>
+                                (await _ipartymasterQueryRepository.GetByIdPartyMasterAsync(id)) != null)
                             .WithName("Id not found")
                             .WithMessage($"{rule.Error}");
                             break;
+                    case "NotFound":
+                        RuleFor(x => x.Id)
+                            .MustAsync(async (id, ct) => !await _ipartymasterQueryRepository.NotFoundAsync(id))
+                            .WithMessage($"PartyMaster {rule.Error}");
+                        break;
+                    case "SoftDelete":
+                        RuleFor(x => x.Id)
+                            .MustAsync(async (id, ct) => !await _ipartymasterQueryRepository.SoftDeleteValidationAsync(id))
+                            .WithMessage("This master is linked with other records. You cannot delete this record.");
+                        break;
                     default:
                         break;
                 }
