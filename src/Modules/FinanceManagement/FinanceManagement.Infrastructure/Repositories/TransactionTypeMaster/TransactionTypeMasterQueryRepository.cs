@@ -174,5 +174,27 @@ namespace FinanceManagement.Infrastructure.Repositories.TransactionTypeMaster
             var menus = await _menuLookup.GetAllMenuAsync();
             return menus.Any(m => m.MenuId == menuId);
         }
+
+        public async Task<bool> SoftDeleteValidationAsync(int id)
+        {
+            const string sql = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1 FROM [Finance].[DocumentSequence]
+                    WHERE TransactionTypeId = @Id AND IsDeleted = 0
+                ) THEN 1 ELSE 0 END";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { Id = id });
+        }
+
+        public async Task<bool> IsTransactionTypeMasterLinkedAsync(int id)
+        {
+            const string sql = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1 FROM [Finance].[DocumentSequence]
+                    WHERE TransactionTypeId = @Id AND IsDeleted = 0 AND IsActive = 1
+                ) THEN 1 ELSE 0 END";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { Id = id });
+        }
     }
 }

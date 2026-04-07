@@ -284,5 +284,29 @@ namespace ProductionManagement.Infrastructure.Repositories.RepackingHeader
                 h.BinName = binDict.TryGetValue(h.BinId, out var bn) ? bn : null;
             }
         }
+
+        public async Task<bool> SoftDeleteValidationAsync(int id)
+        {
+            // RepackingDetail has NO IsDeleted column — any record means linked
+            const string sql = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1 FROM [Production].[RepackingDetail]
+                    WHERE RepackHeaderId = @Id
+                ) THEN 1 ELSE 0 END";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { Id = id });
+        }
+
+        public async Task<bool> IsRepackingHeaderLinkedAsync(int id)
+        {
+            // RepackingDetail has NO IsActive column — same check as SoftDelete
+            const string sql = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1 FROM [Production].[RepackingDetail]
+                    WHERE RepackHeaderId = @Id
+                ) THEN 1 ELSE 0 END";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { Id = id });
+        }
     }
 }

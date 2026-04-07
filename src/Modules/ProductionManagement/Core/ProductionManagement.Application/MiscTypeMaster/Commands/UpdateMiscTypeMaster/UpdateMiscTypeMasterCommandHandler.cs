@@ -27,6 +27,14 @@ namespace ProductionManagement.Application.MiscTypeMaster.Commands.UpdateMiscTyp
 
         public async Task<ApiResponseDTO<int>> Handle(UpdateMiscTypeMasterCommand request, CancellationToken cancellationToken)
         {
+            if (request.IsActive == 0)
+            {
+                var isLinked = await _queryRepository.IsMiscTypeMasterLinkedAsync(request.Id);
+                if (isLinked)
+                    throw new Contracts.Common.ExceptionRules(
+                        "This master is linked with other records. You cannot inactivate this record.");
+            }
+
             var entity = _mapper.Map<Domain.Entities.MiscTypeMaster>(request);
 
             var result = await _commandRepository.UpdateAsync(entity);
