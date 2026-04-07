@@ -482,6 +482,32 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
                         }
                     }
                 }
+
+                // ─── Step 5: Fetch TransportDetails (Status = 1 only) ───
+                const string transportSql = @"
+                    SELECT td.Id, td.PartyId, td.TransportModeId, tm.Description AS TransportModeName,
+                        td.VehicleTypeId, vt.Description AS VehicleTypeName,
+                        td.DefaultFreightTypeId, dft.Description AS DefaultFreightTypeName,
+                        td.DefaultFreightRate, td.LicenseNo, td.LicenseExpiryDate,
+                        td.VehicleNo, td.Status
+                    FROM Party.TransportDetail td
+                    LEFT JOIN Party.MiscMaster tm ON td.TransportModeId = tm.Id AND tm.IsDeleted = 0
+                    LEFT JOIN Party.MiscMaster vt ON td.VehicleTypeId = vt.Id AND vt.IsDeleted = 0
+                    LEFT JOIN Party.MiscMaster dft ON td.DefaultFreightTypeId = dft.Id AND dft.IsDeleted = 0
+                    WHERE td.PartyId IN @PartyIds AND td.Status = 1";
+
+                var flatTransports = (await _dbConnection.QueryAsync<TransportDetailAutoCompleteDto>(transportSql, new { PartyIds = partyIds })).ToList();
+
+                if (flatTransports.Count > 0)
+                {
+                    var transportByParty = flatTransports.GroupBy(t => t.PartyId).ToDictionary(g => g.Key, g => g.ToList());
+
+                    foreach (var party in result)
+                    {
+                        if (transportByParty.TryGetValue(party.Id, out var transports))
+                            party.TransportDetails = transports;
+                    }
+                }
             }
 
             return result;
