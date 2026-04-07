@@ -63,20 +63,23 @@ namespace LogisticsManagement.Infrastructure.Repositories.MiscMaster
             return await _dbConnection.QueryFirstOrDefaultAsync<MiscMasterDto>(sql, new { Id = id });
         }
 
-        public async Task<IReadOnlyList<MiscMasterLookupDto>> AutocompleteAsync(string term, CancellationToken ct)
+        public async Task<IReadOnlyList<MiscMasterLookupDto>> AutocompleteAsync(string term, string? miscTypeCode, CancellationToken ct)
         {
             var whereClause = "mm.IsDeleted = 0 AND mm.IsActive = 1";
             if (!string.IsNullOrWhiteSpace(term))
                 whereClause += " AND (mm.Code LIKE @Term OR mm.Description LIKE @Term)";
+            if (!string.IsNullOrWhiteSpace(miscTypeCode))
+                whereClause += " AND mtm.MiscTypeCode = @MiscTypeCode";
 
             var sql = $@"
-                SELECT mm.Id, mm.Code, mm.Description
+                SELECT mm.Id, mm.MiscTypeId, mtm.MiscTypeCode, mm.Code, mm.Description
                 FROM Logistics.MiscMaster mm
+                INNER JOIN Logistics.MiscTypeMaster mtm ON mm.MiscTypeId = mtm.Id AND mtm.IsDeleted = 0
                 WHERE {whereClause}
                 ORDER BY mm.MiscTypeId ASC, mm.SortOrder ASC";
 
             var result = await _dbConnection.QueryAsync<MiscMasterLookupDto>(
-                new CommandDefinition(sql, new { Term = $"%{term}%" }, cancellationToken: ct));
+                new CommandDefinition(sql, new { Term = $"%{term}%", MiscTypeCode = miscTypeCode }, cancellationToken: ct));
             return result.ToList();
         }
 

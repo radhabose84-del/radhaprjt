@@ -21,7 +21,7 @@ namespace LogisticsManagement.Application.MiscMaster.Queries.GetMiscMasterAutoCo
 
         public async Task<IReadOnlyList<MiscMasterLookupDto>> Handle(GetMiscMasterAutoCompleteQuery request, CancellationToken cancellationToken)
         {
-            var result = await _queryRepository.AutocompleteAsync(request.Term ?? string.Empty, cancellationToken);
+            var result = await _queryRepository.AutocompleteAsync(request.Term ?? string.Empty, request.MiscTypeCode, cancellationToken);
             var miscMasters = _mapper.Map<List<MiscMasterLookupDto>>(result);
 
             var domainEvent = new AuditLogsDomainEvent(
