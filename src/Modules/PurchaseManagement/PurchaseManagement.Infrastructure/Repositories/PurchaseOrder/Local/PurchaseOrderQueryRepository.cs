@@ -562,5 +562,25 @@ public class PurchaseOrderQueryRepository : IPurchaseOrderQueryRepository
             ";
         var result = await _conn.QueryAsync<LastPoPriceDto>(sql, new { ItemIds = itemIds, Approved=approved.Id });
         return result.ToList();
-    }  
+    }
+
+    public async Task<bool> SoftDeleteValidationAsync(int id)
+    {
+        // GateEntryDetail and GrnDetail do NOT have IsDeleted/IsActive columns
+        // PurchaseDocuments, ImportPOHeader, ServiceHeader have IsDeleted
+        const string sql = @"
+            SELECT CASE WHEN
+                EXISTS (SELECT 1 FROM [Purchase].[GateEntryDetail] WHERE PoId = @id)
+                OR
+                EXISTS (SELECT 1 FROM [Purchase].[GrnDetail] WHERE PoId = @id)
+                OR
+                EXISTS (SELECT 1 FROM [Purchase].[PurchaseDocuments] WHERE PoId = @id)
+                OR
+                EXISTS (SELECT 1 FROM [Purchase].[PurchaseOrderImportHeader] WHERE PurchaseOrderId = @id AND IsDeleted = 0)
+                OR
+                EXISTS (SELECT 1 FROM [Purchase].[PurchaseOrderServiceHeader] WHERE PurchaseOrderId = @id AND IsDeleted = 0)
+            THEN 1 ELSE 0 END;";
+
+        return await _conn.ExecuteScalarAsync<bool>(sql, new { id });
+    }
 }

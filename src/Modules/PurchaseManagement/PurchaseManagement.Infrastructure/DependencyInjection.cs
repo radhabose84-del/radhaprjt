@@ -319,6 +319,10 @@ namespace PurchaseManagement.Infrastructure
             // Validation repositories — cross-module referential integrity (Rule 25)
             services.AddScoped<Contracts.Interfaces.Validations.PurchaseManagement.IPurchaseCurrencyValidation, Repositories.Validations.PurchaseCurrencyValidationRepository>();
             services.AddScoped<Contracts.Interfaces.Validations.PurchaseManagement.IPartyMasterPurchaseValidation, Repositories.Validations.PartyMasterPurchaseValidationRepository>();
+            services.AddScoped<Contracts.Interfaces.Validations.PurchaseManagement.IPurchaseItemValidation, Repositories.Validations.PurchaseItemValidationRepository>();
+            services.AddScoped<Contracts.Interfaces.Validations.PurchaseManagement.IPurchaseUomValidation, Repositories.Validations.PurchaseUomValidationRepository>();
+            services.AddScoped<Contracts.Interfaces.Validations.PurchaseManagement.IPurchaseHsnValidation, Repositories.Validations.PurchaseHsnValidationRepository>();
+            services.AddScoped<Contracts.Interfaces.Validations.PurchaseManagement.IPurchaseItemCategoryValidation, Repositories.Validations.PurchaseItemCategoryValidationRepository>();
 
             return services;
         }

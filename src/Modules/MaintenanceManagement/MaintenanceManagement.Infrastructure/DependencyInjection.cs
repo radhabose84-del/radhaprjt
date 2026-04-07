@@ -276,6 +276,7 @@ namespace MaintenanceManagement.Infrastructure
             services.AddScoped<Contracts.Interfaces.Validations.MaintenanceManagement.IMaintenanceDepartmentValidation, Repositories.Validations.MaintenanceDepartmentValidationRepository>();
             services.AddScoped<Contracts.Interfaces.Validations.MaintenanceManagement.IMaintenanceManufacturerValidation, Repositories.Validations.MaintenanceManufacturerValidationRepository>();
             services.AddScoped<Contracts.Interfaces.Validations.MaintenanceManagement.IMaintenanceUomValidation, Repositories.Validations.MaintenanceUomValidationRepository>();
+            services.AddScoped<Contracts.Interfaces.Validations.MaintenanceManagement.IMaintenanceItemValidation, Repositories.Validations.MaintenanceItemValidationRepository>();
             services.AddScoped<Contracts.Interfaces.Validations.MaintenanceManagement.IPartyMasterMaintenanceValidation, Repositories.Validations.PartyMasterMaintenanceValidationRepository>();
 
             return services;

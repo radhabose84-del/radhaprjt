@@ -15,6 +15,8 @@ namespace InventoryManagement.Application.Common.Interfaces.Item.ItemDetail.Quer
         Task<List<GetItemAutoCompleteDto>> GetItemsMasterByIdsAsync(IEnumerable<int> ids);          
         Task <List<ItemPurchaseToleranceDto?>> GetItemPurchaseToleranceAsync(IEnumerable<int> itemIds, CancellationToken ct = default);
         Task<List<GetItemAutoCompleteDto>> GetItemsByVariantFilterAsync(bool? hasVariant, int? parentItemId, int? moduleId = null, CancellationToken ct = default);
+        Task<bool> SoftDeleteValidationAsync(int id);
+        Task<bool> IsItemMasterLinkedAsync(int id);
 
     }
 }
