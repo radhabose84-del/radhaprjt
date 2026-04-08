@@ -38,18 +38,33 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("varchar(100)")
                 .IsRequired();
 
-            builder.Property(t => t.DiscountTypeId)
-                .HasColumnName("DiscountTypeId")
-                .HasColumnType("int")
-                .IsRequired();
-
-            builder.Property(t => t.ApplicableLevelId)
-                .HasColumnName("ApplicableLevelId")
-                .HasColumnType("int")
-                .IsRequired();
-
             builder.Property(t => t.TriggerEventId)
                 .HasColumnName("TriggerEventId")
+                .HasColumnType("int")
+                .IsRequired();
+
+            builder.Property(t => t.DiscountBasisId)
+                .HasColumnName("DiscountBasisId")
+                .HasColumnType("int")
+                .IsRequired();
+
+            builder.Property(t => t.ExecutionTypeId)
+                .HasColumnName("ExecutionTypeId")
+                .HasColumnType("int")
+                .IsRequired();
+
+            builder.Property(t => t.CurrencyId)
+                .HasColumnName("CurrencyId")
+                .HasColumnType("int")
+                .IsRequired(false);
+
+            builder.Property(t => t.CustomerGroupId)
+                .HasColumnName("CustomerGroupId")
+                .HasColumnType("int")
+                .IsRequired(false);
+
+            builder.Property(t => t.Priority)
+                .HasColumnName("Priority")
                 .HasColumnType("int")
                 .IsRequired();
 
@@ -63,20 +78,30 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("int")
                 .IsRequired(false);
 
+            builder.Property(t => t.MaxDiscountValue)
+                .HasColumnName("MaxDiscountValue")
+                .HasColumnType("decimal(18,4)")
+                .IsRequired(false);
+
+            builder.Property(t => t.IsStackable)
+                .HasColumnName("IsStackable")
+                .HasColumnType("bit")
+                .IsRequired();
+
+            builder.Property(t => t.ExclusionGroupId)
+                .HasColumnName("ExclusionGroupId")
+                .HasColumnType("int")
+                .IsRequired(false);
+
             builder.Property(t => t.ValueTypeId)
                 .HasColumnName("ValueTypeId")
                 .HasColumnType("int")
                 .IsRequired();
 
-            builder.Property(t => t.DiscountValue)
-                .HasColumnName("DiscountValue")
-                .HasColumnType("decimal(18,4)")
-                .IsRequired(false);
-
             builder.Property(t => t.SlabTypeId)
                 .HasColumnName("SlabTypeId")
                 .HasColumnType("int")
-                .IsRequired(false);
+                .IsRequired();
 
             builder.Property(b => b.IsActive)
                 .HasColumnName("IsActive")
@@ -102,29 +127,39 @@ namespace SalesManagement.Infrastructure.Data.Configurations
 
             // Indexes
             builder.HasIndex(t => t.DiscountCode).IsUnique();
-            builder.HasIndex(t => t.DiscountTypeId);
-            builder.HasIndex(t => t.ApplicableLevelId);
             builder.HasIndex(t => t.TriggerEventId);
+            builder.HasIndex(t => t.DiscountBasisId);
+            builder.HasIndex(t => t.ExecutionTypeId);
+            builder.HasIndex(t => t.CurrencyId);
+            builder.HasIndex(t => t.CustomerGroupId);
             builder.HasIndex(t => t.MaxDiscountLimitTypeId);
+            builder.HasIndex(t => t.ExclusionGroupId);
             builder.HasIndex(t => t.ValueTypeId);
             builder.HasIndex(t => t.SlabTypeId);
-
-            // Same-module FK — MiscMaster for DiscountType
-            builder.HasOne(t => t.DiscountType)
-                .WithMany(m => m.DiscountMastersAsDiscountType)
-                .HasForeignKey(t => t.DiscountTypeId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            // Same-module FK — MiscMaster for ApplicableLevel
-            builder.HasOne(t => t.ApplicableLevel)
-                .WithMany(m => m.DiscountMastersAsApplicableLevel)
-                .HasForeignKey(t => t.ApplicableLevelId)
-                .OnDelete(DeleteBehavior.Restrict);
 
             // Same-module FK — MiscMaster for TriggerEvent
             builder.HasOne(t => t.TriggerEvent)
                 .WithMany(m => m.DiscountMastersAsTriggerEvent)
                 .HasForeignKey(t => t.TriggerEventId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Same-module FK — MiscMaster for DiscountBasis
+            builder.HasOne(t => t.DiscountBasis)
+                .WithMany(m => m.DiscountMastersAsDiscountBasis)
+                .HasForeignKey(t => t.DiscountBasisId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Same-module FK — MiscMaster for ExecutionType
+            builder.HasOne(t => t.ExecutionType)
+                .WithMany(m => m.DiscountMastersAsExecutionType)
+                .HasForeignKey(t => t.ExecutionTypeId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Same-module FK — MiscMaster for CustomerGroup (optional)
+            builder.HasOne(t => t.CustomerGroup)
+                .WithMany(m => m.DiscountMastersAsCustomerGroup)
+                .HasForeignKey(t => t.CustomerGroupId)
+                .IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // Same-module FK — MiscMaster for MaxDiscountLimitType (optional)
@@ -134,18 +169,27 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // Same-module FK — MiscMaster for ExclusionGroup (optional)
+            builder.HasOne(t => t.ExclusionGroup)
+                .WithMany(m => m.DiscountMastersAsExclusionGroup)
+                .HasForeignKey(t => t.ExclusionGroupId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+
             // Same-module FK — MiscMaster for ValueType
             builder.HasOne(t => t.ValueType)
                 .WithMany(m => m.DiscountMastersAsValueType)
                 .HasForeignKey(t => t.ValueTypeId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Same-module FK — MiscMaster for SlabType (optional)
+            // Same-module FK — MiscMaster for SlabType
             builder.HasOne(t => t.SlabType)
                 .WithMany(m => m.DiscountMastersAsSlabType)
                 .HasForeignKey(t => t.SlabTypeId)
-                .IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // CurrencyId — cross-module FK (UserManagement), no DB constraint
+            // Validated in code via ICurrencyLookup
         }
     }
 }
