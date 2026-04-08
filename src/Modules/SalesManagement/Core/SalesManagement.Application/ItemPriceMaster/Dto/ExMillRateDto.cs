@@ -9,6 +9,5 @@ namespace SalesManagement.Application.ItemPriceMaster.Dto
         public decimal ExMillRate { get; set; }
         public decimal? CharityValue { get; set; }
         public decimal? HandlingCharges { get; set; }
-        public decimal? AdditionalValue { get; set; }
     }
 }

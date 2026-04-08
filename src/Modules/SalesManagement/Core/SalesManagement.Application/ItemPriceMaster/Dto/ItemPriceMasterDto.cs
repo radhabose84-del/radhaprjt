@@ -19,7 +19,6 @@ namespace SalesManagement.Application.ItemPriceMaster.Dto
         public decimal? TolerancePercentage { get; set; }
         public decimal? CharityValue { get; set; }
         public decimal? HandlingCharges { get; set; }
-        public decimal? AdditionalValue { get; set; }
 
         public int CurrencyId { get; set; }
         public string? CurrencyCode { get; set; }

@@ -74,6 +74,7 @@ namespace SalesManagement.Presentation.Controllers
         [HttpGet("exmill-rate")]
         public async Task<IActionResult> GetExMillRateByPaymentTermAsync(
             [FromQuery] int itemId,
+            [FromQuery] DateOnly date,
             [FromQuery] int? paymentTermId = null,
             [FromQuery] int? salesSegmentId = null)
         {
@@ -81,6 +82,7 @@ namespace SalesManagement.Presentation.Controllers
             {
                 PaymentTermId = paymentTermId,
                 ItemId = itemId,
+                Date = date,
                 SalesSegmentId = salesSegmentId
             });
 
