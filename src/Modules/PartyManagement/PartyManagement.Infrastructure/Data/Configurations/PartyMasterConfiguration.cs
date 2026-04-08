@@ -301,6 +301,17 @@ namespace PartyManagement.Infrastructure.Data.Configurations
                 .HasColumnType("bit")
                 .IsRequired();
 
+            // SalesFreightId / PurchaseFreightId (cross-module FK to Logistics.FreightMaster — no DB constraint)
+            builder.Property(m => m.SalesFreightId)
+                .HasColumnName("SalesFreightId")
+                .HasColumnType("int")
+                .IsRequired(false);
+
+            builder.Property(m => m.PurchaseFreightId)
+                .HasColumnName("PurchaseFreightId")
+                .HasColumnType("int")
+                .IsRequired(false);
+
             // FreightExpensesGl
             builder.Property(m => m.FreightExpensesGl)
                 .HasColumnName("FreightExpensesGl")

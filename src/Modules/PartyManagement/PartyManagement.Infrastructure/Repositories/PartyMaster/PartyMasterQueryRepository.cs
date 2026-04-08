@@ -16,6 +16,7 @@ using Contracts.Interfaces.Lookups.Users;
 using Contracts.Interfaces.Validations.SalesManagement;
 using Contracts.Interfaces.Validations.PurchaseManagement;
 using Contracts.Interfaces.Validations.FinanceManagement;
+using Contracts.Interfaces.Lookups.Logistics;
 using Contracts.Interfaces.Validations.MaintenanceManagement;
 using Dapper;
 
@@ -36,6 +37,7 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
         private readonly IPartyMasterPurchaseValidation _purchaseValidation;
         private readonly IPartyMasterFinanceValidation _financeValidation;
         private readonly IPartyMasterMaintenanceValidation _maintenanceValidation;
+        private readonly IFreightMasterLookup _freightMasterLookup;
 
         public PartyMasterQueryRepository(IDbConnection dbConnection, IIPAddressService ipAddressService,
             IIncotermLookup incotermLookup, IPaymentTermLookup paymentTermLookup,
@@ -44,7 +46,8 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
             IPartyMasterSalesValidation salesValidation,
             IPartyMasterPurchaseValidation purchaseValidation,
             IPartyMasterFinanceValidation financeValidation,
-            IPartyMasterMaintenanceValidation maintenanceValidation)
+            IPartyMasterMaintenanceValidation maintenanceValidation,
+            IFreightMasterLookup freightMasterLookup)
         {
             _dbConnection = dbConnection;
             _ipAddressService = ipAddressService;
@@ -59,6 +62,7 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
             _purchaseValidation = purchaseValidation;
             _financeValidation = financeValidation;
             _maintenanceValidation = maintenanceValidation;
+            _freightMasterLookup = freightMasterLookup;
         }
         public async Task<List<PartyGroupLoadDto>> GetPartyGroupsAsync(List<int> groupTypeIds)
         {
@@ -211,6 +215,29 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
                         ptDict.TryGetValue(st.PaymentTermsId!.Value, out var name);
                         st.PaymentTermsName = name;
                     }
+                }
+            }
+
+            // Populate freight details via cross-module lookup
+            if (partyMaster.SalesFreightId.HasValue && partyMaster.SalesFreightId > 0)
+            {
+                var salesFreight = await _freightMasterLookup.GetByIdAsync(partyMaster.SalesFreightId.Value);
+                if (salesFreight != null)
+                {
+                    partyMaster.SalesFreightModeName = salesFreight.FreightModeName;
+                    partyMaster.SalesRateMethodName = salesFreight.RateMethodName;
+                    partyMaster.SalesFreightRate = salesFreight.Rate;
+                }
+            }
+
+            if (partyMaster.PurchaseFreightId.HasValue && partyMaster.PurchaseFreightId > 0)
+            {
+                var purchaseFreight = await _freightMasterLookup.GetByIdAsync(partyMaster.PurchaseFreightId.Value);
+                if (purchaseFreight != null)
+                {
+                    partyMaster.PurchaseFreightModeName = purchaseFreight.FreightModeName;
+                    partyMaster.PurchaseRateMethodName = purchaseFreight.RateMethodName;
+                    partyMaster.PurchaseFreightRate = purchaseFreight.Rate;
                 }
             }
 
@@ -508,6 +535,7 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
                             party.TransportDetails = transports;
                     }
                 }
+
             }
 
             return result;
