@@ -12,6 +12,6 @@ namespace SalesManagement.Application.SalesReturn.Commands.CreateSalesReturn
         public int WarehouseId { get; set; }
         public int BinId { get; set; }
         public string? Remarks { get; set; }
-        public List<CreateSalesReturnDetailDto>? Details { get; set; }
+        public List<CreateSalesReturnInvoiceDto>? InvoiceDetails { get; set; }
     }
 }
