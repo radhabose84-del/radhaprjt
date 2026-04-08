@@ -15,7 +15,6 @@ namespace SalesManagement.Domain.Entities
         public decimal? TolerancePercentage { get; set; }
         public decimal? CharityValue { get; set; }
         public decimal? HandlingCharges { get; set; }
-        public decimal? AdditionalValue { get; set; }
         public int? StatusId { get; set; }                // FK → Sales.MiscMaster
 
         // Navigation properties (same-module FK)
