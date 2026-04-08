@@ -15,9 +15,10 @@ namespace SalesManagement.Application.Common.Mappings
                 .ForMember(dest => dest.IsDeleted, opt => opt.MapFrom(src => IsDelete.NotDeleted))
                 .ForMember(dest => dest.SalesReturnDetails, opt => opt.Ignore());
 
-            CreateMap<CreateSalesReturnDetailDto, SalesReturnDetail>()
+            CreateMap<CreateSalesReturnItemDto, SalesReturnDetail>()
                 .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => Status.Active))
-                .ForMember(dest => dest.IsDeleted, opt => opt.MapFrom(src => IsDelete.NotDeleted));
+                .ForMember(dest => dest.IsDeleted, opt => opt.MapFrom(src => IsDelete.NotDeleted))
+                .ForMember(dest => dest.InvoiceHeaderId, opt => opt.Ignore());
         }
     }
 }

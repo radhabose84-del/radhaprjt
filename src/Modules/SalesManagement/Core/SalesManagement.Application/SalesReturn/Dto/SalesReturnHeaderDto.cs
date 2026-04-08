@@ -25,7 +25,7 @@ namespace SalesManagement.Application.SalesReturn.Dto
         public string? ModifiedByName { get; set; }
         public DateTimeOffset? ModifiedDate { get; set; }
 
-        // Details
-        public List<SalesReturnDetailDto>? Details { get; set; }
+        // Details (nested by invoice)
+        public List<SalesReturnInvoiceResponseDto>? InvoiceDetails { get; set; }
     }
 }

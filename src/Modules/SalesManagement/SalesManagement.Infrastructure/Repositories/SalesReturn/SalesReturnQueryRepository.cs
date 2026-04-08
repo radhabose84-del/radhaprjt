@@ -424,7 +424,17 @@ namespace SalesManagement.Infrastructure.Repositories.SalesReturn
                 }
             }
 
-            header.Details = details;
+            header.InvoiceDetails = details
+                .GroupBy(d => d.InvoiceHeaderId)
+                .Select(g => new SalesReturnInvoiceResponseDto
+                {
+                    InvoiceHeaderId = g.Key,
+                    InvoiceNo = g.First().InvoiceNo,
+                    InvoiceDate = g.First().InvoiceDate,
+                    Items = g.ToList()
+                })
+                .ToList();
+
             return header;
         }
     }

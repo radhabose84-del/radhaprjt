@@ -1,8 +1,13 @@
 namespace SalesManagement.Application.SalesReturn.Dto
 {
-    public class CreateSalesReturnDetailDto
+    public class CreateSalesReturnInvoiceDto
     {
         public int InvoiceHeaderId { get; set; }
+        public List<CreateSalesReturnItemDto>? Items { get; set; }
+    }
+
+    public class CreateSalesReturnItemDto
+    {
         public int InvoiceDetailId { get; set; }
         public int ItemId { get; set; }
         public int? LotId { get; set; }
