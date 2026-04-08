@@ -5,62 +5,46 @@ using SalesManagement.Presentation.Validation.DiscountMaster;
 
 namespace SalesManagement.UnitTests.Validators.DiscountMaster
 {
-    public sealed class DeleteDiscountMasterCommandValidatorTests
+    public class DeleteDiscountMasterCommandValidatorTests
     {
         private readonly Mock<IDiscountMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
 
         private DeleteDiscountMasterCommandValidator CreateValidator()
             => new(_mockQueryRepo.Object);
 
-        private void SetupHappyPath(int id = 1)
+        private void SetupAllValid()
         {
-            _mockQueryRepo.Setup(r => r.NotFoundAsync(id)).ReturnsAsync(false);
+            _mockQueryRepo.Setup(r => r.NotFoundAsync(It.IsAny<int>())).ReturnsAsync(false);
         }
 
-        // ── Happy Path ────────────────────────────────────────────────────────
-
         [Fact]
-        public async Task ValidId_PassesValidation()
+        public async Task ValidCommand_PassesValidation()
         {
-            SetupHappyPath();
+            SetupAllValid();
 
             var result = await CreateValidator().TestValidateAsync(new DeleteDiscountMasterCommand(1));
 
             result.ShouldNotHaveAnyValidationErrors();
         }
 
-        // ── Id / NotEmpty Rules ───────────────────────────────────────────────
-
         [Fact]
-        public async Task ZeroId_FailsValidation()
+        public async Task Id_Zero_FailsValidation()
         {
-            _mockQueryRepo.Setup(r => r.NotFoundAsync(0)).ReturnsAsync(true);
+            SetupAllValid();
 
             var result = await CreateValidator().TestValidateAsync(new DeleteDiscountMasterCommand(0));
 
             result.ShouldHaveValidationErrorFor(x => x.Id);
         }
 
-        // ── NotFound Rules ────────────────────────────────────────────────────
-
         [Fact]
         public async Task NotFound_FailsValidation()
         {
-            _mockQueryRepo.Setup(r => r.NotFoundAsync(1)).ReturnsAsync(true);
+            _mockQueryRepo.Setup(r => r.NotFoundAsync(99)).ReturnsAsync(true);
 
-            var result = await CreateValidator().TestValidateAsync(new DeleteDiscountMasterCommand(1));
+            var result = await CreateValidator().TestValidateAsync(new DeleteDiscountMasterCommand(99));
 
-            result.ShouldHaveAnyValidationError();
-        }
-
-        [Fact]
-        public async Task EntityExists_PassesNotFoundCheck()
-        {
-            SetupHappyPath();
-
-            var result = await CreateValidator().TestValidateAsync(new DeleteDiscountMasterCommand(1));
-
-            result.ShouldNotHaveValidationErrorFor(x => x.Id);
+            result.ShouldHaveValidationErrorFor(x => x.Id);
         }
     }
 }

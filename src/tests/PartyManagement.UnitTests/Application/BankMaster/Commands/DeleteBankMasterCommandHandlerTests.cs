@@ -23,6 +23,9 @@ namespace PartyManagement.UnitTests.Application.BankMaster.Commands
             _mockQueryRepo
                 .Setup(r => r.GetByIdAsync(1, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(entity);
+            _mockQueryRepo
+                .Setup(r => r.SoftDeleteValidationAsync(1))
+                .ReturnsAsync(false);
 
             _mockCommandRepo
                 .Setup(r => r.SoftDeleteAsync(entity, It.IsAny<CancellationToken>()))
@@ -41,6 +44,9 @@ namespace PartyManagement.UnitTests.Application.BankMaster.Commands
             _mockQueryRepo
                 .Setup(r => r.GetByIdAsync(1, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(entity);
+            _mockQueryRepo
+                .Setup(r => r.SoftDeleteValidationAsync(1))
+                .ReturnsAsync(false);
 
             _mockCommandRepo
                 .Setup(r => r.SoftDeleteAsync(entity, It.IsAny<CancellationToken>()))

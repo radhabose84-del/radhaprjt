@@ -1,65 +1,128 @@
 using AutoMapper;
-using Contracts.Common;
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.IItemPriceMaster;
 using SalesManagement.Application.ItemPriceMaster.Dto;
 using SalesManagement.Application.ItemPriceMaster.Queries.GetExMillRateByPaymentTerm;
-using SalesManagement.Domain.Events;
 
-namespace SalesManagement.UnitTests.Application.ItemPriceMaster.Queries;
-
-public sealed class GetExMillRateByPaymentTermQueryHandlerTests
+namespace SalesManagement.UnitTests.Application.ItemPriceMaster.Queries
 {
-    private readonly Mock<IItemPriceMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
-    private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Loose);
-    private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Loose);
-
-    private GetExMillRateByPaymentTermQueryHandler CreateSut() =>
-        new(_mockQueryRepo.Object, _mockMapper.Object, _mockMediator.Object);
-
-    [Fact]
-    public async Task Handle_ReturnsSuccess()
+    public class GetExMillRateByPaymentTermQueryHandlerTests
     {
-        var data = new List<ExMillRateDto> { new() { Id = 1, ExMillRate = 100m } };
+        private readonly Mock<IItemPriceMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
+        private readonly Mock<IMapper> _mockMapper = new();
+        private readonly Mock<IMediator> _mockMediator = new();
 
-        _mockQueryRepo
-            .Setup(r => r.GetExMillRateByPaymentTermAsync(1, 1, null))
-            .ReturnsAsync(data);
+        private GetExMillRateByPaymentTermQueryHandler CreateSut()
+        {
+            _mockMediator.Setup(m => m.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
+            return new GetExMillRateByPaymentTermQueryHandler(
+                _mockQueryRepo.Object, _mockMapper.Object, _mockMediator.Object);
+        }
 
-        _mockMapper
-            .Setup(m => m.Map<List<ExMillRateDto>>(It.IsAny<List<ExMillRateDto>>()))
-            .Returns(data);
+        private static ExMillRateDto ValidDto(int id = 1) => new()
+        {
+            Id = id,
+            PriceCode = "PM001",
+            SalesSegmentId = 1,
+            SalesSegmentName = "Domestic",
+            ExMillRate = 500m,
+            CharityValue = 10m,
+            HandlingCharges = 5m
+        };
 
-        _mockMediator
-            .Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
+        [Fact]
+        public async Task Handle_ReturnsSuccess_WhenDataExists()
+        {
+            var data = new List<ExMillRateDto> { ValidDto() };
+            _mockQueryRepo
+                .Setup(r => r.GetExMillRateByPaymentTermAsync(1, 10, It.IsAny<DateOnly>(), null))
+                .ReturnsAsync(data);
+            _mockMapper
+                .Setup(m => m.Map<List<ExMillRateDto>>(It.IsAny<object>()))
+                .Returns<object>(o => o as List<ExMillRateDto> ?? new List<ExMillRateDto>());
 
-        var query = new GetExMillRateByPaymentTermQuery { PaymentTermId = 1, ItemId = 1 };
-        var result = await CreateSut().Handle(query, CancellationToken.None);
+            var query = new GetExMillRateByPaymentTermQuery
+            {
+                PaymentTermId = 1,
+                ItemId = 10,
+                Date = DateOnly.FromDateTime(DateTime.Today)
+            };
 
-        result.IsSuccess.Should().BeTrue();
-        result.Data.Should().HaveCount(1);
-    }
+            var result = await CreateSut().Handle(query, CancellationToken.None);
 
-    [Fact]
-    public async Task Handle_EmptyResult_ReturnsSuccess()
-    {
-        _mockQueryRepo
-            .Setup(r => r.GetExMillRateByPaymentTermAsync(1, 1, null))
-            .ReturnsAsync(new List<ExMillRateDto>());
+            result.Should().NotBeNull();
+            result.IsSuccess.Should().BeTrue();
+        }
 
-        _mockMapper
-            .Setup(m => m.Map<List<ExMillRateDto>>(It.IsAny<List<ExMillRateDto>>()))
-            .Returns(new List<ExMillRateDto>());
+        [Fact]
+        public async Task Handle_ReturnsCorrectTotalCount()
+        {
+            var data = new List<ExMillRateDto> { ValidDto(1), ValidDto(2) };
+            _mockQueryRepo
+                .Setup(r => r.GetExMillRateByPaymentTermAsync(1, 10, It.IsAny<DateOnly>(), null))
+                .ReturnsAsync(data);
+            _mockMapper
+                .Setup(m => m.Map<List<ExMillRateDto>>(It.IsAny<object>()))
+                .Returns<object>(o => o as List<ExMillRateDto> ?? new List<ExMillRateDto>());
 
-        _mockMediator
-            .Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
+            var query = new GetExMillRateByPaymentTermQuery
+            {
+                PaymentTermId = 1,
+                ItemId = 10,
+                Date = DateOnly.FromDateTime(DateTime.Today)
+            };
 
-        var query = new GetExMillRateByPaymentTermQuery { PaymentTermId = 1, ItemId = 1 };
-        var result = await CreateSut().Handle(query, CancellationToken.None);
+            var result = await CreateSut().Handle(query, CancellationToken.None);
 
-        result.IsSuccess.Should().BeTrue();
-        result.Data.Should().BeEmpty();
+            result.TotalCount.Should().Be(2);
+        }
+
+        [Fact]
+        public async Task Handle_EmptyResult_ReturnsEmptyList()
+        {
+            _mockQueryRepo
+                .Setup(r => r.GetExMillRateByPaymentTermAsync(null, 10, It.IsAny<DateOnly>(), null))
+                .ReturnsAsync(new List<ExMillRateDto>());
+            _mockMapper
+                .Setup(m => m.Map<List<ExMillRateDto>>(It.IsAny<object>()))
+                .Returns<object>(o => o as List<ExMillRateDto> ?? new List<ExMillRateDto>());
+
+            var query = new GetExMillRateByPaymentTermQuery
+            {
+                PaymentTermId = null,
+                ItemId = 10,
+                Date = DateOnly.FromDateTime(DateTime.Today)
+            };
+
+            var result = await CreateSut().Handle(query, CancellationToken.None);
+
+            result.Data.Should().BeEmpty();
+        }
+
+        [Fact]
+        public async Task Handle_CallsRepository_Once()
+        {
+            _mockQueryRepo
+                .Setup(r => r.GetExMillRateByPaymentTermAsync(1, 10, It.IsAny<DateOnly>(), 2))
+                .ReturnsAsync(new List<ExMillRateDto>());
+            _mockMapper
+                .Setup(m => m.Map<List<ExMillRateDto>>(It.IsAny<object>()))
+                .Returns<object>(o => o as List<ExMillRateDto> ?? new List<ExMillRateDto>());
+
+            var query = new GetExMillRateByPaymentTermQuery
+            {
+                PaymentTermId = 1,
+                ItemId = 10,
+                SalesSegmentId = 2,
+                Date = DateOnly.FromDateTime(DateTime.Today)
+            };
+
+            await CreateSut().Handle(query, CancellationToken.None);
+
+            _mockQueryRepo.Verify(
+                r => r.GetExMillRateByPaymentTermAsync(1, 10, It.IsAny<DateOnly>(), 2),
+                Times.Once);
+        }
     }
 }

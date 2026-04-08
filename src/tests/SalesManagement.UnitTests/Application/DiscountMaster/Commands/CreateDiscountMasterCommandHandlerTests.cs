@@ -16,16 +16,6 @@ namespace SalesManagement.UnitTests.Application.DiscountMaster.Commands
         private CreateDiscountMasterCommandHandler CreateSut() =>
             new(_mockCommandRepo.Object, _mockQueryRepo.Object, _mockMediator.Object, _mockMapper.Object);
 
-        private static CreateDiscountMasterCommand ValidCommand() => new()
-        {
-            DiscountName = "Test Discount",
-            DiscountTypeId = 1,
-            ApplicableLevelId = 2,
-            TriggerEventId = 3,
-            ValueTypeId = 4,
-            DiscountValue = 10.5m
-        };
-
         private void SetupMapper(CreateDiscountMasterCommand cmd)
         {
             _mockMapper
@@ -33,7 +23,12 @@ namespace SalesManagement.UnitTests.Application.DiscountMaster.Commands
                 .Returns(new SalesManagement.Domain.Entities.DiscountMaster
                 {
                     DiscountName = cmd.DiscountName,
-                    DiscountTypeId = cmd.DiscountTypeId
+                    TriggerEventId = cmd.TriggerEventId,
+                    DiscountBasisId = cmd.DiscountBasisId,
+                    ExecutionTypeId = cmd.ExecutionTypeId,
+                    ValueTypeId = cmd.ValueTypeId,
+                    SlabTypeId = cmd.SlabTypeId,
+                    Priority = cmd.Priority
                 });
         }
 
@@ -50,6 +45,21 @@ namespace SalesManagement.UnitTests.Application.DiscountMaster.Commands
                 .Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);
         }
+
+        private static CreateDiscountMasterCommand ValidCommand() => new()
+        {
+            DiscountName = "Test Discount",
+            TriggerEventId = 1,
+            DiscountBasisId = 2,
+            ExecutionTypeId = 3,
+            ValueTypeId = 4,
+            SlabTypeId = 5,
+            Priority = 1,
+            Slabs = new List<DiscountSlabItem>
+            {
+                new() { SlabOrder = 1, FromValue = 0, ToValue = 100, DiscountValue = 5 }
+            }
+        };
 
         [Fact]
         public async Task Handle_ValidCommand_ReturnsSuccess()
@@ -108,6 +118,19 @@ namespace SalesManagement.UnitTests.Application.DiscountMaster.Commands
                     It.Is<AuditLogsDomainEvent>(e => e.ActionCode == "DISCOUNT_MASTER_CREATE"),
                     It.IsAny<CancellationToken>()),
                 Times.Once);
+        }
+
+        [Fact]
+        public async Task Handle_ValidCommand_ReturnsCorrectMessage()
+        {
+            var command = ValidCommand();
+            SetupMapper(command);
+            SetupCreateAsync(1);
+            SetupPublishAudit();
+
+            var result = await CreateSut().Handle(command, CancellationToken.None);
+
+            result.Message.Should().Contain("created successfully");
         }
     }
 }

@@ -14,7 +14,7 @@ namespace FixedAssetManagement.UnitTests.Validators.AssetTransferIssue
                 AssetTransferHdr = new UpdateAssetTransferHdrDto
                 {
                     Id = 1,
-                    DocDate = DateTimeOffset.UtcNow.AddMinutes(-5),
+                    DocDate = DateTime.UtcNow.AddMinutes(-5),
                     TransferType = 1,
                     FromUnitId = 1,
                     ToUnitId = 2,
@@ -50,6 +50,17 @@ namespace FixedAssetManagement.UnitTests.Validators.AssetTransferIssue
         }
 
         [Fact]
+        public async Task Validate_ZeroToUnitId_FailsValidation()
+        {
+            var command = ValidCommand();
+            command.AssetTransferHdr!.ToUnitId = 0;
+
+            var result = await CreateValidator().TestValidateAsync(command);
+
+            result.Errors.Should().NotBeEmpty();
+        }
+
+        [Fact]
         public async Task Validate_InvalidStatus_FailsValidation()
         {
             var command = ValidCommand();
@@ -65,6 +76,20 @@ namespace FixedAssetManagement.UnitTests.Validators.AssetTransferIssue
         {
             var command = ValidCommand();
             command.AssetTransferHdr!.AssetTransferIssueDtl = new List<UpdateAssetTransferDtlDto>();
+
+            var result = await CreateValidator().TestValidateAsync(command);
+
+            result.Errors.Should().NotBeEmpty();
+        }
+
+        [Fact]
+        public async Task Validate_ZeroAssetId_FailsValidation()
+        {
+            var command = ValidCommand();
+            command.AssetTransferHdr!.AssetTransferIssueDtl = new List<UpdateAssetTransferDtlDto>
+            {
+                new UpdateAssetTransferDtlDto { AssetTransferId = 1, AssetId = 0, AssetValue = 5000m }
+            };
 
             var result = await CreateValidator().TestValidateAsync(command);
 

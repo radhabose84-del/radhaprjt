@@ -1,0 +1,93 @@
+using AutoMapper;
+using MediatR;
+using LogisticsManagement.Application.Common.Interfaces.IFreightMaster;
+using LogisticsManagement.Application.FreightMaster.Commands.UpdateFreightMaster;
+using LogisticsManagement.Domain.Events;
+using LogisticsManagement.UnitTests.TestData;
+
+namespace LogisticsManagement.UnitTests.Application.FreightMaster.Commands
+{
+    public sealed class UpdateFreightMasterCommandHandlerTests
+    {
+        private readonly Mock<IFreightMasterCommandRepository> _mockCommandRepo = new(MockBehavior.Strict);
+        private readonly Mock<IFreightMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
+        private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Loose);
+        private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Loose);
+
+        private UpdateFreightMasterCommandHandler CreateSut() =>
+            new(_mockCommandRepo.Object, _mockQueryRepo.Object, _mockMediator.Object, _mockMapper.Object);
+
+        private void SetupHappyPath(int updatedId = 1)
+        {
+            _mockMapper
+                .Setup(m => m.Map<global::LogisticsManagement.Domain.Entities.FreightMaster>(It.IsAny<UpdateFreightMasterCommand>()))
+                .Returns(FreightMasterBuilders.ValidEntity());
+
+            _mockCommandRepo
+                .Setup(r => r.UpdateAsync(It.IsAny<global::LogisticsManagement.Domain.Entities.FreightMaster>()))
+                .ReturnsAsync(updatedId);
+
+            _mockMediator
+                .Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
+        }
+
+        [Fact]
+        public async Task Handle_ValidCommand_ReturnsSuccess()
+        {
+            SetupHappyPath();
+            var result = await CreateSut().Handle(FreightMasterBuilders.ValidUpdateCommand(), CancellationToken.None);
+
+            result.Should().NotBeNull();
+            result.IsSuccess.Should().BeTrue();
+            result.Message.Should().Be("FreightMaster updated successfully.");
+        }
+
+        [Fact]
+        public async Task Handle_ValidCommand_ReturnsUpdatedId()
+        {
+            SetupHappyPath(updatedId: 5);
+            var result = await CreateSut().Handle(FreightMasterBuilders.ValidUpdateCommand(), CancellationToken.None);
+
+            result.Data.Should().Be(5);
+        }
+
+        [Fact]
+        public async Task Handle_ValidCommand_CallsUpdateOnce()
+        {
+            SetupHappyPath();
+            await CreateSut().Handle(FreightMasterBuilders.ValidUpdateCommand(), CancellationToken.None);
+
+            _mockCommandRepo.Verify(
+                r => r.UpdateAsync(It.IsAny<global::LogisticsManagement.Domain.Entities.FreightMaster>()),
+                Times.Once);
+        }
+
+        [Fact]
+        public async Task Handle_ValidCommand_PublishesAuditEvent()
+        {
+            SetupHappyPath();
+            await CreateSut().Handle(FreightMasterBuilders.ValidUpdateCommand(), CancellationToken.None);
+
+            _mockMediator.Verify(
+                m => m.Publish(
+                    It.Is<AuditLogsDomainEvent>(e =>
+                        e.ActionDetail == "Update" &&
+                        e.ActionCode == "FREIGHT_MASTER_UPDATE"),
+                    It.IsAny<CancellationToken>()),
+                Times.Once);
+        }
+
+        [Fact]
+        public async Task Handle_ValidCommand_UsesMapper()
+        {
+            SetupHappyPath();
+            var command = FreightMasterBuilders.ValidUpdateCommand();
+            await CreateSut().Handle(command, CancellationToken.None);
+
+            _mockMapper.Verify(
+                m => m.Map<global::LogisticsManagement.Domain.Entities.FreightMaster>(command),
+                Times.Once);
+        }
+    }
+}

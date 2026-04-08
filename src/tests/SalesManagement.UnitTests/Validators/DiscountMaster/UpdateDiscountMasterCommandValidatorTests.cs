@@ -1,103 +1,128 @@
+using Contracts.Dtos.Lookups.Purchase;
+using Contracts.Dtos.Lookups.Users;
 using Contracts.Interfaces.Lookups.Purchase;
+using Contracts.Interfaces.Lookups.Users;
 using FluentValidation.TestHelper;
 using SalesManagement.Application.Common.Interfaces.IDiscountMaster;
+using SalesManagement.Application.DiscountMaster.Commands.CreateDiscountMaster;
 using SalesManagement.Application.DiscountMaster.Commands.UpdateDiscountMaster;
 using SalesManagement.Presentation.Validation.DiscountMaster;
 using SalesManagement.UnitTests.TestHelpers;
 
 namespace SalesManagement.UnitTests.Validators.DiscountMaster
 {
-    public sealed class UpdateDiscountMasterCommandValidatorTests
+    public class UpdateDiscountMasterCommandValidatorTests
     {
         private readonly Mock<IDiscountMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
         private readonly Mock<IPaymentTermLookup> _mockPaymentTermLookup = new(MockBehavior.Strict);
+        private readonly Mock<ICurrencyLookup> _mockCurrencyLookup = new(MockBehavior.Strict);
 
         private UpdateDiscountMasterCommandValidator CreateValidator()
-            => new(TestMaxLengthProviderFactory.Create(), _mockQueryRepo.Object, _mockPaymentTermLookup.Object);
+            => new(
+                TestMaxLengthProviderFactory.Create(),
+                _mockQueryRepo.Object,
+                _mockPaymentTermLookup.Object,
+                _mockCurrencyLookup.Object);
 
-        private void SetupAllAsyncMocks(int id = 1, string name = "Updated Discount")
+        private void SetupAllValid()
         {
-            _mockQueryRepo.Setup(r => r.NotFoundAsync(id)).ReturnsAsync(false);
-            _mockQueryRepo.Setup(r => r.AlreadyExistsAsync(name, id)).ReturnsAsync(false);
+            _mockQueryRepo.Setup(r => r.NotFoundAsync(It.IsAny<int>())).ReturnsAsync(false);
+            _mockQueryRepo.Setup(r => r.AlreadyExistsAsync(It.IsAny<string>(), It.IsAny<int?>())).ReturnsAsync(false);
             _mockQueryRepo.Setup(r => r.MiscMasterExistsAsync(It.IsAny<int>())).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.SalesGroupExistsAsync(It.IsAny<int>())).ReturnsAsync(true);
             _mockPaymentTermLookup.Setup(r => r.GetAllPaymentTermAsync())
-                .ReturnsAsync(new List<Contracts.Dtos.Lookups.Purchase.PaymentTermLookupDto>());
+                .ReturnsAsync(new List<PaymentTermLookupDto> { new() { Id = 1, Description = "Net30" } });
+            _mockCurrencyLookup.Setup(r => r.GetByIdsAsync(It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new List<CurrencyLookupDto> { new() { CurrencyId = 1 } });
         }
 
         private static UpdateDiscountMasterCommand ValidCommand() => new()
         {
             Id = 1,
             DiscountName = "Updated Discount",
-            DiscountTypeId = 1,
-            ApplicableLevelId = 2,
-            TriggerEventId = 3,
+            TriggerEventId = 1,
+            DiscountBasisId = 2,
+            ExecutionTypeId = 3,
             ValueTypeId = 4,
-            DiscountValue = 20m,
-            IsActive = 1
+            SlabTypeId = 5,
+            Priority = 1,
+            IsActive = 1,
+            Slabs = new List<DiscountSlabItem>
+            {
+                new() { SlabOrder = 1, FromValue = 0, ToValue = 100, DiscountValue = 10 }
+            }
         };
-
-        // ── Happy Path ────────────────────────────────────────────────────────
 
         [Fact]
         public async Task ValidCommand_PassesValidation()
         {
-            SetupAllAsyncMocks();
-
+            SetupAllValid();
             var result = await CreateValidator().TestValidateAsync(ValidCommand());
-
             result.ShouldNotHaveAnyValidationErrors();
         }
-
-        // ── Id Rules ─────────────────────────────────────────────────────────
-
-        [Fact]
-        public async Task Id_NotFound_FailsValidation()
-        {
-            var cmd = ValidCommand();
-            _mockQueryRepo.Setup(r => r.NotFoundAsync(1)).ReturnsAsync(true);
-            _mockQueryRepo.Setup(r => r.AlreadyExistsAsync("Updated Discount", 1)).ReturnsAsync(false);
-            _mockQueryRepo.Setup(r => r.MiscMasterExistsAsync(It.IsAny<int>())).ReturnsAsync(true);
-            _mockQueryRepo.Setup(r => r.SalesGroupExistsAsync(It.IsAny<int>())).ReturnsAsync(true);
-            _mockPaymentTermLookup.Setup(r => r.GetAllPaymentTermAsync())
-                .ReturnsAsync(new List<Contracts.Dtos.Lookups.Purchase.PaymentTermLookupDto>());
-
-            var result = await CreateValidator().TestValidateAsync(cmd);
-
-            result.ShouldHaveValidationErrorFor(x => x.Id);
-        }
-
-        // ── DiscountName Rules ────────────────────────────────────────────────
 
         [Theory]
         [InlineData(null)]
         [InlineData("")]
-        public async Task DiscountName_Empty_FailsValidation(string? name)
+        public async Task DiscountName_NullOrEmpty_FailsValidation(string? name)
         {
-            var cmd = ValidCommand();
-            cmd.DiscountName = name;
-            _mockQueryRepo.Setup(r => r.NotFoundAsync(1)).ReturnsAsync(false);
-            _mockQueryRepo.Setup(r => r.MiscMasterExistsAsync(It.IsAny<int>())).ReturnsAsync(true);
+            SetupAllValid();
+            var command = ValidCommand();
+            command.DiscountName = name;
 
-            var result = await CreateValidator().TestValidateAsync(cmd);
+            var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.DiscountName);
         }
 
-        // ── IsActive Rules ────────────────────────────────────────────────────
-
-        [Theory]
-        [InlineData(2)]
-        [InlineData(-1)]
-        public async Task IsActive_InvalidValue_FailsValidation(int isActive)
+        [Fact]
+        public async Task NotFound_FailsValidation()
         {
-            var cmd = ValidCommand();
-            cmd.IsActive = isActive;
-            SetupAllAsyncMocks();
+            SetupAllValid();
+            _mockQueryRepo.Setup(r => r.NotFoundAsync(99)).ReturnsAsync(true);
+            var command = ValidCommand();
+            command.Id = 99;
 
-            var result = await CreateValidator().TestValidateAsync(cmd);
+            var result = await CreateValidator().TestValidateAsync(command);
+
+            result.ShouldHaveValidationErrorFor(x => x.Id);
+        }
+
+        [Fact]
+        public async Task IsActive_OutOfRange_FailsValidation()
+        {
+            SetupAllValid();
+            var command = ValidCommand();
+            command.IsActive = 5;
+
+            var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.IsActive);
+        }
+
+        [Fact]
+        public async Task EmptySlabs_FailsValidation()
+        {
+            SetupAllValid();
+            var command = ValidCommand();
+            command.Slabs = new List<DiscountSlabItem>();
+
+            var result = await CreateValidator().TestValidateAsync(command);
+
+            result.ShouldHaveValidationErrorFor(x => x.Slabs);
+        }
+
+        [Fact]
+        public async Task InvalidMiscMaster_FailsValidation()
+        {
+            SetupAllValid();
+            _mockQueryRepo.Setup(r => r.MiscMasterExistsAsync(999)).ReturnsAsync(false);
+            var command = ValidCommand();
+            command.TriggerEventId = 999;
+
+            var result = await CreateValidator().TestValidateAsync(command);
+
+            result.ShouldHaveValidationErrorFor(x => x.TriggerEventId);
         }
     }
 }

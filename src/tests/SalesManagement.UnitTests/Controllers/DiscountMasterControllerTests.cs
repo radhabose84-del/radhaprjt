@@ -18,7 +18,7 @@ public sealed class DiscountMasterControllerTests
 
     private DiscountMasterController CreateSut() => new(_mockMediator.Object);
 
-    // ── GetAll ────────────────────────────────────────────────────
+    // -- GetAll --
 
     [Fact]
     public async Task GetAll_ReturnsOkResult()
@@ -58,7 +58,7 @@ public sealed class DiscountMasterControllerTests
             Times.Once);
     }
 
-    // ── GetById ──────────────────────────────────────────────────
+    // -- GetById --
 
     [Fact]
     public async Task GetById_ReturnsOkResult()
@@ -72,7 +72,7 @@ public sealed class DiscountMasterControllerTests
         result.Should().BeOfType<OkObjectResult>();
     }
 
-    // ── AutoComplete ─────────────────────────────────────────────
+    // -- AutoComplete --
 
     [Fact]
     public async Task AutoComplete_ReturnsOkResult()
@@ -86,7 +86,7 @@ public sealed class DiscountMasterControllerTests
         result.Should().BeOfType<OkObjectResult>();
     }
 
-    // ── Create ───────────────────────────────────────────────────
+    // -- Create --
 
     [Fact]
     public async Task Create_ReturnsOkResult()
@@ -100,7 +100,7 @@ public sealed class DiscountMasterControllerTests
         result.Should().BeOfType<OkObjectResult>();
     }
 
-    // ── Update ───────────────────────────────────────────────────
+    // -- Update --
 
     [Fact]
     public async Task Update_ReturnsOkResult()
@@ -114,7 +114,7 @@ public sealed class DiscountMasterControllerTests
         result.Should().BeOfType<OkObjectResult>();
     }
 
-    // ── Delete ───────────────────────────────────────────────────
+    // -- Delete --
 
     [Fact]
     public async Task Delete_ReturnsOkResult()

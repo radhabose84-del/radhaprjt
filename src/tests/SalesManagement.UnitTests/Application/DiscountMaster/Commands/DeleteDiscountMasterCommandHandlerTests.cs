@@ -15,11 +15,11 @@ namespace SalesManagement.UnitTests.Application.DiscountMaster.Commands
         private DeleteDiscountMasterCommandHandler CreateSut() =>
             new(_mockCommandRepo.Object, _mockQueryRepo.Object, _mockMediator.Object);
 
-        private void SetupSoftDelete(int id = 1)
+        private void SetupSoftDelete(int id = 1, bool result = true)
         {
             _mockCommandRepo
                 .Setup(r => r.SoftDeleteAsync(id, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(true);
+                .ReturnsAsync(result);
         }
 
         private void SetupPublishAudit()
@@ -71,9 +71,7 @@ namespace SalesManagement.UnitTests.Application.DiscountMaster.Commands
         [Fact]
         public async Task Handle_NonExistentId_ThrowsExceptionRules()
         {
-            _mockCommandRepo
-                .Setup(r => r.SoftDeleteAsync(99, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(false);
+            SetupSoftDelete(99, false);
 
             var sut = CreateSut();
             Func<Task> act = async () => await sut.Handle(
@@ -86,9 +84,7 @@ namespace SalesManagement.UnitTests.Application.DiscountMaster.Commands
         [Fact]
         public async Task Handle_NonExistentId_DoesNotPublishAuditEvent()
         {
-            _mockCommandRepo
-                .Setup(r => r.SoftDeleteAsync(99, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(false);
+            SetupSoftDelete(99, false);
 
             var sut = CreateSut();
             try { await sut.Handle(new DeleteDiscountMasterCommand(99), CancellationToken.None); }

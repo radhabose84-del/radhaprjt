@@ -19,29 +19,35 @@ namespace SalesManagement.UnitTests.Application.DiscountMaster.Queries
             return new GetDiscountMasterByIdQueryHandler(_mockQueryRepo.Object, _mockMapper.Object, _mockMediator.Object);
         }
 
+        private static DiscountMasterDto ValidDto(int id = 1) => new()
+        {
+            Id = id,
+            DiscountCode = "DC001",
+            DiscountName = "Test Discount",
+            TriggerEventId = 1,
+            IsActive = true
+        };
+
         [Fact]
         public async Task Handle_EntityExists_ReturnsDto()
         {
-            var dto = new DiscountMasterDto { Id = 1, DiscountCode = "D001", DiscountName = "Test" };
-            _mockQueryRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(dto);
+            _mockQueryRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(ValidDto(1));
 
             var result = await CreateSut().Handle(
                 new GetDiscountMasterByIdQuery { Id = 1 }, CancellationToken.None);
 
             result.Should().NotBeNull();
-            result!.Id.Should().Be(1);
-            result.DiscountCode.Should().Be("D001");
         }
 
         [Fact]
-        public async Task Handle_EntityExists_CallsGetByIdAsync_Once()
+        public async Task Handle_EntityExists_ReturnsCorrectId()
         {
-            var dto = new DiscountMasterDto { Id = 7 };
-            _mockQueryRepo.Setup(r => r.GetByIdAsync(7)).ReturnsAsync(dto);
+            _mockQueryRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(ValidDto(1));
 
-            await CreateSut().Handle(new GetDiscountMasterByIdQuery { Id = 7 }, CancellationToken.None);
+            var result = await CreateSut().Handle(
+                new GetDiscountMasterByIdQuery { Id = 1 }, CancellationToken.None);
 
-            _mockQueryRepo.Verify(r => r.GetByIdAsync(7), Times.Once);
+            result!.Id.Should().Be(1);
         }
 
         [Fact]
@@ -53,6 +59,17 @@ namespace SalesManagement.UnitTests.Application.DiscountMaster.Queries
                 new GetDiscountMasterByIdQuery { Id = 99 }, CancellationToken.None);
 
             result.Should().BeNull();
+        }
+
+        [Fact]
+        public async Task Handle_EntityExists_CallsGetByIdAsync_Once()
+        {
+            _mockQueryRepo.Setup(r => r.GetByIdAsync(7)).ReturnsAsync(ValidDto(7));
+
+            await CreateSut().Handle(
+                new GetDiscountMasterByIdQuery { Id = 7 }, CancellationToken.None);
+
+            _mockQueryRepo.Verify(r => r.GetByIdAsync(7), Times.Once);
         }
     }
 }

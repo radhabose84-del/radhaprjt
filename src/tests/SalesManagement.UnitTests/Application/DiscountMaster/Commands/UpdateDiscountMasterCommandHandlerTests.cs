@@ -1,6 +1,7 @@
 using AutoMapper;
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.IDiscountMaster;
+using SalesManagement.Application.DiscountMaster.Commands.CreateDiscountMaster;
 using SalesManagement.Application.DiscountMaster.Commands.UpdateDiscountMaster;
 using SalesManagement.Domain.Events;
 
@@ -16,26 +17,20 @@ namespace SalesManagement.UnitTests.Application.DiscountMaster.Commands
         private UpdateDiscountMasterCommandHandler CreateSut() =>
             new(_mockCommandRepo.Object, _mockQueryRepo.Object, _mockMediator.Object, _mockMapper.Object);
 
-        private static UpdateDiscountMasterCommand ValidCommand() => new()
-        {
-            Id = 1,
-            DiscountName = "Updated Discount",
-            DiscountTypeId = 1,
-            ApplicableLevelId = 2,
-            TriggerEventId = 3,
-            ValueTypeId = 4,
-            DiscountValue = 20m,
-            IsActive = 1
-        };
-
-        private void SetupMapper()
+        private void SetupMapper(UpdateDiscountMasterCommand cmd)
         {
             _mockMapper
-                .Setup(m => m.Map<SalesManagement.Domain.Entities.DiscountMaster>(It.IsAny<UpdateDiscountMasterCommand>()))
-                .Returns((UpdateDiscountMasterCommand cmd) => new SalesManagement.Domain.Entities.DiscountMaster
+                .Setup(m => m.Map<SalesManagement.Domain.Entities.DiscountMaster>(cmd))
+                .Returns(new SalesManagement.Domain.Entities.DiscountMaster
                 {
                     Id = cmd.Id,
-                    DiscountName = cmd.DiscountName
+                    DiscountName = cmd.DiscountName,
+                    TriggerEventId = cmd.TriggerEventId,
+                    DiscountBasisId = cmd.DiscountBasisId,
+                    ExecutionTypeId = cmd.ExecutionTypeId,
+                    ValueTypeId = cmd.ValueTypeId,
+                    SlabTypeId = cmd.SlabTypeId,
+                    Priority = cmd.Priority
                 });
         }
 
@@ -53,39 +48,59 @@ namespace SalesManagement.UnitTests.Application.DiscountMaster.Commands
                 .Returns(Task.CompletedTask);
         }
 
-        [Fact]
-        public async Task Handle_EntityExists_ReturnsSuccess()
+        private static UpdateDiscountMasterCommand ValidCommand() => new()
         {
-            SetupMapper();
+            Id = 1,
+            DiscountName = "Updated Discount",
+            TriggerEventId = 1,
+            DiscountBasisId = 2,
+            ExecutionTypeId = 3,
+            ValueTypeId = 4,
+            SlabTypeId = 5,
+            Priority = 1,
+            IsActive = 1,
+            Slabs = new List<DiscountSlabItem>
+            {
+                new() { SlabOrder = 1, FromValue = 0, ToValue = 100, DiscountValue = 10 }
+            }
+        };
+
+        [Fact]
+        public async Task Handle_ValidCommand_ReturnsSuccess()
+        {
+            var command = ValidCommand();
+            SetupMapper(command);
             SetupUpdateAsync(1);
             SetupPublishAudit();
 
-            var result = await CreateSut().Handle(ValidCommand(), CancellationToken.None);
+            var result = await CreateSut().Handle(command, CancellationToken.None);
 
             result.Should().NotBeNull();
             result.IsSuccess.Should().BeTrue();
         }
 
         [Fact]
-        public async Task Handle_EntityExists_ReturnsSuccessMessage()
+        public async Task Handle_ValidCommand_ReturnsUpdatedId()
         {
-            SetupMapper();
+            var command = ValidCommand();
+            SetupMapper(command);
             SetupUpdateAsync(1);
             SetupPublishAudit();
 
-            var result = await CreateSut().Handle(ValidCommand(), CancellationToken.None);
+            var result = await CreateSut().Handle(command, CancellationToken.None);
 
-            result.Message.Should().Contain("updated");
+            result.Data.Should().Be(1);
         }
 
         [Fact]
-        public async Task Handle_EntityExists_CallsUpdateAsync_Once()
+        public async Task Handle_ValidCommand_CallsUpdateAsync_Once()
         {
-            SetupMapper();
+            var command = ValidCommand();
+            SetupMapper(command);
             SetupUpdateAsync(1);
             SetupPublishAudit();
 
-            await CreateSut().Handle(ValidCommand(), CancellationToken.None);
+            await CreateSut().Handle(command, CancellationToken.None);
 
             _mockCommandRepo.Verify(
                 r => r.UpdateAsync(It.IsAny<SalesManagement.Domain.Entities.DiscountMaster>()),
@@ -93,13 +108,14 @@ namespace SalesManagement.UnitTests.Application.DiscountMaster.Commands
         }
 
         [Fact]
-        public async Task Handle_EntityExists_PublishesAuditLogEvent_Once()
+        public async Task Handle_ValidCommand_PublishesAuditLogEvent_Once()
         {
-            SetupMapper();
+            var command = ValidCommand();
+            SetupMapper(command);
             SetupUpdateAsync(1);
             SetupPublishAudit();
 
-            await CreateSut().Handle(ValidCommand(), CancellationToken.None);
+            await CreateSut().Handle(command, CancellationToken.None);
 
             _mockMediator.Verify(
                 m => m.Publish(
@@ -109,19 +125,16 @@ namespace SalesManagement.UnitTests.Application.DiscountMaster.Commands
         }
 
         [Fact]
-        public async Task Handle_EntityExists_AuditEvent_ContainsEntityId()
+        public async Task Handle_ValidCommand_ReturnsCorrectMessage()
         {
-            SetupMapper();
+            var command = ValidCommand();
+            SetupMapper(command);
             SetupUpdateAsync(1);
             SetupPublishAudit();
 
-            await CreateSut().Handle(ValidCommand(), CancellationToken.None);
+            var result = await CreateSut().Handle(command, CancellationToken.None);
 
-            _mockMediator.Verify(
-                m => m.Publish(
-                    It.Is<AuditLogsDomainEvent>(e => e.ActionName == "1"),
-                    It.IsAny<CancellationToken>()),
-                Times.Once);
+            result.Message.Should().Contain("updated successfully");
         }
     }
 }

@@ -19,20 +19,22 @@ namespace SalesManagement.UnitTests.Application.DiscountMaster.Queries
             return new GetDiscountMasterAutoCompleteQueryHandler(_mockQueryRepo.Object, _mockMapper.Object, _mockMediator.Object);
         }
 
+        private static IReadOnlyList<DiscountMasterLookupDto> ValidLookupList() =>
+            new List<DiscountMasterLookupDto>
+            {
+                new() { Id = 1, DiscountCode = "DC001", DiscountName = "Discount A" },
+                new() { Id = 2, DiscountCode = "DC002", DiscountName = "Discount B" }
+            };
+
         [Fact]
         public async Task Handle_WithTerm_ReturnsLookupList()
         {
-            var lookupList = new List<DiscountMasterLookupDto>
-            {
-                new() { Id = 1, DiscountCode = "D001", DiscountName = "Discount A" },
-                new() { Id = 2, DiscountCode = "D002", DiscountName = "Discount B" }
-            } as IReadOnlyList<DiscountMasterLookupDto>;
-
-            _mockQueryRepo.Setup(r => r.AutocompleteAsync("disc", It.IsAny<CancellationToken>()))
+            var lookupList = ValidLookupList();
+            _mockQueryRepo.Setup(r => r.AutocompleteAsync("Disc", It.IsAny<CancellationToken>()))
                 .ReturnsAsync(lookupList);
 
             var result = await CreateSut().Handle(
-                new GetDiscountMasterAutoCompleteQuery("disc"), CancellationToken.None);
+                new GetDiscountMasterAutoCompleteQuery("Disc"), CancellationToken.None);
 
             result.Should().NotBeNull();
             result.Should().HaveCount(2);
@@ -42,25 +44,38 @@ namespace SalesManagement.UnitTests.Application.DiscountMaster.Queries
         public async Task Handle_WithTerm_CallsAutocompleteAsync_Once()
         {
             _mockQueryRepo.Setup(r => r.AutocompleteAsync("test", It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new List<DiscountMasterLookupDto>() as IReadOnlyList<DiscountMasterLookupDto>);
+                .ReturnsAsync(ValidLookupList());
 
             await CreateSut().Handle(
                 new GetDiscountMasterAutoCompleteQuery("test"), CancellationToken.None);
 
-            _mockQueryRepo.Verify(
-                r => r.AutocompleteAsync("test", It.IsAny<CancellationToken>()), Times.Once);
+            _mockQueryRepo.Verify(r => r.AutocompleteAsync("test", It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
-        public async Task Handle_EmptyTerm_ReturnsEmptyList()
+        public async Task Handle_EmptyTerm_PassesEmptyStringToRepository()
         {
+            // Handler uses request.Term ?? string.Empty
             _mockQueryRepo.Setup(r => r.AutocompleteAsync(string.Empty, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new List<DiscountMasterLookupDto>() as IReadOnlyList<DiscountMasterLookupDto>);
+                .ReturnsAsync(new List<DiscountMasterLookupDto>());
 
             var result = await CreateSut().Handle(
                 new GetDiscountMasterAutoCompleteQuery(string.Empty), CancellationToken.None);
 
             result.Should().BeEmpty();
+        }
+
+        [Fact]
+        public async Task Handle_NullTerm_PassesEmptyStringToRepository()
+        {
+            // Handler converts null to string.Empty: request.Term ?? string.Empty
+            _mockQueryRepo.Setup(r => r.AutocompleteAsync(string.Empty, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new List<DiscountMasterLookupDto>());
+
+            await CreateSut().Handle(
+                new GetDiscountMasterAutoCompleteQuery(null!), CancellationToken.None);
+
+            _mockQueryRepo.Verify(r => r.AutocompleteAsync(string.Empty, It.IsAny<CancellationToken>()), Times.Once);
         }
     }
 }
