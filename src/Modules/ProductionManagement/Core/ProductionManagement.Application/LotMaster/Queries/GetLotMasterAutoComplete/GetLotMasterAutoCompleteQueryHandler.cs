@@ -27,7 +27,7 @@ namespace ProductionManagement.Application.LotMaster.Queries.GetLotMasterAutoCom
             GetLotMasterAutoCompleteQuery request, CancellationToken cancellationToken)
         {
             var result = await _queryRepository.AutocompleteAsync(
-                request.Term ?? string.Empty, cancellationToken);
+                request.Term ?? string.Empty, request.ItemId, cancellationToken);
 
             var domainEvent = new AuditLogsDomainEvent(
                 actionDetail: "GetAll",

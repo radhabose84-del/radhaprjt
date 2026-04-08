@@ -26,8 +26,10 @@ namespace SalesManagement.UnitTests.Validators.ItemPriceMaster
             _mockQueryRepo.Setup(r => r.ItemExistsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>())).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.SalesSegmentExistsAsync(It.IsAny<int>())).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.CurrencyExistsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>())).ReturnsAsync(true);
+            _mockQueryRepo.Setup(r => r.VariantExistsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>())).ReturnsAsync(true);
+            _mockQueryRepo.Setup(r => r.VariantBelongsToItemAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>())).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.OverlapExistsAsync(
-                    It.IsAny<int>(), It.IsAny<int>(),
+                    It.IsAny<int>(), It.IsAny<int?>(), It.IsAny<int>(),
                     It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<int?>()))
                 .ReturnsAsync(false);
         }
@@ -175,7 +177,7 @@ namespace SalesManagement.UnitTests.Validators.ItemPriceMaster
         {
             SetupAllValid();
             _mockQueryRepo.Setup(r => r.OverlapExistsAsync(
-                    It.IsAny<int>(), It.IsAny<int>(),
+                    It.IsAny<int>(), It.IsAny<int?>(), It.IsAny<int>(),
                     It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<int?>()))
                 .ReturnsAsync(true);
 

@@ -57,9 +57,9 @@ namespace Contracts.Interfaces.Lookups.Sales
             CancellationToken ct = default);
 
         /// <summary>
-        /// Returns packed packs grouped by PackType + Lot, filtered by ItemId and optional LotId.
-        /// If lotId is null, all lots are returned.
-        /// Used for source pack selection in repacking / yarn conversion.
+        /// Two-mode query for packed packs filtered by ItemId.
+        /// When lotId is NULL: returns lot-level summary (grouped by LotId) with LotCode, BatchNumber, TotalBags, NetWeight.
+        /// When lotId is provided: returns pack-type-level details for that lot with PackType info + TareWeight, GrossWeight, ConesPerBag.
         /// </summary>
         Task<IReadOnlyList<StockPackSummaryDto>> GetPacksByItemAndLotAsync(
             int itemId, int? lotId, int productionYear, int unitId,

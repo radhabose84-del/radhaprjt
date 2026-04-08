@@ -43,6 +43,8 @@ namespace PartyManagement.Application.PartyMaster.Command.UpdatePartyMaster
         public decimal? InsuranceLimit { get; set; }
         public byte IsActive { get; set; }
         public byte IsPortalAccessEnabled { get; set; }
+        public int? SalesFreightId { get; set; }
+        public int? PurchaseFreightId { get; set; }
         public string? FreightExpensesGl { get; set; }
         public List<UpdatePartyUniCompanyDto>? PartyUnitCompaniesUpdate { get; set; }
         public List<UpdatePartyTypeDto>? PartyTypesUpdate { get; set; }

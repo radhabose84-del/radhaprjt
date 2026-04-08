@@ -5,7 +5,6 @@ namespace ProductionManagement.Application.ProductionPack.Queries.GetPreviousDat
 {
     public class GetPreviousDateClosingQuery : IRequest<ProductionStockClosingDto?>
     {
-        public int UnitId { get; set; }
         public int ItemId { get; set; }
         public int LotId { get; set; }
         public DateOnly DocDate { get; set; }

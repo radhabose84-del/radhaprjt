@@ -106,14 +106,12 @@ namespace ProductionManagement.Presentation.Controllers
 
         [HttpGet("previous-closing")]
         public async Task<IActionResult> GetPreviousDateClosingAsync(
-            [FromQuery] int unitId,
             [FromQuery] int itemId,
             [FromQuery] int lotId,
             [FromQuery] DateOnly docDate)
         {
             var result = await Mediator.Send(new GetPreviousDateClosingQuery
             {
-                UnitId = unitId,
                 ItemId = itemId,
                 LotId = lotId,
                 DocDate = docDate
