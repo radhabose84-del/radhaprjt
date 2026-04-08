@@ -8,6 +8,8 @@ namespace SalesManagement.Application.ItemPriceMaster.Dto
         public int ItemId { get; set; }
         public string? ItemCode { get; set; }
         public string? ItemName { get; set; }
+        public int? VariantId { get; set; }
+        public string? VariantCode { get; set; }
         public string? VariantName { get; set; }
 
         public int SalesSegmentId { get; set; }
@@ -15,6 +17,9 @@ namespace SalesManagement.Application.ItemPriceMaster.Dto
 
         public decimal BaseRate { get; set; }
         public decimal? TolerancePercentage { get; set; }
+        public decimal? CharityValue { get; set; }
+        public decimal? HandlingCharges { get; set; }
+        public decimal? AdditionalValue { get; set; }
 
         public int CurrencyId { get; set; }
         public string? CurrencyCode { get; set; }

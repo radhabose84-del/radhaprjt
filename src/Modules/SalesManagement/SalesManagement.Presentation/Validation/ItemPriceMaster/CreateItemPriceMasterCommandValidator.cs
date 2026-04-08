@@ -67,6 +67,19 @@ namespace SalesManagement.Presentation.Validation.ItemPriceMaster
                             .MustAsync(async (id, ct) => await _queryRepository.ItemExistsAsync(id, ct))
                             .WithMessage($"{nameof(CreateItemPriceMasterCommand.ItemId)} {rule.Error}");
 
+                        // VariantId FK exists (when provided)
+                        RuleFor(x => x.VariantId!.Value)
+                            .MustAsync(async (id, ct) => await _queryRepository.VariantExistsAsync(id, ct))
+                            .WithMessage($"{nameof(CreateItemPriceMasterCommand.VariantId)} {rule.Error}")
+                            .When(x => x.VariantId.HasValue);
+
+                        // VariantId must belong to the selected ItemId
+                        RuleFor(x => x)
+                            .MustAsync(async (cmd, ct) =>
+                                await _queryRepository.VariantBelongsToItemAsync(cmd.VariantId!.Value, cmd.ItemId, ct))
+                            .WithMessage("Selected Variant does not belong to the selected Item.")
+                            .When(x => x.VariantId.HasValue && x.ItemId > 0);
+
                         // SalesSegmentId FK exists
                         RuleFor(x => x.SalesSegmentId)
                             .MustAsync(async (id, ct) => await _queryRepository.SalesSegmentExistsAsync(id))
@@ -83,14 +96,30 @@ namespace SalesManagement.Presentation.Validation.ItemPriceMaster
                             .GreaterThanOrEqualTo(0)
                             .WithMessage($"{nameof(CreateItemPriceMasterCommand.TolerancePercentage)} {rule.Error}")
                             .When(x => x.TolerancePercentage.HasValue);
+
+                        RuleFor(x => x.CharityValue)
+                            .GreaterThanOrEqualTo(0)
+                            .WithMessage($"{nameof(CreateItemPriceMasterCommand.CharityValue)} {rule.Error}")
+                            .When(x => x.CharityValue.HasValue);
+
+                        RuleFor(x => x.HandlingCharges)
+                            .GreaterThanOrEqualTo(0)
+                            .WithMessage($"{nameof(CreateItemPriceMasterCommand.HandlingCharges)} {rule.Error}")
+                            .When(x => x.HandlingCharges.HasValue);
+
+                        RuleFor(x => x.AdditionalValue)
+                            .GreaterThanOrEqualTo(0)
+                            .WithMessage($"{nameof(CreateItemPriceMasterCommand.AdditionalValue)} {rule.Error}")
+                            .When(x => x.AdditionalValue.HasValue);
                         break;
 
                     case "AlreadyExists":
-                        // Overlap check (same Item + Segment with overlapping dates)
+                        // Overlap check (same Item + Variant + Segment with overlapping dates)
                         RuleFor(x => x)
                             .MustAsync(async (cmd, ct) =>
                                 !await _queryRepository.OverlapExistsAsync(
                                     cmd.ItemId,
+                                    cmd.VariantId,
                                     cmd.SalesSegmentId,
                                     cmd.ValidFrom,
                                     cmd.ValidTo))
