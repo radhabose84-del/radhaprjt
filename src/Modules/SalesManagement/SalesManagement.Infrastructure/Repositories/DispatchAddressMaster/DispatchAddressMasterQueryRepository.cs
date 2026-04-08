@@ -1,4 +1,5 @@
 using System.Data;
+using Contracts.Interfaces.Lookups.Logistics;
 using Contracts.Interfaces.Lookups.Users;
 using Dapper;
 using SalesManagement.Application.Common.Interfaces.IDispatchAddressMaster;
@@ -12,17 +13,20 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAddressMaster
         private readonly ICityLookup _cityLookup;
         private readonly IStateLookup _stateLookup;
         private readonly ICountryLookup _countryLookup;
+        private readonly IFreightMasterLookup _freightMasterLookup;
 
         public DispatchAddressMasterQueryRepository(
             IDbConnection dbConnection,
             ICityLookup cityLookup,
             IStateLookup stateLookup,
-            ICountryLookup countryLookup)
+            ICountryLookup countryLookup,
+            IFreightMasterLookup freightMasterLookup)
         {
             _dbConnection = dbConnection;
             _cityLookup = cityLookup;
             _stateLookup = stateLookup;
             _countryLookup = countryLookup;
+            _freightMasterLookup = freightMasterLookup;
         }
 
         public async Task<(List<DispatchAddressMasterDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
@@ -45,7 +49,7 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAddressMaster
                 SELECT dam.Id, dam.DispatchAddressName, dam.AddressLine1, dam.AddressLine2,
                     dam.CityId, dam.StateId, dam.CountryId, dam.PinCode,
                     dam.ContactPerson, dam.MobileNumber, dam.Email, dam.GSTIN,
-                    dam.Latitude, dam.Longitude,
+                    dam.Latitude, dam.Longitude, dam.FreightId,
                     dam.IsActive, dam.IsDeleted,
                     dam.CreatedBy, dam.CreatedDate, dam.CreatedByName, dam.CreatedIP,
                     dam.ModifiedBy, dam.ModifiedDate, dam.ModifiedByName, dam.ModifiedIP
@@ -63,11 +67,21 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAddressMaster
             var list = (await result.ReadAsync<DispatchAddressMasterDto>()).ToList();
             var totalCount = await result.ReadFirstAsync<int>();
 
+            var freightList = await _freightMasterLookup.GetAllFreightMasterAsync();
+            var freightDict = freightList.ToDictionary(f => f.Id);
+
             foreach (var item in list)
             {
                 item.CityName = cityDict.TryGetValue(item.CityId, out var cn) ? cn : null;
                 item.StateName = stateDict.TryGetValue(item.StateId, out var sn) ? sn : null;
                 item.CountryName = countryDict.TryGetValue(item.CountryId, out var ctn) ? ctn : null;
+
+                if (item.FreightId > 0 && freightDict.TryGetValue(item.FreightId, out var freight))
+                {
+                    item.FreightModeName = freight.FreightModeName;
+                    item.RateMethodName = freight.RateMethodName;
+                    item.FreightRate = freight.Rate;
+                }
             }
 
             return (list, totalCount);
@@ -79,7 +93,7 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAddressMaster
                 SELECT dam.Id, dam.DispatchAddressName, dam.AddressLine1, dam.AddressLine2,
                     dam.CityId, dam.StateId, dam.CountryId, dam.PinCode,
                     dam.ContactPerson, dam.MobileNumber, dam.Email, dam.GSTIN,
-                    dam.Latitude, dam.Longitude,
+                    dam.Latitude, dam.Longitude, dam.FreightId,
                     dam.IsActive, dam.IsDeleted,
                     dam.CreatedBy, dam.CreatedDate, dam.CreatedByName, dam.CreatedIP,
                     dam.ModifiedBy, dam.ModifiedDate, dam.ModifiedByName, dam.ModifiedIP
@@ -96,6 +110,17 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAddressMaster
                 dto.CityName = city?.CityName;
                 dto.StateName = state?.StateName;
                 dto.CountryName = country?.CountryName;
+
+                if (dto.FreightId > 0)
+                {
+                    var freight = await _freightMasterLookup.GetByIdAsync(dto.FreightId);
+                    if (freight != null)
+                    {
+                        dto.FreightModeName = freight.FreightModeName;
+                        dto.RateMethodName = freight.RateMethodName;
+                        dto.FreightRate = freight.Rate;
+                    }
+                }
             }
 
             return dto;

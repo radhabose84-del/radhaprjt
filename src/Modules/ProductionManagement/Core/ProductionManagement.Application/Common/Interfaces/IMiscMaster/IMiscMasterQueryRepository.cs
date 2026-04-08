@@ -11,5 +11,7 @@ namespace ProductionManagement.Application.Common.Interfaces.IMiscMaster
         Task<bool> NotFoundAsync(int id);
         Task<bool> MiscTypeExistsAsync(int miscTypeId);
         Task<ProductionManagement.Domain.Entities.MiscMaster?> GetMiscMasterByCode(string code);
+        Task<bool> SoftDeleteValidationAsync(int id);
+        Task<bool> IsMiscMasterLinkedAsync(int id);
     }
 }

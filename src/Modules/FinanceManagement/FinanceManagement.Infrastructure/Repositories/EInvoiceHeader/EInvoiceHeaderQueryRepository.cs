@@ -154,5 +154,29 @@ namespace FinanceManagement.Infrastructure.Repositories.EInvoiceHeader
                 new CommandDefinition(sql, new { InvoiceNo = invoiceNo }, cancellationToken: ct));
             return id;
         }
+
+        public async Task<bool> SoftDeleteValidationAsync(int id)
+        {
+            const string sql = @"
+                SELECT CASE WHEN
+                    EXISTS (SELECT 1 FROM [Finance].[EInvoiceDetail] WHERE EInvoiceHeaderId = @Id)
+                    OR
+                    EXISTS (SELECT 1 FROM [Finance].[EWaybillHeader] WHERE EInvoiceHeaderId = @Id AND IsDeleted = 0)
+                THEN 1 ELSE 0 END";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { Id = id });
+        }
+
+        public async Task<bool> IsEInvoiceHeaderLinkedAsync(int id)
+        {
+            const string sql = @"
+                SELECT CASE WHEN
+                    EXISTS (SELECT 1 FROM [Finance].[EInvoiceDetail] WHERE EInvoiceHeaderId = @Id)
+                    OR
+                    EXISTS (SELECT 1 FROM [Finance].[EWaybillHeader] WHERE EInvoiceHeaderId = @Id AND IsDeleted = 0 AND IsActive = 1)
+                THEN 1 ELSE 0 END";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { Id = id });
+        }
     }
 }

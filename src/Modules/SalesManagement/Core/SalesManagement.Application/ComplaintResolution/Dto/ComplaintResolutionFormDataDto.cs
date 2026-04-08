@@ -25,6 +25,14 @@ namespace SalesManagement.Application.ComplaintResolution.Dto
         // Complaint Items
         public List<ComplaintItemDto>? Items { get; set; }
 
+        // Sales Return Context (from dispatch/stock data)
+        public decimal MaxReturnQuantity { get; set; }
+        public int? DispatchWarehouseId { get; set; }
+        public string? DispatchWarehouseName { get; set; }
+        public int? DispatchBinId { get; set; }
+        public string? DispatchBinName { get; set; }
+        public string? SalesReturnReference { get; set; }
+
         // Existing Resolution (null if no resolution exists yet)
         public ComplaintResolutionDto? ExistingResolution { get; set; }
     }

@@ -1919,6 +1919,12 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("varchar(254)")
                         .HasColumnName("Email");
 
+                    b.Property<int>("FreightId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0)
+                        .HasColumnName("FreightId");
+
                     b.Property<string>("GSTIN")
                         .HasColumnType("varchar(15)")
                         .HasColumnName("GSTIN");

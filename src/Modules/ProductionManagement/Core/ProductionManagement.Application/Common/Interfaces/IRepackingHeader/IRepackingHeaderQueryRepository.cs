@@ -11,5 +11,7 @@ namespace ProductionManagement.Application.Common.Interfaces.IRepackingHeader
         Task<bool> PackTypeExistsAsync(int id);
         Task<bool> MiscMasterExistsAsync(int id);
         Task<bool> LotMasterExistsAsync(int id);
+        Task<bool> SoftDeleteValidationAsync(int id);
+        Task<bool> IsRepackingHeaderLinkedAsync(int id);
     }
 }

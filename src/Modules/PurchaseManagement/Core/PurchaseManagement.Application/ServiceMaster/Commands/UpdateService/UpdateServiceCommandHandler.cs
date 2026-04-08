@@ -1,5 +1,6 @@
 #nullable disable
 using AutoMapper;
+using Contracts.Common;
 using PurchaseManagement.Application.Common.Interfaces.IServiceMaster;
 using PurchaseManagement.Application.ServiceMaster.Queries.GetAllServices;
 using PurchaseManagement.Domain.Events;
@@ -24,6 +25,13 @@ namespace PurchaseManagement.Application.ServiceMaster.Commands.UpdateService
 
         public async Task<GetServiceMasterDto> Handle(UpdateServiceCommand request, CancellationToken cancellationToken)
         {
+            if (request.IsActive == 0)
+            {
+                var isLinked = await _serviceQueryRepository.IsServiceMasterLinkedAsync(request.Id, cancellationToken);
+                if (isLinked)
+                    throw new ExceptionRules(
+                        "This master is linked with other records. You cannot inactivate this record.");
+            }
 
             var serviceMaster = _imapper.Map<PurchaseManagement.Domain.Entities.ServiceMaster>(request);
             var serviceMasterresult = await _serviceCommandRepository.UpdateAsync(request.Id, serviceMaster, cancellationToken);

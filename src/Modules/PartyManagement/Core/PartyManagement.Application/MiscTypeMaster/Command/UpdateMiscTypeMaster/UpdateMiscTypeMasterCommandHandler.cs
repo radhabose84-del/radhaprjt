@@ -25,6 +25,12 @@ namespace PartyManagement.Application.MiscTypeMaster.Command.UpdateMiscTypeMaste
 
           public async Task<ApiResponseDTO<bool>> Handle(UpdateMiscTypeMasterCommand request, CancellationToken cancellationToken)
         {
+                if (request.IsActive == 0)
+                {
+                    var isLinked = await _miscTypeMasterQueryRepository.IsMiscTypeMasterLinkedAsync(request.Id);
+                    if (isLinked)
+                        throw new ExceptionRules("This master is linked with other records. You cannot inactivate this record.");
+                }
 
                 var existingMisctype = await _miscTypeMasterQueryRepository.GetByMiscTypeMasterCodeAsync(request.MiscTypeCode,request.Id);
 

@@ -10,6 +10,10 @@ using InventoryManagement.Domain.Entities.Item.ItemDetail.Variant;
 using Dapper;
 using Contracts.Interfaces.Lookups.Users;
 using Contracts.Interfaces.Lookups.Production;
+using Contracts.Interfaces.Validations.SalesManagement;
+using Contracts.Interfaces.Validations.PurchaseManagement;
+using Contracts.Interfaces.Validations.MaintenanceManagement;
+using Contracts.Interfaces.Validations.ProductionManagement;
 using InventoryManagement.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -23,8 +27,13 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
         private readonly IUnitLookup _unitLookup;
         private readonly ICountMasterLookup _countMasterLookup;
         private readonly IDataAccessFilter _dataAccessFilter;
+        private readonly ISalesItemValidation _salesItemValidation;
+        private readonly IPurchaseItemValidation _purchaseItemValidation;
+        private readonly IMaintenanceItemValidation _maintenanceItemValidation;
+        private readonly IProductionItemValidation _productionItemValidation;
 
-        public ItemQueryRepository(IDbConnection dbConnection, ApplicationDbContext db, IIPAddressService ipAddressService, IUnitLookup unitLookup, ICountMasterLookup countMasterLookup, IDataAccessFilter dataAccessFilter)
+        public ItemQueryRepository(IDbConnection dbConnection, ApplicationDbContext db, IIPAddressService ipAddressService, IUnitLookup unitLookup, ICountMasterLookup countMasterLookup, IDataAccessFilter dataAccessFilter,
+            ISalesItemValidation salesItemValidation, IPurchaseItemValidation purchaseItemValidation, IMaintenanceItemValidation maintenanceItemValidation, IProductionItemValidation productionItemValidation)
         {
             _db = db;
             _dbConnection = dbConnection;
@@ -32,6 +41,10 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
             _unitLookup = unitLookup;
             _countMasterLookup = countMasterLookup;
             _dataAccessFilter = dataAccessFilter;
+            _salesItemValidation = salesItemValidation;
+            _purchaseItemValidation = purchaseItemValidation;
+            _maintenanceItemValidation = maintenanceItemValidation;
+            _productionItemValidation = productionItemValidation;
         }
         public async Task<(List<ItemListDto> Items, int TotalCount)> GetAllAsync(
             int? page, int? size, string search, bool onlyActive,
@@ -686,6 +699,70 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
 
             var items = await _dbConnection.QueryAsync<GetItemAutoCompleteDto>(sql, dp);
             return items.ToList();
+        }
+
+        public async Task<bool> SoftDeleteValidationAsync(int id)
+        {
+            // Same-module check
+            const string query = @"
+                SELECT CASE WHEN
+                    EXISTS (SELECT 1 FROM [Inventory].[ItemMaster] WHERE ParentItemId = @id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[PutAwayRule] WHERE ItemId = @id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[ItemSupplier] WHERE ItemId = @id)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[ItemManufacture] WHERE ItemId = @id)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[ItemPurchase] WHERE ItemId = @id)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[ItemInventory] WHERE ItemId = @id)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[ItemQuality] WHERE ItemId = @id)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[ItemSale] WHERE ItemId = @id)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[ItemUOM] WHERE ItemId = @id)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[ItemVariantAttribute] WHERE ItemId = @id)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[ItemVariantValue] WHERE ItemId = @id)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[ItemVariantValue] WHERE ParentItemId = @id)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[ItemUsageTypeMapping] WHERE ItemId = @id)
+                THEN 1 ELSE 0 END;";
+
+            var result = await _dbConnection.QueryFirstOrDefaultAsync<int>(query, new { id });
+            if (result == 1) return true;
+
+            // Cross-module checks
+            if (await _salesItemValidation.HasLinkedItemAsync(id)) return true;
+            if (await _purchaseItemValidation.HasLinkedItemAsync(id)) return true;
+            if (await _maintenanceItemValidation.HasLinkedItemAsync(id)) return true;
+            if (await _productionItemValidation.HasLinkedItemAsync(id)) return true;
+
+            return false;
+        }
+
+        public async Task<bool> IsItemMasterLinkedAsync(int id)
+        {
+            // Same-module check
+            const string query = @"
+                SELECT CASE WHEN
+                    EXISTS (SELECT 1 FROM [Inventory].[ItemMaster] WHERE ParentItemId = @id AND IsDeleted = 0 AND IsActive = 1)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[PutAwayRule] WHERE ItemId = @id AND IsDeleted = 0 AND IsActive = 1)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[ItemSupplier] WHERE ItemId = @id)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[ItemManufacture] WHERE ItemId = @id)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[ItemPurchase] WHERE ItemId = @id)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[ItemInventory] WHERE ItemId = @id)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[ItemQuality] WHERE ItemId = @id)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[ItemSale] WHERE ItemId = @id)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[ItemUOM] WHERE ItemId = @id)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[ItemVariantAttribute] WHERE ItemId = @id)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[ItemVariantValue] WHERE ItemId = @id)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[ItemVariantValue] WHERE ParentItemId = @id)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[ItemUsageTypeMapping] WHERE ItemId = @id)
+                THEN 1 ELSE 0 END;";
+
+            var result = await _dbConnection.QueryFirstOrDefaultAsync<int>(query, new { id });
+            if (result == 1) return true;
+
+            // Cross-module checks
+            if (await _salesItemValidation.HasActiveItemAsync(id)) return true;
+            if (await _purchaseItemValidation.HasActiveItemAsync(id)) return true;
+            if (await _maintenanceItemValidation.HasActiveItemAsync(id)) return true;
+            if (await _productionItemValidation.HasActiveItemAsync(id)) return true;
+
+            return false;
         }
 
     }

@@ -51,9 +51,9 @@ namespace LogisticsManagement.Presentation.Controllers
         }
 
         [HttpGet("by-name")]
-        public async Task<IActionResult> GetFreightMasterAutoCompleteAsync([FromQuery] string? term = null)
+        public async Task<IActionResult> GetFreightMasterAutoCompleteAsync([FromQuery] string? term = null, [FromQuery] int? moduleId = null)
         {
-            var result = await Mediator.Send(new GetFreightMasterAutoCompleteQuery(term ?? string.Empty));
+            var result = await Mediator.Send(new GetFreightMasterAutoCompleteQuery(term ?? string.Empty, moduleId));
 
             return Ok(new
             {

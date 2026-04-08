@@ -11,6 +11,10 @@ namespace SalesManagement.Application.DispatchAddressMapping.Dto
         public int UsageTypeId { get; set; }
         public string? UsageTypeName { get; set; }
         public bool IsDefault { get; set; }
+        public int FreightId { get; set; }
+        public string? FreightModeName { get; set; }
+        public string? RateMethodName { get; set; }
+        public decimal? FreightRate { get; set; }
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }
         public int CreatedBy { get; set; }

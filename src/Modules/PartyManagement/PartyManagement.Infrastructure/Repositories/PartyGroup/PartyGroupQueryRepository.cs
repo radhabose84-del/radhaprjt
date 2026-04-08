@@ -154,5 +154,38 @@ namespace PartyManagement.Infrastructure.Repositories.PartyGroup
             var partyGroups = await _dbConnection.QueryAsync<PartyGroupAutoCompleteDto>(query, parameters);
             return partyGroups.ToList();
         }
+
+        public async Task<bool> NotFoundAsync(int id)
+        {
+            const string query = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1 FROM Party.PartyGroup
+                    WHERE Id = @id AND IsDeleted = 0
+                ) THEN 1 ELSE 0 END;";
+
+            return !await _dbConnection.ExecuteScalarAsync<bool>(query, new { id });
+        }
+
+        public async Task<bool> SoftDeleteValidationAsync(int id)
+        {
+            const string query = @"
+                SELECT CASE WHEN
+                    EXISTS (SELECT 1 FROM Party.PartyGroup WHERE ParentPartyGroupId = @id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM Party.PartyType WHERE PartyGroupId = @id)
+                THEN 1 ELSE 0 END;";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(query, new { id });
+        }
+
+        public async Task<bool> IsPartyGroupLinkedAsync(int id)
+        {
+            const string query = @"
+                SELECT CASE WHEN
+                    EXISTS (SELECT 1 FROM Party.PartyGroup WHERE ParentPartyGroupId = @id AND IsDeleted = 0 AND IsActive = 1)
+                    OR EXISTS (SELECT 1 FROM Party.PartyType WHERE PartyGroupId = @id)
+                THEN 1 ELSE 0 END;";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(query, new { id });
+        }
     }
 }

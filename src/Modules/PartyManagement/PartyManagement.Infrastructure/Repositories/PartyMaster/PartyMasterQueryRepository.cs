@@ -13,6 +13,10 @@ using PartyManagement.Domain.Common;
 using Contracts.Interfaces.Lookups.Purchase;
 using Contracts.Interfaces.Lookups.Sales;
 using Contracts.Interfaces.Lookups.Users;
+using Contracts.Interfaces.Validations.SalesManagement;
+using Contracts.Interfaces.Validations.PurchaseManagement;
+using Contracts.Interfaces.Validations.FinanceManagement;
+using Contracts.Interfaces.Validations.MaintenanceManagement;
 using Dapper;
 
 namespace PartyManagement.Infrastructure.Repositories.PartyMaster
@@ -28,11 +32,19 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
         private readonly ICountryLookup _countryLookup;
         private readonly IDataAccessFilter _dataAccessFilter;
         private readonly ISalesSegmentLookup _salesSegmentLookup;
+        private readonly IPartyMasterSalesValidation _salesValidation;
+        private readonly IPartyMasterPurchaseValidation _purchaseValidation;
+        private readonly IPartyMasterFinanceValidation _financeValidation;
+        private readonly IPartyMasterMaintenanceValidation _maintenanceValidation;
 
         public PartyMasterQueryRepository(IDbConnection dbConnection, IIPAddressService ipAddressService,
             IIncotermLookup incotermLookup, IPaymentTermLookup paymentTermLookup,
             ICityLookup cityLookup, IStateLookup stateLookup, ICountryLookup countryLookup,
-            IDataAccessFilter dataAccessFilter, ISalesSegmentLookup salesSegmentLookup)
+            IDataAccessFilter dataAccessFilter, ISalesSegmentLookup salesSegmentLookup,
+            IPartyMasterSalesValidation salesValidation,
+            IPartyMasterPurchaseValidation purchaseValidation,
+            IPartyMasterFinanceValidation financeValidation,
+            IPartyMasterMaintenanceValidation maintenanceValidation)
         {
             _dbConnection = dbConnection;
             _ipAddressService = ipAddressService;
@@ -43,6 +55,10 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
             _countryLookup = countryLookup;
             _dataAccessFilter = dataAccessFilter;
             _salesSegmentLookup = salesSegmentLookup;
+            _salesValidation = salesValidation;
+            _purchaseValidation = purchaseValidation;
+            _financeValidation = financeValidation;
+            _maintenanceValidation = maintenanceValidation;
         }
         public async Task<List<PartyGroupLoadDto>> GetPartyGroupsAsync(List<int> groupTypeIds)
         {
@@ -466,6 +482,32 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
                         }
                     }
                 }
+
+                // ─── Step 5: Fetch TransportDetails (Status = 1 only) ───
+                const string transportSql = @"
+                    SELECT td.Id, td.PartyId, td.TransportModeId, tm.Description AS TransportModeName,
+                        td.VehicleTypeId, vt.Description AS VehicleTypeName,
+                        td.DefaultFreightTypeId, dft.Description AS DefaultFreightTypeName,
+                        td.DefaultFreightRate, td.LicenseNo, td.LicenseExpiryDate,
+                        td.VehicleNo, td.Status
+                    FROM Party.TransportDetail td
+                    LEFT JOIN Party.MiscMaster tm ON td.TransportModeId = tm.Id AND tm.IsDeleted = 0
+                    LEFT JOIN Party.MiscMaster vt ON td.VehicleTypeId = vt.Id AND vt.IsDeleted = 0
+                    LEFT JOIN Party.MiscMaster dft ON td.DefaultFreightTypeId = dft.Id AND dft.IsDeleted = 0
+                    WHERE td.PartyId IN @PartyIds AND td.Status = 1";
+
+                var flatTransports = (await _dbConnection.QueryAsync<TransportDetailAutoCompleteDto>(transportSql, new { PartyIds = partyIds })).ToList();
+
+                if (flatTransports.Count > 0)
+                {
+                    var transportByParty = flatTransports.GroupBy(t => t.PartyId).ToDictionary(g => g.Key, g => g.ToList());
+
+                    foreach (var party in result)
+                    {
+                        if (transportByParty.TryGetValue(party.Id, out var transports))
+                            party.TransportDetails = transports;
+                    }
+                }
             }
 
             return result;
@@ -657,6 +699,73 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
                 VehicleNo = vehicleNo,
                 ExcludeId = excludeId
             });
+        }
+
+        public async Task<bool> NotFoundAsync(int id)
+        {
+            const string query = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1 FROM Party.PartyMaster
+                    WHERE Id = @id AND IsDeleted = 0
+                ) THEN 1 ELSE 0 END;";
+
+            return !await _dbConnection.ExecuteScalarAsync<bool>(query, new { id });
+        }
+
+        public async Task<bool> SoftDeleteValidationAsync(int id)
+        {
+            // Same-module children (no IsDeleted column — plain EXISTS)
+            const string query = @"
+                SELECT CASE WHEN
+                    EXISTS (SELECT 1 FROM Party.PartyContact WHERE PartyId = @id)
+                    OR EXISTS (SELECT 1 FROM Party.PartyAddress WHERE PartyId = @id)
+                    OR EXISTS (SELECT 1 FROM Party.PartyBank WHERE PartyId = @id)
+                    OR EXISTS (SELECT 1 FROM Party.PartyDocument WHERE PartyId = @id)
+                    OR EXISTS (SELECT 1 FROM Party.PartyType WHERE PartyId = @id)
+                    OR EXISTS (SELECT 1 FROM Party.SalesType WHERE PartyId = @id)
+                    OR EXISTS (SELECT 1 FROM Party.PartyUnitCompanyMapping WHERE PartyId = @id)
+                    OR EXISTS (SELECT 1 FROM Party.TransportDetail WHERE PartyId = @id)
+                    OR EXISTS (SELECT 1 FROM Party.AgentConfig WHERE PartyId = @id)
+                THEN 1 ELSE 0 END;";
+
+            var sameModule = await _dbConnection.ExecuteScalarAsync<bool>(query, new { id });
+            if (sameModule) return true;
+
+            // Cross-module children via validation interfaces
+            if (await _salesValidation.HasLinkedPartyMasterAsync(id)) return true;
+            if (await _purchaseValidation.HasLinkedPartyMasterAsync(id)) return true;
+            if (await _financeValidation.HasLinkedPartyMasterAsync(id)) return true;
+            if (await _maintenanceValidation.HasLinkedPartyMasterAsync(id)) return true;
+
+            return false;
+        }
+
+        public async Task<bool> IsPartyMasterLinkedAsync(int id)
+        {
+            // Same-module children (no IsDeleted/IsActive column — plain EXISTS)
+            const string query = @"
+                SELECT CASE WHEN
+                    EXISTS (SELECT 1 FROM Party.PartyContact WHERE PartyId = @id)
+                    OR EXISTS (SELECT 1 FROM Party.PartyAddress WHERE PartyId = @id)
+                    OR EXISTS (SELECT 1 FROM Party.PartyBank WHERE PartyId = @id)
+                    OR EXISTS (SELECT 1 FROM Party.PartyDocument WHERE PartyId = @id)
+                    OR EXISTS (SELECT 1 FROM Party.PartyType WHERE PartyId = @id)
+                    OR EXISTS (SELECT 1 FROM Party.SalesType WHERE PartyId = @id)
+                    OR EXISTS (SELECT 1 FROM Party.PartyUnitCompanyMapping WHERE PartyId = @id)
+                    OR EXISTS (SELECT 1 FROM Party.TransportDetail WHERE PartyId = @id)
+                    OR EXISTS (SELECT 1 FROM Party.AgentConfig WHERE PartyId = @id)
+                THEN 1 ELSE 0 END;";
+
+            var sameModule = await _dbConnection.ExecuteScalarAsync<bool>(query, new { id });
+            if (sameModule) return true;
+
+            // Cross-module children via validation interfaces
+            if (await _salesValidation.HasActivePartyMasterAsync(id)) return true;
+            if (await _purchaseValidation.HasActivePartyMasterAsync(id)) return true;
+            if (await _financeValidation.HasActivePartyMasterAsync(id)) return true;
+            if (await _maintenanceValidation.HasActivePartyMasterAsync(id)) return true;
+
+            return false;
         }
     }
 }

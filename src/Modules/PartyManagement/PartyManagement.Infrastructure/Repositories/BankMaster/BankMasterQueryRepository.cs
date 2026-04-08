@@ -168,4 +168,37 @@ public class BankMasterQueryRepository : IBankMasterQueryRepository
         if (letters.Length == 1) return (letters[0] + "X").ToUpperInvariant();
         return letters[..2].ToUpperInvariant();
     }
+
+    public async Task<bool> NotFoundAsync(int id)
+    {
+        const string sql = @"
+            SELECT CASE WHEN EXISTS (
+                SELECT 1 FROM Party.BankMaster WITH (NOLOCK)
+                WHERE Id = @id AND IsDeleted = 0
+            ) THEN 1 ELSE 0 END;";
+
+        return !await _db.ExecuteScalarAsync<bool>(sql, new { id });
+    }
+
+    public async Task<bool> SoftDeleteValidationAsync(int id)
+    {
+        const string sql = @"
+            SELECT CASE WHEN EXISTS (
+                SELECT 1 FROM Party.BankAccount
+                WHERE BankId = @id AND IsDeleted = 0
+            ) THEN 1 ELSE 0 END;";
+
+        return await _db.ExecuteScalarAsync<bool>(sql, new { id });
+    }
+
+    public async Task<bool> IsBankMasterLinkedAsync(int id)
+    {
+        const string sql = @"
+            SELECT CASE WHEN EXISTS (
+                SELECT 1 FROM Party.BankAccount
+                WHERE BankId = @id AND IsDeleted = 0 AND IsActive = 1
+            ) THEN 1 ELSE 0 END;";
+
+        return await _db.ExecuteScalarAsync<bool>(sql, new { id });
+    }
 }

@@ -69,9 +69,9 @@ namespace LogisticsManagement.Presentation.Validation.FreightMaster
                     case "AlreadyExists":
                         RuleFor(x => x)
                             .MustAsync(async (command, ct) =>
-                                !await _queryRepository.CompositeKeyExistsAsync(command.FreightModeId, command.RateMethodId, command.Id))
-                            .WithMessage("The combination of FreightModeId and RateMethodId already exists.")
-                            .When(x => x.FreightModeId > 0 && x.RateMethodId > 0);
+                                !await _queryRepository.CompositeKeyExistsAsync(command.FreightModeId, command.RateMethodId, command.ModuleId, command.Id))
+                            .WithMessage("The combination of FreightModeId, RateMethodId and ModuleId already exists.")
+                            .When(x => x.FreightModeId > 0 && x.RateMethodId > 0 && x.ModuleId > 0);
                         break;
 
                     case "ByteValue":
