@@ -43,7 +43,7 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
                     sipm.Id, sipm.PriceCode,
                     sipm.ItemId, sipm.VariantId, sipm.SalesSegmentId,
                     sipm.BaseRate, sipm.TolerancePercentage,
-                    sipm.CharityValue, sipm.HandlingCharges, sipm.AdditionalValue,
+                    sipm.CharityValue, sipm.HandlingCharges,
                     sipm.CurrencyId,
                     sipm.ValidFrom, sipm.ValidTo,
                     sipm.StatusId,
@@ -119,7 +119,7 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
                     sipm.Id, sipm.PriceCode,
                     sipm.ItemId, sipm.VariantId, sipm.SalesSegmentId,
                     sipm.BaseRate, sipm.TolerancePercentage,
-                    sipm.CharityValue, sipm.HandlingCharges, sipm.AdditionalValue,
+                    sipm.CharityValue, sipm.HandlingCharges,
                     sipm.CurrencyId,
                     sipm.ValidFrom, sipm.ValidTo,
                     sipm.StatusId,
@@ -330,7 +330,7 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
                     sipm.Id, sipm.PriceCode,
                     sipm.ItemId, sipm.VariantId, sipm.SalesSegmentId,
                     sipm.BaseRate, sipm.TolerancePercentage,
-                    sipm.CharityValue, sipm.HandlingCharges, sipm.AdditionalValue,
+                    sipm.CharityValue, sipm.HandlingCharges,
                     sipm.CurrencyId,
                     sipm.ValidFrom, sipm.ValidTo,
                     sipm.StatusId,
@@ -409,7 +409,7 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
             return count > 0;
         }
 
-        public async Task<List<ExMillRateDto>> GetExMillRateByPaymentTermAsync(int? paymentTermId, int itemId, int? salesSegmentId = null)
+        public async Task<List<ExMillRateDto>> GetExMillRateByPaymentTermAsync(int? paymentTermId, int itemId, DateOnly date, int? salesSegmentId = null)
         {
             PaymentTermLookupDto? paymentTerm = null;
             if (paymentTermId.HasValue)
@@ -423,16 +423,18 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
                     sipm.Id, sipm.PriceCode,
                     sipm.ItemId, sipm.SalesSegmentId,
                     sipm.BaseRate,
-                    sipm.CharityValue, sipm.HandlingCharges, sipm.AdditionalValue,
+                    sipm.CharityValue, sipm.HandlingCharges,
                     ss.SegmentName AS SalesSegmentName
                 FROM Sales.ItemPriceMaster sipm
                 LEFT JOIN Sales.SalesSegment ss ON sipm.SalesSegmentId = ss.Id AND ss.IsDeleted = 0
                 WHERE sipm.IsDeleted = 0 AND sipm.IsActive = 1
                   AND (sipm.ItemId = @ItemId OR sipm.VariantId = @ItemId)
+                  AND sipm.ValidFrom <= @Date
+                  AND sipm.ValidTo >= @Date
                   AND (@SalesSegmentId IS NULL OR sipm.SalesSegmentId = @SalesSegmentId)
                 ORDER BY sipm.PriceCode ASC";
 
-            var rows = (await _dbConnection.QueryAsync<dynamic>(sql, new { ItemId = itemId, SalesSegmentId = salesSegmentId })).ToList();
+            var rows = (await _dbConnection.QueryAsync<dynamic>(sql, new { ItemId = itemId, Date = date, SalesSegmentId = salesSegmentId })).ToList();
 
             if (!rows.Any())
                 return [];
@@ -449,8 +451,7 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
                     SalesSegmentName = (string?)r.SalesSegmentName,
                     ExMillRate = calculated != 0 ? calculated : baseRate,
                     CharityValue = (decimal?)r.CharityValue,
-                    HandlingCharges = (decimal?)r.HandlingCharges,
-                    AdditionalValue = (decimal?)r.AdditionalValue
+                    HandlingCharges = (decimal?)r.HandlingCharges
                 };
             }).ToList();
         }

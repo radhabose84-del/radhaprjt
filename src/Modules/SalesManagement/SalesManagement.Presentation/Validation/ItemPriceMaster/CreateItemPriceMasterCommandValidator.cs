@@ -106,11 +106,6 @@ namespace SalesManagement.Presentation.Validation.ItemPriceMaster
                             .GreaterThanOrEqualTo(0)
                             .WithMessage($"{nameof(CreateItemPriceMasterCommand.HandlingCharges)} {rule.Error}")
                             .When(x => x.HandlingCharges.HasValue);
-
-                        RuleFor(x => x.AdditionalValue)
-                            .GreaterThanOrEqualTo(0)
-                            .WithMessage($"{nameof(CreateItemPriceMasterCommand.AdditionalValue)} {rule.Error}")
-                            .When(x => x.AdditionalValue.HasValue);
                         break;
 
                     case "AlreadyExists":

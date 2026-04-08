@@ -83,11 +83,6 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("decimal(18,4)")
                 .IsRequired(false);
 
-            builder.Property(t => t.AdditionalValue)
-                .HasColumnName("AdditionalValue")
-                .HasColumnType("decimal(18,4)")
-                .IsRequired(false);
-
             builder.Property(t => t.StatusId)
                 .HasColumnName("StatusId")
                 .HasColumnType("int")

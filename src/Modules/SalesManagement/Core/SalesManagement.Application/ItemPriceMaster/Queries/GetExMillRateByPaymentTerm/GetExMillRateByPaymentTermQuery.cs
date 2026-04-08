@@ -9,5 +9,6 @@ namespace SalesManagement.Application.ItemPriceMaster.Queries.GetExMillRateByPay
         public int? PaymentTermId { get; set; }
         public int? SalesSegmentId { get; set; }
         public int ItemId { get; set; }
+        public DateOnly Date { get; set; }
     }
 }

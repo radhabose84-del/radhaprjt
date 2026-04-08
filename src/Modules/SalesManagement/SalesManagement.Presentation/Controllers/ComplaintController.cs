@@ -13,6 +13,7 @@ using SalesManagement.Application.Complaint.Queries.GetPendingComplaint;
 using SalesManagement.Application.Complaint.Commands.UploadAttachment;
 using SalesManagement.Application.Complaint.Commands.DeleteAttachment;
 using SalesManagement.Application.Complaint.Queries.SearchInvoices;
+using SalesManagement.Application.Complaint.Queries.GetComplaintsForSalesReturn;
 
 namespace SalesManagement.Presentation.Controllers
 {
@@ -71,6 +72,17 @@ namespace SalesManagement.Presentation.Controllers
         public async Task<IActionResult> GetComplaintByIdAsync(int id)
         {
             var result = await Mediator.Send(new GetComplaintByIdQuery { Id = id });
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result
+            });
+        }
+
+        [HttpGet("for-sales-return")]
+        public async Task<IActionResult> GetComplaintsForSalesReturnAsync([FromQuery] string? term = null)
+        {
+            var result = await Mediator.Send(new GetComplaintsForSalesReturnQuery(term ?? string.Empty));
             return Ok(new
             {
                 StatusCode = StatusCodes.Status200OK,

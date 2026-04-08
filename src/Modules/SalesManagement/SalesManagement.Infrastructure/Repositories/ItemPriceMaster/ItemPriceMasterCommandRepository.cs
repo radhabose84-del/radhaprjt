@@ -82,7 +82,6 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
             existingEntity.TolerancePercentage = entity.TolerancePercentage;
             existingEntity.CharityValue = entity.CharityValue;
             existingEntity.HandlingCharges = entity.HandlingCharges;
-            existingEntity.AdditionalValue = entity.AdditionalValue;
             existingEntity.CurrencyId = entity.CurrencyId;
             existingEntity.ValidFrom = entity.ValidFrom;
             existingEntity.ValidTo = entity.ValidTo;

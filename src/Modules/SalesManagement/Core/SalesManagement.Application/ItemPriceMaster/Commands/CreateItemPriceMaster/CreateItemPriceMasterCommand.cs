@@ -15,7 +15,6 @@ namespace SalesManagement.Application.ItemPriceMaster.Commands.CreateItemPriceMa
         public decimal? TolerancePercentage { get; set; }
         public decimal? CharityValue { get; set; }
         public decimal? HandlingCharges { get; set; }
-        public decimal? AdditionalValue { get; set; }
         public int? StatusId { get; set; }
     }
 }
