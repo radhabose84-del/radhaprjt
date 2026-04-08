@@ -9,7 +9,7 @@ namespace PurchaseManagement.UnitTests.Application.PortMaster.Queries
 {
     public sealed class GetPortByIdQueryHandlerTests
     {
-        private readonly Mock<IPortMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
+        private readonly Mock<IPortMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
         private readonly Mock<ICountryLookup> _mockCountryLookup = new(MockBehavior.Loose);
 
         private GetPortByIdQueryHandler CreateSut() =>

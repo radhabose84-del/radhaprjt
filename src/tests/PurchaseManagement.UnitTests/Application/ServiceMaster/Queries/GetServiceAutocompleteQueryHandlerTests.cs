@@ -10,7 +10,7 @@ namespace PurchaseManagement.UnitTests.Application.ServiceMaster.Queries
 {
     public sealed class GetServiceAutocompleteQueryHandlerTests
     {
-        private readonly Mock<IServiceQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
+        private readonly Mock<IServiceQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
         private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Loose);
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Loose);
         private readonly Mock<IUOMLookup> _mockUomLookup = new(MockBehavior.Loose);

@@ -45,7 +45,7 @@ namespace PurchaseManagement.UnitTests.Controllers
         {
             _mockMediator
                 .Setup(m => m.Send(It.IsAny<GetServicePOByIdQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new object());
+                .Returns(Task.FromResult<PurchaseOrderServiceDetailDto?>(new PurchaseOrderServiceDetailDto()));
 
             var result = await CreateSut().GetById(1);
 
@@ -57,7 +57,7 @@ namespace PurchaseManagement.UnitTests.Controllers
         {
             _mockMediator
                 .Setup(m => m.Send(It.IsAny<GetServicePOByIdQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((object?)null);
+                .Returns(Task.FromResult<PurchaseOrderServiceDetailDto?>(null));
 
             var result = await CreateSut().GetById(999);
 
@@ -69,7 +69,7 @@ namespace PurchaseManagement.UnitTests.Controllers
         {
             _mockMediator
                 .Setup(m => m.Send(It.IsAny<GetVendorServicePOQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new object());
+                .Returns(Task.FromResult(new List<GetVendorServicePODto>()));
 
             var result = await CreateSut().GetVendorServicePO(1);
 
@@ -77,15 +77,15 @@ namespace PurchaseManagement.UnitTests.Controllers
         }
 
         [Fact]
-        public async Task GetVendorServicePO_WhenNull_ReturnsNotFound()
+        public async Task GetVendorServicePO_WhenEmpty_ReturnsOkResult()
         {
             _mockMediator
                 .Setup(m => m.Send(It.IsAny<GetVendorServicePOQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((object?)null);
+                .Returns(Task.FromResult(new List<GetVendorServicePODto>()));
 
             var result = await CreateSut().GetVendorServicePO(999);
 
-            result.Should().BeOfType<NotFoundObjectResult>();
+            result.Should().BeOfType<OkObjectResult>();
         }
 
         [Fact]
@@ -93,7 +93,7 @@ namespace PurchaseManagement.UnitTests.Controllers
         {
             _mockMediator
                 .Setup(m => m.Send(It.IsAny<GetPOServicePendingQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((new List<object>(), 0));
+                .Returns(Task.FromResult((new List<GetServicePOPendingGroupDto>(), 0)));
 
             var result = await CreateSut().GetPendingServicePOAsync();
 

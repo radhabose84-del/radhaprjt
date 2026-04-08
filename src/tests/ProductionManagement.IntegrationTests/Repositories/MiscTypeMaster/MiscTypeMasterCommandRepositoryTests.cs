@@ -28,6 +28,9 @@ namespace ProductionManagement.IntegrationTests.Repositories.MiscTypeMaster
 
         private async Task ClearTableAsync(ApplicationDbContext ctx)
         {
+            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Production.ProductionPackDetail");
+            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Production.ProductionPackHeader");
+            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Production.LotMaster");
             await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Production].[MiscMaster]");
             await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Production].[MiscTypeMaster]");
         }

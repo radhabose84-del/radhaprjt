@@ -9,6 +9,7 @@ using PurchaseManagement.Application.PurchaseOrder.Local.Queries.GetAllPurchaseO
 using PurchaseManagement.Application.PurchaseOrder.Local.Queries.GetPurchaseOrderById;
 using PurchaseManagement.Application.PurchaseOrder.Local.Queries.GetPurchaseOrderAutocomplete;
 using PurchaseManagement.Application.PurchaseOrder.Local.Queries.GetPOLocalPending;
+using PurchaseManagement.Application.Common;
 using PurchaseManagement.Presentation.Controllers.PurchaseOrder;
 
 namespace PurchaseManagement.UnitTests.Controllers
@@ -60,7 +61,7 @@ namespace PurchaseManagement.UnitTests.Controllers
         {
             _mockMediator
                 .Setup(m => m.Send(It.IsAny<GetPurchaseOrdersQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new object());
+                .Returns(Task.FromResult(new PagedResult<PurchaseOrderListItemDto>()));
 
             var result = await CreateSut().GetAll(1, 20, null, null, null, null, CancellationToken.None);
 
@@ -72,7 +73,7 @@ namespace PurchaseManagement.UnitTests.Controllers
         {
             _mockMediator
                 .Setup(m => m.Send(It.IsAny<GetPurchaseOrderByIdQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new object());
+                .Returns(Task.FromResult<PurchaseOrderDetailDto?>(new PurchaseOrderDetailDto()));
 
             var result = await CreateSut().GetById(1, CancellationToken.None);
 
@@ -84,7 +85,7 @@ namespace PurchaseManagement.UnitTests.Controllers
         {
             _mockMediator
                 .Setup(m => m.Send(It.IsAny<GetPurchaseOrderAutocompleteQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new List<object>());
+                .Returns(Task.FromResult<IEnumerable<AutocompleteDto>>(new List<AutocompleteDto>()));
 
             var result = await CreateSut().Autocomplete("test", null, null, CancellationToken.None);
 

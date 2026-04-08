@@ -38,7 +38,7 @@ namespace PurchaseManagement.UnitTests.Application.Rfqs.Queries
 
             _mockMapper
                 .Setup(m => m.Map<RfqDto>(It.IsAny<object>()))
-                .Returns(new RfqDto { Id = 1, Items = System.Array.Empty<RfqItemDto>() });
+                .Returns(new RfqDto(1, null, "RFQ001", 1, "Approved", 1, "Manual", null, DateOnly.FromDateTime(DateTime.Today), Array.Empty<RfqItemDto>(), Array.Empty<RfqSupplierDto>()));
 
             var result = await CreateSut().Handle(
                 new GetRfqByIdQuery(1),

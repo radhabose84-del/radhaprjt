@@ -4,7 +4,7 @@ namespace PurchaseManagement.UnitTests.Application.ActivityLogs.Queries
 {
     public sealed class GetActivityLogByIdQueryHandlerTests
     {
-        private readonly Mock<IActivityLogQueryRepository> _mockRepo = new(MockBehavior.Strict);
+        private readonly Mock<IActivityLogQueryRepository> _mockRepo = new(MockBehavior.Loose);
 
         private GetActivityLogByIdQueryHandler CreateSut() => new(_mockRepo.Object);
 

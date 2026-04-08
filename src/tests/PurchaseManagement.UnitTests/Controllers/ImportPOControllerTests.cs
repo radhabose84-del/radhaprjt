@@ -19,7 +19,7 @@ namespace PurchaseManagement.UnitTests.Controllers
         {
             _mockMediator
                 .Setup(m => m.Send(It.IsAny<GetImportPOByIdQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new object());
+                .Returns(Task.FromResult<ImportPOFullVm?>(new ImportPOFullVm()));
 
             var result = await CreateSut().GetByIdAsync(1);
 

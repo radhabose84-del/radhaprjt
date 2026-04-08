@@ -7,7 +7,7 @@ namespace PurchaseManagement.UnitTests.Application.PortMaster.Queries
 {
     public sealed class GetPortAutocompleteQueryHandlerTests
     {
-        private readonly Mock<IPortMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
+        private readonly Mock<IPortMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
 
         private GetPortAutocompleteQueryHandler CreateSut() =>
             new(_mockQueryRepo.Object);

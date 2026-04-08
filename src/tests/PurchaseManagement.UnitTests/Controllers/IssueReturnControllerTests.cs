@@ -33,7 +33,7 @@ namespace PurchaseManagement.UnitTests.Controllers
         {
             _mockMediator
                 .Setup(m => m.Send(It.IsAny<GetIssueDetailsByIdQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new List<object> { new object() });
+                .Returns(Task.FromResult(new List<GetIssueDetailsByIdDto> { new GetIssueDetailsByIdDto() }));
 
             var result = await CreateSut().GetIssueDetailsById(1, null, CancellationToken.None);
 
@@ -45,7 +45,7 @@ namespace PurchaseManagement.UnitTests.Controllers
         {
             _mockMediator
                 .Setup(m => m.Send(It.IsAny<GetIssueDetailsByIdQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new List<object>());
+                .Returns(Task.FromResult(new List<GetIssueDetailsByIdDto>()));
 
             var result = await CreateSut().GetIssueDetailsById(999, null, CancellationToken.None);
 
@@ -65,13 +65,13 @@ namespace PurchaseManagement.UnitTests.Controllers
         {
             _mockMediator
                 .Setup(m => m.Send(It.IsAny<GetPendingIssueReturnQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new ApiResponseDTO<List<object>>
+                .Returns(Task.FromResult(new ApiResponseDTO<List<PendingIssueReturnDto>>
                 {
-                    Data = new List<object>(),
+                    Data = new List<PendingIssueReturnDto>(),
                     TotalCount = 0,
                     PageNumber = 1,
                     PageSize = 10
-                });
+                }));
 
             var result = await CreateSut().GetPendingIssueReturnAsync(1, 10);
 

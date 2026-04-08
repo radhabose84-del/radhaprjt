@@ -89,6 +89,13 @@
         "error": "must be a PNG or JPG file and less than 2 MB in size."
     },
     {
+        "rule": "FilePDFValidation",
+        "allowedExtensions": [
+            ".pdf"
+        ],
+        "error": "must be a PDF file and less than 2 MB in size."
+    },
+    {
         "rule": "Pincode",
         "pattern": "^[0-9]{6}$",
         "error": " must be a valid 6-digit pincode."

@@ -60,7 +60,7 @@ namespace PurchaseManagement.UnitTests.Application.Rfqs.Commands
                 .ReturnsAsync(newId);
 
             _mockUomLookup
-                .Setup(l => l.GetAllAsync())
+                .Setup(l => l.GetAllAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new List<Contracts.Dtos.Lookups.Inventory.UOMLookupDto>());
 
             _mockItemLookup

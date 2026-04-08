@@ -15,10 +15,15 @@ namespace PurchaseManagement.UnitTests.Application.QuotationEntry.Queries
         private GetQuotationByIdQueryHandler CreateSut() =>
             new(_mockRepo.Object, _mockMapper.Object, _mockMediator.Object);
 
+        private static GetQuotationHeaderDto BuildHeaderDto(int id = 1) =>
+            new(id, "QT001", 1, "Supplier", 1, "RFQ001", DateOnly.FromDateTime(DateTime.Today),
+                1, "Air", 0m, 1, "Net30", 1, "FOB", 0m, 0m, 0m, 0m, 0m, 1, null, null,
+                new List<GetQuotationDetailDto>());
+
         [Fact]
         public async Task Handle_ValidId_ReturnsDto()
         {
-            var dto = new GetQuotationHeaderDto { Id = 1 };
+            var dto = BuildHeaderDto(1);
             _mockRepo
                 .Setup(r => r.GetByIdAsync(1, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(dto);

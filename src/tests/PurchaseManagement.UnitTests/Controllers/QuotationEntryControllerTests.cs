@@ -17,12 +17,17 @@ namespace PurchaseManagement.UnitTests.Controllers
 
         private QuotationEntryController CreateSut() => new(_mockMediator.Object);
 
+        private static GetQuotationHeaderDto BuildHeaderDto(int id = 1) =>
+            new(id, "QT001", 1, "Supplier", 1, "RFQ001", DateOnly.FromDateTime(DateTime.Today),
+                1, "Air", 0m, 1, "Net30", 1, "FOB", 0m, 0m, 0m, 0m, 0m, 1, null, null,
+                new List<GetQuotationDetailDto>());
+
         [Fact]
         public async Task GetAll_ReturnsOkResult()
         {
             _mockMediator
                 .Setup(m => m.Send(It.IsAny<GetAllQuotationsQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((new List<object>(), 0));
+                .Returns(Task.FromResult<(IReadOnlyList<QuotationListItemDto> Items, int Total)>((new List<QuotationListItemDto>(), 0)));
 
             var result = await CreateSut().GetAll(1, 20, null, CancellationToken.None);
 
@@ -34,7 +39,7 @@ namespace PurchaseManagement.UnitTests.Controllers
         {
             _mockMediator
                 .Setup(m => m.Send(It.IsAny<GetQuotationByIdQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new GetQuotationHeaderDto());
+                .Returns(Task.FromResult(BuildHeaderDto()));
 
             var result = await CreateSut().GetById(1, CancellationToken.None);
 
@@ -46,7 +51,7 @@ namespace PurchaseManagement.UnitTests.Controllers
         {
             _mockMediator
                 .Setup(m => m.Send(It.IsAny<GetQuotationByIdQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((GetQuotationHeaderDto?)null);
+                .Returns(Task.FromResult<GetQuotationHeaderDto>(null!));
 
             var result = await CreateSut().GetById(999, CancellationToken.None);
 
@@ -72,7 +77,9 @@ namespace PurchaseManagement.UnitTests.Controllers
                 .Setup(m => m.Send(It.IsAny<CreateQuotationCommand>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(1);
 
-            var result = await CreateSut().Create(new CreateQuotationCommand(), CancellationToken.None);
+            var command = new CreateQuotationCommand(1, 1, "QT001", DateOnly.FromDateTime(DateTime.Today),
+                null, 0m, null, null, null, null, 0m, 0m, 0m, 0m, new List<QuotationDetailDto>());
+            var result = await CreateSut().Create(command, CancellationToken.None);
 
             result.Should().BeOfType<ObjectResult>();
         }
@@ -80,7 +87,8 @@ namespace PurchaseManagement.UnitTests.Controllers
         [Fact]
         public async Task Update_ReturnsStatusCodeResult()
         {
-            var command = new UpdateQuotationCommand { Id = 1 };
+            var command = new UpdateQuotationCommand(1, 1, 1, "QT001", DateOnly.FromDateTime(DateTime.Today),
+                1, 0m, 1, 1, 0m, 0m, 0m, 0m, 0m, "", new List<QuotationDetailDto>(), 1);
             var result = await CreateSut().Update(1, command, CancellationToken.None);
 
             result.Should().BeOfType<ObjectResult>();
@@ -93,7 +101,9 @@ namespace PurchaseManagement.UnitTests.Controllers
                 .Setup(m => m.Send(It.IsAny<CreateQuotationCommand>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(1);
 
-            await CreateSut().Create(new CreateQuotationCommand(), CancellationToken.None);
+            var command = new CreateQuotationCommand(1, 1, "QT001", DateOnly.FromDateTime(DateTime.Today),
+                null, 0m, null, null, null, null, 0m, 0m, 0m, 0m, new List<QuotationDetailDto>());
+            await CreateSut().Create(command, CancellationToken.None);
 
             _mockMediator.Verify(
                 m => m.Send(It.IsAny<CreateQuotationCommand>(), It.IsAny<CancellationToken>()),

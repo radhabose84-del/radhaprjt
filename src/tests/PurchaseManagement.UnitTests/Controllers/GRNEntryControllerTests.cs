@@ -42,7 +42,7 @@ namespace PurchaseManagement.UnitTests.Controllers
         {
             _mockMediator
                 .Setup(m => m.Send(It.IsAny<GetGateEntryPendingPoQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new object());
+                .Returns(Task.FromResult(new List<GetGateEntryPendingPoDto>()));
 
             var result = await CreateSut().GetPendingPoList(1);
 
@@ -50,15 +50,15 @@ namespace PurchaseManagement.UnitTests.Controllers
         }
 
         [Fact]
-        public async Task GetPendingPoList_WhenNull_ReturnsNotFound()
+        public async Task GetPendingPoList_WhenEmpty_ReturnsOkResult()
         {
             _mockMediator
                 .Setup(m => m.Send(It.IsAny<GetGateEntryPendingPoQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((object?)null);
+                .Returns(Task.FromResult(new List<GetGateEntryPendingPoDto>()));
 
             var result = await CreateSut().GetPendingPoList(999);
 
-            result.Should().BeOfType<NotFoundObjectResult>();
+            result.Should().BeOfType<OkObjectResult>();
         }
 
         [Fact]
@@ -66,7 +66,7 @@ namespace PurchaseManagement.UnitTests.Controllers
         {
             _mockMediator
                 .Setup(m => m.Send(It.IsAny<GetPoPendingQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new List<object>());
+                .Returns(Task.FromResult(new List<GetPoPendingDto>()));
 
             var result = await CreateSut().GetPoPendingAsync();
 

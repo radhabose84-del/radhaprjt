@@ -44,7 +44,7 @@ namespace PurchaseManagement.UnitTests.Controllers
         {
             _mockMediator
                 .Setup(m => m.Send(It.IsAny<GetRfqByIdQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new RfqDto());
+                .Returns(Task.FromResult(new RfqDto(1, null, "RFQ001", 1, "Approved", 1, "Manual", null, DateOnly.FromDateTime(DateTime.Today), Array.Empty<RfqItemDto>(), Array.Empty<RfqSupplierDto>())));
 
             var result = await CreateSut().GetById(1, CancellationToken.None);
 
@@ -56,7 +56,7 @@ namespace PurchaseManagement.UnitTests.Controllers
         {
             _mockMediator
                 .Setup(m => m.Send(It.IsAny<GetAllRfqQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((new List<object>(), 0));
+                .Returns(Task.FromResult<(IReadOnlyList<RfqListItemDto> Items, int Total)>((new List<RfqListItemDto>(), 0)));
 
             var result = await CreateSut().GetAll(null, 1, 15, null, CancellationToken.None);
 
@@ -68,7 +68,7 @@ namespace PurchaseManagement.UnitTests.Controllers
         {
             _mockMediator
                 .Setup(m => m.Send(It.IsAny<UpsertRfqDraftCommand>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new UpsertRfqDraftResult());
+                .Returns(Task.FromResult(new UpsertRfqDraftResult(1, "RFQ001")));
 
             var result = await CreateSut().CreateDraft(new UpsertRfqDraftCommand(), CancellationToken.None);
 
@@ -80,7 +80,7 @@ namespace PurchaseManagement.UnitTests.Controllers
         {
             _mockMediator
                 .Setup(m => m.Send(It.IsAny<UpsertRfqDraftCommand>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new UpsertRfqDraftResult());
+                .Returns(Task.FromResult(new UpsertRfqDraftResult(1, "RFQ001")));
 
             var result = await CreateSut().UpdateDraft(new UpsertRfqDraftCommand(), CancellationToken.None);
 

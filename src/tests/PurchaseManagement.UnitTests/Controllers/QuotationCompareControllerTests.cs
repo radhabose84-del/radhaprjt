@@ -19,7 +19,7 @@ namespace PurchaseManagement.UnitTests.Controllers
         {
             _mockMediator
                 .Setup(m => m.Send(It.IsAny<GetQuoteComparisonQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new object());
+                .Returns(Task.FromResult<QuoteComparisonDto?>(new QuoteComparisonDto()));
 
             var result = await CreateSut().GetComparisonAsync(1, CancellationToken.None);
 
@@ -31,7 +31,7 @@ namespace PurchaseManagement.UnitTests.Controllers
         {
             _mockMediator
                 .Setup(m => m.Send(It.IsAny<GetQuoteComparisonQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((object?)null);
+                .Returns(Task.FromResult<QuoteComparisonDto?>(null));
 
             var result = await CreateSut().GetComparisonAsync(999, CancellationToken.None);
 
@@ -55,7 +55,7 @@ namespace PurchaseManagement.UnitTests.Controllers
         {
             _mockMediator
                 .Setup(m => m.Send(It.IsAny<GetQuoteComparisonPendingQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((new List<object>(), 0));
+                .Returns(Task.FromResult((new List<QuoteComparisonPendingGroupDto>(), 0)));
 
             var result = await CreateSut().GetPendingAsync(1, 15, null, CancellationToken.None);
 
@@ -67,7 +67,7 @@ namespace PurchaseManagement.UnitTests.Controllers
         {
             _mockMediator
                 .Setup(m => m.Send(It.IsAny<GetQuoteComparisonByIdQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new object());
+                .Returns(Task.FromResult(new QuoteCompareByIdDto()));
 
             var result = await CreateSut().GetByIdAsync(1, CancellationToken.None);
 

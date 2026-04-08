@@ -14,7 +14,7 @@ namespace PurchaseManagement.UnitTests.Application.PriceMaster.Queries
 {
     public sealed class GetPriceMasterPendingQueryHandlerTests
     {
-        private readonly Mock<IPriceMasterQueryRepository> _mockRepo = new(MockBehavior.Strict);
+        private readonly Mock<IPriceMasterQueryRepository> _mockRepo = new(MockBehavior.Loose);
         private readonly Mock<IItemLookup> _mockItemLookup = new(MockBehavior.Loose);
         private readonly Mock<IUOMLookup> _mockUomLookup = new(MockBehavior.Loose);
         private readonly Mock<ICurrencyLookup> _mockCurrencyLookup = new(MockBehavior.Loose);

@@ -43,13 +43,13 @@ namespace PurchaseManagement.UnitTests.Controllers
         {
             _mockMediator
                 .Setup(m => m.Send(It.IsAny<GetMrsEntryQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new ApiResponseDTO<List<object>>
+                .Returns(Task.FromResult(new ApiResponseDTO<List<GetMrsEntryDto>>
                 {
-                    Data = new List<object>(),
+                    Data = new List<GetMrsEntryDto>(),
                     TotalCount = 0,
                     PageNumber = 1,
                     PageSize = 10
-                });
+                }));
 
             var result = await CreateSut().GetMrsEntryDetails(1, 10);
 
@@ -61,7 +61,7 @@ namespace PurchaseManagement.UnitTests.Controllers
         {
             _mockMediator
                 .Setup(m => m.Send(It.IsAny<GetMrsEntryByIdQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new object());
+                .Returns(Task.FromResult(new GetMrsEntryByIdDto()));
 
             var result = await CreateSut().GetByIdAsync(1);
 
@@ -73,7 +73,7 @@ namespace PurchaseManagement.UnitTests.Controllers
         {
             _mockMediator
                 .Setup(m => m.Send(It.IsAny<GetMrsEntryByIdQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((object?)null);
+                .Returns(Task.FromResult<GetMrsEntryByIdDto>(null!));
 
             var result = await CreateSut().GetByIdAsync(999);
 
@@ -85,7 +85,7 @@ namespace PurchaseManagement.UnitTests.Controllers
         {
             _mockMediator
                 .Setup(m => m.Send(It.IsAny<GetStockItemBasedQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new List<object> { new object() });
+                .Returns(Task.FromResult(new List<GetStockItemDto> { new GetStockItemDto() }));
 
             var result = await CreateSut().GetStockAvialble(1, 1, CancellationToken.None);
 
@@ -97,7 +97,7 @@ namespace PurchaseManagement.UnitTests.Controllers
         {
             _mockMediator
                 .Setup(m => m.Send(It.IsAny<GetStockItemBasedQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new List<object>());
+                .Returns(Task.FromResult(new List<GetStockItemDto>()));
 
             var result = await CreateSut().GetStockAvialble(1, 1, CancellationToken.None);
 
@@ -109,7 +109,7 @@ namespace PurchaseManagement.UnitTests.Controllers
         {
             _mockMediator
                 .Setup(m => m.Send(It.IsAny<GetParentWarehouseQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new object());
+                .Returns(Task.FromResult(new GetParentWarehouseDto()));
 
             var result = await CreateSut().GetByParentWarehouseIdAsync(1);
 
@@ -121,13 +121,13 @@ namespace PurchaseManagement.UnitTests.Controllers
         {
             _mockMediator
                 .Setup(m => m.Send(It.IsAny<GetMrsPendingQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new ApiResponseDTO<List<object>>
+                .Returns(Task.FromResult(new ApiResponseDTO<List<MrsPendingDto>>
                 {
-                    Data = new List<object>(),
+                    Data = new List<MrsPendingDto>(),
                     TotalCount = 0,
                     PageNumber = 1,
                     PageSize = 10
-                });
+                }));
 
             var result = await CreateSut().GetPendingMrsAsync(1, 10);
 

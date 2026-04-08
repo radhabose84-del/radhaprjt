@@ -32,7 +32,7 @@ namespace PurchaseManagement.UnitTests.Controllers
         {
             _mockMediator
                 .Setup(m => m.Send(It.IsAny<GetPendingIssueQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new List<object> { new object() });
+                .Returns(Task.FromResult(new List<GetPendingIssueDto> { new GetPendingIssueDto() }));
 
             var result = await CreateSut().GetPendingIssuesDetails(1, CancellationToken.None);
 
@@ -44,7 +44,7 @@ namespace PurchaseManagement.UnitTests.Controllers
         {
             _mockMediator
                 .Setup(m => m.Send(It.IsAny<GetPendingIssueQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new List<object>());
+                .Returns(Task.FromResult(new List<GetPendingIssueDto>()));
 
             var result = await CreateSut().GetPendingIssuesDetails(999, CancellationToken.None);
 
@@ -56,13 +56,13 @@ namespace PurchaseManagement.UnitTests.Controllers
         {
             _mockMediator
                 .Setup(m => m.Send(It.IsAny<GetPendingIssueHeaderQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new ApiResponseDTO<List<object>>
+                .Returns(Task.FromResult(new ApiResponseDTO<List<GetPendingIssueHeaderDto>>
                 {
-                    Data = new List<object>(),
+                    Data = new List<GetPendingIssueHeaderDto>(),
                     TotalCount = 0,
                     PageNumber = 1,
                     PageSize = 10
-                });
+                }));
 
             var result = await CreateSut().GetPendingIssueHeaderAsync(1, 10);
 
@@ -74,7 +74,7 @@ namespace PurchaseManagement.UnitTests.Controllers
         {
             _mockMediator
                 .Setup(m => m.Send(It.IsAny<GetApprovedMrsByIdQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new List<object>());
+                .Returns(Task.FromResult(new List<GetApprovedMrsByIdDto>()));
 
             var result = await CreateSut().GetMrsApprovedDetails("MRS001");
 

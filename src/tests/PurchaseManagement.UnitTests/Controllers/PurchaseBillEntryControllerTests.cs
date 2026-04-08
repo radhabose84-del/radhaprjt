@@ -32,7 +32,7 @@ namespace PurchaseManagement.UnitTests.Controllers
         {
             _mockMediator
                 .Setup(m => m.Send(It.IsAny<GetPurchaseBillEntryByIdQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new object());
+                .Returns(Task.FromResult(new PurchaseBillEntryHeaderDto()));
 
             var result = await CreateSut().GetByIdAsync(1);
 
@@ -44,7 +44,7 @@ namespace PurchaseManagement.UnitTests.Controllers
         {
             _mockMediator
                 .Setup(m => m.Send(It.IsAny<GetAllPurchaseBillEntryQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new object());
+                .Returns(Task.FromResult(new PurchaseBillEntryListVm()));
 
             var result = await CreateSut().GetAllAsync(null, null, null, null);
 

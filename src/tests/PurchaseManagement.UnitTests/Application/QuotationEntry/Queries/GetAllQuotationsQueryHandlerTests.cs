@@ -21,7 +21,7 @@ namespace PurchaseManagement.UnitTests.Application.QuotationEntry.Queries
             var items = new List<QuotationListItemDto>();
             _mockRepo
                 .Setup(r => r.GetAllAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string?>()))
-                .ReturnsAsync(((IReadOnlyList<QuotationListItemDto>)items, 0));
+                .Returns(Task.FromResult<(List<QuotationListItemDto> Items, int Total)>((items, 0)));
 
             _mockMapper
                 .Setup(m => m.Map<List<QuotationListItemDto>>(It.IsAny<object>()))
@@ -40,7 +40,7 @@ namespace PurchaseManagement.UnitTests.Application.QuotationEntry.Queries
         {
             _mockRepo
                 .Setup(r => r.GetAllAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string?>()))
-                .ReturnsAsync(((IReadOnlyList<QuotationListItemDto>)new List<QuotationListItemDto>(), 0));
+                .Returns(Task.FromResult<(List<QuotationListItemDto> Items, int Total)>((new List<QuotationListItemDto>(), 0)));
 
             _mockMapper
                 .Setup(m => m.Map<List<QuotationListItemDto>>(It.IsAny<object>()))

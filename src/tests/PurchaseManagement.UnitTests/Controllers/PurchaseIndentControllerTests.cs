@@ -27,14 +27,14 @@ namespace PurchaseManagement.UnitTests.Controllers
         {
             _mockMediator
                 .Setup(m => m.Send(It.IsAny<GetAllPurchaseIndentQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new ApiResponseDTO<List<object>>
+                .Returns(Task.FromResult(new ApiResponseDTO<List<IndentDto>>
                 {
                     IsSuccess = true,
-                    Data = new List<object>(),
+                    Data = new List<IndentDto>(),
                     TotalCount = 0,
                     PageNumber = 1,
                     PageSize = 10
-                });
+                }));
 
             var result = await CreateSut().GetAllPurchaseIndentAsync(1, 10);
 
@@ -46,14 +46,14 @@ namespace PurchaseManagement.UnitTests.Controllers
         {
             _mockMediator
                 .Setup(m => m.Send(It.IsAny<GetAllPurchaseIndentQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new ApiResponseDTO<List<object>>
+                .Returns(Task.FromResult(new ApiResponseDTO<List<IndentDto>>
                 {
                     IsSuccess = true,
-                    Data = new List<object>(),
+                    Data = new List<IndentDto>(),
                     TotalCount = 0,
                     PageNumber = 1,
                     PageSize = 10
-                });
+                }));
 
             await CreateSut().GetAllPurchaseIndentAsync(1, 10);
 
@@ -103,14 +103,14 @@ namespace PurchaseManagement.UnitTests.Controllers
         {
             _mockMediator
                 .Setup(m => m.Send(It.IsAny<GetPendingIndentQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new ApiResponseDTO<List<object>>
+                .Returns(Task.FromResult(new ApiResponseDTO<List<PendingIndentDto>>
                 {
                     IsSuccess = true,
-                    Data = new List<object>(),
+                    Data = new List<PendingIndentDto>(),
                     TotalCount = 0,
                     PageNumber = 1,
                     PageSize = 10
-                });
+                }));
 
             var result = await CreateSut().GetPendingPurchaseIndentAsync(1, 10);
 

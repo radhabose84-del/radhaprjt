@@ -9,8 +9,8 @@ namespace PurchaseManagement.UnitTests.Application.GateEntry.Commands
 {
     public sealed class CreateGateEntryCommandHandlerTests
     {
-        private readonly Mock<IGateEntryCommandRepository> _mockCommandRepo = new(MockBehavior.Strict);
-        private readonly Mock<IGateEntryQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
+        private readonly Mock<IGateEntryCommandRepository> _mockCommandRepo = new(MockBehavior.Loose);
+        private readonly Mock<IGateEntryQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
         private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Loose);
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Loose);
 

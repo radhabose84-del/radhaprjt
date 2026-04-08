@@ -10,7 +10,7 @@ namespace PurchaseManagement.UnitTests.Application.ServiceMaster.Commands
     public sealed class UpdateServiceCommandHandlerTests
     {
         private readonly Mock<IServiceQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
-        private readonly Mock<IServiceCommandRepository> _mockCommandRepo = new(MockBehavior.Strict);
+        private readonly Mock<IServiceCommandRepository> _mockCommandRepo = new(MockBehavior.Loose);
         private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Loose);
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Loose);
 

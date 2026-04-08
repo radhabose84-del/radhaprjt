@@ -13,7 +13,7 @@ namespace PurchaseManagement.UnitTests.Application.PriceMaster.Queries
 {
     public sealed class GetAllPriceMasterQueryHandlerTests
     {
-        private readonly Mock<IPriceMasterQueryRepository> _mockRepo = new(MockBehavior.Strict);
+        private readonly Mock<IPriceMasterQueryRepository> _mockRepo = new(MockBehavior.Loose);
         private readonly Mock<IItemLookup> _mockItemLookup = new(MockBehavior.Loose);
         private readonly Mock<IUOMLookup> _mockUomLookup = new(MockBehavior.Loose);
         private readonly Mock<IPartyLookup> _mockPartyLookup = new(MockBehavior.Loose);

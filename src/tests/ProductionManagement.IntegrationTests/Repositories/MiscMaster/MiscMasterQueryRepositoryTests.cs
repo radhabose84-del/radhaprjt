@@ -52,6 +52,10 @@ namespace ProductionManagement.IntegrationTests.Repositories.MiscMaster
         {
             await using var conn = new SqlConnection(_fixture.ConnectionString);
             await conn.OpenAsync();
+            await conn.ExecuteAsync("DELETE FROM Production.ProductionPackDetail");
+            await conn.ExecuteAsync("DELETE FROM Production.ProductionPackHeader");
+            await conn.ExecuteAsync("DELETE FROM Production.LotMaster");
+            await conn.ExecuteAsync("DELETE FROM Production.LotMaster");
             await conn.ExecuteAsync("DELETE FROM [Production].[MiscMaster]");
             await conn.ExecuteAsync("DELETE FROM [Production].[MiscTypeMaster]");
         }

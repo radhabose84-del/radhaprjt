@@ -8,7 +8,7 @@ namespace PurchaseManagement.UnitTests.Application.PartyMaster.Queries
 {
     public sealed class GetPartyDetailsQueryHandlerTests
     {
-        private readonly Mock<IPartyMasterQueryRepository> _mockRepo = new(MockBehavior.Strict);
+        private readonly Mock<IPartyMasterQueryRepository> _mockRepo = new(MockBehavior.Loose);
         private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Loose);
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Loose);
 

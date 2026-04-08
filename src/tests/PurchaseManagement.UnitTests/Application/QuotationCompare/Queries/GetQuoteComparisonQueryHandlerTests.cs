@@ -59,7 +59,7 @@ namespace PurchaseManagement.UnitTests.Application.QuotationCompare.Queries
                 .ReturnsAsync(new List<Contracts.Dtos.Lookups.Inventory.ItemLookupDto>());
 
             _mockUomLookup
-                .Setup(l => l.GetAllAsync())
+                .Setup(l => l.GetAllAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new List<Contracts.Dtos.Lookups.Inventory.UOMLookupDto>());
 
             var result = await CreateSut().Handle(
