@@ -54,6 +54,8 @@ namespace PartyManagement.Domain.Entities
         public bool IsUpdate { get; set; }
         public MiscMaster? StatusParty { get; set; }
         public MiscMaster? CustomerTypeMisc { get; set; } = null!;
+        public int? SalesFreightId { get; set; }
+        public int? PurchaseFreightId { get; set; }
         public string? FreightExpensesGl { get; set; }
         public ICollection<PartyContact>? PartyContactTypes { get; set; }
         public ICollection<PartyAddress>? PartyAddressTypes { get; set; }
