@@ -53,6 +53,18 @@ public static class CachingServiceExtensions
     /// Discovers all interfaces ending with "Lookup" from the Contracts assembly.
     /// These are the lookup interfaces we want to cache (e.g., IUnitLookup, IUOMLookup, etc.)
     /// </summary>
+    /// <summary>
+    /// Lookup interfaces that must NOT be cached because they have write/mutation methods
+    /// or return values that change frequently (e.g. document sequence counters).
+    /// </summary>
+    private static readonly HashSet<string> ExcludedLookupInterfaces = new(StringComparer.Ordinal)
+    {
+        // IDocumentSequenceLookup has both write operations (IncrementDocNoAsync) and
+        // frequently-changing reads (GenerateDocumentNumber changes after every doc created).
+        // Caching either causes duplicate document numbers.
+        "IDocumentSequenceLookup",
+    };
+
     private static List<Type> DiscoverLookupInterfaces()
     {
         var lookupInterfaces = new List<Type>();
@@ -65,7 +77,8 @@ public static class CachingServiceExtensions
         {
             lookupInterfaces.AddRange(
                 contractsAssembly.GetTypes()
-                    .Where(t => t.IsInterface && t.Name.EndsWith("Lookup"))
+                    .Where(t => t.IsInterface && t.Name.EndsWith("Lookup")
+                                && !ExcludedLookupInterfaces.Contains(t.Name))
                     .ToList()
             );
         }
@@ -82,7 +95,8 @@ public static class CachingServiceExtensions
                     .Where(t => t.IsInterface &&
                                 t.Namespace != null &&
                                 t.Namespace.Contains("Lookups") &&
-                                t.Name.Contains("Lookup"))
+                                t.Name.Contains("Lookup") &&
+                                !ExcludedLookupInterfaces.Contains(t.Name))
                     .ToList();
 
                 lookupInterfaces.AddRange(types);

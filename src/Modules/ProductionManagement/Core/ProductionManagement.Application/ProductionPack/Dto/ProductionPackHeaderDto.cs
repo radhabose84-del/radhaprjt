@@ -25,6 +25,8 @@ namespace ProductionManagement.Application.ProductionPack.Dto
         public int? EndPackNo { get; set; }
 
         // Totals
+        public decimal OpeningLooseKgs { get; set; }
+        public decimal TotalProductionKgs { get; set; }
         public int TotalBags { get; set; }
         public decimal TotalNetWeight { get; set; }
         public decimal ProductionKgs { get; set; }
@@ -35,9 +37,6 @@ namespace ProductionManagement.Application.ProductionPack.Dto
         public string? BinName { get; set; }
         public int? QualityStatusId { get; set; }
         public string? QualityStatusName { get; set; }
-
-        // Stock closing flag
-        public bool StockClosing { get; set; }
 
         public string? Remarks { get; set; }
         public bool IsActive { get; set; }

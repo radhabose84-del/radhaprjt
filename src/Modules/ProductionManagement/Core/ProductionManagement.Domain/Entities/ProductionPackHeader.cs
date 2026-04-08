@@ -21,6 +21,8 @@ namespace ProductionManagement.Domain.Entities
         public int? EndPackNo { get; set; }
 
         // Totals
+        public decimal OpeningLooseKgs { get; set; }
+        public decimal TotalProductionKgs { get; set; }
         public int TotalBags { get; set; }
         public decimal TotalNetWeight { get; set; }
         public decimal ProductionKgs { get; set; }
@@ -29,9 +31,6 @@ namespace ProductionManagement.Domain.Entities
         // Location & quality
         public int? BinId { get; set; }
         public int? QualityStatusId { get; set; }
-
-        // Stock closing — when true, record is locked (no further edits)
-        public bool StockClosing { get; set; }
 
         public string? Remarks { get; set; }
 

@@ -138,6 +138,8 @@ namespace WarehouseManagement.Infrastructure
 
             // Validation repositories — cross-module referential integrity (Rule 25)
             services.AddScoped<Contracts.Interfaces.Validations.WarehouseManagement.IWarehouseDepartmentValidation, Repositories.Validations.WarehouseDepartmentValidationRepository>();
+            services.AddScoped<Contracts.Interfaces.Validations.WarehouseManagement.IWarehouseUomValidation, Repositories.Validations.WarehouseUomValidationRepository>();
+            services.AddScoped<Contracts.Interfaces.Validations.WarehouseManagement.IWarehouseItemGroupValidation, Repositories.Validations.WarehouseItemGroupValidationRepository>();
 
             return services;
         }

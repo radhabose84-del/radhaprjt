@@ -4,6 +4,11 @@ using InventoryManagement.Application.Common.Interfaces.IUOM;
 using InventoryManagement.Application.UOM.Queries.GetUOMs;
 using InventoryManagement.Application.UOM.Queries.GetUOMTypeAutoComplete;
 using InventoryManagement.Domain.Entities;
+using Contracts.Interfaces.Validations.SalesManagement;
+using Contracts.Interfaces.Validations.PurchaseManagement;
+using Contracts.Interfaces.Validations.MaintenanceManagement;
+using Contracts.Interfaces.Validations.WarehouseManagement;
+using Contracts.Interfaces.Validations.ProductionManagement;
 using Dapper;
 
 namespace InventoryManagement.Infrastructure.Repositories.UOMs
@@ -11,10 +16,23 @@ namespace InventoryManagement.Infrastructure.Repositories.UOMs
     public class UOMQueryRepository : IUOMQueryRepository
     {
         private readonly IDbConnection _dbConnection;
-        public UOMQueryRepository(IDbConnection dbConnection)
+        private readonly ISalesUomValidation _salesUomValidation;
+        private readonly IPurchaseUomValidation _purchaseUomValidation;
+        private readonly IMaintenanceUomValidation _maintenanceUomValidation;
+        private readonly IWarehouseUomValidation _warehouseUomValidation;
+        private readonly IProductionUomValidation _productionUomValidation;
+
+        public UOMQueryRepository(IDbConnection dbConnection,
+            ISalesUomValidation salesUomValidation, IPurchaseUomValidation purchaseUomValidation,
+            IMaintenanceUomValidation maintenanceUomValidation, IWarehouseUomValidation warehouseUomValidation,
+            IProductionUomValidation productionUomValidation)
         {
             _dbConnection = dbConnection;
-
+            _salesUomValidation = salesUomValidation;
+            _purchaseUomValidation = purchaseUomValidation;
+            _maintenanceUomValidation = maintenanceUomValidation;
+            _warehouseUomValidation = warehouseUomValidation;
+            _productionUomValidation = productionUomValidation;
         }
         public async Task<(List<UOM>, int)> GetAllUOMAsync(int PageNumber, int PageSize, string SearchTerm)
         {
@@ -125,7 +143,16 @@ namespace InventoryManagement.Infrastructure.Repositories.UOMs
                 THEN 1 ELSE 0 END;";
 
             var result = await _dbConnection.QueryFirstOrDefaultAsync<int>(query, new { id });
-            return result == 1;
+            if (result == 1) return true;
+
+            // Cross-module checks
+            if (await _salesUomValidation.HasLinkedUomAsync(id)) return true;
+            if (await _purchaseUomValidation.HasLinkedUomAsync(id)) return true;
+            if (await _maintenanceUomValidation.HasLinkedUomAsync(id)) return true;
+            if (await _warehouseUomValidation.HasLinkedUomAsync(id)) return true;
+            if (await _productionUomValidation.HasLinkedUomAsync(id)) return true;
+
+            return false;
         }
 
         public async Task<bool> IsUOMLinkedAsync(int id)
@@ -142,7 +169,16 @@ namespace InventoryManagement.Infrastructure.Repositories.UOMs
                 THEN 1 ELSE 0 END;";
 
             var result = await _dbConnection.QueryFirstOrDefaultAsync<int>(query, new { id });
-            return result == 1;
+            if (result == 1) return true;
+
+            // Cross-module checks
+            if (await _salesUomValidation.HasActiveUomAsync(id)) return true;
+            if (await _purchaseUomValidation.HasActiveUomAsync(id)) return true;
+            if (await _maintenanceUomValidation.HasActiveUomAsync(id)) return true;
+            if (await _warehouseUomValidation.HasActiveUomAsync(id)) return true;
+            if (await _productionUomValidation.HasActiveUomAsync(id)) return true;
+
+            return false;
         }
 
         public async Task<List<UOMDto>> GetUOMAsync()

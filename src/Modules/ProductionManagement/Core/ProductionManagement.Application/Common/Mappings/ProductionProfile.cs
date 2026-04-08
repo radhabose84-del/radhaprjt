@@ -14,7 +14,6 @@ namespace ProductionManagement.Application.Common.Mappings
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
                 .ForMember(dest => dest.PackNo, opt => opt.Ignore())
                 .ForMember(dest => dest.UnitId, opt => opt.Ignore())
-                .ForMember(dest => dest.StockClosing, opt => opt.MapFrom(src => false))
                 .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => Status.Active))
                 .ForMember(dest => dest.IsDeleted, opt => opt.MapFrom(src => IsDelete.NotDeleted));
 
@@ -22,7 +21,6 @@ namespace ProductionManagement.Application.Common.Mappings
             CreateMap<UpdateProductionDto, ProductionPackDetail>()
                 .ForMember(dest => dest.PackNo, opt => opt.Ignore())
                 .ForMember(dest => dest.UnitId, opt => opt.Ignore())
-                .ForMember(dest => dest.StockClosing, opt => opt.Ignore())
                 .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src =>
                     src.IsActive == 1 ? Status.Active : Status.Inactive));
 

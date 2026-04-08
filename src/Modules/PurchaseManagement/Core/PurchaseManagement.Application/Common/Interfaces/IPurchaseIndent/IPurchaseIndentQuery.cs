@@ -21,6 +21,7 @@ namespace PurchaseManagement.Application.Common.Interfaces.IPurchaseIndent
         Task<(List<PendingIndentDto>, int)> GetPendingPurchaseIndentAsync(int PageNumber, int PageSize, string? SearchTerm);
         Task<List<IndentHeader>> GetPurchaseIndentAutoCompleteAsync(string Status, string? SearchTerm,bool AllIndents=false);        
         Task<List<IndentForPODto>> GetApprovedIndentDetailsForPO(int? vendorId,int? departmentId, CancellationToken ct = default);
+        Task<bool> SoftDeleteValidationAsync(int id);
 
     }
 }

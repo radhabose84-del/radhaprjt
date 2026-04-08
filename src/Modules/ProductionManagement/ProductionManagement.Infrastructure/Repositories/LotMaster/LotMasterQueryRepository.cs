@@ -2,6 +2,7 @@ using System.Data;
 using Contracts.Dtos.Lookups.Production;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Users;
+using Contracts.Interfaces.Validations.SalesManagement;
 using Dapper;
 using ProductionManagement.Application.Common.Interfaces.ILotMaster;
 using ProductionManagement.Application.LotMaster.Dto;
@@ -13,15 +14,18 @@ namespace ProductionManagement.Infrastructure.Repositories.LotMaster
         private readonly IDbConnection _dbConnection;
         private readonly IItemLookup _itemLookup;
         private readonly IUnitLookup _unitLookup;
+        private readonly ILotMasterSalesValidation _salesValidation;
 
         public LotMasterQueryRepository(
             IDbConnection dbConnection,
             IItemLookup itemLookup,
-            IUnitLookup unitLookup)
+            IUnitLookup unitLookup,
+            ILotMasterSalesValidation salesValidation)
         {
             _dbConnection = dbConnection;
             _itemLookup = itemLookup;
             _unitLookup = unitLookup;
+            _salesValidation = salesValidation;
         }
 
         public async Task<(List<LotMasterDto>, int)> GetAllAsync(
@@ -221,6 +225,34 @@ namespace ProductionManagement.Infrastructure.Repositories.LotMaster
         {
             var units = await _unitLookup.GetByIdsAsync(new[] { unitId }, ct);
             return units.Any();
+        }
+
+        public async Task<bool> SoftDeleteValidationAsync(int id)
+        {
+            const string sql = @"
+                SELECT CASE WHEN
+                    EXISTS (SELECT 1 FROM [Production].[ProductionPackDetail] WHERE LotMasterId = @Id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM [Production].[RepackingHeader] WHERE LotId = @Id AND IsDeleted = 0)
+                THEN 1 ELSE 0 END";
+
+            var sameModule = await _dbConnection.ExecuteScalarAsync<bool>(sql, new { Id = id });
+            if (sameModule) return true;
+
+            return await _salesValidation.HasLinkedLotMasterAsync(id);
+        }
+
+        public async Task<bool> IsLotMasterLinkedAsync(int id)
+        {
+            const string sql = @"
+                SELECT CASE WHEN
+                    EXISTS (SELECT 1 FROM [Production].[ProductionPackDetail] WHERE LotMasterId = @Id AND IsDeleted = 0 AND IsActive = 1)
+                    OR EXISTS (SELECT 1 FROM [Production].[RepackingHeader] WHERE LotId = @Id AND IsDeleted = 0 AND IsActive = 1)
+                THEN 1 ELSE 0 END";
+
+            var sameModule = await _dbConnection.ExecuteScalarAsync<bool>(sql, new { Id = id });
+            if (sameModule) return true;
+
+            return await _salesValidation.HasActiveLotMasterAsync(id);
         }
     }
 }

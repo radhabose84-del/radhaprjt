@@ -46,11 +46,18 @@ public class CachedLookupDecorator<TLookup> : DispatchProxy where TLookup : clas
         if (targetMethod == null)
             return null;
 
+        var returnType = targetMethod.ReturnType;
+
+        // Non-generic Task (void-async) = mutation/write operation → bypass cache entirely.
+        // Caching these would store a completed Task and silently skip the actual DB write on
+        // subsequent calls (e.g. IncrementDocNoAsync would never increment after the first call).
+        if (returnType == typeof(Task) || returnType == typeof(void))
+            return targetMethod.Invoke(_inner, args);
+
         // Generate unique cache key based on: InterfaceName_MethodName_SerializedArgs
         var cacheKey = GenerateCacheKey(targetMethod, args);
 
         // Check if this is an async method returning Task<T>
-        var returnType = targetMethod.ReturnType;
         var isAsync = returnType.IsGenericType && returnType.GetGenericTypeDefinition() == typeof(Task<>);
 
         if (isAsync)

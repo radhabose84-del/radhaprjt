@@ -32,15 +32,13 @@ namespace ProductionManagement.Presentation.Controllers
         public async Task<IActionResult> GetAllRepackingHeaderAsync(
             [FromQuery] int PageNumber,
             [FromQuery] int PageSize,
-            [FromQuery] string? SearchTerm = null,
-            [FromQuery] int? TypeId = null)
+            [FromQuery] string? SearchTerm = null)
         {
             var result = await Mediator.Send(new GetAllRepackingHeaderQuery
             {
                 PageNumber = PageNumber,
                 PageSize = PageSize,
-                SearchTerm = SearchTerm,
-                TypeId = TypeId
+                SearchTerm = SearchTerm
             });
 
             return Ok(new
@@ -66,10 +64,9 @@ namespace ProductionManagement.Presentation.Controllers
 
         [HttpGet("by-name")]
         public async Task<IActionResult> GetRepackingHeaderAutoCompleteAsync(
-            [FromQuery] string? term = null,
-            [FromQuery] int? typeId = null)
+            [FromQuery] string? term = null)
         {
-            var result = await Mediator.Send(new GetRepackingHeaderAutoCompleteQuery(term, typeId));
+            var result = await Mediator.Send(new GetRepackingHeaderAutoCompleteQuery(term));
             return Ok(new
             {
                 StatusCode = StatusCodes.Status200OK,

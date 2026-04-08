@@ -1,5 +1,6 @@
 using System.Data;
 using Contracts.Dtos.Lookups.Production;
+using Contracts.Interfaces.Validations.SalesManagement;
 using Dapper;
 using ProductionManagement.Application.Common.Interfaces.IPackType;
 using ProductionManagement.Application.PackType.Dto;
@@ -9,10 +10,12 @@ namespace ProductionManagement.Infrastructure.Repositories.PackType
     public class PackTypeQueryRepository : IPackTypeQueryRepository
     {
         private readonly IDbConnection _dbConnection;
+        private readonly IPackTypeSalesValidation _salesValidation;
 
-        public PackTypeQueryRepository(IDbConnection dbConnection)
+        public PackTypeQueryRepository(IDbConnection dbConnection, IPackTypeSalesValidation salesValidation)
         {
             _dbConnection = dbConnection;
+            _salesValidation = salesValidation;
         }
 
         public async Task<(List<PackTypeDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
@@ -122,12 +125,29 @@ namespace ProductionManagement.Infrastructure.Repositories.PackType
         public async Task<bool> SoftDeleteValidationAsync(int id)
         {
             const string sql = @"
-                SELECT COUNT(1)
-                FROM Production.ProductionPackDetail
-                WHERE packTypeId = @Id ";
+                SELECT CASE WHEN
+                    EXISTS (SELECT 1 FROM [Production].[ProductionPackDetail] WHERE PackTypeId = @Id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM [Production].[RepackingHeader] WHERE (PackTypeId = @Id OR OldPackTypeId = @Id) AND IsDeleted = 0)
+                THEN 1 ELSE 0 END";
 
-            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = id });
-            return count == 0;           
+            var sameModule = await _dbConnection.ExecuteScalarAsync<bool>(sql, new { Id = id });
+            if (sameModule) return true;
+
+            return await _salesValidation.HasLinkedPackTypeAsync(id);
+        }
+
+        public async Task<bool> IsPackTypeLinkedAsync(int id)
+        {
+            const string sql = @"
+                SELECT CASE WHEN
+                    EXISTS (SELECT 1 FROM [Production].[ProductionPackDetail] WHERE PackTypeId = @Id AND IsDeleted = 0 AND IsActive = 1)
+                    OR EXISTS (SELECT 1 FROM [Production].[RepackingHeader] WHERE (PackTypeId = @Id OR OldPackTypeId = @Id) AND IsDeleted = 0 AND IsActive = 1)
+                THEN 1 ELSE 0 END";
+
+            var sameModule = await _dbConnection.ExecuteScalarAsync<bool>(sql, new { Id = id });
+            if (sameModule) return true;
+
+            return await _salesValidation.HasActivePackTypeAsync(id);
         }
     }
 }

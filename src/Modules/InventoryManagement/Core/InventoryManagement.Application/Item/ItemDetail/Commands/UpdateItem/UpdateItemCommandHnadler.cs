@@ -1,5 +1,6 @@
 #nullable disable
 using AutoMapper;
+using Contracts.Common;
 using InventoryManagement.Application.Common.Interfaces.Item.ItemDetail.Commands;
 using InventoryManagement.Application.Common.Interfaces.Item.ItemDetail.Queries;
 using InventoryManagement.Application.Item.ItemDetail.Queries.GetAllItems;
@@ -15,6 +16,7 @@ namespace InventoryManagement.Application.Item.ItemDetail.Commands.UpdateItem
         private readonly IMapper _mapper;
         private readonly IMediator _mediator;
         private readonly ILogger<UpdateItemCommandHandler> _logger;
+        private readonly IItemQueryRepository _itemQueryRepo;
 
         private readonly IItemCommandRepository _itemRepo;
         private readonly IItemPurchaseCommandRepository _purchaseRepo;
@@ -46,17 +48,27 @@ namespace InventoryManagement.Application.Item.ItemDetail.Commands.UpdateItem
             IItemUsageTypeMappingCommandRepository usageTypeMappingRepo,
             IItemVariantAttributeCommandRepository attrRepo,
             IItemVariantValueCommandRepository variantCmd,
-            IItemVariantValueQueryRepository variantQry)
+            IItemVariantValueQueryRepository variantQry,
+            IItemQueryRepository itemQueryRepo)
         {
             _uow = uow; _mapper = mapper; _mediator = mediator; _logger = logger;
             _itemRepo = itemRepo; _purchaseRepo = purchaseRepo; _inventoryRepo = inventoryRepo; _qualityRepo = qualityRepo;
             _saleRepo = saleRepo; _supplierRepo = supplierRepo; _manuRepo = manuRepo; _uomRepo = uomRepo;
             _usageTypeMappingRepo = usageTypeMappingRepo; _attrRepo = attrRepo; _variantCmd = variantCmd; _variantQry = variantQry;
+            _itemQueryRepo = itemQueryRepo;
         }
 
         public async Task<Unit> Handle(UpdateItemCommand request, CancellationToken ct)
         {
             var p = request.Payload;
+
+            if (p.IsActive == 0)
+            {
+                var isLinked = await _itemQueryRepo.IsItemMasterLinkedAsync(p.Id);
+                if (isLinked)
+                    throw new ExceptionRules(
+                        "This master is linked with other records. You cannot inactivate this record.");
+            }
 
             await _uow.ExecuteInTransactionAsync<Unit>(async _ =>
             {

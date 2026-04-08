@@ -1,3 +1,4 @@
+using Contracts.Common;
 using Contracts.Interfaces;
 using PartyManagement.Application.Common.Interfaces;
 using PartyManagement.Application.Common.Interfaces.IBankMaster;
@@ -17,6 +18,10 @@ public class DeleteBankMasterCommandHandler : IRequestHandler<DeleteBankMasterCo
     public async Task Handle(DeleteBankMasterCommand r, CancellationToken ct)
     {
         var e = await _qry.GetByIdAsync(r.Id, ct) ?? throw new KeyNotFoundException("Bank not found.");
+
+        var isLinked = await _qry.SoftDeleteValidationAsync(r.Id);
+        if (isLinked)
+            throw new ExceptionRules("This master is linked with other records. You cannot delete this record.");
         e.IsDeleted = IsDelete.Deleted;
         e.ModifiedBy =_ip.GetUserId();
         e.ModifiedByName =_ip.GetUserName();

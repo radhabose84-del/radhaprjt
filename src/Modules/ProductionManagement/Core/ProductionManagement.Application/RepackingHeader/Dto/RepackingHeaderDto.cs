@@ -47,8 +47,6 @@ namespace ProductionManagement.Application.RepackingHeader.Dto
         public string? Remarks { get; set; }
         public int? LotId { get; set; }
         public string? LotName { get; set; }
-        public int? TypeId { get; set; }
-        public string? TypeName { get; set; }
 
         // Computed
         public bool IsRepacking { get; set; }

@@ -33,13 +33,14 @@ namespace ProductionManagement.Infrastructure.Data.Configurations
             builder.Property(t => t.NetWeightPerPack).HasColumnName("NetWeightPerPack").HasColumnType("decimal(18,3)").IsRequired(false);
             builder.Property(t => t.StartPackNo).HasColumnName("StartPackNo").HasColumnType("int").IsRequired(false);
             builder.Property(t => t.EndPackNo).HasColumnName("EndPackNo").HasColumnType("int").IsRequired(false);
+            builder.Property(t => t.OpeningLooseKgs).HasColumnName("OpeningLooseKgs").HasColumnType("decimal(18,3)").IsRequired();
+            builder.Property(t => t.TotalProductionKgs).HasColumnName("TotalProductionKgs").HasColumnType("decimal(18,3)").IsRequired();
             builder.Property(t => t.TotalBags).HasColumnName("TotalBags").HasColumnType("int").IsRequired();
             builder.Property(t => t.TotalNetWeight).HasColumnName("TotalNetWeight").HasColumnType("decimal(18,3)").IsRequired();
             builder.Property(t => t.ProductionKgs).HasColumnName("ProductionKgs").HasColumnType("decimal(18,3)").IsRequired();
             builder.Property(t => t.LooseConeKgs).HasColumnName("LooseConeKgs").HasColumnType("decimal(18,3)").IsRequired();
             builder.Property(t => t.BinId).HasColumnName("BinId").HasColumnType("int").IsRequired(false);
             builder.Property(t => t.QualityStatusId).HasColumnName("QualityStatusId").HasColumnType("int").IsRequired(false);
-            builder.Property(t => t.StockClosing).HasColumnName("StockClosing").HasColumnType("bit").HasDefaultValue(false).IsRequired();
             builder.Property(t => t.Remarks).HasColumnName("Remarks").HasColumnType("nvarchar(500)").IsRequired(false);
             builder.Property(b => b.IsActive).HasColumnName("IsActive").HasColumnType("bit").HasConversion(statusConverter).IsRequired();
             builder.Property(b => b.IsDeleted).HasColumnName("IsDeleted").HasColumnType("bit").HasConversion(isDeleteConverter).IsRequired();

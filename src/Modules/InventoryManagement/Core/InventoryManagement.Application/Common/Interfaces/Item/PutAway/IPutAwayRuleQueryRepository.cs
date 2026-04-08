@@ -10,5 +10,6 @@ namespace InventoryManagement.Application.Common.Interfaces.Item.PutAway
         Task<List<GetPutAwayRuleItemIdDto?>> GetPutAwayRuleDetailsAsync(List<int> itemids,List<int> warehouseIds);
         Task<List<GetPutAwayRuleItemIdDto?>> GetPutAwayRuleWarehouseDetailsAsync(List<int> itemids, List<int> warehouseIds);
         Task<bool> SoftDeleteValidationAsync(int id);
+        Task<bool> IsPutAwayRuleLinkedAsync(int id);
     }
 }

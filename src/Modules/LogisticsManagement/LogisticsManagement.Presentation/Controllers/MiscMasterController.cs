@@ -51,9 +51,9 @@ namespace LogisticsManagement.Presentation.Controllers
         }
 
         [HttpGet("by-name")]
-        public async Task<IActionResult> GetMiscMasterAutoCompleteAsync([FromQuery] string? term = null)
+        public async Task<IActionResult> GetMiscMasterAutoCompleteAsync([FromQuery] string? term = null, [FromQuery] string? miscTypeCode = null)
         {
-            var result = await Mediator.Send(new GetMiscMasterAutoCompleteQuery(term ?? string.Empty));
+            var result = await Mediator.Send(new GetMiscMasterAutoCompleteQuery(term ?? string.Empty, miscTypeCode));
 
             return Ok(new
             {

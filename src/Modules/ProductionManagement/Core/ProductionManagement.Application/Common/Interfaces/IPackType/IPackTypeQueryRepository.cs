@@ -12,5 +12,6 @@ namespace ProductionManagement.Application.Common.Interfaces.IPackType
         Task<bool> NotFoundAsync(int id);
         Task<bool> PackMaterialExistsAsync(int packMaterialId);
         Task<bool> SoftDeleteValidationAsync(int id);
+        Task<bool> IsPackTypeLinkedAsync(int id);
     }
 }
