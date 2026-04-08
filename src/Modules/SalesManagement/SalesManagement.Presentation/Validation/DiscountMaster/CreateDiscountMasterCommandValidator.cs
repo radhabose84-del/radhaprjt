@@ -15,6 +15,9 @@ namespace SalesManagement.Presentation.Validation.DiscountMaster
         private readonly IPaymentTermLookup _paymentTermLookup;
         private readonly ICurrencyLookup _currencyLookup;
 
+        // MiscMaster IDs for Max % (218) and Max Amount (219) — only these require MaxDiscountValue
+        private static readonly HashSet<int> _maxValueRequiredIds = new() { 218, 219 };
+
         public CreateDiscountMasterCommandValidator(
             MaxLengthProvider maxLengthProvider,
             IDiscountMasterQueryRepository queryRepo,
@@ -188,13 +191,16 @@ namespace SalesManagement.Presentation.Validation.DiscountMaster
                     .When(s => s.ToValue.HasValue);
             }).When(x => x.Slabs != null && x.Slabs.Count > 0);
 
-            // Custom: MaxDiscountValue required when MaxDiscountLimitType is Max % or Max Amount
+            // Custom: MaxDiscountValue required only when MaxDiscountLimitType is Max % or Max Amount
+            // None (193) and Payment Term Adjustment (194) do not require a value
             RuleFor(x => x.MaxDiscountValue)
                 .NotNull()
                 .WithMessage("MaxDiscountValue is required when Max Discount Limit is Max % or Max Amount.")
                 .GreaterThan(0)
                 .WithMessage("MaxDiscountValue must be greater than zero.")
-                .When(x => x.MaxDiscountLimitTypeId.HasValue && x.MaxDiscountLimitTypeId > 0);
+                .When(x => x.MaxDiscountLimitTypeId.HasValue &&
+                           x.MaxDiscountLimitTypeId > 0 &&
+                           _maxValueRequiredIds.Contains(x.MaxDiscountLimitTypeId.Value));
         }
     }
 }
