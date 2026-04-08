@@ -49,7 +49,7 @@ namespace BackgroundService.Presentation.Validation.NotificationConfig
                             !await _notificationConfigCommandRepository.IsNameDuplicateAsync(moduleName, command.NotificationEventTypeId,command.Id))
                             .WithMessage("A ModuleName already exists in this Event Type.");
                         break;
-                    case "RecordNotFound":
+                    case "NotFound":
                         RuleFor(x => x.Id)
                             .MustAsync(async (Id, cancellation) =>
                                 await _notificationConfigQueryRepository.NotFoundAsync(Id))

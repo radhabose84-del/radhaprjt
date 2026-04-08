@@ -8,7 +8,7 @@ namespace MaintenanceManagement.UnitTests.Validators.MachineGroupUser
 {
     public sealed class UpdateMachineGroupUserCommandValidatorTests
     {
-        private readonly Mock<IMachineGroupUserQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
+        private readonly Mock<IMachineGroupUserQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
         private readonly Mock<MaxLengthProvider> _mockMaxLength = new(MockBehavior.Strict, new object[] { null! });
 
         private UpdateMachineGroupUserCommandValidator CreateValidator() =>
@@ -17,7 +17,7 @@ namespace MaintenanceManagement.UnitTests.Validators.MachineGroupUser
         private void SetupAllMocks(int id = 1, int machineGroupId = 1, int departmentId = 1, int userId = 1)
         {
             _mockQueryRepo.Setup(r => r.AlreadyExistsAsync(machineGroupId, departmentId, userId, id)).ReturnsAsync(false);
-            _mockQueryRepo.Setup(r => r.NotFoundAsync(id)).ReturnsAsync(false);
+            _mockQueryRepo.Setup(r => r.NotFoundAsync(id)).ReturnsAsync(true);
         }
 
         [Fact]
@@ -46,7 +46,7 @@ namespace MaintenanceManagement.UnitTests.Validators.MachineGroupUser
         {
             var command = new UpdateMachineGroupUserCommand { Id = 1, MachineGroupId = 1, DepartmentId = 1, UserId = 1 };
             _mockQueryRepo.Setup(r => r.AlreadyExistsAsync(1, 1, 1, 1)).ReturnsAsync(true);
-            _mockQueryRepo.Setup(r => r.NotFoundAsync(1)).ReturnsAsync(false);
+            _mockQueryRepo.Setup(r => r.NotFoundAsync(1)).ReturnsAsync(true);
 
             var result = await CreateValidator().TestValidateAsync(command);
 

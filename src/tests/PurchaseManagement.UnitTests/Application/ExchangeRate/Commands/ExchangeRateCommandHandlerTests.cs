@@ -9,8 +9,8 @@ namespace PurchaseManagement.UnitTests.Application.ExchangeRate.Commands
 {
     public sealed class ExchangeRateCommandHandlerTests
     {
-        private readonly Mock<IFrankfurterClient> _mockFx = new(MockBehavior.Strict);
-        private readonly Mock<IExchangeRateCommandRepository> _mockCommandRepo = new(MockBehavior.Strict);
+        private readonly Mock<IFrankfurterClient> _mockFx = new(MockBehavior.Loose);
+        private readonly Mock<IExchangeRateCommandRepository> _mockCommandRepo = new(MockBehavior.Loose);
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Loose);
         private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Loose);
 

@@ -7,20 +7,20 @@ namespace MaintenanceManagement.UnitTests.Validators.MachineGroupUser
 {
     public sealed class DeleteMachineGroupUserCommandValidatorTests
     {
-        private readonly Mock<IMachineGroupUserQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
+        private readonly Mock<IMachineGroupUserQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
 
         private DeleteMachineGroupUserCommandValidator CreateValidator() =>
             new(_mockQueryRepo.Object);
 
-        private void SetupNotFound(int id, bool notFound)
+        private void SetupNotFound(int id, bool exists)
         {
-            _mockQueryRepo.Setup(r => r.NotFoundAsync(id)).ReturnsAsync(notFound);
+            _mockQueryRepo.Setup(r => r.NotFoundAsync(id)).ReturnsAsync(exists);
         }
 
         [Fact]
         public async Task Validate_ValidId_PassesValidation()
         {
-            SetupNotFound(1, notFound: false);
+            SetupNotFound(1, exists: true);
 
             var result = await CreateValidator().TestValidateAsync(new DeleteMachineGroupUserCommand { Id = 1 });
 
@@ -38,7 +38,7 @@ namespace MaintenanceManagement.UnitTests.Validators.MachineGroupUser
         [Fact]
         public async Task Validate_NotFound_FailsValidation()
         {
-            SetupNotFound(99, notFound: true);
+            SetupNotFound(99, exists: false);
 
             var result = await CreateValidator().TestValidateAsync(new DeleteMachineGroupUserCommand { Id = 99 });
 

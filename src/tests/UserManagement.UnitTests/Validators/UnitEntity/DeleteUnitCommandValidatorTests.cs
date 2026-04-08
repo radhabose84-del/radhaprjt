@@ -28,6 +28,7 @@ namespace UserManagement.UnitTests.Validators.UnitEntity
         [Fact]
         public async Task ZeroId_FailsValidation()
         {
+            _mockQueryRepo.Setup(r => r.SoftDeleteValidationAsync(0)).ReturnsAsync(false);
             var result = await CreateValidator().TestValidateAsync(new DeleteUnitCommand { UnitId = 0 });
             result.ShouldHaveValidationErrorFor(x => x.UnitId);
         }

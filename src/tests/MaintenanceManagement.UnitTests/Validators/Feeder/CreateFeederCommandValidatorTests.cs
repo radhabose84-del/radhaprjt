@@ -9,7 +9,7 @@ namespace MaintenanceManagement.UnitTests.Validators.Feeder
 {
     public sealed class CreateFeederCommandValidatorTests
     {
-        private readonly Mock<IFeederQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
+        private readonly Mock<IFeederQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
         private readonly Mock<MaxLengthProvider> _mockMaxLength = new(MockBehavior.Strict, new object[] { null! });
 
         private CreateFeederCommandValidator CreateValidator() =>

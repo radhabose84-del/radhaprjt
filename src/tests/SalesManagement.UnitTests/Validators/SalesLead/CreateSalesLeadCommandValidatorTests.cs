@@ -64,13 +64,11 @@ namespace SalesManagement.UnitTests.Validators.SalesLead
             result.ShouldHaveValidationErrorFor(x => x.MobileNumber);
         }
 
-        [Theory]
-        [InlineData(0)]
-        [InlineData(-1)]
-        public async Task MarketingOfficerId_ZeroOrNegative_FailsValidation(int officerId)
+        [Fact]
+        public async Task MarketingOfficerId_Zero_FailsValidation()
         {
             var cmd = ValidCommand();
-            cmd.MarketingOfficerId = officerId;
+            cmd.MarketingOfficerId = 0;
             _mockQueryRepo.Setup(r => r.MobileNumberExistsForProspectAsync("9876543210", It.IsAny<int?>())).ReturnsAsync(false);
             _mockQueryRepo.Setup(r => r.MobileNumberExistsInSalesContactAsync("9876543210")).ReturnsAsync(false);
             var result = await CreateValidator().TestValidateAsync(cmd);

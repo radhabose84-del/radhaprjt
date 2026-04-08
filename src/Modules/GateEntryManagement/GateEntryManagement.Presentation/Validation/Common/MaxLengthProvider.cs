@@ -1,20 +1,23 @@
 using GateEntryManagement.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace GateEntryManagement.Presentation.Validation.Common
 {
     public class MaxLengthProvider : IMaxLengthProvider
     {
-        private readonly ApplicationDbContext _dbContext;
+        private readonly IModel? _model;
 
-        public MaxLengthProvider(ApplicationDbContext dbContext)
+        public MaxLengthProvider(ApplicationDbContext? dbContext)
         {
-            _dbContext = dbContext;
+            _model = dbContext?.Model;
         }
 
         public int? GetMaxLength<TEntity>(string propertyName)
         {
-            var entityType = _dbContext.Model.FindEntityType(typeof(TEntity));
+            if (_model is null) return null;
+
+            var entityType = _model.FindEntityType(typeof(TEntity));
             if (entityType == null) return null;
 
             var property = entityType.FindProperty(propertyName);

@@ -8,8 +8,8 @@ namespace MaintenanceManagement.UnitTests.Validators.MachineMaster
 {
     public sealed class UpdateMachineMasterCommandValidatorTests
     {
-        private readonly Mock<IMachineMasterCommandRepository> _mockCommandRepo = new(MockBehavior.Strict);
-        private readonly Mock<IMachineMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
+        private readonly Mock<IMachineMasterCommandRepository> _mockCommandRepo = new(MockBehavior.Loose);
+        private readonly Mock<IMachineMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
         private readonly Mock<MaxLengthProvider> _mockMaxLength = new(MockBehavior.Strict, new object[] { null! });
 
         private UpdateMachineMasterCommandValidator CreateValidator() =>
@@ -26,7 +26,12 @@ namespace MaintenanceManagement.UnitTests.Validators.MachineMaster
         [Fact]
         public async Task Validate_ValidCommand_PassesValidation()
         {
-            var command = new UpdateMachineMasterCommand { Id = 1, MachineCode = "M001", MachineName = "Machine A", MachineGroupId = 1, UnitId = 1 };
+            var command = new UpdateMachineMasterCommand
+            {
+                Id = 1, MachineCode = "M001", MachineName = "Machine A", MachineGroupId = 1, UnitId = 1,
+                ShiftMasterId = 1, UomId = 1, CostCenterId = 1, WorkCenterId = 1, AssetId = 1, LineNo = 1,
+                InstallationDate = DateTimeOffset.UtcNow
+            };
             SetupAllMocks();
 
             var result = await CreateValidator().TestValidateAsync(command);

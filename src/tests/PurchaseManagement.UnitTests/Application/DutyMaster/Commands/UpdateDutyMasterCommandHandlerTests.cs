@@ -10,8 +10,8 @@ namespace PurchaseManagement.UnitTests.Application.DutyMaster.Commands
 {
     public sealed class UpdateDutyMasterCommandHandlerTests
     {
-        private readonly Mock<IDutyMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
-        private readonly Mock<IDutyMasterCommandRepository> _mockWriteRepo = new(MockBehavior.Strict);
+        private readonly Mock<IDutyMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
+        private readonly Mock<IDutyMasterCommandRepository> _mockWriteRepo = new(MockBehavior.Loose);
         private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Loose);
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Loose);
 

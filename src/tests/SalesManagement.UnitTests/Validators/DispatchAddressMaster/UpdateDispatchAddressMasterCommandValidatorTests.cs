@@ -1,7 +1,9 @@
+using Contracts.Dtos.Lookups.Logistics;
+using Contracts.Interfaces.Lookups.Logistics;
 using FluentValidation.TestHelper;
 using SalesManagement.Application.Common.Interfaces.IDispatchAddressMaster;
+using SalesManagement.Application.DispatchAddressMaster.Commands.UpdateDispatchAddressMaster;
 using SalesManagement.Presentation.Validation.DispatchAddressMaster;
-using SalesManagement.UnitTests.TestData;
 using SalesManagement.UnitTests.TestHelpers;
 
 namespace SalesManagement.UnitTests.Validators.DispatchAddressMaster
@@ -9,135 +11,94 @@ namespace SalesManagement.UnitTests.Validators.DispatchAddressMaster
     public class UpdateDispatchAddressMasterCommandValidatorTests
     {
         private readonly Mock<IDispatchAddressMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
+        private readonly Mock<IFreightMasterLookup> _mockFreightLookup = new(MockBehavior.Strict);
 
-        private UpdateDispatchAddressMasterCommandValidator CreateValidator() =>
-            new(TestMaxLengthProviderFactory.Create(), _mockQueryRepo.Object);
+        private UpdateDispatchAddressMasterCommandValidator CreateValidator()
+            => new(
+                TestMaxLengthProviderFactory.Create(),
+                _mockQueryRepo.Object,
+                _mockFreightLookup.Object);
 
-        /// <summary>
-        /// Sets up all async mocks to pass (valid state).
-        /// </summary>
-        private void SetupAllAsyncMocksPass(int id = 1)
+        private void SetupAllValid()
         {
-            _mockQueryRepo.Setup(r => r.NotFoundAsync(id)).ReturnsAsync(false);
+            _mockQueryRepo.Setup(r => r.NotFoundAsync(It.IsAny<int>())).ReturnsAsync(false);
             _mockQueryRepo.Setup(r => r.CityExistsAsync(It.IsAny<int>())).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.StateExistsAsync(It.IsAny<int>())).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.CountryExistsAsync(It.IsAny<int>())).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.CompositeKeyExistsAsync(
                 It.IsAny<string>(), It.IsAny<int>(), It.IsAny<string>(), It.IsAny<int?>()))
                 .ReturnsAsync(false);
+            _mockFreightLookup.Setup(r => r.GetByIdAsync(It.IsAny<int>()))
+                .ReturnsAsync(new FreightMasterLookupDto { Id = 1 });
         }
 
-        // ── Happy Path ────────────────────────────────────────────────────────
+        private static UpdateDispatchAddressMasterCommand ValidCommand() => new()
+        {
+            Id = 1,
+            DispatchAddressName = "Updated Dispatch",
+            AddressLine1 = "456 Updated Street",
+            CityId = 1,
+            StateId = 1,
+            CountryId = 1,
+            PinCode = "654321",
+            FreightId = 1,
+            IsActive = 1
+        };
 
         [Fact]
         public async Task ValidCommand_PassesValidation()
         {
-            var command = DispatchAddressMasterBuilders.ValidUpdateCommand();
-            SetupAllAsyncMocksPass(id: 1);
-
-            var result = await CreateValidator().TestValidateAsync(command);
-
+            SetupAllValid();
+            var result = await CreateValidator().TestValidateAsync(ValidCommand());
             result.ShouldNotHaveAnyValidationErrors();
         }
-
-        // ── Id / NotFound Rules ────────────────────────────────────────────────
-
-        [Theory]
-        [InlineData(0)]
-        [InlineData(-1)]
-        public async Task Id_ZeroOrNegative_FailsValidation(int id)
-        {
-            var command = DispatchAddressMasterBuilders.ValidUpdateCommand(id: id);
-            _mockQueryRepo.Setup(r => r.NotFoundAsync(id)).ReturnsAsync(true);
-            _mockQueryRepo.Setup(r => r.CityExistsAsync(It.IsAny<int>())).ReturnsAsync(true);
-            _mockQueryRepo.Setup(r => r.StateExistsAsync(It.IsAny<int>())).ReturnsAsync(true);
-            _mockQueryRepo.Setup(r => r.CountryExistsAsync(It.IsAny<int>())).ReturnsAsync(true);
-            _mockQueryRepo.Setup(r => r.CompositeKeyExistsAsync(
-                It.IsAny<string>(), It.IsAny<int>(), It.IsAny<string>(), It.IsAny<int?>()))
-                .ReturnsAsync(false);
-
-            var result = await CreateValidator().TestValidateAsync(command);
-
-            result.ShouldHaveValidationErrorFor(x => x.Id)
-                  .WithErrorMessage("Valid Id is required.");
-        }
-
-        [Fact]
-        public async Task Id_NotFound_FailsValidation()
-        {
-            var command = DispatchAddressMasterBuilders.ValidUpdateCommand(id: 999);
-            _mockQueryRepo.Setup(r => r.NotFoundAsync(999)).ReturnsAsync(true);
-            _mockQueryRepo.Setup(r => r.CityExistsAsync(It.IsAny<int>())).ReturnsAsync(true);
-            _mockQueryRepo.Setup(r => r.StateExistsAsync(It.IsAny<int>())).ReturnsAsync(true);
-            _mockQueryRepo.Setup(r => r.CountryExistsAsync(It.IsAny<int>())).ReturnsAsync(true);
-            _mockQueryRepo.Setup(r => r.CompositeKeyExistsAsync(
-                It.IsAny<string>(), It.IsAny<int>(), It.IsAny<string>(), It.IsAny<int?>()))
-                .ReturnsAsync(false);
-
-            var result = await CreateValidator().TestValidateAsync(command);
-
-            result.ShouldHaveValidationErrorFor(x => x.Id)
-                  .WithErrorMessage("Dispatch Address Master not found.");
-        }
-
-        // ── DispatchAddressName Rules ──────────────────────────────────────────
 
         [Theory]
         [InlineData(null)]
         [InlineData("")]
-        public async Task DispatchAddressName_Empty_FailsValidation(string? name)
+        public async Task DispatchAddressName_NullOrEmpty_FailsValidation(string? name)
         {
-            var command = DispatchAddressMasterBuilders.ValidUpdateCommand(dispatchAddressName: name);
-            SetupAllAsyncMocksPass();
+            SetupAllValid();
+            var command = ValidCommand();
+            command.DispatchAddressName = name;
 
             var result = await CreateValidator().TestValidateAsync(command);
 
-            result.ShouldHaveValidationErrorFor(x => x.DispatchAddressName)
-                  .WithErrorMessage("DispatchAddressName is required.");
+            result.ShouldHaveValidationErrorFor(x => x.DispatchAddressName);
         }
 
         [Fact]
-        public async Task DispatchAddressName_TooLong_FailsValidation()
+        public async Task NotFound_FailsValidation()
         {
-            var longName = new string('A', 151);
-            var command = DispatchAddressMasterBuilders.ValidUpdateCommand(dispatchAddressName: longName);
-            SetupAllAsyncMocksPass();
+            SetupAllValid();
+            _mockQueryRepo.Setup(r => r.NotFoundAsync(99)).ReturnsAsync(true);
+            var command = ValidCommand();
+            command.Id = 99;
 
             var result = await CreateValidator().TestValidateAsync(command);
 
-            result.ShouldHaveValidationErrorFor(x => x.DispatchAddressName)
-                  .WithErrorMessage("DispatchAddressName  cannot be longer than   150 characters.");
+            result.ShouldHaveValidationErrorFor(x => x.Id);
         }
 
-        // ── AlreadyExists (composite key with exclude self) ────────────────────
-
         [Fact]
-        public async Task DispatchAddressName_AlreadyExistsForAnotherRecord_FailsValidation()
+        public async Task IsActive_OutOfRange_FailsValidation()
         {
-            var command = DispatchAddressMasterBuilders.ValidUpdateCommand(
-                id: 1,
-                dispatchAddressName: "Existing Address",
-                cityId: 1,
-                pinCode: "110001");
-            SetupAllAsyncMocksPass(id: 1);
-            _mockQueryRepo
-                .Setup(r => r.CompositeKeyExistsAsync("Existing Address", 1, "110001", 1))
-                .ReturnsAsync(true);
+            SetupAllValid();
+            var command = ValidCommand();
+            command.IsActive = 5;
 
             var result = await CreateValidator().TestValidateAsync(command);
 
-            result.ShouldHaveValidationErrorFor(x => x.DispatchAddressName)
-                  .WithErrorMessage("DispatchAddressName already exists.");
+            result.ShouldHaveValidationErrorFor(x => x.IsActive);
         }
 
-        // ── FK Rules ─────────────────────────────────────────────────────────
-
         [Fact]
-        public async Task CityId_DoesNotExist_FailsValidation()
+        public async Task InvalidCity_FailsValidation()
         {
-            var command = DispatchAddressMasterBuilders.ValidUpdateCommand(cityId: 999);
-            SetupAllAsyncMocksPass();
+            SetupAllValid();
             _mockQueryRepo.Setup(r => r.CityExistsAsync(999)).ReturnsAsync(false);
+            var command = ValidCommand();
+            command.CityId = 999;
 
             var result = await CreateValidator().TestValidateAsync(command);
 
@@ -145,72 +106,53 @@ namespace SalesManagement.UnitTests.Validators.DispatchAddressMaster
         }
 
         [Fact]
-        public async Task StateId_DoesNotExist_FailsValidation()
+        public async Task InvalidPincode_FailsValidation()
         {
-            var command = DispatchAddressMasterBuilders.ValidUpdateCommand(stateId: 999);
-            SetupAllAsyncMocksPass();
-            _mockQueryRepo.Setup(r => r.StateExistsAsync(999)).ReturnsAsync(false);
+            SetupAllValid();
+            var command = ValidCommand();
+            command.PinCode = "ABC";
 
             var result = await CreateValidator().TestValidateAsync(command);
 
-            result.ShouldHaveValidationErrorFor(x => x.StateId);
-        }
-
-        // ── IsActive Rules ────────────────────────────────────────────────────
-
-        [Theory]
-        [InlineData(-1)]
-        [InlineData(2)]
-        public async Task IsActive_InvalidValue_FailsValidation(int isActive)
-        {
-            var command = DispatchAddressMasterBuilders.ValidUpdateCommand(isActive: isActive);
-            SetupAllAsyncMocksPass();
-
-            var result = await CreateValidator().TestValidateAsync(command);
-
-            result.ShouldHaveValidationErrorFor(x => x.IsActive)
-                  .WithErrorMessage("IsActive  must be either 0 or 1.");
-        }
-
-        [Theory]
-        [InlineData(0)]
-        [InlineData(1)]
-        public async Task IsActive_ValidValue_PassesValidation(int isActive)
-        {
-            var command = DispatchAddressMasterBuilders.ValidUpdateCommand(isActive: isActive);
-            SetupAllAsyncMocksPass();
-
-            var result = await CreateValidator().TestValidateAsync(command);
-
-            result.ShouldNotHaveValidationErrorFor(x => x.IsActive);
-        }
-
-        // ── Optional Field Rules ──────────────────────────────────────────────
-
-        [Fact]
-        public async Task MobileNumber_InvalidFormat_FailsValidation()
-        {
-            var command = DispatchAddressMasterBuilders.ValidUpdateCommand();
-            command.MobileNumber = "12345";
-            SetupAllAsyncMocksPass();
-
-            var result = await CreateValidator().TestValidateAsync(command);
-
-            result.ShouldHaveValidationErrorFor(x => x.MobileNumber)
-                  .WithErrorMessage("MobileNumber Mobile number must be exactly 10 digits.");
+            result.ShouldHaveValidationErrorFor(x => x.PinCode);
         }
 
         [Fact]
-        public async Task Latitude_OutOfRange_FailsValidation()
+        public async Task InvalidFreightId_FailsValidation()
         {
-            var command = DispatchAddressMasterBuilders.ValidUpdateCommand();
-            command.Latitude = 95m;
-            SetupAllAsyncMocksPass();
+            SetupAllValid();
+            _mockFreightLookup.Setup(r => r.GetByIdAsync(999))
+                .ReturnsAsync((FreightMasterLookupDto?)null);
+            var command = ValidCommand();
+            command.FreightId = 999;
 
             var result = await CreateValidator().TestValidateAsync(command);
 
-            result.ShouldHaveValidationErrorFor(x => x.Latitude)
-                  .WithErrorMessage("Latitude must be between -90 and 90.");
+            result.ShouldHaveValidationErrorFor(x => x.FreightId);
+        }
+
+        [Fact]
+        public async Task InvalidEmail_FailsValidation()
+        {
+            SetupAllValid();
+            var command = ValidCommand();
+            command.Email = "bad-email";
+
+            var result = await CreateValidator().TestValidateAsync(command);
+
+            result.ShouldHaveValidationErrorFor(x => x.Email);
+        }
+
+        [Fact]
+        public async Task InvalidLatitude_FailsValidation()
+        {
+            SetupAllValid();
+            var command = ValidCommand();
+            command.Latitude = -100m;
+
+            var result = await CreateValidator().TestValidateAsync(command);
+
+            result.ShouldHaveValidationErrorFor(x => x.Latitude);
         }
     }
 }

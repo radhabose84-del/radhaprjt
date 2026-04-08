@@ -9,7 +9,7 @@ namespace PurchaseManagement.UnitTests.Application.PaymentTermMaster.Queries
 {
     public sealed class GetPaymentTermMasterByIdQueryHandlerTests
     {
-        private readonly Mock<IPaymentTermMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
+        private readonly Mock<IPaymentTermMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
         private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Loose);
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Loose);
 

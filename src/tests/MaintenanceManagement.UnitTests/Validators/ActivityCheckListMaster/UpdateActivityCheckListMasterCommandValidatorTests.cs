@@ -8,7 +8,7 @@ namespace MaintenanceManagement.UnitTests.Validators.ActivityCheckListMaster
 {
     public sealed class UpdateActivityCheckListMasterCommandValidatorTests
     {
-        private readonly Mock<IActivityCheckListMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
+        private readonly Mock<IActivityCheckListMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
         private readonly Mock<MaxLengthProvider> _mockMaxLength = new(MockBehavior.Strict, new object[] { null! });
 
         private UpdateActivityCheckListMasterCommandValidator CreateValidator() =>

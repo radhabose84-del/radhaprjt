@@ -1,0 +1,50 @@
+using Contracts.Interfaces;
+using Contracts.Interfaces.Lookups.Workflow;
+using FluentValidation.TestHelper;
+using SalesManagement.Application.Common.Interfaces.ISalesOrder;
+using SalesManagement.Application.SalesOrder.Commands.CreateSalesOrder;
+using SalesManagement.Application.SalesOrder.Dto;
+using SalesManagement.Presentation.Validation.SalesOrder;
+using SalesManagement.UnitTests.TestHelpers;
+
+namespace SalesManagement.UnitTests.Validators.SalesOrder;
+
+public sealed class CreateSalesOrderCommandValidatorTests
+{
+    private readonly Mock<ISalesOrderQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
+    private readonly Mock<IWorkflowLookup> _mockWorkflowLookup = new(MockBehavior.Loose);
+    private readonly Mock<IIPAddressService> _mockIpService = new(MockBehavior.Loose);
+
+    private CreateSalesOrderCommandValidator CreateValidator() =>
+        new(TestMaxLengthProviderFactory.Create(), _mockQueryRepo.Object,
+            _mockWorkflowLookup.Object, _mockIpService.Object);
+
+    private static CreateSalesOrderCommand ValidCommand() => new()
+    {
+        SalesOrderDetails = new CreateSalesOrderDto
+        {
+            SalesOrderTypeId = 1,
+            SalesGroupId = 1,
+            PartyId = 1,
+            UnitId = 1,
+            PaymentTermsId = 1,
+            FreightTypeId = 1,
+            EnquiryType = 1
+        }
+    };
+
+    [Fact]
+    public async Task ValidCommand_RunsWithoutException()
+    {
+        var result = await CreateValidator().TestValidateAsync(ValidCommand());
+        result.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task NullDetails_FailsValidation()
+    {
+        var cmd = new CreateSalesOrderCommand { SalesOrderDetails = null };
+        var result = await CreateValidator().TestValidateAsync(cmd);
+        result.ShouldHaveAnyValidationError();
+    }
+}

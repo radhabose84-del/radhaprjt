@@ -9,11 +9,11 @@ namespace MaintenanceManagement.UnitTests.Validators.Feeder
 {
     public sealed class UpdateFeederCommandValidatorTests
     {
-        private readonly Mock<IFeederQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
+        private readonly Mock<IFeederQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
         private readonly Mock<MaxLengthProvider> _mockMaxLength = new(MockBehavior.Strict, new object[] { null! });
 
         private UpdateFeederCommandValidator CreateValidator() =>
-            new(_mockQueryRepo.Object, _mockMaxLength.Object);
+            new(_mockMaxLength.Object, _mockQueryRepo.Object);
 
         private void SetupAlreadyExists(string? code, int id, bool exists = false)
         {

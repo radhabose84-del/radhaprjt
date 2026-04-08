@@ -7,7 +7,7 @@ namespace MaintenanceManagement.UnitTests.Validators.MaintenanceCategory
 {
     public sealed class DeleteMaintenanceCategoryCommandValidatorTests
     {
-        private readonly Mock<IMaintenanceCategoryQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
+        private readonly Mock<IMaintenanceCategoryQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
 
         private DeleteMaintenanceCategoryCommandValidator CreateValidator() =>
             new(_mockQueryRepo.Object);

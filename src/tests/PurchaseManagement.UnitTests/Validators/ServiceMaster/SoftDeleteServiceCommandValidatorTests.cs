@@ -48,6 +48,10 @@ namespace PurchaseManagement.UnitTests.Validators.ServiceMaster
         [Fact]
         public async Task Validate_ZeroId_FailsValidation()
         {
+            // GreaterThan(0) fails but MustAsync rules still run — mock all async calls for Id=0
+            SetupGetById(0, exists: false);
+            SetupHasDependencies(0);
+
             var result = await CreateValidator().TestValidateAsync(new DeleteServiceCommand { Id = 0 });
 
             result.ShouldHaveValidationErrorFor(x => x.Id);

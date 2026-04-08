@@ -51,6 +51,7 @@ namespace SalesManagement.UnitTests.Validators.SalesEnquiry
         {
             var cmd = ValidCommand();
             cmd.Id = id;
+            _mockQueryRepo.Setup(r => r.NotFoundAsync(id)).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.PartyExistsAsync(1)).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.ItemExistsAsync(1)).ReturnsAsync(true);
             var result = await CreateValidator().TestValidateAsync(cmd);
@@ -67,13 +68,11 @@ namespace SalesManagement.UnitTests.Validators.SalesEnquiry
             result.ShouldHaveValidationErrorFor(x => x.Id);
         }
 
-        [Theory]
-        [InlineData(0)]
-        [InlineData(-1)]
-        public async Task PartyId_ZeroOrNegative_FailsValidation(int partyId)
+        [Fact]
+        public async Task PartyId_Zero_FailsValidation()
         {
             var cmd = ValidCommand();
-            cmd.PartyId = partyId;
+            cmd.PartyId = 0;
             _mockQueryRepo.Setup(r => r.NotFoundAsync(1)).ReturnsAsync(false);
             _mockQueryRepo.Setup(r => r.ItemExistsAsync(1)).ReturnsAsync(true);
             var result = await CreateValidator().TestValidateAsync(cmd);

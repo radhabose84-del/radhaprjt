@@ -61,7 +61,8 @@ namespace UserManagement.UnitTests.Validators.MiscTypeMaster
         [InlineData("")]
         public async Task Validate_EmptyMiscTypeCode_FailsValidation(string? code)
         {
-            SetupAllAsyncMocks();
+            _mockQueryRepo.Setup(r => r.AlreadyExistsAsync(It.IsAny<string>(), It.IsAny<int>())).ReturnsAsync(false);
+            _mockQueryRepo.Setup(r => r.NotFoundAsync(1)).ReturnsAsync(true);
             var command = ValidCommand();
             command.MiscTypeCode = code;
             var result = await CreateValidator().TestValidateAsync(command);

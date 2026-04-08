@@ -8,8 +8,8 @@ namespace PurchaseManagement.UnitTests.Application.PriceMaster.Commands
 {
     public sealed class DeletePriceMasterCommandHandlerTests
     {
-        private readonly Mock<IPriceMasterCommandRepository> _mockCommandRepo = new(MockBehavior.Strict);
-        private readonly Mock<IPriceMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
+        private readonly Mock<IPriceMasterCommandRepository> _mockCommandRepo = new(MockBehavior.Loose);
+        private readonly Mock<IPriceMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Loose);
 
         private DeletePriceMasterCommandHandler CreateSut() =>

@@ -1,7 +1,7 @@
 using MaintenanceManagement.Application.Common.Interfaces.Power.IFeederGroup;
 using MaintenanceManagement.Application.Power.FeederGroup.Command.DeleteFeederGroup;
 using FluentValidation;
-using MaintenanceManagement.Presentation.Validation.Common;
+
 using Shared.Validation.Common;
 
 namespace MaintenanceManagement.Presentation.Validation.Power.FeederGroup
@@ -11,7 +11,7 @@ namespace MaintenanceManagement.Presentation.Validation.Power.FeederGroup
         private readonly List<ValidationRule> _validationRules;
         private readonly IFeederGroupQueryRepository _feederGroupQueryRepository;
 
-        public DeleteFeederGroupCommandValidator(IFeederGroupQueryRepository feederGroupQueryRepository, MaxLengthProvider maxLengthProvider)
+        public DeleteFeederGroupCommandValidator(IFeederGroupQueryRepository feederGroupQueryRepository)
         {
 
             _validationRules = ValidationRuleLoader.LoadValidationRules();

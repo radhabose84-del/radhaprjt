@@ -34,6 +34,8 @@ namespace UserManagement.UnitTests.Validators.Users
         [InlineData("")]
         public async Task UserName_Empty_FailsValidation(string? username)
         {
+            _mockUserRepo.Setup(r => r.ValidateUsernameAsync(It.IsAny<string?>(), It.IsAny<int?>())).ReturnsAsync(false);
+            _mockUserRepo.Setup(r => r.ValidateUserActiveAsync(It.IsAny<string?>(), It.IsAny<int?>())).ReturnsAsync(false);
             var cmd = ValidCommand();
             cmd.UserName = username;
             var result = await CreateValidator().TestValidateAsync(cmd);

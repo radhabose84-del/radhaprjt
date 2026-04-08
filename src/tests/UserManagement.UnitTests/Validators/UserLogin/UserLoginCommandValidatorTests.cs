@@ -56,6 +56,8 @@ namespace UserManagement.UnitTests.Validators.UserLogin
         [InlineData("")]
         public async Task Username_Empty_FailsValidation(string? username)
         {
+            _mockUserRepo.Setup(r => r.AlreadyExistsAsync(It.IsAny<string>(), null)).ReturnsAsync(false);
+            _mockUserRepo.Setup(r => r.UserLockedAsync(It.IsAny<string>())).ReturnsAsync(false);
             var cmd = ValidCommand();
             cmd.Username = username!;
             var result = await CreateValidator().TestValidateAsync(cmd);
@@ -79,7 +81,7 @@ namespace UserManagement.UnitTests.Validators.UserLogin
         public async Task Username_ExceedsMaxLength_FailsValidation()
         {
             var cmd = ValidCommand();
-            cmd.Username = new string('a', 30);
+            cmd.Username = new string('a', 51);
             _mockUserRepo.Setup(r => r.AlreadyExistsAsync(It.IsAny<string>(), null)).ReturnsAsync(true);
             _mockUserRepo.Setup(r => r.UserLockedAsync(It.IsAny<string>())).ReturnsAsync(false);
             var result = await CreateValidator().TestValidateAsync(cmd);

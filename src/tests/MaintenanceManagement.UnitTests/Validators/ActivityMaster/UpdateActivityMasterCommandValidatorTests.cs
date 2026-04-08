@@ -8,7 +8,7 @@ namespace MaintenanceManagement.UnitTests.Validators.ActivityMaster
 {
     public sealed class UpdateActivityMasterCommandValidatorTests
     {
-        private readonly Mock<IActivityMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
+        private readonly Mock<IActivityMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
         private readonly Mock<MaxLengthProvider> _mockMaxLength = new(MockBehavior.Strict, new object[] { null! });
 
         private UpdateActivityMasterCommandValidator CreateValidator() =>

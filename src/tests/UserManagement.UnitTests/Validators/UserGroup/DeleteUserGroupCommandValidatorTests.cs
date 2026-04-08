@@ -28,6 +28,7 @@ namespace UserManagement.UnitTests.Validators.UserGroup
         [Fact]
         public async Task ZeroId_FailsValidation()
         {
+            _mockQueryRepo.Setup(r => r.SoftDeleteValidation(0)).ReturnsAsync(false);
             var result = await CreateValidator().TestValidateAsync(new DeleteUserGroupCommand { Id = 0 });
             result.ShouldHaveValidationErrorFor(x => x.Id);
         }

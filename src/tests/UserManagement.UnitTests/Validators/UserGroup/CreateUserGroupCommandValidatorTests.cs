@@ -61,7 +61,7 @@ namespace UserManagement.UnitTests.Validators.UserGroup
         public async Task GroupName_ExceedsMaxLength_FailsValidation()
         {
             var cmd = ValidCommand();
-            cmd.GroupName = new string('A', 55);
+            cmd.GroupName = new string('A', 101);
             var result = await CreateValidator().TestValidateAsync(cmd);
             result.ShouldHaveValidationErrorFor(x => x.GroupName);
         }
@@ -70,7 +70,7 @@ namespace UserManagement.UnitTests.Validators.UserGroup
         public async Task GroupCode_ExceedsMaxLength_FailsValidation()
         {
             var cmd = ValidCommand();
-            cmd.GroupCode = new string('A', 10);
+            cmd.GroupCode = new string('A', 21);
             var result = await CreateValidator().TestValidateAsync(cmd);
             result.ShouldHaveValidationErrorFor(x => x.GroupCode);
         }

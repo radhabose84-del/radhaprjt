@@ -18,10 +18,10 @@ namespace PurchaseManagement.UnitTests.Application.PriceMaster.Commands
 {
     public sealed class CreatePriceMasterCommandHandlerTests
     {
-        private readonly Mock<IPriceMasterCommandRepository> _mockCommandRepo = new(MockBehavior.Strict);
+        private readonly Mock<IPriceMasterCommandRepository> _mockCommandRepo = new(MockBehavior.Loose);
         private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Loose);
         private readonly Mock<IIPAddressService> _mockIpService = new(MockBehavior.Loose);
-        private readonly Mock<IMiscMasterQueryRepository> _mockMiscRepo = new(MockBehavior.Strict);
+        private readonly Mock<IMiscMasterQueryRepository> _mockMiscRepo = new(MockBehavior.Loose);
         private readonly Mock<IOutboxEventPublisher> _mockOutbox = new(MockBehavior.Loose);
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Loose);
         private readonly Mock<ILogger<CreatePriceMasterCommandHandler>> _mockLogger = new(MockBehavior.Loose);

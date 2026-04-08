@@ -20,6 +20,9 @@ namespace PurchaseManagement.UnitTests.Validators.TnCTemplateMaster
             _mockQueryRepo
                 .Setup(r => r.GetByIdAsync(1))
                 .ReturnsAsync(TnCTemplateMasterBuilders.ValidDto(1));
+            _mockQueryRepo
+                .Setup(r => r.SoftDeleteValidationAsync(1))
+                .ReturnsAsync(false);
 
             var result = await CreateValidator().TestValidateAsync(command);
 

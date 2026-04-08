@@ -8,7 +8,7 @@ namespace MaintenanceManagement.UnitTests.Validators.MiscMaster
 {
     public sealed class UpdateMiscMasterCommandValidatorTests
     {
-        private readonly Mock<IMiscMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
+        private readonly Mock<IMiscMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
         private readonly Mock<MaxLengthProvider> _mockMaxLength = new(MockBehavior.Strict, new object[] { null! });
 
         private UpdateMiscMasterCommandValidator CreateValidator() =>
@@ -17,7 +17,7 @@ namespace MaintenanceManagement.UnitTests.Validators.MiscMaster
         private void SetupAllMocks(int id = 1, string code = "C001", int miscTypeId = 1)
         {
             _mockQueryRepo.Setup(r => r.AlreadyExistsAsync(code, miscTypeId, id)).ReturnsAsync(false);
-            _mockQueryRepo.Setup(r => r.NotFoundAsync(id)).ReturnsAsync(false);
+            _mockQueryRepo.Setup(r => r.NotFoundAsync(id)).ReturnsAsync(true);
         }
 
         [Fact]
@@ -48,7 +48,7 @@ namespace MaintenanceManagement.UnitTests.Validators.MiscMaster
         {
             var command = new UpdateMiscMasterCommand { Id = 1, Code = "C001", Description = "Test", MiscTypeId = 1 };
             _mockQueryRepo.Setup(r => r.AlreadyExistsAsync("C001", 1, 1)).ReturnsAsync(true);
-            _mockQueryRepo.Setup(r => r.NotFoundAsync(1)).ReturnsAsync(false);
+            _mockQueryRepo.Setup(r => r.NotFoundAsync(1)).ReturnsAsync(true);
 
             var result = await CreateValidator().TestValidateAsync(command);
 

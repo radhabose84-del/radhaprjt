@@ -46,6 +46,9 @@ namespace SalesManagement.UnitTests.Validators.SalesContact
         {
             var cmd = ValidCommand();
             cmd.Id = id;
+            _mockQueryRepo.Setup(r => r.NotFoundAsync(id)).ReturnsAsync(true);
+            _mockQueryRepo.Setup(r => r.ContactTypeExistsAsync(1)).ReturnsAsync(true);
+            _mockQueryRepo.Setup(r => r.MobileAlreadyExistsAsync("9876543210", id)).ReturnsAsync(false);
             var result = await CreateValidator().TestValidateAsync(cmd);
             result.ShouldHaveValidationErrorFor(x => x.Id);
         }
