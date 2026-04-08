@@ -153,6 +153,8 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
             existingParty.InsuranceLimit = partyMaster.InsuranceLimit;
             existingParty.IsActive = partyMaster.IsActive;
             existingParty.IsPortalAccessEnabled = partyMaster.IsPortalAccessEnabled;
+            existingParty.SalesFreightId = partyMaster.SalesFreightId;
+            existingParty.PurchaseFreightId = partyMaster.PurchaseFreightId;
             existingParty.FreightExpensesGl = partyMaster.FreightExpensesGl;
 
             // Check if any related collection has at least one record
