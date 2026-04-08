@@ -15,5 +15,6 @@ namespace SalesManagement.Application.Common.Interfaces.IComplaint
         Task<(List<InvoiceSearchDto>, int)> SearchInvoicesAsync(int partyId, string? searchTerm, bool lastOneYear, int pageNumber, int pageSize);
         Task<(List<ComplaintHeaderDto>, int)> GetPendingAsync(int pageNumber, int pageSize, string? searchTerm);
         Task<string?> GetAttachmentFilePathAsync(int id);
+        Task<IReadOnlyList<ComplaintForSalesReturnLookupDto>> GetComplaintsForSalesReturnAsync(string term, CancellationToken ct);
     }
 }

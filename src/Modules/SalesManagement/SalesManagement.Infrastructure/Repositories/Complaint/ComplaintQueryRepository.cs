@@ -356,6 +356,50 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
             return list;
         }
 
+        public async Task<IReadOnlyList<ComplaintForSalesReturnLookupDto>> GetComplaintsForSalesReturnAsync(string term, CancellationToken ct)
+        {
+            const string sql = @"
+                SELECT TOP 20
+                    ch.Id,
+                    ch.ComplaintNumber,
+                    ch.ComplaintDate,
+                    ch.CustomerId,
+                    rs.Description AS ReturnStatusName
+                FROM Sales.ComplaintHeader ch
+                INNER JOIN Sales.ComplaintResolution cr
+                    ON cr.ComplaintHeaderId = ch.Id AND cr.IsDeleted = 0
+                INNER JOIN Sales.MiscMaster rt
+                    ON cr.ResolutionTypeId = rt.Id AND rt.IsDeleted = 0
+                    AND rt.Code = 'Sales Return'
+                LEFT JOIN Sales.MiscMaster rs
+                    ON cr.ReturnStatusId = rs.Id AND rs.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster cs
+                    ON cr.ClosureStatusId = cs.Id AND cs.IsDeleted = 0
+                WHERE ch.IsDeleted = 0
+                  AND (cr.ReturnStatusId IS NULL OR rs.Code <> 'FullyReturned')
+                  AND (cs.Code IS NULL OR cs.Code <> 'Closed')
+                  AND ch.ComplaintNumber LIKE @Term
+                ORDER BY ch.ComplaintDate DESC;";
+
+            var result = await _dbConnection.QueryAsync<ComplaintForSalesReturnLookupDto>(
+                sql, new { Term = $"%{term}%" });
+            var list = result.ToList();
+
+            if (list.Count > 0)
+            {
+                var customerIds = list.Select(l => l.CustomerId).Distinct();
+                var parties = await _partyLookup.GetByIdsAsync(customerIds);
+                var partyDict = parties.ToDictionary(p => p.Id, p => p.PartyName);
+
+                foreach (var item in list)
+                {
+                    item.CustomerName = partyDict.TryGetValue(item.CustomerId, out var name) ? name : null;
+                }
+            }
+
+            return list;
+        }
+
         public async Task<string?> GetAttachmentFilePathAsync(int id)
         {
             const string sql = @"
