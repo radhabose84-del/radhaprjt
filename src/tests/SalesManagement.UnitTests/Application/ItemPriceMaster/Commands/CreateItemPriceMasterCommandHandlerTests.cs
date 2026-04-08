@@ -2,6 +2,7 @@ using Contracts.Interfaces;
 using AutoMapper;
 using Contracts.Common;
 using Contracts.Interfaces.Lookups.Finance;
+using Contracts.Interfaces.Lookups.Inventory;
 using MediatR;
 using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Application.Common.Interfaces.IItemPriceMaster;
@@ -18,6 +19,7 @@ namespace SalesManagement.UnitTests.Application.ItemPriceMaster.Commands
         private readonly Mock<IItemPriceMasterCommandRepository> _mockCommandRepo = new(MockBehavior.Strict);
         private readonly Mock<IMiscMasterQueryRepository> _mockMiscMasterQueryRepo = new(MockBehavior.Strict);
         private readonly Mock<IDocumentSequenceLookup> _mockDocSeqLookup = new(MockBehavior.Strict);
+        private readonly Mock<IItemLookup> _mockItemLookup = new(MockBehavior.Strict);
         private readonly Mock<IIPAddressService> _mockIpAddressService = new(MockBehavior.Strict);
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Strict);
         private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Strict);
@@ -27,6 +29,7 @@ namespace SalesManagement.UnitTests.Application.ItemPriceMaster.Commands
                 _mockCommandRepo.Object,
                 _mockMiscMasterQueryRepo.Object,
                 _mockDocSeqLookup.Object,
+                _mockItemLookup.Object,
                 _mockIpAddressService.Object,
                 _mockMediator.Object,
                 _mockMapper.Object);

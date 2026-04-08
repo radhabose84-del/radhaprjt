@@ -42,5 +42,31 @@ namespace InventoryManagement.Infrastructure.Repositories.Lookups
 
             return result.ToList();
         }
+
+        public async Task<IReadOnlyList<ItemLookupDto>> GetVariantsByParentIdAsync(int parentItemId, CancellationToken ct = default)
+        {
+            const string sql = @"
+                SELECT IM.Id,
+                       IM.ItemCode,
+                       IM.ItemName,
+                       IM.ParentItemId,
+                       PIM.ItemName AS ParentItemName,
+                       IM.TariffNumber,
+                       H.HSNCode,
+                       ISNULL(H.GSTPercentage, 0) AS GSTPercentage,
+                       IM.IsOnSpot                       
+                FROM Inventory.ItemMaster IM
+                LEFT JOIN Inventory.ItemMaster PIM ON PIM.Id = IM.ParentItemId AND PIM.IsDeleted = 0                
+                LEFT JOIN Inventory.HSNMaster H ON H.Id = IM.HSNId AND H.IsDeleted = 0
+                WHERE IM.ParentItemId = @ParentItemId
+                  AND IM.IsDeleted = 0
+                  AND IM.IsActive = 1
+                ORDER BY IM.ItemName ASC;";
+
+            var result = await _dbConnection.QueryAsync<ItemLookupDto>(
+                new CommandDefinition(sql, new { ParentItemId = parentItemId }, cancellationToken: ct));
+
+            return result.ToList();
+        }
     }
 }

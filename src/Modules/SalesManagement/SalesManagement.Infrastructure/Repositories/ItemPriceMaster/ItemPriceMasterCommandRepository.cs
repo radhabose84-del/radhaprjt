@@ -1,3 +1,4 @@
+using Contracts.Common;
 using Contracts.Interfaces.Lookups.Finance;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -47,6 +48,25 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
             });
         }
 
+        public async Task<List<int>> CreateBulkAsync(List<Domain.Entities.ItemPriceMaster> entities, int typeId)
+        {
+            var newIds = new List<int>();
+
+            foreach (var entity in entities)
+            {
+                // Generate unique PriceCode for each entity
+                var sequences = await _documentSequenceLookup.GenerateDocumentNumber(typeId);
+                var priceCode = sequences.Count > 0 ? sequences[^1] : null;
+                entity.PriceCode = priceCode
+                    ?? throw new ExceptionRules("No document sequence configured for PriceMaster.");
+
+                var id = await CreateAsync(entity, typeId);
+                newIds.Add(id);
+            }
+
+            return newIds;
+        }
+
         public async Task<int> UpdateAsync(Domain.Entities.ItemPriceMaster entity)
         {
             var existingEntity = await _applicationDbContext.ItemPriceMaster
@@ -56,9 +76,13 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
                 return 0;
 
             existingEntity.ItemId = entity.ItemId;
+            existingEntity.VariantId = entity.VariantId;
             existingEntity.SalesSegmentId = entity.SalesSegmentId;
             existingEntity.BaseRate = entity.BaseRate;
             existingEntity.TolerancePercentage = entity.TolerancePercentage;
+            existingEntity.CharityValue = entity.CharityValue;
+            existingEntity.HandlingCharges = entity.HandlingCharges;
+            existingEntity.AdditionalValue = entity.AdditionalValue;
             existingEntity.CurrencyId = entity.CurrencyId;
             existingEntity.ValidFrom = entity.ValidFrom;
             existingEntity.ValidTo = entity.ValidTo;

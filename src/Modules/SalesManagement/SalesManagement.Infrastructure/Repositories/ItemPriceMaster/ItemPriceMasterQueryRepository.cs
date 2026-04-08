@@ -41,8 +41,10 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
 
                 SELECT
                     sipm.Id, sipm.PriceCode,
-                    sipm.ItemId, sipm.SalesSegmentId,
-                    sipm.BaseRate, sipm.TolerancePercentage, sipm.CurrencyId,
+                    sipm.ItemId, sipm.VariantId, sipm.SalesSegmentId,
+                    sipm.BaseRate, sipm.TolerancePercentage,
+                    sipm.CharityValue, sipm.HandlingCharges, sipm.AdditionalValue,
+                    sipm.CurrencyId,
                     sipm.ValidFrom, sipm.ValidTo,
                     sipm.StatusId,
                     sm.Description AS StatusName,
@@ -74,10 +76,13 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
 
             if (list.Any())
             {
-                var itemIds = list.Select(x => x.ItemId).Distinct();
+                // Collect all IDs to lookup: ItemIds + VariantIds (variants are also items in Inventory.ItemMaster)
+                var itemIds = list.Select(x => x.ItemId).Distinct().ToList();
+                var variantIds = list.Where(x => x.VariantId.HasValue).Select(x => x.VariantId!.Value).Distinct().ToList();
+                var allItemIds = itemIds.Union(variantIds).Distinct();
                 var currencyIds = list.Select(x => x.CurrencyId).Distinct();
 
-                var items = await _itemLookup.GetByIdsAsync(itemIds);
+                var items = await _itemLookup.GetByIdsAsync(allItemIds);
                 var itemDict = items.ToDictionary(x => x.Id);
 
                 var currencies = await _currencyLookup.GetByIdsAsync(currencyIds);
@@ -85,11 +90,17 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
 
                 foreach (var item in list)
                 {
+                    // ItemCode/ItemName always from ItemId
                     if (itemDict.TryGetValue(item.ItemId, out var itemData))
                     {
                         item.ItemCode = itemData.ItemCode;
                         item.ItemName = itemData.ItemName;
-                        item.VariantName = itemData.ParentItemName;
+                    }
+                    // VariantCode/VariantName from VariantId (when present)
+                    if (item.VariantId.HasValue && itemDict.TryGetValue(item.VariantId!.Value, out var variantData))
+                    {
+                        item.VariantCode = variantData.ItemCode;
+                        item.VariantName = variantData.ItemName;
                     }
                     if (currencyDict.TryGetValue(item.CurrencyId, out var currencyData))
                     {
@@ -106,8 +117,10 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
             const string sql = @"
                 SELECT
                     sipm.Id, sipm.PriceCode,
-                    sipm.ItemId, sipm.SalesSegmentId,
-                    sipm.BaseRate, sipm.TolerancePercentage, sipm.CurrencyId,
+                    sipm.ItemId, sipm.VariantId, sipm.SalesSegmentId,
+                    sipm.BaseRate, sipm.TolerancePercentage,
+                    sipm.CharityValue, sipm.HandlingCharges, sipm.AdditionalValue,
+                    sipm.CurrencyId,
                     sipm.ValidFrom, sipm.ValidTo,
                     sipm.StatusId,
                     sm.Description AS StatusName,
@@ -125,13 +138,25 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
 
             if (dto != null)
             {
+                // ItemCode/ItemName always from ItemId
                 var items = await _itemLookup.GetByIdsAsync(new[] { dto.ItemId });
                 var itemData = items.FirstOrDefault();
                 if (itemData != null)
                 {
                     dto.ItemCode = itemData.ItemCode;
                     dto.ItemName = itemData.ItemName;
-                    dto.VariantName = itemData.ParentItemName;
+                }
+
+                // VariantCode/VariantName from VariantId (when present)
+                if (dto.VariantId.HasValue)
+                {
+                    var variants = await _itemLookup.GetByIdsAsync(new[] { dto.VariantId.Value });
+                    var variantData = variants.FirstOrDefault();
+                    if (variantData != null)
+                    {
+                        dto.VariantCode = variantData.ItemCode;
+                        dto.VariantName = variantData.ItemName;
+                    }
                 }
 
                 var currencies = await _currencyLookup.GetByIdsAsync(new[] { dto.CurrencyId });
@@ -211,6 +236,19 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
             return items.Any();
         }
 
+        public async Task<bool> VariantExistsAsync(int variantId, CancellationToken ct = default)
+        {
+            var items = await _itemLookup.GetByIdsAsync(new[] { variantId }, ct);
+            return items.Any();
+        }
+
+        public async Task<bool> VariantBelongsToItemAsync(int variantId, int itemId, CancellationToken ct = default)
+        {
+            var items = await _itemLookup.GetByIdsAsync(new[] { variantId }, ct);
+            var variant = items.FirstOrDefault();
+            return variant?.ParentItemId == itemId;
+        }
+
         public async Task<bool> SalesSegmentExistsAsync(int salesSegmentId)
         {
             const string sql = @"
@@ -228,7 +266,7 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
         }
 
         public async Task<bool> OverlapExistsAsync(
-            int itemId, int salesSegmentId,
+            int itemId, int? variantId, int salesSegmentId,
             DateOnly validFrom, DateOnly validTo, int? excludeId = null)
         {
             var sql = @"
@@ -240,12 +278,18 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
                   AND ValidFrom < @ValidTo
                   AND ValidTo > @ValidFrom";
 
+            if (variantId.HasValue)
+                sql += " AND VariantId = @VariantId";
+            else
+                sql += " AND VariantId IS NULL";
+
             if (excludeId.HasValue && excludeId.Value > 0)
                 sql += " AND Id != @ExcludeId";
 
             var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new
             {
                 ItemId = itemId,
+                VariantId = variantId,
                 SalesSegmentId = salesSegmentId,
                 ValidFrom = validFrom,
                 ValidTo = validTo,
@@ -284,8 +328,10 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
             const string sql = @"
                 SELECT
                     sipm.Id, sipm.PriceCode,
-                    sipm.ItemId, sipm.SalesSegmentId,
-                    sipm.BaseRate, sipm.TolerancePercentage, sipm.CurrencyId,
+                    sipm.ItemId, sipm.VariantId, sipm.SalesSegmentId,
+                    sipm.BaseRate, sipm.TolerancePercentage,
+                    sipm.CharityValue, sipm.HandlingCharges, sipm.AdditionalValue,
+                    sipm.CurrencyId,
                     sipm.ValidFrom, sipm.ValidTo,
                     sipm.StatusId,
                     sm.Description AS StatusName,
@@ -308,21 +354,30 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
 
             if (list.Any())
             {
+                var itemIds = list.Select(x => x.ItemId).Distinct().ToList();
+                var variantIds = list.Where(x => x.VariantId.HasValue).Select(x => x.VariantId!.Value).Distinct().ToList();
+                var allItemIds = itemIds.Union(variantIds).Distinct();
                 var currencyIds = list.Select(x => x.CurrencyId).Distinct();
 
-                var items = await _itemLookup.GetByIdsAsync(new[] { itemId });
-                var itemData = items.FirstOrDefault();
+                var items = await _itemLookup.GetByIdsAsync(allItemIds);
+                var itemDict = items.ToDictionary(x => x.Id);
 
                 var currencies = await _currencyLookup.GetByIdsAsync(currencyIds);
                 var currencyDict = currencies.ToDictionary(x => x.CurrencyId);
 
                 foreach (var item in list)
                 {
-                    if (itemData != null)
+                    // ItemCode/ItemName always from ItemId
+                    if (itemDict.TryGetValue(item.ItemId, out var parentData))
                     {
-                        item.ItemCode = itemData.ItemCode;
-                        item.ItemName = itemData.ItemName;
-                        item.VariantName = itemData.ParentItemName;
+                        item.ItemCode = parentData.ItemCode;
+                        item.ItemName = parentData.ItemName;
+                    }
+                    // VariantCode/VariantName from VariantId (when present)
+                    if (item.VariantId.HasValue && itemDict.TryGetValue(item.VariantId!.Value, out var variantData))
+                    {
+                        item.VariantCode = variantData.ItemCode;
+                        item.VariantName = variantData.ItemName;
                     }
                     if (currencyDict.TryGetValue(item.CurrencyId, out var currencyData))
                     {
@@ -368,11 +423,12 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
                     sipm.Id, sipm.PriceCode,
                     sipm.ItemId, sipm.SalesSegmentId,
                     sipm.BaseRate,
+                    sipm.CharityValue, sipm.HandlingCharges, sipm.AdditionalValue,
                     ss.SegmentName AS SalesSegmentName
                 FROM Sales.ItemPriceMaster sipm
                 LEFT JOIN Sales.SalesSegment ss ON sipm.SalesSegmentId = ss.Id AND ss.IsDeleted = 0
                 WHERE sipm.IsDeleted = 0 AND sipm.IsActive = 1
-                  AND sipm.ItemId = @ItemId
+                  AND (sipm.ItemId = @ItemId OR sipm.VariantId = @ItemId)
                   AND (@SalesSegmentId IS NULL OR sipm.SalesSegmentId = @SalesSegmentId)
                 ORDER BY sipm.PriceCode ASC";
 
@@ -391,7 +447,10 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
                     PriceCode = (string?)r.PriceCode,
                     SalesSegmentId = (int)r.SalesSegmentId,
                     SalesSegmentName = (string?)r.SalesSegmentName,
-                    ExMillRate = calculated != 0 ? calculated : baseRate
+                    ExMillRate = calculated != 0 ? calculated : baseRate,
+                    CharityValue = (decimal?)r.CharityValue,
+                    HandlingCharges = (decimal?)r.HandlingCharges,
+                    AdditionalValue = (decimal?)r.AdditionalValue
                 };
             }).ToList();
         }
