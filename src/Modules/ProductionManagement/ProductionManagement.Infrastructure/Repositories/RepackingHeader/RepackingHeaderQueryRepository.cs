@@ -35,14 +35,13 @@ namespace ProductionManagement.Infrastructure.Repositories.RepackingHeader
         }
 
         public async Task<(List<RepackingHeaderDto>, int)> GetAllAsync(
-            int pageNumber, int pageSize, string? searchTerm, int? typeId = null)
+            int pageNumber, int pageSize, string? searchTerm)
         {
             const string countSql = @"
                 SELECT COUNT(*)
                 FROM Production.RepackingHeader h
                 WHERE h.IsDeleted = 0
-                  AND (@SearchTerm IS NULL OR h.RepackDocNo LIKE '%' + @SearchTerm + '%')
-                  AND (@TypeId IS NULL OR h.TypeId = @TypeId)";
+                  AND (@SearchTerm IS NULL OR h.RepackDocNo LIKE '%' + @SearchTerm + '%')";
 
             const string dataSql = @"
                 SELECT
@@ -53,7 +52,7 @@ namespace ProductionManagement.Infrastructure.Repositories.RepackingHeader
                     h.OldItemId, h.OldPackTypeId,
                     h.LooseConeKgs, h.LooseHandlingId,
                     h.FaultId, h.WasteTypeId, h.WasteQuantity, h.WasteReason,
-                    h.Remarks, h.LotId, h.TypeId,
+                    h.Remarks, h.LotId,
                     h.IsActive, h.IsDeleted,
                     h.CreatedBy, h.CreatedDate, h.CreatedByName,
                     h.ModifiedBy, h.ModifiedDate, h.ModifiedByName,
@@ -62,8 +61,7 @@ namespace ProductionManagement.Infrastructure.Repositories.RepackingHeader
                     lm.LotCode AS LotName,
                     lh.Description AS LooseHandlingName,
                     f.Description AS FaultName,
-                    wt.Description AS WasteTypeName,
-                    tp.Description AS TypeName
+                    wt.Description AS WasteTypeName
                 FROM Production.RepackingHeader h
                 LEFT JOIN Production.PackType pt ON h.PackTypeId = pt.Id AND pt.IsDeleted = 0
                 LEFT JOIN Production.PackType opt ON h.OldPackTypeId = opt.Id AND opt.IsDeleted = 0
@@ -71,15 +69,13 @@ namespace ProductionManagement.Infrastructure.Repositories.RepackingHeader
                 LEFT JOIN Production.MiscMaster lh ON h.LooseHandlingId = lh.Id AND lh.IsDeleted = 0
                 LEFT JOIN Production.MiscMaster f ON h.FaultId = f.Id AND f.IsDeleted = 0
                 LEFT JOIN Production.MiscMaster wt ON h.WasteTypeId = wt.Id AND wt.IsDeleted = 0
-                LEFT JOIN Production.MiscMaster tp ON h.TypeId = tp.Id AND tp.IsDeleted = 0
                 WHERE h.IsDeleted = 0
                   AND (@SearchTerm IS NULL OR h.RepackDocNo LIKE '%' + @SearchTerm + '%')
-                  AND (@TypeId IS NULL OR h.TypeId = @TypeId)
                 ORDER BY h.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
 
             var offset = (pageNumber - 1) * pageSize;
-            var parameters = new { SearchTerm = searchTerm, TypeId = typeId, Offset = offset, PageSize = pageSize };
+            var parameters = new { SearchTerm = searchTerm, Offset = offset, PageSize = pageSize };
 
             var totalCount = await _dbConnection.ExecuteScalarAsync<int>(countSql, parameters);
             var headers = (await _dbConnection.QueryAsync<RepackingHeaderDto>(dataSql, parameters)).ToList();
@@ -107,7 +103,7 @@ namespace ProductionManagement.Infrastructure.Repositories.RepackingHeader
                     h.OldItemId, h.OldPackTypeId,
                     h.LooseConeKgs, h.LooseHandlingId,
                     h.FaultId, h.WasteTypeId, h.WasteQuantity, h.WasteReason,
-                    h.Remarks, h.LotId, h.TypeId,
+                    h.Remarks, h.LotId,
                     h.IsActive, h.IsDeleted,
                     h.CreatedBy, h.CreatedDate, h.CreatedByName,
                     h.ModifiedBy, h.ModifiedDate, h.ModifiedByName,
@@ -116,8 +112,7 @@ namespace ProductionManagement.Infrastructure.Repositories.RepackingHeader
                     lm.LotCode AS LotName,
                     lh.Description AS LooseHandlingName,
                     f.Description AS FaultName,
-                    wt.Description AS WasteTypeName,
-                    tp.Description AS TypeName
+                    wt.Description AS WasteTypeName
                 FROM Production.RepackingHeader h
                 LEFT JOIN Production.PackType pt ON h.PackTypeId = pt.Id AND pt.IsDeleted = 0
                 LEFT JOIN Production.PackType opt ON h.OldPackTypeId = opt.Id AND opt.IsDeleted = 0
@@ -125,7 +120,6 @@ namespace ProductionManagement.Infrastructure.Repositories.RepackingHeader
                 LEFT JOIN Production.MiscMaster lh ON h.LooseHandlingId = lh.Id AND lh.IsDeleted = 0
                 LEFT JOIN Production.MiscMaster f ON h.FaultId = f.Id AND f.IsDeleted = 0
                 LEFT JOIN Production.MiscMaster wt ON h.WasteTypeId = wt.Id AND wt.IsDeleted = 0
-                LEFT JOIN Production.MiscMaster tp ON h.TypeId = tp.Id AND tp.IsDeleted = 0
                 WHERE h.Id = @Id AND h.IsDeleted = 0";
 
             const string detailSql = @"
@@ -197,17 +191,16 @@ namespace ProductionManagement.Infrastructure.Repositories.RepackingHeader
         }
 
         public async Task<IReadOnlyList<RepackingHeaderLookupDto>> AutocompleteAsync(
-            string term, CancellationToken ct, int? typeId = null)
+            string term, CancellationToken ct)
         {
             const string sql = @"
                 SELECT Id, RepackDocNo, RepackDate
                 FROM Production.RepackingHeader
                 WHERE IsDeleted = 0 AND IsActive = 1
                   AND (@Term = '' OR RepackDocNo LIKE '%' + @Term + '%')
-                  AND (@TypeId IS NULL OR TypeId = @TypeId)
                 ORDER BY RepackDocNo ASC";
 
-            var result = await _dbConnection.QueryAsync<RepackingHeaderLookupDto>(sql, new { Term = term, TypeId = typeId });
+            var result = await _dbConnection.QueryAsync<RepackingHeaderLookupDto>(sql, new { Term = term });
             return result.ToList();
         }
 

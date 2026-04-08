@@ -43,7 +43,6 @@ namespace ProductionManagement.UnitTests.Domain
                 LooseConeKgs = 10.0m,
                 BinId = 2,
                 QualityStatusId = 1,
-                StockClosing = false,
                 UnitId = 1,
                 WarehouseId = 2
             };
@@ -60,7 +59,6 @@ namespace ProductionManagement.UnitTests.Domain
             entity.LooseConeKgs.Should().Be(10.0m);
             entity.BinId.Should().Be(2);
             entity.QualityStatusId.Should().Be(1);
-            entity.StockClosing.Should().BeFalse();
             entity.UnitId.Should().Be(1);
             entity.WarehouseId.Should().Be(2);
         }
