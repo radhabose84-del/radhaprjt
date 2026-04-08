@@ -109,20 +109,26 @@ namespace ProjectManagement.Infrastructure.Repositories.MiscTypeMaster
             return count > 0;
         }
 
-         public async Task<bool> SoftDeleteValidation(int Id)
+        public async Task<bool> SoftDeleteValidationAsync(int id)
         {
             const string query = @"
-                           SELECT 1 
-                           FROM  Project.MiscTypeMaster
-                           WHERE Id  = @Id AND IsDeleted = 0;";
-                    
-            using var multi = await _dbConnection.QueryMultipleAsync(query, new { Id = Id });
-                    
-            var shiftMasterDetailExists = await multi.ReadFirstOrDefaultAsync<int?>();
-                    
-            return shiftMasterDetailExists.HasValue;
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1 FROM [Project].[MiscMaster]
+                    WHERE MiscTypeId = @id AND IsDeleted = 0
+                ) THEN 1 ELSE 0 END;";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(query, new { id });
         }
 
-      
+        public async Task<bool> IsMiscTypeMasterLinkedAsync(int id)
+        {
+            const string query = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1 FROM [Project].[MiscMaster]
+                    WHERE MiscTypeId = @id AND IsDeleted = 0 AND IsActive = 1
+                ) THEN 1 ELSE 0 END;";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(query, new { id });
+        }
     }
 }

@@ -31,11 +31,21 @@ namespace PartyManagement.Presentation.Validation.PartyGroup
                         break;
                     case "RecordNotFound":
                         RuleFor(x => x.Id)
-                            .MustAsync(async (id, cancellation) => 
-                                (await _ipartyGroupQueryRepository.GetByIdAsync(id)) != null) 
+                            .MustAsync(async (id, cancellation) =>
+                                (await _ipartyGroupQueryRepository.GetByIdAsync(id)) != null)
                             .WithName("Id not found")
                             .WithMessage($"{rule.Error}");
                             break;
+                    case "NotFound":
+                        RuleFor(x => x.Id)
+                            .MustAsync(async (id, ct) => !await _ipartyGroupQueryRepository.NotFoundAsync(id))
+                            .WithMessage($"PartyGroup {rule.Error}");
+                        break;
+                    case "SoftDelete":
+                        RuleFor(x => x.Id)
+                            .MustAsync(async (id, ct) => !await _ipartyGroupQueryRepository.SoftDeleteValidationAsync(id))
+                            .WithMessage("This master is linked with other records. You cannot delete this record.");
+                        break;
                     default:
                         break;
                 }

@@ -49,14 +49,19 @@ namespace SalesManagement.Application.SalesReturn.Commands.CreateSalesReturn
                 MiscEnumEntity.ReturnStatus, MiscEnumEntity.ReturnStatusPending);
             entity.StatusId = pendingStatus?.Id ?? 0;
 
-            // Map details
-            if (request.Details != null && request.Details.Count > 0)
+            // Flatten nested invoice → items into SalesReturnDetail list
+            if (request.InvoiceDetails != null && request.InvoiceDetails.Count > 0)
             {
                 entity.SalesReturnDetails = new List<SalesReturnDetail>();
-                foreach (var detail in request.Details)
+                foreach (var invoice in request.InvoiceDetails)
                 {
-                    var detailEntity = _mapper.Map<SalesReturnDetail>(detail);
-                    entity.SalesReturnDetails.Add(detailEntity);
+                    if (invoice.Items == null || invoice.Items.Count == 0) continue;
+                    foreach (var item in invoice.Items)
+                    {
+                        var detailEntity = _mapper.Map<SalesReturnDetail>(item);
+                        detailEntity.InvoiceHeaderId = invoice.InvoiceHeaderId;
+                        entity.SalesReturnDetails.Add(detailEntity);
+                    }
                 }
             }
 
@@ -75,7 +80,7 @@ namespace SalesManagement.Application.SalesReturn.Commands.CreateSalesReturn
             var newId = await _commandRepository.CreateAsync(entity, typeId.Value);
 
             // Insert StockLedger entries (one per pack)
-            if (request.Details != null && request.Details.Count > 0)
+            if (entity.SalesReturnDetails != null && entity.SalesReturnDetails.Count > 0)
             {
                 // Get StockEntryType Id for Sales Return
                 var stockEntryType = await _miscMasterQueryRepository.GetMiscMasterByName(

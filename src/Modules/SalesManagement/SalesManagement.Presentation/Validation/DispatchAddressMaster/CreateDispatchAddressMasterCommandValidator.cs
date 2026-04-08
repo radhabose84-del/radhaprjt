@@ -1,3 +1,4 @@
+using Contracts.Interfaces.Lookups.Logistics;
 using FluentValidation;
 using SalesManagement.Application.Common.Interfaces.IDispatchAddressMaster;
 using SalesManagement.Application.DispatchAddressMaster.Commands.CreateDispatchAddressMaster;
@@ -10,12 +11,15 @@ namespace SalesManagement.Presentation.Validation.DispatchAddressMaster
     {
         private readonly List<ValidationRule> _validationRules;
         private readonly IDispatchAddressMasterQueryRepository _queryRepo;
+        private readonly IFreightMasterLookup _freightMasterLookup;
 
         public CreateDispatchAddressMasterCommandValidator(
             MaxLengthProvider maxLengthProvider,
-            IDispatchAddressMasterQueryRepository queryRepo)
+            IDispatchAddressMasterQueryRepository queryRepo,
+            IFreightMasterLookup freightMasterLookup)
         {
             _queryRepo = queryRepo;
+            _freightMasterLookup = freightMasterLookup;
 
             var maxLengthName        = maxLengthProvider.GetMaxLength<SalesManagement.Domain.Entities.DispatchAddressMaster>("DispatchAddressName") ?? 150;
             var maxLengthLine1       = maxLengthProvider.GetMaxLength<SalesManagement.Domain.Entities.DispatchAddressMaster>("AddressLine1") ?? 250;
@@ -93,6 +97,15 @@ namespace SalesManagement.Presentation.Validation.DispatchAddressMaster
                             .MustAsync(async (countryId, ct) => await _queryRepo.CountryExistsAsync(countryId))
                             .WithMessage($"{nameof(CreateDispatchAddressMasterCommand.CountryId)} {rule.Error}")
                             .When(x => x.CountryId > 0);
+
+                        RuleFor(x => x.FreightId)
+                            .MustAsync(async (id, ct) =>
+                            {
+                                var freight = await _freightMasterLookup.GetByIdAsync(id);
+                                return freight != null;
+                            })
+                            .WithMessage($"{nameof(CreateDispatchAddressMasterCommand.FreightId)} {rule.Error}")
+                            .When(x => x.FreightId > 0);
                         break;
 
                     case "AlreadyExists":

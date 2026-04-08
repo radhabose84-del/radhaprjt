@@ -119,6 +119,21 @@ namespace PartyManagement.Application.PartyMaster.Command.CreatePartyMaster
                     dto.AgentConfigs = null;
             }
 
+            // ------------------- Clean TransportDetails -------------------
+            if (dto.TransportDetails != null)
+            {
+                dto.TransportDetails = dto.TransportDetails
+                    .Where(t =>
+                        t.DefaultFreightTypeId != 0 &&
+                        t.VehicleTypeId != 0 &&
+                        t.DefaultFreightRate > 0 &&
+                        !string.IsNullOrWhiteSpace(t.VehicleNo))
+                    .ToList();
+
+                if (!dto.TransportDetails.Any())
+                    dto.TransportDetails = null;
+            }
+
             // ------------------- Generate PartyCode -------------------
             var nextPartyCode = await _partyMasterCommandRepository.GetNextPartyCodeAsync();
 

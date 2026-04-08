@@ -7,6 +7,8 @@ using ProductionManagement.Application.ProductionPack.Queries.GetAllProduction;
 using ProductionManagement.Application.ProductionPack.Queries.GetProductionAutoComplete;
 using ProductionManagement.Application.ProductionPack.Queries.GetLastEndPackNo;
 using ProductionManagement.Application.ProductionPack.Queries.GetProductionById;
+using ProductionManagement.Application.ProductionPack.Queries.GetPreviousDateClosing;
+using ProductionManagement.Application.ProductionPack.Queries.GetProductionStockRegister;
 
 namespace ProductionManagement.Presentation.Controllers
 {
@@ -99,6 +101,49 @@ namespace ProductionManagement.Presentation.Controllers
                 isSuccess = result.IsSuccess,
                 message = result.Message,
                 data = result.Data
+            });
+        }
+
+        [HttpGet("previous-closing")]
+        public async Task<IActionResult> GetPreviousDateClosingAsync(
+            [FromQuery] int itemId,
+            [FromQuery] int lotId,
+            [FromQuery] DateOnly docDate)
+        {
+            var result = await Mediator.Send(new GetPreviousDateClosingQuery
+            {
+                ItemId = itemId,
+                LotId = lotId,
+                DocDate = docDate
+            });
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result
+            });
+        }
+
+        [HttpGet("stock-register")]
+        public async Task<IActionResult> GetProductionStockRegisterAsync(
+            [FromQuery] DateOnly fromDate,
+            [FromQuery] DateOnly toDate,
+            [FromQuery] int? lotId = null,
+            [FromQuery] int? itemId = null)
+        {
+            var result = await Mediator.Send(new GetProductionStockRegisterQuery
+            {
+                FromDate = fromDate,
+                ToDate = toDate,
+                LotId = lotId,
+                ItemId = itemId
+            });
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result.Data,
+                TotalCount = result.TotalCount
             });
         }
     }

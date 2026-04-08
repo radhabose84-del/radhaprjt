@@ -182,69 +182,27 @@ namespace PurchaseManagement.Infrastructure.Repositories.ServiceMaster
         public async Task<bool> HasActiveDependenciesAsync(int serviceId, CancellationToken ct = default)
         {
             const string sql = @"
-        DECLARE @cond NVARCHAR(MAX);
+                SELECT CASE WHEN
+                    EXISTS (SELECT 1 FROM [Purchase].[PurchaseOrderServiceLine] WHERE ServiceId = @id AND IsDeleted = 0)
+                    OR
+                    EXISTS (SELECT 1 FROM [Purchase].[ServiceEntrySheets] WHERE ServiceId = @id AND IsDeleted = 0)
+                THEN 1 ELSE 0 END;";
 
-        ;WITH fk AS (
-            SELECT
-                child_schema = SCHEMA_NAME(child.schema_id),
-                child_table  = child.name,
-                child_col    = child_col.name
-            FROM sys.foreign_keys fk
-            JOIN sys.foreign_key_columns fkc
-                ON fkc.constraint_object_id = fk.object_id
-            JOIN sys.objects child
-                ON child.object_id = fkc.parent_object_id           -- referencing (child) table
-            JOIN sys.columns child_col
-                ON child_col.object_id = fkc.parent_object_id
-            AND child_col.column_id = fkc.parent_column_id
-            JOIN sys.objects parent
-                ON parent.object_id = fk.referenced_object_id        -- referenced (parent) table
-            JOIN sys.columns parent_col
-                ON parent_col.object_id = fk.referenced_object_id
-            AND parent_col.column_id = fkc.referenced_column_id
-            WHERE parent.name = 'ServiceMaster'
-            AND SCHEMA_NAME(parent.schema_id) = 'Purchase'
-            AND parent_col.name = 'Id'
-        )
-        SELECT @cond = STRING_AGG(
-            '('
-            + QUOTENAME(child_schema) + '.' + QUOTENAME(child_table)
-            + '.' + QUOTENAME(child_col) + ' = @ServiceId'
-            + ' AND (COL_LENGTH(''' + child_schema + '.' + child_table + ''',''IsDeleted'') IS NULL OR IsDeleted = 0)'
-            + ')'
-        , ' OR ')
-        FROM fk;
+            return await _dbConnection.ExecuteScalarAsync<bool>(
+                new CommandDefinition(sql, new { id = serviceId }, cancellationToken: ct));
+        }
 
-        IF (@cond IS NULL OR LEN(@cond) = 0)
-            SELECT CAST(0 AS bit);  -- nothing references ServiceMaster
-        ELSE
-        BEGIN
-            DECLARE @sql NVARCHAR(MAX) =
-                N'SELECT CASE WHEN EXISTS (SELECT 1 FROM '
-                + STUFF((
-                    SELECT ' UNION ALL SELECT 1 FROM '
-                        + QUOTENAME(child_schema) + '.' + QUOTENAME(child_table)
-                        + ' WHERE '
-                        + QUOTENAME(child_col) + ' = @ServiceId'
-                        + ' AND (COL_LENGTH(''' + child_schema + '.' + child_table + ''',''IsDeleted'') IS NULL OR IsDeleted = 0)'
-                    FROM (
-                        SELECT DISTINCT child_schema, child_table, child_col
-                        FROM (
-                            SELECT child_schema, child_table, child_col FROM fk
-                        ) x
-                    ) d
-                    FOR XML PATH(''), TYPE).value('.', 'nvarchar(max)'),
-                    1, LEN(' UNION ALL SELECT 1 FROM '), '')
-                + N') THEN CAST(1 AS bit) ELSE CAST(0 AS bit) END;';
+        public async Task<bool> IsServiceMasterLinkedAsync(int serviceId, CancellationToken ct = default)
+        {
+            const string sql = @"
+                SELECT CASE WHEN
+                    EXISTS (SELECT 1 FROM [Purchase].[PurchaseOrderServiceLine] WHERE ServiceId = @id AND IsDeleted = 0 AND IsActive = 1)
+                    OR
+                    EXISTS (SELECT 1 FROM [Purchase].[ServiceEntrySheets] WHERE ServiceId = @id AND IsDeleted = 0 AND IsActive = 1)
+                THEN 1 ELSE 0 END;";
 
-            EXEC sp_executesql @sql, N'@ServiceId int', @ServiceId = @ServiceId;
-        END
-        ";
-
-            var exists = await _dbConnection.ExecuteScalarAsync<bool>(
-                new CommandDefinition(sql, new { ServiceId = serviceId }, cancellationToken: ct));
-
-            return exists;
+            return await _dbConnection.ExecuteScalarAsync<bool>(
+                new CommandDefinition(sql, new { id = serviceId }, cancellationToken: ct));
         }
 
         public async Task<List<ServiceMasterAutoCompleteDto>> ServiceMasterAuotoComplete(string? searchTerm)

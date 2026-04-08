@@ -88,8 +88,6 @@ using SalesManagement.Application.Common.Interfaces.IAgentPortal;
 using SalesManagement.Infrastructure.Repositories.AgentPortal;
 using SalesManagement.Application.Common.Interfaces.IDiscountMaster;
 using SalesManagement.Infrastructure.Repositories.DiscountMaster;
-using SalesManagement.Application.Common.Interfaces.IFreightMaster;
-using SalesManagement.Infrastructure.Repositories.FreightMaster;
 using SalesManagement.Infrastructure.Repositories.ComplaintDepartmentFeedback;
 using SalesManagement.Infrastructure.Repositories.ComplaintResolution;
 using Contracts.Interfaces.Lookups.Sales;
@@ -323,9 +321,6 @@ namespace SalesManagement.Infrastructure
             services.AddScoped<IDiscountMasterCommandRepository, DiscountMasterCommandRepository>();
             services.AddScoped<IDiscountMasterQueryRepository, DiscountMasterQueryRepository>();
 
-            // ── Freight Master ─────────────────────────────────────────────────
-            services.AddScoped<IFreightMasterCommandRepository, FreightMasterCommandRepository>();
-            services.AddScoped<IFreightMasterQueryRepository, FreightMasterQueryRepository>();
 
             // ── Stock Ledger Report Repository ───────────────────────────────────
             services.AddScoped<IStockLedgerReportRepository, StockLedgerReportRepository>();
@@ -352,6 +347,12 @@ namespace SalesManagement.Infrastructure
 
             // Validation repositories — cross-module referential integrity (Rule 25)
             services.AddScoped<Contracts.Interfaces.Validations.SalesManagement.ISalesCurrencyValidation, Repositories.Validations.SalesCurrencyValidationRepository>();
+            services.AddScoped<Contracts.Interfaces.Validations.SalesManagement.IPartyMasterSalesValidation, Repositories.Validations.PartyMasterSalesValidationRepository>();
+            services.AddScoped<Contracts.Interfaces.Validations.SalesManagement.ISalesItemValidation, Repositories.Validations.SalesItemValidationRepository>();
+            services.AddScoped<Contracts.Interfaces.Validations.SalesManagement.ISalesUomValidation, Repositories.Validations.SalesUomValidationRepository>();
+            services.AddScoped<Contracts.Interfaces.Validations.SalesManagement.ISalesHsnValidation, Repositories.Validations.SalesHsnValidationRepository>();
+            services.AddScoped<Contracts.Interfaces.Validations.SalesManagement.ILotMasterSalesValidation, Repositories.Validations.LotMasterSalesValidationRepository>();
+            services.AddScoped<Contracts.Interfaces.Validations.SalesManagement.IPackTypeSalesValidation, Repositories.Validations.PackTypeSalesValidationRepository>();
 
             return services;
         }

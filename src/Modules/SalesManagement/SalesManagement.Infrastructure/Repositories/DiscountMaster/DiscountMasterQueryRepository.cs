@@ -1,5 +1,6 @@
 using System.Data;
 using Contracts.Interfaces.Lookups.Purchase;
+using Contracts.Interfaces.Lookups.Users;
 using Dapper;
 using SalesManagement.Application.Common.Interfaces.IDiscountMaster;
 using SalesManagement.Application.DiscountMaster.Dto;
@@ -10,11 +11,16 @@ namespace SalesManagement.Infrastructure.Repositories.DiscountMaster
     {
         private readonly IDbConnection _dbConnection;
         private readonly IPaymentTermLookup _paymentTermLookup;
+        private readonly ICurrencyLookup _currencyLookup;
 
-        public DiscountMasterQueryRepository(IDbConnection dbConnection, IPaymentTermLookup paymentTermLookup)
+        public DiscountMasterQueryRepository(
+            IDbConnection dbConnection,
+            IPaymentTermLookup paymentTermLookup,
+            ICurrencyLookup currencyLookup)
         {
             _dbConnection = dbConnection;
             _paymentTermLookup = paymentTermLookup;
+            _currencyLookup = currencyLookup;
         }
 
         public async Task<(List<DiscountMasterDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
@@ -29,22 +35,27 @@ namespace SalesManagement.Infrastructure.Repositories.DiscountMaster
             const string dataSql = @"
                 SELECT
                     dm.Id, dm.DiscountCode, dm.DiscountName,
-                    dm.DiscountTypeId, dt.Description AS DiscountTypeName,
-                    dm.ApplicableLevelId, al.Description AS ApplicableLevelName,
                     dm.TriggerEventId, te.Description AS TriggerEventName,
-                    dm.RequiresApproval,
+                    dm.DiscountBasisId, db.Description AS DiscountBasisName,
+                    dm.ExecutionTypeId, et.Description AS ExecutionTypeName,
+                    dm.CurrencyId,
+                    dm.CustomerGroupId, cg.Description AS CustomerGroupName,
+                    dm.Priority, dm.RequiresApproval,
                     dm.MaxDiscountLimitTypeId, mdl.Description AS MaxDiscountLimitTypeName,
+                    dm.MaxDiscountValue, dm.IsStackable,
+                    dm.ExclusionGroupId, eg.Description AS ExclusionGroupName,
                     dm.ValueTypeId, vt.Description AS ValueTypeName,
-                    dm.DiscountValue,
                     dm.SlabTypeId, st.Description AS SlabTypeName,
                     dm.IsActive, dm.IsDeleted,
                     dm.CreatedBy, dm.CreatedDate, dm.CreatedByName, dm.CreatedIP,
                     dm.ModifiedBy, dm.ModifiedDate, dm.ModifiedByName, dm.ModifiedIP
                 FROM Sales.DiscountMaster dm
-                LEFT JOIN Sales.MiscMaster dt ON dm.DiscountTypeId = dt.Id AND dt.IsDeleted = 0
-                LEFT JOIN Sales.MiscMaster al ON dm.ApplicableLevelId = al.Id AND al.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster te ON dm.TriggerEventId = te.Id AND te.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster db ON dm.DiscountBasisId = db.Id AND db.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster et ON dm.ExecutionTypeId = et.Id AND et.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster cg ON dm.CustomerGroupId = cg.Id AND cg.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster mdl ON dm.MaxDiscountLimitTypeId = mdl.Id AND mdl.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster eg ON dm.ExclusionGroupId = eg.Id AND eg.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster vt ON dm.ValueTypeId = vt.Id AND vt.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster st ON dm.SlabTypeId = st.Id AND st.IsDeleted = 0
                 WHERE dm.IsDeleted = 0
@@ -63,6 +74,18 @@ namespace SalesManagement.Infrastructure.Repositories.DiscountMaster
             var totalCount = await _dbConnection.ExecuteScalarAsync<int>(countSql, parameters);
             var data = (await _dbConnection.QueryAsync<DiscountMasterDto>(dataSql, parameters)).ToList();
 
+            // Cross-module: populate CurrencyName via lookup
+            var currencyIds = data.Where(d => d.CurrencyId.HasValue).Select(d => d.CurrencyId!.Value).Distinct().ToList();
+            if (currencyIds.Count > 0)
+            {
+                var currencies = await _currencyLookup.GetByIdsAsync(currencyIds);
+                var currDict = currencies.ToDictionary(c => c.CurrencyId, c => c.Name);
+                foreach (var item in data.Where(d => d.CurrencyId.HasValue))
+                {
+                    item.CurrencyName = currDict.TryGetValue(item.CurrencyId!.Value, out var name) ? name : null;
+                }
+            }
+
             return (data, totalCount);
         }
 
@@ -71,22 +94,27 @@ namespace SalesManagement.Infrastructure.Repositories.DiscountMaster
             const string headerSql = @"
                 SELECT
                     dm.Id, dm.DiscountCode, dm.DiscountName,
-                    dm.DiscountTypeId, dt.Description AS DiscountTypeName,
-                    dm.ApplicableLevelId, al.Description AS ApplicableLevelName,
                     dm.TriggerEventId, te.Description AS TriggerEventName,
-                    dm.RequiresApproval,
+                    dm.DiscountBasisId, db.Description AS DiscountBasisName,
+                    dm.ExecutionTypeId, et.Description AS ExecutionTypeName,
+                    dm.CurrencyId,
+                    dm.CustomerGroupId, cg.Description AS CustomerGroupName,
+                    dm.Priority, dm.RequiresApproval,
                     dm.MaxDiscountLimitTypeId, mdl.Description AS MaxDiscountLimitTypeName,
+                    dm.MaxDiscountValue, dm.IsStackable,
+                    dm.ExclusionGroupId, eg.Description AS ExclusionGroupName,
                     dm.ValueTypeId, vt.Description AS ValueTypeName,
-                    dm.DiscountValue,
                     dm.SlabTypeId, st.Description AS SlabTypeName,
                     dm.IsActive, dm.IsDeleted,
                     dm.CreatedBy, dm.CreatedDate, dm.CreatedByName, dm.CreatedIP,
                     dm.ModifiedBy, dm.ModifiedDate, dm.ModifiedByName, dm.ModifiedIP
                 FROM Sales.DiscountMaster dm
-                LEFT JOIN Sales.MiscMaster dt ON dm.DiscountTypeId = dt.Id AND dt.IsDeleted = 0
-                LEFT JOIN Sales.MiscMaster al ON dm.ApplicableLevelId = al.Id AND al.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster te ON dm.TriggerEventId = te.Id AND te.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster db ON dm.DiscountBasisId = db.Id AND db.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster et ON dm.ExecutionTypeId = et.Id AND et.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster cg ON dm.CustomerGroupId = cg.Id AND cg.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster mdl ON dm.MaxDiscountLimitTypeId = mdl.Id AND mdl.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster eg ON dm.ExclusionGroupId = eg.Id AND eg.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster vt ON dm.ValueTypeId = vt.Id AND vt.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster st ON dm.SlabTypeId = st.Id AND st.IsDeleted = 0
                 WHERE dm.Id = @Id AND dm.IsDeleted = 0";
@@ -112,6 +140,14 @@ namespace SalesManagement.Infrastructure.Repositories.DiscountMaster
 
             if (dto == null)
                 return null;
+
+            // Cross-module: populate CurrencyName via lookup
+            if (dto.CurrencyId.HasValue)
+            {
+                var currencies = await _currencyLookup.GetByIdsAsync(new[] { dto.CurrencyId.Value });
+                var currency = currencies.FirstOrDefault();
+                dto.CurrencyName = currency?.Name;
+            }
 
             dto.Slabs = (await _dbConnection.QueryAsync<DiscountSlabDto>(slabsSql, new { Id = id })).ToList();
             dto.SalesGroups = (await _dbConnection.QueryAsync<DiscountSalesGroupDto>(salesGroupsSql, new { Id = id })).ToList();

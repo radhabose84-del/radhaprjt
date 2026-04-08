@@ -41,7 +41,13 @@ namespace PartyManagement.Application.PartyMaster.Command.UpdatePartyMaster
         public async Task<bool> Handle(UpdatePartyMasterCommand request, CancellationToken cancellationToken)
         {
             var partyId = request.UpdatePartyMaster.Id;
-             
+
+            if (request.UpdatePartyMaster.IsActive == 0)
+            {
+                var isLinked = await _ipartyMasterQueryRepository.IsPartyMasterLinkedAsync(partyId);
+                if (isLinked)
+                    throw new ExceptionRules("This master is linked with other records. You cannot inactivate this record.");
+            }
 
             // --- BEFORE snapshot (to detect 0->1 portal enable, and to compare sets if you want)
             var before = await _ipartyMasterQueryRepository.GetByIdPartyMasterAsync(partyId);
@@ -104,6 +110,21 @@ namespace PartyManagement.Application.PartyMaster.Command.UpdatePartyMaster
 
                 if (!request.UpdatePartyMaster.AgentConfigsUpdate.Any())
                     request.UpdatePartyMaster.AgentConfigsUpdate = null;
+            }
+
+            // ------------------- Clean TransportDetails -------------------
+            if (request.UpdatePartyMaster.TransportDetailsUpdate != null)
+            {
+                request.UpdatePartyMaster.TransportDetailsUpdate = request.UpdatePartyMaster.TransportDetailsUpdate
+                    .Where(t =>
+                        t.DefaultFreightTypeId != 0 &&
+                        t.VehicleTypeId != 0 &&
+                        t.DefaultFreightRate > 0 &&
+                        !string.IsNullOrWhiteSpace(t.VehicleNo))
+                    .ToList();
+
+                if (request.UpdatePartyMaster.TransportDetailsUpdate.Count == 0)
+                    request.UpdatePartyMaster.TransportDetailsUpdate = null;
             }
 
             // Map DTO to Entity (Fix: Pass full DTO, not just Id)

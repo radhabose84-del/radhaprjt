@@ -54,15 +54,8 @@ namespace PartyManagement.Domain.Entities
         public bool IsUpdate { get; set; }
         public MiscMaster? StatusParty { get; set; }
         public MiscMaster? CustomerTypeMisc { get; set; } = null!;
-        public int? TransportModeId { get; set; }
-        public MiscMaster? TransportModeMisc { get; set; }
-        public int? VehicleTypeId { get; set; }
-        public MiscMaster? VehicleTypeMisc { get; set; }
-        public int? DefaultFreightTypeId { get; set; }
-        public MiscMaster? DefaultFreightTypeMisc { get; set; }
-        public decimal? DefaultFreightRate { get; set; }
-        public string? LicenseNo { get; set; }
-        public DateTimeOffset? LicenseExpiryDate { get; set; }
+        public int? SalesFreightId { get; set; }
+        public int? PurchaseFreightId { get; set; }
         public string? FreightExpensesGl { get; set; }
         public ICollection<PartyContact>? PartyContactTypes { get; set; }
         public ICollection<PartyAddress>? PartyAddressTypes { get; set; }
@@ -72,6 +65,7 @@ namespace PartyManagement.Domain.Entities
         public ICollection<PartyUnitCompanyMapping>? PartyUnitCompanyMappings { get; set; }
         public ICollection<SalesType>? SalesTypes { get; set; }
         public ICollection<AgentConfig>? AgentConfigs { get; set; }
+        public ICollection<TransportDetail>? TransportDetails { get; set; }
 
     }
 }

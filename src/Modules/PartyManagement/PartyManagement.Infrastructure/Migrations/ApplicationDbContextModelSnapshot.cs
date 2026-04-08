@@ -819,15 +819,6 @@ namespace PartyManagement.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("CustomerTypeId");
 
-                    b.Property<decimal?>("DefaultFreightRate")
-                        .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,3)")
-                        .HasColumnName("DefaultFreightRate");
-
-                    b.Property<int?>("DefaultFreightTypeId")
-                        .HasColumnType("int")
-                        .HasColumnName("DefaultFreightTypeId");
-
                     b.Property<int?>("DueDateTypeId")
                         .HasColumnType("int")
                         .HasColumnName("DueDateTypeId");
@@ -922,14 +913,6 @@ namespace PartyManagement.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("LeadTime");
 
-                    b.Property<DateTimeOffset?>("LicenseExpiryDate")
-                        .HasColumnType("datetimeoffset")
-                        .HasColumnName("LicenseExpiryDate");
-
-                    b.Property<string>("LicenseNo")
-                        .HasColumnType("nvarchar(50)")
-                        .HasColumnName("LicenseNo");
-
                     b.Property<string>("MSMENO")
                         .HasColumnType("nvarchar(50)")
                         .HasColumnName("MSMENO");
@@ -992,9 +975,17 @@ namespace PartyManagement.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("PreferredCurrencySale");
 
+                    b.Property<int?>("PurchaseFreightId")
+                        .HasColumnType("int")
+                        .HasColumnName("PurchaseFreightId");
+
                     b.Property<int>("RegistrationTypeId")
                         .HasColumnType("int")
                         .HasColumnName("RegistrationTypeId");
+
+                    b.Property<int?>("SalesFreightId")
+                        .HasColumnType("int")
+                        .HasColumnName("SalesFreightId");
 
                     b.Property<int?>("SellingPriceListId")
                         .HasColumnType("int")
@@ -1012,17 +1003,9 @@ namespace PartyManagement.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("TDSCategoryId");
 
-                    b.Property<int?>("TransportModeId")
-                        .HasColumnType("int")
-                        .HasColumnName("TransportModeId");
-
                     b.Property<int>("UnitId")
                         .HasColumnType("int")
                         .HasColumnName("UnitId");
-
-                    b.Property<int?>("VehicleTypeId")
-                        .HasColumnType("int")
-                        .HasColumnName("VehicleTypeId");
 
                     b.Property<string>("Website")
                         .HasColumnType("nvarchar(50)")
@@ -1031,8 +1014,6 @@ namespace PartyManagement.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CustomerTypeId");
-
-                    b.HasIndex("DefaultFreightTypeId");
 
                     b.HasIndex("DueDateTypeId");
 
@@ -1045,10 +1026,6 @@ namespace PartyManagement.Infrastructure.Migrations
                     b.HasIndex("RegistrationTypeId");
 
                     b.HasIndex("StatusId");
-
-                    b.HasIndex("TransportModeId");
-
-                    b.HasIndex("VehicleTypeId");
 
                     b.ToTable("PartyMaster", "Party");
                 });
@@ -1163,6 +1140,71 @@ namespace PartyManagement.Infrastructure.Migrations
                     b.HasIndex("ShippingConditionId");
 
                     b.ToTable("SalesType", "Party");
+                });
+
+            modelBuilder.Entity("PartyManagement.Domain.Entities.TransportDetail", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal?>("DefaultFreightRate")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,3)")
+                        .HasColumnName("DefaultFreightRate");
+
+                    b.Property<int?>("DefaultFreightTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("DefaultFreightTypeId");
+
+                    b.Property<DateTimeOffset?>("LicenseExpiryDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("LicenseExpiryDate");
+
+                    b.Property<string>("LicenseNo")
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("LicenseNo");
+
+                    b.Property<int>("PartyId")
+                        .HasColumnType("int")
+                        .HasColumnName("PartyId");
+
+                    b.Property<byte>("Status")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint")
+                        .HasDefaultValue((byte)1)
+                        .HasColumnName("Status");
+
+                    b.Property<int?>("TransportModeId")
+                        .HasColumnType("int")
+                        .HasColumnName("TransportModeId");
+
+                    b.Property<string>("VehicleNo")
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("VehicleNo");
+
+                    b.Property<int?>("VehicleTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("VehicleTypeId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DefaultFreightTypeId")
+                        .HasDatabaseName("IX_TransportDetail_DefaultFreightTypeId");
+
+                    b.HasIndex("PartyId")
+                        .HasDatabaseName("IX_TransportDetail_PartyId");
+
+                    b.HasIndex("TransportModeId")
+                        .HasDatabaseName("IX_TransportDetail_TransportModeId");
+
+                    b.HasIndex("VehicleTypeId")
+                        .HasDatabaseName("IX_TransportDetail_VehicleTypeId");
+
+                    b.ToTable("TransportDetail", "Party");
                 });
 
             modelBuilder.Entity("PartyManagement.Domain.Entities.AgentConfig", b =>
@@ -1326,11 +1368,6 @@ namespace PartyManagement.Infrastructure.Migrations
                         .HasForeignKey("CustomerTypeId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("PartyManagement.Domain.Entities.MiscMaster", "DefaultFreightTypeMisc")
-                        .WithMany("PartyDefaultFreightType")
-                        .HasForeignKey("DefaultFreightTypeId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("PartyManagement.Domain.Entities.MiscMaster", "DueDateTypeMisc")
                         .WithMany("PartyDueDateType")
                         .HasForeignKey("DueDateTypeId")
@@ -1363,19 +1400,7 @@ namespace PartyManagement.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("PartyManagement.Domain.Entities.MiscMaster", "TransportModeMisc")
-                        .WithMany("PartyTransportMode")
-                        .HasForeignKey("TransportModeId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("PartyManagement.Domain.Entities.MiscMaster", "VehicleTypeMisc")
-                        .WithMany("PartyVehicleType")
-                        .HasForeignKey("VehicleTypeId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.Navigation("CustomerTypeMisc");
-
-                    b.Navigation("DefaultFreightTypeMisc");
 
                     b.Navigation("DueDateTypeMisc");
 
@@ -1386,10 +1411,6 @@ namespace PartyManagement.Infrastructure.Migrations
                     b.Navigation("RegistrationType");
 
                     b.Navigation("StatusParty");
-
-                    b.Navigation("TransportModeMisc");
-
-                    b.Navigation("VehicleTypeMisc");
 
                     b.Navigation("ZoneType");
                 });
@@ -1457,6 +1478,38 @@ namespace PartyManagement.Infrastructure.Migrations
                     b.Navigation("ShippingConditionMisc");
                 });
 
+            modelBuilder.Entity("PartyManagement.Domain.Entities.TransportDetail", b =>
+                {
+                    b.HasOne("PartyManagement.Domain.Entities.MiscMaster", "DefaultFreightTypeMisc")
+                        .WithMany("TransportDetailDefaultFreightType")
+                        .HasForeignKey("DefaultFreightTypeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("PartyManagement.Domain.Entities.PartyMaster", "PartyMaster")
+                        .WithMany("TransportDetails")
+                        .HasForeignKey("PartyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("PartyManagement.Domain.Entities.MiscMaster", "TransportModeMisc")
+                        .WithMany("TransportDetailTransportMode")
+                        .HasForeignKey("TransportModeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("PartyManagement.Domain.Entities.MiscMaster", "VehicleTypeMisc")
+                        .WithMany("TransportDetailVehicleType")
+                        .HasForeignKey("VehicleTypeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("DefaultFreightTypeMisc");
+
+                    b.Navigation("PartyMaster");
+
+                    b.Navigation("TransportModeMisc");
+
+                    b.Navigation("VehicleTypeMisc");
+                });
+
             modelBuilder.Entity("PartyManagement.Domain.Entities.MiscMaster", b =>
                 {
                     b.Navigation("AgentConfigSettlementCycle");
@@ -1472,8 +1525,6 @@ namespace PartyManagement.Infrastructure.Migrations
                     b.Navigation("PartyContactType");
 
                     b.Navigation("PartyCustomerType");
-
-                    b.Navigation("PartyDefaultFreightType");
 
                     b.Navigation("PartyDocumentType");
 
@@ -1491,11 +1542,7 @@ namespace PartyManagement.Infrastructure.Migrations
 
                     b.Navigation("PartyRegistrationType");
 
-                    b.Navigation("PartyTransportMode");
-
                     b.Navigation("PartyTypeGroup");
-
-                    b.Navigation("PartyVehicleType");
 
                     b.Navigation("PartyZoneType");
 
@@ -1504,6 +1551,12 @@ namespace PartyManagement.Infrastructure.Migrations
                     b.Navigation("SalesTypeShippingCondition");
 
                     b.Navigation("StatusHeader");
+
+                    b.Navigation("TransportDetailDefaultFreightType");
+
+                    b.Navigation("TransportDetailTransportMode");
+
+                    b.Navigation("TransportDetailVehicleType");
                 });
 
             modelBuilder.Entity("PartyManagement.Domain.Entities.MiscTypeMaster", b =>
@@ -1535,6 +1588,8 @@ namespace PartyManagement.Infrastructure.Migrations
                     b.Navigation("PartyUnitCompanyMappings");
 
                     b.Navigation("SalesTypes");
+
+                    b.Navigation("TransportDetails");
                 });
 #pragma warning restore 612, 618
         }

@@ -244,6 +244,27 @@ namespace PartyManagement.Presentation.Validation.PartyMaster
 
                 }
             }
+
+            // ------------------- TransportDetail composite uniqueness -------------------
+            // When Status = 1, (DefaultFreightTypeId + VehicleTypeId + VehicleNo) must be unique
+            // Exclude own Id (same partyId + same transport detail Id → allow)
+            RuleForEach(x => x.UpdatePartyMaster.TransportDetailsUpdate)
+                .ChildRules(td =>
+                {
+                    td.RuleFor(t => t)
+                        .MustAsync(async (t, ct) =>
+                        {
+                            if (t.Status != 1) return true;
+                            if (t.DefaultFreightTypeId == null || t.VehicleTypeId == null || string.IsNullOrWhiteSpace(t.VehicleNo))
+                                return true;
+                            // Exclude own record (Id > 0 means existing record being updated)
+                            int? excludeId = t.Id > 0 ? t.Id : null;
+                            return !await _iPartyMasterQueryRepository.TransportDetailDuplicateExistsAsync(
+                                t.DefaultFreightTypeId, t.VehicleTypeId, t.VehicleNo, excludeId);
+                        })
+                        .WithMessage("Duplicate TransportDetail: this combination of DefaultFreightType, VehicleType, and VehicleNo already exists with Status = 1.");
+                })
+                .When(x => x.UpdatePartyMaster.TransportDetailsUpdate != null && x.UpdatePartyMaster.TransportDetailsUpdate.Count > 0);
         }
     }
 }

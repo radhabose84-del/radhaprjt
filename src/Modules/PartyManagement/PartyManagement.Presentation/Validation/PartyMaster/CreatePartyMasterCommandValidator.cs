@@ -251,6 +251,24 @@ namespace PartyManagement.Presentation.Validation.PartyMaster
 
                 }
             }
+
+            // ------------------- TransportDetail composite uniqueness -------------------
+            // When Status = 1, (DefaultFreightTypeId + VehicleTypeId + VehicleNo) must be unique
+            RuleForEach(x => x.PartyMaster.TransportDetails)
+                .ChildRules(td =>
+                {
+                    td.RuleFor(t => t)
+                        .MustAsync(async (t, ct) =>
+                        {
+                            if (t.Status != 1) return true;
+                            if (t.DefaultFreightTypeId == null || t.VehicleTypeId == null || string.IsNullOrWhiteSpace(t.VehicleNo))
+                                return true;
+                            return !await _iPartyMasterQueryRepository.TransportDetailDuplicateExistsAsync(
+                                t.DefaultFreightTypeId, t.VehicleTypeId, t.VehicleNo);
+                        })
+                        .WithMessage("Duplicate TransportDetail: this combination of DefaultFreightType, VehicleType, and VehicleNo already exists with Status = 1.");
+                })
+                .When(x => x.PartyMaster.TransportDetails != null && x.PartyMaster.TransportDetails.Count > 0);
         }
          
     }

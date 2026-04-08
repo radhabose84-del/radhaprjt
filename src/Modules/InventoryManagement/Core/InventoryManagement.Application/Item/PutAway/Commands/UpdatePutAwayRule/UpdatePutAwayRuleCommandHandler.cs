@@ -11,15 +11,25 @@ namespace InventoryManagement.Application.Item.PutAway.Commands.UpdatePutAwayRul
     public sealed class UpdatePutAwayRuleCommandHandler : IRequestHandler<UpdatePutAwayRuleCommand, Unit>
         {
             private readonly IPutAwayRuleCommandRepository _repo;
+            private readonly IPutAwayRuleQueryRepository _queryRepo;
 
-            public UpdatePutAwayRuleCommandHandler(IPutAwayRuleCommandRepository repo)
+            public UpdatePutAwayRuleCommandHandler(IPutAwayRuleCommandRepository repo, IPutAwayRuleQueryRepository queryRepo)
             {
                 _repo = repo;
+                _queryRepo = queryRepo;
             }
 
             public async Task<Unit> Handle(UpdatePutAwayRuleCommand request, CancellationToken ct)
             {
                 var b = request.Body;
+
+                if (b.IsActive == 0)
+                {
+                    var isLinked = await _queryRepo.IsPutAwayRuleLinkedAsync(request.Id);
+                    if (isLinked)
+                        throw new ExceptionRules(
+                            "This master is linked with other records. You cannot inactivate this record.");
+                }
 
                 // 1) Load existing entity (tracked, with children)
                 var e = await _repo.GetByIdAsync(request.Id, track: true, ct);

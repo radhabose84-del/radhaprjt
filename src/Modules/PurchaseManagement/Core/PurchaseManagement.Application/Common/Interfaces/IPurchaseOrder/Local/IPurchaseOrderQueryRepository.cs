@@ -14,5 +14,6 @@ public interface IPurchaseOrderQueryRepository
     Task<bool> ExistsAsync(int poId, CancellationToken ct);
     Task<string?> GetStatusCodeAsync(int poId, CancellationToken ct);
     Task<int> GetNextRevisionAsync(int rootPoId, CancellationToken ct);
-    Task<List<LastPoPriceDto>> LastPOPriceByItemIdAsync(List<int> itemIds);    
+    Task<List<LastPoPriceDto>> LastPOPriceByItemIdAsync(List<int> itemIds);
+    Task<bool> SoftDeleteValidationAsync(int id);
 }

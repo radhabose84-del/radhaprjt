@@ -13,5 +13,7 @@ namespace FinanceManagement.Application.Common.Interfaces.ITransactionTypeMaster
         Task<bool> UnitExistsAsync(int unitId);
         Task<bool> ModuleExistsAsync(int moduleId);
         Task<bool> MenuExistsAsync(int menuId);
+        Task<bool> SoftDeleteValidationAsync(int id);
+        Task<bool> IsTransactionTypeMasterLinkedAsync(int id);
     }
 }

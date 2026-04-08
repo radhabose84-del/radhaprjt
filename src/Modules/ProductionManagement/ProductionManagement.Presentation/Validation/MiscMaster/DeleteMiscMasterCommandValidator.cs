@@ -33,6 +33,12 @@ namespace ProductionManagement.Presentation.Validation.MiscMaster
                             .WithMessage($"Misc Master {rule.Error}");
                         break;
 
+                    case "SoftDelete":
+                        RuleFor(x => x.Id)
+                            .MustAsync(async (id, ct) => !await _queryRepository.SoftDeleteValidationAsync(id))
+                            .WithMessage("This master is linked with other records. You cannot delete this record.");
+                        break;
+
                     default:
                         break;
                 }

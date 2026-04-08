@@ -540,7 +540,7 @@ namespace SalesManagement.IntegrationTests.Repositories.ItemPriceMaster
             // Overlapping range
             var overlapFrom = new DateOnly(2025, 6, 1);
             var overlapTo   = new DateOnly(2026, 3, 31);
-            var result = await repo.OverlapExistsAsync(100, segmentId, overlapFrom, overlapTo);
+            var result = await repo.OverlapExistsAsync(100, null, segmentId, overlapFrom, overlapTo);
 
             result.Should().BeTrue();
         }
@@ -560,7 +560,7 @@ namespace SalesManagement.IntegrationTests.Repositories.ItemPriceMaster
             // Non-overlapping range (starts after existing record ends)
             var noOverlapFrom = new DateOnly(2025, 7, 1);
             var noOverlapTo   = new DateOnly(2025, 12, 31);
-            var result = await repo.OverlapExistsAsync(100, segmentId, noOverlapFrom, noOverlapTo);
+            var result = await repo.OverlapExistsAsync(100, null, segmentId, noOverlapFrom, noOverlapTo);
 
             result.Should().BeFalse();
         }
@@ -578,7 +578,7 @@ namespace SalesManagement.IntegrationTests.Repositories.ItemPriceMaster
 
             // Same range but excludeId = own Id — update scenario, should NOT flag as overlap
             var repo = CreateQueryRepo();
-            var result = await repo.OverlapExistsAsync(100, segmentId, validFrom, validTo, excludeId: id);
+            var result = await repo.OverlapExistsAsync(100, null, segmentId, validFrom, validTo, excludeId: id);
 
             result.Should().BeFalse();
         }
@@ -596,7 +596,7 @@ namespace SalesManagement.IntegrationTests.Repositories.ItemPriceMaster
 
             // Different ItemId — should not overlap
             var repo = CreateQueryRepo();
-            var result = await repo.OverlapExistsAsync(999, segmentId, validFrom, validTo);
+            var result = await repo.OverlapExistsAsync(999, null, segmentId, validFrom, validTo);
 
             result.Should().BeFalse();
         }

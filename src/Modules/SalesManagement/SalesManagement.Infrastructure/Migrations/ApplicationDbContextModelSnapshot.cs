@@ -1471,10 +1471,6 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("ApplicableLevelId")
-                        .HasColumnType("int")
-                        .HasColumnName("ApplicableLevelId");
-
                     b.Property<int>("CreatedBy")
                         .HasColumnType("int")
                         .HasColumnName("CreatedBy");
@@ -1491,6 +1487,18 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("varchar(50)")
                         .HasColumnName("CreatedIP");
 
+                    b.Property<int?>("CurrencyId")
+                        .HasColumnType("int")
+                        .HasColumnName("CurrencyId");
+
+                    b.Property<int?>("CustomerGroupId")
+                        .HasColumnType("int")
+                        .HasColumnName("CustomerGroupId");
+
+                    b.Property<int>("DiscountBasisId")
+                        .HasColumnType("int")
+                        .HasColumnName("DiscountBasisId");
+
                     b.Property<string>("DiscountCode")
                         .IsRequired()
                         .HasColumnType("varchar(20)")
@@ -1501,14 +1509,13 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("varchar(100)")
                         .HasColumnName("DiscountName");
 
-                    b.Property<int>("DiscountTypeId")
+                    b.Property<int?>("ExclusionGroupId")
                         .HasColumnType("int")
-                        .HasColumnName("DiscountTypeId");
+                        .HasColumnName("ExclusionGroupId");
 
-                    b.Property<decimal?>("DiscountValue")
-                        .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,4)")
-                        .HasColumnName("DiscountValue");
+                    b.Property<int>("ExecutionTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("ExecutionTypeId");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit")
@@ -1518,9 +1525,18 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("bit")
                         .HasColumnName("IsDeleted");
 
+                    b.Property<bool>("IsStackable")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsStackable");
+
                     b.Property<int?>("MaxDiscountLimitTypeId")
                         .HasColumnType("int")
                         .HasColumnName("MaxDiscountLimitTypeId");
+
+                    b.Property<decimal?>("MaxDiscountValue")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,4)")
+                        .HasColumnName("MaxDiscountValue");
 
                     b.Property<int?>("ModifiedBy")
                         .HasColumnType("int")
@@ -1538,11 +1554,15 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("varchar(50)")
                         .HasColumnName("ModifiedIP");
 
+                    b.Property<int>("Priority")
+                        .HasColumnType("int")
+                        .HasColumnName("Priority");
+
                     b.Property<bool>("RequiresApproval")
                         .HasColumnType("bit")
                         .HasColumnName("RequiresApproval");
 
-                    b.Property<int?>("SlabTypeId")
+                    b.Property<int>("SlabTypeId")
                         .HasColumnType("int")
                         .HasColumnName("SlabTypeId");
 
@@ -1556,12 +1576,18 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ApplicableLevelId");
+                    b.HasIndex("CurrencyId");
+
+                    b.HasIndex("CustomerGroupId");
+
+                    b.HasIndex("DiscountBasisId");
 
                     b.HasIndex("DiscountCode")
                         .IsUnique();
 
-                    b.HasIndex("DiscountTypeId");
+                    b.HasIndex("ExclusionGroupId");
+
+                    b.HasIndex("ExecutionTypeId");
 
                     b.HasIndex("MaxDiscountLimitTypeId");
 
@@ -1919,6 +1945,12 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("varchar(254)")
                         .HasColumnName("Email");
 
+                    b.Property<int>("FreightId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0)
+                        .HasColumnName("FreightId");
+
                     b.Property<string>("GSTIN")
                         .HasColumnType("varchar(15)")
                         .HasColumnName("GSTIN");
@@ -2175,80 +2207,6 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.HasIndex("StatusId");
 
                     b.ToTable("DispatchAdviceHeader", "Sales");
-                });
-
-            modelBuilder.Entity("SalesManagement.Domain.Entities.FreightMaster", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("Id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("CreatedBy")
-                        .HasColumnType("int")
-                        .HasColumnName("CreatedBy");
-
-                    b.Property<string>("CreatedByName")
-                        .HasColumnType("varchar(100)")
-                        .HasColumnName("CreatedByName");
-
-                    b.Property<DateTimeOffset?>("CreatedDate")
-                        .HasColumnType("datetimeoffset")
-                        .HasColumnName("CreatedDate");
-
-                    b.Property<string>("CreatedIP")
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("CreatedIP");
-
-                    b.Property<int>("FreightModeId")
-                        .HasColumnType("int")
-                        .HasColumnName("FreightModeId");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit")
-                        .HasColumnName("IsActive");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit")
-                        .HasColumnName("IsDeleted");
-
-                    b.Property<int?>("ModifiedBy")
-                        .HasColumnType("int")
-                        .HasColumnName("ModifiedBy");
-
-                    b.Property<string>("ModifiedByName")
-                        .HasColumnType("varchar(100)")
-                        .HasColumnName("ModifiedByName");
-
-                    b.Property<DateTimeOffset?>("ModifiedDate")
-                        .HasColumnType("datetimeoffset")
-                        .HasColumnName("ModifiedDate");
-
-                    b.Property<string>("ModifiedIP")
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("ModifiedIP");
-
-                    b.Property<decimal>("Rate")
-                        .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,2)")
-                        .HasColumnName("Rate");
-
-                    b.Property<int>("RateMethodId")
-                        .HasColumnType("int")
-                        .HasColumnName("RateMethodId");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("FreightModeId");
-
-                    b.HasIndex("RateMethodId");
-
-                    b.HasIndex("FreightModeId", "RateMethodId")
-                        .IsUnique();
-
-                    b.ToTable("FreightMaster", "Sales");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.InvoiceDetail", b =>
@@ -2597,10 +2555,20 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<decimal?>("AdditionalValue")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,4)")
+                        .HasColumnName("AdditionalValue");
+
                     b.Property<decimal>("BaseRate")
                         .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,4)")
                         .HasColumnName("BaseRate");
+
+                    b.Property<decimal?>("CharityValue")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,4)")
+                        .HasColumnName("CharityValue");
 
                     b.Property<int>("CreatedBy")
                         .HasColumnType("int")
@@ -2621,6 +2589,11 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Property<int>("CurrencyId")
                         .HasColumnType("int")
                         .HasColumnName("CurrencyId");
+
+                    b.Property<decimal?>("HandlingCharges")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,4)")
+                        .HasColumnName("HandlingCharges");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit")
@@ -2676,6 +2649,10 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("date")
                         .HasColumnName("ValidTo");
 
+                    b.Property<int?>("VariantId")
+                        .HasColumnType("int")
+                        .HasColumnName("VariantId");
+
                     b.HasKey("Id");
 
                     b.HasIndex("PriceCode")
@@ -2685,7 +2662,9 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     b.HasIndex("StatusId");
 
-                    b.HasIndex("ItemId", "SalesSegmentId");
+                    b.HasIndex("VariantId");
+
+                    b.HasIndex("ItemId", "VariantId", "SalesSegmentId");
 
                     b.ToTable("ItemPriceMaster", "Sales");
                 });
@@ -5815,15 +5794,25 @@ namespace SalesManagement.Infrastructure.Migrations
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.DiscountMaster", b =>
                 {
-                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "ApplicableLevel")
-                        .WithMany("DiscountMastersAsApplicableLevel")
-                        .HasForeignKey("ApplicableLevelId")
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "CustomerGroup")
+                        .WithMany("DiscountMastersAsCustomerGroup")
+                        .HasForeignKey("CustomerGroupId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "DiscountBasis")
+                        .WithMany("DiscountMastersAsDiscountBasis")
+                        .HasForeignKey("DiscountBasisId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "DiscountType")
-                        .WithMany("DiscountMastersAsDiscountType")
-                        .HasForeignKey("DiscountTypeId")
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "ExclusionGroup")
+                        .WithMany("DiscountMastersAsExclusionGroup")
+                        .HasForeignKey("ExclusionGroupId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "ExecutionType")
+                        .WithMany("DiscountMastersAsExecutionType")
+                        .HasForeignKey("ExecutionTypeId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -5835,7 +5824,8 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "SlabType")
                         .WithMany("DiscountMastersAsSlabType")
                         .HasForeignKey("SlabTypeId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "TriggerEvent")
                         .WithMany("DiscountMastersAsTriggerEvent")
@@ -5849,9 +5839,13 @@ namespace SalesManagement.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("ApplicableLevel");
+                    b.Navigation("CustomerGroup");
 
-                    b.Navigation("DiscountType");
+                    b.Navigation("DiscountBasis");
+
+                    b.Navigation("ExclusionGroup");
+
+                    b.Navigation("ExecutionType");
 
                     b.Navigation("MaxDiscountLimitType");
 
@@ -5966,25 +5960,6 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("SalesOrderHeader");
 
                     b.Navigation("StatusMisc");
-                });
-
-            modelBuilder.Entity("SalesManagement.Domain.Entities.FreightMaster", b =>
-                {
-                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "FreightMode")
-                        .WithMany("FreightMastersAsFreightMode")
-                        .HasForeignKey("FreightModeId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "RateMethod")
-                        .WithMany("FreightMastersAsRateMethod")
-                        .HasForeignKey("RateMethodId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("FreightMode");
-
-                    b.Navigation("RateMethod");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.InvoiceDetail", b =>
@@ -6631,9 +6606,13 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     b.Navigation("DeliveryChallanHeadersAsStatus");
 
-                    b.Navigation("DiscountMastersAsApplicableLevel");
+                    b.Navigation("DiscountMastersAsCustomerGroup");
 
-                    b.Navigation("DiscountMastersAsDiscountType");
+                    b.Navigation("DiscountMastersAsDiscountBasis");
+
+                    b.Navigation("DiscountMastersAsExclusionGroup");
+
+                    b.Navigation("DiscountMastersAsExecutionType");
 
                     b.Navigation("DiscountMastersAsMaxDiscountLimitType");
 
@@ -6646,10 +6625,6 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("DispatchAddressMappings");
 
                     b.Navigation("DispatchAdviceHeadersAsStatus");
-
-                    b.Navigation("FreightMastersAsFreightMode");
-
-                    b.Navigation("FreightMastersAsRateMethod");
 
                     b.Navigation("InvoiceHeadersAsStatus");
 

@@ -1,4 +1,5 @@
 using System.Data;
+using Contracts.Interfaces.Lookups.Logistics;
 using Contracts.Interfaces.Lookups.Party;
 using Dapper;
 using SalesManagement.Application.Common.Interfaces.IDispatchAddressMapping;
@@ -10,13 +11,16 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAddressMapping
     {
         private readonly IDbConnection _dbConnection;
         private readonly IPartyLookup _partyLookup;
+        private readonly IFreightMasterLookup _freightMasterLookup;
 
         public DispatchAddressMappingQueryRepository(
             IDbConnection dbConnection,
-            IPartyLookup partyLookup)
+            IPartyLookup partyLookup,
+            IFreightMasterLookup freightMasterLookup)
         {
             _dbConnection = dbConnection;
             _partyLookup = partyLookup;
+            _freightMasterLookup = freightMasterLookup;
         }
 
         public async Task<(List<DispatchAddressMappingDto>, int)> GetAllAsync(
@@ -38,6 +42,7 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAddressMapping
 
                 SELECT dam.Id, dam.PartyId, dam.DispatchAddressId, dam.UsageTypeId, dam.IsDefault,
                     damaster.DispatchAddressName, damaster.AddressLine1 AS DispatchAddressLine1,
+                    damaster.FreightId,
                     mm.Description AS UsageTypeName,
                     dam.IsActive, dam.IsDeleted,
                     dam.CreatedBy, dam.CreatedDate, dam.CreatedByName, dam.CreatedIP,
@@ -73,6 +78,24 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAddressMapping
                     item.PartyName = partyDict.TryGetValue(item.PartyId, out var name) ? name : null;
             }
 
+            // Populate freight details via cross-module lookup
+            var freightIds = list.Where(x => x.FreightId > 0).Select(x => x.FreightId).Distinct().ToList();
+            if (freightIds.Count > 0)
+            {
+                var freightList = await _freightMasterLookup.GetAllFreightMasterAsync();
+                var freightDict = freightList.ToDictionary(f => f.Id);
+
+                foreach (var item in list.Where(x => x.FreightId > 0))
+                {
+                    if (freightDict.TryGetValue(item.FreightId, out var freight))
+                    {
+                        item.FreightModeName = freight.FreightModeName;
+                        item.RateMethodName = freight.RateMethodName;
+                        item.FreightRate = freight.Rate;
+                    }
+                }
+            }
+
             return (list, totalCount);
         }
 
@@ -81,6 +104,7 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAddressMapping
             const string sql = @"
                 SELECT dam.Id, dam.PartyId, dam.DispatchAddressId, dam.UsageTypeId, dam.IsDefault,
                     damaster.DispatchAddressName, damaster.AddressLine1 AS DispatchAddressLine1,
+                    damaster.FreightId,
                     mm.Description AS UsageTypeName,
                     dam.IsActive, dam.IsDeleted,
                     dam.CreatedBy, dam.CreatedDate, dam.CreatedByName, dam.CreatedIP,
@@ -96,6 +120,17 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAddressMapping
             {
                 var party = await _partyLookup.GetByIdAsync(dto.PartyId);
                 dto.PartyName = party?.PartyName;
+
+                if (dto.FreightId > 0)
+                {
+                    var freight = await _freightMasterLookup.GetByIdAsync(dto.FreightId);
+                    if (freight != null)
+                    {
+                        dto.FreightModeName = freight.FreightModeName;
+                        dto.RateMethodName = freight.RateMethodName;
+                        dto.FreightRate = freight.Rate;
+                    }
+                }
             }
 
             return dto;

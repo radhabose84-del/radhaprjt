@@ -1,5 +1,11 @@
 using System.Data;
 using LogisticsManagement.Application.Common.Interfaces;
+using LogisticsManagement.Application.Common.Interfaces.IFreightMaster;
+using LogisticsManagement.Application.Common.Interfaces.IMiscMaster;
+using LogisticsManagement.Application.Common.Interfaces.IMiscTypeMaster;
+using LogisticsManagement.Infrastructure.Repositories.FreightMaster;
+using LogisticsManagement.Infrastructure.Repositories.MiscMaster;
+using LogisticsManagement.Infrastructure.Repositories.MiscTypeMaster;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -9,6 +15,8 @@ using MongoDB.Driver;
 using Serilog;
 using LogisticsManagement.Infrastructure.Data;
 using LogisticsManagement.Infrastructure.Services;
+using Contracts.Interfaces.Lookups.Logistics;
+using LogisticsManagement.Infrastructure.Repositories.Lookups.Logistics;
 
 namespace LogisticsManagement.Infrastructure
 {
@@ -74,6 +82,21 @@ namespace LogisticsManagement.Infrastructure
             services.AddSingleton<ITimeZoneService, TimeZoneService>();
             services.AddTransient<IJwtTokenHelper, JwtTokenHelper>();
             services.AddScoped<ILogQueryService, LogQueryService>();
+
+            // MiscTypeMaster repositories
+            services.AddScoped<IMiscTypeMasterCommandRepository, MiscTypeMasterCommandRepository>();
+            services.AddScoped<IMiscTypeMasterQueryRepository, MiscTypeMasterQueryRepository>();
+
+            // MiscMaster repositories
+            services.AddScoped<IMiscMasterCommandRepository, MiscMasterCommandRepository>();
+            services.AddScoped<IMiscMasterQueryRepository, MiscMasterQueryRepository>();
+
+            // FreightMaster repositories
+            services.AddScoped<IFreightMasterCommandRepository, FreightMasterCommandRepository>();
+            services.AddScoped<IFreightMasterQueryRepository, FreightMasterQueryRepository>();
+
+            // Lookup — caching handled globally by AddLookupCaching() in Program.cs
+            services.AddScoped<IFreightMasterLookup, FreightMasterLookupRepository>();
 
             return services;
         }

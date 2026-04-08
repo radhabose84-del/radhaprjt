@@ -9,30 +9,22 @@ namespace ProductionManagement.Application.Common.Mappings
     {
         public ProductionProfile()
         {
-            // Create: DTO → Header entity (with nested details)
-            CreateMap<CreateProductionDto, ProductionPackHeader>()
+            // Create: DTO → flat ProductionPackDetail entity
+            CreateMap<CreateProductionDto, ProductionPackDetail>()
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
                 .ForMember(dest => dest.PackNo, opt => opt.Ignore())
                 .ForMember(dest => dest.UnitId, opt => opt.Ignore())
-                .ForMember(dest => dest.ProductionPackDetails, opt => opt.MapFrom(src => src.ProductionPackDetails))
                 .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => Status.Active))
                 .ForMember(dest => dest.IsDeleted, opt => opt.MapFrom(src => IsDelete.NotDeleted));
 
-            // Create: Detail DTO → Detail entity
-            CreateMap<CreateProductionPackDetailDto, ProductionPackDetail>();
-
-            // Update: DTO → Header entity
-            CreateMap<UpdateProductionDto, ProductionPackHeader>()
+            // Update: DTO → flat ProductionPackDetail entity
+            CreateMap<UpdateProductionDto, ProductionPackDetail>()
                 .ForMember(dest => dest.PackNo, opt => opt.Ignore())
                 .ForMember(dest => dest.UnitId, opt => opt.Ignore())
-                .ForMember(dest => dest.ProductionPackDetails, opt => opt.MapFrom(src => src.ProductionPackDetails))
                 .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src =>
                     src.IsActive == 1 ? Status.Active : Status.Inactive));
 
-            // Update: Detail DTO → Detail entity
-            CreateMap<UpdateProductionPackDetailDto, ProductionPackDetail>();
-
-            // Autocomplete: LookupDto → LookupDto
+            // Autocomplete
             CreateMap<ProductionLookupDto, ProductionLookupDto>();
         }
     }

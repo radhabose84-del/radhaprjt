@@ -12,5 +12,7 @@ namespace FinanceManagement.Application.Common.Interfaces.IEInvoiceHeader
         Task<bool> ExistsByInvoiceNoAsync(string invoiceNo, CancellationToken ct);
         /// <summary>Returns the EInvoiceHeader Id for an InvoiceNo that has an IRN, or null if not found.</summary>
         Task<int?> GetIdByInvoiceNoAsync(string invoiceNo, CancellationToken ct);
+        Task<bool> SoftDeleteValidationAsync(int id);
+        Task<bool> IsEInvoiceHeaderLinkedAsync(int id);
     }
 }

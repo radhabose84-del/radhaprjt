@@ -107,6 +107,7 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
             .Include(p => p.PartyUnitCompanyMappings)
             .Include(p => p.SalesTypes)
             .Include(p => p.AgentConfigs)
+            .Include(p => p.TransportDetails)
             .FirstOrDefaultAsync(p => p.Id == Id);
 
             if (existingParty == null)
@@ -152,12 +153,8 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
             existingParty.InsuranceLimit = partyMaster.InsuranceLimit;
             existingParty.IsActive = partyMaster.IsActive;
             existingParty.IsPortalAccessEnabled = partyMaster.IsPortalAccessEnabled;
-            existingParty.TransportModeId = partyMaster.TransportModeId;
-            existingParty.VehicleTypeId = partyMaster.VehicleTypeId;
-            existingParty.DefaultFreightTypeId = partyMaster.DefaultFreightTypeId;
-            existingParty.DefaultFreightRate = partyMaster.DefaultFreightRate;
-            existingParty.LicenseNo = partyMaster.LicenseNo;
-            existingParty.LicenseExpiryDate = partyMaster.LicenseExpiryDate;
+            existingParty.SalesFreightId = partyMaster.SalesFreightId;
+            existingParty.PurchaseFreightId = partyMaster.PurchaseFreightId;
             existingParty.FreightExpensesGl = partyMaster.FreightExpensesGl;
 
             // Check if any related collection has at least one record
@@ -169,7 +166,8 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
                 (partyMaster.PartyDocumentTypes?.Any() ?? false) ||
                 (partyMaster.PartyUnitCompanyMappings?.Any() ?? false) ||
                 (partyMaster.SalesTypes?.Any() ?? false) ||
-                (partyMaster.AgentConfigs?.Any() ?? false);
+                (partyMaster.AgentConfigs?.Any() ?? false) ||
+                (partyMaster.TransportDetails?.Any() ?? false);
 
             if (hasRelatedRecords)
             {
@@ -540,6 +538,50 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
 
                         await LogChange(existingParty.Id, "AgentConfig", "SettlementCycleId", "",
                             incoming.SettlementCycleId?.ToString() ?? "", "Insert");
+                    }
+                }
+            }
+
+            // TransportDetails - Update if exists, else Insert
+            if (partyMaster.TransportDetails != null)
+            {
+                foreach (var incoming in partyMaster.TransportDetails)
+                {
+                    if (incoming.Id > 0 && incoming.PartyId > 0)
+                    {
+                        var existingChild = existingParty.TransportDetails?
+                            .FirstOrDefault(td => td.Id == incoming.Id && td.PartyId == Id);
+
+                        if (existingChild != null)
+                        {
+                            existingChild.TransportModeId = incoming.TransportModeId;
+                            existingChild.VehicleTypeId = incoming.VehicleTypeId;
+                            existingChild.DefaultFreightTypeId = incoming.DefaultFreightTypeId;
+                            existingChild.DefaultFreightRate = incoming.DefaultFreightRate;
+                            existingChild.LicenseNo = incoming.LicenseNo;
+                            existingChild.LicenseExpiryDate = incoming.LicenseExpiryDate;
+                            existingChild.VehicleNo = incoming.VehicleNo;
+                            existingChild.Status = incoming.Status;
+                        }
+                    }
+                    else
+                    {
+                        existingParty.TransportDetails ??= new List<TransportDetail>();
+                        existingParty.TransportDetails.Add(new TransportDetail
+                        {
+                            PartyId = existingParty.Id,
+                            TransportModeId = incoming.TransportModeId,
+                            VehicleTypeId = incoming.VehicleTypeId,
+                            DefaultFreightTypeId = incoming.DefaultFreightTypeId,
+                            DefaultFreightRate = incoming.DefaultFreightRate,
+                            LicenseNo = incoming.LicenseNo,
+                            LicenseExpiryDate = incoming.LicenseExpiryDate,
+                            VehicleNo = incoming.VehicleNo,
+                            Status = incoming.Status
+                        });
+
+                        await LogChange(existingParty.Id, "TransportDetail", "VehicleNo", "",
+                            incoming.VehicleNo ?? "", "Insert");
                     }
                 }
             }

@@ -43,13 +43,18 @@ namespace SalesManagement.Infrastructure.Repositories.DiscountMaster
 
             // Update header fields (DiscountCode is immutable — not updated)
             existing.DiscountName = entity.DiscountName;
-            existing.DiscountTypeId = entity.DiscountTypeId;
-            existing.ApplicableLevelId = entity.ApplicableLevelId;
             existing.TriggerEventId = entity.TriggerEventId;
+            existing.DiscountBasisId = entity.DiscountBasisId;
+            existing.ExecutionTypeId = entity.ExecutionTypeId;
+            existing.CurrencyId = entity.CurrencyId;
+            existing.CustomerGroupId = entity.CustomerGroupId;
+            existing.Priority = entity.Priority;
             existing.RequiresApproval = entity.RequiresApproval;
             existing.MaxDiscountLimitTypeId = entity.MaxDiscountLimitTypeId;
+            existing.MaxDiscountValue = entity.MaxDiscountValue;
+            existing.IsStackable = entity.IsStackable;
+            existing.ExclusionGroupId = entity.ExclusionGroupId;
             existing.ValueTypeId = entity.ValueTypeId;
-            existing.DiscountValue = entity.DiscountValue;
             existing.SlabTypeId = entity.SlabTypeId;
             existing.IsActive = entity.IsActive;
 

@@ -38,6 +38,11 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("int")
                 .IsRequired();
 
+            builder.Property(t => t.VariantId)
+                .HasColumnName("VariantId")
+                .HasColumnType("int")
+                .IsRequired(false);
+
             builder.Property(t => t.SalesSegmentId)
                 .HasColumnName("SalesSegmentId")
                 .HasColumnType("int")
@@ -66,6 +71,16 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             builder.Property(t => t.TolerancePercentage)
                 .HasColumnName("TolerancePercentage")
                 .HasColumnType("decimal(5,2)")
+                .IsRequired(false);
+
+            builder.Property(t => t.CharityValue)
+                .HasColumnName("CharityValue")
+                .HasColumnType("decimal(18,4)")
+                .IsRequired(false);
+
+            builder.Property(t => t.HandlingCharges)
+                .HasColumnName("HandlingCharges")
+                .HasColumnType("decimal(18,4)")
                 .IsRequired(false);
 
             builder.Property(t => t.StatusId)
@@ -98,7 +113,10 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             builder.HasIndex(t => t.PriceCode).IsUnique();
 
             // Composite index for overlap query performance
-            builder.HasIndex(t => new { t.ItemId, t.SalesSegmentId });
+            builder.HasIndex(t => new { t.ItemId, t.VariantId, t.SalesSegmentId });
+
+            // Index on VariantId for FK lookups
+            builder.HasIndex(t => t.VariantId);
 
             // Same-module FK — SalesSegment (DB constraint created)
             builder.HasOne(t => t.SalesSegment)
@@ -113,7 +131,7 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Cross-module FKs (ItemId, CurrencyId) — NO DB FK constraints
+            // Cross-module FKs (ItemId, VariantId, CurrencyId) — NO DB FK constraints
         }
     }
 }

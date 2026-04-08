@@ -21,13 +21,13 @@ namespace ProductionManagement.UnitTests.Application.ProductionPack.Commands
         private void SetupHappyPath(int newId = 1)
         {
             _mockIpService.Setup(s => s.GetUnitId()).Returns(1);
-            _mockMapper.Setup(m => m.Map<ProductionPackHeader>(It.IsAny<object>()))
-                .Returns(new ProductionPackHeader());
+            _mockMapper.Setup(m => m.Map<ProductionPackDetail>(It.IsAny<object>()))
+                .Returns(new ProductionPackDetail());
             _mockDocSeq.Setup(d => d.GetTransactionTypeIdAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()))
                 .ReturnsAsync(5);
             _mockDocSeq.Setup(d => d.GenerateDocumentNumber(5))
                 .ReturnsAsync(new List<string> { "PACK-001" });
-            _mockCommandRepo.Setup(r => r.CreateAsync(It.IsAny<ProductionPackHeader>(), 5))
+            _mockCommandRepo.Setup(r => r.CreateAsync(It.IsAny<ProductionPackDetail>(), 5))
                 .ReturnsAsync(newId);
             _mockMediator.Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);
@@ -57,7 +57,7 @@ namespace ProductionManagement.UnitTests.Application.ProductionPack.Commands
             SetupHappyPath();
             var cmd = new CreateProductionCommand { ProductionPackDetails = new CreateProductionDto() };
             await CreateSut().Handle(cmd, CancellationToken.None);
-            _mockCommandRepo.Verify(r => r.CreateAsync(It.IsAny<ProductionPackHeader>(), 5), Times.Once);
+            _mockCommandRepo.Verify(r => r.CreateAsync(It.IsAny<ProductionPackDetail>(), 5), Times.Once);
         }
     }
 }

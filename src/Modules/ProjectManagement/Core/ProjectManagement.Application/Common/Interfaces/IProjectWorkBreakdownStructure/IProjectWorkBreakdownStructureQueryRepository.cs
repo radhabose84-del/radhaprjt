@@ -14,5 +14,9 @@ namespace ProjectManagement.Application.Common.Interfaces.IProjectWorkBreakdownS
         Task<int> GetParentLevelAsync(int parentId);
         
         Task<List<ProjectWbsLookupDto>> GetWbsLookupAsync( int? projectId = null, CancellationToken ct = default);
+
+        Task<bool> NotFoundAsync(int id);
+
+        Task<bool> SoftDeleteValidationAsync(int id);
     }
 }

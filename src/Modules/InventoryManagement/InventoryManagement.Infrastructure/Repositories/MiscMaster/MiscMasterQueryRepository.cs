@@ -204,6 +204,9 @@ namespace InventoryManagement.Infrastructure.Repositories.MiscMaster
                     OR EXISTS (SELECT 1 FROM [Inventory].[ItemSale] WHERE ValuationMethodId = @id)
                     OR EXISTS (SELECT 1 FROM [Inventory].[ItemVariantAttribute] WHERE VariantBasedOn = @id)
                     OR EXISTS (SELECT 1 FROM [Inventory].[ItemVariantAttribute] WHERE AttributeId = @id)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[MrsHeader] WHERE RequestCategoryId = @id)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[MrsHeader] WHERE StatusId = @id)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[BudgetLog] WHERE ActionTypeId = @id)
                 THEN 1 ELSE 0 END;";
 
             var result = await _dbConnection.QueryFirstOrDefaultAsync<int>(query, new { id });
@@ -231,6 +234,9 @@ namespace InventoryManagement.Infrastructure.Repositories.MiscMaster
                     OR EXISTS (SELECT 1 FROM [Inventory].[ItemSale] WHERE ValuationMethodId = @id)
                     OR EXISTS (SELECT 1 FROM [Inventory].[ItemVariantAttribute] WHERE VariantBasedOn = @id)
                     OR EXISTS (SELECT 1 FROM [Inventory].[ItemVariantAttribute] WHERE AttributeId = @id)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[MrsHeader] WHERE RequestCategoryId = @id)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[MrsHeader] WHERE StatusId = @id)
+                    OR EXISTS (SELECT 1 FROM [Inventory].[BudgetLog] WHERE ActionTypeId = @id)
                 THEN 1 ELSE 0 END;";
 
             var result = await _dbConnection.QueryFirstOrDefaultAsync<int>(query, new { id });

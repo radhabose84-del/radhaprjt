@@ -8,4 +8,7 @@ public interface IBankMasterQueryRepository
     Task<bool> ExistsByBankCodeAsync(string name, int? excludeId, CancellationToken ct);
     Task<IReadOnlyList<PartyManagement.Domain.Entities.BankMaster>> GetAutocompleteAsync(string? search, CancellationToken ct);
     Task<string> GenerateBankCodeAsync(string bankName, CancellationToken ct);
+    Task<bool> NotFoundAsync(int id);
+    Task<bool> SoftDeleteValidationAsync(int id);
+    Task<bool> IsBankMasterLinkedAsync(int id);
 }

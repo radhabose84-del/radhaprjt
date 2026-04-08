@@ -31,7 +31,7 @@ namespace PartyManagement.Presentation.Validation.MiscTypeMaster
                     case "SoftDelete":
                          RuleFor(x => x.Id)
                       .MustAsync(async (Id, cancellation) => !await _miscTypeMasterQueryRepository.SoftDeleteValidation(Id))
-                        .WithMessage($"{rule.Error}");
+                        .WithMessage("This master is linked with other records. You cannot delete this record.");
                         break;
                         case "NotFound":
                            RuleFor(x => x.Id )

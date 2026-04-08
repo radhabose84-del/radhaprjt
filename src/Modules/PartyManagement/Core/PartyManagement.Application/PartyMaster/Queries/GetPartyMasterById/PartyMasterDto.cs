@@ -46,15 +46,14 @@ namespace PartyManagement.Application.PartyMaster.Queries.GetPartyMasterById
         public decimal? InsuranceLimit { get; set; }
         public byte IsPortalAccessEnabled { get; set; }
         public byte IsUpdate { get; set; }
-        public int? TransportModeId { get; set; }
-        public string? TransportModeName { get; set; }
-        public int? VehicleTypeId { get; set; }
-        public string? VehicleTypeName { get; set; }
-        public int? DefaultFreightTypeId { get; set; }
-        public string? DefaultFreightTypeName { get; set; }
-        public decimal? DefaultFreightRate { get; set; }
-        public string? LicenseNo { get; set; }
-        public DateTimeOffset? LicenseExpiryDate { get; set; }
+        public int? SalesFreightId { get; set; }
+        public string? SalesFreightModeName { get; set; }
+        public string? SalesRateMethodName { get; set; }
+        public decimal? SalesFreightRate { get; set; }
+        public int? PurchaseFreightId { get; set; }
+        public string? PurchaseFreightModeName { get; set; }
+        public string? PurchaseRateMethodName { get; set; }
+        public decimal? PurchaseFreightRate { get; set; }
         public string? FreightExpensesGl { get; set; }
         public List<PartyTypeDto>? PartyTypes { get; set; }
         public List<PartyContactDto>? PartyContacts { get; set; }
@@ -64,6 +63,7 @@ namespace PartyManagement.Application.PartyMaster.Queries.GetPartyMasterById
         public List<PartyUnitCompanyMappingDto>? PartyUnitCompanyMappings { get; set; }
         public List<SalesTypeDto>? SalesTypes { get; set; }
         public List<AgentConfigDto>? AgentConfigs { get; set; }
+        public List<TransportDetailDto>? TransportDetails { get; set; }
 
         public class PartyContactDto
         {
@@ -173,6 +173,23 @@ namespace PartyManagement.Application.PartyMaster.Queries.GetPartyMasterById
             public string? AgentPayableControlGl { get; set; }
             public decimal? TargetAmount { get; set; }
             public string? TargetPeriod { get; set; }
+            public byte Status { get; set; }
+        }
+
+        public class TransportDetailDto
+        {
+            public int Id { get; set; }
+            public int? PartyId { get; set; }
+            public int? TransportModeId { get; set; }
+            public string? TransportModeName { get; set; }
+            public int? VehicleTypeId { get; set; }
+            public string? VehicleTypeName { get; set; }
+            public int? DefaultFreightTypeId { get; set; }
+            public string? DefaultFreightTypeName { get; set; }
+            public decimal? DefaultFreightRate { get; set; }
+            public string? LicenseNo { get; set; }
+            public DateTimeOffset? LicenseExpiryDate { get; set; }
+            public string? VehicleNo { get; set; }
             public byte Status { get; set; }
         }
 

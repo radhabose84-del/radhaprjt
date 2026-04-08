@@ -9,5 +9,7 @@ namespace FinanceManagement.Application.Common.Interfaces.IEWaybillHeader
         Task<IReadOnlyList<EWaybillHeaderLookupDto>> AutocompleteAsync(string term, CancellationToken ct);
         Task<bool> EWBNumberExistsAsync(string ewbNumber, int? excludeId = null);
         Task<bool> NotFoundAsync(int id);
+        Task<bool> SoftDeleteValidationAsync(int id);
+        Task<bool> IsEWaybillHeaderLinkedAsync(int id);
     }
 }

@@ -130,6 +130,9 @@ namespace FinanceManagement.Infrastructure
 
             services.AddScoped<INicEInvoiceService, NicEInvoiceService>();
 
+            // Validation repositories — cross-module referential integrity (Rule 25)
+            services.AddScoped<Contracts.Interfaces.Validations.FinanceManagement.IPartyMasterFinanceValidation, Repositories.Validations.PartyMasterFinanceValidationRepository>();
+
             return services;
         }
     }

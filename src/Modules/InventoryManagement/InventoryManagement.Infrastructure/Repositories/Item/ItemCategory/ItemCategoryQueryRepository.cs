@@ -3,6 +3,7 @@ using System.Data;
 using InventoryManagement.Application.Common.Interfaces.Item.ItemCategory;
 using InventoryManagement.Application.Item.ItemCategory.Queries.GetItemCategory;
 using InventoryManagement.Application.Item.ItemCategory.Queries.GetItemCategoryAutoComplete;
+using Contracts.Interfaces.Validations.PurchaseManagement;
 using Dapper;
 
 namespace  InventoryManagement.Infrastructure.Repositories.Item.ItemCategory
@@ -10,10 +11,13 @@ namespace  InventoryManagement.Infrastructure.Repositories.Item.ItemCategory
     public class ItemCategoryQueryRepository : IItemCategoryQueryRepository
     {
         private readonly IDbConnection _dbConnection;
+        private readonly IPurchaseItemCategoryValidation _purchaseItemCategoryValidation;
 
-        public ItemCategoryQueryRepository(IDbConnection dbConnection)
+        public ItemCategoryQueryRepository(IDbConnection dbConnection,
+            IPurchaseItemCategoryValidation purchaseItemCategoryValidation)
         {
             _dbConnection = dbConnection;
+            _purchaseItemCategoryValidation = purchaseItemCategoryValidation;
         }
         public async Task<ItemCategoryDto> GetByIdAsync(int Id)
         {
@@ -130,7 +134,12 @@ namespace  InventoryManagement.Infrastructure.Repositories.Item.ItemCategory
                 THEN 1 ELSE 0 END;";
 
             var result = await _dbConnection.QueryFirstOrDefaultAsync<int>(query, new { Id });
-            return result == 1;
+            if (result == 1) return true;
+
+            // Cross-module check
+            if (await _purchaseItemCategoryValidation.HasLinkedItemCategoryAsync(Id)) return true;
+
+            return false;
         }
         public async Task<bool> NotFoundAsync(int Id)
         {
@@ -201,7 +210,12 @@ namespace  InventoryManagement.Infrastructure.Repositories.Item.ItemCategory
                 THEN 1 ELSE 0 END;";
 
             var result = await _dbConnection.QueryFirstOrDefaultAsync<int>(query, new { ItemCategoryId = itemCategoryId });
-            return result == 1;
+            if (result == 1) return true;
+
+            // Cross-module check
+            if (await _purchaseItemCategoryValidation.HasActiveItemCategoryAsync(itemCategoryId)) return true;
+
+            return false;
         }
     }
 }

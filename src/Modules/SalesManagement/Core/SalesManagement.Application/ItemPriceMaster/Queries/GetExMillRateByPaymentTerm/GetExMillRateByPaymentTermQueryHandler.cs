@@ -28,7 +28,7 @@ namespace SalesManagement.Application.ItemPriceMaster.Queries.GetExMillRateByPay
             GetExMillRateByPaymentTermQuery request,
             CancellationToken cancellationToken)
         {
-            var data = await _queryRepository.GetExMillRateByPaymentTermAsync(request.PaymentTermId, request.ItemId, request.SalesSegmentId);
+            var data = await _queryRepository.GetExMillRateByPaymentTermAsync(request.PaymentTermId, request.ItemId, request.Date, request.SalesSegmentId);
 
             var dtos = _mapper.Map<List<ExMillRateDto>>(data);
 

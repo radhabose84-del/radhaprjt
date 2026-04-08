@@ -20,9 +20,9 @@ namespace ProductionManagement.UnitTests.Application.ProductionPack.Commands
         private void SetupHappyPath()
         {
             _mockIpService.Setup(s => s.GetUnitId()).Returns(1);
-            _mockMapper.Setup(m => m.Map<ProductionPackHeader>(It.IsAny<object>()))
-                .Returns(new ProductionPackHeader());
-            _mockCommandRepo.Setup(r => r.UpdateAsync(It.IsAny<ProductionPackHeader>())).ReturnsAsync(1);
+            _mockMapper.Setup(m => m.Map<ProductionPackDetail>(It.IsAny<object>()))
+                .Returns(new ProductionPackDetail());
+            _mockCommandRepo.Setup(r => r.UpdateAsync(It.IsAny<ProductionPackDetail>())).ReturnsAsync(1);
             _mockMediator.Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);
         }
@@ -40,7 +40,7 @@ namespace ProductionManagement.UnitTests.Application.ProductionPack.Commands
         {
             SetupHappyPath();
             await CreateSut().Handle(new UpdateProductionCommand { ProductionPackDetails = new UpdateProductionDto() }, CancellationToken.None);
-            _mockCommandRepo.Verify(r => r.UpdateAsync(It.IsAny<ProductionPackHeader>()), Times.Once);
+            _mockCommandRepo.Verify(r => r.UpdateAsync(It.IsAny<ProductionPackDetail>()), Times.Once);
         }
 
         [Fact]

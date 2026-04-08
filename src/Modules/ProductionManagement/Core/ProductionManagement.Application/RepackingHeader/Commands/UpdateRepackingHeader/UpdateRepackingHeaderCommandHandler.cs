@@ -30,6 +30,14 @@ namespace ProductionManagement.Application.RepackingHeader.Commands.UpdateRepack
             UpdateRepackingHeaderCommand request,
             CancellationToken cancellationToken)
         {
+            if (request.IsActive == 0)
+            {
+                var isLinked = await _queryRepository.IsRepackingHeaderLinkedAsync(request.Id);
+                if (isLinked)
+                    throw new ExceptionRules(
+                        "This master is linked with other records. You cannot inactivate this record.");
+            }
+
             var entity = _mapper.Map<Domain.Entities.RepackingHeader>(request);
 
             var result = await _commandRepository.UpdateAsync(entity);
