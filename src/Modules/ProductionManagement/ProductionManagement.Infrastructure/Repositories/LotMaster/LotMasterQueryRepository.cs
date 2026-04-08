@@ -146,18 +146,21 @@ namespace ProductionManagement.Infrastructure.Repositories.LotMaster
         }
 
         public async Task<IReadOnlyList<LotMasterLookupDto>> AutocompleteAsync(
-            string term, CancellationToken ct)
+            string term, int? itemId, CancellationToken ct)
         {
-            const string sql = @"
+            var itemFilter = itemId.HasValue ? "AND lm.ItemId = @ItemId" : "";
+
+            var sql = $@"
                 SELECT TOP 20
                     lm.Id, lm.LotCode, lm.BatchNumber, lm.ItemId
                 FROM Production.LotMaster lm
                 WHERE lm.IsDeleted = 0 AND lm.IsActive = 1
                   AND (lm.LotCode LIKE @Term OR lm.BatchNumber LIKE @Term)
+                  {itemFilter}
                 ORDER BY lm.LotCode ASC";
 
             var result = (await _dbConnection.QueryAsync<LotMasterLookupDto>(
-                new CommandDefinition(sql, new { Term = $"%{term}%" }, cancellationToken: ct))).ToList();
+                new CommandDefinition(sql, new { Term = $"%{term}%", ItemId = itemId }, cancellationToken: ct))).ToList();
 
             if (result.Count > 0)
             {

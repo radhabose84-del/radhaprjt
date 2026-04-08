@@ -298,8 +298,10 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
         }
 
         public async Task<ProductionStockClosingDto?> GetPreviousDateClosingAsync(
-            int unitId, int itemId, int lotId, DateOnly docDate)
+            int itemId, int lotId, DateOnly docDate)
         {
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
+
             const string sql = @"
                 SELECT TOP 1
                     ClosingLooseKgs,

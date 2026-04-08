@@ -21,13 +21,13 @@ namespace ProductionManagement.Application.ProductionPack.Queries.GetPreviousDat
         public async Task<ProductionStockClosingDto?> Handle(GetPreviousDateClosingQuery request, CancellationToken cancellationToken)
         {
             var result = await _queryRepository.GetPreviousDateClosingAsync(
-                request.UnitId, request.ItemId, request.LotId, request.DocDate);
+                request.ItemId, request.LotId, request.DocDate);
 
             var domainEvent = new AuditLogsDomainEvent(
                 actionDetail: "GetPreviousDateClosing",
                 actionCode: "GetPreviousDateClosingQuery",
-                actionName: $"{request.UnitId}-{request.ItemId}-{request.LotId}",
-                details: $"Previous date closing for Unit {request.UnitId}, Item {request.ItemId}, Lot {request.LotId} before {request.DocDate} was fetched.",
+                actionName: $"{request.ItemId}-{request.LotId}",
+                details: $"Previous date closing for Item {request.ItemId}, Lot {request.LotId} before {request.DocDate} was fetched.",
                 module: "Production"
             );
             await _mediator.Publish(domainEvent, cancellationToken);
