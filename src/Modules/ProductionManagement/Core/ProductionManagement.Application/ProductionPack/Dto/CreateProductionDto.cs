@@ -17,6 +17,8 @@ namespace ProductionManagement.Application.ProductionPack.Dto
         public int? EndPackNo { get; set; }
 
         // Totals
+        public decimal OpeningLooseKgs { get; set; }
+        public decimal TotalProductionKgs { get; set; }
         public int TotalBags { get; set; }
         public decimal TotalNetWeight { get; set; }
         public decimal ProductionKgs { get; set; }

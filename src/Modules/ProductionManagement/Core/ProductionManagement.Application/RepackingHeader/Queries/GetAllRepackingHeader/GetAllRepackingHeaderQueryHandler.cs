@@ -29,7 +29,7 @@ namespace ProductionManagement.Application.RepackingHeader.Queries.GetAllRepacki
             CancellationToken cancellationToken)
         {
             var (data, totalCount) = await _queryRepository.GetAllAsync(
-                request.PageNumber, request.PageSize, request.SearchTerm, request.TypeId);
+                request.PageNumber, request.PageSize, request.SearchTerm);
 
             var domainEvent = new AuditLogsDomainEvent(
                 actionDetail: "GetAllRepackingHeaderQuery",

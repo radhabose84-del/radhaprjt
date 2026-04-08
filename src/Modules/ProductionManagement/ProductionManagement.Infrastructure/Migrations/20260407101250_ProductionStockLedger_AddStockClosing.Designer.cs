@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ProductionManagement.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using ProductionManagement.Infrastructure.Data;
 namespace ProductionManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260407101250_ProductionStockLedger_AddStockClosing")]
+    partial class ProductionStockLedger_AddStockClosing
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -674,10 +677,6 @@ namespace ProductionManagement.Infrastructure.Migrations
                         .HasColumnType("decimal(18,3)")
                         .HasColumnName("NetWeightPerPack");
 
-                    b.Property<decimal>("OpeningLooseKgs")
-                        .HasColumnType("decimal(18,3)")
-                        .HasColumnName("OpeningLooseKgs");
-
                     b.Property<DateTime>("PackDate")
                         .HasColumnType("date")
                         .HasColumnName("PackDate");
@@ -717,10 +716,6 @@ namespace ProductionManagement.Infrastructure.Migrations
                     b.Property<decimal>("TotalNetWeight")
                         .HasColumnType("decimal(18,3)")
                         .HasColumnName("TotalNetWeight");
-
-                    b.Property<decimal>("TotalProductionKgs")
-                        .HasColumnType("decimal(18,3)")
-                        .HasColumnName("TotalProductionKgs");
 
                     b.Property<int>("UnitId")
                         .HasColumnType("int")
@@ -778,6 +773,10 @@ namespace ProductionManagement.Infrastructure.Migrations
                         .HasColumnType("date")
                         .HasColumnName("DocDate");
 
+                    b.Property<int>("DocTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("DocTypeId");
+
                     b.Property<int>("ItemId")
                         .HasColumnType("int")
                         .HasColumnName("ItemId");
@@ -829,6 +828,8 @@ namespace ProductionManagement.Infrastructure.Migrations
                         .HasColumnName("UnitId");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("DocTypeId");
 
                     b.HasIndex("UnitId", "ItemId", "LotId", "DocDate", "Id");
 

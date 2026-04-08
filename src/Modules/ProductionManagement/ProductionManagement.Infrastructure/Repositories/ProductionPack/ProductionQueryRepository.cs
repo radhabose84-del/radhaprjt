@@ -59,10 +59,10 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
                     h.UnitId, h.WarehouseId,
                     h.ItemId, h.LotId, h.PackTypeId, h.NetWeightPerPack,
                     h.StartPackNo, h.EndPackNo,
+                    h.OpeningLooseKgs, h.TotalProductionKgs,
                     h.TotalBags, h.TotalNetWeight,
                     h.ProductionKgs, h.LooseConeKgs,
                     h.BinId, h.QualityStatusId,
-                    h.StockClosing,
                     h.Remarks,
                     h.IsActive, h.IsDeleted,
                     h.CreatedBy, h.CreatedDate, h.CreatedByName,
@@ -130,10 +130,10 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
                     h.UnitId, h.WarehouseId,
                     h.ItemId, h.LotId, h.PackTypeId, h.NetWeightPerPack,
                     h.StartPackNo, h.EndPackNo,
+                    h.OpeningLooseKgs, h.TotalProductionKgs,
                     h.TotalBags, h.TotalNetWeight,
                     h.ProductionKgs, h.LooseConeKgs,
                     h.BinId, h.QualityStatusId,
-                    h.StockClosing,
                     h.Remarks,
                     h.IsActive, h.IsDeleted,
                     h.CreatedBy, h.CreatedDate, h.CreatedByName,
@@ -296,5 +296,80 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
                 ExcludeId   = excludeId
             });
         }
+
+        public async Task<ProductionStockClosingDto?> GetPreviousDateClosingAsync(
+            int unitId, int itemId, int lotId, DateOnly docDate)
+        {
+            const string sql = @"
+                SELECT TOP 1
+                    ClosingLooseKgs,
+                    ClosingPackKgs,
+                    ClosingBags
+                FROM Production.ProductionStockLedger
+                WHERE UnitId = @UnitId AND ItemId = @ItemId AND LotId = @LotId
+                    AND DocDate < @DocDate
+                ORDER BY DocDate DESC, Id DESC";
+
+            return await _dbConnection.QueryFirstOrDefaultAsync<ProductionStockClosingDto>(
+                sql, new { UnitId = unitId, ItemId = itemId, LotId = lotId, DocDate = docDate.ToDateTime(TimeOnly.MinValue) });
+        }
+
+        public async Task<List<ProductionStockRegisterDto>> GetProductionStockRegisterAsync(
+            DateOnly fromDate, DateOnly toDate, int? lotId, int? itemId)
+        {
+            var unitId = _ipAddressService.GetUnitId();
+            var unitFilter = unitId.HasValue ? "AND sl.UnitId = @UnitId" : "";
+            var lotFilter = lotId.HasValue ? "AND sl.LotId = @LotId" : "";
+            var itemFilter = itemId.HasValue ? "AND sl.ItemId = @ItemId" : "";
+
+            var sql = $@"
+                SELECT sl.Id, sl.UnitId, sl.ItemId, sl.LotId,
+                    sl.DocDate,
+                    sl.OpeningLooseKgs, sl.ProdKgs, sl.TotalProdKgs,
+                    sl.PackTypeId, sl.NetWeightPerPack,
+                    sl.TotalBags, sl.NetWeight,
+                    sl.BagsRepacked, sl.RepackKgs,
+                    sl.ClosingLooseKgs, sl.ClosingPackKgs, sl.ClosingBags,
+                    sl.StockClosing,
+                    lm.LotCode,
+                    pt.PackTypeName
+                FROM Production.ProductionStockLedger sl
+                LEFT JOIN Production.LotMaster lm ON sl.LotId = lm.Id AND lm.IsDeleted = 0
+                LEFT JOIN Production.PackType pt ON sl.PackTypeId = pt.Id AND pt.IsDeleted = 0
+                WHERE sl.DocDate >= @FromDate AND sl.DocDate <= @ToDate
+                    {unitFilter} {lotFilter} {itemFilter}
+                ORDER BY sl.ItemId, sl.LotId, sl.DocDate, sl.Id";
+
+            var parameters = new
+            {
+                FromDate = fromDate.ToDateTime(TimeOnly.MinValue),
+                ToDate   = toDate.ToDateTime(TimeOnly.MinValue),
+                UnitId   = unitId,
+                LotId    = lotId,
+                ItemId   = itemId
+            };
+
+            var list = (await _dbConnection.QueryAsync<ProductionStockRegisterDto>(sql, parameters)).ToList();
+
+            if (list.Count > 0)
+            {
+                var unitIds = list.Select(x => x.UnitId).Distinct();
+                var units = await _unitLookup.GetByIdsAsync(unitIds);
+                var unitDict = units.ToDictionary(u => u.UnitId, u => u.UnitName);
+
+                var itemIds = list.Select(x => x.ItemId).Distinct();
+                var items = await _itemLookup.GetByIdsAsync(itemIds);
+                var itemDict = items.ToDictionary(i => i.Id, i => i.ItemName);
+
+                foreach (var item in list)
+                {
+                    item.UnitName = unitDict.TryGetValue(item.UnitId, out var uName) ? uName : null;
+                    item.ItemName = itemDict.TryGetValue(item.ItemId, out var iName) ? iName : null;
+                }
+            }
+
+            return list;
+        }
+
     }
 }
