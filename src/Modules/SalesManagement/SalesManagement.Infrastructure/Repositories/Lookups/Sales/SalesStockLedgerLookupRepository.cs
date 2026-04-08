@@ -188,56 +188,99 @@ internal sealed class SalesStockLedgerLookupRepository : ISalesStockLedgerServic
         int itemId, int? lotId, int productionYear, int unitId,
         CancellationToken ct = default)
     {
-        const string sql = @"
-            SELECT
-                sl.LotId,
-                sl.PackTypeId,
-                COUNT(sl.PackNo)   AS TotalBags,
-                SUM(sl.TotalValue) AS NetWeight
-            FROM Sales.StockLedger sl
-            INNER JOIN Sales.MiscMaster mm ON sl.StatusId = mm.Id AND mm.IsDeleted = 0
-            WHERE mm.Description   = 'Packed'
-              AND sl.ItemId        = @ItemId
-              AND YEAR(sl.DocDate) = @ProductionYear
-              AND sl.UnitId        = @UnitId
-              AND (@LotId IS NULL OR sl.LotId = @LotId)
-            GROUP BY sl.LotId, sl.PackTypeId
-            ORDER BY sl.LotId, sl.PackTypeId;";
-
         var dp = new DynamicParameters();
         dp.Add("ItemId", itemId);
-        dp.Add("LotId", lotId);
         dp.Add("ProductionYear", productionYear);
         dp.Add("UnitId", unitId);
 
-        var items = (await _dbConnection.QueryAsync<StockPackSummaryDto>(sql, dp)).ToList();
-
-        if (items.Count > 0)
+        if (lotId == null)
         {
-            var lotIds = items.Select(x => x.LotId).Distinct();
-            var packTypeIds = items.Select(x => x.PackTypeId).Distinct();
+            // Mode 1: Lot-level summary — GROUP BY LotId only
+            const string lotSql = @"
+                SELECT
+                    sl.LotId,
+                    COUNT(sl.PackNo)   AS TotalBags,
+                    SUM(sl.TotalValue) AS NetWeight
+                FROM Sales.StockLedger sl
+                INNER JOIN Sales.MiscMaster mm ON sl.StatusId = mm.Id AND mm.IsDeleted = 0
+                WHERE mm.Description   = 'Packed'
+                  AND sl.ItemId        = @ItemId
+                  AND YEAR(sl.DocDate) = @ProductionYear
+                  AND sl.UnitId        = @UnitId
+                GROUP BY sl.LotId
+                ORDER BY sl.LotId;";
 
-            var lotLookup = await _lotMasterLookup.GetByIdsAsync(lotIds, ct);
-            var packTypeLookup = await _packTypeLookup.GetByIdsAsync(packTypeIds, ct);
+            var items = (await _dbConnection.QueryAsync<StockPackSummaryDto>(lotSql, dp)).ToList();
 
-            var lotDict = lotLookup.ToDictionary(x => x.Id);
-            var packTypeDict = packTypeLookup.ToDictionary(x => x.Id);
-
-            foreach (var item in items)
+            if (items.Count > 0)
             {
-                if (lotDict.TryGetValue(item.LotId, out var lot))
+                var lotIds = items.Select(x => x.LotId).Distinct();
+                var lotLookup = await _lotMasterLookup.GetByIdsAsync(lotIds, ct);
+                var lotDict = lotLookup.ToDictionary(x => x.Id);
+
+                foreach (var item in items)
                 {
-                    item.LotCode = lot.LotCode;
-                    item.BatchNumber = lot.BatchNumber;
-                }
-                if (packTypeDict.TryGetValue(item.PackTypeId, out var pt))
-                {
-                    item.PackTypeCode = pt.PackTypeCode;
-                    item.PackTypeName = pt.PackTypeName;
+                    if (lotDict.TryGetValue(item.LotId, out var lot))
+                    {
+                        item.LotCode = lot.LotCode;
+                        item.BatchNumber = lot.BatchNumber;
+                    }
                 }
             }
-        }
 
-        return items.AsReadOnly();
+            return items.AsReadOnly();
+        }
+        else
+        {
+            // Mode 2: PackType-level details for a specific lot
+            dp.Add("LotId", lotId);
+
+            const string packTypeSql = @"
+                SELECT
+                    sl.LotId,
+                    sl.PackTypeId,
+                    COUNT(sl.PackNo)   AS TotalBags,
+                    SUM(sl.TotalValue) AS NetWeight
+                FROM Sales.StockLedger sl
+                INNER JOIN Sales.MiscMaster mm ON sl.StatusId = mm.Id AND mm.IsDeleted = 0
+                WHERE mm.Description   = 'Packed'
+                  AND sl.ItemId        = @ItemId
+                  AND sl.LotId         = @LotId
+                  AND YEAR(sl.DocDate) = @ProductionYear
+                  AND sl.UnitId        = @UnitId
+                GROUP BY sl.LotId, sl.PackTypeId
+                ORDER BY sl.PackTypeId;";
+
+            var items = (await _dbConnection.QueryAsync<StockPackSummaryDto>(packTypeSql, dp)).ToList();
+
+            if (items.Count > 0)
+            {
+                var lotLookup = await _lotMasterLookup.GetByIdsAsync([lotId.Value], ct);
+                var lotInfo = lotLookup.Count > 0 ? lotLookup[0] : null;
+
+                var packTypeIds = items.Select(x => x.PackTypeId).Distinct();
+                var packTypeLookup = await _packTypeLookup.GetByIdsAsync(packTypeIds, ct);
+                var packTypeDict = packTypeLookup.ToDictionary(x => x.Id);
+
+                foreach (var item in items)
+                {
+                    if (lotInfo != null)
+                    {
+                        item.LotCode = lotInfo.LotCode;
+                        item.BatchNumber = lotInfo.BatchNumber;
+                    }
+                    if (packTypeDict.TryGetValue(item.PackTypeId, out var pt))
+                    {
+                        item.PackTypeCode = pt.PackTypeCode;
+                        item.PackTypeName = pt.PackTypeName;
+                        item.TareWeight = pt.TareWeight;
+                        item.GrossWeight = pt.GrossWeight;
+                        item.ConesPerBag = pt.ConesPerBag;
+                    }
+                }
+            }
+
+            return items.AsReadOnly();
+        }
     }
 }
