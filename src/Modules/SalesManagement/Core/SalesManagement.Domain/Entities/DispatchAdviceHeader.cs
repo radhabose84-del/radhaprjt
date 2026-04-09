@@ -12,7 +12,9 @@ namespace SalesManagement.Domain.Entities
         public decimal TotOrderQty { get; set; }
         public decimal TotDispatchedQty { get; set; }
         public decimal TotPendingQty { get; set; }
-        public int DispatchAddressId { get; set; }          // FK → Sales.DispatchAddressMaster
+        public int? DispatchAddressId { get; set; }          // FK → Sales.DispatchAddressMaster
+        public int DispatchTypeId { get; set; }             // FK → Sales.MiscMaster
+        public int FreightId { get; set; }                  // Cross-module FK → Logistics.FreightMaster
         public int? TransporterId { get; set; }             // Cross-module FK → PartyManagement (optional)
         public string? VehicleNo { get; set; }
         public string? DriverName { get; set; }
@@ -22,6 +24,7 @@ namespace SalesManagement.Domain.Entities
 
         // Same-module navigation properties
         public MiscMaster? StatusMisc { get; set; }
+        public MiscMaster? DispatchTypeMisc { get; set; }
         public SalesOrderHeader? SalesOrderHeader { get; set; }
         public DispatchAddressMaster? DispatchAddress { get; set; }
 

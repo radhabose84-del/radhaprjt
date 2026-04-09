@@ -3,17 +3,20 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SalesManagement.Infrastructure.Data;
 
 #nullable disable
 
-namespace SalesManagement.Infrastructure.Migrations
+namespace SalesManagement.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260409105921_AddDispatchTypeAndFreightToDispatchAdvice")]
+    partial class AddDispatchTypeAndFreightToDispatchAdvice
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -2503,6 +2506,9 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("DispatchTypeId");
 
+                    b.Property<int?>("DispatchTypeMiscId")
+                        .HasColumnType("int");
+
                     b.Property<string>("DriverName")
                         .HasColumnType("varchar(100)")
                         .HasColumnName("DriverName");
@@ -2594,6 +2600,8 @@ namespace SalesManagement.Infrastructure.Migrations
                         .IsUnique();
 
                     b.HasIndex("DispatchTypeId");
+
+                    b.HasIndex("DispatchTypeMiscId");
 
                     b.HasIndex("FreightId");
 
@@ -6437,9 +6445,7 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "DispatchTypeMisc")
                         .WithMany("DispatchAdviceHeadersAsDispatchType")
-                        .HasForeignKey("DispatchTypeId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .HasForeignKey("DispatchTypeMiscId");
 
                     b.HasOne("SalesManagement.Domain.Entities.SalesOrderHeader", "SalesOrderHeader")
                         .WithMany("DispatchAdviceHeaders")
