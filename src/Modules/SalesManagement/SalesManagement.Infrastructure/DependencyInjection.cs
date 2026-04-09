@@ -88,6 +88,8 @@ using SalesManagement.Application.Common.Interfaces.IAgentPortal;
 using SalesManagement.Infrastructure.Repositories.AgentPortal;
 using SalesManagement.Application.Common.Interfaces.IDiscountMaster;
 using SalesManagement.Infrastructure.Repositories.DiscountMaster;
+using SalesManagement.Application.Common.Interfaces.ICommissionSplit;
+using SalesManagement.Infrastructure.Repositories.CommissionSplit;
 using SalesManagement.Infrastructure.Repositories.ComplaintDepartmentFeedback;
 using SalesManagement.Infrastructure.Repositories.ComplaintResolution;
 using Contracts.Interfaces.Lookups.Sales;
@@ -321,6 +323,10 @@ namespace SalesManagement.Infrastructure
             services.AddScoped<IDiscountMasterCommandRepository, DiscountMasterCommandRepository>();
             services.AddScoped<IDiscountMasterQueryRepository, DiscountMasterQueryRepository>();
 
+            // ── Commission Split ──────────────────────────────────────────────
+            services.AddScoped<ICommissionSplitCommandRepository, CommissionSplitCommandRepository>();
+            services.AddScoped<ICommissionSplitQueryRepository, CommissionSplitQueryRepository>();
+
 
             // ── Stock Ledger Report Repository ───────────────────────────────────
             services.AddScoped<IStockLedgerReportRepository, StockLedgerReportRepository>();
@@ -330,6 +336,9 @@ namespace SalesManagement.Infrastructure
 
             // ── Sales MiscMaster Lookup (cross-module) ──────────────────────────
             services.AddScoped<ISalesMiscMasterLookup, SalesMiscMasterLookupRepository>();
+
+            // ── Commission Split Lookup (cross-module) ──────────────────────────
+            services.AddScoped<ICommissionSplitLookup, CommissionSplitLookupRepository>();
 
             // ── Sales Invoice Lookup (cross-module, for Finance EInvoice creation) ──
             services.AddScoped<ISalesInvoiceLookup, SalesInvoiceLookupRepository>();

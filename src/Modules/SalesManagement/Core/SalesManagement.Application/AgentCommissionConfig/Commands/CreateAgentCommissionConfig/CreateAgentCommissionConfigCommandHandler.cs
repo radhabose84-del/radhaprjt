@@ -2,7 +2,9 @@ using AutoMapper;
 using Contracts.Common;
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.IAgentCommissionConfig;
+using SalesManagement.Domain.Entities;
 using SalesManagement.Domain.Events;
+using static SalesManagement.Domain.Common.BaseEntity;
 
 namespace SalesManagement.Application.AgentCommissionConfig.Commands.CreateAgentCommissionConfig
 {
@@ -31,6 +33,45 @@ namespace SalesManagement.Application.AgentCommissionConfig.Commands.CreateAgent
             CancellationToken cancellationToken)
         {
             var entity = _mapper.Map<Domain.Entities.AgentCommissionConfig>(request);
+
+            // Build child collections
+            if (request.SalesGroupIds != null && request.SalesGroupIds.Any())
+            {
+                entity.AgentCommissionSalesGroups = request.SalesGroupIds.Select(sgId =>
+                    new AgentCommissionSalesGroup
+                    {
+                        SalesGroupId = sgId,
+                        IsActive = Status.Active,
+                        IsDeleted = IsDelete.NotDeleted
+                    }).ToList();
+            }
+
+            if (request.PaymentTermIds != null && request.PaymentTermIds.Any())
+            {
+                entity.AgentCommissionPaymentTerms = request.PaymentTermIds.Select(ptId =>
+                    new AgentCommissionPaymentTerm
+                    {
+                        PaymentTermId = ptId,
+                        IsActive = Status.Active,
+                        IsDeleted = IsDelete.NotDeleted
+                    }).ToList();
+            }
+
+            if (request.Slabs != null && request.Slabs.Any())
+            {
+                entity.AgentCommissionSlabs = request.Slabs.Select(s =>
+                    new AgentCommissionSlab
+                    {
+                        SlabOrder = s.SlabOrder,
+                        FromDelay = s.FromDelay,
+                        ToDelay = s.ToDelay,
+                        CommissionTypeId = s.CommissionTypeId,
+                        CommissionBasisId = s.CommissionBasisId,
+                        CommissionValue = s.CommissionValue,
+                        IsActive = Status.Active,
+                        IsDeleted = IsDelete.NotDeleted
+                    }).ToList();
+            }
 
             var newId = await _commandRepository.CreateAsync(entity);
 

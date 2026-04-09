@@ -17,5 +17,6 @@ namespace SalesManagement.Domain.Entities
         // Reverse navigation
         public ICollection<SalesOrderHeader>? SalesOrderHeaders { get; set; }
         public ICollection<DiscountSalesGroup>? DiscountSalesGroups { get; set; }
+        public ICollection<AgentCommissionSalesGroup>? AgentCommissionSalesGroups { get; set; }
     }
 }
