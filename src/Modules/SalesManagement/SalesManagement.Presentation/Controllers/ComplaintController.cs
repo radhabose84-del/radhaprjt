@@ -14,6 +14,8 @@ using SalesManagement.Application.Complaint.Commands.UploadAttachment;
 using SalesManagement.Application.Complaint.Commands.DeleteAttachment;
 using SalesManagement.Application.Complaint.Queries.SearchInvoices;
 using SalesManagement.Application.Complaint.Queries.GetComplaintsForSalesReturn;
+using SalesManagement.Application.Complaint.Queries.GetPendingQCReview;
+using SalesManagement.Application.Complaint.Queries.GetPendingResolution;
 
 namespace SalesManagement.Presentation.Controllers
 {
@@ -51,7 +53,7 @@ namespace SalesManagement.Presentation.Controllers
             [FromQuery] int PageSize,
             [FromQuery] string? SearchTerm = null)
         {
-            var result = await Mediator.Send(new GetPendingComplaintQuery
+            var (items, total) = await Mediator.Send(new GetPendingComplaintQuery
             {
                 PageNumber = PageNumber,
                 PageSize = PageSize,
@@ -61,10 +63,10 @@ namespace SalesManagement.Presentation.Controllers
             return Ok(new
             {
                 StatusCode = StatusCodes.Status200OK,
-                data = result.Data,
-                TotalCount = result.TotalCount,
-                PageNumber = result.PageNumber,
-                PageSize = result.PageSize
+                data = items,
+                TotalCount = total,
+                PageNumber,
+                PageSize
             });
         }
 
@@ -208,6 +210,52 @@ namespace SalesManagement.Presentation.Controllers
             {
                 StatusCode = StatusCodes.Status200OK,
                 data = result
+            });
+        }
+
+        [HttpGet("pending-qcreview")]
+        public async Task<IActionResult> GetPendingQCReviewAsync(
+            [FromQuery] int PageNumber,
+            [FromQuery] int PageSize,
+            [FromQuery] string? SearchTerm = null)
+        {
+            var (items, total) = await Mediator.Send(new GetPendingQCReviewQuery
+            {
+                PageNumber = PageNumber,
+                PageSize = PageSize,
+                SearchTerm = SearchTerm
+            });
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = items,
+                TotalCount = total,
+                PageNumber,
+                PageSize
+            });
+        }
+
+        [HttpGet("pending-resolution")]
+        public async Task<IActionResult> GetPendingResolutionAsync(
+            [FromQuery] int PageNumber,
+            [FromQuery] int PageSize,
+            [FromQuery] string? SearchTerm = null)
+        {
+            var (items, total) = await Mediator.Send(new GetPendingResolutionQuery
+            {
+                PageNumber = PageNumber,
+                PageSize = PageSize,
+                SearchTerm = SearchTerm
+            });
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = items,
+                TotalCount = total,
+                PageNumber,
+                PageSize
             });
         }
     }

@@ -261,18 +261,19 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
 
             if (status == "Approved")
             {
-                // Resolution approved → set to Closed
-                var closedStatus = await _dbContext.MiscMaster
+                // Resolution approved → set to Open (Resolution In Progress)
+                // Complaint stays open so Sales Return can be created against it
+                var openStatus = await _dbContext.MiscMaster
                     .Include(m => m.MiscTypeMaster)
                     .FirstOrDefaultAsync(m =>
                         m.MiscTypeMaster != null &&
                         m.MiscTypeMaster.MiscTypeCode == "ClosureStatus" &&
-                        m.Code == "Closed" &&
+                        m.Code == "Open" &&
                         m.IsDeleted == IsDelete.NotDeleted, ct);
 
-                if (closedStatus != null)
+                if (openStatus != null)
                 {
-                    existing.StatusId = closedStatus.Id;
+                    existing.StatusId = openStatus.Id;
                     await _dbContext.SaveChangesAsync(ct);
                 }
             }
