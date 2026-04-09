@@ -347,7 +347,11 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             }
 
             var parties = await _partyLookup.GetByIdsAsync(new[] { header.PartyId });
-            header.PartyName = parties.FirstOrDefault()?.PartyName;
+            var partyDto = parties.FirstOrDefault();
+            header.PartyName = partyDto?.PartyName;
+            header.SalesFreightId = partyDto?.SalesFreightId;
+            header.SalesFreight = partyDto?.SalesFreight;
+            header.PartyAddresses = partyDto?.Addresses;
 
             if (header.AgentId.HasValue)
             {
