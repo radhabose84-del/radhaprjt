@@ -612,118 +612,170 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
             return (data, totalCount);
         }
 
-        public async Task<(List<ComplaintHeaderDto>, int)> GetPendingAsync(int pageNumber, int pageSize, string? searchTerm)
+        public async Task<(List<PendingQCReviewListDto>, int)> GetPendingQCReviewAsync(int pageNumber, int pageSize, string? searchTerm)
         {
-            var currentUserId = _ipAddressService.GetUserId();
-
-            // Get Pending status Id from ApprovalStatus MiscType (Sales module)
-            const string pendingIdSql = @"
-                SELECT m.Id FROM Sales.MiscMaster m
-                INNER JOIN Sales.MiscTypeMaster mt ON mt.Id = m.MiscTypeId AND mt.IsDeleted = 0
-                WHERE m.Code = 'Pending' AND mt.MiscTypeCode = 'ApprovalStatus' AND m.IsDeleted = 0;";
-
-            var pendingStatusId = await _dbConnection.ExecuteScalarAsync<int?>(pendingIdSql);
-            if (!pendingStatusId.HasValue)
-                return (new List<ComplaintHeaderDto>(), 0);
-
-            // Get Pending status Id from AppData MiscMaster (Workflow module)
-            const string appPendingIdSql = @"
-                SELECT m.Id FROM AppData.MiscMaster m
-                INNER JOIN AppData.MiscTypeMaster mt ON mt.Id = m.MiscTypeId AND mt.IsDeleted = 0
-                WHERE m.Code = 'Pending' AND mt.MiscTypeCode = 'ApprovalStatus' AND m.IsDeleted = 0;";
-
-            var appPendingStatusId = await _dbConnection.ExecuteScalarAsync<int?>(appPendingIdSql);
-            if (!appPendingStatusId.HasValue)
-                return (new List<ComplaintHeaderDto>(), 0);
-
             var searchFilter = string.IsNullOrWhiteSpace(searchTerm)
                 ? string.Empty
-                : @" AND (h.ComplaintNumber LIKE @SearchTerm
-                       OR ms.Description LIKE @SearchTerm
-                       OR h.Remarks LIKE @SearchTerm)";
+                : " AND (ch.ComplaintNumber LIKE @SearchTerm OR ch.Remarks LIKE @SearchTerm)";
 
-            // Filter by logged-in approver via AppData.ApprovalRequest
-            const string approverFilter = @"
-                AND h.Id IN (
-                    SELECT ar.ModuleTransactionId
-                    FROM AppData.ApprovalRequest ar
-                    WHERE ar.WorkflowType = 'Complaints'
-                      AND ar.ApproverValue = @CurrentUserId
-                      AND ar.StatusId = @AppPendingStatusId
-                )";
+            var sql = $@"
+                DECLARE @TotalCount INT;
+                SELECT @TotalCount = COUNT(*)
+                FROM Sales.ComplaintQCReview qr
+                INNER JOIN Sales.ComplaintHeader ch ON ch.Id = qr.ComplaintHeaderId AND ch.IsDeleted = 0
+                WHERE qr.IsDeleted = 0 {searchFilter};
 
-            var countSql = $@"
-                SELECT COUNT(*)
-                FROM Sales.ComplaintHeader h
-                LEFT JOIN Sales.MiscMaster ms ON h.StatusId = ms.Id AND ms.IsDeleted = 0
-                WHERE h.IsDeleted = 0 AND h.StatusId = @PendingStatusId {approverFilter} {searchFilter};";
-
-            var dataSql = $@"
                 SELECT
-                    h.Id,
-                    h.ComplaintNumber,
-                    h.ComplaintDate,
-                    h.CustomerId,
-                    h.CustomerAddress,
-                    h.CustomerPIN,
-                    h.CustomerMobile,
-                    h.CustomerEmail,
-                    h.CustomerPAN,
-                    h.CustomerGSTNo,
-                    h.CreditLimit,
-                    h.TotalOS,
-                    h.Outstanding,
-                    h.BalanceCredit,
-                    h.Delay,
-                    h.Ledger,
-                    h.StatusId,
-                    ms.Description AS StatusName,
-                    h.Remarks,
-                    h.IsActive,
-                    h.IsDeleted,
-                    h.CreatedBy,
-                    h.CreatedDate,
-                    h.CreatedByName,
-                    h.CreatedIP,
-                    h.ModifiedBy,
-                    h.ModifiedDate,
-                    h.ModifiedByName,
-                    h.ModifiedIP
-                FROM Sales.ComplaintHeader h
-                LEFT JOIN Sales.MiscMaster ms ON h.StatusId = ms.Id AND ms.IsDeleted = 0
-                WHERE h.IsDeleted = 0 AND h.StatusId = @PendingStatusId {approverFilter} {searchFilter}
-                ORDER BY h.Id DESC
-                OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;";
+                    qr.Id,
+                    qr.ComplaintHeaderId,
+                    ch.ComplaintNumber,
+                    ch.ComplaintDate,
+                    ch.CustomerId,
+                    pv.Description AS PhysicalVerificationName,
+                    qr.LabVerificationRequired,
+                    sv.Description AS SeverityName,
+                    qr.Comments,
+                    qr.CreatedByName,
+                    qr.CreatedDate
+                FROM Sales.ComplaintQCReview qr
+                INNER JOIN Sales.ComplaintHeader ch ON ch.Id = qr.ComplaintHeaderId AND ch.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster pv ON qr.PhysicalVerificationId = pv.Id AND pv.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster sv ON qr.SeverityId = sv.Id AND sv.IsDeleted = 0
+                WHERE qr.IsDeleted = 0 {searchFilter}
+                ORDER BY qr.Id DESC
+                OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
+
+                SELECT @TotalCount;";
 
             var parameters = new
             {
-                PendingStatusId = pendingStatusId.Value,
-                AppPendingStatusId = appPendingStatusId.Value,
-                CurrentUserId = currentUserId,
                 SearchTerm = $"%{searchTerm}%",
                 Offset = (pageNumber - 1) * pageSize,
                 PageSize = pageSize
             };
 
-            using var multi = await _dbConnection.QueryMultipleAsync(countSql + dataSql, parameters);
+            using var multi = await _dbConnection.QueryMultipleAsync(sql, parameters);
+            var data = (await multi.ReadAsync<PendingQCReviewListDto>()).ToList();
             var totalCount = await multi.ReadFirstAsync<int>();
-            var data = (await multi.ReadAsync<ComplaintHeaderDto>()).ToList();
 
-            // Populate cross-module customer name
             if (data.Count > 0)
             {
                 var partyIds = data.Select(d => d.CustomerId).Distinct();
                 var parties = await _partyLookup.GetByIdsAsync(partyIds);
-                var partyDict = parties.ToDictionary(p => p.Id, p => (p.PartyCode, p.PartyName));
-
+                var partyDict = parties.ToDictionary(p => p.Id, p => p.PartyName);
                 foreach (var item in data)
-                {
-                    if (partyDict.TryGetValue(item.CustomerId, out var partyInfo))
-                    {
-                        item.CustomerCode = partyInfo.PartyCode;
-                        item.CustomerName = partyInfo.PartyName;
-                    }
-                }
+                    item.CustomerName = partyDict.TryGetValue(item.CustomerId, out var name) ? name : null;
+            }
+
+            return (data, totalCount);
+        }
+
+        public async Task<(List<PendingResolutionListDto>, int)> GetPendingResolutionAsync(int pageNumber, int pageSize, string? searchTerm)
+        {
+            var searchFilter = string.IsNullOrWhiteSpace(searchTerm)
+                ? string.Empty
+                : " AND (ch.ComplaintNumber LIKE @SearchTerm OR ch.Remarks LIKE @SearchTerm)";
+
+            var sql = $@"
+                DECLARE @TotalCount INT;
+                SELECT @TotalCount = COUNT(*)
+                FROM Sales.ComplaintResolution cr
+                INNER JOIN Sales.ComplaintHeader ch ON ch.Id = cr.ComplaintHeaderId AND ch.IsDeleted = 0
+                WHERE cr.IsDeleted = 0 {searchFilter};
+
+                SELECT
+                    cr.Id,
+                    cr.ComplaintHeaderId,
+                    ch.ComplaintNumber,
+                    ch.ComplaintDate,
+                    ch.CustomerId,
+                    rt.Description AS ResolutionTypeName,
+                    cr.ResolutionSummary,
+                    cs.Description AS ClosureStatusName,
+                    cr.CreatedByName,
+                    cr.CreatedDate
+                FROM Sales.ComplaintResolution cr
+                INNER JOIN Sales.ComplaintHeader ch ON ch.Id = cr.ComplaintHeaderId AND ch.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster rt ON cr.ResolutionTypeId = rt.Id AND rt.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster cs ON cr.ClosureStatusId = cs.Id AND cs.IsDeleted = 0
+                WHERE cr.IsDeleted = 0 {searchFilter}
+                ORDER BY cr.Id DESC
+                OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
+
+                SELECT @TotalCount;";
+
+            var parameters = new
+            {
+                SearchTerm = $"%{searchTerm}%",
+                Offset = (pageNumber - 1) * pageSize,
+                PageSize = pageSize
+            };
+
+            using var multi = await _dbConnection.QueryMultipleAsync(sql, parameters);
+            var data = (await multi.ReadAsync<PendingResolutionListDto>()).ToList();
+            var totalCount = await multi.ReadFirstAsync<int>();
+
+            if (data.Count > 0)
+            {
+                var partyIds = data.Select(d => d.CustomerId).Distinct();
+                var parties = await _partyLookup.GetByIdsAsync(partyIds);
+                var partyDict = parties.ToDictionary(p => p.Id, p => p.PartyName);
+                foreach (var item in data)
+                    item.CustomerName = partyDict.TryGetValue(item.CustomerId, out var name) ? name : null;
+            }
+
+            return (data, totalCount);
+        }
+
+        public async Task<(List<PendingComplaintListDto>, int)> GetPendingComplaintsAsync(int pageNumber, int pageSize, string? searchTerm)
+        {
+            var searchFilter = string.IsNullOrWhiteSpace(searchTerm)
+                ? string.Empty
+                : " AND (h.ComplaintNumber LIKE @SearchTerm OR ms.Description LIKE @SearchTerm OR h.Remarks LIKE @SearchTerm)";
+
+            var sql = $@"
+                DECLARE @TotalCount INT;
+                SELECT @TotalCount = COUNT(*)
+                FROM Sales.ComplaintHeader h
+                LEFT JOIN Sales.MiscMaster ms ON h.StatusId = ms.Id AND ms.IsDeleted = 0
+                WHERE h.IsDeleted = 0 AND ms.Code = 'Pending' {searchFilter};
+
+                SELECT
+                    h.Id,
+                    h.ComplaintNumber,
+                    h.ComplaintDate,
+                    h.CustomerId,
+                    h.StatusId,
+                    ms.Description AS StatusName,
+                    h.Remarks,
+                    h.CreatedByName,
+                    h.CreatedDate
+                FROM Sales.ComplaintHeader h
+                LEFT JOIN Sales.MiscMaster ms ON h.StatusId = ms.Id AND ms.IsDeleted = 0
+                WHERE h.IsDeleted = 0 AND ms.Code = 'Pending' {searchFilter}
+                ORDER BY h.Id DESC
+                OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
+
+                SELECT @TotalCount;";
+
+            var parameters = new
+            {
+                SearchTerm = $"%{searchTerm}%",
+                Offset = (pageNumber - 1) * pageSize,
+                PageSize = pageSize
+            };
+
+            using var multi = await _dbConnection.QueryMultipleAsync(sql, parameters);
+            var data = (await multi.ReadAsync<PendingComplaintListDto>()).ToList();
+            var totalCount = await multi.ReadFirstAsync<int>();
+
+            if (data.Count > 0)
+            {
+                var partyIds = data.Select(d => d.CustomerId).Distinct();
+                var parties = await _partyLookup.GetByIdsAsync(partyIds);
+                var partyDict = parties.ToDictionary(p => p.Id, p => p.PartyName);
+                foreach (var item in data)
+                    item.CustomerName = partyDict.TryGetValue(item.CustomerId, out var name) ? name : null;
             }
 
             return (data, totalCount);
