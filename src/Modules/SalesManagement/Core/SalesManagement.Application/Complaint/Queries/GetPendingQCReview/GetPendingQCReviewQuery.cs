@@ -1,10 +1,10 @@
 using MediatR;
 using SalesManagement.Application.Complaint.Dto;
 
-namespace SalesManagement.Application.Complaint.Queries.GetPendingComplaint
+namespace SalesManagement.Application.Complaint.Queries.GetPendingQCReview
 {
-    public class GetPendingComplaintQuery
-        : IRequest<(List<PendingComplaintListDto> Items, int TotalCount)>
+    public class GetPendingQCReviewQuery
+        : IRequest<(List<PendingQCReviewListDto> Items, int TotalCount)>
     {
         public int PageNumber { get; set; }
         public int PageSize { get; set; }

@@ -1,3 +1,6 @@
+using Contracts.Dtos.Lookups.Logistics;
+using Contracts.Dtos.Lookups.Party;
+
 namespace SalesManagement.Application.SalesOrder.Dto
 {
     public class SalesOrderHeaderDto
@@ -21,6 +24,9 @@ namespace SalesManagement.Application.SalesOrder.Dto
         public int PartyId { get; set; }
         public string? PartyName { get; set; }
         public string? PartyAddress { get; set; }
+        public int? SalesFreightId { get; set; }
+        public FreightMasterLookupDto? SalesFreight { get; set; }
+        public List<PartyAddressLookupDto>? PartyAddresses { get; set; }
         public int? AgentId { get; set; }
         public string? AgentName { get; set; }
         public int? SubAgentId { get; set; }

@@ -7,10 +7,10 @@ using SalesManagement.Application.Complaint.Dto;
 using SalesManagement.Domain.Common;
 using SalesManagement.Domain.Events;
 
-namespace SalesManagement.Application.Complaint.Queries.GetPendingComplaint
+namespace SalesManagement.Application.Complaint.Queries.GetPendingResolution
 {
-    public class GetPendingComplaintQueryHandler
-        : IRequestHandler<GetPendingComplaintQuery, (List<PendingComplaintListDto> Items, int TotalCount)>
+    public class GetPendingResolutionQueryHandler
+        : IRequestHandler<GetPendingResolutionQuery, (List<PendingResolutionListDto> Items, int TotalCount)>
     {
         private readonly IComplaintQueryRepository _repo;
         private readonly IWorkflowLookup _workflowLookup;
@@ -18,7 +18,7 @@ namespace SalesManagement.Application.Complaint.Queries.GetPendingComplaint
         private readonly IIPAddressService _ipAddressService;
         private readonly IMediator _mediator;
 
-        public GetPendingComplaintQueryHandler(
+        public GetPendingResolutionQueryHandler(
             IComplaintQueryRepository repo,
             IWorkflowLookup workflowLookup,
             IUserLookup userLookup,
@@ -32,10 +32,10 @@ namespace SalesManagement.Application.Complaint.Queries.GetPendingComplaint
             _mediator = mediator;
         }
 
-        public async Task<(List<PendingComplaintListDto> Items, int TotalCount)> Handle(
-            GetPendingComplaintQuery request, CancellationToken ct)
+        public async Task<(List<PendingResolutionListDto> Items, int TotalCount)> Handle(
+            GetPendingResolutionQuery request, CancellationToken ct)
         {
-            var (pending, _) = await _repo.GetPendingComplaintsAsync(
+            var (pending, _) = await _repo.GetPendingResolutionAsync(
                 request.PageNumber, request.PageSize, request.SearchTerm);
 
             if (pending.Count == 0)
@@ -48,7 +48,7 @@ namespace SalesManagement.Application.Complaint.Queries.GetPendingComplaint
             var moduleIds = pending.Select(r => r.Id).Distinct().ToList();
 
             var wfApprovers = await _workflowLookup
-                .GetApproverListAsync(MiscEnumEntity.ComplaintModuleTypeName, moduleIds);
+                .GetApproverListAsync(MiscEnumEntity.ComplaintResolutionModuleTypeName, moduleIds);
 
             var allowedIds = wfApprovers
                 .Where(a => !string.IsNullOrWhiteSpace(a.ApproverValue)
@@ -105,11 +105,11 @@ namespace SalesManagement.Application.Complaint.Queries.GetPendingComplaint
             return (pending, pending.Count);
         }
 
-        private Task PublishAudit(int count, GetPendingComplaintQuery q, CancellationToken ct)
+        private Task PublishAudit(int count, GetPendingResolutionQuery q, CancellationToken ct)
             => _mediator.Publish(new AuditLogsDomainEvent(
                 actionDetail: "GetAll-Pending",
                 actionCode: string.Empty,
-                actionName: "ComplaintPending",
+                actionName: "ResolutionPending",
                 details: $"Fetched {count} rows. Page={q.PageNumber}, Size={q.PageSize}.",
                 module: "Complaint"), ct);
     }
