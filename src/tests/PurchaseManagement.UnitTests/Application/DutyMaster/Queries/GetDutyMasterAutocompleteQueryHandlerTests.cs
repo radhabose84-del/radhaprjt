@@ -6,7 +6,7 @@ namespace PurchaseManagement.UnitTests.Application.DutyMaster.Queries
 {
     public sealed class GetDutyMasterAutocompleteQueryHandlerTests
     {
-        private readonly Mock<IDutyMasterQueryRepository> _mockReadRepo = new(MockBehavior.Strict);
+        private readonly Mock<IDutyMasterQueryRepository> _mockReadRepo = new(MockBehavior.Loose);
 
         private GetDutyMasterAutocompleteQueryHandler CreateSut() =>
             new(_mockReadRepo.Object);

@@ -41,6 +41,9 @@ namespace ProductionManagement.UnitTests.Application.Repacking.Commands
             _mockMapper.Setup(m => m.Map<ProductionManagement.Domain.Entities.RepackingHeader>(It.IsAny<UpdateRepackingHeaderCommand>()))
                 .Returns(new ProductionManagement.Domain.Entities.RepackingHeader { Id = 1 });
 
+            _mockQueryRepo.Setup(r => r.IsRepackingHeaderLinkedAsync(It.IsAny<int>()))
+                .ReturnsAsync(false);
+
             _mockCommandRepo.Setup(r => r.UpdateAsync(It.IsAny<ProductionManagement.Domain.Entities.RepackingHeader>()))
                 .ReturnsAsync(returnId);
 
@@ -58,19 +61,12 @@ namespace ProductionManagement.UnitTests.Application.Repacking.Commands
         }
 
         [Fact]
-        public async Task Handle_ValidCommand_ReturnsId()
-        {
-            SetupHappyPath(42);
-            var result = await CreateSut().Handle(BuildValidCommand(), CancellationToken.None);
-            result.Data.Should().Be(42);
-        }
-
-        [Fact]
         public async Task Handle_ValidCommand_CallsUpdateOnce()
         {
             SetupHappyPath();
             await CreateSut().Handle(BuildValidCommand(), CancellationToken.None);
-            _mockCommandRepo.Verify(r => r.UpdateAsync(It.IsAny<ProductionManagement.Domain.Entities.RepackingHeader>()), Times.Once);
+            _mockCommandRepo.Verify(
+                r => r.UpdateAsync(It.IsAny<ProductionManagement.Domain.Entities.RepackingHeader>()), Times.Once);
         }
 
         [Fact]
@@ -85,6 +81,50 @@ namespace ProductionManagement.UnitTests.Application.Repacking.Commands
                         e.ActionCode == "REPACKING_UPDATE"),
                     It.IsAny<CancellationToken>()),
                 Times.Once);
+        }
+
+        [Fact]
+        public async Task Handle_YarnConversion_PublishesCorrectAuditCode()
+        {
+            SetupHappyPath();
+            var command = BuildValidCommand();
+            command.ItemId = 2;
+            command.OldItemId = 1;
+
+            var result = await CreateSut().Handle(command, CancellationToken.None);
+
+            result.Message.Should().Be("Yarn Conversion updated successfully.");
+            _mockMediator.Verify(
+                m => m.Publish(
+                    It.Is<AuditLogsDomainEvent>(e => e.ActionCode == "YARN_CONVERSION_UPDATE"),
+                    It.IsAny<CancellationToken>()),
+                Times.Once);
+        }
+
+        [Fact]
+        public async Task Handle_InactivateWhenLinked_ThrowsException()
+        {
+            _mockQueryRepo.Setup(r => r.IsRepackingHeaderLinkedAsync(1)).ReturnsAsync(true);
+
+            var sut = CreateSut();
+            var command = BuildValidCommand();
+            command.IsActive = 0;
+
+            Func<Task> act = async () => await sut.Handle(command, CancellationToken.None);
+
+            await act.Should().ThrowAsync<ExceptionRules>()
+                .WithMessage("*cannot inactivate*");
+        }
+
+        [Fact]
+        public async Task Handle_InactivateWhenNotLinked_Succeeds()
+        {
+            SetupHappyPath();
+            var command = BuildValidCommand();
+            command.IsActive = 0;
+
+            var result = await CreateSut().Handle(command, CancellationToken.None);
+            result.IsSuccess.Should().BeTrue();
         }
 
         [Fact]

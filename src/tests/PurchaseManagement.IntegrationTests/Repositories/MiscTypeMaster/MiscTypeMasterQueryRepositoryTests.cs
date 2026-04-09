@@ -42,6 +42,8 @@ namespace PurchaseManagement.IntegrationTests.Repositories.MiscTypeMaster
             await conn.OpenAsync();
             await conn.ExecuteAsync("DELETE FROM Purchase.PortMaster");
             await conn.ExecuteAsync("DELETE FROM Purchase.DutyMaster");
+            await conn.ExecuteAsync("DELETE FROM Purchase.PriceMasterDetail");
+            await conn.ExecuteAsync("DELETE FROM Purchase.PriceMasterHeader");
             await conn.ExecuteAsync("DELETE FROM Purchase.MiscMaster");
             await conn.ExecuteAsync("DELETE FROM [Purchase].[MiscTypeMaster]");
         }

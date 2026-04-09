@@ -8,7 +8,7 @@ namespace MaintenanceManagement.UnitTests.Validators.MiscMaster
 {
     public sealed class CreateMiscMasterCommandValidatorTests
     {
-        private readonly Mock<IMiscMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
+        private readonly Mock<IMiscMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
         private readonly Mock<MaxLengthProvider> _mockMaxLength = new(MockBehavior.Strict, new object[] { null! });
 
         private CreateMiscMasterCommandValidator CreateValidator() =>

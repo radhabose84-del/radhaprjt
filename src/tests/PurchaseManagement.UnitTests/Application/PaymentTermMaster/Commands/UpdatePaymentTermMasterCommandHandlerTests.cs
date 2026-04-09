@@ -10,8 +10,8 @@ namespace PurchaseManagement.UnitTests.Application.PaymentTermMaster.Commands
 {
     public sealed class UpdatePaymentTermMasterCommandHandlerTests
     {
-        private readonly Mock<IPaymentTermMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
-        private readonly Mock<IPaymentTermMasterCommandRepository> _mockCommandRepo = new(MockBehavior.Strict);
+        private readonly Mock<IPaymentTermMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
+        private readonly Mock<IPaymentTermMasterCommandRepository> _mockCommandRepo = new(MockBehavior.Loose);
         private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Loose);
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Loose);
 

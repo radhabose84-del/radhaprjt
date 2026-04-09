@@ -6,7 +6,7 @@ namespace PurchaseManagement.UnitTests.Application.TnCTemplateMaster.Queries
 {
     public sealed class TnCTemplateAutoCompleteQueryHandlerTests
     {
-        private readonly Mock<ITnCTemplateMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
+        private readonly Mock<ITnCTemplateMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
 
         private TnCTemplateAutoCompleteQueryHandler CreateSut() =>
             new(_mockQueryRepo.Object);

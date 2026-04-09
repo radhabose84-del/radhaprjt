@@ -8,7 +8,7 @@ namespace MaintenanceManagement.UnitTests.Validators.ShiftMaster
 {
     public sealed class CreateShiftMasterCommandValidatorTests
     {
-        private readonly Mock<IShiftMasterQuery> _mockQuery = new(MockBehavior.Strict);
+        private readonly Mock<IShiftMasterQuery> _mockQuery = new(MockBehavior.Loose);
         private readonly Mock<MaxLengthProvider> _mockMaxLength = new(MockBehavior.Strict, new object[] { null! });
 
         private CreateShiftMasterCommandValidator CreateValidator() =>

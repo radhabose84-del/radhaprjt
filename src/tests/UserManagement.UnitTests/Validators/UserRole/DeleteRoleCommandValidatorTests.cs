@@ -28,6 +28,7 @@ namespace UserManagement.UnitTests.Validators.UserRole
         [Fact]
         public async Task ZeroId_FailsValidation()
         {
+            _mockQueryRepo.Setup(r => r.SoftDeleteValidation(0)).ReturnsAsync(false);
             var result = await CreateValidator().TestValidateAsync(new DeleteRoleCommand { Id = 0 });
             result.ShouldHaveValidationErrorFor(x => x.Id);
         }

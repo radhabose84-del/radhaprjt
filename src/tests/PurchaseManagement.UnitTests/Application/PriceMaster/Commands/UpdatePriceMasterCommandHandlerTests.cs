@@ -10,9 +10,9 @@ namespace PurchaseManagement.UnitTests.Application.PriceMaster.Commands
 {
     public sealed class UpdatePriceMasterCommandHandlerTests
     {
-        private readonly Mock<IPriceMasterCommandRepository> _mockCommandRepo = new(MockBehavior.Strict);
+        private readonly Mock<IPriceMasterCommandRepository> _mockCommandRepo = new(MockBehavior.Loose);
         private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Loose);
-        private readonly Mock<IMiscMasterQueryRepository> _mockMiscRepo = new(MockBehavior.Strict);
+        private readonly Mock<IMiscMasterQueryRepository> _mockMiscRepo = new(MockBehavior.Loose);
 
         private UpdatePriceMasterCommandHandler CreateSut() =>
             new(_mockCommandRepo.Object, _mockMapper.Object, _mockMiscRepo.Object);

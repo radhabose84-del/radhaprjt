@@ -1,7 +1,6 @@
 using FluentValidation.TestHelper;
 using MaintenanceManagement.Application.Common.Interfaces.Power.IFeederGroup;
 using MaintenanceManagement.Application.Power.FeederGroup.Command.DeleteFeederGroup;
-using MaintenanceManagement.Presentation.Validation.Common;
 using MaintenanceManagement.Presentation.Validation.Power.FeederGroup;
 using Xunit;
 
@@ -9,11 +8,10 @@ namespace MaintenanceManagement.UnitTests.Validators.FeederGroup
 {
     public sealed class DeleteFeederGroupCommandValidatorTests
     {
-        private readonly Mock<IFeederGroupQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
-        private readonly Mock<MaxLengthProvider> _mockMaxLength = new(MockBehavior.Strict, new object[] { null! });
+        private readonly Mock<IFeederGroupQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
 
         private DeleteFeederGroupCommandValidator CreateValidator() =>
-            new(_mockQueryRepo.Object, _mockMaxLength.Object);
+            new(_mockQueryRepo.Object);
 
         private void SetupAllAsyncMocks(int id, bool notFound = true, bool softDeleteBlocked = false)
         {

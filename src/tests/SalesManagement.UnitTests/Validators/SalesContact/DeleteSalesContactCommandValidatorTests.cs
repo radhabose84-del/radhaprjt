@@ -28,6 +28,7 @@ namespace SalesManagement.UnitTests.Validators.SalesContact
         [Fact]
         public async Task ZeroId_FailsValidation()
         {
+            _mockQueryRepo.Setup(r => r.NotFoundAsync(0)).ReturnsAsync(true);
             var result = await CreateValidator().TestValidateAsync(new DeleteSalesContactCommand(0));
             result.ShouldHaveValidationErrorFor(x => x.Id);
         }

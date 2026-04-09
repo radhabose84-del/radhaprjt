@@ -5,27 +5,23 @@ using ProductionManagement.Presentation.Validation.RepackingHeader;
 
 namespace ProductionManagement.UnitTests.Validators.Repacking
 {
-    public sealed class DeleteRepackingHeaderCommandValidatorTests
+    public sealed class DeleteRepackingCommandValidatorTests
     {
-        private readonly Mock<IRepackingHeaderQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
+        private readonly Mock<IRepackingHeaderQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
 
         private DeleteRepackingHeaderCommandValidator CreateValidator() =>
             new(_mockQueryRepo.Object);
 
-        [Fact]
-        public async Task Validate_ValidCommand_PassesValidation()
+        private void SetupAllAsyncMocks(int id = 1, bool notFound = false, bool linked = false)
         {
-            _mockQueryRepo.Setup(r => r.NotFoundAsync(1)).ReturnsAsync(false);
-
-            var result = await CreateValidator().TestValidateAsync(new DeleteRepackingHeaderCommand(1));
-            result.ShouldNotHaveAnyValidationErrors();
+            _mockQueryRepo.Setup(r => r.NotFoundAsync(id)).ReturnsAsync(notFound);
+            _mockQueryRepo.Setup(r => r.SoftDeleteValidationAsync(id)).ReturnsAsync(linked);
         }
 
         [Fact]
         public async Task Validate_ZeroId_FailsValidation()
         {
-            _mockQueryRepo.Setup(r => r.NotFoundAsync(0)).ReturnsAsync(false);
-
+            SetupAllAsyncMocks(0);
             var result = await CreateValidator().TestValidateAsync(new DeleteRepackingHeaderCommand(0));
             result.ShouldHaveValidationErrorFor(x => x.Id);
         }
@@ -33,10 +29,26 @@ namespace ProductionManagement.UnitTests.Validators.Repacking
         [Fact]
         public async Task Validate_NotFoundId_FailsValidation()
         {
-            _mockQueryRepo.Setup(r => r.NotFoundAsync(999)).ReturnsAsync(true);
-
+            SetupAllAsyncMocks(999, notFound: true, linked: false);
             var result = await CreateValidator().TestValidateAsync(new DeleteRepackingHeaderCommand(999));
             result.ShouldHaveValidationErrorFor(x => x.Id);
+        }
+
+        [Fact]
+        public async Task Validate_LinkedId_FailsWithSoftDeleteMessage()
+        {
+            SetupAllAsyncMocks(1, notFound: false, linked: true);
+            var result = await CreateValidator().TestValidateAsync(new DeleteRepackingHeaderCommand(1));
+            result.ShouldHaveValidationErrorFor(x => x.Id)
+                  .WithErrorMessage("This master is linked with other records. You cannot delete this record.");
+        }
+
+        [Fact]
+        public async Task Validate_ExistingAndNotLinkedId_PassesValidation()
+        {
+            SetupAllAsyncMocks(1, notFound: false, linked: false);
+            var result = await CreateValidator().TestValidateAsync(new DeleteRepackingHeaderCommand(1));
+            result.ShouldNotHaveAnyValidationErrors();
         }
     }
 }

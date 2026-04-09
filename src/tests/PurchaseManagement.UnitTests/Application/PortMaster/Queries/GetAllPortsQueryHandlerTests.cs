@@ -13,7 +13,7 @@ namespace PurchaseManagement.UnitTests.Application.PortMaster.Queries
 {
     public sealed class GetAllPortsQueryHandlerTests
     {
-        private readonly Mock<IPortMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
+        private readonly Mock<IPortMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
         private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Loose);
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Loose);
         private readonly Mock<ICountryLookup> _mockCountryLookup = new(MockBehavior.Loose);

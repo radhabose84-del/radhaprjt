@@ -19,6 +19,15 @@ namespace PurchaseManagement.UnitTests.Validators.ServiceMaster
                 .ReturnsAsync(exists);
         }
 
+        private void SetupExistsSimilarCatchAll(bool exists = false)
+        {
+            _mockQueryRepo
+                .Setup(r => r.ExistsSimilarAsync(
+                    It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>(),
+                    It.IsAny<int?>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(exists);
+        }
+
         [Fact]
         public async Task Validate_ValidCommand_PassesValidation()
         {
@@ -50,6 +59,7 @@ namespace PurchaseManagement.UnitTests.Validators.ServiceMaster
                 UomId = 1,
                 ServiceCategoryId = 1
             };
+            SetupExistsSimilarCatchAll();
 
             var result = await CreateValidator().TestValidateAsync(command);
 
@@ -67,6 +77,7 @@ namespace PurchaseManagement.UnitTests.Validators.ServiceMaster
                 UomId = 1,
                 ServiceCategoryId = 1
             };
+            SetupExistsSimilarCatchAll();
 
             var result = await CreateValidator().TestValidateAsync(command);
 

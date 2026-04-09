@@ -27,7 +27,7 @@ namespace BackgroundService.Presentation.Validation.NotificationTemplate
                             .NotEmpty()
                             .WithMessage($"{nameof(DeleteNotificationTemplateCommand.Id)} {rule.Error}");
                         break;
-                    case "RecordNotFound":
+                    case "NotFound":
                         RuleFor(x => x.Id)
                             .MustAsync(async (Id, cancellation) => 
                                 await _NotificationTemplateQueryRepository.NotFoundAsync(Id))             

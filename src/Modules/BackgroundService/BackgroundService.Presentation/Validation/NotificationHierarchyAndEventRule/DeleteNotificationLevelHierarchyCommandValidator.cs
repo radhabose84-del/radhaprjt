@@ -28,7 +28,7 @@ namespace BackgroundService.Presentation.Validation.NotificationHierarchyAndEven
                             .WithMessage($"{nameof(DeleteNotificationLevelHierarchyCommand.Id)} {rule.Error}");
                         break;
 
-                    case "RecordNotFound":
+                    case "NotFound":
                        RuleFor(x => x.Id)
                         .MustAsync(async (id, ct) => !await _queryRepository.NotFoundAsync(id))
                         .WithMessage("Id not found.");

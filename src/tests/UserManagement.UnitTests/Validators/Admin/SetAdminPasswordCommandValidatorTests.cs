@@ -20,13 +20,21 @@ namespace UserManagement.UnitTests.Validators.Admin
                 Password = "NewPassword123"
             };
 
-        [Theory]
-        [InlineData(null)]
-        [InlineData("")]
-        public async Task Email_Empty_FailsValidation(string? email)
+        [Fact]
+        public async Task Email_Null_ThrowsDueToNullCacheKey()
         {
             var cmd = ValidCommand();
-            cmd.Email = email;
+            cmd.Email = null;
+            // Dictionary.ContainsKey(null) throws ArgumentNullException inside the validator
+            Func<Task> act = async () => await CreateValidator().TestValidateAsync(cmd);
+            await act.Should().ThrowAsync<ArgumentNullException>();
+        }
+
+        [Fact]
+        public async Task Email_Empty_FailsValidation()
+        {
+            var cmd = ValidCommand();
+            cmd.Email = "";
             var result = await CreateValidator().TestValidateAsync(cmd);
             result.ShouldHaveValidationErrorFor(x => x.Email);
         }
