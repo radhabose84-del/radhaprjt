@@ -252,6 +252,16 @@ namespace SalesManagement.Infrastructure.Repositories.SalesReturn
             }
 
             header.InvoiceItems = details;
+
+            // Fetch bag status lookup
+            const string bagStatusSql = @"
+                SELECT mm.Id, mm.Code, mm.Description
+                FROM Sales.MiscMaster mm
+                INNER JOIN Sales.MiscTypeMaster mt ON mm.MiscTypeId = mt.Id
+                WHERE mt.miscTypecode = 'BagStatus' AND mm.IsActive = 1 AND mm.IsDeleted = 0
+                ORDER BY mm.Description;";
+            header.BagStatuses = [.. await _dbConnection.QueryAsync<BagStatusLookupDto>(bagStatusSql)];
+
             return header;
         }
 

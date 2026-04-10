@@ -1,4 +1,3 @@
-using System.Text;
 using AutoMapper;
 using InventoryManagement.Application.Common.Interfaces.Item.ItemDetail.Commands;
 using InventoryManagement.Application.Common.Interfaces.Item.ItemDetail.Queries;
@@ -83,7 +82,7 @@ namespace InventoryManagement.Application.Item.ItemDetail.Commands.CreateItemVar
 
             // Group flat values by Combo (each group => one variant child)
             var groups = p.VariantValues
-                .Where(v => v != null && !string.IsNullOrWhiteSpace(v.OptionValue))
+                .Where(v => v != null && v.SpecificationValueId > 0)
                 .GroupBy(v => v.Combo ?? 1)
                 .OrderBy(g => g.Key)
                 .Select(g => g.ToList())
@@ -99,20 +98,20 @@ namespace InventoryManagement.Application.Item.ItemDetail.Commands.CreateItemVar
                 // Order per template + bind VariantAttributeId
                 var ordered = OrderAgainstTemplate(attrs, values);
 
-                // Prevent duplicates under template               
+                // Prevent duplicates under template
                 var comboKey = string.Join("|",
                     ordered.OrderBy(v => v.VariantAttributeId)
-                        .Select(v => $"{v.VariantAttributeId}:{(v.OptionValue ?? "").Trim().ToLower()}"));
+                        .Select(v => $"{v.VariantAttributeId}:{v.SpecificationValueId}"));
                 if (existingKeys.Contains(comboKey))
                     throw new InvalidOperationException(
-                        $"Variant already exists for ({string.Join(", ", ordered.Select(v => v.OptionValue))}).");
-
+                        $"Variant already exists for ({string.Join(", ", ordered.Select(v => v.SpecificationValue ?? v.SpecificationValueId.ToString()))}).");
 
                 // Build child code & name
-                var tokens = ordered.Select(v => Tokenize(v.OptionValue)).ToList();
-                var baseCode = $"{template.ItemCode}-{string.Join("-", tokens)}";
-                var finalCode = await EnsureUniqueCodeAsync(baseCode, ct);
-                var name = $"{template.ItemName} {string.Join(" / ", ordered.Select(v => v.OptionValue))}";
+                var finalCode = await EnsureUniqueCodeAsync(template.ItemCode, ct);
+                var valueNames = ordered.Select(v => v.SpecificationValue?.Trim()).Where(s => !string.IsNullOrWhiteSpace(s)).ToList();
+                var name = valueNames.Count > 0
+                    ? $"{template.ItemName} - {string.Join(" ", valueNames)}"
+                    : template.ItemName;
 
                 var newId = await _uow.ExecuteInTransactionAsync<int>(async _ =>
                 {
@@ -160,7 +159,7 @@ namespace InventoryManagement.Application.Item.ItemDetail.Commands.CreateItemVar
         {
             // incoming must carry VariantAttributeId for each selection
             var map = values
-                .Where(v => v?.VariantAttributeId is int id && id > 0 && !string.IsNullOrWhiteSpace(v.OptionValue))
+                .Where(v => v?.VariantAttributeId is int id && id > 0 && v.SpecificationValueId > 0)
                 .ToDictionary(v => v!.VariantAttributeId!.Value, v => v!);
 
             var ordered = new List<VariantValueDto>(attrs.Count);
@@ -168,26 +167,12 @@ namespace InventoryManagement.Application.Item.ItemDetail.Commands.CreateItemVar
             foreach (var a in attrs.OrderBy(x => x.Order))
             {
                 if (!map.TryGetValue(a.Id, out var v))
-                    throw new InvalidOperationException($"Missing value for attribute {a.AttributeId}.");
-                // (v already has VariantAttributeId == a.Id)
+                    throw new InvalidOperationException($"Missing value for attribute {a.SpecificationMasterId}.");
                 ordered.Add(v);
             }
             return ordered;
         }
 
-
-        private static string Tokenize(string s)
-        {
-            var raw = (s ?? string.Empty).Trim();
-            var sb = new StringBuilder();
-            foreach (var ch in raw)
-            {
-                if (char.IsLetterOrDigit(ch) || ch == '-') sb.Append(char.ToUpperInvariant(ch));
-                else if (char.IsWhiteSpace(ch) || ch == '_' || ch == '/') sb.Append('-');
-            }
-            var token = sb.ToString().Trim('-');
-            return string.IsNullOrEmpty(token) ? "X" : token;
-        }
 
         private async Task<string> EnsureUniqueCodeAsync(string baseCode, CancellationToken ct)
         {

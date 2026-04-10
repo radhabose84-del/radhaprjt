@@ -133,18 +133,17 @@
         public class VariantAttributeDto
         {
             public int Id { get; set; }
-            public int AttributeId { get; set; }
-            public int VariantBasedOn { get; set; }
-            public int? AttributeGroupId { get; set; }
-            public int Order { get; set; }      
-            public string? AttributeName  { get; set; }  
+            public int SpecificationMasterId { get; set; }
+            public int Order { get; set; }
+            public string? SpecificationName { get; set; }
         }
-        
+
         public class VariantValueDto
-        {        
+        {
             public int? VariantAttributeId { get; set; }
-            public string OptionValue { get; set; } = null!;
-            public int? Combo { get; set; }             
+            public int SpecificationValueId { get; set; }
+            public string? SpecificationValue { get; set; }
+            public int? Combo { get; set; }
         }
     
         public class ItemUomDto

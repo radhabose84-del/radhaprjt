@@ -118,10 +118,6 @@ namespace InventoryManagement.Infrastructure.Repositories.MiscTypeMaster
                         SELECT 1 FROM [Inventory].[MiscMaster]
                         WHERE MiscTypeId = @Id AND IsDeleted = 0
                     )
-                    OR EXISTS (
-                        SELECT 1 FROM [Inventory].[ItemVariantAttribute]
-                        WHERE AttributeGroupId = @Id
-                    )
                 THEN 1 ELSE 0 END;";
 
             var result = await _dbConnection.QueryFirstOrDefaultAsync<int>(query, new { Id });
@@ -135,10 +131,6 @@ namespace InventoryManagement.Infrastructure.Repositories.MiscTypeMaster
                     EXISTS (
                         SELECT 1 FROM [Inventory].[MiscMaster]
                         WHERE MiscTypeId = @id AND IsDeleted = 0 AND IsActive = 1
-                    )
-                    OR EXISTS (
-                        SELECT 1 FROM [Inventory].[ItemVariantAttribute]
-                        WHERE AttributeGroupId = @id
                     )
                 THEN 1 ELSE 0 END;";
 

@@ -19,8 +19,8 @@ public sealed class ItemVariantValueCommandRepository : IItemVariantValueCommand
     public async Task UpsertListAsync(int itemId, IEnumerable<VariantValueDto> values, CancellationToken ct = default)
     {
         var incoming = (values ?? Enumerable.Empty<VariantValueDto>())
-            .Where(v => v is not null && v.VariantAttributeId.HasValue && v.VariantAttributeId.Value > 0 && !string.IsNullOrWhiteSpace(v.OptionValue))
-            .Select(v => new { VariantAttributeId = v.VariantAttributeId!.Value, Option = v.OptionValue.Trim() })
+            .Where(v => v is not null && v.VariantAttributeId.HasValue && v.VariantAttributeId.Value > 0 && v.SpecificationValueId > 0)
+            .Select(v => new { VariantAttributeId = v.VariantAttributeId!.Value, v.SpecificationValueId })
             .GroupBy(x => x.VariantAttributeId)
             .Select(g => g.Last())
             .ToList();
@@ -73,8 +73,8 @@ public sealed class ItemVariantValueCommandRepository : IItemVariantValueCommand
         {
             if (byAttr.TryGetValue(inc.VariantAttributeId, out var row))
             {
-                if (!string.Equals(row.OptionValue, inc.Option, StringComparison.Ordinal))
-                    row.OptionValue = inc.Option;
+                if (row.SpecificationValueId != inc.SpecificationValueId)
+                    row.SpecificationValueId = inc.SpecificationValueId;
 
                 // ensure ParentItemId is correct even if older data was missing/wrong
                 if (row.ParentItemId != templateId)
@@ -84,10 +84,10 @@ public sealed class ItemVariantValueCommandRepository : IItemVariantValueCommand
             {
                 await _db.Set<ItemVariantValue>().AddAsync(new ItemVariantValue
                 {
-                    ItemId             = itemId,
-                    ParentItemId       = templateId,            // ← NEW
-                    VariantAttributeId = inc.VariantAttributeId,
-                    OptionValue        = inc.Option
+                    ItemId               = itemId,
+                    ParentItemId         = templateId,
+                    VariantAttributeId   = inc.VariantAttributeId,
+                    SpecificationValueId = inc.SpecificationValueId
                 }, ct);
             }
         }

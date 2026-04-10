@@ -5,7 +5,7 @@ namespace InventoryManagement.Application.Common.Interfaces.Item.ItemDetail.Quer
 {
     public interface IItemVariantValueQueryRepository
     {
-        Task<Dictionary<int, List<string>>> GetForItemGroupedAsync(int itemId, CancellationToken ct = default);
+        Task<Dictionary<int, List<int>>> GetForItemGroupedAsync(int itemId, CancellationToken ct = default);
         Task<HashSet<string>> GetExistingChildComboKeysAsync(int templateItemId, CancellationToken ct = default);
         Task<Dictionary<string, int>> GetExistingChildCombosWithIdsAsync(int templateItemId, CancellationToken ct = default);        
         Task<List<VariantValueDto>> GetForItemAsync(int itemId, CancellationToken ct = default);             
