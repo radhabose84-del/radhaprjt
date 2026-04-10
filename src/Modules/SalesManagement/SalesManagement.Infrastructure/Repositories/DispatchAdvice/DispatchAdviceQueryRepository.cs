@@ -102,15 +102,21 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
                     : [];
                 var transporterDict = transporters.ToDictionary(p => p.Id, p => p.PartyName);
 
-                // Populate cross-module: FreightModeName
+                // Populate cross-module: Freight details (FreightModeName, RateMethodName, Rate)
                 var freightIds = list.Select(x => x.FreightId).Distinct().ToList();
                 var allFreights = await _freightMasterLookup.GetAllFreightMasterAsync();
-                var freightDict = allFreights.Where(f => freightIds.Contains(f.Id)).ToDictionary(f => f.Id, f => f.FreightModeName);
+                var freightDict = allFreights.Where(f => freightIds.Contains(f.Id)).ToDictionary(f => f.Id);
 
                 foreach (var item in list)
                 {
                     item.PartyName = partyDict.TryGetValue(item.PartyId, out var pName) ? pName : null;
-                    item.FreightModeName = freightDict.TryGetValue(item.FreightId, out var fName) ? fName : null;
+
+                    if (freightDict.TryGetValue(item.FreightId, out var freightDto))
+                    {
+                        item.FreightModeName = freightDto.FreightModeName;
+                        item.RateMethodName = freightDto.RateMethodName;
+                        item.FreightRate = freightDto.Rate;
+                    }
 
                     if (item.TransporterId.HasValue)
                         item.TransporterName = transporterDict.TryGetValue(item.TransporterId.Value, out var tName) ? tName : null;
@@ -180,9 +186,11 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
             var party = await _partyLookup.GetByIdAsync(header.PartyId);
             header.PartyName = party?.PartyName;
 
-            // Populate cross-module: FreightModeName
+            // Populate cross-module: Freight details (FreightModeName, RateMethodName, Rate)
             var freight = await _freightMasterLookup.GetByIdAsync(header.FreightId);
             header.FreightModeName = freight?.FreightModeName;
+            header.RateMethodName = freight?.RateMethodName;
+            header.FreightRate = freight?.Rate;
 
             // Populate cross-module: TransporterName
             if (header.TransporterId.HasValue)
@@ -441,7 +449,7 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
         public async Task<IReadOnlyList<DispatchAdviceLookupDto>> AutocompleteAsync(string term, CancellationToken ct)
         {
             const string sql = @"
-                SELECT TOP 20 Id, DispatchNo, DispatchDate
+                SELECT Id, DispatchNo, DispatchDate, InvFlg
                 FROM Sales.DispatchAdviceHeader
                 WHERE IsActive = 1 AND IsDeleted = 0
                 AND DispatchNo LIKE @Term

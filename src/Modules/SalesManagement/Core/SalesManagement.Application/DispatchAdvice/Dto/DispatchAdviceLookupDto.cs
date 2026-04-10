@@ -5,5 +5,6 @@ namespace SalesManagement.Application.DispatchAdvice.Dto
         public int Id { get; set; }
         public string? DispatchNo { get; set; }
         public DateOnly DispatchDate { get; set; }
+        public bool InvFlg { get; set; }
     }
 }
