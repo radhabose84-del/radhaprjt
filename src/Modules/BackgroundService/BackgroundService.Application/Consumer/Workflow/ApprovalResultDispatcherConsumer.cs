@@ -18,10 +18,15 @@ namespace BackgroundService.Application.Consumer.Workflow;
 ///
 /// Routing table:
 ///   Purchase types   → UpdateApprovedRejectedPurchaseCommand   → approved-rejected-purchase-task-queue
-///   Budget types     → UpdateApprovedRejectedBudgetCommand      → approved-rejected-budget-task-queue
-///   Inventory types  → UpdateApprovedRejectedInventoryCommand   → approved-rejected-inventory-task-queue
+///   Budget types     → UpdateApprovedRejectedBudgetCommand     → approved-rejected-budget-task-queue
+///   Inventory types  → UpdateApprovedRejectedInventoryCommand  → approved-rejected-inventory-task-queue
 ///   MaterialRequest  → both Purchase and Inventory queues (dual-module update)
-///   Party types      → UpdateApprovedRejectedPartyCommand    → approved-rejected-party-task-queue
+///   Party types      → UpdateApprovedRejectedPartyCommand      → approved-rejected-party-task-queue
+///   Project types    → UpdateApprovedRejectedProjectCommand    → approved-rejected-project-task-queue
+///   Sales types      → UpdateApprovedRejectedSalesCommand      → approved-rejected-sales-task-queue
+///     (Invoice, Sales Order, STO, Delivery Challan, Complaints, QC Review, Resolution,
+///      Sales Order Amendment — all routed to Sales and dispatched by SalesManagement's
+///      ApprovedRejectedConsumer which switches on ModuleTypeName.)
 /// </summary>
 public class ApprovalResultDispatcherConsumer : IConsumer<ApprovedRejectedEvent>
 {
@@ -61,7 +66,9 @@ public class ApprovalResultDispatcherConsumer : IConsumer<ApprovedRejectedEvent>
         "QC Review",
         "Resolution",
         "Sales Order Amendment"
-    };    private readonly IInboxRepository _inbox;
+    };
+
+    private readonly IInboxRepository _inbox;
     private readonly ILogger<ApprovalResultDispatcherConsumer> _logger;
 
     public ApprovalResultDispatcherConsumer(IInboxRepository inbox, ILogger<ApprovalResultDispatcherConsumer> logger)
