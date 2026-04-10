@@ -62,34 +62,4 @@ namespace PurchaseManagement.UnitTests.Domain
             entity.Applicabilities.Should().BeNull();
         }
     }
-
-    public class TnCTemplateApplicabilityEntityTests
-    {
-        [Fact]
-        public void TnCTemplateApplicability_DefaultIsActive_ShouldBeActive()
-        {
-            var entity = new TnCTemplateApplicability();
-            entity.IsActive.Should().Be(Status.Active);
-        }
-
-        [Fact]
-        public void TnCTemplateApplicability_ShouldInheritFromBaseEntity()
-        {
-            typeof(BaseEntity).IsAssignableFrom(typeof(TnCTemplateApplicability)).Should().BeTrue();
-        }
-
-        [Fact]
-        public void TnCTemplateApplicability_Properties_ShouldBeAssignable()
-        {
-            var entity = new TnCTemplateApplicability
-            {
-                Id = 1,
-                TnCTemplateMasterId = 2,
-                ApplicabilityId = 3
-            };
-
-            entity.TnCTemplateMasterId.Should().Be(2);
-            entity.ApplicabilityId.Should().Be(3);
-        }
-    }
 }

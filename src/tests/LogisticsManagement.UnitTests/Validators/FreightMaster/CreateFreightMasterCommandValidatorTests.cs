@@ -13,30 +13,24 @@ namespace LogisticsManagement.UnitTests.Validators.FreightMaster
         private CreateFreightMasterCommandValidator CreateValidator() =>
             new(_mockQueryRepo.Object);
 
-        private void SetupAllAsyncMocks(
-            int freightModeId = 1,
-            int rateMethodId = 2,
-            int moduleId = 1)
+        private void SetupAllValid()
         {
             _mockQueryRepo
-                .Setup(r => r.MiscMasterExistsAsync(freightModeId))
+                .Setup(r => r.MiscMasterExistsAsync(It.IsAny<int>()))
                 .ReturnsAsync(true);
             _mockQueryRepo
-                .Setup(r => r.MiscMasterExistsAsync(rateMethodId))
-                .ReturnsAsync(true);
-            _mockQueryRepo
-                .Setup(r => r.CompositeKeyExistsAsync(freightModeId, rateMethodId, moduleId, null))
+                .Setup(r => r.CompositeKeyExistsAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int?>()))
                 .ReturnsAsync(false);
             _mockQueryRepo
-                .Setup(r => r.IsValidModeMethodCombinationAsync(freightModeId, rateMethodId))
+                .Setup(r => r.IsValidModeMethodCombinationAsync(It.IsAny<int>(), It.IsAny<int>()))
                 .ReturnsAsync(true);
         }
 
         [Fact]
         public async Task Validate_ValidCommand_PassesValidation()
         {
+            SetupAllValid();
             var command = FreightMasterBuilders.ValidCreateCommand();
-            SetupAllAsyncMocks(command.FreightModeId, command.RateMethodId, command.ModuleId);
 
             var result = await CreateValidator().TestValidateAsync(command);
 
@@ -46,6 +40,7 @@ namespace LogisticsManagement.UnitTests.Validators.FreightMaster
         [Fact]
         public async Task Validate_ZeroFreightModeId_FailsValidation()
         {
+            SetupAllValid();
             var command = FreightMasterBuilders.ValidCreateCommand(freightModeId: 0);
 
             var result = await CreateValidator().TestValidateAsync(command);
@@ -56,6 +51,7 @@ namespace LogisticsManagement.UnitTests.Validators.FreightMaster
         [Fact]
         public async Task Validate_ZeroRateMethodId_FailsValidation()
         {
+            SetupAllValid();
             var command = FreightMasterBuilders.ValidCreateCommand(rateMethodId: 0);
 
             var result = await CreateValidator().TestValidateAsync(command);
@@ -66,6 +62,7 @@ namespace LogisticsManagement.UnitTests.Validators.FreightMaster
         [Fact]
         public async Task Validate_ZeroModuleId_FailsValidation()
         {
+            SetupAllValid();
             var command = FreightMasterBuilders.ValidCreateCommand(moduleId: 0);
 
             var result = await CreateValidator().TestValidateAsync(command);
@@ -76,8 +73,8 @@ namespace LogisticsManagement.UnitTests.Validators.FreightMaster
         [Fact]
         public async Task Validate_ZeroRate_FailsValidation()
         {
+            SetupAllValid();
             var command = FreightMasterBuilders.ValidCreateCommand(rate: 0);
-            SetupAllAsyncMocks(command.FreightModeId, command.RateMethodId, command.ModuleId);
 
             var result = await CreateValidator().TestValidateAsync(command);
 
@@ -87,8 +84,8 @@ namespace LogisticsManagement.UnitTests.Validators.FreightMaster
         [Fact]
         public async Task Validate_NegativeRate_FailsValidation()
         {
+            SetupAllValid();
             var command = FreightMasterBuilders.ValidCreateCommand(rate: -10);
-            SetupAllAsyncMocks(command.FreightModeId, command.RateMethodId, command.ModuleId);
 
             var result = await CreateValidator().TestValidateAsync(command);
 
@@ -98,11 +95,9 @@ namespace LogisticsManagement.UnitTests.Validators.FreightMaster
         [Fact]
         public async Task Validate_NonExistentFreightModeId_FailsValidation()
         {
-            var command = FreightMasterBuilders.ValidCreateCommand(freightModeId: 999);
+            SetupAllValid();
             _mockQueryRepo.Setup(r => r.MiscMasterExistsAsync(999)).ReturnsAsync(false);
-            _mockQueryRepo.Setup(r => r.MiscMasterExistsAsync(2)).ReturnsAsync(true);
-            _mockQueryRepo.Setup(r => r.CompositeKeyExistsAsync(999, 2, 1, null)).ReturnsAsync(false);
-            _mockQueryRepo.Setup(r => r.IsValidModeMethodCombinationAsync(999, 2)).ReturnsAsync(true);
+            var command = FreightMasterBuilders.ValidCreateCommand(freightModeId: 999);
 
             var result = await CreateValidator().TestValidateAsync(command);
 
@@ -112,11 +107,11 @@ namespace LogisticsManagement.UnitTests.Validators.FreightMaster
         [Fact]
         public async Task Validate_DuplicateCompositeKey_FailsValidation()
         {
+            SetupAllValid();
+            _mockQueryRepo
+                .Setup(r => r.CompositeKeyExistsAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int?>()))
+                .ReturnsAsync(true);
             var command = FreightMasterBuilders.ValidCreateCommand();
-            _mockQueryRepo.Setup(r => r.MiscMasterExistsAsync(command.FreightModeId)).ReturnsAsync(true);
-            _mockQueryRepo.Setup(r => r.MiscMasterExistsAsync(command.RateMethodId)).ReturnsAsync(true);
-            _mockQueryRepo.Setup(r => r.CompositeKeyExistsAsync(command.FreightModeId, command.RateMethodId, command.ModuleId, null)).ReturnsAsync(true);
-            _mockQueryRepo.Setup(r => r.IsValidModeMethodCombinationAsync(command.FreightModeId, command.RateMethodId)).ReturnsAsync(true);
 
             var result = await CreateValidator().TestValidateAsync(command);
 
@@ -127,11 +122,11 @@ namespace LogisticsManagement.UnitTests.Validators.FreightMaster
         [Fact]
         public async Task Validate_InvalidModeMethodCombination_FailsValidation()
         {
+            SetupAllValid();
+            _mockQueryRepo
+                .Setup(r => r.IsValidModeMethodCombinationAsync(It.IsAny<int>(), It.IsAny<int>()))
+                .ReturnsAsync(false);
             var command = FreightMasterBuilders.ValidCreateCommand();
-            _mockQueryRepo.Setup(r => r.MiscMasterExistsAsync(command.FreightModeId)).ReturnsAsync(true);
-            _mockQueryRepo.Setup(r => r.MiscMasterExistsAsync(command.RateMethodId)).ReturnsAsync(true);
-            _mockQueryRepo.Setup(r => r.CompositeKeyExistsAsync(command.FreightModeId, command.RateMethodId, command.ModuleId, null)).ReturnsAsync(false);
-            _mockQueryRepo.Setup(r => r.IsValidModeMethodCombinationAsync(command.FreightModeId, command.RateMethodId)).ReturnsAsync(false);
 
             var result = await CreateValidator().TestValidateAsync(command);
 

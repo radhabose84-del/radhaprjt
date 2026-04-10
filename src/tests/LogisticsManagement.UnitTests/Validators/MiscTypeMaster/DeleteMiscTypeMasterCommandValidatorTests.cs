@@ -12,11 +12,16 @@ namespace LogisticsManagement.UnitTests.Validators.MiscTypeMaster
         private DeleteMiscTypeMasterCommandValidator CreateValidator() =>
             new(_mockQueryRepo.Object);
 
+        private void SetupAllValid()
+        {
+            _mockQueryRepo.Setup(r => r.NotFoundAsync(It.IsAny<int>())).ReturnsAsync(false);
+            _mockQueryRepo.Setup(r => r.SoftDeleteValidationAsync(It.IsAny<int>())).ReturnsAsync(false);
+        }
+
         [Fact]
         public async Task Validate_ValidId_PassesValidation()
         {
-            _mockQueryRepo.Setup(r => r.NotFoundAsync(1)).ReturnsAsync(false);
-            _mockQueryRepo.Setup(r => r.SoftDeleteValidationAsync(1)).ReturnsAsync(false);
+            SetupAllValid();
 
             var result = await CreateValidator().TestValidateAsync(new DeleteMiscTypeMasterCommand(1));
 
@@ -26,6 +31,8 @@ namespace LogisticsManagement.UnitTests.Validators.MiscTypeMaster
         [Fact]
         public async Task Validate_ZeroId_FailsValidation()
         {
+            SetupAllValid();
+
             var result = await CreateValidator().TestValidateAsync(new DeleteMiscTypeMasterCommand(0));
 
             result.ShouldHaveValidationErrorFor(x => x.Id);
@@ -34,8 +41,8 @@ namespace LogisticsManagement.UnitTests.Validators.MiscTypeMaster
         [Fact]
         public async Task Validate_NonExistentId_FailsValidation()
         {
+            SetupAllValid();
             _mockQueryRepo.Setup(r => r.NotFoundAsync(99)).ReturnsAsync(true);
-            _mockQueryRepo.Setup(r => r.SoftDeleteValidationAsync(99)).ReturnsAsync(false);
 
             var result = await CreateValidator().TestValidateAsync(new DeleteMiscTypeMasterCommand(99));
 
@@ -45,7 +52,7 @@ namespace LogisticsManagement.UnitTests.Validators.MiscTypeMaster
         [Fact]
         public async Task Validate_LinkedRecordsExist_FailsValidation()
         {
-            _mockQueryRepo.Setup(r => r.NotFoundAsync(1)).ReturnsAsync(false);
+            SetupAllValid();
             _mockQueryRepo.Setup(r => r.SoftDeleteValidationAsync(1)).ReturnsAsync(true);
 
             var result = await CreateValidator().TestValidateAsync(new DeleteMiscTypeMasterCommand(1));

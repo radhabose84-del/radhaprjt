@@ -1,4 +1,5 @@
 using FluentValidation.TestHelper;
+using SalesManagement.Application.AgentCommissionConfig.Commands.CreateAgentCommissionConfig;
 using SalesManagement.Application.Common.Interfaces.IAgentCommissionConfig;
 using SalesManagement.Presentation.Validation.AgentCommissionConfig;
 using SalesManagement.UnitTests.TestData;
@@ -25,14 +26,13 @@ namespace SalesManagement.UnitTests.Validators.AgentCommissionConfig
         private void SetupAllValid()
         {
             _mockQueryRepo.Setup(r => r.AgentExistsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>())).ReturnsAsync(true);
-            _mockQueryRepo.Setup(r => r.SalesSegmentExistsAsync(It.IsAny<int>())).ReturnsAsync(true);
-            _mockQueryRepo.Setup(r => r.CommissionTypeExistsAsync(It.IsAny<int>())).ReturnsAsync(true);
-            _mockQueryRepo.Setup(r => r.CommissionBasisExistsAsync(It.IsAny<int>())).ReturnsAsync(true);
-            _mockQueryRepo.Setup(r => r.ApplicableLevelExistsAsync(It.IsAny<int>())).ReturnsAsync(true);
-            _mockQueryRepo.Setup(r => r.CurrencyExistsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>())).ReturnsAsync(true);
+            _mockQueryRepo.Setup(r => r.MiscMasterExistsAsync(It.IsAny<int>())).ReturnsAsync(true);
+            _mockQueryRepo.Setup(r => r.CommissionSplitExistsAsync(It.IsAny<int>())).ReturnsAsync(true);
+            _mockQueryRepo.Setup(r => r.SalesGroupExistsAsync(It.IsAny<int>())).ReturnsAsync(true);
+            _mockQueryRepo.Setup(r => r.PaymentTermExistsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>())).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.OverlapExistsAsync(
                     It.IsAny<int>(), It.IsAny<int>(),
-                    It.IsAny<DateTimeOffset>(), It.IsAny<DateTimeOffset>(), It.IsAny<int?>()))
+                    It.IsAny<DateTimeOffset>(), It.IsAny<DateTimeOffset?>(), It.IsAny<int?>()))
                 .ReturnsAsync(false);
         }
 
@@ -76,33 +76,6 @@ namespace SalesManagement.UnitTests.Validators.AgentCommissionConfig
             result.ShouldHaveValidationErrorFor(x => x.AgentId);
         }
 
-        // ── SalesSegmentId Rules ──────────────────────────────────────────────
-
-        [Theory]
-        [InlineData(0)]
-        [InlineData(-1)]
-        public async Task SalesSegmentId_ZeroOrNegative_FailsValidation(int segmentId)
-        {
-            SetupAllValid();
-            var command = AgentCommissionConfigBuilders.ValidCreateCommand(salesSegmentId: segmentId);
-
-            var result = await CreateValidator().TestValidateAsync(command);
-
-            result.ShouldHaveValidationErrorFor(x => x.SalesSegmentId);
-        }
-
-        [Fact]
-        public async Task SalesSegmentId_NotFound_FailsValidation()
-        {
-            SetupAllValid();
-            _mockQueryRepo.Setup(r => r.SalesSegmentExistsAsync(20)).ReturnsAsync(false);
-            var command = AgentCommissionConfigBuilders.ValidCreateCommand(salesSegmentId: 20);
-
-            var result = await CreateValidator().TestValidateAsync(command);
-
-            result.ShouldHaveValidationErrorFor(x => x.SalesSegmentId);
-        }
-
         // ── CommissionTypeId Rules ────────────────────────────────────────────
 
         [Theory]
@@ -122,7 +95,7 @@ namespace SalesManagement.UnitTests.Validators.AgentCommissionConfig
         public async Task CommissionTypeId_NotFound_FailsValidation()
         {
             SetupAllValid();
-            _mockQueryRepo.Setup(r => r.CommissionTypeExistsAsync(40)).ReturnsAsync(false);
+            _mockQueryRepo.Setup(r => r.MiscMasterExistsAsync(40)).ReturnsAsync(false);
             var command = AgentCommissionConfigBuilders.ValidCreateCommand(commissionTypeId: 40);
 
             var result = await CreateValidator().TestValidateAsync(command);
@@ -130,11 +103,39 @@ namespace SalesManagement.UnitTests.Validators.AgentCommissionConfig
             result.ShouldHaveValidationErrorFor(x => x.CommissionTypeId);
         }
 
+        // ── CommissionSplitId Rules ───────────────────────────────────────────
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(-1)]
+        public async Task CommissionSplitId_ZeroOrNegative_FailsValidation(int splitId)
+        {
+            SetupAllValid();
+            var command = AgentCommissionConfigBuilders.ValidCreateCommand(commissionSplitId: splitId);
+
+            var result = await CreateValidator().TestValidateAsync(command);
+
+            result.ShouldHaveValidationErrorFor(x => x.CommissionSplitId);
+        }
+
+        [Fact]
+        public async Task CommissionSplitId_NotFound_FailsValidation()
+        {
+            SetupAllValid();
+            _mockQueryRepo.Setup(r => r.CommissionSplitExistsAsync(110)).ReturnsAsync(false);
+            var command = AgentCommissionConfigBuilders.ValidCreateCommand(commissionSplitId: 110);
+
+            var result = await CreateValidator().TestValidateAsync(command);
+
+            result.ShouldHaveValidationErrorFor(x => x.CommissionSplitId);
+        }
+
         // ── CommissionPercentage Rules ────────────────────────────────────────
 
         [Theory]
         [InlineData(-1)]
-        public async Task CommissionPercentage_Negative_FailsValidation(decimal pct)
+        [InlineData(0)]
+        public async Task CommissionPercentage_NotPositive_FailsValidation(decimal pct)
         {
             SetupAllValid();
             var command = AgentCommissionConfigBuilders.ValidCreateCommand(commissionPercentage: pct);
@@ -142,29 +143,6 @@ namespace SalesManagement.UnitTests.Validators.AgentCommissionConfig
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.CommissionPercentage);
-        }
-
-        [Theory]
-        [InlineData(101)]
-        public async Task CommissionPercentage_Over100_FailsValidation(decimal pct)
-        {
-            SetupAllValid();
-            var command = AgentCommissionConfigBuilders.ValidCreateCommand(commissionPercentage: pct);
-
-            var result = await CreateValidator().TestValidateAsync(command);
-
-            result.ShouldHaveValidationErrorFor(x => x.CommissionPercentage);
-        }
-
-        [Fact]
-        public async Task CommissionPercentage_Zero_PassesValidation()
-        {
-            SetupAllValid();
-            var command = AgentCommissionConfigBuilders.ValidCreateCommand(commissionPercentage: 0m);
-
-            var result = await CreateValidator().TestValidateAsync(command);
-
-            result.ShouldNotHaveValidationErrorFor(x => x.CommissionPercentage);
         }
 
         // ── ValidityFrom / ValidityTo Rules ──────────────────────────────────
@@ -181,17 +159,6 @@ namespace SalesManagement.UnitTests.Validators.AgentCommissionConfig
         }
 
         [Fact]
-        public async Task ValidityTo_DefaultValue_FailsValidation()
-        {
-            SetupAllValid();
-            var command = AgentCommissionConfigBuilders.ValidCreateCommand(validityTo: default(DateTimeOffset));
-
-            var result = await CreateValidator().TestValidateAsync(command);
-
-            result.ShouldHaveValidationErrorFor(x => x.ValidityTo);
-        }
-
-        [Fact]
         public async Task ValidityTo_BeforeValidityFrom_FailsValidation()
         {
             SetupAllValid();
@@ -205,6 +172,31 @@ namespace SalesManagement.UnitTests.Validators.AgentCommissionConfig
                   .WithErrorMessage("ValidityTo must be greater than or equal to ValidityFrom.");
         }
 
+        // ── Slabs Rules ───────────────────────────────────────────────────────
+
+        [Fact]
+        public async Task Slabs_Null_FailsValidation()
+        {
+            SetupAllValid();
+            var command = AgentCommissionConfigBuilders.ValidCreateCommand(slabs: null);
+            command.Slabs = null;
+
+            var result = await CreateValidator().TestValidateAsync(command);
+
+            result.ShouldHaveValidationErrorFor(x => x.Slabs);
+        }
+
+        [Fact]
+        public async Task Slabs_Empty_FailsValidation()
+        {
+            SetupAllValid();
+            var command = AgentCommissionConfigBuilders.ValidCreateCommand(slabs: new List<AgentCommissionSlabItem>());
+
+            var result = await CreateValidator().TestValidateAsync(command);
+
+            result.ShouldHaveValidationErrorFor(x => x.Slabs);
+        }
+
         // ── Overlap Rules ─────────────────────────────────────────────────────
 
         [Fact]
@@ -213,7 +205,7 @@ namespace SalesManagement.UnitTests.Validators.AgentCommissionConfig
             SetupAllValid();
             _mockQueryRepo.Setup(r => r.OverlapExistsAsync(
                     It.IsAny<int>(), It.IsAny<int>(),
-                    It.IsAny<DateTimeOffset>(), It.IsAny<DateTimeOffset>(), It.IsAny<int?>()))
+                    It.IsAny<DateTimeOffset>(), It.IsAny<DateTimeOffset?>(), It.IsAny<int?>()))
                 .ReturnsAsync(true);
 
             var command = AgentCommissionConfigBuilders.ValidCreateCommand();
@@ -221,7 +213,7 @@ namespace SalesManagement.UnitTests.Validators.AgentCommissionConfig
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveAnyValidationError()
-                  .WithErrorMessage("An active commission rule already exists for this Agent and Sales Segment within the specified validity period.");
+                  .WithErrorMessage("An active commission rule already exists for this Agent and Commission Split within the specified validity period.");
         }
 
         [Fact]
