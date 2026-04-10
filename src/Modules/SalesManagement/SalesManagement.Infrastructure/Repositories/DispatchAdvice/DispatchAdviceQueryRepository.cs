@@ -349,16 +349,20 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
             return result.ToList();
         }
 
-        public async Task<List<DispatchAdvicePackRangeDto>> GetPackRangeAsync(int itemId, int lotId, int packTypeId, int statusId, int range)
+        public async Task<List<DispatchAdvicePackRangeDto>> GetPackRangeAsync(int itemId, int lotId, int packTypeId, int statusId, int range, string? orderType)
         {
             var unitId = _ipAddressService.GetUnitId() ?? 0;
 
-            const string sql = @"
+            // FIFO (default) → DocDate, PackNo ASC ; LIFO → DocDate, PackNo DESC
+            var isLifo = string.Equals(orderType, "LIFO", StringComparison.OrdinalIgnoreCase);
+            var direction = isLifo ? "DESC" : "ASC";
+
+            var sql = $@"
                 SELECT S.PackNo, S.ItemId, S.LotId, S.PackTypeId
                 FROM Sales.StockLedger S
                 WHERE S.UnitId = @UnitId AND S.ItemId = @ItemId AND S.StatusId = @StatusId
                     AND S.LotId = @LotId AND S.PackTypeId = @PackTypeId
-                ORDER BY S.PackNo";
+                ORDER BY S.DocDate, S.PackNo {direction}";
 
             var rows = (await _dbConnection.QueryAsync<dynamic>(sql,
                 new { UnitId = unitId, ItemId = itemId, StatusId = statusId, LotId = lotId, PackTypeId = packTypeId })).ToList();
@@ -377,15 +381,17 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
             string? lotName = lotLookupList.FirstOrDefault()?.LotCode;
             string? packTypeName = packTypeLookupList.FirstOrDefault()?.PackTypeName;
 
-            // Collect all PackNos sorted
-            var packNos = rows.Select(r => (int)r.PackNo).OrderBy(p => p).ToList();
+            // Preserve SQL order — FIFO ascends, LIFO descends
+            var packNos = rows.Select(r => (int)r.PackNo).ToList();
 
-            // Step 1: Group consecutive PackNos (break on gaps)
+            // Step 1: Group consecutive PackNos (break on gaps).
+            // Step direction matches the sort order: +1 for FIFO, -1 for LIFO.
+            var step = isLifo ? -1 : 1;
             var consecutiveGroups = new List<List<int>>();
             var currentGroup = new List<int> { packNos[0] };
             for (int i = 1; i < packNos.Count; i++)
             {
-                if (packNos[i] == packNos[i - 1] + 1)
+                if (packNos[i] == packNos[i - 1] + step)
                 {
                     currentGroup.Add(packNos[i]);
                 }
