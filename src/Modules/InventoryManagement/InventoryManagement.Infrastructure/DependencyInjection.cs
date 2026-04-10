@@ -8,6 +8,7 @@ using InventoryManagement.Application.Common.Interfaces.IIssue;
 using InventoryManagement.Application.Common.Interfaces.IMiscMaster;
 using InventoryManagement.Application.Common.Interfaces.IMiscTypeMaster;
 using InventoryManagement.Application.Common.Interfaces.IMRS;
+using InventoryManagement.Application.Common.Interfaces.IPriceGroupMaster;
 using InventoryManagement.Application.Common.Interfaces.IReports.IStockReport;
 using InventoryManagement.Application.Common.Interfaces.IStock;
 using InventoryManagement.Application.Common.Interfaces.Item.ItemCategory;
@@ -32,6 +33,7 @@ using InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Queries;
 using InventoryManagement.Infrastructure.Repositories.Item.ItemGroup;
 using InventoryManagement.Infrastructure.Repositories.Item.Templates;
 using InventoryManagement.Infrastructure.Repositories.MiscMaster;
+using InventoryManagement.Infrastructure.Repositories.PriceGroupMaster;
 using InventoryManagement.Infrastructure.Repositories.MiscTypeMaster;
 using InventoryManagement.Application.Common.Interfaces.IUsageType;
 using InventoryManagement.Infrastructure.Repositories.UsageType;
@@ -142,6 +144,8 @@ namespace InventoryManagement.Infrastructure
             services.AddScoped<IMiscMasterCommandRepository, MiscMasterCommandRepository>();
             services.AddScoped<IHSNMasterQueryRepository, HSNMasterQueryRepository>();
             services.AddScoped<IHSNMasterCommandRepository, HSNMasterCommandRepository>();
+            services.AddScoped<IPriceGroupMasterCommandRepository, PriceGroupMasterCommandRepository>();
+            services.AddScoped<IPriceGroupMasterQueryRepository, PriceGroupMasterQueryRepository>();
             services.AddScoped<IUOMQueryRepository, UOMQueryRepository>();
             services.AddScoped<IUOMCommandRepository, UOMCommandRepository>();
             services.AddScoped<IUOMConversionQueryRepository, UOMConversionQueryRepository>();
@@ -183,6 +187,7 @@ namespace InventoryManagement.Infrastructure
             services.AddScoped<IItemLookup, ItemLookupRepository>();
             services.AddScoped<IMiscMasterLookup, MiscMasterLookupRepository>();
             services.AddScoped<IHSNLookup, HSNLookupRepository>();
+            services.AddScoped<IPriceGroupMasterLookup, PriceGroupMasterLookupRepository>();
 
             services.AddScoped<IItemPurchaseToleranceLookup, ItemPurchaseToleranceLookupRepository>();
             services.AddScoped<IPutawayRuleLookup, PutawayRuleLookupRepository>();
