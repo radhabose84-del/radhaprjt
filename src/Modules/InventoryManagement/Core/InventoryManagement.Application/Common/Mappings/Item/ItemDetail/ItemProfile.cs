@@ -87,14 +87,11 @@ namespace InventoryManagement.Application.Common.Mappings.Item.ItemDetail
                 .ForMember(d => d.Item, o => o.Ignore())
                 .ForMember(d => d.UsageType, o => o.Ignore());
 
-            // If you ever need to write attributes via AutoMapper:
             CreateMap<VariantAttributeDto, ItemVariantAttribute>()
                 .ForMember(d => d.Id, o => o.Ignore())
                 .ForMember(d => d.ItemId, o => o.Ignore())
                 .ForMember(d => d.ItemMaster, o => o.Ignore())
-                .ForMember(d => d.MiscVariantBasedOn, o => o.Ignore())
-                .ForMember(d => d.MiscAttributeGroup, o => o.Ignore())
-                .ForMember(d => d.MiscAttribute, o => o.Ignore())
+                .ForMember(d => d.SpecificationMaster, o => o.Ignore())
                 .ForMember(d => d.ItemVariantValues, o => o.Ignore());
 
             // ---------------- READ MAPS (Entity -> DTO) ----------------
@@ -113,19 +110,17 @@ namespace InventoryManagement.Application.Common.Mappings.Item.ItemDetail
             CreateMap<ItemManufacture, ItemManufactureDto>();
             CreateMap<ItemUsageTypeMapping, ItemUsageTypeMappingDto>();
 
-            // NEW SCHEMA: value has VariantAttributeId; AttributeId is on the nav
             CreateMap<ItemVariantValue, VariantValueDto>()
-                .ForMember(d => d.VariantAttributeId, o => o.MapFrom(s => s.VariantAttributeId))                
-                .ForMember(d => d.OptionValue,        o => o.MapFrom(s => s.OptionValue))
-                .ForMember(d => d.Combo,              o => o.Ignore()); // Combo is client-side only
+                .ForMember(d => d.VariantAttributeId,    o => o.MapFrom(s => s.VariantAttributeId))
+                .ForMember(d => d.SpecificationValueId,  o => o.MapFrom(s => s.SpecificationValueId))
+                .ForMember(d => d.SpecificationValue,    o => o.MapFrom(s => s.SpecificationValue != null ? s.SpecificationValue.SpecificationValue : null))
+                .ForMember(d => d.Combo,                 o => o.Ignore());
 
-            // Attributes → DTO
             CreateMap<ItemVariantAttribute, VariantAttributeDto>()
-                .ForMember(d => d.Id,              o => o.MapFrom(s => s.Id))
-                .ForMember(d => d.AttributeId,     o => o.MapFrom(s => s.AttributeId))
-                .ForMember(d => d.VariantBasedOn,  o => o.MapFrom(s => s.VariantBasedOn))
-                .ForMember(d => d.AttributeGroupId,o => o.MapFrom(s => s.AttributeGroupId))
-                .ForMember(d => d.Order,           o => o.MapFrom(s => s.Order));
+                .ForMember(d => d.Id,                    o => o.MapFrom(s => s.Id))
+                .ForMember(d => d.SpecificationMasterId, o => o.MapFrom(s => s.SpecificationMasterId))
+                .ForMember(d => d.Order,                 o => o.MapFrom(s => s.Order))
+                .ForMember(d => d.SpecificationName,     o => o.MapFrom(s => s.SpecificationMaster != null ? s.SpecificationMaster.SpecificationName : null));
 
             CreateMap<ItemMaster, GetItemAutoCompleteDto>()
                 .ForMember(d => d.Id,       o => o.MapFrom(s => s.Id))
