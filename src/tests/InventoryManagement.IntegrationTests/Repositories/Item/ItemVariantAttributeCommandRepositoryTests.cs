@@ -33,8 +33,9 @@ namespace InventoryManagement.IntegrationTests.Repositories.Item
             await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Inventory].[PutAwayStrategy]");
             await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Inventory].[PutAwayRule]");
             await ctx.Database.ExecuteSqlRawAsync("UPDATE [Inventory].[ItemMaster] SET ParentItemId = NULL; DELETE FROM [Inventory].[ItemMaster]");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Inventory].[MiscMaster]");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Inventory].[MiscTypeMaster]");
+            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Inventory].[ItemItemSpecification]");
+            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Inventory].[ItemSpecificationValue]");
+            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Inventory].[ItemSpecificationMaster]");
         }
 
         private async Task<int> SeedItemMasterAsync(ApplicationDbContext ctx)
@@ -47,33 +48,19 @@ namespace InventoryManagement.IntegrationTests.Repositories.Item
             return await new ItemCommandRepository(ctx, _fixture.IpMock.Object).CreateAsync(item);
         }
 
-        private async Task<(int variantBasedOnId, int attributeId)> SeedMiscForVariantAsync(ApplicationDbContext ctx)
+        private async Task<int> SeedSpecificationMasterAsync(ApplicationDbContext ctx)
         {
-            var type1 = new InventoryManagement.Domain.Entities.MiscTypeMaster
+            var specMaster = new ItemSpecificationMaster
             {
-                MiscTypeCode = "VarBased", Description = "Variant Based On",
-                IsActive = BaseEntity.Status.Active, IsDeleted = BaseEntity.IsDelete.NotDeleted
+                SpecificationCode = "COLOR",
+                SpecificationName = "Color",
+                Order = 1,
+                IsActive = BaseEntity.Status.Active,
+                IsDeleted = BaseEntity.IsDelete.NotDeleted
             };
-            ctx.MiscTypeMaster.Add(type1);
+            ctx.ItemSpecificationMaster.Add(specMaster);
             await ctx.SaveChangesAsync();
-
-            var basedOn = new InventoryManagement.Domain.Entities.MiscMaster
-            {
-                MiscTypeId = type1.Id, Code = "Color", Description = "Color",
-                IsActive = BaseEntity.Status.Active, IsDeleted = BaseEntity.IsDelete.NotDeleted
-            };
-            ctx.MiscMaster.Add(basedOn);
-            await ctx.SaveChangesAsync();
-
-            var attr = new InventoryManagement.Domain.Entities.MiscMaster
-            {
-                MiscTypeId = type1.Id, Code = "Red", Description = "Red",
-                IsActive = BaseEntity.Status.Active, IsDeleted = BaseEntity.IsDelete.NotDeleted
-            };
-            ctx.MiscMaster.Add(attr);
-            await ctx.SaveChangesAsync();
-
-            return (basedOn.Id, attr.Id);
+            return specMaster.Id;
         }
 
         [Fact]
@@ -94,12 +81,12 @@ namespace InventoryManagement.IntegrationTests.Repositories.Item
             await using var ctx = _fixture.CreateFreshDbContext();
             await ClearAndSeedAsync(ctx);
             var itemId = await SeedItemMasterAsync(ctx);
-            var (basedOnId, attrId) = await SeedMiscForVariantAsync(ctx);
+            var specMasterId = await SeedSpecificationMasterAsync(ctx);
             ctx.ChangeTracker.Clear();
 
             var attrs = new List<VariantAttributeDto>
             {
-                new() { VariantBasedOn = basedOnId, AttributeId = attrId, Order = 1 }
+                new() { SpecificationMasterId = specMasterId, Order = 1 }
             };
 
             await CreateRepo(ctx).UpsertAttributesAsync(itemId, attrs);
@@ -108,7 +95,7 @@ namespace InventoryManagement.IntegrationTests.Repositories.Item
 
             var saved = await ctx.ItemVariantAttribute.Where(x => x.ItemId == itemId).ToListAsync();
             saved.Should().HaveCount(1);
-            saved[0].AttributeId.Should().Be(attrId);
+            saved[0].SpecificationMasterId.Should().Be(specMasterId);
         }
     }
 }

@@ -318,16 +318,11 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                         .Select(a => new VariantAttributeDto
                         {
                             Id = a.Id,
-                            AttributeId = a.AttributeId,
-                            VariantBasedOn = a.VariantBasedOn,
-                            AttributeGroupId = a.AttributeGroupId,
+                            SpecificationMasterId = a.SpecificationMasterId,
                             Order = a.Order,
-                            // If you have a nav to Attribute master with name:
-                            AttributeName = _db.MiscMaster
-                                .Where(m => m.Id == a.AttributeId)
-                                .Select(m => m.Code)              // or m.Description
-                                .FirstOrDefault()
-                            //AttributeName = null
+                            SpecificationName = a.SpecificationMaster != null
+                                ? a.SpecificationMaster.SpecificationName
+                                : null
                         })
                         .ToList(),
 
@@ -336,7 +331,10 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                         .Select(v => new VariantValueDto
                         {
                             VariantAttributeId = v.VariantAttributeId,
-                            OptionValue = v.OptionValue,
+                            SpecificationValueId = v.SpecificationValueId,
+                            SpecificationValue = v.SpecificationValue != null
+                                ? v.SpecificationValue.SpecificationValue
+                                : null,
                             Combo = null
                         })
                         .ToList(),

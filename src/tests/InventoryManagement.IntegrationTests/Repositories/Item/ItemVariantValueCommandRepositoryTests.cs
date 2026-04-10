@@ -33,8 +33,9 @@ namespace InventoryManagement.IntegrationTests.Repositories.Item
             await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Inventory].[PutAwayStrategy]");
             await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Inventory].[PutAwayRule]");
             await ctx.Database.ExecuteSqlRawAsync("UPDATE [Inventory].[ItemMaster] SET ParentItemId = NULL; DELETE FROM [Inventory].[ItemMaster]");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Inventory].[MiscMaster]");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Inventory].[MiscTypeMaster]");
+            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Inventory].[ItemItemSpecification]");
+            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Inventory].[ItemSpecificationValue]");
+            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Inventory].[ItemSpecificationMaster]");
         }
 
         private async Task<int> SeedItemMasterAsync(ApplicationDbContext ctx, string code = "VV001")
@@ -47,36 +48,42 @@ namespace InventoryManagement.IntegrationTests.Repositories.Item
             return await new ItemCommandRepository(ctx, _fixture.IpMock.Object).CreateAsync(item);
         }
 
-        private async Task<int> SeedAttributeAsync(ApplicationDbContext ctx, int itemId)
+        private async Task<(int specMasterId, int specValueId, int varAttrId)> SeedAttributeAndValueAsync(ApplicationDbContext ctx, int itemId)
         {
-            var type = new InventoryManagement.Domain.Entities.MiscTypeMaster
+            // Seed ItemSpecificationMaster
+            var specMaster = new ItemSpecificationMaster
             {
-                MiscTypeCode = "VBased", Description = "Variant Based",
-                IsActive = BaseEntity.Status.Active, IsDeleted = BaseEntity.IsDelete.NotDeleted
+                SpecificationCode = "SIZE",
+                SpecificationName = "Size",
+                Order = 1,
+                IsActive = BaseEntity.Status.Active,
+                IsDeleted = BaseEntity.IsDelete.NotDeleted
             };
-            ctx.MiscTypeMaster.Add(type);
+            ctx.ItemSpecificationMaster.Add(specMaster);
             await ctx.SaveChangesAsync();
 
-            var basedOn = new InventoryManagement.Domain.Entities.MiscMaster
+            // Seed ItemSpecificationValue
+            var specValue = new ItemSpecificationValue
             {
-                MiscTypeId = type.Id, Code = "Size", Description = "Size",
-                IsActive = BaseEntity.Status.Active, IsDeleted = BaseEntity.IsDelete.NotDeleted
+                SpecificationMasterId = specMaster.Id,
+                SpecificationValue = "Large",
+                IsActive = BaseEntity.Status.Active,
+                IsDeleted = BaseEntity.IsDelete.NotDeleted
             };
-            var attr = new InventoryManagement.Domain.Entities.MiscMaster
-            {
-                MiscTypeId = type.Id, Code = "SizeAttr", Description = "Size Attribute",
-                IsActive = BaseEntity.Status.Active, IsDeleted = BaseEntity.IsDelete.NotDeleted
-            };
-            ctx.MiscMaster.AddRange(basedOn, attr);
+            ctx.ItemSpecificationValue.Add(specValue);
             await ctx.SaveChangesAsync();
 
+            // Seed ItemVariantAttribute
             var va = new ItemVariantAttribute
             {
-                ItemId = itemId, VariantBasedOn = basedOn.Id, AttributeId = attr.Id, Order = 1
+                ItemId = itemId,
+                SpecificationMasterId = specMaster.Id,
+                Order = 1
             };
             ctx.ItemVariantAttribute.Add(va);
             await ctx.SaveChangesAsync();
-            return va.Id;
+
+            return (specMaster.Id, specValue.Id, va.Id);
         }
 
         [Fact]
@@ -98,12 +105,12 @@ namespace InventoryManagement.IntegrationTests.Repositories.Item
             await ClearAndSeedAsync(ctx);
             var templateId = await SeedItemMasterAsync(ctx, "VV002");
             var childId = await SeedItemMasterAsync(ctx, "VV003");
-            var attrId = await SeedAttributeAsync(ctx, templateId);
+            var (_, specValueId, varAttrId) = await SeedAttributeAndValueAsync(ctx, templateId);
 
             ctx.ItemVariantValue.Add(new ItemVariantValue
             {
-                ItemId = templateId, VariantAttributeId = attrId,
-                OptionValue = "Large", ParentItemId = childId
+                ItemId = templateId, VariantAttributeId = varAttrId,
+                SpecificationValueId = specValueId, ParentItemId = childId
             });
             await ctx.SaveChangesAsync();
             ctx.ChangeTracker.Clear();

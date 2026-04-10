@@ -1,7 +1,7 @@
 using InventoryManagement.Domain.Common;
 using InventoryManagement.Domain.Entities.Budget;
 using InventoryManagement.Domain.Entities.Item.ItemDetail;
-using InventoryManagement.Domain.Entities.Item.ItemDetail.Variant;
+
 using InventoryManagement.Domain.Entities.Item.PutAway;
 using InventoryManagement.Domain.Entities.MRS;
 
@@ -29,8 +29,6 @@ namespace InventoryManagement.Domain.Entities
         public ICollection<ItemSale>? ItemSaleValuationMethod { get; set; }
         public ICollection<ItemManufacture>? ItemManufactureType { get; set; }
         public ICollection<ItemQuality>? ItemQualityCertificateType { get; set; }
-        public ICollection<ItemVariantAttribute>? ItemAttribute { get; set; }
-        public ICollection<ItemVariantAttribute>? ItemAttributeBasedOn { get; set; }
         public ICollection<PutAwayStrategy>? PutAwayStrategyStorageType { get; set; }
         public ICollection<PutAwayStrategy>? PutAwayStrategyPriority { get; set; }
         public ICollection<ItemMaster>? ItemMasterIssueRule { get; set; }  

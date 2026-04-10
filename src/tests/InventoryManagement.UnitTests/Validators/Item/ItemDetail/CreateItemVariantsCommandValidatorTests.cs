@@ -13,7 +13,7 @@ namespace InventoryManagement.UnitTests.Validators.Item.ItemDetail
             ParentItemId = 1,
             VariantValues = new List<VariantValueDto>
             {
-                new VariantValueDto { VariantAttributeId = 1, OptionValue = "Blue", Combo = 1 }
+                new VariantValueDto { VariantAttributeId = 1, SpecificationValueId = 5, Combo = 1 }
             },
             VariantAttributes = new List<VariantAttributeDto>()
         };
@@ -59,12 +59,12 @@ namespace InventoryManagement.UnitTests.Validators.Item.ItemDetail
         }
 
         [Fact]
-        public async Task Validate_VariantValueWithEmptyOptionValue_FailsValidation()
+        public async Task Validate_VariantValueWithZeroSpecificationValueId_FailsValidation()
         {
             var dto = ValidVariantsDto();
             dto.VariantValues = new List<VariantValueDto>
             {
-                new VariantValueDto { VariantAttributeId = 1, OptionValue = "", Combo = 1 }
+                new VariantValueDto { VariantAttributeId = 1, SpecificationValueId = 0, Combo = 1 }
             };
 
             var result = await CreateValidator().TestValidateAsync(dto);
