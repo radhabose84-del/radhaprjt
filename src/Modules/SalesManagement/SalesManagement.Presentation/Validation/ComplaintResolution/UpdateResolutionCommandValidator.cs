@@ -48,7 +48,8 @@ namespace SalesManagement.Presentation.Validation.ComplaintResolution
                             .NotNull()
                             .WithMessage($"{nameof(UpdateResolutionCommand.ClosureRemarks)} {rule.Error}")
                             .NotEmpty()
-                            .WithMessage($"{nameof(UpdateResolutionCommand.ClosureRemarks)} {rule.Error}");
+                            .WithMessage($"{nameof(UpdateResolutionCommand.ClosureRemarks)} {rule.Error}")
+                            .When(x => x.ClosureStatusId.HasValue && x.ClosureStatusId.Value > 0);
                         break;
 
                     case "MaxLength":

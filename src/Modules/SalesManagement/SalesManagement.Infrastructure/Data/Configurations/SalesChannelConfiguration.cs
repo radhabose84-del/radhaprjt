@@ -59,7 +59,9 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             builder.Property(t => t.ModifiedByName).HasColumnName("ModifiedByName").HasColumnType("varchar(100)");
             builder.Property(t => t.ModifiedIP).HasColumnName("ModifiedIP").HasColumnType("varchar(50)");
 
-            builder.HasIndex(t => t.SalesChannelCode).IsUnique();
+            builder.HasIndex(t => t.SalesChannelCode)
+                .IsUnique()
+                .HasFilter("[IsDeleted] = 0");
         }
     }
 }
