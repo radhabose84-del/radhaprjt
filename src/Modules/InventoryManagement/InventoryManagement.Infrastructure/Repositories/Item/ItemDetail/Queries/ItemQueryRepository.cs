@@ -398,17 +398,15 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
             return true;
         }
 
-/*************  ✨ Windsurf Command ⭐  *************/
-/// <summary>
-/// Update the item image for the given item id and image name
-/// </summary>
-/// <param name="imageName">The item image name</param>
-/// <param name="ct">The cancellation token</param>
-/// <returns>
-/// <c>true>true> if the image is updated successfully, <c>false>false> otherwise</returns>
- <param name="itemId">The item id</param>
-
-/*******  73111c90-30f5-42bf-a5e4-ba26bd40022b  *******/
+        /// <summary>
+        /// Update the item image for the given item id and image name
+        /// </summary>
+        /// <param name="ItemId">The item id</param>
+        /// <param name="imageName">The item image name</param>
+        /// <param name="ct">The cancellation token</param>
+        /// <returns>
+        /// <c>true</c> if the image is updated successfully, <c>false</c> otherwise
+        /// </returns>
         public async Task<bool> UpdateItemImageAsync(int ItemId, string imageName, CancellationToken ct = default)
         {
             var asset = await _db.ItemMaster.FindAsync(ItemId);
