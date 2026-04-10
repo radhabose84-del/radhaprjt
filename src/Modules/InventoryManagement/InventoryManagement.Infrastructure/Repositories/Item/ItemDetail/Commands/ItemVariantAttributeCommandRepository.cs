@@ -128,6 +128,26 @@ public sealed class ItemVariantAttributeCommandRepository : IItemVariantAttribut
             .ToListAsync(ct);
     }
 
+    public async Task<Dictionary<int, (int SpecMasterId, string? SpecValueName)>> GetSpecificationValueMapAsync(
+        IEnumerable<int> specificationValueIds, CancellationToken ct = default)
+    {
+        var ids = (specificationValueIds ?? Enumerable.Empty<int>())
+            .Where(id => id > 0)
+            .Distinct()
+            .ToList();
+
+        if (ids.Count == 0)
+            return new Dictionary<int, (int, string?)>();
+
+        var rows = await _db.ItemSpecificationValue
+            .AsNoTracking()
+            .Where(v => ids.Contains(v.Id) && v.IsDeleted == InventoryManagement.Domain.Common.BaseEntity.IsDelete.NotDeleted)
+            .Select(v => new { v.Id, v.SpecificationMasterId, v.SpecificationValue })
+            .ToListAsync(ct);
+
+        return rows.ToDictionary(r => r.Id, r => (r.SpecificationMasterId, (string?)r.SpecificationValue));
+    }
+
     public async Task AddMissingTemplateOptionsAsync(int templateItemId, IEnumerable<VariantValueDto> options, CancellationToken ct = default)
     {
         var rows = (options ?? Enumerable.Empty<VariantValueDto>())
