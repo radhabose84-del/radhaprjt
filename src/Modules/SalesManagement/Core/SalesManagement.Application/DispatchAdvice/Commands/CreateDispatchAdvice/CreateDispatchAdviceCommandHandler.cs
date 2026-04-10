@@ -72,8 +72,22 @@ namespace SalesManagement.Application.DispatchAdvice.Commands.CreateDispatchAdvi
                 MiscEnumEntity.StockStatus, MiscEnumEntity.Reserved);
             var reservedStatusId = reservedStatus?.Id ?? 0;
 
-            // CreateAsync inserts header + details, updates StockLedger, increments DocNo
-            var newId = await _commandRepository.CreateAsync(entity, unitId, packedStatusId, reservedStatusId, typeId.Value);
+            // Resolve DispatchType description for address-based freight propagation
+            //   • Direct-To-Party → updates Party.PartyMaster.SalesFreightId (only when NULL)
+            //   • Others          → updates Sales.DispatchAddressMaster.FreightId (only when NULL)
+            var dispatchType = await _miscMasterQueryRepository.GetByIdAsync(request.DispatchTypeId);
+            var dispatchTypeName = dispatchType?.Description;
+
+            // CreateAsync inserts header + details, updates StockLedger, propagates freight, increments DocNo — all in one transaction
+            var newId = await _commandRepository.CreateAsync(
+                entity,
+                unitId,
+                packedStatusId,
+                reservedStatusId,
+                typeId.Value,
+                dispatchTypeName,
+                MiscEnumEntity.DirectToParty,
+                MiscEnumEntity.Others);
 
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Create",
