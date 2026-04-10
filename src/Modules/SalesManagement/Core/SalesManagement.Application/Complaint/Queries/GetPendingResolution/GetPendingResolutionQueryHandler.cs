@@ -45,7 +45,7 @@ namespace SalesManagement.Application.Complaint.Queries.GetPendingResolution
             }
 
             var currentUserId = _ipAddressService.GetUserId();
-            var moduleIds = pending.Select(r => r.Id).Distinct().ToList();
+            var moduleIds = pending.Select(r => r.ComplaintHeaderId).Distinct().ToList();
 
             var wfApprovers = await _workflowLookup
                 .GetApproverListAsync(MiscEnumEntity.ComplaintResolutionModuleTypeName, moduleIds);
@@ -57,7 +57,7 @@ namespace SalesManagement.Application.Complaint.Queries.GetPendingResolution
                 .Select(a => a.ModuleTransactionId)
                 .ToHashSet();
 
-            pending = pending.Where(r => allowedIds.Contains(r.Id)).ToList();
+            pending = pending.Where(r => allowedIds.Contains(r.ComplaintHeaderId)).ToList();
             if (pending.Count == 0)
             {
                 await PublishAudit(0, request, ct);
@@ -88,7 +88,7 @@ namespace SalesManagement.Application.Complaint.Queries.GetPendingResolution
 
             foreach (var r in pending)
             {
-                if (wfByModuleId.TryGetValue(r.Id, out var wf))
+                if (wfByModuleId.TryGetValue(r.ComplaintHeaderId, out var wf))
                 {
                     if (wf.ApproverId.HasValue)
                     {

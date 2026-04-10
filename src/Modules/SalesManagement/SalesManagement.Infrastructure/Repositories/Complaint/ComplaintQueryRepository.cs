@@ -623,7 +623,7 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                 SELECT @TotalCount = COUNT(*)
                 FROM Sales.ComplaintQCReview qr
                 INNER JOIN Sales.ComplaintHeader ch ON ch.Id = qr.ComplaintHeaderId AND ch.IsDeleted = 0
-                WHERE qr.IsDeleted = 0 {searchFilter};
+                WHERE qr.IsDeleted = 0 AND qr.ReviewedBy IS NULL {searchFilter};
 
                 SELECT
                     qr.Id,
@@ -641,7 +641,7 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                 INNER JOIN Sales.ComplaintHeader ch ON ch.Id = qr.ComplaintHeaderId AND ch.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster pv ON qr.PhysicalVerificationId = pv.Id AND pv.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster sv ON qr.SeverityId = sv.Id AND sv.IsDeleted = 0
-                WHERE qr.IsDeleted = 0 {searchFilter}
+                WHERE qr.IsDeleted = 0 AND qr.ReviewedBy IS NULL {searchFilter}
                 ORDER BY qr.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
 
