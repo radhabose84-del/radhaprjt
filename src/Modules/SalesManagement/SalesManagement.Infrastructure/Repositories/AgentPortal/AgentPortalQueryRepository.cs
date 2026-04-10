@@ -361,19 +361,23 @@ namespace SalesManagement.Infrastructure.Repositories.AgentPortal
             const string sql = @"
                 SELECT
                     acc.Id,
-                    acc.SalesSegmentId,
-                    ss.SegmentName AS SalesSegmentName,
+                    acc.TriggerEventId,
+                    te.Description AS TriggerEventName,
                     ct.Description AS CommissionTypeName,
                     cb.Description AS CommissionBasisName,
                     al.Description AS ApplicableLevelName,
+                    st.Description AS SlabTypeName,
+                    cs.Description AS CommissionSplitName,
                     acc.CommissionPercentage,
                     acc.ValidityFrom,
                     acc.ValidityTo
                 FROM Sales.AgentCommissionConfig acc
-                LEFT JOIN Sales.SalesSegment ss ON acc.SalesSegmentId = ss.Id AND ss.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster te ON acc.TriggerEventId = te.Id AND te.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster ct ON acc.CommissionTypeId = ct.Id AND ct.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster cb ON acc.CommissionBasisId = cb.Id AND cb.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster al ON acc.ApplicableLevelId = al.Id AND al.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster st ON acc.SlabTypeId = st.Id AND st.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster cs ON acc.CommissionSplitId = cs.Id AND cs.IsDeleted = 0
                 WHERE acc.AgentId = @AgentId AND acc.IsActive = 1 AND acc.IsDeleted = 0
                 ORDER BY acc.Id;";
 

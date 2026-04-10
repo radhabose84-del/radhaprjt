@@ -32,7 +32,7 @@ namespace SalesManagement.Infrastructure.Repositories.ComplaintResolution
             existing.ResolutionTypeId = entity.ResolutionTypeId;
             existing.ResolutionSummary = entity.ResolutionSummary;
             existing.ReturnQuantity = entity.ReturnQuantity;
-            existing.ReturnLocationId = entity.ReturnLocationId;
+            existing.ReturnLocationId = entity.ReturnLocationId > 0 ? entity.ReturnLocationId : null;
             existing.ReturnStatusId = entity.ReturnStatusId;
             existing.CreditAmount = entity.CreditAmount;
             existing.FinanceReference = entity.FinanceReference;
