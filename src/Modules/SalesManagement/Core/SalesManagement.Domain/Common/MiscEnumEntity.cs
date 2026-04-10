@@ -161,5 +161,10 @@ namespace SalesManagement.Domain.Common
         public const string StoReceiptStatusFullyReceived = "Fully Received";
         public const string StoReceiptStatusCancelled = "Cancelled";
 
+        // Dispatch Advice Address Based Freight
+        public const string DispatchAddressType = "DispatchAddressType";
+        public const string DirectToParty = "Direct-To-Party";
+        public const string Others = "Others";
+
     }
 }
