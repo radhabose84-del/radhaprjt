@@ -144,12 +144,11 @@ namespace InventoryManagement.Presentation.Validation.Item.ItemDetail
 
                 RuleForEach(x => x.Payload.VariantAttributes).ChildRules(a =>
                 {
-                    a.RuleFor(v => v.AttributeId).GreaterThan(0);
-                    a.RuleFor(v => v.VariantBasedOn).GreaterThan(0);
+                    a.RuleFor(v => v.SpecificationMasterId).GreaterThan(0);
                     a.RuleFor(v => v.Order).GreaterThan(0);
                 });
 
-                RuleFor(x => x.Payload.VariantAttributes.Select(a => a.AttributeId))
+                RuleFor(x => x.Payload.VariantAttributes.Select(a => a.SpecificationMasterId))
                     .Must(ids => ids.Distinct().Count() == ids.Count())
                     .WithMessage("Duplicate attributes are not allowed.");
 

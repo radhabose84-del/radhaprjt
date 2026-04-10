@@ -1,5 +1,4 @@
 using InventoryManagement.Domain.Common;
-using InventoryManagement.Domain.Entities.Item.ItemDetail.Variant;
 
 namespace InventoryManagement.Domain.Entities
 {
@@ -7,7 +6,6 @@ namespace InventoryManagement.Domain.Entities
     {
         public string? MiscTypeCode { get; set; }
         public string? Description { get; set; }
-        public ICollection<MiscMaster>? MiscMaster { get; set; }          
-        public ICollection<ItemVariantAttribute>? ItemVariantAttributeGroup { get; set; }  
+        public ICollection<MiscMaster>? MiscMaster { get; set; }
     }
 }

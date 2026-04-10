@@ -47,6 +47,7 @@ namespace InventoryManagement.Domain.Entities.Item.ItemDetail
         public ICollection<PutAwayRule>? PutAwayRules { get; set; } = new List<PutAwayRule>();
         public ICollection<ItemVariantAttribute> VariantAttributes { get; set; } = new List<ItemVariantAttribute>();
         public ICollection<ItemVariantValue> VariantParentItem { get; set; } = new List<ItemVariantValue>();
+        public ICollection<ItemItemSpecification> ItemSpecifications { get; set; } = new List<ItemItemSpecification>();
         public ICollection<ItemUsageTypeMapping> ItemUsageTypeMappings { get; set; } = new List<ItemUsageTypeMapping>();
     }
 }

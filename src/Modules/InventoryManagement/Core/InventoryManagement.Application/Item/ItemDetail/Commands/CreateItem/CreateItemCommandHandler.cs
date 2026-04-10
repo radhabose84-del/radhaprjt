@@ -184,30 +184,31 @@ namespace InventoryManagement.Application.Item.ItemAggregate.Handlers
             var validVarAttrIds = new HashSet<int>(attrs.Select(a => a.Id));
             var orderedAttrIds  = attrs.OrderBy(a => a.Order).Select(a => a.Id).ToList();
 
-            // Maps to support payloads that send AttributeId instead of VariantAttributeId:
-            var byVarAttrId = attrs.ToDictionary(a => a.Id);                      // e.g. 31 -> row
-            var byAttrId    = attrs.ToDictionary(a => a.AttributeId, a => a.Id);  // e.g. 49 -> 31, 50 -> 32
+            // Maps to support payloads that send SpecificationMasterId instead of VariantAttributeId:
+            var byVarAttrId    = attrs.ToDictionary(a => a.Id);
+            var bySpecMasterId = attrs.ToDictionary(a => a.SpecificationMasterId, a => a.Id);
 
             // ---- NORMALIZE INCOMING to VariantAttributeId row ids ----
             var normalized = (p.VariantValues ?? new List<VariantValueDto>())
-                .Where(v => v != null && !string.IsNullOrWhiteSpace(v.OptionValue))
+                .Where(v => v != null && v.SpecificationValueId > 0)
                 .Select(v =>
                 {
                     int? id = v.VariantAttributeId;
 
-                    // If the id isn't a known row id, try to interpret it as AttributeId and map to row id.
+                    // If the id isn't a known row id, try to interpret it as SpecificationMasterId and map to row id.
                     if (!id.HasValue || !byVarAttrId.ContainsKey(id.Value))
                     {
-                        if (id.HasValue && byAttrId.TryGetValue(id.Value, out var mapped))
-                            id = mapped;        // AttributeId -> VariantAttribute row id
+                        if (id.HasValue && bySpecMasterId.TryGetValue(id.Value, out var mapped))
+                            id = mapped;
                         else
-                            id = null;          // still invalid, drop later
+                            id = null;
                     }
 
                     return new VariantValueDto
                     {
                         VariantAttributeId = id,
-                        OptionValue = v.OptionValue.Trim(),
+                        SpecificationValueId = v.SpecificationValueId,
+                        SpecificationValue = v.SpecificationValue,
                         Combo = v.Combo
                     };
                 })
@@ -217,22 +218,22 @@ namespace InventoryManagement.Application.Item.ItemAggregate.Handlers
             if (normalized.Count == 0)
                 throw new InvalidOperationException(
                     "No valid variant selections were provided. " +
-                    "Each selection must reference a VariantAttribute row id, or an AttributeId that belongs to the template.");
+                    "Each selection must reference a VariantAttribute row id, or a SpecificationMasterId that belongs to the template.");
 
             // 3) Existing combos from real children (protect against duplicates/overlaps)
-            var existingCombos = new List<HashSet<(int VarAttrId, string Opt)>>();
+            var existingCombos = new List<HashSet<(int VarAttrId, int SpecValueId)>>();
             var childIds = await _itemRepo.GetChildIdsAsync(template.Id, ct);
             foreach (var cid in childIds)
             {
                 var rows = await _variantValQry.GetForItemAsync(cid, ct);
                 var set = rows
-                    .Where(r => r.VariantAttributeId.HasValue && !string.IsNullOrWhiteSpace(r.OptionValue))
-                    .Select(r => (r.VariantAttributeId!.Value, Normalize(r.OptionValue)))
+                    .Where(r => r.VariantAttributeId.HasValue && r.SpecificationValueId > 0)
+                    .Select(r => (r.VariantAttributeId!.Value, r.SpecificationValueId))
                     .ToHashSet();
                 if (set.Count > 0) existingCombos.Add(set);
             }
 
-            // 4) Group payload by Combo (use NORMALIZED values!)
+            // 4) Group payload by Combo
             var groups = normalized
                 .GroupBy(v => v.Combo ?? 1)
                 .OrderBy(g => g.Key)
@@ -249,7 +250,7 @@ namespace InventoryManagement.Application.Item.ItemAggregate.Handlers
                     .Select(gg =>
                     {
                         var last = gg.Last();
-                        return (VarAttrId: last.VariantAttributeId!.Value, Opt: Normalize(last.OptionValue));
+                        return (VarAttrId: last.VariantAttributeId!.Value, SpecValueId: last.SpecificationValueId);
                     })
                     .ToList();
 
@@ -260,41 +261,39 @@ namespace InventoryManagement.Application.Item.ItemAggregate.Handlers
                 // Overlap protection (equal/subset/superset)
                 if (existingCombos.Any(ex => IsSubset(ex, sparseSet) || IsSubset(sparseSet, ex)))
                 {
-                    var label = string.Join(", ", sparse.OrderBy(x => x.VarAttrId).Select(x => $"{x.VarAttrId}:{x.Opt}"));
+                    var label = string.Join(", ", sparse.OrderBy(x => x.VarAttrId).Select(x => $"{x.VarAttrId}:{x.SpecValueId}"));
                     throw new InvalidOperationException($"A variant overlapping this selection already exists ({label}).");
                 }
 
                 // Build ordered selections only for provided attributes (sparse)
                 var orderedSelections = orderedAttrIds
-                    .Where(id => sparseSet.Any(p => p.VarAttrId == id))
-                    .Select(id => new VariantValueDto
+                    .Where(id => sparseSet.Any(s => s.VarAttrId == id))
+                    .Select(id =>
                     {
-                        VariantAttributeId = id,
-                        OptionValue = sparseSet.First(p => p.VarAttrId == id).Opt
+                        var match = sparseSet.First(s => s.VarAttrId == id);
+                        // Resolve the spec value name from the normalized input
+                        var valueName = normalized
+                            .FirstOrDefault(n => n.VariantAttributeId == id && n.SpecificationValueId == match.SpecValueId)
+                            ?.SpecificationValue;
+                        return new VariantValueDto
+                        {
+                            VariantAttributeId = id,
+                            SpecificationValueId = match.SpecValueId,
+                            SpecificationValue = valueName
+                        };
                     })
                     .ToList();
 
                 // Code & Name
-                var tokens   = orderedSelections.Select(v => Tokenize(v.OptionValue)).ToList();
-                var baseCode = $"{template.ItemCode}-{string.Join("-", tokens)}";
                 var finalCode = await NextChildCodeAsync(template.ItemCode, ct);
 
-                var labelPairs = attrs
-                    .OrderBy(a => a.Order)
-                    .Select(a =>
-                    {
-                        var sel = orderedSelections.FirstOrDefault(v => v.VariantAttributeId == a.Id);
-                        if (sel == null || string.IsNullOrWhiteSpace(sel.OptionValue)) return null;
-
-                        var label = (a.AttributeName ?? $"attr{a.AttributeId}").Trim();
-                        var value = sel.OptionValue.Trim();
-                        return $"{label.ToLowerInvariant()}:{value}";
-                    })
+                var orderedValueNames = orderedSelections
+                    .Select(v => v.SpecificationValue?.Trim())
                     .Where(s => !string.IsNullOrWhiteSpace(s))
                     .ToList();
 
-                var childName = labelPairs.Count > 0
-                    ? $"{template.ItemName} - {string.Join("-", labelPairs)}"
+                var childName = orderedValueNames.Count > 0
+                    ? $"{template.ItemName} - {string.Join(" ", orderedValueNames)}"
                     : template.ItemName;
 
                 // Create child + selections
@@ -341,8 +340,7 @@ namespace InventoryManagement.Application.Item.ItemAggregate.Handlers
             return lastCreatedId;
 
             // locals
-            static string Normalize(string s) => (s ?? string.Empty).Trim().ToLowerInvariant();
-            static bool IsSubset(HashSet<(int VarAttrId, string Opt)> a, HashSet<(int VarAttrId, string Opt)> b)
+            static bool IsSubset(HashSet<(int VarAttrId, int SpecValueId)> a, HashSet<(int VarAttrId, int SpecValueId)> b)
                 => a.All(p => b.Contains(p));
         }
 

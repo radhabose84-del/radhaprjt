@@ -15,7 +15,7 @@ namespace InventoryManagement.UnitTests.Validators.Item.ItemDetail
             HasVariants = true,
             VariantAttributes = new List<VariantAttributeDto>
             {
-                new VariantAttributeDto { AttributeId = 1, VariantBasedOn = 1, Order = 1 }
+                new VariantAttributeDto { SpecificationMasterId = 1, Order = 1 }
             },
             VariantValues = new List<VariantValueDto>()
         };
@@ -79,8 +79,8 @@ namespace InventoryManagement.UnitTests.Validators.Item.ItemDetail
             var dto = ValidTemplateDto();
             dto.VariantAttributes = new List<VariantAttributeDto>
             {
-                new VariantAttributeDto { AttributeId = 1, VariantBasedOn = 1, Order = 1 },
-                new VariantAttributeDto { AttributeId = 1, VariantBasedOn = 2, Order = 2 }
+                new VariantAttributeDto { SpecificationMasterId = 1, Order = 1 },
+                new VariantAttributeDto { SpecificationMasterId = 1, Order = 2 }
             };
 
             var result = await CreateValidator().TestValidateAsync(dto);

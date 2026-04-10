@@ -68,6 +68,9 @@ namespace InventoryManagement.Infrastructure.Data
         public DbSet<InspectionTemplate> InspectionTemplate { get; set; }         
         public DbSet<PutAwayRule> PutAwayRule { get; set; } 
         public DbSet<ItemVariantAttribute> ItemVariantAttribute { get; set; }
+        public DbSet<ItemSpecificationMaster> ItemSpecificationMaster { get; set; }
+        public DbSet<ItemSpecificationValue> ItemSpecificationValue { get; set; }
+        public DbSet<ItemItemSpecification> ItemItemSpecification { get; set; }
         public DbSet<StockLedger> StockLedger { get; set; } 
         public DbSet<SubStoreStockLedger> SubStoreStockLedger { get; set; } 
         public DbSet<MrsHeader> MrsHeader  { get; set; }
@@ -109,6 +112,9 @@ namespace InventoryManagement.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new PutAwayRuleConfiguration());
             modelBuilder.ApplyConfiguration(new PutAwayStrategyConfiguration());
             modelBuilder.ApplyConfiguration(new ItemVariantAttributeConfiguration());
+            modelBuilder.ApplyConfiguration(new ItemSpecificationMasterConfiguration());
+            modelBuilder.ApplyConfiguration(new ItemSpecificationValueConfiguration());
+            modelBuilder.ApplyConfiguration(new ItemItemSpecificationConfiguration());
             modelBuilder.ApplyConfiguration(new StockLedgerConfiguration());
             modelBuilder.ApplyConfiguration(new SubStoreStockLedgerConfiguration());
             modelBuilder.ApplyConfiguration(new MrsHeaderConfiguration());

@@ -12,39 +12,35 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
         private readonly ApplicationDbContext _db;
         public ItemVariantValueQueryRepository(ApplicationDbContext db) => _db = db;
 
-        // Helper: normalize option for keying
-        private static string N(string s) => (s ?? string.Empty).Trim().ToLowerInvariant();
-
-        // Helper: build a stable combo key "AttributeId:option|AttributeId:option" ordered by AttributeId
-        private static string BuildComboKey(IEnumerable<(int AttributeId, string Option)> parts)
+        // Helper: build a stable combo key "varAttrId:specValueId|varAttrId:specValueId" ordered by VarAttrId
+        private static string BuildComboKey(IEnumerable<(int VarAttrId, int SpecValueId)> parts)
         {
             return string.Join("|", parts
-                .OrderBy(p => p.AttributeId)
-                .Select(p => $"{p.AttributeId}:{N(p.Option)}"));
+                .OrderBy(p => p.VarAttrId)
+                .Select(p => $"{p.VarAttrId}:{p.SpecValueId}"));
         }
 
-        public async Task<Dictionary<int, List<string>>> GetForItemGroupedAsync(int itemId, CancellationToken ct = default)
+        public async Task<Dictionary<int, List<int>>> GetForItemGroupedAsync(int itemId, CancellationToken ct = default)
         {
             var rows = await _db.Set<ItemVariantValue>()
                 .AsNoTracking()
                 .Where(v => v.ItemId == itemId)
                 .Select(v => new
                 {
-                    v.OptionValue,
-                    AttributeId = v.VariantAttribute.AttributeId
+                    v.SpecificationValueId,
+                    v.VariantAttributeId
                 })
                 .ToListAsync(ct);
 
             return rows
-                .GroupBy(r => r.AttributeId)
+                .GroupBy(r => r.VariantAttributeId)
                 .ToDictionary(
                     g => g.Key,
-                    g => g.Select(x => x.OptionValue)
-                          .Distinct(System.StringComparer.OrdinalIgnoreCase)
+                    g => g.Select(x => x.SpecificationValueId)
+                          .Distinct()
                           .ToList());
         }
 
-     // IItemVariantValueQueryRepository impl snippet
         public async Task<HashSet<string>> GetExistingChildComboKeysAsync(int templateItemId, CancellationToken ct = default)
         {
             // Build map of VariantAttributeId that belong to this template
@@ -53,13 +49,13 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                 .Select(a => a.Id)
                 .ToListAsync(ct);
 
-            // Group child values by child item, create a key "varAttrId:value|varAttrId:value|..."
+            // Group child values by child item, create a key "varAttrId:specValueId|varAttrId:specValueId|..."
             var keys = await _db.ItemVariantValue
-                .Where(v => v.ItemMaster.ParentItemId == templateItemId && varAttrIds.Contains(v.VariantAttributeId))
+                .Where(v => v.ItemMaster!.ParentItemId == templateItemId && varAttrIds.Contains(v.VariantAttributeId))
                 .GroupBy(v => v.ItemId)
                 .Select(g => string.Join("|",
                     g.OrderBy(x => x.VariantAttributeId)
-                    .Select(x => x.VariantAttributeId.ToString() + ":" + x.OptionValue.Trim().ToLower())))
+                    .Select(x => x.VariantAttributeId.ToString() + ":" + x.SpecificationValueId.ToString())))
                 .ToListAsync(ct);
 
             return new HashSet<string>(keys, StringComparer.Ordinal);
@@ -67,18 +63,18 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
 
         public async Task<Dictionary<string, int>> GetExistingChildCombosWithIdsAsync(int templateItemId, CancellationToken ct = default)
         {
-            // 1) Attribute definitions for the template (we’ll use AttributeId for key ordering)
+            // 1) Attribute definitions for the template
             var attrDefs = await _db.Set<ItemVariantAttribute>()
                 .AsNoTracking()
                 .Where(a => a.ItemId == templateItemId)
-                .Select(a => new { a.Id, a.AttributeId, a.Order })
+                .Select(a => new { a.Id, a.SpecificationMasterId, a.Order })
                 .OrderBy(a => a.Order)
                 .ToListAsync(ct);
 
             if (attrDefs.Count == 0)
                 return new Dictionary<string, int>(0);
 
-            var attrIds = attrDefs.Select(a => a.AttributeId).ToList();
+            var attrRowIds = attrDefs.Select(a => a.Id).ToList();
 
             // 2) Child items under the template
             var childIds = await _db.ItemMaster
@@ -90,15 +86,15 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
             if (childIds.Count == 0)
                 return new Dictionary<string, int>(0);
 
-            // 3) Values for those children (need AttributeId via VariantAttribute)
+            // 3) Values for those children
             var vals = await _db.Set<ItemVariantValue>()
                 .AsNoTracking()
                 .Where(v => childIds.Contains(v.ItemId))
                 .Select(v => new
                 {
                     v.ItemId,
-                    v.OptionValue,
-                    AttributeId = v.VariantAttribute.AttributeId
+                    v.SpecificationValueId,
+                    v.VariantAttributeId
                 })
                 .ToListAsync(ct);
 
@@ -109,16 +105,16 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
             foreach (var g in byChild)
             {
                 var parts = g
-                    .Where(x => attrIds.Contains(x.AttributeId))
-                    .Select(x => (x.AttributeId, x.OptionValue))
+                    .Where(x => attrRowIds.Contains(x.VariantAttributeId))
+                    .Select(x => (x.VariantAttributeId, x.SpecificationValueId))
                     .ToList();
 
-                if (parts.Count != attrIds.Count)
+                if (parts.Count != attrRowIds.Count)
                     continue; // skip partial combos
 
                 var key = BuildComboKey(parts);
                 if (!result.ContainsKey(key))
-                    result[key] = g.Key; // first wins; duplicates shouldn’t happen
+                    result[key] = g.Key; // first wins
             }
 
             return result;
@@ -131,9 +127,10 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                 .Where(v => v.ItemId == itemId)
                 .Select(v => new VariantValueDto
                 {
-                    VariantAttributeId = v.VariantAttributeId,                    
-                    OptionValue        = v.OptionValue,
-                    Combo              = null
+                    VariantAttributeId   = v.VariantAttributeId,
+                    SpecificationValueId = v.SpecificationValueId,
+                    SpecificationValue   = v.SpecificationValue != null ? v.SpecificationValue.SpecificationValue : null,
+                    Combo                = null
                 })
                 .ToListAsync(ct);
         }

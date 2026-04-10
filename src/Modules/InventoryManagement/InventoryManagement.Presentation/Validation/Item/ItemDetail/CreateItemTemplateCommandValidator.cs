@@ -16,12 +16,11 @@ public sealed class CreateItemTemplateCommandValidator : AbstractValidator<ItemD
 
         RuleForEach(x => x.VariantAttributes).ChildRules(attrs =>
         {
-            attrs.RuleFor(a => a.AttributeId).GreaterThan(0);
-            attrs.RuleFor(a => a.VariantBasedOn).GreaterThan(0);
+            attrs.RuleFor(a => a.SpecificationMasterId).GreaterThan(0);
             attrs.RuleFor(a => a.Order).GreaterThan(0);
         });
 
-        RuleFor(x => x.VariantAttributes.Select(a => a.AttributeId))
+        RuleFor(x => x.VariantAttributes.Select(a => a.SpecificationMasterId))
            .Must(ids => ids.Distinct().Count() == ids.Count())
            .WithMessage("Duplicate attributes are not allowed.");
 
