@@ -9,6 +9,14 @@ namespace SalesManagement.Application.SalesReturn.Dto
         public string? CustomerName { get; set; }
         public string? ResolutionType { get; set; }
         public List<ComplaintInvoiceItemDto>? InvoiceItems { get; set; }
+        public List<BagStatusLookupDto>? BagStatuses { get; set; }
+    }
+
+    public class BagStatusLookupDto
+    {
+        public int Id { get; set; }
+        public string? Code { get; set; }
+        public string? Description { get; set; }
     }
 
     public class ComplaintInvoiceItemDto

@@ -26,10 +26,9 @@ public sealed class CreateItemVariantsCommandValidator : AbstractValidator<ItemD
                 .NotNull().WithMessage("VariantAttributeId is required.")
                 .GreaterThan(0).WithMessage("VariantAttributeId must be > 0.");
 
-            v.RuleFor(a => a.OptionValue)
-                .Must(s => !string.IsNullOrWhiteSpace(s))
-                .WithMessage("OptionValue is required.")
-                .MaximumLength(100);
+            v.RuleFor(a => a.SpecificationValueId)
+                .GreaterThan(0)
+                .WithMessage("SpecificationValueId is required.");
 
             v.RuleFor(a => a.Combo)
                 .GreaterThanOrEqualTo(1)
@@ -40,7 +39,7 @@ public sealed class CreateItemVariantsCommandValidator : AbstractValidator<ItemD
         RuleFor(x => x).Custom((x, ctx) =>
         {
             var groups = x.VariantValues?
-                .Where(v => v != null && v.VariantAttributeId.HasValue && v.VariantAttributeId.Value > 0 && !string.IsNullOrWhiteSpace(v.OptionValue))
+                .Where(v => v != null && v.VariantAttributeId.HasValue && v.VariantAttributeId.Value > 0 && v.SpecificationValueId > 0)
                 .GroupBy(v => v.Combo ?? 1)
                 .ToList();
 
@@ -83,7 +82,7 @@ public sealed class CreateItemVariantsCommandValidator : AbstractValidator<ItemD
                 var comboKeys = groups
                     .Select(g => string.Join("|",
                         g.OrderBy(v => v.VariantAttributeId!.Value)
-                         .Select(v => $"{v.VariantAttributeId!.Value}:{v.OptionValue.Trim().ToLower()}")))
+                         .Select(v => $"{v.VariantAttributeId!.Value}:{v.SpecificationValueId}")))
                     .ToList();
 
                 if (comboKeys.Count != comboKeys.Distinct().Count())

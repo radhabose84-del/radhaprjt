@@ -195,10 +195,11 @@ internal sealed class SalesStockLedgerLookupRepository : ISalesStockLedgerServic
 
         if (lotId == null)
         {
-            // Mode 1: Lot-level summary — GROUP BY LotId only
+            // Mode 1: Lot-level summary with PackType breakdown — GROUP BY LotId + PackTypeId
             const string lotSql = @"
                 SELECT
                     sl.LotId,
+                    sl.PackTypeId,
                     COUNT(sl.PackNo)   AS TotalBags,
                     SUM(sl.TotalValue) AS NetWeight
                 FROM Sales.StockLedger sl
@@ -207,8 +208,8 @@ internal sealed class SalesStockLedgerLookupRepository : ISalesStockLedgerServic
                   AND sl.ItemId        = @ItemId
                   AND YEAR(sl.DocDate) = @ProductionYear
                   AND sl.UnitId        = @UnitId
-                GROUP BY sl.LotId
-                ORDER BY sl.LotId;";
+                GROUP BY sl.LotId, sl.PackTypeId
+                ORDER BY sl.LotId, sl.PackTypeId;";
 
             var items = (await _dbConnection.QueryAsync<StockPackSummaryDto>(lotSql, dp)).ToList();
 
@@ -218,12 +219,24 @@ internal sealed class SalesStockLedgerLookupRepository : ISalesStockLedgerServic
                 var lotLookup = await _lotMasterLookup.GetByIdsAsync(lotIds, ct);
                 var lotDict = lotLookup.ToDictionary(x => x.Id);
 
+                var packTypeIds = items.Select(x => x.PackTypeId).Distinct();
+                var packTypeLookup = await _packTypeLookup.GetByIdsAsync(packTypeIds, ct);
+                var packTypeDict = packTypeLookup.ToDictionary(x => x.Id);
+
                 foreach (var item in items)
                 {
                     if (lotDict.TryGetValue(item.LotId, out var lot))
                     {
                         item.LotCode = lot.LotCode;
                         item.BatchNumber = lot.BatchNumber;
+                    }
+                    if (packTypeDict.TryGetValue(item.PackTypeId, out var pt))
+                    {
+                        item.PackTypeCode = pt.PackTypeCode;
+                        item.PackTypeName = pt.PackTypeName;
+                        item.TareWeight = pt.TareWeight;
+                        item.GrossWeight = pt.GrossWeight;
+                        item.ConesPerBag = pt.ConesPerBag;
                     }
                 }
             }
