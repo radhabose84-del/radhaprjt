@@ -3686,7 +3686,8 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("SalesChannelCode")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[IsDeleted] = 0");
 
                     b.ToTable("SalesChannel", "Sales");
                 });

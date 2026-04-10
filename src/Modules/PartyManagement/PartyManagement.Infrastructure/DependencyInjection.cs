@@ -27,8 +27,10 @@ using PartyManagement.Infrastructure.Repositories.MiscTypeMaster;
 using PartyManagement.Infrastructure.Repositories.PartyGroup;
 using PartyManagement.Infrastructure.Repositories.PartyMaster;
 using PartyManagement.Infrastructure.Repositories.Lookups;
+using PartyManagement.Infrastructure.Repositories.Updates;
 using PartyManagement.Infrastructure.Services;
 using Contracts.Interfaces.Lookups.Party;
+using Contracts.Interfaces.Updates.Party;
 using Serilog;
 using Microsoft.Extensions.Hosting;
 
@@ -134,6 +136,9 @@ namespace PartyManagement.Infrastructure
             services.AddScoped<ISubAgentLookup, SubAgentLookupRepository>();
             services.AddScoped<IPartyDetailLookup, PartyDetailLookupRepository>();
             services.AddScoped<IPartyBankLookup, PartyBankLookupRepository>();
+
+            // Cross-module updates
+            services.AddScoped<IPartyFreightUpdate, PartyFreightUpdateRepository>();
 
             // Miscellaneous services
             services.AddTransient<IFileUploadService, FileUploadRepository>();

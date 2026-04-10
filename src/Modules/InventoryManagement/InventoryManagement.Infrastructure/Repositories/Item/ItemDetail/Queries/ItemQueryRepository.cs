@@ -398,6 +398,15 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
             return true;
         }
 
+        /// <summary>
+        /// Update the item image for the given item id and image name
+        /// </summary>
+        /// <param name="ItemId">The item id</param>
+        /// <param name="imageName">The item image name</param>
+        /// <param name="ct">The cancellation token</param>
+        /// <returns>
+        /// <c>true</c> if the image is updated successfully, <c>false</c> otherwise
+        /// </returns>
         public async Task<bool> UpdateItemImageAsync(int ItemId, string imageName, CancellationToken ct = default)
         {
             var asset = await _db.ItemMaster.FindAsync(ItemId);
