@@ -37,6 +37,7 @@ namespace UserManagement.UnitTests.Validators.RoleItemGroupMapping
         {
             var cmd = ValidCommand();
             cmd.Id = id;
+            _mockQueryRepo.Setup(r => r.NotFoundAsync(id)).ReturnsAsync(true);
             _mockCommandRepo.Setup(r => r.CompositeKeyExistsAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(false);
             var result = await CreateValidator().TestValidateAsync(cmd);
             result.ShouldHaveValidationErrorFor(x => x.Id);

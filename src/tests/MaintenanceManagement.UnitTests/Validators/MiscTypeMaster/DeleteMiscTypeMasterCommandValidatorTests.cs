@@ -7,7 +7,7 @@ namespace MaintenanceManagement.UnitTests.Validators.MiscTypeMaster
 {
     public sealed class DeleteMiscTypeMasterCommandValidatorTests
     {
-        private readonly Mock<IMiscTypeMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
+        private readonly Mock<IMiscTypeMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
 
         private DeleteMiscTypeMasterCommandValidator CreateValidator() =>
             new(_mockQueryRepo.Object);

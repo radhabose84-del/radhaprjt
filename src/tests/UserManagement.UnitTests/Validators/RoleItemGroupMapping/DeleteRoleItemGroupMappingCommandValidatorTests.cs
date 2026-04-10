@@ -28,6 +28,7 @@ namespace UserManagement.UnitTests.Validators.RoleItemGroupMapping
         [Fact]
         public async Task ZeroId_FailsValidation()
         {
+            _mockQueryRepo.Setup(r => r.NotFoundAsync(0)).ReturnsAsync(true);
             var result = await CreateValidator().TestValidateAsync(new DeleteRoleItemGroupMappingCommand { Id = 0 });
             result.ShouldHaveValidationErrorFor(x => x.Id);
         }

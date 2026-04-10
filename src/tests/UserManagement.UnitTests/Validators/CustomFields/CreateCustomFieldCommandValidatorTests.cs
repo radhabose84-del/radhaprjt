@@ -69,7 +69,9 @@ namespace UserManagement.UnitTests.Validators.CustomFields
         [InlineData("")]
         public async Task Validate_EmptyLabelName_FailsValidation(string? labelName)
         {
-            SetupAllAsyncMocks();
+            _mockCustomFieldQuery.Setup(r => r.AlreadyExistsAsync(It.IsAny<string>(), null)).ReturnsAsync(false);
+            _mockUnitQuery.Setup(r => r.FKColumnExistValidation(1)).ReturnsAsync(true);
+            _mockMenuQuery.Setup(r => r.FKColumnExistValidation(1)).ReturnsAsync(true);
             var command = ValidCommand();
             command.LabelName = labelName;
             var result = await CreateValidator().TestValidateAsync(command);

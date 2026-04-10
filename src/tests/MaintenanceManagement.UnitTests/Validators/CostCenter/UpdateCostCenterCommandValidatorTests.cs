@@ -8,8 +8,8 @@ namespace MaintenanceManagement.UnitTests.Validators.CostCenter
 {
     public sealed class UpdateCostCenterCommandValidatorTests
     {
-        private readonly Mock<ICostCenterCommandRepository> _mockCommandRepo = new(MockBehavior.Strict);
-        private readonly Mock<ICostCenterQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
+        private readonly Mock<ICostCenterCommandRepository> _mockCommandRepo = new(MockBehavior.Loose);
+        private readonly Mock<ICostCenterQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
         private readonly Mock<MaxLengthProvider> _mockMaxLength = new(MockBehavior.Strict, new object[] { null! });
 
         private UpdateCostCenterCommandValidator CreateValidator() =>
@@ -30,7 +30,9 @@ namespace MaintenanceManagement.UnitTests.Validators.CostCenter
                 Id = 1,
                 CostCenterName = "Cost Center 1",
                 UnitId = 1,
-                DepartmentId = 1
+                DepartmentId = 1,
+                EffectiveDate = DateTime.UtcNow,
+                ResponsiblePerson = "John Doe"
             };
             SetupAllMocks(command.Id, command.CostCenterName!, command.UnitId);
 

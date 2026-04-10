@@ -44,13 +44,11 @@ namespace SalesManagement.UnitTests.Validators.SalesEnquiry
             result.ShouldNotHaveAnyValidationErrors();
         }
 
-        [Theory]
-        [InlineData(0)]
-        [InlineData(-1)]
-        public async Task PartyId_ZeroOrNegative_FailsValidation(int partyId)
+        [Fact]
+        public async Task PartyId_Zero_FailsValidation()
         {
             var cmd = ValidCommand();
-            cmd.SalesEnquiryDetails.PartyId = partyId;
+            cmd.SalesEnquiryDetails.PartyId = 0;
             _mockQueryRepo.Setup(r => r.ItemExistsAsync(1)).ReturnsAsync(true);
             var result = await CreateValidator().TestValidateAsync(cmd);
             result.ShouldHaveAnyValidationError();

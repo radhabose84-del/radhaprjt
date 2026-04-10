@@ -53,7 +53,7 @@ namespace MaintenanceManagement.UnitTests.Application.FeederGroup.Commands
                 .ReturnsAsync(0);
 
             Func<Task> act = async () => await CreateSut().Handle(new CreateFeederGroupCommand(), CancellationToken.None);
-            await act.Should().ThrowAsync<Exception>();
+            await act.Should().ThrowAsync<ExceptionRules>();
         }
     }
 }

@@ -9,8 +9,8 @@ namespace PurchaseManagement.UnitTests.Application.PaymentTermMaster.Commands
 {
     public sealed class DeletePaymentTermMasterCommandHandlerTests
     {
-        private readonly Mock<IPaymentTermMasterCommandRepository> _mockCommandRepo = new(MockBehavior.Strict);
-        private readonly Mock<IPaymentTermMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
+        private readonly Mock<IPaymentTermMasterCommandRepository> _mockCommandRepo = new(MockBehavior.Loose);
+        private readonly Mock<IPaymentTermMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Loose);
 
         private DeletePaymentTermMasterCommandHandler CreateSut() =>

@@ -71,6 +71,16 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             builder.Property(t => t.DispatchAddressId)
                 .HasColumnName("DispatchAddressId")
                 .HasColumnType("int")
+                .IsRequired(false);
+
+            builder.Property(t => t.DispatchTypeId)
+                .HasColumnName("DispatchTypeId")
+                .HasColumnType("int")
+                .IsRequired();
+
+            builder.Property(t => t.FreightId)
+                .HasColumnName("FreightId")
+                .HasColumnType("int")
                 .IsRequired();
 
             builder.Property(t => t.TransporterId)
@@ -137,9 +147,15 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasForeignKey(t => t.SalesOrderId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            builder.HasOne(t => t.DispatchTypeMisc)
+                .WithMany(h => h.DispatchAdviceHeadersAsDispatchType)
+                .HasForeignKey(t => t.DispatchTypeId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             builder.HasOne(t => t.DispatchAddress)
                 .WithMany(d => d.DispatchAdviceHeaders)
                 .HasForeignKey(t => t.DispatchAddressId)
+                .IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // Child collection — Header → Details
@@ -153,6 +169,8 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             builder.HasIndex(t => t.SalesOrderId);
             builder.HasIndex(t => t.PartyId);
             builder.HasIndex(t => t.StatusId);
+            builder.HasIndex(t => t.DispatchTypeId);
+            builder.HasIndex(t => t.FreightId);
             builder.HasIndex(t => t.DispatchDate);
         }
     }

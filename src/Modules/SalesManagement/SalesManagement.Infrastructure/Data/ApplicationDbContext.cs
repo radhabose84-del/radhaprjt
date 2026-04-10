@@ -36,6 +36,9 @@ namespace SalesManagement.Infrastructure.Data
         public DbSet<MiscTypeMaster> MiscTypeMaster { get; set; }
         public DbSet<MiscMaster> MiscMaster { get; set; }
         public DbSet<AgentCommissionConfig> AgentCommissionConfig { get; set; }
+        public DbSet<AgentCommissionSalesGroup> AgentCommissionSalesGroup { get; set; }
+        public DbSet<AgentCommissionPaymentTerm> AgentCommissionPaymentTerm { get; set; }
+        public DbSet<AgentCommissionSlab> AgentCommissionSlab { get; set; }
         public DbSet<AgentCustomerMapping> AgentCustomerMapping { get; set; }
         public DbSet<DispatchAddressMaster> DispatchAddressMaster { get; set; }
         public DbSet<MarketingOfficer> MarketingOfficer { get; set; }
@@ -82,6 +85,8 @@ namespace SalesManagement.Infrastructure.Data
         public DbSet<DiscountSlab> DiscountSlab { get; set; }
         public DbSet<DiscountSalesGroup> DiscountSalesGroup { get; set; }
         public DbSet<DiscountPaymentTerm> DiscountPaymentTerm { get; set; }
+        public DbSet<CommissionSplit> CommissionSplit { get; set; }
+        public DbSet<CommissionSplitDetail> CommissionSplitDetail { get; set; }
 
         // ── Outbox (SQL-based for workflow transaction atomicity) ─────────
         public DbSet<OutboxMessage> OutboxMessages { get; set; }
@@ -99,6 +104,9 @@ namespace SalesManagement.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new MiscTypeMasterConfiguration());
             modelBuilder.ApplyConfiguration(new MiscMasterConfiguration());
             modelBuilder.ApplyConfiguration(new AgentCommissionConfigConfiguration());
+            modelBuilder.ApplyConfiguration(new AgentCommissionSalesGroupConfiguration());
+            modelBuilder.ApplyConfiguration(new AgentCommissionPaymentTermConfiguration());
+            modelBuilder.ApplyConfiguration(new AgentCommissionSlabConfiguration());
             modelBuilder.ApplyConfiguration(new AgentCustomerMappingConfiguration());
             modelBuilder.ApplyConfiguration(new DispatchAddressMasterConfiguration());
             modelBuilder.ApplyConfiguration(new MarketingOfficerConfiguration());
@@ -145,6 +153,8 @@ namespace SalesManagement.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new DiscountSlabConfiguration());
             modelBuilder.ApplyConfiguration(new DiscountSalesGroupConfiguration());
             modelBuilder.ApplyConfiguration(new DiscountPaymentTermConfiguration());
+            modelBuilder.ApplyConfiguration(new CommissionSplitConfiguration());
+            modelBuilder.ApplyConfiguration(new CommissionSplitDetailConfiguration());
             // ── Outbox (SQL-based for workflow) ─────────────────────────────
             modelBuilder.ApplyConfiguration(new OutboxMessageConfiguration());
 

@@ -9,12 +9,12 @@ namespace SalesManagement.Application.Common.Interfaces.IAgentCommissionConfig
         Task<IReadOnlyList<AgentCommissionConfigLookupDto>> AutocompleteAsync(string term, CancellationToken ct);
         Task<bool> NotFoundAsync(int id);
         Task<bool> AgentExistsAsync(int agentId, CancellationToken ct = default);
-        Task<bool> SalesSegmentExistsAsync(int salesSegmentId);
-        Task<bool> CommissionTypeExistsAsync(int commissionTypeId);
-        Task<bool> CommissionBasisExistsAsync(int commissionBasisId);
-        Task<bool> ApplicableLevelExistsAsync(int applicableLevelId);
-        Task<bool> CurrencyExistsAsync(int currencyId, CancellationToken ct = default);
-        Task<bool> OverlapExistsAsync(int agentId, int salesSegmentId,
-            DateTimeOffset validityFrom, DateTimeOffset validityTo, int? excludeId = null);
+        Task<bool> MiscMasterExistsAsync(int id);
+        Task<bool> CommissionSplitExistsAsync(int id);
+        Task<bool> SalesGroupExistsAsync(int id);
+        Task<bool> PaymentTermExistsAsync(int id, CancellationToken ct = default);
+        Task<bool> OverlapExistsAsync(int agentId, int commissionSplitId,
+            DateTimeOffset validityFrom, DateTimeOffset? validityTo, int? excludeId = null);
+        Task<bool> IsAgentCommissionConfigLinkedAsync(int id);
     }
 }

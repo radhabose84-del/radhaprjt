@@ -44,6 +44,8 @@ namespace PurchaseManagement.IntegrationTests.Repositories.DutyMaster
             PurchaseManagement.Infrastructure.Data.ApplicationDbContext ctx)
         {
             await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Purchase.DutyMaster");
+            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Purchase.PriceMasterDetail");
+            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Purchase.PriceMasterHeader");
             await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Purchase.MiscMaster");
             await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Purchase.MiscTypeMaster");
 

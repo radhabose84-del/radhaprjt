@@ -56,7 +56,7 @@ namespace BackgroundService.Presentation.Validation.NotificationTemplate
                                 .IsNameDuplicateAsync(notificationConfigId, command.NotificationTypeId, command.LanguageCode,command.Id))
                         .WithMessage("The combination already exists.");
                         break;
-                    case "RecordNotFound":
+                    case "NotFound":
                         RuleFor(x => x.Id)
                             .MustAsync(async (Id, cancellation) =>
                                 await _NotificationTemplateQueryRepository.NotFoundAsync(Id))

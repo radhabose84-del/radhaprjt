@@ -44,6 +44,7 @@ namespace SalesManagement.UnitTests.Validators.StoTypeMaster
         {
             var cmd = ValidCommand();
             cmd.Id = id;
+            _mockQueryRepo.Setup(r => r.NotFoundAsync(id)).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.MovementTypeExistsAsync(1)).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.MovementTypeExistsAsync(2)).ReturnsAsync(true);
             var result = await CreateValidator().TestValidateAsync(cmd);

@@ -11,7 +11,7 @@ namespace MaintenanceManagement.Presentation.Validation.Power.Feeder
         private readonly List<ValidationRule> _validationRules;
 
         private readonly IFeederQueryRepository _feederQueryRepository;
-          public UpdateFeederCommandValidator( IFeederQueryRepository feederQueryRepository, MaxLengthProvider maxLengthProvider)
+          public UpdateFeederCommandValidator(MaxLengthProvider maxLengthProvider, IFeederQueryRepository feederQueryRepository)
         {
             var FeederCodeMaxLength = maxLengthProvider.GetMaxLength<MaintenanceManagement.Domain.Entities.Power.Feeder>("FeederCode") ?? 50;
             var FeederNameMaxLength = maxLengthProvider.GetMaxLength<MaintenanceManagement.Domain.Entities.Power.Feeder>("FeederName") ?? 500;

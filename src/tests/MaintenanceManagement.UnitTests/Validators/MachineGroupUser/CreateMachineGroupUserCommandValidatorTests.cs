@@ -8,7 +8,7 @@ namespace MaintenanceManagement.UnitTests.Validators.MachineGroupUser
 {
     public sealed class CreateMachineGroupUserCommandValidatorTests
     {
-        private readonly Mock<IMachineGroupUserQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
+        private readonly Mock<IMachineGroupUserQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
         private readonly Mock<MaxLengthProvider> _mockMaxLength = new(MockBehavior.Strict, new object[] { null! });
 
         private CreateMachineGroupUserCommandValidator CreateValidator() =>

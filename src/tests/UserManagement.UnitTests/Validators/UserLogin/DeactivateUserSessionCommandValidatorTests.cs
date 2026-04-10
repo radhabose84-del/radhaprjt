@@ -15,11 +15,21 @@ namespace UserManagement.UnitTests.Validators.UserLogin
         private static DeactivateUserSessionCommand ValidCommand() =>
             new DeactivateUserSessionCommand { Username = "testuser", Password = "Password123" };
 
+        private void SetupGetByUsername()
+        {
+            _mockUserRepo
+                .Setup(r => r.GetByUsernameAsync(It.IsAny<string>()))
+                .ReturnsAsync((UserManagement.Domain.Entities.User?)null!);
+        }
+
         [Fact]
         public async Task ValidCommand_PassesBasicValidation()
         {
-            // PasswordValidation case uses BCrypt internally so we skip it
-            // but NotEmpty rules run unconditionally
+            // PasswordValidation case uses BCrypt — return a user with matching hash
+            var hash = BCrypt.Net.BCrypt.HashPassword("Password123");
+            _mockUserRepo
+                .Setup(r => r.GetByUsernameAsync(It.IsAny<string>()))
+                .ReturnsAsync(new UserManagement.Domain.Entities.User { PasswordHash = hash });
             var cmd = ValidCommand();
             var result = await CreateValidator().TestValidateAsync(cmd);
             result.ShouldNotHaveValidationErrorFor(x => x.Username);
@@ -31,6 +41,7 @@ namespace UserManagement.UnitTests.Validators.UserLogin
         [InlineData("")]
         public async Task Username_Empty_FailsValidation(string? username)
         {
+            SetupGetByUsername();
             var cmd = ValidCommand();
             cmd.Username = username;
             var result = await CreateValidator().TestValidateAsync(cmd);
@@ -42,6 +53,7 @@ namespace UserManagement.UnitTests.Validators.UserLogin
         [InlineData("")]
         public async Task Password_Empty_FailsValidation(string? password)
         {
+            SetupGetByUsername();
             var cmd = ValidCommand();
             cmd.Password = password;
             var result = await CreateValidator().TestValidateAsync(cmd);

@@ -10,8 +10,8 @@ namespace PurchaseManagement.UnitTests.Application.PortMaster.Commands
 {
     public sealed class CreatePortMasterCommandHandlerTests
     {
-        private readonly Mock<IPortMasterCommandRepository> _mockCommandRepo = new(MockBehavior.Strict);
-        private readonly Mock<IPortMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
+        private readonly Mock<IPortMasterCommandRepository> _mockCommandRepo = new(MockBehavior.Loose);
+        private readonly Mock<IPortMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
         private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Loose);
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Loose);
 

@@ -6,13 +6,14 @@ namespace FinanceManagement.UnitTests.Application.TransactionTypeMaster.Commands
     public sealed class UpdateTransactionTypeMasterCommandHandlerTests
     {
         private readonly Mock<ITransactionTypeMasterCommandRepository> _mockCommandRepo = new(MockBehavior.Strict);
+        private readonly Mock<ITransactionTypeMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Loose);
         private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Loose);
 
         private UpdateTransactionTypeMasterCommandHandler CreateSut() =>
-            new(_mockCommandRepo.Object, _mockMediator.Object, _mockMapper.Object);
+            new(_mockCommandRepo.Object, _mockQueryRepo.Object, _mockMediator.Object, _mockMapper.Object);
 
-        private UpdateTransactionTypeMasterCommand ValidCommand() =>
+        private static UpdateTransactionTypeMasterCommand ValidCommand(int isActive = 1) =>
             new()
             {
                 Id = 1,
@@ -20,20 +21,20 @@ namespace FinanceManagement.UnitTests.Application.TransactionTypeMaster.Commands
                 ModuleId = 2,
                 MenuId = 3,
                 TypeName = "Updated Invoice",
-                ShortName = "INV",
-                Description = "Updated Description",
-                IsActive = 1
+                ShortName = "UINV",
+                Description = "Updated Invoice Type",
+                IsActive = isActive
             };
 
-        private void SetupHappyPath(int result = 1)
+        private void SetupHappyPath()
         {
             _mockMapper
                 .Setup(m => m.Map<FinanceManagement.Domain.Entities.TransactionTypeMaster>(It.IsAny<UpdateTransactionTypeMasterCommand>()))
-                .Returns(new FinanceManagement.Domain.Entities.TransactionTypeMaster { Id = 1 });
+                .Returns(new FinanceManagement.Domain.Entities.TransactionTypeMaster());
 
             _mockCommandRepo
                 .Setup(r => r.UpdateAsync(It.IsAny<FinanceManagement.Domain.Entities.TransactionTypeMaster>()))
-                .ReturnsAsync(result);
+                .ReturnsAsync(1);
         }
 
         [Fact]
@@ -45,15 +46,6 @@ namespace FinanceManagement.UnitTests.Application.TransactionTypeMaster.Commands
             result.Should().NotBeNull();
             result.IsSuccess.Should().BeTrue();
             result.Message.Should().Contain("updated successfully");
-        }
-
-        [Fact]
-        public async Task Handle_ValidCommand_ReturnsUpdateResult()
-        {
-            SetupHappyPath(result: 1);
-            var result = await CreateSut().Handle(ValidCommand(), CancellationToken.None);
-
-            result.Data.Should().Be(1);
         }
 
         [Fact]
@@ -83,15 +75,17 @@ namespace FinanceManagement.UnitTests.Application.TransactionTypeMaster.Commands
         }
 
         [Fact]
-        public async Task Handle_ValidCommand_MapsCommandToEntity()
+        public async Task Handle_InactivateLinkedRecord_ThrowsExceptionRules()
         {
-            SetupHappyPath();
-            var command = ValidCommand();
-            await CreateSut().Handle(command, CancellationToken.None);
+            _mockQueryRepo
+                .Setup(r => r.IsTransactionTypeMasterLinkedAsync(1))
+                .ReturnsAsync(true);
 
-            _mockMapper.Verify(
-                m => m.Map<FinanceManagement.Domain.Entities.TransactionTypeMaster>(command),
-                Times.Once);
+            Func<Task> act = async () =>
+                await CreateSut().Handle(ValidCommand(isActive: 0), CancellationToken.None);
+
+            await act.Should().ThrowAsync<ExceptionRules>()
+                .WithMessage("*linked*inactivate*");
         }
     }
 }

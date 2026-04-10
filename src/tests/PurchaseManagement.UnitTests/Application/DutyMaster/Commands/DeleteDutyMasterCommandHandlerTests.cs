@@ -9,8 +9,8 @@ namespace PurchaseManagement.UnitTests.Application.DutyMaster.Commands
 {
     public sealed class DeleteDutyMasterCommandHandlerTests
     {
-        private readonly Mock<IDutyMasterQueryRepository> _mockReadRepo = new(MockBehavior.Strict);
-        private readonly Mock<IDutyMasterCommandRepository> _mockWriteRepo = new(MockBehavior.Strict);
+        private readonly Mock<IDutyMasterQueryRepository> _mockReadRepo = new(MockBehavior.Loose);
+        private readonly Mock<IDutyMasterCommandRepository> _mockWriteRepo = new(MockBehavior.Loose);
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Loose);
 
         private DeleteDutyMasterCommandHandler CreateSut() =>

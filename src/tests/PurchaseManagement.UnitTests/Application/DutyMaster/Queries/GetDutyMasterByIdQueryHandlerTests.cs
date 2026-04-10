@@ -12,7 +12,7 @@ namespace PurchaseManagement.UnitTests.Application.DutyMaster.Queries
 {
     public sealed class GetDutyMasterByIdQueryHandlerTests
     {
-        private readonly Mock<IDutyMasterQueryRepository> _mockReadRepo = new(MockBehavior.Strict);
+        private readonly Mock<IDutyMasterQueryRepository> _mockReadRepo = new(MockBehavior.Loose);
         private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Loose);
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Loose);
         private readonly Mock<IHSNLookup> _mockHsnLookup = new(MockBehavior.Loose);

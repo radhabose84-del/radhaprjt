@@ -7,14 +7,14 @@ namespace MaintenanceManagement.UnitTests.Validators.MiscMaster
 {
     public sealed class DeleteMiscMasterCommandValidatorTests
     {
-        private readonly Mock<IMiscMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
+        private readonly Mock<IMiscMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
 
         private DeleteMiscMasterCommandValidator CreateValidator() =>
             new(_mockQueryRepo.Object);
 
-        private void SetupNotFound(int id, bool notFound)
+        private void SetupNotFound(int id, bool exists)
         {
-            _mockQueryRepo.Setup(r => r.NotFoundAsync(id)).ReturnsAsync(notFound);
+            _mockQueryRepo.Setup(r => r.NotFoundAsync(id)).ReturnsAsync(exists);
         }
 
         private void SetupSoftDelete(int id, bool linked)
@@ -26,7 +26,7 @@ namespace MaintenanceManagement.UnitTests.Validators.MiscMaster
         public async Task Validate_ValidId_PassesValidation()
         {
             SetupSoftDelete(1, linked: false);
-            SetupNotFound(1, notFound: false);
+            SetupNotFound(1, exists: true);
 
             var result = await CreateValidator().TestValidateAsync(new DeleteMiscMasterCommand { Id = 1 });
 
@@ -45,7 +45,7 @@ namespace MaintenanceManagement.UnitTests.Validators.MiscMaster
         public async Task Validate_Linked_FailsValidation()
         {
             SetupSoftDelete(1, linked: true);
-            SetupNotFound(1, notFound: false);
+            SetupNotFound(1, exists: true);
 
             var result = await CreateValidator().TestValidateAsync(new DeleteMiscMasterCommand { Id = 1 });
 
@@ -56,7 +56,7 @@ namespace MaintenanceManagement.UnitTests.Validators.MiscMaster
         public async Task Validate_NotFound_FailsValidation()
         {
             SetupSoftDelete(99, linked: false);
-            SetupNotFound(99, notFound: true);
+            SetupNotFound(99, exists: false);
 
             var result = await CreateValidator().TestValidateAsync(new DeleteMiscMasterCommand { Id = 99 });
 

@@ -3,6 +3,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using PurchaseManagement.Application.Common.Interfaces.IMiscMaster;
 using PurchaseManagement.Domain.Common;
+using PurchaseEntities = PurchaseManagement.Domain.Entities;
 using PurchaseManagement.Domain.Entities.PriceMaster;
 using PurchaseManagement.Infrastructure.Data;
 using PurchaseManagement.Infrastructure.Repositories.PriceMaster;
@@ -17,16 +18,18 @@ namespace PurchaseManagement.IntegrationTests.Repositories.PriceMaster
         private readonly DbFixture _fixture;
         private readonly Mock<IMiscMasterQueryRepository> _miscQueryRepo = new(MockBehavior.Loose);
 
+        // Seeded MiscMaster IDs — set after SeedPrerequisitesAsync
+        private int _sourceFromMiscId;
+        private int _statusMiscId;
+
         public PriceMasterCommandRepositoryTests(DbFixture fixture) => _fixture = fixture;
 
         private PriceMasterCommandRepository CreateRepository(ApplicationDbContext ctx) =>
             new(ctx, _fixture.IpMock.Object, _miscQueryRepo.Object);
 
-        private static PriceMasterHeader BuildHeader(
+        private PriceMasterHeader BuildHeader(
             int itemId = 1,
-            int vendorId = 1,
-            int statusId = 1,
-            int sourceFromId = 1) =>
+            int vendorId = 1) =>
             new()
             {
                 ItemId = itemId,
@@ -34,8 +37,8 @@ namespace PurchaseManagement.IntegrationTests.Repositories.PriceMaster
                 UnitId = 1,
                 UomId = 1,
                 ValidFrom = DateOnly.FromDateTime(DateTime.Today),
-                StatusId = statusId,
-                SourceFromId = sourceFromId,
+                StatusId = _statusMiscId,
+                SourceFromId = _sourceFromMiscId,
                 IsActive = Status.Active,
                 IsDeleted = IsDelete.NotDeleted,
                 Details = new List<PriceMasterDetail>
@@ -53,8 +56,56 @@ namespace PurchaseManagement.IntegrationTests.Repositories.PriceMaster
 
         private async Task ClearTablesAsync(ApplicationDbContext ctx)
         {
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Purchase.PriceMasterDetails");
+            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Purchase.PriceMasterDetail");
             await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Purchase.PriceMasterHeader");
+            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Purchase.MiscMaster");
+            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Purchase.MiscTypeMaster");
+        }
+
+        /// <summary>
+        /// Seeds MiscTypeMaster + MiscMaster rows required by PriceMasterHeader FK constraints
+        /// (SourceFromId and StatusId both reference Purchase.MiscMaster).
+        /// </summary>
+        private async Task SeedPrerequisitesAsync(ApplicationDbContext ctx)
+        {
+            // MiscTypeMaster parent rows
+            var miscType = new PurchaseEntities.MiscTypeMaster
+            {
+                MiscTypeCode = "PRICEMISC",
+                Description = "Price Master Misc Type",
+                IsActive = Status.Active,
+                IsDeleted = IsDelete.NotDeleted
+            };
+            ctx.Set<PurchaseEntities.MiscTypeMaster>().Add(miscType);
+            await ctx.SaveChangesAsync();
+
+            // MiscMaster for SourceFrom
+            var sourceFrom = new PurchaseEntities.MiscMaster
+            {
+                MiscTypeId = miscType.Id,
+                Code = "SRCFROM",
+                Description = "Source From",
+                SortOrder = 1,
+                IsActive = Status.Active,
+                IsDeleted = IsDelete.NotDeleted
+            };
+
+            // MiscMaster for Status
+            var status = new PurchaseEntities.MiscMaster
+            {
+                MiscTypeId = miscType.Id,
+                Code = "STATUS",
+                Description = "Status",
+                SortOrder = 2,
+                IsActive = Status.Active,
+                IsDeleted = IsDelete.NotDeleted
+            };
+
+            ctx.Set<PurchaseEntities.MiscMaster>().AddRange(sourceFrom, status);
+            await ctx.SaveChangesAsync();
+
+            _sourceFromMiscId = sourceFrom.Id;
+            _statusMiscId = status.Id;
         }
 
         // --- ADD + SAVE ---
@@ -64,6 +115,7 @@ namespace PurchaseManagement.IntegrationTests.Repositories.PriceMaster
         {
             await using var ctx = _fixture.CreateFreshDbContext();
             await ClearTablesAsync(ctx);
+            await SeedPrerequisitesAsync(ctx);
             var repo = CreateRepository(ctx);
 
             var header = BuildHeader(itemId: 10, vendorId: 20);
@@ -83,6 +135,7 @@ namespace PurchaseManagement.IntegrationTests.Repositories.PriceMaster
         {
             await using var ctx = _fixture.CreateFreshDbContext();
             await ClearTablesAsync(ctx);
+            await SeedPrerequisitesAsync(ctx);
             var repo = CreateRepository(ctx);
 
             var header = BuildHeader(itemId: 11, vendorId: 21);
@@ -105,6 +158,7 @@ namespace PurchaseManagement.IntegrationTests.Repositories.PriceMaster
         {
             await using var ctx = _fixture.CreateFreshDbContext();
             await ClearTablesAsync(ctx);
+            await SeedPrerequisitesAsync(ctx);
             var repo = CreateRepository(ctx);
 
             var header = BuildHeader(itemId: 30, vendorId: 30);
@@ -122,6 +176,7 @@ namespace PurchaseManagement.IntegrationTests.Repositories.PriceMaster
         {
             await using var ctx = _fixture.CreateFreshDbContext();
             await ClearTablesAsync(ctx);
+            await SeedPrerequisitesAsync(ctx);
             var repo = CreateRepository(ctx);
 
             var header = BuildHeader(itemId: 31, vendorId: 31);
@@ -157,6 +212,7 @@ namespace PurchaseManagement.IntegrationTests.Repositories.PriceMaster
         {
             await using var ctx = _fixture.CreateFreshDbContext();
             await ClearTablesAsync(ctx);
+            await SeedPrerequisitesAsync(ctx);
             var repo = CreateRepository(ctx);
 
             var from = DateOnly.FromDateTime(DateTime.Today);

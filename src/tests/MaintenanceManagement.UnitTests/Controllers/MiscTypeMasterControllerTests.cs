@@ -70,6 +70,8 @@ namespace MaintenanceManagement.UnitTests.Controllers
         [Fact]
         public async Task Update_ReturnsOkResult()
         {
+            _mockMediator.Setup(m => m.Send(It.IsAny<GetMiscTypeMasterByIdQuery>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ApiResponseDTO<GetMiscTypeMasterDto> { IsSuccess = true, Data = new GetMiscTypeMasterDto() });
             _mockMediator.Setup(m => m.Send(It.IsAny<UpdateMiscTypeMasterCommand>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ApiResponseDTO<bool> { IsSuccess = true });
 

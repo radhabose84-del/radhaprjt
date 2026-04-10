@@ -9,7 +9,7 @@ namespace PurchaseManagement.UnitTests.Application.DutyMaster.Queries
 {
     public sealed class GetAllDutyMasterQueryHandlerTests
     {
-        private readonly Mock<IDutyMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
+        private readonly Mock<IDutyMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
         private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Loose);
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Loose);
 

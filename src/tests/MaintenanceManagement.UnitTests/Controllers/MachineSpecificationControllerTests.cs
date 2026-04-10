@@ -33,7 +33,14 @@ namespace MaintenanceManagement.UnitTests.Controllers
             _mockMediator.Setup(m => m.Send(It.IsAny<CreateMachineSpecficationCommand>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ApiResponseDTO<List<int>> { IsSuccess = true, Data = new() });
 
-            var result = await CreateSut().CreateAsync(new CreateMachineSpecficationCommand());
+            var command = new CreateMachineSpecficationCommand
+            {
+                Specifications = new List<MachineSpecificationCreateDto>
+                {
+                    new MachineSpecificationCreateDto { SpecificationId = 1, MachineId = 1, SpecificationValue = "Test" }
+                }
+            };
+            var result = await CreateSut().CreateAsync(command);
             result.Should().BeOfType<OkObjectResult>();
         }
 
@@ -43,7 +50,14 @@ namespace MaintenanceManagement.UnitTests.Controllers
             _mockMediator.Setup(m => m.Send(It.IsAny<UpdateMachineSpecficationCommand>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ApiResponseDTO<bool> { IsSuccess = true });
 
-            var result = await CreateSut().UpdateAsync(new UpdateMachineSpecficationCommand());
+            var command = new UpdateMachineSpecficationCommand
+            {
+                Specifications = new List<MachineSpecificationUpdateDto>
+                {
+                    new MachineSpecificationUpdateDto { SpecificationId = 1, MachineId = 1, SpecificationValue = "Test" }
+                }
+            };
+            var result = await CreateSut().UpdateAsync(command);
             result.Should().BeOfType<OkObjectResult>();
         }
     }
