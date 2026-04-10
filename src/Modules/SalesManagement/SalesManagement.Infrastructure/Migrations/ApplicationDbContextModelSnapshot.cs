@@ -35,11 +35,11 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("AgentId");
 
-                    b.Property<int?>("ApplicableLevelId")
+                    b.Property<int>("ApplicableLevelId")
                         .HasColumnType("int")
                         .HasColumnName("ApplicableLevelId");
 
-                    b.Property<int?>("CommissionBasisId")
+                    b.Property<int>("CommissionBasisId")
                         .HasColumnType("int")
                         .HasColumnName("CommissionBasisId");
 
@@ -47,6 +47,10 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,4)")
                         .HasColumnName("CommissionPercentage");
+
+                    b.Property<int>("CommissionSplitId")
+                        .HasColumnType("int")
+                        .HasColumnName("CommissionSplitId");
 
                     b.Property<int>("CommissionTypeId")
                         .HasColumnType("int")
@@ -67,10 +71,6 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Property<string>("CreatedIP")
                         .HasColumnType("varchar(50)")
                         .HasColumnName("CreatedIP");
-
-                    b.Property<int?>("CurrencyId")
-                        .HasColumnType("int")
-                        .HasColumnName("CurrencyId");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit")
@@ -96,15 +96,19 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("varchar(50)")
                         .HasColumnName("ModifiedIP");
 
-                    b.Property<int>("SalesSegmentId")
+                    b.Property<int?>("SlabTypeId")
                         .HasColumnType("int")
-                        .HasColumnName("SalesSegmentId");
+                        .HasColumnName("SlabTypeId");
+
+                    b.Property<int>("TriggerEventId")
+                        .HasColumnType("int")
+                        .HasColumnName("TriggerEventId");
 
                     b.Property<DateTimeOffset>("ValidityFrom")
                         .HasColumnType("datetimeoffset")
                         .HasColumnName("ValidityFrom");
 
-                    b.Property<DateTimeOffset>("ValidityTo")
+                    b.Property<DateTimeOffset?>("ValidityTo")
                         .HasColumnType("datetimeoffset")
                         .HasColumnName("ValidityTo");
 
@@ -116,15 +120,249 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     b.HasIndex("CommissionBasisId");
 
+                    b.HasIndex("CommissionSplitId");
+
                     b.HasIndex("CommissionTypeId");
 
-                    b.HasIndex("SalesSegmentId");
+                    b.HasIndex("SlabTypeId");
 
-                    b.HasIndex("AgentId", "SalesSegmentId");
+                    b.HasIndex("TriggerEventId");
+
+                    b.HasIndex("AgentId", "CommissionSplitId");
 
                     b.HasIndex("ValidityFrom", "ValidityTo");
 
                     b.ToTable("AgentCommissionConfig", "Sales");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.AgentCommissionPaymentTerm", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AgentCommissionConfigId")
+                        .HasColumnType("int")
+                        .HasColumnName("AgentCommissionConfigId");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<int>("PaymentTermId")
+                        .HasColumnType("int")
+                        .HasColumnName("PaymentTermId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AgentCommissionConfigId");
+
+                    b.HasIndex("PaymentTermId");
+
+                    b.HasIndex("AgentCommissionConfigId", "PaymentTermId")
+                        .IsUnique();
+
+                    b.ToTable("AgentCommissionPaymentTerm", "Sales");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.AgentCommissionSalesGroup", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AgentCommissionConfigId")
+                        .HasColumnType("int")
+                        .HasColumnName("AgentCommissionConfigId");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<int>("SalesGroupId")
+                        .HasColumnType("int")
+                        .HasColumnName("SalesGroupId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AgentCommissionConfigId");
+
+                    b.HasIndex("SalesGroupId");
+
+                    b.HasIndex("AgentCommissionConfigId", "SalesGroupId")
+                        .IsUnique();
+
+                    b.ToTable("AgentCommissionSalesGroup", "Sales");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.AgentCommissionSlab", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AgentCommissionConfigId")
+                        .HasColumnType("int")
+                        .HasColumnName("AgentCommissionConfigId");
+
+                    b.Property<int>("CommissionBasisId")
+                        .HasColumnType("int")
+                        .HasColumnName("CommissionBasisId");
+
+                    b.Property<int>("CommissionTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("CommissionTypeId");
+
+                    b.Property<decimal>("CommissionValue")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,4)")
+                        .HasColumnName("CommissionValue");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<int>("FromDelay")
+                        .HasColumnType("int")
+                        .HasColumnName("FromDelay");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<int>("SlabOrder")
+                        .HasColumnType("int")
+                        .HasColumnName("SlabOrder");
+
+                    b.Property<int?>("ToDelay")
+                        .HasColumnType("int")
+                        .HasColumnName("ToDelay");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AgentCommissionConfigId");
+
+                    b.HasIndex("CommissionBasisId");
+
+                    b.HasIndex("CommissionTypeId");
+
+                    b.HasIndex("AgentCommissionConfigId", "SlabOrder")
+                        .IsUnique();
+
+                    b.ToTable("AgentCommissionSlab", "Sales");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.AgentCustomerMapping", b =>
@@ -289,6 +527,153 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.HasIndex("IsDeleted");
 
                     b.ToTable("BusinessUnit", "Sales");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.CommissionSplit", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<string>("SplitCode")
+                        .IsRequired()
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("SplitCode");
+
+                    b.Property<string>("SplitName")
+                        .IsRequired()
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("SplitName");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SplitCode")
+                        .IsUnique();
+
+                    b.ToTable("CommissionSplit", "Sales");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.CommissionSplitDetail", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CommissionSplitId")
+                        .HasColumnType("int")
+                        .HasColumnName("CommissionSplitId");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<int>("RoleId")
+                        .HasColumnType("int")
+                        .HasColumnName("RoleId");
+
+                    b.Property<int>("ShareTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("ShareTypeId");
+
+                    b.Property<decimal>("ShareValue")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,4)")
+                        .HasColumnName("ShareValue");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CommissionSplitId");
+
+                    b.HasIndex("RoleId");
+
+                    b.HasIndex("ShareTypeId");
+
+                    b.HasIndex("CommissionSplitId", "RoleId")
+                        .IsUnique();
+
+                    b.ToTable("CommissionSplitDetail", "Sales");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.ComplaintAttachment", b =>
@@ -2101,7 +2486,7 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("varchar(50)")
                         .HasColumnName("CreatedIP");
 
-                    b.Property<int>("DispatchAddressId")
+                    b.Property<int?>("DispatchAddressId")
                         .HasColumnType("int")
                         .HasColumnName("DispatchAddressId");
 
@@ -2114,9 +2499,17 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("varchar(30)")
                         .HasColumnName("DispatchNo");
 
+                    b.Property<int>("DispatchTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("DispatchTypeId");
+
                     b.Property<string>("DriverName")
                         .HasColumnType("varchar(100)")
                         .HasColumnName("DriverName");
+
+                    b.Property<int>("FreightId")
+                        .HasColumnType("int")
+                        .HasColumnName("FreightId");
 
                     b.Property<bool>("InvFlg")
                         .ValueGeneratedOnAdd()
@@ -2199,6 +2592,10 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     b.HasIndex("DispatchNo")
                         .IsUnique();
+
+                    b.HasIndex("DispatchTypeId");
+
+                    b.HasIndex("FreightId");
 
                     b.HasIndex("PartyId");
 
@@ -2554,11 +2951,6 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnName("Id");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<decimal?>("AdditionalValue")
-                        .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,4)")
-                        .HasColumnName("AdditionalValue");
 
                     b.Property<decimal>("BaseRate")
                         .HasPrecision(18, 6)
@@ -5474,12 +5866,20 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "ApplicableLevel")
                         .WithMany("AgentCommissionConfigsAsApplicableLevel")
                         .HasForeignKey("ApplicableLevelId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "CommissionBasis")
                         .WithMany("AgentCommissionConfigsAsCommissionBasis")
                         .HasForeignKey("CommissionBasisId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SalesManagement.Domain.Entities.CommissionSplit", "CommissionSplit")
+                        .WithMany("AgentCommissionConfigs")
+                        .HasForeignKey("CommissionSplitId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "MiscMaster")
                         .WithMany()
@@ -5487,9 +5887,14 @@ namespace SalesManagement.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("SalesManagement.Domain.Entities.SalesSegment", "SalesSegment")
-                        .WithMany()
-                        .HasForeignKey("SalesSegmentId")
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "SlabType")
+                        .WithMany("AgentCommissionConfigsAsSlabType")
+                        .HasForeignKey("SlabTypeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "TriggerEvent")
+                        .WithMany("AgentCommissionConfigsAsTriggerEvent")
+                        .HasForeignKey("TriggerEventId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -5497,9 +5902,70 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     b.Navigation("CommissionBasis");
 
+                    b.Navigation("CommissionSplit");
+
                     b.Navigation("MiscMaster");
 
-                    b.Navigation("SalesSegment");
+                    b.Navigation("SlabType");
+
+                    b.Navigation("TriggerEvent");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.AgentCommissionPaymentTerm", b =>
+                {
+                    b.HasOne("SalesManagement.Domain.Entities.AgentCommissionConfig", "AgentCommissionConfig")
+                        .WithMany("AgentCommissionPaymentTerms")
+                        .HasForeignKey("AgentCommissionConfigId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AgentCommissionConfig");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.AgentCommissionSalesGroup", b =>
+                {
+                    b.HasOne("SalesManagement.Domain.Entities.AgentCommissionConfig", "AgentCommissionConfig")
+                        .WithMany("AgentCommissionSalesGroups")
+                        .HasForeignKey("AgentCommissionConfigId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SalesManagement.Domain.Entities.SalesGroup", "SalesGroup")
+                        .WithMany("AgentCommissionSalesGroups")
+                        .HasForeignKey("SalesGroupId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AgentCommissionConfig");
+
+                    b.Navigation("SalesGroup");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.AgentCommissionSlab", b =>
+                {
+                    b.HasOne("SalesManagement.Domain.Entities.AgentCommissionConfig", "AgentCommissionConfig")
+                        .WithMany("AgentCommissionSlabs")
+                        .HasForeignKey("AgentCommissionConfigId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "CommissionBasis")
+                        .WithMany("AgentCommissionSlabsAsCommissionBasis")
+                        .HasForeignKey("CommissionBasisId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "CommissionType")
+                        .WithMany("AgentCommissionSlabsAsCommissionType")
+                        .HasForeignKey("CommissionTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AgentCommissionConfig");
+
+                    b.Navigation("CommissionBasis");
+
+                    b.Navigation("CommissionType");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.AgentCustomerMapping", b =>
@@ -5511,6 +5977,33 @@ namespace SalesManagement.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("SalesSegment");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.CommissionSplitDetail", b =>
+                {
+                    b.HasOne("SalesManagement.Domain.Entities.CommissionSplit", "CommissionSplit")
+                        .WithMany("CommissionSplitDetails")
+                        .HasForeignKey("CommissionSplitId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "Role")
+                        .WithMany("CommissionSplitDetailsAsRole")
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "ShareType")
+                        .WithMany("CommissionSplitDetailsAsShareType")
+                        .HasForeignKey("ShareTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CommissionSplit");
+
+                    b.Navigation("Role");
+
+                    b.Navigation("ShareType");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.ComplaintAttachment", b =>
@@ -5940,6 +6433,11 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.HasOne("SalesManagement.Domain.Entities.DispatchAddressMaster", "DispatchAddress")
                         .WithMany("DispatchAdviceHeaders")
                         .HasForeignKey("DispatchAddressId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "DispatchTypeMisc")
+                        .WithMany("DispatchAdviceHeadersAsDispatchType")
+                        .HasForeignKey("DispatchTypeId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -5956,6 +6454,8 @@ namespace SalesManagement.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("DispatchAddress");
+
+                    b.Navigation("DispatchTypeMisc");
 
                     b.Navigation("SalesOrderHeader");
 
@@ -6523,9 +7023,25 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("PgiMovementType");
                 });
 
+            modelBuilder.Entity("SalesManagement.Domain.Entities.AgentCommissionConfig", b =>
+                {
+                    b.Navigation("AgentCommissionPaymentTerms");
+
+                    b.Navigation("AgentCommissionSalesGroups");
+
+                    b.Navigation("AgentCommissionSlabs");
+                });
+
             modelBuilder.Entity("SalesManagement.Domain.Entities.BusinessUnit", b =>
                 {
                     b.Navigation("SalesSegments");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.CommissionSplit", b =>
+                {
+                    b.Navigation("AgentCommissionConfigs");
+
+                    b.Navigation("CommissionSplitDetails");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.ComplaintDepartmentFeedback", b =>
@@ -6604,6 +7120,18 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     b.Navigation("AgentCommissionConfigsAsCommissionBasis");
 
+                    b.Navigation("AgentCommissionConfigsAsSlabType");
+
+                    b.Navigation("AgentCommissionConfigsAsTriggerEvent");
+
+                    b.Navigation("AgentCommissionSlabsAsCommissionBasis");
+
+                    b.Navigation("AgentCommissionSlabsAsCommissionType");
+
+                    b.Navigation("CommissionSplitDetailsAsRole");
+
+                    b.Navigation("CommissionSplitDetailsAsShareType");
+
                     b.Navigation("DeliveryChallanHeadersAsStatus");
 
                     b.Navigation("DiscountMastersAsCustomerGroup");
@@ -6623,6 +7151,8 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("DiscountMastersAsValueType");
 
                     b.Navigation("DispatchAddressMappings");
+
+                    b.Navigation("DispatchAdviceHeadersAsDispatchType");
 
                     b.Navigation("DispatchAdviceHeadersAsStatus");
 
@@ -6693,6 +7223,8 @@ namespace SalesManagement.Infrastructure.Migrations
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.SalesGroup", b =>
                 {
+                    b.Navigation("AgentCommissionSalesGroups");
+
                     b.Navigation("DiscountSalesGroups");
 
                     b.Navigation("OfficerSalesGroups");

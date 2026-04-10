@@ -40,9 +40,13 @@ namespace SalesManagement.Presentation.Validation.DispatchAdvice
                             .NotEmpty()
                             .WithMessage($"{nameof(CreateDispatchAdviceCommand.PartyId)} {rule.Error}");
 
-                        RuleFor(x => x.DispatchAddressId)
+                        RuleFor(x => x.DispatchTypeId)
                             .NotEmpty()
-                            .WithMessage($"{nameof(CreateDispatchAdviceCommand.DispatchAddressId)} {rule.Error}");
+                            .WithMessage($"{nameof(CreateDispatchAdviceCommand.DispatchTypeId)} {rule.Error}");
+
+                        RuleFor(x => x.FreightId)
+                            .NotEmpty()
+                            .WithMessage($"{nameof(CreateDispatchAdviceCommand.FreightId)} {rule.Error}");
 
                         RuleFor(x => x.Details)
                             .NotNull()
@@ -82,9 +86,9 @@ namespace SalesManagement.Presentation.Validation.DispatchAdvice
                             .When(x => x.SalesOrderId > 0);
 
                         RuleFor(x => x.DispatchAddressId)
-                            .MustAsync(async (id, ct) => await _queryRepository.DispatchAddressExistsAsync(id))
+                            .MustAsync(async (id, ct) => await _queryRepository.DispatchAddressExistsAsync(id!.Value))
                             .WithMessage($"{nameof(CreateDispatchAdviceCommand.DispatchAddressId)} {rule.Error}")
-                            .When(x => x.DispatchAddressId > 0);
+                            .When(x => x.DispatchAddressId.HasValue && x.DispatchAddressId > 0);
                         break;
 
                     case "GreaterThan":

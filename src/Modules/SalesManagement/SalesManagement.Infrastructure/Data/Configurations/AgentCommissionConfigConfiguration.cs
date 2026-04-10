@@ -20,7 +20,7 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 v => v ? IsDelete.Deleted : IsDelete.NotDeleted
             );
 
-            // Table mapping (user-specified table name)
+            // Table mapping
             builder.ToTable("AgentCommissionConfig", "Sales");
             builder.HasKey(t => t.Id);
 
@@ -34,11 +34,6 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("int")
                 .IsRequired();
 
-            builder.Property(t => t.SalesSegmentId)
-                .HasColumnName("SalesSegmentId")
-                .HasColumnType("int")
-                .IsRequired();
-
             builder.Property(t => t.CommissionTypeId)
                 .HasColumnName("CommissionTypeId")
                 .HasColumnType("int")
@@ -47,22 +42,17 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             builder.Property(t => t.CommissionBasisId)
                 .HasColumnName("CommissionBasisId")
                 .HasColumnType("int")
-                .IsRequired(false);
+                .IsRequired();
 
             builder.Property(t => t.ApplicableLevelId)
                 .HasColumnName("ApplicableLevelId")
                 .HasColumnType("int")
-                .IsRequired(false);
+                .IsRequired();
 
             builder.Property(t => t.CommissionPercentage)
                 .HasColumnName("CommissionPercentage")
                 .HasColumnType("decimal(18,4)")
                 .IsRequired();
-
-            builder.Property(t => t.CurrencyId)
-                .HasColumnName("CurrencyId")
-                .HasColumnType("int")
-                .IsRequired(false);
 
             builder.Property(t => t.ValidityFrom)
                 .HasColumnName("ValidityFrom")
@@ -70,6 +60,21 @@ namespace SalesManagement.Infrastructure.Data.Configurations
 
             builder.Property(t => t.ValidityTo)
                 .HasColumnName("ValidityTo")
+                .IsRequired(false);
+
+            builder.Property(t => t.TriggerEventId)
+                .HasColumnName("TriggerEventId")
+                .HasColumnType("int")
+                .IsRequired();
+
+            builder.Property(t => t.SlabTypeId)
+                .HasColumnName("SlabTypeId")
+                .HasColumnType("int")
+                .IsRequired(false);
+
+            builder.Property(t => t.CommissionSplitId)
+                .HasColumnName("CommissionSplitId")
+                .HasColumnType("int")
                 .IsRequired();
 
             builder.Property(b => b.IsActive)
@@ -96,20 +101,16 @@ namespace SalesManagement.Infrastructure.Data.Configurations
 
             // Indexes
             builder.HasIndex(t => t.AgentId);
-            builder.HasIndex(t => t.SalesSegmentId);
             builder.HasIndex(t => t.CommissionTypeId);
             builder.HasIndex(t => t.CommissionBasisId);
             builder.HasIndex(t => t.ApplicableLevelId);
+            builder.HasIndex(t => t.TriggerEventId);
+            builder.HasIndex(t => t.SlabTypeId);
+            builder.HasIndex(t => t.CommissionSplitId);
             builder.HasIndex(t => new { t.ValidityFrom, t.ValidityTo });
 
             // Composite index for overlap query performance
-            builder.HasIndex(t => new { t.AgentId, t.SalesSegmentId });
-
-            // Same-module FK — SalesSegment (DB constraint)
-            builder.HasOne(t => t.SalesSegment)
-                .WithMany()
-                .HasForeignKey(t => t.SalesSegmentId)
-                .OnDelete(DeleteBehavior.Restrict);
+            builder.HasIndex(t => new { t.AgentId, t.CommissionSplitId });
 
             // Same-module FK — MiscMaster for CommissionType (DB constraint)
             builder.HasOne(t => t.MiscMaster)
@@ -121,17 +122,34 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             builder.HasOne(t => t.CommissionBasis)
                 .WithMany(m => m.AgentCommissionConfigsAsCommissionBasis)
                 .HasForeignKey(t => t.CommissionBasisId)
-                .IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // Same-module FK — MiscMaster for ApplicableLevel (DB constraint)
             builder.HasOne(t => t.ApplicableLevel)
                 .WithMany(m => m.AgentCommissionConfigsAsApplicableLevel)
                 .HasForeignKey(t => t.ApplicableLevelId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Same-module FK — MiscMaster for TriggerEvent (DB constraint)
+            builder.HasOne(t => t.TriggerEvent)
+                .WithMany(m => m.AgentCommissionConfigsAsTriggerEvent)
+                .HasForeignKey(t => t.TriggerEventId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Same-module FK — MiscMaster for SlabType (DB constraint, optional)
+            builder.HasOne(t => t.SlabType)
+                .WithMany(m => m.AgentCommissionConfigsAsSlabType)
+                .HasForeignKey(t => t.SlabTypeId)
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Cross-module FKs (AgentId, CurrencyId) — NO DB FK constraints
+            // Same-module FK — CommissionSplit (DB constraint)
+            builder.HasOne(t => t.CommissionSplit)
+                .WithMany(c => c.AgentCommissionConfigs)
+                .HasForeignKey(t => t.CommissionSplitId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Cross-module FKs (AgentId) — NO DB FK constraints
         }
     }
 }

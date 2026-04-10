@@ -12,22 +12,29 @@ namespace InventoryManagement.UnitTests.Domain
                 Id = 1,
                 ItemId = 10,
                 VariantAttributeId = 3,
-                OptionValue = "Blue",
+                SpecificationValueId = 7,
                 ParentItemId = 5
             };
 
             entity.Id.Should().Be(1);
             entity.ItemId.Should().Be(10);
             entity.VariantAttributeId.Should().Be(3);
-            entity.OptionValue.Should().Be("Blue");
+            entity.SpecificationValueId.Should().Be(7);
             entity.ParentItemId.Should().Be(5);
         }
 
         [Fact]
-        public void ItemVariantValue_DefaultOptionValue_CanBeAssigned()
+        public void ItemVariantValue_NavigationProperties_ShouldBeAssignable()
         {
-            var entity = new ItemVariantValue { OptionValue = "Red" };
-            entity.OptionValue.Should().Be("Red");
+            var specValue = new ItemSpecificationValue { Id = 7, SpecificationValue = "Blue" };
+            var entity = new ItemVariantValue
+            {
+                SpecificationValueId = 7,
+                SpecificationValue = specValue
+            };
+
+            entity.SpecificationValue.Should().NotBeNull();
+            entity.SpecificationValue!.SpecificationValue.Should().Be("Blue");
         }
     }
 }

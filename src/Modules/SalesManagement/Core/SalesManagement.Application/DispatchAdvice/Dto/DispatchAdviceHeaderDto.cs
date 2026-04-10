@@ -14,8 +14,12 @@ namespace SalesManagement.Application.DispatchAdvice.Dto
         public decimal TotOrderQty { get; set; }
         public decimal TotDispatchedQty { get; set; }
         public decimal TotPendingQty { get; set; }
-        public int DispatchAddressId { get; set; }
+        public int? DispatchAddressId { get; set; }
         public string? DispatchAddressName { get; set; }
+        public int DispatchTypeId { get; set; }
+        public string? DispatchTypeName { get; set; }
+        public int FreightId { get; set; }
+        public string? FreightModeName { get; set; }
         public int? TransporterId { get; set; }
         public string? TransporterName { get; set; }
         public string? VehicleNo { get; set; }

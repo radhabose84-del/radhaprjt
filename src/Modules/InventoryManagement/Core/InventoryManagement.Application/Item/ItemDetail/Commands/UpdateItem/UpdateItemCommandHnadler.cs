@@ -173,14 +173,13 @@ namespace InventoryManagement.Application.Item.ItemDetail.Commands.UpdateItem
                     foreach (var v in p.VariantValues)
                     {
                         if (v?.VariantAttributeId is not int varAttrId || varAttrId <= 0) continue;
-                        if (string.IsNullOrWhiteSpace(v.OptionValue)) continue;
+                        if (v.SpecificationValueId <= 0) continue;
 
-                        var opt = v.OptionValue.Trim();
                         var exists = currentByVarAttr.TryGetValue(varAttrId, out var list)
-                                  && list.Any(x => string.Equals(x, opt, StringComparison.OrdinalIgnoreCase));
+                                  && list.Contains(v.SpecificationValueId);
 
                         if (!exists)
-                            toAdd.Add(new VariantValueDto { VariantAttributeId = varAttrId, OptionValue = opt });
+                            toAdd.Add(new VariantValueDto { VariantAttributeId = varAttrId, SpecificationValueId = v.SpecificationValueId, SpecificationValue = v.SpecificationValue });
                     }
 
                     if (toAdd.Count > 0)

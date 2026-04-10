@@ -13,7 +13,7 @@ namespace InventoryManagement.Infrastructure.Data.Configurations.Item.ItemDetail
 
             b.Property(x => x.ItemId).IsRequired();
             b.Property(x => x.VariantAttributeId).IsRequired();
-            b.Property(x => x.OptionValue).HasMaxLength(100).IsRequired();
+            b.Property(x => x.SpecificationValueId).IsRequired();
 
             b.HasOne(x => x.ItemMaster)
                 .WithMany(i => i.VariantValues)
@@ -25,19 +25,21 @@ namespace InventoryManagement.Infrastructure.Data.Configurations.Item.ItemDetail
                 .HasForeignKey(x => x.VariantAttributeId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            b.HasOne(x => x.SpecificationValue)
+                .WithMany(v => v.VariantValues)
+                .HasForeignKey(x => x.SpecificationValueId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             b.HasOne(x => x.ParentItem)
                 .WithMany(i => i.VariantParentItem)
                 .HasForeignKey(x => x.ParentItemId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Prevent duplicate values for same attribute on an item
-            b.HasIndex(x => new { x.ItemId, x.VariantAttributeId, x.OptionValue }).IsUnique();
+            b.HasIndex(x => new { x.ItemId, x.VariantAttributeId, x.SpecificationValueId }).IsUnique();
             b.HasIndex(x => new { x.ItemId, x.VariantAttributeId })
-             .IsUnique()
-             .HasDatabaseName("UX_ItemVariantValue_Item_VarAttr");
+                .IsUnique()
+                .HasDatabaseName("UX_ItemVariantValue_Item_VarAttr");
             b.HasIndex(x => x.ParentItemId);
-            
         }
     }
-
 }

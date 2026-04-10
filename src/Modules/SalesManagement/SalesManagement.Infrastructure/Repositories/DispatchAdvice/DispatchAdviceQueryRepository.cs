@@ -1,5 +1,6 @@
 using System.Data;
 using Dapper;
+using Contracts.Interfaces.Lookups.Logistics;
 using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Production;
@@ -19,6 +20,7 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
         private readonly IIPAddressService _ipAddressService;
         private readonly IPackTypeLookup _packTypeLookup;
         private readonly ILotMasterLookup _lotMasterLookup;
+        private readonly IFreightMasterLookup _freightMasterLookup;
 
         public DispatchAdviceQueryRepository(
             IDbConnection dbConnection,
@@ -27,7 +29,8 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
             IHSNLookup hsnLookup,
             IIPAddressService ipAddressService,
             IPackTypeLookup packTypeLookup,
-            ILotMasterLookup lotMasterLookup)
+            ILotMasterLookup lotMasterLookup,
+            IFreightMasterLookup freightMasterLookup)
         {
             _dbConnection = dbConnection;
             _partyLookup = partyLookup;
@@ -36,6 +39,7 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
             _ipAddressService = ipAddressService;
             _packTypeLookup = packTypeLookup;
             _lotMasterLookup = lotMasterLookup;
+            _freightMasterLookup = freightMasterLookup;
         }
 
         public async Task<(List<DispatchAdviceHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
@@ -59,6 +63,9 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
                     h.TotOrderQty, h.TotDispatchedQty, h.TotPendingQty,
                     h.DispatchAddressId,
                     da.DispatchAddressName,
+                    h.DispatchTypeId,
+                    dt.Description AS DispatchTypeName,
+                    h.FreightId,
                     h.TransporterId,
                     h.VehicleNo, h.DriverName, h.LRNo,
                     h.UnitId, h.InvFlg,
@@ -69,6 +76,7 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
                 LEFT JOIN Sales.MiscMaster mm ON h.StatusId = mm.Id AND mm.IsDeleted = 0
                 LEFT JOIN Sales.SalesOrderHeader so ON h.SalesOrderId = so.Id AND so.IsDeleted = 0
                 LEFT JOIN Sales.DispatchAddressMaster da ON h.DispatchAddressId = da.Id AND da.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster dt ON h.DispatchTypeId = dt.Id AND dt.IsDeleted = 0
                 WHERE h.IsDeleted = 0 {searchFilter}
                 ORDER BY h.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
@@ -94,9 +102,15 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
                     : [];
                 var transporterDict = transporters.ToDictionary(p => p.Id, p => p.PartyName);
 
+                // Populate cross-module: FreightModeName
+                var freightIds = list.Select(x => x.FreightId).Distinct().ToList();
+                var allFreights = await _freightMasterLookup.GetAllFreightMasterAsync();
+                var freightDict = allFreights.Where(f => freightIds.Contains(f.Id)).ToDictionary(f => f.Id, f => f.FreightModeName);
+
                 foreach (var item in list)
                 {
                     item.PartyName = partyDict.TryGetValue(item.PartyId, out var pName) ? pName : null;
+                    item.FreightModeName = freightDict.TryGetValue(item.FreightId, out var fName) ? fName : null;
 
                     if (item.TransporterId.HasValue)
                         item.TransporterName = transporterDict.TryGetValue(item.TransporterId.Value, out var tName) ? tName : null;
@@ -118,6 +132,9 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
                     h.TotOrderQty, h.TotDispatchedQty, h.TotPendingQty,
                     h.DispatchAddressId,
                     da.DispatchAddressName,
+                    h.DispatchTypeId,
+                    dt.Description AS DispatchTypeName,
+                    h.FreightId,
                     h.TransporterId,
                     h.VehicleNo, h.DriverName, h.LRNo,
                     h.UnitId, h.InvFlg,
@@ -128,6 +145,7 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
                 LEFT JOIN Sales.MiscMaster mm ON h.StatusId = mm.Id AND mm.IsDeleted = 0
                 LEFT JOIN Sales.SalesOrderHeader so ON h.SalesOrderId = so.Id AND so.IsDeleted = 0
                 LEFT JOIN Sales.DispatchAddressMaster da ON h.DispatchAddressId = da.Id AND da.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster dt ON h.DispatchTypeId = dt.Id AND dt.IsDeleted = 0
                 WHERE h.Id = @Id AND h.IsDeleted = 0";
 
             var header = await _dbConnection.QueryFirstOrDefaultAsync<DispatchAdviceHeaderDto>(headerSql, new { Id = id });
@@ -161,6 +179,10 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
             // Populate cross-module: PartyName
             var party = await _partyLookup.GetByIdAsync(header.PartyId);
             header.PartyName = party?.PartyName;
+
+            // Populate cross-module: FreightModeName
+            var freight = await _freightMasterLookup.GetByIdAsync(header.FreightId);
+            header.FreightModeName = freight?.FreightModeName;
 
             // Populate cross-module: TransporterName
             if (header.TransporterId.HasValue)

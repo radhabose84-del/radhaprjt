@@ -6,13 +6,27 @@ namespace SalesManagement.Application.AgentCommissionConfig.Commands.CreateAgent
     public class CreateAgentCommissionConfigCommand : IRequest<ApiResponseDTO<int>>
     {
         public int AgentId { get; set; }
-        public int SalesSegmentId { get; set; }
         public int CommissionTypeId { get; set; }
-        public int? CommissionBasisId { get; set; }
-        public int? ApplicableLevelId { get; set; }
+        public int CommissionBasisId { get; set; }
+        public int ApplicableLevelId { get; set; }
         public decimal CommissionPercentage { get; set; }
-        public int? CurrencyId { get; set; }
         public DateTimeOffset ValidityFrom { get; set; }
-        public DateTimeOffset ValidityTo { get; set; }
+        public DateTimeOffset? ValidityTo { get; set; }
+        public int TriggerEventId { get; set; }
+        public int? SlabTypeId { get; set; }
+        public int CommissionSplitId { get; set; }
+        public List<int>? SalesGroupIds { get; set; }
+        public List<int>? PaymentTermIds { get; set; }
+        public List<AgentCommissionSlabItem>? Slabs { get; set; }
+    }
+
+    public class AgentCommissionSlabItem
+    {
+        public int SlabOrder { get; set; }
+        public int FromDelay { get; set; }
+        public int? ToDelay { get; set; }
+        public int CommissionTypeId { get; set; }
+        public int CommissionBasisId { get; set; }
+        public decimal CommissionValue { get; set; }
     }
 }

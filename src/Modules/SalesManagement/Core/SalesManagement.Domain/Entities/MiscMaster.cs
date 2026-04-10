@@ -31,6 +31,7 @@ namespace SalesManagement.Domain.Entities
 
         // Reverse navigation (DispatchAdvice)
         public ICollection<DispatchAdviceHeader>? DispatchAdviceHeadersAsStatus { get; set; }
+        public ICollection<DispatchAdviceHeader>? DispatchAdviceHeadersAsDispatchType { get; set; }
 
         // Reverse navigation (StoDetail)
         public ICollection<StoDetail>? StoDetailsAsLineStatus { get; set; }
@@ -71,6 +72,18 @@ namespace SalesManagement.Domain.Entities
         public ICollection<DiscountMaster>? DiscountMastersAsExclusionGroup { get; set; }
         public ICollection<DiscountMaster>? DiscountMastersAsValueType { get; set; }
         public ICollection<DiscountMaster>? DiscountMastersAsSlabType { get; set; }
+
+        // Reverse navigation (CommissionSplitDetail)
+        public ICollection<CommissionSplitDetail>? CommissionSplitDetailsAsRole { get; set; }
+        public ICollection<CommissionSplitDetail>? CommissionSplitDetailsAsShareType { get; set; }
+
+        // Reverse navigation (AgentCommissionConfig — TriggerEvent, SlabType)
+        public ICollection<AgentCommissionConfig>? AgentCommissionConfigsAsTriggerEvent { get; set; }
+        public ICollection<AgentCommissionConfig>? AgentCommissionConfigsAsSlabType { get; set; }
+
+        // Reverse navigation (AgentCommissionSlab — slab-level CommissionType, CommissionBasis)
+        public ICollection<AgentCommissionSlab>? AgentCommissionSlabsAsCommissionType { get; set; }
+        public ICollection<AgentCommissionSlab>? AgentCommissionSlabsAsCommissionBasis { get; set; }
 
     }
 }

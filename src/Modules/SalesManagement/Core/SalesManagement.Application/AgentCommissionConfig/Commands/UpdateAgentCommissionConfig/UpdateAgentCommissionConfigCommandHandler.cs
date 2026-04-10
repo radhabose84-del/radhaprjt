@@ -2,7 +2,9 @@ using AutoMapper;
 using Contracts.Common;
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.IAgentCommissionConfig;
+using SalesManagement.Domain.Entities;
 using SalesManagement.Domain.Events;
+using static SalesManagement.Domain.Common.BaseEntity;
 
 namespace SalesManagement.Application.AgentCommissionConfig.Commands.UpdateAgentCommissionConfig
 {
@@ -30,9 +32,48 @@ namespace SalesManagement.Application.AgentCommissionConfig.Commands.UpdateAgent
             UpdateAgentCommissionConfigCommand request,
             CancellationToken cancellationToken)
         {
+            // Inactivate guard (Rule 25)
+            if (request.IsActive == 0)
+            {
+                var isLinked = await _queryRepository.IsAgentCommissionConfigLinkedAsync(request.Id);
+                if (isLinked)
+                    throw new ExceptionRules(
+                        "This master is linked with other records. You cannot inactivate this record.");
+            }
+
             var entity = _mapper.Map<Domain.Entities.AgentCommissionConfig>(request);
 
-            var updatedId = await _commandRepository.UpdateAsync(entity);
+            // Build child collections (replace strategy)
+            entity.AgentCommissionSalesGroups = request.SalesGroupIds?.Select(sgId =>
+                new AgentCommissionSalesGroup
+                {
+                    SalesGroupId = sgId,
+                    IsActive = Status.Active,
+                    IsDeleted = IsDelete.NotDeleted
+                }).ToList() ?? new List<AgentCommissionSalesGroup>();
+
+            entity.AgentCommissionPaymentTerms = request.PaymentTermIds?.Select(ptId =>
+                new AgentCommissionPaymentTerm
+                {
+                    PaymentTermId = ptId,
+                    IsActive = Status.Active,
+                    IsDeleted = IsDelete.NotDeleted
+                }).ToList() ?? new List<AgentCommissionPaymentTerm>();
+
+            entity.AgentCommissionSlabs = request.Slabs?.Select(s =>
+                new AgentCommissionSlab
+                {
+                    SlabOrder = s.SlabOrder,
+                    FromDelay = s.FromDelay,
+                    ToDelay = s.ToDelay,
+                    CommissionTypeId = s.CommissionTypeId,
+                    CommissionBasisId = s.CommissionBasisId,
+                    CommissionValue = s.CommissionValue,
+                    IsActive = Status.Active,
+                    IsDeleted = IsDelete.NotDeleted
+                }).ToList() ?? new List<AgentCommissionSlab>();
+
+            var result = await _commandRepository.UpdateAsync(entity);
 
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Update",
@@ -47,7 +88,7 @@ namespace SalesManagement.Application.AgentCommissionConfig.Commands.UpdateAgent
             {
                 IsSuccess = true,
                 Message = "Agent Commission Configuration updated successfully.",
-                Data = updatedId
+                Data = result
             };
         }
     }
