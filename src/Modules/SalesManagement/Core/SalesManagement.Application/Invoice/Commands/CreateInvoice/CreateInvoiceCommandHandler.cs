@@ -1,11 +1,13 @@
+using System.Text.Json;
 using AutoMapper;
 using Contracts.Common;
-using MediatR;
+using Contracts.Commands.Workflow;
 using Contracts.Interfaces;
-using SalesManagement.Application.Common.Interfaces;
 using Contracts.Interfaces.Lookups.Finance;
+using MediatR;
 using SalesManagement.Application.Common.Interfaces.IInvoice;
 using SalesManagement.Application.Common.Interfaces.IMiscMaster;
+using SalesManagement.Application.Common.Interfaces.IOutbox;
 using SalesManagement.Domain.Common;
 using SalesManagement.Domain.Entities;
 using SalesManagement.Domain.Events;
@@ -21,6 +23,7 @@ namespace SalesManagement.Application.Invoice.Commands.CreateInvoice
         private readonly IIPAddressService _ipAddressService;
         private readonly IMediator _mediator;
         private readonly IMapper _mapper;
+        private readonly IOutboxEventPublisher _outboxEventPublisher;
 
         public CreateInvoiceCommandHandler(
             IInvoiceCommandRepository commandRepository,
@@ -29,7 +32,8 @@ namespace SalesManagement.Application.Invoice.Commands.CreateInvoice
             IDocumentSequenceLookup documentSequenceLookup,
             IIPAddressService ipAddressService,
             IMediator mediator,
-            IMapper mapper)
+            IMapper mapper,
+            IOutboxEventPublisher outboxEventPublisher)
         {
             _commandRepository = commandRepository;
             _queryRepository = queryRepository;
@@ -38,6 +42,7 @@ namespace SalesManagement.Application.Invoice.Commands.CreateInvoice
             _ipAddressService = ipAddressService;
             _mediator = mediator;
             _mapper = mapper;
+            _outboxEventPublisher = outboxEventPublisher;
         }
 
         public async Task<ApiResponseDTO<int>> Handle(CreateInvoiceCommand request, CancellationToken cancellationToken)
@@ -49,8 +54,9 @@ namespace SalesManagement.Application.Invoice.Commands.CreateInvoice
                 MiscEnumEntity.InvoiceApprovalStatus, MiscEnumEntity.InvoiceStatusPending);
             entity.StatusId = pendingStatus?.Id;
 
-            // Get UnitId from JWT token
+            // Get UnitId from JWT token and assign to entity
             var unitId = _ipAddressService.GetUnitId() ?? 0;
+            entity.UnitId = unitId;
 
             // Generate invoice number from DocumentSequence
             var typeId = await _documentSequenceLookup.GetTransactionTypeIdAsync(
@@ -82,6 +88,27 @@ namespace SalesManagement.Application.Invoice.Commands.CreateInvoice
                 details: $"Invoice '{invoiceNo}' created successfully with Id {newId}.",
                 module: "Invoice");
             await _mediator.Publish(auditEvent, cancellationToken);
+
+            // ------------------- Fetch entity for workflow payload -------------------
+            var workFlowEntity = await _commandRepository.GetByIdInvoiceWorkFlowAsync(newId);
+            var reverseMap = new CreateInvoiceReverseDto
+            {
+                Header = workFlowEntity,
+                Lines = null
+            };
+            string serializedPayload = JsonSerializer.Serialize(reverseMap);
+
+            // ------------------- Schedule Outbox Event (SQL Transactional Outbox) -------------------
+            var correlationId = Guid.NewGuid();
+            var @event = new CreateApprovalRequestCommand
+            {
+                CorrelationId = correlationId,
+                ModuleTypeName = MiscEnumEntity.TransactionTypeInvoice,
+                ModuleTransactionId = newId,
+                Payload = serializedPayload
+            };
+
+            await _outboxEventPublisher.ScheduleAsync(@event, correlationId, cancellationToken);
 
             return new ApiResponseDTO<int>
             {
