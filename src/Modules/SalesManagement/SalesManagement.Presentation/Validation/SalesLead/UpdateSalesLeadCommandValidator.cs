@@ -1,4 +1,5 @@
 using FluentValidation;
+using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Application.Common.Interfaces.ISalesLead;
 using SalesManagement.Application.SalesLead.Commands.UpdateSalesLead;
 using SalesManagement.Presentation.Validation.Common;
@@ -10,12 +11,15 @@ namespace SalesManagement.Presentation.Validation.SalesLead
     {
         private readonly List<ValidationRule> _validationRules;
         private readonly ISalesLeadQueryRepository _queryRepository;
+        private readonly IMarketingOfficerAccessFilter _accessFilter;
 
         public UpdateSalesLeadCommandValidator(
             MaxLengthProvider maxLengthProvider,
-            ISalesLeadQueryRepository queryRepository)
+            ISalesLeadQueryRepository queryRepository,
+            IMarketingOfficerAccessFilter accessFilter)
         {
             _queryRepository = queryRepository;
+            _accessFilter = accessFilter;
 
             var maxLengthProspectCompanyName = maxLengthProvider.GetMaxLength<Domain.Entities.SalesLead>("ProspectCompanyName") ?? 200;
             var maxLengthContactName = maxLengthProvider.GetMaxLength<Domain.Entities.SalesLead>("ContactName") ?? 100;
@@ -143,6 +147,18 @@ namespace SalesManagement.Presentation.Validation.SalesLead
                         RuleFor(x => x.IsActive)
                             .InclusiveBetween(0, 1)
                             .WithMessage($"{nameof(UpdateSalesLeadCommand.IsActive)} {rule.Error}");
+                        break;
+
+                    case "MarketingOfficerAccess":
+                        RuleFor(x => x.PartyId)
+                            .MustAsync(async (id, ct) => await _accessFilter.CanAccessCustomerAsync(id!.Value, ct))
+                            .WithMessage($"{nameof(UpdateSalesLeadCommand.PartyId)} {rule.Error}")
+                            .When(x => x.PartyId.HasValue && x.PartyId.Value > 0);
+
+                        RuleFor(x => x.MarketingOfficerId)
+                            .Must(id => !_accessFilter.IsMarketingOfficer()
+                                        || id == _accessFilter.GetCurrentMarketingOfficerId())
+                            .WithMessage($"{nameof(UpdateSalesLeadCommand.MarketingOfficerId)} {rule.Error}");
                         break;
 
                     default:
