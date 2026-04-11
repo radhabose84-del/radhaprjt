@@ -1,4 +1,5 @@
 using System.Data;
+using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Party;
 using Dapper;
 using SalesManagement.Application.Common.Interfaces.IOfficerAgent;
@@ -10,13 +11,16 @@ namespace SalesManagement.Infrastructure.Repositories.OfficerAgent
     {
         private readonly IDbConnection _dbConnection;
         private readonly IPartyLookup _partyLookup;
+        private readonly IIPAddressService _ipAddressService;
 
         public OfficerAgentQueryRepository(
             IDbConnection dbConnection,
-            IPartyLookup partyLookup)
+            IPartyLookup partyLookup,
+            IIPAddressService ipAddressService)
         {
             _dbConnection = dbConnection;
             _partyLookup = partyLookup;
+            _ipAddressService = ipAddressService;
         }
 
         public async Task<(List<OfficerAgentGroupedDto>, int)> GetAllAsync(
@@ -26,12 +30,17 @@ namespace SalesManagement.Infrastructure.Repositories.OfficerAgent
                 ? ""
                 : "AND mo.EmployeeName LIKE @Search";
 
+            // Marketing Officer access scoping: when EmpId is set, restrict to own record only
+            var empId = _ipAddressService.GetEmpId();
+            var moFilter = empId.HasValue ? " AND mo.Id = @EmpId " : "";
+
             var query = $@"
                 DECLARE @TotalCount INT;
                 SELECT @TotalCount = COUNT(*)
                 FROM Sales.MarketingOfficer mo
                 WHERE mo.IsDeleted = 0
-                {searchFilter};
+                {searchFilter}
+                {moFilter};
 
                 SELECT
                     mo.Id AS MarketingOfficerId, mo.EmployeeNo,
@@ -42,6 +51,7 @@ namespace SalesManagement.Infrastructure.Repositories.OfficerAgent
                 LEFT JOIN Sales.SalesOffice so ON mo.SalesOfficeId = so.Id AND so.IsDeleted = 0
                 WHERE mo.IsDeleted = 0
                 {searchFilter}
+                {moFilter}
                 ORDER BY mo.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
 
@@ -52,9 +62,10 @@ namespace SalesManagement.Infrastructure.Repositories.OfficerAgent
                     oa.ModifiedBy, oa.ModifiedDate, oa.ModifiedByName, oa.ModifiedIP
                 FROM Sales.OfficerAgent oa
                 WHERE oa.MarketingOfficerId IN (
-                    SELECT Id FROM Sales.MarketingOfficer
+                    SELECT Id FROM Sales.MarketingOfficer mo
                     WHERE IsDeleted = 0
                     {searchFilter}
+                    {moFilter}
                     ORDER BY Id DESC
                     OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY
                 )
@@ -62,12 +73,12 @@ namespace SalesManagement.Infrastructure.Repositories.OfficerAgent
 
                 SELECT @TotalCount AS TotalCount;";
 
-            var parameters = new
-            {
-                Search = $"%{searchTerm}%",
-                Offset = (pageNumber - 1) * pageSize,
-                PageSize = pageSize
-            };
+            var parameters = new DynamicParameters();
+            parameters.Add("Search", $"%{searchTerm}%");
+            parameters.Add("Offset", (pageNumber - 1) * pageSize);
+            parameters.Add("PageSize", pageSize);
+            if (empId.HasValue)
+                parameters.Add("EmpId", empId.Value);
 
             var multi = await _dbConnection.QueryMultipleAsync(query, parameters);
             var officers = (await multi.ReadAsync<OfficerAgentGroupedDto>()).ToList();
@@ -114,6 +125,11 @@ namespace SalesManagement.Infrastructure.Repositories.OfficerAgent
 
         public async Task<OfficerAgentGroupedDto?> GetByIdAsync(int marketingOfficerId)
         {
+            // Marketing Officer access scoping: officer can only fetch own record
+            var empId = _ipAddressService.GetEmpId();
+            if (empId.HasValue && empId.Value != marketingOfficerId)
+                return null;
+
             const string sql = @"
                 SELECT
                     mo.Id AS MarketingOfficerId, mo.EmployeeNo,
@@ -164,7 +180,11 @@ namespace SalesManagement.Infrastructure.Repositories.OfficerAgent
         public async Task<IReadOnlyList<OfficerAgentGroupedDto>> AutocompleteAsync(
             string term, CancellationToken ct)
         {
-            const string sql = @"
+            // Marketing Officer access scoping: restrict to own record only
+            var empId = _ipAddressService.GetEmpId();
+            var moFilter = empId.HasValue ? " AND Id = @EmpId " : "";
+
+            var sql = $@"
                 SELECT
                     mo.Id AS MarketingOfficerId, mo.EmployeeNo,
                     mo.EmployeeName AS OfficerName, mo.Designation,
@@ -173,6 +193,7 @@ namespace SalesManagement.Infrastructure.Repositories.OfficerAgent
                 FROM (
                     SELECT TOP 20 * FROM Sales.MarketingOfficer
                     WHERE IsDeleted = 0 AND IsActive = 1 AND EmployeeName LIKE @Term
+                    {moFilter}
                     ORDER BY EmployeeName
                 ) mo
                 LEFT JOIN Sales.SalesOffice so ON mo.SalesOfficeId = so.Id AND so.IsDeleted = 0;
@@ -186,12 +207,18 @@ namespace SalesManagement.Infrastructure.Repositories.OfficerAgent
                 WHERE oa.MarketingOfficerId IN (
                     SELECT TOP 20 Id FROM Sales.MarketingOfficer
                     WHERE IsDeleted = 0 AND IsActive = 1 AND EmployeeName LIKE @Term
+                    {moFilter}
                     ORDER BY EmployeeName
                 )
                 ORDER BY oa.MarketingOfficerId, oa.Id DESC;";
 
+            var parameters = new DynamicParameters();
+            parameters.Add("Term", $"%{term}%");
+            if (empId.HasValue)
+                parameters.Add("EmpId", empId.Value);
+
             var multi = await _dbConnection.QueryMultipleAsync(
-                new CommandDefinition(sql, new { Term = $"%{term}%" }, cancellationToken: ct));
+                new CommandDefinition(sql, parameters, cancellationToken: ct));
 
             var officers = (await multi.ReadAsync<OfficerAgentGroupedDto>()).ToList();
             var assignmentRows = (await multi.ReadAsync<AssignmentRow>()).ToList();
