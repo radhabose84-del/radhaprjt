@@ -1,3 +1,4 @@
+using Contracts.Interfaces.Lookups.Users;
 using InventoryManagement.Application.Common.Interfaces.Item.ItemCategory;
 using InventoryManagement.Application.Item.ItemCategory.Commands.UpdateItemCategory;
 using FluentValidation;
@@ -11,14 +12,17 @@ namespace InventoryManagement.Presentation.Validation.Item.ItemCategory
         private readonly List<ValidationRule> _validationRules;
         private readonly IItemCategoryCommandRepository _itemCategoryCommandRepository;
         private readonly IItemCategoryQueryRepository _itemCategoryQueryRepository;
+        private readonly IModuleLookup _moduleLookup;
 
         public UpdateItemCategoryCommandValidator(
             IMaxLengthProvider maxLengthProvider,
             IItemCategoryCommandRepository itemCategoryCommandRepository,
-            IItemCategoryQueryRepository itemCategoryQueryRepository)
+            IItemCategoryQueryRepository itemCategoryQueryRepository,
+            IModuleLookup moduleLookup)
         {
             _itemCategoryCommandRepository = itemCategoryCommandRepository;
             _itemCategoryQueryRepository = itemCategoryQueryRepository;
+            _moduleLookup = moduleLookup;
 
             var maxLength = maxLengthProvider
                 .GetMaxLength<InventoryManagement.Domain.Entities.Item.ItemCategory>("ItemCategoryName") ?? 100;
@@ -39,12 +43,31 @@ namespace InventoryManagement.Presentation.Validation.Item.ItemCategory
                         RuleFor(x => x.ItemGroupId)
                             .NotEmpty()
                             .WithMessage($"{nameof(UpdateItemCategoryCommand.ItemGroupId)} {rule.Error}");
+
+                        RuleFor(x => x.ModuleIds)
+                            .NotNull()
+                            .WithMessage($"{nameof(UpdateItemCategoryCommand.ModuleIds)} {rule.Error}")
+                            .Must(ids => ids != null && ids.Count > 0)
+                            .WithMessage($"{nameof(UpdateItemCategoryCommand.ModuleIds)} {rule.Error}");
                         break;
 
                     case "MaxLength":
                         RuleFor(x => x.ItemCategoryName)
                             .MaximumLength(maxLength)
                             .WithMessage($"{nameof(UpdateItemCategoryCommand.ItemCategoryName)} {rule.Error}");
+                        break;
+
+                    case "FKColumnDelete":
+                        RuleFor(x => x.ModuleIds)
+                            .MustAsync(async (ids, cancellation) =>
+                            {
+                                if (ids == null || ids.Count == 0) return true; // covered by NotEmpty rule
+                                var modules = await _moduleLookup.GetAllModuleAsync();
+                                var validIds = modules.Select(m => m.ModuleId).ToHashSet();
+                                return ids.Distinct().All(id => validIds.Contains(id));
+                            })
+                            .WithMessage($"{nameof(UpdateItemCategoryCommand.ModuleIds)} {rule.Error}")
+                            .When(x => x.ModuleIds != null && x.ModuleIds.Count > 0);
                         break;
 
                     case "AlreadyExists":

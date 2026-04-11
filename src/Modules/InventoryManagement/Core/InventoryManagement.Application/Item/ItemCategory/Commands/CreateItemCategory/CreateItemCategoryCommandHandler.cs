@@ -22,7 +22,7 @@ namespace InventoryManagement.Application.Item.ItemCategory.Commands.CreateItemC
         public async Task<int> Handle(CreateItemCategoryCommand request, CancellationToken cancellationToken)
         {
             var itemCategory = _mapper.Map<Domain.Entities.Item.ItemCategory>(request);
-            var result = await _itemCategoryRepository.CreateAsync(itemCategory);
+            var result = await _itemCategoryRepository.CreateAsync(itemCategory, request.ModuleIds);
 
             //Domain Event
             var domainEvent = new AuditLogsDomainEvent(

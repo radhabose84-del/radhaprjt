@@ -32,7 +32,7 @@ namespace InventoryManagement.Application.Item.ItemCategory.Commands.UpdateItemC
             }
 
             var itemCategory = _mapper.Map<InventoryManagement.Domain.Entities.Item.ItemCategory>(request);
-            var result = await _itemCategoryCommandRepository.UpdateAsync(request.Id, itemCategory);
+            var result = await _itemCategoryCommandRepository.UpdateAsync(request.Id, itemCategory, request.ModuleIds);
             
             //Domain Event
             var domainEvent = new AuditLogsDomainEvent(

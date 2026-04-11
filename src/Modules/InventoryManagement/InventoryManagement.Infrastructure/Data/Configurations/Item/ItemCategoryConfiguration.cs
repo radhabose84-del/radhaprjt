@@ -75,7 +75,7 @@ namespace InventoryManagement.Infrastructure.Data.Configurations.Item
             builder.Property(ag => ag.DeptId)
                 .HasColumnName("DeptId")
                 .HasColumnType("int")
-                .IsRequired(false);  
+                .IsRequired(false);
 
             builder.Property(b => b.IsActive)                
                 .HasColumnType("bit")

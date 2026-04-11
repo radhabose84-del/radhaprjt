@@ -21,7 +21,7 @@ namespace InventoryManagement.Application.Item.ItemCategory.Queries.GetItemCateg
 
         public async Task<ApiResponseDTO<List<ItemCategoryDto>>> Handle(GetItemCategoryQuery request, CancellationToken cancellationToken)
         {
-            var (itemCategory, totalCount) = await _itemCategoryQueryRepository.GetAllItemCategoryAsync(request.PageNumber, request.PageSize, request.SearchTerm);
+            var (itemCategory, totalCount) = await _itemCategoryQueryRepository.GetAllItemCategoryAsync(request.PageNumber, request.PageSize, request.SearchTerm, request.ModuleId);
             var itemCategoryDto = _mapper.Map<List<ItemCategoryDto>>(itemCategory);
 
             // 📘 Log domain event

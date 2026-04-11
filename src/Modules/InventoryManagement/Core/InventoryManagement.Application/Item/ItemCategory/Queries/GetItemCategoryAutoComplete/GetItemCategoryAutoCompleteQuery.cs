@@ -8,5 +8,6 @@ namespace InventoryManagement.Application.Item.ItemCategory.Queries.GetItemCateg
         public int? GroupId { get; set; }
         public bool? IsGroup { get; set; } = false;
         public int excludeId { get; set; } = 0;
+        public int? ModuleId { get; set; }
     }
 }
