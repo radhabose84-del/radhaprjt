@@ -1,4 +1,5 @@
 using FluentValidation;
+using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Application.Common.Interfaces.ISalesEnquiry;
 using SalesManagement.Application.SalesEnquiry.Commands.CreateSalesEnquiry;
 using SalesManagement.Presentation.Validation.Common;
@@ -11,12 +12,15 @@ namespace SalesManagement.Presentation.Validation.SalesEnquiry
     {
         private readonly List<ValidationRule> _validationRules;
         private readonly ISalesEnquiryQueryRepository _queryRepository;
+        private readonly IMarketingOfficerAccessFilter _accessFilter;
 
         public CreateSalesEnquiryCommandValidator(
             MaxLengthProvider maxLengthProvider,
-            ISalesEnquiryQueryRepository queryRepository)
+            ISalesEnquiryQueryRepository queryRepository,
+            IMarketingOfficerAccessFilter accessFilter)
         {
             _queryRepository = queryRepository;
+            _accessFilter = accessFilter;
 
             var maxLengthContactPerson = maxLengthProvider.GetMaxLength<Domain.Entities.SalesEnquiryHeader>("ContactPerson") ?? 200;
             var maxLengthRemarks = maxLengthProvider.GetMaxLength<Domain.Entities.SalesEnquiryHeader>("Remarks") ?? 500;
@@ -81,6 +85,13 @@ namespace SalesManagement.Presentation.Validation.SalesEnquiry
                                 await _queryRepository.SalesLeadExistsAsync(salesLeadId!.Value))
                             .WithMessage($"SalesLeadId {rule.Error}")
                             .When(x => x.SalesEnquiryDetails?.SalesLeadId.HasValue == true && x.SalesEnquiryDetails.SalesLeadId > 0);
+                        break;
+
+                    case "MarketingOfficerAccess":
+                        RuleFor(x => x.SalesEnquiryDetails.PartyId)
+                            .MustAsync(async (id, ct) => await _accessFilter.CanAccessCustomerAsync(id, ct))
+                            .WithMessage($"PartyId {rule.Error}")
+                            .When(x => x.SalesEnquiryDetails?.PartyId > 0);
                         break;
 
                     default:

@@ -1,5 +1,6 @@
 using FluentValidation;
 using SalesManagement.Application.AgentCustomerMapping.Commands.CreateAgentCustomerMapping;
+using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Application.Common.Interfaces.IAgentCustomerMapping;
 using SalesManagement.Presentation.Validation.Common;
 using Shared.Validation.Common;
@@ -11,12 +12,15 @@ namespace SalesManagement.Presentation.Validation.AgentCustomerMapping
     {
         private readonly List<ValidationRule> _validationRules;
         private readonly IAgentCustomerMappingQueryRepository _queryRepository;
+        private readonly IMarketingOfficerAccessFilter _accessFilter;
 
         public CreateAgentCustomerMappingCommandValidator(
             MaxLengthProvider maxLengthProvider,
-            IAgentCustomerMappingQueryRepository queryRepository)
+            IAgentCustomerMappingQueryRepository queryRepository,
+            IMarketingOfficerAccessFilter accessFilter)
         {
             _queryRepository = queryRepository;
+            _accessFilter = accessFilter;
 
             var maxLengthRemarks = maxLengthProvider
                 .GetMaxLength<Domain.Entities.AgentCustomerMapping>("Remarks") ?? 500;
@@ -92,6 +96,13 @@ namespace SalesManagement.Presentation.Validation.AgentCustomerMapping
                             .GreaterThan(x => x.EffectiveFrom)
                             .WithMessage($"{nameof(CreateAgentCustomerMappingCommand.EffectiveTo)} must be greater than EffectiveFrom.")
                             .When(x => x.EffectiveTo.HasValue);
+                        break;
+
+                    case "MarketingOfficerAccess":
+                        RuleFor(x => x.AgentId)
+                            .MustAsync(async (id, ct) => await _accessFilter.CanAccessAgentAsync(id, ct))
+                            .WithMessage($"{nameof(CreateAgentCustomerMappingCommand.AgentId)} {rule.Error}")
+                            .When(x => x.AgentId > 0);
                         break;
 
                     default:

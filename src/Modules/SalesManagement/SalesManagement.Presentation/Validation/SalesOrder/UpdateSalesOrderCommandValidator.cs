@@ -1,4 +1,5 @@
 using FluentValidation;
+using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Application.Common.Interfaces.ISalesOrder;
 using SalesManagement.Application.SalesOrder.Commands.UpdateSalesOrder;
 using SalesManagement.Presentation.Validation.Common;
@@ -10,12 +11,15 @@ namespace SalesManagement.Presentation.Validation.SalesOrder
     {
         private readonly List<ValidationRule> _validationRules;
         private readonly ISalesOrderQueryRepository _queryRepository;
+        private readonly IMarketingOfficerAccessFilter _accessFilter;
 
         public UpdateSalesOrderCommandValidator(
             MaxLengthProvider maxLengthProvider,
-            ISalesOrderQueryRepository queryRepository)
+            ISalesOrderQueryRepository queryRepository,
+            IMarketingOfficerAccessFilter accessFilter)
         {
             _queryRepository = queryRepository;
+            _accessFilter = accessFilter;
 
             var maxLengthRemarks = maxLengthProvider.GetMaxLength<Domain.Entities.SalesOrderHeader>("Remarks") ?? 500;
 
@@ -247,6 +251,18 @@ namespace SalesManagement.Presentation.Validation.SalesOrder
                                     .When(d => d.LineItemStatusId.HasValue && d.LineItemStatusId > 0);
                             })
                             .When(x => x.SalesOrderDetails != null && x.SalesOrderDetails.Any());
+                        break;
+
+                    case "MarketingOfficerAccess":
+                        RuleFor(x => x.PartyId)
+                            .MustAsync(async (id, ct) => await _accessFilter.CanAccessCustomerAsync(id, ct))
+                            .WithMessage($"PartyId {rule.Error}")
+                            .When(x => x.PartyId > 0);
+
+                        RuleFor(x => x.SubAgentId)
+                            .MustAsync(async (id, ct) => await _accessFilter.CanAccessAgentAsync(id!.Value, ct))
+                            .WithMessage($"SubAgentId {rule.Error}")
+                            .When(x => x.SubAgentId.HasValue && x.SubAgentId > 0);
                         break;
 
                     default:
