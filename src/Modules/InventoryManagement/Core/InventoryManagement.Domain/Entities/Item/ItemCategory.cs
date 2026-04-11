@@ -17,7 +17,8 @@ namespace InventoryManagement.Domain.Entities.Item
         public int? RootCategoryId { get; set; }
         public ItemCategory? RootCategory { get; set; }
         public int? DeptId { get; set; }
-        public ICollection<ItemMaster>? ItemMasterCategory { get; set; } 
+        public ICollection<ItemMaster>? ItemMasterCategory { get; set; }
         public ICollection<PutAwayRule>? PutAwayRuleCategory { get; set; } = new List<PutAwayRule>();
+        public ICollection<ItemCategoryModule> ItemCategoryModules { get; set; } = new List<ItemCategoryModule>();
     }
 }

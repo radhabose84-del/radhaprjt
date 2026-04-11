@@ -20,8 +20,9 @@ namespace InventoryManagement.Application.Common.Mappings.Item
                 .ForMember(dest => dest.ItemGroupId, opt => opt.MapFrom(src => src.ItemGroupId))
                 .ForMember(dest => dest.ItemCategoryName, opt => opt.MapFrom(src => src.ItemCategoryName))
                 .ForMember(dest => dest.IsGroup, opt => opt.MapFrom(src => src.IsGroup))
-                .ForMember(dest => dest.ParentCategoryId, opt => opt.MapFrom(src => src.ParentCategoryId)) 
-                .ForMember(dest => dest.IsBudgetApplicable, opt => opt.MapFrom(src => src.IsBudgetApplicable)) 
+                .ForMember(dest => dest.ParentCategoryId, opt => opt.MapFrom(src => src.ParentCategoryId))
+                .ForMember(dest => dest.IsBudgetApplicable, opt => opt.MapFrom(src => src.IsBudgetApplicable))
+                .ForMember(dest => dest.ItemCategoryModules, opt => opt.Ignore())
                 .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => Status.Active))
                 .ForMember(dest => dest.IsDeleted, opt => opt.MapFrom(src => IsDelete.NotDeleted));
 
@@ -30,8 +31,9 @@ namespace InventoryManagement.Application.Common.Mappings.Item
                 .ForMember(dest => dest.ItemGroupId, opt => opt.MapFrom(src => src.ItemGroupId))
                 .ForMember(dest => dest.ItemCategoryName, opt => opt.MapFrom(src => src.ItemCategoryName))
                 .ForMember(dest => dest.IsGroup, opt => opt.MapFrom(src => src.IsGroup))
-                .ForMember(dest => dest.ParentCategoryId, opt => opt.MapFrom(src => src.ParentCategoryId)) 
-                .ForMember(dest => dest.IsBudgetApplicable, opt => opt.MapFrom(src => src.IsBudgetApplicable))    
+                .ForMember(dest => dest.ParentCategoryId, opt => opt.MapFrom(src => src.ParentCategoryId))
+                .ForMember(dest => dest.IsBudgetApplicable, opt => opt.MapFrom(src => src.IsBudgetApplicable))
+                .ForMember(dest => dest.ItemCategoryModules, opt => opt.Ignore())
                 .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive ==1 ? Status.Active : Status.Inactive));
 
 
