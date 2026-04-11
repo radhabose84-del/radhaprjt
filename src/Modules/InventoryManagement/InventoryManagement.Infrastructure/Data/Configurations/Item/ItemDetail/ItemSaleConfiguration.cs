@@ -60,6 +60,12 @@ namespace InventoryManagement.Infrastructure.Data.Configurations.Item.ItemDetail
              .HasColumnType("int")
              .IsRequired(false);
 
+            // RmTypeId — cross-module FK to Production.RawMaterialType (no DB constraint)
+            b.Property(x => x.RmTypeId)
+             .HasColumnName("RmTypeId")
+             .HasColumnType("int")
+             .IsRequired(false);
+
             b.Property(x => x.ValuationMethodId)
              .HasColumnName("ValuationMethodId")
              .HasColumnType("int")

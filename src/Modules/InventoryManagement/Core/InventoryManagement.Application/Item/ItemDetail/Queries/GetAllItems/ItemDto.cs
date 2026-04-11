@@ -52,7 +52,8 @@
         public string? UnitName { get; set; }
         public decimal GSTPercentage { get; set; }
         public string? ItemImageUrl { get; set; }
-        public string? IssueRule { get; set; }            
+        public string? IssueRule { get; set; }
+        public string? PriceGroupName { get; set; }
     }
     public class ItemPurchaseDto
     {
@@ -110,6 +111,9 @@
             public string? SalesUOM { get; set; }
             public int? CountId { get; set; }
             public string? CountName { get; set; }
+            public int? RmTypeId { get; set; }
+            public string? RawMaterialTypeCode { get; set; }
+            public string? RawMaterialTypeName { get; set; }
             public int? ValuationMethodId { get; set; }
             public string? ValuationMethodName { get; set; }
         }
