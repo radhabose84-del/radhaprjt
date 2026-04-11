@@ -24,6 +24,8 @@ namespace InventoryManagement.Application.Common.Mappings.Item.ItemDetail
                     o => o.MapFrom(src => src.ParentItemId > 0 ? src.ParentItemId : (int?)null))
                 .ForMember(d => d.IssueRuleId,
                     o => o.MapFrom(src => src.IssueRuleId > 0 ? src.IssueRuleId : (int?)null))
+                .ForMember(d => d.PriceGroupId,
+                    o => o.MapFrom(src => src.PriceGroupId > 0 ? src.PriceGroupId : (int?)null))
                 .ForMember(d => d.IsActive, o => o.MapFrom(src => src.IsActive))
                 // navs ignored – handled elsewhere
                 .ForMember(d => d.ChildItems, o => o.Ignore())
@@ -44,6 +46,7 @@ namespace InventoryManagement.Application.Common.Mappings.Item.ItemDetail
                 .ForMember(d => d.MiscClassification, o => o.Ignore())
                 .ForMember(d => d.MiscStatus, o => o.Ignore())
                 .ForMember(d => d.MiscIssueRule, o => o.Ignore())
+                .ForMember(d => d.PriceGroup, o => o.Ignore())
                 .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
 
             CreateMap<ItemPurchaseDto, ItemPurchase>()
