@@ -284,14 +284,10 @@ namespace SalesManagement.Infrastructure.Repositories.ComplaintResolution
 
             dto.Items = items;
 
-            // 5. Sales Return context from dispatch/stock data
+            // 5. Max return quantity = total NumberOfPacks across all complaint items
             const string dispatchQtySql = @"
-                SELECT
-                    ISNULL(SUM(da.EndPackNo - da.StartPackNo + 1), 0) AS MaxReturnQuantity
+                SELECT ISNULL(SUM(cd.NumberOfPacks), 0)
                 FROM Sales.ComplaintDetail cd
-                INNER JOIN Sales.InvoiceHeader ih ON cd.InvoiceHeaderId = ih.Id AND ih.IsDeleted = 0
-                INNER JOIN Sales.DispatchAdviceHeader dah ON ih.DispatchAdviceId = dah.Id AND dah.IsDeleted = 0
-                INNER JOIN Sales.DispatchAdviceDetail da ON da.DispatchAdviceHeaderId = dah.Id AND da.ItemId = cd.ItemId
                 WHERE cd.ComplaintHeaderId = @Id AND cd.IsDeleted = 0;";
 
             dto.MaxReturnQuantity = await _dbConnection.ExecuteScalarAsync<decimal>(dispatchQtySql, new { Id = complaintHeaderId });
@@ -449,23 +445,23 @@ namespace SalesManagement.Infrastructure.Repositories.ComplaintResolution
                 resolution.CustomerName = party?.PartyName;
             }
 
-            // Populate item name and complaint quantity from first complaint detail
+            // Populate item name and total complaint quantity from complaint details
             var detailSql = @"
-                SELECT TOP 1 cd.ItemId, cd.NetWeight
+                SELECT TOP 1 cd.ItemId
                 FROM Sales.ComplaintDetail cd
                 WHERE cd.ComplaintHeaderId = @ComplaintHeaderId AND cd.IsDeleted = 0;";
-            var detail = await _dbConnection.QueryFirstOrDefaultAsync<dynamic>(detailSql, new { resolution.ComplaintHeaderId });
-            if (detail != null)
+            var itemIdResult = await _dbConnection.ExecuteScalarAsync<int?>(detailSql, new { resolution.ComplaintHeaderId });
+            if (itemIdResult.HasValue)
             {
-                int? itemId = (int?)detail.ItemId;
-                if (itemId.HasValue)
-                {
-                    var items = await _itemLookup.GetByIdsAsync(new[] { itemId.Value });
-                    var item = items.FirstOrDefault();
-                    resolution.ItemName = item?.ItemName;
-                }
-                resolution.ComplaintQuantity = (decimal?)detail.NetWeight;
+                var items = await _itemLookup.GetByIdsAsync([itemIdResult.Value]);
+                resolution.ItemName = items.Count > 0 ? items[0].ItemName : null;
             }
+
+            var totalPacksSql = @"
+                SELECT ISNULL(SUM(cd.NumberOfPacks), 0)
+                FROM Sales.ComplaintDetail cd
+                WHERE cd.ComplaintHeaderId = @ComplaintHeaderId AND cd.IsDeleted = 0;";
+            resolution.ComplaintQuantity = await _dbConnection.ExecuteScalarAsync<decimal?>(totalPacksSql, new { resolution.ComplaintHeaderId });
 
             return resolution;
         }
