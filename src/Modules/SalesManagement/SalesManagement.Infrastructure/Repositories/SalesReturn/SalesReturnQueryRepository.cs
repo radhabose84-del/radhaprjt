@@ -163,14 +163,13 @@ namespace SalesManagement.Infrastructure.Repositories.SalesReturn
                     ih.InvoiceDate,
                     id.Id AS InvoiceDetailId,
                     cd.ItemId,
-                    cd.LotId,
+                    COALESCE(id.LotId, cd.LotId) AS LotId,
                     cd.NumberOfPacks,
                     cd.NetWeight,
                     cd.InvoiceAmount
                 FROM Sales.ComplaintDetail cd
                 INNER JOIN Sales.InvoiceHeader ih ON cd.InvoiceHeaderId = ih.Id AND ih.IsDeleted = 0
                 LEFT JOIN Sales.InvoiceDetail id ON id.InvoiceHeaderId = ih.Id AND id.ItemId = cd.ItemId
-                    AND (id.LotId = cd.LotId OR (id.LotId IS NULL AND cd.LotId IS NULL))
                 WHERE cd.ComplaintHeaderId = @ComplaintHeaderId AND cd.IsDeleted = 0;";
 
             var details = (await _dbConnection.QueryAsync<ComplaintInvoiceItemDto>(detailSql, new { ComplaintHeaderId = complaintHeaderId })).ToList();
@@ -217,7 +216,6 @@ namespace SalesManagement.Infrastructure.Repositories.SalesReturn
                     INNER JOIN Sales.DispatchAdviceHeader dah ON ih.DispatchAdviceId = dah.Id
                     INNER JOIN Sales.DispatchAdviceDetail da ON da.DispatchAdviceHeaderId = dah.Id
                         AND da.ItemId = id.ItemId
-                        AND (da.LotId = id.LotId OR (da.LotId IS NULL AND id.LotId IS NULL))
                     WHERE id.Id IN @InvoiceDetailIds;";
 
                 var dispatchData = (await _dbConnection.QueryAsync<dynamic>(dispatchSql, new { InvoiceDetailIds = invoiceDetailIds })).ToList();
