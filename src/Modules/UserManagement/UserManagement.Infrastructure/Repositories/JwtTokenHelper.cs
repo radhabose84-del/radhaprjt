@@ -44,16 +44,16 @@ namespace UserManagement.Infrastructure.Repositories
             } 
         }
 
-      public string GenerateToken(string username,int userid,string Mobile,string EmailId,string IsFirstTimeUser,int EntityId,string GroupCode,int CompanyId,int DivisionId,int UnitId,string OldUnitId,string FirstName,string LastName,int? PartyId,  out string jti)
+      public string GenerateToken(string username,int userid,string Mobile,string EmailId,string IsFirstTimeUser,int EntityId,string GroupCode,int CompanyId,int DivisionId,int UnitId,string OldUnitId,string FirstName,string LastName,int? PartyId,int? EmpId, out string jti)
         {
-            jti = Guid.NewGuid().ToString();            
+            jti = Guid.NewGuid().ToString();
             var systemTimeZoneId = _timeZoneService.GetSystemTimeZone();
-            var currentTime = _timeZoneService.GetCurrentTime(systemTimeZoneId); 
+            var currentTime = _timeZoneService.GetCurrentTime(systemTimeZoneId);
 
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, username),
-                new Claim(JwtRegisteredClaimNames.NameId, userid.ToString()), 
+                new Claim(JwtRegisteredClaimNames.NameId, userid.ToString()),
                 new Claim("Mobile", Mobile.ToString()),
                 new Claim("EmailId", EmailId.ToString()),
                 new Claim("CompanyId", CompanyId.ToString()),
@@ -66,6 +66,7 @@ namespace UserManagement.Infrastructure.Repositories
                 new Claim("FirstName", FirstName.ToString()),
                 new Claim("LastName", LastName.ToString()),
                 new Claim("PartyId", (PartyId ?? 0).ToString()),
+                new Claim("EmpId", (EmpId ?? 0).ToString()),
                 new Claim("TimeStamp", DateTimeOffset.UtcNow.ToString("o")),
                 new Claim(JwtRegisteredClaimNames.Jti, jti),
                 new Claim(JwtRegisteredClaimNames.Iat, new DateTimeOffset(currentTime).ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64)

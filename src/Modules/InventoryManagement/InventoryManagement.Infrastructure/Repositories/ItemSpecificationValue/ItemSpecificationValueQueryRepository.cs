@@ -94,6 +94,37 @@ namespace InventoryManagement.Infrastructure.Repositories.ItemSpecificationValue
             return await _dbConnection.QueryFirstOrDefaultAsync<ItemSpecificationValueDto>(sql, new { Id = id });
         }
 
+        public async Task<IReadOnlyList<ItemSpecificationValueDto>> GetBySpecificationMasterIdAsync(int specificationMasterId, CancellationToken cancellationToken)
+        {
+            const string sql = @"
+                SELECT
+                    v.Id,
+                    v.SpecificationMasterId,
+                    m.SpecificationName AS SpecificationMasterName,
+                    v.SpecificationValue,
+                    v.IsActive,
+                    v.IsDeleted,
+                    v.CreatedBy,
+                    v.CreatedDate,
+                    v.CreatedByName,
+                    v.CreatedIP,
+                    v.ModifiedBy,
+                    v.ModifiedDate,
+                    v.ModifiedByName,
+                    v.ModifiedIP
+                FROM Inventory.ItemSpecificationValue v
+                LEFT JOIN Inventory.ItemSpecificationMaster m
+                    ON v.SpecificationMasterId = m.Id AND m.IsDeleted = 0
+                WHERE v.SpecificationMasterId = @SpecificationMasterId
+                  AND v.IsActive = 1
+                  AND v.IsDeleted = 0
+                ORDER BY v.SpecificationValue ASC;
+            ";
+
+            var result = await _dbConnection.QueryAsync<ItemSpecificationValueDto>(sql, new { SpecificationMasterId = specificationMasterId });
+            return result.ToList();
+        }
+
         public async Task<IReadOnlyList<ItemSpecificationValueLookupDto>> AutocompleteAsync(string term, CancellationToken cancellationToken)
         {
             var sql = @"

@@ -160,4 +160,11 @@ internal sealed class IPAddressService : IIPAddressService
         if (claim == null) return null;
         return int.TryParse(claim, out int partyId) && partyId > 0 ? partyId : null;
     }
+
+    public int? GetEmpId()
+    {
+        var claim = _httpContextAccessor.HttpContext?.User?.FindFirst("EmpId")?.Value;
+        if (claim == null) return null;
+        return int.TryParse(claim, out int empId) && empId > 0 ? empId : null;
+    }
 }

@@ -47,8 +47,16 @@ namespace InventoryManagement.Application.Item.ItemDetail.Commands.CreateItemTem
                 item.HasVariants = true;
                 item.ParentItemId = null;
                 item.IsActive = BaseEntity.Status.Active;
+                // Explicit assignment — AutoMapper ForAllMembers condition blocks nullable int mapping
+                item.PriceGroupId = p.PriceGroupId.HasValue && p.PriceGroupId.Value > 0 ? p.PriceGroupId : null;
 
                 var newId = await _itemRepo.CreateAsync(item, ct);
+
+                // Cascade PriceGroupId to existing children if any (no-op on fresh create)
+                if (item.PriceGroupId.HasValue)
+                {
+                    await _itemRepo.UpdatePriceGroupForChildrenAsync(newId, item.PriceGroupId, ct);
+                }
 
                 // tabs/collections (optional from payload)
                 // ... same as your current code ...

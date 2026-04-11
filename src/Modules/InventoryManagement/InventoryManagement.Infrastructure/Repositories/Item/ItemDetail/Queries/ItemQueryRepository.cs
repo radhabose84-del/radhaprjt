@@ -26,13 +26,14 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
         private readonly IIPAddressService _ipAddressService;
         private readonly IUnitLookup _unitLookup;
         private readonly ICountMasterLookup _countMasterLookup;
+        private readonly IRawMaterialTypeLookup _rawMaterialTypeLookup;
         private readonly IDataAccessFilter _dataAccessFilter;
         private readonly ISalesItemValidation _salesItemValidation;
         private readonly IPurchaseItemValidation _purchaseItemValidation;
         private readonly IMaintenanceItemValidation _maintenanceItemValidation;
         private readonly IProductionItemValidation _productionItemValidation;
 
-        public ItemQueryRepository(IDbConnection dbConnection, ApplicationDbContext db, IIPAddressService ipAddressService, IUnitLookup unitLookup, ICountMasterLookup countMasterLookup, IDataAccessFilter dataAccessFilter,
+        public ItemQueryRepository(IDbConnection dbConnection, ApplicationDbContext db, IIPAddressService ipAddressService, IUnitLookup unitLookup, ICountMasterLookup countMasterLookup, IRawMaterialTypeLookup rawMaterialTypeLookup, IDataAccessFilter dataAccessFilter,
             ISalesItemValidation salesItemValidation, IPurchaseItemValidation purchaseItemValidation, IMaintenanceItemValidation maintenanceItemValidation, IProductionItemValidation productionItemValidation)
         {
             _db = db;
@@ -40,6 +41,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
             _ipAddressService = ipAddressService;
             _unitLookup = unitLookup;
             _countMasterLookup = countMasterLookup;
+            _rawMaterialTypeLookup = rawMaterialTypeLookup;
             _dataAccessFilter = dataAccessFilter;
             _salesItemValidation = salesItemValidation;
             _purchaseItemValidation = purchaseItemValidation;
@@ -118,7 +120,10 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                     IsActive = (x.IsActive == BaseEntity.Status.Active ? 1 : 0),
                     IssueRuleId = x.IssueRuleId,
                     IssueRule = x.MiscIssueRule != null ? x.MiscIssueRule.Code : null,
-                    IsOnSpot = x.IsOnSpot
+                    IsOnSpot = x.IsOnSpot,
+                    PriceGroupId = x.PriceGroupId,
+                    PriceGroupCode = x.PriceGroup != null ? x.PriceGroup.PriceGroupCode : null,
+                    PriceGroupName = x.PriceGroup != null ? x.PriceGroup.PriceGroupName : null
                 });
 
             var paginate = page.HasValue && size.HasValue && page.Value > 0 && size.Value > 0;
@@ -198,6 +203,8 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                         .Select(h => h.GSTPercentage)
                         .FirstOrDefault(),
                     IsActive = (i.IsActive == BaseEntity.Status.Active ? 1 : 0),
+                    PriceGroupId = i.PriceGroupId,
+                    PriceGroupName = i.PriceGroup != null ? i.PriceGroup.PriceGroupName : null,
 
                     // ---------- tabs (1-1) ----------
                     // ItemMaster-level fields (moved from Purchase)
@@ -267,6 +274,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                         Discount = i.Sale.Discount,
                         SalesUOM = i.Sale.SalesUOM != null ? i.Sale.SalesUOM.UOMName : null,
                         CountId = i.Sale.CountId,
+                        RmTypeId = i.Sale.RmTypeId,
                         ValuationMethodId = i.Sale.ValuationMethodId,
                         ValuationMethodName = i.Sale.MiscValuationMethod != null ? i.Sale.MiscValuationMethod.Description : null
                     },
@@ -375,6 +383,17 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                     dto.Sale.CountName = counts[0].CountDescription;
             }
 
+            // Populate RawMaterialType details from cross-module lookup (ProductionManagement)
+            if (dto?.Sale?.RmTypeId is { } rmTypeId)
+            {
+                var rmTypes = await _rawMaterialTypeLookup.GetByIdsAsync([rmTypeId], ct);
+                if (rmTypes.Count > 0)
+                {
+                    dto.Sale.RawMaterialTypeCode = rmTypes[0].RawMaterialTypeCode;
+                    dto.Sale.RawMaterialTypeName = rmTypes[0].RawMaterialTypeName;
+                }
+            }
+
             return dto;
         }
 
@@ -398,15 +417,6 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
             return true;
         }
 
-        /// <summary>
-        /// Update the item image for the given item id and image name
-        /// </summary>
-        /// <param name="ItemId">The item id</param>
-        /// <param name="imageName">The item image name</param>
-        /// <param name="ct">The cancellation token</param>
-        /// <returns>
-        /// <c>true</c> if the image is updated successfully, <c>false</c> otherwise
-        /// </returns>
         public async Task<bool> UpdateItemImageAsync(int ItemId, string imageName, CancellationToken ct = default)
         {
             var asset = await _db.ItemMaster.FindAsync(ItemId);

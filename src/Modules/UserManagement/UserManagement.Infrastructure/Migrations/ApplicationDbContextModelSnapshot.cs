@@ -2094,6 +2094,10 @@ namespace UserManagement.Infrastructure.Migrations
                         .HasColumnType("varchar(100)")
                         .HasColumnName("EmailId");
 
+                    b.Property<int?>("EmpId")
+                        .HasColumnType("int")
+                        .HasColumnName("EmpId");
+
                     b.Property<int?>("EntityId")
                         .HasColumnType("int");
 

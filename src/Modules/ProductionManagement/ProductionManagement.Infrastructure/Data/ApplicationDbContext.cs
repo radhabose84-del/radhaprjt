@@ -23,6 +23,7 @@ namespace ProductionManagement.Infrastructure.Data
         public DbSet<ProductionStockLedger> ProductionStockLedger => Set<ProductionStockLedger>();
         public DbSet<RepackingHeader> RepackingHeader => Set<RepackingHeader>();
         public DbSet<RepackingDetail> RepackingDetail => Set<RepackingDetail>();
+        public DbSet<RawMaterialType> RawMaterialType => Set<RawMaterialType>();
 
         private readonly IIPAddressService _ipAddressService;
         private readonly ITimeZoneService _timeZoneService;

@@ -814,6 +814,10 @@ namespace InventoryManagement.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("ParentItemId");
 
+                    b.Property<int?>("PriceGroupId")
+                        .HasColumnType("int")
+                        .HasColumnName("PriceGroupId");
+
                     b.Property<int?>("StockUomId")
                         .HasColumnType("int")
                         .HasColumnName("StockUomId");
@@ -843,6 +847,8 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.HasIndex("ItemGroupId");
 
                     b.HasIndex("ParentItemId");
+
+                    b.HasIndex("PriceGroupId");
 
                     b.HasIndex("StockUomId");
 
@@ -979,6 +985,10 @@ namespace InventoryManagement.Infrastructure.Migrations
                         .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,3)")
                         .HasColumnName("PackageQuantity");
+
+                    b.Property<int?>("RmTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("RmTypeId");
 
                     b.Property<int?>("UomId")
                         .HasColumnType("int")
@@ -2625,6 +2635,11 @@ namespace InventoryManagement.Infrastructure.Migrations
                         .HasForeignKey("ParentItemId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("InventoryManagement.Domain.Entities.PriceGroupMaster", "PriceGroup")
+                        .WithMany()
+                        .HasForeignKey("PriceGroupId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("InventoryManagement.Domain.Entities.UOM", "UOM")
                         .WithMany("ItemMasterUOM")
                         .HasForeignKey("StockUomId")
@@ -2648,6 +2663,8 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.Navigation("MiscStatus");
 
                     b.Navigation("ParentItem");
+
+                    b.Navigation("PriceGroup");
 
                     b.Navigation("UOM");
                 });
