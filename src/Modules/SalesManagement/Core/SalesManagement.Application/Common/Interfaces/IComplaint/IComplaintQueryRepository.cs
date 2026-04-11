@@ -18,6 +18,7 @@ namespace SalesManagement.Application.Common.Interfaces.IComplaint
         Task<IReadOnlyList<ComplaintForSalesReturnLookupDto>> GetComplaintsForSalesReturnAsync(string term, CancellationToken ct);
         Task<(List<PendingQCReviewListDto>, int)> GetPendingQCReviewAsync(int pageNumber, int pageSize, string? searchTerm);
         Task<(List<PendingResolutionListDto>, int)> GetPendingResolutionAsync(int pageNumber, int pageSize, string? searchTerm);
+        Task<bool> IsReadyForResolutionAsync(int complaintHeaderId);
 
     }
 }

@@ -282,12 +282,18 @@ namespace SalesManagement.Infrastructure.Repositories.SalesReturn
         public async Task<bool> IsComplaintReturnEligibleAsync(int complaintHeaderId)
         {
             // Check if complaint has a resolution with type = Sales Return
+            // AND the resolution workflow has been approved
+            // (header StatusId must be a ClosureStatus type — set by UpdateResolutionApprovalStatusAsync on Approved)
             const string sql = @"
                 SELECT COUNT(1)
                 FROM Sales.ComplaintResolution cr
                 INNER JOIN Sales.MiscMaster rt ON cr.ResolutionTypeId = rt.Id AND rt.IsDeleted = 0
+                INNER JOIN Sales.ComplaintHeader ch ON cr.ComplaintHeaderId = ch.Id AND ch.IsDeleted = 0
+                INNER JOIN Sales.MiscMaster hm ON ch.StatusId = hm.Id AND hm.IsDeleted = 0
+                INNER JOIN Sales.MiscTypeMaster mt ON hm.MiscTypeId = mt.Id
                 WHERE cr.ComplaintHeaderId = @Id AND cr.IsDeleted = 0
-                    AND rt.Code = 'Sales Return';";
+                    AND rt.Code = 'Sales Return'
+                    AND mt.MiscTypeCode = 'ClosureStatus';";
             var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = complaintHeaderId });
             return count > 0;
         }
