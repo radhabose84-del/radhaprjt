@@ -1,11 +1,14 @@
 using InventoryManagement.Domain.Common;
 using InventoryManagement.Domain.Entities.Item.ItemDetail.Variant;
 using InventoryManagement.Domain.Entities.Item.PutAway;
+using InventoryManagement.Domain.Entities;
 
 namespace InventoryManagement.Domain.Entities.Item.ItemDetail
 {
     public class ItemMaster : BaseEntity
     {
+        public int? PriceGroupId { get; set; }
+        public PriceGroupMaster? PriceGroup { get; set; }
         public string ItemCode { get; set; } = null!;
         public string ItemName { get; set; } = null!;
         public int? HSNId { get; set; }

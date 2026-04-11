@@ -10,8 +10,9 @@ namespace InventoryManagement.Application.Common.Interfaces.Item.ItemDetail.Comm
         Task<bool> ExistsByCodeForUpdateAsync(string itemCode, int excludeId, CancellationToken ct = default);
         Task<bool> ExistsByCodeForCreateAsync(string itemCode, CancellationToken ct = default);
         Task<List<int>> GetChildIdsAsync(int templateItemId, CancellationToken ct = default);
-        Task<bool> UpdateItemImageAsync(int itemid, string imageName, CancellationToken ct = default);        
+        Task<bool> UpdateItemImageAsync(int itemid, string imageName, CancellationToken ct = default);
          Task<bool> ExistsByNameSmartForCreateAsync(string name, CancellationToken ct = default);
         Task<bool> ExistsByNameSmartForUpdateAsync(string name, int excludeId, CancellationToken ct = default);
+        Task<int> UpdatePriceGroupForChildrenAsync(int parentItemId, int? priceGroupId, CancellationToken ct = default);
     }
 }

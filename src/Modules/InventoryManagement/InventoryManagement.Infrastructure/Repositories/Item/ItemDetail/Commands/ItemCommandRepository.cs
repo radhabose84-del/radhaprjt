@@ -66,6 +66,11 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Comman
                .Select(x => x.Id)
                .ToListAsync(ct);
 
+        public Task<int> UpdatePriceGroupForChildrenAsync(int parentItemId, int? priceGroupId, CancellationToken ct = default) =>
+            _db.ItemMaster
+               .Where(x => x.ParentItemId == parentItemId && x.IsDeleted == BaseEntity.IsDelete.NotDeleted)
+               .ExecuteUpdateAsync(s => s.SetProperty(x => x.PriceGroupId, priceGroupId), ct);
+
         public async Task<bool> UpdateItemImageAsync(int itemId, string imageName, CancellationToken ct = default)
         {
             var asset = await _db.ItemMaster.FindAsync(new object[] { itemId }, ct);

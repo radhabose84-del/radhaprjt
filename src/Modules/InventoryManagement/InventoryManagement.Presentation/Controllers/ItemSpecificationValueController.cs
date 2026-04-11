@@ -4,6 +4,7 @@ using InventoryManagement.Application.ItemSpecificationValue.Commands.UpdateItem
 using InventoryManagement.Application.ItemSpecificationValue.Queries.GetAllItemSpecificationValue;
 using InventoryManagement.Application.ItemSpecificationValue.Queries.GetItemSpecificationValueAutoComplete;
 using InventoryManagement.Application.ItemSpecificationValue.Queries.GetItemSpecificationValueById;
+using InventoryManagement.Application.ItemSpecificationValue.Queries.GetItemSpecificationValueBySpecificationMaster;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -60,6 +61,18 @@ namespace InventoryManagement.Presentation.Controllers
             {
                 StatusCode = StatusCodes.Status200OK,
                 data = result
+            });
+        }
+
+        [HttpGet("by-specification-master/{specificationMasterId}")]
+        public async Task<IActionResult> GetBySpecificationMasterIdAsync(int specificationMasterId)
+        {
+            var result = await Mediator.Send(new GetItemSpecificationValueBySpecificationMasterQuery(specificationMasterId));
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result.Data,
+                TotalCount = result.TotalCount
             });
         }
 

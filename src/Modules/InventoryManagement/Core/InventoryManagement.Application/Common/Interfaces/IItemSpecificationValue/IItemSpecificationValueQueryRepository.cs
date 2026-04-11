@@ -7,6 +7,7 @@ namespace InventoryManagement.Application.Common.Interfaces.IItemSpecificationVa
     {
         Task<(List<ItemSpecificationValueDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm);
         Task<ItemSpecificationValueDto?> GetByIdAsync(int id);
+        Task<IReadOnlyList<ItemSpecificationValueDto>> GetBySpecificationMasterIdAsync(int specificationMasterId, CancellationToken cancellationToken);
         Task<IReadOnlyList<ItemSpecificationValueLookupDto>> AutocompleteAsync(string term, CancellationToken cancellationToken);
         Task<bool> AlreadyExistsAsync(int specificationMasterId, string specificationValue, int? id = null);
         Task<bool> NotFoundAsync(int id);

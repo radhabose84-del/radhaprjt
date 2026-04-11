@@ -105,8 +105,17 @@ namespace InventoryManagement.Application.Item.ItemAggregate.Handlers
                 item.HasVariants = true;
                 item.ParentItemId = null;
                 item.IsActive = BaseEntity.Status.Active;
+                // Explicit assignment — AutoMapper ForAllMembers condition blocks nullable int mapping
+                item.PriceGroupId = p.PriceGroupId.HasValue && p.PriceGroupId.Value > 0 ? p.PriceGroupId : null;
 
                 var newId = await _itemRepo.CreateAsync(item, ct);
+
+                // Cascade PriceGroupId to all existing variant children under this template
+                // (no-op on fresh create — applies when children already exist).
+                if (item.HasVariants)
+                {
+                    await _itemRepo.UpdatePriceGroupForChildrenAsync(newId, item.PriceGroupId, ct);
+                }
 
                 // tabs (optional)
                 if (!DtoEmptyChecker.IsEmpty(p.Purchase))
@@ -343,7 +352,8 @@ namespace InventoryManagement.Application.Item.ItemAggregate.Handlers
                         IsActive = BaseEntity.Status.Active,
                         IsDeleted = template.IsDeleted,
                         IssueRuleId = template.IssueRuleId,
-                        IsOnSpot = template.IsOnSpot
+                        IsOnSpot = template.IsOnSpot,
+                        PriceGroupId = template.PriceGroupId
                     };
                     var newId = await _itemRepo.CreateAsync(child, innerCt);
 
@@ -386,6 +396,8 @@ namespace InventoryManagement.Application.Item.ItemAggregate.Handlers
                 item.ItemCode = itemCode;
                 item.HasVariants = false;
                 item.IsActive = BaseEntity.Status.Active;
+                // Explicit assignment — AutoMapper ForAllMembers condition blocks nullable int mapping
+                item.PriceGroupId = p.PriceGroupId.HasValue && p.PriceGroupId.Value > 0 ? p.PriceGroupId : null;
 
                 var newId = await _itemRepo.CreateAsync(item, ct);
 
