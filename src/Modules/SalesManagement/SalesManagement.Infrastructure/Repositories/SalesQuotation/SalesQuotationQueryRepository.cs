@@ -1,8 +1,10 @@
 using System.Data;
-using Dapper;
+using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Purchase;
 using Contracts.Interfaces.Lookups.Inventory;
+using Dapper;
+using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Application.Common.Interfaces.ISalesQuotation;
 using SalesManagement.Application.SalesQuotation.Dto;
 using SalesManagement.Domain.Common;
@@ -16,19 +18,25 @@ namespace SalesManagement.Infrastructure.Repositories.SalesQuotation
         private readonly IPaymentTermLookup _paymentTermLookup;
         private readonly IItemLookup _itemLookup;
         private readonly IHSNLookup _hsnLookup;
+        private readonly IMarketingOfficerAccessFilter _accessFilter;
+        private readonly IIPAddressService _ipAddressService;
 
         public SalesQuotationQueryRepository(
             IDbConnection dbConnection,
             IPartyLookup partyLookup,
             IPaymentTermLookup paymentTermLookup,
             IItemLookup itemLookup,
-            IHSNLookup hsnLookup)
+            IHSNLookup hsnLookup,
+            IMarketingOfficerAccessFilter accessFilter,
+            IIPAddressService ipAddressService)
         {
             _dbConnection = dbConnection;
             _partyLookup = partyLookup;
             _paymentTermLookup = paymentTermLookup;
             _itemLookup = itemLookup;
             _hsnLookup = hsnLookup;
+            _accessFilter = accessFilter;
+            _ipAddressService = ipAddressService;
         }
 
         public async Task<(List<SalesQuotationHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
@@ -37,6 +45,24 @@ namespace SalesManagement.Infrastructure.Repositories.SalesQuotation
                 ? ""
                 : "AND (h.Remarks LIKE @Search OR sc.ContactName LIKE @Search OR mm.Description LIKE @Search)";
 
+            // Marketing Officer access scoping
+            var moFilter = "";
+            var parameters = new DynamicParameters();
+            parameters.Add("Search", $"%{searchTerm}%");
+            parameters.Add("Offset", (pageNumber - 1) * pageSize);
+            parameters.Add("PageSize", pageSize);
+
+            if (_accessFilter.IsMarketingOfficer())
+            {
+                var userId = _ipAddressService.GetUserId();
+                var customerIds = await _accessFilter.GetAccessibleCustomerIdsAsync();
+                var safeIds = customerIds.Count > 0 ? customerIds.ToArray() : new[] { -1 };
+
+                moFilter = " AND (h.CreatedBy = @UserId OR h.CustomerId IN @CustomerIds) ";
+                parameters.Add("UserId", userId);
+                parameters.Add("CustomerIds", safeIds);
+            }
+
             var query = $@"
                 DECLARE @TotalCount INT;
                 SELECT @TotalCount = COUNT(*)
@@ -44,7 +70,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesQuotation
                 LEFT JOIN Sales.SalesContact sc ON h.ContactPersonId = sc.Id AND sc.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster mm ON h.DeliveryTermId = mm.Id AND mm.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster sm ON h.StatusId = sm.Id AND sm.IsDeleted = 0
-                WHERE h.IsDeleted = 0 {searchFilter};
+                WHERE h.IsDeleted = 0 {searchFilter} {moFilter};
 
                 SELECT h.Id, h.CustomerId, h.QuotationDate,
                     h.SalesEnquiryId, h.ContactPersonId,
@@ -64,18 +90,13 @@ namespace SalesManagement.Infrastructure.Repositories.SalesQuotation
                 LEFT JOIN Sales.SalesContact sc ON h.ContactPersonId = sc.Id AND sc.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster mm ON h.DeliveryTermId = mm.Id AND mm.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster sm ON h.StatusId = sm.Id AND sm.IsDeleted = 0
-                WHERE h.IsDeleted = 0 {searchFilter}
+                WHERE h.IsDeleted = 0 {searchFilter} {moFilter}
                 ORDER BY h.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
 
                 SELECT @TotalCount AS TotalCount;";
 
-            var result = await _dbConnection.QueryMultipleAsync(query, new
-            {
-                Search = $"%{searchTerm}%",
-                Offset = (pageNumber - 1) * pageSize,
-                PageSize = pageSize
-            });
+            var result = await _dbConnection.QueryMultipleAsync(query, parameters);
             var list = (await result.ReadAsync<SalesQuotationHeaderDto>()).ToList();
             var totalCount = await result.ReadFirstAsync<int>();
 
@@ -94,8 +115,8 @@ namespace SalesManagement.Infrastructure.Repositories.SalesQuotation
                 var allDetails = (await _dbConnection.QueryAsync<SalesQuotationDetailDto>(detailSql, new { HeaderIds = headerIds })).ToList();
 
                 // Populate cross-module lookup names
-                var customerIds = list.Select(x => x.CustomerId).Distinct();
-                var parties = await _partyLookup.GetByIdsAsync(customerIds);
+                var listCustomerIds = list.Select(x => x.CustomerId).Distinct();
+                var parties = await _partyLookup.GetByIdsAsync(listCustomerIds);
                 var partyDict = parties.ToDictionary(p => p.Id, p => p.PartyName);
 
                 var paymentTerms = await _paymentTermLookup.GetAllPaymentTermAsync();
@@ -145,7 +166,23 @@ namespace SalesManagement.Infrastructure.Repositories.SalesQuotation
 
         public async Task<SalesQuotationHeaderDto?> GetByIdAsync(int id)
         {
-            const string headerSql = @"
+            // Marketing Officer access scoping
+            var moFilter = "";
+            var parameters = new DynamicParameters();
+            parameters.Add("Id", id);
+
+            if (_accessFilter.IsMarketingOfficer())
+            {
+                var userId = _ipAddressService.GetUserId();
+                var customerIds = await _accessFilter.GetAccessibleCustomerIdsAsync();
+                var safeIds = customerIds.Count > 0 ? customerIds.ToArray() : new[] { -1 };
+
+                moFilter = " AND (h.CreatedBy = @UserId OR h.CustomerId IN @CustomerIds) ";
+                parameters.Add("UserId", userId);
+                parameters.Add("CustomerIds", safeIds);
+            }
+
+            var headerSql = $@"
                 SELECT h.Id, h.CustomerId, h.QuotationDate,
                     h.SalesEnquiryId, h.ContactPersonId,
                     sc.ContactName AS ContactPersonName,
@@ -164,9 +201,10 @@ namespace SalesManagement.Infrastructure.Repositories.SalesQuotation
                 LEFT JOIN Sales.SalesContact sc ON h.ContactPersonId = sc.Id AND sc.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster mm ON h.DeliveryTermId = mm.Id AND mm.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster sm ON h.StatusId = sm.Id AND sm.IsDeleted = 0
-                WHERE h.Id = @Id AND h.IsDeleted = 0";
+                WHERE h.Id = @Id AND h.IsDeleted = 0
+                {moFilter}";
 
-            var header = await _dbConnection.QueryFirstOrDefaultAsync<SalesQuotationHeaderDto>(headerSql, new { Id = id });
+            var header = await _dbConnection.QueryFirstOrDefaultAsync<SalesQuotationHeaderDto>(headerSql, parameters);
 
             if (header == null)
                 return null;
@@ -224,15 +262,33 @@ namespace SalesManagement.Infrastructure.Repositories.SalesQuotation
 
         public async Task<IReadOnlyList<SalesQuotationLookupDto>> AutocompleteAsync(string term, CancellationToken ct)
         {
-            const string sql = @"
+            // Marketing Officer access scoping
+            var moFilter = "";
+            var parameters = new DynamicParameters();
+            parameters.Add("Term", $"%{term}%");
+
+            if (_accessFilter.IsMarketingOfficer())
+            {
+                var userId = _ipAddressService.GetUserId();
+                var customerIds = await _accessFilter.GetAccessibleCustomerIdsAsync(ct);
+                var safeIds = customerIds.Count > 0 ? customerIds.ToArray() : new[] { -1 };
+
+                moFilter = " AND (h.CreatedBy = @UserId OR h.CustomerId IN @CustomerIds) ";
+                parameters.Add("UserId", userId);
+                parameters.Add("CustomerIds", safeIds);
+            }
+
+            var sql = $@"
                 SELECT h.Id, h.QuotationDate, h.GrandTotal,
                     (SELECT COUNT(*) FROM Sales.SalesQuotationDetail d WHERE d.SalesQuotationHeaderId = h.Id) AS TotalItems
                 FROM Sales.SalesQuotationHeader h
                 WHERE h.IsActive = 1 AND h.IsDeleted = 0
                 AND (CAST(h.Id AS VARCHAR) LIKE @Term OR h.Remarks LIKE @Term)
+                {moFilter}
                 ORDER BY h.Id DESC";
 
-            var list = (await _dbConnection.QueryAsync<SalesQuotationLookupDto>(sql, new { Term = $"%{term}%" })).ToList();
+            var list = (await _dbConnection.QueryAsync<SalesQuotationLookupDto>(
+                new CommandDefinition(sql, parameters, cancellationToken: ct))).ToList();
 
             // Populate customer names
             if (list.Count > 0)

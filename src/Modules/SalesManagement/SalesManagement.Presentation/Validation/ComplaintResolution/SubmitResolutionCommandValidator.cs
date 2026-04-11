@@ -1,4 +1,5 @@
 using FluentValidation;
+using SalesManagement.Application.Common.Interfaces.IComplaint;
 using SalesManagement.Application.Common.Interfaces.IComplaintResolution;
 using SalesManagement.Application.ComplaintResolution.Commands.SubmitResolution;
 using SalesManagement.Presentation.Validation.Common;
@@ -10,12 +11,15 @@ namespace SalesManagement.Presentation.Validation.ComplaintResolution
     {
         private readonly List<ValidationRule> _validationRules;
         private readonly IComplaintResolutionQueryRepository _queryRepository;
+        private readonly IComplaintQueryRepository _complaintQueryRepository;
 
         public SubmitResolutionCommandValidator(
             MaxLengthProvider maxLengthProvider,
-            IComplaintResolutionQueryRepository queryRepository)
+            IComplaintResolutionQueryRepository queryRepository,
+            IComplaintQueryRepository complaintQueryRepository)
         {
             _queryRepository = queryRepository;
+            _complaintQueryRepository = complaintQueryRepository;
 
             var maxLengthResolutionSummary = maxLengthProvider.GetMaxLength<Domain.Entities.ComplaintResolution>("ResolutionSummary") ?? 2000;
             var maxLengthFinanceReference = maxLengthProvider.GetMaxLength<Domain.Entities.ComplaintResolution>("FinanceReference") ?? 100;
@@ -107,6 +111,13 @@ namespace SalesManagement.Presentation.Validation.ComplaintResolution
                         RuleFor(x => x.ComplaintHeaderId)
                             .MustAsync(async (id, ct) => !await _queryRepository.ResolutionExistsForComplaintAsync(id))
                             .WithMessage("A resolution already exists for this complaint.")
+                            .When(x => x.ComplaintHeaderId > 0);
+                        break;
+
+                    case "SoftDelete":
+                        RuleFor(x => x.ComplaintHeaderId)
+                            .MustAsync(async (id, ct) => await _complaintQueryRepository.IsReadyForResolutionAsync(id))
+                            .WithMessage("Resolution cannot be submitted. QC Review must be approved and all mandatory department feedbacks must be submitted first.")
                             .When(x => x.ComplaintHeaderId > 0);
                         break;
 

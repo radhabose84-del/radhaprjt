@@ -251,7 +251,7 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
             return true;
         }
 
-        public async Task UpdateResolutionApprovalStatusAsync(int complaintHeaderId, string status, int modifiedBy, CancellationToken ct)
+        public async Task UpdateResolutionApprovalStatusAsync(int complaintHeaderId, string status, CancellationToken ct)
         {
             var existing = await _dbContext.ComplaintHeader
                 .FirstOrDefaultAsync(x => x.Id == complaintHeaderId && x.IsDeleted == IsDelete.NotDeleted, ct);
@@ -274,17 +274,6 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                 if (openStatus != null)
                 {
                     existing.StatusId = openStatus.Id;
-                    await _dbContext.SaveChangesAsync(ct);
-                }
-
-                // Mark the resolution record as approved so it leaves the pending list
-                var resolution = await _dbContext.ComplaintResolution
-                    .FirstOrDefaultAsync(x => x.ComplaintHeaderId == complaintHeaderId && x.IsDeleted == IsDelete.NotDeleted, ct);
-
-                if (resolution != null && resolution.ResolvedBy == null)
-                {
-                    resolution.ResolvedBy = modifiedBy;
-                    resolution.ResolvedDate = DateTimeOffset.UtcNow;
                     await _dbContext.SaveChangesAsync(ct);
                 }
             }

@@ -1,6 +1,8 @@
 using System.Data;
+using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Party;
 using Dapper;
+using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Application.Common.Interfaces.ISalesContact;
 using SalesManagement.Application.SalesContact.Dto;
 
@@ -10,13 +12,19 @@ namespace SalesManagement.Infrastructure.Repositories.SalesContact
     {
         private readonly IDbConnection _dbConnection;
         private readonly IPartyLookup _partyLookup;
+        private readonly IMarketingOfficerAccessFilter _accessFilter;
+        private readonly IIPAddressService _ipAddressService;
 
         public SalesContactQueryRepository(
             IDbConnection dbConnection,
-            IPartyLookup partyLookup)
+            IPartyLookup partyLookup,
+            IMarketingOfficerAccessFilter accessFilter,
+            IIPAddressService ipAddressService)
         {
             _dbConnection = dbConnection;
             _partyLookup = partyLookup;
+            _accessFilter = accessFilter;
+            _ipAddressService = ipAddressService;
         }
 
         public async Task<(List<SalesContactDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
@@ -24,6 +32,23 @@ namespace SalesManagement.Infrastructure.Repositories.SalesContact
             var whereClause = "sc.IsDeleted = 0";
             if (!string.IsNullOrWhiteSpace(searchTerm))
                 whereClause += " AND sc.ContactName LIKE @Search";
+
+            // Marketing Officer access scoping: own records OR contacts of mapped customers
+            var parameters = new DynamicParameters();
+            parameters.Add("Search", $"%{searchTerm}%");
+            parameters.Add("Offset", (pageNumber - 1) * pageSize);
+            parameters.Add("PageSize", pageSize);
+
+            if (_accessFilter.IsMarketingOfficer())
+            {
+                var userId = _ipAddressService.GetUserId();
+                var customerIds = await _accessFilter.GetAccessibleCustomerIdsAsync();
+                var safeIds = customerIds.Count > 0 ? customerIds.ToArray() : new[] { -1 };
+
+                whereClause += " AND (sc.CreatedBy = @UserId OR sc.PartyId IN @CustomerIds) ";
+                parameters.Add("UserId", userId);
+                parameters.Add("CustomerIds", safeIds);
+            }
 
             var query = $@"
                 DECLARE @TotalCount INT;
@@ -45,13 +70,6 @@ namespace SalesManagement.Infrastructure.Repositories.SalesContact
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
 
                 SELECT @TotalCount AS TotalCount;";
-
-            var parameters = new
-            {
-                Search = $"%{searchTerm}%",
-                Offset = (pageNumber - 1) * pageSize,
-                PageSize = pageSize
-            };
 
             var result = await _dbConnection.QueryMultipleAsync(query, parameters);
             var list = (await result.ReadAsync<SalesContactDto>()).ToList();
@@ -76,7 +94,23 @@ namespace SalesManagement.Infrastructure.Repositories.SalesContact
 
         public async Task<SalesContactDto?> GetByIdAsync(int id)
         {
-            const string sql = @"
+            // Marketing Officer access scoping
+            var moFilter = "";
+            var parameters = new DynamicParameters();
+            parameters.Add("Id", id);
+
+            if (_accessFilter.IsMarketingOfficer())
+            {
+                var userId = _ipAddressService.GetUserId();
+                var customerIds = await _accessFilter.GetAccessibleCustomerIdsAsync();
+                var safeIds = customerIds.Count > 0 ? customerIds.ToArray() : new[] { -1 };
+
+                moFilter = " AND (sc.CreatedBy = @UserId OR sc.PartyId IN @CustomerIds) ";
+                parameters.Add("UserId", userId);
+                parameters.Add("CustomerIds", safeIds);
+            }
+
+            var sql = $@"
                 SELECT sc.Id, sc.ContactName, sc.MobileNumber, sc.ContactTypeId,
                     mm.Description AS ContactTypeName,
                     sc.PartyId, sc.Email, sc.Remarks,
@@ -85,9 +119,10 @@ namespace SalesManagement.Infrastructure.Repositories.SalesContact
                     sc.ModifiedBy, sc.ModifiedDate, sc.ModifiedByName, sc.ModifiedIP
                 FROM Sales.SalesContact sc
                 LEFT JOIN Sales.MiscMaster mm ON sc.ContactTypeId = mm.Id AND mm.IsDeleted = 0
-                WHERE sc.Id = @Id AND sc.IsDeleted = 0";
+                WHERE sc.Id = @Id AND sc.IsDeleted = 0
+                {moFilter}";
 
-            var dto = await _dbConnection.QueryFirstOrDefaultAsync<SalesContactDto>(sql, new { Id = id });
+            var dto = await _dbConnection.QueryFirstOrDefaultAsync<SalesContactDto>(sql, parameters);
 
             if (dto != null && dto.PartyId.HasValue)
             {
@@ -100,17 +135,34 @@ namespace SalesManagement.Infrastructure.Repositories.SalesContact
 
         public async Task<IReadOnlyList<SalesContactLookupDto>> AutocompleteAsync(string term, CancellationToken ct)
         {
-            const string sql = @"
+            // Marketing Officer access scoping
+            var moFilter = "";
+            var parameters = new DynamicParameters();
+            parameters.Add("Term", $"%{term}%");
+
+            if (_accessFilter.IsMarketingOfficer())
+            {
+                var userId = _ipAddressService.GetUserId();
+                var customerIds = await _accessFilter.GetAccessibleCustomerIdsAsync(ct);
+                var safeIds = customerIds.Count > 0 ? customerIds.ToArray() : new[] { -1 };
+
+                moFilter = " AND (sc.CreatedBy = @UserId OR sc.PartyId IN @CustomerIds) ";
+                parameters.Add("UserId", userId);
+                parameters.Add("CustomerIds", safeIds);
+            }
+
+            var sql = $@"
                 SELECT  sc.Id, sc.ContactName, sc.MobileNumber,
                     mm.Description AS ContactTypeName
                 FROM Sales.SalesContact sc
                 LEFT JOIN Sales.MiscMaster mm ON sc.ContactTypeId = mm.Id AND mm.IsDeleted = 0
                 WHERE sc.IsDeleted = 0 AND sc.IsActive = 1
                 AND sc.ContactName LIKE @Term
+                {moFilter}
                 ORDER BY sc.ContactName ASC";
 
             var rows = (await _dbConnection.QueryAsync<SalesContactLookupDto>(
-                new CommandDefinition(sql, new { Term = $"%{term}%" }, cancellationToken: ct))).ToList();
+                new CommandDefinition(sql, parameters, cancellationToken: ct))).ToList();
 
             return rows;
         }

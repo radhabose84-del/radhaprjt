@@ -4,6 +4,7 @@ using InventoryManagement.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace InventoryManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260411061619_ItemSale_AddRmTypeId")]
+    partial class ItemSale_AddRmTypeId
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -499,35 +502,6 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.HasIndex("RootCategoryId");
 
                     b.ToTable("ItemCategory", "Inventory");
-                });
-
-            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemCategoryModule", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("Id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ItemCategoryId")
-                        .HasColumnType("int")
-                        .HasColumnName("ItemCategoryId");
-
-                    b.Property<int>("ModuleId")
-                        .HasColumnType("int")
-                        .HasColumnName("ModuleId");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ItemCategoryId");
-
-                    b.HasIndex("ModuleId");
-
-                    b.HasIndex("ItemCategoryId", "ModuleId")
-                        .IsUnique();
-
-                    b.ToTable("ItemCategoryModule", "Inventory");
                 });
 
             modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemDetail.ItemInventory", b =>
@@ -2574,17 +2548,6 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.Navigation("RootCategory");
                 });
 
-            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemCategoryModule", b =>
-                {
-                    b.HasOne("InventoryManagement.Domain.Entities.Item.ItemCategory", "ItemCategory")
-                        .WithMany("ItemCategoryModules")
-                        .HasForeignKey("ItemCategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ItemCategory");
-                });
-
             modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemDetail.ItemInventory", b =>
                 {
                     b.HasOne("InventoryManagement.Domain.Entities.MiscMaster", "MiscDefaultMaterialRequestType")
@@ -3075,8 +3038,6 @@ namespace InventoryManagement.Infrastructure.Migrations
             modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemCategory", b =>
                 {
                     b.Navigation("ChildCategories");
-
-                    b.Navigation("ItemCategoryModules");
 
                     b.Navigation("ItemMasterCategory");
 

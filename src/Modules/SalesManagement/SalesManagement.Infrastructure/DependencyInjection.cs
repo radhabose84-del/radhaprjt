@@ -248,6 +248,9 @@ namespace SalesManagement.Infrastructure
             services.AddScoped<IOfficerAgentCommandRepository, OfficerAgentCommandRepository>();
             services.AddScoped<IOfficerAgentQueryRepository, OfficerAgentQueryRepository>();
 
+            // ── Marketing Officer Access Filter (per-request scoped cache) ─
+            services.AddScoped<IMarketingOfficerAccessFilter, MarketingOfficerAccessFilter>();
+
             // ── Sales Enquiry Repositories ──────────────────────────────
             services.AddScoped<ISalesEnquiryCommandRepository, SalesEnquiryCommandRepository>();
             services.AddScoped<ISalesEnquiryQueryRepository, SalesEnquiryQueryRepository>();

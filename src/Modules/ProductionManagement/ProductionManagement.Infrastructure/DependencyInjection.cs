@@ -173,6 +173,7 @@ namespace ProductionManagement.Infrastructure
             services.AddScoped<IQualityMasterLookup, QualityMasterLookupRepository>();
             services.AddScoped<ICertificationMasterLookup, CertificationMasterLookupRepository>();
             services.AddScoped<IYarnTwistMasterLookup, YarnTwistMasterLookupRepository>();
+            services.AddScoped<IRawMaterialTypeLookup, RawMaterialTypeLookupRepository>();
 
             // Validation repositories — cross-module referential integrity (Rule 25)
             services.AddScoped<Contracts.Interfaces.Validations.ProductionManagement.IProductionItemValidation, Repositories.Validations.ProductionItemValidationRepository>();

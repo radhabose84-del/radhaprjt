@@ -225,5 +225,9 @@
     {
         "rule": "AmendmentPending",
         "error": "Sales Order Amendment approval is pending. Approve or Reject the amendment to proceed with Dispatch Advice."
+    },
+    {
+        "rule": "MarketingOfficerAccess",
+        "error": "Customer/Agent not assigned"
     }
 ]

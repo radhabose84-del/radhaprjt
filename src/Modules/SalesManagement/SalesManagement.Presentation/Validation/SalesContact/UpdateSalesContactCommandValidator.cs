@@ -1,5 +1,6 @@
 using Contracts.Interfaces.Lookups.Party;
 using FluentValidation;
+using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Application.Common.Interfaces.ISalesContact;
 using SalesManagement.Application.SalesContact.Commands.UpdateSalesContact;
 using SalesManagement.Presentation.Validation.Common;
@@ -12,14 +13,17 @@ namespace SalesManagement.Presentation.Validation.SalesContact
         private readonly List<ValidationRule> _validationRules;
         private readonly ISalesContactQueryRepository _queryRepo;
         private readonly IPartyLookup _partyLookup;
+        private readonly IMarketingOfficerAccessFilter _accessFilter;
 
         public UpdateSalesContactCommandValidator(
             MaxLengthProvider maxLengthProvider,
             ISalesContactQueryRepository queryRepo,
-            IPartyLookup partyLookup)
+            IPartyLookup partyLookup,
+            IMarketingOfficerAccessFilter accessFilter)
         {
             _queryRepo = queryRepo;
             _partyLookup = partyLookup;
+            _accessFilter = accessFilter;
 
             var maxLengthName   = maxLengthProvider.GetMaxLength<Domain.Entities.SalesContact>("ContactName") ?? 100;
             var maxLengthMobile = maxLengthProvider.GetMaxLength<Domain.Entities.SalesContact>("MobileNumber") ?? 15;
@@ -115,6 +119,13 @@ namespace SalesManagement.Presentation.Validation.SalesContact
                             .EmailAddress()
                             .WithMessage($"{nameof(UpdateSalesContactCommand.Email)} {rule.Error}")
                             .When(x => !string.IsNullOrWhiteSpace(x.Email));
+                        break;
+
+                    case "MarketingOfficerAccess":
+                        RuleFor(x => x.PartyId)
+                            .MustAsync(async (id, ct) => await _accessFilter.CanAccessCustomerAsync(id!.Value, ct))
+                            .WithMessage($"{nameof(UpdateSalesContactCommand.PartyId)} {rule.Error}")
+                            .When(x => x.PartyId.HasValue && x.PartyId.Value > 0);
                         break;
 
                     default:

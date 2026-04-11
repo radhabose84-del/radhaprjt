@@ -3,6 +3,7 @@ using System.Data;
 using InventoryManagement.Application.Common.Interfaces.Item.ItemGroup;
 using InventoryManagement.Application.Item.ItemGroup.Queries.GetItemGroup;
 using InventoryManagement.Application.Item.ItemGroup.Queries.GetItemGroupAutoComplete;
+using Contracts.Interfaces;
 using Contracts.Interfaces.Validations.WarehouseManagement;
 using Dapper;
 
@@ -12,47 +13,71 @@ namespace  InventoryManagement.Infrastructure.Repositories.Item.ItemGroup
     {
         private readonly IDbConnection _dbConnection;
         private readonly IWarehouseItemGroupValidation _warehouseItemGroupValidation;
+        private readonly IDataAccessFilter _dataAccessFilter;
 
         public ItemGroupQueryRepository(IDbConnection dbConnection,
-            IWarehouseItemGroupValidation warehouseItemGroupValidation)
+            IWarehouseItemGroupValidation warehouseItemGroupValidation,
+            IDataAccessFilter dataAccessFilter)
         {
             _dbConnection = dbConnection;
             _warehouseItemGroupValidation = warehouseItemGroupValidation;
+            _dataAccessFilter = dataAccessFilter;
         }
         public async Task<ItemGroupDto> GetByIdAsync(int Id)
         {
-            const string query = @" select 
-                    Id,ItemGroupCode, ItemGroupName,UnitId 
+            // Role-based item group filtering
+            var accessCtx = await _dataAccessFilter.GetContextAsync();
+            if (!accessCtx.BypassDataAccess)
+            {
+                if (accessCtx.AllowedItemGroupIds.Count == 0 || !accessCtx.AllowedItemGroupIds.Contains(Id))
+                    return null;
+            }
+
+            const string query = @" select
+                    Id,ItemGroupCode, ItemGroupName,UnitId
                     ,IsActive, IsDeleted, CreatedBy, CreatedDate, CreatedByName, CreatedIP, ModifiedBy, ModifiedDate, ModifiedByName, ModifiedIP
                     FROM  Inventory.ItemGroup WHERE Id = @Id AND IsDeleted = 0";
             return await _dbConnection.QueryFirstOrDefaultAsync<ItemGroupDto>(query, new { Id });
         }
         public async Task<(IEnumerable<dynamic>, int)> GetAllItemGroupAsync(int PageNumber, int PageSize, string SearchTerm)
         {
+            // Role-based item group filtering
+            var accessCtx = await _dataAccessFilter.GetContextAsync();
+            bool applyRoleFilter = !accessCtx.BypassDataAccess;
+            if (applyRoleFilter && accessCtx.AllowedItemGroupIds.Count == 0)
+            {
+                // No groups assigned and no bypass — return empty
+                return (new List<ItemGroupDto>(), 0);
+            }
+
+            var roleFilterClause = applyRoleFilter ? " AND Id IN @AllowedGroupIds " : string.Empty;
+
             var query = $$"""
             DECLARE @TotalCount INT;
-            SELECT @TotalCount = COUNT(*) 
-            FROM Inventory.ItemGroup 
+            SELECT @TotalCount = COUNT(*)
+            FROM Inventory.ItemGroup
             WHERE IsDeleted = 0
-            {{(string.IsNullOrEmpty(SearchTerm) ? "" : "AND (ItemGroupName LIKE @Search)")}};
+            {{(string.IsNullOrEmpty(SearchTerm) ? "" : "AND (ItemGroupName LIKE @Search)")}}
+            {{roleFilterClause}};
 
-            SELECT 
-                Id,ItemGroupCode, ItemGroupName,UnitId 
+            SELECT
+                Id,ItemGroupCode, ItemGroupName,UnitId
                 ,IsActive, IsDeleted, CreatedBy, CreatedDate, CreatedByName, CreatedIP, ModifiedBy, ModifiedDate, ModifiedByName, ModifiedIP
                 FROM  Inventory.ItemGroup             WHERE IsDeleted = 0
             {{(string.IsNullOrEmpty(SearchTerm) ? "" : "AND (ItemGroupName LIKE @Search )")}}
+            {{roleFilterClause}}
             ORDER BY Id desc
             OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
 
             SELECT @TotalCount AS TotalCount;
             """;
 
-            var parameters = new
-            {
-                Search = $"%{SearchTerm}%",
-                Offset = (PageNumber - 1) * PageSize,
-                PageSize
-            };
+            var parameters = new DynamicParameters();
+            parameters.Add("Search", $"%{SearchTerm}%");
+            parameters.Add("Offset", (PageNumber - 1) * PageSize);
+            parameters.Add("PageSize", PageSize);
+            if (applyRoleFilter)
+                parameters.Add("AllowedGroupIds", accessCtx.AllowedItemGroupIds.ToArray());
 
             var notificationConfig = await _dbConnection.QueryMultipleAsync(query, parameters);
             var notificationConfigList = (await notificationConfig.ReadAsync<ItemGroupDto>()).ToList();
@@ -103,35 +128,65 @@ namespace  InventoryManagement.Infrastructure.Repositories.Item.ItemGroup
         public async Task<List<ItemGroupAutoCompleteDto>> GetItemGroupAutoCompleteAsync(string searchPattern)
         {
             searchPattern = searchPattern ?? string.Empty;
-            const string query = @"
+
+            // Role-based item group filtering
+            var accessCtx = await _dataAccessFilter.GetContextAsync();
+            bool applyRoleFilter = !accessCtx.BypassDataAccess;
+            if (applyRoleFilter && accessCtx.AllowedItemGroupIds.Count == 0)
+            {
+                return new List<ItemGroupAutoCompleteDto>();
+            }
+
+            var query = @"
              SELECT IC.Id, IC.ItemGroupName
-            FROM Inventory.ItemGroup IC            
+            FROM Inventory.ItemGroup IC
             WHERE IC.IsDeleted = 0 and IC.IsActive = 1
             AND ItemGroupName LIKE @SearchPattern";
-            var parameters = new
-            {
-                SearchPattern = $"%{searchPattern}%"
-            };
+
+            if (applyRoleFilter)
+                query += " AND IC.Id IN @AllowedGroupIds";
+
+            var parameters = new DynamicParameters();
+            parameters.Add("SearchPattern", $"%{searchPattern}%");
+            if (applyRoleFilter)
+                parameters.Add("AllowedGroupIds", accessCtx.AllowedItemGroupIds.ToArray());
+
             var notificationConfig = await _dbConnection.QueryAsync<ItemGroupAutoCompleteDto>(query, parameters);
             return notificationConfig.ToList();
         }
         
         public async Task<List<InventoryManagement.Domain.Entities.Item.ItemGroup>> GetAllItemGroupsAsync()
         {
-            const string sql = @"
-                SELECT 
+            // Role-based item group filtering
+            var accessCtx = await _dataAccessFilter.GetContextAsync();
+            bool applyRoleFilter = !accessCtx.BypassDataAccess;
+            if (applyRoleFilter && accessCtx.AllowedItemGroupIds.Count == 0)
+            {
+                return new List<InventoryManagement.Domain.Entities.Item.ItemGroup>();
+            }
+
+            var sql = @"
+                SELECT
                     Id,
                     UnitId,
                     ItemGroupCode,
                     ItemGroupName,
                     IsActive
                 FROM [Inventory].[ItemGroup]
-                WHERE IsDeleted = 0
-                ORDER BY ItemGroupName ASC;
-            ";
+                WHERE IsDeleted = 0";
 
-            var result = await _dbConnection.QueryAsync<InventoryManagement.Domain.Entities.Item.ItemGroup>(sql);
+            if (applyRoleFilter)
+                sql += " AND Id IN @AllowedGroupIds";
+
+            sql += " ORDER BY ItemGroupName ASC;";
+
+            var parameters = new DynamicParameters();
+            if (applyRoleFilter)
+                parameters.Add("AllowedGroupIds", accessCtx.AllowedItemGroupIds.ToArray());
+
+            var result = await _dbConnection.QueryAsync<InventoryManagement.Domain.Entities.Item.ItemGroup>(sql, parameters);
             return result.AsList();
-        }      
+        }
+
     }
 }

@@ -1,4 +1,5 @@
 using FluentValidation;
+using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Application.Common.Interfaces.ICustomerVisit;
 using SalesManagement.Application.CustomerVisit.Commands.CreateCustomerVisit;
 using SalesManagement.Presentation.Validation.Common;
@@ -10,12 +11,15 @@ namespace SalesManagement.Presentation.Validation.CustomerVisit
     {
         private readonly List<ValidationRule> _validationRules;
         private readonly ICustomerVisitQueryRepository _queryRepository;
+        private readonly IMarketingOfficerAccessFilter _accessFilter;
 
         public CreateCustomerVisitCommandValidator(
             MaxLengthProvider maxLengthProvider,
-            ICustomerVisitQueryRepository queryRepository)
+            ICustomerVisitQueryRepository queryRepository,
+            IMarketingOfficerAccessFilter accessFilter)
         {
             _queryRepository = queryRepository;
+            _accessFilter = accessFilter;
 
             var maxLengthRemarks = maxLengthProvider.GetMaxLength<Domain.Entities.CustomerVisit>("Remarks") ?? 500;
             var maxLengthImageName = maxLengthProvider.GetMaxLength<Domain.Entities.CustomerVisit>("ImageName") ?? 500;
@@ -110,6 +114,13 @@ namespace SalesManagement.Presentation.Validation.CustomerVisit
                                 .GreaterThan(0)
                                 .WithMessage($"ItemId {rule.Error}");
                         }).When(x => x.Products != null && x.Products.Any());
+                        break;
+
+                    case "MarketingOfficerAccess":
+                        RuleFor(x => x.CustomerId)
+                            .MustAsync(async (id, ct) => await _accessFilter.CanAccessCustomerAsync(id, ct))
+                            .WithMessage($"{nameof(CreateCustomerVisitCommand.CustomerId)} {rule.Error}")
+                            .When(x => x.CustomerId > 0);
                         break;
 
                     default:

@@ -1,4 +1,5 @@
 using FluentValidation;
+using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Application.Common.Interfaces.IOfficerAgent;
 using SalesManagement.Application.OfficerAgent.Commands.UpdateOfficerAgent;
 using Shared.Validation.Common;
@@ -9,10 +10,14 @@ namespace SalesManagement.Presentation.Validation.OfficerAgent
     {
         private readonly List<ValidationRule> _validationRules;
         private readonly IOfficerAgentQueryRepository _queryRepository;
+        private readonly IMarketingOfficerAccessFilter _accessFilter;
 
-        public UpdateOfficerAgentCommandValidator(IOfficerAgentQueryRepository queryRepository)
+        public UpdateOfficerAgentCommandValidator(
+            IOfficerAgentQueryRepository queryRepository,
+            IMarketingOfficerAccessFilter accessFilter)
         {
             _queryRepository = queryRepository;
+            _accessFilter = accessFilter;
 
             _validationRules = ValidationRuleLoader.LoadValidationRules();
             if (_validationRules == null || _validationRules.Count == 0)
@@ -91,6 +96,13 @@ namespace SalesManagement.Presentation.Validation.OfficerAgent
                                 .InclusiveBetween(0, 1)
                                 .WithMessage($"{nameof(OfficerAgentUpdateItem.IsActive)} {rule.Error}");
                         });
+                        break;
+
+                    case "MarketingOfficerAccess":
+                        RuleFor(x => x.MarketingOfficerId)
+                            .Must(id => !_accessFilter.IsMarketingOfficer()
+                                        || id == _accessFilter.GetCurrentMarketingOfficerId())
+                            .WithMessage($"{nameof(UpdateOfficerAgentCommand.MarketingOfficerId)} {rule.Error}");
                         break;
 
                     default:

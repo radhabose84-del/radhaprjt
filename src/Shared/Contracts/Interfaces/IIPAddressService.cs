@@ -16,4 +16,5 @@ public interface IIPAddressService
     int?   GetUnitId();
     string GetOldUnitId();
     int?   GetPartyId();
+    int?   GetEmpId();
 }

@@ -35,6 +35,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Comman
             existing.DeliveryLeadTime = updated.DeliveryLeadTime;
             existing.Discount = updated.Discount;
             existing.CountId = updated.CountId;
+            existing.RmTypeId = updated.RmTypeId;
             existing.ValuationMethodId = updated.ValuationMethodId;
 
             var entry = _db.Entry(existing);

@@ -66,6 +66,7 @@ namespace FinanceManagement.Infrastructure
             public int? GetUnitId() => null;
             public string GetOldUnitId() => string.Empty;
             public int? GetPartyId() => null;
+            public int? GetEmpId() => null;
         }
     }
 }

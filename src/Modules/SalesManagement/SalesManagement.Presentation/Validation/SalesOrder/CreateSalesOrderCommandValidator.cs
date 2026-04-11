@@ -1,6 +1,7 @@
 using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Workflow;
 using FluentValidation;
+using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Application.Common.Interfaces.ISalesOrder;
 using SalesManagement.Application.SalesOrder.Commands.CreateSalesOrder;
 using SalesManagement.Domain.Common;
@@ -15,16 +16,19 @@ namespace SalesManagement.Presentation.Validation.SalesOrder
         private readonly ISalesOrderQueryRepository _queryRepository;
         private readonly IWorkflowLookup _workflowLookup;
         private readonly IIPAddressService _ipAddressService;
+        private readonly IMarketingOfficerAccessFilter _accessFilter;
 
         public CreateSalesOrderCommandValidator(
             MaxLengthProvider maxLengthProvider,
             ISalesOrderQueryRepository queryRepository,
             IWorkflowLookup workflowLookup,
-            IIPAddressService ipAddressService)
+            IIPAddressService ipAddressService,
+            IMarketingOfficerAccessFilter accessFilter)
         {
             _queryRepository = queryRepository;
             _workflowLookup = workflowLookup;
             _ipAddressService = ipAddressService;
+            _accessFilter = accessFilter;
 
             var maxLengthRemarks = maxLengthProvider.GetMaxLength<Domain.Entities.SalesOrderHeader>("Remarks") ?? 500;
 
@@ -255,6 +259,18 @@ namespace SalesManagement.Presentation.Validation.SalesOrder
                                     .When(d => d.SaleUOMId > 0);
                             })
                             .When(x => x.SalesOrderDetails?.SalesOrderDetails != null && x.SalesOrderDetails.SalesOrderDetails.Any());
+                        break;
+
+                    case "MarketingOfficerAccess":
+                        RuleFor(x => x.SalesOrderDetails!.PartyId)
+                            .MustAsync(async (id, ct) => await _accessFilter.CanAccessCustomerAsync(id, ct))
+                            .WithMessage($"PartyId {rule.Error}")
+                            .When(x => x.SalesOrderDetails != null && x.SalesOrderDetails.PartyId > 0);
+
+                        RuleFor(x => x.SalesOrderDetails!.SubAgentId)
+                            .MustAsync(async (id, ct) => await _accessFilter.CanAccessAgentAsync(id!.Value, ct))
+                            .WithMessage($"SubAgentId {rule.Error}")
+                            .When(x => x.SalesOrderDetails != null && x.SalesOrderDetails.SubAgentId.HasValue && x.SalesOrderDetails.SubAgentId > 0);
                         break;
 
                     case "Workflow":

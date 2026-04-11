@@ -163,14 +163,13 @@ namespace SalesManagement.Infrastructure.Repositories.SalesReturn
                     ih.InvoiceDate,
                     id.Id AS InvoiceDetailId,
                     cd.ItemId,
-                    cd.LotId,
+                    COALESCE(id.LotId, cd.LotId) AS LotId,
                     cd.NumberOfPacks,
                     cd.NetWeight,
                     cd.InvoiceAmount
                 FROM Sales.ComplaintDetail cd
                 INNER JOIN Sales.InvoiceHeader ih ON cd.InvoiceHeaderId = ih.Id AND ih.IsDeleted = 0
                 LEFT JOIN Sales.InvoiceDetail id ON id.InvoiceHeaderId = ih.Id AND id.ItemId = cd.ItemId
-                    AND (id.LotId = cd.LotId OR (id.LotId IS NULL AND cd.LotId IS NULL))
                 WHERE cd.ComplaintHeaderId = @ComplaintHeaderId AND cd.IsDeleted = 0;";
 
             var details = (await _dbConnection.QueryAsync<ComplaintInvoiceItemDto>(detailSql, new { ComplaintHeaderId = complaintHeaderId })).ToList();
@@ -217,7 +216,6 @@ namespace SalesManagement.Infrastructure.Repositories.SalesReturn
                     INNER JOIN Sales.DispatchAdviceHeader dah ON ih.DispatchAdviceId = dah.Id
                     INNER JOIN Sales.DispatchAdviceDetail da ON da.DispatchAdviceHeaderId = dah.Id
                         AND da.ItemId = id.ItemId
-                        AND (da.LotId = id.LotId OR (da.LotId IS NULL AND id.LotId IS NULL))
                     WHERE id.Id IN @InvoiceDetailIds;";
 
                 var dispatchData = (await _dbConnection.QueryAsync<dynamic>(dispatchSql, new { InvoiceDetailIds = invoiceDetailIds })).ToList();
@@ -282,12 +280,18 @@ namespace SalesManagement.Infrastructure.Repositories.SalesReturn
         public async Task<bool> IsComplaintReturnEligibleAsync(int complaintHeaderId)
         {
             // Check if complaint has a resolution with type = Sales Return
+            // AND the resolution workflow has been approved
+            // (header StatusId must be a ClosureStatus type — set by UpdateResolutionApprovalStatusAsync on Approved)
             const string sql = @"
                 SELECT COUNT(1)
                 FROM Sales.ComplaintResolution cr
                 INNER JOIN Sales.MiscMaster rt ON cr.ResolutionTypeId = rt.Id AND rt.IsDeleted = 0
+                INNER JOIN Sales.ComplaintHeader ch ON cr.ComplaintHeaderId = ch.Id AND ch.IsDeleted = 0
+                INNER JOIN Sales.MiscMaster hm ON ch.StatusId = hm.Id AND hm.IsDeleted = 0
+                INNER JOIN Sales.MiscTypeMaster mt ON hm.MiscTypeId = mt.Id
                 WHERE cr.ComplaintHeaderId = @Id AND cr.IsDeleted = 0
-                    AND rt.Code = 'Sales Return';";
+                    AND rt.Code = 'Sales Return'
+                    AND mt.MiscTypeCode = 'ClosureStatus';";
             var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = complaintHeaderId });
             return count > 0;
         }
