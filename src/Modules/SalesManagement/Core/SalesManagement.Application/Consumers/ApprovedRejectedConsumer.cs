@@ -108,7 +108,7 @@ namespace SalesManagement.Application.Consumers
 
                     case MiscEnumEntity.ComplaintResolutionModuleTypeName:
                         await _complaintCommandRepo.UpdateResolutionApprovalStatusAsync(
-                            msg.ModuleTransactionId, msg.Status, context.CancellationToken);
+                            msg.ModuleTransactionId, msg.Status, msg.ModifiedBy, context.CancellationToken);
                         _logger.LogInformation(
                             "Complaint Resolution {Id} approval status updated to {Status}",
                             msg.ModuleTransactionId, msg.Status);
