@@ -623,7 +623,7 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                 SELECT @TotalCount = COUNT(*)
                 FROM Sales.ComplaintQCReview qr
                 INNER JOIN Sales.ComplaintHeader ch ON ch.Id = qr.ComplaintHeaderId AND ch.IsDeleted = 0
-                WHERE qr.IsDeleted = 0 AND qr.ReviewedBy IS NULL {searchFilter};
+                WHERE qr.IsDeleted = 0 AND qr.ReviewedBy IS NOT NULL {searchFilter};
 
                 SELECT
                     qr.Id,
@@ -641,7 +641,7 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                 INNER JOIN Sales.ComplaintHeader ch ON ch.Id = qr.ComplaintHeaderId AND ch.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster pv ON qr.PhysicalVerificationId = pv.Id AND pv.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster sv ON qr.SeverityId = sv.Id AND sv.IsDeleted = 0
-                WHERE qr.IsDeleted = 0 AND qr.ReviewedBy IS NULL {searchFilter}
+                WHERE qr.IsDeleted = 0 AND qr.ReviewedBy IS NOT NULL {searchFilter}
                 ORDER BY qr.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
 
@@ -681,7 +681,7 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                 SELECT @TotalCount = COUNT(*)
                 FROM Sales.ComplaintResolution cr
                 INNER JOIN Sales.ComplaintHeader ch ON ch.Id = cr.ComplaintHeaderId AND ch.IsDeleted = 0
-                WHERE cr.IsDeleted = 0 AND cr.ResolvedBy IS NULL {searchFilter};
+                WHERE cr.IsDeleted = 0 AND cr.ResolvedBy IS NOT NULL {searchFilter};
 
                 SELECT
                     cr.Id,
@@ -698,7 +698,7 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                 INNER JOIN Sales.ComplaintHeader ch ON ch.Id = cr.ComplaintHeaderId AND ch.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster rt ON cr.ResolutionTypeId = rt.Id AND rt.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster cs ON cr.ClosureStatusId = cs.Id AND cs.IsDeleted = 0
-                WHERE cr.IsDeleted = 0 AND cr.ResolvedBy IS NULL {searchFilter}
+                WHERE cr.IsDeleted = 0 AND cr.ResolvedBy IS NOT NULL {searchFilter}
                 ORDER BY cr.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
 
@@ -779,6 +779,44 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
             }
 
             return (data, totalCount);
+        }
+
+        public async Task<bool> IsReadyForResolutionAsync(int complaintHeaderId)
+        {
+            const string sql = @"
+                SELECT CASE WHEN
+                    -- QC Review form was submitted (reviewer filled in the review)
+                    EXISTS (
+                        SELECT 1 FROM Sales.ComplaintQCReview qr
+                        WHERE qr.ComplaintHeaderId = @Id
+                          AND qr.ReviewedBy IS NOT NULL
+                          AND qr.ComplaintStatusId IS NOT NULL
+                          AND qr.IsDeleted = 0
+                    )
+                    -- QC Workflow was approved: complaint header status is a QCComplaintStatus type
+                    AND EXISTS (
+                        SELECT 1 FROM Sales.ComplaintHeader ch
+                        INNER JOIN Sales.MiscMaster mm ON ch.StatusId = mm.Id
+                        INNER JOIN Sales.MiscTypeMaster mmt ON mm.MiscTypeId = mmt.Id
+                        WHERE ch.Id = @Id
+                          AND mmt.MiscTypeCode = 'QCComplaintStatus'
+                          AND mm.IsDeleted = 0
+                          AND ch.IsDeleted = 0
+                    )
+                    -- All mandatory assignments have feedback submitted
+                    AND NOT EXISTS (
+                        SELECT 1 FROM Sales.ComplaintQCReviewAssignment a
+                        INNER JOIN Sales.ComplaintQCReview qr ON a.ComplaintQCReviewId = qr.Id
+                        INNER JOIN Sales.MiscMaster mm ON a.AssignmentStatusId = mm.Id
+                        WHERE qr.ComplaintHeaderId = @Id
+                          AND a.IsMandatory = 1
+                          AND mm.Description != 'Submitted'
+                          AND a.IsDeleted = 0
+                          AND qr.IsDeleted = 0
+                    )
+                THEN 1 ELSE 0 END;";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { Id = complaintHeaderId });
         }
     }
 }
