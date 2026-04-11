@@ -371,6 +371,11 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                 INNER JOIN Sales.MiscMaster rt
                     ON cr.ResolutionTypeId = rt.Id AND rt.IsDeleted = 0
                     AND rt.Code = 'Sales Return'
+                -- Resolution workflow must be approved: header status must be a ClosureStatus type
+                INNER JOIN Sales.MiscMaster hm
+                    ON ch.StatusId = hm.Id AND hm.IsDeleted = 0
+                INNER JOIN Sales.MiscTypeMaster mt
+                    ON hm.MiscTypeId = mt.Id AND mt.MiscTypeCode = 'ClosureStatus'
                 LEFT JOIN Sales.MiscMaster rs
                     ON cr.ReturnStatusId = rs.Id AND rs.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster cs
@@ -623,7 +628,13 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                 SELECT @TotalCount = COUNT(*)
                 FROM Sales.ComplaintQCReview qr
                 INNER JOIN Sales.ComplaintHeader ch ON ch.Id = qr.ComplaintHeaderId AND ch.IsDeleted = 0
-                WHERE qr.IsDeleted = 0 AND qr.ReviewedBy IS NOT NULL {searchFilter};
+                WHERE qr.IsDeleted = 0
+                  AND qr.ReviewedBy IS NOT NULL
+                  AND NOT EXISTS (
+                      SELECT 1 FROM Sales.MiscMaster hm
+                      INNER JOIN Sales.MiscTypeMaster mt ON hm.MiscTypeId = mt.Id
+                      WHERE hm.Id = ch.StatusId AND mt.MiscTypeCode = 'QCComplaintStatus' AND hm.IsDeleted = 0
+                  ) {searchFilter};
 
                 SELECT
                     qr.Id,
@@ -641,7 +652,13 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                 INNER JOIN Sales.ComplaintHeader ch ON ch.Id = qr.ComplaintHeaderId AND ch.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster pv ON qr.PhysicalVerificationId = pv.Id AND pv.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster sv ON qr.SeverityId = sv.Id AND sv.IsDeleted = 0
-                WHERE qr.IsDeleted = 0 AND qr.ReviewedBy IS NOT NULL {searchFilter}
+                WHERE qr.IsDeleted = 0
+                  AND qr.ReviewedBy IS NOT NULL
+                  AND NOT EXISTS (
+                      SELECT 1 FROM Sales.MiscMaster hm
+                      INNER JOIN Sales.MiscTypeMaster mt ON hm.MiscTypeId = mt.Id
+                      WHERE hm.Id = ch.StatusId AND mt.MiscTypeCode = 'QCComplaintStatus' AND hm.IsDeleted = 0
+                  ) {searchFilter}
                 ORDER BY qr.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
 
