@@ -53,12 +53,23 @@ namespace SalesManagement.Infrastructure.Repositories.ComplaintResolution
             // Show complaints where QC is accepted (feedback completed stage or beyond)
             var baseSql = @"
                 FROM Sales.ComplaintHeader ch
+                INNER JOIN Sales.MiscMaster hst ON ch.StatusId = hst.Id AND hst.IsDeleted = 0
+                INNER JOIN Sales.MiscTypeMaster hmt ON hst.MiscTypeId = hmt.Id AND hmt.MiscTypeCode = 'QCComplaintStatus'
                 INNER JOIN Sales.ComplaintQCReview qr ON qr.ComplaintHeaderId = ch.Id AND qr.IsDeleted = 0
-                INNER JOIN Sales.MiscMaster qcs ON qr.ComplaintStatusId = qcs.Id AND qcs.IsDeleted = 0 AND qcs.Code = 'QC Accepted'
                 LEFT JOIN Sales.ComplaintResolution cr ON cr.ComplaintHeaderId = ch.Id AND cr.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster rt ON cr.ResolutionTypeId = rt.Id AND rt.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster cs ON cr.ClosureStatusId = cs.Id AND cs.IsDeleted = 0
-                WHERE ch.IsDeleted = 0";
+                WHERE ch.IsDeleted = 0
+                  AND hst.Code = 'QC Accepted'
+                  AND EXISTS (
+                      SELECT 1 FROM Sales.ComplaintQCReviewAssignment a
+                      WHERE a.ComplaintQCReviewId = qr.Id AND a.IsDeleted = 0
+                  )
+                  AND NOT EXISTS (
+                      SELECT 1 FROM Sales.ComplaintQCReviewAssignment a
+                      INNER JOIN Sales.MiscMaster am ON a.AssignmentStatusId = am.Id AND am.IsDeleted = 0
+                      WHERE a.ComplaintQCReviewId = qr.Id AND a.IsDeleted = 0 AND am.Code = 'Pending'
+                  )";
 
             var countSql = $"SELECT COUNT(*) {baseSql} {searchFilter} {statusCondition};";
 
