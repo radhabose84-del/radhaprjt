@@ -12,7 +12,8 @@ namespace UserManagement.Domain.Entities
     public string? FirstName { get; set; }
     public string? LastName { get; set; }
     public string? UserName { get; set; }
-    public FirstTimeUserStatus IsFirstTimeUser { get; set; } 
+    public int? EmpId { get; set; }
+    public FirstTimeUserStatus IsFirstTimeUser { get; set; }
     public string? PasswordHash { get; set; }
     public int? UserType { get; set; }
     public string? Mobile { get; set; }
@@ -42,6 +43,5 @@ namespace UserManagement.Domain.Entities
         // Generate a valid BCrypt hash
         PasswordHash = BCrypt.Net.BCrypt.HashPassword(password);
     }
-
     }
 }

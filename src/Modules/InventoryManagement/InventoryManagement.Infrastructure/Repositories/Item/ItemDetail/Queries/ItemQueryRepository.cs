@@ -118,7 +118,10 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                     IsActive = (x.IsActive == BaseEntity.Status.Active ? 1 : 0),
                     IssueRuleId = x.IssueRuleId,
                     IssueRule = x.MiscIssueRule != null ? x.MiscIssueRule.Code : null,
-                    IsOnSpot = x.IsOnSpot
+                    IsOnSpot = x.IsOnSpot,
+                    PriceGroupId = x.PriceGroupId,
+                    PriceGroupCode = x.PriceGroup != null ? x.PriceGroup.PriceGroupCode : null,
+                    PriceGroupName = x.PriceGroup != null ? x.PriceGroup.PriceGroupName : null
                 });
 
             var paginate = page.HasValue && size.HasValue && page.Value > 0 && size.Value > 0;
