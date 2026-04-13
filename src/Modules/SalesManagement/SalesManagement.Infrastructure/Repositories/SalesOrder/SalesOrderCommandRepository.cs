@@ -40,9 +40,11 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 using var transaction = await _applicationDbContext.Database.BeginTransactionAsync();
                 try
                 {
-                    // Separate details from header
+                    // Separate details + discounts from header
                     var details = entity.SalesOrderDetails?.ToList();
+                    var discounts = entity.SalesOrderDiscounts?.ToList();
                     entity.SalesOrderDetails = null;
+                    entity.SalesOrderDiscounts = null;
 
                     // Set default StatusId to "Pending"
                     var pendingStatus = await _miscMasterQueryRepository.GetMiscMasterByName(
@@ -69,6 +71,17 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                         await _applicationDbContext.SaveChangesAsync();
                     }
 
+                    // Insert discounts into SalesOrderDiscount table
+                    if (discounts != null && discounts.Count > 0)
+                    {
+                        foreach (var discount in discounts)
+                        {
+                            discount.SalesOrderHeaderId = entity.Id;
+                            await _applicationDbContext.SalesOrderDiscount.AddAsync(discount);
+                        }
+                        await _applicationDbContext.SaveChangesAsync();
+                    }
+
                     // Increment DocNo via lookup — same connection + transaction
                     var dbConnection = _applicationDbContext.Database.GetDbConnection();
                     var dbTransaction = transaction.GetDbTransaction();
@@ -90,6 +103,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
         {
             var existingEntity = await _applicationDbContext.SalesOrderHeader
                 .Include(h => h.SalesOrderDetails)
+                .Include(h => h.SalesOrderDiscounts)
                 .FirstOrDefaultAsync(x => x.Id == entity.Id && x.IsDeleted == IsDelete.NotDeleted);
 
             if (existingEntity == null)
@@ -141,6 +155,22 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     detail.SalesOrderHeaderId = existingEntity.Id;
                     detail.LineItemStatusId = openStatus?.Id;
                     await _applicationDbContext.SalesOrderDetail.AddAsync(detail);
+                }
+            }
+
+            // Replace existing discounts with new set
+            if (existingEntity.SalesOrderDiscounts != null && existingEntity.SalesOrderDiscounts.Any())
+            {
+                _applicationDbContext.SalesOrderDiscount.RemoveRange(existingEntity.SalesOrderDiscounts);
+            }
+
+            if (entity.SalesOrderDiscounts != null && entity.SalesOrderDiscounts.Any())
+            {
+                foreach (var discount in entity.SalesOrderDiscounts)
+                {
+                    discount.Id = 0;   // force insert (in case Update DTO carried Ids)
+                    discount.SalesOrderHeaderId = existingEntity.Id;
+                    await _applicationDbContext.SalesOrderDiscount.AddAsync(discount);
                 }
             }
 

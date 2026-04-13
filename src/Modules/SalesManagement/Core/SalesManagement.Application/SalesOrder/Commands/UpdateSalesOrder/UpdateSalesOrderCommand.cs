@@ -58,5 +58,8 @@ namespace SalesManagement.Application.SalesOrder.Commands.UpdateSalesOrder
 
         // Line Items
         public List<UpdateSalesOrderDetailDto>? SalesOrderDetails { get; set; }
+
+        // Applied discounts (max 3 — one per SlabType)
+        public List<UpdateSalesOrderDiscountDto>? Discounts { get; set; }
     }
 }
