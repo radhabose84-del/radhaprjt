@@ -10,6 +10,7 @@ using Contracts.Interfaces;
 using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Application.Common.Interfaces.ISalesOrder;
 using SalesManagement.Application.SalesOrder.Dto;
+using SalesManagement.Application.SalesOrder.Queries.GetDiscountsBySalesGroup;
 using SalesManagement.Application.SalesOrder.Queries.GetPendingSalesOrder;
 using SalesManagement.Domain.Common;
 
@@ -84,16 +85,14 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
 
             if (_accessFilter.IsMarketingOfficer())
             {
-                var userId = _ipAddressService.GetUserId();
-                var customerIds = await _accessFilter.GetAccessibleCustomerIdsAsync();
                 var agentIds = await _accessFilter.GetAccessibleAgentIdsAsync();
-                var safeCustomerIds = customerIds.Count > 0 ? customerIds.ToArray() : new[] { -1 };
                 var safeAgentIds = agentIds.Count > 0 ? agentIds.ToArray() : new[] { -1 };
+                var customerIds = await _accessFilter.GetAccessibleCustomerIdsAsync();
+                var safeCustomerIds = customerIds.Count > 0 ? customerIds.ToArray() : new[] { -1 };
 
-                moFilter = " AND (h.CreatedBy = @UserId OR h.PartyId IN @CustomerIds OR h.AgentId IN @AgentIds) ";
-                param.Add("UserId", userId);
-                param.Add("CustomerIds", safeCustomerIds);
+                moFilter = " AND h.AgentId IN @AgentIds AND h.PartyId IN @CustomerIds ";
                 param.Add("AgentIds", safeAgentIds);
+                param.Add("CustomerIds", safeCustomerIds);
             }
 
             var query = $@"
@@ -114,9 +113,6 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     h.UnitId, h.PartyId, h.PartyAddress, h.AgentId, h.SubAgentId,
                     h.SalesOrderTypeId,
                     h.OrderUnitId,
-                    h.DiscountPlanId,
-                    dp.Description AS DiscountPlanName,
-                    h.PaymentTermsId,
                     h.PaymentTypeId,
                     pt.Description AS PaymentTypeName,
                     h.FreightTypeId,
@@ -152,7 +148,6 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 LEFT JOIN Sales.SalesGroup sg ON h.SalesGroupId = sg.Id AND sg.IsDeleted = 0
                 LEFT JOIN Sales.SalesSegment ss ON h.SalesSegmentId = ss.Id AND ss.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster et ON h.EnquiryType = et.Id AND et.IsDeleted = 0
-                LEFT JOIN Sales.MiscMaster dp ON h.DiscountPlanId = dp.Id AND dp.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster pt ON h.PaymentTypeId = pt.Id AND pt.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster ft ON h.FreightTypeId = ft.Id AND ft.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster cl ON h.CountListId = cl.Id AND cl.IsDeleted = 0
@@ -216,9 +211,6 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 var agents = allAgentIds.Any() ? await _partyLookup.GetByIdsAsync(allAgentIds) : [];
                 var agentDict = agents.ToDictionary(a => a.Id, a => a.PartyName);
 
-                var paymentTerms = await _paymentTermLookup.GetAllPaymentTermAsync();
-                var ptDict = paymentTerms.ToDictionary(p => p.Id, p => p.Description);
-
                 var soTypeIds = list.Where(x => x.SalesOrderTypeId.HasValue).Select(x => x.SalesOrderTypeId!.Value).Distinct();
                 var soTypes = soTypeIds.Any() ? await _transactionTypeLookup.GetByIdsAsync(soTypeIds) : [];
                 var soTypeDict = soTypes.ToDictionary(t => t.Id, t => t.TypeName);
@@ -231,7 +223,6 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                         item.AgentName = agentDict.TryGetValue(item.AgentId.Value, out var aName) ? aName : null;
                     if (item.SubAgentId.HasValue)
                         item.SubAgentName = agentDict.TryGetValue(item.SubAgentId.Value, out var saName) ? saName : null;
-                    item.PaymentTermsName = ptDict.TryGetValue(item.PaymentTermsId, out var ptName) ? ptName : null;
                     if (item.SalesOrderTypeId.HasValue)
                         item.SalesOrderTypeName = soTypeDict.TryGetValue(item.SalesOrderTypeId.Value, out var stName) ? stName : null;
                     if (item.OrderUnitId.HasValue)
@@ -275,16 +266,14 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
 
             if (_accessFilter.IsMarketingOfficer())
             {
-                var userId = _ipAddressService.GetUserId();
-                var customerIds = await _accessFilter.GetAccessibleCustomerIdsAsync();
                 var agentIds = await _accessFilter.GetAccessibleAgentIdsAsync();
-                var safeCustomerIds = customerIds.Count > 0 ? customerIds.ToArray() : new[] { -1 };
                 var safeAgentIds = agentIds.Count > 0 ? agentIds.ToArray() : new[] { -1 };
+                var customerIds = await _accessFilter.GetAccessibleCustomerIdsAsync();
+                var safeCustomerIds = customerIds.Count > 0 ? customerIds.ToArray() : new[] { -1 };
 
-                moFilter = " AND (h.CreatedBy = @UserId OR h.PartyId IN @CustomerIds OR h.AgentId IN @AgentIds) ";
-                headerParams.Add("UserId", userId);
-                headerParams.Add("CustomerIds", safeCustomerIds);
+                moFilter = " AND h.AgentId IN @AgentIds AND h.PartyId IN @CustomerIds ";
                 headerParams.Add("AgentIds", safeAgentIds);
+                headerParams.Add("CustomerIds", safeCustomerIds);
             }
 
             var headerSql = $@"
@@ -299,9 +288,6 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     h.UnitId, h.PartyId, h.PartyAddress, h.AgentId, h.SubAgentId,
                     h.SalesOrderTypeId,
                     h.OrderUnitId,
-                    h.DiscountPlanId,
-                    dp.Description AS DiscountPlanName,
-                    h.PaymentTermsId,
                     h.PaymentTypeId,
                     pt.Description AS PaymentTypeName,
                     h.FreightTypeId,
@@ -326,7 +312,6 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 LEFT JOIN Sales.SalesGroup sg ON h.SalesGroupId = sg.Id AND sg.IsDeleted = 0
                 LEFT JOIN Sales.SalesSegment ss ON h.SalesSegmentId = ss.Id AND ss.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster et ON h.EnquiryType = et.Id AND et.IsDeleted = 0
-                LEFT JOIN Sales.MiscMaster dp ON h.DiscountPlanId = dp.Id AND dp.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster pt ON h.PaymentTypeId = pt.Id AND pt.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster ft ON h.FreightTypeId = ft.Id AND ft.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster cl ON h.CountListId = cl.Id AND cl.IsDeleted = 0
@@ -410,9 +395,6 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 header.SubAgentName = subAgentList.FirstOrDefault()?.PartyName;
             }
 
-            var paymentTerms = await _paymentTermLookup.GetAllPaymentTermAsync();
-            header.PaymentTermsName = paymentTerms.FirstOrDefault(p => p.Id == header.PaymentTermsId)?.Description;
-
             if (header.SalesOrderTypeId.HasValue)
             {
                 var soTypes = await _transactionTypeLookup.GetByIdsAsync(new[] { header.SalesOrderTypeId.Value });
@@ -474,6 +456,35 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             }
 
             header.SalesOrderDetails = details;
+
+            // Populate applied discounts (same-module JOINs for DiscountCode/Name and SlabTypeName)
+            const string discountSql = @"
+                SELECT sod.Id, sod.DiscountMasterId,
+                       dm.DiscountCode, dm.DiscountName,
+                       sod.SlabTypeId, slab_mm.Description AS SlabTypeName,
+                       sod.PaymentTermId
+                FROM Sales.SalesOrderDiscount sod
+                LEFT JOIN Sales.DiscountMaster dm ON sod.DiscountMasterId = dm.Id AND dm.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster slab_mm ON sod.SlabTypeId = slab_mm.Id AND slab_mm.IsDeleted = 0
+                WHERE sod.SalesOrderHeaderId = @HeaderId";
+
+            var discounts = (await _dbConnection.QueryAsync<SalesOrderDiscountDto>(
+                discountSql, new { HeaderId = id })).ToList();
+
+            // Cross-module: PaymentTerm description via lookup
+            if (discounts.Count > 0)
+            {
+                var allPaymentTerms = await _paymentTermLookup.GetAllPaymentTermAsync();
+                var ptDict = allPaymentTerms.ToDictionary(p => p.Id, p => p.Description);
+                foreach (var d in discounts)
+                {
+                    if (ptDict.TryGetValue(d.PaymentTermId, out var desc))
+                        d.PaymentTermDescription = desc;
+                }
+            }
+
+            header.Discounts = discounts;
+
             return header;
         }
 
@@ -491,16 +502,14 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
 
             if (_accessFilter.IsMarketingOfficer())
             {
-                var userId = _ipAddressService.GetUserId();
-                var customerIds = await _accessFilter.GetAccessibleCustomerIdsAsync(ct);
                 var agentIds = await _accessFilter.GetAccessibleAgentIdsAsync(ct);
-                var safeCustomerIds = customerIds.Count > 0 ? customerIds.ToArray() : new[] { -1 };
                 var safeAgentIds = agentIds.Count > 0 ? agentIds.ToArray() : new[] { -1 };
+                var customerIds = await _accessFilter.GetAccessibleCustomerIdsAsync(ct);
+                var safeCustomerIds = customerIds.Count > 0 ? customerIds.ToArray() : new[] { -1 };
 
-                moFilter = " AND (h.CreatedBy = @UserId OR h.PartyId IN @CustomerIds OR h.AgentId IN @AgentIds) ";
-                parameters.Add("UserId", userId);
-                parameters.Add("CustomerIds", safeCustomerIds);
+                moFilter = " AND h.AgentId IN @AgentIds AND h.PartyId IN @CustomerIds ";
                 parameters.Add("AgentIds", safeAgentIds);
+                parameters.Add("CustomerIds", safeCustomerIds);
             }
 
             var sql = $@"
@@ -753,6 +762,153 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     WHERE SalesOrderId = @Id AND IsDeleted = 0
                 ) THEN 1 ELSE 0 END;";
             return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { Id = salesOrderHeaderId });
+        }
+
+        public async Task<bool> DiscountMasterExistsAsync(int discountMasterId)
+        {
+            const string sql = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1 FROM Sales.DiscountMaster
+                    WHERE Id = @Id AND IsActive = 1 AND IsDeleted = 0
+                ) THEN 1 ELSE 0 END;";
+            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { Id = discountMasterId });
+        }
+
+        public async Task<List<DiscountsBySalesGroupDto>> GetDiscountsBySalesGroupAsync(int salesGroupId, int slabTypeId, int paymentTermId, CancellationToken ct)
+        {
+            // Header — filter by SalesGroup (via DiscountSalesGroup), SlabType AND PaymentTerm (via DiscountPaymentTerm)
+            const string headerSql = @"
+                SELECT dm.Id, dm.DiscountCode, dm.DiscountName, dm.Priority,
+                       dm.ExecutionTypeId, exec_mm.Description AS ExecutionTypeName,
+                       dm.TriggerEventId, trig_mm.Description AS TriggerEventName,
+                       dm.ValueTypeId, val_mm.Description AS ValueTypeName
+                FROM Sales.DiscountMaster dm
+                INNER JOIN Sales.DiscountSalesGroup dsg ON dsg.DiscountMasterId = dm.Id
+                INNER JOIN Sales.DiscountPaymentTerm dpt ON dpt.DiscountMasterId = dm.Id
+                LEFT JOIN Sales.MiscMaster exec_mm ON exec_mm.Id = dm.ExecutionTypeId AND exec_mm.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster trig_mm ON trig_mm.Id = dm.TriggerEventId AND trig_mm.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster val_mm ON val_mm.Id = dm.ValueTypeId AND val_mm.IsDeleted = 0
+                WHERE dsg.SalesGroupId = @SalesGroupId
+                  AND dm.SlabTypeId = @SlabTypeId
+                  AND dpt.PaymentTermId = @PaymentTermId
+                  AND dm.IsActive = 1 AND dm.IsDeleted = 0
+                  AND dsg.IsActive = 1 AND dsg.IsDeleted = 0
+                  AND dpt.IsActive = 1 AND dpt.IsDeleted = 0
+                GROUP BY dm.Id, dm.DiscountCode, dm.DiscountName, dm.Priority,
+                         dm.ExecutionTypeId, exec_mm.Description,
+                         dm.TriggerEventId, trig_mm.Description,
+                         dm.ValueTypeId, val_mm.Description
+                ORDER BY dm.Priority ASC, dm.DiscountName ASC";
+
+            var headers = (await _dbConnection.QueryAsync<DiscountsBySalesGroupDto>(
+                new CommandDefinition(headerSql, new { SalesGroupId = salesGroupId, SlabTypeId = slabTypeId, PaymentTermId = paymentTermId }, cancellationToken: ct))).ToList();
+
+            if (headers.Count == 0)
+                return headers;
+
+            var discountIds = headers.Select(h => h.Id).ToList();
+
+            // SalesGroups (same-module JOIN)
+            const string sgSql = @"
+                SELECT dsg.Id, dsg.DiscountMasterId, dsg.SalesGroupId, sg.SalesGroupName
+                FROM Sales.DiscountSalesGroup dsg
+                INNER JOIN Sales.SalesGroup sg ON sg.Id = dsg.SalesGroupId AND sg.IsDeleted = 0
+                WHERE dsg.DiscountMasterId IN @Ids AND dsg.IsDeleted = 0";
+
+            var sgRows = (await _dbConnection.QueryAsync<DiscountSalesGroupRow>(
+                new CommandDefinition(sgSql, new { Ids = discountIds }, cancellationToken: ct))).ToList();
+
+            // Slabs
+            const string slabSql = @"
+                SELECT Id, DiscountMasterId, SlabOrder, FromValue, ToValue, DiscountValue
+                FROM Sales.DiscountSlab
+                WHERE DiscountMasterId IN @Ids AND IsDeleted = 0
+                ORDER BY DiscountMasterId, SlabOrder";
+
+            var slabRows = (await _dbConnection.QueryAsync<DiscountSlabRow>(
+                new CommandDefinition(slabSql, new { Ids = discountIds }, cancellationToken: ct))).ToList();
+
+            // Payment Terms — filter to only the requested PaymentTermId so response reflects the filter
+            const string ptSql = @"
+                SELECT Id, DiscountMasterId, PaymentTermId
+                FROM Sales.DiscountPaymentTerm
+                WHERE DiscountMasterId IN @Ids
+                  AND PaymentTermId = @PaymentTermId
+                  AND IsActive = 1 AND IsDeleted = 0";
+
+            var ptRows = (await _dbConnection.QueryAsync<DiscountPaymentTermRow>(
+                new CommandDefinition(ptSql, new { Ids = discountIds, PaymentTermId = paymentTermId }, cancellationToken: ct))).ToList();
+
+            // Resolve cross-module PaymentTerm descriptions
+            Dictionary<int, string?> ptDict = new();
+            if (ptRows.Count > 0)
+            {
+                var allPaymentTerms = await _paymentTermLookup.GetAllPaymentTermAsync();
+                ptDict = allPaymentTerms.ToDictionary(p => p.Id, p => p.Description);
+            }
+
+            var sgByDiscount = sgRows.ToLookup(r => r.DiscountMasterId);
+            var slabByDiscount = slabRows.ToLookup(r => r.DiscountMasterId);
+            var ptByDiscount = ptRows.ToLookup(r => r.DiscountMasterId);
+
+            foreach (var header in headers)
+            {
+                header.DiscountSalesGroups = sgByDiscount[header.Id]
+                    .Select(r => new DiscountSalesGroupInfoDto
+                    {
+                        Id = r.Id,
+                        SalesGroupId = r.SalesGroupId,
+                        SalesGroupName = r.SalesGroupName
+                    })
+                    .ToList();
+
+                header.DiscountSlabs = slabByDiscount[header.Id]
+                    .Select(r => new DiscountSlabInfoDto
+                    {
+                        Id = r.Id,
+                        SlabOrder = r.SlabOrder,
+                        FromValue = r.FromValue,
+                        ToValue = r.ToValue,
+                        DiscountValue = r.DiscountValue
+                    })
+                    .ToList();
+
+                header.DiscountPaymentTerms = ptByDiscount[header.Id]
+                    .Select(r => new DiscountPaymentTermInfoDto
+                    {
+                        Id = r.Id,
+                        PaymentTermId = r.PaymentTermId,
+                        PaymentTermDescription = ptDict.TryGetValue(r.PaymentTermId, out var desc) ? desc : null
+                    })
+                    .ToList();
+            }
+
+            return headers;
+        }
+
+        private sealed class DiscountSalesGroupRow
+        {
+            public int Id { get; set; }
+            public int DiscountMasterId { get; set; }
+            public int SalesGroupId { get; set; }
+            public string? SalesGroupName { get; set; }
+        }
+
+        private sealed class DiscountSlabRow
+        {
+            public int Id { get; set; }
+            public int DiscountMasterId { get; set; }
+            public int SlabOrder { get; set; }
+            public decimal FromValue { get; set; }
+            public decimal? ToValue { get; set; }
+            public decimal DiscountValue { get; set; }
+        }
+
+        private sealed class DiscountPaymentTermRow
+        {
+            public int Id { get; set; }
+            public int DiscountMasterId { get; set; }
+            public int PaymentTermId { get; set; }
         }
     }
 }

@@ -26,8 +26,6 @@ namespace SalesManagement.Application.SalesOrder.Commands.UpdateSalesOrder
         public int? SalesOrderTypeId { get; set; }
 
         // Commercial Details
-        public int? DiscountPlanId { get; set; }
-        public int PaymentTermsId { get; set; }
         public int? PaymentTypeId { get; set; }
         public int FreightTypeId { get; set; }
         public int? CountListId { get; set; }
@@ -58,5 +56,8 @@ namespace SalesManagement.Application.SalesOrder.Commands.UpdateSalesOrder
 
         // Line Items
         public List<UpdateSalesOrderDetailDto>? SalesOrderDetails { get; set; }
+
+        // Applied discounts (max 3 — one per SlabType)
+        public List<UpdateSalesOrderDiscountDto>? Discounts { get; set; }
     }
 }

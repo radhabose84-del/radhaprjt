@@ -3,17 +3,20 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SalesManagement.Infrastructure.Data;
 
 #nullable disable
 
-namespace SalesManagement.Infrastructure.Migrations
+namespace SalesManagement.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260413113741_AddSalesOrderDiscount")]
+    partial class AddSalesOrderDiscount
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -4655,6 +4658,10 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("varchar(50)")
                         .HasColumnName("CreatedIP");
 
+                    b.Property<int?>("DiscountPlanId")
+                        .HasColumnType("int")
+                        .HasColumnName("DiscountPlanId");
+
                     b.Property<int>("EnquiryType")
                         .HasColumnType("int")
                         .HasColumnName("EnquiryType");
@@ -4744,6 +4751,10 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Property<int>("PartyId")
                         .HasColumnType("int")
                         .HasColumnName("PartyId");
+
+                    b.Property<int>("PaymentTermsId")
+                        .HasColumnType("int")
+                        .HasColumnName("PaymentTermsId");
 
                     b.Property<int?>("PaymentTypeId")
                         .HasColumnType("int")
@@ -4845,6 +4856,8 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.HasIndex("AgentId");
 
                     b.HasIndex("CountListId");
+
+                    b.HasIndex("DiscountPlanId");
 
                     b.HasIndex("EnquiryType");
 
@@ -6808,6 +6821,11 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasForeignKey("CountListId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "DiscountPlan")
+                        .WithMany("SalesOrderHeadersAsDiscountPlan")
+                        .HasForeignKey("DiscountPlanId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "EnquiryTypeMisc")
                         .WithMany("SalesOrderHeadersAsEnquiryType")
                         .HasForeignKey("EnquiryType")
@@ -6847,6 +6865,8 @@ namespace SalesManagement.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("CountList");
+
+                    b.Navigation("DiscountPlan");
 
                     b.Navigation("EnquiryTypeMisc");
 
@@ -7244,6 +7264,8 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("SalesOrderDiscountsAsSlabType");
 
                     b.Navigation("SalesOrderHeadersAsCountList");
+
+                    b.Navigation("SalesOrderHeadersAsDiscountPlan");
 
                     b.Navigation("SalesOrderHeadersAsEnquiryType");
 

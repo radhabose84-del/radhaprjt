@@ -41,10 +41,6 @@ namespace SalesManagement.Application.SalesOrder.Dto
         public string? OrderUnitName { get; set; }
 
         // Commercial Details
-        public int? DiscountPlanId { get; set; }
-        public string? DiscountPlanName { get; set; }
-        public int PaymentTermsId { get; set; }
-        public string? PaymentTermsName { get; set; }
         public int? PaymentTypeId { get; set; }
         public string? PaymentTypeName { get; set; }
         public int FreightTypeId { get; set; }
@@ -115,5 +111,8 @@ namespace SalesManagement.Application.SalesOrder.Dto
 
         // Child collection (populated in GetById only)
         public List<SalesOrderDetailDto>? SalesOrderDetails { get; set; }
+
+        // Applied discounts (populated in GetById)
+        public List<SalesOrderDiscountDto>? Discounts { get; set; }
     }
 }

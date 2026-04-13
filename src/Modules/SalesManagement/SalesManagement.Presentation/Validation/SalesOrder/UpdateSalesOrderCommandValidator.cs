@@ -52,12 +52,6 @@ namespace SalesManagement.Presentation.Validation.SalesOrder
                             .NotEmpty()
                             .WithMessage($"PartyId {rule.Error}");
 
-                        RuleFor(x => x.PaymentTermsId)
-                            .NotNull()
-                            .WithMessage($"PaymentTermsId {rule.Error}")
-                            .NotEmpty()
-                            .WithMessage($"PaymentTermsId {rule.Error}");
-
                         RuleFor(x => x.FreightTypeId)
                             .NotNull()
                             .WithMessage($"FreightTypeId {rule.Error}")
@@ -180,12 +174,6 @@ namespace SalesManagement.Presentation.Validation.SalesOrder
                             .WithMessage($"PartyId {rule.Error}")
                             .When(x => x.PartyId > 0);
 
-                        RuleFor(x => x.PaymentTermsId)
-                            .MustAsync(async (paymentTermsId, ct) =>
-                                await _queryRepository.PaymentTermExistsAsync(paymentTermsId))
-                            .WithMessage($"PaymentTermsId {rule.Error}")
-                            .When(x => x.PaymentTermsId > 0);
-
                         RuleFor(x => x.EnquiryType)
                             .MustAsync(async (enquiryType, ct) =>
                                 await _queryRepository.MiscMasterExistsAsync(enquiryType))
@@ -197,12 +185,6 @@ namespace SalesManagement.Presentation.Validation.SalesOrder
                                 await _queryRepository.MiscMasterExistsAsync(freightTypeId))
                             .WithMessage($"FreightTypeId {rule.Error}")
                             .When(x => x.FreightTypeId > 0);
-
-                        RuleFor(x => x.DiscountPlanId)
-                            .MustAsync(async (discountPlanId, ct) =>
-                                await _queryRepository.MiscMasterExistsAsync(discountPlanId!.Value))
-                            .WithMessage($"DiscountPlanId {rule.Error}")
-                            .When(x => x.DiscountPlanId.HasValue && x.DiscountPlanId > 0);
 
                         RuleFor(x => x.PaymentTypeId)
                             .MustAsync(async (paymentTypeId, ct) =>
@@ -279,6 +261,38 @@ namespace SalesManagement.Presentation.Validation.SalesOrder
             RuleFor(x => x.MdApprovalDocument)
                 .NotEmpty().WithMessage("MdApprovalDocument is required when MD Discount is enabled.")
                 .When(x => x.IsMdDiscountEnabled);
+
+            // Applied discounts — optional; when present: max 3, unique SlabTypeId, unique DiscountMasterId, FKs valid
+            RuleFor(x => x.Discounts)
+                .Must(d => d == null || d.Count <= 3)
+                .WithMessage("A Sales Order can have at most 3 discounts.");
+
+            RuleFor(x => x.Discounts)
+                .Must(d => d == null || d.Select(x => x.SlabTypeId).Distinct().Count() == d.Count)
+                .WithMessage("Each applied discount must have a unique SlabTypeId.")
+                .When(x => x.Discounts != null && x.Discounts.Any());
+
+            RuleFor(x => x.Discounts)
+                .Must(d => d == null || d.Select(x => x.DiscountMasterId).Distinct().Count() == d.Count)
+                .WithMessage("Each applied discount must reference a unique DiscountMaster.")
+                .When(x => x.Discounts != null && x.Discounts.Any());
+
+            RuleForEach(x => x.Discounts)
+                .ChildRules(d =>
+                {
+                    d.RuleFor(x => x.DiscountMasterId)
+                        .GreaterThan(0).WithMessage("DiscountMasterId must be greater than zero.")
+                        .MustAsync(async (id, ct) => await _queryRepository.DiscountMasterExistsAsync(id))
+                        .WithMessage("DiscountMaster does not exist or is inactive/deleted.")
+                        .When(x => x.DiscountMasterId > 0);
+
+                    d.RuleFor(x => x.SlabTypeId)
+                        .GreaterThan(0).WithMessage("SlabTypeId must be greater than zero.");
+
+                    d.RuleFor(x => x.PaymentTermId)
+                        .GreaterThan(0).WithMessage("PaymentTermId must be greater than zero.");
+                })
+                .When(x => x.Discounts != null && x.Discounts.Any());
         }
     }
 }

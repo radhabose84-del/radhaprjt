@@ -55,6 +55,7 @@ namespace SalesManagement.Infrastructure.Data
         public DbSet<CustomerVisitProduct> CustomerVisitProduct { get; set; }
         public DbSet<SalesOrderHeader> SalesOrderHeader { get; set; }
         public DbSet<SalesOrderDetail> SalesOrderDetail { get; set; }
+        public DbSet<SalesOrderDiscount> SalesOrderDiscount { get; set; }
         public DbSet<SalesOrderAmendmentHeader> SalesOrderAmendmentHeader { get; set; }
         public DbSet<SalesOrderAmendmentDetail> SalesOrderAmendmentDetail { get; set; }
         public DbSet<StockLedger> StockLedger { get; set; }
@@ -123,6 +124,7 @@ namespace SalesManagement.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new CustomerVisitProductConfiguration());
             modelBuilder.ApplyConfiguration(new SalesOrderHeaderConfiguration());
             modelBuilder.ApplyConfiguration(new SalesOrderDetailConfiguration());
+            modelBuilder.ApplyConfiguration(new SalesOrderDiscountConfiguration());
             modelBuilder.ApplyConfiguration(new SalesOrderAmendmentHeaderConfiguration());
             modelBuilder.ApplyConfiguration(new SalesOrderAmendmentDetailConfiguration());
             modelBuilder.ApplyConfiguration(new StockLedgerConfiguration());
