@@ -71,13 +71,7 @@ namespace InventoryManagement.Presentation.Validation.Item.ItemCategory
                         break;
 
                     case "AlreadyExists":
-                        RuleFor(x => x.ItemCategoryName)
-                            .NotEmpty()
-                            .WithMessage($"{nameof(UpdateItemCategoryCommand.ItemCategoryName)} {rule.Error}")
-                            .MustAsync(async (name, cancellation) =>
-                                !await _itemCategoryCommandRepository.IsNameDuplicateAsync(name!, /* id from instance */ 0))
-                            .WithMessage("A Category Name already exists.");
-                        // ⛔ This rule needs command.Id. Best version is below in NOTE.
+                        // Handled below with full command access (needs cmd.Id to exclude self)
                         break;
 
                     case "RecordNotFound":
@@ -98,8 +92,7 @@ namespace InventoryManagement.Presentation.Validation.Item.ItemCategory
                 }
             }
 
-            // ✅ NOTE (Fix for AlreadyExists correctly using command.Id)
-            // Replace the AlreadyExists case above with this better rule:
+            // AlreadyExists: exclude self by passing cmd.Id
             RuleFor(x => x)
                 .MustAsync(async (cmd, cancellation) =>
                     !await _itemCategoryCommandRepository.IsNameDuplicateAsync(cmd.ItemCategoryName!, cmd.Id))

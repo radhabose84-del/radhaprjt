@@ -248,11 +248,15 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
         {
             // Data access control — marketing officer and agent customer filtering (no bypass in Party)
             var accessCtx = await _dataAccessFilter.GetContextAsync();
-            if (accessCtx.IsCustomerRestricted && accessCtx.AllowedCustomerIds.Count == 0)
+
+            // Build allowed party IDs: mapped customer IDs only (agent's own PartyId is excluded)
+            var allowedPartyIds = new HashSet<int>(accessCtx.AllowedCustomerIds);
+
+            if (accessCtx.IsCustomerRestricted && allowedPartyIds.Count == 0)
                 return (new List<GetPartyMasterDto>(), 0);
 
-            var customerFilter = accessCtx.IsCustomerRestricted && accessCtx.AllowedCustomerIds.Count > 0
-                ? "AND a.Id IN @AllowedCustomerIds"
+            var customerFilter = accessCtx.IsCustomerRestricted && allowedPartyIds.Count > 0
+                ? "AND a.Id IN @AllowedPartyIds"
                 : "";
 
             var searchFilter = string.IsNullOrEmpty(SearchTerm)
@@ -294,8 +298,8 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
             dp.Add("Search", $"%{SearchTerm}%");
             dp.Add("Offset", (PageNumber - 1) * PageSize);
             dp.Add("PageSize", PageSize);
-            if (accessCtx.IsCustomerRestricted && accessCtx.AllowedCustomerIds.Count > 0)
-                dp.Add("AllowedCustomerIds", accessCtx.AllowedCustomerIds.ToList());
+            if (accessCtx.IsCustomerRestricted && allowedPartyIds.Count > 0)
+                dp.Add("AllowedPartyIds", allowedPartyIds.ToList());
 
             var result = await _dbConnection.QueryAsync<GetPartyMasterDto, int, (GetPartyMasterDto, int)>(
                 query,
