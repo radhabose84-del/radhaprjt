@@ -124,6 +124,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     h.CountListId,
                     cl.Description AS CountListName,
                     h.Remarks,
+                    h.IsMdDiscountEnabled, h.MdDiscountRate, h.MdApprovalDocument,
                     h.VisitNotesAttachment, h.AgentPOAttachment,
                     h.TotalBags, h.TotalWeightKgs, h.TotalDiscountPerKg,
                     h.ItemValue, h.TotalFreight, h.TaxableAmount,
@@ -240,6 +241,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 // Construct full attachment paths
                 var visitNotesBasePath = await GetDocumentBasePathAsync(MiscEnumEntity.SalesOrderVisitPath);
                 var agentPOBasePath = await GetDocumentBasePathAsync(MiscEnumEntity.AgentPoDocument);
+                var mdApprovalBasePath = await GetDocumentBasePathAsync(MiscEnumEntity.SalesOrderMdApprovalPath);
                 foreach (var item in list)
                 {
                     if (!string.IsNullOrWhiteSpace(item.VisitNotesAttachment))
@@ -247,6 +249,9 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
 
                     if (!string.IsNullOrWhiteSpace(item.AgentPOAttachment))
                         item.AgentPOAttachmentPath = $"{agentPOBasePath}/{item.AgentPOAttachment}";
+
+                    if (!string.IsNullOrWhiteSpace(item.MdApprovalDocument))
+                        item.MdApprovalDocumentPath = $"{mdApprovalBasePath}/{item.MdApprovalDocument}";
                 }
             }
 
@@ -304,6 +309,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     h.CountListId,
                     cl.Description AS CountListName,
                     h.Remarks,
+                    h.IsMdDiscountEnabled, h.MdDiscountRate, h.MdApprovalDocument,
                     h.VisitNotesAttachment, h.AgentPOAttachment,
                     h.TotalBags, h.TotalWeightKgs, h.TotalDiscountPerKg,
                     h.ItemValue, h.TotalFreight, h.TaxableAmount,
@@ -424,6 +430,12 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             {
                 var agentPOBasePath = await GetDocumentBasePathAsync(MiscEnumEntity.AgentPoDocument);
                 header.AgentPOAttachmentPath = $"{agentPOBasePath}/{header.AgentPOAttachment}";
+            }
+
+            if (!string.IsNullOrWhiteSpace(header.MdApprovalDocument))
+            {
+                var mdApprovalBasePath = await GetDocumentBasePathAsync(MiscEnumEntity.SalesOrderMdApprovalPath);
+                header.MdApprovalDocumentPath = $"{mdApprovalBasePath}/{header.MdApprovalDocument}";
             }
 
             // Populate cross-module detail lookups

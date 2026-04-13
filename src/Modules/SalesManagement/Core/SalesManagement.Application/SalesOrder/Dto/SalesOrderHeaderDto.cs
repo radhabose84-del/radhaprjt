@@ -53,6 +53,12 @@ namespace SalesManagement.Application.SalesOrder.Dto
         public string? CountListName { get; set; }
         public string? Remarks { get; set; }
 
+        // MD Discount
+        public bool IsMdDiscountEnabled { get; set; }
+        public decimal? MdDiscountRate { get; set; }
+        public string? MdApprovalDocument { get; set; }
+        public string? MdApprovalDocumentPath { get; set; }
+
         // File Attachments
         public string? VisitNotesAttachment { get; set; }
         public string? VisitNotesAttachmentPath { get; set; }

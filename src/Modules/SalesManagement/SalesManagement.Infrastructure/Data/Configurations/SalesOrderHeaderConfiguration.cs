@@ -122,6 +122,23 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("nvarchar(500)")
                 .IsRequired(false);
 
+            // MD Discount
+            builder.Property(t => t.IsMdDiscountEnabled)
+                .HasColumnName("IsMdDiscountEnabled")
+                .HasColumnType("bit")
+                .IsRequired()
+                .HasDefaultValue(false);
+
+            builder.Property(t => t.MdDiscountRate)
+                .HasColumnName("MdDiscountRate")
+                .HasColumnType("decimal(18,3)")
+                .IsRequired(false);
+
+            builder.Property(t => t.MdApprovalDocument)
+                .HasColumnName("MdApprovalDocument")
+                .HasColumnType("varchar(200)")
+                .IsRequired(false);
+
             // File Attachments
             builder.Property(t => t.VisitNotesAttachment)
                 .HasColumnName("VisitNotesAttachment")
