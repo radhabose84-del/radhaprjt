@@ -12,6 +12,7 @@ namespace SalesManagement.Domain.Common
         public const string LineStatusDeleted = "Deleted";
         public const string SalesOrderVisitPath = "SalesOrderVisitPath";
         public const string AgentPoDocument = "AgentPoDocument";
+        public const string SalesOrderMdApprovalPath = "SalesOrderMdApprovalPath";
         public const string QualityStatus = "QualityStatus";
         public const string Packed = "Packed";
 
