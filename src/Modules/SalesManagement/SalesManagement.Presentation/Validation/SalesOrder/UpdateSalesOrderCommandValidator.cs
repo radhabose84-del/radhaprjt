@@ -52,12 +52,6 @@ namespace SalesManagement.Presentation.Validation.SalesOrder
                             .NotEmpty()
                             .WithMessage($"PartyId {rule.Error}");
 
-                        RuleFor(x => x.PaymentTermsId)
-                            .NotNull()
-                            .WithMessage($"PaymentTermsId {rule.Error}")
-                            .NotEmpty()
-                            .WithMessage($"PaymentTermsId {rule.Error}");
-
                         RuleFor(x => x.FreightTypeId)
                             .NotNull()
                             .WithMessage($"FreightTypeId {rule.Error}")
@@ -180,12 +174,6 @@ namespace SalesManagement.Presentation.Validation.SalesOrder
                             .WithMessage($"PartyId {rule.Error}")
                             .When(x => x.PartyId > 0);
 
-                        RuleFor(x => x.PaymentTermsId)
-                            .MustAsync(async (paymentTermsId, ct) =>
-                                await _queryRepository.PaymentTermExistsAsync(paymentTermsId))
-                            .WithMessage($"PaymentTermsId {rule.Error}")
-                            .When(x => x.PaymentTermsId > 0);
-
                         RuleFor(x => x.EnquiryType)
                             .MustAsync(async (enquiryType, ct) =>
                                 await _queryRepository.MiscMasterExistsAsync(enquiryType))
@@ -197,12 +185,6 @@ namespace SalesManagement.Presentation.Validation.SalesOrder
                                 await _queryRepository.MiscMasterExistsAsync(freightTypeId))
                             .WithMessage($"FreightTypeId {rule.Error}")
                             .When(x => x.FreightTypeId > 0);
-
-                        RuleFor(x => x.DiscountPlanId)
-                            .MustAsync(async (discountPlanId, ct) =>
-                                await _queryRepository.MiscMasterExistsAsync(discountPlanId!.Value))
-                            .WithMessage($"DiscountPlanId {rule.Error}")
-                            .When(x => x.DiscountPlanId.HasValue && x.DiscountPlanId > 0);
 
                         RuleFor(x => x.PaymentTypeId)
                             .MustAsync(async (paymentTypeId, ct) =>

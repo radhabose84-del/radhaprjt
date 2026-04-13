@@ -24,8 +24,6 @@ namespace SalesManagement.Domain.Entities
         public int? OrderUnitId { get; set; }
 
         // Commercial Details
-        public int? DiscountPlanId { get; set; }
-        public int PaymentTermsId { get; set; }          // Cross-module FK (PurchaseManagement)
         public int? PaymentTypeId { get; set; }
         public int FreightTypeId { get; set; }
         public int? CountListId { get; set; }
@@ -78,7 +76,6 @@ namespace SalesManagement.Domain.Entities
         public SalesGroup? SalesGroup { get; set; }
         public SalesSegment? SalesSegment { get; set; }
         public MiscMaster? EnquiryTypeMisc { get; set; }
-        public MiscMaster? DiscountPlan { get; set; }
         public MiscMaster? PaymentType { get; set; }
         public MiscMaster? FreightType { get; set; }
         public MiscMaster? CountList { get; set; }

@@ -68,13 +68,6 @@ namespace SalesManagement.Presentation.Validation.SalesOrder
                             .WithMessage($"PartyId {rule.Error}")
                             .When(x => x.SalesOrderDetails != null);
 
-                        RuleFor(x => x.SalesOrderDetails!.PaymentTermsId)
-                            .NotNull()
-                            .WithMessage($"PaymentTermsId {rule.Error}")
-                            .NotEmpty()
-                            .WithMessage($"PaymentTermsId {rule.Error}")
-                            .When(x => x.SalesOrderDetails != null);
-
                         RuleFor(x => x.SalesOrderDetails!.FreightTypeId)
                             .NotNull()
                             .WithMessage($"FreightTypeId {rule.Error}")
@@ -194,12 +187,6 @@ namespace SalesManagement.Presentation.Validation.SalesOrder
                             .WithMessage($"PartyId {rule.Error}")
                             .When(x => x.SalesOrderDetails != null && x.SalesOrderDetails.PartyId > 0);
 
-                        RuleFor(x => x.SalesOrderDetails!.PaymentTermsId)
-                            .MustAsync(async (paymentTermsId, ct) =>
-                                await _queryRepository.PaymentTermExistsAsync(paymentTermsId))
-                            .WithMessage($"PaymentTermsId {rule.Error}")
-                            .When(x => x.SalesOrderDetails != null && x.SalesOrderDetails.PaymentTermsId > 0);
-
                         RuleFor(x => x.SalesOrderDetails!.EnquiryType)
                             .MustAsync(async (enquiryType, ct) =>
                                 await _queryRepository.MiscMasterExistsAsync(enquiryType))
@@ -211,12 +198,6 @@ namespace SalesManagement.Presentation.Validation.SalesOrder
                                 await _queryRepository.MiscMasterExistsAsync(freightTypeId))
                             .WithMessage($"FreightTypeId {rule.Error}")
                             .When(x => x.SalesOrderDetails != null && x.SalesOrderDetails.FreightTypeId > 0);
-
-                        RuleFor(x => x.SalesOrderDetails!.DiscountPlanId)
-                            .MustAsync(async (discountPlanId, ct) =>
-                                await _queryRepository.MiscMasterExistsAsync(discountPlanId!.Value))
-                            .WithMessage($"DiscountPlanId {rule.Error}")
-                            .When(x => x.SalesOrderDetails != null && x.SalesOrderDetails.DiscountPlanId.HasValue && x.SalesOrderDetails.DiscountPlanId > 0);
 
                         RuleFor(x => x.SalesOrderDetails!.PaymentTypeId)
                             .MustAsync(async (paymentTypeId, ct) =>

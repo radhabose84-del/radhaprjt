@@ -19,8 +19,6 @@ namespace SalesManagement.Application.SalesOrder.Dto
         public int? SalesOrderTypeId { get; set; }
 
         // Commercial Details
-        public int? DiscountPlanId { get; set; }
-        public int PaymentTermsId { get; set; }
         public int? PaymentTypeId { get; set; }
         public int FreightTypeId { get; set; }
         public int? CountListId { get; set; }

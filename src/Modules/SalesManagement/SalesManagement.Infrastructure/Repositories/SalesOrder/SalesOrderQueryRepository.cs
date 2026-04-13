@@ -115,9 +115,6 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     h.UnitId, h.PartyId, h.PartyAddress, h.AgentId, h.SubAgentId,
                     h.SalesOrderTypeId,
                     h.OrderUnitId,
-                    h.DiscountPlanId,
-                    dp.Description AS DiscountPlanName,
-                    h.PaymentTermsId,
                     h.PaymentTypeId,
                     pt.Description AS PaymentTypeName,
                     h.FreightTypeId,
@@ -153,7 +150,6 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 LEFT JOIN Sales.SalesGroup sg ON h.SalesGroupId = sg.Id AND sg.IsDeleted = 0
                 LEFT JOIN Sales.SalesSegment ss ON h.SalesSegmentId = ss.Id AND ss.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster et ON h.EnquiryType = et.Id AND et.IsDeleted = 0
-                LEFT JOIN Sales.MiscMaster dp ON h.DiscountPlanId = dp.Id AND dp.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster pt ON h.PaymentTypeId = pt.Id AND pt.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster ft ON h.FreightTypeId = ft.Id AND ft.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster cl ON h.CountListId = cl.Id AND cl.IsDeleted = 0
@@ -217,9 +213,6 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 var agents = allAgentIds.Any() ? await _partyLookup.GetByIdsAsync(allAgentIds) : [];
                 var agentDict = agents.ToDictionary(a => a.Id, a => a.PartyName);
 
-                var paymentTerms = await _paymentTermLookup.GetAllPaymentTermAsync();
-                var ptDict = paymentTerms.ToDictionary(p => p.Id, p => p.Description);
-
                 var soTypeIds = list.Where(x => x.SalesOrderTypeId.HasValue).Select(x => x.SalesOrderTypeId!.Value).Distinct();
                 var soTypes = soTypeIds.Any() ? await _transactionTypeLookup.GetByIdsAsync(soTypeIds) : [];
                 var soTypeDict = soTypes.ToDictionary(t => t.Id, t => t.TypeName);
@@ -232,7 +225,6 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                         item.AgentName = agentDict.TryGetValue(item.AgentId.Value, out var aName) ? aName : null;
                     if (item.SubAgentId.HasValue)
                         item.SubAgentName = agentDict.TryGetValue(item.SubAgentId.Value, out var saName) ? saName : null;
-                    item.PaymentTermsName = ptDict.TryGetValue(item.PaymentTermsId, out var ptName) ? ptName : null;
                     if (item.SalesOrderTypeId.HasValue)
                         item.SalesOrderTypeName = soTypeDict.TryGetValue(item.SalesOrderTypeId.Value, out var stName) ? stName : null;
                     if (item.OrderUnitId.HasValue)
@@ -300,9 +292,6 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     h.UnitId, h.PartyId, h.PartyAddress, h.AgentId, h.SubAgentId,
                     h.SalesOrderTypeId,
                     h.OrderUnitId,
-                    h.DiscountPlanId,
-                    dp.Description AS DiscountPlanName,
-                    h.PaymentTermsId,
                     h.PaymentTypeId,
                     pt.Description AS PaymentTypeName,
                     h.FreightTypeId,
@@ -327,7 +316,6 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 LEFT JOIN Sales.SalesGroup sg ON h.SalesGroupId = sg.Id AND sg.IsDeleted = 0
                 LEFT JOIN Sales.SalesSegment ss ON h.SalesSegmentId = ss.Id AND ss.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster et ON h.EnquiryType = et.Id AND et.IsDeleted = 0
-                LEFT JOIN Sales.MiscMaster dp ON h.DiscountPlanId = dp.Id AND dp.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster pt ON h.PaymentTypeId = pt.Id AND pt.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster ft ON h.FreightTypeId = ft.Id AND ft.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster cl ON h.CountListId = cl.Id AND cl.IsDeleted = 0
@@ -410,9 +398,6 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 var subAgentList = await _partyLookup.GetByIdsAsync(new[] { header.SubAgentId.Value });
                 header.SubAgentName = subAgentList.FirstOrDefault()?.PartyName;
             }
-
-            var paymentTerms = await _paymentTermLookup.GetAllPaymentTermAsync();
-            header.PaymentTermsName = paymentTerms.FirstOrDefault(p => p.Id == header.PaymentTermsId)?.Description;
 
             if (header.SalesOrderTypeId.HasValue)
             {

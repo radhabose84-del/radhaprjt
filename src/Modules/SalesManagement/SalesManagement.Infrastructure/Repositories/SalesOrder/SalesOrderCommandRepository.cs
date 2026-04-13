@@ -115,8 +115,6 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             existingEntity.EnquiryType = entity.EnquiryType;
             existingEntity.UnitId = entity.UnitId;
             existingEntity.PartyId = entity.PartyId;
-            existingEntity.DiscountPlanId = entity.DiscountPlanId;
-            existingEntity.PaymentTermsId = entity.PaymentTermsId;
             existingEntity.PaymentTypeId = entity.PaymentTypeId;
             existingEntity.FreightTypeId = entity.FreightTypeId;
             existingEntity.CountListId = entity.CountListId;

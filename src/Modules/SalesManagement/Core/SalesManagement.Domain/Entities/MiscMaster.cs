@@ -16,7 +16,6 @@ namespace SalesManagement.Domain.Entities
         public ICollection<SalesContact>? SalesContacts { get; set; }
 
         // Reverse navigation (SalesOrder)
-        public ICollection<SalesOrderHeader>? SalesOrderHeadersAsDiscountPlan { get; set; }
         public ICollection<SalesOrderHeader>? SalesOrderHeadersAsPaymentType { get; set; }
         public ICollection<SalesOrderHeader>? SalesOrderHeadersAsFreightType { get; set; }
         public ICollection<SalesOrderHeader>? SalesOrderHeadersAsCountList { get; set; }
