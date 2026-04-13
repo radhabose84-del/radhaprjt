@@ -698,7 +698,7 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                 SELECT @TotalCount = COUNT(*)
                 FROM Sales.ComplaintResolution cr
                 INNER JOIN Sales.ComplaintHeader ch ON ch.Id = cr.ComplaintHeaderId AND ch.IsDeleted = 0
-                WHERE cr.IsDeleted = 0 AND cr.ResolvedBy IS NOT NULL {searchFilter};
+                WHERE cr.IsDeleted = 0 AND cr.ResolvedBy IS NOT NULL AND cr.ClosureStatusId IS NULL {searchFilter};
 
                 SELECT
                     cr.Id,
@@ -715,7 +715,7 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                 INNER JOIN Sales.ComplaintHeader ch ON ch.Id = cr.ComplaintHeaderId AND ch.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster rt ON cr.ResolutionTypeId = rt.Id AND rt.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster cs ON cr.ClosureStatusId = cs.Id AND cs.IsDeleted = 0
-                WHERE cr.IsDeleted = 0 AND cr.ResolvedBy IS NOT NULL {searchFilter}
+                WHERE cr.IsDeleted = 0 AND cr.ResolvedBy IS NOT NULL AND cr.ClosureStatusId IS NULL {searchFilter}
                 ORDER BY cr.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
 

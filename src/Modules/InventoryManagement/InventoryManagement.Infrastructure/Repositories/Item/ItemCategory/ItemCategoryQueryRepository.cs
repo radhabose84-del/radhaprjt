@@ -3,6 +3,8 @@ using System.Data;
 using InventoryManagement.Application.Common.Interfaces.Item.ItemCategory;
 using InventoryManagement.Application.Item.ItemCategory.Queries.GetItemCategory;
 using InventoryManagement.Application.Item.ItemCategory.Queries.GetItemCategoryAutoComplete;
+using Contracts.Dtos.Lookups.Users;
+using Contracts.Interfaces.Lookups.Users;
 using Contracts.Interfaces.Validations.PurchaseManagement;
 using Dapper;
 
@@ -12,17 +14,20 @@ namespace  InventoryManagement.Infrastructure.Repositories.Item.ItemCategory
     {
         private readonly IDbConnection _dbConnection;
         private readonly IPurchaseItemCategoryValidation _purchaseItemCategoryValidation;
+        private readonly IModuleLookup _moduleLookup;
 
         public ItemCategoryQueryRepository(IDbConnection dbConnection,
-            IPurchaseItemCategoryValidation purchaseItemCategoryValidation)
+            IPurchaseItemCategoryValidation purchaseItemCategoryValidation,
+            IModuleLookup moduleLookup)
         {
             _dbConnection = dbConnection;
             _purchaseItemCategoryValidation = purchaseItemCategoryValidation;
+            _moduleLookup = moduleLookup;
         }
         public async Task<ItemCategoryDto> GetByIdAsync(int Id)
         {
             const string sql = @"
-                SELECT 
+                SELECT
                     IC.Id,
                     IC.ItemCategoryName,
                     IG.Id AS ItemGroupId,
@@ -41,18 +46,43 @@ namespace  InventoryManagement.Infrastructure.Repositories.Item.ItemCategory
                 WHERE IC.IsDeleted = 0
                 AND IC.Id = @Id;";
 
-            return await _dbConnection.QueryFirstOrDefaultAsync<ItemCategoryDto>(sql, new { Id = Id });
+            var dto = await _dbConnection.QueryFirstOrDefaultAsync<ItemCategoryDto>(sql, new { Id = Id });
+
+            if (dto != null)
+            {
+                // Fetch the join rows for this category and resolve module names via the cached lookup
+                const string joinSql = @"SELECT ModuleId FROM Inventory.ItemCategoryModule WHERE ItemCategoryId = @Id;";
+                var joinedModuleIds = (await _dbConnection.QueryAsync<int>(joinSql, new { Id = Id })).ToList();
+
+                if (joinedModuleIds.Count > 0)
+                {
+                    var modules = await _moduleLookup.GetAllModuleAsync();
+                    var moduleDict = modules.ToDictionary(m => m.ModuleId, m => m.ModuleName);
+                    dto.Modules = joinedModuleIds
+                        .Select(mid => new ModuleLookupDto
+                        {
+                            ModuleId = mid,
+                            ModuleName = moduleDict.TryGetValue(mid, out var name) ? name : null
+                        })
+                        .ToList();
+                }
+            }
+
+            return dto;
         }
-        public async Task<(IEnumerable<dynamic>, int)> GetAllItemCategoryAsync(int PageNumber, int PageSize, string SearchTerm)
+        public async Task<(IEnumerable<dynamic>, int)> GetAllItemCategoryAsync(int PageNumber, int PageSize, string SearchTerm, int? moduleId)
         {
             var query = $$"""
                 DECLARE @TotalCount INT;
-                SELECT @TotalCount = COUNT(*) 
-                FROM Inventory.ItemCategory 
-                WHERE IsDeleted = 0
-                {{(string.IsNullOrEmpty(SearchTerm) ? "" : "AND (ItemCategoryName LIKE @Search )")}};
+                SELECT @TotalCount = COUNT(*)
+                FROM Inventory.ItemCategory IC
+                WHERE IC.IsDeleted = 0
+                {{(string.IsNullOrEmpty(SearchTerm) ? "" : "AND (IC.ItemCategoryName LIKE @Search )")}}
+                AND (@ModuleId IS NULL OR EXISTS (
+                    SELECT 1 FROM Inventory.ItemCategoryModule ICM
+                    WHERE ICM.ItemCategoryId = IC.Id AND ICM.ModuleId = @ModuleId));
 
-                SELECT 
+                SELECT
                     IC.Id,
                     IC.ItemCategoryName,
                     IG.Id AS ItemGroupId,
@@ -70,6 +100,9 @@ namespace  InventoryManagement.Infrastructure.Repositories.Item.ItemCategory
                 LEFT JOIN Inventory.ItemCategory IC1 ON IC.ParentCategoryId = IC1.Id
                 WHERE IC.IsDeleted = 0
                 {{(string.IsNullOrEmpty(SearchTerm) ? "" : "AND (IC.ItemCategoryName LIKE @Search )")}}
+                AND (@ModuleId IS NULL OR EXISTS (
+                    SELECT 1 FROM Inventory.ItemCategoryModule ICM
+                    WHERE ICM.ItemCategoryId = IC.Id AND ICM.ModuleId = @ModuleId))
                 ORDER BY IC.Id DESC;
 
                 SELECT @TotalCount AS TotalCount;
@@ -79,13 +112,40 @@ namespace  InventoryManagement.Infrastructure.Repositories.Item.ItemCategory
             {
                 Search = $"%{SearchTerm}%",
                 Offset = (PageNumber - 1) * PageSize,
-                PageSize = PageSize
+                PageSize = PageSize,
+                ModuleId = moduleId
             };
 
             var result = await _dbConnection.QueryMultipleAsync(query, parameters);
 
             var flatList = (await result.ReadAsync<ItemCategoryDto>()).ToList();
             int totalCount = await result.ReadFirstAsync<int>();
+
+            // Batch-fetch join rows for all categories in this page, then resolve names via the cached lookup
+            if (flatList.Count > 0)
+            {
+                var categoryIds = flatList.Select(x => x.Id).ToList();
+                const string joinSql = @"SELECT ItemCategoryId, ModuleId FROM Inventory.ItemCategoryModule WHERE ItemCategoryId IN @Ids;";
+                var joinRows = (await _dbConnection.QueryAsync<(int ItemCategoryId, int ModuleId)>(joinSql, new { Ids = categoryIds })).ToList();
+
+                var modules = await _moduleLookup.GetAllModuleAsync();
+                var moduleDict = modules.ToDictionary(m => m.ModuleId, m => m.ModuleName);
+
+                var modulesByCategory = joinRows
+                    .GroupBy(j => j.ItemCategoryId)
+                    .ToDictionary(
+                        g => g.Key,
+                        g => g.Select(j => new ModuleLookupDto
+                        {
+                            ModuleId = j.ModuleId,
+                            ModuleName = moduleDict.TryGetValue(j.ModuleId, out var name) ? name : null
+                        }).ToList());
+
+                foreach (var node in flatList)
+                {
+                    node.Modules = modulesByCategory.TryGetValue(node.Id, out var list) ? list : new List<ModuleLookupDto>();
+                }
+            }
 
             var ids = flatList.Select(x => x.Id).ToHashSet();
             foreach (var node in flatList)
@@ -150,12 +210,12 @@ namespace  InventoryManagement.Infrastructure.Repositories.Item.ItemCategory
         public async Task<List<ItemCategoryAutoCompleteDto>> GetItemCategoryAutoCompleteAsync(
             int? groupId,
             string searchPattern,
-            bool isParent,int excludeId = 0)
+            bool isParent, int excludeId, int? moduleId)
         {
             searchPattern = searchPattern ?? string.Empty;
 
             const string sql = @"
-                SELECT 
+                SELECT
                     IC.Id,
                     IC.ItemCategoryName,
                     IC1.ItemCategoryName AS ParentCategoryName,
@@ -164,24 +224,54 @@ namespace  InventoryManagement.Infrastructure.Repositories.Item.ItemCategory
                 FROM Inventory.ItemCategory IC
                 LEFT JOIN Inventory.ItemCategory IC1 ON IC.ParentCategoryId = IC1.Id
                 LEFT JOIN Inventory.ItemGroup IG     ON IG.Id = IC.ItemGroupId
-                WHERE IC.IsDeleted = 0 
+                WHERE IC.IsDeleted = 0
                 AND IC.IsActive  = 1
                 AND IC.ItemCategoryName LIKE @SearchPattern
                 AND (@GroupId IS NULL OR IG.Id = @GroupId)
-                AND IC.IsGroup = @IsGroup    
-                AND (@ExcludeId = 0 OR IC.Id <> @ExcludeId)    
+                AND IC.IsGroup = @IsGroup
+                AND (@ExcludeId = 0 OR IC.Id <> @ExcludeId)
+                AND (@ModuleId IS NULL OR EXISTS (
+                    SELECT 1 FROM Inventory.ItemCategoryModule ICM
+                    WHERE ICM.ItemCategoryId = IC.Id AND ICM.ModuleId = @ModuleId))
                 ORDER BY IC.ItemCategoryName;";
 
             var parameters = new
             {
                 SearchPattern = $"%{searchPattern}%",
                 GroupId = groupId,
-                IsGroup = isParent ? 1 : 0  ,
-                ExcludeId = excludeId
+                IsGroup = isParent ? 1 : 0,
+                ExcludeId = excludeId,
+                ModuleId = moduleId
             };
 
-            var rows = await _dbConnection.QueryAsync<ItemCategoryAutoCompleteDto>(sql, parameters);
-            return rows.ToList();
+            var rows = (await _dbConnection.QueryAsync<ItemCategoryAutoCompleteDto>(sql, parameters)).ToList();
+
+            if (rows.Count > 0)
+            {
+                var categoryIds = rows.Select(r => r.Id).ToList();
+                const string joinSql = @"SELECT ItemCategoryId, ModuleId FROM Inventory.ItemCategoryModule WHERE ItemCategoryId IN @Ids;";
+                var joinRows = (await _dbConnection.QueryAsync<(int ItemCategoryId, int ModuleId)>(joinSql, new { Ids = categoryIds })).ToList();
+
+                var modules = await _moduleLookup.GetAllModuleAsync();
+                var moduleDict = modules.ToDictionary(m => m.ModuleId, m => m.ModuleName);
+
+                var modulesByCategory = joinRows
+                    .GroupBy(j => j.ItemCategoryId)
+                    .ToDictionary(
+                        g => g.Key,
+                        g => g.Select(j => new ModuleLookupDto
+                        {
+                            ModuleId = j.ModuleId,
+                            ModuleName = moduleDict.TryGetValue(j.ModuleId, out var name) ? name : null
+                        }).ToList());
+
+                foreach (var row in rows)
+                {
+                    row.Modules = modulesByCategory.TryGetValue(row.Id, out var list) ? list : new List<ModuleLookupDto>();
+                }
+            }
+
+            return rows;
         }
 
         public async Task<List<InventoryManagement.Domain.Entities.Item.ItemCategory>> GetCategoryByIdsAsync(IEnumerable<int> ids)

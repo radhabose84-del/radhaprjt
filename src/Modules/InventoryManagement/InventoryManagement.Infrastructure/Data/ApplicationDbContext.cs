@@ -41,8 +41,9 @@ namespace InventoryManagement.Infrastructure.Data
 
         }
 
-         public DbSet<ItemGroup> ItemGroup { get; set; } 
-         public DbSet<ItemCategory> ItemCategory { get; set; } 
+         public DbSet<ItemGroup> ItemGroup { get; set; }
+         public DbSet<ItemCategory> ItemCategory { get; set; }
+         public DbSet<ItemCategoryModule> ItemCategoryModule { get; set; }
 
 		 public DbSet<MiscTypeMaster> MiscTypeMaster { get; set; }
          public DbSet<MiscMaster> MiscMaster { get; set; }        
@@ -88,6 +89,7 @@ namespace InventoryManagement.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new OutboxMessageConfiguration());
             modelBuilder.ApplyConfiguration(new ItemGroupConfiguration());
             modelBuilder.ApplyConfiguration(new ItemCategoryConfiguration());
+            modelBuilder.ApplyConfiguration(new ItemCategoryModuleConfiguration());
 
             modelBuilder.ApplyConfiguration(new MiscTypeMasterConfiguration());
             modelBuilder.ApplyConfiguration(new MiscMasterConfiguration());

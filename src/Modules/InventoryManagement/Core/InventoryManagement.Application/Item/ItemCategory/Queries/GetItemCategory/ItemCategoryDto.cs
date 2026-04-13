@@ -1,5 +1,6 @@
 // InventoryManagement.Application/Item/ItemCategory/Queries/GetItemCategory/ItemCategoryDto.cs
 using System.Text.Json.Serialization;
+using Contracts.Dtos.Lookups.Users;
 using InventoryManagement.Application.Common.Mappings;
 
 namespace InventoryManagement.Application.Item.ItemCategory.Queries.GetItemCategory
@@ -14,6 +15,7 @@ namespace InventoryManagement.Application.Item.ItemCategory.Queries.GetItemCateg
         public int? ParentCategoryId { get; set; }
         public string? ParentCategoryName { get; set; }
         public int IsBudgetApplicable { get; set; }
+        public List<ModuleLookupDto> Modules { get; set; } = new();
         public int IsActive { get; set; }
         public int IsDeleted { get; set; }
         public int CreatedBy { get; set; }
