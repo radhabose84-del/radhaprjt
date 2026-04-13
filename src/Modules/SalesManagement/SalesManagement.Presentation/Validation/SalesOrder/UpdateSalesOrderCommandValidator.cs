@@ -279,6 +279,38 @@ namespace SalesManagement.Presentation.Validation.SalesOrder
             RuleFor(x => x.MdApprovalDocument)
                 .NotEmpty().WithMessage("MdApprovalDocument is required when MD Discount is enabled.")
                 .When(x => x.IsMdDiscountEnabled);
+
+            // Applied discounts — optional; when present: max 3, unique SlabTypeId, unique DiscountMasterId, FKs valid
+            RuleFor(x => x.Discounts)
+                .Must(d => d == null || d.Count <= 3)
+                .WithMessage("A Sales Order can have at most 3 discounts.");
+
+            RuleFor(x => x.Discounts)
+                .Must(d => d == null || d.Select(x => x.SlabTypeId).Distinct().Count() == d.Count)
+                .WithMessage("Each applied discount must have a unique SlabTypeId.")
+                .When(x => x.Discounts != null && x.Discounts.Any());
+
+            RuleFor(x => x.Discounts)
+                .Must(d => d == null || d.Select(x => x.DiscountMasterId).Distinct().Count() == d.Count)
+                .WithMessage("Each applied discount must reference a unique DiscountMaster.")
+                .When(x => x.Discounts != null && x.Discounts.Any());
+
+            RuleForEach(x => x.Discounts)
+                .ChildRules(d =>
+                {
+                    d.RuleFor(x => x.DiscountMasterId)
+                        .GreaterThan(0).WithMessage("DiscountMasterId must be greater than zero.")
+                        .MustAsync(async (id, ct) => await _queryRepository.DiscountMasterExistsAsync(id))
+                        .WithMessage("DiscountMaster does not exist or is inactive/deleted.")
+                        .When(x => x.DiscountMasterId > 0);
+
+                    d.RuleFor(x => x.SlabTypeId)
+                        .GreaterThan(0).WithMessage("SlabTypeId must be greater than zero.");
+
+                    d.RuleFor(x => x.PaymentTermId)
+                        .GreaterThan(0).WithMessage("PaymentTermId must be greater than zero.");
+                })
+                .When(x => x.Discounts != null && x.Discounts.Any());
         }
     }
 }

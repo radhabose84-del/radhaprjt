@@ -7,9 +7,12 @@ using SalesManagement.Application.SalesOrder.Commands.CancelSalesOrder;
 using SalesManagement.Application.SalesOrder.Commands.ForecloseSalesOrder;
 using SalesManagement.Application.SalesOrder.Commands.UploadSalesOrderDocument;
 using SalesManagement.Application.SalesOrder.Commands.DeleteSalesOrderDocument;
+using SalesManagement.Application.SalesOrder.Commands.UploadMdApprovalDocument;
+using SalesManagement.Application.SalesOrder.Commands.DeleteMdApprovalDocument;
 using SalesManagement.Application.SalesOrder.Commands.UploadSalesOrderImage;
 using SalesManagement.Application.SalesOrder.Commands.DeleteSalesOrderImage;
 using SalesManagement.Application.SalesOrder.Queries.GetAllSalesOrder;
+using SalesManagement.Application.SalesOrder.Queries.GetDiscountsBySalesGroup;
 using SalesManagement.Application.SalesOrder.Queries.GetSalesOrderAutoComplete;
 using SalesManagement.Application.SalesOrder.Queries.GetSalesOrderById;
 using SalesManagement.Application.SalesOrder.Queries.GetPendingSalesOrder;
@@ -57,6 +60,23 @@ namespace SalesManagement.Presentation.Controllers
         public async Task<IActionResult> GetSalesOrderAutoCompleteAsync([FromQuery] string? term = null)
         {
             var result = await Mediator.Send(new GetSalesOrderAutoCompleteQuery(term));
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result
+            });
+        }
+
+        [HttpGet("discounts-by-sales-group")]
+        public async Task<IActionResult> GetDiscountsBySalesGroupAsync([FromQuery] int salesGroupId, [FromQuery] int slabTypeId, [FromQuery] int paymentTermId)
+        {
+            var result = await Mediator.Send(new GetDiscountsBySalesGroupQuery
+            {
+                SalesGroupId = salesGroupId,
+                SlabTypeId = slabTypeId,
+                PaymentTermId = paymentTermId
+            });
 
             return Ok(new
             {
@@ -190,6 +210,33 @@ namespace SalesManagement.Presentation.Controllers
                 StatusCode = StatusCodes.Status200OK,
                 isSuccess = result,
                 message = result ? "Document deleted successfully." : "Failed to delete document."
+            });
+        }
+
+        [HttpPost("upload-md-approval")]
+        public async Task<IActionResult> UploadMdApprovalDocument([FromForm] UploadMdApprovalDocumentCommand command)
+        {
+            var result = await Mediator.Send(command);
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                isSuccess = true,
+                message = "MD Approval document uploaded successfully.",
+                data = result
+            });
+        }
+
+        [HttpDelete("delete-md-approval")]
+        public async Task<IActionResult> DeleteMdApprovalDocument([FromQuery] string filePath)
+        {
+            var result = await Mediator.Send(new DeleteMdApprovalDocumentCommand { FilePath = filePath });
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                isSuccess = result,
+                message = result ? "MD Approval document deleted successfully." : "Failed to delete MD Approval document."
             });
         }
 

@@ -1,4 +1,5 @@
 using SalesManagement.Application.SalesOrder.Dto;
+using SalesManagement.Application.SalesOrder.Queries.GetDiscountsBySalesGroup;
 using SalesManagement.Application.SalesOrder.Queries.GetPendingSalesOrder;
 
 namespace SalesManagement.Application.Common.Interfaces.ISalesOrder
@@ -9,6 +10,7 @@ namespace SalesManagement.Application.Common.Interfaces.ISalesOrder
         Task<(List<PendingSalesOrderDto>, int)> GetPendingSalesOrderAsync(int pageNumber, int pageSize, string? searchTerm);
         Task<SalesOrderHeaderDto?> GetByIdAsync(int id);
         Task<IReadOnlyList<SalesOrderLookupDto>> AutocompleteAsync(string term, CancellationToken ct);
+        Task<List<DiscountsBySalesGroupDto>> GetDiscountsBySalesGroupAsync(int salesGroupId, int slabTypeId, int paymentTermId, CancellationToken ct);
         Task<bool> NotFoundAsync(int id);
         Task<bool> SalesGroupExistsAsync(int salesGroupId);
         Task<bool> SalesSegmentExistsAsync(int salesSegmentId);
@@ -25,5 +27,6 @@ namespace SalesManagement.Application.Common.Interfaces.ISalesOrder
         Task<bool> AgentExistsAsync(int agentId);
         Task<bool> SubAgentExistsAsync(int subAgentId);
         Task<bool> HasDispatchAdviceAsync(int salesOrderHeaderId);
+        Task<bool> DiscountMasterExistsAsync(int discountMasterId);
     }
 }

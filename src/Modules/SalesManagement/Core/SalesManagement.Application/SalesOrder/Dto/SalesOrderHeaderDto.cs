@@ -115,5 +115,8 @@ namespace SalesManagement.Application.SalesOrder.Dto
 
         // Child collection (populated in GetById only)
         public List<SalesOrderDetailDto>? SalesOrderDetails { get; set; }
+
+        // Applied discounts (populated in GetById)
+        public List<SalesOrderDiscountDto>? Discounts { get; set; }
     }
 }

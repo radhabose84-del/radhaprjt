@@ -51,5 +51,8 @@ namespace SalesManagement.Application.SalesOrder.Dto
 
         // Line Items
         public List<CreateSalesOrderDetailDto>? SalesOrderDetails { get; set; }
+
+        // Applied discounts (max 3 — one per SlabType)
+        public List<CreateSalesOrderDiscountDto>? Discounts { get; set; }
     }
 }

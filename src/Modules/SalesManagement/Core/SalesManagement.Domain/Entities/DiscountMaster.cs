@@ -34,5 +34,8 @@ namespace SalesManagement.Domain.Entities
         public ICollection<DiscountSlab>? DiscountSlabs { get; set; }
         public ICollection<DiscountSalesGroup>? DiscountSalesGroups { get; set; }
         public ICollection<DiscountPaymentTerm>? DiscountPaymentTerms { get; set; }
+
+        // Reverse navigation
+        public ICollection<SalesOrderDiscount>? SalesOrderDiscounts { get; set; }
     }
 }
