@@ -292,6 +292,16 @@ namespace SalesManagement.Presentation.Validation.SalesOrder
                         break;
                 }
             }
+
+            // MD Discount — when checkbox enabled, Rate + Document are mandatory
+            RuleFor(x => x.SalesOrderDetails!.MdDiscountRate)
+                .NotNull().WithMessage("MdDiscountRate is required when MD Discount is enabled.")
+                .GreaterThan(0).WithMessage("MdDiscountRate must be greater than zero.")
+                .When(x => x.SalesOrderDetails != null && x.SalesOrderDetails.IsMdDiscountEnabled);
+
+            RuleFor(x => x.SalesOrderDetails!.MdApprovalDocument)
+                .NotEmpty().WithMessage("MdApprovalDocument is required when MD Discount is enabled.")
+                .When(x => x.SalesOrderDetails != null && x.SalesOrderDetails.IsMdDiscountEnabled);
         }
     }
 }
