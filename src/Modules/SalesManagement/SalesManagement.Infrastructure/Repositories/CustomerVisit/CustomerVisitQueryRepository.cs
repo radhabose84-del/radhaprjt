@@ -41,10 +41,12 @@ namespace SalesManagement.Infrastructure.Repositories.CustomerVisit
 
             if (_accessFilter.IsMarketingOfficer())
             {
+                var empId = _accessFilter.GetCurrentMarketingOfficerId();
                 var customerIds = await _accessFilter.GetAccessibleCustomerIdsAsync();
                 var safeIds = customerIds.Count > 0 ? customerIds.ToArray() : new[] { -1 };
 
-                moFilter = " AND cv.CustomerId IN @CustomerIds ";
+                moFilter = " AND cv.MarketingOfficerId = @EmpId AND cv.CustomerId IN @CustomerIds ";
+                parameters.Add("EmpId", empId);
                 parameters.Add("CustomerIds", safeIds);
             }
 
@@ -119,10 +121,12 @@ namespace SalesManagement.Infrastructure.Repositories.CustomerVisit
 
             if (_accessFilter.IsMarketingOfficer())
             {
+                var empId = _accessFilter.GetCurrentMarketingOfficerId();
                 var customerIds = await _accessFilter.GetAccessibleCustomerIdsAsync();
                 var safeIds = customerIds.Count > 0 ? customerIds.ToArray() : new[] { -1 };
 
-                moFilter = " AND cv.CustomerId IN @CustomerIds ";
+                moFilter = " AND cv.MarketingOfficerId = @EmpId AND cv.CustomerId IN @CustomerIds ";
+                parameters.Add("EmpId", empId);
                 parameters.Add("CustomerIds", safeIds);
             }
 
@@ -196,10 +200,12 @@ namespace SalesManagement.Infrastructure.Repositories.CustomerVisit
 
             if (_accessFilter.IsMarketingOfficer())
             {
+                var empId = _accessFilter.GetCurrentMarketingOfficerId();
                 var customerIds = await _accessFilter.GetAccessibleCustomerIdsAsync(ct);
                 var safeIds = customerIds.Count > 0 ? customerIds.ToArray() : new[] { -1 };
 
-                moFilter = " AND cv.CustomerId IN @CustomerIds ";
+                moFilter = " AND cv.MarketingOfficerId = @EmpId AND cv.CustomerId IN @CustomerIds ";
+                parameters.Add("EmpId", empId);
                 parameters.Add("CustomerIds", safeIds);
             }
 
