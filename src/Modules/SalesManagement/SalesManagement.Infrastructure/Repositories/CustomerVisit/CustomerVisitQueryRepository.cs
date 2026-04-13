@@ -1,5 +1,4 @@
 using System.Data;
-using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Party;
 using Dapper;
@@ -16,20 +15,17 @@ namespace SalesManagement.Infrastructure.Repositories.CustomerVisit
         private readonly IPartyLookup _partyLookup;
         private readonly IItemLookup _itemLookup;
         private readonly IMarketingOfficerAccessFilter _accessFilter;
-        private readonly IIPAddressService _ipAddressService;
 
         public CustomerVisitQueryRepository(
             IDbConnection dbConnection,
             IPartyLookup partyLookup,
             IItemLookup itemLookup,
-            IMarketingOfficerAccessFilter accessFilter,
-            IIPAddressService ipAddressService)
+            IMarketingOfficerAccessFilter accessFilter)
         {
             _dbConnection = dbConnection;
             _partyLookup = partyLookup;
             _itemLookup = itemLookup;
             _accessFilter = accessFilter;
-            _ipAddressService = ipAddressService;
         }
 
         public async Task<(List<CustomerVisitDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
@@ -46,12 +42,10 @@ namespace SalesManagement.Infrastructure.Repositories.CustomerVisit
             if (_accessFilter.IsMarketingOfficer())
             {
                 var empId = _accessFilter.GetCurrentMarketingOfficerId();
-                var userId = _ipAddressService.GetUserId();
                 var customerIds = await _accessFilter.GetAccessibleCustomerIdsAsync();
                 var safeIds = customerIds.Count > 0 ? customerIds.ToArray() : new[] { -1 };
 
-                moFilter = " AND (cv.CreatedBy = @UserId OR cv.MarketingOfficerId = @EmpId OR cv.CustomerId IN @CustomerIds) ";
-                parameters.Add("UserId", userId);
+                moFilter = " AND cv.MarketingOfficerId = @EmpId AND cv.CustomerId IN @CustomerIds ";
                 parameters.Add("EmpId", empId);
                 parameters.Add("CustomerIds", safeIds);
             }
@@ -128,12 +122,10 @@ namespace SalesManagement.Infrastructure.Repositories.CustomerVisit
             if (_accessFilter.IsMarketingOfficer())
             {
                 var empId = _accessFilter.GetCurrentMarketingOfficerId();
-                var userId = _ipAddressService.GetUserId();
                 var customerIds = await _accessFilter.GetAccessibleCustomerIdsAsync();
                 var safeIds = customerIds.Count > 0 ? customerIds.ToArray() : new[] { -1 };
 
-                moFilter = " AND (cv.CreatedBy = @UserId OR cv.MarketingOfficerId = @EmpId OR cv.CustomerId IN @CustomerIds) ";
-                parameters.Add("UserId", userId);
+                moFilter = " AND cv.MarketingOfficerId = @EmpId AND cv.CustomerId IN @CustomerIds ";
                 parameters.Add("EmpId", empId);
                 parameters.Add("CustomerIds", safeIds);
             }
@@ -209,12 +201,10 @@ namespace SalesManagement.Infrastructure.Repositories.CustomerVisit
             if (_accessFilter.IsMarketingOfficer())
             {
                 var empId = _accessFilter.GetCurrentMarketingOfficerId();
-                var userId = _ipAddressService.GetUserId();
                 var customerIds = await _accessFilter.GetAccessibleCustomerIdsAsync(ct);
                 var safeIds = customerIds.Count > 0 ? customerIds.ToArray() : new[] { -1 };
 
-                moFilter = " AND (cv.CreatedBy = @UserId OR cv.MarketingOfficerId = @EmpId OR cv.CustomerId IN @CustomerIds) ";
-                parameters.Add("UserId", userId);
+                moFilter = " AND cv.MarketingOfficerId = @EmpId AND cv.CustomerId IN @CustomerIds ";
                 parameters.Add("EmpId", empId);
                 parameters.Add("CustomerIds", safeIds);
             }

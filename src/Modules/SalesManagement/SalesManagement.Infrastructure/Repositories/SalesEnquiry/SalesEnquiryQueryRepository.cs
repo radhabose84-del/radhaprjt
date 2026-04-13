@@ -54,7 +54,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesEnquiry
                 var customerIds = await _accessFilter.GetAccessibleCustomerIdsAsync();
                 var safeIds = customerIds.Count > 0 ? customerIds.ToArray() : new[] { -1 };
 
-                moFilter = " AND (h.CreatedBy = @UserId OR h.PartyId IN @CustomerIds) ";
+                moFilter = " AND (h.PartyId IN @CustomerIds) ";
                 parameters.Add("UserId", userId);
                 parameters.Add("CustomerIds", safeIds);
             }
@@ -117,7 +117,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesEnquiry
                 var customerIds = await _accessFilter.GetAccessibleCustomerIdsAsync();
                 var safeIds = customerIds.Count > 0 ? customerIds.ToArray() : new[] { -1 };
 
-                moFilter = " AND (h.CreatedBy = @UserId OR h.PartyId IN @CustomerIds) ";
+                moFilter = " AND ( h.PartyId IN @CustomerIds) ";
                 parameters.Add("UserId", userId);
                 parameters.Add("CustomerIds", safeIds);
             }
@@ -198,7 +198,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesEnquiry
                 var customerIds = await _accessFilter.GetAccessibleCustomerIdsAsync(ct);
                 var safeIds = customerIds.Count > 0 ? customerIds.ToArray() : new[] { -1 };
 
-                moFilter = " AND (h.CreatedBy = @UserId OR h.PartyId IN @CustomerIds) ";
+                moFilter = " AND ( h.PartyId IN @CustomerIds) ";
                 parameters.Add("UserId", userId);
                 parameters.Add("CustomerIds", safeIds);
             }

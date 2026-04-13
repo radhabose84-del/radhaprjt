@@ -85,16 +85,14 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
 
             if (_accessFilter.IsMarketingOfficer())
             {
-                var userId = _ipAddressService.GetUserId();
-                var customerIds = await _accessFilter.GetAccessibleCustomerIdsAsync();
                 var agentIds = await _accessFilter.GetAccessibleAgentIdsAsync();
-                var safeCustomerIds = customerIds.Count > 0 ? customerIds.ToArray() : new[] { -1 };
                 var safeAgentIds = agentIds.Count > 0 ? agentIds.ToArray() : new[] { -1 };
+                var customerIds = await _accessFilter.GetAccessibleCustomerIdsAsync();
+                var safeCustomerIds = customerIds.Count > 0 ? customerIds.ToArray() : new[] { -1 };
 
-                moFilter = " AND (h.CreatedBy = @UserId OR h.PartyId IN @CustomerIds OR h.AgentId IN @AgentIds) ";
-                param.Add("UserId", userId);
-                param.Add("CustomerIds", safeCustomerIds);
+                moFilter = " AND h.AgentId IN @AgentIds AND h.PartyId IN @CustomerIds ";
                 param.Add("AgentIds", safeAgentIds);
+                param.Add("CustomerIds", safeCustomerIds);
             }
 
             var query = $@"
@@ -268,16 +266,14 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
 
             if (_accessFilter.IsMarketingOfficer())
             {
-                var userId = _ipAddressService.GetUserId();
-                var customerIds = await _accessFilter.GetAccessibleCustomerIdsAsync();
                 var agentIds = await _accessFilter.GetAccessibleAgentIdsAsync();
-                var safeCustomerIds = customerIds.Count > 0 ? customerIds.ToArray() : new[] { -1 };
                 var safeAgentIds = agentIds.Count > 0 ? agentIds.ToArray() : new[] { -1 };
+                var customerIds = await _accessFilter.GetAccessibleCustomerIdsAsync();
+                var safeCustomerIds = customerIds.Count > 0 ? customerIds.ToArray() : new[] { -1 };
 
-                moFilter = " AND (h.CreatedBy = @UserId OR h.PartyId IN @CustomerIds OR h.AgentId IN @AgentIds) ";
-                headerParams.Add("UserId", userId);
-                headerParams.Add("CustomerIds", safeCustomerIds);
+                moFilter = " AND h.AgentId IN @AgentIds AND h.PartyId IN @CustomerIds ";
                 headerParams.Add("AgentIds", safeAgentIds);
+                headerParams.Add("CustomerIds", safeCustomerIds);
             }
 
             var headerSql = $@"
@@ -506,16 +502,14 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
 
             if (_accessFilter.IsMarketingOfficer())
             {
-                var userId = _ipAddressService.GetUserId();
-                var customerIds = await _accessFilter.GetAccessibleCustomerIdsAsync(ct);
                 var agentIds = await _accessFilter.GetAccessibleAgentIdsAsync(ct);
-                var safeCustomerIds = customerIds.Count > 0 ? customerIds.ToArray() : new[] { -1 };
                 var safeAgentIds = agentIds.Count > 0 ? agentIds.ToArray() : new[] { -1 };
+                var customerIds = await _accessFilter.GetAccessibleCustomerIdsAsync(ct);
+                var safeCustomerIds = customerIds.Count > 0 ? customerIds.ToArray() : new[] { -1 };
 
-                moFilter = " AND (h.CreatedBy = @UserId OR h.PartyId IN @CustomerIds OR h.AgentId IN @AgentIds) ";
-                parameters.Add("UserId", userId);
-                parameters.Add("CustomerIds", safeCustomerIds);
+                moFilter = " AND h.AgentId IN @AgentIds AND h.PartyId IN @CustomerIds ";
                 parameters.Add("AgentIds", safeAgentIds);
+                parameters.Add("CustomerIds", safeCustomerIds);
             }
 
             var sql = $@"
