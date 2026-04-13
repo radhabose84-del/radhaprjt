@@ -55,18 +55,42 @@ internal sealed class DataAccessFilterService : IDataAccessFilter
         // Step 3: Get PartyId from JWT claim
         var partyId = _ipAddressService.GetPartyId();
 
-        // Step 4: Get allowed CustomerIds (agent-level filtering)
-        var customerIds = partyId.HasValue
-            ? await GetAllowedCustomerIdsAsync(partyId.Value)
-            : (IReadOnlySet<int>)new HashSet<int>();
-
-        // Step 5: Build AllowedAgentIds
-        // If user is an Agent (PartyId = their own AgentId), include self
+        // Step 4: Get allowed CustomerIds and AgentIds
+        IReadOnlySet<int> customerIds;
         var agentIdSet = new HashSet<int>();
-        if (partyId.HasValue && customerIds.Count > 0)
+        var isCustomerRestricted = false;
+
+        if (partyId.HasValue)
         {
-            // User has customers via AgentCustomerMapping → they are an Agent
-            agentIdSet.Add(partyId.Value);
+            // Agent-level: PartyId = AgentId → direct AgentCustomerMapping
+            customerIds = await GetAllowedCustomerIdsAsync(partyId.Value);
+            isCustomerRestricted = true;
+            if (customerIds.Count > 0)
+                agentIdSet.Add(partyId.Value);
+        }
+        else
+        {
+            // Step 4b: Marketing Officer — EmpId → OfficerAgent → AgentCustomerMapping
+            var empId = _ipAddressService.GetEmpId();
+            if (empId.HasValue && empId.Value > 0)
+            {
+                var officerAgentIds = await GetOfficerAgentIdsAsync(empId.Value);
+                if (officerAgentIds.Count > 0)
+                {
+                    customerIds = await GetAllowedCustomerIdsByAgentsAsync(officerAgentIds);
+                    foreach (var agentId in officerAgentIds)
+                        agentIdSet.Add(agentId);
+                }
+                else
+                {
+                    customerIds = new HashSet<int>();
+                }
+                isCustomerRestricted = true;
+            }
+            else
+            {
+                customerIds = new HashSet<int>();
+            }
         }
 
         _cachedContext = new DataAccessContext
@@ -75,7 +99,8 @@ internal sealed class DataAccessFilterService : IDataAccessFilter
             PartyId = partyId,
             AllowedItemGroupIds = itemGroupIds,
             AllowedCustomerIds = customerIds,
-            AllowedAgentIds = agentIdSet
+            AllowedAgentIds = agentIdSet,
+            IsCustomerRestricted = isCustomerRestricted
         };
         return _cachedContext;
     }
@@ -148,6 +173,58 @@ internal sealed class DataAccessFilterService : IDataAccessFilter
               AND (acm.EffectiveTo IS NULL OR acm.EffectiveTo >= GETDATE())";
 
         var ids = await _dbConnection.QueryAsync<int>(sql, new { PartyId = partyId });
+        var result = new HashSet<int>(ids);
+
+        _cache.Set(cacheKey, result, new MemoryCacheEntryOptions
+        {
+            SlidingExpiration = CacheDuration,
+            Size = 1
+        });
+
+        return result;
+    }
+
+    private async Task<IReadOnlyList<int>> GetOfficerAgentIdsAsync(int empId)
+    {
+        var cacheKey = $"DataAccess:OfficerAgents:{empId}";
+        if (_cache.TryGetValue(cacheKey, out List<int>? cached) && cached != null)
+            return cached;
+
+        // OfficerAgent has MarketingOfficerId (not EmpId) and no IsDeleted column (hard delete only)
+        const string sql = @"
+            SELECT DISTINCT oa.AgentId
+            FROM Sales.OfficerAgent oa
+            WHERE oa.MarketingOfficerId = @EmpId
+              AND oa.IsActive = 1
+              AND CAST(GETDATE() AS date) BETWEEN oa.ValidityFrom AND oa.ValidityTo";
+
+        var ids = (await _dbConnection.QueryAsync<int>(sql, new { EmpId = empId })).ToList();
+
+        _cache.Set(cacheKey, ids, new MemoryCacheEntryOptions
+        {
+            SlidingExpiration = CacheDuration,
+            Size = 1
+        });
+
+        return ids;
+    }
+
+    private async Task<IReadOnlySet<int>> GetAllowedCustomerIdsByAgentsAsync(IReadOnlyList<int> agentIds)
+    {
+        var key = string.Join(",", agentIds.OrderBy(x => x));
+        var cacheKey = $"DataAccess:OfficerCustomers:{key}";
+        if (_cache.TryGetValue(cacheKey, out HashSet<int>? cached) && cached != null)
+            return cached;
+
+        const string sql = @"
+            SELECT DISTINCT acm.CustomerId
+            FROM Sales.AgentCustomerMapping acm
+            WHERE acm.AgentId IN @AgentIds
+              AND acm.IsDeleted = 0 AND acm.IsActive = 1
+              AND acm.EffectiveFrom <= GETDATE()
+              AND (acm.EffectiveTo IS NULL OR acm.EffectiveTo >= GETDATE())";
+
+        var ids = await _dbConnection.QueryAsync<int>(sql, new { AgentIds = agentIds });
         var result = new HashSet<int>(ids);
 
         _cache.Set(cacheKey, result, new MemoryCacheEntryOptions

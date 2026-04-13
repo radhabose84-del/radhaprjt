@@ -246,12 +246,12 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
 
         public async Task<(List<GetPartyMasterDto>, int)> GetAllPartyMasterAsync(int PageNumber, int PageSize, string SearchTerm)
         {
-            // Data access control — agent-level customer filtering
+            // Data access control — marketing officer and agent customer filtering (no bypass in Party)
             var accessCtx = await _dataAccessFilter.GetContextAsync();
-            if (!accessCtx.BypassDataAccess && accessCtx.PartyId.HasValue && accessCtx.AllowedCustomerIds.Count == 0)
+            if (accessCtx.IsCustomerRestricted && accessCtx.AllowedCustomerIds.Count == 0)
                 return (new List<GetPartyMasterDto>(), 0);
 
-            var customerFilter = !accessCtx.BypassDataAccess && accessCtx.PartyId.HasValue && accessCtx.AllowedCustomerIds.Count > 0
+            var customerFilter = accessCtx.IsCustomerRestricted && accessCtx.AllowedCustomerIds.Count > 0
                 ? "AND a.Id IN @AllowedCustomerIds"
                 : "";
 
@@ -294,7 +294,7 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
             dp.Add("Search", $"%{SearchTerm}%");
             dp.Add("Offset", (PageNumber - 1) * PageSize);
             dp.Add("PageSize", PageSize);
-            if (!accessCtx.BypassDataAccess && accessCtx.PartyId.HasValue && accessCtx.AllowedCustomerIds.Count > 0)
+            if (accessCtx.IsCustomerRestricted && accessCtx.AllowedCustomerIds.Count > 0)
                 dp.Add("AllowedCustomerIds", accessCtx.AllowedCustomerIds.ToList());
 
             var result = await _dbConnection.QueryAsync<GetPartyMasterDto, int, (GetPartyMasterDto, int)>(
@@ -314,9 +314,9 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
         {
             var UnitId = _ipAddressService.GetUnitId() ?? 0;
 
-            // Data access control — agent-level customer filtering
+            // Data access control — marketing officer and agent customer filtering (no bypass in Party)
             var accessCtx = await _dataAccessFilter.GetContextAsync();
-            if (!accessCtx.BypassDataAccess && accessCtx.PartyId.HasValue && accessCtx.AllowedCustomerIds.Count == 0)
+            if (accessCtx.IsCustomerRestricted && accessCtx.AllowedCustomerIds.Count == 0)
                 return new List<GetPartyMasterAutoCompleteDto>();
 
             var sql = @"
@@ -361,8 +361,8 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
                 sql += " AND b.PartyTypeId IN @PartyTypeIds";
             }
 
-            // ✅ Apply agent-level customer access filter
-            if (!accessCtx.BypassDataAccess && accessCtx.PartyId.HasValue && accessCtx.AllowedCustomerIds.Count > 0)
+            // ✅ Apply customer access filter (agent-level or marketing officer — no bypass in Party)
+            if (accessCtx.IsCustomerRestricted && accessCtx.AllowedCustomerIds.Count > 0)
             {
                 sql += " AND a.Id IN @AllowedCustomerIds";
             }
@@ -379,7 +379,7 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
             dp.Add("SearchPattern", $"%{searchPattern}%");
             dp.Add("MiscTypeCode", MiscEnumEntity.PartyDocumentImage.Approved);
             dp.Add("UnitId", UnitId);
-            if (!accessCtx.BypassDataAccess && accessCtx.PartyId.HasValue && accessCtx.AllowedCustomerIds.Count > 0)
+            if (accessCtx.IsCustomerRestricted && accessCtx.AllowedCustomerIds.Count > 0)
                 dp.Add("AllowedCustomerIds", accessCtx.AllowedCustomerIds.ToList());
 
             var result = (await _dbConnection.QueryAsync<GetPartyMasterAutoCompleteDto>(sql, dp)).ToList();
@@ -545,9 +545,9 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
         {
             searchPattern = searchPattern ?? string.Empty;
 
-            // Data access control — agent-level customer filtering
+            // Data access control — marketing officer and agent customer filtering (no bypass in Party)
             var accessCtx = await _dataAccessFilter.GetContextAsync();
-            if (!accessCtx.BypassDataAccess && accessCtx.PartyId.HasValue && accessCtx.AllowedCustomerIds.Count == 0)
+            if (accessCtx.IsCustomerRestricted && accessCtx.AllowedCustomerIds.Count == 0)
                 return new List<GetPartyMasterAutoCompleteDto>();
 
             var sql = @"
@@ -556,12 +556,12 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
             WHERE IsDeleted = 0 AND IsActive = 1
             AND (PartyName LIKE @SearchPattern OR PartyCode LIKE @SearchPattern)";
 
-            if (!accessCtx.BypassDataAccess && accessCtx.PartyId.HasValue && accessCtx.AllowedCustomerIds.Count > 0)
+            if (accessCtx.IsCustomerRestricted && accessCtx.AllowedCustomerIds.Count > 0)
                 sql += " AND Id IN @AllowedCustomerIds";
 
             var dp = new DynamicParameters();
             dp.Add("SearchPattern", $"%{searchPattern}%");
-            if (!accessCtx.BypassDataAccess && accessCtx.PartyId.HasValue && accessCtx.AllowedCustomerIds.Count > 0)
+            if (accessCtx.IsCustomerRestricted && accessCtx.AllowedCustomerIds.Count > 0)
                 dp.Add("AllowedCustomerIds", accessCtx.AllowedCustomerIds.ToList());
 
             var partyMasters = await _dbConnection.QueryAsync<GetPartyMasterAutoCompleteDto>(sql, dp);
