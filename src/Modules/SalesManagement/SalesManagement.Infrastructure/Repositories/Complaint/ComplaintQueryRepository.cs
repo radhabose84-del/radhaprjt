@@ -19,6 +19,7 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
         private readonly IUnitLookup _unitLookup;
         private readonly IUOMLookup _uomLookup;
         private readonly IIPAddressService _ipAddressService;
+        private readonly IDataAccessFilter _dataAccessFilter;
 
         public ComplaintQueryRepository(
             IDbConnection dbConnection,
@@ -27,7 +28,8 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
             ILotMasterLookup lotLookup,
             IUnitLookup unitLookup,
             IUOMLookup uomLookup,
-            IIPAddressService ipAddressService)
+            IIPAddressService ipAddressService,
+            IDataAccessFilter dataAccessFilter)
         {
             _dbConnection = dbConnection;
             _partyLookup = partyLookup;
@@ -36,10 +38,23 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
             _unitLookup = unitLookup;
             _uomLookup = uomLookup;
             _ipAddressService = ipAddressService;
+            _dataAccessFilter = dataAccessFilter;
         }
 
         public async Task<(List<ComplaintHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
         {
+            var accessCtx = await _dataAccessFilter.GetContextAsync();
+            var allowedPartyIds = new HashSet<int>(accessCtx.AllowedCustomerIds);
+            if (accessCtx.PartyId.HasValue)
+                allowedPartyIds.Add(accessCtx.PartyId.Value);
+
+            if (accessCtx.IsCustomerRestricted && allowedPartyIds.Count == 0)
+                return (new List<ComplaintHeaderDto>(), 0);
+
+            var partyFilter = accessCtx.IsCustomerRestricted && allowedPartyIds.Count > 0
+                ? " AND h.CustomerId IN @AllowedPartyIds"
+                : string.Empty;
+
             var searchFilter = string.IsNullOrWhiteSpace(searchTerm)
                 ? string.Empty
                 : @" AND (h.ComplaintNumber LIKE @SearchTerm
@@ -50,7 +65,7 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                 SELECT COUNT(*)
                 FROM Sales.ComplaintHeader h
                 LEFT JOIN Sales.MiscMaster ms ON h.StatusId = ms.Id AND ms.IsDeleted = 0
-                WHERE h.IsDeleted = 0 {searchFilter};";
+                WHERE h.IsDeleted = 0 {partyFilter} {searchFilter};";
 
             var dataSql = $@"
                 SELECT
@@ -85,18 +100,18 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                     h.ModifiedIP
                 FROM Sales.ComplaintHeader h
                 LEFT JOIN Sales.MiscMaster ms ON h.StatusId = ms.Id AND ms.IsDeleted = 0
-                WHERE h.IsDeleted = 0 {searchFilter}
+                WHERE h.IsDeleted = 0 {partyFilter} {searchFilter}
                 ORDER BY h.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;";
 
-            var parameters = new
-            {
-                SearchTerm = $"%{searchTerm}%",
-                Offset = (pageNumber - 1) * pageSize,
-                PageSize = pageSize
-            };
+            var dp = new DynamicParameters();
+            dp.Add("SearchTerm", $"%{searchTerm}%");
+            dp.Add("Offset", (pageNumber - 1) * pageSize);
+            dp.Add("PageSize", pageSize);
+            if (accessCtx.IsCustomerRestricted && allowedPartyIds.Count > 0)
+                dp.Add("AllowedPartyIds", allowedPartyIds.ToList());
 
-            using var multi = await _dbConnection.QueryMultipleAsync(countSql + dataSql, parameters);
+            using var multi = await _dbConnection.QueryMultipleAsync(countSql + dataSql, dp);
             var totalCount = await multi.ReadFirstAsync<int>();
             var data = (await multi.ReadAsync<ComplaintHeaderDto>()).ToList();
 
@@ -318,7 +333,19 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
 
         public async Task<IReadOnlyList<ComplaintLookupDto>> AutocompleteAsync(string term, CancellationToken ct)
         {
-            const string sql = @"
+            var accessCtx = await _dataAccessFilter.GetContextAsync(ct);
+            var allowedPartyIds = new HashSet<int>(accessCtx.AllowedCustomerIds);
+            if (accessCtx.PartyId.HasValue)
+                allowedPartyIds.Add(accessCtx.PartyId.Value);
+
+            if (accessCtx.IsCustomerRestricted && allowedPartyIds.Count == 0)
+                return new List<ComplaintLookupDto>();
+
+            var partyFilter = accessCtx.IsCustomerRestricted && allowedPartyIds.Count > 0
+                ? " AND h.CustomerId IN @AllowedPartyIds"
+                : string.Empty;
+
+            var sql = $@"
                 SELECT TOP 20
                     h.Id,
                     h.ComplaintNumber,
@@ -326,9 +353,15 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                 FROM Sales.ComplaintHeader h
                 WHERE h.IsDeleted = 0 AND h.IsActive = 1
                   AND h.ComplaintNumber LIKE @Term
+                  {partyFilter}
                 ORDER BY h.ComplaintNumber ASC;";
 
-            var result = await _dbConnection.QueryAsync<ComplaintLookupDto>(sql, new { Term = $"%{term}%" });
+            var dp = new DynamicParameters();
+            dp.Add("Term", $"%{term}%");
+            if (accessCtx.IsCustomerRestricted && allowedPartyIds.Count > 0)
+                dp.Add("AllowedPartyIds", allowedPartyIds.ToList());
+
+            var result = await _dbConnection.QueryAsync<ComplaintLookupDto>(sql, dp);
             var list = result.ToList();
 
             // Populate CustomerName
@@ -358,7 +391,19 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
 
         public async Task<IReadOnlyList<ComplaintForSalesReturnLookupDto>> GetComplaintsForSalesReturnAsync(string term, CancellationToken ct)
         {
-            const string sql = @"
+            var accessCtx = await _dataAccessFilter.GetContextAsync(ct);
+            var allowedPartyIds = new HashSet<int>(accessCtx.AllowedCustomerIds);
+            if (accessCtx.PartyId.HasValue)
+                allowedPartyIds.Add(accessCtx.PartyId.Value);
+
+            if (accessCtx.IsCustomerRestricted && allowedPartyIds.Count == 0)
+                return new List<ComplaintForSalesReturnLookupDto>();
+
+            var partyFilter = accessCtx.IsCustomerRestricted && allowedPartyIds.Count > 0
+                ? " AND ch.CustomerId IN @AllowedPartyIds"
+                : string.Empty;
+
+            var sql = $@"
                 SELECT TOP 20
                     ch.Id,
                     ch.ComplaintNumber,
@@ -371,6 +416,11 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                 INNER JOIN Sales.MiscMaster rt
                     ON cr.ResolutionTypeId = rt.Id AND rt.IsDeleted = 0
                     AND rt.Code = 'Sales Return'
+                -- Resolution workflow must be approved: header status must be a ClosureStatus type
+                INNER JOIN Sales.MiscMaster hm
+                    ON ch.StatusId = hm.Id AND hm.IsDeleted = 0
+                INNER JOIN Sales.MiscTypeMaster mt
+                    ON hm.MiscTypeId = mt.Id AND mt.MiscTypeCode = 'ClosureStatus'
                 LEFT JOIN Sales.MiscMaster rs
                     ON cr.ReturnStatusId = rs.Id AND rs.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster cs
@@ -379,10 +429,15 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                   AND (cr.ReturnStatusId IS NULL OR rs.Code <> 'FullyReturned')
                   AND (cs.Code IS NULL OR cs.Code <> 'Closed')
                   AND ch.ComplaintNumber LIKE @Term
+                  {partyFilter}
                 ORDER BY ch.ComplaintDate DESC;";
 
-            var result = await _dbConnection.QueryAsync<ComplaintForSalesReturnLookupDto>(
-                sql, new { Term = $"%{term}%" });
+            var dp = new DynamicParameters();
+            dp.Add("Term", $"%{term}%");
+            if (accessCtx.IsCustomerRestricted && allowedPartyIds.Count > 0)
+                dp.Add("AllowedPartyIds", allowedPartyIds.ToList());
+
+            var result = await _dbConnection.QueryAsync<ComplaintForSalesReturnLookupDto>(sql, dp);
             var list = result.ToList();
 
             if (list.Count > 0)
@@ -623,7 +678,13 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                 SELECT @TotalCount = COUNT(*)
                 FROM Sales.ComplaintQCReview qr
                 INNER JOIN Sales.ComplaintHeader ch ON ch.Id = qr.ComplaintHeaderId AND ch.IsDeleted = 0
-                WHERE qr.IsDeleted = 0 {searchFilter};
+                WHERE qr.IsDeleted = 0
+                  AND qr.ReviewedBy IS NOT NULL
+                  AND NOT EXISTS (
+                      SELECT 1 FROM Sales.MiscMaster hm
+                      INNER JOIN Sales.MiscTypeMaster mt ON hm.MiscTypeId = mt.Id
+                      WHERE hm.Id = ch.StatusId AND mt.MiscTypeCode = 'QCComplaintStatus' AND hm.IsDeleted = 0
+                  ) {searchFilter};
 
                 SELECT
                     qr.Id,
@@ -641,7 +702,13 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                 INNER JOIN Sales.ComplaintHeader ch ON ch.Id = qr.ComplaintHeaderId AND ch.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster pv ON qr.PhysicalVerificationId = pv.Id AND pv.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster sv ON qr.SeverityId = sv.Id AND sv.IsDeleted = 0
-                WHERE qr.IsDeleted = 0 {searchFilter}
+                WHERE qr.IsDeleted = 0
+                  AND qr.ReviewedBy IS NOT NULL
+                  AND NOT EXISTS (
+                      SELECT 1 FROM Sales.MiscMaster hm
+                      INNER JOIN Sales.MiscTypeMaster mt ON hm.MiscTypeId = mt.Id
+                      WHERE hm.Id = ch.StatusId AND mt.MiscTypeCode = 'QCComplaintStatus' AND hm.IsDeleted = 0
+                  ) {searchFilter}
                 ORDER BY qr.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
 
@@ -681,7 +748,8 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                 SELECT @TotalCount = COUNT(*)
                 FROM Sales.ComplaintResolution cr
                 INNER JOIN Sales.ComplaintHeader ch ON ch.Id = cr.ComplaintHeaderId AND ch.IsDeleted = 0
-                WHERE cr.IsDeleted = 0 {searchFilter};
+                INNER JOIN Sales.MiscMaster cs ON cr.ClosureStatusId = cs.Id AND cs.IsDeleted = 0
+                WHERE cr.IsDeleted = 0 AND cr.ResolvedBy IS NOT NULL AND cs.Description <> 'Closed' {searchFilter};
 
                 SELECT
                     cr.Id,
@@ -697,8 +765,8 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                 FROM Sales.ComplaintResolution cr
                 INNER JOIN Sales.ComplaintHeader ch ON ch.Id = cr.ComplaintHeaderId AND ch.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster rt ON cr.ResolutionTypeId = rt.Id AND rt.IsDeleted = 0
-                LEFT JOIN Sales.MiscMaster cs ON cr.ClosureStatusId = cs.Id AND cs.IsDeleted = 0
-                WHERE cr.IsDeleted = 0 {searchFilter}
+                INNER JOIN Sales.MiscMaster cs ON cr.ClosureStatusId = cs.Id AND cs.IsDeleted = 0
+                WHERE cr.IsDeleted = 0 AND cr.ResolvedBy IS NOT NULL AND cs.Description <> 'Closed' {searchFilter}
                 ORDER BY cr.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
 
@@ -779,6 +847,44 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
             }
 
             return (data, totalCount);
+        }
+
+        public async Task<bool> IsReadyForResolutionAsync(int complaintHeaderId)
+        {
+            const string sql = @"
+                SELECT CASE WHEN
+                    -- QC Review form was submitted (reviewer filled in the review)
+                    EXISTS (
+                        SELECT 1 FROM Sales.ComplaintQCReview qr
+                        WHERE qr.ComplaintHeaderId = @Id
+                          AND qr.ReviewedBy IS NOT NULL
+                          AND qr.ComplaintStatusId IS NOT NULL
+                          AND qr.IsDeleted = 0
+                    )
+                    -- QC Workflow was approved: complaint header status is a QCComplaintStatus type
+                    AND EXISTS (
+                        SELECT 1 FROM Sales.ComplaintHeader ch
+                        INNER JOIN Sales.MiscMaster mm ON ch.StatusId = mm.Id
+                        INNER JOIN Sales.MiscTypeMaster mmt ON mm.MiscTypeId = mmt.Id
+                        WHERE ch.Id = @Id
+                          AND mmt.MiscTypeCode = 'QCComplaintStatus'
+                          AND mm.IsDeleted = 0
+                          AND ch.IsDeleted = 0
+                    )
+                    -- All mandatory assignments have feedback submitted
+                    AND NOT EXISTS (
+                        SELECT 1 FROM Sales.ComplaintQCReviewAssignment a
+                        INNER JOIN Sales.ComplaintQCReview qr ON a.ComplaintQCReviewId = qr.Id
+                        INNER JOIN Sales.MiscMaster mm ON a.AssignmentStatusId = mm.Id
+                        WHERE qr.ComplaintHeaderId = @Id
+                          AND a.IsMandatory = 1
+                          AND mm.Description != 'Submitted'
+                          AND a.IsDeleted = 0
+                          AND qr.IsDeleted = 0
+                    )
+                THEN 1 ELSE 0 END;";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { Id = complaintHeaderId });
         }
     }
 }

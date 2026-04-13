@@ -46,6 +46,11 @@
         "error": " must be alphanumeric only."
     },
     {
+        "rule": "AlphanumericWithUnderscore",
+        "pattern": "^[A-Za-z0-9_]+$",
+        "error": " must be alphanumeric (underscore allowed)."
+    },
+    {
         "Rule": "NumericOnly",
         "pattern": "^[0-9]{10}$",
         "Error": " must contain only numeric values."
@@ -220,5 +225,9 @@
     {
         "rule": "AmendmentPending",
         "error": "Sales Order Amendment approval is pending. Approve or Reject the amendment to proceed with Dispatch Advice."
+    },
+    {
+        "rule": "MarketingOfficerAccess",
+        "error": "Customer/Agent not assigned"
     }
 ]

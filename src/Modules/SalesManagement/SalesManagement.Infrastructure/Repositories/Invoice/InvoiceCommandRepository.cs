@@ -2,6 +2,7 @@ using Contracts.Interfaces.Lookups.Finance;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using SalesManagement.Application.Common.Interfaces.IInvoice;
+using SalesManagement.Application.Invoice.Commands.CreateInvoice;
 using SalesManagement.Domain.Entities;
 using SalesManagement.Infrastructure.Data;
 using static SalesManagement.Domain.Common.BaseEntity;
@@ -231,6 +232,23 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
             entity.StatusId = statusId;
             _dbContext.InvoiceHeader.Update(entity);
             await _dbContext.SaveChangesAsync(ct);
+        }
+
+        public async Task<InvoiceWorkFlowDto> GetByIdInvoiceWorkFlowAsync(int id)
+        {
+            var entity = await _dbContext.InvoiceHeader
+                .Where(x => x.Id == id)
+                .Select(x => new InvoiceWorkFlowDto
+                {
+                    Id = x.Id,
+                    InvoiceNo = x.InvoiceNo,
+                    StatusId = x.StatusId,
+                    StatusName = x.StatusMisc != null ? x.StatusMisc.Description : null,
+                    UnitId = x.UnitId
+                })
+                .FirstOrDefaultAsync();
+
+            return entity!;
         }
 
     }

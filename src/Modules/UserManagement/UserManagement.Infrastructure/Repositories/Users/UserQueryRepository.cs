@@ -294,7 +294,7 @@ namespace UserManagement.Infrastructure.Repositories.Users
           public async Task<User> GetByUserByUnit(int UserId,int UnitId)
           {
             const string query = @"
-                SELECT U.UserId, U.UserName,U.Mobile,U.EmailId,U.IsFirstTimeUser,U.EntityId,U.UserGroupId,FirstName,LastName,GstNumber,U.PartyId
+                SELECT U.UserId, U.UserName,U.EmpId,U.Mobile,U.EmailId,U.IsFirstTimeUser,U.EntityId,U.UserGroupId,FirstName,LastName,GstNumber,U.PartyId
                 FROM AppSecurity.Users U
                 Inner join [AppSecurity].[UserUnit] UU on UU.UserId = U.UserId
                 Inner join [AppData].[Unit] U1 on U1.Id = UU.UnitId
@@ -358,7 +358,7 @@ namespace UserManagement.Infrastructure.Repositories.Users
         {
         //    var UnitId = _ipAddressService.GetUnitId() ?? 0;
              var query = """
-                 SELECT U.Id,U.FirstName,U.LastName,U.UserName,U.UserType,U.Mobile,U.EmailId,U.UserId,U.IsFirstTimeUser,U.EntityId,U.PasswordHash,U.PartyId, U.DepartmentId ,UG.GroupCode
+                 SELECT U.Id,U.FirstName,U.LastName,U.UserName,U.EmpId,U.UserType,U.Mobile,U.EmailId,U.UserId,U.IsFirstTimeUser,U.EntityId,U.PasswordHash,U.PartyId, U.DepartmentId ,UG.GroupCode
                  FROM AppSecurity.Users U
                  LEFT JOIN AppSecurity.UserGroup UG ON UG.Id = U.UserGroupId 
                  LEFT JOIN AppSecurity.UserUnit uu ON uu.UserId = U.UserId AND uu.IsActive = 1

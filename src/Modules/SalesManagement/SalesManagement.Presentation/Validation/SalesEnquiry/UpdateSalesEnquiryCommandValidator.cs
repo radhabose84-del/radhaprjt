@@ -1,4 +1,5 @@
 using FluentValidation;
+using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Application.Common.Interfaces.ISalesEnquiry;
 using SalesManagement.Application.SalesEnquiry.Commands.UpdateSalesEnquiry;
 using SalesManagement.Presentation.Validation.Common;
@@ -10,12 +11,15 @@ namespace SalesManagement.Presentation.Validation.SalesEnquiry
     {
         private readonly List<ValidationRule> _validationRules;
         private readonly ISalesEnquiryQueryRepository _queryRepository;
+        private readonly IMarketingOfficerAccessFilter _accessFilter;
 
         public UpdateSalesEnquiryCommandValidator(
             MaxLengthProvider maxLengthProvider,
-            ISalesEnquiryQueryRepository queryRepository)
+            ISalesEnquiryQueryRepository queryRepository,
+            IMarketingOfficerAccessFilter accessFilter)
         {
             _queryRepository = queryRepository;
+            _accessFilter = accessFilter;
 
             var maxLengthContactPerson = maxLengthProvider.GetMaxLength<Domain.Entities.SalesEnquiryHeader>("ContactPerson") ?? 200;
             var maxLengthRemarks = maxLengthProvider.GetMaxLength<Domain.Entities.SalesEnquiryHeader>("Remarks") ?? 500;
@@ -93,6 +97,13 @@ namespace SalesManagement.Presentation.Validation.SalesEnquiry
                         RuleFor(x => x.IsActive)
                             .InclusiveBetween(0, 1)
                             .WithMessage($"IsActive {rule.Error}");
+                        break;
+
+                    case "MarketingOfficerAccess":
+                        RuleFor(x => x.PartyId)
+                            .MustAsync(async (id, ct) => await _accessFilter.CanAccessCustomerAsync(id, ct))
+                            .WithMessage($"PartyId {rule.Error}")
+                            .When(x => x.PartyId > 0);
                         break;
 
                     default:

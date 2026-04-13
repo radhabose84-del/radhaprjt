@@ -18,5 +18,8 @@ namespace InventoryManagement.Application.Item.ItemDetail.Queries.GetAllItems
         public bool IsOnSpot { get; set; }
         public int? IssueRuleId { get; set; }
         public string? IssueRule { get; set; }
+        public int? PriceGroupId { get; set; }
+        public string? PriceGroupCode { get; set; }
+        public string? PriceGroupName { get; set; }
     }
 }

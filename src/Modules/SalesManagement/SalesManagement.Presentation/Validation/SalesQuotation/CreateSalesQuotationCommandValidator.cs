@@ -1,4 +1,5 @@
 using FluentValidation;
+using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Application.Common.Interfaces.ISalesQuotation;
 using SalesManagement.Application.SalesQuotation.Commands.CreateSalesQuotation;
 using SalesManagement.Presentation.Validation.Common;
@@ -10,12 +11,15 @@ namespace SalesManagement.Presentation.Validation.SalesQuotation
     {
         private readonly List<ValidationRule> _validationRules;
         private readonly ISalesQuotationQueryRepository _queryRepository;
+        private readonly IMarketingOfficerAccessFilter _accessFilter;
 
         public CreateSalesQuotationCommandValidator(
             MaxLengthProvider maxLengthProvider,
-            ISalesQuotationQueryRepository queryRepository)
+            ISalesQuotationQueryRepository queryRepository,
+            IMarketingOfficerAccessFilter accessFilter)
         {
             _queryRepository = queryRepository;
+            _accessFilter = accessFilter;
 
             var maxLengthRemarks = maxLengthProvider.GetMaxLength<Domain.Entities.SalesQuotationHeader>("Remarks") ?? 500;
 
@@ -170,6 +174,13 @@ namespace SalesManagement.Presentation.Validation.SalesQuotation
                                     .When(d => d.HSNId > 0);
                             })
                             .When(x => x.SalesQuotationDetails != null && x.SalesQuotationDetails.Any());
+                        break;
+
+                    case "MarketingOfficerAccess":
+                        RuleFor(x => x.CustomerId)
+                            .MustAsync(async (id, ct) => await _accessFilter.CanAccessCustomerAsync(id, ct))
+                            .WithMessage($"CustomerId {rule.Error}")
+                            .When(x => x.CustomerId > 0);
                         break;
 
                     default:

@@ -1,4 +1,5 @@
 using FluentValidation;
+using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Application.Common.Interfaces.ISalesContact;
 using SalesManagement.Application.SalesContact.Commands.DeleteSalesContact;
 using Shared.Validation.Common;
@@ -9,10 +10,14 @@ namespace SalesManagement.Presentation.Validation.SalesContact
     {
         private readonly List<ValidationRule> _validationRules;
         private readonly ISalesContactQueryRepository _queryRepository;
+        private readonly IMarketingOfficerAccessFilter _accessFilter;
 
-        public DeleteSalesContactCommandValidator(ISalesContactQueryRepository queryRepository)
+        public DeleteSalesContactCommandValidator(
+            ISalesContactQueryRepository queryRepository,
+            IMarketingOfficerAccessFilter accessFilter)
         {
             _queryRepository = queryRepository;
+            _accessFilter = accessFilter;
             _validationRules = ValidationRuleLoader.LoadValidationRules();
             if (_validationRules == null || _validationRules.Count == 0)
             {
@@ -33,6 +38,19 @@ namespace SalesManagement.Presentation.Validation.SalesContact
                         RuleFor(x => x.Id)
                             .MustAsync(async (id, ct) => !await _queryRepository.NotFoundAsync(id))
                             .WithMessage($"Sales Contact {rule.Error}");
+                        break;
+
+                    case "MarketingOfficerAccess":
+                        RuleFor(x => x.Id)
+                            .MustAsync(async (id, ct) =>
+                            {
+                                if (!_accessFilter.IsMarketingOfficer())
+                                    return true;
+                                var record = await _queryRepository.GetByIdAsync(id);
+                                return record != null;
+                            })
+                            .WithMessage("You are not authorized to delete this record.")
+                            .When(x => x.Id > 0);
                         break;
 
                     default:

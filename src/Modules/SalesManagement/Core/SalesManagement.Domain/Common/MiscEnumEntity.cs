@@ -12,6 +12,7 @@ namespace SalesManagement.Domain.Common
         public const string LineStatusDeleted = "Deleted";
         public const string SalesOrderVisitPath = "SalesOrderVisitPath";
         public const string AgentPoDocument = "AgentPoDocument";
+        public const string SalesOrderMdApprovalPath = "SalesOrderMdApprovalPath";
         public const string QualityStatus = "QualityStatus";
         public const string Packed = "Packed";
 
@@ -160,6 +161,11 @@ namespace SalesManagement.Domain.Common
         public const string StoReceiptStatusPartiallyReceived = "Partially Received";
         public const string StoReceiptStatusFullyReceived = "Fully Received";
         public const string StoReceiptStatusCancelled = "Cancelled";
+
+        // Dispatch Advice Address Based Freight
+        public const string DispatchAddressType = "DispatchAddressType";
+        public const string DirectToParty = "Direct-To-Party";
+        public const string Others = "Others";
 
     }
 }

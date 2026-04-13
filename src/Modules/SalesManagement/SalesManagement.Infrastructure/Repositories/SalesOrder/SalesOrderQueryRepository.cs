@@ -28,6 +28,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
         private readonly ICompanyLookup _companyLookup;
         private readonly IPackTypeLookup _packTypeLookup;
         private readonly ITransactionTypeLookup _transactionTypeLookup;
+        private readonly IMarketingOfficerAccessFilter _accessFilter;
 
         public SalesOrderQueryRepository(
             IDbConnection dbConnection,
@@ -40,7 +41,8 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             IIPAddressService ipAddressService,
             ICompanyLookup companyLookup,
             IPackTypeLookup packTypeLookup,
-            ITransactionTypeLookup transactionTypeLookup)
+            ITransactionTypeLookup transactionTypeLookup,
+            IMarketingOfficerAccessFilter accessFilter)
         {
             _dbConnection = dbConnection;
             _unitLookup = unitLookup;
@@ -53,6 +55,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             _companyLookup = companyLookup;
             _packTypeLookup = packTypeLookup;
             _transactionTypeLookup = transactionTypeLookup;
+            _accessFilter = accessFilter;
         }
 
         public async Task<(List<SalesOrderHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm, DateOnly? orderDateFrom = null, DateOnly? orderDateTo = null, string? partyName = null, string? statusName = null)
@@ -66,12 +69,39 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             var dateToFilter = orderDateTo.HasValue ? "AND h.OrderDate <= @OrderDateTo" : "";
             var statusFilter = string.IsNullOrWhiteSpace(statusName) ? "" : "AND st.Description LIKE @StatusName";
 
+            // Marketing Officer access scoping
+            var moFilter = "";
+            var param = new DynamicParameters();
+            param.Add("@UnitId", unitId);
+            param.Add("@Search", $"%{searchTerm}%");
+            param.Add("@Offset", (pageNumber - 1) * pageSize);
+            param.Add("@PageSize", pageSize);
+            param.Add("@LineItemStatus", MiscEnumEntity.LineItemApprovalStatus);
+            param.Add("@LineStatusDeleted", MiscEnumEntity.LineStatusDeleted);
+            if (orderDateFrom.HasValue) param.Add("@OrderDateFrom", orderDateFrom.Value);
+            if (orderDateTo.HasValue) param.Add("@OrderDateTo", orderDateTo.Value);
+            if (!string.IsNullOrWhiteSpace(statusName)) param.Add("@StatusName", $"%{statusName}%");
+
+            if (_accessFilter.IsMarketingOfficer())
+            {
+                var userId = _ipAddressService.GetUserId();
+                var customerIds = await _accessFilter.GetAccessibleCustomerIdsAsync();
+                var agentIds = await _accessFilter.GetAccessibleAgentIdsAsync();
+                var safeCustomerIds = customerIds.Count > 0 ? customerIds.ToArray() : new[] { -1 };
+                var safeAgentIds = agentIds.Count > 0 ? agentIds.ToArray() : new[] { -1 };
+
+                moFilter = " AND (h.CreatedBy = @UserId OR h.PartyId IN @CustomerIds OR h.AgentId IN @AgentIds) ";
+                param.Add("UserId", userId);
+                param.Add("CustomerIds", safeCustomerIds);
+                param.Add("AgentIds", safeAgentIds);
+            }
+
             var query = $@"
                 DECLARE @TotalCount INT;
                 SELECT @TotalCount = COUNT(*)
                 FROM Sales.SalesOrderHeader h
                 LEFT JOIN Sales.MiscMaster st ON h.StatusId = st.Id AND st.IsDeleted = 0
-                WHERE h.IsDeleted = 0 AND h.OrderUnitId = @UnitId {searchFilter} {dateFromFilter} {dateToFilter} {statusFilter};
+                WHERE h.IsDeleted = 0 AND h.OrderUnitId = @UnitId {searchFilter} {dateFromFilter} {dateToFilter} {statusFilter} {moFilter};
 
                 SELECT h.Id, h.SalesOrderNo, h.OrderDate,
                     h.SalesQuotationHeaderId,
@@ -94,6 +124,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     h.CountListId,
                     cl.Description AS CountListName,
                     h.Remarks,
+                    h.IsMdDiscountEnabled, h.MdDiscountRate, h.MdApprovalDocument,
                     h.VisitNotesAttachment, h.AgentPOAttachment,
                     h.TotalBags, h.TotalWeightKgs, h.TotalDiscountPerKg,
                     h.ItemValue, h.TotalFreight, h.TaxableAmount,
@@ -156,22 +187,11 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 ) amd_latest ON amd_latest.SalesOrderHeaderId = h.Id
                     AND LOWER(st.Code) = LOWER('Approved')
                 LEFT JOIN Sales.MiscMaster amd_mm ON amd_latest.StatusId = amd_mm.Id AND amd_mm.IsDeleted = 0
-                WHERE h.IsDeleted = 0 AND h.OrderUnitId = @UnitId {searchFilter} {dateFromFilter} {dateToFilter} {statusFilter}
+                WHERE h.IsDeleted = 0 AND h.OrderUnitId = @UnitId {searchFilter} {dateFromFilter} {dateToFilter} {statusFilter} {moFilter}
                 ORDER BY h.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
 
                 SELECT @TotalCount AS TotalCount;";
-
-            var param = new DynamicParameters();
-            param.Add("@UnitId", unitId);
-            param.Add("@Search", $"%{searchTerm}%");
-            param.Add("@Offset", (pageNumber - 1) * pageSize);
-            param.Add("@PageSize", pageSize);
-            param.Add("@LineItemStatus", MiscEnumEntity.LineItemApprovalStatus);
-            param.Add("@LineStatusDeleted", MiscEnumEntity.LineStatusDeleted);
-            if (orderDateFrom.HasValue) param.Add("@OrderDateFrom", orderDateFrom.Value);
-            if (orderDateTo.HasValue) param.Add("@OrderDateTo", orderDateTo.Value);
-            if (!string.IsNullOrWhiteSpace(statusName)) param.Add("@StatusName", $"%{statusName}%");
 
             var result = await _dbConnection.QueryMultipleAsync(query, param);
             var list = (await result.ReadAsync<SalesOrderHeaderDto>()).ToList();
@@ -221,6 +241,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 // Construct full attachment paths
                 var visitNotesBasePath = await GetDocumentBasePathAsync(MiscEnumEntity.SalesOrderVisitPath);
                 var agentPOBasePath = await GetDocumentBasePathAsync(MiscEnumEntity.AgentPoDocument);
+                var mdApprovalBasePath = await GetDocumentBasePathAsync(MiscEnumEntity.SalesOrderMdApprovalPath);
                 foreach (var item in list)
                 {
                     if (!string.IsNullOrWhiteSpace(item.VisitNotesAttachment))
@@ -228,6 +249,9 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
 
                     if (!string.IsNullOrWhiteSpace(item.AgentPOAttachment))
                         item.AgentPOAttachmentPath = $"{agentPOBasePath}/{item.AgentPOAttachment}";
+
+                    if (!string.IsNullOrWhiteSpace(item.MdApprovalDocument))
+                        item.MdApprovalDocumentPath = $"{mdApprovalBasePath}/{item.MdApprovalDocument}";
                 }
             }
 
@@ -244,7 +268,26 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
 
         public async Task<SalesOrderHeaderDto?> GetByIdAsync(int id)
         {
-            const string headerSql = @"
+            // Marketing Officer access scoping
+            var moFilter = "";
+            var headerParams = new DynamicParameters();
+            headerParams.Add("Id", id);
+
+            if (_accessFilter.IsMarketingOfficer())
+            {
+                var userId = _ipAddressService.GetUserId();
+                var customerIds = await _accessFilter.GetAccessibleCustomerIdsAsync();
+                var agentIds = await _accessFilter.GetAccessibleAgentIdsAsync();
+                var safeCustomerIds = customerIds.Count > 0 ? customerIds.ToArray() : new[] { -1 };
+                var safeAgentIds = agentIds.Count > 0 ? agentIds.ToArray() : new[] { -1 };
+
+                moFilter = " AND (h.CreatedBy = @UserId OR h.PartyId IN @CustomerIds OR h.AgentId IN @AgentIds) ";
+                headerParams.Add("UserId", userId);
+                headerParams.Add("CustomerIds", safeCustomerIds);
+                headerParams.Add("AgentIds", safeAgentIds);
+            }
+
+            var headerSql = $@"
                 SELECT h.Id, h.SalesOrderNo, h.OrderDate,
                     h.SalesQuotationHeaderId,
                     h.SalesGroupId,
@@ -266,6 +309,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     h.CountListId,
                     cl.Description AS CountListName,
                     h.Remarks,
+                    h.IsMdDiscountEnabled, h.MdDiscountRate, h.MdApprovalDocument,
                     h.VisitNotesAttachment, h.AgentPOAttachment,
                     h.TotalBags, h.TotalWeightKgs, h.TotalDiscountPerKg,
                     h.ItemValue, h.TotalFreight, h.TaxableAmount,
@@ -287,9 +331,10 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 LEFT JOIN Sales.MiscMaster ft ON h.FreightTypeId = ft.Id AND ft.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster cl ON h.CountListId = cl.Id AND cl.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster st ON h.StatusId = st.Id AND st.IsDeleted = 0
-                WHERE h.Id = @Id AND h.IsDeleted = 0";
+                WHERE h.Id = @Id AND h.IsDeleted = 0
+                {moFilter}";
 
-            var header = await _dbConnection.QueryFirstOrDefaultAsync<SalesOrderHeaderDto>(headerSql, new { Id = id });
+            var header = await _dbConnection.QueryFirstOrDefaultAsync<SalesOrderHeaderDto>(headerSql, headerParams);
 
             if (header == null)
                 return null;
@@ -387,6 +432,12 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 header.AgentPOAttachmentPath = $"{agentPOBasePath}/{header.AgentPOAttachment}";
             }
 
+            if (!string.IsNullOrWhiteSpace(header.MdApprovalDocument))
+            {
+                var mdApprovalBasePath = await GetDocumentBasePathAsync(MiscEnumEntity.SalesOrderMdApprovalPath);
+                header.MdApprovalDocumentPath = $"{mdApprovalBasePath}/{header.MdApprovalDocument}";
+            }
+
             // Populate cross-module detail lookups
             if (details.Count > 0)
             {
@@ -430,7 +481,29 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
         {
             var unitId = _ipAddressService.GetUnitId() ?? 0;
 
-            const string sql = @"
+            // Marketing Officer access scoping
+            var moFilter = "";
+            var parameters = new DynamicParameters();
+            parameters.Add("@Term", term);
+            parameters.Add("@UnitId", unitId);
+            parameters.Add("@ApprovalStatus", MiscEnumEntity.SalesOrderApprovalStatus);
+            parameters.Add("@ApprovedStatus", MiscEnumEntity.SalesOrderStatusApproved);
+
+            if (_accessFilter.IsMarketingOfficer())
+            {
+                var userId = _ipAddressService.GetUserId();
+                var customerIds = await _accessFilter.GetAccessibleCustomerIdsAsync(ct);
+                var agentIds = await _accessFilter.GetAccessibleAgentIdsAsync(ct);
+                var safeCustomerIds = customerIds.Count > 0 ? customerIds.ToArray() : new[] { -1 };
+                var safeAgentIds = agentIds.Count > 0 ? agentIds.ToArray() : new[] { -1 };
+
+                moFilter = " AND (h.CreatedBy = @UserId OR h.PartyId IN @CustomerIds OR h.AgentId IN @AgentIds) ";
+                parameters.Add("UserId", userId);
+                parameters.Add("CustomerIds", safeCustomerIds);
+                parameters.Add("AgentIds", safeAgentIds);
+            }
+
+            var sql = $@"
                 SELECT h.Id, h.SalesOrderNo, h.OrderDate, h.PartyId,
                     amd_latest.StatusId AS AmendmentStatusId,
                     amd_mm.Description AS AmendmentStatusName
@@ -454,13 +527,8 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 AND LOWER(mt.MiscTypeCode) = LOWER(@ApprovalStatus)
                 AND LOWER(st.Code) = LOWER(@ApprovedStatus)
                 AND (@Term = '' OR h.SalesOrderNo LIKE '%' + @Term + '%')
+                {moFilter}
                 ORDER BY h.Id DESC;";
-
-            var parameters = new DynamicParameters();
-            parameters.Add("@Term", term);
-            parameters.Add("@UnitId", unitId);
-            parameters.Add("@ApprovalStatus", MiscEnumEntity.SalesOrderApprovalStatus);
-            parameters.Add("@ApprovedStatus", MiscEnumEntity.SalesOrderStatusApproved);
 
             var command = new CommandDefinition(sql, parameters, cancellationToken: ct);
             var list = (await _dbConnection.QueryAsync<SalesOrderLookupDto>(command)).ToList();

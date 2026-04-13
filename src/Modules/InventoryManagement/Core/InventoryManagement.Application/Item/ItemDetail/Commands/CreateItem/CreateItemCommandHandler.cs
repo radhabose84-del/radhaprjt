@@ -105,8 +105,17 @@ namespace InventoryManagement.Application.Item.ItemAggregate.Handlers
                 item.HasVariants = true;
                 item.ParentItemId = null;
                 item.IsActive = BaseEntity.Status.Active;
+                // Explicit assignment — AutoMapper ForAllMembers condition blocks nullable int mapping
+                item.PriceGroupId = p.PriceGroupId.HasValue && p.PriceGroupId.Value > 0 ? p.PriceGroupId : null;
 
                 var newId = await _itemRepo.CreateAsync(item, ct);
+
+                // Cascade PriceGroupId to all existing variant children under this template
+                // (no-op on fresh create — applies when children already exist).
+                if (item.HasVariants)
+                {
+                    await _itemRepo.UpdatePriceGroupForChildrenAsync(newId, item.PriceGroupId, ct);
+                }
 
                 // tabs (optional)
                 if (!DtoEmptyChecker.IsEmpty(p.Purchase))
@@ -165,62 +174,81 @@ namespace InventoryManagement.Application.Item.ItemAggregate.Handlers
         }
 
         // ---------------- VARIANTS FROM TEMPLATE (ParentItemId set) ----------------
-       private async Task<int> CreateVariantItemsAsync(ItemDto p, CancellationToken ct)
+        private async Task<int> CreateVariantItemsAsync(ItemDto p, CancellationToken ct)
         {
             if (p.VariantValues is null || p.VariantValues.Count == 0)
                 throw new InvalidOperationException("VariantValues are required to create child items.");
 
-            // 1) Load template
+            // 1) Load template (tracked — we may need to flip HasVariants)
             var template = await _itemRepo.GetTrackingAsync(p.ParentItemId!.Value, ct)
                             ?? throw new InvalidOperationException("Template item not found.");
-            if (!template.HasVariants)
-                throw new InvalidOperationException("Parent item is not a template.");
 
-            // 2) Load template attributes (Id == VariantAttributeId)
-            var attrs = await _variantAttrCmd.GetForItemAsync(template.Id, ct);
-            if (attrs.Count == 0)
-                throw new InvalidOperationException("Template has no variant attributes defined.");
-
-            var validVarAttrIds = new HashSet<int>(attrs.Select(a => a.Id));
-            var orderedAttrIds  = attrs.OrderBy(a => a.Order).Select(a => a.Id).ToList();
-
-            // Maps to support payloads that send SpecificationMasterId instead of VariantAttributeId:
-            var byVarAttrId    = attrs.ToDictionary(a => a.Id);
-            var bySpecMasterId = attrs.ToDictionary(a => a.SpecificationMasterId, a => a.Id);
-
-            // ---- NORMALIZE INCOMING to VariantAttributeId row ids ----
-            var normalized = (p.VariantValues ?? new List<VariantValueDto>())
+            // 2) Resolve SpecificationValueId → (SpecMasterId, SpecValueName)
+            //    The payload's variantAttributeId is ignored — we derive the attribute
+            //    from the spec value's owning spec master.
+            var incomingSpecValueIds = p.VariantValues
                 .Where(v => v != null && v.SpecificationValueId > 0)
-                .Select(v =>
-                {
-                    int? id = v.VariantAttributeId;
-
-                    // If the id isn't a known row id, try to interpret it as SpecificationMasterId and map to row id.
-                    if (!id.HasValue || !byVarAttrId.ContainsKey(id.Value))
-                    {
-                        if (id.HasValue && bySpecMasterId.TryGetValue(id.Value, out var mapped))
-                            id = mapped;
-                        else
-                            id = null;
-                    }
-
-                    return new VariantValueDto
-                    {
-                        VariantAttributeId = id,
-                        SpecificationValueId = v.SpecificationValueId,
-                        SpecificationValue = v.SpecificationValue,
-                        Combo = v.Combo
-                    };
-                })
-                .Where(v => v.VariantAttributeId.HasValue && validVarAttrIds.Contains(v.VariantAttributeId.Value))
+                .Select(v => v.SpecificationValueId)
+                .Distinct()
                 .ToList();
 
-            if (normalized.Count == 0)
-                throw new InvalidOperationException(
-                    "No valid variant selections were provided. " +
-                    "Each selection must reference a VariantAttribute row id, or a SpecificationMasterId that belongs to the template.");
+            var specValueMap = await _variantAttrCmd.GetSpecificationValueMapAsync(incomingSpecValueIds, ct);
+            if (specValueMap.Count == 0)
+                throw new InvalidOperationException("None of the provided SpecificationValueIds were found.");
 
-            // 3) Existing combos from real children (protect against duplicates/overlaps)
+            var missingSpecValueIds = incomingSpecValueIds.Except(specValueMap.Keys).ToList();
+            if (missingSpecValueIds.Count > 0)
+                throw new InvalidOperationException(
+                    $"SpecificationValueId(s) not found or deleted: {string.Join(", ", missingSpecValueIds)}.");
+
+            // 3) Auto-provision variant attributes on the template for every distinct
+            //    SpecMasterId referenced by the payload.
+            var requiredSpecMasterIds = specValueMap.Values
+                .Select(v => v.SpecMasterId)
+                .Distinct()
+                .ToList();
+
+            var existingAttrs = await _variantAttrCmd.GetForItemAsync(template.Id, ct);
+            var existingSpecMasterIds = existingAttrs.Select(a => a.SpecificationMasterId).ToHashSet();
+            var missingSpecMasterIds = requiredSpecMasterIds.Except(existingSpecMasterIds).ToList();
+
+            // Persist template promotion + any missing attributes in a single transaction
+            // so the newly-created ItemVariantAttribute rows get assigned Ids before we
+            // re-query them for the child creation loop.
+            if (missingSpecMasterIds.Count > 0 || !template.HasVariants)
+            {
+                await _uow.ExecuteInTransactionAsync(async innerCt =>
+                {
+                    if (missingSpecMasterIds.Count > 0)
+                    {
+                        var nextOrder = existingAttrs.Count == 0 ? 1 : existingAttrs.Max(a => a.Order) + 1;
+                        var toCreate = missingSpecMasterIds
+                            .Select((specMasterId, idx) => new VariantAttributeDto
+                            {
+                                Id = 0,
+                                SpecificationMasterId = specMasterId,
+                                Order = nextOrder + idx
+                            })
+                            .ToList();
+
+                        await _variantAttrCmd.UpsertAttributesAsync(template.Id, toCreate, innerCt);
+                    }
+
+                    // Promote template to HasVariants=true so subsequent calls behave consistently.
+                    if (!template.HasVariants)
+                        template.HasVariants = true;
+                }, ct);
+            }
+
+            // 4) Re-load attributes so we have Ids for the newly-created rows.
+            var attrs = await _variantAttrCmd.GetForItemAsync(template.Id, ct);
+            if (attrs.Count == 0)
+                throw new InvalidOperationException("Failed to provision variant attributes on template.");
+
+            var attrIdBySpecMaster = attrs.ToDictionary(a => a.SpecificationMasterId, a => a.Id);
+            var orderedAttrIds = attrs.OrderBy(a => a.Order).Select(a => a.Id).ToList();
+
+            // 5) Existing combos from real children (overlap protection)
             var existingCombos = new List<HashSet<(int VarAttrId, int SpecValueId)>>();
             var childIds = await _itemRepo.GetChildIdsAsync(template.Id, ct);
             foreach (var cid in childIds)
@@ -233,72 +261,77 @@ namespace InventoryManagement.Application.Item.ItemAggregate.Handlers
                 if (set.Count > 0) existingCombos.Add(set);
             }
 
-            // 4) Group payload by Combo
-            var groups = normalized
+            // 6) Group incoming payload by Combo; each group = one child item
+            var groups = p.VariantValues
+                .Where(v => v != null && v.SpecificationValueId > 0 && specValueMap.ContainsKey(v.SpecificationValueId))
                 .GroupBy(v => v.Combo ?? 1)
                 .OrderBy(g => g.Key)
                 .ToList();
 
-            int lastCreatedId = 0;
-            bool createdAny   = false;
+            bool createdAny = false;
 
-            foreach (var g in groups)
+            // 7) Create ALL child items inside a SINGLE atomic transaction.
+            //    If any child fails (FK violation, overlap, duplicate code, etc.) every
+            //    child rolls back together — preventing zombie rows that would trigger
+            //    false overlap errors on the next retry.
+            var lastCreatedId = await _uow.ExecuteInTransactionAsync<int>(async innerCt =>
             {
-                // Dedupe by attribute within the combo; keep the last for that attribute
-                var sparse = g
-                    .GroupBy(v => v.VariantAttributeId!.Value)
-                    .Select(gg =>
-                    {
-                        var last = gg.Last();
-                        return (VarAttrId: last.VariantAttributeId!.Value, SpecValueId: last.SpecificationValueId);
-                    })
-                    .ToList();
+                int lastId = 0;
 
-                if (sparse.Count == 0) continue;
-
-                var sparseSet = sparse.ToHashSet();
-
-                // Overlap protection (equal/subset/superset)
-                if (existingCombos.Any(ex => IsSubset(ex, sparseSet) || IsSubset(sparseSet, ex)))
+                foreach (var g in groups)
                 {
-                    var label = string.Join(", ", sparse.OrderBy(x => x.VarAttrId).Select(x => $"{x.VarAttrId}:{x.SpecValueId}"));
-                    throw new InvalidOperationException($"A variant overlapping this selection already exists ({label}).");
-                }
-
-                // Build ordered selections only for provided attributes (sparse)
-                var orderedSelections = orderedAttrIds
-                    .Where(id => sparseSet.Any(s => s.VarAttrId == id))
-                    .Select(id =>
-                    {
-                        var match = sparseSet.First(s => s.VarAttrId == id);
-                        // Resolve the spec value name from the normalized input
-                        var valueName = normalized
-                            .FirstOrDefault(n => n.VariantAttributeId == id && n.SpecificationValueId == match.SpecValueId)
-                            ?.SpecificationValue;
-                        return new VariantValueDto
+                    // For each spec value in the combo, derive the correct VariantAttributeId
+                    // from the owning SpecMaster. Dedupe by attribute (last wins).
+                    var sparse = g
+                        .Select(v =>
                         {
-                            VariantAttributeId = id,
-                            SpecificationValueId = match.SpecValueId,
-                            SpecificationValue = valueName
-                        };
-                    })
-                    .ToList();
+                            var specInfo = specValueMap[v.SpecificationValueId];
+                            var varAttrId = attrIdBySpecMaster[specInfo.SpecMasterId];
+                            return (VarAttrId: varAttrId, SpecValueId: v.SpecificationValueId, SpecValueName: specInfo.SpecValueName);
+                        })
+                        .GroupBy(x => x.VarAttrId)
+                        .Select(gg => gg.Last())
+                        .ToList();
 
-                // Code & Name
-                var finalCode = await NextChildCodeAsync(template.ItemCode, ct);
+                    if (sparse.Count == 0) continue;
 
-                var orderedValueNames = orderedSelections
-                    .Select(v => v.SpecificationValue?.Trim())
-                    .Where(s => !string.IsNullOrWhiteSpace(s))
-                    .ToList();
+                    var sparseSet = sparse.Select(s => (s.VarAttrId, s.SpecValueId)).ToHashSet();
 
-                var childName = orderedValueNames.Count > 0
-                    ? $"{template.ItemName} - {string.Join(" ", orderedValueNames)}"
-                    : template.ItemName;
+                    // Overlap protection (equal/subset/superset) — checked against both
+                    // pre-existing children AND siblings created earlier in this same loop.
+                    if (existingCombos.Any(ex => IsSubset(ex, sparseSet) || IsSubset(sparseSet, ex)))
+                    {
+                        var label = string.Join(", ", sparse.OrderBy(x => x.VarAttrId).Select(x => $"{x.VarAttrId}:{x.SpecValueId}"));
+                        throw new InvalidOperationException($"A variant overlapping this selection already exists ({label}).");
+                    }
 
-                // Create child + selections
-                var childId = await _uow.ExecuteInTransactionAsync<int>(async _ =>
-                {
+                    // Ordered selections for naming and persistence
+                    var orderedSelections = orderedAttrIds
+                        .Where(id => sparse.Any(s => s.VarAttrId == id))
+                        .Select(id =>
+                        {
+                            var match = sparse.First(s => s.VarAttrId == id);
+                            return new VariantValueDto
+                            {
+                                VariantAttributeId = id,
+                                SpecificationValueId = match.SpecValueId,
+                                SpecificationValue = match.SpecValueName
+                            };
+                        })
+                        .ToList();
+
+                    // Code & Name
+                    var finalCode = await NextChildCodeAsync(template.ItemCode, innerCt);
+
+                    var orderedValueNames = orderedSelections
+                        .Select(v => v.SpecificationValue?.Trim())
+                        .Where(s => !string.IsNullOrWhiteSpace(s))
+                        .ToList();
+
+                    var childName = orderedValueNames.Count > 0
+                        ? $"{template.ItemName} - {string.Join(" ", orderedValueNames)}"
+                        : template.ItemName;
+
                     var child = new ItemMaster
                     {
                         ItemCode = finalCode,
@@ -319,23 +352,24 @@ namespace InventoryManagement.Application.Item.ItemAggregate.Handlers
                         IsActive = BaseEntity.Status.Active,
                         IsDeleted = template.IsDeleted,
                         IssueRuleId = template.IssueRuleId,
-                        IsOnSpot = template.IsOnSpot
+                        IsOnSpot = template.IsOnSpot,
+                        PriceGroupId = template.PriceGroupId
                     };
-                    var newId = await _itemRepo.CreateAsync(child, ct);
+                    var newId = await _itemRepo.CreateAsync(child, innerCt);
 
-                    await CloneTabsAndCollectionsAsync(newId, p, template, ct);
-                    await _variantValCmd.UpsertListAsync(newId, orderedSelections, ct);
+                    await CloneTabsAndCollectionsAsync(newId, p, template, innerCt);
+                    await _variantValCmd.UpsertListAsync(newId, orderedSelections, innerCt);
 
-                    return newId;
-                }, ct);
+                    existingCombos.Add(sparseSet);
+                    lastId = newId;
+                    createdAny = true;
+                }
 
-                existingCombos.Add(sparseSet);
-                lastCreatedId = childId;
-                createdAny    = true;
-            }
+                return lastId;
+            }, ct);
 
             if (!createdAny)
-                throw new InvalidOperationException("No child variants were created. Ensure each selection references valid template attributes or row ids.");
+                throw new InvalidOperationException("No child variants were created. Ensure each selection references valid specification values.");
 
             return lastCreatedId;
 
@@ -362,6 +396,8 @@ namespace InventoryManagement.Application.Item.ItemAggregate.Handlers
                 item.ItemCode = itemCode;
                 item.HasVariants = false;
                 item.IsActive = BaseEntity.Status.Active;
+                // Explicit assignment — AutoMapper ForAllMembers condition blocks nullable int mapping
+                item.PriceGroupId = p.PriceGroupId.HasValue && p.PriceGroupId.Value > 0 ? p.PriceGroupId : null;
 
                 var newId = await _itemRepo.CreateAsync(item, ct);
 

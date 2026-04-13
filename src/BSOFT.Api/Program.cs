@@ -70,8 +70,9 @@ builder.Services.AddLogisticsManagementModule(builder.Configuration, builder.Env
 // ✅ Global lookup caching (MUST be after module registrations)
 builder.Services.AddLookupCaching(options =>
 {
-    options.CacheDuration        = TimeSpan.FromMinutes(30);
-    options.AbsoluteExpiration   = TimeSpan.FromHours(24);
+    options.CacheDuration        = TimeSpan.FromMinutes(5);
+    //options.AbsoluteExpiration   = TimeSpan.FromHours(24);
+    options.AbsoluteExpiration   = TimeSpan.FromMinutes(30);
     options.SizeLimit            = 2000;
     options.EnableDetailedLogging = false;
 });

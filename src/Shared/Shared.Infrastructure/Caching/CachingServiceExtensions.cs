@@ -63,6 +63,11 @@ public static class CachingServiceExtensions
         // frequently-changing reads (GenerateDocumentNumber changes after every doc created).
         // Caching either causes duplicate document numbers.
         "IDocumentSequenceLookup",
+
+        // IWorkflowLookup queries AppData.ApprovalRequest which changes in real time
+        // (new submissions, approvals, rejections). Caching causes pending approval lists
+        // to show stale data — newly submitted items missing, already-approved items still appearing.
+        "IWorkflowLookup",
     };
 
     private static List<Type> DiscoverLookupInterfaces()

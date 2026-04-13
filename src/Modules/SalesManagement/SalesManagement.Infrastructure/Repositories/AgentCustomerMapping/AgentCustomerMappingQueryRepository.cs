@@ -2,6 +2,7 @@ using System.Data;
 using Contracts.Interfaces.Lookups.Party;
 using Dapper;
 using SalesManagement.Application.AgentCustomerMapping.Dto;
+using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Application.Common.Interfaces.IAgentCustomerMapping;
 
 namespace SalesManagement.Infrastructure.Repositories.AgentCustomerMapping
@@ -12,17 +13,20 @@ namespace SalesManagement.Infrastructure.Repositories.AgentCustomerMapping
         private readonly ICustomerLookup _customerLookup;
         private readonly IAgentLookup _agentLookup;
         private readonly ISubAgentLookup _subAgentLookup;
+        private readonly IMarketingOfficerAccessFilter _accessFilter;
 
         public AgentCustomerMappingQueryRepository(
             IDbConnection dbConnection,
             ICustomerLookup customerLookup,
             IAgentLookup agentLookup,
-            ISubAgentLookup subAgentLookup)
+            ISubAgentLookup subAgentLookup,
+            IMarketingOfficerAccessFilter accessFilter)
         {
             _dbConnection = dbConnection;
             _customerLookup = customerLookup;
             _agentLookup = agentLookup;
             _subAgentLookup = subAgentLookup;
+            _accessFilter = accessFilter;
         }
 
         public async Task<(List<AgentCustomerMappingDto>, int)> GetAllAsync(
@@ -32,12 +36,28 @@ namespace SalesManagement.Infrastructure.Repositories.AgentCustomerMapping
                 ? ""
                 : "AND (acm.Remarks LIKE @Search)";
 
+            // Marketing Officer access scoping: restrict to mappings whose AgentId is in officer's allowed agents
+            var moFilter = "";
+            var parameters = new DynamicParameters();
+            parameters.Add("Search", $"%{searchTerm}%");
+            parameters.Add("Offset", (pageNumber - 1) * pageSize);
+            parameters.Add("PageSize", pageSize);
+
+            if (_accessFilter.IsMarketingOfficer())
+            {
+                var agentIds = await _accessFilter.GetAccessibleAgentIdsAsync();
+                var safeIds = agentIds.Count > 0 ? agentIds.ToArray() : new[] { -1 };
+                moFilter = " AND acm.AgentId IN @AgentIds ";
+                parameters.Add("AgentIds", safeIds);
+            }
+
             var query = $@"
                 DECLARE @TotalCount INT;
                 SELECT @TotalCount = COUNT(*)
                 FROM Sales.AgentCustomerMapping acm
                 WHERE acm.IsDeleted = 0
-                {searchFilter};
+                {searchFilter}
+                {moFilter};
 
                 SELECT
                     acm.Id, acm.CustomerId, acm.AgentId, acm.SubAgentId,
@@ -50,17 +70,11 @@ namespace SalesManagement.Infrastructure.Repositories.AgentCustomerMapping
                 LEFT JOIN Sales.SalesSegment ss ON acm.SalesSegmentId = ss.Id AND ss.IsDeleted = 0
                 WHERE acm.IsDeleted = 0
                 {searchFilter}
+                {moFilter}
                 ORDER BY acm.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
 
                 SELECT @TotalCount AS TotalCount;";
-
-            var parameters = new
-            {
-                Search = $"%{searchTerm}%",
-                Offset = (pageNumber - 1) * pageSize,
-                PageSize = pageSize
-            };
 
             var multi = await _dbConnection.QueryMultipleAsync(query, parameters);
             var list = (await multi.ReadAsync<AgentCustomerMappingDto>()).ToList();
@@ -92,7 +106,20 @@ namespace SalesManagement.Infrastructure.Repositories.AgentCustomerMapping
 
         public async Task<AgentCustomerMappingDto?> GetByIdAsync(int id)
         {
-            const string sql = @"
+            // Marketing Officer access scoping: restrict to mappings whose AgentId is in officer's allowed agents
+            var moFilter = "";
+            var parameters = new DynamicParameters();
+            parameters.Add("Id", id);
+
+            if (_accessFilter.IsMarketingOfficer())
+            {
+                var agentIds = await _accessFilter.GetAccessibleAgentIdsAsync();
+                var safeIds = agentIds.Count > 0 ? agentIds.ToArray() : new[] { -1 };
+                moFilter = " AND acm.AgentId IN @AgentIds ";
+                parameters.Add("AgentIds", safeIds);
+            }
+
+            var sql = $@"
                 SELECT
                     acm.Id, acm.CustomerId, acm.AgentId, acm.SubAgentId,
                     acm.SalesSegmentId, ss.SegmentName,
@@ -102,10 +129,11 @@ namespace SalesManagement.Infrastructure.Repositories.AgentCustomerMapping
                     acm.ModifiedBy, acm.ModifiedDate, acm.ModifiedByName, acm.ModifiedIP
                 FROM Sales.AgentCustomerMapping acm
                 LEFT JOIN Sales.SalesSegment ss ON acm.SalesSegmentId = ss.Id AND ss.IsDeleted = 0
-                WHERE acm.Id = @Id AND acm.IsDeleted = 0";
+                WHERE acm.Id = @Id AND acm.IsDeleted = 0
+                {moFilter}";
 
             var dto = await _dbConnection.QueryFirstOrDefaultAsync<AgentCustomerMappingDto>(
-                sql, new { Id = id });
+                sql, parameters);
 
             if (dto != null)
             {
@@ -129,15 +157,28 @@ namespace SalesManagement.Infrastructure.Repositories.AgentCustomerMapping
         public async Task<IReadOnlyList<AgentCustomerMappingLookupDto>> AutocompleteAsync(
             string term, CancellationToken ct)
         {
-            const string sql = @"
+            // Marketing Officer access scoping: restrict to mappings whose AgentId is in officer's allowed agents
+            var moFilter = "";
+            var parameters = new DynamicParameters();
+
+            if (_accessFilter.IsMarketingOfficer())
+            {
+                var agentIds = await _accessFilter.GetAccessibleAgentIdsAsync(ct);
+                var safeIds = agentIds.Count > 0 ? agentIds.ToArray() : new[] { -1 };
+                moFilter = " AND acm.AgentId IN @AgentIds ";
+                parameters.Add("AgentIds", safeIds);
+            }
+
+            var sql = $@"
                 SELECT TOP 20
                     acm.Id, acm.CustomerId, acm.AgentId
                 FROM Sales.AgentCustomerMapping acm
                 WHERE acm.IsDeleted = 0 AND acm.IsActive = 1
+                {moFilter}
                 ORDER BY acm.Id DESC";
 
             var rows = (await _dbConnection.QueryAsync<dynamic>(
-                new CommandDefinition(sql, cancellationToken: ct)))
+                new CommandDefinition(sql, parameters, cancellationToken: ct)))
                 .ToList();
 
             if (!rows.Any())
@@ -207,7 +248,20 @@ namespace SalesManagement.Infrastructure.Repositories.AgentCustomerMapping
 
         public async Task<List<AgentCustomerMappingDto>> GetByCustomerIdAsync(int customerId, CancellationToken ct = default)
         {
-            const string sql = @"
+            // Marketing Officer access scoping: restrict to mappings whose AgentId is in officer's allowed agents
+            var moFilter = "";
+            var parameters = new DynamicParameters();
+            parameters.Add("CustomerId", customerId);
+
+            if (_accessFilter.IsMarketingOfficer())
+            {
+                var agentIds = await _accessFilter.GetAccessibleAgentIdsAsync(ct);
+                var safeIds = agentIds.Count > 0 ? agentIds.ToArray() : new[] { -1 };
+                moFilter = " AND acm.AgentId IN @AgentIds ";
+                parameters.Add("AgentIds", safeIds);
+            }
+
+            var sql = $@"
                 SELECT
                     acm.Id, acm.CustomerId, acm.AgentId, acm.SubAgentId,
                     acm.SalesSegmentId, ss.SegmentName,
@@ -218,10 +272,11 @@ namespace SalesManagement.Infrastructure.Repositories.AgentCustomerMapping
                 FROM Sales.AgentCustomerMapping acm
                 LEFT JOIN Sales.SalesSegment ss ON acm.SalesSegmentId = ss.Id AND ss.IsDeleted = 0
                 WHERE acm.CustomerId = @CustomerId AND acm.IsDeleted = 0
+                {moFilter}
                 ORDER BY acm.Id DESC";
 
             var list = (await _dbConnection.QueryAsync<AgentCustomerMappingDto>(
-                new CommandDefinition(sql, new { CustomerId = customerId }, cancellationToken: ct)))
+                new CommandDefinition(sql, parameters, cancellationToken: ct)))
                 .ToList();
 
             if (list.Any())

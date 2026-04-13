@@ -135,7 +135,8 @@ namespace InventoryManagement.Application.Item.ItemDetail.Commands.CreateItemVar
                         IsActive = BaseEntity.Status.Active,
                         IsDeleted = template.IsDeleted,
                         IssueRuleId = template.IssueRuleId,
-                        IsOnSpot = template.IsOnSpot
+                        IsOnSpot = template.IsOnSpot,
+                        PriceGroupId = template.PriceGroupId
                     };
                     var childId = await _itemRepo.CreateAsync(child, ct);
 

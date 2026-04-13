@@ -9,6 +9,7 @@ using ProductionManagement.Application.Common.Interfaces;
 using ProductionManagement.Application.Common.Interfaces.AuditLog;
 using ProductionManagement.Application.Common.Interfaces.ICountGroup;
 using ProductionManagement.Application.Common.Interfaces.IYarnType;
+using ProductionManagement.Application.Common.Interfaces.IRawMaterialType;
 using ProductionManagement.Application.Common.Interfaces.ICountMaster;
 using ProductionManagement.Application.Common.Interfaces.ILotMaster;
 using ProductionManagement.Application.Common.Interfaces.IMiscMaster;
@@ -31,6 +32,7 @@ using ProductionManagement.Infrastructure.Persistence;
 using ProductionManagement.Infrastructure.Repositories.AuditLog;
 using ProductionManagement.Infrastructure.Repositories.CountGroup;
 using ProductionManagement.Infrastructure.Repositories.YarnType;
+using ProductionManagement.Infrastructure.Repositories.RawMaterialType;
 using ProductionManagement.Infrastructure.Repositories.CountMaster;
 using ProductionManagement.Infrastructure.Repositories.MiscMaster;
 using ProductionManagement.Infrastructure.Repositories.MiscTypeMaster;
@@ -112,6 +114,10 @@ namespace ProductionManagement.Infrastructure
             services.AddScoped<IYarnTypeCommandRepository, YarnTypeCommandRepository>();
             services.AddScoped<IYarnTypeQueryRepository, YarnTypeQueryRepository>();
 
+            // RawMaterialType repositories
+            services.AddScoped<IRawMaterialTypeCommandRepository, RawMaterialTypeCommandRepository>();
+            services.AddScoped<IRawMaterialTypeQueryRepository, RawMaterialTypeQueryRepository>();
+
             // CountMaster repositories
             services.AddScoped<ICountMasterCommandRepository, CountMasterCommandRepository>();
             services.AddScoped<ICountMasterQueryRepository, CountMasterQueryRepository>();
@@ -167,6 +173,7 @@ namespace ProductionManagement.Infrastructure
             services.AddScoped<IQualityMasterLookup, QualityMasterLookupRepository>();
             services.AddScoped<ICertificationMasterLookup, CertificationMasterLookupRepository>();
             services.AddScoped<IYarnTwistMasterLookup, YarnTwistMasterLookupRepository>();
+            services.AddScoped<IRawMaterialTypeLookup, RawMaterialTypeLookupRepository>();
 
             // Validation repositories — cross-module referential integrity (Rule 25)
             services.AddScoped<Contracts.Interfaces.Validations.ProductionManagement.IProductionItemValidation, Repositories.Validations.ProductionItemValidationRepository>();

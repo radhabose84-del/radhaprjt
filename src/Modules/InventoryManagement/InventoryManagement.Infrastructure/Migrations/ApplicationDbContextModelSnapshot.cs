@@ -501,6 +501,35 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.ToTable("ItemCategory", "Inventory");
                 });
 
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemCategoryModule", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ItemCategoryId")
+                        .HasColumnType("int")
+                        .HasColumnName("ItemCategoryId");
+
+                    b.Property<int>("ModuleId")
+                        .HasColumnType("int")
+                        .HasColumnName("ModuleId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ItemCategoryId");
+
+                    b.HasIndex("ModuleId");
+
+                    b.HasIndex("ItemCategoryId", "ModuleId")
+                        .IsUnique();
+
+                    b.ToTable("ItemCategoryModule", "Inventory");
+                });
+
             modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemDetail.ItemInventory", b =>
                 {
                     b.Property<int>("Id")
@@ -814,6 +843,10 @@ namespace InventoryManagement.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("ParentItemId");
 
+                    b.Property<int?>("PriceGroupId")
+                        .HasColumnType("int")
+                        .HasColumnName("PriceGroupId");
+
                     b.Property<int?>("StockUomId")
                         .HasColumnType("int")
                         .HasColumnName("StockUomId");
@@ -843,6 +876,8 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.HasIndex("ItemGroupId");
 
                     b.HasIndex("ParentItemId");
+
+                    b.HasIndex("PriceGroupId");
 
                     b.HasIndex("StockUomId");
 
@@ -979,6 +1014,10 @@ namespace InventoryManagement.Infrastructure.Migrations
                         .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,3)")
                         .HasColumnName("PackageQuantity");
+
+                    b.Property<int?>("RmTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("RmTypeId");
 
                     b.Property<int?>("UomId")
                         .HasColumnType("int")
@@ -1168,6 +1207,173 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.ToTable("InspectionTemplate", "Inventory");
                 });
 
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemDetail.Variant.ItemItemSpecification", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("ItemId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("SpecificationValueId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SpecificationValueId");
+
+                    b.HasIndex("ItemId", "SpecificationValueId")
+                        .IsUnique();
+
+                    b.ToTable("ItemItemSpecification", "Inventory");
+                });
+
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemDetail.Variant.ItemSpecificationMaster", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SpecificationCode")
+                        .IsRequired()
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<string>("SpecificationName")
+                        .IsRequired()
+                        .HasColumnType("varchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Order")
+                        .IsUnique();
+
+                    b.HasIndex("SpecificationCode")
+                        .IsUnique();
+
+                    b.ToTable("ItemSpecificationMaster", "Inventory");
+                });
+
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemDetail.Variant.ItemSpecificationValue", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("SpecificationMasterId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SpecificationValue")
+                        .IsRequired()
+                        .HasColumnType("varchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SpecificationMasterId", "SpecificationValue")
+                        .IsUnique();
+
+                    b.ToTable("ItemSpecificationValue", "Inventory");
+                });
+
             modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemDetail.Variant.ItemVariantAttribute", b =>
                 {
                     b.Property<int>("Id")
@@ -1176,33 +1382,23 @@ namespace InventoryManagement.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("AttributeGroupId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("AttributeId")
-                        .HasColumnType("int");
-
                     b.Property<int>("ItemId")
                         .HasColumnType("int");
 
                     b.Property<int>("Order")
                         .HasColumnType("int");
 
-                    b.Property<int>("VariantBasedOn")
+                    b.Property<int>("SpecificationMasterId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AttributeGroupId");
-
-                    b.HasIndex("AttributeId");
-
-                    b.HasIndex("VariantBasedOn");
-
-                    b.HasIndex("ItemId", "AttributeId")
-                        .IsUnique();
+                    b.HasIndex("SpecificationMasterId");
 
                     b.HasIndex("ItemId", "Order")
+                        .IsUnique();
+
+                    b.HasIndex("ItemId", "SpecificationMasterId")
                         .IsUnique();
 
                     b.ToTable("ItemVariantAttribute", "Inventory");
@@ -1219,12 +1415,10 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.Property<int>("ItemId")
                         .HasColumnType("int");
 
-                    b.Property<string>("OptionValue")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
                     b.Property<int>("ParentItemId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SpecificationValueId")
                         .HasColumnType("int");
 
                     b.Property<int>("VariantAttributeId")
@@ -1234,13 +1428,15 @@ namespace InventoryManagement.Infrastructure.Migrations
 
                     b.HasIndex("ParentItemId");
 
+                    b.HasIndex("SpecificationValueId");
+
                     b.HasIndex("VariantAttributeId");
 
                     b.HasIndex("ItemId", "VariantAttributeId")
                         .IsUnique()
                         .HasDatabaseName("UX_ItemVariantValue_Item_VarAttr");
 
-                    b.HasIndex("ItemId", "VariantAttributeId", "OptionValue")
+                    b.HasIndex("ItemId", "VariantAttributeId", "SpecificationValueId")
                         .IsUnique();
 
                     b.ToTable("ItemVariantValue", "Inventory");
@@ -1779,6 +1975,86 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.ToTable("OutboxMessages", "Inventory");
                 });
 
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.PriceGroupMaster", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CreatedByName")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedIP")
+                        .IsRequired()
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("Description");
+
+                    b.Property<DateTimeOffset>("EffectiveFrom")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("EffectiveFrom");
+
+                    b.Property<DateTimeOffset?>("EffectiveTo")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("EffectiveTo");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<string>("PriceGroupCode")
+                        .IsRequired()
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("PriceGroupCode");
+
+                    b.Property<string>("PriceGroupName")
+                        .IsRequired()
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("PriceGroupName");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EffectiveFrom");
+
+                    b.HasIndex("PriceGroupCode")
+                        .IsUnique()
+                        .HasFilter("[IsDeleted] = 0");
+
+                    b.HasIndex("PriceGroupName")
+                        .IsUnique()
+                        .HasFilter("[IsDeleted] = 0");
+
+                    b.ToTable("PriceGroupMaster", "Inventory");
+                });
+
             modelBuilder.Entity("InventoryManagement.Domain.Entities.Stock.StockLedger", b =>
                 {
                     b.Property<int>("Id")
@@ -2298,6 +2574,17 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.Navigation("RootCategory");
                 });
 
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemCategoryModule", b =>
+                {
+                    b.HasOne("InventoryManagement.Domain.Entities.Item.ItemCategory", "ItemCategory")
+                        .WithMany("ItemCategoryModules")
+                        .HasForeignKey("ItemCategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ItemCategory");
+                });
+
             modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemDetail.ItemInventory", b =>
                 {
                     b.HasOne("InventoryManagement.Domain.Entities.MiscMaster", "MiscDefaultMaterialRequestType")
@@ -2388,6 +2675,11 @@ namespace InventoryManagement.Infrastructure.Migrations
                         .HasForeignKey("ParentItemId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("InventoryManagement.Domain.Entities.PriceGroupMaster", "PriceGroup")
+                        .WithMany()
+                        .HasForeignKey("PriceGroupId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("InventoryManagement.Domain.Entities.UOM", "UOM")
                         .WithMany("ItemMasterUOM")
                         .HasForeignKey("StockUomId")
@@ -2411,6 +2703,8 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.Navigation("MiscStatus");
 
                     b.Navigation("ParentItem");
+
+                    b.Navigation("PriceGroup");
 
                     b.Navigation("UOM");
                 });
@@ -2539,38 +2833,53 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.Navigation("UsageType");
                 });
 
-            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemDetail.Variant.ItemVariantAttribute", b =>
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemDetail.Variant.ItemItemSpecification", b =>
                 {
-                    b.HasOne("InventoryManagement.Domain.Entities.MiscTypeMaster", "MiscAttributeGroup")
-                        .WithMany("ItemVariantAttributeGroup")
-                        .HasForeignKey("AttributeGroupId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("InventoryManagement.Domain.Entities.MiscMaster", "MiscAttribute")
-                        .WithMany("ItemAttribute")
-                        .HasForeignKey("AttributeId")
+                    b.HasOne("InventoryManagement.Domain.Entities.Item.ItemDetail.ItemMaster", "ItemMaster")
+                        .WithMany("ItemSpecifications")
+                        .HasForeignKey("ItemId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("InventoryManagement.Domain.Entities.Item.ItemDetail.Variant.ItemSpecificationValue", "SpecificationValue")
+                        .WithMany("ItemSpecifications")
+                        .HasForeignKey("SpecificationValueId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ItemMaster");
+
+                    b.Navigation("SpecificationValue");
+                });
+
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemDetail.Variant.ItemSpecificationValue", b =>
+                {
+                    b.HasOne("InventoryManagement.Domain.Entities.Item.ItemDetail.Variant.ItemSpecificationMaster", "SpecificationMaster")
+                        .WithMany("SpecificationValues")
+                        .HasForeignKey("SpecificationMasterId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("SpecificationMaster");
+                });
+
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemDetail.Variant.ItemVariantAttribute", b =>
+                {
                     b.HasOne("InventoryManagement.Domain.Entities.Item.ItemDetail.ItemMaster", "ItemMaster")
                         .WithMany("VariantAttributes")
                         .HasForeignKey("ItemId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("InventoryManagement.Domain.Entities.MiscMaster", "MiscVariantBasedOn")
-                        .WithMany("ItemAttributeBasedOn")
-                        .HasForeignKey("VariantBasedOn")
+                    b.HasOne("InventoryManagement.Domain.Entities.Item.ItemDetail.Variant.ItemSpecificationMaster", "SpecificationMaster")
+                        .WithMany("VariantAttributes")
+                        .HasForeignKey("SpecificationMasterId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("ItemMaster");
 
-                    b.Navigation("MiscAttribute");
-
-                    b.Navigation("MiscAttributeGroup");
-
-                    b.Navigation("MiscVariantBasedOn");
+                    b.Navigation("SpecificationMaster");
                 });
 
             modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemDetail.Variant.ItemVariantValue", b =>
@@ -2587,6 +2896,12 @@ namespace InventoryManagement.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("InventoryManagement.Domain.Entities.Item.ItemDetail.Variant.ItemSpecificationValue", "SpecificationValue")
+                        .WithMany("VariantValues")
+                        .HasForeignKey("SpecificationValueId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("InventoryManagement.Domain.Entities.Item.ItemDetail.Variant.ItemVariantAttribute", "VariantAttribute")
                         .WithMany("ItemVariantValues")
                         .HasForeignKey("VariantAttributeId")
@@ -2596,6 +2911,8 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.Navigation("ItemMaster");
 
                     b.Navigation("ParentItem");
+
+                    b.Navigation("SpecificationValue");
 
                     b.Navigation("VariantAttribute");
                 });
@@ -2759,6 +3076,8 @@ namespace InventoryManagement.Infrastructure.Migrations
                 {
                     b.Navigation("ChildCategories");
 
+                    b.Navigation("ItemCategoryModules");
+
                     b.Navigation("ItemMasterCategory");
 
                     b.Navigation("PutAwayRuleCategory");
@@ -2769,6 +3088,8 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.Navigation("ChildItems");
 
                     b.Navigation("Inventory");
+
+                    b.Navigation("ItemSpecifications");
 
                     b.Navigation("ItemUOMs");
 
@@ -2798,6 +3119,20 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.Navigation("Items");
 
                     b.Navigation("Parameters");
+                });
+
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemDetail.Variant.ItemSpecificationMaster", b =>
+                {
+                    b.Navigation("SpecificationValues");
+
+                    b.Navigation("VariantAttributes");
+                });
+
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemDetail.Variant.ItemSpecificationValue", b =>
+                {
+                    b.Navigation("ItemSpecifications");
+
+                    b.Navigation("VariantValues");
                 });
 
             modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemDetail.Variant.ItemVariantAttribute", b =>
@@ -2831,10 +3166,6 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.Navigation("BudgetAction");
 
                     b.Navigation("HSNMasters");
-
-                    b.Navigation("ItemAttribute");
-
-                    b.Navigation("ItemAttributeBasedOn");
 
                     b.Navigation("ItemInventoryDefaultMaterialRequestType");
 
@@ -2871,8 +3202,6 @@ namespace InventoryManagement.Infrastructure.Migrations
 
             modelBuilder.Entity("InventoryManagement.Domain.Entities.MiscTypeMaster", b =>
                 {
-                    b.Navigation("ItemVariantAttributeGroup");
-
                     b.Navigation("MiscMaster");
                 });
 

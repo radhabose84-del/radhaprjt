@@ -1,4 +1,5 @@
 using Contracts.Interfaces.Lookups.Finance;
+using Contracts.Interfaces.Updates.Party;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using SalesManagement.Application.Common.Interfaces.IDispatchAdvice;
@@ -12,16 +13,27 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
     {
         private readonly ApplicationDbContext _applicationDbContext;
         private readonly IDocumentSequenceLookup _documentSequenceLookup;
+        private readonly IPartyFreightUpdate _partyFreightUpdate;
 
         public DispatchAdviceCommandRepository(
             ApplicationDbContext applicationDbContext,
-            IDocumentSequenceLookup documentSequenceLookup)
+            IDocumentSequenceLookup documentSequenceLookup,
+            IPartyFreightUpdate partyFreightUpdate)
         {
             _applicationDbContext = applicationDbContext;
             _documentSequenceLookup = documentSequenceLookup;
+            _partyFreightUpdate = partyFreightUpdate;
         }
 
-        public async Task<int> CreateAsync(DispatchAdviceHeader entity, int unitId, int packedStatusId, int reservedStatusId, int transactionTypeId)
+        public async Task<int> CreateAsync(
+            DispatchAdviceHeader entity,
+            int unitId,
+            int packedStatusId,
+            int reservedStatusId,
+            int transactionTypeId,
+            string? dispatchTypeName,
+            string directToPartyName,
+            string othersName)
         {
             var strategy = _applicationDbContext.Database.CreateExecutionStrategy();
 
@@ -67,9 +79,29 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
                         await _applicationDbContext.SaveChangesAsync();
                     }
 
-                    // Increment DocNo via lookup — same connection + transaction
+                    // Address-based freight propagation — runs INSIDE the same transaction
+                    //   • Direct-To-Party → Party.PartyMaster.SalesFreightId (cross-module via IPartyFreightUpdate)
+                    //   • Others          → Sales.DispatchAddressMaster.FreightId (same-module inline SQL)
                     var dbConnection = _applicationDbContext.Database.GetDbConnection();
                     var dbTransaction = transaction.GetDbTransaction();
+
+                    if (string.Equals(dispatchTypeName, directToPartyName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        await _partyFreightUpdate.UpdateSalesFreightIfNullAsync(
+                            entity.PartyId, entity.FreightId, dbConnection, dbTransaction);
+                    }
+                    else if (string.Equals(dispatchTypeName, othersName, StringComparison.OrdinalIgnoreCase)
+                             && entity.DispatchAddressId.HasValue)
+                    {
+                        const string addressSql = @"
+                            UPDATE Sales.DispatchAddressMaster
+                            SET FreightId = {0}
+                            WHERE Id = {1} AND FreightId IS NULL";
+
+                        await _applicationDbContext.Database.ExecuteSqlRawAsync(addressSql, entity.FreightId, entity.DispatchAddressId.Value);
+                    }
+
+                    // Increment DocNo via lookup — same connection + transaction
                     await _documentSequenceLookup.IncrementDocNoAsync(transactionTypeId, dbConnection, dbTransaction);
 
                     await _applicationDbContext.SaveChangesAsync();

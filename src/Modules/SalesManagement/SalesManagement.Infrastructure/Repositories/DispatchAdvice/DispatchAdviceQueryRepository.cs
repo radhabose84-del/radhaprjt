@@ -4,6 +4,7 @@ using Contracts.Interfaces.Lookups.Logistics;
 using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Production;
+using Contracts.Interfaces.Lookups.Warehouse;
 using Contracts.Interfaces;
 using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Application.Common.Interfaces.IDispatchAdvice;
@@ -21,6 +22,8 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
         private readonly IPackTypeLookup _packTypeLookup;
         private readonly ILotMasterLookup _lotMasterLookup;
         private readonly IFreightMasterLookup _freightMasterLookup;
+        private readonly IWarehouseLookup _warehouseLookup;
+        private readonly IBinLookup _binLookup;
 
         public DispatchAdviceQueryRepository(
             IDbConnection dbConnection,
@@ -30,7 +33,9 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
             IIPAddressService ipAddressService,
             IPackTypeLookup packTypeLookup,
             ILotMasterLookup lotMasterLookup,
-            IFreightMasterLookup freightMasterLookup)
+            IFreightMasterLookup freightMasterLookup,
+            IWarehouseLookup warehouseLookup,
+            IBinLookup binLookup)
         {
             _dbConnection = dbConnection;
             _partyLookup = partyLookup;
@@ -40,6 +45,8 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
             _packTypeLookup = packTypeLookup;
             _lotMasterLookup = lotMasterLookup;
             _freightMasterLookup = freightMasterLookup;
+            _warehouseLookup = warehouseLookup;
+            _binLookup = binLookup;
         }
 
         public async Task<(List<DispatchAdviceHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
@@ -102,15 +109,21 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
                     : [];
                 var transporterDict = transporters.ToDictionary(p => p.Id, p => p.PartyName);
 
-                // Populate cross-module: FreightModeName
+                // Populate cross-module: Freight details (FreightModeName, RateMethodName, Rate)
                 var freightIds = list.Select(x => x.FreightId).Distinct().ToList();
                 var allFreights = await _freightMasterLookup.GetAllFreightMasterAsync();
-                var freightDict = allFreights.Where(f => freightIds.Contains(f.Id)).ToDictionary(f => f.Id, f => f.FreightModeName);
+                var freightDict = allFreights.Where(f => freightIds.Contains(f.Id)).ToDictionary(f => f.Id);
 
                 foreach (var item in list)
                 {
                     item.PartyName = partyDict.TryGetValue(item.PartyId, out var pName) ? pName : null;
-                    item.FreightModeName = freightDict.TryGetValue(item.FreightId, out var fName) ? fName : null;
+
+                    if (freightDict.TryGetValue(item.FreightId, out var freightDto))
+                    {
+                        item.FreightModeName = freightDto.FreightModeName;
+                        item.RateMethodName = freightDto.RateMethodName;
+                        item.FreightRate = freightDto.Rate;
+                    }
 
                     if (item.TransporterId.HasValue)
                         item.TransporterName = transporterDict.TryGetValue(item.TransporterId.Value, out var tName) ? tName : null;
@@ -180,9 +193,11 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
             var party = await _partyLookup.GetByIdAsync(header.PartyId);
             header.PartyName = party?.PartyName;
 
-            // Populate cross-module: FreightModeName
+            // Populate cross-module: Freight details (FreightModeName, RateMethodName, Rate)
             var freight = await _freightMasterLookup.GetByIdAsync(header.FreightId);
             header.FreightModeName = freight?.FreightModeName;
+            header.RateMethodName = freight?.RateMethodName;
+            header.FreightRate = freight?.Rate;
 
             // Populate cross-module: TransporterName
             if (header.TransporterId.HasValue)
@@ -341,16 +356,20 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
             return result.ToList();
         }
 
-        public async Task<List<DispatchAdvicePackRangeDto>> GetPackRangeAsync(int itemId, int lotId, int packTypeId, int statusId, int range)
+        public async Task<List<DispatchAdvicePackRangeDto>> GetPackRangeAsync(int itemId, int lotId, int packTypeId, int statusId, int range, string? orderType)
         {
             var unitId = _ipAddressService.GetUnitId() ?? 0;
 
-            const string sql = @"
+            // FIFO (default) → DocDate, PackNo ASC ; LIFO → DocDate, PackNo DESC
+            var isLifo = string.Equals(orderType, "LIFO", StringComparison.OrdinalIgnoreCase);
+            var direction = isLifo ? "DESC" : "ASC";
+
+            var sql = $@"
                 SELECT S.PackNo, S.ItemId, S.LotId, S.PackTypeId
                 FROM Sales.StockLedger S
                 WHERE S.UnitId = @UnitId AND S.ItemId = @ItemId AND S.StatusId = @StatusId
                     AND S.LotId = @LotId AND S.PackTypeId = @PackTypeId
-                ORDER BY S.PackNo";
+                ORDER BY S.DocDate, S.PackNo {direction}";
 
             var rows = (await _dbConnection.QueryAsync<dynamic>(sql,
                 new { UnitId = unitId, ItemId = itemId, StatusId = statusId, LotId = lotId, PackTypeId = packTypeId })).ToList();
@@ -369,15 +388,17 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
             string? lotName = lotLookupList.FirstOrDefault()?.LotCode;
             string? packTypeName = packTypeLookupList.FirstOrDefault()?.PackTypeName;
 
-            // Collect all PackNos sorted
-            var packNos = rows.Select(r => (int)r.PackNo).OrderBy(p => p).ToList();
+            // Preserve SQL order — FIFO ascends, LIFO descends
+            var packNos = rows.Select(r => (int)r.PackNo).ToList();
 
-            // Step 1: Group consecutive PackNos (break on gaps)
+            // Step 1: Group consecutive PackNos (break on gaps).
+            // Step direction matches the sort order: +1 for FIFO, -1 for LIFO.
+            var step = isLifo ? -1 : 1;
             var consecutiveGroups = new List<List<int>>();
             var currentGroup = new List<int> { packNos[0] };
             for (int i = 1; i < packNos.Count; i++)
             {
-                if (packNos[i] == packNos[i - 1] + 1)
+                if (packNos[i] == packNos[i - 1] + step)
                 {
                     currentGroup.Add(packNos[i]);
                 }
@@ -441,7 +462,7 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
         public async Task<IReadOnlyList<DispatchAdviceLookupDto>> AutocompleteAsync(string term, CancellationToken ct)
         {
             const string sql = @"
-                SELECT TOP 20 Id, DispatchNo, DispatchDate
+                SELECT Id, DispatchNo, DispatchDate, InvFlg
                 FROM Sales.DispatchAdviceHeader
                 WHERE IsActive = 1 AND IsDeleted = 0
                 AND DispatchNo LIKE @Term
@@ -449,6 +470,83 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
 
             var result = await _dbConnection.QueryAsync<DispatchAdviceLookupDto>(sql, new { Term = $"%{term}%" });
             return result.ToList();
+        }
+
+        public async Task<DispatchAdvicePackingListDto?> GetPackingListAsync(int dispatchAdviceId, CancellationToken ct)
+        {
+            // Header — fetched once (may have zero detail rows if no stock found)
+            const string headerSql = @"
+                SELECT h.Id AS DispatchAdviceId, h.DispatchNo, h.DispatchDate, h.PartyId
+                FROM Sales.DispatchAdviceHeader h
+                WHERE h.Id = @DispatchAdviceId AND h.IsDeleted = 0";
+
+            var header = await _dbConnection.QueryFirstOrDefaultAsync<DispatchAdvicePackingListDto>(
+                new CommandDefinition(headerSql, new { DispatchAdviceId = dispatchAdviceId }, cancellationToken: ct));
+
+            if (header == null)
+                return null;
+
+            // Detail rows — one per pack, join header + detail + stock ledger
+            const string detailSql = @"
+                SELECT d.ItemId, d.LotId, d.PackTypeId,
+                       sl.PackNo, sl.WarehouseId, sl.BinId,
+                       sl.TotalQty, sl.TotalValue
+                FROM Sales.DispatchAdviceHeader h
+                INNER JOIN Sales.DispatchAdviceDetail d ON d.DispatchAdviceHeaderId = h.Id
+                INNER JOIN Sales.StockLedger sl
+                    ON sl.UnitId = h.UnitId
+                    AND sl.ItemId = d.ItemId
+                    AND sl.LotId = d.LotId
+                    AND sl.PackTypeId = d.PackTypeId
+                    AND sl.PackNo BETWEEN d.StartPackNo AND d.EndPackNo
+                WHERE h.Id = @DispatchAdviceId
+                  AND h.IsDeleted = 0
+                ORDER BY d.ItemId, d.LotId, sl.PackNo";
+
+            var details = (await _dbConnection.QueryAsync<DispatchAdvicePackingListDetailDto>(
+                new CommandDefinition(detailSql, new { DispatchAdviceId = dispatchAdviceId }, cancellationToken: ct))).ToList();
+
+            // Party lookup (header-level)
+            var party = await _partyLookup.GetByIdAsync(header.PartyId, ct);
+            header.PartyName = party?.PartyName;
+            header.Details = details;
+
+            if (details.Count == 0)
+                return header;
+
+            // Cross-module lookups (detail-level) — resolve names once per distinct id set
+            var itemIds = details.Select(r => r.ItemId).Distinct().ToList();
+            var lotIds = details.Select(r => r.LotId).Distinct().ToList();
+            var packTypeIds = details.Select(r => r.PackTypeId).Distinct().ToList();
+            var warehouseIds = details.Where(r => r.WarehouseId.HasValue).Select(r => r.WarehouseId!.Value).Distinct().ToList();
+            var binIds = details.Where(r => r.BinId.HasValue).Select(r => r.BinId!.Value).Distinct().ToList();
+
+            var items = await _itemLookup.GetByIdsAsync(itemIds);
+            var lots = await _lotMasterLookup.GetByIdsAsync(lotIds);
+            var packTypes = await _packTypeLookup.GetByIdsAsync(packTypeIds);
+            var warehouses = warehouseIds.Count > 0 ? await _warehouseLookup.GetByIdsAsync(warehouseIds, ct) : [];
+            var bins = binIds.Count > 0 ? await _binLookup.GetByIdsAsync(binIds, ct) : [];
+
+            var itemDict = items.ToDictionary(i => i.Id, i => i.ItemName);
+            var lotDict = lots.ToDictionary(l => l.Id, l => l.LotCode);
+            var packTypeDict = packTypes.ToDictionary(p => p.Id, p => p.PackTypeName);
+            var warehouseDict = warehouses.ToDictionary(w => w.Id, w => w.WarehouseName);
+            var binDict = bins.ToDictionary(b => b.Id, b => b.BinName);
+
+            foreach (var row in details)
+            {
+                row.ItemName = itemDict.TryGetValue(row.ItemId, out var iN) ? iN : null;
+                row.LotCode = lotDict.TryGetValue(row.LotId, out var lc) ? lc : null;
+                row.PackTypeName = packTypeDict.TryGetValue(row.PackTypeId, out var pt) ? pt : null;
+
+                if (row.WarehouseId.HasValue)
+                    row.WarehouseName = warehouseDict.TryGetValue(row.WarehouseId.Value, out var wn) ? wn : null;
+
+                if (row.BinId.HasValue)
+                    row.BinName = binDict.TryGetValue(row.BinId.Value, out var bn) ? bn : null;
+            }
+
+            return header;
         }
     }
 }

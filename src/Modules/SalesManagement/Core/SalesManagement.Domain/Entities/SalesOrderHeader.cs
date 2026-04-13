@@ -31,6 +31,11 @@ namespace SalesManagement.Domain.Entities
         public int? CountListId { get; set; }
         public string? Remarks { get; set; }
 
+        // MD Discount — when checkbox enabled, Rate + Document are mandatory
+        public bool IsMdDiscountEnabled { get; set; }
+        public decimal? MdDiscountRate { get; set; }
+        public string? MdApprovalDocument { get; set; }
+
         // File Attachments
         public string? VisitNotesAttachment { get; set; }
         public string? AgentPOAttachment { get; set; }

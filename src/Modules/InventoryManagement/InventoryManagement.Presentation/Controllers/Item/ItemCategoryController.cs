@@ -21,32 +21,36 @@ namespace InventoryManagement.Presentation.Controllers.Item
             _mediator=mediator;
         }        
         [HttpGet]
-        public async Task<IActionResult> GetAllItemCategoryAsync([FromQuery] int PageNumber,[FromQuery] int PageSize,[FromQuery] string? SearchTerm = null)
+        public async Task<IActionResult> GetAllItemCategoryAsync([FromQuery] int PageNumber, [FromQuery] int PageSize, [FromQuery] string? SearchTerm = null, [FromQuery] int? moduleId = null)
         {
            var notificationConfig = await Mediator.Send(
             new GetItemCategoryQuery
             {
-                PageNumber = PageNumber, 
-                PageSize = PageSize, 
-                SearchTerm = SearchTerm
+                PageNumber = PageNumber,
+                PageSize = PageSize,
+                SearchTerm = SearchTerm,
+                ModuleId = moduleId
             });
-            return Ok( new 
-            { 
-                StatusCode=StatusCodes.Status200OK, 
+            return Ok( new
+            {
+                StatusCode=StatusCodes.Status200OK,
                 data = notificationConfig.Data,
                 TotalCount = notificationConfig.TotalCount,
                 PageNumber = notificationConfig.PageNumber,
                 PageSize = notificationConfig.PageSize
                 });
         }
-        
+
         [HttpGet("by-name")]
-        public async Task<IActionResult> GetItemCategoryAutoCompleteAsync([FromQuery] string? CategoryName, [FromQuery] int? groupId, [FromQuery] bool? isGroup = false, [FromQuery] int? excludeId = 0)
+        public async Task<IActionResult> GetItemCategoryAutoCompleteAsync([FromQuery] string? CategoryName, [FromQuery] int? groupId, [FromQuery] bool? isGroup = false, [FromQuery] int? excludeId = 0, [FromQuery] int? moduleId = null)
         {
             var notificationConfig = await Mediator.Send(new GetItemCategoryAutoCompleteQuery
             {
                 SearchPattern = CategoryName ?? string.Empty,
-                        GroupId = groupId  ,IsGroup = isGroup ,excludeId = excludeId ?? 0
+                GroupId = groupId,
+                IsGroup = isGroup,
+                excludeId = excludeId ?? 0,
+                ModuleId = moduleId
             });
             return Ok(new { StatusCode = StatusCodes.Status200OK, data = notificationConfig});
         }

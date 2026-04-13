@@ -12,6 +12,7 @@ namespace InventoryManagement.Domain.Entities.Item.ItemDetail
         public int? DeliveryLeadTime { get; set; }
         public bool Discount { get; set; }
         public int? CountId { get; set; }
+        public int? RmTypeId { get; set; }
         public int? ValuationMethodId { get; set; }
         public MiscMaster? MiscValuationMethod { get; set; }
     }

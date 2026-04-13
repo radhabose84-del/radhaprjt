@@ -3686,7 +3686,8 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("SalesChannelCode")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[IsDeleted] = 0");
 
                     b.ToTable("SalesChannel", "Sales");
                 });
@@ -4657,10 +4658,25 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("bit")
                         .HasColumnName("IsDeleted");
 
+                    b.Property<bool>("IsMdDiscountEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false)
+                        .HasColumnName("IsMdDiscountEnabled");
+
                     b.Property<decimal>("ItemValue")
                         .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,3)")
                         .HasColumnName("ItemValue");
+
+                    b.Property<string>("MdApprovalDocument")
+                        .HasColumnType("varchar(200)")
+                        .HasColumnName("MdApprovalDocument");
+
+                    b.Property<decimal?>("MdDiscountRate")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,3)")
+                        .HasColumnName("MdDiscountRate");
 
                     b.Property<int?>("ModifiedBy")
                         .HasColumnType("int")

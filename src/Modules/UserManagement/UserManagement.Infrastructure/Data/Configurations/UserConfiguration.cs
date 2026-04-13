@@ -60,6 +60,11 @@ namespace UserManagement.Infrastructure.Data.Configurations
                 .HasColumnType("varchar(50)")
                 .IsRequired(false);
 
+            builder.Property(u => u.EmpId)
+                .HasColumnName("EmpId")
+                .HasColumnType("int")
+                .IsRequired(false);
+
             builder.Property(u => u.IsActive)
                 .HasColumnName("IsActive")
                 .HasColumnType("bit")

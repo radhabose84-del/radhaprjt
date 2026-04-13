@@ -41,12 +41,14 @@ namespace InventoryManagement.Infrastructure.Data
 
         }
 
-         public DbSet<ItemGroup> ItemGroup { get; set; } 
-         public DbSet<ItemCategory> ItemCategory { get; set; } 
+         public DbSet<ItemGroup> ItemGroup { get; set; }
+         public DbSet<ItemCategory> ItemCategory { get; set; }
+         public DbSet<ItemCategoryModule> ItemCategoryModule { get; set; }
 
 		 public DbSet<MiscTypeMaster> MiscTypeMaster { get; set; }
          public DbSet<MiscMaster> MiscMaster { get; set; }        
          public DbSet<HSNMaster> HSNMaster { get; set; }
+         public DbSet<PriceGroupMaster> PriceGroupMaster { get; set; }
          public DbSet<UOM> UOMs { get; set; }
          public DbSet<UOMConversion> UOMConversions { get; set; }
         public DbSet<BudgetMaster> BudgetMaster { get; set; }
@@ -87,6 +89,7 @@ namespace InventoryManagement.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new OutboxMessageConfiguration());
             modelBuilder.ApplyConfiguration(new ItemGroupConfiguration());
             modelBuilder.ApplyConfiguration(new ItemCategoryConfiguration());
+            modelBuilder.ApplyConfiguration(new ItemCategoryModuleConfiguration());
 
             modelBuilder.ApplyConfiguration(new MiscTypeMasterConfiguration());
             modelBuilder.ApplyConfiguration(new MiscMasterConfiguration());
@@ -94,6 +97,7 @@ namespace InventoryManagement.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new BudgetDetailConfiguration());
             modelBuilder.ApplyConfiguration(new BudgetLogConfiguration());
             modelBuilder.ApplyConfiguration(new HSNMasterConfiguration());
+            modelBuilder.ApplyConfiguration(new PriceGroupMasterConfiguration());
             modelBuilder.ApplyConfiguration(new UOMConfiguration());
             modelBuilder.ApplyConfiguration(new UOMConversionConfiguration());
             //Item
