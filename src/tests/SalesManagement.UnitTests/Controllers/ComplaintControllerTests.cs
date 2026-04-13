@@ -66,14 +66,7 @@ public sealed class ComplaintControllerTests
     {
         _mockMediator
             .Setup(m => m.Send(It.IsAny<GetPendingComplaintQuery>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ApiResponseDTO<List<ComplaintHeaderDto>>
-            {
-                IsSuccess = true,
-                Data = new List<ComplaintHeaderDto>(),
-                TotalCount = 0,
-                PageNumber = 1,
-                PageSize = 10
-            });
+            .ReturnsAsync((new List<PendingComplaintListDto>(), 0));
 
         var result = await CreateSut().GetPendingComplaintAsync(1, 10);
         result.Should().BeOfType<OkObjectResult>();

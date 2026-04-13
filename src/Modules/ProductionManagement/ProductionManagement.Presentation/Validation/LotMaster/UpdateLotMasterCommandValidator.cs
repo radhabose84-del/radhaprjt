@@ -67,6 +67,11 @@ namespace ProductionManagement.Presentation.Validation.LotMaster
                             .MustAsync(async (id, ct) => await _queryRepository.StatusExistsAsync(id))
                             .WithMessage($"{nameof(UpdateLotMasterCommand.StatusId)} {rule.Error}")
                             .When(x => x.StatusId > 0);
+
+                        RuleFor(x => x.VariantId!.Value)
+                            .MustAsync(async (id, ct) => await _queryRepository.VariantExistsAsync(id, ct))
+                            .WithMessage($"{nameof(UpdateLotMasterCommand.VariantId)} {rule.Error}")
+                            .When(x => x.VariantId.HasValue);
                         break;
 
                     case "ByteValue":

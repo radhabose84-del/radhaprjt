@@ -17,16 +17,16 @@ namespace LogisticsManagement.UnitTests.Validators.MiscTypeMaster
             return new UpdateMiscTypeMasterCommandValidator(maxLengthProvider, _mockQueryRepo.Object);
         }
 
-        private void SetupAllAsyncMocks(int id = 1)
+        private void SetupAllValid()
         {
-            _mockQueryRepo.Setup(r => r.NotFoundAsync(id)).ReturnsAsync(false);
+            _mockQueryRepo.Setup(r => r.NotFoundAsync(It.IsAny<int>())).ReturnsAsync(false);
         }
 
         [Fact]
         public async Task Validate_ValidCommand_PassesValidation()
         {
+            SetupAllValid();
             var command = MiscTypeMasterBuilders.ValidUpdateCommand();
-            SetupAllAsyncMocks(command.Id);
 
             var result = await CreateValidator().TestValidateAsync(command);
 
@@ -36,6 +36,7 @@ namespace LogisticsManagement.UnitTests.Validators.MiscTypeMaster
         [Fact]
         public async Task Validate_ZeroId_FailsValidation()
         {
+            SetupAllValid();
             var command = MiscTypeMasterBuilders.ValidUpdateCommand(id: 0);
 
             var result = await CreateValidator().TestValidateAsync(command);
@@ -46,8 +47,9 @@ namespace LogisticsManagement.UnitTests.Validators.MiscTypeMaster
         [Fact]
         public async Task Validate_NonExistentId_FailsValidation()
         {
-            var command = MiscTypeMasterBuilders.ValidUpdateCommand(id: 99);
+            SetupAllValid();
             _mockQueryRepo.Setup(r => r.NotFoundAsync(99)).ReturnsAsync(true);
+            var command = MiscTypeMasterBuilders.ValidUpdateCommand(id: 99);
 
             var result = await CreateValidator().TestValidateAsync(command);
 
@@ -59,8 +61,8 @@ namespace LogisticsManagement.UnitTests.Validators.MiscTypeMaster
         [InlineData("")]
         public async Task Validate_EmptyDescription_FailsValidation(string? description)
         {
+            SetupAllValid();
             var command = MiscTypeMasterBuilders.ValidUpdateCommand(description: description);
-            SetupAllAsyncMocks(command.Id);
 
             var result = await CreateValidator().TestValidateAsync(command);
 
@@ -70,8 +72,8 @@ namespace LogisticsManagement.UnitTests.Validators.MiscTypeMaster
         [Fact]
         public async Task Validate_InvalidIsActive_FailsValidation()
         {
+            SetupAllValid();
             var command = MiscTypeMasterBuilders.ValidUpdateCommand(isActive: 5);
-            SetupAllAsyncMocks(command.Id);
 
             var result = await CreateValidator().TestValidateAsync(command);
 
@@ -81,8 +83,8 @@ namespace LogisticsManagement.UnitTests.Validators.MiscTypeMaster
         [Fact]
         public async Task Validate_IsActiveZero_PassesValidation()
         {
+            SetupAllValid();
             var command = MiscTypeMasterBuilders.ValidUpdateCommand(isActive: 0);
-            SetupAllAsyncMocks(command.Id);
 
             var result = await CreateValidator().TestValidateAsync(command);
 
@@ -92,8 +94,8 @@ namespace LogisticsManagement.UnitTests.Validators.MiscTypeMaster
         [Fact]
         public async Task Validate_IsActiveOne_PassesValidation()
         {
+            SetupAllValid();
             var command = MiscTypeMasterBuilders.ValidUpdateCommand(isActive: 1);
-            SetupAllAsyncMocks(command.Id);
 
             var result = await CreateValidator().TestValidateAsync(command);
 

@@ -133,18 +133,8 @@ namespace MaintenanceManagement.IntegrationTests.Repositories.MachineSpecificati
                 });
         }
 
-        private async Task ClearAllTablesAsync(MaintenanceManagement.Infrastructure.Data.ApplicationDbContext ctx)
-        {
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Maintenance].[MachineSpecification]");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Maintenance].[MachineMaster]");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Maintenance].[MiscMaster]");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Maintenance].[MiscTypeMaster]");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Maintenance].[MachineGroup]");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Maintenance].[ShiftMasterDetails]");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Maintenance].[ShiftMaster]");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Maintenance].[CostCenter]");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Maintenance].[WorkCenter]");
-        }
+        private async Task ClearAllTablesAsync(MaintenanceManagement.Infrastructure.Data.ApplicationDbContext ctx) =>
+            await _fixture.ClearAllTablesAsync();
 
         // --- CREATE ---
 

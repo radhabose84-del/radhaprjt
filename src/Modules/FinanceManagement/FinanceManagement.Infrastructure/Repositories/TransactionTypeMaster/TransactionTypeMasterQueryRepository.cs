@@ -118,31 +118,31 @@ namespace FinanceManagement.Infrastructure.Repositories.TransactionTypeMaster
             return result.ToList();
         }
 
-        public async Task<bool> TypeNameExistsAsync(string typeName, int? id = null)
+        public async Task<bool> TypeNameExistsAsync(string typeName, int unitId, int? id = null)
         {
             var sql = @"
                 SELECT COUNT(1)
                 FROM [Finance].[TransactionTypeMaster]
-                WHERE TypeName = @TypeName AND IsDeleted = 0";
+                WHERE TypeName = @TypeName AND UnitId = @UnitId AND IsDeleted = 0";
 
             if (id.HasValue && id.Value > 0)
                 sql += " AND Id != @Id";
 
-            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { TypeName = typeName.Trim(), Id = id });
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { TypeName = typeName.Trim(), UnitId = unitId, Id = id });
             return count > 0;
         }
 
-        public async Task<bool> ShortNameExistsAsync(string shortName, int? id = null)
+        public async Task<bool> ShortNameExistsAsync(string shortName, int unitId, int? id = null)
         {
             var sql = @"
                 SELECT COUNT(1)
                 FROM [Finance].[TransactionTypeMaster]
-                WHERE ShortName = @ShortName AND IsDeleted = 0";
+                WHERE ShortName = @ShortName AND UnitId = @UnitId AND IsDeleted = 0";
 
             if (id.HasValue && id.Value > 0)
                 sql += " AND Id != @Id";
 
-            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { ShortName = shortName.Trim(), Id = id });
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { ShortName = shortName.Trim(), UnitId = unitId, Id = id });
             return count > 0;
         }
 

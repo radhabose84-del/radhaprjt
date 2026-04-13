@@ -683,13 +683,15 @@ namespace FinanceManagement.Infrastructure.Migrations
 
                     b.HasIndex("ModuleId");
 
-                    b.HasIndex("ShortName")
-                        .IsUnique();
-
-                    b.HasIndex("TypeName")
-                        .IsUnique();
-
                     b.HasIndex("UnitId");
+
+                    b.HasIndex("UnitId", "ShortName")
+                        .IsUnique()
+                        .HasFilter("[IsDeleted] = 0");
+
+                    b.HasIndex("UnitId", "TypeName")
+                        .IsUnique()
+                        .HasFilter("[IsDeleted] = 0");
 
                     b.ToTable("TransactionTypeMaster", "Finance");
                 });

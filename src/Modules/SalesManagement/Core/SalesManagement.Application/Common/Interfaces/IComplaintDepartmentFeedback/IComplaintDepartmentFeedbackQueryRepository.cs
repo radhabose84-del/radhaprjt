@@ -11,6 +11,8 @@ namespace SalesManagement.Application.Common.Interfaces.IComplaintDepartmentFeed
         Task<List<MyPendingFeedbackDto>> GetMyPendingAsync(int userId);
         Task<bool> NotFoundAsync(int id);
         Task<bool> AssignmentExistsAsync(int assignmentId);
+        Task<bool> IsQCApprovedForAssignmentAsync(int assignmentId);
+        Task<bool> IsQCApprovedForFeedbackAsync(int feedbackId);
         Task<bool> FeedbackAlreadyExistsForAssignmentAsync(int assignmentId);
         Task<int> GetResponsiblePersonIdAsync(int assignmentId);
         Task<int> GetFeedbackStatusIdAsync(int feedbackId);

@@ -28,10 +28,8 @@ namespace FixedAssetManagement.IntegrationTests.Repositories.MiscTypeMaster
                 IsDeleted = BaseEntity.IsDelete.NotDeleted
             };
 
-        private async Task ClearTableAsync(FAM.Infrastructure.Data.ApplicationDbContext ctx)
-        {
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [FixedAsset].[MiscTypeMaster]");
-        }
+        private async Task ClearTableAsync(FAM.Infrastructure.Data.ApplicationDbContext ctx) =>
+            await _fixture.ClearAllTablesAsync();
 
         // --- CREATE ---
 

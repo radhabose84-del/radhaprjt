@@ -48,6 +48,7 @@ namespace ProductionManagement.Infrastructure.Repositories.LotMaster
                     lm.Id, lm.LotCode, lm.BatchNumber,
                     lm.LotTypeId, lt.Description AS LotTypeName,
                     lm.ItemId,
+                    lm.VariantId,
                     lm.UnitId,
                     lm.StartDate,
                     lm.StatusId, st.Description AS StatusName,
@@ -81,12 +82,18 @@ namespace ProductionManagement.Infrastructure.Repositories.LotMaster
             {
                 var itemIds = list.Select(x => x.ItemId).Distinct();
                 var unitIds = list.Select(x => x.UnitId).Distinct();
+                var variantIds = list.Where(x => x.VariantId.HasValue)
+                                     .Select(x => x.VariantId!.Value).Distinct();
 
                 var items = await _itemLookup.GetByIdsAsync(itemIds);
                 var itemDict = items.ToDictionary(x => x.Id);
 
                 var units = await _unitLookup.GetByIdsAsync(unitIds);
                 var unitDict = units.ToDictionary(x => x.UnitId, x => x.UnitName);
+
+                var variantDict = variantIds.Any()
+                    ? (await _itemLookup.GetByIdsAsync(variantIds)).ToDictionary(x => x.Id)
+                    : new Dictionary<int, Contracts.Dtos.Lookups.Inventory.ItemLookupDto>();
 
                 foreach (var dto in list)
                 {
@@ -98,6 +105,9 @@ namespace ProductionManagement.Infrastructure.Repositories.LotMaster
 
                     if (unitDict.TryGetValue(dto.UnitId, out var unitName))
                         dto.UnitName = unitName;
+
+                    if (dto.VariantId.HasValue && variantDict.TryGetValue(dto.VariantId!.Value, out var variantData))
+                        dto.VariantName = variantData.ItemName;
                 }
             }
 
@@ -111,6 +121,7 @@ namespace ProductionManagement.Infrastructure.Repositories.LotMaster
                     lm.Id, lm.LotCode, lm.BatchNumber,
                     lm.LotTypeId, lt.Description AS LotTypeName,
                     lm.ItemId,
+                    lm.VariantId,
                     lm.UnitId,
                     lm.StartDate,
                     lm.StatusId, st.Description AS StatusName,
@@ -140,6 +151,14 @@ namespace ProductionManagement.Infrastructure.Repositories.LotMaster
                 var unitData = units.FirstOrDefault();
                 if (unitData != null)
                     dto.UnitName = unitData.UnitName;
+
+                if (dto.VariantId.HasValue)
+                {
+                    var variants = await _itemLookup.GetByIdsAsync(new[] { dto.VariantId.Value });
+                    var variantData = variants.FirstOrDefault();
+                    if (variantData != null)
+                        dto.VariantName = variantData.ItemName;
+                }
             }
 
             return dto;
@@ -228,6 +247,19 @@ namespace ProductionManagement.Infrastructure.Repositories.LotMaster
         {
             var units = await _unitLookup.GetByIdsAsync(new[] { unitId }, ct);
             return units.Any();
+        }
+
+        public async Task<bool> VariantExistsAsync(int variantId, CancellationToken ct = default)
+        {
+            var variants = await _itemLookup.GetByIdsAsync(new[] { variantId }, ct);
+            return variants.Any();
+        }
+
+        public async Task<bool> VariantBelongsToItemAsync(int variantId, int itemId, CancellationToken ct = default)
+        {
+            var variants = await _itemLookup.GetByIdsAsync(new[] { variantId }, ct);
+            var variant = variants.FirstOrDefault();
+            return variant != null && variant.ParentItemId == itemId;
         }
 
         public async Task<bool> SoftDeleteValidationAsync(int id)

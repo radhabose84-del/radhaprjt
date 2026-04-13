@@ -117,9 +117,10 @@ namespace SalesManagement.Application.SalesReturn.Commands.CreateSalesReturn
                     await _commandRepository.InsertStockLedgerEntriesAsync(stockEntries);
             }
 
-            // Update ComplaintResolution return status
+            // Update ComplaintResolution return status (and close if fully returned)
             var (totalDispatched, totalReturned) = await _queryRepository.GetReturnProgressAsync(request.ComplaintHeaderId);
-            var returnStatusCode = totalReturned >= totalDispatched
+            var isFullyReturned = totalReturned >= totalDispatched;
+            var returnStatusCode = isFullyReturned
                 ? MiscEnumEntity.ReturnStatusFullyReturned
                 : MiscEnumEntity.ReturnStatusPartiallyReturned;
 
@@ -127,8 +128,18 @@ namespace SalesManagement.Application.SalesReturn.Commands.CreateSalesReturn
                 MiscEnumEntity.ReturnStatus, returnStatusCode);
             if (returnStatus != null)
             {
+                int? closureStatusId = null;
+                int? closedBy = null;
+                if (isFullyReturned)
+                {
+                    var closedStatus = await _miscMasterQueryRepository.GetMiscMasterByName(
+                        MiscEnumEntity.ClosureStatus, MiscEnumEntity.ClosureStatusClosed);
+                    closureStatusId = closedStatus?.Id;
+                    closedBy = _ipAddressService.GetUserId();
+                }
+
                 await _commandRepository.UpdateComplaintResolutionReturnStatusAsync(
-                    request.ComplaintHeaderId, returnStatus.Id, totalReturned);
+                    request.ComplaintHeaderId, returnStatus.Id, totalReturned, closureStatusId, closedBy);
             }
 
             var auditEvent = new AuditLogsDomainEvent(

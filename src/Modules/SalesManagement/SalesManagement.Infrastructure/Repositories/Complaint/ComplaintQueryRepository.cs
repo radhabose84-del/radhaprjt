@@ -7,6 +7,7 @@ using Contracts.Interfaces.Lookups.Users;
 using Dapper;
 using SalesManagement.Application.Common.Interfaces.IComplaint;
 using SalesManagement.Application.Complaint.Dto;
+using SalesManagement.Domain.Common;
 
 namespace SalesManagement.Infrastructure.Repositories.Complaint
 {
@@ -19,6 +20,7 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
         private readonly IUnitLookup _unitLookup;
         private readonly IUOMLookup _uomLookup;
         private readonly IIPAddressService _ipAddressService;
+        private readonly IDataAccessFilter _dataAccessFilter;
 
         public ComplaintQueryRepository(
             IDbConnection dbConnection,
@@ -27,7 +29,8 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
             ILotMasterLookup lotLookup,
             IUnitLookup unitLookup,
             IUOMLookup uomLookup,
-            IIPAddressService ipAddressService)
+            IIPAddressService ipAddressService,
+            IDataAccessFilter dataAccessFilter)
         {
             _dbConnection = dbConnection;
             _partyLookup = partyLookup;
@@ -36,10 +39,23 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
             _unitLookup = unitLookup;
             _uomLookup = uomLookup;
             _ipAddressService = ipAddressService;
+            _dataAccessFilter = dataAccessFilter;
         }
 
         public async Task<(List<ComplaintHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
         {
+            var accessCtx = await _dataAccessFilter.GetContextAsync();
+            var allowedPartyIds = new HashSet<int>(accessCtx.AllowedCustomerIds);
+            if (accessCtx.PartyId.HasValue)
+                allowedPartyIds.Add(accessCtx.PartyId.Value);
+
+            if (accessCtx.IsCustomerRestricted && allowedPartyIds.Count == 0)
+                return (new List<ComplaintHeaderDto>(), 0);
+
+            var partyFilter = accessCtx.IsCustomerRestricted && allowedPartyIds.Count > 0
+                ? " AND h.CustomerId IN @AllowedPartyIds"
+                : string.Empty;
+
             var searchFilter = string.IsNullOrWhiteSpace(searchTerm)
                 ? string.Empty
                 : @" AND (h.ComplaintNumber LIKE @SearchTerm
@@ -50,7 +66,7 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                 SELECT COUNT(*)
                 FROM Sales.ComplaintHeader h
                 LEFT JOIN Sales.MiscMaster ms ON h.StatusId = ms.Id AND ms.IsDeleted = 0
-                WHERE h.IsDeleted = 0 {searchFilter};";
+                WHERE h.IsDeleted = 0 {partyFilter} {searchFilter};";
 
             var dataSql = $@"
                 SELECT
@@ -85,18 +101,18 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                     h.ModifiedIP
                 FROM Sales.ComplaintHeader h
                 LEFT JOIN Sales.MiscMaster ms ON h.StatusId = ms.Id AND ms.IsDeleted = 0
-                WHERE h.IsDeleted = 0 {searchFilter}
+                WHERE h.IsDeleted = 0 {partyFilter} {searchFilter}
                 ORDER BY h.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;";
 
-            var parameters = new
-            {
-                SearchTerm = $"%{searchTerm}%",
-                Offset = (pageNumber - 1) * pageSize,
-                PageSize = pageSize
-            };
+            var dp = new DynamicParameters();
+            dp.Add("SearchTerm", $"%{searchTerm}%");
+            dp.Add("Offset", (pageNumber - 1) * pageSize);
+            dp.Add("PageSize", pageSize);
+            if (accessCtx.IsCustomerRestricted && allowedPartyIds.Count > 0)
+                dp.Add("AllowedPartyIds", allowedPartyIds.ToList());
 
-            using var multi = await _dbConnection.QueryMultipleAsync(countSql + dataSql, parameters);
+            using var multi = await _dbConnection.QueryMultipleAsync(countSql + dataSql, dp);
             var totalCount = await multi.ReadFirstAsync<int>();
             var data = (await multi.ReadAsync<ComplaintHeaderDto>()).ToList();
 
@@ -318,7 +334,19 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
 
         public async Task<IReadOnlyList<ComplaintLookupDto>> AutocompleteAsync(string term, CancellationToken ct)
         {
-            const string sql = @"
+            var accessCtx = await _dataAccessFilter.GetContextAsync(ct);
+            var allowedPartyIds = new HashSet<int>(accessCtx.AllowedCustomerIds);
+            if (accessCtx.PartyId.HasValue)
+                allowedPartyIds.Add(accessCtx.PartyId.Value);
+
+            if (accessCtx.IsCustomerRestricted && allowedPartyIds.Count == 0)
+                return new List<ComplaintLookupDto>();
+
+            var partyFilter = accessCtx.IsCustomerRestricted && allowedPartyIds.Count > 0
+                ? " AND h.CustomerId IN @AllowedPartyIds"
+                : string.Empty;
+
+            var sql = $@"
                 SELECT TOP 20
                     h.Id,
                     h.ComplaintNumber,
@@ -326,9 +354,15 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                 FROM Sales.ComplaintHeader h
                 WHERE h.IsDeleted = 0 AND h.IsActive = 1
                   AND h.ComplaintNumber LIKE @Term
+                  {partyFilter}
                 ORDER BY h.ComplaintNumber ASC;";
 
-            var result = await _dbConnection.QueryAsync<ComplaintLookupDto>(sql, new { Term = $"%{term}%" });
+            var dp = new DynamicParameters();
+            dp.Add("Term", $"%{term}%");
+            if (accessCtx.IsCustomerRestricted && allowedPartyIds.Count > 0)
+                dp.Add("AllowedPartyIds", allowedPartyIds.ToList());
+
+            var result = await _dbConnection.QueryAsync<ComplaintLookupDto>(sql, dp);
             var list = result.ToList();
 
             // Populate CustomerName
@@ -358,7 +392,19 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
 
         public async Task<IReadOnlyList<ComplaintForSalesReturnLookupDto>> GetComplaintsForSalesReturnAsync(string term, CancellationToken ct)
         {
-            const string sql = @"
+            var accessCtx = await _dataAccessFilter.GetContextAsync(ct);
+            var allowedPartyIds = new HashSet<int>(accessCtx.AllowedCustomerIds);
+            if (accessCtx.PartyId.HasValue)
+                allowedPartyIds.Add(accessCtx.PartyId.Value);
+
+            if (accessCtx.IsCustomerRestricted && allowedPartyIds.Count == 0)
+                return new List<ComplaintForSalesReturnLookupDto>();
+
+            var partyFilter = accessCtx.IsCustomerRestricted && allowedPartyIds.Count > 0
+                ? " AND ch.CustomerId IN @AllowedPartyIds"
+                : string.Empty;
+
+            var sql = $@"
                 SELECT TOP 20
                     ch.Id,
                     ch.ComplaintNumber,
@@ -384,10 +430,15 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                   AND (cr.ReturnStatusId IS NULL OR rs.Code <> 'FullyReturned')
                   AND (cs.Code IS NULL OR cs.Code <> 'Closed')
                   AND ch.ComplaintNumber LIKE @Term
+                  {partyFilter}
                 ORDER BY ch.ComplaintDate DESC;";
 
-            var result = await _dbConnection.QueryAsync<ComplaintForSalesReturnLookupDto>(
-                sql, new { Term = $"%{term}%" });
+            var dp = new DynamicParameters();
+            dp.Add("Term", $"%{term}%");
+            if (accessCtx.IsCustomerRestricted && allowedPartyIds.Count > 0)
+                dp.Add("AllowedPartyIds", allowedPartyIds.ToList());
+
+            var result = await _dbConnection.QueryAsync<ComplaintForSalesReturnLookupDto>(sql, dp);
             var list = result.ToList();
 
             if (list.Count > 0)
@@ -698,7 +749,8 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                 SELECT @TotalCount = COUNT(*)
                 FROM Sales.ComplaintResolution cr
                 INNER JOIN Sales.ComplaintHeader ch ON ch.Id = cr.ComplaintHeaderId AND ch.IsDeleted = 0
-                WHERE cr.IsDeleted = 0 AND cr.ResolvedBy IS NOT NULL AND cr.ClosureStatusId IS NULL {searchFilter};
+                INNER JOIN Sales.MiscMaster cs ON cr.ClosureStatusId = cs.Id AND cs.IsDeleted = 0
+                WHERE cr.IsDeleted = 0 AND cr.ResolvedBy IS NOT NULL AND cs.Description <> @ClosedStatus {searchFilter};
 
                 SELECT
                     cr.Id,
@@ -714,8 +766,8 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                 FROM Sales.ComplaintResolution cr
                 INNER JOIN Sales.ComplaintHeader ch ON ch.Id = cr.ComplaintHeaderId AND ch.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster rt ON cr.ResolutionTypeId = rt.Id AND rt.IsDeleted = 0
-                LEFT JOIN Sales.MiscMaster cs ON cr.ClosureStatusId = cs.Id AND cs.IsDeleted = 0
-                WHERE cr.IsDeleted = 0 AND cr.ResolvedBy IS NOT NULL AND cr.ClosureStatusId IS NULL {searchFilter}
+                INNER JOIN Sales.MiscMaster cs ON cr.ClosureStatusId = cs.Id AND cs.IsDeleted = 0
+                WHERE cr.IsDeleted = 0 AND cr.ResolvedBy IS NOT NULL AND cs.Description <> @ClosedStatus {searchFilter}
                 ORDER BY cr.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
 
@@ -725,7 +777,8 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
             {
                 SearchTerm = $"%{searchTerm}%",
                 Offset = (pageNumber - 1) * pageSize,
-                PageSize = pageSize
+                PageSize = pageSize,
+                ClosedStatus = MiscEnumEntity.ClosureStatusClosed
             };
 
             using var multi = await _dbConnection.QueryMultipleAsync(sql, parameters);
