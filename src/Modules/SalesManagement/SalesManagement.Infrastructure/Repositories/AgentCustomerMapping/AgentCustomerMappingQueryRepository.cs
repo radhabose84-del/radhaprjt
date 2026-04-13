@@ -303,6 +303,20 @@ namespace SalesManagement.Infrastructure.Repositories.AgentCustomerMapping
             return list;
         }
 
+        public async Task<bool> MappingAlreadyExistsAsync(int customerId, int agentId, CancellationToken ct = default)
+        {
+            const string sql = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1 FROM Sales.AgentCustomerMapping
+                    WHERE CustomerId = @CustomerId
+                      AND AgentId    = @AgentId
+                      AND IsDeleted  = 0
+                ) THEN 1 ELSE 0 END";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(
+                new CommandDefinition(sql, new { CustomerId = customerId, AgentId = agentId }, cancellationToken: ct));
+        }
+
         public async Task<bool> SoftDeleteValidationAsync(int id, CancellationToken ct = default)
         {
             // Returns true if the mapping is referenced in active transactions (blocks delete)
