@@ -4,6 +4,7 @@ using Contracts.Interfaces.Lookups.Logistics;
 using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Production;
+using Contracts.Interfaces.Lookups.Warehouse;
 using Contracts.Interfaces;
 using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Application.Common.Interfaces.IDispatchAdvice;
@@ -21,6 +22,8 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
         private readonly IPackTypeLookup _packTypeLookup;
         private readonly ILotMasterLookup _lotMasterLookup;
         private readonly IFreightMasterLookup _freightMasterLookup;
+        private readonly IWarehouseLookup _warehouseLookup;
+        private readonly IBinLookup _binLookup;
 
         public DispatchAdviceQueryRepository(
             IDbConnection dbConnection,
@@ -30,7 +33,9 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
             IIPAddressService ipAddressService,
             IPackTypeLookup packTypeLookup,
             ILotMasterLookup lotMasterLookup,
-            IFreightMasterLookup freightMasterLookup)
+            IFreightMasterLookup freightMasterLookup,
+            IWarehouseLookup warehouseLookup,
+            IBinLookup binLookup)
         {
             _dbConnection = dbConnection;
             _partyLookup = partyLookup;
@@ -40,6 +45,8 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
             _packTypeLookup = packTypeLookup;
             _lotMasterLookup = lotMasterLookup;
             _freightMasterLookup = freightMasterLookup;
+            _warehouseLookup = warehouseLookup;
+            _binLookup = binLookup;
         }
 
         public async Task<(List<DispatchAdviceHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
@@ -463,6 +470,83 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
 
             var result = await _dbConnection.QueryAsync<DispatchAdviceLookupDto>(sql, new { Term = $"%{term}%" });
             return result.ToList();
+        }
+
+        public async Task<DispatchAdvicePackingListDto?> GetPackingListAsync(int dispatchAdviceId, CancellationToken ct)
+        {
+            // Header — fetched once (may have zero detail rows if no stock found)
+            const string headerSql = @"
+                SELECT h.Id AS DispatchAdviceId, h.DispatchNo, h.DispatchDate, h.PartyId
+                FROM Sales.DispatchAdviceHeader h
+                WHERE h.Id = @DispatchAdviceId AND h.IsDeleted = 0";
+
+            var header = await _dbConnection.QueryFirstOrDefaultAsync<DispatchAdvicePackingListDto>(
+                new CommandDefinition(headerSql, new { DispatchAdviceId = dispatchAdviceId }, cancellationToken: ct));
+
+            if (header == null)
+                return null;
+
+            // Detail rows — one per pack, join header + detail + stock ledger
+            const string detailSql = @"
+                SELECT d.ItemId, d.LotId, d.PackTypeId,
+                       sl.PackNo, sl.WarehouseId, sl.BinId,
+                       sl.TotalQty, sl.TotalValue
+                FROM Sales.DispatchAdviceHeader h
+                INNER JOIN Sales.DispatchAdviceDetail d ON d.DispatchAdviceHeaderId = h.Id
+                INNER JOIN Sales.StockLedger sl
+                    ON sl.UnitId = h.UnitId
+                    AND sl.ItemId = d.ItemId
+                    AND sl.LotId = d.LotId
+                    AND sl.PackTypeId = d.PackTypeId
+                    AND sl.PackNo BETWEEN d.StartPackNo AND d.EndPackNo
+                WHERE h.Id = @DispatchAdviceId
+                  AND h.IsDeleted = 0
+                ORDER BY d.ItemId, d.LotId, sl.PackNo";
+
+            var details = (await _dbConnection.QueryAsync<DispatchAdvicePackingListDetailDto>(
+                new CommandDefinition(detailSql, new { DispatchAdviceId = dispatchAdviceId }, cancellationToken: ct))).ToList();
+
+            // Party lookup (header-level)
+            var party = await _partyLookup.GetByIdAsync(header.PartyId, ct);
+            header.PartyName = party?.PartyName;
+            header.Details = details;
+
+            if (details.Count == 0)
+                return header;
+
+            // Cross-module lookups (detail-level) — resolve names once per distinct id set
+            var itemIds = details.Select(r => r.ItemId).Distinct().ToList();
+            var lotIds = details.Select(r => r.LotId).Distinct().ToList();
+            var packTypeIds = details.Select(r => r.PackTypeId).Distinct().ToList();
+            var warehouseIds = details.Where(r => r.WarehouseId.HasValue).Select(r => r.WarehouseId!.Value).Distinct().ToList();
+            var binIds = details.Where(r => r.BinId.HasValue).Select(r => r.BinId!.Value).Distinct().ToList();
+
+            var items = await _itemLookup.GetByIdsAsync(itemIds);
+            var lots = await _lotMasterLookup.GetByIdsAsync(lotIds);
+            var packTypes = await _packTypeLookup.GetByIdsAsync(packTypeIds);
+            var warehouses = warehouseIds.Count > 0 ? await _warehouseLookup.GetByIdsAsync(warehouseIds, ct) : [];
+            var bins = binIds.Count > 0 ? await _binLookup.GetByIdsAsync(binIds, ct) : [];
+
+            var itemDict = items.ToDictionary(i => i.Id, i => i.ItemName);
+            var lotDict = lots.ToDictionary(l => l.Id, l => l.LotCode);
+            var packTypeDict = packTypes.ToDictionary(p => p.Id, p => p.PackTypeName);
+            var warehouseDict = warehouses.ToDictionary(w => w.Id, w => w.WarehouseName);
+            var binDict = bins.ToDictionary(b => b.Id, b => b.BinName);
+
+            foreach (var row in details)
+            {
+                row.ItemName = itemDict.TryGetValue(row.ItemId, out var iN) ? iN : null;
+                row.LotCode = lotDict.TryGetValue(row.LotId, out var lc) ? lc : null;
+                row.PackTypeName = packTypeDict.TryGetValue(row.PackTypeId, out var pt) ? pt : null;
+
+                if (row.WarehouseId.HasValue)
+                    row.WarehouseName = warehouseDict.TryGetValue(row.WarehouseId.Value, out var wn) ? wn : null;
+
+                if (row.BinId.HasValue)
+                    row.BinName = binDict.TryGetValue(row.BinId.Value, out var bn) ? bn : null;
+            }
+
+            return header;
         }
     }
 }
