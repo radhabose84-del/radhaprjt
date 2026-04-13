@@ -1,7 +1,9 @@
 using Contracts.Dtos.Lookups.Party;
-using Contracts.Dtos.Lookups.Users;
+using Contracts.Dtos.Lookups.Purchase;
+using Contracts.Dtos.Lookups.Sales;
 using Contracts.Interfaces.Lookups.Party;
-using Contracts.Interfaces.Lookups.Users;
+using Contracts.Interfaces.Lookups.Purchase;
+using Contracts.Interfaces.Lookups.Sales;
 using Dapper;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
@@ -16,10 +18,10 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCommissionConfig
     /// Integration tests for AgentCommissionConfigQueryRepository.
     /// Verifies Dapper SQL queries against a real SQL Server database.
     ///
-    /// AgentCommissionConfig JOINs Sales.SalesSegment and Sales.MiscMaster (same-module FKs) for names,
-    /// so prerequisite rows are seeded via EnsurePrerequisitesAsync().
+    /// AgentCommissionConfig JOINs Sales.MiscMaster and Sales.CommissionSplit (same-module FKs)
+    /// for names, so prerequisite rows are seeded via EnsurePrerequisitesAsync().
     ///
-    /// IPartyLookup, ICurrencyLookup are mocked to isolate cross-module deps.
+    /// IPartyLookup, IPaymentTermLookup, ICommissionSplitLookup are mocked to isolate cross-module deps.
     /// Tests verify SQL query correctness, pagination, soft-delete exclusion, and FK validation.
     /// </summary>
     [Collection("DatabaseCollection")]
@@ -36,22 +38,25 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCommissionConfig
 
         private AgentCommissionConfigQueryRepository CreateQueryRepo(
             Mock<IPartyLookup> partyLookup = null,
-            Mock<ICurrencyLookup> currencyLookup = null)
+            Mock<IPaymentTermLookup> paymentTermLookup = null,
+            Mock<ICommissionSplitLookup> commissionSplitLookup = null)
         {
-            partyLookup    ??= BuildDefaultPartyLookup();
-            currencyLookup ??= BuildDefaultCurrencyLookup();
+            partyLookup           ??= BuildDefaultPartyLookup();
+            paymentTermLookup     ??= BuildDefaultPaymentTermLookup();
+            commissionSplitLookup ??= BuildDefaultCommissionSplitLookup();
 
             var conn = new SqlConnection(_fixture.ConnectionString);
             return new AgentCommissionConfigQueryRepository(
                 conn,
                 partyLookup.Object,
-                currencyLookup.Object);
+                paymentTermLookup.Object,
+                commissionSplitLookup.Object);
         }
 
-        private AgentCommissionConfigCommandRepository CreateCommandRepo(ApplicationDbContext ctx)
+        private static AgentCommissionConfigCommandRepository CreateCommandRepo(ApplicationDbContext ctx)
             => new AgentCommissionConfigCommandRepository(ctx);
 
-        private Mock<IPartyLookup> BuildDefaultPartyLookup(int agentId = 10, string agentName = "Test Agent")
+        private static Mock<IPartyLookup> BuildDefaultPartyLookup(int agentId = 10, string agentName = "Test Agent")
         {
             var mock = new Mock<IPartyLookup>(MockBehavior.Loose);
             mock.Setup(p => p.GetByIdsAsync(It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))
@@ -62,11 +67,19 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCommissionConfig
             return mock;
         }
 
-        private Mock<ICurrencyLookup> BuildDefaultCurrencyLookup()
+        private static Mock<IPaymentTermLookup> BuildDefaultPaymentTermLookup()
         {
-            var mock = new Mock<ICurrencyLookup>(MockBehavior.Loose);
-            mock.Setup(c => c.GetByIdsAsync(It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new List<CurrencyLookupDto>());
+            var mock = new Mock<IPaymentTermLookup>(MockBehavior.Loose);
+            mock.Setup(p => p.GetAllPaymentTermAsync())
+                .ReturnsAsync(new List<PaymentTermLookupDto>());
+            return mock;
+        }
+
+        private static Mock<ICommissionSplitLookup> BuildDefaultCommissionSplitLookup()
+        {
+            var mock = new Mock<ICommissionSplitLookup>(MockBehavior.Loose);
+            mock.Setup(c => c.GetAllCommissionSplitAsync())
+                .ReturnsAsync(new List<CommissionSplitLookupDto>());
             return mock;
         }
 
@@ -77,81 +90,11 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCommissionConfig
             await conn.ExecuteAsync("DELETE FROM Sales.AgentCommissionConfig");
         }
 
-        private async Task<(int salesSegmentId, int commissionTypeId)> EnsurePrerequisitesAsync()
+        private async Task<(int miscMasterId, int commissionSplitId)> EnsurePrerequisitesAsync()
         {
             await using var ctx = _fixture.CreateFreshDbContext();
 
-            var org = await ctx.SalesOrganisation.IgnoreQueryFilters()
-                .FirstOrDefaultAsync(x => x.SalesOrganisationCode == "ACCSO01");
-            if (org == null)
-            {
-                org = new Domain.Entities.SalesOrganisation
-                {
-                    SalesOrganisationCode = "ACCSO01",
-                    SalesOrganisationName = "ACC Integration Org",
-                    CompanyId = 1,
-                    IsActive = Status.Active,
-                    IsDeleted = IsDelete.NotDeleted
-                };
-                ctx.SalesOrganisation.Add(org);
-                await ctx.SaveChangesAsync();
-            }
-            ctx.ChangeTracker.Clear();
-
-            var channel = await ctx.SalesChannel.IgnoreQueryFilters()
-                .FirstOrDefaultAsync(x => x.SalesChannelCode == "ACCSC01");
-            if (channel == null)
-            {
-                channel = new Domain.Entities.SalesChannel
-                {
-                    SalesChannelCode = "ACCSC01",
-                    SalesChannelName = "ACC Integration Channel",
-                    IsActive = Status.Active,
-                    IsDeleted = IsDelete.NotDeleted
-                };
-                ctx.SalesChannel.Add(channel);
-                await ctx.SaveChangesAsync();
-            }
-            ctx.ChangeTracker.Clear();
-
-            var bu = await ctx.BusinessUnit.IgnoreQueryFilters()
-                .FirstOrDefaultAsync(x => x.BusinessUnitCode == "ACCBU01");
-            if (bu == null)
-            {
-                bu = new Domain.Entities.BusinessUnit
-                {
-                    BusinessUnitCode = "ACCBU01",
-                    BusinessUnitName = "ACC Integration BU",
-                    Description = "ACC Integration BU",
-                    IsActive = Status.Active,
-                    IsDeleted = IsDelete.NotDeleted
-                };
-                ctx.BusinessUnit.Add(bu);
-                await ctx.SaveChangesAsync();
-            }
-            ctx.ChangeTracker.Clear();
-
-            var segment = await ctx.SalesSegment.IgnoreQueryFilters()
-                .FirstOrDefaultAsync(x =>
-                    x.SalesOrganisationId == org.Id &&
-                    x.SalesChannelId == channel.Id &&
-                    x.BusinessUnitId == bu.Id);
-            if (segment == null)
-            {
-                segment = new Domain.Entities.SalesSegment
-                {
-                    SalesOrganisationId = org.Id,
-                    SalesChannelId = channel.Id,
-                    BusinessUnitId = bu.Id,
-                    SegmentName = "ACC Integration Segment",
-                    IsActive = Status.Active,
-                    IsDeleted = IsDelete.NotDeleted
-                };
-                ctx.SalesSegment.Add(segment);
-                await ctx.SaveChangesAsync();
-            }
-            ctx.ChangeTracker.Clear();
-
+            // MiscTypeMaster (parent for MiscMaster)
             var miscType = await ctx.MiscTypeMaster.IgnoreQueryFilters()
                 .FirstOrDefaultAsync(x => x.MiscTypeCode == "ACCMT01");
             if (miscType == null)
@@ -168,6 +111,7 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCommissionConfig
             }
             ctx.ChangeTracker.Clear();
 
+            // MiscMaster — used for all FKs (CommissionType / CommissionBasis / ApplicableLevel / TriggerEvent / SlabType)
             var miscMaster = await ctx.MiscMaster.IgnoreQueryFilters()
                 .FirstOrDefaultAsync(x => x.Code == "ACCCM01");
             if (miscMaster == null)
@@ -186,11 +130,28 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCommissionConfig
             }
             ctx.ChangeTracker.Clear();
 
-            return (segment.Id, miscMaster.Id);
+            // CommissionSplit (same-module FK)
+            var split = await ctx.CommissionSplit.IgnoreQueryFilters()
+                .FirstOrDefaultAsync(x => x.SplitCode == "ACCSP01");
+            if (split == null)
+            {
+                split = new Domain.Entities.CommissionSplit
+                {
+                    SplitCode = "ACCSP01",
+                    SplitName = "ACC Integration Split",
+                    IsActive = Status.Active,
+                    IsDeleted = IsDelete.NotDeleted
+                };
+                ctx.CommissionSplit.Add(split);
+                await ctx.SaveChangesAsync();
+            }
+            ctx.ChangeTracker.Clear();
+
+            return (miscMaster.Id, split.Id);
         }
 
         private async Task<int> SeedEntityAsync(
-            int salesSegmentId, int commissionTypeId,
+            int miscMasterId, int commissionSplitId,
             int agentId = 10,
             decimal commissionPct = 5.0m,
             bool isActive = true)
@@ -199,8 +160,12 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCommissionConfig
             return await CreateCommandRepo(ctx).CreateAsync(new Domain.Entities.AgentCommissionConfig
             {
                 AgentId = agentId,
-                SalesSegmentId = salesSegmentId,
-                CommissionTypeId = commissionTypeId,
+                CommissionTypeId = miscMasterId,
+                CommissionBasisId = miscMasterId,
+                ApplicableLevelId = miscMasterId,
+                TriggerEventId = miscMasterId,
+                SlabTypeId = miscMasterId,
+                CommissionSplitId = commissionSplitId,
                 CommissionPercentage = commissionPct,
                 ValidityFrom = new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero),
                 ValidityTo = new DateTimeOffset(2025, 12, 31, 0, 0, 0, TimeSpan.Zero),
@@ -214,9 +179,9 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCommissionConfig
         [Fact]
         public async Task GetAllAsync_Should_Return_Seeded_Records()
         {
-            var (segId, typeId) = await EnsurePrerequisitesAsync();
+            var (miscId, splitId) = await EnsurePrerequisitesAsync();
             await ClearTableAsync();
-            await SeedEntityAsync(segId, typeId);
+            await SeedEntityAsync(miscId, splitId);
 
             var (items, total) = await CreateQueryRepo().GetAllAsync(1, 10, null);
 
@@ -227,9 +192,9 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCommissionConfig
         [Fact]
         public async Task GetAllAsync_Should_Exclude_SoftDeleted()
         {
-            var (segId, typeId) = await EnsurePrerequisitesAsync();
+            var (miscId, splitId) = await EnsurePrerequisitesAsync();
             await ClearTableAsync();
-            var id = await SeedEntityAsync(segId, typeId);
+            var id = await SeedEntityAsync(miscId, splitId);
 
             await using var ctx = _fixture.CreateFreshDbContext();
             await CreateCommandRepo(ctx).SoftDeleteAsync(id, CancellationToken.None);
@@ -241,27 +206,27 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCommissionConfig
         }
 
         [Fact]
-        public async Task GetAllAsync_Should_Populate_SegmentName()
-        {
-            var (segId, typeId) = await EnsurePrerequisitesAsync();
-            await ClearTableAsync();
-            await SeedEntityAsync(segId, typeId);
-
-            var (items, _) = await CreateQueryRepo().GetAllAsync(1, 10, null);
-
-            items[0].SegmentName.Should().Be("ACC Integration Segment");
-        }
-
-        [Fact]
         public async Task GetAllAsync_Should_Populate_CommissionTypeName()
         {
-            var (segId, typeId) = await EnsurePrerequisitesAsync();
+            var (miscId, splitId) = await EnsurePrerequisitesAsync();
             await ClearTableAsync();
-            await SeedEntityAsync(segId, typeId);
+            await SeedEntityAsync(miscId, splitId);
 
             var (items, _) = await CreateQueryRepo().GetAllAsync(1, 10, null);
 
             items[0].CommissionTypeName.Should().Be("ACC Commission Type");
+        }
+
+        [Fact]
+        public async Task GetAllAsync_Should_Populate_SplitCode()
+        {
+            var (miscId, splitId) = await EnsurePrerequisitesAsync();
+            await ClearTableAsync();
+            await SeedEntityAsync(miscId, splitId);
+
+            var (items, _) = await CreateQueryRepo().GetAllAsync(1, 10, null);
+
+            items[0].SplitCode.Should().Be("ACCSP01");
         }
 
         // ── GetByIdAsync ──────────────────────────────────────────────────────
@@ -269,9 +234,9 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCommissionConfig
         [Fact]
         public async Task GetByIdAsync_Should_Return_Correct_Fields()
         {
-            var (segId, typeId) = await EnsurePrerequisitesAsync();
+            var (miscId, splitId) = await EnsurePrerequisitesAsync();
             await ClearTableAsync();
-            var id = await SeedEntityAsync(segId, typeId, agentId: 10, commissionPct: 7.5m);
+            var id = await SeedEntityAsync(miscId, splitId, agentId: 10, commissionPct: 7.5m);
 
             var dto = await CreateQueryRepo().GetByIdAsync(id);
 
@@ -284,9 +249,9 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCommissionConfig
         [Fact]
         public async Task GetByIdAsync_Should_Return_Null_When_SoftDeleted()
         {
-            var (segId, typeId) = await EnsurePrerequisitesAsync();
+            var (miscId, splitId) = await EnsurePrerequisitesAsync();
             await ClearTableAsync();
-            var id = await SeedEntityAsync(segId, typeId);
+            var id = await SeedEntityAsync(miscId, splitId);
 
             await using var ctx = _fixture.CreateFreshDbContext();
             await CreateCommandRepo(ctx).SoftDeleteAsync(id, CancellationToken.None);
@@ -309,9 +274,9 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCommissionConfig
         [Fact]
         public async Task NotFoundAsync_Should_Return_False_When_Exists()
         {
-            var (segId, typeId) = await EnsurePrerequisitesAsync();
+            var (miscId, splitId) = await EnsurePrerequisitesAsync();
             await ClearTableAsync();
-            var id = await SeedEntityAsync(segId, typeId);
+            var id = await SeedEntityAsync(miscId, splitId);
 
             var notFound = await CreateQueryRepo().NotFoundAsync(id);
 
@@ -329,9 +294,9 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCommissionConfig
         [Fact]
         public async Task NotFoundAsync_Should_Return_True_When_SoftDeleted()
         {
-            var (segId, typeId) = await EnsurePrerequisitesAsync();
+            var (miscId, splitId) = await EnsurePrerequisitesAsync();
             await ClearTableAsync();
-            var id = await SeedEntityAsync(segId, typeId);
+            var id = await SeedEntityAsync(miscId, splitId);
 
             await using var ctx = _fixture.CreateFreshDbContext();
             await CreateCommandRepo(ctx).SoftDeleteAsync(id, CancellationToken.None);
@@ -341,42 +306,42 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCommissionConfig
             notFound.Should().BeTrue();
         }
 
-        // ── SalesSegmentExistsAsync ───────────────────────────────────────────
+        // ── MiscMasterExistsAsync ─────────────────────────────────────────────
 
         [Fact]
-        public async Task SalesSegmentExistsAsync_Should_Return_True_For_ExistingSegment()
+        public async Task MiscMasterExistsAsync_Should_Return_True_For_ExistingId()
         {
-            var (segId, _) = await EnsurePrerequisitesAsync();
+            var (miscId, _) = await EnsurePrerequisitesAsync();
 
-            var exists = await CreateQueryRepo().SalesSegmentExistsAsync(segId);
+            var exists = await CreateQueryRepo().MiscMasterExistsAsync(miscId);
 
             exists.Should().BeTrue();
         }
 
         [Fact]
-        public async Task SalesSegmentExistsAsync_Should_Return_False_For_NonExistentSegment()
+        public async Task MiscMasterExistsAsync_Should_Return_False_For_NonExistentId()
         {
-            var exists = await CreateQueryRepo().SalesSegmentExistsAsync(999999);
+            var exists = await CreateQueryRepo().MiscMasterExistsAsync(999999);
 
             exists.Should().BeFalse();
         }
 
-        // ── CommissionTypeExistsAsync ─────────────────────────────────────────
+        // ── CommissionSplitExistsAsync ────────────────────────────────────────
 
         [Fact]
-        public async Task CommissionTypeExistsAsync_Should_Return_True_For_ExistingType()
+        public async Task CommissionSplitExistsAsync_Should_Return_True_For_ExistingId()
         {
-            var (_, typeId) = await EnsurePrerequisitesAsync();
+            var (_, splitId) = await EnsurePrerequisitesAsync();
 
-            var exists = await CreateQueryRepo().CommissionTypeExistsAsync(typeId);
+            var exists = await CreateQueryRepo().CommissionSplitExistsAsync(splitId);
 
             exists.Should().BeTrue();
         }
 
         [Fact]
-        public async Task CommissionTypeExistsAsync_Should_Return_False_For_NonExistentType()
+        public async Task CommissionSplitExistsAsync_Should_Return_False_For_NonExistentId()
         {
-            var exists = await CreateQueryRepo().CommissionTypeExistsAsync(999999);
+            var exists = await CreateQueryRepo().CommissionSplitExistsAsync(999999);
 
             exists.Should().BeFalse();
         }
@@ -386,14 +351,14 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCommissionConfig
         [Fact]
         public async Task OverlapExistsAsync_Should_Return_True_When_Overlap_Exists()
         {
-            var (segId, typeId) = await EnsurePrerequisitesAsync();
+            var (miscId, splitId) = await EnsurePrerequisitesAsync();
             await ClearTableAsync();
-            await SeedEntityAsync(segId, typeId, agentId: 10);
+            await SeedEntityAsync(miscId, splitId, agentId: 10);
 
             var from = new DateTimeOffset(2025, 6, 1, 0, 0, 0, TimeSpan.Zero);
             var to   = new DateTimeOffset(2025, 8, 31, 0, 0, 0, TimeSpan.Zero);
 
-            var overlaps = await CreateQueryRepo().OverlapExistsAsync(10, segId, from, to);
+            var overlaps = await CreateQueryRepo().OverlapExistsAsync(10, splitId, from, to);
 
             overlaps.Should().BeTrue();
         }
@@ -401,14 +366,14 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCommissionConfig
         [Fact]
         public async Task OverlapExistsAsync_Should_Return_False_When_No_Overlap()
         {
-            var (segId, typeId) = await EnsurePrerequisitesAsync();
+            var (miscId, splitId) = await EnsurePrerequisitesAsync();
             await ClearTableAsync();
-            await SeedEntityAsync(segId, typeId, agentId: 10);
+            await SeedEntityAsync(miscId, splitId, agentId: 10);
 
             var from = new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
             var to   = new DateTimeOffset(2026, 12, 31, 0, 0, 0, TimeSpan.Zero);
 
-            var overlaps = await CreateQueryRepo().OverlapExistsAsync(10, segId, from, to);
+            var overlaps = await CreateQueryRepo().OverlapExistsAsync(10, splitId, from, to);
 
             overlaps.Should().BeFalse();
         }
@@ -416,14 +381,14 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCommissionConfig
         [Fact]
         public async Task OverlapExistsAsync_Should_Exclude_Self_When_ExcludeId_Provided()
         {
-            var (segId, typeId) = await EnsurePrerequisitesAsync();
+            var (miscId, splitId) = await EnsurePrerequisitesAsync();
             await ClearTableAsync();
-            var id = await SeedEntityAsync(segId, typeId, agentId: 10);
+            var id = await SeedEntityAsync(miscId, splitId, agentId: 10);
 
             var from = new DateTimeOffset(2025, 6, 1, 0, 0, 0, TimeSpan.Zero);
             var to   = new DateTimeOffset(2025, 8, 31, 0, 0, 0, TimeSpan.Zero);
 
-            var overlaps = await CreateQueryRepo().OverlapExistsAsync(10, segId, from, to, excludeId: id);
+            var overlaps = await CreateQueryRepo().OverlapExistsAsync(10, splitId, from, to, excludeId: id);
 
             overlaps.Should().BeFalse();
         }

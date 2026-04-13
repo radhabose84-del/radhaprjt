@@ -12,10 +12,15 @@ namespace LogisticsManagement.UnitTests.Validators.MiscMaster
         private DeleteMiscMasterCommandValidator CreateValidator() =>
             new(_mockQueryRepo.Object);
 
+        private void SetupAllValid()
+        {
+            _mockQueryRepo.Setup(r => r.NotFoundAsync(It.IsAny<int>())).ReturnsAsync(false);
+        }
+
         [Fact]
         public async Task Validate_ValidId_PassesValidation()
         {
-            _mockQueryRepo.Setup(r => r.NotFoundAsync(1)).ReturnsAsync(false);
+            SetupAllValid();
 
             var result = await CreateValidator().TestValidateAsync(new DeleteMiscMasterCommand(1));
 
@@ -25,6 +30,8 @@ namespace LogisticsManagement.UnitTests.Validators.MiscMaster
         [Fact]
         public async Task Validate_ZeroId_FailsValidation()
         {
+            SetupAllValid();
+
             var result = await CreateValidator().TestValidateAsync(new DeleteMiscMasterCommand(0));
 
             result.ShouldHaveValidationErrorFor(x => x.Id);
@@ -33,6 +40,7 @@ namespace LogisticsManagement.UnitTests.Validators.MiscMaster
         [Fact]
         public async Task Validate_NonExistentId_FailsValidation()
         {
+            SetupAllValid();
             _mockQueryRepo.Setup(r => r.NotFoundAsync(99)).ReturnsAsync(true);
 
             var result = await CreateValidator().TestValidateAsync(new DeleteMiscMasterCommand(99));

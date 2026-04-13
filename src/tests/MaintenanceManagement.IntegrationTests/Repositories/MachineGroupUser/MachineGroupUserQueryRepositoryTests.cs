@@ -53,15 +53,8 @@ namespace MaintenanceManagement.IntegrationTests.Repositories.MachineGroupUser
             });
         }
 
-        private async Task ClearTablesAsync()
-        {
-            await using var conn = new SqlConnection(_fixture.ConnectionString);
-            await conn.OpenAsync();
-            await conn.ExecuteAsync("DELETE FROM [Maintenance].[MachineGroupUser]");
-            await conn.ExecuteAsync("DELETE FROM [Maintenance].[MachineSpecification]");
-            await conn.ExecuteAsync("DELETE FROM [Maintenance].[MachineMaster]");
-            await conn.ExecuteAsync("DELETE FROM [Maintenance].[MachineGroup]");
-        }
+        private async Task ClearTablesAsync() =>
+            await _fixture.ClearAllTablesAsync();
 
         // --- GET ALL ---
 
