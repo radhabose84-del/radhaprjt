@@ -11,14 +11,14 @@ public sealed class LookupCacheOptions
     /// Default cache duration for all lookup data. Default: 30 minutes.
     /// After this duration without access, the cached entry is removed.
     /// </summary>
-    public TimeSpan CacheDuration { get; set; } = TimeSpan.FromMinutes(30);
+    public TimeSpan CacheDuration { get; set; } = TimeSpan.FromMinutes(5);
 
     /// <summary>
     /// Absolute expiration time for cache entries. Default: 24 hours.
     /// After this absolute time, cache entry is removed regardless of access.
     /// Set to null for no absolute expiration.
     /// </summary>
-    public TimeSpan? AbsoluteExpiration { get; set; } = TimeSpan.FromHours(24);
+    public TimeSpan? AbsoluteExpiration { get; set; } = TimeSpan.FromMinutes(30);
 
     /// <summary>
     /// Maximum number of cached lookup entries. Default: 1000.
