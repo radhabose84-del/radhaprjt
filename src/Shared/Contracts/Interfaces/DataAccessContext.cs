@@ -37,6 +37,12 @@ public sealed class DataAccessContext
     public IReadOnlySet<int> AllowedAgentIds { get; init; } = new HashSet<int>();
 
     /// <summary>
+    /// True when the user is subject to customer-level filtering (Agent with PartyId, or Marketing Officer with EmpId).
+    /// Repositories should use this instead of PartyId.HasValue to decide whether to apply customer filters.
+    /// </summary>
+    public bool IsCustomerRestricted { get; init; }
+
+    /// <summary>
     /// Static instance representing "no filtering" (bypass mode or unauthenticated).
     /// </summary>
     public static DataAccessContext Unrestricted { get; } = new()
