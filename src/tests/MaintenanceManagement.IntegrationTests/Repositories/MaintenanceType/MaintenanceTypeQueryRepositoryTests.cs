@@ -34,12 +34,8 @@ namespace MaintenanceManagement.IntegrationTests.Repositories.MaintenanceType
             return await repo.CreateAsync(entity);
         }
 
-        private async Task ClearTableAsync()
-        {
-            await using var conn = new SqlConnection(_fixture.ConnectionString);
-            await conn.OpenAsync();
-            await conn.ExecuteAsync("DELETE FROM [Maintenance].[MaintenanceType]");
-        }
+        private async Task ClearTableAsync() =>
+            await _fixture.ClearAllTablesAsync();
 
         // --- GET ALL ---
 
