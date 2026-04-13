@@ -11,11 +11,12 @@ namespace SalesManagement.Application.Common.Mappings
     {
         public SalesOrderProfile()
         {
-            // Create: DTO → Header entity (with nested details)
+            // Create: DTO → Header entity (with nested details + discounts)
             CreateMap<CreateSalesOrderDto, SalesOrderHeader>()
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
                 .ForMember(dest => dest.SalesOrderNo, opt => opt.Ignore())
                 .ForMember(dest => dest.SalesOrderDetails, opt => opt.MapFrom(src => src.SalesOrderDetails))
+                .ForMember(dest => dest.SalesOrderDiscounts, opt => opt.MapFrom(src => src.Discounts))
                 .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => Status.Active))
                 .ForMember(dest => dest.IsDeleted, opt => opt.MapFrom(src => IsDelete.NotDeleted));
 
@@ -24,15 +25,25 @@ namespace SalesManagement.Application.Common.Mappings
                 .ForMember(dest => dest.DispatchedQty, opt => opt.MapFrom(src => 0))
                 .ForMember(dest => dest.PendingQty, opt => opt.MapFrom(src => src.QtyInBags));
 
+            // Create: Discount DTO → SalesOrderDiscount entity
+            CreateMap<CreateSalesOrderDiscountDto, SalesOrderDiscount>()
+                .ForMember(dest => dest.Id, opt => opt.Ignore())
+                .ForMember(dest => dest.SalesOrderHeaderId, opt => opt.Ignore());
+
             // Update: Command → Header entity
             CreateMap<UpdateSalesOrderCommand, SalesOrderHeader>()
                 .ForMember(dest => dest.SalesOrderNo, opt => opt.Ignore())
                 .ForMember(dest => dest.SalesOrderDetails, opt => opt.MapFrom(src => src.SalesOrderDetails))
+                .ForMember(dest => dest.SalesOrderDiscounts, opt => opt.MapFrom(src => src.Discounts))
                 .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src =>
                     src.IsActive == 1 ? Status.Active : Status.Inactive));
 
             // Update: Detail DTO → Detail entity
             CreateMap<UpdateSalesOrderDetailDto, SalesOrderDetail>();
+
+            // Update: Discount DTO → SalesOrderDiscount entity
+            CreateMap<UpdateSalesOrderDiscountDto, SalesOrderDiscount>()
+                .ForMember(dest => dest.SalesOrderHeaderId, opt => opt.Ignore());
 
             // Autocomplete: LookupDto → LookupDto (collection type conversion)
             CreateMap<SalesOrderLookupDto, SalesOrderLookupDto>();

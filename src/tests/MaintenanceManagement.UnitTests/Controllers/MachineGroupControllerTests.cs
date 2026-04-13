@@ -5,7 +5,6 @@ using MaintenanceManagement.Application.MachineGroup.Command.UpdateMachineGroup;
 using MaintenanceManagement.Application.MachineGroup.Queries.GetMachineGroup;
 using MaintenanceManagement.Application.MachineGroup.Queries.GetMachineGroupAutoComplete;
 using MaintenanceManagement.Application.MachineGroup.Queries.GetMachineGroupById;
-using MaintenanceManagement.Application.MachineGroup.Queries.GetMachineGroup;
 using MaintenanceManagement.Presentation.Controllers;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;

@@ -110,6 +110,40 @@ IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'FixedAsset')
             return new ApplicationDbContext(options, ipMock.Object, tzMock.Object);
         }
 
+        /// <summary>
+        /// Clears all tables in the FixedAsset schema by temporarily disabling FK constraints.
+        /// Use this instead of per-test ClearTablesAsync to avoid FK ordering issues.
+        /// </summary>
+        public async Task ClearAllTablesAsync()
+        {
+            await using var conn = new SqlConnection(TestDbConnection);
+            await conn.OpenAsync();
+
+            // Disable all FK constraints in FixedAsset schema
+            await conn.ExecuteAsync(@"
+                DECLARE @sql NVARCHAR(MAX) = N'';
+                SELECT @sql += 'ALTER TABLE ' + QUOTENAME(s.name) + '.' + QUOTENAME(t.name) + ' NOCHECK CONSTRAINT ALL;'
+                FROM sys.tables t INNER JOIN sys.schemas s ON t.schema_id = s.schema_id
+                WHERE s.name = 'FixedAsset';
+                EXEC sp_executesql @sql;");
+
+            // Delete from all tables in FixedAsset schema
+            await conn.ExecuteAsync(@"
+                DECLARE @sql NVARCHAR(MAX) = N'';
+                SELECT @sql += 'DELETE FROM ' + QUOTENAME(s.name) + '.' + QUOTENAME(t.name) + ';'
+                FROM sys.tables t INNER JOIN sys.schemas s ON t.schema_id = s.schema_id
+                WHERE s.name = 'FixedAsset';
+                EXEC sp_executesql @sql;");
+
+            // Re-enable all FK constraints
+            await conn.ExecuteAsync(@"
+                DECLARE @sql NVARCHAR(MAX) = N'';
+                SELECT @sql += 'ALTER TABLE ' + QUOTENAME(s.name) + '.' + QUOTENAME(t.name) + ' WITH CHECK CHECK CONSTRAINT ALL;'
+                FROM sys.tables t INNER JOIN sys.schemas s ON t.schema_id = s.schema_id
+                WHERE s.name = 'FixedAsset';
+                EXEC sp_executesql @sql;");
+        }
+
         public async Task DisposeAsync()
         {
             if (DbContext != null)

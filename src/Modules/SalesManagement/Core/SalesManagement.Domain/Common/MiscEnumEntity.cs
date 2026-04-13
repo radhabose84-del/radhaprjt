@@ -167,5 +167,12 @@ namespace SalesManagement.Domain.Common
         public const string DirectToParty = "Direct-To-Party";
         public const string Others = "Others";
 
+        // Discount Slab Type
+        public const string SLAB_TYPE = "SLAB_TYPE";
+        public const string QUANTITY = "QUANTITY";
+        public const string AMOUNT = "AMOUNT";
+        public const string PAYMENT_DAYS = "PAYMENT_DAYS";
+
     }
 }
+    

@@ -11,6 +11,7 @@ namespace ProductionManagement.Domain.Entities
         public int UnitId { get; set; }
         public DateOnly StartDate { get; set; }
         public int StatusId { get; set; }
+        public int? VariantId { get; set; }
         public string? ProductionOrderRef { get; set; }
         public decimal TotalProducedQty { get; set; }
         public decimal AvailableQty { get; set; }

@@ -29,13 +29,8 @@ namespace MaintenanceManagement.IntegrationTests.Repositories.ShiftMaster
                 IsDeleted = BaseEntity.IsDelete.NotDeleted
             };
 
-        private async Task ClearTableAsync(MaintenanceManagement.Infrastructure.Data.ApplicationDbContext ctx)
-        {
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Maintenance].[MachineSpecification]");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Maintenance].[MachineMaster]");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Maintenance].[ShiftMasterDetails]");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Maintenance].[ShiftMaster]");
-        }
+        private async Task ClearTableAsync(MaintenanceManagement.Infrastructure.Data.ApplicationDbContext ctx) =>
+            await _fixture.ClearAllTablesAsync();
 
         // --- CREATE ---
 

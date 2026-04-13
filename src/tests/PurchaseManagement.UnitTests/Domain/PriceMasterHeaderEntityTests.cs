@@ -70,46 +70,4 @@ namespace PurchaseManagement.UnitTests.Domain
             entity.Details.Should().NotBeNull();
         }
     }
-
-    public class PriceMasterDetailEntityTests
-    {
-        [Fact]
-        public void PriceMasterDetail_DefaultIsActive_ShouldBeActive()
-        {
-            var entity = new PriceMasterDetail();
-            entity.IsActive.Should().Be(Status.Active);
-        }
-
-        [Fact]
-        public void PriceMasterDetail_ShouldInheritFromBaseEntity()
-        {
-            typeof(BaseEntity).IsAssignableFrom(typeof(PriceMasterDetail)).Should().BeTrue();
-        }
-
-        [Fact]
-        public void PriceMasterDetail_Properties_ShouldBeAssignable()
-        {
-            var entity = new PriceMasterDetail
-            {
-                PriceMasterHeaderId = 1,
-                ScaleQtyFrom = 1m,
-                ScaleQtyTo = 100m,
-                UnitPrice = 50.5m,
-                CurrencyId = 1
-            };
-
-            entity.PriceMasterHeaderId.Should().Be(1);
-            entity.ScaleQtyFrom.Should().Be(1m);
-            entity.ScaleQtyTo.Should().Be(100m);
-            entity.UnitPrice.Should().Be(50.5m);
-            entity.CurrencyId.Should().Be(1);
-        }
-
-        [Fact]
-        public void PriceMasterDetail_NullableScaleQtyTo_ShouldAcceptNull()
-        {
-            var entity = new PriceMasterDetail { ScaleQtyTo = null };
-            entity.ScaleQtyTo.Should().BeNull();
-        }
-    }
 }

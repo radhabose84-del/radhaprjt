@@ -94,6 +94,12 @@ namespace SalesManagement.Presentation.Validation.ComplaintDepartmentFeedback
             RuleFor(x => x)
                 .Must(x => !string.IsNullOrWhiteSpace(x.RootCauseText) || (x.RootCauseCategoryId.HasValue && x.RootCauseCategoryId.Value > 0))
                 .WithMessage("Root Cause is mandatory — provide text or select a category.");
+
+            // Business rule: QC Review workflow must be approved before feedback can be submitted
+            RuleFor(x => x.AssignmentId)
+                .MustAsync(async (id, ct) => await _queryRepository.IsQCApprovedForAssignmentAsync(id))
+                .WithMessage("Cannot submit feedback — QC Review workflow is not yet approved.")
+                .When(x => x.AssignmentId > 0);
         }
     }
 }

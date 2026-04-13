@@ -97,6 +97,17 @@ namespace ProductionManagement.Presentation.Validation.LotMaster
                             .MustAsync(async (id, ct) => await _queryRepository.StatusExistsAsync(id))
                             .WithMessage($"{nameof(CreateLotMasterCommand.StatusId)} {rule.Error}")
                             .When(x => x.StatusId > 0);
+
+                        RuleFor(x => x.VariantId!.Value)
+                            .MustAsync(async (id, ct) => await _queryRepository.VariantExistsAsync(id, ct))
+                            .WithMessage($"{nameof(CreateLotMasterCommand.VariantId)} {rule.Error}")
+                            .When(x => x.VariantId.HasValue);
+
+                        RuleFor(x => x)
+                            .MustAsync(async (cmd, ct) =>
+                                await _queryRepository.VariantBelongsToItemAsync(cmd.VariantId!.Value, cmd.ItemId, ct))
+                            .WithMessage($"{nameof(CreateLotMasterCommand.VariantId)} does not belong to the selected Item.")
+                            .When(x => x.VariantId.HasValue && x.ItemId > 0);
                         break;
 
                     default:

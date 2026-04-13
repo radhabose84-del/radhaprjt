@@ -313,6 +313,10 @@ namespace ProductionManagement.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("UnitId");
 
+                    b.Property<int?>("VariantId")
+                        .HasColumnType("int")
+                        .HasColumnName("VariantId");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ItemId");
@@ -324,6 +328,8 @@ namespace ProductionManagement.Infrastructure.Migrations
                     b.HasIndex("LotTypeId");
 
                     b.HasIndex("StatusId");
+
+                    b.HasIndex("VariantId");
 
                     b.ToTable("LotMaster", "Production");
                 });

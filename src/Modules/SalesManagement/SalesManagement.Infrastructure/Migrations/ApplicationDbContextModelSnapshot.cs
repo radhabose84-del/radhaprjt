@@ -4567,6 +4567,45 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.ToTable("SalesOrderDetail", "Sales");
                 });
 
+            modelBuilder.Entity("SalesManagement.Domain.Entities.SalesOrderDiscount", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("DiscountMasterId")
+                        .HasColumnType("int")
+                        .HasColumnName("DiscountMasterId");
+
+                    b.Property<int>("PaymentTermId")
+                        .HasColumnType("int")
+                        .HasColumnName("PaymentTermId");
+
+                    b.Property<int>("SalesOrderHeaderId")
+                        .HasColumnType("int")
+                        .HasColumnName("SalesOrderHeaderId");
+
+                    b.Property<int>("SlabTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("SlabTypeId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DiscountMasterId");
+
+                    b.HasIndex("SalesOrderHeaderId");
+
+                    b.HasIndex("SlabTypeId");
+
+                    b.HasIndex("SalesOrderHeaderId", "DiscountMasterId")
+                        .IsUnique();
+
+                    b.ToTable("SalesOrderDiscount", "Sales");
+                });
+
             modelBuilder.Entity("SalesManagement.Domain.Entities.SalesOrderHeader", b =>
                 {
                     b.Property<int>("Id")
@@ -4615,10 +4654,6 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Property<string>("CreatedIP")
                         .HasColumnType("varchar(50)")
                         .HasColumnName("CreatedIP");
-
-                    b.Property<int?>("DiscountPlanId")
-                        .HasColumnType("int")
-                        .HasColumnName("DiscountPlanId");
 
                     b.Property<int>("EnquiryType")
                         .HasColumnType("int")
@@ -4709,10 +4744,6 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Property<int>("PartyId")
                         .HasColumnType("int")
                         .HasColumnName("PartyId");
-
-                    b.Property<int>("PaymentTermsId")
-                        .HasColumnType("int")
-                        .HasColumnName("PaymentTermsId");
 
                     b.Property<int?>("PaymentTypeId")
                         .HasColumnType("int")
@@ -4814,8 +4845,6 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.HasIndex("AgentId");
 
                     b.HasIndex("CountListId");
-
-                    b.HasIndex("DiscountPlanId");
 
                     b.HasIndex("EnquiryType");
 
@@ -6745,16 +6774,38 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("SalesOrderHeader");
                 });
 
+            modelBuilder.Entity("SalesManagement.Domain.Entities.SalesOrderDiscount", b =>
+                {
+                    b.HasOne("SalesManagement.Domain.Entities.DiscountMaster", "DiscountMaster")
+                        .WithMany("SalesOrderDiscounts")
+                        .HasForeignKey("DiscountMasterId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SalesManagement.Domain.Entities.SalesOrderHeader", "SalesOrderHeader")
+                        .WithMany("SalesOrderDiscounts")
+                        .HasForeignKey("SalesOrderHeaderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "SlabTypeMisc")
+                        .WithMany("SalesOrderDiscountsAsSlabType")
+                        .HasForeignKey("SlabTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("DiscountMaster");
+
+                    b.Navigation("SalesOrderHeader");
+
+                    b.Navigation("SlabTypeMisc");
+                });
+
             modelBuilder.Entity("SalesManagement.Domain.Entities.SalesOrderHeader", b =>
                 {
                     b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "CountList")
                         .WithMany("SalesOrderHeadersAsCountList")
                         .HasForeignKey("CountListId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "DiscountPlan")
-                        .WithMany("SalesOrderHeadersAsDiscountPlan")
-                        .HasForeignKey("DiscountPlanId")
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "EnquiryTypeMisc")
@@ -6796,8 +6847,6 @@ namespace SalesManagement.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("CountList");
-
-                    b.Navigation("DiscountPlan");
 
                     b.Navigation("EnquiryTypeMisc");
 
@@ -7104,6 +7153,8 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("DiscountSalesGroups");
 
                     b.Navigation("DiscountSlabs");
+
+                    b.Navigation("SalesOrderDiscounts");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.DispatchAddressMaster", b =>
@@ -7190,9 +7241,9 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     b.Navigation("SalesOrderDetailsAsLineItemStatus");
 
-                    b.Navigation("SalesOrderHeadersAsCountList");
+                    b.Navigation("SalesOrderDiscountsAsSlabType");
 
-                    b.Navigation("SalesOrderHeadersAsDiscountPlan");
+                    b.Navigation("SalesOrderHeadersAsCountList");
 
                     b.Navigation("SalesOrderHeadersAsEnquiryType");
 
@@ -7277,6 +7328,8 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("SalesOrderAmendmentHeaders");
 
                     b.Navigation("SalesOrderDetails");
+
+                    b.Navigation("SalesOrderDiscounts");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.SalesOrganisation", b =>

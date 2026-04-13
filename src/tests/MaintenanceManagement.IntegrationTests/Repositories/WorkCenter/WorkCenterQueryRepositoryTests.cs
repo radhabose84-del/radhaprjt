@@ -40,14 +40,8 @@ namespace MaintenanceManagement.IntegrationTests.Repositories.WorkCenter
             });
         }
 
-        private async Task ClearTableAsync()
-        {
-            await using var conn = new SqlConnection(_fixture.ConnectionString);
-            await conn.OpenAsync();
-            await conn.ExecuteAsync("DELETE FROM [Maintenance].[MachineSpecification]");
-            await conn.ExecuteAsync("DELETE FROM [Maintenance].[MachineMaster]");
-            await conn.ExecuteAsync("DELETE FROM [Maintenance].[WorkCenter]");
-        }
+        private async Task ClearTableAsync() =>
+            await _fixture.ClearAllTablesAsync();
 
         // --- GET ALL ---
 

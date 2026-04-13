@@ -6,6 +6,7 @@ using Contracts.Interfaces.Lookups.Users;
 using Dapper;
 using SalesManagement.Application.Common.Interfaces.IComplaintDepartmentFeedback;
 using SalesManagement.Application.ComplaintDepartmentFeedback.Dto;
+using SalesManagement.Domain.Common;
 
 namespace SalesManagement.Infrastructure.Repositories.ComplaintDepartmentFeedback
 {
@@ -337,10 +338,23 @@ namespace SalesManagement.Infrastructure.Repositories.ComplaintDepartmentFeedbac
                 LEFT JOIN Sales.MiscMaster fs ON f.FeedbackStatusId = fs.Id AND fs.IsDeleted = 0
                 WHERE a.IsDeleted = 0
                     AND a.ResponsiblePersonId = @UserId
-                    AND (f.Id IS NULL OR fs.Description IN ('Pending', 'Rework Required'))
+                    AND (f.Id IS NULL OR fs.Description IN (@FeedbackPending, @FeedbackReworkRequired))
+                    AND EXISTS (
+                        SELECT 1 FROM Sales.MiscMaster hm
+                        INNER JOIN Sales.MiscTypeMaster mt ON hm.MiscTypeId = mt.Id
+                        WHERE hm.Id = ch.StatusId
+                          AND mt.MiscTypeCode = @QCComplaintStatus
+                          AND hm.IsDeleted = 0
+                    )
                 ORDER BY a.Id DESC;";
 
-            var data = (await _dbConnection.QueryAsync<MyPendingFeedbackDto>(sql, new { UserId = userId })).ToList();
+            var data = (await _dbConnection.QueryAsync<MyPendingFeedbackDto>(sql, new
+            {
+                UserId = userId,
+                FeedbackPending = MiscEnumEntity.FeedbackPending,
+                FeedbackReworkRequired = MiscEnumEntity.FeedbackReworkRequired,
+                QCComplaintStatus = MiscEnumEntity.QCComplaintStatus
+            })).ToList();
 
             if (data.Count > 0)
             {
@@ -412,6 +426,51 @@ namespace SalesManagement.Infrastructure.Repositories.ComplaintDepartmentFeedbac
             const string sql = "SELECT COUNT(1) FROM Sales.ComplaintQCReviewAssignment WHERE Id = @Id AND IsDeleted = 0;";
             var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = assignmentId });
             return count > 0;
+        }
+
+        public async Task<bool> IsQCApprovedForAssignmentAsync(int assignmentId)
+        {
+            const string sql = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1
+                    FROM Sales.ComplaintQCReviewAssignment a
+                    INNER JOIN Sales.ComplaintQCReview qr ON a.ComplaintQCReviewId = qr.Id AND qr.IsDeleted = 0
+                    INNER JOIN Sales.ComplaintHeader ch ON qr.ComplaintHeaderId = ch.Id AND ch.IsDeleted = 0
+                    INNER JOIN Sales.MiscMaster hm ON ch.StatusId = hm.Id AND hm.IsDeleted = 0
+                    INNER JOIN Sales.MiscTypeMaster mt ON hm.MiscTypeId = mt.Id
+                    WHERE a.Id = @AssignmentId
+                      AND a.IsDeleted = 0
+                      AND mt.MiscTypeCode = @QCComplaintStatus
+                ) THEN 1 ELSE 0 END;";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new
+            {
+                AssignmentId = assignmentId,
+                QCComplaintStatus = MiscEnumEntity.QCComplaintStatus
+            });
+        }
+
+        public async Task<bool> IsQCApprovedForFeedbackAsync(int feedbackId)
+        {
+            const string sql = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1
+                    FROM Sales.ComplaintDepartmentFeedback f
+                    INNER JOIN Sales.ComplaintQCReviewAssignment a ON f.AssignmentId = a.Id AND a.IsDeleted = 0
+                    INNER JOIN Sales.ComplaintQCReview qr ON a.ComplaintQCReviewId = qr.Id AND qr.IsDeleted = 0
+                    INNER JOIN Sales.ComplaintHeader ch ON qr.ComplaintHeaderId = ch.Id AND ch.IsDeleted = 0
+                    INNER JOIN Sales.MiscMaster hm ON ch.StatusId = hm.Id AND hm.IsDeleted = 0
+                    INNER JOIN Sales.MiscTypeMaster mt ON hm.MiscTypeId = mt.Id
+                    WHERE f.Id = @FeedbackId
+                      AND f.IsDeleted = 0
+                      AND mt.MiscTypeCode = @QCComplaintStatus
+                ) THEN 1 ELSE 0 END;";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new
+            {
+                FeedbackId = feedbackId,
+                QCComplaintStatus = MiscEnumEntity.QCComplaintStatus
+            });
         }
 
         public async Task<bool> FeedbackAlreadyExistsForAssignmentAsync(int assignmentId)

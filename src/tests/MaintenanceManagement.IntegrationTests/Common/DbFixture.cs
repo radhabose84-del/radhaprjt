@@ -110,6 +110,36 @@ IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'Maintenance')
             return new ApplicationDbContext(options, ipMock.Object, tzMock.Object);
         }
 
+        /// <summary>
+        /// Clears all tables in the Maintenance schema by temporarily disabling FK constraints.
+        /// </summary>
+        public async Task ClearAllTablesAsync()
+        {
+            await using var conn = new SqlConnection(TestDbConnection);
+            await conn.OpenAsync();
+
+            await conn.ExecuteAsync(@"
+                DECLARE @sql NVARCHAR(MAX) = N'';
+                SELECT @sql += 'ALTER TABLE ' + QUOTENAME(s.name) + '.' + QUOTENAME(t.name) + ' NOCHECK CONSTRAINT ALL;'
+                FROM sys.tables t INNER JOIN sys.schemas s ON t.schema_id = s.schema_id
+                WHERE s.name = 'Maintenance';
+                EXEC sp_executesql @sql;");
+
+            await conn.ExecuteAsync(@"
+                DECLARE @sql NVARCHAR(MAX) = N'';
+                SELECT @sql += 'DELETE FROM ' + QUOTENAME(s.name) + '.' + QUOTENAME(t.name) + ';'
+                FROM sys.tables t INNER JOIN sys.schemas s ON t.schema_id = s.schema_id
+                WHERE s.name = 'Maintenance';
+                EXEC sp_executesql @sql;");
+
+            await conn.ExecuteAsync(@"
+                DECLARE @sql NVARCHAR(MAX) = N'';
+                SELECT @sql += 'ALTER TABLE ' + QUOTENAME(s.name) + '.' + QUOTENAME(t.name) + ' WITH CHECK CHECK CONSTRAINT ALL;'
+                FROM sys.tables t INNER JOIN sys.schemas s ON t.schema_id = s.schema_id
+                WHERE s.name = 'Maintenance';
+                EXEC sp_executesql @sql;");
+        }
+
         public async Task DisposeAsync()
         {
             if (DbContext != null)

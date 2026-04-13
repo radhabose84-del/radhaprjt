@@ -143,20 +143,8 @@ namespace MaintenanceManagement.IntegrationTests.Repositories.MachineSpecificati
                 });
         }
 
-        private async Task ClearAllTablesAsync()
-        {
-            await using var conn = new SqlConnection(_fixture.ConnectionString);
-            await conn.OpenAsync();
-            await conn.ExecuteAsync("DELETE FROM [Maintenance].[MachineSpecification]");
-            await conn.ExecuteAsync("DELETE FROM [Maintenance].[MachineMaster]");
-            await conn.ExecuteAsync("DELETE FROM [Maintenance].[MiscMaster]");
-            await conn.ExecuteAsync("DELETE FROM [Maintenance].[MiscTypeMaster]");
-            await conn.ExecuteAsync("DELETE FROM [Maintenance].[MachineGroup]");
-            await conn.ExecuteAsync("DELETE FROM [Maintenance].[ShiftMasterDetails]");
-            await conn.ExecuteAsync("DELETE FROM [Maintenance].[ShiftMaster]");
-            await conn.ExecuteAsync("DELETE FROM [Maintenance].[CostCenter]");
-            await conn.ExecuteAsync("DELETE FROM [Maintenance].[WorkCenter]");
-        }
+        private async Task ClearAllTablesAsync() =>
+            await _fixture.ClearAllTablesAsync();
 
         // --- GET BY ID (returns list for machineId) ---
 
