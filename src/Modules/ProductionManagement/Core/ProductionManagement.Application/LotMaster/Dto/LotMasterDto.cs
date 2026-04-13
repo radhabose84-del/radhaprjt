@@ -10,6 +10,8 @@ namespace ProductionManagement.Application.LotMaster.Dto
         public int ItemId { get; set; }
         public string? ItemCode { get; set; }
         public string? ItemName { get; set; }
+        public int? VariantId { get; set; }
+        public string? VariantName { get; set; }
         public int UnitId { get; set; }
         public string? UnitName { get; set; }
         public DateOnly StartDate { get; set; }

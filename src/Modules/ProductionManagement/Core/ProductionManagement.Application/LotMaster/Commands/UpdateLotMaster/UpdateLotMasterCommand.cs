@@ -6,6 +6,7 @@ namespace ProductionManagement.Application.LotMaster.Commands.UpdateLotMaster
     public class UpdateLotMasterCommand : IRequest<ApiResponseDTO<int>>
     {
         public int Id { get; set; }
+        public int? VariantId { get; set; }
         public int LotTypeId { get; set; }
         public DateOnly StartDate { get; set; }
         public int StatusId { get; set; }
