@@ -7,6 +7,7 @@ using Contracts.Interfaces.Lookups.Users;
 using Dapper;
 using SalesManagement.Application.Common.Interfaces.IComplaint;
 using SalesManagement.Application.Complaint.Dto;
+using SalesManagement.Domain.Common;
 
 namespace SalesManagement.Infrastructure.Repositories.Complaint
 {
@@ -749,7 +750,7 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                 FROM Sales.ComplaintResolution cr
                 INNER JOIN Sales.ComplaintHeader ch ON ch.Id = cr.ComplaintHeaderId AND ch.IsDeleted = 0
                 INNER JOIN Sales.MiscMaster cs ON cr.ClosureStatusId = cs.Id AND cs.IsDeleted = 0
-                WHERE cr.IsDeleted = 0 AND cr.ResolvedBy IS NOT NULL AND cs.Description <> 'Closed' {searchFilter};
+                WHERE cr.IsDeleted = 0 AND cr.ResolvedBy IS NOT NULL AND cs.Description <> @ClosedStatus {searchFilter};
 
                 SELECT
                     cr.Id,
@@ -766,7 +767,7 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                 INNER JOIN Sales.ComplaintHeader ch ON ch.Id = cr.ComplaintHeaderId AND ch.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster rt ON cr.ResolutionTypeId = rt.Id AND rt.IsDeleted = 0
                 INNER JOIN Sales.MiscMaster cs ON cr.ClosureStatusId = cs.Id AND cs.IsDeleted = 0
-                WHERE cr.IsDeleted = 0 AND cr.ResolvedBy IS NOT NULL AND cs.Description <> 'Closed' {searchFilter}
+                WHERE cr.IsDeleted = 0 AND cr.ResolvedBy IS NOT NULL AND cs.Description <> @ClosedStatus {searchFilter}
                 ORDER BY cr.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
 
@@ -776,7 +777,8 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
             {
                 SearchTerm = $"%{searchTerm}%",
                 Offset = (pageNumber - 1) * pageSize,
-                PageSize = pageSize
+                PageSize = pageSize,
+                ClosedStatus = MiscEnumEntity.ClosureStatusClosed
             };
 
             using var multi = await _dbConnection.QueryMultipleAsync(sql, parameters);
