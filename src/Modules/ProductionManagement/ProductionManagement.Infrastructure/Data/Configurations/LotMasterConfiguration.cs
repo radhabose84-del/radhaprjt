@@ -28,6 +28,7 @@ namespace ProductionManagement.Infrastructure.Data.Configurations
             builder.Property(t => t.UnitId).HasColumnName("UnitId").HasColumnType("int").IsRequired();
             builder.Property(t => t.StartDate).HasColumnName("StartDate").HasColumnType("date").IsRequired();
             builder.Property(t => t.StatusId).HasColumnName("StatusId").HasColumnType("int").IsRequired();
+            builder.Property(t => t.VariantId).HasColumnName("VariantId").HasColumnType("int").IsRequired(false);
             builder.Property(t => t.ProductionOrderRef).HasColumnName("ProductionOrderRef").HasColumnType("varchar(50)").IsRequired(false);
             builder.Property(t => t.TotalProducedQty).HasColumnName("TotalProducedQty").HasColumnType("decimal(18,2)").HasDefaultValue(0m).IsRequired();
             builder.Property(t => t.AvailableQty).HasColumnName("AvailableQty").HasColumnType("decimal(18,2)").HasDefaultValue(0m).IsRequired();
@@ -46,6 +47,7 @@ namespace ProductionManagement.Infrastructure.Data.Configurations
 
             builder.HasIndex(t => t.LotCode).IsUnique().HasFilter("[IsDeleted] = 0");
             builder.HasIndex(t => t.ItemId);
+            builder.HasIndex(t => t.VariantId);
             builder.HasIndex(t => t.StatusId);
             builder.HasIndex(t => t.LotTypeId);
 

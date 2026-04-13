@@ -14,6 +14,8 @@ namespace ProductionManagement.Application.Common.Interfaces.ILotMaster
         Task<bool> StatusExistsAsync(int statusId);
         Task<bool> ItemExistsAsync(int itemId, CancellationToken ct = default);
         Task<bool> UnitExistsAsync(int unitId, CancellationToken ct = default);
+        Task<bool> VariantExistsAsync(int variantId, CancellationToken ct = default);
+        Task<bool> VariantBelongsToItemAsync(int variantId, int itemId, CancellationToken ct = default);
         Task<bool> SoftDeleteValidationAsync(int id);
         Task<bool> IsLotMasterLinkedAsync(int id);
     }
