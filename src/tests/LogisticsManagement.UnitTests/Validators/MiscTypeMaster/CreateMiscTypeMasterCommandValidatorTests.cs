@@ -17,16 +17,18 @@ namespace LogisticsManagement.UnitTests.Validators.MiscTypeMaster
             return new CreateMiscTypeMasterCommandValidator(maxLengthProvider, _mockQueryRepo.Object);
         }
 
-        private void SetupAllAsyncMocks(string miscTypeCode = "FREIGHT")
+        private void SetupAllValid()
         {
-            _mockQueryRepo.Setup(r => r.AlreadyExistsAsync(miscTypeCode, null)).ReturnsAsync(false);
+            _mockQueryRepo
+                .Setup(r => r.AlreadyExistsAsync(It.IsAny<string>(), It.IsAny<int?>()))
+                .ReturnsAsync(false);
         }
 
         [Fact]
         public async Task Validate_ValidCommand_PassesValidation()
         {
+            SetupAllValid();
             var command = MiscTypeMasterBuilders.ValidCreateCommand();
-            SetupAllAsyncMocks(command.MiscTypeCode!);
 
             var result = await CreateValidator().TestValidateAsync(command);
 
@@ -38,6 +40,7 @@ namespace LogisticsManagement.UnitTests.Validators.MiscTypeMaster
         [InlineData("")]
         public async Task Validate_EmptyMiscTypeCode_FailsValidation(string? code)
         {
+            SetupAllValid();
             var command = MiscTypeMasterBuilders.ValidCreateCommand(miscTypeCode: code);
 
             var result = await CreateValidator().TestValidateAsync(command);
@@ -50,6 +53,7 @@ namespace LogisticsManagement.UnitTests.Validators.MiscTypeMaster
         [InlineData("")]
         public async Task Validate_EmptyDescription_FailsValidation(string? description)
         {
+            SetupAllValid();
             var command = MiscTypeMasterBuilders.ValidCreateCommand(description: description);
 
             var result = await CreateValidator().TestValidateAsync(command);
@@ -63,8 +67,8 @@ namespace LogisticsManagement.UnitTests.Validators.MiscTypeMaster
         [InlineData("CODE@01")]
         public async Task Validate_NonAlphanumericCode_FailsValidation(string code)
         {
+            SetupAllValid();
             var command = MiscTypeMasterBuilders.ValidCreateCommand(miscTypeCode: code);
-            SetupAllAsyncMocks(code);
 
             var result = await CreateValidator().TestValidateAsync(command);
 
@@ -74,8 +78,11 @@ namespace LogisticsManagement.UnitTests.Validators.MiscTypeMaster
         [Fact]
         public async Task Validate_DuplicateCode_FailsValidation()
         {
+            SetupAllValid();
+            _mockQueryRepo
+                .Setup(r => r.AlreadyExistsAsync("EXIST001", It.IsAny<int?>()))
+                .ReturnsAsync(true);
             var command = MiscTypeMasterBuilders.ValidCreateCommand(miscTypeCode: "EXIST001");
-            _mockQueryRepo.Setup(r => r.AlreadyExistsAsync("EXIST001", null)).ReturnsAsync(true);
 
             var result = await CreateValidator().TestValidateAsync(command);
 
@@ -85,8 +92,8 @@ namespace LogisticsManagement.UnitTests.Validators.MiscTypeMaster
         [Fact]
         public async Task Validate_AlphanumericCode_PassesValidation()
         {
+            SetupAllValid();
             var command = MiscTypeMasterBuilders.ValidCreateCommand(miscTypeCode: "FREIGHT01");
-            SetupAllAsyncMocks("FREIGHT01");
 
             var result = await CreateValidator().TestValidateAsync(command);
 

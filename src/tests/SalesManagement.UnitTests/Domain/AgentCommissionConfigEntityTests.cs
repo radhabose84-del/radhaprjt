@@ -38,8 +38,11 @@ namespace SalesManagement.UnitTests.Domain
             {
                 Id = 1,
                 AgentId = 10,
-                SalesSegmentId = 20,
                 CommissionTypeId = 40,
+                CommissionBasisId = 70,
+                ApplicableLevelId = 80,
+                TriggerEventId = 90,
+                CommissionSplitId = 110,
                 CommissionPercentage = 5.5m,
                 ValidityFrom = from,
                 ValidityTo = to
@@ -47,8 +50,11 @@ namespace SalesManagement.UnitTests.Domain
 
             entity.Id.Should().Be(1);
             entity.AgentId.Should().Be(10);
-            entity.SalesSegmentId.Should().Be(20);
             entity.CommissionTypeId.Should().Be(40);
+            entity.CommissionBasisId.Should().Be(70);
+            entity.ApplicableLevelId.Should().Be(80);
+            entity.TriggerEventId.Should().Be(90);
+            entity.CommissionSplitId.Should().Be(110);
             entity.CommissionPercentage.Should().Be(5.5m);
             entity.ValidityFrom.Should().Be(from);
             entity.ValidityTo.Should().Be(to);
@@ -59,14 +65,12 @@ namespace SalesManagement.UnitTests.Domain
         {
             var entity = new AgentCommissionConfig
             {
-                CommissionBasisId = null,
-                ApplicableLevelId = null,
-                CurrencyId = null
+                ValidityTo = null,
+                SlabTypeId = null
             };
 
-            entity.CommissionBasisId.Should().BeNull();
-            entity.ApplicableLevelId.Should().BeNull();
-            entity.CurrencyId.Should().BeNull();
+            entity.ValidityTo.Should().BeNull();
+            entity.SlabTypeId.Should().BeNull();
         }
 
         [Fact]
@@ -74,14 +78,25 @@ namespace SalesManagement.UnitTests.Domain
         {
             var entity = new AgentCommissionConfig
             {
-                CommissionBasisId = 70,
-                ApplicableLevelId = 80,
-                CurrencyId = 60
+                SlabTypeId = 100
             };
 
-            entity.CommissionBasisId.Should().Be(70);
-            entity.ApplicableLevelId.Should().Be(80);
-            entity.CurrencyId.Should().Be(60);
+            entity.SlabTypeId.Should().Be(100);
+        }
+
+        [Fact]
+        public void AgentCommissionConfig_NavigationProperties_ShouldBeAssignable()
+        {
+            var entity = new AgentCommissionConfig
+            {
+                AgentCommissionSalesGroups = new List<AgentCommissionSalesGroup>(),
+                AgentCommissionPaymentTerms = new List<AgentCommissionPaymentTerm>(),
+                AgentCommissionSlabs = new List<AgentCommissionSlab>()
+            };
+
+            entity.AgentCommissionSalesGroups.Should().NotBeNull();
+            entity.AgentCommissionPaymentTerms.Should().NotBeNull();
+            entity.AgentCommissionSlabs.Should().NotBeNull();
         }
 
         [Fact]

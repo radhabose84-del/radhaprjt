@@ -16,19 +16,19 @@ namespace SalesManagement.UnitTests.Mappings
             _mapper = config.CreateMapper();
         }
 
-
         [Fact]
         public void CreateCommand_To_Entity_MapsFields()
         {
             var command = new CreateAgentCommissionConfigCommand
             {
                 AgentId = 1,
-                SalesSegmentId = 2,
                 CommissionTypeId = 4,
                 CommissionBasisId = 5,
                 ApplicableLevelId = 6,
+                TriggerEventId = 7,
+                SlabTypeId = 8,
+                CommissionSplitId = 9,
                 CommissionPercentage = 10.5m,
-                CurrencyId = 7,
                 ValidityFrom = new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero),
                 ValidityTo = new DateTimeOffset(2026, 12, 31, 0, 0, 0, TimeSpan.Zero)
             };
@@ -36,12 +36,13 @@ namespace SalesManagement.UnitTests.Mappings
             var entity = _mapper.Map<SalesManagement.Domain.Entities.AgentCommissionConfig>(command);
 
             entity.AgentId.Should().Be(1);
-            entity.SalesSegmentId.Should().Be(2);
             entity.CommissionTypeId.Should().Be(4);
             entity.CommissionBasisId.Should().Be(5);
             entity.ApplicableLevelId.Should().Be(6);
+            entity.TriggerEventId.Should().Be(7);
+            entity.SlabTypeId.Should().Be(8);
+            entity.CommissionSplitId.Should().Be(9);
             entity.CommissionPercentage.Should().Be(10.5m);
-            entity.CurrencyId.Should().Be(7);
         }
 
         [Fact]
@@ -50,7 +51,6 @@ namespace SalesManagement.UnitTests.Mappings
             var command = new CreateAgentCommissionConfigCommand
             {
                 AgentId = 1,
-                SalesSegmentId = 2,
                 CommissionTypeId = 4,
                 CommissionPercentage = 10m,
                 ValidityFrom = DateTimeOffset.UtcNow,
@@ -68,7 +68,6 @@ namespace SalesManagement.UnitTests.Mappings
             var command = new CreateAgentCommissionConfigCommand
             {
                 AgentId = 1,
-                SalesSegmentId = 2,
                 CommissionTypeId = 4,
                 CommissionPercentage = 10m,
                 ValidityFrom = DateTimeOffset.UtcNow,
@@ -87,7 +86,6 @@ namespace SalesManagement.UnitTests.Mappings
             {
                 Id = 1,
                 AgentId = 1,
-                SalesSegmentId = 2,
                 CommissionTypeId = 4,
                 CommissionPercentage = 10m,
                 ValidityFrom = DateTimeOffset.UtcNow,
@@ -107,7 +105,6 @@ namespace SalesManagement.UnitTests.Mappings
             {
                 Id = 1,
                 AgentId = 1,
-                SalesSegmentId = 2,
                 CommissionTypeId = 4,
                 CommissionPercentage = 10m,
                 ValidityFrom = DateTimeOffset.UtcNow,
@@ -127,12 +124,13 @@ namespace SalesManagement.UnitTests.Mappings
             {
                 Id = 5,
                 AgentId = 10,
-                SalesSegmentId = 20,
                 CommissionTypeId = 40,
                 CommissionBasisId = 50,
                 ApplicableLevelId = 60,
+                TriggerEventId = 70,
+                SlabTypeId = 80,
+                CommissionSplitId = 90,
                 CommissionPercentage = 15.5m,
-                CurrencyId = 70,
                 ValidityFrom = new DateTimeOffset(2026, 3, 1, 0, 0, 0, TimeSpan.Zero),
                 ValidityTo = new DateTimeOffset(2026, 9, 30, 0, 0, 0, TimeSpan.Zero),
                 IsActive = 1
@@ -144,6 +142,9 @@ namespace SalesManagement.UnitTests.Mappings
             entity.AgentId.Should().Be(10);
             entity.CommissionPercentage.Should().Be(15.5m);
             entity.CommissionBasisId.Should().Be(50);
+            entity.TriggerEventId.Should().Be(70);
+            entity.SlabTypeId.Should().Be(80);
+            entity.CommissionSplitId.Should().Be(90);
         }
     }
 }

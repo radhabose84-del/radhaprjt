@@ -110,20 +110,8 @@ namespace MaintenanceManagement.IntegrationTests.Repositories.MachineMaster
                 });
         }
 
-        private async Task ClearTablesAsync()
-        {
-            await using var conn = new SqlConnection(_fixture.ConnectionString);
-            await conn.OpenAsync();
-            await conn.ExecuteAsync("DELETE FROM [Maintenance].[MachineSpecification]");
-            await conn.ExecuteAsync("DELETE FROM [Maintenance].[MachineMaster]");
-            await conn.ExecuteAsync("DELETE FROM [Maintenance].[MachineGroup]");
-            await conn.ExecuteAsync("DELETE FROM [Maintenance].[ShiftMasterDetails]");
-            await conn.ExecuteAsync("DELETE FROM [Maintenance].[ShiftMaster]");
-            await conn.ExecuteAsync("DELETE FROM [Maintenance].[CostCenter]");
-            await conn.ExecuteAsync("DELETE FROM [Maintenance].[WorkCenter]");
-            await conn.ExecuteAsync("DELETE FROM [Maintenance].[MiscMaster]");
-            await conn.ExecuteAsync("DELETE FROM [Maintenance].[MiscTypeMaster]");
-        }
+        private async Task ClearTablesAsync() =>
+            await _fixture.ClearAllTablesAsync();
 
         // --- GET ALL ---
 

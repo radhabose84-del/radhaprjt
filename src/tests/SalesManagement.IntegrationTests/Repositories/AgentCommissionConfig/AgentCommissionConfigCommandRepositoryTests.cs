@@ -10,12 +10,12 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCommissionConfig
     /// Integration tests for AgentCommissionConfigCommandRepository.
     /// Verifies EF Core Create, Update, and SoftDelete operations against a real SQL Server database.
     ///
-    /// AgentCommissionConfig requires:
-    ///   - Sales.SalesSegment (DB FK) → which requires SalesOrganisation, SalesChannel, BusinessUnit
-    ///   - Sales.MiscMaster (DB FK) → which requires MiscTypeMaster
+    /// AgentCommissionConfig requires same-module FKs (DB constraints):
+    ///   - Sales.MiscMaster (CommissionTypeId, CommissionBasisId, ApplicableLevelId, TriggerEventId, optional SlabTypeId)
+    ///       → MiscMaster requires Sales.MiscTypeMaster
+    ///   - Sales.CommissionSplit (CommissionSplitId)
     ///
-    /// AgentId, CurrencyId are cross-module FKs — no DB constraint, any int value is valid.
-    /// CommissionBasisId, ApplicableLevelId are same-module FKs to MiscMaster (nullable).
+    /// AgentId is a cross-module FK — no DB constraint, any int value is valid.
     /// </summary>
     [Collection("DatabaseCollection")]
     public sealed class AgentCommissionConfigCommandRepositoryTests
@@ -32,86 +32,11 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCommissionConfig
 
         // ── Prerequisites ─────────────────────────────────────────────────────
 
-        private async Task<(int salesSegmentId, int commissionTypeId)> EnsurePrerequisitesAsync()
+        private async Task<(int miscMasterId, int commissionSplitId)> EnsurePrerequisitesAsync()
         {
             await using var ctx = _fixture.CreateFreshDbContext();
 
-            // SalesOrganisation
-            var org = await ctx.SalesOrganisation.IgnoreQueryFilters()
-                .FirstOrDefaultAsync(x => x.SalesOrganisationCode == "ACCSO01");
-            if (org == null)
-            {
-                org = new Domain.Entities.SalesOrganisation
-                {
-                    SalesOrganisationCode = "ACCSO01",
-                    SalesOrganisationName = "ACC Integration Org",
-                    CompanyId = 1,
-                    IsActive = Status.Active,
-                    IsDeleted = IsDelete.NotDeleted
-                };
-                ctx.SalesOrganisation.Add(org);
-                await ctx.SaveChangesAsync();
-            }
-            ctx.ChangeTracker.Clear();
-
-            // SalesChannel
-            var channel = await ctx.SalesChannel.IgnoreQueryFilters()
-                .FirstOrDefaultAsync(x => x.SalesChannelCode == "ACCSC01");
-            if (channel == null)
-            {
-                channel = new Domain.Entities.SalesChannel
-                {
-                    SalesChannelCode = "ACCSC01",
-                    SalesChannelName = "ACC Integration Channel",
-                    IsActive = Status.Active,
-                    IsDeleted = IsDelete.NotDeleted
-                };
-                ctx.SalesChannel.Add(channel);
-                await ctx.SaveChangesAsync();
-            }
-            ctx.ChangeTracker.Clear();
-
-            // BusinessUnit
-            var bu = await ctx.BusinessUnit.IgnoreQueryFilters()
-                .FirstOrDefaultAsync(x => x.BusinessUnitCode == "ACCBU01");
-            if (bu == null)
-            {
-                bu = new Domain.Entities.BusinessUnit
-                {
-                    BusinessUnitCode = "ACCBU01",
-                    BusinessUnitName = "ACC Integration BU",
-                    Description = "ACC Integration BU",
-                    IsActive = Status.Active,
-                    IsDeleted = IsDelete.NotDeleted
-                };
-                ctx.BusinessUnit.Add(bu);
-                await ctx.SaveChangesAsync();
-            }
-            ctx.ChangeTracker.Clear();
-
-            // SalesSegment
-            var segment = await ctx.SalesSegment.IgnoreQueryFilters()
-                .FirstOrDefaultAsync(x =>
-                    x.SalesOrganisationId == org.Id &&
-                    x.SalesChannelId == channel.Id &&
-                    x.BusinessUnitId == bu.Id);
-            if (segment == null)
-            {
-                segment = new Domain.Entities.SalesSegment
-                {
-                    SalesOrganisationId = org.Id,
-                    SalesChannelId = channel.Id,
-                    BusinessUnitId = bu.Id,
-                    SegmentName = "ACC Integration Segment",
-                    IsActive = Status.Active,
-                    IsDeleted = IsDelete.NotDeleted
-                };
-                ctx.SalesSegment.Add(segment);
-                await ctx.SaveChangesAsync();
-            }
-            ctx.ChangeTracker.Clear();
-
-            // MiscTypeMaster (prerequisite for MiscMaster)
+            // MiscTypeMaster (parent for MiscMaster)
             var miscType = await ctx.MiscTypeMaster.IgnoreQueryFilters()
                 .FirstOrDefaultAsync(x => x.MiscTypeCode == "ACCMT01");
             if (miscType == null)
@@ -128,7 +53,7 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCommissionConfig
             }
             ctx.ChangeTracker.Clear();
 
-            // MiscMaster (CommissionType)
+            // MiscMaster — used for all FKs (CommissionType / CommissionBasis / ApplicableLevel / TriggerEvent / SlabType)
             var miscMaster = await ctx.MiscMaster.IgnoreQueryFilters()
                 .FirstOrDefaultAsync(x => x.Code == "ACCCM01");
             if (miscMaster == null)
@@ -147,7 +72,24 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCommissionConfig
             }
             ctx.ChangeTracker.Clear();
 
-            return (segment.Id, miscMaster.Id);
+            // CommissionSplit (same-module FK)
+            var split = await ctx.CommissionSplit.IgnoreQueryFilters()
+                .FirstOrDefaultAsync(x => x.SplitCode == "ACCSP01");
+            if (split == null)
+            {
+                split = new Domain.Entities.CommissionSplit
+                {
+                    SplitCode = "ACCSP01",
+                    SplitName = "ACC Integration Split",
+                    IsActive = Status.Active,
+                    IsDeleted = IsDelete.NotDeleted
+                };
+                ctx.CommissionSplit.Add(split);
+                await ctx.SaveChangesAsync();
+            }
+            ctx.ChangeTracker.Clear();
+
+            return (miscMaster.Id, split.Id);
         }
 
         private async Task ClearTableAsync(ApplicationDbContext ctx)
@@ -156,8 +98,8 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCommissionConfig
         }
 
         private static Domain.Entities.AgentCommissionConfig BuildEntity(
-            int salesSegmentId,
-            int commissionTypeId,
+            int miscMasterId,
+            int commissionSplitId,
             int agentId = 10,
             decimal commissionPercentage = 5.00m,
             DateTimeOffset? validityFrom = null,
@@ -165,8 +107,12 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCommissionConfig
             => new Domain.Entities.AgentCommissionConfig
             {
                 AgentId = agentId,
-                SalesSegmentId = salesSegmentId,
-                CommissionTypeId = commissionTypeId,
+                CommissionTypeId = miscMasterId,
+                CommissionBasisId = miscMasterId,
+                ApplicableLevelId = miscMasterId,
+                TriggerEventId = miscMasterId,
+                SlabTypeId = miscMasterId,
+                CommissionSplitId = commissionSplitId,
                 CommissionPercentage = commissionPercentage,
                 ValidityFrom = validityFrom ?? new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero),
                 ValidityTo = validityTo ?? new DateTimeOffset(2025, 12, 31, 0, 0, 0, TimeSpan.Zero),
@@ -179,11 +125,11 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCommissionConfig
         [Fact]
         public async Task CreateAsync_Should_Return_NewId_GreaterThanZero()
         {
-            var (segmentId, typeId) = await EnsurePrerequisitesAsync();
+            var (miscId, splitId) = await EnsurePrerequisitesAsync();
             await using var ctx = _fixture.CreateFreshDbContext();
             await ClearTableAsync(ctx);
 
-            var newId = await CreateRepository(ctx).CreateAsync(BuildEntity(segmentId, typeId));
+            var newId = await CreateRepository(ctx).CreateAsync(BuildEntity(miscId, splitId));
 
             newId.Should().BeGreaterThan(0);
         }
@@ -191,13 +137,13 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCommissionConfig
         [Fact]
         public async Task CreateAsync_Should_Persist_Fields_Correctly()
         {
-            var (segmentId, typeId) = await EnsurePrerequisitesAsync();
+            var (miscId, splitId) = await EnsurePrerequisitesAsync();
             await using var ctx = _fixture.CreateFreshDbContext();
             await ClearTableAsync(ctx);
 
             var validFrom = new DateTimeOffset(2025, 3, 1, 0, 0, 0, TimeSpan.Zero);
             var validTo   = new DateTimeOffset(2025, 9, 30, 0, 0, 0, TimeSpan.Zero);
-            var entity = BuildEntity(segmentId, typeId,
+            var entity = BuildEntity(miscId, splitId,
                 agentId: 20,
                 commissionPercentage: 7.5m,
                 validityFrom: validFrom,
@@ -210,8 +156,8 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCommissionConfig
 
             saved.Should().NotBeNull();
             saved!.AgentId.Should().Be(20);
-            saved.SalesSegmentId.Should().Be(segmentId);
-            saved.CommissionTypeId.Should().Be(typeId);
+            saved.CommissionTypeId.Should().Be(miscId);
+            saved.CommissionSplitId.Should().Be(splitId);
             saved.CommissionPercentage.Should().Be(7.5m);
             saved.ValidityFrom.Should().Be(validFrom);
             saved.ValidityTo.Should().Be(validTo);
@@ -222,11 +168,11 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCommissionConfig
         [Fact]
         public async Task CreateAsync_Should_Populate_Audit_Fields()
         {
-            var (segmentId, typeId) = await EnsurePrerequisitesAsync();
+            var (miscId, splitId) = await EnsurePrerequisitesAsync();
             await using var ctx = _fixture.CreateFreshDbContext();
             await ClearTableAsync(ctx);
 
-            var newId = await CreateRepository(ctx).CreateAsync(BuildEntity(segmentId, typeId));
+            var newId = await CreateRepository(ctx).CreateAsync(BuildEntity(miscId, splitId));
             ctx.ChangeTracker.Clear();
 
             var saved = await ctx.AgentCommissionConfig.FirstOrDefaultAsync(x => x.Id == newId);
@@ -242,12 +188,12 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCommissionConfig
         [Fact]
         public async Task UpdateAsync_Should_Update_Mutable_Fields()
         {
-            var (segmentId, typeId) = await EnsurePrerequisitesAsync();
+            var (miscId, splitId) = await EnsurePrerequisitesAsync();
             await using var ctx = _fixture.CreateFreshDbContext();
             await ClearTableAsync(ctx);
 
             var id = await CreateRepository(ctx).CreateAsync(
-                BuildEntity(segmentId, typeId, agentId: 10, commissionPercentage: 5.0m));
+                BuildEntity(miscId, splitId, agentId: 10, commissionPercentage: 5.0m));
             ctx.ChangeTracker.Clear();
 
             var newFrom = new DateTimeOffset(2025, 6, 1, 0, 0, 0, TimeSpan.Zero);
@@ -256,8 +202,12 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCommissionConfig
             {
                 Id = id,
                 AgentId = 15,
-                SalesSegmentId = segmentId,
-                CommissionTypeId = typeId,
+                CommissionTypeId = miscId,
+                CommissionBasisId = miscId,
+                ApplicableLevelId = miscId,
+                TriggerEventId = miscId,
+                SlabTypeId = miscId,
+                CommissionSplitId = splitId,
                 CommissionPercentage = 10.0m,
                 ValidityFrom = newFrom,
                 ValidityTo = newTo,
@@ -280,14 +230,18 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCommissionConfig
         [Fact]
         public async Task UpdateAsync_Should_Return_Zero_WhenEntityNotFound()
         {
+            var (miscId, splitId) = await EnsurePrerequisitesAsync();
             await using var ctx = _fixture.CreateFreshDbContext();
 
             var updated = new Domain.Entities.AgentCommissionConfig
             {
                 Id = 99999,
                 AgentId = 1,
-                SalesSegmentId = 1,
-                CommissionTypeId = 1,
+                CommissionTypeId = miscId,
+                CommissionBasisId = miscId,
+                ApplicableLevelId = miscId,
+                TriggerEventId = miscId,
+                CommissionSplitId = splitId,
                 CommissionPercentage = 5.0m,
                 ValidityFrom = DateTimeOffset.UtcNow,
                 ValidityTo = DateTimeOffset.UtcNow.AddMonths(6),
@@ -302,19 +256,23 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCommissionConfig
         [Fact]
         public async Task UpdateAsync_Should_Populate_ModifiedAuditFields()
         {
-            var (segmentId, typeId) = await EnsurePrerequisitesAsync();
+            var (miscId, splitId) = await EnsurePrerequisitesAsync();
             await using var ctx = _fixture.CreateFreshDbContext();
             await ClearTableAsync(ctx);
 
-            var id = await CreateRepository(ctx).CreateAsync(BuildEntity(segmentId, typeId));
+            var id = await CreateRepository(ctx).CreateAsync(BuildEntity(miscId, splitId));
             ctx.ChangeTracker.Clear();
 
             var updated = new Domain.Entities.AgentCommissionConfig
             {
                 Id = id,
                 AgentId = 10,
-                SalesSegmentId = segmentId,
-                CommissionTypeId = typeId,
+                CommissionTypeId = miscId,
+                CommissionBasisId = miscId,
+                ApplicableLevelId = miscId,
+                TriggerEventId = miscId,
+                SlabTypeId = miscId,
+                CommissionSplitId = splitId,
                 CommissionPercentage = 8.0m,
                 ValidityFrom = new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero),
                 ValidityTo = new DateTimeOffset(2025, 12, 31, 0, 0, 0, TimeSpan.Zero),
@@ -337,11 +295,11 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCommissionConfig
         [Fact]
         public async Task SoftDeleteAsync_Should_Return_True_WhenEntityExists()
         {
-            var (segmentId, typeId) = await EnsurePrerequisitesAsync();
+            var (miscId, splitId) = await EnsurePrerequisitesAsync();
             await using var ctx = _fixture.CreateFreshDbContext();
             await ClearTableAsync(ctx);
 
-            var id = await CreateRepository(ctx).CreateAsync(BuildEntity(segmentId, typeId));
+            var id = await CreateRepository(ctx).CreateAsync(BuildEntity(miscId, splitId));
             ctx.ChangeTracker.Clear();
 
             var result = await CreateRepository(ctx).SoftDeleteAsync(id, CancellationToken.None);
@@ -352,11 +310,11 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCommissionConfig
         [Fact]
         public async Task SoftDeleteAsync_Should_SetIsDeleted_Flag()
         {
-            var (segmentId, typeId) = await EnsurePrerequisitesAsync();
+            var (miscId, splitId) = await EnsurePrerequisitesAsync();
             await using var ctx = _fixture.CreateFreshDbContext();
             await ClearTableAsync(ctx);
 
-            var id = await CreateRepository(ctx).CreateAsync(BuildEntity(segmentId, typeId));
+            var id = await CreateRepository(ctx).CreateAsync(BuildEntity(miscId, splitId));
             ctx.ChangeTracker.Clear();
 
             await CreateRepository(ctx).SoftDeleteAsync(id, CancellationToken.None);
@@ -383,11 +341,11 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCommissionConfig
         [Fact]
         public async Task SoftDeleteAsync_Should_Return_False_WhenAlreadyDeleted()
         {
-            var (segmentId, typeId) = await EnsurePrerequisitesAsync();
+            var (miscId, splitId) = await EnsurePrerequisitesAsync();
             await using var ctx = _fixture.CreateFreshDbContext();
             await ClearTableAsync(ctx);
 
-            var id = await CreateRepository(ctx).CreateAsync(BuildEntity(segmentId, typeId));
+            var id = await CreateRepository(ctx).CreateAsync(BuildEntity(miscId, splitId));
             ctx.ChangeTracker.Clear();
 
             await CreateRepository(ctx).SoftDeleteAsync(id, CancellationToken.None);
