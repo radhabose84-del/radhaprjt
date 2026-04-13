@@ -59,6 +59,12 @@ namespace SalesManagement.Presentation.Validation.ComplaintDepartmentFeedback
                         break;
                 }
             }
+
+            // Business rule: QC Review workflow must be approved before rework can be requested
+            RuleFor(x => x.FeedbackId)
+                .MustAsync(async (id, ct) => await _queryRepository.IsQCApprovedForFeedbackAsync(id))
+                .WithMessage("Cannot request rework — QC Review workflow is not yet approved.")
+                .When(x => x.FeedbackId > 0);
         }
     }
 }
