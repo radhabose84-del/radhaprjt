@@ -10,6 +10,7 @@ using InventoryManagement.Domain.Entities.Item.ItemDetail.Variant;
 using Dapper;
 using Contracts.Interfaces.Lookups.Users;
 using Contracts.Interfaces.Lookups.Production;
+using Contracts.Interfaces.Lookups.Sales;
 using Contracts.Interfaces.Validations.SalesManagement;
 using Contracts.Interfaces.Validations.PurchaseManagement;
 using Contracts.Interfaces.Validations.MaintenanceManagement;
@@ -27,13 +28,14 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
         private readonly IUnitLookup _unitLookup;
         private readonly ICountMasterLookup _countMasterLookup;
         private readonly IRawMaterialTypeLookup _rawMaterialTypeLookup;
+        private readonly ISalesGroupLookup _salesGroupLookup;
         private readonly IDataAccessFilter _dataAccessFilter;
         private readonly ISalesItemValidation _salesItemValidation;
         private readonly IPurchaseItemValidation _purchaseItemValidation;
         private readonly IMaintenanceItemValidation _maintenanceItemValidation;
         private readonly IProductionItemValidation _productionItemValidation;
 
-        public ItemQueryRepository(IDbConnection dbConnection, ApplicationDbContext db, IIPAddressService ipAddressService, IUnitLookup unitLookup, ICountMasterLookup countMasterLookup, IRawMaterialTypeLookup rawMaterialTypeLookup, IDataAccessFilter dataAccessFilter,
+        public ItemQueryRepository(IDbConnection dbConnection, ApplicationDbContext db, IIPAddressService ipAddressService, IUnitLookup unitLookup, ICountMasterLookup countMasterLookup, IRawMaterialTypeLookup rawMaterialTypeLookup, ISalesGroupLookup salesGroupLookup, IDataAccessFilter dataAccessFilter,
             ISalesItemValidation salesItemValidation, IPurchaseItemValidation purchaseItemValidation, IMaintenanceItemValidation maintenanceItemValidation, IProductionItemValidation productionItemValidation)
         {
             _db = db;
@@ -42,6 +44,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
             _unitLookup = unitLookup;
             _countMasterLookup = countMasterLookup;
             _rawMaterialTypeLookup = rawMaterialTypeLookup;
+            _salesGroupLookup = salesGroupLookup;
             _dataAccessFilter = dataAccessFilter;
             _salesItemValidation = salesItemValidation;
             _purchaseItemValidation = purchaseItemValidation;
@@ -50,7 +53,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
         }
         public async Task<(List<ItemListDto> Items, int TotalCount)> GetAllAsync(
             int? page, int? size, string search, bool onlyActive,
-            int? itemGroupId, int? itemCategoryId, int? moduleId = null, CancellationToken ct = default)
+            int? itemGroupId, int? itemCategoryId, int? moduleId = null, int? salesGroupId = null, CancellationToken ct = default)
         {
             var q = _db.ItemMaster.AsNoTracking()
                 .Where(x => x.IsDeleted == BaseEntity.IsDelete.NotDeleted);
@@ -82,6 +85,10 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
 
             if (itemCategoryId.HasValue && itemCategoryId.Value > 0)
                 q = q.Where(x => x.ItemCategoryId == itemCategoryId.Value);
+
+            // SalesGroupId filter via ItemSale (cross-module FK, nullable)
+            if (salesGroupId.HasValue && salesGroupId.Value > 0)
+                q = q.Where(x => x.Sale != null && x.Sale.SalesGroupId == salesGroupId.Value);
 
             // Module-level item filtering via UsageType.ModuleId
             if (moduleId.HasValue)
@@ -276,7 +283,8 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                         CountId = i.Sale.CountId,
                         RmTypeId = i.Sale.RmTypeId,
                         ValuationMethodId = i.Sale.ValuationMethodId,
-                        ValuationMethodName = i.Sale.MiscValuationMethod != null ? i.Sale.MiscValuationMethod.Description : null
+                        ValuationMethodName = i.Sale.MiscValuationMethod != null ? i.Sale.MiscValuationMethod.Description : null,
+                        SalesGroupId = i.Sale.SalesGroupId
                     },
 
                     // ---------- collections ----------
@@ -394,6 +402,15 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                 }
             }
 
+            // Populate SalesGroupName from cross-module lookup (SalesManagement)
+            if (dto?.Sale?.SalesGroupId is { } salesGroupId)
+            {
+                var salesGroups = await _salesGroupLookup.GetAllSalesGroupAsync();
+                var salesGroup = salesGroups.FirstOrDefault(sg => sg.Id == salesGroupId);
+                if (salesGroup != null)
+                    dto.Sale.SalesGroupName = salesGroup.SalesGroupName;
+            }
+
             return dto;
         }
 
@@ -453,7 +470,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                 .ToListAsync(ct);
         }
 
-        public async Task<List<GetItemAutoCompleteDto>> GetItemAutoCompleteAsync(string searchPattern,int? itemGroupId, int? itemCategoryId,int? sourceId,int? issueRuleId, int? moduleId = null, CancellationToken ct = default)
+        public async Task<List<GetItemAutoCompleteDto>> GetItemAutoCompleteAsync(string searchPattern,int? itemGroupId, int? itemCategoryId,int? sourceId,int? issueRuleId, int? moduleId = null, int? salesGroupId = null, CancellationToken ct = default)
         {
             // Role-based item group filtering
             var accessCtx = await _dataAccessFilter.GetContextAsync(ct);
@@ -471,6 +488,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                	left join Inventory.ItemPurchase P on P.ItemId=IM.Id
                 left join Inventory.UOM U on U.Id=P.PurchaseUomId
                 left join Inventory.UOM U1 on U1.Id=IM.StockUomId
+                left join Inventory.ItemSale ISale on ISale.ItemId=IM.Id
                 LEFT JOIN (
                         SELECT
                             SL.ItemId,
@@ -484,7 +502,8 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                 AND (@CategoryId IS NULL OR @CategoryId <= 0 OR IM.ItemCategoryId = @CategoryId)
                 AND (@SourceId IS NULL OR @SourceId <= 0 OR P.SourceOfItem = @SourceId OR P.SourceOfItem IS NULL )
                 AND (@IssueRuleId IS NULL OR @IssueRuleId <= 0 OR IM.IssueRuleId = @IssueRuleId)
-                AND (@Search = '' OR IM.ItemName LIKE @Like OR IM.ItemCode LIKE @Like)";
+                AND (@Search = '' OR IM.ItemName LIKE @Like OR IM.ItemCode LIKE @Like)
+                AND (@SalesGroupId IS NULL OR ISale.SalesGroupId = @SalesGroupId)";
 
             // Append role-based item group filter
             if (!accessCtx.BypassDataAccess)
@@ -516,6 +535,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
             dp.Add("Like", $"%{searchPattern}%");
             dp.Add("SourceId", sourceId);
             dp.Add("IssueRuleId", issueRuleId);
+            dp.Add("SalesGroupId", salesGroupId);
             dp.Add("UnitId", UnitId);
             if (!accessCtx.BypassDataAccess)
                 dp.Add("AllowedGroupIds", accessCtx.AllowedItemGroupIds.ToList());

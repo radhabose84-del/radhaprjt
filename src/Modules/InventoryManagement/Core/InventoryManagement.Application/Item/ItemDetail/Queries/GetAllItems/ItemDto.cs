@@ -116,6 +116,8 @@
             public string? RawMaterialTypeName { get; set; }
             public int? ValuationMethodId { get; set; }
             public string? ValuationMethodName { get; set; }
+            public int? SalesGroupId { get; set; }
+            public string? SalesGroupName { get; set; }
         }
         public class ItemSupplierDto
         {

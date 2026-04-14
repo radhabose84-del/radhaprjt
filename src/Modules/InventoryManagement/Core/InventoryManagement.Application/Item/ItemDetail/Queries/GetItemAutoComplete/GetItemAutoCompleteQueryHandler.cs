@@ -26,7 +26,7 @@ namespace InventoryManagement.Application.Item.ItemDetail.Queries.GetItemAutoCom
             GetItemAutoCompleteQuery request,
             CancellationToken cancellationToken)
         {
-            var result = await _itemQueryRepository.GetItemAutoCompleteAsync(request.SearchPattern ?? string.Empty,request.ItemGroupId, request.ItemCategoryId,request.SourceId,request.IssueRuleId, request.ModuleId, cancellationToken);
+            var result = await _itemQueryRepository.GetItemAutoCompleteAsync(request.SearchPattern ?? string.Empty,request.ItemGroupId, request.ItemCategoryId,request.SourceId,request.IssueRuleId, request.ModuleId, request.SalesGroupId, cancellationToken);
             var items = _mapper.Map<List<GetItemAutoCompleteDto>>(result);
 
             // Domain event (optional)
