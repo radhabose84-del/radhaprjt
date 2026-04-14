@@ -37,6 +37,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Comman
             existing.CountId = updated.CountId;
             existing.RmTypeId = updated.RmTypeId;
             existing.ValuationMethodId = updated.ValuationMethodId;
+            existing.SalesGroupId = updated.SalesGroupId;
 
             var entry = _db.Entry(existing);
             entry.Property(x => x.Id).IsModified = false;

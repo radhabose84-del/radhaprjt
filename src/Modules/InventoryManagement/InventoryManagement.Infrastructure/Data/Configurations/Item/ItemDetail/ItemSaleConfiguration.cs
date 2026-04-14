@@ -74,6 +74,12 @@ namespace InventoryManagement.Infrastructure.Data.Configurations.Item.ItemDetail
              .WithMany(g => g.ItemSaleValuationMethod)
              .HasForeignKey(x => x.ValuationMethodId)
              .OnDelete(DeleteBehavior.Restrict);
+
+            // SalesGroupId — cross-module FK to Sales.SalesGroup (no DB constraint)
+            b.Property(x => x.SalesGroupId)
+             .HasColumnName("SalesGroupId")
+             .HasColumnType("int")
+             .IsRequired(false);
         }
     }
 }

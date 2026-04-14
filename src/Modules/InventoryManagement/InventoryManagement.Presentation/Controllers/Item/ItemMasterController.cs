@@ -33,7 +33,8 @@ namespace InventoryManagement.Presentation.Controllers.Item
             [FromQuery] bool onlyActive = true,
             [FromQuery] int? itemGroupId = null,
             [FromQuery] int? itemCategoryId = null,
-            [FromQuery] int? moduleId = null)
+            [FromQuery] int? moduleId = null,
+            [FromQuery] int? salesGroupId = null)
         {
             var (items, total) = await _mediator.Send(new GetAllItemsQuery
             {
@@ -43,7 +44,8 @@ namespace InventoryManagement.Presentation.Controllers.Item
                 OnlyActive = onlyActive,
                 ItemGroupId = itemGroupId,
                 ItemCategoryId = itemCategoryId,
-                ModuleId = moduleId
+                ModuleId = moduleId,
+                SalesGroupId = salesGroupId
             });
 
             return Ok(new ApiResponseDTO<List<ItemListDto>>
@@ -161,6 +163,7 @@ namespace InventoryManagement.Presentation.Controllers.Item
             [FromQuery] int? sourceId = null,
             [FromQuery] int? issueRuleId = null,
             [FromQuery] int? moduleId = null,
+            [FromQuery] int? salesGroupId = null,
             CancellationToken ct = default)
         {
             var items = await _mediator.Send(new GetItemAutoCompleteQuery
@@ -170,7 +173,8 @@ namespace InventoryManagement.Presentation.Controllers.Item
                 ItemCategoryId = itemCategoryId,
                 SourceId = sourceId,
                 IssueRuleId = issueRuleId,
-                ModuleId = moduleId
+                ModuleId = moduleId,
+                SalesGroupId = salesGroupId
             }, ct);
 
             return Ok(new ApiResponseDTO<List<GetItemAutoCompleteDto>>

@@ -45,11 +45,13 @@ namespace SalesManagement.Infrastructure.Repositories.SalesLead
 
             if (_accessFilter.IsMarketingOfficer())
             {
+                var empId = _accessFilter.GetCurrentMarketingOfficerId();
                 var customerIds = await _accessFilter.GetAccessibleCustomerIdsAsync();
                 var safeIds = customerIds.Count > 0 ? customerIds.ToArray() : new[] { -1 };
 
-                whereClause += " AND sl.PartyId IN @CustomerIds ";
+                whereClause += " AND sl.MarketingOfficerId = @EmpId AND sl.PartyId IN @CustomerIds ";
                 parameters.Add("CustomerIds", safeIds);
+                parameters.Add("EmpId", empId);
             }
 
             var query = $@"

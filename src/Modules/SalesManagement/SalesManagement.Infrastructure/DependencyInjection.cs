@@ -199,6 +199,9 @@ namespace SalesManagement.Infrastructure
             // ── Sales Segment Lookup (cross-module) ────────────────────
             services.AddScoped<ISalesSegmentLookup, SalesSegmentLookupRepository>();
 
+            // ── Sales Group Lookup (cross-module) ───────────────────────
+            services.AddScoped<ISalesGroupLookup, SalesGroupLookupRepository>();
+
             // ── Sales Office Repositories ───────────────────────────────
             services.AddScoped<ISalesOfficeCommandRepository, SalesOfficeCommandRepository>();
             services.AddScoped<ISalesOfficeQueryRepository, SalesOfficeQueryRepository>();

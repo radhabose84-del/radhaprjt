@@ -79,7 +79,8 @@ namespace InventoryManagement.Application.Common.Mappings.Item.ItemDetail
                 .ForSourceMember(s => s.CountName, o => o.DoNotValidate())
                 .ForSourceMember(s => s.RawMaterialTypeCode, o => o.DoNotValidate())
                 .ForSourceMember(s => s.RawMaterialTypeName, o => o.DoNotValidate())
-                .ForSourceMember(s => s.ValuationMethodName, o => o.DoNotValidate());
+                .ForSourceMember(s => s.ValuationMethodName, o => o.DoNotValidate())
+                .ForSourceMember(s => s.SalesGroupName, o => o.DoNotValidate());
 
             CreateMap<ItemUomDto, ItemUOM>()
                 .ForMember(d => d.Id, o => o.Ignore())
