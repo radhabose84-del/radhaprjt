@@ -58,6 +58,8 @@ using SalesManagement.Application.Common.Interfaces.IMovementTypeConfig;
 using SalesManagement.Infrastructure.Repositories.MovementTypeConfig;
 using SalesManagement.Application.Common.Interfaces.IDispatchAdvice;
 using SalesManagement.Infrastructure.Repositories.DispatchAdvice;
+using SalesManagement.Application.Common.Interfaces.IProformaInvoice;
+using SalesManagement.Infrastructure.Repositories.ProformaInvoice;
 using SalesManagement.Application.Common.Interfaces.IStoTypeMaster;
 using SalesManagement.Infrastructure.Repositories.StoTypeMaster;
 using SalesManagement.Application.Common.Interfaces.IStoHeader;
@@ -281,6 +283,10 @@ namespace SalesManagement.Infrastructure
             // ── Dispatch Advice Repositories ────────────────────────────────
             services.AddScoped<IDispatchAdviceCommandRepository, DispatchAdviceCommandRepository>();
             services.AddScoped<IDispatchAdviceQueryRepository, DispatchAdviceQueryRepository>();
+
+            // ── Proforma Invoice Repositories ─────────────────────────────────
+            services.AddScoped<IProformaInvoiceCommandRepository, ProformaInvoiceCommandRepository>();
+            services.AddScoped<IProformaInvoiceQueryRepository, ProformaInvoiceQueryRepository>();
 
             // ── STO Type Master Repositories ────────────────────────────────
             services.AddScoped<IStoTypeMasterCommandRepository, StoTypeMasterCommandRepository>();

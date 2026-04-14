@@ -87,5 +87,8 @@ namespace SalesManagement.Domain.Entities
         public ICollection<AgentCommissionSlab>? AgentCommissionSlabsAsCommissionType { get; set; }
         public ICollection<AgentCommissionSlab>? AgentCommissionSlabsAsCommissionBasis { get; set; }
 
+        // Reverse navigation (ProformaInvoice)
+        public ICollection<ProformaInvoice>? ProformaInvoicesAsStatus { get; set; }
+
     }
 }

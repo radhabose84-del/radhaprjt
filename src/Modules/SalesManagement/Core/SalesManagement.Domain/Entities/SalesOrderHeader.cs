@@ -90,5 +90,8 @@ namespace SalesManagement.Domain.Entities
 
         // Reverse navigation (Amendment)
         public ICollection<SalesOrderAmendmentHeader>? SalesOrderAmendmentHeaders { get; set; }
+
+        // Reverse navigation (ProformaInvoice)
+        public ICollection<ProformaInvoice>? ProformaInvoices { get; set; }
     }
 }
