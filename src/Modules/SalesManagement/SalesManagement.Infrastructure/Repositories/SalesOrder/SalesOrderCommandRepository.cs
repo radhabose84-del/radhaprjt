@@ -247,6 +247,20 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             return true;
         }
 
+        public async Task<bool> UpdateMdApprovalDocumentAsync(int id, string fileName, CancellationToken ct)
+        {
+            var existing = await _applicationDbContext.SalesOrderHeader
+                .FirstOrDefaultAsync(x => x.Id == id && x.IsDeleted == IsDelete.NotDeleted, ct);
+
+            if (existing == null)
+                return false;
+
+            existing.MdApprovalDocument = fileName;
+            _applicationDbContext.SalesOrderHeader.Update(existing);
+            await _applicationDbContext.SaveChangesAsync(ct);
+            return true;
+        }
+
         public async Task<SalesOrderWorkFlowDto> GetByIdSalesOrderWorkFlowAsync(int id)
         {
             var entity = await _applicationDbContext.SalesOrderHeader

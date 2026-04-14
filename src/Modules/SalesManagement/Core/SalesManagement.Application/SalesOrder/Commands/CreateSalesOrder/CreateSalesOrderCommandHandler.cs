@@ -90,6 +90,24 @@ namespace SalesManagement.Application.SalesOrder.Commands.CreateSalesOrder
                 }
             }
 
+            // Pre-check: verify MdApprovalDocument exists on disk (folder = "MdApproval", matching the upload handler)
+            string? mdApprovalUploadPath = null;
+            if (!string.IsNullOrWhiteSpace(details?.MdApprovalDocument))
+            {
+                mdApprovalUploadPath = await BuildDocumentUploadPathAsync("MdApproval");
+                var filePath = Path.Combine(mdApprovalUploadPath, details.MdApprovalDocument);
+
+                if (!File.Exists(filePath))
+                {
+                    return new ApiResponseDTO<int>
+                    {
+                        IsSuccess = false,
+                        Message = $"MD Approval document not found at path: {details.MdApprovalDocument}",
+                        Data = 0
+                    };
+                }
+            }
+
             var entity = _mapper.Map<SalesOrderHeader>(details);
 
             // Generate SalesOrderNo from DocumentSequence
@@ -138,6 +156,24 @@ namespace SalesManagement.Application.SalesOrder.Commands.CreateSalesOrder
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Failed to rename agent PO attachment for Sales Order Id {SalesOrderId}.", newId);
+                }
+            }
+
+            // Post-save: rename MdApprovalDocument to {companyName}-{unitName}-{salesOrderId}.ext
+            if (!string.IsNullOrWhiteSpace(details.MdApprovalDocument) && mdApprovalUploadPath != null)
+            {
+                try
+                {
+                    await RenameDocumentAsync(
+                        newId,
+                        details.MdApprovalDocument,
+                        mdApprovalUploadPath,
+                        _commandRepository.UpdateMdApprovalDocumentAsync,
+                        cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to rename MD approval document for Sales Order Id {SalesOrderId}.", newId);
                 }
             }
 
