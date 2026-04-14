@@ -41,10 +41,11 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesOrganisation
 
         private async Task ClearTableAsync(ApplicationDbContext ctx)
         {
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Sales.ItemPriceMaster");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Sales.SalesSegment");
-            ctx.SalesOrganisation.RemoveRange(ctx.SalesOrganisation);
-            await ctx.SaveChangesAsync();
+            await ctx.Database.ExecuteSqlRawAsync(@"
+                DELETE FROM Sales.ItemPriceMaster;
+                DELETE FROM Sales.SalesOffice;
+                DELETE FROM Sales.SalesSegment;
+                DELETE FROM Sales.SalesOrganisation;");
         }
 
         // ── CreateAsync ───────────────────────────────────────────────────────

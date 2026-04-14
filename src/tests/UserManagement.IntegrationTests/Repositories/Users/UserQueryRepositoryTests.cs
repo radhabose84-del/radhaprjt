@@ -67,19 +67,24 @@ DELETE U
 FROM AppSecurity.Users U
 WHERE U.UserId IN (2,3,4,1001);
 
--- Safety: if IDs differ in some env, remove by username too
+-- Safety: if IDs differ in some env, remove by username too.
+-- Also remove leftover users from sibling test classes (e.g. ura_*) so search
+-- pagination tests don't see polluted rows that match the search term.
 DELETE UU
 FROM AppSecurity.UserUnit UU
 INNER JOIN AppSecurity.Users U ON U.UserId = UU.UserId
-WHERE U.UserName IN ('trinity','smith','unituser','profileuser');
+WHERE U.UserName IN ('trinity','smith','unituser','profileuser')
+   OR U.UserName LIKE 'ura[_]%';
 
 DELETE URA
 FROM AppSecurity.UserRoleAllocation URA
 INNER JOIN AppSecurity.Users U ON U.UserId = URA.UserId
-WHERE U.UserName IN ('trinity','smith','unituser','profileuser');
+WHERE U.UserName IN ('trinity','smith','unituser','profileuser')
+   OR U.UserName LIKE 'ura[_]%';
 
 DELETE FROM AppSecurity.Users
-WHERE UserName IN ('trinity','smith','unituser','profileuser');
+WHERE UserName IN ('trinity','smith','unituser','profileuser')
+   OR UserName LIKE 'ura[_]%';
 
 ------------------------------------------------------------
 -- 2) Ensure AppData.Unit has at least 1 row

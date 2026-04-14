@@ -53,7 +53,16 @@ namespace SalesManagement.IntegrationTests.Repositories.MiscTypeMaster
         {
             await using var cnn = OpenConnection();
             await cnn.OpenAsync();
-            await cnn.ExecuteAsync("DELETE FROM Sales.MiscTypeMaster");
+            await cnn.ExecuteAsync(@"
+                DELETE FROM Sales.AgentCommissionSlab;
+                DELETE FROM Sales.AgentCommissionPaymentTerm;
+                DELETE FROM Sales.AgentCommissionSalesGroup;
+                DELETE FROM Sales.AgentCommissionConfig;
+                DELETE FROM Sales.CommissionSplitDetail;
+                DELETE FROM Sales.CommissionSplit;
+                DELETE FROM Sales.ItemPriceMaster;
+                DELETE FROM Sales.MiscMaster;
+                DELETE FROM Sales.MiscTypeMaster;");
         }
 
         private async Task<int> SeedEntityAsync(Domain.Entities.MiscTypeMaster entity)

@@ -29,6 +29,7 @@
     <ProjectReference Include="..\..\Modules\UserManagement\Core\UserManagement.Application\UserManagement.Application.csproj" />
     <ProjectReference Include="..\..\Modules\UserManagement\Core\UserManagement.Domain\UserManagement.Domain.csproj" />
     <ProjectReference Include="..\..\Modules\UserManagement\UserManagement.Infrastructure\UserManagement.Infrastructure.csproj" />
+    <ProjectReference Include="..\Shared.TestInfrastructure\Shared.TestInfrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>

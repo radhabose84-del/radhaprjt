@@ -27,7 +27,7 @@ namespace SalesManagement.UnitTests.Application.DispatchAdvice.Queries
                 .ReturnsAsync(new SalesManagement.Domain.Entities.MiscMaster { Id = 1 });
 
             _mockQueryRepo
-                .Setup(r => r.GetPackRangeAsync(1, 1, 1, 1, 10))
+                .Setup(r => r.GetPackRangeAsync(1, 1, 1, 1, 10, It.IsAny<string?>()))
                 .ReturnsAsync(new List<DispatchAdvicePackRangeDto> { new() });
 
             var result = await CreateSut().Handle(
@@ -35,6 +35,93 @@ namespace SalesManagement.UnitTests.Application.DispatchAdvice.Queries
                 CancellationToken.None);
 
             result.Should().HaveCount(1);
+        }
+
+        [Fact]
+        public async Task Handle_PassesExactOrderTypeToRepository()
+        {
+            _mockMiscRepo.Setup(r => r.GetMiscMasterByName(It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(new SalesManagement.Domain.Entities.MiscMaster { Id = 1 });
+            _mockQueryRepo.Setup(r => r.GetPackRangeAsync(1, 1, 1, 1, 10, "SalesOrder"))
+                .ReturnsAsync(new List<DispatchAdvicePackRangeDto>());
+
+            await CreateSut().Handle(
+                new GetDispatchAdvicePackRangeQuery
+                {
+                    ItemId = 1, LotId = 1, PackTypeId = 1, Range = 10, OrderType = "SalesOrder"
+                },
+                CancellationToken.None);
+
+            _mockQueryRepo.Verify(r => r.GetPackRangeAsync(1, 1, 1, 1, 10, "SalesOrder"), Times.Once);
+        }
+
+        [Fact]
+        public async Task Handle_NullOrderType_PassesNullToRepository()
+        {
+            _mockMiscRepo.Setup(r => r.GetMiscMasterByName(It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(new SalesManagement.Domain.Entities.MiscMaster { Id = 1 });
+            _mockQueryRepo.Setup(r => r.GetPackRangeAsync(1, 1, 1, 1, 10, (string?)null))
+                .ReturnsAsync(new List<DispatchAdvicePackRangeDto>());
+
+            await CreateSut().Handle(
+                new GetDispatchAdvicePackRangeQuery
+                {
+                    ItemId = 1, LotId = 1, PackTypeId = 1, Range = 10, OrderType = null
+                },
+                CancellationToken.None);
+
+            _mockQueryRepo.Verify(r => r.GetPackRangeAsync(1, 1, 1, 1, 10, (string?)null), Times.Once);
+        }
+
+        [Fact]
+        public async Task Handle_EmptyResult_ReturnsEmptyList()
+        {
+            _mockMiscRepo.Setup(r => r.GetMiscMasterByName(It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(new SalesManagement.Domain.Entities.MiscMaster { Id = 1 });
+            _mockQueryRepo.Setup(r => r.GetPackRangeAsync(
+                It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string?>()))
+                .ReturnsAsync(new List<DispatchAdvicePackRangeDto>());
+
+            var result = await CreateSut().Handle(
+                new GetDispatchAdvicePackRangeQuery { ItemId = 1, LotId = 1, PackTypeId = 1, Range = 10 },
+                CancellationToken.None);
+
+            result.Should().NotBeNull();
+            result.Should().BeEmpty();
+        }
+
+        [Fact]
+        public async Task Handle_PackedStatusNotFound_PassesZeroStatusIdToRepo()
+        {
+            _mockMiscRepo.Setup(r => r.GetMiscMasterByName(It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync((SalesManagement.Domain.Entities.MiscMaster?)null);
+            _mockQueryRepo.Setup(r => r.GetPackRangeAsync(1, 1, 1, 0, 10, It.IsAny<string?>()))
+                .ReturnsAsync(new List<DispatchAdvicePackRangeDto>());
+
+            await CreateSut().Handle(
+                new GetDispatchAdvicePackRangeQuery { ItemId = 1, LotId = 1, PackTypeId = 1, Range = 10 },
+                CancellationToken.None);
+
+            _mockQueryRepo.Verify(r => r.GetPackRangeAsync(1, 1, 1, 0, 10, It.IsAny<string?>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task Handle_ValidQuery_PublishesAuditEvent()
+        {
+            _mockMiscRepo.Setup(r => r.GetMiscMasterByName(It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(new SalesManagement.Domain.Entities.MiscMaster { Id = 1 });
+            _mockQueryRepo.Setup(r => r.GetPackRangeAsync(
+                It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string?>()))
+                .ReturnsAsync(new List<DispatchAdvicePackRangeDto>());
+
+            await CreateSut().Handle(
+                new GetDispatchAdvicePackRangeQuery { ItemId = 1, LotId = 1, PackTypeId = 1, Range = 10 },
+                CancellationToken.None);
+
+            _mockMediator.Verify(m => m.Publish(
+                It.Is<SalesManagement.Domain.Events.AuditLogsDomainEvent>(e => e.Module == "DispatchAdvice"),
+                It.IsAny<CancellationToken>()),
+                Times.Once);
         }
     }
 }

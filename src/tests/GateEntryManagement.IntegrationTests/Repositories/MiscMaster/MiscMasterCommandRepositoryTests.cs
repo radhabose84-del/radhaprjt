@@ -41,7 +41,11 @@ namespace GateEntryManagement.IntegrationTests.Repositories.MiscMaster
             };
 
         private async Task ClearTableAsync(ApplicationDbContext ctx) =>
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Gate.MiscMaster; DELETE FROM Gate.MiscTypeMaster");
+            await ctx.Database.ExecuteSqlRawAsync(@"
+                DELETE FROM Gate.GateInwardDtl; DELETE FROM Gate.GateInwardHdr;
+                DELETE FROM Gate.GatePassDtl; DELETE FROM Gate.GatePassHdr;
+                DELETE FROM Gate.VehicleMovementRecord;
+                DELETE FROM Gate.MiscMaster; DELETE FROM Gate.MiscTypeMaster;");
 
         [Fact]
         public async Task CreateAsync_Should_Return_NewId_GreaterThanZero()

@@ -1,3 +1,5 @@
+using Contracts.Dtos.Lookups.Users;
+using Contracts.Interfaces.Lookups.Users;
 using FluentValidation.TestHelper;
 using InventoryManagement.Application.Common.Interfaces.Item.ItemCategory;
 using InventoryManagement.Application.Item.ItemCategory.Commands.UpdateItemCategory;
@@ -12,6 +14,7 @@ namespace InventoryManagement.UnitTests.Validators.ItemCategory
         private readonly Mock<IMaxLengthProvider> _mockMaxLengthProvider = new(MockBehavior.Loose);
         private readonly Mock<IItemCategoryCommandRepository> _mockCommandRepo = new(MockBehavior.Loose);
         private readonly Mock<IItemCategoryQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
+        private readonly Mock<IModuleLookup> _mockModuleLookup = new(MockBehavior.Loose);
 
         public UpdateItemCategoryCommandValidatorTests()
         {
@@ -26,15 +29,22 @@ namespace InventoryManagement.UnitTests.Validators.ItemCategory
 
             _mockQueryRepo.Setup(r => r.IsLinkedWithActiveItemsAsync(It.IsAny<int>()))
                 .ReturnsAsync(false);
+
+            _mockModuleLookup.Setup(m => m.GetAllModuleAsync())
+                .ReturnsAsync(new List<ModuleLookupDto>
+                {
+                    new ModuleLookupDto { ModuleId = 1, ModuleName = "Module1" },
+                    new ModuleLookupDto { ModuleId = 2, ModuleName = "Module2" }
+                });
         }
 
         private UpdateItemCategoryCommandValidator CreateValidator() =>
-            new(_mockMaxLengthProvider.Object, _mockCommandRepo.Object, _mockQueryRepo.Object);
+            new(_mockMaxLengthProvider.Object, _mockCommandRepo.Object, _mockQueryRepo.Object, _mockModuleLookup.Object);
 
         [Fact]
         public async Task Validate_ValidCommand_PassesValidation()
         {
-            var command = new UpdateItemCategoryCommand { Id = 1, ItemCategoryName = "Updated Cat", ItemGroupId = 1, IsActive = 1 };
+            var command = new UpdateItemCategoryCommand { Id = 1, ItemCategoryName = "Updated Cat", ItemGroupId = 1, IsActive = 1, ModuleIds = new List<int> { 1 } };
             var result = await CreateValidator().TestValidateAsync(command);
             result.ShouldNotHaveAnyValidationErrors();
         }
@@ -44,7 +54,7 @@ namespace InventoryManagement.UnitTests.Validators.ItemCategory
         [InlineData("")]
         public async Task Validate_EmptyName_FailsValidation(string? name)
         {
-            var command = new UpdateItemCategoryCommand { Id = 1, ItemCategoryName = name, ItemGroupId = 1, IsActive = 1 };
+            var command = new UpdateItemCategoryCommand { Id = 1, ItemCategoryName = name, ItemGroupId = 1, IsActive = 1, ModuleIds = new List<int> { 1 } };
             var result = await CreateValidator().TestValidateAsync(command);
             result.Errors.Should().NotBeEmpty();
         }
@@ -55,7 +65,7 @@ namespace InventoryManagement.UnitTests.Validators.ItemCategory
             _mockCommandRepo.Setup(r => r.IsNameDuplicateAsync(It.IsAny<string?>(), It.IsAny<int>()))
                 .ReturnsAsync(true);
 
-            var command = new UpdateItemCategoryCommand { Id = 1, ItemCategoryName = "Existing Name", ItemGroupId = 1, IsActive = 1 };
+            var command = new UpdateItemCategoryCommand { Id = 1, ItemCategoryName = "Existing Name", ItemGroupId = 1, IsActive = 1, ModuleIds = new List<int> { 1 } };
             var result = await CreateValidator().TestValidateAsync(command);
             result.Errors.Should().NotBeEmpty();
         }

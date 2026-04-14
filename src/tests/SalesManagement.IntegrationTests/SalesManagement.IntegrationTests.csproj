@@ -30,6 +30,7 @@
     <ProjectReference Include="..\..\Modules\SalesManagement\Core\SalesManagement.Domain\SalesManagement.Domain.csproj" />
     <ProjectReference Include="..\..\Modules\SalesManagement\SalesManagement.Infrastructure\SalesManagement.Infrastructure.csproj" />
     <ProjectReference Include="..\..\Shared\Contracts\Contracts.csproj" />
+    <ProjectReference Include="..\Shared.TestInfrastructure\Shared.TestInfrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>
