@@ -132,8 +132,14 @@ internal sealed class DataAccessFilterService : IDataAccessFilter
         return result;
     }
 
-    private async Task<IReadOnlySet<int>> GetAllowedItemGroupIdsAsync(int userId)
+    private async Task<IReadOnlySet<int>?> GetAllowedItemGroupIdsAsync(int userId)
     {
+        // Step A: Check if RoleItemGroupMapping has ANY active rows globally.
+        // If the table is empty, the feature is not configured — return null (no filtering).
+        if (!await IsItemGroupMappingConfiguredAsync())
+            return null;
+
+        // Step B: Feature is configured — get this user's allowed IDs.
         var cacheKey = $"DataAccess:ItemGroups:{userId}";
         if (_cache.TryGetValue(cacheKey, out HashSet<int>? cached) && cached != null)
             return cached;
@@ -148,6 +154,33 @@ internal sealed class DataAccessFilterService : IDataAccessFilter
 
         var ids = await _dbConnection.QueryAsync<int>(sql, new { UserId = userId });
         var result = new HashSet<int>(ids);
+
+        _cache.Set(cacheKey, result, new MemoryCacheEntryOptions
+        {
+            SlidingExpiration = CacheDuration,
+            Size = 1
+        });
+
+        return result;
+    }
+
+    /// <summary>
+    /// Returns true if RoleItemGroupMapping has at least one active row globally.
+    /// When false, item-group filtering is not configured — all users see all groups.
+    /// </summary>
+    private async Task<bool> IsItemGroupMappingConfiguredAsync()
+    {
+        const string cacheKey = "DataAccess:ItemGroupMappingConfigured";
+        if (_cache.TryGetValue(cacheKey, out bool configured))
+            return configured;
+
+        const string sql = @"
+            SELECT CASE WHEN EXISTS (
+                SELECT 1 FROM AppSecurity.RoleItemGroupMapping
+                WHERE IsDeleted = 0 AND IsActive = 1
+            ) THEN CAST(1 AS BIT) ELSE CAST(0 AS BIT) END";
+
+        var result = await _dbConnection.ExecuteScalarAsync<bool>(sql);
 
         _cache.Set(cacheKey, result, new MemoryCacheEntryOptions
         {
