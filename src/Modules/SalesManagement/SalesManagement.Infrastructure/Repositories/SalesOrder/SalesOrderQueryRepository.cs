@@ -10,6 +10,7 @@ using Contracts.Interfaces;
 using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Application.Common.Interfaces.ISalesOrder;
 using SalesManagement.Application.SalesOrder.Dto;
+using SalesManagement.Application.SalesOrder.Queries.GetAgentCommissions;
 using SalesManagement.Application.SalesOrder.Queries.GetDiscountsBySalesGroup;
 using SalesManagement.Application.SalesOrder.Queries.GetPendingSalesOrder;
 using SalesManagement.Domain.Common;
@@ -922,29 +923,145 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             return headers;
         }
 
-        private sealed class DiscountSalesGroupRow
+        public async Task<List<AgentCommissionsDto>> GetAgentCommissionsAsync(int salesGroupId, int paymentTermId, int agentId, CancellationToken ct)
         {
-            public int Id { get; set; }
-            public int DiscountMasterId { get; set; }
-            public int SalesGroupId { get; set; }
-            public string? SalesGroupName { get; set; }
+            // Header — filter by Agent, SalesGroup (via AgentCommissionSalesGroup) and PaymentTerm (via AgentCommissionPaymentTerm)
+            const string headerSql = @"
+                SELECT ac.Id, ac.AgentId,
+                       ac.TriggerEventId, trig.Description AS TriggerEventName,
+                       ac.CommissionTypeId, ct.Description AS CommissionTypeName,
+                       ac.CommissionBasisId, cb.Description AS CommissionBasisName,
+                       ac.CommissionPercentage,
+                       ac.SlabTypeId, slab.Description AS SlabTypeName,
+                       ac.ValidityFrom, ac.ValidityTo
+                FROM Sales.AgentCommissionConfig ac
+                INNER JOIN Sales.AgentCommissionSalesGroup acsg ON acsg.AgentCommissionConfigId = ac.Id
+                INNER JOIN Sales.AgentCommissionPaymentTerm acpt ON acpt.AgentCommissionConfigId = ac.Id
+                LEFT JOIN Sales.MiscMaster trig ON trig.Id = ac.TriggerEventId AND trig.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster ct ON ct.Id = ac.CommissionTypeId AND ct.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster cb ON cb.Id = ac.CommissionBasisId AND cb.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster slab ON slab.Id = ac.SlabTypeId AND slab.IsDeleted = 0
+                WHERE ac.AgentId = @AgentId
+                  AND acsg.SalesGroupId = @SalesGroupId
+                  AND acpt.PaymentTermId = @PaymentTermId
+                  AND ac.IsActive = 1 AND ac.IsDeleted = 0
+                  AND acsg.IsActive = 1 AND acsg.IsDeleted = 0
+                  AND acpt.IsActive = 1 AND acpt.IsDeleted = 0
+                GROUP BY ac.Id, ac.AgentId,
+                         ac.TriggerEventId, trig.Description,
+                         ac.CommissionTypeId, ct.Description,
+                         ac.CommissionBasisId, cb.Description,
+                         ac.CommissionPercentage,
+                         ac.SlabTypeId, slab.Description,
+                         ac.ValidityFrom, ac.ValidityTo
+                ORDER BY ac.ValidityFrom DESC";
+
+            var headers = (await _dbConnection.QueryAsync<AgentCommissionsDto>(
+                new CommandDefinition(
+                    headerSql,
+                    new { AgentId = agentId, SalesGroupId = salesGroupId, PaymentTermId = paymentTermId },
+                    cancellationToken: ct))).ToList();
+
+            if (headers.Count == 0)
+                return headers;
+
+            var configIds = headers.Select(h => h.Id).ToList();
+
+            // SalesGroups (same-module JOIN) — only the matching row per header
+            const string sgSql = @"
+                SELECT acsg.Id, acsg.AgentCommissionConfigId, acsg.SalesGroupId, sg.SalesGroupName
+                FROM Sales.AgentCommissionSalesGroup acsg
+                INNER JOIN Sales.SalesGroup sg ON sg.Id = acsg.SalesGroupId AND sg.IsDeleted = 0
+                WHERE acsg.AgentCommissionConfigId IN @Ids
+                  AND acsg.SalesGroupId = @SalesGroupId
+                  AND acsg.IsActive = 1 AND acsg.IsDeleted = 0";
+
+            var sgRows = (await _dbConnection.QueryAsync<AgentCommissionSalesGroupRow>(
+                new CommandDefinition(sgSql, new { Ids = configIds, SalesGroupId = salesGroupId }, cancellationToken: ct))).ToList();
+
+            // PaymentTerms — only the matching row per header
+            const string ptSql = @"
+                SELECT acpt.Id, acpt.AgentCommissionConfigId, acpt.PaymentTermId
+                FROM Sales.AgentCommissionPaymentTerm acpt
+                WHERE acpt.AgentCommissionConfigId IN @Ids
+                  AND acpt.PaymentTermId = @PaymentTermId
+                  AND acpt.IsActive = 1 AND acpt.IsDeleted = 0";
+
+            var ptRows = (await _dbConnection.QueryAsync<AgentCommissionPaymentTermRow>(
+                new CommandDefinition(ptSql, new { Ids = configIds, PaymentTermId = paymentTermId }, cancellationToken: ct))).ToList();
+
+            // Slabs — all slabs for the matching configs
+            const string slabSql = @"
+                SELECT acs.Id, acs.AgentCommissionConfigId, acs.SlabOrder,
+                       acs.FromDelay, acs.ToDelay,
+                       acs.CommissionTypeId, ct.Description AS CommissionTypeName,
+                       acs.CommissionBasisId, cb.Description AS CommissionBasisName,
+                       acs.CommissionValue
+                FROM Sales.AgentCommissionSlab acs
+                LEFT JOIN Sales.MiscMaster ct ON ct.Id = acs.CommissionTypeId AND ct.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster cb ON cb.Id = acs.CommissionBasisId AND cb.IsDeleted = 0
+                WHERE acs.AgentCommissionConfigId IN @Ids
+                  AND acs.IsActive = 1 AND acs.IsDeleted = 0
+                ORDER BY acs.AgentCommissionConfigId, acs.SlabOrder";
+
+            var slabRows = (await _dbConnection.QueryAsync<AgentCommissionSlabRow>(
+                new CommandDefinition(slabSql, new { Ids = configIds }, cancellationToken: ct))).ToList();
+
+            // Resolve cross-module lookups: AgentName (Party) + PaymentTerm description
+            var agent = await _partyLookup.GetByIdAsync(agentId, ct);
+            var agentName = agent?.PartyName;
+
+            Dictionary<int, string?> ptDict = new();
+            if (ptRows.Count > 0)
+            {
+                var allPaymentTerms = await _paymentTermLookup.GetAllPaymentTermAsync();
+                ptDict = allPaymentTerms.ToDictionary(p => p.Id, p => p.Description);
+            }
+
+            var sgByConfig = sgRows.ToLookup(r => r.AgentCommissionConfigId);
+            var ptByConfig = ptRows.ToLookup(r => r.AgentCommissionConfigId);
+            var slabByConfig = slabRows.ToLookup(r => r.AgentCommissionConfigId);
+
+            foreach (var header in headers)
+            {
+                header.AgentName = agentName;
+
+                header.AgentCommissionSalesGroups = sgByConfig[header.Id]
+                    .Select(r => new AgentCommissionSalesGroupInfoDto
+                    {
+                        Id = r.Id,
+                        SalesGroupId = r.SalesGroupId,
+                        SalesGroupName = r.SalesGroupName
+                    })
+                    .ToList();
+
+                header.AgentCommissionPaymentTerms = ptByConfig[header.Id]
+                    .Select(r => new AgentCommissionPaymentTermInfoDto
+                    {
+                        Id = r.Id,
+                        PaymentTermId = r.PaymentTermId,
+                        PaymentTermDescription = ptDict.TryGetValue(r.PaymentTermId, out var desc) ? desc : null
+                    })
+                    .ToList();
+
+                header.AgentCommissionSlabs = slabByConfig[header.Id]
+                    .Select(r => new AgentCommissionSlabInfoDto
+                    {
+                        Id = r.Id,
+                        SlabOrder = r.SlabOrder,
+                        FromDelay = r.FromDelay,
+                        ToDelay = r.ToDelay,
+                        CommissionTypeId = r.CommissionTypeId,
+                        CommissionTypeName = r.CommissionTypeName,
+                        CommissionBasisId = r.CommissionBasisId,
+                        CommissionBasisName = r.CommissionBasisName,
+                        CommissionValue = r.CommissionValue
+                    })
+                    .ToList();
+            }
+
+            return headers;
         }
 
-        private sealed class DiscountSlabRow
-        {
-            public int Id { get; set; }
-            public int DiscountMasterId { get; set; }
-            public int SlabOrder { get; set; }
-            public decimal FromValue { get; set; }
-            public decimal? ToValue { get; set; }
-            public decimal DiscountValue { get; set; }
-        }
-
-        private sealed class DiscountPaymentTermRow
-        {
-            public int Id { get; set; }
-            public int DiscountMasterId { get; set; }
-            public int PaymentTermId { get; set; }
-        }
     }
 }
