@@ -127,10 +127,26 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrganisation
 
         public async Task<bool> SoftDeleteValidationAsync(int id)
         {
-            // Returns true if SalesOrganisation is linked to active dependent records (blocking deletion).
-            // Currently SalesOrganisation has no FK children — always returns false (safe to delete).
-            await Task.CompletedTask;
-            return false;
+            const string sql = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1 FROM [Sales].[SalesOffice] WHERE SalesOrganisationId = @id AND IsDeleted = 0
+                    UNION ALL
+                    SELECT 1 FROM [Sales].[SalesSegment] WHERE SalesOrganisationId = @id AND IsDeleted = 0
+                ) THEN 1 ELSE 0 END";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { id });
+        }
+
+        public async Task<bool> IsSalesOrganisationLinkedAsync(int id)
+        {
+            const string sql = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1 FROM [Sales].[SalesOffice] WHERE SalesOrganisationId = @id AND IsDeleted = 0 AND IsActive = 1
+                    UNION ALL
+                    SELECT 1 FROM [Sales].[SalesSegment] WHERE SalesOrganisationId = @id AND IsDeleted = 0 AND IsActive = 1
+                ) THEN 1 ELSE 0 END";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { id });
         }
     }
 }

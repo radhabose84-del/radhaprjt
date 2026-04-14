@@ -124,10 +124,82 @@ namespace SalesManagement.Infrastructure.Repositories.MiscMaster
 
         public async Task<bool> SoftDeleteValidationAsync(int id)
         {
-            // Returns true if MiscMaster is linked to active dependent records (blocking deletion).
-            // Currently MiscMaster has no FK children — always returns false (safe to delete).
-            await Task.CompletedTask;
-            return false;
+            const string sql = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1 FROM [Sales].[CommissionSplitDetail] WHERE RoleId = @id AND IsDeleted = 0
+                    UNION ALL
+                    SELECT 1 FROM [Sales].[CommissionSplitDetail] WHERE ShareTypeId = @id AND IsDeleted = 0
+                    UNION ALL
+                    SELECT 1 FROM [Sales].[AgentCommissionConfig] WHERE CommissionTypeId = @id AND IsDeleted = 0
+                    UNION ALL
+                    SELECT 1 FROM [Sales].[AgentCommissionConfig] WHERE CommissionBasisId = @id AND IsDeleted = 0
+                    UNION ALL
+                    SELECT 1 FROM [Sales].[AgentCommissionSlab] WHERE CommissionTypeId = @id AND IsDeleted = 0
+                    UNION ALL
+                    SELECT 1 FROM [Sales].[AgentCommissionSlab] WHERE CommissionBasisId = @id AND IsDeleted = 0
+                    UNION ALL
+                    SELECT 1 FROM [Sales].[MovementTypeConfig] WHERE MovementCategoryId = @id AND IsDeleted = 0
+                    UNION ALL
+                    SELECT 1 FROM [Sales].[MovementTypeConfig] WHERE FromStockTypeId = @id AND IsDeleted = 0
+                    UNION ALL
+                    SELECT 1 FROM [Sales].[MovementTypeConfig] WHERE ToStockTypeId = @id AND IsDeleted = 0
+                    UNION ALL
+                    SELECT 1 FROM [Sales].[DispatchAddressMapping] WHERE UsageTypeId = @id AND IsDeleted = 0
+                    UNION ALL
+                    SELECT 1 FROM [Sales].[StoHeader] WHERE HeaderStatusId = @id AND IsDeleted = 0
+                    UNION ALL
+                    SELECT 1 FROM [Sales].[SalesOrderHeader] WHERE EnquiryType = @id AND IsDeleted = 0
+                    UNION ALL
+                    SELECT 1 FROM [Sales].[SalesOrderHeader] WHERE PaymentTypeId = @id AND IsDeleted = 0
+                    UNION ALL
+                    SELECT 1 FROM [Sales].[SalesOrderHeader] WHERE FreightTypeId = @id AND IsDeleted = 0
+                    UNION ALL
+                    SELECT 1 FROM [Sales].[SalesOrderHeader] WHERE CountListId = @id AND IsDeleted = 0
+                    UNION ALL
+                    SELECT 1 FROM [Sales].[SalesOrderHeader] WHERE StatusId = @id AND IsDeleted = 0
+                ) THEN 1 ELSE 0 END";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { id });
+        }
+
+        public async Task<bool> IsMiscMasterLinkedAsync(int id)
+        {
+            const string sql = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1 FROM [Sales].[CommissionSplitDetail] WHERE RoleId = @id AND IsDeleted = 0 AND IsActive = 1
+                    UNION ALL
+                    SELECT 1 FROM [Sales].[CommissionSplitDetail] WHERE ShareTypeId = @id AND IsDeleted = 0 AND IsActive = 1
+                    UNION ALL
+                    SELECT 1 FROM [Sales].[AgentCommissionConfig] WHERE CommissionTypeId = @id AND IsDeleted = 0 AND IsActive = 1
+                    UNION ALL
+                    SELECT 1 FROM [Sales].[AgentCommissionConfig] WHERE CommissionBasisId = @id AND IsDeleted = 0 AND IsActive = 1
+                    UNION ALL
+                    SELECT 1 FROM [Sales].[AgentCommissionSlab] WHERE CommissionTypeId = @id AND IsDeleted = 0 AND IsActive = 1
+                    UNION ALL
+                    SELECT 1 FROM [Sales].[AgentCommissionSlab] WHERE CommissionBasisId = @id AND IsDeleted = 0 AND IsActive = 1
+                    UNION ALL
+                    SELECT 1 FROM [Sales].[MovementTypeConfig] WHERE MovementCategoryId = @id AND IsDeleted = 0 AND IsActive = 1
+                    UNION ALL
+                    SELECT 1 FROM [Sales].[MovementTypeConfig] WHERE FromStockTypeId = @id AND IsDeleted = 0 AND IsActive = 1
+                    UNION ALL
+                    SELECT 1 FROM [Sales].[MovementTypeConfig] WHERE ToStockTypeId = @id AND IsDeleted = 0 AND IsActive = 1
+                    UNION ALL
+                    SELECT 1 FROM [Sales].[DispatchAddressMapping] WHERE UsageTypeId = @id AND IsDeleted = 0 AND IsActive = 1
+                    UNION ALL
+                    SELECT 1 FROM [Sales].[StoHeader] WHERE HeaderStatusId = @id AND IsDeleted = 0 AND IsActive = 1
+                    UNION ALL
+                    SELECT 1 FROM [Sales].[SalesOrderHeader] WHERE EnquiryType = @id AND IsDeleted = 0 AND IsActive = 1
+                    UNION ALL
+                    SELECT 1 FROM [Sales].[SalesOrderHeader] WHERE PaymentTypeId = @id AND IsDeleted = 0 AND IsActive = 1
+                    UNION ALL
+                    SELECT 1 FROM [Sales].[SalesOrderHeader] WHERE FreightTypeId = @id AND IsDeleted = 0 AND IsActive = 1
+                    UNION ALL
+                    SELECT 1 FROM [Sales].[SalesOrderHeader] WHERE CountListId = @id AND IsDeleted = 0 AND IsActive = 1
+                    UNION ALL
+                    SELECT 1 FROM [Sales].[SalesOrderHeader] WHERE StatusId = @id AND IsDeleted = 0 AND IsActive = 1
+                ) THEN 1 ELSE 0 END";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { id });
         }
 
         public async Task<SalesManagement.Domain.Entities.MiscMaster?> GetMiscMasterByName(string miscTypeCode, string miscTypeName)

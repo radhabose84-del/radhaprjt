@@ -29,6 +29,14 @@ namespace SalesManagement.Application.DiscountMaster.Commands.UpdateDiscountMast
 
         public async Task<ApiResponseDTO<int>> Handle(UpdateDiscountMasterCommand request, CancellationToken cancellationToken)
         {
+            if (request.IsActive == 0)
+            {
+                var isLinked = await _queryRepository.IsDiscountMasterLinkedAsync(request.Id);
+                if (isLinked)
+                    throw new ExceptionRules(
+                        "This master is linked with other records. You cannot inactivate this record.");
+            }
+
             var entity = _mapper.Map<Domain.Entities.DiscountMaster>(request);
 
             // Map child collections (replace strategy — old children removed in repository)

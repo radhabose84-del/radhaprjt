@@ -10,5 +10,6 @@ namespace SalesManagement.Application.Common.Interfaces.ISalesChannel
         Task<bool> AlreadyExistsAsync(string salesChannelCode, int? id = null);
         Task<bool> NotFoundAsync(int id);
         Task<bool> SoftDeleteValidationAsync(int id);
+        Task<bool> IsSalesChannelLinkedAsync(int id);
     }
 }

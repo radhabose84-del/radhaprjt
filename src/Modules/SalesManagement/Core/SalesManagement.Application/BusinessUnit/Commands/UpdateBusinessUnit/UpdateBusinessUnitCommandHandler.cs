@@ -9,21 +9,32 @@ namespace SalesManagement.Application.BusinessUnit.Commands.UpdateBusinessUnit
     public class UpdateBusinessUnitCommandHandler : IRequestHandler<UpdateBusinessUnitCommand, ApiResponseDTO<int>>
     {
         private readonly IBusinessUnitCommandRepository _commandRepository;
+        private readonly IBusinessUnitQueryRepository _queryRepository;
         private readonly IMediator _mediator;
         private readonly IMapper _mapper;
 
         public UpdateBusinessUnitCommandHandler(
             IBusinessUnitCommandRepository commandRepository,
+            IBusinessUnitQueryRepository queryRepository,
             IMediator mediator,
             IMapper mapper)
         {
             _commandRepository = commandRepository;
+            _queryRepository = queryRepository;
             _mediator = mediator;
             _mapper = mapper;
         }
 
         public async Task<ApiResponseDTO<int>> Handle(UpdateBusinessUnitCommand request, CancellationToken cancellationToken)
         {
+            if (request.IsActive == 0)
+            {
+                var isLinked = await _queryRepository.IsBusinessUnitLinkedAsync(request.Id);
+                if (isLinked)
+                    throw new ExceptionRules(
+                        "This master is linked with other records. You cannot inactivate this record.");
+            }
+
             var entity = _mapper.Map<Domain.Entities.BusinessUnit>(request);
 
             var updatedId = await _commandRepository.UpdateAsync(entity);
