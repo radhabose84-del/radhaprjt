@@ -79,6 +79,10 @@ namespace PurchaseManagement.IntegrationTests.Repositories.PriceMaster
             await using var ctx = _fixture.CreateFreshDbContext();
             await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Purchase.PriceMasterDetail");
             await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Purchase.PriceMasterHeader");
+            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Purchase.PortMaster");
+            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Purchase.DutyMaster");
+            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Purchase.PaymentTermInstallment");
+            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Purchase.PaymentTermMaster");
             await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Purchase.MiscMaster");
             await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Purchase.MiscTypeMaster");
         }

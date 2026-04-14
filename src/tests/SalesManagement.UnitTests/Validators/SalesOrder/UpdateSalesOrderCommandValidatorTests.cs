@@ -9,9 +9,10 @@ namespace SalesManagement.UnitTests.Validators.SalesOrder;
 public sealed class UpdateSalesOrderCommandValidatorTests
 {
     private readonly Mock<ISalesOrderQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
+    private readonly Mock<IMarketingOfficerAccessFilter> _mockAccessFilter = new(MockBehavior.Loose);
 
     private UpdateSalesOrderCommandValidator CreateValidator() =>
-        new(TestMaxLengthProviderFactory.Create(), _mockQueryRepo.Object);
+        new(TestMaxLengthProviderFactory.Create(), _mockQueryRepo.Object, _mockAccessFilter.Object);
 
     private void SetupAllAsyncMocks(int id = 1)
     {

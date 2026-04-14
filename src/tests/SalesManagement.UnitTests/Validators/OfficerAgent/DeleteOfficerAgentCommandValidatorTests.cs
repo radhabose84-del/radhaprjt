@@ -8,9 +8,10 @@ namespace SalesManagement.UnitTests.Validators.OfficerAgent
     public sealed class DeleteOfficerAgentCommandValidatorTests
     {
         private readonly Mock<IOfficerAgentQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
+        private readonly Mock<IMarketingOfficerAccessFilter> _mockAccessFilter = new(MockBehavior.Loose);
 
         private DeleteOfficerAgentCommandValidator CreateValidator()
-            => new(_mockQueryRepo.Object);
+            => new(_mockQueryRepo.Object, _mockAccessFilter.Object);
 
         private void SetupHappyPath(int id = 1)
         {

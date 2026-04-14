@@ -35,7 +35,11 @@ namespace GateEntryManagement.IntegrationTests.Repositories.MiscTypeMaster
         {
             await using var conn = new SqlConnection(_fixture.ConnectionString);
             await conn.OpenAsync();
-            await conn.ExecuteAsync("DELETE FROM Gate.MiscMaster; DELETE FROM Gate.MiscTypeMaster");
+            await conn.ExecuteAsync(@"
+                DELETE FROM Gate.GateInwardDtl; DELETE FROM Gate.GateInwardHdr;
+                DELETE FROM Gate.GatePassDtl; DELETE FROM Gate.GatePassHdr;
+                DELETE FROM Gate.VehicleMovementRecord;
+                DELETE FROM Gate.MiscMaster; DELETE FROM Gate.MiscTypeMaster;");
         }
 
         [Fact]

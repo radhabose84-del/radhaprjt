@@ -250,6 +250,10 @@ namespace UserManagement.IntegrationTests.Repositories.CompanySettings
                 {
                     EntityCode = "TESTENT",
                     EntityName = "Test Entity",
+                    EntityDescription = "Test Entity Description",
+                    Address = "Test Address",
+                    Phone = "0000000000",
+                    Email = "test@test.com",
                     IsActive = Enums.Status.Active,
                     IsDeleted = Enums.IsDelete.NotDeleted
                 };

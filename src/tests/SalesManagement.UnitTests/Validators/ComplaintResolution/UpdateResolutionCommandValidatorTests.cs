@@ -99,6 +99,7 @@ public sealed class UpdateResolutionCommandValidatorTests
             ResolutionTypeId = 3,
             ResolutionSummary = "Replace",
             ClosureRemarks = null,
+            ClosureStatusId = 5,
             IsActive = 1
         };
 

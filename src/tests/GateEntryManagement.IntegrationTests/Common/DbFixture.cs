@@ -3,6 +3,7 @@ using GateEntryManagement.Application.Common.Interfaces;
 using GateEntryManagement.Infrastructure.Data;
 using Microsoft.Data.SqlClient;
 using Dapper;
+using Shared.TestInfrastructure;
 
 namespace GateEntryManagement.IntegrationTests.Common
 {
@@ -11,15 +12,17 @@ namespace GateEntryManagement.IntegrationTests.Common
 
     public class DbFixture : IAsyncLifetime
     {
-        private const string MasterConnection =
-            "Server=192.168.1.126;Database=master;User Id=developer;Password=Dev@#$456;" +
-            "Encrypt=False;TrustServerCertificate=True;";
+        private const string DbName = "GateEntry_TestDb";
 
-        private const string TestDbConnection =
-            "Server=192.168.1.126;Database=GateEntry_TestDb;User Id=developer;Password=Dev@#$456;" +
-            "Encrypt=False;TrustServerCertificate=True;MultipleActiveResultSets=true;";
+        private readonly string _masterConnection;
+        private readonly string _testDbConnection;
 
-        public string ConnectionString => TestDbConnection;
+        public string ConnectionString => _testDbConnection;
+
+        public DbFixture()
+        {
+            (_masterConnection, _testDbConnection) = TestConnectionFactory.Build(DbName);
+        }
         public ApplicationDbContext DbContext { get; private set; }
 
         private Mock<IIPAddressService> _mockIpService;
@@ -37,7 +40,7 @@ namespace GateEntryManagement.IntegrationTests.Common
         public ApplicationDbContext CreateFreshDbContext()
         {
             var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-                .UseSqlServer(TestDbConnection)
+                .UseSqlServer(_testDbConnection)
                 .Options;
             return new ApplicationDbContext(options, _mockIpService.Object, _mockTimeZoneService.Object);
         }
@@ -71,14 +74,14 @@ namespace GateEntryManagement.IntegrationTests.Common
         private async Task CreateDbContextAsync()
         {
             var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-                .UseSqlServer(TestDbConnection)
+                .UseSqlServer(_testDbConnection)
                 .Options;
             DbContext = new ApplicationDbContext(options, _mockIpService.Object, _mockTimeZoneService.Object);
         }
 
         private async Task RecreateDatabaseAsync()
         {
-            await using var conn = new SqlConnection(MasterConnection);
+            await using var conn = new SqlConnection(_masterConnection);
             await conn.OpenAsync();
 
             // Kill existing connections before dropping
@@ -94,7 +97,7 @@ namespace GateEntryManagement.IntegrationTests.Common
 
         private async Task EnsureSchemaAsync()
         {
-            await using var conn = new SqlConnection(TestDbConnection);
+            await using var conn = new SqlConnection(_testDbConnection);
             await conn.OpenAsync();
             await conn.ExecuteAsync(
                 "IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name = 'Gate') EXEC('CREATE SCHEMA [Gate]')");

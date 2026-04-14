@@ -14,10 +14,11 @@ public sealed class CreateSalesOrderCommandValidatorTests
     private readonly Mock<ISalesOrderQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
     private readonly Mock<IWorkflowLookup> _mockWorkflowLookup = new(MockBehavior.Loose);
     private readonly Mock<IIPAddressService> _mockIpService = new(MockBehavior.Loose);
+    private readonly Mock<IMarketingOfficerAccessFilter> _mockAccessFilter = new(MockBehavior.Loose);
 
     private CreateSalesOrderCommandValidator CreateValidator() =>
         new(TestMaxLengthProviderFactory.Create(), _mockQueryRepo.Object,
-            _mockWorkflowLookup.Object, _mockIpService.Object);
+            _mockWorkflowLookup.Object, _mockIpService.Object, _mockAccessFilter.Object);
 
     private static CreateSalesOrderCommand ValidCommand() => new()
     {

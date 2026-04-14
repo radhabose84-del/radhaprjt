@@ -37,8 +37,16 @@ namespace SalesManagement.IntegrationTests.Repositories.MiscTypeMaster
 
         private async Task ClearTableAsync(ApplicationDbContext ctx)
         {
-            ctx.MiscTypeMaster.RemoveRange(ctx.MiscTypeMaster);
-            await ctx.SaveChangesAsync();
+            await ctx.Database.ExecuteSqlRawAsync(@"
+                DELETE FROM Sales.AgentCommissionSlab;
+                DELETE FROM Sales.AgentCommissionPaymentTerm;
+                DELETE FROM Sales.AgentCommissionSalesGroup;
+                DELETE FROM Sales.AgentCommissionConfig;
+                DELETE FROM Sales.CommissionSplitDetail;
+                DELETE FROM Sales.CommissionSplit;
+                DELETE FROM Sales.ItemPriceMaster;
+                DELETE FROM Sales.MiscMaster;
+                DELETE FROM Sales.MiscTypeMaster;");
         }
 
         // ── CreateAsync ───────────────────────────────────────────────────────
