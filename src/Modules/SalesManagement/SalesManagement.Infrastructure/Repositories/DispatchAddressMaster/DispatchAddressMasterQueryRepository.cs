@@ -196,9 +196,26 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAddressMaster
 
         public async Task<bool> SoftDeleteValidationAsync(int id)
         {
-            // DispatchAddressMaster has no FK children — always safe to soft-delete.
-            await Task.CompletedTask;
-            return false;
+            const string sql = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1 FROM [Sales].[DispatchAddressMapping] WHERE DispatchAddressId = @id AND IsDeleted = 0
+                    UNION ALL
+                    SELECT 1 FROM [Sales].[DispatchAdviceHeader] WHERE DispatchAddressId = @id AND IsDeleted = 0
+                ) THEN 1 ELSE 0 END";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { id });
+        }
+
+        public async Task<bool> IsDispatchAddressMasterLinkedAsync(int id)
+        {
+            const string sql = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1 FROM [Sales].[DispatchAddressMapping] WHERE DispatchAddressId = @id AND IsDeleted = 0 AND IsActive = 1
+                    UNION ALL
+                    SELECT 1 FROM [Sales].[DispatchAdviceHeader] WHERE DispatchAddressId = @id AND IsDeleted = 0 AND IsActive = 1
+                ) THEN 1 ELSE 0 END";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { id });
         }
     }
 }

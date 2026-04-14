@@ -28,6 +28,14 @@ namespace SalesManagement.Application.MarketingOfficer.Commands.UpdateMarketingO
 
         public async Task<ApiResponseDTO<int>> Handle(UpdateMarketingOfficerCommand request, CancellationToken cancellationToken)
         {
+            if (request.IsActive == 0)
+            {
+                var isLinked = await _queryRepository.IsMarketingOfficerLinkedAsync(request.Id);
+                if (isLinked)
+                    throw new ExceptionRules(
+                        "This master is linked with other records. You cannot inactivate this record.");
+            }
+
             var entity = _mapper.Map<Domain.Entities.MarketingOfficer>(request);
 
             entity.OfficerSalesGroups = request.SalesGroups

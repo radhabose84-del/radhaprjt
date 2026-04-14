@@ -99,10 +99,22 @@ namespace SalesManagement.Infrastructure.Repositories.MiscTypeMaster
 
         public async Task<bool> SoftDeleteValidationAsync(int id)
         {
-            // Returns true if MiscTypeMaster is linked to active dependent records (blocking deletion).
-            // Currently MiscTypeMaster has no FK children — always returns false (safe to delete).
-            await Task.CompletedTask;
-            return false;
+            const string sql = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1 FROM [Sales].[MiscMaster] WHERE MiscTypeId = @id AND IsDeleted = 0
+                ) THEN 1 ELSE 0 END";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { id });
+        }
+
+        public async Task<bool> IsMiscTypeMasterLinkedAsync(int id)
+        {
+            const string sql = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1 FROM [Sales].[MiscMaster] WHERE MiscTypeId = @id AND IsDeleted = 0 AND IsActive = 1
+                ) THEN 1 ELSE 0 END";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { id });
         }
     }
 }

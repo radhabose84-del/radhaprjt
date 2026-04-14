@@ -159,5 +159,25 @@ namespace SalesManagement.Infrastructure.Repositories.StoTypeMaster
             var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = id });
             return count > 0;
         }
+
+        public async Task<bool> SoftDeleteValidationAsync(int id)
+        {
+            const string sql = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1 FROM [Sales].[StoHeader] WHERE StoTypeId = @id AND IsDeleted = 0
+                ) THEN 1 ELSE 0 END";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { id });
+        }
+
+        public async Task<bool> IsStoTypeMasterLinkedAsync(int id)
+        {
+            const string sql = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1 FROM [Sales].[StoHeader] WHERE StoTypeId = @id AND IsDeleted = 0 AND IsActive = 1
+                ) THEN 1 ELSE 0 END";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { id });
+        }
     }
 }

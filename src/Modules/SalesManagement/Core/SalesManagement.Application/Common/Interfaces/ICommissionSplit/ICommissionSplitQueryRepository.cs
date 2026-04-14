@@ -12,5 +12,7 @@ namespace SalesManagement.Application.Common.Interfaces.ICommissionSplit
         Task<bool> NotFoundAsync(int id);
         Task<bool> MiscMasterExistsAsync(int id);
         Task<string?> GetMiscMasterCodeAsync(int id);
+        Task<bool> SoftDeleteValidationAsync(int id);
+        Task<bool> IsCommissionSplitLinkedAsync(int id);
     }
 }
