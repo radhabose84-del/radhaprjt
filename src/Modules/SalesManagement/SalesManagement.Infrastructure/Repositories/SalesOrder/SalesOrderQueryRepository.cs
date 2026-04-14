@@ -30,6 +30,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
         private readonly IPackTypeLookup _packTypeLookup;
         private readonly ITransactionTypeLookup _transactionTypeLookup;
         private readonly IMarketingOfficerAccessFilter _accessFilter;
+        private readonly IDivisionLookup _divisionLookup;
 
         public SalesOrderQueryRepository(
             IDbConnection dbConnection,
@@ -43,7 +44,8 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             ICompanyLookup companyLookup,
             IPackTypeLookup packTypeLookup,
             ITransactionTypeLookup transactionTypeLookup,
-            IMarketingOfficerAccessFilter accessFilter)
+            IMarketingOfficerAccessFilter accessFilter,
+            IDivisionLookup divisionLookup)
         {
             _dbConnection = dbConnection;
             _unitLookup = unitLookup;
@@ -57,6 +59,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             _packTypeLookup = packTypeLookup;
             _transactionTypeLookup = transactionTypeLookup;
             _accessFilter = accessFilter;
+            _divisionLookup = divisionLookup;
         }
 
         public async Task<(List<SalesOrderHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm, DateOnly? orderDateFrom = null, DateOnly? orderDateTo = null, string? partyName = null, string? statusName = null)
@@ -490,13 +493,16 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
 
         public async Task<IReadOnlyList<SalesOrderLookupDto>> AutocompleteAsync(string term, CancellationToken ct)
         {
-            var unitId = _ipAddressService.GetUnitId() ?? 0;
+            // Resolve accessible OrderUnitIds — all units in the user's Company + Division (from JWT)
+            var accessibleUnitIds = await ResolveAccessibleOrderUnitIdsAsync(ct);
+            if (accessibleUnitIds.Count == 0)
+                accessibleUnitIds.Add(-1); // no-match sentinel — keeps SQL valid, returns 0 rows
 
             // Marketing Officer access scoping
             var moFilter = "";
             var parameters = new DynamicParameters();
             parameters.Add("@Term", term);
-            parameters.Add("@UnitId", unitId);
+            parameters.Add("@AccessibleUnitIds", accessibleUnitIds);
             parameters.Add("@ApprovalStatus", MiscEnumEntity.SalesOrderApprovalStatus);
             parameters.Add("@ApprovedStatus", MiscEnumEntity.SalesOrderStatusApproved);
 
@@ -532,7 +538,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     WHERE ah.IsDeleted = 0
                 ) amd_latest ON amd_latest.SalesOrderHeaderId = h.Id
                 LEFT JOIN Sales.MiscMaster amd_mm ON amd_latest.StatusId = amd_mm.Id AND amd_mm.IsDeleted = 0
-                WHERE h.IsActive = 1 AND h.IsDeleted = 0 AND h.OrderUnitId = @UnitId
+                WHERE h.IsActive = 1 AND h.IsDeleted = 0 AND h.OrderUnitId IN @AccessibleUnitIds
                 AND LOWER(mt.MiscTypeCode) = LOWER(@ApprovalStatus)
                 AND LOWER(st.Code) = LOWER(@ApprovedStatus)
                 AND (@Term = '' OR h.SalesOrderNo LIKE '%' + @Term + '%')
@@ -554,6 +560,36 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             }
 
             return list;
+        }
+
+        /// <summary>
+        /// Resolves the OrderUnitIds visible to the current user (Plant vs Depot scoping):
+        ///   • Plant unit  → only their own UnitId (sees orders placed by their plant)
+        ///   • Depot unit  → all units in the same Company + Division (sees plant orders in that division)
+        /// CompanyId + DivisionId are pulled from JWT via IIPAddressService.
+        /// </summary>
+        private async Task<List<int>> ResolveAccessibleOrderUnitIdsAsync(CancellationToken ct)
+        {
+            var currentUnitId = _ipAddressService.GetUnitId() ?? 0;
+            if (currentUnitId <= 0)
+                return new List<int>();
+
+            var currentUnit = await _unitLookup.GetByIdAsync(currentUnitId, ct);
+            if (currentUnit == null)
+                return new List<int>();
+
+            // Depot users → all units in their Company + Division (resolved via IDivisionLookup)
+            if (string.Equals(currentUnit.UnitTypeName, "Depot", StringComparison.OrdinalIgnoreCase))
+            {
+                var companyId = _ipAddressService.GetCompanyId() ?? 0;
+                var divisionId = _ipAddressService.GetDivisionId() ?? currentUnit.DivisionId;
+
+                var divisionUnits = await _divisionLookup.GetUnitsByDivisionAsync(companyId, divisionId, ct);
+                return divisionUnits.Select(u => u.UnitId).ToList();
+            }
+
+            // Plant (or any other type) → only their own unit
+            return new List<int> { currentUnitId };
         }
 
         public async Task<bool> NotFoundAsync(int id)
