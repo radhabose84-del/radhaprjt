@@ -167,4 +167,11 @@ internal sealed class IPAddressService : IIPAddressService
         if (claim == null) return null;
         return int.TryParse(claim, out int empId) && empId > 0 ? empId : null;
     }
+
+    public int? GetDivisionId()
+    {
+        var claim = _httpContextAccessor.HttpContext?.User?.FindFirst("DivisionId")?.Value;
+        if (claim == null) return null;
+        return int.TryParse(claim, out int divisionId) && divisionId > 0 ? divisionId : null;
+    }
 }
