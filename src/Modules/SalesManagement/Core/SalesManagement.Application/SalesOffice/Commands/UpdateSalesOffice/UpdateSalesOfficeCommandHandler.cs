@@ -9,21 +9,32 @@ namespace SalesManagement.Application.SalesOffice.Commands.UpdateSalesOffice
     public class UpdateSalesOfficeCommandHandler : IRequestHandler<UpdateSalesOfficeCommand, ApiResponseDTO<int>>
     {
         private readonly ISalesOfficeCommandRepository _commandRepository;
+        private readonly ISalesOfficeQueryRepository _queryRepository;
         private readonly IMediator _mediator;
         private readonly IMapper _mapper;
 
         public UpdateSalesOfficeCommandHandler(
             ISalesOfficeCommandRepository commandRepository,
+            ISalesOfficeQueryRepository queryRepository,
             IMediator mediator,
             IMapper mapper)
         {
             _commandRepository = commandRepository;
+            _queryRepository = queryRepository;
             _mediator = mediator;
             _mapper = mapper;
         }
 
         public async Task<ApiResponseDTO<int>> Handle(UpdateSalesOfficeCommand request, CancellationToken cancellationToken)
         {
+            if (request.IsActive == 0)
+            {
+                var isLinked = await _queryRepository.IsSalesOfficeLinkedAsync(request.Id);
+                if (isLinked)
+                    throw new ExceptionRules(
+                        "This master is linked with other records. You cannot inactivate this record.");
+            }
+
             var entity = _mapper.Map<Domain.Entities.SalesOffice>(request);
 
             var updatedId = await _commandRepository.UpdateAsync(entity);

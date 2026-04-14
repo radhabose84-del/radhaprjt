@@ -1,5 +1,6 @@
 using FluentValidation;
 using SalesManagement.Application.Common.Interfaces.IDispatchAdvice;
+using SalesManagement.Application.Common.Interfaces.IProformaInvoice;
 using SalesManagement.Application.DispatchAdvice.Commands.CreateDispatchAdvice;
 using SalesManagement.Presentation.Validation.Common;
 using Shared.Validation.Common;
@@ -10,12 +11,15 @@ namespace SalesManagement.Presentation.Validation.DispatchAdvice
     {
         private readonly List<ValidationRule> _validationRules;
         private readonly IDispatchAdviceQueryRepository _queryRepository;
+        private readonly IProformaInvoiceQueryRepository _proformaQueryRepository;
 
         public CreateDispatchAdviceCommandValidator(
             MaxLengthProvider maxLengthProvider,
-            IDispatchAdviceQueryRepository queryRepository)
+            IDispatchAdviceQueryRepository queryRepository,
+            IProformaInvoiceQueryRepository proformaQueryRepository)
         {
             _queryRepository = queryRepository;
+            _proformaQueryRepository = proformaQueryRepository;
 
             var maxLengthVehicleNo = maxLengthProvider.GetMaxLength<Domain.Entities.DispatchAdviceHeader>("VehicleNo") ?? 50;
             var maxLengthDriverName = maxLengthProvider.GetMaxLength<Domain.Entities.DispatchAdviceHeader>("DriverName") ?? 100;
@@ -140,6 +144,19 @@ namespace SalesManagement.Presentation.Validation.DispatchAdvice
                         break;
                 }
             }
+
+            // Advance payment hard block:
+            // If the Sales Order has PaymentType = Advance, dispatch is blocked
+            // until advance payment has been received on a Proforma Invoice.
+            RuleFor(x => x.SalesOrderId)
+                .MustAsync(async (salesOrderId, ct) =>
+                {
+                    var isAdvance = await _proformaQueryRepository.SalesOrderHasAdvancePaymentTypeAsync(salesOrderId);
+                    if (!isAdvance) return true; // Not advance payment — no block
+                    return await _proformaQueryRepository.HasReceivedAdvancePaymentAsync(salesOrderId);
+                })
+                .WithMessage("Dispatch blocked. Advance payment not received for this Sales Order.")
+                .When(x => x.SalesOrderId > 0);
         }
     }
 }

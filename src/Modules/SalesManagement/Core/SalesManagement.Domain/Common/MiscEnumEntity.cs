@@ -167,5 +167,27 @@ namespace SalesManagement.Domain.Common
         public const string DirectToParty = "Direct-To-Party";
         public const string Others = "Others";
 
+        // Discount Slab Type
+        public const string SLAB_TYPE = "SLAB_TYPE";
+        public const string QUANTITY = "QUANTITY";
+        public const string AMOUNT = "AMOUNT";
+        public const string PAYMENT_DAYS = "PAYMENT_DAYS";
+
+        // Proforma Invoice Status
+        public const string ProformaInvoiceStatus = "ProformaInvoiceStatus";
+        public const string ProformaStatusDraft = "Draft";
+        public const string ProformaStatusSent = "Sent";
+        public const string ProformaStatusCancelled = "Cancelled";
+        public const string ProformaStatusPaid = "Paid";
+        public const string ProformaStatusPartiallyPaid = "Partially Paid";
+
+        // Document Sequence - Proforma Invoice
+        public const string TransactionTypeProformaInvoice = "Proforma Invoice";
+
+        // Payment Type (for advance payment check)
+        public const string PaymentTypeMiscType = "PaymentType";
+        public const string PaymentTypeAdvance = "Advance";
+
     }
 }
+    

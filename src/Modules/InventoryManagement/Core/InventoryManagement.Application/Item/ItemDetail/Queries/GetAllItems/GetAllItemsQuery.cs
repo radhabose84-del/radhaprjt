@@ -13,5 +13,6 @@ namespace InventoryManagement.Application.Item.ItemDetail.Queries.GetAllItems
         public int? ItemGroupId   { get; set; }
         public int? ItemCategoryId { get; set; }
         public int? ModuleId { get; set; }
+        public int? SalesGroupId { get; set; }
     }
 }

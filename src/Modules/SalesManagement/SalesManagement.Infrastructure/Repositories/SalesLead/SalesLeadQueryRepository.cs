@@ -1,5 +1,4 @@
 using System.Data;
-using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Users;
@@ -17,22 +16,19 @@ namespace SalesManagement.Infrastructure.Repositories.SalesLead
         private readonly ICityLookup _cityLookup;
         private readonly IItemLookup _itemLookup;
         private readonly IMarketingOfficerAccessFilter _accessFilter;
-        private readonly IIPAddressService _ipAddressService;
 
         public SalesLeadQueryRepository(
             IDbConnection dbConnection,
             IPartyLookup partyLookup,
             ICityLookup cityLookup,
             IItemLookup itemLookup,
-            IMarketingOfficerAccessFilter accessFilter,
-            IIPAddressService ipAddressService)
+            IMarketingOfficerAccessFilter accessFilter)
         {
             _dbConnection = dbConnection;
             _partyLookup = partyLookup;
             _cityLookup = cityLookup;
             _itemLookup = itemLookup;
             _accessFilter = accessFilter;
-            _ipAddressService = ipAddressService;
         }
 
         public async Task<(List<SalesLeadDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
@@ -50,14 +46,12 @@ namespace SalesManagement.Infrastructure.Repositories.SalesLead
             if (_accessFilter.IsMarketingOfficer())
             {
                 var empId = _accessFilter.GetCurrentMarketingOfficerId();
-                var userId = _ipAddressService.GetUserId();
                 var customerIds = await _accessFilter.GetAccessibleCustomerIdsAsync();
                 var safeIds = customerIds.Count > 0 ? customerIds.ToArray() : new[] { -1 };
 
-                whereClause += " AND (sl.CreatedBy = @UserId OR sl.MarketingOfficerId = @EmpId OR sl.PartyId IN @CustomerIds) ";
-                parameters.Add("UserId", userId);
-                parameters.Add("EmpId", empId);
+                whereClause += " AND sl.MarketingOfficerId = @EmpId AND sl.PartyId IN @CustomerIds ";
                 parameters.Add("CustomerIds", safeIds);
+                parameters.Add("EmpId", empId);
             }
 
             var query = $@"
@@ -147,14 +141,10 @@ namespace SalesManagement.Infrastructure.Repositories.SalesLead
 
             if (_accessFilter.IsMarketingOfficer())
             {
-                var empId = _accessFilter.GetCurrentMarketingOfficerId();
-                var userId = _ipAddressService.GetUserId();
                 var customerIds = await _accessFilter.GetAccessibleCustomerIdsAsync();
                 var safeIds = customerIds.Count > 0 ? customerIds.ToArray() : new[] { -1 };
 
-                moFilter = " AND (sl.CreatedBy = @UserId OR sl.MarketingOfficerId = @EmpId OR sl.PartyId IN @CustomerIds) ";
-                parameters.Add("UserId", userId);
-                parameters.Add("EmpId", empId);
+                moFilter = " AND sl.PartyId IN @CustomerIds ";
                 parameters.Add("CustomerIds", safeIds);
             }
 
@@ -214,14 +204,10 @@ namespace SalesManagement.Infrastructure.Repositories.SalesLead
 
             if (_accessFilter.IsMarketingOfficer())
             {
-                var empId = _accessFilter.GetCurrentMarketingOfficerId();
-                var userId = _ipAddressService.GetUserId();
                 var customerIds = await _accessFilter.GetAccessibleCustomerIdsAsync(ct);
                 var safeIds = customerIds.Count > 0 ? customerIds.ToArray() : new[] { -1 };
 
-                moFilter = " AND (sl.CreatedBy = @UserId OR sl.MarketingOfficerId = @EmpId OR sl.PartyId IN @CustomerIds) ";
-                parameters.Add("UserId", userId);
-                parameters.Add("EmpId", empId);
+                moFilter = " AND sl.PartyId IN @CustomerIds ";
                 parameters.Add("CustomerIds", safeIds);
             }
 

@@ -11,5 +11,7 @@ namespace SalesManagement.Application.Common.Interfaces.IDiscountMaster
         Task<bool> NotFoundAsync(int id);
         Task<bool> MiscMasterExistsAsync(int id);
         Task<bool> SalesGroupExistsAsync(int id);
+        Task<bool> SoftDeleteValidationAsync(int id);
+        Task<bool> IsDiscountMasterLinkedAsync(int id);
     }
 }

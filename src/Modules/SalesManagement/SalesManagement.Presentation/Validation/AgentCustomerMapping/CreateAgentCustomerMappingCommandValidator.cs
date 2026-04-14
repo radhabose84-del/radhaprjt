@@ -1,3 +1,4 @@
+using Contracts.Interfaces.Lookups.Party;
 using FluentValidation;
 using SalesManagement.Application.AgentCustomerMapping.Commands.CreateAgentCustomerMapping;
 using SalesManagement.Application.Common.Interfaces;
@@ -13,14 +14,20 @@ namespace SalesManagement.Presentation.Validation.AgentCustomerMapping
         private readonly List<ValidationRule> _validationRules;
         private readonly IAgentCustomerMappingQueryRepository _queryRepository;
         private readonly IMarketingOfficerAccessFilter _accessFilter;
+        private readonly ICustomerLookup _customerLookup;
+        private readonly IAgentLookup _agentLookup;
 
         public CreateAgentCustomerMappingCommandValidator(
             MaxLengthProvider maxLengthProvider,
             IAgentCustomerMappingQueryRepository queryRepository,
-            IMarketingOfficerAccessFilter accessFilter)
+            IMarketingOfficerAccessFilter accessFilter,
+            ICustomerLookup customerLookup,
+            IAgentLookup agentLookup)
         {
             _queryRepository = queryRepository;
             _accessFilter = accessFilter;
+            _customerLookup = customerLookup;
+            _agentLookup = agentLookup;
 
             var maxLengthRemarks = maxLengthProvider
                 .GetMaxLength<Domain.Entities.AgentCustomerMapping>("Remarks") ?? 500;
@@ -89,6 +96,28 @@ namespace SalesManagement.Presentation.Validation.AgentCustomerMapping
                             .Must((cmd, subAgentId) => subAgentId != cmd.AgentId)
                             .WithMessage($"{nameof(CreateAgentCustomerMappingCommand.SubAgentId)} cannot be the same as AgentId.")
                             .When(x => x.SubAgentId.HasValue);
+
+                        // BR-3: Duplicate Customer + Agent combination not allowed
+                        RuleFor(x => x)
+                            .CustomAsync(async (cmd, context, ct) =>
+                            {
+                                if (cmd.CustomerId <= 0 || cmd.AgentId <= 0) return;
+
+                                var exists = await _queryRepository.MappingAlreadyExistsAsync(cmd.CustomerId, cmd.AgentId, ct);
+                                if (!exists) return;
+
+                                var customers = await _customerLookup.GetAllCustomerAsync();
+                                var customer = customers.FirstOrDefault(x => x.Id == cmd.CustomerId);
+
+                                var agents = await _agentLookup.GetAllAgentAsync();
+                                var agent = agents.FirstOrDefault(x => x.Id == cmd.AgentId);
+
+                                var customerName = customer?.CustomerName ?? cmd.CustomerId.ToString();
+                                var agentName = agent?.AgentName ?? cmd.AgentId.ToString();
+
+                                context.AddFailure(
+                                    $"Customer '{customerName}' is already mapped to Agent '{agentName}'. Duplicate mapping is not allowed.");
+                            });
                         break;
 
                     case "DateCompare":

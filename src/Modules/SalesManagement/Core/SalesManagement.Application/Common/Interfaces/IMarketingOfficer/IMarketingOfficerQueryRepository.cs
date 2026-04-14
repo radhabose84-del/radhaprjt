@@ -13,5 +13,7 @@ namespace SalesManagement.Application.Common.Interfaces.IMarketingOfficer
         Task<bool> SalesGroupExistsAsync(int salesGroupId);
         Task<bool> SalesGroupsAllExistAsync(List<int> salesGroupIds);
         Task<List<EmployeeLookupDto>> GetEmployeeLookupAsync(string oldUnitId, string? empNo);
+        Task<bool> SoftDeleteValidationAsync(int id);
+        Task<bool> IsMarketingOfficerLinkedAsync(int id);
     }
 }

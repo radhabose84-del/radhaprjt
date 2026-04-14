@@ -104,7 +104,8 @@ namespace UserManagement.Infrastructure.Repositories.Lookups.Users
                     U.OldUnitId AS OldUnitId,
                     U.SpindlesCapacity,
                     U.UnitTypeId,
-                    MM.Description AS UnitTypeName
+                    MM.Description AS UnitTypeName,
+                    U.DivisionId
                 FROM [AppData].[Unit] U
                 LEFT JOIN [AppData].[MiscMaster] MM ON MM.Id = U.UnitTypeId AND MM.IsDeleted = 0
                 WHERE U.IsDeleted = 0
@@ -128,7 +129,8 @@ namespace UserManagement.Infrastructure.Repositories.Lookups.Users
                     C.OldUnitId AS OldUnitId,
                     C.SpindlesCapacity,
                     C.UnitTypeId,
-                    MM.Description AS UnitTypeName
+                    MM.Description AS UnitTypeName,
+                    C.DivisionId
                 FROM [AppSecurity].[UserUnit] B
                 INNER JOIN [AppData].[Unit] C ON B.UnitId = C.Id
                 LEFT JOIN [AppData].[MiscMaster] MM ON MM.Id = C.UnitTypeId AND MM.IsDeleted = 0
@@ -155,7 +157,8 @@ namespace UserManagement.Infrastructure.Repositories.Lookups.Users
                     C.OldUnitId AS OldUnitId,
                     C.SpindlesCapacity,
                     C.UnitTypeId,
-                    MM.Description AS UnitTypeName
+                    MM.Description AS UnitTypeName,
+                    C.DivisionId
                 FROM [AppSecurity].[Users] A
                 INNER JOIN [AppSecurity].[UserUnit] B ON A.UserId = B.UserId
                 INNER JOIN [AppData].[Unit] C ON B.UnitId = C.Id

@@ -10,5 +10,6 @@ namespace SalesManagement.Application.Common.Interfaces.IMiscTypeMaster
         Task<bool> AlreadyExistsAsync(string miscTypeCode, int? id = null);
         Task<bool> NotFoundAsync(int id);
         Task<bool> SoftDeleteValidationAsync(int id);
+        Task<bool> IsMiscTypeMasterLinkedAsync(int id);
     }
 }

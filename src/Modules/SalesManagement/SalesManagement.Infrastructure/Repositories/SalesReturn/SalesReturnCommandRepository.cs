@@ -63,7 +63,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesReturn
             await _dbContext.SaveChangesAsync();
         }
 
-        public async Task UpdateComplaintResolutionReturnStatusAsync(int complaintHeaderId, int returnStatusId, decimal returnQuantity)
+        public async Task UpdateComplaintResolutionReturnStatusAsync(int complaintHeaderId, int returnStatusId, decimal returnQuantity, int? closureStatusId = null, int? closedBy = null)
         {
             var resolution = await _dbContext.ComplaintResolution
                 .FirstOrDefaultAsync(x => x.ComplaintHeaderId == complaintHeaderId && x.IsDeleted == IsDelete.NotDeleted);
@@ -72,6 +72,14 @@ namespace SalesManagement.Infrastructure.Repositories.SalesReturn
 
             resolution.ReturnStatusId = returnStatusId;
             resolution.ReturnQuantity = returnQuantity;
+
+            if (closureStatusId.HasValue)
+            {
+                resolution.ClosureStatusId = closureStatusId.Value;
+                resolution.ClosedBy = closedBy;
+                resolution.ClosedDate = DateTimeOffset.UtcNow;
+            }
+
             await _dbContext.SaveChangesAsync();
         }
     }

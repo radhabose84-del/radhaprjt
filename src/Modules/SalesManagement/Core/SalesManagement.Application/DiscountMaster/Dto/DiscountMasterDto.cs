@@ -72,5 +72,6 @@ namespace SalesManagement.Application.DiscountMaster.Dto
         public int Id { get; set; }
         public string? DiscountCode { get; set; }
         public string? DiscountName { get; set; }
+        public int Priority { get; set; }
     }
 }

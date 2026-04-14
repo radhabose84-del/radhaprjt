@@ -15,5 +15,6 @@ namespace InventoryManagement.Domain.Entities.Item.ItemDetail
         public int? RmTypeId { get; set; }
         public int? ValuationMethodId { get; set; }
         public MiscMaster? MiscValuationMethod { get; set; }
+        public int? SalesGroupId { get; set; }
     }
 }

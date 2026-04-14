@@ -79,9 +79,14 @@ namespace FinanceManagement.Infrastructure.Data.Configurations
             builder.Property(t => t.ModifiedByName).HasColumnName("ModifiedByName").HasColumnType("varchar(100)");
             builder.Property(t => t.ModifiedIP).HasColumnName("ModifiedIP").HasColumnType("varchar(50)");
 
-            // Unique indexes — both TypeName and ShortName must be unique
-            builder.HasIndex(t => t.TypeName).IsUnique();
-            builder.HasIndex(t => t.ShortName).IsUnique();
+            // Composite unique indexes — TypeName and ShortName must be unique per Unit
+            builder.HasIndex(t => new { t.UnitId, t.TypeName })
+                .IsUnique()
+                .HasFilter("[IsDeleted] = 0");
+
+            builder.HasIndex(t => new { t.UnitId, t.ShortName })
+                .IsUnique()
+                .HasFilter("[IsDeleted] = 0");
 
             // Non-unique indexes for FK lookups (no DB FK constraint — cross-module references)
             builder.HasIndex(t => t.UnitId);

@@ -92,16 +92,6 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .IsRequired(false);
 
             // Commercial Details
-            builder.Property(t => t.DiscountPlanId)
-                .HasColumnName("DiscountPlanId")
-                .HasColumnType("int")
-                .IsRequired(false);
-
-            builder.Property(t => t.PaymentTermsId)
-                .HasColumnName("PaymentTermsId")
-                .HasColumnType("int")
-                .IsRequired();
-
             builder.Property(t => t.PaymentTypeId)
                 .HasColumnName("PaymentTypeId")
                 .HasColumnType("int")
@@ -291,11 +281,6 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             builder.HasOne(t => t.SalesSegment)
                 .WithMany(s => s.SalesOrderHeaders)
                 .HasForeignKey(t => t.SalesSegmentId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            builder.HasOne(t => t.DiscountPlan)
-                .WithMany(m => m.SalesOrderHeadersAsDiscountPlan)
-                .HasForeignKey(t => t.DiscountPlanId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne(t => t.PaymentType)

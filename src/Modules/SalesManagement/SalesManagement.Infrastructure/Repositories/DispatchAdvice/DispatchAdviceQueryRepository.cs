@@ -24,6 +24,7 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
         private readonly IFreightMasterLookup _freightMasterLookup;
         private readonly IWarehouseLookup _warehouseLookup;
         private readonly IBinLookup _binLookup;
+        private readonly IUOMLookup _uomLookup;
 
         public DispatchAdviceQueryRepository(
             IDbConnection dbConnection,
@@ -35,7 +36,8 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
             ILotMasterLookup lotMasterLookup,
             IFreightMasterLookup freightMasterLookup,
             IWarehouseLookup warehouseLookup,
-            IBinLookup binLookup)
+            IBinLookup binLookup,
+            IUOMLookup uomLookup)
         {
             _dbConnection = dbConnection;
             _partyLookup = partyLookup;
@@ -47,10 +49,14 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
             _freightMasterLookup = freightMasterLookup;
             _warehouseLookup = warehouseLookup;
             _binLookup = binLookup;
+            _uomLookup = uomLookup;
         }
 
         public async Task<(List<DispatchAdviceHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
         {
+            // Scope to the logged-in user's current Unit (from JWT)
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
+
             var searchFilter = string.IsNullOrWhiteSpace(searchTerm)
                 ? ""
                 : "AND (h.DispatchNo LIKE @Search OR h.VehicleNo LIKE @Search OR h.DriverName LIKE @Search OR h.LRNo LIKE @Search)";
@@ -59,7 +65,7 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
                 DECLARE @TotalCount INT;
                 SELECT @TotalCount = COUNT(*)
                 FROM Sales.DispatchAdviceHeader h
-                WHERE h.IsDeleted = 0 {searchFilter};
+                WHERE h.IsDeleted = 0 AND h.UnitId = @UnitId {searchFilter};
 
                 SELECT h.Id, h.DispatchNo, h.DispatchDate,
                     h.StatusId,
@@ -84,13 +90,13 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
                 LEFT JOIN Sales.SalesOrderHeader so ON h.SalesOrderId = so.Id AND so.IsDeleted = 0
                 LEFT JOIN Sales.DispatchAddressMaster da ON h.DispatchAddressId = da.Id AND da.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster dt ON h.DispatchTypeId = dt.Id AND dt.IsDeleted = 0
-                WHERE h.IsDeleted = 0 {searchFilter}
+                WHERE h.IsDeleted = 0 AND h.UnitId = @UnitId {searchFilter}
                 ORDER BY h.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
 
                 SELECT @TotalCount AS TotalCount;";
 
-            var parameters = new { Search = $"%{searchTerm}%", Offset = (pageNumber - 1) * pageSize, PageSize = pageSize };
+            var parameters = new { Search = $"%{searchTerm}%", UnitId = unitId, Offset = (pageNumber - 1) * pageSize, PageSize = pageSize };
             var result = await _dbConnection.QueryMultipleAsync(query, parameters);
             var list = (await result.ReadAsync<DispatchAdviceHeaderDto>()).ToList();
             var totalCount = await result.ReadFirstAsync<int>();
@@ -474,10 +480,19 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
 
         public async Task<DispatchAdvicePackingListDto?> GetPackingListAsync(int dispatchAdviceId, CancellationToken ct)
         {
-            // Header — fetched once (may have zero detail rows if no stock found)
+            // Header — JOIN DispatchAddressMaster (address fields). PartyAddress comes from cross-module lookup below.
             const string headerSql = @"
-                SELECT h.Id AS DispatchAdviceId, h.DispatchNo, h.DispatchDate, h.PartyId
+                SELECT h.Id AS DispatchAdviceId, h.DispatchNo, h.DispatchDate,
+                       h.PartyId,
+                       h.DispatchAddressId,
+                       da.DispatchAddressName,
+                       da.AddressLine1 AS DispatchAddressLine1,
+                       da.AddressLine2 AS DispatchAddressLine2,
+                       da.PinCode AS DispatchAddressPinCode,
+                       h.TransporterId,
+                       h.VehicleNo, h.DriverName, h.LRNo
                 FROM Sales.DispatchAdviceHeader h
+                LEFT JOIN Sales.DispatchAddressMaster da ON h.DispatchAddressId = da.Id AND da.IsDeleted = 0
                 WHERE h.Id = @DispatchAdviceId AND h.IsDeleted = 0";
 
             var header = await _dbConnection.QueryFirstOrDefaultAsync<DispatchAdvicePackingListDto>(
@@ -486,13 +501,16 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
             if (header == null)
                 return null;
 
-            // Detail rows — one per pack, join header + detail + stock ledger
+            // Detail rows — one per pack; JOIN SalesOrderDetail to fetch BagWeight + SaleUOMId
             const string detailSql = @"
                 SELECT d.ItemId, d.LotId, d.PackTypeId,
                        sl.PackNo, sl.WarehouseId, sl.BinId,
-                       sl.TotalQty, sl.TotalValue
+                       sl.TotalQty, sl.TotalValue,
+                       sod.BagWeight, sod.SaleUOMId,
+                       (sl.TotalQty * sod.BagWeight) AS TotalWeight
                 FROM Sales.DispatchAdviceHeader h
                 INNER JOIN Sales.DispatchAdviceDetail d ON d.DispatchAdviceHeaderId = h.Id
+                LEFT JOIN Sales.SalesOrderDetail sod ON d.SalesOrderDetailId = sod.Id
                 INNER JOIN Sales.StockLedger sl
                     ON sl.UnitId = h.UnitId
                     AND sl.ItemId = d.ItemId
@@ -506,32 +524,62 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
             var details = (await _dbConnection.QueryAsync<DispatchAdvicePackingListDetailDto>(
                 new CommandDefinition(detailSql, new { DispatchAdviceId = dispatchAdviceId }, cancellationToken: ct))).ToList();
 
-            // Party lookup (header-level)
+            // Header-level cross-module lookups
             var party = await _partyLookup.GetByIdAsync(header.PartyId, ct);
             header.PartyName = party?.PartyName;
+
+            // PartyAddress = the party's "Shipping" address from Party.PartyAddress (composed string)
+            var shippingAddress = party?.Addresses?
+                .FirstOrDefault(a => string.Equals(a.AddressType, "Shipping", StringComparison.OrdinalIgnoreCase));
+
+            if (shippingAddress != null)
+            {
+                var parts = new[]
+                {
+                    shippingAddress.AddressLine1,
+                    shippingAddress.AddressLine2,
+                    shippingAddress.City,
+                    shippingAddress.State,
+                    shippingAddress.PostalCode,
+                    shippingAddress.Country
+                }
+                .Where(p => !string.IsNullOrWhiteSpace(p));
+
+                header.PartyAddress = string.Join(", ", parts);
+            }
+
+            if (header.TransporterId.HasValue)
+            {
+                var transporter = await _partyLookup.GetByIdAsync(header.TransporterId.Value, ct);
+                header.TransporterName = transporter?.PartyName;
+            }
+
             header.Details = details;
 
             if (details.Count == 0)
                 return header;
 
-            // Cross-module lookups (detail-level) — resolve names once per distinct id set
+            // Detail-level cross-module lookups — resolve names once per distinct id set
             var itemIds = details.Select(r => r.ItemId).Distinct().ToList();
             var lotIds = details.Select(r => r.LotId).Distinct().ToList();
             var packTypeIds = details.Select(r => r.PackTypeId).Distinct().ToList();
             var warehouseIds = details.Where(r => r.WarehouseId.HasValue).Select(r => r.WarehouseId!.Value).Distinct().ToList();
             var binIds = details.Where(r => r.BinId.HasValue).Select(r => r.BinId!.Value).Distinct().ToList();
+            var uomIds = details.Where(r => r.SaleUOMId > 0).Select(r => r.SaleUOMId).Distinct().ToList();
 
             var items = await _itemLookup.GetByIdsAsync(itemIds);
             var lots = await _lotMasterLookup.GetByIdsAsync(lotIds);
             var packTypes = await _packTypeLookup.GetByIdsAsync(packTypeIds);
             var warehouses = warehouseIds.Count > 0 ? await _warehouseLookup.GetByIdsAsync(warehouseIds, ct) : [];
             var bins = binIds.Count > 0 ? await _binLookup.GetByIdsAsync(binIds, ct) : [];
+            var uoms = uomIds.Count > 0 ? await _uomLookup.GetByIdsAsync(uomIds, ct) : [];
 
             var itemDict = items.ToDictionary(i => i.Id, i => i.ItemName);
             var lotDict = lots.ToDictionary(l => l.Id, l => l.LotCode);
             var packTypeDict = packTypes.ToDictionary(p => p.Id, p => p.PackTypeName);
             var warehouseDict = warehouses.ToDictionary(w => w.Id, w => w.WarehouseName);
             var binDict = bins.ToDictionary(b => b.Id, b => b.BinName);
+            var uomDict = uoms.ToDictionary(u => u.Id, u => u.UOMName);
 
             foreach (var row in details)
             {
@@ -544,6 +592,9 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
 
                 if (row.BinId.HasValue)
                     row.BinName = binDict.TryGetValue(row.BinId.Value, out var bn) ? bn : null;
+
+                if (row.SaleUOMId > 0)
+                    row.SaleUOMName = uomDict.TryGetValue(row.SaleUOMId, out var un) ? un : null;
             }
 
             return header;

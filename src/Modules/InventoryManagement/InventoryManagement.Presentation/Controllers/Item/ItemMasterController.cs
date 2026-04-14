@@ -33,7 +33,8 @@ namespace InventoryManagement.Presentation.Controllers.Item
             [FromQuery] bool onlyActive = true,
             [FromQuery] int? itemGroupId = null,
             [FromQuery] int? itemCategoryId = null,
-            [FromQuery] int? moduleId = null)
+            [FromQuery] int? moduleId = null,
+            [FromQuery] int? salesGroupId = null)
         {
             var (items, total) = await _mediator.Send(new GetAllItemsQuery
             {
@@ -43,7 +44,8 @@ namespace InventoryManagement.Presentation.Controllers.Item
                 OnlyActive = onlyActive,
                 ItemGroupId = itemGroupId,
                 ItemCategoryId = itemCategoryId,
-                ModuleId = moduleId
+                ModuleId = moduleId,
+                SalesGroupId = salesGroupId
             });
 
             return Ok(new ApiResponseDTO<List<ItemListDto>>
@@ -106,15 +108,15 @@ namespace InventoryManagement.Presentation.Controllers.Item
 
         // PUT: /api/ItemMaster
         [HttpPut]
-        public async Task<ActionResult<ApiResponseDTO<int>>> Update([FromBody] UpdateItemCommand cmd, CancellationToken ct)
+        public async Task<ActionResult<ApiResponseDTO<int>>> Update([FromBody] ItemDto payload, CancellationToken ct)
         {
-            await _mediator.Send(new UpdateItemCommand { Payload = cmd.Payload }, ct);
+            await _mediator.Send(new UpdateItemCommand { Payload = payload }, ct);
 
             return Ok(new ApiResponseDTO<int>
             {
                 StatusCode = StatusCodes.Status200OK,
                 Message = "Item updated successfully.",
-                Data = cmd.Payload.Id
+                Data = payload.Id
             });
         }
 
@@ -161,6 +163,7 @@ namespace InventoryManagement.Presentation.Controllers.Item
             [FromQuery] int? sourceId = null,
             [FromQuery] int? issueRuleId = null,
             [FromQuery] int? moduleId = null,
+            [FromQuery] int? salesGroupId = null,
             CancellationToken ct = default)
         {
             var items = await _mediator.Send(new GetItemAutoCompleteQuery
@@ -170,7 +173,8 @@ namespace InventoryManagement.Presentation.Controllers.Item
                 ItemCategoryId = itemCategoryId,
                 SourceId = sourceId,
                 IssueRuleId = issueRuleId,
-                ModuleId = moduleId
+                ModuleId = moduleId,
+                SalesGroupId = salesGroupId
             }, ct);
 
             return Ok(new ApiResponseDTO<List<GetItemAutoCompleteDto>>
@@ -185,14 +189,16 @@ namespace InventoryManagement.Presentation.Controllers.Item
         public async Task<ActionResult<ApiResponseDTO<List<GetItemAutoCompleteDto>>>> GetItemsByVariantFilter(
             [FromQuery] bool? hasVariant = null,
             [FromQuery] int? parentItemId = null,
-            [FromQuery] int? moduleId = null,
+            [FromQuery] string? moduleId = null,
             CancellationToken ct = default)
         {
+            int? parsedModuleId = int.TryParse(moduleId, out var mid) ? mid : null;
+
             var items = await _mediator.Send(new GetItemsByVariantFilterQuery
             {
                 HasVariant = hasVariant,
                 ParentItemId = parentItemId,
-                ModuleId = moduleId
+                ModuleId = parsedModuleId
             }, ct);
 
             return Ok(new ApiResponseDTO<List<GetItemAutoCompleteDto>>

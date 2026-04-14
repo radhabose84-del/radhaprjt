@@ -12,5 +12,6 @@ namespace SalesManagement.Application.Common.Interfaces.IBusinessUnit
         Task<bool> NameAlreadyExistsAsync(string businessUnitName, int? id = null);
         Task<bool> NotFoundAsync(int id);
         Task<bool> SoftDeleteValidationAsync(int id);
+        Task<bool> IsBusinessUnitLinkedAsync(int id);
     }
 }

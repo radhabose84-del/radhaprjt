@@ -118,7 +118,7 @@ namespace WarehouseManagement.Infrastructure
             services.AddScoped<IItemGroupLookup, ItemGroupLookupRepository>();
            // services.AddScoped<ILocationLookup, LocationLookupRepository>();
             services.AddScoped<IMiscMasterLookup, MiscMasterLookupRepository>();
-            services.AddScoped<IUnitLookup, UnitLookupRepository>();
+           // services.AddScoped<IUnitLookup, UnitLookupRepository>();
     
 
 

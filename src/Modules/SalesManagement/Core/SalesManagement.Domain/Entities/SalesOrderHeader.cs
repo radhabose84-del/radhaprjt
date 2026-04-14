@@ -24,8 +24,6 @@ namespace SalesManagement.Domain.Entities
         public int? OrderUnitId { get; set; }
 
         // Commercial Details
-        public int? DiscountPlanId { get; set; }
-        public int PaymentTermsId { get; set; }          // Cross-module FK (PurchaseManagement)
         public int? PaymentTypeId { get; set; }
         public int FreightTypeId { get; set; }
         public int? CountListId { get; set; }
@@ -78,7 +76,6 @@ namespace SalesManagement.Domain.Entities
         public SalesGroup? SalesGroup { get; set; }
         public SalesSegment? SalesSegment { get; set; }
         public MiscMaster? EnquiryTypeMisc { get; set; }
-        public MiscMaster? DiscountPlan { get; set; }
         public MiscMaster? PaymentType { get; set; }
         public MiscMaster? FreightType { get; set; }
         public MiscMaster? CountList { get; set; }
@@ -86,11 +83,15 @@ namespace SalesManagement.Domain.Entities
 
         // Child collection
         public ICollection<SalesOrderDetail>? SalesOrderDetails { get; set; }
+        public ICollection<SalesOrderDiscount>? SalesOrderDiscounts { get; set; }
 
         // Reverse navigation (DispatchAdvice)
         public ICollection<DispatchAdviceHeader>? DispatchAdviceHeaders { get; set; }
 
         // Reverse navigation (Amendment)
         public ICollection<SalesOrderAmendmentHeader>? SalesOrderAmendmentHeaders { get; set; }
+
+        // Reverse navigation (ProformaInvoice)
+        public ICollection<ProformaInvoice>? ProformaInvoices { get; set; }
     }
 }

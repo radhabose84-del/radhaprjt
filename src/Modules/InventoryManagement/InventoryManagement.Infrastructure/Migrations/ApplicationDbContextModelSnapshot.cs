@@ -1019,6 +1019,10 @@ namespace InventoryManagement.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("RmTypeId");
 
+                    b.Property<int?>("SalesGroupId")
+                        .HasColumnType("int")
+                        .HasColumnName("SalesGroupId");
+
                     b.Property<int?>("UomId")
                         .HasColumnType("int")
                         .HasColumnName("UomId");

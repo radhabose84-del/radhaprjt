@@ -3624,6 +3624,113 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.ToTable("OutboxMessages", "Sales");
                 });
 
+            modelBuilder.Entity("SalesManagement.Domain.Entities.ProformaInvoice", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<int>("PartyId")
+                        .HasColumnType("int")
+                        .HasColumnName("PartyId");
+
+                    b.Property<decimal>("PaymentReceivedAmount")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,2)")
+                        .HasDefaultValue(0m)
+                        .HasColumnName("PaymentReceivedAmount");
+
+                    b.Property<decimal>("ProformaAmount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("ProformaAmount");
+
+                    b.Property<DateOnly>("ProformaDate")
+                        .HasColumnType("date")
+                        .HasColumnName("ProformaDate");
+
+                    b.Property<string>("ProformaNumber")
+                        .IsRequired()
+                        .HasColumnType("varchar(30)")
+                        .HasColumnName("ProformaNumber");
+
+                    b.Property<string>("Remarks")
+                        .HasColumnType("varchar(500)")
+                        .HasColumnName("Remarks");
+
+                    b.Property<decimal>("SOBalance")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("SOBalance");
+
+                    b.Property<int>("SalesOrderId")
+                        .HasColumnType("int")
+                        .HasColumnName("SalesOrderId");
+
+                    b.Property<int?>("StatusId")
+                        .HasColumnType("int")
+                        .HasColumnName("StatusId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PartyId");
+
+                    b.HasIndex("ProformaDate");
+
+                    b.HasIndex("ProformaNumber")
+                        .IsUnique();
+
+                    b.HasIndex("SalesOrderId");
+
+                    b.HasIndex("StatusId");
+
+                    b.ToTable("ProformaInvoice", "Sales");
+                });
+
             modelBuilder.Entity("SalesManagement.Domain.Entities.SalesChannel", b =>
                 {
                     b.Property<int>("Id")
@@ -4567,6 +4674,45 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.ToTable("SalesOrderDetail", "Sales");
                 });
 
+            modelBuilder.Entity("SalesManagement.Domain.Entities.SalesOrderDiscount", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("DiscountMasterId")
+                        .HasColumnType("int")
+                        .HasColumnName("DiscountMasterId");
+
+                    b.Property<int>("PaymentTermId")
+                        .HasColumnType("int")
+                        .HasColumnName("PaymentTermId");
+
+                    b.Property<int>("SalesOrderHeaderId")
+                        .HasColumnType("int")
+                        .HasColumnName("SalesOrderHeaderId");
+
+                    b.Property<int>("SlabTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("SlabTypeId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DiscountMasterId");
+
+                    b.HasIndex("SalesOrderHeaderId");
+
+                    b.HasIndex("SlabTypeId");
+
+                    b.HasIndex("SalesOrderHeaderId", "DiscountMasterId")
+                        .IsUnique();
+
+                    b.ToTable("SalesOrderDiscount", "Sales");
+                });
+
             modelBuilder.Entity("SalesManagement.Domain.Entities.SalesOrderHeader", b =>
                 {
                     b.Property<int>("Id")
@@ -4615,10 +4761,6 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Property<string>("CreatedIP")
                         .HasColumnType("varchar(50)")
                         .HasColumnName("CreatedIP");
-
-                    b.Property<int?>("DiscountPlanId")
-                        .HasColumnType("int")
-                        .HasColumnName("DiscountPlanId");
 
                     b.Property<int>("EnquiryType")
                         .HasColumnType("int")
@@ -4709,10 +4851,6 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Property<int>("PartyId")
                         .HasColumnType("int")
                         .HasColumnName("PartyId");
-
-                    b.Property<int>("PaymentTermsId")
-                        .HasColumnType("int")
-                        .HasColumnName("PaymentTermsId");
 
                     b.Property<int?>("PaymentTypeId")
                         .HasColumnType("int")
@@ -4814,8 +4952,6 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.HasIndex("AgentId");
 
                     b.HasIndex("CountListId");
-
-                    b.HasIndex("DiscountPlanId");
 
                     b.HasIndex("EnquiryType");
 
@@ -6611,6 +6747,24 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("SalesGroup");
                 });
 
+            modelBuilder.Entity("SalesManagement.Domain.Entities.ProformaInvoice", b =>
+                {
+                    b.HasOne("SalesManagement.Domain.Entities.SalesOrderHeader", "SalesOrderHeader")
+                        .WithMany("ProformaInvoices")
+                        .HasForeignKey("SalesOrderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "StatusMisc")
+                        .WithMany("ProformaInvoicesAsStatus")
+                        .HasForeignKey("StatusId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("SalesOrderHeader");
+
+                    b.Navigation("StatusMisc");
+                });
+
             modelBuilder.Entity("SalesManagement.Domain.Entities.SalesContact", b =>
                 {
                     b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "ContactType")
@@ -6745,16 +6899,38 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("SalesOrderHeader");
                 });
 
+            modelBuilder.Entity("SalesManagement.Domain.Entities.SalesOrderDiscount", b =>
+                {
+                    b.HasOne("SalesManagement.Domain.Entities.DiscountMaster", "DiscountMaster")
+                        .WithMany("SalesOrderDiscounts")
+                        .HasForeignKey("DiscountMasterId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SalesManagement.Domain.Entities.SalesOrderHeader", "SalesOrderHeader")
+                        .WithMany("SalesOrderDiscounts")
+                        .HasForeignKey("SalesOrderHeaderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "SlabTypeMisc")
+                        .WithMany("SalesOrderDiscountsAsSlabType")
+                        .HasForeignKey("SlabTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("DiscountMaster");
+
+                    b.Navigation("SalesOrderHeader");
+
+                    b.Navigation("SlabTypeMisc");
+                });
+
             modelBuilder.Entity("SalesManagement.Domain.Entities.SalesOrderHeader", b =>
                 {
                     b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "CountList")
                         .WithMany("SalesOrderHeadersAsCountList")
                         .HasForeignKey("CountListId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "DiscountPlan")
-                        .WithMany("SalesOrderHeadersAsDiscountPlan")
-                        .HasForeignKey("DiscountPlanId")
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "EnquiryTypeMisc")
@@ -6796,8 +6972,6 @@ namespace SalesManagement.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("CountList");
-
-                    b.Navigation("DiscountPlan");
 
                     b.Navigation("EnquiryTypeMisc");
 
@@ -7104,6 +7278,8 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("DiscountSalesGroups");
 
                     b.Navigation("DiscountSlabs");
+
+                    b.Navigation("SalesOrderDiscounts");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.DispatchAddressMaster", b =>
@@ -7184,15 +7360,17 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     b.Navigation("MovementTypeConfigsAsToStockType");
 
+                    b.Navigation("ProformaInvoicesAsStatus");
+
                     b.Navigation("SalesContacts");
 
                     b.Navigation("SalesOrderAmendmentHeadersAsStatus");
 
                     b.Navigation("SalesOrderDetailsAsLineItemStatus");
 
-                    b.Navigation("SalesOrderHeadersAsCountList");
+                    b.Navigation("SalesOrderDiscountsAsSlabType");
 
-                    b.Navigation("SalesOrderHeadersAsDiscountPlan");
+                    b.Navigation("SalesOrderHeadersAsCountList");
 
                     b.Navigation("SalesOrderHeadersAsEnquiryType");
 
@@ -7274,9 +7452,13 @@ namespace SalesManagement.Infrastructure.Migrations
                 {
                     b.Navigation("DispatchAdviceHeaders");
 
+                    b.Navigation("ProformaInvoices");
+
                     b.Navigation("SalesOrderAmendmentHeaders");
 
                     b.Navigation("SalesOrderDetails");
+
+                    b.Navigation("SalesOrderDiscounts");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.SalesOrganisation", b =>

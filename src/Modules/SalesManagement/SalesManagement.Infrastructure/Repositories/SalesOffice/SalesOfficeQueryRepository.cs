@@ -145,5 +145,29 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOffice
             var city = await _cityLookup.GetByIdAsync(cityId);
             return city != null;
         }
+
+        public async Task<bool> SoftDeleteValidationAsync(int id)
+        {
+            const string sql = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1 FROM [Sales].[SalesGroup] WHERE SalesOfficeId = @id AND IsDeleted = 0
+                    UNION ALL
+                    SELECT 1 FROM [Sales].[MarketingOfficer] WHERE SalesOfficeId = @id AND IsDeleted = 0
+                ) THEN 1 ELSE 0 END";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { id });
+        }
+
+        public async Task<bool> IsSalesOfficeLinkedAsync(int id)
+        {
+            const string sql = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1 FROM [Sales].[SalesGroup] WHERE SalesOfficeId = @id AND IsDeleted = 0 AND IsActive = 1
+                    UNION ALL
+                    SELECT 1 FROM [Sales].[MarketingOfficer] WHERE SalesOfficeId = @id AND IsDeleted = 0 AND IsActive = 1
+                ) THEN 1 ELSE 0 END";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { id });
+        }
     }
 }
