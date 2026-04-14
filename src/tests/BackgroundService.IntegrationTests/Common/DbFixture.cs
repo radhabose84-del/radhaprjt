@@ -3,6 +3,7 @@ using BackgroundService.Application.Notification.Common.Interfaces;
 using BackgroundService.Infrastructure.Data.Notification;
 using Microsoft.Data.SqlClient;
 using Dapper;
+using Shared.TestInfrastructure;
 
 namespace BackgroundService.IntegrationTests.Common
 {
@@ -11,15 +12,17 @@ namespace BackgroundService.IntegrationTests.Common
 
     public class DbFixture : IAsyncLifetime
     {
-        private const string MasterConnection =
-            "Server=192.168.1.126;Database=master;User Id=developer;Password=Dev@#$456;" +
-            "Encrypt=False;TrustServerCertificate=True;";
+        private const string DbName = "BackgroundService_TestDb";
 
-        private const string TestDbConnection =
-            "Server=192.168.1.126;Database=BackgroundService_TestDb;User Id=developer;Password=Dev@#$456;" +
-            "Encrypt=False;TrustServerCertificate=True;MultipleActiveResultSets=true;";
+        private readonly string _masterConnection;
+        private readonly string _testDbConnection;
 
-        public string ConnectionString => TestDbConnection;
+        public string ConnectionString => _testDbConnection;
+
+        public DbFixture()
+        {
+            (_masterConnection, _testDbConnection) = TestConnectionFactory.Build(DbName);
+        }
         public NotificationDbContext DbContext { get; private set; }
 
         private Mock<IIPAddressService> _mockIpService;
@@ -37,7 +40,7 @@ namespace BackgroundService.IntegrationTests.Common
         public NotificationDbContext CreateFreshDbContext()
         {
             var options = new DbContextOptionsBuilder<NotificationDbContext>()
-                .UseSqlServer(TestDbConnection)
+                .UseSqlServer(_testDbConnection)
                 .Options;
             return new NotificationDbContext(options, _mockIpService.Object, _mockTimeZoneService.Object);
         }
@@ -70,7 +73,7 @@ namespace BackgroundService.IntegrationTests.Common
 
         private async Task RecreateDatabaseAsync()
         {
-            await using var conn = new SqlConnection(MasterConnection);
+            await using var conn = new SqlConnection(_masterConnection);
             await conn.OpenAsync();
             await conn.ExecuteAsync(@"
                 IF EXISTS (SELECT * FROM sys.databases WHERE name = N'BackgroundService_TestDb')
@@ -84,7 +87,7 @@ namespace BackgroundService.IntegrationTests.Common
 
         private async Task EnsureSchemasAsync()
         {
-            await using var conn = new SqlConnection(TestDbConnection);
+            await using var conn = new SqlConnection(_testDbConnection);
             await conn.OpenAsync();
             await conn.ExecuteAsync(
                 "IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name = 'AppData') EXEC('CREATE SCHEMA [AppData]')");

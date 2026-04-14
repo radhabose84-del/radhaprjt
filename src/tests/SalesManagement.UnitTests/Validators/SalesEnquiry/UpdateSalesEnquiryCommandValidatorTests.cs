@@ -10,9 +10,10 @@ namespace SalesManagement.UnitTests.Validators.SalesEnquiry
     public sealed class UpdateSalesEnquiryCommandValidatorTests
     {
         private readonly Mock<ISalesEnquiryQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
+        private readonly Mock<IMarketingOfficerAccessFilter> _mockAccessFilter = new(MockBehavior.Loose);
 
         private UpdateSalesEnquiryCommandValidator CreateValidator()
-            => new(TestMaxLengthProviderFactory.Create(), _mockQueryRepo.Object);
+            => new(TestMaxLengthProviderFactory.Create(), _mockQueryRepo.Object, _mockAccessFilter.Object);
 
         private static UpdateSalesEnquiryDetailDto ValidDetail() => new()
         {
@@ -34,6 +35,7 @@ namespace SalesManagement.UnitTests.Validators.SalesEnquiry
             _mockQueryRepo.Setup(r => r.NotFoundAsync(id)).ReturnsAsync(false);
             _mockQueryRepo.Setup(r => r.PartyExistsAsync(partyId)).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.ItemExistsAsync(itemId)).ReturnsAsync(true);
+            _mockAccessFilter.Setup(f => f.CanAccessCustomerAsync(partyId, It.IsAny<CancellationToken>())).ReturnsAsync(true);
         }
 
         [Fact]

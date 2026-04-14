@@ -9,15 +9,17 @@ namespace SalesManagement.UnitTests.Validators.AgentCustomerMapping
     public sealed class UpdateAgentCustomerMappingCommandValidatorTests
     {
         private readonly Mock<IAgentCustomerMappingQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
+        private readonly Mock<IMarketingOfficerAccessFilter> _mockAccessFilter = new(MockBehavior.Loose);
 
         private UpdateAgentCustomerMappingCommandValidator CreateValidator()
-            => new(TestMaxLengthProviderFactory.Create(), _mockQueryRepo.Object);
+            => new(TestMaxLengthProviderFactory.Create(), _mockQueryRepo.Object, _mockAccessFilter.Object);
 
         private void SetupAllAsyncMocks(int id = 1, int agentId = 2, int salesSegmentId = 1)
         {
             _mockQueryRepo.Setup(r => r.NotFoundAsync(id)).ReturnsAsync(false);
             _mockQueryRepo.Setup(r => r.AgentExistsAsync(agentId, It.IsAny<CancellationToken>())).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.SalesSegmentExistsAsync(salesSegmentId, It.IsAny<CancellationToken>())).ReturnsAsync(true);
+            _mockAccessFilter.Setup(f => f.CanAccessAgentAsync(agentId, It.IsAny<CancellationToken>())).ReturnsAsync(true);
         }
 
         private static UpdateAgentCustomerMappingCommand ValidCommand() => new()

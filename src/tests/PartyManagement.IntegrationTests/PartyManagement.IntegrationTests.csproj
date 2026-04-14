@@ -30,6 +30,7 @@
     <ProjectReference Include="..\..\Modules\PartyManagement\Core\PartyManagement.Domain\PartyManagement.Domain.csproj" />
     <ProjectReference Include="..\..\Modules\PartyManagement\PartyManagement.Infrastructure\PartyManagement.Infrastructure.csproj" />
     <ProjectReference Include="..\..\Shared\Contracts\Contracts.csproj" />
+    <ProjectReference Include="..\Shared.TestInfrastructure\Shared.TestInfrastructure.csproj" />
   </ItemGroup>
 
 </Project>

@@ -9,9 +9,10 @@ namespace SalesManagement.UnitTests.Validators.SalesLead
     public sealed class CreateSalesLeadCommandValidatorTests
     {
         private readonly Mock<ISalesLeadQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
+        private readonly Mock<IMarketingOfficerAccessFilter> _mockAccessFilter = new(MockBehavior.Loose);
 
         private CreateSalesLeadCommandValidator CreateValidator()
-            => new(TestMaxLengthProviderFactory.Create(), _mockQueryRepo.Object);
+            => new(TestMaxLengthProviderFactory.Create(), _mockQueryRepo.Object, _mockAccessFilter.Object);
 
         private static CreateSalesLeadCommand ValidCommand() => new()
         {

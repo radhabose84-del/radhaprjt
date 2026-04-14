@@ -11,6 +11,7 @@ namespace SalesManagement.Application.Common.Interfaces.IMiscMaster
         Task<bool> NotFoundAsync(int id);
         Task<bool> MiscTypeExistsAsync(int miscTypeId);
         Task<bool> SoftDeleteValidationAsync(int id);
+        Task<bool> IsMiscMasterLinkedAsync(int id);
         Task<SalesManagement.Domain.Entities.MiscMaster?> GetMiscMasterByName(string miscTypeCode, string miscTypeName);
         Task<SalesManagement.Domain.Entities.MiscMaster?> GetMiscMasterByCode(string miscTypeCode);
     }

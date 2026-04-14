@@ -9,9 +9,10 @@ namespace SalesManagement.UnitTests.Validators.SalesQuotation;
 public sealed class CreateSalesQuotationCommandValidatorTests
 {
     private readonly Mock<ISalesQuotationQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
+    private readonly Mock<IMarketingOfficerAccessFilter> _mockAccessFilter = new(MockBehavior.Loose);
 
     private CreateSalesQuotationCommandValidator CreateValidator() =>
-        new(TestMaxLengthProviderFactory.Create(), _mockQueryRepo.Object);
+        new(TestMaxLengthProviderFactory.Create(), _mockQueryRepo.Object, _mockAccessFilter.Object);
 
     private static CreateSalesQuotationCommand ValidCommand() => new()
     {

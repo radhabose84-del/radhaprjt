@@ -232,5 +232,27 @@ namespace SalesManagement.Infrastructure.Repositories.DiscountMaster
 
             return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { Id = id });
         }
+
+        public async Task<bool> SoftDeleteValidationAsync(int id)
+        {
+            // SalesOrderDiscount does not extend BaseEntity — no IsDeleted column
+            const string sql = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1 FROM [Sales].[SalesOrderDiscount] WHERE DiscountMasterId = @id
+                ) THEN 1 ELSE 0 END";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { id });
+        }
+
+        public async Task<bool> IsDiscountMasterLinkedAsync(int id)
+        {
+            // SalesOrderDiscount does not extend BaseEntity — no IsDeleted/IsActive columns
+            const string sql = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1 FROM [Sales].[SalesOrderDiscount] WHERE DiscountMasterId = @id
+                ) THEN 1 ELSE 0 END";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { id });
+        }
     }
 }

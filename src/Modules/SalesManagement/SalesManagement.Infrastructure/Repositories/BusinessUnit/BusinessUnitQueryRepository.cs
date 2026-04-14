@@ -111,10 +111,22 @@ namespace SalesManagement.Infrastructure.Repositories.BusinessUnit
 
         public async Task<bool> SoftDeleteValidationAsync(int id)
         {
-            // Returns true if BusinessUnit is linked to active dependent records (blocking deletion).
-            // Currently BusinessUnit has no FK children — always returns false (safe to delete).
-            await Task.CompletedTask;
-            return false;
+            const string sql = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1 FROM [Sales].[SalesSegment] WHERE BusinessUnitId = @id AND IsDeleted = 0
+                ) THEN 1 ELSE 0 END";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { id });
+        }
+
+        public async Task<bool> IsBusinessUnitLinkedAsync(int id)
+        {
+            const string sql = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1 FROM [Sales].[SalesSegment] WHERE BusinessUnitId = @id AND IsDeleted = 0 AND IsActive = 1
+                ) THEN 1 ELSE 0 END";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { id });
         }
     }
 }

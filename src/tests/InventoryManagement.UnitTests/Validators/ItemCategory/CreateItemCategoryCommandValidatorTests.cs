@@ -1,3 +1,5 @@
+using Contracts.Dtos.Lookups.Users;
+using Contracts.Interfaces.Lookups.Users;
 using FluentValidation.TestHelper;
 using InventoryManagement.Application.Common.Interfaces.Item.ItemCategory;
 using InventoryManagement.Application.Item.ItemCategory.Commands.CreateItemCategory;
@@ -10,6 +12,7 @@ namespace InventoryManagement.UnitTests.Validators.ItemCategory
     {
         private readonly Mock<IMaxLengthProvider> _mockMaxLengthProvider = new(MockBehavior.Loose);
         private readonly Mock<IItemCategoryCommandRepository> _mockCommandRepo = new(MockBehavior.Loose);
+        private readonly Mock<IModuleLookup> _mockModuleLookup = new(MockBehavior.Loose);
 
         public CreateItemCategoryCommandValidatorTests()
         {
@@ -18,15 +21,22 @@ namespace InventoryManagement.UnitTests.Validators.ItemCategory
 
             _mockCommandRepo.Setup(r => r.ExistsByNameAsync(It.IsAny<string>()))
                 .ReturnsAsync(false);
+
+            _mockModuleLookup.Setup(m => m.GetAllModuleAsync())
+                .ReturnsAsync(new List<ModuleLookupDto>
+                {
+                    new ModuleLookupDto { ModuleId = 1, ModuleName = "Module1" },
+                    new ModuleLookupDto { ModuleId = 2, ModuleName = "Module2" }
+                });
         }
 
         private CreateItemCategoryCommandValidator CreateValidator() =>
-            new(_mockMaxLengthProvider.Object, _mockCommandRepo.Object);
+            new(_mockMaxLengthProvider.Object, _mockCommandRepo.Object, _mockModuleLookup.Object);
 
         [Fact]
         public async Task Validate_ValidCommand_PassesValidation()
         {
-            var command = new CreateItemCategoryCommand { ItemCategoryName = "Electronics", ItemGroupId = 1 };
+            var command = new CreateItemCategoryCommand { ItemCategoryName = "Electronics", ItemGroupId = 1, ModuleIds = new List<int> { 1 } };
             var result = await CreateValidator().TestValidateAsync(command);
             result.ShouldNotHaveAnyValidationErrors();
         }
@@ -36,7 +46,7 @@ namespace InventoryManagement.UnitTests.Validators.ItemCategory
         [InlineData("")]
         public async Task Validate_EmptyName_FailsValidation(string? name)
         {
-            var command = new CreateItemCategoryCommand { ItemCategoryName = name, ItemGroupId = 1 };
+            var command = new CreateItemCategoryCommand { ItemCategoryName = name, ItemGroupId = 1, ModuleIds = new List<int> { 1 } };
             var result = await CreateValidator().TestValidateAsync(command);
             result.Errors.Should().NotBeEmpty();
         }
@@ -44,7 +54,7 @@ namespace InventoryManagement.UnitTests.Validators.ItemCategory
         [Fact]
         public async Task Validate_ZeroGroupId_FailsValidation()
         {
-            var command = new CreateItemCategoryCommand { ItemCategoryName = "Electronics", ItemGroupId = 0 };
+            var command = new CreateItemCategoryCommand { ItemCategoryName = "Electronics", ItemGroupId = 0, ModuleIds = new List<int> { 1 } };
             var result = await CreateValidator().TestValidateAsync(command);
             result.Errors.Should().NotBeEmpty();
         }
@@ -54,7 +64,7 @@ namespace InventoryManagement.UnitTests.Validators.ItemCategory
         {
             _mockCommandRepo.Setup(r => r.ExistsByNameAsync("Existing Category")).ReturnsAsync(true);
 
-            var command = new CreateItemCategoryCommand { ItemCategoryName = "Existing Category", ItemGroupId = 1 };
+            var command = new CreateItemCategoryCommand { ItemCategoryName = "Existing Category", ItemGroupId = 1, ModuleIds = new List<int> { 1 } };
             var result = await CreateValidator().TestValidateAsync(command);
             result.Errors.Should().NotBeEmpty();
         }

@@ -11,5 +11,6 @@ namespace SalesManagement.Application.Common.Interfaces.ISalesOrganisation
         Task<bool> NotFoundAsync(int id);
         Task<bool> CompanyExistsAsync(int companyId);
         Task<bool> SoftDeleteValidationAsync(int id);
+        Task<bool> IsSalesOrganisationLinkedAsync(int id);
     }
 }

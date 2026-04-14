@@ -45,7 +45,15 @@ namespace SalesManagement.IntegrationTests.Repositories.MiscMaster
         {
             await using var cnn = OpenConnection();
             await cnn.OpenAsync();
-            await cnn.ExecuteAsync("DELETE FROM Sales.MiscMaster");
+            await cnn.ExecuteAsync(@"
+                DELETE FROM Sales.AgentCommissionSlab;
+                DELETE FROM Sales.AgentCommissionPaymentTerm;
+                DELETE FROM Sales.AgentCommissionSalesGroup;
+                DELETE FROM Sales.AgentCommissionConfig;
+                DELETE FROM Sales.CommissionSplitDetail;
+                DELETE FROM Sales.CommissionSplit;
+                DELETE FROM Sales.ItemPriceMaster;
+                DELETE FROM Sales.MiscMaster;");
         }
 
         /// <summary>Ensures a MiscTypeMaster row exists for the given code; returns its Id.</summary>

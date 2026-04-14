@@ -10,5 +10,7 @@ namespace SalesManagement.Application.Common.Interfaces.IMovementTypeConfig
         Task<bool> AlreadyExistsAsync(string movementCode, int? id = null);
         Task<bool> NotFoundAsync(int id);
         Task<bool> MiscMasterExistsAsync(int miscMasterId);
+        Task<bool> SoftDeleteValidationAsync(int id);
+        Task<bool> IsMovementTypeConfigLinkedAsync(int id);
     }
 }

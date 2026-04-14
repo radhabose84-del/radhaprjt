@@ -13,5 +13,6 @@ namespace SalesManagement.Application.Common.Interfaces.IDispatchAddressMaster
         Task<bool> StateExistsAsync(int stateId);
         Task<bool> CountryExistsAsync(int countryId);
         Task<bool> SoftDeleteValidationAsync(int id);
+        Task<bool> IsDispatchAddressMasterLinkedAsync(int id);
     }
 }

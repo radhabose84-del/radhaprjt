@@ -35,7 +35,10 @@ namespace LogisticsManagement.IntegrationTests.Repositories.MiscTypeMaster
         {
             await using var conn = new SqlConnection(_fixture.ConnectionString);
             await conn.OpenAsync();
-            await conn.ExecuteAsync("DELETE FROM Logistics.MiscTypeMaster");
+            await conn.ExecuteAsync(@"
+                DELETE FROM Logistics.FreightMaster;
+                DELETE FROM Logistics.MiscMaster;
+                DELETE FROM Logistics.MiscTypeMaster;");
         }
 
         // --- CREATE ---

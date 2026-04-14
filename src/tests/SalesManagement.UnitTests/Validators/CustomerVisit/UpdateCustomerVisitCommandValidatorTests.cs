@@ -10,9 +10,10 @@ namespace SalesManagement.UnitTests.Validators.CustomerVisit
     public sealed class UpdateCustomerVisitCommandValidatorTests
     {
         private readonly Mock<ICustomerVisitQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
+        private readonly Mock<IMarketingOfficerAccessFilter> _mockAccessFilter = new(MockBehavior.Loose);
 
         private UpdateCustomerVisitCommandValidator CreateValidator()
-            => new(TestMaxLengthProviderFactory.Create(), _mockQueryRepo.Object);
+            => new(TestMaxLengthProviderFactory.Create(), _mockQueryRepo.Object, _mockAccessFilter.Object);
 
         private void SetupAllAsyncMocks(int id = 1, int customerId = 1, int visitTypeId = 1, int marketingOfficerId = 1)
         {
@@ -20,6 +21,7 @@ namespace SalesManagement.UnitTests.Validators.CustomerVisit
             _mockQueryRepo.Setup(r => r.CustomerExistsAsync(customerId)).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.VisitTypeExistsAsync(visitTypeId)).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.MarketingOfficerExistsAsync(marketingOfficerId)).ReturnsAsync(true);
+            _mockAccessFilter.Setup(f => f.CanAccessCustomerAsync(customerId, It.IsAny<CancellationToken>())).ReturnsAsync(true);
         }
 
         private static UpdateCustomerVisitCommand ValidCommand() => new()

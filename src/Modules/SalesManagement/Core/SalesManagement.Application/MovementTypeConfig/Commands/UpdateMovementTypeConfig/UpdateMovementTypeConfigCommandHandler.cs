@@ -27,6 +27,14 @@ namespace SalesManagement.Application.MovementTypeConfig.Commands.UpdateMovement
 
         public async Task<ApiResponseDTO<int>> Handle(UpdateMovementTypeConfigCommand request, CancellationToken cancellationToken)
         {
+            if (request.IsActive == 0)
+            {
+                var isLinked = await _queryRepository.IsMovementTypeConfigLinkedAsync(request.Id);
+                if (isLinked)
+                    throw new ExceptionRules(
+                        "This master is linked with other records. You cannot inactivate this record.");
+            }
+
             var entity = _mapper.Map<Domain.Entities.MovementTypeConfig>(request);
 
             var result = await _commandRepository.UpdateAsync(entity);

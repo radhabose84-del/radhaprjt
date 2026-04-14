@@ -86,7 +86,11 @@ namespace InventoryManagement.IntegrationTests.Repositories.UOMConversion
         {
             await using var conn = new SqlConnection(_fixture.ConnectionString);
             await conn.OpenAsync();
+            await conn.ExecuteAsync("DELETE FROM [Inventory].[MrsDetail]");
+            await conn.ExecuteAsync("DELETE FROM [Inventory].[MrsHeader]");
             await conn.ExecuteAsync("DELETE FROM [Inventory].[UOMConversion]");
+            await conn.ExecuteAsync("DELETE FROM [Inventory].[ItemUOM]");
+            await conn.ExecuteAsync("DELETE FROM [Inventory].[ItemMaster]");
             await conn.ExecuteAsync("DELETE FROM [Inventory].[UOM]");
             await conn.ExecuteAsync("DELETE FROM [Inventory].[MiscMaster]");
             await conn.ExecuteAsync("DELETE FROM [Inventory].[MiscTypeMaster]");

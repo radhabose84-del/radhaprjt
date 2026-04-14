@@ -198,10 +198,30 @@ namespace SalesManagement.Infrastructure.Repositories.SalesSegment
 
         public async Task<bool> SoftDeleteValidationAsync(int id)
         {
-            // Returns true if SalesSegment is linked to active dependent records (blocking deletion).
-            // Currently SalesSegment has no FK children — always returns false (safe to delete).
-            await Task.CompletedTask;
-            return false;
+            const string sql = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1 FROM [Sales].[AgentCustomerMapping] WHERE SalesSegmentId = @id AND IsDeleted = 0
+                    UNION ALL
+                    SELECT 1 FROM [Sales].[ItemPriceMaster] WHERE SalesSegmentId = @id AND IsDeleted = 0
+                    UNION ALL
+                    SELECT 1 FROM [Sales].[SalesOrderHeader] WHERE SalesSegmentId = @id AND IsDeleted = 0
+                ) THEN 1 ELSE 0 END";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { id });
+        }
+
+        public async Task<bool> IsSalesSegmentLinkedAsync(int id)
+        {
+            const string sql = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1 FROM [Sales].[AgentCustomerMapping] WHERE SalesSegmentId = @id AND IsDeleted = 0 AND IsActive = 1
+                    UNION ALL
+                    SELECT 1 FROM [Sales].[ItemPriceMaster] WHERE SalesSegmentId = @id AND IsDeleted = 0 AND IsActive = 1
+                    UNION ALL
+                    SELECT 1 FROM [Sales].[SalesOrderHeader] WHERE SalesSegmentId = @id AND IsDeleted = 0 AND IsActive = 1
+                ) THEN 1 ELSE 0 END";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { id });
         }
     }
 }

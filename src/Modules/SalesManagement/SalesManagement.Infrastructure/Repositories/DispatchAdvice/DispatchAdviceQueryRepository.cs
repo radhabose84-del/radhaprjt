@@ -54,6 +54,9 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
 
         public async Task<(List<DispatchAdviceHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
         {
+            // Scope to the logged-in user's current Unit (from JWT)
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
+
             var searchFilter = string.IsNullOrWhiteSpace(searchTerm)
                 ? ""
                 : "AND (h.DispatchNo LIKE @Search OR h.VehicleNo LIKE @Search OR h.DriverName LIKE @Search OR h.LRNo LIKE @Search)";
@@ -62,7 +65,7 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
                 DECLARE @TotalCount INT;
                 SELECT @TotalCount = COUNT(*)
                 FROM Sales.DispatchAdviceHeader h
-                WHERE h.IsDeleted = 0 {searchFilter};
+                WHERE h.IsDeleted = 0 AND h.UnitId = @UnitId {searchFilter};
 
                 SELECT h.Id, h.DispatchNo, h.DispatchDate,
                     h.StatusId,
@@ -87,13 +90,13 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
                 LEFT JOIN Sales.SalesOrderHeader so ON h.SalesOrderId = so.Id AND so.IsDeleted = 0
                 LEFT JOIN Sales.DispatchAddressMaster da ON h.DispatchAddressId = da.Id AND da.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster dt ON h.DispatchTypeId = dt.Id AND dt.IsDeleted = 0
-                WHERE h.IsDeleted = 0 {searchFilter}
+                WHERE h.IsDeleted = 0 AND h.UnitId = @UnitId {searchFilter}
                 ORDER BY h.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
 
                 SELECT @TotalCount AS TotalCount;";
 
-            var parameters = new { Search = $"%{searchTerm}%", Offset = (pageNumber - 1) * pageSize, PageSize = pageSize };
+            var parameters = new { Search = $"%{searchTerm}%", UnitId = unitId, Offset = (pageNumber - 1) * pageSize, PageSize = pageSize };
             var result = await _dbConnection.QueryMultipleAsync(query, parameters);
             var list = (await result.ReadAsync<DispatchAdviceHeaderDto>()).ToList();
             var totalCount = await result.ReadFirstAsync<int>();
