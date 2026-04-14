@@ -20,9 +20,10 @@ public sealed class DataAccessContext
 
     /// <summary>
     /// Union of all ItemGroupIds across all of the user's active roles.
-    /// Empty set means no items are accessible (unless BypassDataAccess is true).
+    /// null  = RoleItemGroupMapping has no rows globally — feature not configured, do NOT filter.
+    /// empty = mappings exist but none match this user — user has no access.
     /// </summary>
-    public IReadOnlySet<int> AllowedItemGroupIds { get; init; } = new HashSet<int>();
+    public IReadOnlySet<int>? AllowedItemGroupIds { get; init; }
 
     /// <summary>
     /// CustomerIds accessible to this user via AgentCustomerMapping.
