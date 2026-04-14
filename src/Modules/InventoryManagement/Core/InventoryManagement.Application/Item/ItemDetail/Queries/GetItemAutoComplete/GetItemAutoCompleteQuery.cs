@@ -10,5 +10,6 @@ namespace InventoryManagement.Application.Item.ItemDetail.Queries.GetItemAutoCom
         public int? SourceId { get; set; }
         public int? IssueRuleId { get; set; }
         public int? ModuleId { get; set; }
+        public int? SalesGroupId { get; set; }
     }
 }
