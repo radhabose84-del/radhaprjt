@@ -1,5 +1,6 @@
 using FluentValidation.TestHelper;
 using SalesManagement.Application.Common.Interfaces.IDispatchAdvice;
+using SalesManagement.Application.Common.Interfaces.IProformaInvoice;
 using SalesManagement.Application.DispatchAdvice.Commands.CreateDispatchAdvice;
 using SalesManagement.Presentation.Validation.DispatchAdvice;
 using SalesManagement.UnitTests.TestHelpers;
@@ -9,9 +10,10 @@ namespace SalesManagement.UnitTests.Validators.DispatchAdvice;
 public sealed class CreateDispatchAdviceCommandValidatorTests
 {
     private readonly Mock<IDispatchAdviceQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
+    private readonly Mock<IProformaInvoiceQueryRepository> _mockProformaQueryRepo = new(MockBehavior.Loose);
 
     private CreateDispatchAdviceCommandValidator CreateValidator() =>
-        new(TestMaxLengthProviderFactory.Create(), _mockQueryRepo.Object);
+        new(TestMaxLengthProviderFactory.Create(), _mockQueryRepo.Object, _mockProformaQueryRepo.Object);
 
     private static CreateDispatchAdviceCommand ValidCommand() => new()
     {
