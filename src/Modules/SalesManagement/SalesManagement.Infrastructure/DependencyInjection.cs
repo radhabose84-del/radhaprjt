@@ -361,9 +361,13 @@ namespace SalesManagement.Infrastructure
             services.AddScoped<IOutboxRepository, OutboxRepository>();
             services.AddScoped<IOutboxEventPublisher, OutboxEventPublisher>();
 
-            // ── GatePass Document Processors (Strategy pattern) ─────────────
+            // ── GatePass Document Processors (Strategy pattern, write-side) ──
             services.AddScoped<Contracts.Interfaces.IGatePassDocumentProcessor, Repositories.GatePass.InvoiceGatePassProcessor>();
             services.AddScoped<Contracts.Interfaces.IGatePassDocumentProcessor, Repositories.GatePass.DeliveryChallanGatePassProcessor>();
+
+            // ── GatePass Document Resolvers (Strategy pattern, read-side) ───
+            services.AddScoped<Contracts.Interfaces.Gate.IGatePassDocResolver, Repositories.GatePass.InvoiceGatePassDocResolver>();
+            services.AddScoped<Contracts.Interfaces.Gate.IGatePassDocResolver, Repositories.GatePass.DeliveryChallanGatePassDocResolver>();
             
 
             // Validation repositories — cross-module referential integrity (Rule 25)
