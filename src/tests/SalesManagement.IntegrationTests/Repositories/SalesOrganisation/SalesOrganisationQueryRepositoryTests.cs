@@ -72,6 +72,7 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesOrganisation
             await using var cnn = OpenConnection();
             await cnn.OpenAsync();
             await cnn.ExecuteAsync("DELETE FROM Sales.ItemPriceMaster");
+            await cnn.ExecuteAsync("DELETE FROM Sales.SalesOffice");
             await cnn.ExecuteAsync("DELETE FROM Sales.SalesSegment");
             await cnn.ExecuteAsync("DELETE FROM Sales.SalesOrganisation");
         }

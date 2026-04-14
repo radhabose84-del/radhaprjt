@@ -1,4 +1,5 @@
 using FluentValidation.TestHelper;
+using SalesManagement.Application.Common.Interfaces.IComplaint;
 using SalesManagement.Application.Common.Interfaces.IComplaintResolution;
 using SalesManagement.Application.ComplaintResolution.Commands.SubmitResolution;
 using SalesManagement.Presentation.Validation.ComplaintResolution;
@@ -9,15 +10,17 @@ namespace SalesManagement.UnitTests.Validators.ComplaintResolution;
 public sealed class SubmitResolutionCommandValidatorTests
 {
     private readonly Mock<IComplaintResolutionQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
+    private readonly Mock<IComplaintQueryRepository> _mockComplaintQueryRepo = new(MockBehavior.Loose);
 
     private SubmitResolutionCommandValidator CreateValidator() =>
-        new(TestMaxLengthProviderFactory.Create(), _mockQueryRepo.Object);
+        new(TestMaxLengthProviderFactory.Create(), _mockQueryRepo.Object, _mockComplaintQueryRepo.Object);
 
     private void SetupAllAsyncMocks(int complaintHeaderId = 1)
     {
         _mockQueryRepo.Setup(r => r.ComplaintExistsAsync(complaintHeaderId)).ReturnsAsync(true);
         _mockQueryRepo.Setup(r => r.MiscMasterExistsAsync(It.IsAny<int>())).ReturnsAsync(true);
         _mockQueryRepo.Setup(r => r.ResolutionExistsForComplaintAsync(complaintHeaderId, null)).ReturnsAsync(false);
+        _mockComplaintQueryRepo.Setup(r => r.IsReadyForResolutionAsync(complaintHeaderId)).ReturnsAsync(true);
     }
 
     [Fact]

@@ -3,6 +3,7 @@ using UserManagement.Application.Common.Interfaces;
 using Dapper;
 using Microsoft.EntityFrameworkCore;
 using Moq;
+using Shared.TestInfrastructure;
 using UserManagement.Infrastructure.Data;
 using Xunit;
 
@@ -17,13 +18,15 @@ namespace UserManagement.IntegrationTests.Common
     {
         private const string DbName = "UserManagement_TestDb";
 
-        private const string MasterConnection =
-            "Server=192.168.1.126;Database=master;User Id=developer;Password=Dev@#$456;Encrypt=False;TrustServerCertificate=True;";
+        private readonly string _masterConnection;
+        private readonly string _testDbConnection;
 
-        private const string TestDbConnection =
-            "Server=192.168.1.126;Database=UserManagement_TestDb;User Id=developer;Password=Dev@#$456;Encrypt=False;TrustServerCertificate=True;MultipleActiveResultSets=true;";
+        public string ConnectionString => _testDbConnection;
 
-        public string ConnectionString => TestDbConnection;
+        public DbFixture()
+        {
+            (_masterConnection, _testDbConnection) = TestConnectionFactory.Build(DbName);
+        }
 
         public ApplicationDbContext DbContext { get; private set; } = default!;
 
@@ -60,7 +63,7 @@ namespace UserManagement.IntegrationTests.Common
 
         private async Task RecreateDatabaseAsync()
         {
-            await using var cnn = new Microsoft.Data.SqlClient.SqlConnection(MasterConnection);
+            await using var cnn = new Microsoft.Data.SqlClient.SqlConnection(_masterConnection);
             await cnn.OpenAsync();
 
             var killSql = $@"
@@ -81,7 +84,7 @@ END;
         private async Task CreateDbContextAsync()
         {
             var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-                .UseSqlServer(TestDbConnection)
+                .UseSqlServer(_testDbConnection)
                 .Options;
 
             DbContext = new ApplicationDbContext(options, _ip.Object, _tz.Object);

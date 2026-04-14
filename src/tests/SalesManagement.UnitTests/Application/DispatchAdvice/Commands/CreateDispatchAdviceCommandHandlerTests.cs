@@ -48,7 +48,7 @@ namespace SalesManagement.UnitTests.Application.DispatchAdvice.Commands
                 .ReturnsAsync(new List<string> { "DA0001" });
 
             _mockCommandRepo
-                .Setup(r => r.CreateAsync(It.IsAny<DispatchAdviceHeader>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()))
+                .Setup(r => r.CreateAsync(It.IsAny<DispatchAdviceHeader>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string?>(), It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(newId);
         }
 
@@ -104,6 +104,136 @@ namespace SalesManagement.UnitTests.Application.DispatchAdvice.Commands
             Func<Task> act = async () => await CreateSut().Handle(new CreateDispatchAdviceCommand(), CancellationToken.None);
 
             await act.Should().ThrowAsync<ExceptionRules>();
+        }
+
+        [Fact]
+        public async Task Handle_ValidCommand_PassesDispatchTypeNameToRepo()
+        {
+            _mockMapper.Setup(m => m.Map<DispatchAdviceHeader>(It.IsAny<CreateDispatchAdviceCommand>()))
+                .Returns(new DispatchAdviceHeader());
+            _mockMiscRepo.Setup(r => r.GetMiscMasterByName(It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(new SalesManagement.Domain.Entities.MiscMaster { Id = 1 });
+            _mockMiscRepo.Setup(r => r.GetByIdAsync(7))
+                .ReturnsAsync(new SalesManagement.Application.MiscMaster.Dto.MiscMasterDto { Id = 7, Description = "DirectToParty" });
+            _mockIpService.Setup(s => s.GetUnitId()).Returns(1);
+            _mockDocSeqLookup.Setup(d => d.GetTransactionTypeIdAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()))
+                .ReturnsAsync(10);
+            _mockDocSeqLookup.Setup(d => d.GenerateDocumentNumber(It.IsAny<int>()))
+                .ReturnsAsync(new List<string> { "DA0001" });
+            _mockCommandRepo.Setup(r => r.CreateAsync(
+                It.IsAny<DispatchAdviceHeader>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(),
+                It.IsAny<int>(), It.IsAny<string?>(), It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(1);
+
+            await CreateSut().Handle(new CreateDispatchAdviceCommand { DispatchTypeId = 7 }, CancellationToken.None);
+
+            _mockCommandRepo.Verify(r => r.CreateAsync(
+                It.IsAny<DispatchAdviceHeader>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(),
+                It.IsAny<int>(), "DirectToParty", It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task Handle_NullDispatchType_PassesNullDispatchTypeNameToRepo()
+        {
+            _mockMapper.Setup(m => m.Map<DispatchAdviceHeader>(It.IsAny<CreateDispatchAdviceCommand>()))
+                .Returns(new DispatchAdviceHeader());
+            _mockMiscRepo.Setup(r => r.GetMiscMasterByName(It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(new SalesManagement.Domain.Entities.MiscMaster { Id = 1 });
+            _mockMiscRepo.Setup(r => r.GetByIdAsync(It.IsAny<int>()))
+                .ReturnsAsync((SalesManagement.Application.MiscMaster.Dto.MiscMasterDto?)null);
+            _mockIpService.Setup(s => s.GetUnitId()).Returns(1);
+            _mockDocSeqLookup.Setup(d => d.GetTransactionTypeIdAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()))
+                .ReturnsAsync(10);
+            _mockDocSeqLookup.Setup(d => d.GenerateDocumentNumber(It.IsAny<int>()))
+                .ReturnsAsync(new List<string> { "DA0001" });
+            _mockCommandRepo.Setup(r => r.CreateAsync(
+                It.IsAny<DispatchAdviceHeader>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(),
+                It.IsAny<int>(), It.IsAny<string?>(), It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(1);
+
+            await CreateSut().Handle(new CreateDispatchAdviceCommand(), CancellationToken.None);
+
+            _mockCommandRepo.Verify(r => r.CreateAsync(
+                It.IsAny<DispatchAdviceHeader>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(),
+                It.IsAny<int>(), (string?)null, It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task Handle_ValidCommand_SetsDispatchNoAndUnitIdOnEntity()
+        {
+            var entity = new DispatchAdviceHeader();
+            _mockMapper.Setup(m => m.Map<DispatchAdviceHeader>(It.IsAny<CreateDispatchAdviceCommand>()))
+                .Returns(entity);
+            _mockMiscRepo.Setup(r => r.GetMiscMasterByName(It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(new SalesManagement.Domain.Entities.MiscMaster { Id = 1 });
+            _mockIpService.Setup(s => s.GetUnitId()).Returns(9);
+            _mockDocSeqLookup.Setup(d => d.GetTransactionTypeIdAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()))
+                .ReturnsAsync(10);
+            _mockDocSeqLookup.Setup(d => d.GenerateDocumentNumber(It.IsAny<int>()))
+                .ReturnsAsync(new List<string> { "DA/2026/00099" });
+            _mockCommandRepo.Setup(r => r.CreateAsync(
+                It.IsAny<DispatchAdviceHeader>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(),
+                It.IsAny<int>(), It.IsAny<string?>(), It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(1);
+
+            await CreateSut().Handle(new CreateDispatchAdviceCommand(), CancellationToken.None);
+
+            entity.UnitId.Should().Be(9);
+            entity.DispatchNo.Should().Be("DA/2026/00099");
+        }
+
+        [Fact]
+        public async Task Handle_NoUnitIdFromJwt_FallsBackToSalesOrderUnitId()
+        {
+            _mockMapper.Setup(m => m.Map<DispatchAdviceHeader>(It.IsAny<CreateDispatchAdviceCommand>()))
+                .Returns(new DispatchAdviceHeader());
+            _mockMiscRepo.Setup(r => r.GetMiscMasterByName(It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(new SalesManagement.Domain.Entities.MiscMaster { Id = 1 });
+            _mockIpService.Setup(s => s.GetUnitId()).Returns((int?)null);
+            _mockQueryRepo.Setup(r => r.GetSalesOrderUnitIdAsync(It.IsAny<int>()))
+                .ReturnsAsync(55);
+            _mockDocSeqLookup.Setup(d => d.GetTransactionTypeIdAsync(It.IsAny<string>(), It.IsAny<string>(), 55))
+                .ReturnsAsync(10);
+            _mockDocSeqLookup.Setup(d => d.GenerateDocumentNumber(It.IsAny<int>()))
+                .ReturnsAsync(new List<string> { "DA0001" });
+            _mockCommandRepo.Setup(r => r.CreateAsync(
+                It.IsAny<DispatchAdviceHeader>(), 55, It.IsAny<int>(), It.IsAny<int>(),
+                It.IsAny<int>(), It.IsAny<string?>(), It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(1);
+
+            await CreateSut().Handle(new CreateDispatchAdviceCommand { SalesOrderId = 100 }, CancellationToken.None);
+
+            _mockQueryRepo.Verify(r => r.GetSalesOrderUnitIdAsync(100), Times.Once);
+            _mockCommandRepo.Verify(r => r.CreateAsync(
+                It.IsAny<DispatchAdviceHeader>(), 55, It.IsAny<int>(), It.IsAny<int>(),
+                It.IsAny<int>(), It.IsAny<string?>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task Handle_RepoThrows_PropagatesException_DoesNotPublishAudit()
+        {
+            _mockMapper.Setup(m => m.Map<DispatchAdviceHeader>(It.IsAny<CreateDispatchAdviceCommand>()))
+                .Returns(new DispatchAdviceHeader());
+            _mockMiscRepo.Setup(r => r.GetMiscMasterByName(It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(new SalesManagement.Domain.Entities.MiscMaster { Id = 1 });
+            _mockIpService.Setup(s => s.GetUnitId()).Returns(1);
+            _mockDocSeqLookup.Setup(d => d.GetTransactionTypeIdAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()))
+                .ReturnsAsync(10);
+            _mockDocSeqLookup.Setup(d => d.GenerateDocumentNumber(It.IsAny<int>()))
+                .ReturnsAsync(new List<string> { "DA0001" });
+            _mockCommandRepo.Setup(r => r.CreateAsync(
+                It.IsAny<DispatchAdviceHeader>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(),
+                It.IsAny<int>(), It.IsAny<string?>(), It.IsAny<string>(), It.IsAny<string>()))
+                .ThrowsAsync(new InvalidOperationException("DB write failed"));
+
+            var act = async () => await CreateSut().Handle(new CreateDispatchAdviceCommand(), CancellationToken.None);
+
+            await act.Should().ThrowAsync<InvalidOperationException>()
+                .WithMessage("DB write failed");
+
+            _mockMediator.Verify(m => m.Publish(
+                It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>()),
+                Times.Never);
         }
     }
 }

@@ -11,9 +11,10 @@ namespace SalesManagement.UnitTests.Validators.SalesContact
     {
         private readonly Mock<ISalesContactQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
         private readonly Mock<IPartyLookup> _mockPartyLookup = new(MockBehavior.Loose);
+        private readonly Mock<IMarketingOfficerAccessFilter> _mockAccessFilter = new(MockBehavior.Loose);
 
         private UpdateSalesContactCommandValidator CreateValidator()
-            => new(TestMaxLengthProviderFactory.Create(), _mockQueryRepo.Object, _mockPartyLookup.Object);
+            => new(TestMaxLengthProviderFactory.Create(), _mockQueryRepo.Object, _mockPartyLookup.Object, _mockAccessFilter.Object);
 
         private void SetupAllAsyncMocks(int id = 1, string mobile = "9876543210", int contactTypeId = 1)
         {

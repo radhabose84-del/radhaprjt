@@ -8,8 +8,9 @@ namespace SalesManagement.UnitTests.Validators.SalesQuotation;
 public sealed class DeleteSalesQuotationCommandValidatorTests
 {
     private readonly Mock<ISalesQuotationQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
+    private readonly Mock<IMarketingOfficerAccessFilter> _mockAccessFilter = new(MockBehavior.Loose);
 
-    private DeleteSalesQuotationCommandValidator CreateValidator() => new(_mockQueryRepo.Object);
+    private DeleteSalesQuotationCommandValidator CreateValidator() => new(_mockQueryRepo.Object, _mockAccessFilter.Object);
 
     private void SetupAllAsyncMocks(int id = 1)
     {

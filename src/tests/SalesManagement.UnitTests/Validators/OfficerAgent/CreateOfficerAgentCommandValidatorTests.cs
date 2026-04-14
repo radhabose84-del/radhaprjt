@@ -9,9 +9,10 @@ namespace SalesManagement.UnitTests.Validators.OfficerAgent
     public sealed class CreateOfficerAgentCommandValidatorTests
     {
         private readonly Mock<IOfficerAgentQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
+        private readonly Mock<IMarketingOfficerAccessFilter> _mockAccessFilter = new(MockBehavior.Loose);
 
         private CreateOfficerAgentCommandValidator CreateValidator()
-            => new(TestMaxLengthProviderFactory.Create(), _mockQueryRepo.Object);
+            => new(TestMaxLengthProviderFactory.Create(), _mockQueryRepo.Object, _mockAccessFilter.Object);
 
         private void SetupAllAsyncMocks(int marketingOfficerId = 1, int agentId = 2)
         {

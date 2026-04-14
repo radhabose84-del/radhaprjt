@@ -24,6 +24,7 @@
     <ProjectReference Include="..\..\Modules\GateEntryManagement\Core\GateEntryManagement.Domain\GateEntryManagement.Domain.csproj" />
     <ProjectReference Include="..\..\Modules\GateEntryManagement\GateEntryManagement.Infrastructure\GateEntryManagement.Infrastructure.csproj" />
     <ProjectReference Include="..\..\Shared\Contracts\Contracts.csproj" />
+    <ProjectReference Include="..\Shared.TestInfrastructure\Shared.TestInfrastructure.csproj" />
   </ItemGroup>
 
 </Project>

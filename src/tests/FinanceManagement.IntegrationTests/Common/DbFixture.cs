@@ -4,6 +4,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using FinanceManagement.Application.Common.Interfaces;
 using FinanceManagement.Infrastructure.Data;
+using Shared.TestInfrastructure;
 
 namespace FinanceManagement.IntegrationTests.Common
 {
@@ -14,13 +15,15 @@ namespace FinanceManagement.IntegrationTests.Common
     {
         private const string DbName = "FinanceManagement_TestDb";
 
-        private const string MasterConnection =
-            "Server=192.168.1.126;Database=master;User Id=developer;Password=Dev@#$456;Encrypt=False;TrustServerCertificate=True;";
+        private readonly string _masterConnection;
+        private readonly string _testDbConnection;
 
-        private const string TestDbConnection =
-            "Server=192.168.1.126;Database=FinanceManagement_TestDb;User Id=developer;Password=Dev@#$456;Encrypt=False;TrustServerCertificate=True;MultipleActiveResultSets=true;";
+        public DbFixture()
+        {
+            (_masterConnection, _testDbConnection) = TestConnectionFactory.Build(DbName);
+        }
 
-        public string ConnectionString => TestDbConnection;
+        public string ConnectionString => _testDbConnection;
 
         public ApplicationDbContext DbContext { get; private set; }
 
@@ -53,7 +56,7 @@ namespace FinanceManagement.IntegrationTests.Common
 
         private async Task RecreateDatabaseAsync()
         {
-            await using var cnn = new SqlConnection(MasterConnection);
+            await using var cnn = new SqlConnection(_masterConnection);
             await cnn.OpenAsync();
 
             var sql = $@"
@@ -71,7 +74,7 @@ CREATE DATABASE [{DbName}];
         private async Task CreateDbContextAsync()
         {
             var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-                .UseSqlServer(TestDbConnection)
+                .UseSqlServer(_testDbConnection)
                 .Options;
 
             DbContext = new ApplicationDbContext(options, _ip.Object, _tz.Object);
@@ -106,7 +109,7 @@ IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'Finance')
             tzMock.Setup(x => x.GetCurrentTime(It.IsAny<string>())).Returns(DateTimeOffset.UtcNow);
 
             var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-                .UseSqlServer(TestDbConnection)
+                .UseSqlServer(_testDbConnection)
                 .Options;
 
             return new ApplicationDbContext(options, ipMock.Object, tzMock.Object);
