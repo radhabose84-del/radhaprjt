@@ -57,6 +57,7 @@ namespace FAM.Infrastructure
         public string GetOldUnitId() => string.Empty;
             public int? GetPartyId() => null;
             public int? GetEmpId() => null;
+            public int? GetDivisionId() => null;
     }
     }
 }
