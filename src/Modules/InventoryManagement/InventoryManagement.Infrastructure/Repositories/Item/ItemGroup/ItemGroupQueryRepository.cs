@@ -27,7 +27,7 @@ namespace  InventoryManagement.Infrastructure.Repositories.Item.ItemGroup
         {
             // Role-based item group filtering
             var accessCtx = await _dataAccessFilter.GetContextAsync();
-            if (!accessCtx.BypassDataAccess)
+            if (!accessCtx.BypassDataAccess && accessCtx.AllowedItemGroupIds != null)
             {
                 if (accessCtx.AllowedItemGroupIds.Count == 0 || !accessCtx.AllowedItemGroupIds.Contains(Id))
                     return null;
@@ -42,11 +42,12 @@ namespace  InventoryManagement.Infrastructure.Repositories.Item.ItemGroup
         public async Task<(IEnumerable<dynamic>, int)> GetAllItemGroupAsync(int PageNumber, int PageSize, string SearchTerm)
         {
             // Role-based item group filtering
+            // null = feature not configured (no filtering); empty = user has no access
             var accessCtx = await _dataAccessFilter.GetContextAsync();
-            bool applyRoleFilter = !accessCtx.BypassDataAccess;
-            if (applyRoleFilter && accessCtx.AllowedItemGroupIds.Count == 0)
+            bool applyRoleFilter = !accessCtx.BypassDataAccess && accessCtx.AllowedItemGroupIds != null;
+            if (applyRoleFilter && accessCtx.AllowedItemGroupIds!.Count == 0)
             {
-                // No groups assigned and no bypass — return empty
+                // Mappings exist but none for this user — return empty
                 return (new List<ItemGroupDto>(), 0);
             }
 
@@ -77,7 +78,7 @@ namespace  InventoryManagement.Infrastructure.Repositories.Item.ItemGroup
             parameters.Add("Offset", (PageNumber - 1) * PageSize);
             parameters.Add("PageSize", PageSize);
             if (applyRoleFilter)
-                parameters.Add("AllowedGroupIds", accessCtx.AllowedItemGroupIds.ToArray());
+                parameters.Add("AllowedGroupIds", accessCtx.AllowedItemGroupIds!.ToArray());
 
             var notificationConfig = await _dbConnection.QueryMultipleAsync(query, parameters);
             var notificationConfigList = (await notificationConfig.ReadAsync<ItemGroupDto>()).ToList();
@@ -130,9 +131,10 @@ namespace  InventoryManagement.Infrastructure.Repositories.Item.ItemGroup
             searchPattern = searchPattern ?? string.Empty;
 
             // Role-based item group filtering
+            // null = feature not configured (no filtering); empty = user has no access
             var accessCtx = await _dataAccessFilter.GetContextAsync();
-            bool applyRoleFilter = !accessCtx.BypassDataAccess;
-            if (applyRoleFilter && accessCtx.AllowedItemGroupIds.Count == 0)
+            bool applyRoleFilter = !accessCtx.BypassDataAccess && accessCtx.AllowedItemGroupIds != null;
+            if (applyRoleFilter && accessCtx.AllowedItemGroupIds!.Count == 0)
             {
                 return new List<ItemGroupAutoCompleteDto>();
             }
@@ -149,7 +151,7 @@ namespace  InventoryManagement.Infrastructure.Repositories.Item.ItemGroup
             var parameters = new DynamicParameters();
             parameters.Add("SearchPattern", $"%{searchPattern}%");
             if (applyRoleFilter)
-                parameters.Add("AllowedGroupIds", accessCtx.AllowedItemGroupIds.ToArray());
+                parameters.Add("AllowedGroupIds", accessCtx.AllowedItemGroupIds!.ToArray());
 
             var notificationConfig = await _dbConnection.QueryAsync<ItemGroupAutoCompleteDto>(query, parameters);
             return notificationConfig.ToList();
@@ -158,9 +160,10 @@ namespace  InventoryManagement.Infrastructure.Repositories.Item.ItemGroup
         public async Task<List<InventoryManagement.Domain.Entities.Item.ItemGroup>> GetAllItemGroupsAsync()
         {
             // Role-based item group filtering
+            // null = feature not configured (no filtering); empty = user has no access
             var accessCtx = await _dataAccessFilter.GetContextAsync();
-            bool applyRoleFilter = !accessCtx.BypassDataAccess;
-            if (applyRoleFilter && accessCtx.AllowedItemGroupIds.Count == 0)
+            bool applyRoleFilter = !accessCtx.BypassDataAccess && accessCtx.AllowedItemGroupIds != null;
+            if (applyRoleFilter && accessCtx.AllowedItemGroupIds!.Count == 0)
             {
                 return new List<InventoryManagement.Domain.Entities.Item.ItemGroup>();
             }
@@ -182,7 +185,7 @@ namespace  InventoryManagement.Infrastructure.Repositories.Item.ItemGroup
 
             var parameters = new DynamicParameters();
             if (applyRoleFilter)
-                parameters.Add("AllowedGroupIds", accessCtx.AllowedItemGroupIds.ToArray());
+                parameters.Add("AllowedGroupIds", accessCtx.AllowedItemGroupIds!.ToArray());
 
             var result = await _dbConnection.QueryAsync<InventoryManagement.Domain.Entities.Item.ItemGroup>(sql, parameters);
             return result.AsList();
