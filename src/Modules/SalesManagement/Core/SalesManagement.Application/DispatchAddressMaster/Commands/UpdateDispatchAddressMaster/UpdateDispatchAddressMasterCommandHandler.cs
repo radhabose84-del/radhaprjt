@@ -9,21 +9,32 @@ namespace SalesManagement.Application.DispatchAddressMaster.Commands.UpdateDispa
     public class UpdateDispatchAddressMasterCommandHandler : IRequestHandler<UpdateDispatchAddressMasterCommand, ApiResponseDTO<int>>
     {
         private readonly IDispatchAddressMasterCommandRepository _commandRepository;
+        private readonly IDispatchAddressMasterQueryRepository _queryRepository;
         private readonly IMediator _mediator;
         private readonly IMapper _mapper;
 
         public UpdateDispatchAddressMasterCommandHandler(
             IDispatchAddressMasterCommandRepository commandRepository,
+            IDispatchAddressMasterQueryRepository queryRepository,
             IMediator mediator,
             IMapper mapper)
         {
             _commandRepository = commandRepository;
+            _queryRepository = queryRepository;
             _mediator = mediator;
             _mapper = mapper;
         }
 
         public async Task<ApiResponseDTO<int>> Handle(UpdateDispatchAddressMasterCommand request, CancellationToken cancellationToken)
         {
+            if (request.IsActive == 0)
+            {
+                var isLinked = await _queryRepository.IsDispatchAddressMasterLinkedAsync(request.Id);
+                if (isLinked)
+                    throw new ExceptionRules(
+                        "This master is linked with other records. You cannot inactivate this record.");
+            }
+
             var entity = _mapper.Map<Domain.Entities.DispatchAddressMaster>(request);
 
             var updatedId = await _commandRepository.UpdateAsync(entity);

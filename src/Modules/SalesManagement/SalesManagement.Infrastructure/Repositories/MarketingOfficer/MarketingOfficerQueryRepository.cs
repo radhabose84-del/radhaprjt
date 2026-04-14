@@ -156,6 +156,28 @@ namespace SalesManagement.Infrastructure.Repositories.MarketingOfficer
             return count == salesGroupIds.Distinct().Count();
         }
 
+        public async Task<bool> SoftDeleteValidationAsync(int id)
+        {
+            // OfficerAgent does NOT extend BaseEntity and has no IsDeleted column — no IsDeleted filter
+            const string sql = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1 FROM [Sales].[OfficerAgent] WHERE MarketingOfficerId = @id
+                ) THEN 1 ELSE 0 END";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { id });
+        }
+
+        public async Task<bool> IsMarketingOfficerLinkedAsync(int id)
+        {
+            // OfficerAgent does NOT extend BaseEntity and has no IsDeleted column — filter by IsActive only
+            const string sql = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1 FROM [Sales].[OfficerAgent] WHERE MarketingOfficerId = @id AND IsActive = 1
+                ) THEN 1 ELSE 0 END";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { id });
+        }
+
         public async Task<List<EmployeeLookupDto>> GetEmployeeLookupAsync(string oldUnitId, string? empNo)
         {
             var tvp = new DataTable();

@@ -137,5 +137,25 @@ namespace SalesManagement.Infrastructure.Repositories.CommissionSplit
 
             return await _dbConnection.ExecuteScalarAsync<string?>(sql, new { Id = id });
         }
+
+        public async Task<bool> SoftDeleteValidationAsync(int id)
+        {
+            const string sql = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1 FROM [Sales].[AgentCommissionConfig] WHERE CommissionSplitId = @id AND IsDeleted = 0
+                ) THEN 1 ELSE 0 END";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { id });
+        }
+
+        public async Task<bool> IsCommissionSplitLinkedAsync(int id)
+        {
+            const string sql = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1 FROM [Sales].[AgentCommissionConfig] WHERE CommissionSplitId = @id AND IsDeleted = 0 AND IsActive = 1
+                ) THEN 1 ELSE 0 END";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { id });
+        }
     }
 }

@@ -10,5 +10,7 @@ namespace SalesManagement.Application.Common.Interfaces.IStoTypeMaster
         Task<bool> AlreadyExistsAsync(string stoTypeCode, int? id = null);
         Task<bool> NotFoundAsync(int id);
         Task<bool> MovementTypeExistsAsync(int id);
+        Task<bool> SoftDeleteValidationAsync(int id);
+        Task<bool> IsStoTypeMasterLinkedAsync(int id);
     }
 }

@@ -1,23 +1,21 @@
 using FluentValidation;
-using SalesManagement.Application.Common.Interfaces.IStoTypeMaster;
-using SalesManagement.Application.StoTypeMaster.Commands.DeleteStoTypeMaster;
+using SalesManagement.Application.Common.Interfaces.ISalesOffice;
+using SalesManagement.Application.SalesOffice.Commands.DeleteSalesOffice;
 using Shared.Validation.Common;
 
-namespace SalesManagement.Presentation.Validation.StoTypeMaster
+namespace SalesManagement.Presentation.Validation.SalesOffice
 {
-    public class DeleteStoTypeMasterCommandValidator : AbstractValidator<DeleteStoTypeMasterCommand>
+    public class DeleteSalesOfficeCommandValidator : AbstractValidator<DeleteSalesOfficeCommand>
     {
         private readonly List<ValidationRule> _validationRules;
-        private readonly IStoTypeMasterQueryRepository _queryRepository;
+        private readonly ISalesOfficeQueryRepository _queryRepository;
 
-        public DeleteStoTypeMasterCommandValidator(IStoTypeMasterQueryRepository queryRepository)
+        public DeleteSalesOfficeCommandValidator(ISalesOfficeQueryRepository queryRepository)
         {
             _queryRepository = queryRepository;
             _validationRules = ValidationRuleLoader.LoadValidationRules();
             if (_validationRules == null || _validationRules.Count == 0)
-            {
                 throw new InvalidOperationException("Validation rules could not be loaded.");
-            }
 
             foreach (var rule in _validationRules)
             {
@@ -26,13 +24,13 @@ namespace SalesManagement.Presentation.Validation.StoTypeMaster
                     case "NotEmpty":
                         RuleFor(x => x.Id)
                             .NotEmpty()
-                            .WithMessage($"{nameof(DeleteStoTypeMasterCommand.Id)} {rule.Error}");
+                            .WithMessage($"{nameof(DeleteSalesOfficeCommand.Id)} {rule.Error}");
                         break;
 
                     case "NotFound":
                         RuleFor(x => x.Id)
                             .MustAsync(async (id, ct) => !await _queryRepository.NotFoundAsync(id))
-                            .WithMessage($"STO Type Master {rule.Error}");
+                            .WithMessage($"Sales Office {rule.Error}");
                         break;
 
                     case "SoftDelete":

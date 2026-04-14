@@ -125,5 +125,29 @@ namespace SalesManagement.Infrastructure.Repositories.MovementTypeConfig
             var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = miscMasterId });
             return count > 0;
         }
+
+        public async Task<bool> SoftDeleteValidationAsync(int id)
+        {
+            const string sql = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1 FROM [Sales].[StoTypeMaster] WHERE PgiMovementTypeId = @id AND IsDeleted = 0
+                    UNION ALL
+                    SELECT 1 FROM [Sales].[StoTypeMaster] WHERE GrMovementTypeId = @id AND IsDeleted = 0
+                ) THEN 1 ELSE 0 END";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { id });
+        }
+
+        public async Task<bool> IsMovementTypeConfigLinkedAsync(int id)
+        {
+            const string sql = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1 FROM [Sales].[StoTypeMaster] WHERE PgiMovementTypeId = @id AND IsDeleted = 0 AND IsActive = 1
+                    UNION ALL
+                    SELECT 1 FROM [Sales].[StoTypeMaster] WHERE GrMovementTypeId = @id AND IsDeleted = 0 AND IsActive = 1
+                ) THEN 1 ELSE 0 END";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { id });
+        }
     }
 }
