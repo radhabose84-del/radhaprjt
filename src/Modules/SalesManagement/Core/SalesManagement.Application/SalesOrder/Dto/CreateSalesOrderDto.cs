@@ -29,6 +29,13 @@ namespace SalesManagement.Application.SalesOrder.Dto
         public decimal? MdDiscountRate { get; set; }
         public string? MdApprovalDocument { get; set; }
 
+        // Agent Commission
+        public int? AgentCommissionId { get; set; }
+        public int AgentPaymentTermsId { get; set; }
+        public int? AgentCommissionSlabId { get; set; }
+        public decimal? CommissionRate { get; set; }
+        public decimal? CommissionValue { get; set; }
+
         // File Attachments
         public string? VisitNotesAttachment { get; set; }
         public string? AgentPOAttachment { get; set; }

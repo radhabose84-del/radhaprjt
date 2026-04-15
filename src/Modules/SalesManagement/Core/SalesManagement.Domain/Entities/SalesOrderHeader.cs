@@ -34,6 +34,13 @@ namespace SalesManagement.Domain.Entities
         public decimal? MdDiscountRate { get; set; }
         public string? MdApprovalDocument { get; set; }
 
+        // Agent Commission — all fields optional; slab/rate/value snapshotted only when resolved
+        public int? AgentCommissionId { get; set; }          // FK → Sales.AgentCommissionConfig (optional)
+        public int AgentPaymentTermsId { get; set; }         // Lookup — no DB FK (resolved via IPaymentTermLookup)
+        public int? AgentCommissionSlabId { get; set; }      // FK → Sales.AgentCommissionSlab (optional)
+        public decimal? CommissionRate { get; set; }         // Applied rate snapshot (optional)
+        public decimal? CommissionValue { get; set; }        // Calculated commission snapshot (optional)
+
         // File Attachments
         public string? VisitNotesAttachment { get; set; }
         public string? AgentPOAttachment { get; set; }
@@ -80,6 +87,8 @@ namespace SalesManagement.Domain.Entities
         public MiscMaster? FreightType { get; set; }
         public MiscMaster? CountList { get; set; }
         public MiscMaster? StatusMisc { get; set; }
+        public AgentCommissionConfig? AgentCommissionConfig { get; set; }
+        public AgentCommissionSlab? AgentCommissionSlab { get; set; }
 
         // Child collection
         public ICollection<SalesOrderDetail>? SalesOrderDetails { get; set; }
