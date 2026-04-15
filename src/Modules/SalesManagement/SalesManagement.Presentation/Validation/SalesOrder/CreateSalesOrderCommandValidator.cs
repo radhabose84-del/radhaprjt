@@ -274,10 +274,14 @@ namespace SalesManagement.Presentation.Validation.SalesOrder
                 }
             }
 
-            // MD Discount — when checkbox enabled, Rate + Document are mandatory
-            RuleFor(x => x.SalesOrderDetails!.MdDiscountRate)
-                .NotNull().WithMessage("MdDiscountRate is required when MD Discount is enabled.")
-                .GreaterThan(0).WithMessage("MdDiscountRate must be greater than zero.")
+            // MD Discount — when checkbox enabled:
+            //   • Either MdDiscountRate OR MdDiscountPercentage must be provided (at least one)
+            //   • Whichever is provided must be > 0
+            //   • MdApprovalDocument is mandatory
+            RuleFor(x => x.SalesOrderDetails!)
+                .Must(d => (d.MdDiscountRate.HasValue && d.MdDiscountRate.Value > 0)
+                        || (d.MdDiscountPercentage.HasValue && d.MdDiscountPercentage.Value > 0))
+                .WithMessage("Either MdDiscountRate or MdDiscountPercentage is required (and must be greater than zero) when MD Discount is enabled.")
                 .When(x => x.SalesOrderDetails != null && x.SalesOrderDetails.IsMdDiscountEnabled);
 
             RuleFor(x => x.SalesOrderDetails!.MdApprovalDocument)

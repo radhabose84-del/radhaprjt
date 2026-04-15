@@ -18,5 +18,6 @@ namespace SalesManagement.Application.SalesOrder.Dto
         public decimal NetAmount { get; set; }
         public decimal NetRatePerKg { get; set; }
         public int PendingQty { get; set; }
+        public decimal? AgentCommissionPercentage { get; set; }
     }
 }

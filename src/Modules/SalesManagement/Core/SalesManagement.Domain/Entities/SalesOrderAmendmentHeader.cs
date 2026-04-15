@@ -28,6 +28,17 @@ namespace SalesManagement.Domain.Entities
         public decimal TotalTCS { get; set; }
         public decimal FinalAmount { get; set; }
 
+        // Agent Commission snapshot (captured at amendment time)
+        public int? AgentCommissionId { get; set; }
+        public int? AgentCommissionSlabId { get; set; }
+        public int AgentPaymentTermsId { get; set; }
+        public decimal? CommissionRate { get; set; }
+        public decimal? CommissionValue { get; set; }
+
+        // Discount snapshot (captured at amendment time)
+        public decimal? MdDiscountValue { get; set; }
+        public decimal? TotalDiscountValue { get; set; }
+
         // Who approved/rejected
         public int? ApprovedBy { get; set; }
         public DateTimeOffset? ApprovedDate { get; set; }
@@ -38,5 +49,6 @@ namespace SalesManagement.Domain.Entities
 
         // Child collection
         public ICollection<SalesOrderAmendmentDetail>? SalesOrderAmendmentDetails { get; set; }
+        public ICollection<SalesOrderAmendmentDiscount>? SalesOrderAmendmentDiscounts { get; set; }
     }
 }

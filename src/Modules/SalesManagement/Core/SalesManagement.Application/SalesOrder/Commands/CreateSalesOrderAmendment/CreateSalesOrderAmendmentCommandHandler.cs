@@ -64,6 +64,13 @@ namespace SalesManagement.Application.SalesOrder.Commands.CreateSalesOrderAmendm
                 TCSPercentage = request.TCSPercentage,
                 TotalTCS = request.TotalTCS,
                 FinalAmount = request.FinalAmount,
+                AgentCommissionId = request.AgentCommissionId,
+                AgentCommissionSlabId = request.AgentCommissionSlabId,
+                AgentPaymentTermsId = request.AgentPaymentTermsId,
+                CommissionRate = request.CommissionRate,
+                CommissionValue = request.CommissionValue,
+                MdDiscountValue = request.MdDiscountValue,
+                TotalDiscountValue = request.TotalDiscountValue,
                 IsActive = Status.Active,
                 IsDeleted = IsDelete.NotDeleted
             };
@@ -100,11 +107,28 @@ namespace SalesManagement.Application.SalesOrder.Commands.CreateSalesOrderAmendm
                     TCSAmount = dto.TCSAmount,
                     NetAmount = dto.NetAmount,
                     NetRatePerKg = dto.NetRatePerKg,
-                    PendingQty = dto.PendingQty
+                    PendingQty = dto.PendingQty,
+                    AgentCommissionPercentage = dto.AgentCommissionPercentage
                 });
             }
 
-            var newId = await _commandRepository.CreateAsync(header, details);
+            // Build discount snapshot rows from request
+            var discounts = new List<SalesOrderAmendmentDiscount>();
+            foreach (var d in request.Discounts ?? [])
+            {
+                discounts.Add(new SalesOrderAmendmentDiscount
+                {
+                    SalesOrderDiscountId = d.SalesOrderDiscountId,
+                    DiscountMasterId = d.DiscountMasterId,
+                    SlabTypeId = d.SlabTypeId,
+                    PaymentTermId = d.PaymentTermId,
+                    DiscountSlabId = d.DiscountSlabId,
+                    DiscountRate = d.DiscountRate,
+                    TotalDiscountValue = d.TotalDiscountValue
+                });
+            }
+
+            var newId = await _commandRepository.CreateAsync(header, details, discounts);
 
             await _mediator.Publish(new AuditLogsDomainEvent(
                 actionDetail: "Create",
