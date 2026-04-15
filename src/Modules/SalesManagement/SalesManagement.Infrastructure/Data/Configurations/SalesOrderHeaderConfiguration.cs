@@ -119,6 +119,21 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .IsRequired()
                 .HasDefaultValue(false);
 
+            builder.Property(t => t.MdDiscountPercentage)
+                .HasColumnName("MdDiscountPercentage")
+                .HasColumnType("decimal(18,3)")
+                .IsRequired(false);
+
+            builder.Property(t => t.MdDiscountValue)
+                .HasColumnName("MdDiscountValue")
+                .HasColumnType("decimal(18,3)")
+                .IsRequired(false);
+
+            builder.Property(t => t.TotalDiscountValue)
+                .HasColumnName("TotalDiscountValue")
+                .HasColumnType("decimal(18,3)")
+                .IsRequired(false);
+
             builder.Property(t => t.MdDiscountRate)
                 .HasColumnName("MdDiscountRate")
                 .HasColumnType("decimal(18,3)")
@@ -127,6 +142,32 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             builder.Property(t => t.MdApprovalDocument)
                 .HasColumnName("MdApprovalDocument")
                 .HasColumnType("varchar(200)")
+                .IsRequired(false);
+
+            // Agent Commission
+            builder.Property(t => t.AgentCommissionId)
+                .HasColumnName("AgentCommissionId")
+                .HasColumnType("int")
+                .IsRequired(false);
+
+            builder.Property(t => t.AgentPaymentTermsId)
+                .HasColumnName("AgentPaymentTermsId")
+                .HasColumnType("int")
+                .IsRequired();
+
+            builder.Property(t => t.AgentCommissionSlabId)
+                .HasColumnName("AgentCommissionSlabId")
+                .HasColumnType("int")
+                .IsRequired(false);
+
+            builder.Property(t => t.CommissionRate)
+                .HasColumnName("CommissionRate")
+                .HasColumnType("decimal(18,3)")
+                .IsRequired(false);
+
+            builder.Property(t => t.CommissionValue)
+                .HasColumnName("CommissionValue")
+                .HasColumnType("decimal(18,3)")
                 .IsRequired(false);
 
             // File Attachments
@@ -313,6 +354,21 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasForeignKey(t => t.StatusId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // Agent Commission same-module FK constraints
+            builder.HasOne(t => t.AgentCommissionConfig)
+                .WithMany(c => c.SalesOrderHeaders)
+                .HasForeignKey(t => t.AgentCommissionId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // AgentPaymentTermsId is a cross-module lookup — no DB FK constraint
+
+            builder.HasOne(t => t.AgentCommissionSlab)
+                .WithMany(s => s.SalesOrderHeaders)
+                .HasForeignKey(t => t.AgentCommissionSlabId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+
             // Child collection — reverse navigation (Header → Details)
             builder.HasMany(t => t.SalesOrderDetails)
                 .WithOne(d => d.SalesOrderHeader)
@@ -328,6 +384,9 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             builder.HasIndex(t => t.SalesGroupId);
             builder.HasIndex(t => t.OrderDate);
             builder.HasIndex(t => t.SalesQuotationHeaderId);
+            builder.HasIndex(t => t.AgentCommissionId);
+            builder.HasIndex(t => t.AgentPaymentTermsId);
+            builder.HasIndex(t => t.AgentCommissionSlabId);
         }
     }
 }

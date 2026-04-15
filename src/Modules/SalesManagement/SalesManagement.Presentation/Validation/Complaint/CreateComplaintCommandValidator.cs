@@ -1,3 +1,4 @@
+using Contracts.Interfaces;
 using FluentValidation;
 using SalesManagement.Application.Common.Interfaces.IComplaint;
 using SalesManagement.Application.Complaint.Commands.CreateComplaint;
@@ -10,12 +11,15 @@ namespace SalesManagement.Presentation.Validation.Complaint
     {
         private readonly List<ValidationRule> _validationRules;
         private readonly IComplaintQueryRepository _queryRepository;
+        private readonly IDataAccessFilter _dataAccessFilter;
 
         public CreateComplaintCommandValidator(
             MaxLengthProvider maxLengthProvider,
-            IComplaintQueryRepository queryRepository)
+            IComplaintQueryRepository queryRepository,
+            IDataAccessFilter dataAccessFilter)
         {
             _queryRepository = queryRepository;
+            _dataAccessFilter = dataAccessFilter;
 
             var maxLengthRemarks = maxLengthProvider.GetMaxLength<Domain.Entities.ComplaintHeader>("Remarks") ?? 500;
 
@@ -93,6 +97,21 @@ namespace SalesManagement.Presentation.Validation.Complaint
                         break;
                 }
             }
+
+            // Business rule: User must be authorized to raise a complaint for this customer
+            // - Internal staff with BypassDataAccess → allowed for any customer
+            // - Agent with PartyId → only for customers in their AgentCustomerMapping
+            // - Anyone else → rejected
+            RuleFor(x => x.CustomerId)
+                .MustAsync(async (customerId, ct) =>
+                {
+                    var ctx = await _dataAccessFilter.GetContextAsync(ct);
+                    if (ctx.BypassDataAccess) return true;
+                    if (ctx.PartyId.HasValue && ctx.AllowedCustomerIds.Contains(customerId)) return true;
+                    return false;
+                })
+                .WithMessage("You are not authorized to raise a complaint for this customer.")
+                .When(x => x.CustomerId > 0);
 
             // Business rule: All invoices must belong to selected customer
             RuleFor(x => x)

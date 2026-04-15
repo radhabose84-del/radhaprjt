@@ -52,8 +52,18 @@ namespace SalesManagement.Application.SalesOrder.Dto
         // MD Discount
         public bool IsMdDiscountEnabled { get; set; }
         public decimal? MdDiscountRate { get; set; }
+        public decimal? MdDiscountPercentage { get; set; }
+        public decimal? MdDiscountValue { get; set; }
+        public decimal? TotalDiscountValue { get; set; }
         public string? MdApprovalDocument { get; set; }
         public string? MdApprovalDocumentPath { get; set; }
+
+        // Agent Commission
+        public int? AgentCommissionId { get; set; }
+        public int AgentPaymentTermsId { get; set; }
+        public int? AgentCommissionSlabId { get; set; }
+        public decimal? CommissionRate { get; set; }
+        public decimal? CommissionValue { get; set; }
 
         // File Attachments
         public string? VisitNotesAttachment { get; set; }

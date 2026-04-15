@@ -124,7 +124,9 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     h.CountListId,
                     cl.Description AS CountListName,
                     h.Remarks,
-                    h.IsMdDiscountEnabled, h.MdDiscountRate, h.MdApprovalDocument,
+                    h.IsMdDiscountEnabled, h.MdDiscountRate, h.MdDiscountPercentage, h.MdDiscountValue, h.TotalDiscountValue, h.MdApprovalDocument,
+                    h.AgentCommissionId, h.AgentPaymentTermsId, h.AgentCommissionSlabId,
+                    h.CommissionRate, h.CommissionValue,
                     h.VisitNotesAttachment, h.AgentPOAttachment,
                     h.TotalBags, h.TotalWeightKgs, h.TotalDiscountPerKg,
                     h.ItemValue, h.TotalFreight, h.TaxableAmount,
@@ -303,7 +305,9 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     h.CountListId,
                     cl.Description AS CountListName,
                     h.Remarks,
-                    h.IsMdDiscountEnabled, h.MdDiscountRate, h.MdApprovalDocument,
+                    h.IsMdDiscountEnabled, h.MdDiscountRate, h.MdDiscountPercentage, h.MdDiscountValue, h.TotalDiscountValue, h.MdApprovalDocument,
+                    h.AgentCommissionId, h.AgentPaymentTermsId, h.AgentCommissionSlabId,
+                    h.CommissionRate, h.CommissionValue,
                     h.VisitNotesAttachment, h.AgentPOAttachment,
                     h.TotalBags, h.TotalWeightKgs, h.TotalDiscountPerKg,
                     h.ItemValue, h.TotalFreight, h.TaxableAmount,
@@ -470,7 +474,8 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 SELECT sod.Id, sod.DiscountMasterId,
                        dm.DiscountCode, dm.DiscountName,
                        sod.SlabTypeId, slab_mm.Description AS SlabTypeName,
-                       sod.PaymentTermId
+                       sod.PaymentTermId,
+                       sod.DiscountSlabId, sod.DiscountRate, sod.TotalDiscountValue
                 FROM Sales.SalesOrderDiscount sod
                 LEFT JOIN Sales.DiscountMaster dm ON sod.DiscountMasterId = dm.Id AND dm.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster slab_mm ON sod.SlabTypeId = slab_mm.Id AND slab_mm.IsDeleted = 0

@@ -1,8 +1,11 @@
 namespace SalesManagement.Application.SalesOrder.Dto
 {
-    public class SalesOrderDiscountDto
+    public class SalesOrderAmendmentDiscountDto
     {
         public int Id { get; set; }
+        public int SalesOrderAmendmentHeaderId { get; set; }
+        public int? SalesOrderDiscountId { get; set; }
+
         public int DiscountMasterId { get; set; }
         public string? DiscountCode { get; set; }
         public string? DiscountName { get; set; }

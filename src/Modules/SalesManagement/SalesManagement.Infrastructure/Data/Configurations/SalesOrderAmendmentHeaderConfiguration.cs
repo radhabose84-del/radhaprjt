@@ -72,6 +72,17 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             builder.Property(t => t.TotalTCS).HasColumnName("TotalTCS").HasColumnType("decimal(18,3)").IsRequired();
             builder.Property(t => t.FinalAmount).HasColumnName("FinalAmount").HasColumnType("decimal(18,3)").IsRequired();
 
+            // Agent Commission snapshot
+            builder.Property(t => t.AgentCommissionId).HasColumnName("AgentCommissionId").HasColumnType("int").IsRequired(false);
+            builder.Property(t => t.AgentCommissionSlabId).HasColumnName("AgentCommissionSlabId").HasColumnType("int").IsRequired(false);
+            builder.Property(t => t.AgentPaymentTermsId).HasColumnName("AgentPaymentTermsId").HasColumnType("int").IsRequired();
+            builder.Property(t => t.CommissionRate).HasColumnName("CommissionRate").HasColumnType("decimal(18,3)").IsRequired(false);
+            builder.Property(t => t.CommissionValue).HasColumnName("CommissionValue").HasColumnType("decimal(18,3)").IsRequired(false);
+
+            // Discount snapshot
+            builder.Property(t => t.MdDiscountValue).HasColumnName("MdDiscountValue").HasColumnType("decimal(18,3)").IsRequired(false);
+            builder.Property(t => t.TotalDiscountValue).HasColumnName("TotalDiscountValue").HasColumnType("decimal(18,3)").IsRequired(false);
+
             builder.Property(t => t.StatusId)
                 .HasColumnName("StatusId")
                 .HasColumnType("int")
