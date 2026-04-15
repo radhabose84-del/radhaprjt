@@ -79,16 +79,16 @@ namespace InventoryManagement.Presentation.Controllers.Item
 
         // POST: /api/ItemMaster
         [HttpPost]
-        public async Task<ActionResult<ApiResponseDTO<int>>> Create([FromBody] ItemDto payload, CancellationToken ct)
+        public async Task<ActionResult<ApiResponseDTO<int>>> Create([FromBody] ItemDto item, CancellationToken ct)
         {
-            if (payload is null)
+            if (item is null)
                 return BadRequest(new ApiResponseDTO<int>
                 {
                     StatusCode = StatusCodes.Status400BadRequest,
                     Message = "Request body is required."
                 });
 
-            var id = await _mediator.Send(new CreateItemCommand { Payload = payload }, ct);
+            var id = await _mediator.Send(new CreateItemCommand { Payload = item }, ct);
 
             if (id <= 0)
                 return BadRequest(new ApiResponseDTO<int>
@@ -108,15 +108,15 @@ namespace InventoryManagement.Presentation.Controllers.Item
 
         // PUT: /api/ItemMaster
         [HttpPut]
-        public async Task<ActionResult<ApiResponseDTO<int>>> Update([FromBody] ItemDto payload, CancellationToken ct)
+        public async Task<ActionResult<ApiResponseDTO<int>>> Update([FromBody] ItemDto item, CancellationToken ct)
         {
-            await _mediator.Send(new UpdateItemCommand { Payload = payload }, ct);
+            await _mediator.Send(new UpdateItemCommand { Payload = item }, ct);
 
             return Ok(new ApiResponseDTO<int>
             {
                 StatusCode = StatusCodes.Status200OK,
                 Message = "Item updated successfully.",
-                Data = payload.Id
+                Data = item.Id
             });
         }
 
