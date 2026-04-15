@@ -6,5 +6,8 @@ namespace SalesManagement.Application.SalesOrder.Dto
         public int DiscountMasterId { get; set; }
         public int SlabTypeId { get; set; }
         public int PaymentTermId { get; set; }
+        public int? DiscountSlabId { get; set; }
+        public decimal? DiscountRate { get; set; }
+        public decimal? TotalDiscountValue { get; set; }
     }
 }

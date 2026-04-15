@@ -27,5 +27,8 @@ namespace SalesManagement.Domain.Entities
         public ICollection<AgentCommissionSalesGroup>? AgentCommissionSalesGroups { get; set; }
         public ICollection<AgentCommissionPaymentTerm>? AgentCommissionPaymentTerms { get; set; }
         public ICollection<AgentCommissionSlab>? AgentCommissionSlabs { get; set; }
+
+        // Reverse navigation (SalesOrderHeader)
+        public ICollection<SalesOrderHeader>? SalesOrderHeaders { get; set; }
     }
 }

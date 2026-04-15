@@ -3,17 +3,20 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SalesManagement.Infrastructure.Data;
 
 #nullable disable
 
-namespace SalesManagement.Infrastructure.Migrations
+namespace SalesManagement.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260415055854_AddAgentCommissionFieldsToSalesOrderHeader")]
+    partial class AddAgentCommissionFieldsToSalesOrderHeader
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -4687,14 +4690,14 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("DiscountMasterId");
 
-                    b.Property<decimal?>("DiscountRate")
-                        .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,3)")
-                        .HasColumnName("DiscountRate");
-
                     b.Property<int?>("DiscountSlabId")
                         .HasColumnType("int")
                         .HasColumnName("DiscountSlabId");
+
+                    b.Property<decimal?>("DiscountValue")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,3)")
+                        .HasColumnName("DiscountValue");
 
                     b.Property<int>("PaymentTermId")
                         .HasColumnType("int")
@@ -4707,11 +4710,6 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Property<int>("SlabTypeId")
                         .HasColumnType("int")
                         .HasColumnName("SlabTypeId");
-
-                    b.Property<decimal?>("TotalDiscountValue")
-                        .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,3)")
-                        .HasColumnName("TotalDiscountValue");
 
                     b.HasKey("Id");
 
@@ -4853,20 +4851,10 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("varchar(200)")
                         .HasColumnName("MdApprovalDocument");
 
-                    b.Property<decimal?>("MdDiscountPercentage")
-                        .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,3)")
-                        .HasColumnName("MdDiscountPercentage");
-
                     b.Property<decimal?>("MdDiscountRate")
                         .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,3)")
                         .HasColumnName("MdDiscountRate");
-
-                    b.Property<decimal?>("MdDiscountValue")
-                        .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,3)")
-                        .HasColumnName("MdDiscountValue");
 
                     b.Property<int?>("ModifiedBy")
                         .HasColumnType("int")
@@ -4961,11 +4949,6 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,3)")
                         .HasColumnName("TotalDiscountPerKg");
-
-                    b.Property<decimal?>("TotalDiscountValue")
-                        .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,3)")
-                        .HasColumnName("TotalDiscountValue");
 
                     b.Property<decimal>("TotalFreight")
                         .HasPrecision(18, 6)
