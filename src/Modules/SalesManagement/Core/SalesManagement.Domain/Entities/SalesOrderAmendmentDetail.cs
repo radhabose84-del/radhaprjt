@@ -29,6 +29,7 @@ namespace SalesManagement.Domain.Entities
         public decimal NetAmount { get; set; }
         public decimal NetRatePerKg { get; set; }
         public int PendingQty { get; set; }
+        public decimal? AgentCommissionPercentage { get; set; }
 
         // Navigation Properties
         public SalesOrderAmendmentHeader? SalesOrderAmendmentHeader { get; set; }

@@ -23,6 +23,20 @@ namespace SalesManagement.Application.SalesOrder.Commands.CreateSalesOrderAmendm
         public decimal TotalTCS { get; set; }
         public decimal FinalAmount { get; set; }
 
+        // Agent Commission snapshot
+        public int? AgentCommissionId { get; set; }
+        public int? AgentCommissionSlabId { get; set; }
+        public int AgentPaymentTermsId { get; set; }
+        public decimal? CommissionRate { get; set; }
+        public decimal? CommissionValue { get; set; }
+
+        // Discount snapshot
+        public decimal? MdDiscountValue { get; set; }
+        public decimal? TotalDiscountValue { get; set; }
+
         public List<CreateSalesOrderAmendmentDetailDto>? AmendmentDetails { get; set; }
+
+        // Applied discounts snapshot (max 3 — one per SlabType)
+        public List<CreateSalesOrderAmendmentDiscountDto>? Discounts { get; set; }
     }
 }

@@ -21,5 +21,8 @@ namespace SalesManagement.Application.SalesOrder.Dto
 
         // Auto-generated remarks describing what changed
         public string? Remarks { get; set; }
+
+        // Agent commission percentage (per-line user input)
+        public decimal? AgentCommissionPercentage { get; set; }
     }
 }
