@@ -4,7 +4,7 @@ namespace SalesManagement.Application.Common.Interfaces.ISalesReturn
 {
     public interface ISalesReturnQueryRepository
     {
-        Task<(List<SalesReturnListDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm);
+        Task<(List<SalesReturnListDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm, string? statusFilter, DateOnly? fromDate, DateOnly? toDate, int? customerId);
         Task<SalesReturnHeaderDto?> GetByIdAsync(int id);
         Task<SalesReturnHeaderDto?> GetByComplaintIdAsync(int complaintHeaderId);
         Task<List<SalesReturnHeaderDto>> GetAllByComplaintIdAsync(int complaintHeaderId);
