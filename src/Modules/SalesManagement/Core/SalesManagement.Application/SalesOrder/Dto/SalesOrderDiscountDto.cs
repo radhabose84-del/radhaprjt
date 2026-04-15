@@ -11,6 +11,7 @@ namespace SalesManagement.Application.SalesOrder.Dto
         public int PaymentTermId { get; set; }
         public string? PaymentTermDescription { get; set; }
         public int? DiscountSlabId { get; set; }
-        public decimal? DiscountValue { get; set; }
+        public decimal? DiscountRate { get; set; }
+        public decimal? TotalDiscountValue { get; set; }
     }
 }

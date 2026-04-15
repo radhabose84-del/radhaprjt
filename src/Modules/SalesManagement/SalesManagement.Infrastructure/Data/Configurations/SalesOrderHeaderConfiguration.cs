@@ -119,6 +119,21 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .IsRequired()
                 .HasDefaultValue(false);
 
+            builder.Property(t => t.MdDiscountPercentage)
+                .HasColumnName("MdDiscountPercentage")
+                .HasColumnType("decimal(18,3)")
+                .IsRequired(false);
+
+            builder.Property(t => t.MdDiscountValue)
+                .HasColumnName("MdDiscountValue")
+                .HasColumnType("decimal(18,3)")
+                .IsRequired(false);
+
+            builder.Property(t => t.TotalDiscountValue)
+                .HasColumnName("TotalDiscountValue")
+                .HasColumnType("decimal(18,3)")
+                .IsRequired(false);
+
             builder.Property(t => t.MdDiscountRate)
                 .HasColumnName("MdDiscountRate")
                 .HasColumnType("decimal(18,3)")

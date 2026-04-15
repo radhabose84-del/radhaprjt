@@ -121,6 +121,11 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             existingEntity.AgentCommissionSlabId = entity.AgentCommissionSlabId;
             existingEntity.CommissionRate = entity.CommissionRate;
             existingEntity.CommissionValue = entity.CommissionValue;
+            existingEntity.IsMdDiscountEnabled = entity.IsMdDiscountEnabled;
+            existingEntity.MdDiscountRate = entity.MdDiscountRate;
+            existingEntity.MdDiscountPercentage = entity.MdDiscountPercentage;
+            existingEntity.MdDiscountValue = entity.MdDiscountValue;
+            existingEntity.TotalDiscountValue = entity.TotalDiscountValue;
             existingEntity.FreightTypeId = entity.FreightTypeId;
             existingEntity.CountListId = entity.CountListId;
             existingEntity.Remarks = entity.Remarks;

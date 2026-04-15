@@ -34,6 +34,9 @@ namespace SalesManagement.Application.SalesOrder.Commands.UpdateSalesOrder
         // MD Discount — when true, Rate + Document are mandatory
         public bool IsMdDiscountEnabled { get; set; }
         public decimal? MdDiscountRate { get; set; }
+        public decimal? MdDiscountPercentage { get; set; }
+        public decimal? MdDiscountValue { get; set; }
+        public decimal? TotalDiscountValue { get; set; }
         public string? MdApprovalDocument { get; set; }
 
         // Agent Commission
