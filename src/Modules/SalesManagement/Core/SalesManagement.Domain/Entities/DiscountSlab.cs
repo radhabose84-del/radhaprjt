@@ -12,5 +12,8 @@ namespace SalesManagement.Domain.Entities
 
         // Navigation property
         public DiscountMaster? DiscountMaster { get; set; }
+
+        // Reverse navigation (SalesOrderDiscount)
+        public ICollection<SalesOrderDiscount>? SalesOrderDiscounts { get; set; }
     }
 }

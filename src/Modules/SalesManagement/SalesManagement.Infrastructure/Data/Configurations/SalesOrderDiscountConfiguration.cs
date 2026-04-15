@@ -36,6 +36,16 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("int")
                 .IsRequired();
 
+            builder.Property(t => t.DiscountSlabId)
+                .HasColumnName("DiscountSlabId")
+                .HasColumnType("int")
+                .IsRequired(false);
+
+            builder.Property(t => t.DiscountValue)
+                .HasColumnName("DiscountValue")
+                .HasColumnType("decimal(18,3)")
+                .IsRequired(false);
+
             // Same-module FK constraints
             builder.HasOne(t => t.SalesOrderHeader)
                 .WithMany(h => h.SalesOrderDiscounts)
@@ -52,10 +62,17 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasForeignKey(t => t.SlabTypeId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            builder.HasOne(t => t.DiscountSlab)
+                .WithMany(s => s.SalesOrderDiscounts)
+                .HasForeignKey(t => t.DiscountSlabId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+
             // Indexes
             builder.HasIndex(t => t.SalesOrderHeaderId);
             builder.HasIndex(t => t.DiscountMasterId);
             builder.HasIndex(t => t.SlabTypeId);
+            builder.HasIndex(t => t.DiscountSlabId);
             builder.HasIndex(t => new { t.SalesOrderHeaderId, t.DiscountMasterId }).IsUnique();
         }
     }

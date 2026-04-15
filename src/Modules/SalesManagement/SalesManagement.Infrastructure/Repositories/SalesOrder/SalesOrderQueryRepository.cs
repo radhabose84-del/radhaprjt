@@ -466,7 +466,8 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 SELECT sod.Id, sod.DiscountMasterId,
                        dm.DiscountCode, dm.DiscountName,
                        sod.SlabTypeId, slab_mm.Description AS SlabTypeName,
-                       sod.PaymentTermId
+                       sod.PaymentTermId,
+                       sod.DiscountSlabId, sod.DiscountValue
                 FROM Sales.SalesOrderDiscount sod
                 LEFT JOIN Sales.DiscountMaster dm ON sod.DiscountMasterId = dm.Id AND dm.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster slab_mm ON sod.SlabTypeId = slab_mm.Id AND slab_mm.IsDeleted = 0
