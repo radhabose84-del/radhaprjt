@@ -41,8 +41,13 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("int")
                 .IsRequired(false);
 
-            builder.Property(t => t.DiscountValue)
-                .HasColumnName("DiscountValue")
+            builder.Property(t => t.DiscountRate)
+                .HasColumnName("DiscountRate")
+                .HasColumnType("decimal(18,3)")
+                .IsRequired(false);
+
+            builder.Property(t => t.TotalDiscountValue)
+                .HasColumnName("TotalDiscountValue")
                 .HasColumnType("decimal(18,3)")
                 .IsRequired(false);
 

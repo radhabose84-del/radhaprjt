@@ -10,7 +10,8 @@ namespace SalesManagement.Domain.Entities
 
         // Slab snapshot — nullable because Payment_Days discounts resolve the slab at payment time
         public int? DiscountSlabId { get; set; }             // FK → Sales.DiscountSlab (optional)
-        public decimal? DiscountValue { get; set; }          // Applied value snapshot (optional)
+        public decimal? DiscountRate { get; set; }           // Applied rate snapshot (optional)
+        public decimal? TotalDiscountValue { get; set; }     // Total discount amount applied (optional)
 
         // Same-module navigation properties
         public SalesOrderHeader? SalesOrderHeader { get; set; }
