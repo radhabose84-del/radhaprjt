@@ -145,6 +145,10 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                         ) THEN 'Y' ELSE 'N' END
                         ELSE NULL
                     END AS DAFlag,
+                    CASE WHEN EXISTS (
+                        SELECT 1 FROM Sales.ProformaInvoice pi
+                        WHERE pi.SalesOrderId = h.Id AND pi.IsDeleted = 0
+                    ) THEN 'Y' ELSE 'N' END AS PIFlag,
                     ISNULL(pending.TotalPendingQty, 0) AS TotalPendingQty,
                     amd_latest.StatusId AS AmendmentStatusId,
                     amd_mm.Description AS AmendmentStatusName

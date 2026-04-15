@@ -24,7 +24,7 @@ namespace SalesManagement.Application.DispatchAdvice.Queries.GetDispatchAdviceAu
 
         public async Task<IReadOnlyList<DispatchAdviceLookupDto>> Handle(GetDispatchAdviceAutoCompleteQuery request, CancellationToken cancellationToken)
         {
-            var result = await _queryRepository.AutocompleteAsync(request.Term ?? string.Empty, cancellationToken);
+            var result = await _queryRepository.AutocompleteAsync(request.Term ?? string.Empty, cancellationToken, request.ProformaFilter);
 
             var domainEvent = new AuditLogsDomainEvent(
                 actionDetail: "GetAll",

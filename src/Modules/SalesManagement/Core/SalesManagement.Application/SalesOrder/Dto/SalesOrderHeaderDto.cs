@@ -82,6 +82,9 @@ namespace SalesManagement.Application.SalesOrder.Dto
         // Dispatch Advice Flag — 'Y'/'N' for Approved orders, null for others
         public string? DAFlag { get; set; }
 
+        // Proforma Invoice Flag — 'Y' if at least one proforma invoice exists, 'N' otherwise
+        public string? PIFlag { get; set; }
+
         // Total Pending Qty (OrderQty - DispatchedQty, excluding deleted lines)
         public decimal TotalPendingQty { get; set; }
 
