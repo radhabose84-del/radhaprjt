@@ -19,13 +19,21 @@ namespace SalesManagement.Presentation.Controllers
         public async Task<IActionResult> GetAllAsync(
             [FromQuery] int PageNumber,
             [FromQuery] int PageSize,
-            [FromQuery] string? SearchTerm = null)
+            [FromQuery] string? SearchTerm = null,
+            [FromQuery] string? StatusFilter = null,
+            [FromQuery] DateOnly? FromDate = null,
+            [FromQuery] DateOnly? ToDate = null,
+            [FromQuery] int? CustomerId = null)
         {
             var result = await Mediator.Send(new GetAllSalesReturnQuery
             {
                 PageNumber = PageNumber,
                 PageSize = PageSize,
-                SearchTerm = SearchTerm
+                SearchTerm = SearchTerm,
+                StatusFilter = StatusFilter,
+                FromDate = FromDate,
+                ToDate = ToDate,
+                CustomerId = CustomerId
             });
 
             return Ok(new

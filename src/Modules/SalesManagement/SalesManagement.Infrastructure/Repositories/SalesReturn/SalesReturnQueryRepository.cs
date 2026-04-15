@@ -1,4 +1,5 @@
 using System.Data;
+using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Production;
@@ -17,6 +18,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesReturn
         private readonly ILotMasterLookup _lotLookup;
         private readonly IWarehouseLookup _warehouseLookup;
         private readonly IBinLookup _binLookup;
+        private readonly IDataAccessFilter _dataAccessFilter;
 
         public SalesReturnQueryRepository(
             IDbConnection dbConnection,
@@ -24,7 +26,8 @@ namespace SalesManagement.Infrastructure.Repositories.SalesReturn
             IItemLookup itemLookup,
             ILotMasterLookup lotLookup,
             IWarehouseLookup warehouseLookup,
-            IBinLookup binLookup)
+            IBinLookup binLookup,
+            IDataAccessFilter dataAccessFilter)
         {
             _dbConnection = dbConnection;
             _partyLookup = partyLookup;
@@ -32,19 +35,44 @@ namespace SalesManagement.Infrastructure.Repositories.SalesReturn
             _lotLookup = lotLookup;
             _warehouseLookup = warehouseLookup;
             _binLookup = binLookup;
+            _dataAccessFilter = dataAccessFilter;
         }
 
-        public async Task<(List<SalesReturnListDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
+        public async Task<(List<SalesReturnListDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm, string? statusFilter, DateOnly? fromDate, DateOnly? toDate, int? customerId)
         {
+            // Data access control — agent/officer customer filtering
+            var accessCtx = await _dataAccessFilter.GetContextAsync();
+            if (accessCtx.IsCustomerRestricted && accessCtx.AllowedCustomerIds.Count == 0)
+                return (new List<SalesReturnListDto>(), 0);
+
+            var partyFilter = accessCtx.IsCustomerRestricted && accessCtx.AllowedCustomerIds.Count > 0
+                ? " AND h.CustomerId IN @AllowedCustomerIds"
+                : string.Empty;
+
             var searchFilter = string.IsNullOrWhiteSpace(searchTerm)
                 ? string.Empty
                 : @" AND (h.ReturnNumber LIKE @SearchTerm OR ch.ComplaintNumber LIKE @SearchTerm OR h.Remarks LIKE @SearchTerm)";
+
+            var statusFilterSql = string.IsNullOrWhiteSpace(statusFilter)
+                ? string.Empty
+                : " AND ms.Code = @StatusFilter";
+
+            var dateFilterSql = string.Empty;
+            if (fromDate.HasValue) dateFilterSql += " AND h.ReturnDate >= @FromDate";
+            if (toDate.HasValue)   dateFilterSql += " AND h.ReturnDate <= @ToDate";
+
+            var customerFilterSql = customerId.HasValue && customerId.Value > 0
+                ? " AND h.CustomerId = @CustomerId"
+                : string.Empty;
+
+            var allFilters = $"{searchFilter}{partyFilter}{statusFilterSql}{dateFilterSql}{customerFilterSql}";
 
             var countSql = $@"
                 SELECT COUNT(*)
                 FROM Sales.SalesReturnHeader h
                 INNER JOIN Sales.ComplaintHeader ch ON h.ComplaintHeaderId = ch.Id AND ch.IsDeleted = 0
-                WHERE h.IsDeleted = 0 {searchFilter};";
+                LEFT JOIN Sales.MiscMaster ms ON h.StatusId = ms.Id AND ms.IsDeleted = 0
+                WHERE h.IsDeleted = 0 {allFilters};";
 
             var dataSql = $@"
                 SELECT
@@ -64,19 +92,23 @@ namespace SalesManagement.Infrastructure.Repositories.SalesReturn
                 LEFT JOIN Sales.ComplaintResolution cr ON cr.ComplaintHeaderId = ch.Id AND cr.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster rt ON cr.ResolutionTypeId = rt.Id AND rt.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster ms ON h.StatusId = ms.Id AND ms.IsDeleted = 0
-                WHERE h.IsDeleted = 0 {searchFilter}
+                WHERE h.IsDeleted = 0 {allFilters}
                 ORDER BY h.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;";
 
-            var parameters = new
-            {
-                SearchTerm = $"%{searchTerm}%",
-                Offset = (pageNumber - 1) * pageSize,
-                PageSize = pageSize
-            };
+            var dp = new DynamicParameters();
+            dp.Add("SearchTerm", $"%{searchTerm}%");
+            dp.Add("StatusFilter", statusFilter);
+            dp.Add("FromDate", fromDate);
+            dp.Add("ToDate", toDate);
+            dp.Add("CustomerId", customerId);
+            dp.Add("Offset", (pageNumber - 1) * pageSize);
+            dp.Add("PageSize", pageSize);
+            if (accessCtx.IsCustomerRestricted && accessCtx.AllowedCustomerIds.Count > 0)
+                dp.Add("AllowedCustomerIds", accessCtx.AllowedCustomerIds.ToList());
 
-            var totalCount = await _dbConnection.ExecuteScalarAsync<int>(countSql, parameters);
-            var data = (await _dbConnection.QueryAsync<SalesReturnListDto>(dataSql, parameters)).ToList();
+            var totalCount = await _dbConnection.ExecuteScalarAsync<int>(countSql, dp);
+            var data = (await _dbConnection.QueryAsync<SalesReturnListDto>(dataSql, dp)).ToList();
 
             if (data.Count > 0)
             {
