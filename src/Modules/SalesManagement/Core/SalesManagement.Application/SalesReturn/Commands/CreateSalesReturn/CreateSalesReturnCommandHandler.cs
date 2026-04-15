@@ -128,6 +128,8 @@ namespace SalesManagement.Application.SalesReturn.Commands.CreateSalesReturn
                 MiscEnumEntity.ReturnStatus, returnStatusCode);
             if (returnStatus != null)
             {
+                await _commandRepository.UpdateHeaderStatusAsync(newId, returnStatus.Id);
+
                 int? closureStatusId = null;
                 int? closedBy = null;
                 if (isFullyReturned)

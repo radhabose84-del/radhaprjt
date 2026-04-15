@@ -19,7 +19,14 @@ namespace SalesManagement.Application.SalesReturn.Queries.GetAllSalesReturn
 
         public async Task<ApiResponseDTO<List<SalesReturnListDto>>> Handle(GetAllSalesReturnQuery request, CancellationToken cancellationToken)
         {
-            var (data, totalCount) = await _queryRepository.GetAllAsync(request.PageNumber, request.PageSize, request.SearchTerm);
+            var (data, totalCount) = await _queryRepository.GetAllAsync(
+                request.PageNumber,
+                request.PageSize,
+                request.SearchTerm,
+                request.StatusFilter,
+                request.FromDate,
+                request.ToDate,
+                request.CustomerId);
 
             var domainEvent = new AuditLogsDomainEvent(
                 actionDetail: "GetAll",
