@@ -22,7 +22,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrderAmendment
             _miscMasterQueryRepository = miscMasterQueryRepository;
         }
 
-        public async Task<int> CreateAsync(SalesOrderAmendmentHeader entity, List<SalesOrderAmendmentDetail> details)
+        public async Task<int> CreateAsync(SalesOrderAmendmentHeader entity, List<SalesOrderAmendmentDetail> details, List<SalesOrderAmendmentDiscount> discounts)
         {
             var strategy = _dbContext.Database.CreateExecutionStrategy();
 
@@ -43,6 +43,12 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrderAmendment
                     {
                         detail.SalesOrderAmendmentHeaderId = entity.Id;
                         await _dbContext.SalesOrderAmendmentDetail.AddAsync(detail);
+                    }
+
+                    foreach (var discount in discounts)
+                    {
+                        discount.SalesOrderAmendmentHeaderId = entity.Id;
+                        await _dbContext.SalesOrderAmendmentDiscount.AddAsync(discount);
                     }
                     await _dbContext.SaveChangesAsync();
 
@@ -68,6 +74,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrderAmendment
                 {
                     var amendmentHeader = await _dbContext.SalesOrderAmendmentHeader
                         .Include(h => h.SalesOrderAmendmentDetails)
+                        .Include(h => h.SalesOrderAmendmentDiscounts)
                         .FirstOrDefaultAsync(h => h.Id == amendmentHeaderId && h.IsDeleted == IsDelete.NotDeleted, ct);
 
                     if (amendmentHeader == null)
@@ -97,6 +104,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrderAmendment
                     {
                         var soHeader = await _dbContext.SalesOrderHeader
                             .Include(h => h.SalesOrderDetails)
+                            .Include(h => h.SalesOrderDiscounts)
                             .FirstOrDefaultAsync(h => h.Id == amendmentHeader.SalesOrderHeaderId, ct);
 
                         if (soHeader != null)
@@ -121,12 +129,18 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrderAmendment
                                         soDetail.ExpectedDeliveryDate = detail.NewExpectedDeliveryDate.Value;
 
                                     // Update detail-level computed fields
+                                    soDetail.TotalWeight = detail.TotalWeight;
+                                    soDetail.DiscountPerUnit = detail.DiscountPerUnit;
                                     soDetail.TaxableAmount = detail.TaxableAmount;
                                     soDetail.TaxAmount = detail.TaxAmount;
                                     soDetail.TCSAmount = detail.TCSAmount;
                                     soDetail.NetAmount = detail.NetAmount;
                                     soDetail.NetRatePerKg = detail.NetRatePerKg;
                                     soDetail.PendingQty = detail.PendingQty;
+
+                                    // Propagate per-line agent commission %
+                                    if (detail.AgentCommissionPercentage.HasValue)
+                                        soDetail.AgentCommissionPercentage = detail.AgentCommissionPercentage.Value;
 
                                     _dbContext.SalesOrderDetail.Update(soDetail);
                                 }
@@ -156,9 +170,41 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrderAmendment
                             soHeader.TotalTCS = amendmentHeader.TotalTCS;
                             soHeader.FinalAmount = amendmentHeader.FinalAmount;
 
+                            // Propagate Agent Commission + Discount snapshot
+                            soHeader.AgentCommissionId = amendmentHeader.AgentCommissionId;
+                            soHeader.AgentCommissionSlabId = amendmentHeader.AgentCommissionSlabId;
+                            soHeader.AgentPaymentTermsId = amendmentHeader.AgentPaymentTermsId;
+                            soHeader.CommissionRate = amendmentHeader.CommissionRate;
+                            soHeader.CommissionValue = amendmentHeader.CommissionValue;
+                            soHeader.MdDiscountValue = amendmentHeader.MdDiscountValue;
+                            soHeader.TotalDiscountValue = amendmentHeader.TotalDiscountValue;
+
                             // Increment RevisionNumber
                             soHeader.RevisionNumber = amendmentHeader.RevisionNumber;
                             _dbContext.SalesOrderHeader.Update(soHeader);
+
+                            // Replace SalesOrderDiscount rows from snapshot
+                            if (amendmentHeader.SalesOrderAmendmentDiscounts != null)
+                            {
+                                if (soHeader.SalesOrderDiscounts != null && soHeader.SalesOrderDiscounts.Count > 0)
+                                {
+                                    _dbContext.SalesOrderDiscount.RemoveRange(soHeader.SalesOrderDiscounts);
+                                }
+
+                                foreach (var ad in amendmentHeader.SalesOrderAmendmentDiscounts)
+                                {
+                                    await _dbContext.SalesOrderDiscount.AddAsync(new SalesOrderDiscount
+                                    {
+                                        SalesOrderHeaderId = soHeader.Id,
+                                        DiscountMasterId = ad.DiscountMasterId,
+                                        SlabTypeId = ad.SlabTypeId,
+                                        PaymentTermId = ad.PaymentTermId,
+                                        DiscountSlabId = ad.DiscountSlabId,
+                                        DiscountRate = ad.DiscountRate,
+                                        TotalDiscountValue = ad.TotalDiscountValue
+                                    }, ct);
+                                }
+                            }
                         }
                     }
 

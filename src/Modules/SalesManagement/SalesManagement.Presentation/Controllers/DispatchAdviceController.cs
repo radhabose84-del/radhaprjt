@@ -42,9 +42,11 @@ namespace SalesManagement.Presentation.Controllers
         }
 
         [HttpGet("by-name")]
-        public async Task<IActionResult> GetDispatchAdviceAutoCompleteAsync([FromQuery] string? term = null)
+        public async Task<IActionResult> GetDispatchAdviceAutoCompleteAsync(
+            [FromQuery] string? term = null,
+            [FromQuery] bool proformaFilter = false)
         {
-            var result = await Mediator.Send(new GetDispatchAdviceAutoCompleteQuery(term ?? string.Empty));
+            var result = await Mediator.Send(new GetDispatchAdviceAutoCompleteQuery(term ?? string.Empty, proformaFilter));
 
             return Ok(new
             {

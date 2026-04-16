@@ -19,7 +19,14 @@ namespace SalesManagement.Application.SalesOrder.Dto
         public decimal? NewExMillRate { get; set; }
         public DateOnly? NewExpectedDeliveryDate { get; set; }
 
+        // Detail-level computed fields
+        public decimal TotalWeight { get; set; }
+        public decimal DiscountPerUnit { get; set; }
+
         // Auto-generated remarks describing what changed
         public string? Remarks { get; set; }
+
+        // Agent commission percentage (per-line user input)
+        public decimal? AgentCommissionPercentage { get; set; }
     }
 }

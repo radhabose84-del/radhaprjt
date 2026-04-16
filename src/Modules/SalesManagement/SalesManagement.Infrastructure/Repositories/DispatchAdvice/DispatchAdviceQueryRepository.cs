@@ -465,14 +465,38 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
             return count > 0;
         }
 
-        public async Task<IReadOnlyList<DispatchAdviceLookupDto>> AutocompleteAsync(string term, CancellationToken ct)
+        public async Task<IReadOnlyList<DispatchAdviceLookupDto>> AutocompleteAsync(string term, CancellationToken ct, bool proformaFilter = false)
         {
-            const string sql = @"
-                SELECT Id, DispatchNo, DispatchDate, InvFlg
-                FROM Sales.DispatchAdviceHeader
-                WHERE IsActive = 1 AND IsDeleted = 0
-                AND DispatchNo LIKE @Term
-                ORDER BY DispatchNo ASC";
+            var proformaCondition = proformaFilter
+                ? @"AND (
+                        -- Non-advance payment orders are always included
+                        NOT EXISTS (
+                            SELECT 1
+                            FROM Sales.SalesOrderHeader soh
+                            INNER JOIN Sales.MiscMaster mm
+                                ON soh.PaymentTypeId = mm.Id AND mm.IsDeleted = 0
+                            INNER JOIN Sales.MiscTypeMaster mtm
+                                ON mm.MiscTypeId = mtm.Id AND mtm.IsDeleted = 0
+                            WHERE soh.Id = dah.SalesOrderId AND soh.IsDeleted = 0
+                              AND LOWER(mtm.MiscTypeCode) = LOWER('PaymentType')
+                              AND LOWER(mm.Code) = LOWER('Advance')
+                        )
+                        -- Advance payment orders are included only if a proforma invoice exists
+                        OR EXISTS (
+                            SELECT 1
+                            FROM Sales.ProformaInvoice pi
+                            WHERE pi.SalesOrderId = dah.SalesOrderId AND pi.IsDeleted = 0
+                        )
+                    )"
+                : string.Empty;
+
+            var sql = $@"
+                SELECT dah.Id, dah.DispatchNo, dah.DispatchDate, dah.InvFlg
+                FROM Sales.DispatchAdviceHeader dah
+                WHERE dah.IsActive = 1 AND dah.IsDeleted = 0
+                AND dah.DispatchNo LIKE @Term
+                {proformaCondition}
+                ORDER BY dah.DispatchNo ASC";
 
             var result = await _dbConnection.QueryAsync<DispatchAdviceLookupDto>(sql, new { Term = $"%{term}%" });
             return result.ToList();

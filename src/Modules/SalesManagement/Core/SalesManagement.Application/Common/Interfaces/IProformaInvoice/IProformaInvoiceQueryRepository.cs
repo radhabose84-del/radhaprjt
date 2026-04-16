@@ -16,5 +16,6 @@ namespace SalesManagement.Application.Common.Interfaces.IProformaInvoice
         Task<bool> StatusExistsAsync(int statusId);
         Task<decimal> GetProformaAmountAsync(int id);
         Task<bool> HasReceivedAdvancePaymentAsync(int salesOrderId);
+        Task<ProformaInvoicePrintDto?> GetPrintDetailsAsync(int id);
     }
 }

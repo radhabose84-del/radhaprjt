@@ -3,17 +3,20 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SalesManagement.Infrastructure.Data;
 
 #nullable disable
 
-namespace SalesManagement.Infrastructure.Migrations
+namespace SalesManagement.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260415103835_AddDiscountSnapshotToSalesOrderAmendment")]
+    partial class AddDiscountSnapshotToSalesOrderAmendment
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -4310,11 +4313,6 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("varchar(10)")
                         .HasColumnName("ChangeType");
 
-                    b.Property<decimal>("DiscountPerUnit")
-                        .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,3)")
-                        .HasColumnName("DiscountPerUnit");
-
                     b.Property<decimal>("NetAmount")
                         .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,3)")
@@ -4381,11 +4379,6 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,3)")
                         .HasColumnName("TaxableAmount");
-
-                    b.Property<decimal>("TotalWeight")
-                        .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,3)")
-                        .HasColumnName("TotalWeight");
 
                     b.HasKey("Id");
 

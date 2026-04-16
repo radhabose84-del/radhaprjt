@@ -1,5 +1,6 @@
 using System.Data;
 using Contracts.Interfaces.Lookups.Inventory;
+using Contracts.Interfaces.Lookups.Purchase;
 using Dapper;
 using SalesManagement.Application.Common.Interfaces.ISalesOrderAmendment;
 using SalesManagement.Application.SalesOrder.Dto;
@@ -11,11 +12,13 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrderAmendment
     {
         private readonly IDbConnection _dbConnection;
         private readonly IItemLookup _itemLookup;
+        private readonly IPaymentTermLookup _paymentTermLookup;
 
-        public SalesOrderAmendmentQueryRepository(IDbConnection dbConnection, IItemLookup itemLookup)
+        public SalesOrderAmendmentQueryRepository(IDbConnection dbConnection, IItemLookup itemLookup, IPaymentTermLookup paymentTermLookup)
         {
             _dbConnection = dbConnection;
             _itemLookup = itemLookup;
+            _paymentTermLookup = paymentTermLookup;
         }
 
         public async Task<(List<SalesOrderAmendmentHeaderDto>, int)> GetAllAsync(
@@ -40,6 +43,9 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrderAmendment
                     ah.StatusId,
                     mm.Description AS StatusName,
                     ah.ApprovedBy, ah.ApprovedDate,
+                    ah.AgentCommissionId, ah.AgentCommissionSlabId, ah.AgentPaymentTermsId,
+                    ah.CommissionRate, ah.CommissionValue,
+                    ah.MdDiscountValue, ah.TotalDiscountValue,
                     ah.CreatedByName, ah.CreatedDate
                 FROM Sales.SalesOrderAmendmentHeader ah
                 INNER JOIN Sales.SalesOrderHeader soh ON ah.SalesOrderHeaderId = soh.Id
@@ -76,6 +82,9 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrderAmendment
                     ah.StatusId,
                     mm.Description AS StatusName,
                     ah.ApprovedBy, ah.ApprovedDate,
+                    ah.AgentCommissionId, ah.AgentCommissionSlabId, ah.AgentPaymentTermsId,
+                    ah.CommissionRate, ah.CommissionValue,
+                    ah.MdDiscountValue, ah.TotalDiscountValue,
                     ah.CreatedByName, ah.CreatedDate
                 FROM Sales.SalesOrderAmendmentHeader ah
                 INNER JOIN Sales.SalesOrderHeader soh ON ah.SalesOrderHeaderId = soh.Id
@@ -86,9 +95,22 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrderAmendment
                     d.Id, d.SalesOrderAmendmentHeaderId,
                     d.ChangeType, d.SalesOrderDetailId,
                     d.OldItemId, d.OldQtyInBags, d.OldExMillRate, d.OldExpectedDeliveryDate,
-                    d.NewQtyInBags, d.NewExMillRate, d.NewExpectedDeliveryDate
+                    d.NewQtyInBags, d.NewExMillRate, d.NewExpectedDeliveryDate,
+                    d.TotalWeight, d.DiscountPerUnit,
+                    d.AgentCommissionPercentage
                 FROM Sales.SalesOrderAmendmentDetail d
-                WHERE d.SalesOrderAmendmentHeaderId = @Id;";
+                WHERE d.SalesOrderAmendmentHeaderId = @Id;
+
+                SELECT
+                    ad.Id, ad.SalesOrderAmendmentHeaderId, ad.SalesOrderDiscountId,
+                    ad.DiscountMasterId, dm.DiscountCode, dm.DiscountName,
+                    ad.SlabTypeId, slab_mm.Description AS SlabTypeName,
+                    ad.PaymentTermId,
+                    ad.DiscountSlabId, ad.DiscountRate, ad.TotalDiscountValue
+                FROM Sales.SalesOrderAmendmentDiscount ad
+                LEFT JOIN Sales.DiscountMaster dm ON ad.DiscountMasterId = dm.Id AND dm.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster slab_mm ON ad.SlabTypeId = slab_mm.Id AND slab_mm.IsDeleted = 0
+                WHERE ad.SalesOrderAmendmentHeaderId = @Id;";
 
             using var multi = await _dbConnection.QueryMultipleAsync(sql, new { Id = id });
             var header = await multi.ReadFirstOrDefaultAsync<SalesOrderAmendmentHeaderDto>();
@@ -98,7 +120,25 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrderAmendment
             await PopulateDetailLookupsAsync(details);
             header.SalesOrderAmendmentDetails = details;
 
+            var discounts = (await multi.ReadAsync<SalesOrderAmendmentDiscountDto>()).ToList();
+            await PopulateAmendmentDiscountPaymentTermsAsync(discounts);
+            header.Discounts = discounts;
+
             return header;
+        }
+
+        private async Task PopulateAmendmentDiscountPaymentTermsAsync(List<SalesOrderAmendmentDiscountDto> discounts)
+        {
+            if (discounts.Count == 0) return;
+
+            var allPaymentTerms = await _paymentTermLookup.GetAllPaymentTermAsync();
+            var ptDict = allPaymentTerms.ToDictionary(p => p.Id, p => p.Description);
+
+            foreach (var d in discounts)
+            {
+                if (ptDict.TryGetValue(d.PaymentTermId, out var desc))
+                    d.PaymentTermDescription = desc;
+            }
         }
 
         public async Task<List<SalesOrderAmendmentHeaderDto>> GetBySalesOrderHeaderIdAsync(int salesOrderHeaderId)
@@ -112,6 +152,9 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrderAmendment
                     ah.StatusId,
                     mm.Description AS StatusName,
                     ah.ApprovedBy, ah.ApprovedDate,
+                    ah.AgentCommissionId, ah.AgentCommissionSlabId, ah.AgentPaymentTermsId,
+                    ah.CommissionRate, ah.CommissionValue,
+                    ah.MdDiscountValue, ah.TotalDiscountValue,
                     ah.CreatedByName, ah.CreatedDate
                 FROM Sales.SalesOrderAmendmentHeader ah
                 INNER JOIN Sales.SalesOrderHeader soh ON ah.SalesOrderHeaderId = soh.Id
@@ -123,7 +166,9 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrderAmendment
                     d.Id, d.SalesOrderAmendmentHeaderId,
                     d.ChangeType, d.SalesOrderDetailId,
                     d.OldItemId, d.OldQtyInBags, d.OldExMillRate, d.OldExpectedDeliveryDate,
-                    d.NewQtyInBags, d.NewExMillRate, d.NewExpectedDeliveryDate
+                    d.NewQtyInBags, d.NewExMillRate, d.NewExpectedDeliveryDate,
+                    d.TotalWeight, d.DiscountPerUnit,
+                    d.AgentCommissionPercentage
                 FROM Sales.SalesOrderAmendmentDetail d
                 INNER JOIN Sales.SalesOrderAmendmentHeader ah ON d.SalesOrderAmendmentHeaderId = ah.Id
                 WHERE ah.SalesOrderHeaderId = @SalesOrderHeaderId AND ah.IsDeleted = 0;";
