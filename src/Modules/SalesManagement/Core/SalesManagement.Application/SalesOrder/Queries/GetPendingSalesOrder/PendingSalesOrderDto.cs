@@ -12,7 +12,7 @@ namespace SalesManagement.Application.SalesOrder.Queries.GetPendingSalesOrder
         public string? SegmentName { get; set; }
         public int EnquiryType { get; set; }
         public string? EnquiryTypeName { get; set; }
-        public int UnitId { get; set; }
+        public int? UnitId { get; set; }
         public string? UnitName { get; set; }
         public int PartyId { get; set; }
         public string? PartyName { get; set; }

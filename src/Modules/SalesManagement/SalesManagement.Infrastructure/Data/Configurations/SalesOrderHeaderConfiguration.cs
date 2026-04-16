@@ -57,7 +57,7 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             builder.Property(t => t.UnitId)
                 .HasColumnName("UnitId")
                 .HasColumnType("int")
-                .IsRequired();
+                .IsRequired(false);
 
             builder.Property(t => t.PartyId)
                 .HasColumnName("PartyId")
