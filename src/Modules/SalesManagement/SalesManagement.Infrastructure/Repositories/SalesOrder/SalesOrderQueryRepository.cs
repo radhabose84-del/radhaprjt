@@ -342,7 +342,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     d.ItemId, d.VariantId, d.HSNId,
                     d.PackTypeId,
                     d.QtyInBags, d.BagWeight, d.SaleUOMId, d.TotalWeight,
-                    d.ExMillRate, d.DiscountPerUnit, d.Freight,
+                    d.ExMillRate, d.DiscountPerUnit, d.Freight, d.Handling, d.Charity,
                     d.TaxableAmount, d.TaxPercentage, d.TaxAmount,
                     d.TCSPercentage, d.TCSAmount,
                     d.NetAmount, d.NetRatePerKg,
