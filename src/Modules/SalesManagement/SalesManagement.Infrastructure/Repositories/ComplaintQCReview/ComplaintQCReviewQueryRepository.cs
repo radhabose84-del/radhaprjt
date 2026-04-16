@@ -1,4 +1,5 @@
 using System.Data;
+using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Users;
@@ -14,21 +15,33 @@ namespace SalesManagement.Infrastructure.Repositories.ComplaintQCReview
         private readonly IUserLookup _userLookup;
         private readonly IPartyLookup _partyLookup;
         private readonly IItemLookup _itemLookup;
+        private readonly IDataAccessFilter _dataAccessFilter;
 
         public ComplaintQCReviewQueryRepository(
             IDbConnection dbConnection,
             IUserLookup userLookup,
             IPartyLookup partyLookup,
-            IItemLookup itemLookup)
+            IItemLookup itemLookup,
+            IDataAccessFilter dataAccessFilter)
         {
             _dbConnection = dbConnection;
             _userLookup = userLookup;
             _partyLookup = partyLookup;
             _itemLookup = itemLookup;
+            _dataAccessFilter = dataAccessFilter;
         }
 
         public async Task<(List<QCReviewListDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm, string? statusFilter)
         {
+            // Data access control
+            var accessCtx = await _dataAccessFilter.GetContextAsync();
+            if (accessCtx.IsCustomerRestricted && accessCtx.AllowedCustomerIds.Count == 0)
+                return (new List<QCReviewListDto>(), 0);
+
+            var partyFilter = accessCtx.IsCustomerRestricted && accessCtx.AllowedCustomerIds.Count > 0
+                ? " AND ch.CustomerId IN @AllowedCustomerIds"
+                : string.Empty;
+
             var searchFilter = string.IsNullOrWhiteSpace(searchTerm)
                 ? string.Empty
                 : @" AND (ch.ComplaintNumber LIKE @SearchTerm OR ch.Remarks LIKE @SearchTerm)";
@@ -37,6 +50,17 @@ namespace SalesManagement.Infrastructure.Repositories.ComplaintQCReview
                 ? string.Empty
                 : @" AND qcs.Description = @StatusFilter";
 
+            // Only show QC reviews for complaints that are approved (exclude Submitted/Rejected)
+            var approvalFilter = @"
+                AND NOT EXISTS (
+                    SELECT 1 FROM Sales.MiscMaster _sm
+                    INNER JOIN Sales.MiscTypeMaster _smt ON _sm.MiscTypeId = _smt.Id
+                    WHERE _sm.Id = ch.StatusId AND _smt.MiscTypeCode = 'ApprovalStatus'
+                      AND _sm.Code IN ('Submitted', 'Rejected') AND _sm.IsDeleted = 0
+                )";
+
+            var allFilters = $"{searchFilter}{statusFilterSql}{partyFilter}{approvalFilter}";
+
             var countSql = $@"
                 SELECT COUNT(*)
                 FROM Sales.ComplaintQCReview r
@@ -44,7 +68,7 @@ namespace SalesManagement.Infrastructure.Repositories.ComplaintQCReview
                 LEFT JOIN Sales.MiscMaster pv ON r.PhysicalVerificationId = pv.Id AND pv.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster qcs ON r.ComplaintStatusId = qcs.Id AND qcs.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster sev ON r.SeverityId = sev.Id AND sev.IsDeleted = 0
-                WHERE r.IsDeleted = 0 {searchFilter} {statusFilterSql};";
+                WHERE r.IsDeleted = 0 {allFilters};";
 
             var dataSql = $@"
                 SELECT
@@ -74,22 +98,22 @@ namespace SalesManagement.Infrastructure.Repositories.ComplaintQCReview
                 LEFT JOIN Sales.MiscMaster sev ON r.SeverityId = sev.Id AND sev.IsDeleted = 0
                 LEFT JOIN Sales.ComplaintQCReviewAssignment a2 ON a2.ComplaintQCReviewId = r.Id AND a2.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster ast ON a2.AssignmentStatusId = ast.Id AND ast.IsDeleted = 0
-                WHERE r.IsDeleted = 0 {searchFilter} {statusFilterSql}
+                WHERE r.IsDeleted = 0 {allFilters}
                 GROUP BY r.Id, r.ComplaintHeaderId, ch.ComplaintNumber, ch.ComplaintDate, ch.CustomerId,
                     pv.Description, qcs.Description, sev.Description, r.ReviewedBy, r.ReviewedDate
                 ORDER BY r.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;";
 
-            var parameters = new
-            {
-                SearchTerm = $"%{searchTerm}%",
-                StatusFilter = statusFilter,
-                Offset = (pageNumber - 1) * pageSize,
-                PageSize = pageSize
-            };
+            var dp = new DynamicParameters();
+            dp.Add("SearchTerm", $"%{searchTerm}%");
+            dp.Add("StatusFilter", statusFilter);
+            dp.Add("Offset", (pageNumber - 1) * pageSize);
+            dp.Add("PageSize", pageSize);
+            if (accessCtx.IsCustomerRestricted && accessCtx.AllowedCustomerIds.Count > 0)
+                dp.Add("AllowedCustomerIds", accessCtx.AllowedCustomerIds.ToList());
 
-            var totalCount = await _dbConnection.ExecuteScalarAsync<int>(countSql, parameters);
-            var data = (await _dbConnection.QueryAsync<QCReviewListDto>(dataSql, parameters)).ToList();
+            var totalCount = await _dbConnection.ExecuteScalarAsync<int>(countSql, dp);
+            var data = (await _dbConnection.QueryAsync<QCReviewListDto>(dataSql, dp)).ToList();
 
             // Populate cross-module lookup names
             if (data.Count > 0)
@@ -323,6 +347,20 @@ namespace SalesManagement.Infrastructure.Repositories.ComplaintQCReview
             const string sql = "SELECT COUNT(1) FROM Sales.ComplaintHeader WHERE Id = @Id AND IsDeleted = 0;";
             var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = complaintHeaderId });
             return count > 0;
+        }
+
+        public async Task<bool> IsComplaintApprovedAsync(int complaintHeaderId)
+        {
+            const string sql = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1 FROM Sales.ComplaintHeader ch
+                    INNER JOIN Sales.MiscMaster mm ON ch.StatusId = mm.Id AND mm.IsDeleted = 0
+                    INNER JOIN Sales.MiscTypeMaster mt ON mm.MiscTypeId = mt.Id
+                    WHERE ch.Id = @Id AND ch.IsDeleted = 0
+                      AND mt.MiscTypeCode = 'ApprovalStatus' AND mm.Code = 'Approved'
+                ) THEN 1 ELSE 0 END;";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { Id = complaintHeaderId });
         }
 
         public async Task<bool> ReviewAlreadyExistsAsync(int complaintHeaderId, int? excludeId = null)
