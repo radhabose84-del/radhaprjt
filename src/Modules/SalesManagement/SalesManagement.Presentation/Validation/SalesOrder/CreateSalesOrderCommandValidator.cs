@@ -54,13 +54,6 @@ namespace SalesManagement.Presentation.Validation.SalesOrder
                             .WithMessage($"SalesGroupId {rule.Error}")
                             .When(x => x.SalesOrderDetails != null);
 
-                        RuleFor(x => x.SalesOrderDetails!.UnitId)
-                            .NotNull()
-                            .WithMessage($"UnitId {rule.Error}")
-                            .NotEmpty()
-                            .WithMessage($"UnitId {rule.Error}")
-                            .When(x => x.SalesOrderDetails != null);
-
                         RuleFor(x => x.SalesOrderDetails!.PartyId)
                             .NotNull()
                             .WithMessage($"PartyId {rule.Error}")

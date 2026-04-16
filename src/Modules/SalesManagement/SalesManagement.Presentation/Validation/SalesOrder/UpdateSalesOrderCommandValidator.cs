@@ -40,12 +40,6 @@ namespace SalesManagement.Presentation.Validation.SalesOrder
                             .NotEmpty()
                             .WithMessage($"SalesGroupId {rule.Error}");
 
-                        RuleFor(x => x.UnitId)
-                            .NotNull()
-                            .WithMessage($"UnitId {rule.Error}")
-                            .NotEmpty()
-                            .WithMessage($"UnitId {rule.Error}");
-
                         RuleFor(x => x.PartyId)
                             .NotNull()
                             .WithMessage($"PartyId {rule.Error}")
