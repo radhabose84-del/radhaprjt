@@ -4,7 +4,7 @@ namespace SalesManagement.Application.Common.Interfaces.IComplaint
 {
     public interface IComplaintQueryRepository
     {
-        Task<(List<ComplaintHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm);
+        Task<(List<ComplaintHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm, string? statusFilter);
         Task<ComplaintHeaderDto?> GetByIdAsync(int id);
         Task<IReadOnlyList<ComplaintLookupDto>> AutocompleteAsync(string term, CancellationToken ct);
         Task<bool> NotFoundAsync(int id);
