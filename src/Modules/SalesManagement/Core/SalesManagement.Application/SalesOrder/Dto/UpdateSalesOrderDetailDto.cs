@@ -13,6 +13,8 @@ namespace SalesManagement.Application.SalesOrder.Dto
         public decimal ExMillRate { get; set; }
         public decimal DiscountPerUnit { get; set; }
         public decimal Freight { get; set; }
+        public decimal? Handling { get; set; }
+        public decimal? Charity { get; set; }
         public decimal TaxableAmount { get; set; }
         public decimal TaxPercentage { get; set; }
         public decimal TaxAmount { get; set; }
