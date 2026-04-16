@@ -66,7 +66,14 @@ internal sealed class DataAccessFilterService : IDataAccessFilter
             customerIds = await GetAllowedCustomerIdsAsync(partyId.Value);
             isCustomerRestricted = true;
             if (customerIds.Count > 0)
+            {
                 agentIdSet.Add(partyId.Value);
+            }
+            else
+            {
+                // No agent mappings — user is a customer, allow seeing their own party
+                customerIds = new HashSet<int> { partyId.Value };
+            }
         }
         else
         {

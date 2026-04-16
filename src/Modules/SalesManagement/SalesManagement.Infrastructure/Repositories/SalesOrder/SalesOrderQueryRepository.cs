@@ -205,7 +205,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             if (list.Count > 0)
             {
                 // Populate cross-module lookup names
-                var allUnitIds = list.Select(x => x.UnitId)
+                var allUnitIds = list.Where(x => x.UnitId.HasValue).Select(x => x.UnitId!.Value)
                     .Concat(list.Where(x => x.OrderUnitId.HasValue).Select(x => x.OrderUnitId!.Value))
                     .Distinct();
                 var units = await _unitLookup.GetByIdsAsync(allUnitIds);
@@ -227,7 +227,8 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
 
                 foreach (var item in list)
                 {
-                    item.UnitName = unitDict.TryGetValue(item.UnitId, out var uName) ? uName : null;
+                    if (item.UnitId.HasValue)
+                        item.UnitName = unitDict.TryGetValue(item.UnitId.Value, out var uName) ? uName : null;
                     item.PartyName = partyDict.TryGetValue(item.PartyId, out var pName) ? pName : null;
                     if (item.AgentId.HasValue)
                         item.AgentName = agentDict.TryGetValue(item.AgentId.Value, out var aName) ? aName : null;
@@ -342,7 +343,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     d.ItemId, d.VariantId, d.HSNId,
                     d.PackTypeId,
                     d.QtyInBags, d.BagWeight, d.SaleUOMId, d.TotalWeight,
-                    d.ExMillRate, d.DiscountPerUnit, d.Freight,
+                    d.ExMillRate, d.DiscountPerUnit, d.Freight, d.Handling, d.Charity,
                     d.TaxableAmount, d.TaxPercentage, d.TaxAmount,
                     d.TCSPercentage, d.TCSAmount,
                     d.NetAmount, d.NetRatePerKg,
@@ -379,8 +380,11 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             var details = (await _dbConnection.QueryAsync<SalesOrderDetailDto>(detailSql, detailParams)).ToList();
 
             // Populate cross-module header lookups
-            var unitLookup = await _unitLookup.GetByIdAsync(header.UnitId);
-            header.UnitName = unitLookup?.UnitName;
+            if (header.UnitId.HasValue)
+            {
+                var unitLookup = await _unitLookup.GetByIdAsync(header.UnitId.Value);
+                header.UnitName = unitLookup?.UnitName;
+            }
 
             if (header.OrderUnitId.HasValue)
             {

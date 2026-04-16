@@ -42,12 +42,10 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
             _dataAccessFilter = dataAccessFilter;
         }
 
-        public async Task<(List<ComplaintHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
+        public async Task<(List<ComplaintHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm, string? statusFilter)
         {
             var accessCtx = await _dataAccessFilter.GetContextAsync();
             var allowedPartyIds = new HashSet<int>(accessCtx.AllowedCustomerIds);
-            if (accessCtx.PartyId.HasValue)
-                allowedPartyIds.Add(accessCtx.PartyId.Value);
 
             if (accessCtx.IsCustomerRestricted && allowedPartyIds.Count == 0)
                 return (new List<ComplaintHeaderDto>(), 0);
@@ -62,11 +60,17 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                        OR ms.Description LIKE @SearchTerm
                        OR h.Remarks LIKE @SearchTerm)";
 
+            var statusFilterSql = string.IsNullOrWhiteSpace(statusFilter)
+                ? string.Empty
+                : " AND ms.Description = @StatusFilter";
+
+            var allFilters = $"{partyFilter}{searchFilter}{statusFilterSql}";
+
             var countSql = $@"
                 SELECT COUNT(*)
                 FROM Sales.ComplaintHeader h
                 LEFT JOIN Sales.MiscMaster ms ON h.StatusId = ms.Id AND ms.IsDeleted = 0
-                WHERE h.IsDeleted = 0 {partyFilter} {searchFilter};";
+                WHERE h.IsDeleted = 0 {allFilters};";
 
             var dataSql = $@"
                 SELECT
@@ -101,12 +105,13 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                     h.ModifiedIP
                 FROM Sales.ComplaintHeader h
                 LEFT JOIN Sales.MiscMaster ms ON h.StatusId = ms.Id AND ms.IsDeleted = 0
-                WHERE h.IsDeleted = 0 {partyFilter} {searchFilter}
+                WHERE h.IsDeleted = 0 {allFilters}
                 ORDER BY h.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;";
 
             var dp = new DynamicParameters();
             dp.Add("SearchTerm", $"%{searchTerm}%");
+            dp.Add("StatusFilter", statusFilter);
             dp.Add("Offset", (pageNumber - 1) * pageSize);
             dp.Add("PageSize", pageSize);
             if (accessCtx.IsCustomerRestricted && allowedPartyIds.Count > 0)

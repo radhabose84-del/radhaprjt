@@ -18,6 +18,9 @@ namespace UserManagement.Application.Users.Queries.GetUsers
         public string? Mobile { get; set; }
         public string? EmailId { get; set; }
         public int EntityId { get; set; }
+        public string? EntityName { get; set; }
+        public int? EmpId { get; set; }
+        public string? EmpName { get; set; }
         public List<UserDivisionDTO>? userDivisions { get; set; }
         public FirstTimeUserStatus IsFirstTimeUser { get; set; }
         public IsDelete IsDeleted { get; set; }
@@ -25,6 +28,9 @@ namespace UserManagement.Application.Users.Queries.GetUsers
         public List<UserRoleAllocationDTO>? userRoleAllocations { get; set; }
         public List<UserUnitDTO>? UserUnits { get; set; }
         public int? UserGroupId { get; set; }
+        public string? UserGroupName { get; set; }
+        public int DepartmentId { get; set; }
+        public string? DepartmentName { get; set; }
         public List<UserDepartmentDTO>? userDepartments { get; set; }
     }
 }
