@@ -58,9 +58,11 @@ namespace SalesManagement.Presentation.Controllers
         }
 
         [HttpGet("by-name")]
-        public async Task<IActionResult> GetSalesOrderAutoCompleteAsync([FromQuery] string? term = null)
+        public async Task<IActionResult> GetSalesOrderAutoCompleteAsync(
+            [FromQuery] string? term = null,
+            [FromQuery] bool proformaFilter = false)
         {
-            var result = await Mediator.Send(new GetSalesOrderAutoCompleteQuery(term));
+            var result = await Mediator.Send(new GetSalesOrderAutoCompleteQuery(term, proformaFilter));
 
             return Ok(new
             {

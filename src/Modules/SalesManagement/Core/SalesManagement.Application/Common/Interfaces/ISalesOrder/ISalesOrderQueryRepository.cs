@@ -10,7 +10,7 @@ namespace SalesManagement.Application.Common.Interfaces.ISalesOrder
         Task<(List<SalesOrderHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm, DateOnly? orderDateFrom = null, DateOnly? orderDateTo = null, string? partyName = null, string? statusName = null);
         Task<(List<PendingSalesOrderDto>, int)> GetPendingSalesOrderAsync(int pageNumber, int pageSize, string? searchTerm);
         Task<SalesOrderHeaderDto?> GetByIdAsync(int id);
-        Task<IReadOnlyList<SalesOrderLookupDto>> AutocompleteAsync(string term, CancellationToken ct);
+        Task<IReadOnlyList<SalesOrderLookupDto>> AutocompleteAsync(string term, CancellationToken ct, bool proformaFilter = false);
         Task<List<DiscountsBySalesGroupDto>> GetDiscountsBySalesGroupAsync(int salesGroupId, int slabTypeId, int paymentTermId, CancellationToken ct);
         Task<List<AgentCommissionsDto>> GetAgentCommissionsAsync(int salesGroupId, int paymentTermId, int agentId, CancellationToken ct);
         Task<bool> NotFoundAsync(int id);

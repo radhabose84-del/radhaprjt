@@ -74,6 +74,16 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("decimal(18,3)")
                 .IsRequired();
 
+            builder.Property(t => t.Handling)
+                .HasColumnName("Handling")
+                .HasColumnType("decimal(18,3)")
+                .IsRequired(false);
+
+            builder.Property(t => t.Charity)
+                .HasColumnName("Charity")
+                .HasColumnType("decimal(18,3)")
+                .IsRequired(false);
+
             // Tax
             builder.Property(t => t.TaxableAmount)
                 .HasColumnName("TaxableAmount")

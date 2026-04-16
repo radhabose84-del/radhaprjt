@@ -3,17 +3,20 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SalesManagement.Infrastructure.Data;
 
 #nullable disable
 
-namespace SalesManagement.Infrastructure.Migrations
+namespace SalesManagement.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260416041136_AddTotalWeightAndDiscountPerUnitToAmendmentDetail")]
+    partial class AddTotalWeightAndDiscountPerUnitToAmendmentDetail
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -3911,17 +3914,11 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("decimal(18,6)")
                         .HasColumnName("TargetPrice");
 
-                    b.Property<int?>("VariantId")
-                        .HasColumnType("int")
-                        .HasColumnName("VariantId");
-
                     b.HasKey("Id");
 
                     b.HasIndex("ItemId");
 
                     b.HasIndex("SalesEnquiryHeaderId");
-
-                    b.HasIndex("VariantId");
 
                     b.ToTable("SalesEnquiryDetail", "Sales");
                 });
@@ -4667,11 +4664,6 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("decimal(18,3)")
                         .HasColumnName("BagWeight");
 
-                    b.Property<decimal?>("Charity")
-                        .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,3)")
-                        .HasColumnName("Charity");
-
                     b.Property<decimal>("DiscountPerUnit")
                         .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,3)")
@@ -4698,11 +4690,6 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Property<int>("HSNId")
                         .HasColumnType("int")
                         .HasColumnName("HSNId");
-
-                    b.Property<decimal?>("Handling")
-                        .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,3)")
-                        .HasColumnName("Handling");
 
                     b.Property<int>("ItemId")
                         .HasColumnType("int")
