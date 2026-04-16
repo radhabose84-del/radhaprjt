@@ -321,10 +321,9 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
 
                 const string partyTypeSql = @"
                     SELECT A.Id, A.PartyId, A.PartyTypeId, A.PartyGroupId,
-                           C.Description AS GlCategory
-                    FROM Party.PartyType A
-                    INNER JOIN Party.PartyGroup B ON A.PartyGroupId = B.Id
-                    INNER JOIN Party.MiscMaster C ON B.GlCategoryId = C.Id
+                           C.Description AS PartyTypeName
+                    FROM Party.PartyType A                    
+                    INNER JOIN Party.MiscMaster C ON A.PartyTypeId = C.Id
                     WHERE A.PartyId IN @PartyIds";
 
                 var partyTypes = (await _dbConnection.QueryAsync<PartyTypeItemDto>(
