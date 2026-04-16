@@ -102,7 +102,7 @@ namespace UserManagement.Infrastructure.Repositories.Users
                           var user = await _dbConnection.QueryMultipleAsync(query, parameters);
                           var userlist = (await user.ReadAsync<User>()).ToList();
                           int totalCount = (await user.ReadFirstAsync<int>());
-                          
+
                           return  (userlist, totalCount);
                         
 
@@ -127,6 +127,8 @@ namespace UserManagement.Infrastructure.Repositories.Users
                ur.IsFirstTimeUser,
                ur.IsDeleted,
                ur.EntityId,
+               ur.DepartmentId,
+               ur.EmpId,
                ura.UserRoleId,
                uc.CompanyId,
                uu.UnitId,
@@ -201,7 +203,23 @@ namespace UserManagement.Infrastructure.Repositories.Users
         splitOn: "UserRoleId,CompanyId,UnitId,DivisionId,DepartmentId,UserGroupId" // ✅ Added UserGroupId here
     );
 
-    return userResponse.FirstOrDefault();
+    var user = userResponse.FirstOrDefault();
+
+    // Enrich UserDepartments with Department names
+    if (user != null && user.UserDepartments != null && user.UserDepartments.Any())
+    {
+        var deptIds = user.UserDepartments.Select(d => d.DepartmentId).Distinct().ToList();
+        const string deptNamesSql = "SELECT Id, ShortName, DeptName FROM AppData.Department WHERE Id IN @Ids AND IsDeleted = 0";
+        var depts = (await _dbConnection.QueryAsync<Department>(deptNamesSql, new { Ids = deptIds })).ToList();
+        var deptDict = depts.ToDictionary(d => d.Id, d => d);
+        foreach (var ud in user.UserDepartments)
+        {
+            if (deptDict.TryGetValue(ud.DepartmentId, out var deptEntity))
+                ud.Department = deptEntity;
+        }
+    }
+
+    return user;
 }
 
 
@@ -395,8 +413,84 @@ namespace UserManagement.Infrastructure.Repositories.Users
                 return count > 0;
           }
 
-          
-          
-        
+        public async Task<Dictionary<int, string>> GetDepartmentNamesByIdsAsync(IEnumerable<int> departmentIds)
+        {
+            var ids = departmentIds.Where(id => id > 0).Distinct().ToList();
+            if (!ids.Any()) return new Dictionary<int, string>();
+
+            const string sql = "SELECT Id, DeptName FROM AppData.Department WHERE Id IN @Ids AND IsDeleted = 0";
+            var rows = await _dbConnection.QueryAsync<(int Id, string DeptName)>(sql, new { Ids = ids });
+            return rows.ToDictionary(r => r.Id, r => r.DeptName);
+        }
+
+        public async Task<Dictionary<int, string>> GetUserGroupNamesByIdsAsync(IEnumerable<int> userGroupIds)
+        {
+            var ids = userGroupIds.Where(id => id > 0).Distinct().ToList();
+            if (!ids.Any()) return new Dictionary<int, string>();
+
+            const string sql = "SELECT Id, GroupName FROM AppSecurity.UserGroup WHERE Id IN @Ids AND IsDeleted = 0";
+            var rows = await _dbConnection.QueryAsync<(int Id, string GroupName)>(sql, new { Ids = ids });
+            return rows.ToDictionary(r => r.Id, r => r.GroupName);
+        }
+
+        public async Task<Dictionary<int, string>> GetCompanyNamesByIdsAsync(IEnumerable<int> companyIds)
+        {
+            var ids = companyIds.Where(id => id > 0).Distinct().ToList();
+            if (!ids.Any()) return new Dictionary<int, string>();
+
+            const string sql = "SELECT Id, CompanyName FROM AppData.Company WHERE Id IN @Ids AND IsDeleted = 0";
+            var rows = await _dbConnection.QueryAsync<(int Id, string CompanyName)>(sql, new { Ids = ids });
+            return rows.ToDictionary(r => r.Id, r => r.CompanyName);
+        }
+
+        public async Task<Dictionary<int, string>> GetUnitNamesByIdsAsync(IEnumerable<int> unitIds)
+        {
+            var ids = unitIds.Where(id => id > 0).Distinct().ToList();
+            if (!ids.Any()) return new Dictionary<int, string>();
+
+            const string sql = "SELECT Id, UnitName FROM AppData.Unit WHERE Id IN @Ids AND IsDeleted = 0";
+            var rows = await _dbConnection.QueryAsync<(int Id, string UnitName)>(sql, new { Ids = ids });
+            return rows.ToDictionary(r => r.Id, r => r.UnitName);
+        }
+
+        public async Task<Dictionary<int, string>> GetDivisionNamesByIdsAsync(IEnumerable<int> divisionIds)
+        {
+            var ids = divisionIds.Where(id => id > 0).Distinct().ToList();
+            if (!ids.Any()) return new Dictionary<int, string>();
+
+            const string sql = "SELECT Id, Name FROM AppData.Division WHERE Id IN @Ids AND IsDeleted = 0";
+            var rows = await _dbConnection.QueryAsync<(int Id, string Name)>(sql, new { Ids = ids });
+            return rows.ToDictionary(r => r.Id, r => r.Name);
+        }
+
+        public async Task<Dictionary<int, string>> GetUserRoleNamesByIdsAsync(IEnumerable<int> roleIds)
+        {
+            var ids = roleIds.Where(id => id > 0).Distinct().ToList();
+            if (!ids.Any()) return new Dictionary<int, string>();
+
+            const string sql = "SELECT Id, RoleName FROM AppSecurity.UserRole WHERE Id IN @Ids AND IsDeleted = 0";
+            var rows = await _dbConnection.QueryAsync<(int Id, string RoleName)>(sql, new { Ids = ids });
+            return rows.ToDictionary(r => r.Id, r => r.RoleName);
+        }
+
+        public async Task<Dictionary<int, string>> GetEntityNamesByIdsAsync(IEnumerable<int> entityIds)
+        {
+            var ids = entityIds.Where(id => id > 0).Distinct().ToList();
+            if (!ids.Any()) return new Dictionary<int, string>();
+
+            const string sql = "SELECT Id, EntityName FROM AppData.Entity WHERE Id IN @Ids AND IsDeleted = 0";
+            var rows = await _dbConnection.QueryAsync<(int Id, string EntityName)>(sql, new { Ids = ids });
+            return rows.ToDictionary(r => r.Id, r => r.EntityName);
+        }
+
+        public async Task<Dictionary<int, string>> GetMarketingOfficerNamesByIdsAsync(IEnumerable<int> empIds)
+        {
+            var ids = empIds.Where(id => id > 0).Distinct().ToList();
+            if (!ids.Any()) return new Dictionary<int, string>();
+
+            const string sql = "SELECT Id, EmployeeName FROM Sales.MarketingOfficer WHERE Id IN @Ids AND IsDeleted = 0";
+            var rows = await _dbConnection.QueryAsync<(int Id, string EmployeeName)>(sql, new { Ids = ids });
+            return rows.ToDictionary(r => r.Id, r => r.EmployeeName);
+        }
     }
 }

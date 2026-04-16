@@ -86,6 +86,12 @@ namespace SalesManagement.Presentation.Validation.StoTypeMaster
                         break;
                 }
             }
+
+            // Cross-field: PGI and GR Movement Types must be different
+            RuleFor(x => x.GrMovementTypeId)
+                .NotEqual(x => x.PgiMovementTypeId)
+                .WithMessage("PGI Movement Type and GR Movement Type cannot be the same. Please select different values.")
+                .When(x => x.PgiMovementTypeId > 0 && x.GrMovementTypeId > 0);
         }
     }
 }
