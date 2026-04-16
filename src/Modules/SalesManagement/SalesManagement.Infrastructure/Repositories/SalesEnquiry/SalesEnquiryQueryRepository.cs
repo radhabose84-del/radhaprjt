@@ -140,7 +140,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesEnquiry
                 return null;
 
             const string detailSql = @"
-                SELECT d.Id, d.SalesEnquiryHeaderId, d.ItemId,
+                SELECT d.Id, d.SalesEnquiryHeaderId, d.ItemId, d.VariantId,
                     d.Quantity, d.ExmillRate, d.TargetPrice, d.Discount
                 FROM Sales.SalesEnquiryDetail d
                 WHERE d.SalesEnquiryHeaderId = @HeaderId";
@@ -160,12 +160,16 @@ namespace SalesManagement.Infrastructure.Repositories.SalesEnquiry
                 header.PaymentTermDescription = pt?.Description;
             }
 
-            // Populate item names on details
+            // Populate item names and variant names on details
             if (details.Count > 0)
             {
                 var itemIds = details.Select(d => d.ItemId).Distinct();
                 var items = await _itemLookup.GetByIdsAsync(itemIds);
                 var itemDict = items.ToDictionary(i => i.Id, i => (i.ItemCode, i.ItemName));
+
+                var variantIds = details.Where(d => d.VariantId.HasValue).Select(d => d.VariantId!.Value).Distinct();
+                var variants = variantIds.Any() ? await _itemLookup.GetByIdsAsync(variantIds) : [];
+                var variantDict = variants.ToDictionary(v => v.Id, v => v.ItemName);
 
                 foreach (var detail in details)
                 {
@@ -174,6 +178,8 @@ namespace SalesManagement.Infrastructure.Repositories.SalesEnquiry
                         detail.ItemCode = itemInfo.ItemCode;
                         detail.ItemName = itemInfo.ItemName;
                     }
+                    if (detail.VariantId.HasValue)
+                        detail.VariantName = variantDict.TryGetValue(detail.VariantId.Value, out var vName) ? vName : null;
                 }
             }
 
