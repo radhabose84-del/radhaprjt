@@ -129,6 +129,8 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrderAmendment
                                         soDetail.ExpectedDeliveryDate = detail.NewExpectedDeliveryDate.Value;
 
                                     // Update detail-level computed fields
+                                    soDetail.TotalWeight = detail.TotalWeight;
+                                    soDetail.DiscountPerUnit = detail.DiscountPerUnit;
                                     soDetail.TaxableAmount = detail.TaxableAmount;
                                     soDetail.TaxAmount = detail.TaxAmount;
                                     soDetail.TCSAmount = detail.TCSAmount;
