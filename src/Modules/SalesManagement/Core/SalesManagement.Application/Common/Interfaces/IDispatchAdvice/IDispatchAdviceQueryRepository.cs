@@ -16,6 +16,6 @@ namespace SalesManagement.Application.Common.Interfaces.IDispatchAdvice
         Task<DispatchAdvicePackingListDto?> GetPackingListAsync(int dispatchAdviceId, CancellationToken ct);
         Task<bool> NotFoundAsync(int id);
         Task<bool> HasInvoiceAsync(int dispatchAdviceId);
-        Task<IReadOnlyList<DispatchAdviceLookupDto>> AutocompleteAsync(string term, CancellationToken ct, bool proformaFilter = false);
+        Task<IReadOnlyList<DispatchAdviceLookupDto>> AutocompleteAsync(string term, CancellationToken ct);
     }
 }

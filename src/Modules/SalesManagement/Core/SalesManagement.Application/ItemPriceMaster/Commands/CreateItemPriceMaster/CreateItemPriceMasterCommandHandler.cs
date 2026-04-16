@@ -59,7 +59,7 @@ namespace SalesManagement.Application.ItemPriceMaster.Commands.CreateItemPriceMa
             if (!typeId.HasValue)
                 throw new ExceptionRules("Transaction Type 'PriceMaster' not found for Sales module.");
 
-            if (request.VariantId.HasValue)
+            if (request.VariantId.HasValue && request.VariantId > 0)
             {
                 // Single variant — create one record
                 var entity = _mapper.Map<Domain.Entities.ItemPriceMaster>(request);

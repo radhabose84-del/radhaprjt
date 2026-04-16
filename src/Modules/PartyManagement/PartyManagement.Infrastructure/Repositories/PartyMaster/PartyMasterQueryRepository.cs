@@ -314,6 +314,31 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
             var partyMasters = result.Select(r => r.Item1).ToList();
             int totalCount = result.Any() ? result.First().Item2 : 0;
 
+            // Populate PartyTypes for each party (same as GetByIdPartyMasterAsync)
+            if (partyMasters.Count > 0)
+            {
+                var partyIds = partyMasters.Select(p => p.Id).ToList();
+
+                const string partyTypeSql = @"
+                    SELECT A.Id, A.PartyId, A.PartyTypeId, A.PartyGroupId,
+                           C.Description AS PartyTypeName
+                    FROM Party.PartyType A                    
+                    INNER JOIN Party.MiscMaster C ON A.PartyTypeId = C.Id
+                    WHERE A.PartyId IN @PartyIds";
+
+                var partyTypes = (await _dbConnection.QueryAsync<PartyTypeItemDto>(
+                    partyTypeSql, new { PartyIds = partyIds })).ToList();
+
+                var partyTypesByParty = partyTypes.GroupBy(pt => pt.PartyId)
+                    .ToDictionary(g => g.Key ?? 0, g => g.ToList());
+
+                foreach (var party in partyMasters)
+                {
+                    if (partyTypesByParty.TryGetValue(party.Id, out var types))
+                        party.PartyTypes = types;
+                }
+            }
+
             return (partyMasters, totalCount);
         }
 

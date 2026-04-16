@@ -342,7 +342,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     d.ItemId, d.VariantId, d.HSNId,
                     d.PackTypeId,
                     d.QtyInBags, d.BagWeight, d.SaleUOMId, d.TotalWeight,
-                    d.ExMillRate, d.DiscountPerUnit, d.Freight,
+                    d.ExMillRate, d.DiscountPerUnit, d.Freight, d.Handling, d.Charity,
                     d.TaxableAmount, d.TaxPercentage, d.TaxAmount,
                     d.TCSPercentage, d.TCSAmount,
                     d.NetAmount, d.NetRatePerKg,
@@ -501,7 +501,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             return header;
         }
 
-        public async Task<IReadOnlyList<SalesOrderLookupDto>> AutocompleteAsync(string term, CancellationToken ct)
+        public async Task<IReadOnlyList<SalesOrderLookupDto>> AutocompleteAsync(string term, CancellationToken ct, bool proformaFilter = false)
         {
             // Resolve accessible OrderUnitIds — all units in the user's Company + Division (from JWT)
             var accessibleUnitIds = await ResolveAccessibleOrderUnitIdsAsync(ct);
@@ -528,6 +528,26 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 parameters.Add("CustomerIds", safeCustomerIds);
             }
 
+            // When proformaFilter=true: show non-advance orders + advance orders only if proforma exists
+            var proformaCondition = proformaFilter
+                ? @"AND (
+                        NOT EXISTS (
+                            SELECT 1
+                            FROM Sales.MiscMaster pmm
+                            INNER JOIN Sales.MiscTypeMaster pmtm
+                                ON pmm.MiscTypeId = pmtm.Id AND pmtm.IsDeleted = 0
+                            WHERE pmm.Id = h.PaymentTypeId AND pmm.IsDeleted = 0
+                              AND LOWER(pmtm.MiscTypeCode) = LOWER('PaymentType')
+                              AND LOWER(pmm.Code) = LOWER('Advance')
+                        )
+                        OR EXISTS (
+                            SELECT 1
+                            FROM Sales.ProformaInvoice pi
+                            WHERE pi.SalesOrderId = h.Id AND pi.IsDeleted = 0
+                        )
+                    )"
+                : "";
+
             var sql = $@"
                 SELECT h.Id, h.SalesOrderNo, h.OrderDate, h.PartyId,
                     amd_latest.StatusId AS AmendmentStatusId,
@@ -553,6 +573,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 AND LOWER(st.Code) = LOWER(@ApprovedStatus)
                 AND (@Term = '' OR h.SalesOrderNo LIKE '%' + @Term + '%')
                 {moFilter}
+                {proformaCondition}
                 ORDER BY h.Id DESC;";
 
             var command = new CommandDefinition(sql, parameters, cancellationToken: ct);
