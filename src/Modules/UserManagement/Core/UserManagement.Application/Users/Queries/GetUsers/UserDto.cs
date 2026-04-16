@@ -25,8 +25,9 @@ namespace UserManagement.Application.Users.Queries.GetUsers
         public IsDelete IsDeleted { get; set; }
 
         public int? UserGroupId { get; set; }
+        public string? UserGroupName { get; set; }
         public int  DepartmentId { get; set; }
-        public string? Department { get; set; }
+        public string? DepartmentName { get; set; }
         public int CreatedBy { get; set; }
         public DateTime CreatedAt { get; set; }
         public string? CreatedByName { get; set; }

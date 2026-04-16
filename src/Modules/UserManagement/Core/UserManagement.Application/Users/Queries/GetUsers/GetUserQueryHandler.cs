@@ -41,6 +41,20 @@ namespace UserManagement.Application.Users.Queries.GetUsers
             }
 
             var userList = _mapper.Map<List<UserDto>>(users);
+
+            // Enrich DTOs with Department and UserGroup names
+            var deptIds = userList.Where(u => u.DepartmentId > 0).Select(u => u.DepartmentId).Distinct();
+            var ugIds = userList.Where(u => u.UserGroupId.HasValue && u.UserGroupId.Value > 0).Select(u => u.UserGroupId!.Value).Distinct();
+            var deptNames = await _userRepository.GetDepartmentNamesByIdsAsync(deptIds);
+            var ugNames = await _userRepository.GetUserGroupNamesByIdsAsync(ugIds);
+            foreach (var u in userList)
+            {
+                if (u.DepartmentId > 0 && deptNames.TryGetValue(u.DepartmentId, out var deptName))
+                    u.DepartmentName = deptName;
+                if (u.UserGroupId.HasValue && ugNames.TryGetValue(u.UserGroupId.Value, out var ugName))
+                    u.UserGroupName = ugName;
+            }
+
             _logger.LogInformation("Fetched {UserCount} users from the repository.", users.Count);
             
             //Domain Event

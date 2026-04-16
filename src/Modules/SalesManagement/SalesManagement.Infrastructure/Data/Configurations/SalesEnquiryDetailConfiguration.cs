@@ -31,6 +31,11 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("int")
                 .IsRequired();
 
+            builder.Property(t => t.VariantId)
+                .HasColumnName("VariantId")
+                .HasColumnType("int")
+                .IsRequired(false);
+
             builder.Property(t => t.Quantity)
                 .HasColumnName("Quantity")
                 .HasColumnType("decimal(18,6)")
@@ -53,6 +58,7 @@ namespace SalesManagement.Infrastructure.Data.Configurations
 
             builder.HasIndex(t => t.SalesEnquiryHeaderId);
             builder.HasIndex(t => t.ItemId);
+            builder.HasIndex(t => t.VariantId);
         }
     }
 }
