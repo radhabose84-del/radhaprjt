@@ -33,6 +33,7 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
         private readonly ICountryLookup _countryLookup;
         private readonly IDataAccessFilter _dataAccessFilter;
         private readonly ISalesSegmentLookup _salesSegmentLookup;
+        private readonly IAgentCustomerMappingLookup _agentCustomerMappingLookup;
         private readonly IPartyMasterSalesValidation _salesValidation;
         private readonly IPartyMasterPurchaseValidation _purchaseValidation;
         private readonly IPartyMasterFinanceValidation _financeValidation;
@@ -47,7 +48,8 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
             IPartyMasterPurchaseValidation purchaseValidation,
             IPartyMasterFinanceValidation financeValidation,
             IPartyMasterMaintenanceValidation maintenanceValidation,
-            IFreightMasterLookup freightMasterLookup)
+            IFreightMasterLookup freightMasterLookup,
+            IAgentCustomerMappingLookup agentCustomerMappingLookup)
         {
             _dbConnection = dbConnection;
             _ipAddressService = ipAddressService;
@@ -63,6 +65,7 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
             _financeValidation = financeValidation;
             _maintenanceValidation = maintenanceValidation;
             _freightMasterLookup = freightMasterLookup;
+            _agentCustomerMappingLookup = agentCustomerMappingLookup;
         }
         public async Task<List<PartyGroupLoadDto>> GetPartyGroupsAsync(List<int> groupTypeIds)
         {
@@ -340,7 +343,7 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
             return (partyMasters, totalCount);
         }
 
-        public async Task<List<GetPartyMasterAutoCompleteDto>> GetPartyMasterAutoComplete(List<int> partyTypeIds, string searchPattern)
+        public async Task<List<GetPartyMasterAutoCompleteDto>> GetPartyMasterAutoComplete(List<int> partyTypeIds, string searchPattern, int? agentId = null)
         {
             var UnitId = _ipAddressService.GetUnitId() ?? 0;
 
@@ -348,6 +351,15 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
             var accessCtx = await _dataAccessFilter.GetContextAsync();
             if (accessCtx.IsCustomerRestricted && accessCtx.AllowedCustomerIds.Count == 0)
                 return new List<GetPartyMasterAutoCompleteDto>();
+
+            // Optional explicit agent filter — pre-fetch customer ids mapped to the given agent
+            IReadOnlyList<int> agentCustomerIds = null;
+            if (agentId.HasValue && agentId.Value > 0)
+            {
+                agentCustomerIds = await _agentCustomerMappingLookup.GetCustomerIdsByAgentAsync(agentId.Value);
+                if (agentCustomerIds.Count == 0)
+                    return new List<GetPartyMasterAutoCompleteDto>();
+            }
 
             var sql = @"
                 SELECT
@@ -397,6 +409,12 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
                 sql += " AND a.Id IN @AllowedCustomerIds";
             }
 
+            // ✅ Apply explicit agent filter — restrict to customers mapped to the given agent
+            if (agentCustomerIds != null && agentCustomerIds.Count > 0)
+            {
+                sql += " AND a.Id IN @AgentCustomerIds";
+            }
+
             // ✅ Group after filtering
             sql += @"
                 GROUP BY
@@ -411,6 +429,8 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
             dp.Add("UnitId", UnitId);
             if (accessCtx.IsCustomerRestricted && accessCtx.AllowedCustomerIds.Count > 0)
                 dp.Add("AllowedCustomerIds", accessCtx.AllowedCustomerIds.ToList());
+            if (agentCustomerIds != null && agentCustomerIds.Count > 0)
+                dp.Add("AgentCustomerIds", agentCustomerIds.ToList());
 
             var result = (await _dbConnection.QueryAsync<GetPartyMasterAutoCompleteDto>(sql, dp)).ToList();
 

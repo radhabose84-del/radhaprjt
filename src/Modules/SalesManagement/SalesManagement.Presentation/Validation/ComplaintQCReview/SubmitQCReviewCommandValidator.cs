@@ -135,6 +135,12 @@ namespace SalesManagement.Presentation.Validation.ComplaintQCReview
                         .WithMessage("Responsible Person is required.");
                 })
                 .When(x => x.Assignments != null && x.Assignments.Count > 0);
+
+            // Business rule: Complaint workflow must be approved before QC Review can be submitted
+            RuleFor(x => x.ComplaintHeaderId)
+                .MustAsync(async (id, ct) => await _queryRepository.IsComplaintApprovedAsync(id))
+                .WithMessage("Cannot submit QC Review — complaint workflow is not yet approved.")
+                .When(x => x.ComplaintHeaderId > 0);
         }
     }
 }

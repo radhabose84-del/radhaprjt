@@ -9,6 +9,7 @@ namespace SalesManagement.Application.Common.Interfaces.IComplaintQCReview
         Task<ComplaintQCReviewDto?> GetByComplaintIdAsync(int complaintHeaderId);
         Task<bool> NotFoundAsync(int id);
         Task<bool> ComplaintExistsAsync(int complaintHeaderId);
+        Task<bool> IsComplaintApprovedAsync(int complaintHeaderId);
         Task<bool> ReviewAlreadyExistsAsync(int complaintHeaderId, int? excludeId = null);
         Task<bool> MiscMasterExistsAsync(int id);
         Task<bool> UserExistsAsync(int userId);
