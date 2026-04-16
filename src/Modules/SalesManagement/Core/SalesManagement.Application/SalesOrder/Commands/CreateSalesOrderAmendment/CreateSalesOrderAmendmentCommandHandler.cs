@@ -102,6 +102,8 @@ namespace SalesManagement.Application.SalesOrder.Commands.CreateSalesOrderAmendm
                     NewQtyInBags = dto.NewQtyInBags,
                     NewExMillRate = dto.NewExMillRate,
                     NewExpectedDeliveryDate = dto.NewExpectedDeliveryDate,
+                    TotalWeight = dto.TotalWeight,
+                    DiscountPerUnit = dto.DiscountPerUnit,
                     TaxableAmount = dto.TaxableAmount,
                     TaxAmount = dto.TaxAmount,
                     TCSAmount = dto.TCSAmount,

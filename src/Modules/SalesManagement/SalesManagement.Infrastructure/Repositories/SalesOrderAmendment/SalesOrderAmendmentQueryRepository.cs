@@ -96,6 +96,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrderAmendment
                     d.ChangeType, d.SalesOrderDetailId,
                     d.OldItemId, d.OldQtyInBags, d.OldExMillRate, d.OldExpectedDeliveryDate,
                     d.NewQtyInBags, d.NewExMillRate, d.NewExpectedDeliveryDate,
+                    d.TotalWeight, d.DiscountPerUnit,
                     d.AgentCommissionPercentage
                 FROM Sales.SalesOrderAmendmentDetail d
                 WHERE d.SalesOrderAmendmentHeaderId = @Id;
@@ -166,6 +167,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrderAmendment
                     d.ChangeType, d.SalesOrderDetailId,
                     d.OldItemId, d.OldQtyInBags, d.OldExMillRate, d.OldExpectedDeliveryDate,
                     d.NewQtyInBags, d.NewExMillRate, d.NewExpectedDeliveryDate,
+                    d.TotalWeight, d.DiscountPerUnit,
                     d.AgentCommissionPercentage
                 FROM Sales.SalesOrderAmendmentDetail d
                 INNER JOIN Sales.SalesOrderAmendmentHeader ah ON d.SalesOrderAmendmentHeaderId = ah.Id

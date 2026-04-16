@@ -69,6 +69,8 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .IsRequired(false);
 
             // Detail-level Computed Fields
+            builder.Property(t => t.TotalWeight).HasColumnName("TotalWeight").HasColumnType("decimal(18,3)").IsRequired();
+            builder.Property(t => t.DiscountPerUnit).HasColumnName("DiscountPerUnit").HasColumnType("decimal(18,3)").IsRequired();
             builder.Property(t => t.TaxableAmount).HasColumnName("TaxableAmount").HasColumnType("decimal(18,3)").IsRequired();
             builder.Property(t => t.TaxAmount).HasColumnName("TaxAmount").HasColumnType("decimal(18,3)").IsRequired();
             builder.Property(t => t.TCSAmount).HasColumnName("TCSAmount").HasColumnType("decimal(18,3)").IsRequired();

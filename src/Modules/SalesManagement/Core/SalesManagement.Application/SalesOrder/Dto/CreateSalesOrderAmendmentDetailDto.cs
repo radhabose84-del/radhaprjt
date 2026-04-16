@@ -12,6 +12,8 @@ namespace SalesManagement.Application.SalesOrder.Dto
         public DateOnly? NewExpectedDeliveryDate { get; set; }
 
         // Detail-level Computed Fields
+        public decimal TotalWeight { get; set; }
+        public decimal DiscountPerUnit { get; set; }
         public decimal TaxableAmount { get; set; }
         public decimal TaxAmount { get; set; }
         public decimal TCSAmount { get; set; }
