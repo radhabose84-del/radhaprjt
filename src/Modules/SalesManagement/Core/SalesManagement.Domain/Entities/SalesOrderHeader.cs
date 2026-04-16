@@ -11,7 +11,7 @@ namespace SalesManagement.Domain.Entities
         public int SalesGroupId { get; set; }
         public int? SalesSegmentId { get; set; }
         public int EnquiryType { get; set; }            // 1=Unit, 2=Combined
-        public int UnitId { get; set; }                  // Cross-module FK (UserManagement)
+        public int? UnitId { get; set; }                  // Cross-module FK (UserManagement)
         public int PartyId { get; set; }                 // Cross-module FK (PartyManagement)
         public string? PartyAddress { get; set; }           // Free-text address (numbers, letters, special chars allowed)
         public int? AgentId { get; set; }                // Cross-module FK (PartyManagement) — nullable
