@@ -21,6 +21,6 @@ namespace PartyManagement.Application.PartyMaster.Queries.GetPartMaster
         public int? PartyId { get; set; }
         public int PartyTypeId { get; set; }
         public int PartyGroupId { get; set; }
-        public string? GlCategory { get; set; }
+        public string? PartyTypeName { get; set; }
     }
 }
