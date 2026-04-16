@@ -14,7 +14,7 @@ namespace PartyManagement.Application.Common.Interfaces.IPartyMaster
         Task<string> GetBaseDirectoryAsync();
         Task<PartyMasterDto> GetByIdPartyMasterAsync(int id);
         Task<(List<GetPartyMasterDto>, int)> GetAllPartyMasterAsync(int PageNumber, int PageSize, string? SearchTerm);
-        Task<List<GetPartyMasterAutoCompleteDto>> GetPartyMasterAutoComplete(List<int> partyTypeIds, string searchPattern);
+        Task<List<GetPartyMasterAutoCompleteDto>> GetPartyMasterAutoComplete(List<int> partyTypeIds, string searchPattern, int? agentId = null);
         Task<List<GetPartyMasterAutoCompleteDto>> GetPartyMasterAutoComplete(string searchPattern);
         Task<(List<PartyMasterPendingDto>, int)> GetAllPartyMasterPendingAsync(string? SearchTerm);
 

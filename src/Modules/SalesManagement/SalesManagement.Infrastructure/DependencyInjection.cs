@@ -355,6 +355,9 @@ namespace SalesManagement.Infrastructure
             // ── Sales Invoice Lookup (cross-module, for Finance EInvoice creation) ──
             services.AddScoped<ISalesInvoiceLookup, SalesInvoiceLookupRepository>();
 
+            // ── Agent Customer Mapping Lookup (cross-module, Party → Sales.AgentCustomerMapping) ──
+            services.AddScoped<IAgentCustomerMappingLookup, AgentCustomerMappingLookupRepository>();
+
             // ═══════════════════════════════════════════════════════════════
             // OUTBOX PATTERN SERVICES (SQL-based for transaction atomicity)
             // ═══════════════════════════════════════════════════════════════
