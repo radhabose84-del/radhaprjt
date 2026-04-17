@@ -242,7 +242,10 @@ namespace SalesManagement.Infrastructure.Repositories.StoHeader
                     st.StoTypeName
                 FROM Sales.StoHeader h
                 LEFT JOIN Sales.StoTypeMaster st ON h.StoTypeId = st.Id AND st.IsDeleted = 0
+                INNER JOIN Sales.MiscMaster ms ON h.HeaderStatusId = ms.Id AND ms.IsDeleted = 0
+                INNER JOIN Sales.MiscTypeMaster mt ON ms.MiscTypeId = mt.Id AND mt.MiscTypeCode = 'ApprovalStatus'
                 WHERE h.IsDeleted = 0 AND h.IsActive = 1
+                  AND ms.Code = 'Approved'
                   AND (h.StoNumber LIKE @Term OR st.StoTypeName LIKE @Term)
                 ORDER BY h.StoNumber ASC;";
 

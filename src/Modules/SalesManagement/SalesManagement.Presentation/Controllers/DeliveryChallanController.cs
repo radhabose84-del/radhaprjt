@@ -6,6 +6,7 @@ using SalesManagement.Application.DeliveryChallan.Commands.DeleteDeliveryChallan
 using SalesManagement.Application.DeliveryChallan.Queries.GetAllDeliveryChallan;
 using SalesManagement.Application.DeliveryChallan.Queries.GetDeliveryChallanById;
 using SalesManagement.Application.DeliveryChallan.Queries.GetDeliveryChallanAutoComplete;
+using SalesManagement.Application.DeliveryChallan.Queries.GetDeliveryChallanForReceipt;
 using SalesManagement.Application.DeliveryChallan.Queries.GetPendingDeliveryChallan;
 using SalesManagement.Application.DeliveryChallan.Queries.GetPendingDeliveryChallanById;
 using SalesManagement.Application.DeliveryChallan.Queries.GetDCGatePassPending;
@@ -92,6 +93,18 @@ namespace SalesManagement.Presentation.Controllers
         public async Task<IActionResult> GetDeliveryChallanAutoCompleteAsync([FromQuery] string? term = null)
         {
             var result = await Mediator.Send(new GetDeliveryChallanAutoCompleteQuery(term ?? string.Empty));
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result
+            });
+        }
+
+        [HttpGet("for-receipt")]
+        public async Task<IActionResult> GetDeliveryChallanForReceiptAsync([FromQuery] string? term = null)
+        {
+            var result = await Mediator.Send(new GetDeliveryChallanForReceiptQuery(term ?? string.Empty));
 
             return Ok(new
             {
