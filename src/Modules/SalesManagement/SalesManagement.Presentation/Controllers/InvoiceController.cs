@@ -10,6 +10,7 @@ using SalesManagement.Application.Invoice.Queries.GetInvoiceById;
 using SalesManagement.Application.Invoice.Queries.GetInvoiceGatePassPending;
 using SalesManagement.Application.Invoice.Queries.GetInvoicePending;
 using SalesManagement.Application.Invoice.Queries.GetInvoicePrintDetails;
+using SalesManagement.Application.Invoice.Queries.GetDispatchTrackingDetails;
 
 namespace SalesManagement.Presentation.Controllers
 {
@@ -17,6 +18,18 @@ namespace SalesManagement.Presentation.Controllers
     public class InvoiceController : ApiControllerBase
     {
         public InvoiceController(IMediator mediator) : base(mediator) { }
+
+        [HttpGet("dispatch-tracking/{salesOrderId}")]
+        public async Task<IActionResult> GetDispatchTrackingDetailsAsync(int salesOrderId)
+        {
+            var result = await Mediator.Send(new GetDispatchTrackingDetailsQuery { SalesOrderId = salesOrderId });
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result
+            });
+        }
 
         [HttpGet]
         public async Task<IActionResult> GetAllInvoiceAsync(

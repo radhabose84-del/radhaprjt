@@ -8,6 +8,7 @@ using Contracts.Interfaces.Lookups.Users;
 using Dapper;
 using SalesManagement.Application.Common.Interfaces.IInvoice;
 using SalesManagement.Application.Invoice.Dto;
+using SalesManagement.Application.Invoice.Queries.GetDispatchTrackingDetails;
 using SalesManagement.Application.Invoice.Queries.GetInvoiceGatePassPending;
 using SalesManagement.Application.Invoice.Queries.GetInvoicePending;
 using SalesManagement.Domain.Common;
@@ -1301,6 +1302,192 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
 
             var text = string.Join(" ", parts);
             return char.ToUpper(text[0]) + text[1..];
+        }
+
+        public async Task<DispatchTrackingDetailsDto?> GetDispatchTrackingDetailsAsync(int salesOrderId, CancellationToken ct)
+        {
+            // 1. Fetch SalesOrderNo
+            const string soSql = @"
+                SELECT Id AS SalesOrderId, SalesOrderNo
+                FROM Sales.SalesOrderHeader
+                WHERE Id = @SalesOrderId AND IsDeleted = 0";
+
+            var header = await _dbConnection.QueryFirstOrDefaultAsync<DispatchTrackingDetailsDto>(
+                new CommandDefinition(soSql, new { SalesOrderId = salesOrderId }, cancellationToken: ct));
+
+            if (header == null)
+                return null;
+
+            // 2. Fetch all Dispatch + Invoice pairs for this SalesOrder
+            const string shipmentSql = @"
+                SELECT da.Id AS DispatchAdviceId, da.DispatchNo, da.DispatchDate,
+                       da.DispatchAddressId,
+                       dam.DispatchAddressName,
+                       dam.AddressLine1, dam.AddressLine2, dam.PinCode,
+                       da.PartyId,
+                       inv.Id AS InvoiceId, inv.InvoiceNo, inv.InvoiceDate,
+                       inv.VehicleNumber, inv.TransporterName,
+                       inv.LRNumber, inv.LRDate
+                FROM Sales.DispatchAdviceHeader da
+                LEFT JOIN Sales.DispatchAddressMaster dam ON da.DispatchAddressId = dam.Id AND dam.IsDeleted = 0
+                LEFT JOIN Sales.InvoiceHeader inv ON inv.DispatchAdviceId = da.Id AND inv.IsDeleted = 0
+                WHERE da.SalesOrderId = @SalesOrderId AND da.IsDeleted = 0
+                ORDER BY da.Id";
+
+            var shipmentRows = (await _dbConnection.QueryAsync<ShipmentRow>(
+                new CommandDefinition(shipmentSql, new { SalesOrderId = salesOrderId }, cancellationToken: ct))).ToList();
+
+            if (shipmentRows.Count == 0)
+            {
+                header.Shipments = [];
+                return header;
+            }
+
+            // 3. Fetch invoice details for all invoices in one query
+            var invoiceIds = shipmentRows.Where(s => s.InvoiceId.HasValue).Select(s => s.InvoiceId!.Value).Distinct().ToList();
+
+            var itemRows = new List<InvoiceItemRow>();
+            if (invoiceIds.Count > 0)
+            {
+                const string itemSql = @"
+                    SELECT d.InvoiceHeaderId, d.ItemId, d.NoOfBags, d.Quantity,
+                           d.RatePerKg, d.UOMId, d.LotId, d.PackTypeId
+                    FROM Sales.InvoiceDetail d
+                    WHERE d.InvoiceHeaderId IN @InvoiceIds";
+
+                itemRows = (await _dbConnection.QueryAsync<InvoiceItemRow>(
+                    new CommandDefinition(itemSql, new { InvoiceIds = invoiceIds }, cancellationToken: ct))).ToList();
+            }
+
+            // 4. Cross-module lookups — batch all unique IDs
+            var partyIds = shipmentRows.Select(s => s.PartyId).Distinct().ToList();
+            var itemIds = itemRows.Select(i => i.ItemId).Distinct().ToList();
+            var uomIds = itemRows.Where(i => i.UOMId.HasValue).Select(i => i.UOMId!.Value).Distinct().ToList();
+            var lotIds = itemRows.Where(i => i.LotId.HasValue).Select(i => i.LotId!.Value).Distinct().ToList();
+            var packTypeIds = itemRows.Where(i => i.PackTypeId.HasValue).Select(i => i.PackTypeId!.Value).Distinct().ToList();
+
+            var parties = await _partyLookup.GetByIdsAsync(partyIds, ct);
+            var items = itemIds.Count > 0 ? await _itemLookup.GetByIdsAsync(itemIds) : [];
+            var uoms = uomIds.Count > 0 ? await _uomLookup.GetByIdsAsync(uomIds, ct) : [];
+            var lots = lotIds.Count > 0 ? await _lotMasterLookup.GetByIdsAsync(lotIds) : [];
+            var packTypes = packTypeIds.Count > 0 ? await _packTypeLookup.GetByIdsAsync(packTypeIds) : [];
+
+            var partyDict = parties.ToDictionary(p => p.Id);
+            var itemDict = items.ToDictionary(i => i.Id, i => i.ItemName);
+            var uomDict = uoms.ToDictionary(u => u.Id, u => u.UOMName);
+            var lotDict = lots.ToDictionary(l => l.Id, l => l.LotCode);
+            var packTypeDict = packTypes.ToDictionary(p => p.Id, p => p.PackTypeName);
+
+            var itemsByInvoice = itemRows.ToLookup(i => i.InvoiceHeaderId);
+
+            // 5. Build shipment DTOs
+            header.Shipments = shipmentRows.Select(s =>
+            {
+                var shipment = new DispatchTrackingShipmentDto
+                {
+                    DispatchAdviceId = s.DispatchAdviceId,
+                    DispatchNo = s.DispatchNo,
+                    DispatchDate = s.DispatchDate,
+                    DispatchAddressId = s.DispatchAddressId,
+                    DispatchAddressName = s.DispatchAddressName,
+                    PartyId = s.PartyId,
+                    InvoiceId = s.InvoiceId,
+                    InvoiceNo = s.InvoiceNo,
+                    InvoiceDate = s.InvoiceDate,
+                    VehicleNumber = s.VehicleNumber,
+                    TransporterName = s.TransporterName,
+                    LRNumber = s.LRNumber,
+                    LRDate = s.LRDate
+                };
+
+                // Resolve party name
+                if (partyDict.TryGetValue(s.PartyId, out var partyDto))
+                    shipment.PartyName = partyDto.PartyName;
+
+                // Resolve shipping address
+                if (s.DispatchAddressId.HasValue)
+                {
+                    // From DispatchAddressMaster
+                    var parts = new[] { s.AddressLine1, s.AddressLine2, s.PinCode }
+                        .Where(p => !string.IsNullOrWhiteSpace(p));
+                    shipment.ShippingAddress = string.Join(", ", parts);
+                }
+                else if (partyDict.TryGetValue(s.PartyId, out var pDto))
+                {
+                    // From Party.PartyAddress where AddressType = 'Shipping'
+                    var shippingAddr = pDto.Addresses?
+                        .FirstOrDefault(a => string.Equals(a.AddressType, "Shipping", StringComparison.OrdinalIgnoreCase));
+
+                    if (shippingAddr != null)
+                    {
+                        var parts = new[]
+                        {
+                            shippingAddr.AddressLine1, shippingAddr.AddressLine2,
+                            shippingAddr.City, shippingAddr.State,
+                            shippingAddr.PostalCode, shippingAddr.Country
+                        }.Where(p => !string.IsNullOrWhiteSpace(p));
+
+                        shipment.ShippingAddress = string.Join(", ", parts);
+                    }
+                }
+
+                // Populate item details from invoice
+                if (s.InvoiceId.HasValue)
+                {
+                    shipment.Items = itemsByInvoice[s.InvoiceId.Value]
+                        .Select(i => new DispatchTrackingItemDto
+                        {
+                            ItemId = i.ItemId,
+                            ItemName = itemDict.TryGetValue(i.ItemId, out var iName) ? iName : null,
+                            NoOfBags = i.NoOfBags,
+                            Quantity = i.Quantity,
+                            RatePerKg = i.RatePerKg,
+                            UOMId = i.UOMId,
+                            UOMName = i.UOMId.HasValue && uomDict.TryGetValue(i.UOMId.Value, out var uName) ? uName : null,
+                            LotId = i.LotId,
+                            LotCode = i.LotId.HasValue && lotDict.TryGetValue(i.LotId.Value, out var lCode) ? lCode : null,
+                            PackTypeId = i.PackTypeId,
+                            PackTypeName = i.PackTypeId.HasValue && packTypeDict.TryGetValue(i.PackTypeId.Value, out var ptName) ? ptName : null
+                        })
+                        .ToList();
+                }
+
+                return shipment;
+            }).ToList();
+
+            return header;
+        }
+
+        private sealed class ShipmentRow
+        {
+            public int DispatchAdviceId { get; set; }
+            public string? DispatchNo { get; set; }
+            public DateOnly DispatchDate { get; set; }
+            public int? DispatchAddressId { get; set; }
+            public string? DispatchAddressName { get; set; }
+            public string? AddressLine1 { get; set; }
+            public string? AddressLine2 { get; set; }
+            public string? PinCode { get; set; }
+            public int PartyId { get; set; }
+            public int? InvoiceId { get; set; }
+            public string? InvoiceNo { get; set; }
+            public DateOnly? InvoiceDate { get; set; }
+            public string? VehicleNumber { get; set; }
+            public string? TransporterName { get; set; }
+            public string? LRNumber { get; set; }
+            public DateOnly? LRDate { get; set; }
+        }
+
+        private sealed class InvoiceItemRow
+        {
+            public int InvoiceHeaderId { get; set; }
+            public int ItemId { get; set; }
+            public int NoOfBags { get; set; }
+            public decimal Quantity { get; set; }
+            public decimal RatePerKg { get; set; }
+            public int? UOMId { get; set; }
+            public int? LotId { get; set; }
+            public int? PackTypeId { get; set; }
         }
     }
 }
