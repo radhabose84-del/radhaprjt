@@ -31,6 +31,7 @@ namespace SalesManagement.Application.Invoice.Dto
         public decimal Freight { get; set; }
         public decimal Insurance { get; set; }
         public decimal HandlingCharge { get; set; }
+        public decimal TotalCharity { get; set; }
         public decimal OtherCharges { get; set; }
         public decimal CGST { get; set; }
         public decimal SGST { get; set; }
@@ -43,6 +44,8 @@ namespace SalesManagement.Application.Invoice.Dto
         public decimal InvoiceAmount { get; set; }
         public string? Remarks { get; set; }
         public bool GEFlag { get; set; }
+        public bool EInvoiceExists { get; set; }
+        public bool EWaybillExists { get; set; }
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }
         public int CreatedBy { get; set; }

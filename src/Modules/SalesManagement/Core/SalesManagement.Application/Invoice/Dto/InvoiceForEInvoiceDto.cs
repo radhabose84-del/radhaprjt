@@ -13,6 +13,7 @@ namespace SalesManagement.Application.Invoice.Dto
         public decimal Freight { get; set; }
         public decimal Insurance { get; set; }
         public decimal HandlingCharge { get; set; }
+        public decimal TotalCharity { get; set; }
         public decimal OtherCharges { get; set; }
         public decimal CGST { get; set; }
         public decimal SGST { get; set; }
@@ -56,6 +57,8 @@ namespace SalesManagement.Application.Invoice.Dto
         public decimal CGST { get; set; }
         public decimal SGST { get; set; }
         public decimal IGST { get; set; }
+        public decimal Charity { get; set; }
+        public decimal HandlingCharges { get; set; }
         public decimal TotalAmount { get; set; }
         public int? PackTypeId { get; set; }
         public int? UOMId { get; set; }

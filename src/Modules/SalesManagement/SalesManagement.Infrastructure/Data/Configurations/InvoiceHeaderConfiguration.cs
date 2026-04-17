@@ -54,6 +54,7 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             builder.Property(t => t.Freight).HasColumnName("Freight").HasColumnType("decimal(18,6)").IsRequired();
             builder.Property(t => t.Insurance).HasColumnName("Insurance").HasColumnType("decimal(18,6)").IsRequired();
             builder.Property(t => t.HandlingCharge).HasColumnName("HandlingCharge").HasColumnType("decimal(18,6)").IsRequired();
+            builder.Property(t => t.TotalCharity).HasColumnName("TotalCharity").HasColumnType("decimal(18,6)").IsRequired();
             builder.Property(t => t.OtherCharges).HasColumnName("OtherCharges").HasColumnType("decimal(18,6)").IsRequired();
             builder.Property(t => t.CGST).HasColumnName("CGST").HasColumnType("decimal(18,6)").IsRequired();
             builder.Property(t => t.SGST).HasColumnName("SGST").HasColumnType("decimal(18,6)").IsRequired();
