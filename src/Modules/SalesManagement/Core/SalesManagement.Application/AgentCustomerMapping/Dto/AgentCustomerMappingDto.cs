@@ -9,8 +9,8 @@ namespace SalesManagement.Application.AgentCustomerMapping.Dto
         public string? AgentName { get; set; }
         public int? SubAgentId { get; set; }
         public string? SubAgentName { get; set; }
-        public int SalesSegmentId { get; set; }
-        public string? SegmentName { get; set; }
+        public int SalesGroupId { get; set; }
+        public string? SalesGroupName { get; set; }
         public DateTime EffectiveFrom { get; set; }
         public DateTime? EffectiveTo { get; set; }
         public bool IsDefaultAgent { get; set; }
