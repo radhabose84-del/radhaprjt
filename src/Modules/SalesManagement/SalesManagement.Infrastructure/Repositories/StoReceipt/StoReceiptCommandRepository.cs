@@ -40,6 +40,14 @@ namespace SalesManagement.Infrastructure.Repositories.StoReceipt
                     await _dbContext.SaveChangesAsync();
 
 
+                    // Fetch SourceUnitId (dispatch plant) from Delivery Challan
+                    var dcHeader = await _dbContext.DeliveryChallanHeader
+                        .AsNoTracking()
+                        .Where(dc => dc.Id == entity.DeliveryChallanHeaderId)
+                        .Select(dc => new { dc.FromPlantId })
+                        .FirstOrDefaultAsync();
+                    var sourceUnitId = dcHeader?.FromPlantId;
+
                     // Insert details and create StockLedger at receiving plant
                     if (details != null && details.Count > 0)
                     {
@@ -114,7 +122,8 @@ namespace SalesManagement.Infrastructure.Repositories.StoReceipt
                                     BinId = entity.BinId ?? 0,
                                     TotalQty = 1,
                                     TotalValue = totalValue,
-                                    StatusId = stockStatusId
+                                    StatusId = stockStatusId,
+                                    SourceUnitId = sourceUnitId
                                 };
                                 await _dbContext.StockLedger.AddAsync(newStock);
                                 packIndex++;
