@@ -15,5 +15,6 @@ namespace SalesManagement.Application.Common.Interfaces.ISalesReturn
         Task<bool> PackRangeOverlapsAsync(int invoiceDetailId, int startPackNo, int endPackNo, int? excludeReturnHeaderId = null);
         Task<bool> PackRangeExistsInDispatchAsync(int invoiceDetailId, int startPackNo, int endPackNo);
         Task<(int TotalDispatchedPacks, int TotalReturnedPacks)> GetReturnProgressAsync(int complaintHeaderId);
+        Task<int?> GetSourceUnitIdByInvoiceAsync(int invoiceHeaderId);
     }
 }
