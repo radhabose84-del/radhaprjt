@@ -67,15 +67,8 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesOrganisation
                 IsDeleted = IsDelete.NotDeleted
             };
 
-        private async Task ClearTableAsync()
-        {
-            await using var cnn = OpenConnection();
-            await cnn.OpenAsync();
-            await cnn.ExecuteAsync("DELETE FROM Sales.ItemPriceMaster");
-            await cnn.ExecuteAsync("DELETE FROM Sales.SalesOffice");
-            await cnn.ExecuteAsync("DELETE FROM Sales.SalesSegment");
-            await cnn.ExecuteAsync("DELETE FROM Sales.SalesOrganisation");
-        }
+        private async Task ClearTableAsync() =>
+            await _fixture.ClearTablesAsync("Sales.SalesOrganisation");
 
         private async Task<int> SeedEntityAsync(Domain.Entities.SalesOrganisation entity)
         {

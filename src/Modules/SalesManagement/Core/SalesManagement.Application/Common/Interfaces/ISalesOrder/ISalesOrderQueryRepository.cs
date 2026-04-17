@@ -30,5 +30,6 @@ namespace SalesManagement.Application.Common.Interfaces.ISalesOrder
         Task<bool> SubAgentExistsAsync(int subAgentId);
         Task<bool> HasDispatchAdviceAsync(int salesOrderHeaderId);
         Task<bool> DiscountMasterExistsAsync(int discountMasterId);
+        Task<List<SalesOrderInvoiceDto>> GetSalesOrderInvoicesAsync(int salesOrderId);
     }
 }

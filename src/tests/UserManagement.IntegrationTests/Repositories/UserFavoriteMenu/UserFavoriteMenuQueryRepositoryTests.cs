@@ -123,13 +123,8 @@ namespace UserManagement.IntegrationTests.Repositories.UserFavoriteMenu
             });
         }
 
-        private async Task ClearTablesAsync()
-        {
-            await using var ctx = CreateDbContext();
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM AppData.UserFavoriteMenu");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM AppData.Menus");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM AppData.Modules");
-        }
+        private async Task ClearTablesAsync() =>
+            await _fixture.ClearAllTablesAsync();
 
         // --- GetByUserIdAsync ---
 

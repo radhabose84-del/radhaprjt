@@ -60,11 +60,8 @@ namespace UserManagement.IntegrationTests.Repositories.FinancialYear
                 IsDeleted = Enums.IsDelete.NotDeleted
             };
 
-        private async Task ClearTestDataAsync(ApplicationDbContext ctx)
-        {
-            await ctx.Database.ExecuteSqlRawAsync(
-                "DELETE FROM AppData.FinancialYear WHERE FinYearName LIKE 'FY-CMD-%'");
-        }
+        private async Task ClearTestDataAsync(ApplicationDbContext ctx) =>
+            await _fixture.ClearAllTablesAsync();
 
         // --- CREATE ---
 

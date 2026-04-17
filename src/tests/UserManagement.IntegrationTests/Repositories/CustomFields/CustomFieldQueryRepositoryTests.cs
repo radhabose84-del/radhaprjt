@@ -102,11 +102,8 @@ namespace UserManagement.IntegrationTests.Repositories.CustomFields
             return id;
         }
 
-        private async Task ClearTestDataAsync(ApplicationDbContext ctx)
-        {
-            await ctx.Database.ExecuteSqlRawAsync(
-                "DELETE FROM AppData.CustomField WHERE LabelName LIKE 'TestCFQ%'");
-        }
+        private async Task ClearTestDataAsync(ApplicationDbContext ctx) =>
+            await _fixture.ClearAllTablesAsync();
 
         // --- GET ALL ---
 

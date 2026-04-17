@@ -44,12 +44,7 @@ namespace InventoryManagement.IntegrationTests.Repositories.UsageType
             });
         }
 
-        private async Task ClearTableAsync()
-        {
-            await using var conn = new SqlConnection(_fixture.ConnectionString);
-            await conn.OpenAsync();
-            await conn.ExecuteAsync("DELETE FROM [Inventory].[UsageType]");
-        }
+        private async Task ClearTableAsync() => await _fixture.ClearAllTablesAsync();
 
         // --- GET ALL ---
 

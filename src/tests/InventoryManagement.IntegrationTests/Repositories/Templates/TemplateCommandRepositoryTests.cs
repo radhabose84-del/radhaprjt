@@ -25,11 +25,7 @@ namespace InventoryManagement.IntegrationTests.Repositories.Templates
                 IsDeleted = BaseEntity.IsDelete.NotDeleted
             };
 
-        private async Task ClearTablesAsync(ApplicationDbContext ctx)
-        {
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Inventory].[InspectionParameter]");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Inventory].[InspectionTemplate]");
-        }
+        private async Task ClearTablesAsync(ApplicationDbContext ctx) => await _fixture.ClearAllTablesAsync();
 
         [Fact]
         public async Task CreateAsync_Should_Return_Id_GreaterThanZero()

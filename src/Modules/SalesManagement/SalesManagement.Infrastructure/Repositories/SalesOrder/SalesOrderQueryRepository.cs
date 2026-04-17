@@ -576,6 +576,11 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 AND LOWER(mt.MiscTypeCode) = LOWER(@ApprovalStatus)
                 AND LOWER(st.Code) = LOWER(@ApprovedStatus)
                 AND (@Term = '' OR h.SalesOrderNo LIKE '%' + @Term + '%')
+                -- Exclude fully dispatched orders (ordered qty = dispatched qty)
+                AND ISNULL((SELECT SUM(sod.QtyInBags) FROM Sales.SalesOrderDetail sod WHERE sod.SalesOrderHeaderId = h.Id), 0)
+                    > ISNULL((SELECT SUM(dad.DispatchQty) FROM Sales.DispatchAdviceDetail dad
+                              INNER JOIN Sales.DispatchAdviceHeader dah ON dad.DispatchAdviceHeaderId = dah.Id
+                              WHERE dah.SalesOrderId = h.Id AND dah.IsDeleted = 0), 0)
                 {moFilter}
                 {proformaCondition}
                 ORDER BY h.Id DESC;";
@@ -1097,5 +1102,44 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             return headers;
         }
 
+        public async Task<List<SalesOrderInvoiceDto>> GetSalesOrderInvoicesAsync(int salesOrderId)
+        {
+            const string sql = @"
+                SELECT
+                    ih.Id AS InvoiceId,
+                    ih.InvoiceNo,
+                    ih.InvoiceDate,
+                    ih.InvoiceAmount,
+                    ih.PartyId,
+                    sm.Description AS StatusName,
+                    ih.DispatchAdviceId,
+                    da.DispatchNo,
+                    da.DispatchDate
+                FROM Sales.InvoiceHeader ih
+                INNER JOIN Sales.DispatchAdviceHeader da
+                    ON ih.DispatchAdviceId = da.Id AND da.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster sm
+                    ON ih.StatusId = sm.Id AND sm.IsDeleted = 0
+                WHERE da.SalesOrderId = @SalesOrderId
+                  AND ih.IsDeleted = 0
+                ORDER BY ih.InvoiceDate DESC, ih.Id DESC";
+
+            var list = (await _dbConnection.QueryAsync<SalesOrderInvoiceDto>(
+                sql, new { SalesOrderId = salesOrderId })).ToList();
+
+            if (list.Count > 0)
+            {
+                var partyIds = list.Select(x => x.PartyId).Distinct();
+                var parties = await _partyLookup.GetByIdsAsync(partyIds);
+                var partyDict = parties.ToDictionary(p => p.Id, p => p.PartyName);
+
+                foreach (var item in list)
+                {
+                    item.PartyName = partyDict.TryGetValue(item.PartyId, out var pn) ? pn : null;
+                }
+            }
+
+            return list;
+        }
     }
 }

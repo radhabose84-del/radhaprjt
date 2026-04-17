@@ -27,7 +27,7 @@ namespace ProductionManagement.IntegrationTests.Repositories.QualityMaster
             };
 
         private async Task ClearTableAsync(ApplicationDbContext ctx) =>
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Production].[QualityMaster]");
+            await _fixture.ClearAllTablesAsync();
 
         // --- CREATE ---
 

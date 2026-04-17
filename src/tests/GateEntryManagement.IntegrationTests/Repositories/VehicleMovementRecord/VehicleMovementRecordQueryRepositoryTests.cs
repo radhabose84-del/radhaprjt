@@ -68,11 +68,7 @@ namespace GateEntryManagement.IntegrationTests.Repositories.VehicleMovementRecor
 
         private async Task<(int miscTypeId, int miscId)> SeedPrerequisitesAsync(ApplicationDbContext ctx)
         {
-            await ctx.Database.ExecuteSqlRawAsync(@"
-                DELETE FROM Gate.GateInwardDtl; DELETE FROM Gate.GateInwardHdr;
-                DELETE FROM Gate.GatePassDtl; DELETE FROM Gate.GatePassHdr;
-                DELETE FROM Gate.VehicleMovementRecord;
-                DELETE FROM Gate.MiscMaster; DELETE FROM Gate.MiscTypeMaster;");
+            await _fixture.ClearAllTablesAsync();
 
             var typeRepo = new MiscTypeMasterCommandRepository(ctx);
             var typeId = await typeRepo.CreateAsync(new GateEntryManagement.Domain.Entities.MiscTypeMaster
@@ -122,16 +118,8 @@ namespace GateEntryManagement.IntegrationTests.Repositories.VehicleMovementRecor
             return vmr.Id;
         }
 
-        private async Task ClearTablesAsync()
-        {
-            await using var conn = new SqlConnection(_fixture.ConnectionString);
-            await conn.OpenAsync();
-            await conn.ExecuteAsync(@"
-                DELETE FROM Gate.GateInwardDtl; DELETE FROM Gate.GateInwardHdr;
-                DELETE FROM Gate.GatePassDtl; DELETE FROM Gate.GatePassHdr;
-                DELETE FROM Gate.VehicleMovementRecord;
-                DELETE FROM Gate.MiscMaster; DELETE FROM Gate.MiscTypeMaster;");
-        }
+        private async Task ClearTablesAsync() =>
+            await _fixture.ClearAllTablesAsync();
 
         // --- GET ALL ---
 

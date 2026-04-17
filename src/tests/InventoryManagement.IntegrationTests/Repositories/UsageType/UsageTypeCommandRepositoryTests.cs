@@ -31,10 +31,7 @@ namespace InventoryManagement.IntegrationTests.Repositories.UsageType
                 IsDeleted = BaseEntity.IsDelete.NotDeleted
             };
 
-        private async Task ClearTableAsync(InventoryManagement.Infrastructure.Data.ApplicationDbContext ctx)
-        {
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Inventory].[UsageType]");
-        }
+        private async Task ClearTableAsync(InventoryManagement.Infrastructure.Data.ApplicationDbContext ctx) => await _fixture.ClearAllTablesAsync();
 
         // --- CREATE ---
 

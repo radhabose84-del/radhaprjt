@@ -65,10 +65,8 @@ namespace UserManagement.IntegrationTests.Repositories.Entities
                 IsDeleted = Enums.IsDelete.NotDeleted
             };
 
-        private async Task ClearTableAsync(ApplicationDbContext ctx)
-        {
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM AppData.Entity");
-        }
+        private async Task ClearTableAsync(ApplicationDbContext ctx) =>
+            await _fixture.ClearAllTablesAsync();
 
         [Fact]
         public async Task CreateAsync_Should_Return_NewId_GreaterThanZero()

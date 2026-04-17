@@ -66,11 +66,8 @@ namespace UserManagement.IntegrationTests.Repositories.MiscMaster
             return miscType.Id;
         }
 
-        private async Task ClearTestDataAsync(ApplicationDbContext ctx, int miscTypeId)
-        {
-            await ctx.Database.ExecuteSqlRawAsync(
-                $"DELETE FROM AppData.MiscMaster WHERE MiscTypeId = {miscTypeId} AND Code LIKE 'MMC_%'");
-        }
+        private async Task ClearTestDataAsync(ApplicationDbContext ctx, int miscTypeId) =>
+            await _fixture.ClearAllTablesAsync();
 
         // --- CREATE ---
 
@@ -78,8 +75,8 @@ namespace UserManagement.IntegrationTests.Repositories.MiscMaster
         public async Task CreateAsync_Should_Return_Entity_With_Id_GreaterThanZero()
         {
             await using var ctx = CreateDbContext();
+            await ClearTestDataAsync(ctx, 0);
             var miscTypeId = await EnsureMiscTypeAsync(ctx);
-            await ClearTestDataAsync(ctx, miscTypeId);
 
             var repo = CreateRepository(ctx);
             var entity = new Domain.Entities.MiscMaster
@@ -102,8 +99,8 @@ namespace UserManagement.IntegrationTests.Repositories.MiscMaster
         public async Task CreateAsync_Should_Persist_Fields_Correctly()
         {
             await using var ctx = CreateDbContext();
+            await ClearTestDataAsync(ctx, 0);
             var miscTypeId = await EnsureMiscTypeAsync(ctx);
-            await ClearTestDataAsync(ctx, miscTypeId);
 
             var repo = CreateRepository(ctx);
             var entity = new Domain.Entities.MiscMaster
@@ -132,8 +129,8 @@ namespace UserManagement.IntegrationTests.Repositories.MiscMaster
         public async Task CreateAsync_Should_Populate_Audit_Fields()
         {
             await using var ctx = CreateDbContext();
+            await ClearTestDataAsync(ctx, 0);
             var miscTypeId = await EnsureMiscTypeAsync(ctx);
-            await ClearTestDataAsync(ctx, miscTypeId);
 
             var repo = CreateRepository(ctx);
             var entity = new Domain.Entities.MiscMaster
@@ -161,8 +158,8 @@ namespace UserManagement.IntegrationTests.Repositories.MiscMaster
         public async Task UpdateAsync_Should_Persist_Changes()
         {
             await using var ctx = CreateDbContext();
+            await ClearTestDataAsync(ctx, 0);
             var miscTypeId = await EnsureMiscTypeAsync(ctx);
-            await ClearTestDataAsync(ctx, miscTypeId);
 
             var repo = CreateRepository(ctx);
             var entity = new Domain.Entities.MiscMaster
@@ -204,8 +201,8 @@ namespace UserManagement.IntegrationTests.Repositories.MiscMaster
         public async Task DeleteAsync_Should_Soft_Delete_Entity()
         {
             await using var ctx = CreateDbContext();
+            await ClearTestDataAsync(ctx, 0);
             var miscTypeId = await EnsureMiscTypeAsync(ctx);
-            await ClearTestDataAsync(ctx, miscTypeId);
 
             var repo = CreateRepository(ctx);
             var entity = new Domain.Entities.MiscMaster

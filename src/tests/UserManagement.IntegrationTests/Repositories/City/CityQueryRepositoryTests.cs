@@ -98,14 +98,8 @@ namespace UserManagement.IntegrationTests.Repositories.City
             return created.Id;
         }
 
-        private async Task ClearTablesAsync()
-        {
-            await using var conn = new SqlConnection(_fixture.ConnectionString);
-            await conn.OpenAsync();
-            await conn.ExecuteAsync("DELETE FROM AppData.City");
-            await conn.ExecuteAsync("DELETE FROM AppData.State");
-            await conn.ExecuteAsync("DELETE FROM AppData.Country");
-        }
+        private async Task ClearTablesAsync() =>
+            await _fixture.ClearAllTablesAsync();
 
         private async Task<(int countryId, int stateId)> SeedCountryAndStateAsync()
         {

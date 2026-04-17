@@ -92,12 +92,8 @@ namespace UserManagement.IntegrationTests.Repositories.UserFavoriteMenu
             });
         }
 
-        private async Task ClearTablesAsync(ApplicationDbContext ctx)
-        {
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM AppData.UserFavoriteMenu");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM AppData.Menus");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM AppData.Modules");
-        }
+        private async Task ClearTablesAsync(ApplicationDbContext ctx) =>
+            await _fixture.ClearAllTablesAsync();
 
         private static Domain.Entities.UserFavoriteMenu BuildFavorite(int userId, int menuId) =>
             new Domain.Entities.UserFavoriteMenu

@@ -89,13 +89,8 @@ namespace FinanceManagement.IntegrationTests.Repositories.TransactionTypeMaster
             });
         }
 
-        private async Task ClearTableAsync()
-        {
-            await using var conn = new SqlConnection(_fixture.ConnectionString);
-            await conn.OpenAsync();
-            await conn.ExecuteAsync("DELETE FROM [Finance].[DocumentSequence]");
-            await conn.ExecuteAsync("DELETE FROM [Finance].[TransactionTypeMaster]");
-        }
+        private async Task ClearTableAsync() =>
+            await _fixture.ClearAllTablesAsync();
 
         // --- GET ALL ---
 
@@ -222,7 +217,7 @@ namespace FinanceManagement.IntegrationTests.Repositories.TransactionTypeMaster
             await ClearTableAsync();
             await SeedEntityAsync("Invoice", "INV");
 
-            var exists = await CreateQueryRepo().TypeNameExistsAsync("Invoice");
+            var exists = await CreateQueryRepo().TypeNameExistsAsync("Invoice", 1);
 
             exists.Should().BeTrue();
         }
@@ -235,7 +230,7 @@ namespace FinanceManagement.IntegrationTests.Repositories.TransactionTypeMaster
             await using var ctx = _fixture.CreateFreshDbContext();
             await new TransactionTypeMasterCommandRepository(ctx).SoftDeleteAsync(id, CancellationToken.None);
 
-            var exists = await CreateQueryRepo().TypeNameExistsAsync("Invoice");
+            var exists = await CreateQueryRepo().TypeNameExistsAsync("Invoice", 1);
 
             exists.Should().BeFalse();
         }
@@ -248,7 +243,7 @@ namespace FinanceManagement.IntegrationTests.Repositories.TransactionTypeMaster
             await ClearTableAsync();
             await SeedEntityAsync("Invoice", "INV");
 
-            var exists = await CreateQueryRepo().ShortNameExistsAsync("INV");
+            var exists = await CreateQueryRepo().ShortNameExistsAsync("INV", 1);
 
             exists.Should().BeTrue();
         }

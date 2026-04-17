@@ -16,6 +16,7 @@ public sealed class RequestReworkCommandValidatorTests
     private void SetupAllAsyncMocks(int feedbackId = 1)
     {
         _mockQueryRepo.Setup(r => r.NotFoundAsync(feedbackId)).ReturnsAsync(false);
+        _mockQueryRepo.Setup(r => r.IsQCApprovedForFeedbackAsync(It.IsAny<int>())).ReturnsAsync(true);
     }
 
     [Fact]
@@ -65,6 +66,7 @@ public sealed class RequestReworkCommandValidatorTests
     public async Task Validate_FeedbackNotFound_FailsValidation()
     {
         _mockQueryRepo.Setup(r => r.NotFoundAsync(99)).ReturnsAsync(true);
+        _mockQueryRepo.Setup(r => r.IsQCApprovedForFeedbackAsync(It.IsAny<int>())).ReturnsAsync(true);
 
         var command = new RequestReworkCommand
         {

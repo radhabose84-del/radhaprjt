@@ -106,6 +106,61 @@ IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'AppMaster')
 ");
         }
 
+        /// <summary>
+        /// Clears all tables in the AppSecurity, AppData, and AppMaster schemas
+        /// by temporarily disabling FK constraints.
+        /// </summary>
+        public async Task ClearAllTablesAsync()
+        {
+            await using var conn = new Microsoft.Data.SqlClient.SqlConnection(_testDbConnection);
+            await conn.OpenAsync();
+
+            const string sql = @"
+                DECLARE @disableSql NVARCHAR(MAX) = N'';
+                SELECT @disableSql += 'ALTER TABLE ' + QUOTENAME(s.name) + '.' + QUOTENAME(t.name)
+                    + ' NOCHECK CONSTRAINT ALL;' + CHAR(13)
+                FROM sys.tables t
+                JOIN sys.schemas s ON t.schema_id = s.schema_id
+                WHERE s.name IN ('AppSecurity','AppData','AppMaster');
+                EXEC sp_executesql @disableSql;
+
+                DECLARE @deleteSql NVARCHAR(MAX) = N'';
+                SELECT @deleteSql += 'DELETE FROM ' + QUOTENAME(s.name) + '.' + QUOTENAME(t.name) + ';' + CHAR(13)
+                FROM sys.tables t
+                JOIN sys.schemas s ON t.schema_id = s.schema_id
+                WHERE s.name IN ('AppSecurity','AppData','AppMaster');
+                EXEC sp_executesql @deleteSql;
+
+                DECLARE @enableSql NVARCHAR(MAX) = N'';
+                SELECT @enableSql += 'ALTER TABLE ' + QUOTENAME(s.name) + '.' + QUOTENAME(t.name)
+                    + ' WITH CHECK CHECK CONSTRAINT ALL;' + CHAR(13)
+                FROM sys.tables t
+                JOIN sys.schemas s ON t.schema_id = s.schema_id
+                WHERE s.name IN ('AppSecurity','AppData','AppMaster');
+                EXEC sp_executesql @enableSql;
+            ";
+
+            await conn.ExecuteAsync(sql, commandTimeout: 60);
+        }
+
+        public ApplicationDbContext CreateFreshDbContext()
+        {
+            var ipMock = new Mock<IIPAddressService>(MockBehavior.Loose);
+            ipMock.Setup(x => x.GetGroupCode()).Returns("SUPER_ADMIN");
+            ipMock.Setup(x => x.GetUnitId()).Returns(1);
+            ipMock.Setup(x => x.GetCompanyId()).Returns(1);
+            ipMock.Setup(x => x.GetEntityId()).Returns(1);
+
+            var tzMock = new Mock<ITimeZoneService>(MockBehavior.Loose);
+            tzMock.Setup(x => x.GetSystemTimeZone()).Returns("UTC");
+
+            var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+                .UseSqlServer(_testDbConnection)
+                .Options;
+
+            return new ApplicationDbContext(options, ipMock.Object, tzMock.Object);
+        }
+
         public async Task DisposeAsync()
         {
             if (DbContext != null)

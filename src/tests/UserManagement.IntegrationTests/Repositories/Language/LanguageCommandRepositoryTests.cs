@@ -56,7 +56,7 @@ namespace UserManagement.IntegrationTests.Repositories.Language
             };
 
         private async Task ClearTableAsync(ApplicationDbContext ctx) =>
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM AppData.Language");
+            await _fixture.ClearAllTablesAsync();
 
         // --- CREATE ---
 
