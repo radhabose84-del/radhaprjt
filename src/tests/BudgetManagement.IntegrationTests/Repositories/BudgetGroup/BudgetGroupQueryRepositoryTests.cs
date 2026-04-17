@@ -47,15 +47,8 @@ namespace BudgetManagement.IntegrationTests.Repositories.BudgetGroup
                 }, CancellationToken.None);
         }
 
-        private async Task ClearTableAsync()
-        {
-            await using var conn = new SqlConnection(_fixture.ConnectionString);
-            await conn.OpenAsync();
-            // Delete child rows first to satisfy FK constraints
-            await conn.ExecuteAsync("DELETE FROM Budget.BudgetAllocation");
-            await conn.ExecuteAsync("DELETE FROM Budget.BudgetRequest");
-            await conn.ExecuteAsync("DELETE FROM Budget.BudgetGroup");
-        }
+        private async Task ClearTableAsync() =>
+            await _fixture.ClearAllTablesAsync();
 
         // --- GET ALL ---
 

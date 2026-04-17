@@ -20,6 +20,7 @@ namespace InventoryManagement.UnitTests.Application.Item.Queries
             _mockRepo.Setup(r => r.GetItemAutoCompleteAsync(
                     It.IsAny<string>(), It.IsAny<int?>(), It.IsAny<int?>(),
                     It.IsAny<int?>(), It.IsAny<int?>(), It.IsAny<int?>(),
+                    It.IsAny<int?>(),
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(items);
             _mockMapper.Setup(m => m.Map<List<GetItemAutoCompleteDto>>(It.IsAny<object>())).Returns(items);
@@ -58,6 +59,7 @@ namespace InventoryManagement.UnitTests.Application.Item.Queries
             _mockRepo.Verify(r => r.GetItemAutoCompleteAsync(
                 It.IsAny<string>(), It.IsAny<int?>(), It.IsAny<int?>(),
                 It.IsAny<int?>(), It.IsAny<int?>(), It.IsAny<int?>(),
+                It.IsAny<int?>(),
                 It.IsAny<CancellationToken>()), Times.Once);
         }
     }

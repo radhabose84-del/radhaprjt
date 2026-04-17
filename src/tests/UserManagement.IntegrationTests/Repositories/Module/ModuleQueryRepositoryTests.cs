@@ -61,11 +61,8 @@ namespace UserManagement.IntegrationTests.Repositories.Module
             return module.Id;
         }
 
-        private async Task ClearTestDataAsync(ApplicationDbContext ctx)
-        {
-            await ctx.Database.ExecuteSqlRawAsync(
-                "DELETE FROM AppData.Modules WHERE ModuleName LIKE 'TestModule_QRY%'");
-        }
+        private async Task ClearTestDataAsync(ApplicationDbContext ctx) =>
+            await _fixture.ClearAllTablesAsync();
 
         // --- GET ALL ---
 

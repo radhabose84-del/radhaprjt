@@ -113,6 +113,46 @@ IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'Inventory')
             return new ApplicationDbContext(options, ipMock.Object, tzMock.Object);
         }
 
+        /// <summary>
+        /// Deletes all rows from Inventory tables in FK-safe order (children first).
+        /// Use this instead of per-test ClearAsync methods to avoid FK constraint violations.
+        /// </summary>
+        public async Task ClearAllTablesAsync()
+        {
+            await using var conn = new SqlConnection(_testDbConnection);
+            await conn.OpenAsync();
+
+            const string sql = @"
+                -- Disable all FK constraints in Inventory schema
+                DECLARE @disableSql NVARCHAR(MAX) = N'';
+                SELECT @disableSql += 'ALTER TABLE ' + QUOTENAME(s.name) + '.' + QUOTENAME(t.name)
+                    + ' NOCHECK CONSTRAINT ALL;' + CHAR(13)
+                FROM sys.tables t
+                JOIN sys.schemas s ON t.schema_id = s.schema_id
+                WHERE s.name = 'Inventory';
+                EXEC sp_executesql @disableSql;
+
+                -- Delete all data from Inventory schema tables
+                DECLARE @deleteSql NVARCHAR(MAX) = N'';
+                SELECT @deleteSql += 'DELETE FROM ' + QUOTENAME(s.name) + '.' + QUOTENAME(t.name) + ';' + CHAR(13)
+                FROM sys.tables t
+                JOIN sys.schemas s ON t.schema_id = s.schema_id
+                WHERE s.name = 'Inventory';
+                EXEC sp_executesql @deleteSql;
+
+                -- Re-enable all FK constraints
+                DECLARE @enableSql NVARCHAR(MAX) = N'';
+                SELECT @enableSql += 'ALTER TABLE ' + QUOTENAME(s.name) + '.' + QUOTENAME(t.name)
+                    + ' WITH CHECK CHECK CONSTRAINT ALL;' + CHAR(13)
+                FROM sys.tables t
+                JOIN sys.schemas s ON t.schema_id = s.schema_id
+                WHERE s.name = 'Inventory';
+                EXEC sp_executesql @enableSql;
+            ";
+
+            await conn.ExecuteAsync(sql, commandTimeout: 60);
+        }
+
         public async Task DisposeAsync()
         {
             if (DbContext != null)

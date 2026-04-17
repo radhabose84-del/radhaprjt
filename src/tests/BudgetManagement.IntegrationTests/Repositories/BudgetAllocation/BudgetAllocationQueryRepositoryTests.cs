@@ -56,8 +56,7 @@ namespace BudgetManagement.IntegrationTests.Repositories.BudgetAllocation
 
         private async Task ClearTableAsync()
         {
-            await using var ctx = _fixture.CreateFreshDbContext();
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Budget.BudgetAllocation");
+            await _fixture.ClearTablesAsync("Budget.BudgetAllocation");
             await _fixture.SeedPrerequisiteDataAsync();
         }
 

@@ -80,17 +80,7 @@ namespace InventoryManagement.IntegrationTests.Repositories.UOMConversion
                 IsDeleted = BaseEntity.IsDelete.NotDeleted
             };
 
-        private async Task ClearTablesAsync(InventoryManagement.Infrastructure.Data.ApplicationDbContext ctx)
-        {
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Inventory].[MrsDetail]");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Inventory].[MrsHeader]");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Inventory].[UOMConversion]");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Inventory].[ItemUOM]");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Inventory].[ItemMaster]");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Inventory].[UOM]");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Inventory].[MiscMaster]");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Inventory].[MiscTypeMaster]");
-        }
+        private async Task ClearTablesAsync(InventoryManagement.Infrastructure.Data.ApplicationDbContext ctx) => await _fixture.ClearAllTablesAsync();
 
         // --- CREATE ---
 

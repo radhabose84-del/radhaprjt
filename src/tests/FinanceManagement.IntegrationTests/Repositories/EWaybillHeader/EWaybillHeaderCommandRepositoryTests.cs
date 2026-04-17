@@ -43,11 +43,8 @@ namespace FinanceManagement.IntegrationTests.Repositories.EWaybillHeader
                 IsDeleted = IsDelete.NotDeleted
             };
 
-        private async Task ClearTablesAsync(ApplicationDbContext ctx)
-        {
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Finance].[EWaybillDetail]");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Finance].[EWaybillHeader]");
-        }
+        private async Task ClearTablesAsync(ApplicationDbContext ctx) =>
+            await _fixture.ClearAllTablesAsync();
 
         // --- CREATE ---
 

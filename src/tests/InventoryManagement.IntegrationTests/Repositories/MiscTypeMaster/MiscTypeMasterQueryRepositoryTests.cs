@@ -36,19 +36,7 @@ namespace InventoryManagement.IntegrationTests.Repositories.MiscTypeMaster
             return result.Id;
         }
 
-        private async Task ClearTableAsync()
-        {
-            await using var conn = new SqlConnection(_fixture.ConnectionString);
-            await conn.OpenAsync();
-            await conn.ExecuteAsync("DELETE FROM [Inventory].[IssueDetail]");
-            await conn.ExecuteAsync("DELETE FROM [Inventory].[IssueHeader]");
-            await conn.ExecuteAsync("DELETE FROM [Inventory].[MrsDetail]");
-            await conn.ExecuteAsync("DELETE FROM [Inventory].[MrsHeader]");
-            await conn.ExecuteAsync("DELETE FROM [Inventory].[UOMConversion]");
-            await conn.ExecuteAsync("DELETE FROM [Inventory].[UOM]");
-            await conn.ExecuteAsync("DELETE FROM [Inventory].[MiscMaster]");
-            await conn.ExecuteAsync("DELETE FROM [Inventory].[MiscTypeMaster]");
-        }
+        private async Task ClearTableAsync() => await _fixture.ClearAllTablesAsync();
 
         // --- GET ALL ---
 

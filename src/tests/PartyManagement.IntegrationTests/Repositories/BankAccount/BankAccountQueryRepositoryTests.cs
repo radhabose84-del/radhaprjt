@@ -92,16 +92,7 @@ namespace PartyManagement.IntegrationTests.Repositories.BankAccount
             return result.Id;
         }
 
-        private async Task ClearTablesAsync()
-        {
-            await using var conn = new SqlConnection(_fixture.ConnectionString);
-            await conn.OpenAsync();
-            await conn.ExecuteAsync("DELETE FROM [Party].[BankAccount]");
-            await conn.ExecuteAsync("DELETE FROM [Party].[BankMaster]");
-            await conn.ExecuteAsync("DELETE FROM [Party].[PartyGroup]");
-            await conn.ExecuteAsync("DELETE FROM [Party].[MiscMaster]");
-            await conn.ExecuteAsync("DELETE FROM [Party].[MiscTypeMaster]");
-        }
+        private async Task ClearTablesAsync() => await _fixture.ClearAllTablesAsync();
 
         // --- GET BY ID ---
 

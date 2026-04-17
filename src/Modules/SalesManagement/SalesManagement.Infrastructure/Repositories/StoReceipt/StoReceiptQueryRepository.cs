@@ -61,6 +61,7 @@ namespace SalesManagement.Infrastructure.Repositories.StoReceipt
                     h.StoReceiptDate,
                     h.DeliveryChallanHeaderId,
                     dc.DeliveryNumber,
+                    dc.FromPlantId AS SourceUnitId,
                     h.ReceivingPlantId,
                     h.ReceivingStorageLocationId,
                     h.BinId,
@@ -99,8 +100,11 @@ namespace SalesManagement.Infrastructure.Repositories.StoReceipt
             // Populate cross-module FK names via lookups
             if (data.Count > 0)
             {
-                var plantIds = data.Select(d => d.ReceivingPlantId).Distinct();
-                var plants = await _unitLookup.GetByIdsAsync(plantIds);
+                // Collect all unit IDs (receiving + source) for a single batch lookup
+                var allUnitIds = data.Select(d => d.ReceivingPlantId)
+                    .Concat(data.Where(d => d.SourceUnitId.HasValue).Select(d => d.SourceUnitId!.Value))
+                    .Distinct();
+                var plants = await _unitLookup.GetByIdsAsync(allUnitIds);
                 var plantDict = plants.ToDictionary(p => p.UnitId, p => p.UnitName);
 
                 var warehouseIds = data.Select(d => d.ReceivingStorageLocationId).Distinct();
@@ -114,6 +118,7 @@ namespace SalesManagement.Infrastructure.Repositories.StoReceipt
                 foreach (var item in data)
                 {
                     item.ReceivingPlantName = plantDict.TryGetValue(item.ReceivingPlantId, out var pName) ? pName : null;
+                    item.SourceUnitName = item.SourceUnitId.HasValue && plantDict.TryGetValue(item.SourceUnitId.Value, out var sName) ? sName : null;
                     item.ReceivingStorageLocationName = warehouseDict.TryGetValue(item.ReceivingStorageLocationId, out var wName) ? wName : null;
                     item.BinName = item.BinId.HasValue && binDict.TryGetValue(item.BinId.Value, out var bName) ? bName : null;
                 }
@@ -131,6 +136,7 @@ namespace SalesManagement.Infrastructure.Repositories.StoReceipt
                     h.StoReceiptDate,
                     h.DeliveryChallanHeaderId,
                     dc.DeliveryNumber,
+                    dc.FromPlantId AS SourceUnitId,
                     h.ReceivingPlantId,
                     h.ReceivingStorageLocationId,
                     h.BinId,
@@ -161,6 +167,12 @@ namespace SalesManagement.Infrastructure.Repositories.StoReceipt
             // Populate cross-module header lookups
             var plant = await _unitLookup.GetByIdAsync(header.ReceivingPlantId);
             header.ReceivingPlantName = plant?.UnitName;
+
+            if (header.SourceUnitId.HasValue)
+            {
+                var sourceUnit = await _unitLookup.GetByIdAsync(header.SourceUnitId.Value);
+                header.SourceUnitName = sourceUnit?.UnitName;
+            }
 
             var warehouses = await _warehouseLookup.GetByIdsAsync(new[] { header.ReceivingStorageLocationId });
             var wh = warehouses.FirstOrDefault();

@@ -576,6 +576,11 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 AND LOWER(mt.MiscTypeCode) = LOWER(@ApprovalStatus)
                 AND LOWER(st.Code) = LOWER(@ApprovedStatus)
                 AND (@Term = '' OR h.SalesOrderNo LIKE '%' + @Term + '%')
+                -- Exclude fully dispatched orders (ordered qty = dispatched qty)
+                AND ISNULL((SELECT SUM(sod.QtyInBags) FROM Sales.SalesOrderDetail sod WHERE sod.SalesOrderHeaderId = h.Id), 0)
+                    > ISNULL((SELECT SUM(dad.DispatchQty) FROM Sales.DispatchAdviceDetail dad
+                              INNER JOIN Sales.DispatchAdviceHeader dah ON dad.DispatchAdviceHeaderId = dah.Id
+                              WHERE dah.SalesOrderId = h.Id AND dah.IsDeleted = 0), 0)
                 {moFilter}
                 {proformaCondition}
                 ORDER BY h.Id DESC;";

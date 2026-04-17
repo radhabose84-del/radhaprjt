@@ -113,6 +113,43 @@ IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'Warehouse')
             return new ApplicationDbContext(options, ipMock.Object, tzMock.Object);
         }
 
+        /// <summary>
+        /// Clears all tables in the Warehouse schema by temporarily disabling FK constraints.
+        /// Use this instead of per-test cleanup to avoid FK ordering issues.
+        /// </summary>
+        public async Task ClearAllTablesAsync()
+        {
+            await using var conn = new SqlConnection(_testDbConnection);
+            await conn.OpenAsync();
+
+            const string sql = @"
+                DECLARE @disableSql NVARCHAR(MAX) = N'';
+                SELECT @disableSql += 'ALTER TABLE ' + QUOTENAME(s.name) + '.' + QUOTENAME(t.name)
+                    + ' NOCHECK CONSTRAINT ALL;' + CHAR(13)
+                FROM sys.tables t
+                JOIN sys.schemas s ON t.schema_id = s.schema_id
+                WHERE s.name = 'Warehouse';
+                EXEC sp_executesql @disableSql;
+
+                DECLARE @deleteSql NVARCHAR(MAX) = N'';
+                SELECT @deleteSql += 'DELETE FROM ' + QUOTENAME(s.name) + '.' + QUOTENAME(t.name) + ';' + CHAR(13)
+                FROM sys.tables t
+                JOIN sys.schemas s ON t.schema_id = s.schema_id
+                WHERE s.name = 'Warehouse';
+                EXEC sp_executesql @deleteSql;
+
+                DECLARE @enableSql NVARCHAR(MAX) = N'';
+                SELECT @enableSql += 'ALTER TABLE ' + QUOTENAME(s.name) + '.' + QUOTENAME(t.name)
+                    + ' WITH CHECK CHECK CONSTRAINT ALL;' + CHAR(13)
+                FROM sys.tables t
+                JOIN sys.schemas s ON t.schema_id = s.schema_id
+                WHERE s.name = 'Warehouse';
+                EXEC sp_executesql @enableSql;
+            ";
+
+            await conn.ExecuteAsync(sql, commandTimeout: 60);
+        }
+
         public async Task DisposeAsync()
         {
             if (DbContext != null)

@@ -55,12 +55,8 @@ namespace UserManagement.IntegrationTests.Repositories.CompanySettings
             return new CompanySettingsQueryRepository(conn, ipService);
         }
 
-        private async Task ClearTablesAsync(ApplicationDbContext ctx)
-        {
-            // Order matters because of 1-to-1 FK constraints on CompanySetting
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM AppData.CompanySetting");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM AppSecurity.AdminSecuritySettings");
-        }
+        private async Task ClearTablesAsync(ApplicationDbContext ctx) =>
+            await _fixture.ClearAllTablesAsync();
 
         private async Task<(int companyId, int currencyId, int languageId, int financialYearId)> SeedParentsAsync(
             ApplicationDbContext ctx, string suffix = "")

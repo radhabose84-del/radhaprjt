@@ -103,13 +103,8 @@ namespace FinanceManagement.IntegrationTests.Repositories.DocumentSequence
             });
         }
 
-        private async Task ClearTablesAsync()
-        {
-            await using var conn = new SqlConnection(_fixture.ConnectionString);
-            await conn.OpenAsync();
-            await conn.ExecuteAsync("DELETE FROM [Finance].[DocumentSequence]");
-            await conn.ExecuteAsync("DELETE FROM [Finance].[TransactionTypeMaster]");
-        }
+        private async Task ClearTablesAsync() =>
+            await _fixture.ClearAllTablesAsync();
 
         // --- GET ALL ---
 

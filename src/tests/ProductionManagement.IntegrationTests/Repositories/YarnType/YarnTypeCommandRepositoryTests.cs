@@ -29,7 +29,7 @@ namespace ProductionManagement.IntegrationTests.Repositories.YarnType
             };
 
         private async Task ClearTableAsync(ApplicationDbContext ctx) =>
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Production].[YarnType]");
+            await _fixture.ClearAllTablesAsync();
 
         // --- CREATE ---
 

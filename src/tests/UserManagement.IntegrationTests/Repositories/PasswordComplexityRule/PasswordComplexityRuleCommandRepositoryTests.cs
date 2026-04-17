@@ -55,11 +55,8 @@ namespace UserManagement.IntegrationTests.Repositories.PasswordComplexityRule
                 IsDeleted = Enums.IsDelete.NotDeleted
             };
 
-        private async Task ClearTestDataAsync(ApplicationDbContext ctx)
-        {
-            await ctx.Database.ExecuteSqlRawAsync(
-                "DELETE FROM AppSecurity.PasswordComplexityRule WHERE PwdComplexityRule LIKE 'PCR_TST%'");
-        }
+        private async Task ClearTestDataAsync(ApplicationDbContext ctx) =>
+            await _fixture.ClearAllTablesAsync();
 
         // --- CREATE ---
 

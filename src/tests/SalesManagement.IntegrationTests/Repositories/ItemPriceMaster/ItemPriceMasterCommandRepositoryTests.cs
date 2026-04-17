@@ -120,10 +120,8 @@ namespace SalesManagement.IntegrationTests.Repositories.ItemPriceMaster
             return segment.Id;
         }
 
-        private async Task ClearTableAsync(ApplicationDbContext ctx)
-        {
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Sales.ItemPriceMaster");
-        }
+        private async Task ClearTableAsync(ApplicationDbContext ctx) =>
+            await _fixture.ClearTablesAsync("Sales.ItemPriceMaster");
 
         private Domain.Entities.ItemPriceMaster BuildEntity(
             int salesSegmentId,

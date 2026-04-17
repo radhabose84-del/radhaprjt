@@ -28,15 +28,8 @@ namespace PurchaseManagement.IntegrationTests.Repositories.MiscTypeMaster
                 IsDeleted = BaseEntity.IsDelete.NotDeleted
             };
 
-        private async Task ClearTableAsync(PurchaseManagement.Infrastructure.Data.ApplicationDbContext ctx)
-        {
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Purchase.PortMaster");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Purchase.DutyMaster");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Purchase.PriceMasterDetail");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Purchase.PriceMasterHeader");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Purchase.MiscMaster");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Purchase].[MiscTypeMaster]");
-        }
+        private async Task ClearTableAsync(PurchaseManagement.Infrastructure.Data.ApplicationDbContext ctx) =>
+            await _fixture.ClearAllTablesAsync();
 
         // --- CREATE ---
 

@@ -39,7 +39,7 @@ namespace PurchaseManagement.IntegrationTests.Repositories.ExchangeRate
         }
 
         private async Task ClearTableAsync(ApplicationDbContext ctx) =>
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Purchase.ExchangeRate");
+            await _fixture.ClearAllTablesAsync();
 
         // --- GET LATEST ---
 

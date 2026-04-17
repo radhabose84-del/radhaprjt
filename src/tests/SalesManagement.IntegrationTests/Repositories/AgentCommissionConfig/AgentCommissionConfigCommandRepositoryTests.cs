@@ -92,10 +92,8 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCommissionConfig
             return (miscMaster.Id, split.Id);
         }
 
-        private async Task ClearTableAsync(ApplicationDbContext ctx)
-        {
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Sales.AgentCommissionConfig");
-        }
+        private async Task ClearTableAsync(ApplicationDbContext ctx) =>
+            await _fixture.ClearTablesAsync("Sales.AgentCommissionConfig");
 
         private static Domain.Entities.AgentCommissionConfig BuildEntity(
             int miscMasterId,

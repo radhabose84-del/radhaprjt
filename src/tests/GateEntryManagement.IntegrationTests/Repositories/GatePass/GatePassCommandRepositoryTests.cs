@@ -24,11 +24,7 @@ namespace GateEntryManagement.IntegrationTests.Repositories.GatePass
 
         private async Task<(int miscMasterId, int vmrId)> SeedPrerequisitesAsync(ApplicationDbContext ctx)
         {
-            await ctx.Database.ExecuteSqlRawAsync(@"
-                DELETE FROM Gate.GateInwardDtl; DELETE FROM Gate.GateInwardHdr;
-                DELETE FROM Gate.GatePassDtl; DELETE FROM Gate.GatePassHdr;
-                DELETE FROM Gate.VehicleMovementRecord;
-                DELETE FROM Gate.MiscMaster; DELETE FROM Gate.MiscTypeMaster;");
+            await _fixture.ClearAllTablesAsync();
 
             var miscType = new GateEntryManagement.Domain.Entities.MiscTypeMaster
             {

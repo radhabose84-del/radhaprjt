@@ -46,16 +46,8 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesGroup
                 IsDeleted = IsDelete.NotDeleted
             };
 
-        private async Task ClearTablesAsync()
-        {
-            await using var cnn = new SqlConnection(_fixture.ConnectionString);
-            await cnn.OpenAsync();
-            await cnn.ExecuteAsync("DELETE FROM Sales.SalesOrderHeader");
-            await cnn.ExecuteAsync("DELETE FROM Sales.OfficerSalesGroup");
-            await cnn.ExecuteAsync("DELETE FROM Sales.SalesGroup");
-            await cnn.ExecuteAsync("DELETE FROM Sales.MarketingOfficer");
-            await cnn.ExecuteAsync("DELETE FROM Sales.SalesOffice");
-        }
+        private async Task ClearTablesAsync() =>
+            await _fixture.ClearTablesAsync("Sales.SalesGroup");
 
         /// <summary>
         /// Seeds a SalesOrganisation → SalesOffice chain and returns the SalesOfficeId.

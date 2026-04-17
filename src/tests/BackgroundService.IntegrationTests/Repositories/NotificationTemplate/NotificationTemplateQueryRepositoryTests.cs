@@ -98,32 +98,8 @@ namespace BackgroundService.IntegrationTests.Repositories.NotificationTemplate
             });
         }
 
-        private async Task ClearTablesAsync()
-        {
-            await using var conn = new SqlConnection(_fixture.ConnectionString);
-            await conn.OpenAsync();
-            await conn.ExecuteAsync(@"
-                DELETE FROM AppNotification.NotificationEventRule;
-                DELETE FROM AppNotification.NotificationLevelHierarchy;
-                DELETE FROM AppNotification.NotificationTemplate;
-                DELETE FROM AppNotification.NotificationEventLog;
-                DELETE FROM AppNotification.NotificationGroupMembers;
-                DELETE FROM AppNotification.NotificationGroup;
-                DELETE FROM AppNotification.NotificationConfig;
-                DELETE FROM AppData.ApprovalRuleCondition;
-                DELETE FROM AppData.RuleTargetOverride;
-                DELETE FROM AppData.ApprovalRule;
-                DELETE FROM AppData.ApprovalRequestLine;
-                DELETE FROM AppData.ApprovalDocument;
-                DELETE FROM AppData.ApprovalRequest;
-                DELETE FROM AppData.ApprovalStepDepartmentMapping;
-                DELETE FROM AppData.ApprovalStepUnitMapping;
-                DELETE FROM AppData.ApprovalStepDetail;
-                DELETE FROM AppData.WorkflowType;
-                DELETE FROM AppData.MiscMaster;
-                DELETE FROM AppData.MiscTypeMaster;
-            ");
-        }
+        private async Task ClearTablesAsync() =>
+            await _fixture.ClearAllTablesAsync();
 
         // --- GET ALL ---
 

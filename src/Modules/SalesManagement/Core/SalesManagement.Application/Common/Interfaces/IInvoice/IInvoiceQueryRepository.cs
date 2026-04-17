@@ -1,4 +1,5 @@
 using SalesManagement.Application.Invoice.Dto;
+using SalesManagement.Application.Invoice.Queries.GetDispatchTrackingDetails;
 using SalesManagement.Application.Invoice.Queries.GetInvoiceGatePassPending;
 using SalesManagement.Application.Invoice.Queries.GetInvoicePending;
 
@@ -21,5 +22,6 @@ namespace SalesManagement.Application.Common.Interfaces.IInvoice
         Task<bool> IsInvoicePendingAsync(int invoiceId);
         Task<InvoicePrintDto?> GetPrintDetailsAsync(int id);
         Task<InvoiceForEInvoiceDto?> GetInvoiceForEInvoiceAsync(int invoiceId);
+        Task<DispatchTrackingDetailsDto?> GetDispatchTrackingDetailsAsync(int salesOrderId, CancellationToken ct);
     }
 }

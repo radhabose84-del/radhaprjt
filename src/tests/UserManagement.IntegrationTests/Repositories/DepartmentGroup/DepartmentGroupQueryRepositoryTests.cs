@@ -69,11 +69,8 @@ namespace UserManagement.IntegrationTests.Repositories.DepartmentGroup
             return newId;
         }
 
-        private async Task ClearTestDataAsync(ApplicationDbContext ctx)
-        {
-            await ctx.Database.ExecuteSqlRawAsync(
-                "DELETE FROM AppData.DepartmentGroup WHERE DepartmentGroupCode LIKE 'DGQRY%'");
-        }
+        private async Task ClearTestDataAsync(ApplicationDbContext ctx) =>
+            await _fixture.ClearAllTablesAsync();
 
         // --- GET ALL ---
 

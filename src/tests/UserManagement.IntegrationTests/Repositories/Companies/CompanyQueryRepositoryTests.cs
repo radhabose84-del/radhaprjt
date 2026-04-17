@@ -106,12 +106,8 @@ namespace UserManagement.IntegrationTests.Repositories.Companies
             return await repo.CreateAsync(BuildCompany(name, legalName, gst, pan));
         }
 
-        private async Task ClearTestCompaniesAsync()
-        {
-            await using var ctx = CreateDbContext();
-            await ctx.Database.ExecuteSqlRawAsync(
-                "UPDATE AppData.Company SET IsDeleted = 1 WHERE 1=1");
-        }
+        private async Task ClearTestCompaniesAsync() =>
+            await _fixture.ClearAllTablesAsync();
 
         // --- GET ALL ---
 

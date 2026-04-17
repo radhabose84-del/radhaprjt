@@ -67,18 +67,29 @@ namespace UserManagement.IntegrationTests.Repositories.AdminSecuritySettings
                 IsDeleted = Enums.IsDelete.NotDeleted
             };
 
-        private async Task ClearTableAsync(ApplicationDbContext ctx)
+        private async Task ClearTableAsync(ApplicationDbContext ctx) =>
+            await _fixture.ClearAllTablesAsync();
+
+        private async Task<int> EnsureEntityAsync(ApplicationDbContext ctx)
         {
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM AppSecurity.AdminSecuritySettings");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM AppData.Entity");
-            // Re-seed Entity with Id=1 for FK_AdminSecuritySettings_Entity_EntityId
-            await ctx.Database.ExecuteSqlRawAsync(@"
-                SET IDENTITY_INSERT AppData.Entity ON;
-                INSERT INTO AppData.Entity (Id, EntityCode, EntityName, EntityDescription, Address, Phone, Email,
-                    IsActive, IsDeleted, CreatedBy, CreatedByName, CreatedIP, CreatedAt)
-                VALUES (1, 'TE', 'Test', 'Desc', 'Addr', '000', 'e@e.com',
-                    1, 0, 1, 'test', '127.0.0.1', SYSDATETIMEOFFSET());
-                SET IDENTITY_INSERT AppData.Entity OFF;");
+            var existing = await ctx.Entity.FirstOrDefaultAsync(e => e.EntityCode == "ASS_TEST_ENT" && e.IsDeleted == Enums.IsDelete.NotDeleted);
+            if (existing != null) return existing.Id;
+
+            var entity = new UserManagement.Domain.Entities.Entity
+            {
+                EntityCode = "ASS_TEST_ENT",
+                EntityName = "Test Entity for ASS",
+                EntityDescription = "Test Entity",
+                Address = "Test Address",
+                Phone = "1234567890",
+                Email = "test@test.com",
+                IsActive = Enums.Status.Active,
+                IsDeleted = Enums.IsDelete.NotDeleted
+            };
+            await ctx.Entity.AddAsync(entity);
+            await ctx.SaveChangesAsync();
+            ctx.ChangeTracker.Clear();
+            return entity.Id;
         }
 
         [Fact]
@@ -87,6 +98,8 @@ namespace UserManagement.IntegrationTests.Repositories.AdminSecuritySettings
             var (ctx, ip) = CreateDbContext();
             await using var _ = ctx;
             await ClearTableAsync(ctx);
+            var entityId = await EnsureEntityAsync(ctx);
+            ip.Setup(x => x.GetEntityId()).Returns(entityId);
 
             var repo = CreateRepository(ctx, ip.Object);
             var result = await repo.CreateAsync(BuildEntity());
@@ -101,6 +114,8 @@ namespace UserManagement.IntegrationTests.Repositories.AdminSecuritySettings
             var (ctx, ip) = CreateDbContext();
             await using var _ = ctx;
             await ClearTableAsync(ctx);
+            var entityId = await EnsureEntityAsync(ctx);
+            ip.Setup(x => x.GetEntityId()).Returns(entityId);
 
             var repo = CreateRepository(ctx, ip.Object);
             var created = await repo.CreateAsync(BuildEntity(
@@ -125,6 +140,8 @@ namespace UserManagement.IntegrationTests.Repositories.AdminSecuritySettings
             var (ctx, ip) = CreateDbContext();
             await using var _ = ctx;
             await ClearTableAsync(ctx);
+            var entityId = await EnsureEntityAsync(ctx);
+            ip.Setup(x => x.GetEntityId()).Returns(entityId);
 
             var repo = CreateRepository(ctx, ip.Object);
             var created = await repo.CreateAsync(BuildEntity());
@@ -133,8 +150,8 @@ namespace UserManagement.IntegrationTests.Repositories.AdminSecuritySettings
             var saved = await ctx.AdminSecuritySettings.FirstOrDefaultAsync(x => x.Id == created.Id);
 
             saved.Should().NotBeNull();
-            // Matches what our mock returned (1)
-            saved!.EntityId.Should().Be(1);
+            // Matches what our mock returned
+            saved!.EntityId.Should().Be(entityId);
         }
 
         [Fact]
@@ -143,6 +160,8 @@ namespace UserManagement.IntegrationTests.Repositories.AdminSecuritySettings
             var (ctx, ip) = CreateDbContext();
             await using var _ = ctx;
             await ClearTableAsync(ctx);
+            var entityId = await EnsureEntityAsync(ctx);
+            ip.Setup(x => x.GetEntityId()).Returns(entityId);
 
             var repo = CreateRepository(ctx, ip.Object);
             var created = await repo.CreateAsync(BuildEntity(passwordHistoryCount: 5));
@@ -181,6 +200,8 @@ namespace UserManagement.IntegrationTests.Repositories.AdminSecuritySettings
             var (ctx, ip) = CreateDbContext();
             await using var _ = ctx;
             await ClearTableAsync(ctx);
+            var entityId = await EnsureEntityAsync(ctx);
+            ip.Setup(x => x.GetEntityId()).Returns(entityId);
 
             var repo = CreateRepository(ctx, ip.Object);
             var created = await repo.CreateAsync(BuildEntity());
