@@ -52,17 +52,8 @@ namespace BudgetManagement.IntegrationTests.Repositories.MiscMaster
             return entity.Id;
         }
 
-        private async Task ClearTablesAsync()
-        {
-            await using var conn = new SqlConnection(_fixture.ConnectionString);
-            await conn.OpenAsync();
-            // Delete in FK-dependency order: children first
-            await conn.ExecuteAsync("DELETE FROM Budget.BudgetAllocation");
-            await conn.ExecuteAsync("DELETE FROM Budget.BudgetRequest");
-            await conn.ExecuteAsync("DELETE FROM Budget.BudgetGroup");
-            await conn.ExecuteAsync("DELETE FROM Budget.MiscMaster");
-            await conn.ExecuteAsync("DELETE FROM Budget.MiscTypeMaster");
-        }
+        private async Task ClearTablesAsync() =>
+            await _fixture.ClearAllTablesAsync();
 
         // --- GET ALL ---
 

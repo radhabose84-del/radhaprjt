@@ -33,17 +33,8 @@ namespace PurchaseManagement.IntegrationTests.Repositories.PaymentTermMaster
                 IsDeleted = IsDelete.NotDeleted
             };
 
-        private async Task ClearTablesAsync(ApplicationDbContext ctx)
-        {
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Purchase.PaymentTermInstallment");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Purchase.PaymentTermMaster");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Purchase.PortMaster");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Purchase.DutyMaster");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Purchase.PriceMasterDetail");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Purchase.PriceMasterHeader");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Purchase.MiscMaster");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Purchase.MiscTypeMaster");
-        }
+        private async Task ClearTablesAsync(ApplicationDbContext ctx) =>
+            await _fixture.ClearAllTablesAsync();
 
         private async Task<int> SeedBaselineTypeAsync(ApplicationDbContext ctx)
         {

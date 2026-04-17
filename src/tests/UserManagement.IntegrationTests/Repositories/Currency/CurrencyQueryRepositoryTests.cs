@@ -70,11 +70,8 @@ namespace UserManagement.IntegrationTests.Repositories.Currency
             });
         }
 
-        private async Task ClearTableAsync()
-        {
-            await using var ctx = CreateDbContext();
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM AppData.Currency");
-        }
+        private async Task ClearTableAsync() =>
+            await _fixture.ClearAllTablesAsync();
 
         // --- GET ALL ---
 

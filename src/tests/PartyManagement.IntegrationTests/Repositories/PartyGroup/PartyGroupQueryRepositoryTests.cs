@@ -76,14 +76,7 @@ namespace PartyManagement.IntegrationTests.Repositories.PartyGroup
             });
         }
 
-        private async Task ClearTablesAsync()
-        {
-            await using var conn = new SqlConnection(_fixture.ConnectionString);
-            await conn.OpenAsync();
-            await conn.ExecuteAsync("DELETE FROM [Party].[PartyGroup]");
-            await conn.ExecuteAsync("DELETE FROM [Party].[MiscMaster]");
-            await conn.ExecuteAsync("DELETE FROM [Party].[MiscTypeMaster]");
-        }
+        private async Task ClearTablesAsync() => await _fixture.ClearAllTablesAsync();
 
         // --- GET ALL ---
 

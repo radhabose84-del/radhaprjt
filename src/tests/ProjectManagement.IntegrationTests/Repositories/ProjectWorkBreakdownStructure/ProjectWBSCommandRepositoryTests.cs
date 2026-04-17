@@ -62,11 +62,8 @@ namespace ProjectManagement.IntegrationTests.Repositories.ProjectWorkBreakdownSt
                 IsDeleted = BaseEntity.IsDelete.NotDeleted
             };
 
-        private async Task ClearTablesAsync(ProjectManagement.Infrastructure.Data.ApplicationDbContext ctx)
-        {
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Project].[ProjectWorkBreakdownStructure]");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Project].[ProjectMaster]");
-        }
+        private async Task ClearTablesAsync(ProjectManagement.Infrastructure.Data.ApplicationDbContext ctx) =>
+            await _fixture.ClearAllTablesAsync();
 
         // --- ADD ---
 

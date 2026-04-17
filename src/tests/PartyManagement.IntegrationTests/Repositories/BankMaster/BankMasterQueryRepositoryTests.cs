@@ -34,13 +34,7 @@ namespace PartyManagement.IntegrationTests.Repositories.BankMaster
             }, CancellationToken.None);
         }
 
-        private async Task ClearTableAsync()
-        {
-            await using var conn = new SqlConnection(_fixture.ConnectionString);
-            await conn.OpenAsync();
-            await conn.ExecuteAsync("DELETE FROM [Party].[BankAccount]");
-            await conn.ExecuteAsync("DELETE FROM [Party].[BankMaster]");
-        }
+        private async Task ClearTableAsync() => await _fixture.ClearAllTablesAsync();
 
         // --- GET ALL ---
 

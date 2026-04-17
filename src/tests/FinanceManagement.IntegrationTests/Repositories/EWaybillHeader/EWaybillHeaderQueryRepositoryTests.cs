@@ -99,13 +99,8 @@ namespace FinanceManagement.IntegrationTests.Repositories.EWaybillHeader
             });
         }
 
-        private async Task ClearTablesAsync()
-        {
-            await using var conn = new SqlConnection(_fixture.ConnectionString);
-            await conn.OpenAsync();
-            await conn.ExecuteAsync("DELETE FROM [Finance].[EWaybillDetail]");
-            await conn.ExecuteAsync("DELETE FROM [Finance].[EWaybillHeader]");
-        }
+        private async Task ClearTablesAsync() =>
+            await _fixture.ClearAllTablesAsync();
 
         // --- GET ALL ---
 

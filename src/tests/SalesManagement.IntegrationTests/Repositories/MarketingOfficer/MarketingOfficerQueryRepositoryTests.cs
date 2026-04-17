@@ -88,13 +88,8 @@ namespace SalesManagement.IntegrationTests.Repositories.MarketingOfficer
             _salesGroupId = group.Id;
         }
 
-        private async Task ClearMarketingOfficerTablesAsync()
-        {
-            await using var cnn = new SqlConnection(_fixture.ConnectionString);
-            await cnn.OpenAsync();
-            await cnn.ExecuteAsync("DELETE FROM Sales.OfficerSalesGroup");
-            await cnn.ExecuteAsync("DELETE FROM Sales.MarketingOfficer");
-        }
+        private async Task ClearMarketingOfficerTablesAsync() =>
+            await _fixture.ClearTablesAsync("Sales.OfficerSalesGroup", "Sales.MarketingOfficer");
 
         private async Task<int> SeedEntityAsync(
             string employeeNo = "QRY001",

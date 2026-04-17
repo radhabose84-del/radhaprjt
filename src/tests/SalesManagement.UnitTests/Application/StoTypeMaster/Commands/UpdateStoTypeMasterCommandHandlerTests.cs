@@ -9,11 +9,12 @@ namespace SalesManagement.UnitTests.Application.StoTypeMaster.Commands;
 public class UpdateStoTypeMasterCommandHandlerTests
 {
     private readonly Mock<IStoTypeMasterCommandRepository> _mockCommandRepo = new(MockBehavior.Strict);
+    private readonly Mock<IStoTypeMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
     private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Strict);
     private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Strict);
 
     private UpdateStoTypeMasterCommandHandler CreateSut() =>
-        new(_mockCommandRepo.Object, _mockMediator.Object, _mockMapper.Object);
+        new(_mockCommandRepo.Object, _mockQueryRepo.Object, _mockMediator.Object, _mockMapper.Object);
 
     private void SetupMapper()
     {

@@ -17,6 +17,7 @@ public sealed class UpdateComplaintDepartmentFeedbackCommandValidatorTests
     {
         _mockQueryRepo.Setup(r => r.NotFoundAsync(id)).ReturnsAsync(false);
         _mockQueryRepo.Setup(r => r.MiscMasterExistsAsync(It.IsAny<int>())).ReturnsAsync(true);
+        _mockQueryRepo.Setup(r => r.IsQCApprovedForFeedbackAsync(It.IsAny<int>())).ReturnsAsync(true);
     }
 
     [Fact]
@@ -40,6 +41,7 @@ public sealed class UpdateComplaintDepartmentFeedbackCommandValidatorTests
     {
         _mockQueryRepo.Setup(r => r.NotFoundAsync(99)).ReturnsAsync(true);
         _mockQueryRepo.Setup(r => r.MiscMasterExistsAsync(It.IsAny<int>())).ReturnsAsync(true);
+        _mockQueryRepo.Setup(r => r.IsQCApprovedForFeedbackAsync(It.IsAny<int>())).ReturnsAsync(true);
 
         var command = new UpdateComplaintDepartmentFeedbackCommand
         {

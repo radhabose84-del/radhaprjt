@@ -58,11 +58,8 @@ namespace UserManagement.IntegrationTests.Repositories.MiscTypeMaster
                 IsDeleted = Enums.IsDelete.NotDeleted
             };
 
-        private async Task ClearTestDataAsync(ApplicationDbContext ctx)
-        {
-            await ctx.Database.ExecuteSqlRawAsync(
-                "DELETE FROM AppData.MiscTypeMaster WHERE MiscTypeCode LIKE 'MTM_TST%' OR MiscTypeCode LIKE 'MTM_UPD%'");
-        }
+        private async Task ClearTestDataAsync(ApplicationDbContext ctx) =>
+            await _fixture.ClearAllTablesAsync();
 
         // --- CREATE ---
 

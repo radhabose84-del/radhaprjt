@@ -63,11 +63,8 @@ namespace UserManagement.IntegrationTests.Repositories.Language
             return created.Id;
         }
 
-        private async Task ClearTableAsync()
-        {
-            await using var ctx = CreateDbContext();
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM AppData.Language");
-        }
+        private async Task ClearTableAsync() =>
+            await _fixture.ClearAllTablesAsync();
 
         // --- GET ALL ---
 

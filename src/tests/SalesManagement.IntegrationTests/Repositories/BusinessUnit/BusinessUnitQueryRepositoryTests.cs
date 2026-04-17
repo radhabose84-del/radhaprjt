@@ -51,14 +51,8 @@ namespace SalesManagement.IntegrationTests.Repositories.BusinessUnit
                 IsDeleted = IsDelete.NotDeleted
             };
 
-        private async Task ClearTableAsync()
-        {
-            await using var cnn = OpenConnection();
-            await cnn.OpenAsync();
-            await cnn.ExecuteAsync("DELETE FROM Sales.ItemPriceMaster");
-            await cnn.ExecuteAsync("DELETE FROM Sales.SalesSegment");
-            await cnn.ExecuteAsync("DELETE FROM Sales.BusinessUnit");
-        }
+        private async Task ClearTableAsync() =>
+            await _fixture.ClearTablesAsync("Sales.BusinessUnit");
 
         private async Task<int> SeedEntityAsync(Domain.Entities.BusinessUnit entity)
         {

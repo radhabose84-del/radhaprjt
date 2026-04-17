@@ -85,11 +85,8 @@ namespace UserManagement.IntegrationTests.Repositories.RoleItemGroupMapping
             return created.Id;
         }
 
-        private async Task ClearMappingsAsync(ApplicationDbContext ctx, int roleId)
-        {
-            await ctx.Database.ExecuteSqlRawAsync(
-                $"DELETE FROM AppSecurity.RoleItemGroupMapping WHERE RoleId = {roleId}");
-        }
+        private async Task ClearMappingsAsync(ApplicationDbContext ctx, int roleId) =>
+            await _fixture.ClearAllTablesAsync();
 
         // --- GET BY ID ---
 
@@ -97,8 +94,8 @@ namespace UserManagement.IntegrationTests.Repositories.RoleItemGroupMapping
         public async Task GetByIdAsync_Should_Return_Correct_Entity()
         {
             await using var ctx = CreateDbContext();
+            await ClearMappingsAsync(ctx, 0);
             var roleId = await EnsureRoleAsync(ctx, "TestRole_RIGM_Q_GetById");
-            await ClearMappingsAsync(ctx, roleId);
             var id = await SeedMappingAsync(ctx, roleId, itemGroupId: 5);
 
             await using var queryCtx = CreateDbContext();
@@ -123,8 +120,8 @@ namespace UserManagement.IntegrationTests.Repositories.RoleItemGroupMapping
         public async Task GetByIdAsync_Should_Return_Null_When_SoftDeleted()
         {
             await using var ctx = CreateDbContext();
+            await ClearMappingsAsync(ctx, 0);
             var roleId = await EnsureRoleAsync(ctx, "TestRole_RIGM_Q_SoftDel");
-            await ClearMappingsAsync(ctx, roleId);
             var id = await SeedMappingAsync(ctx, roleId, itemGroupId: 1);
 
             var cmdRepo = new RoleItemGroupMappingCommandRepository(ctx);
@@ -146,8 +143,8 @@ namespace UserManagement.IntegrationTests.Repositories.RoleItemGroupMapping
         public async Task GetAllAsync_Should_Return_Paginated_Results()
         {
             await using var ctx = CreateDbContext();
+            await ClearMappingsAsync(ctx, 0);
             var roleId = await EnsureRoleAsync(ctx, "TestRole_RIGM_Q_GetAll");
-            await ClearMappingsAsync(ctx, roleId);
             await SeedMappingAsync(ctx, roleId, itemGroupId: 1);
             await SeedMappingAsync(ctx, roleId, itemGroupId: 2);
 
@@ -164,8 +161,8 @@ namespace UserManagement.IntegrationTests.Repositories.RoleItemGroupMapping
         public async Task GetAllAsync_Should_Exclude_SoftDeleted()
         {
             await using var ctx = CreateDbContext();
+            await ClearMappingsAsync(ctx, 0);
             var roleId = await EnsureRoleAsync(ctx, "TestRole_RIGM_Q_Exclude");
-            await ClearMappingsAsync(ctx, roleId);
             var id = await SeedMappingAsync(ctx, roleId, itemGroupId: 3);
 
             var cmdRepo = new RoleItemGroupMappingCommandRepository(ctx);
@@ -185,8 +182,8 @@ namespace UserManagement.IntegrationTests.Repositories.RoleItemGroupMapping
         public async Task GetAllAsync_Should_Filter_By_SearchTerm()
         {
             await using var ctx = CreateDbContext();
+            await ClearMappingsAsync(ctx, 0);
             var roleId = await EnsureRoleAsync(ctx, "TestRole_RIGM_Q_Search_Uniq");
-            await ClearMappingsAsync(ctx, roleId);
             await SeedMappingAsync(ctx, roleId, itemGroupId: 10);
 
             await using var queryCtx = CreateDbContext();
@@ -202,8 +199,8 @@ namespace UserManagement.IntegrationTests.Repositories.RoleItemGroupMapping
         public async Task GetByRoleIdAsync_Should_Return_Active_Mappings()
         {
             await using var ctx = CreateDbContext();
+            await ClearMappingsAsync(ctx, 0);
             var roleId = await EnsureRoleAsync(ctx, "TestRole_RIGM_Q_ByRole");
-            await ClearMappingsAsync(ctx, roleId);
             await SeedMappingAsync(ctx, roleId, itemGroupId: 1);
             await SeedMappingAsync(ctx, roleId, itemGroupId: 2);
 
@@ -219,8 +216,8 @@ namespace UserManagement.IntegrationTests.Repositories.RoleItemGroupMapping
         public async Task GetByRoleIdAsync_Should_Exclude_Inactive()
         {
             await using var ctx = CreateDbContext();
+            await ClearMappingsAsync(ctx, 0);
             var roleId = await EnsureRoleAsync(ctx, "TestRole_RIGM_Q_Inactive");
-            await ClearMappingsAsync(ctx, roleId);
 
             var cmdRepo = new RoleItemGroupMappingCommandRepository(ctx);
             await cmdRepo.CreateAsync(new Domain.Entities.RoleItemGroupMapping
@@ -244,8 +241,8 @@ namespace UserManagement.IntegrationTests.Repositories.RoleItemGroupMapping
         public async Task NotFoundAsync_Should_Return_False_When_Entity_Exists()
         {
             await using var ctx = CreateDbContext();
+            await ClearMappingsAsync(ctx, 0);
             var roleId = await EnsureRoleAsync(ctx, "TestRole_RIGM_Q_NotFound");
-            await ClearMappingsAsync(ctx, roleId);
             var id = await SeedMappingAsync(ctx, roleId, itemGroupId: 1);
 
             await using var queryCtx = CreateDbContext();

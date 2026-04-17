@@ -35,7 +35,7 @@ namespace PurchaseManagement.IntegrationTests.Repositories.PortMaster
             };
 
         private async Task ClearTableAsync(PurchaseManagement.Infrastructure.Data.ApplicationDbContext ctx) =>
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Purchase.PortMaster");
+            await _fixture.ClearAllTablesAsync();
 
         // --- CREATE ---
 

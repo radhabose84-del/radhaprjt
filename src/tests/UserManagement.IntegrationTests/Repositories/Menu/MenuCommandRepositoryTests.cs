@@ -74,11 +74,8 @@ namespace UserManagement.IntegrationTests.Repositories.Menu
                 IsDeleted = Enums.IsDelete.NotDeleted
             };
 
-        private async Task ClearTablesAsync(ApplicationDbContext ctx)
-        {
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM AppData.Menus");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM AppData.Modules");
-        }
+        private async Task ClearTablesAsync(ApplicationDbContext ctx) =>
+            await _fixture.ClearAllTablesAsync();
 
         [Fact]
         public async Task CreateAsync_Should_Return_NewId_GreaterThanZero()

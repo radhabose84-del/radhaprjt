@@ -1,0 +1,214 @@
+using Microsoft.EntityFrameworkCore;
+using SalesManagement.Infrastructure.Data;
+using SalesManagement.Infrastructure.Repositories.AgentCustomerMapping;
+using SalesManagement.IntegrationTests.Common;
+using static SalesManagement.Domain.Common.BaseEntity;
+
+namespace SalesManagement.IntegrationTests.Repositories.AgentCustomerMapping
+{
+    [Collection("DatabaseCollection")]
+    public sealed class AgentCustomerMappingCommandRepositoryTests
+    {
+        private readonly DbFixture _fixture;
+        public AgentCustomerMappingCommandRepositoryTests(DbFixture fixture) => _fixture = fixture;
+
+        private AgentCustomerMappingCommandRepository CreateRepo(ApplicationDbContext ctx) => new(ctx);
+
+        private async Task<int> EnsureSalesSegmentAsync()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+
+            var org = await ctx.SalesOrganisation.IgnoreQueryFilters()
+                .FirstOrDefaultAsync(x => x.SalesOrganisationCode == "ACMSO");
+            if (org == null)
+            {
+                org = new SalesManagement.Domain.Entities.SalesOrganisation
+                {
+                    SalesOrganisationCode = "ACMSO", SalesOrganisationName = "ACM Org",
+                    CompanyId = 1, IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted
+                };
+                await ctx.SalesOrganisation.AddAsync(org);
+                await ctx.SaveChangesAsync();
+            }
+
+            var ch = await ctx.SalesChannel.IgnoreQueryFilters()
+                .FirstOrDefaultAsync(x => x.SalesChannelCode == "ACMSC");
+            if (ch == null)
+            {
+                ch = new SalesManagement.Domain.Entities.SalesChannel
+                {
+                    SalesChannelCode = "ACMSC", SalesChannelName = "ACM Channel",
+                    IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted
+                };
+                await ctx.SalesChannel.AddAsync(ch);
+                await ctx.SaveChangesAsync();
+            }
+
+            var bu = await ctx.BusinessUnit.IgnoreQueryFilters()
+                .FirstOrDefaultAsync(x => x.BusinessUnitCode == "ACMBU");
+            if (bu == null)
+            {
+                bu = new SalesManagement.Domain.Entities.BusinessUnit
+                {
+                    BusinessUnitCode = "ACMBU", BusinessUnitName = "ACM BU",
+                    Description = "ACM BU", IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted
+                };
+                await ctx.BusinessUnit.AddAsync(bu);
+                await ctx.SaveChangesAsync();
+            }
+
+            var existing = await ctx.SalesSegment.IgnoreQueryFilters()
+                .FirstOrDefaultAsync(x => x.SalesOrganisationId == org.Id && x.SalesChannelId == ch.Id && x.BusinessUnitId == bu.Id);
+            if (existing != null) return existing.Id;
+
+            var s = new SalesManagement.Domain.Entities.SalesSegment
+            {
+                SalesOrganisationId = org.Id,
+                SalesChannelId = ch.Id,
+                BusinessUnitId = bu.Id,
+                SegmentName = "ACM Seg",
+                IsActive = Status.Active,
+                IsDeleted = IsDelete.NotDeleted
+            };
+            await ctx.SalesSegment.AddAsync(s);
+            await ctx.SaveChangesAsync();
+            return s.Id;
+        }
+
+        private async Task<SalesManagement.Domain.Entities.AgentCustomerMapping> BuildEntityAsync(
+            int customerId, int agentId, bool isDefault = false)
+        {
+            var segId = await EnsureSalesSegmentAsync();
+            return new SalesManagement.Domain.Entities.AgentCustomerMapping
+            {
+                CustomerId = customerId,
+                AgentId = agentId,
+                SalesSegmentId = segId,
+                EffectiveFrom = DateTime.UtcNow.Date,
+                IsDefaultAgent = isDefault,
+                Remarks = "test",
+                IsActive = Status.Active,
+                IsDeleted = IsDelete.NotDeleted
+            };
+        }
+
+        private async Task ClearAsync(ApplicationDbContext ctx) =>
+            await _fixture.ClearTablesAsync("Sales.AgentCustomerMapping");
+
+        [Fact]
+        public async Task CreateAsync_Should_Return_NewId()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            await ClearAsync(ctx);
+
+            var id = await CreateRepo(ctx).CreateAsync(await BuildEntityAsync(1, 10));
+
+            id.Should().BeGreaterThan(0);
+        }
+
+        [Fact]
+        public async Task CreateAsync_With_IsDefault_Should_Clear_Other_Defaults_For_Same_Customer()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            await ClearAsync(ctx);
+            var existingId = await CreateRepo(ctx).CreateAsync(await BuildEntityAsync(5, 100, isDefault: true));
+            ctx.ChangeTracker.Clear();
+
+            await CreateRepo(ctx).CreateAsync(await BuildEntityAsync(5, 200, isDefault: true));
+            ctx.ChangeTracker.Clear();
+
+            var oldDefault = await ctx.AgentCustomerMapping.FirstAsync(x => x.Id == existingId);
+            oldDefault.IsDefaultAgent.Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task CreateAsync_With_IsDefault_False_Should_Not_Clear_Other_Defaults()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            await ClearAsync(ctx);
+            var existingId = await CreateRepo(ctx).CreateAsync(await BuildEntityAsync(6, 300, isDefault: true));
+            ctx.ChangeTracker.Clear();
+
+            await CreateRepo(ctx).CreateAsync(await BuildEntityAsync(6, 400, isDefault: false));
+            ctx.ChangeTracker.Clear();
+
+            var stillDefault = await ctx.AgentCustomerMapping.FirstAsync(x => x.Id == existingId);
+            stillDefault.IsDefaultAgent.Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task UpdateAsync_Should_Persist_Changes()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            await ClearAsync(ctx);
+            var id = await CreateRepo(ctx).CreateAsync(await BuildEntityAsync(7, 700));
+            ctx.ChangeTracker.Clear();
+
+            var entity = await BuildEntityAsync(7, 700);
+            entity.Id = id;
+            entity.AgentId = 800;
+            entity.Remarks = "updated";
+            entity.IsActive = Status.Inactive;
+
+            var result = await CreateRepo(ctx).UpdateAsync(entity);
+            ctx.ChangeTracker.Clear();
+
+            result.Should().Be(id);
+            var reloaded = await ctx.AgentCustomerMapping.FirstAsync(x => x.Id == id);
+            reloaded.AgentId.Should().Be(800);
+            reloaded.Remarks.Should().Be("updated");
+            reloaded.IsActive.Should().Be(Status.Inactive);
+        }
+
+        [Fact]
+        public async Task UpdateAsync_Should_Return_Zero_When_NotFound()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+
+            var ghost = await BuildEntityAsync(99, 999);
+            ghost.Id = 9999999;
+
+            var result = await CreateRepo(ctx).UpdateAsync(ghost);
+
+            result.Should().Be(0);
+        }
+
+        [Fact]
+        public async Task SoftDeleteAsync_Should_Return_True_When_Successful()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            await ClearAsync(ctx);
+            var id = await CreateRepo(ctx).CreateAsync(await BuildEntityAsync(8, 80));
+            ctx.ChangeTracker.Clear();
+
+            var result = await CreateRepo(ctx).SoftDeleteAsync(id, CancellationToken.None);
+
+            result.Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task SoftDeleteAsync_Should_Flag_Record()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            await ClearAsync(ctx);
+            var id = await CreateRepo(ctx).CreateAsync(await BuildEntityAsync(9, 90));
+            ctx.ChangeTracker.Clear();
+
+            await CreateRepo(ctx).SoftDeleteAsync(id, CancellationToken.None);
+            ctx.ChangeTracker.Clear();
+
+            var reloaded = await ctx.AgentCustomerMapping.FirstAsync(x => x.Id == id);
+            reloaded.IsDeleted.Should().Be(IsDelete.Deleted);
+        }
+
+        [Fact]
+        public async Task SoftDeleteAsync_Should_Return_False_When_NotFound()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+
+            var result = await CreateRepo(ctx).SoftDeleteAsync(9999999, CancellationToken.None);
+
+            result.Should().BeFalse();
+        }
+    }
+}

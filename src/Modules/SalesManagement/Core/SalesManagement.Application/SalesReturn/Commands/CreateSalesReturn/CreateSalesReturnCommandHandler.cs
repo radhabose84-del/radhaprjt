@@ -108,7 +108,8 @@ namespace SalesManagement.Application.SalesReturn.Commands.CreateSalesReturn
                             TotalQty = 1,
                             TotalValue = 0,
                             StatusId = detail.BagStatusId,
-                            TypeId = typeId2
+                            TypeId = typeId2,
+                            SourceUnitId = unitId ?? 0
                         });
                     }
                 }

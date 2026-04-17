@@ -36,17 +36,8 @@ namespace PurchaseManagement.IntegrationTests.Repositories.MiscTypeMaster
             return result.Id;
         }
 
-        private async Task ClearTableAsync()
-        {
-            await using var conn = new SqlConnection(_fixture.ConnectionString);
-            await conn.OpenAsync();
-            await conn.ExecuteAsync("DELETE FROM Purchase.PortMaster");
-            await conn.ExecuteAsync("DELETE FROM Purchase.DutyMaster");
-            await conn.ExecuteAsync("DELETE FROM Purchase.PriceMasterDetail");
-            await conn.ExecuteAsync("DELETE FROM Purchase.PriceMasterHeader");
-            await conn.ExecuteAsync("DELETE FROM Purchase.MiscMaster");
-            await conn.ExecuteAsync("DELETE FROM [Purchase].[MiscTypeMaster]");
-        }
+        private async Task ClearTableAsync() =>
+            await _fixture.ClearAllTablesAsync();
 
         // --- GET ALL ---
 

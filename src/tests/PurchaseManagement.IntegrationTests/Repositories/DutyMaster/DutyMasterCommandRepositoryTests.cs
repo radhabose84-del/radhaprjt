@@ -43,11 +43,7 @@ namespace PurchaseManagement.IntegrationTests.Repositories.DutyMaster
         private async Task<(int miscTypeId, int miscId)> SeedPrerequisitesAsync(
             PurchaseManagement.Infrastructure.Data.ApplicationDbContext ctx)
         {
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Purchase.DutyMaster");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Purchase.PriceMasterDetail");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Purchase.PriceMasterHeader");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Purchase.MiscMaster");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Purchase.MiscTypeMaster");
+            await _fixture.ClearAllTablesAsync();
 
             var miscTypeRepo = new MiscTypeMasterCommandRepository(ctx);
             var miscType = new PurchaseManagement.Domain.Entities.MiscTypeMaster
@@ -144,7 +140,7 @@ namespace PurchaseManagement.IntegrationTests.Repositories.DutyMaster
         public async Task SoftDeleteAsync_Should_Return_False_When_NotFound()
         {
             await using var ctx = _fixture.CreateFreshDbContext();
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Purchase.DutyMaster");
+            await _fixture.ClearAllTablesAsync();
 
             var result = await CreateRepository(ctx).SoftDeleteAsync(9999, CancellationToken.None);
 

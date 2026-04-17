@@ -62,6 +62,41 @@ namespace InventoryManagement.UnitTests.Application.ItemCategory.Commands
         }
 
         [Fact]
+        public async Task Handle_ValidCommand_AuditEvent_HasExactFieldValues()
+        {
+            // Arrange — mapper returns entity with known Id+Name so audit Details is predictable
+            var mappedEntity = new InventoryManagement.Domain.Entities.Item.ItemCategory
+            {
+                Id = 456,
+                ItemCategoryName = "Exact Update Test"
+            };
+            _mockMapper.Setup(m => m.Map<InventoryManagement.Domain.Entities.Item.ItemCategory>(
+                It.IsAny<UpdateItemCategoryCommand>())).Returns(mappedEntity);
+
+            _mockCommandRepo.Setup(r => r.UpdateAsync(
+                It.IsAny<int>(),
+                It.IsAny<InventoryManagement.Domain.Entities.Item.ItemCategory>(),
+                It.IsAny<List<int>>())).ReturnsAsync(1);
+
+            _mockMediator.Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
+
+            // Act
+            await CreateSut().Handle(ValidCommand(), CancellationToken.None);
+
+            // Assert — exact field values (mirrors handler source lines 38-43)
+            _mockMediator.Verify(m => m.Publish(
+                It.Is<AuditLogsDomainEvent>(e =>
+                    e.ActionDetail == "Update" &&
+                    e.ActionCode == "456" &&
+                    e.ActionName == "Exact Update Test" &&
+                    e.Details == "Notification Config was updated" &&
+                    e.Module == "NotificationConfig"),
+                It.IsAny<CancellationToken>()),
+                Times.Once);
+        }
+
+        [Fact]
         public async Task Handle_UpdateReturnsZero_ThrowsExceptionRules()
         {
             _mockMapper.Setup(m => m.Map<InventoryManagement.Domain.Entities.Item.ItemCategory>(

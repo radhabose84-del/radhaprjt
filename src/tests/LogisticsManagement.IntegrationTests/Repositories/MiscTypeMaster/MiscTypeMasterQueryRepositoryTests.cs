@@ -36,15 +36,8 @@ namespace LogisticsManagement.IntegrationTests.Repositories.MiscTypeMaster
             });
         }
 
-        private async Task ClearTableAsync()
-        {
-            await using var conn = new SqlConnection(_fixture.ConnectionString);
-            await conn.OpenAsync();
-            // Clear FreightMaster first (FK to MiscMaster), then MiscMaster (FK to MiscTypeMaster), then MiscTypeMaster
-            await conn.ExecuteAsync("DELETE FROM Logistics.FreightMaster");
-            await conn.ExecuteAsync("DELETE FROM Logistics.MiscMaster");
-            await conn.ExecuteAsync("DELETE FROM Logistics.MiscTypeMaster");
-        }
+        private async Task ClearTableAsync() =>
+            await _fixture.ClearAllTablesAsync();
 
         // --- GET ALL ---
 

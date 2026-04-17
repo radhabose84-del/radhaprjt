@@ -10,12 +10,14 @@ namespace SalesManagement.UnitTests.Application.SalesSegment.Commands
     public class UpdateSalesSegmentCommandHandlerTests
     {
         private readonly Mock<ISalesSegmentCommandRepository> _mockCommandRepo = new(MockBehavior.Strict);
+        private readonly Mock<ISalesSegmentQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Strict);
         private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Strict);
 
         private UpdateSalesSegmentCommandHandler CreateSut() =>
             new UpdateSalesSegmentCommandHandler(
                 _mockCommandRepo.Object,
+                _mockQueryRepo.Object,
                 _mockMediator.Object,
                 _mockMapper.Object);
 

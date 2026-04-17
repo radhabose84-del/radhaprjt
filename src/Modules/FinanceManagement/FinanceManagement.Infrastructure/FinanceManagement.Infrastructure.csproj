@@ -27,4 +27,10 @@
     <ProjectReference Include="..\Core\FinanceManagement.Application\FinanceManagement.Application.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>FinanceManagement.IntegrationTests</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+
 </Project>

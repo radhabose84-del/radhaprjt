@@ -71,11 +71,8 @@ namespace UserManagement.IntegrationTests.Repositories.FinancialYear
             return result.Id;
         }
 
-        private async Task ClearTestDataAsync(ApplicationDbContext ctx)
-        {
-            await ctx.Database.ExecuteSqlRawAsync(
-                "DELETE FROM AppData.FinancialYear WHERE FinYearName LIKE 'FY-QRY-%'");
-        }
+        private async Task ClearTestDataAsync(ApplicationDbContext ctx) =>
+            await _fixture.ClearAllTablesAsync();
 
         // --- GET ALL ---
 

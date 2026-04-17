@@ -95,10 +95,8 @@ namespace UserManagement.IntegrationTests.Repositories.AdminSecuritySettings
             return newEntity.Id;
         }
 
-        private async Task ClearTableAsync(ApplicationDbContext ctx)
-        {
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM AppSecurity.AdminSecuritySettings");
-        }
+        private async Task ClearTableAsync(ApplicationDbContext ctx) =>
+            await _fixture.ClearAllTablesAsync();
 
         private async Task<int> SeedSettingsAsync(int passwordHistoryCount = 5)
         {

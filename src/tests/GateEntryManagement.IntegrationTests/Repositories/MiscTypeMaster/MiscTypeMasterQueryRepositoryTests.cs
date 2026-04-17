@@ -31,16 +31,8 @@ namespace GateEntryManagement.IntegrationTests.Repositories.MiscTypeMaster
             });
         }
 
-        private async Task ClearTableAsync()
-        {
-            await using var conn = new SqlConnection(_fixture.ConnectionString);
-            await conn.OpenAsync();
-            await conn.ExecuteAsync(@"
-                DELETE FROM Gate.GateInwardDtl; DELETE FROM Gate.GateInwardHdr;
-                DELETE FROM Gate.GatePassDtl; DELETE FROM Gate.GatePassHdr;
-                DELETE FROM Gate.VehicleMovementRecord;
-                DELETE FROM Gate.MiscMaster; DELETE FROM Gate.MiscTypeMaster;");
-        }
+        private async Task ClearTableAsync() =>
+            await _fixture.ClearAllTablesAsync();
 
         [Fact]
         public async Task GetAllAsync_Should_Return_Seeded_Record()
