@@ -32,6 +32,7 @@ namespace SalesManagement.Application.Invoice.Queries.GetInvoicePending
         public decimal Freight { get; set; }
         public decimal Insurance { get; set; }
         public decimal HandlingCharge { get; set; }
+        public decimal TotalCharity { get; set; }
         public decimal OtherCharges { get; set; }
         public decimal CGST { get; set; }
         public decimal SGST { get; set; }
@@ -81,6 +82,8 @@ namespace SalesManagement.Application.Invoice.Queries.GetInvoicePending
             public string? PackTypeName { get; set; }
             public int? UOMId { get; set; }
             public string? UOMName { get; set; }
+            public decimal Charity { get; set; }
+            public decimal HandlingCharges { get; set; }
             public decimal TotalAmount { get; set; }
         }
     }

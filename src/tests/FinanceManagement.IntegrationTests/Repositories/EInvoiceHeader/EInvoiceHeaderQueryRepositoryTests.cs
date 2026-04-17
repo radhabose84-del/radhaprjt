@@ -122,15 +122,8 @@ namespace FinanceManagement.IntegrationTests.Repositories.EInvoiceHeader
             return await repo.CreateAsync(entity);
         }
 
-        private async Task ClearTablesAsync()
-        {
-            await using var conn = new SqlConnection(_fixture.ConnectionString);
-            await conn.OpenAsync();
-            await conn.ExecuteAsync("DELETE FROM [Finance].[EInvoiceDetail]");
-            await conn.ExecuteAsync("DELETE FROM [Finance].[EWaybillDetail]");
-            await conn.ExecuteAsync("DELETE FROM [Finance].[EWaybillHeader]");
-            await conn.ExecuteAsync("DELETE FROM [Finance].[EInvoiceHeader]");
-        }
+        private async Task ClearTablesAsync() =>
+            await _fixture.ClearAllTablesAsync();
 
         // --- GET ALL ---
 

@@ -27,7 +27,7 @@ namespace ProductionManagement.IntegrationTests.Repositories.CertificationMaster
             };
 
         private async Task ClearTableAsync(ApplicationDbContext ctx) =>
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Production].[CertificationMaster]");
+            await _fixture.ClearAllTablesAsync();
 
         // --- CREATE ---
 

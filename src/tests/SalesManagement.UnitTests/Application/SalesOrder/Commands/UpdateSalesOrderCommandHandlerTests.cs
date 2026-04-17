@@ -48,7 +48,6 @@ public sealed class UpdateSalesOrderCommandHandlerTests
         SalesGroupId = 1,
         UnitId = 1,
         PartyId = 1,
-        PaymentTermsId = 1,
         FreightTypeId = 1,
         EnquiryType = 1,
         IsActive = 1

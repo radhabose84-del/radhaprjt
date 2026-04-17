@@ -24,6 +24,7 @@ namespace SalesManagement.Application.Invoice.Commands.UpdateInvoice
         public decimal Freight { get; set; }
         public decimal Insurance { get; set; }
         public decimal HandlingCharge { get; set; }
+        public decimal TotalCharity { get; set; }
         public decimal OtherCharges { get; set; }
         public decimal CGST { get; set; }
         public decimal SGST { get; set; }

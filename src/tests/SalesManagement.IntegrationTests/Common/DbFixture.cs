@@ -27,6 +27,66 @@ namespace SalesManagement.IntegrationTests.Common
 
         public string ConnectionString => _testDbConnection;
 
+        /// <summary>
+        /// Clears every Sales table that holds a FK to MiscMaster (directly or via a chain),
+        /// in FK-safe order, then deletes MiscMaster rows. Use from any test that needs a
+        /// clean MiscMaster state — e.g. MiscMaster / MiscTypeMaster tests.
+        /// </summary>
+        public async Task ClearAllMiscMasterDependentsAsync()
+        {
+            await using var cnn = new SqlConnection(_testDbConnection);
+            await cnn.OpenAsync();
+            await cnn.ExecuteAsync(@"
+                DELETE FROM Sales.AgentCommissionSlab;
+                DELETE FROM Sales.AgentCommissionPaymentTerm;
+                DELETE FROM Sales.AgentCommissionSalesGroup;
+                DELETE FROM Sales.AgentCommissionConfig;
+                DELETE FROM Sales.CommissionSplitDetail;
+                DELETE FROM Sales.CommissionSplit;
+
+                -- Transactional aggregates referencing MiscMaster (and their child rows)
+                DELETE FROM Sales.ComplaintQCReviewAssignment;
+                DELETE FROM Sales.SalesReturnDetail;
+                DELETE FROM Sales.SalesReturnHeader;
+                DELETE FROM Sales.ComplaintResolution;
+                DELETE FROM Sales.ComplaintHeader;
+                DELETE FROM Sales.ProformaInvoice;
+                DELETE FROM Sales.InvoiceDetail;
+                DELETE FROM Sales.InvoiceHeader;
+                DELETE FROM Sales.DispatchAdviceDetail;
+                DELETE FROM Sales.DispatchAdviceHeader;
+                DELETE FROM Sales.InvoiceHeader;
+                DELETE FROM Sales.SalesOrderAmendmentDetail;
+                DELETE FROM Sales.SalesOrderAmendmentHeader;
+                DELETE FROM Sales.SalesOrderDetail;
+                DELETE FROM Sales.SalesOrderHeader;
+                DELETE FROM Sales.SalesQuotationDetail;
+                DELETE FROM Sales.SalesQuotationHeader;
+
+                -- MarketingOfficer dependents populated by other test classes
+                DELETE FROM Sales.OfficerAgent;
+                DELETE FROM Sales.CustomerVisitProduct;
+                DELETE FROM Sales.CustomerVisit;
+                DELETE FROM Sales.DispatchAddressMapping;
+                DELETE FROM Sales.ItemPriceMaster;
+                DELETE FROM Sales.AgentCustomerMapping;
+                DELETE FROM Sales.SalesLead;
+                DELETE FROM Sales.SalesContact;
+
+                -- STO chain (references MovementTypeConfig → MiscMaster)
+                DELETE FROM Sales.StoReceiptDetail;
+                DELETE FROM Sales.StoReceiptHeader;
+                DELETE FROM Sales.DeliveryChallanDetail;
+                DELETE FROM Sales.DeliveryChallanHeader;
+                DELETE FROM Sales.StoDetail;
+                DELETE FROM Sales.StoHeader;
+                DELETE FROM Sales.StoTypeMaster;
+                DELETE FROM Sales.MovementTypeConfig;
+
+                DELETE FROM Sales.MiscMaster;
+            ");
+        }
+
         public ApplicationDbContext DbContext { get; private set; }
 
         private readonly Mock<IIPAddressService> _ip = new(MockBehavior.Loose);
@@ -161,6 +221,124 @@ END
                 .Options;
 
             return new ApplicationDbContext(options, ipMock.Object, tzMock.Object);
+        }
+
+        /// <summary>
+        /// Clears only the specified tables with FK constraints temporarily disabled.
+        /// Use this for tests that seed prerequisite data and only need to clear the entity under test.
+        /// </summary>
+        public async Task ClearTablesAsync(params string[] tableNames)
+        {
+            await using var conn = new SqlConnection(_testDbConnection);
+            await conn.OpenAsync();
+
+            var deleteSql = string.Join("\n", tableNames.Select(t => $"DELETE FROM {t};"));
+            var sql = $@"
+                DECLARE @d NVARCHAR(MAX)=N'',@e NVARCHAR(MAX)=N'';
+                SELECT @d+='ALTER TABLE '+QUOTENAME(s.name)+'.'+QUOTENAME(t.name)+' NOCHECK CONSTRAINT ALL;'
+                FROM sys.tables t JOIN sys.schemas s ON t.schema_id=s.schema_id WHERE s.name='Sales';
+                EXEC sp_executesql @d;
+
+                {deleteSql}
+
+                SET @e=N'';
+                SELECT @e+='ALTER TABLE '+QUOTENAME(s.name)+'.'+QUOTENAME(t.name)+' CHECK CONSTRAINT ALL;'
+                FROM sys.tables t JOIN sys.schemas s ON t.schema_id=s.schema_id WHERE s.name='Sales';
+                EXEC sp_executesql @e;
+            ";
+
+            await conn.ExecuteAsync(sql, commandTimeout: 60);
+        }
+
+        /// <summary>
+        /// Shared prerequisite table names that are excluded from ClearAllTablesAsync()
+        /// to avoid destroying reference data seeded by EnsurePrerequisitesAsync() in other test classes.
+        /// Tests that specifically test these entities should use ClearAllTablesIncludingPrerequisitesAsync().
+        /// </summary>
+        private static readonly string[] PrerequisiteTableNames =
+        {
+            "MiscTypeMaster", "MiscMaster", "SalesOrganisation", "SalesChannel", "BusinessUnit",
+            "SalesOffice", "SalesGroup", "SalesSegment"
+        };
+
+        /// <summary>
+        /// Clears all tables in the Sales schema EXCEPT shared prerequisite tables
+        /// (MiscTypeMaster, MiscMaster, SalesOrganisation, SalesChannel, BusinessUnit).
+        /// This prevents wiping reference data that other test classes seed via EnsurePrerequisitesAsync().
+        /// Use ClearAllTablesIncludingPrerequisitesAsync() for tests that specifically test those entities.
+        /// </summary>
+        public async Task ClearAllTablesAsync()
+        {
+            await using var conn = new SqlConnection(_testDbConnection);
+            await conn.OpenAsync();
+
+            var exclusionList = string.Join(",", PrerequisiteTableNames.Select(n => $"N'{n}'"));
+
+            var sql = $@"
+                DECLARE @disableSql NVARCHAR(MAX) = N'';
+                SELECT @disableSql += 'ALTER TABLE ' + QUOTENAME(s.name) + '.' + QUOTENAME(t.name)
+                    + ' NOCHECK CONSTRAINT ALL;' + CHAR(13)
+                FROM sys.tables t
+                JOIN sys.schemas s ON t.schema_id = s.schema_id
+                WHERE s.name = 'Sales';
+                EXEC sp_executesql @disableSql;
+
+                DECLARE @deleteSql NVARCHAR(MAX) = N'';
+                SELECT @deleteSql += 'DELETE FROM ' + QUOTENAME(s.name) + '.' + QUOTENAME(t.name) + ';' + CHAR(13)
+                FROM sys.tables t
+                JOIN sys.schemas s ON t.schema_id = s.schema_id
+                WHERE s.name = 'Sales'
+                  AND t.name NOT IN ({exclusionList});
+                EXEC sp_executesql @deleteSql;
+
+                DECLARE @enableSql NVARCHAR(MAX) = N'';
+                SELECT @enableSql += 'ALTER TABLE ' + QUOTENAME(s.name) + '.' + QUOTENAME(t.name)
+                    + ' CHECK CONSTRAINT ALL;' + CHAR(13)
+                FROM sys.tables t
+                JOIN sys.schemas s ON t.schema_id = s.schema_id
+                WHERE s.name = 'Sales';
+                EXEC sp_executesql @enableSql;
+            ";
+
+            await conn.ExecuteAsync(sql, commandTimeout: 60);
+        }
+
+        /// <summary>
+        /// Clears ALL tables in the Sales schema including shared prerequisite tables.
+        /// Use this ONLY in test classes that specifically test MiscTypeMaster, MiscMaster,
+        /// SalesOrganisation, SalesChannel, or BusinessUnit entities.
+        /// </summary>
+        public async Task ClearAllTablesIncludingPrerequisitesAsync()
+        {
+            await using var conn = new SqlConnection(_testDbConnection);
+            await conn.OpenAsync();
+
+            const string sql = @"
+                DECLARE @disableSql NVARCHAR(MAX) = N'';
+                SELECT @disableSql += 'ALTER TABLE ' + QUOTENAME(s.name) + '.' + QUOTENAME(t.name)
+                    + ' NOCHECK CONSTRAINT ALL;' + CHAR(13)
+                FROM sys.tables t
+                JOIN sys.schemas s ON t.schema_id = s.schema_id
+                WHERE s.name = 'Sales';
+                EXEC sp_executesql @disableSql;
+
+                DECLARE @deleteSql NVARCHAR(MAX) = N'';
+                SELECT @deleteSql += 'DELETE FROM ' + QUOTENAME(s.name) + '.' + QUOTENAME(t.name) + ';' + CHAR(13)
+                FROM sys.tables t
+                JOIN sys.schemas s ON t.schema_id = s.schema_id
+                WHERE s.name = 'Sales';
+                EXEC sp_executesql @deleteSql;
+
+                DECLARE @enableSql NVARCHAR(MAX) = N'';
+                SELECT @enableSql += 'ALTER TABLE ' + QUOTENAME(s.name) + '.' + QUOTENAME(t.name)
+                    + ' CHECK CONSTRAINT ALL;' + CHAR(13)
+                FROM sys.tables t
+                JOIN sys.schemas s ON t.schema_id = s.schema_id
+                WHERE s.name = 'Sales';
+                EXEC sp_executesql @enableSql;
+            ";
+
+            await conn.ExecuteAsync(sql, commandTimeout: 60);
         }
 
         public async Task DisposeAsync()

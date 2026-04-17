@@ -106,11 +106,8 @@ namespace UserManagement.IntegrationTests.Repositories.CustomFields
             return (miscType.Id, labelType.Id, dataType.Id);
         }
 
-        private async Task ClearTestDataAsync(ApplicationDbContext ctx)
-        {
-            await ctx.Database.ExecuteSqlRawAsync(
-                "DELETE FROM AppData.CustomField WHERE LabelName LIKE 'TestCF%'");
-        }
+        private async Task ClearTestDataAsync(ApplicationDbContext ctx) =>
+            await _fixture.ClearAllTablesAsync();
 
         // --- CREATE ---
 

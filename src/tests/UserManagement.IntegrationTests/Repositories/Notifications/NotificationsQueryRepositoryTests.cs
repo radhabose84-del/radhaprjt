@@ -55,22 +55,16 @@ namespace UserManagement.IntegrationTests.Repositories.Notifications
             return new NotificationsQueryRepository(conn, ipMock.Object);
         }
 
-        private async Task ClearCompanySettingAsync()
-        {
-            await using var ctx = CreateDbContext();
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM AppData.CompanySetting");
-        }
+        private async Task ClearCompanySettingAsync() =>
+            await _fixture.ClearAllTablesAsync();
 
-        private async Task ClearPasswordLogAsync()
-        {
-            await using var ctx = CreateDbContext();
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM AppSecurity.PasswordLog");
-        }
+        private async Task ClearPasswordLogAsync() =>
+            await _fixture.ClearAllTablesAsync();
 
         private async Task SeedCompanySettingAsync(int passwordExpiryDays, int passwordExpiryAlert, int forgotPasswordCodeExpiry, string suffix)
         {
             await using var ctx = CreateDbContext();
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM AppData.CompanySetting");
+            await _fixture.ClearAllTablesAsync();
 
             // Seed required parent FK rows (Currency, Language, FinancialYear, Company)
             var currency = new UserManagement.Domain.Entities.Currency

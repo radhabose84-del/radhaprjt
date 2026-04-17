@@ -32,6 +32,8 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             builder.Property(t => t.TaxAmount).HasColumnName("TaxAmount").HasColumnType("decimal(18,6)").IsRequired();
             builder.Property(t => t.PackTypeId).HasColumnName("PackTypeId").HasColumnType("int").IsRequired(false);
             builder.Property(t => t.UOMId).HasColumnName("UOMId").HasColumnType("int").IsRequired(false);
+            builder.Property(t => t.Charity).HasColumnName("Charity").HasColumnType("decimal(18,6)").IsRequired();
+            builder.Property(t => t.HandlingCharges).HasColumnName("HandlingCharges").HasColumnType("decimal(18,6)").IsRequired();
             builder.Property(t => t.TotalAmount).HasColumnName("TotalAmount").HasColumnType("decimal(18,6)").IsRequired();
 
             // Cross-module FKs (PackType, LotMaster) → ProductionManagement — no DB constraint

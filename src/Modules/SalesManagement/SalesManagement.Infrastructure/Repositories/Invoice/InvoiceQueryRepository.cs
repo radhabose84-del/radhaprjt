@@ -8,6 +8,7 @@ using Contracts.Interfaces.Lookups.Users;
 using Dapper;
 using SalesManagement.Application.Common.Interfaces.IInvoice;
 using SalesManagement.Application.Invoice.Dto;
+using SalesManagement.Application.Invoice.Queries.GetDispatchTrackingDetails;
 using SalesManagement.Application.Invoice.Queries.GetInvoiceGatePassPending;
 using SalesManagement.Application.Invoice.Queries.GetInvoicePending;
 using SalesManagement.Domain.Common;
@@ -103,7 +104,7 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                     sm.Description AS StatusName,
                     h.VehicleNumber, h.TransporterName, h.LRNumber, h.LRDate,
                     h.TotalBags, h.TotalWeight, h.TaxableValue, h.Discount,
-                    h.Freight, h.Insurance, h.HandlingCharge, h.OtherCharges,
+                    h.Freight, h.Insurance, h.HandlingCharge, h.TotalCharity, h.OtherCharges,
                     h.CGST, h.SGST, h.IGST, h.TaxAmount,
                     h.TCSPercentage, h.TCS, h.RoundOff,
                     h.InvoiceAmountBeforeTCS, h.InvoiceAmount,
@@ -158,6 +159,15 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                     item.UnitName           = unitDict.TryGetValue(item.UnitId, out var un) ? un : null;
                     item.FinancialYearName  = finYearDict.TryGetValue(item.FinancialYearId, out var fy) ? fy : null;
                     item.InvoiceTypeName    = invoiceTypeMap.TryGetValue(item.Id, out var itn) ? itn : null;
+
+                    if (!string.IsNullOrWhiteSpace(item.InvoiceNo))
+                    {
+                        var einvoice = await _eInvoiceLookup.GetByInvoiceAsync(item.InvoiceNo, item.UnitId);
+                        item.EInvoiceExists = einvoice != null;
+
+                        var ewaybill = await _eWaybillLookup.GetByInvoiceAsync(item.InvoiceNo, item.UnitId);
+                        item.EWaybillExists = ewaybill != null;
+                    }
                 }
             }
 
@@ -180,7 +190,7 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                     sm.Description AS StatusName,
                     h.VehicleNumber, h.TransporterName, h.LRNumber, h.LRDate,
                     h.TotalBags, h.TotalWeight, h.TaxableValue, h.Discount,
-                    h.Freight, h.Insurance, h.HandlingCharge, h.OtherCharges,
+                    h.Freight, h.Insurance, h.HandlingCharge, h.TotalCharity, h.OtherCharges,
                     h.CGST, h.SGST, h.IGST, h.TaxAmount,
                     h.TCSPercentage, h.TCS, h.RoundOff,
                     h.InvoiceAmountBeforeTCS, h.InvoiceAmount,
@@ -204,7 +214,7 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                     d.CgstPercentage, d.SgstPercentage, d.IgstPercentage,
                     d.CGST, d.SGST, d.IGST, d.TaxAmount,
                     d.PackTypeId,
-                    d.UOMId, d.TotalAmount
+                    d.UOMId, d.Charity, d.HandlingCharges, d.TotalAmount
                 FROM Sales.InvoiceDetail d
                 WHERE d.InvoiceHeaderId = @HeaderId
                 ORDER BY d.ItemSno";
@@ -421,6 +431,7 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                         h.Freight,
                         h.Insurance,
                         h.HandlingCharge,
+                        h.TotalCharity,
                         h.OtherCharges,
                         h.CGST,
                         h.SGST,
@@ -455,6 +466,8 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                         d.TaxAmount          AS TaxAmount_Detail,
                         d.PackTypeId,
                         d.UOMId,
+                        d.Charity,
+                        d.HandlingCharges,
                         d.TotalAmount
                     FROM Sales.InvoiceHeader h
                     JOIN Sales.InvoiceDetail d ON d.InvoiceHeaderId = h.Id
@@ -485,7 +498,7 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                     TransportMode, TransportModeName, StatusId, StatusName,
                     VehicleNumber, TransporterName, LRNumber, LRDate,
                     TotalBags, TotalWeight, TaxableValue, Discount,
-                    Freight, Insurance, HandlingCharge, OtherCharges,
+                    Freight, Insurance, HandlingCharge, TotalCharity, OtherCharges,
                     CGST, SGST, IGST, TaxAmount,
                     TCSPercentage, TCS, RoundOff,
                     InvoiceAmountBeforeTCS, InvoiceAmount, Remarks,
@@ -516,7 +529,7 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                     p.StatusId, p.StatusName,
                     p.VehicleNumber, p.TransporterName, p.LRNumber, p.LRDate,
                     p.TotalBags, p.TotalWeight, p.TaxableValue, p.Discount,
-                    p.Freight, p.Insurance, p.HandlingCharge, p.OtherCharges,
+                    p.Freight, p.Insurance, p.HandlingCharge, p.TotalCharity, p.OtherCharges,
                     p.CGST, p.SGST, p.IGST, p.TaxAmount,
                     p.TCSPercentage, p.TCS, p.RoundOff,
                     p.InvoiceAmountBeforeTCS, p.InvoiceAmount, p.Remarks,
@@ -534,7 +547,7 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                     f.CgstPercentage, f.SgstPercentage, f.IgstPercentage,
                     f.CGST_Detail AS CGST, f.SGST_Detail AS SGST,
                     f.IGST_Detail AS IGST, f.TaxAmount_Detail AS TaxAmount,
-                    f.PackTypeId, f.UOMId, f.TotalAmount
+                    f.PackTypeId, f.UOMId, f.Charity, f.HandlingCharges, f.TotalAmount
                 FROM #filtered f
                 JOIN #pg p ON p.Id = f.Id
                 ORDER BY f.Id DESC, f.ItemSno ASC;
@@ -625,7 +638,7 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                     sm.Description AS StatusName,
                     h.VehicleNumber, h.TransporterName, h.LRNumber, h.LRDate,
                     h.TotalBags, h.TotalWeight, h.TaxableValue, h.Discount,
-                    h.Freight, h.Insurance, h.HandlingCharge, h.OtherCharges,
+                    h.Freight, h.Insurance, h.HandlingCharge, h.TotalCharity, h.OtherCharges,
                     h.CGST, h.SGST, h.IGST, h.TaxAmount,
                     h.TCSPercentage, h.TCS, h.RoundOff,
                     h.InvoiceAmountBeforeTCS, h.InvoiceAmount,
@@ -649,7 +662,7 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                     d.RatePerKg, d.Discount, d.TaxableAmount,
                     d.CgstPercentage, d.SgstPercentage, d.IgstPercentage,
                     d.CGST, d.SGST, d.IGST, d.TaxAmount,
-                    d.PackTypeId, d.UOMId, d.TotalAmount
+                    d.PackTypeId, d.UOMId, d.Charity, d.HandlingCharges, d.TotalAmount
                 FROM Sales.InvoiceDetail d
                 INNER JOIN Sales.InvoiceHeader h ON d.InvoiceHeaderId = h.Id
                 WHERE h.IsDeleted = 0 AND h.GEFlag = 0
@@ -720,7 +733,7 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                     h.TransportMode, tm.Description AS TransportModeName,
                     h.VehicleNumber, h.TransporterName, h.LRNumber, h.LRDate,
                     h.TotalBags, h.TotalWeight, h.TaxableValue, h.Discount,
-                    h.Freight, h.Insurance, h.HandlingCharge, h.OtherCharges,
+                    h.Freight, h.Insurance, h.HandlingCharge, h.TotalCharity, h.OtherCharges,
                     h.CGST, h.SGST, h.IGST, h.TaxAmount,
                     h.TCSPercentage, h.TCS, h.RoundOff,
                     h.InvoiceAmountBeforeTCS, h.InvoiceAmount,
@@ -1071,6 +1084,7 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                 Freight = header.Freight,
                 Insurance = header.Insurance,
                 HandlingCharges = header.HandlingCharge,
+                TotalCharity = header.TotalCharity,
                 OtherCharges = header.OtherCharges,
                 ValueOfSupply = header.TaxableValue - header.Discount + header.Freight
                     + header.Insurance + header.HandlingCharge + header.OtherCharges,
@@ -1123,7 +1137,7 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
             const string headerSql = @"
                 SELECT h.Id, h.InvoiceNo, h.InvoiceDate, h.UnitId, h.PartyId,
                     h.TaxableValue, h.Discount, h.Freight, h.Insurance,
-                    h.HandlingCharge, h.OtherCharges,
+                    h.HandlingCharge, h.TotalCharity, h.OtherCharges,
                     h.CGST, h.SGST, h.IGST, h.TCS, h.RoundOff,
                     h.InvoiceAmount, h.Remarks,
                     da.TransporterId, da.VehicleNo,
@@ -1146,7 +1160,7 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
             const string detailSql = @"
                 SELECT d.ItemSno, d.ItemId, d.HsnCode, d.NoOfBags, d.Quantity,
                     d.RatePerKg, d.Discount, d.TaxableAmount, d.GstPercentage,
-                    d.CGST, d.SGST, d.IGST, d.TotalAmount,
+                    d.CGST, d.SGST, d.IGST, d.Charity, d.HandlingCharges, d.TotalAmount,
                     d.PackTypeId, d.UOMId
                 FROM Sales.InvoiceDetail d
                 WHERE d.InvoiceHeaderId = @HeaderId
@@ -1301,6 +1315,192 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
 
             var text = string.Join(" ", parts);
             return char.ToUpper(text[0]) + text[1..];
+        }
+
+        public async Task<DispatchTrackingDetailsDto?> GetDispatchTrackingDetailsAsync(int salesOrderId, CancellationToken ct)
+        {
+            // 1. Fetch SalesOrderNo
+            const string soSql = @"
+                SELECT Id AS SalesOrderId, SalesOrderNo
+                FROM Sales.SalesOrderHeader
+                WHERE Id = @SalesOrderId AND IsDeleted = 0";
+
+            var header = await _dbConnection.QueryFirstOrDefaultAsync<DispatchTrackingDetailsDto>(
+                new CommandDefinition(soSql, new { SalesOrderId = salesOrderId }, cancellationToken: ct));
+
+            if (header == null)
+                return null;
+
+            // 2. Fetch all Dispatch + Invoice pairs for this SalesOrder
+            const string shipmentSql = @"
+                SELECT da.Id AS DispatchAdviceId, da.DispatchNo, da.DispatchDate,
+                       da.DispatchAddressId,
+                       dam.DispatchAddressName,
+                       dam.AddressLine1, dam.AddressLine2, dam.PinCode,
+                       da.PartyId,
+                       inv.Id AS InvoiceId, inv.InvoiceNo, inv.InvoiceDate,
+                       inv.VehicleNumber, inv.TransporterName,
+                       inv.LRNumber, inv.LRDate
+                FROM Sales.DispatchAdviceHeader da
+                LEFT JOIN Sales.DispatchAddressMaster dam ON da.DispatchAddressId = dam.Id AND dam.IsDeleted = 0
+                LEFT JOIN Sales.InvoiceHeader inv ON inv.DispatchAdviceId = da.Id AND inv.IsDeleted = 0
+                WHERE da.SalesOrderId = @SalesOrderId AND da.IsDeleted = 0
+                ORDER BY da.Id";
+
+            var shipmentRows = (await _dbConnection.QueryAsync<ShipmentRow>(
+                new CommandDefinition(shipmentSql, new { SalesOrderId = salesOrderId }, cancellationToken: ct))).ToList();
+
+            if (shipmentRows.Count == 0)
+            {
+                header.Shipments = [];
+                return header;
+            }
+
+            // 3. Fetch invoice details for all invoices in one query
+            var invoiceIds = shipmentRows.Where(s => s.InvoiceId.HasValue).Select(s => s.InvoiceId!.Value).Distinct().ToList();
+
+            var itemRows = new List<InvoiceItemRow>();
+            if (invoiceIds.Count > 0)
+            {
+                const string itemSql = @"
+                    SELECT d.InvoiceHeaderId, d.ItemId, d.NoOfBags, d.Quantity,
+                           d.RatePerKg, d.UOMId, d.LotId, d.PackTypeId
+                    FROM Sales.InvoiceDetail d
+                    WHERE d.InvoiceHeaderId IN @InvoiceIds";
+
+                itemRows = (await _dbConnection.QueryAsync<InvoiceItemRow>(
+                    new CommandDefinition(itemSql, new { InvoiceIds = invoiceIds }, cancellationToken: ct))).ToList();
+            }
+
+            // 4. Cross-module lookups — batch all unique IDs
+            var partyIds = shipmentRows.Select(s => s.PartyId).Distinct().ToList();
+            var itemIds = itemRows.Select(i => i.ItemId).Distinct().ToList();
+            var uomIds = itemRows.Where(i => i.UOMId.HasValue).Select(i => i.UOMId!.Value).Distinct().ToList();
+            var lotIds = itemRows.Where(i => i.LotId.HasValue).Select(i => i.LotId!.Value).Distinct().ToList();
+            var packTypeIds = itemRows.Where(i => i.PackTypeId.HasValue).Select(i => i.PackTypeId!.Value).Distinct().ToList();
+
+            var parties = await _partyLookup.GetByIdsAsync(partyIds, ct);
+            var items = itemIds.Count > 0 ? await _itemLookup.GetByIdsAsync(itemIds) : [];
+            var uoms = uomIds.Count > 0 ? await _uomLookup.GetByIdsAsync(uomIds, ct) : [];
+            var lots = lotIds.Count > 0 ? await _lotMasterLookup.GetByIdsAsync(lotIds) : [];
+            var packTypes = packTypeIds.Count > 0 ? await _packTypeLookup.GetByIdsAsync(packTypeIds) : [];
+
+            var partyDict = parties.ToDictionary(p => p.Id);
+            var itemDict = items.ToDictionary(i => i.Id, i => i.ItemName);
+            var uomDict = uoms.ToDictionary(u => u.Id, u => u.UOMName);
+            var lotDict = lots.ToDictionary(l => l.Id, l => l.LotCode);
+            var packTypeDict = packTypes.ToDictionary(p => p.Id, p => p.PackTypeName);
+
+            var itemsByInvoice = itemRows.ToLookup(i => i.InvoiceHeaderId);
+
+            // 5. Build shipment DTOs
+            header.Shipments = shipmentRows.Select(s =>
+            {
+                var shipment = new DispatchTrackingShipmentDto
+                {
+                    DispatchAdviceId = s.DispatchAdviceId,
+                    DispatchNo = s.DispatchNo,
+                    DispatchDate = s.DispatchDate,
+                    DispatchAddressId = s.DispatchAddressId,
+                    DispatchAddressName = s.DispatchAddressName,
+                    PartyId = s.PartyId,
+                    InvoiceId = s.InvoiceId,
+                    InvoiceNo = s.InvoiceNo,
+                    InvoiceDate = s.InvoiceDate,
+                    VehicleNumber = s.VehicleNumber,
+                    TransporterName = s.TransporterName,
+                    LRNumber = s.LRNumber,
+                    LRDate = s.LRDate
+                };
+
+                // Resolve party name
+                if (partyDict.TryGetValue(s.PartyId, out var partyDto))
+                    shipment.PartyName = partyDto.PartyName;
+
+                // Resolve shipping address
+                if (s.DispatchAddressId.HasValue)
+                {
+                    // From DispatchAddressMaster
+                    var parts = new[] { s.AddressLine1, s.AddressLine2, s.PinCode }
+                        .Where(p => !string.IsNullOrWhiteSpace(p));
+                    shipment.ShippingAddress = string.Join(", ", parts);
+                }
+                else if (partyDict.TryGetValue(s.PartyId, out var pDto))
+                {
+                    // From Party.PartyAddress where AddressType = 'Shipping'
+                    var shippingAddr = pDto.Addresses?
+                        .FirstOrDefault(a => string.Equals(a.AddressType, "Shipping", StringComparison.OrdinalIgnoreCase));
+
+                    if (shippingAddr != null)
+                    {
+                        var parts = new[]
+                        {
+                            shippingAddr.AddressLine1, shippingAddr.AddressLine2,
+                            shippingAddr.City, shippingAddr.State,
+                            shippingAddr.PostalCode, shippingAddr.Country
+                        }.Where(p => !string.IsNullOrWhiteSpace(p));
+
+                        shipment.ShippingAddress = string.Join(", ", parts);
+                    }
+                }
+
+                // Populate item details from invoice
+                if (s.InvoiceId.HasValue)
+                {
+                    shipment.Items = itemsByInvoice[s.InvoiceId.Value]
+                        .Select(i => new DispatchTrackingItemDto
+                        {
+                            ItemId = i.ItemId,
+                            ItemName = itemDict.TryGetValue(i.ItemId, out var iName) ? iName : null,
+                            NoOfBags = i.NoOfBags,
+                            Quantity = i.Quantity,
+                            RatePerKg = i.RatePerKg,
+                            UOMId = i.UOMId,
+                            UOMName = i.UOMId.HasValue && uomDict.TryGetValue(i.UOMId.Value, out var uName) ? uName : null,
+                            LotId = i.LotId,
+                            LotCode = i.LotId.HasValue && lotDict.TryGetValue(i.LotId.Value, out var lCode) ? lCode : null,
+                            PackTypeId = i.PackTypeId,
+                            PackTypeName = i.PackTypeId.HasValue && packTypeDict.TryGetValue(i.PackTypeId.Value, out var ptName) ? ptName : null
+                        })
+                        .ToList();
+                }
+
+                return shipment;
+            }).ToList();
+
+            return header;
+        }
+
+        private sealed class ShipmentRow
+        {
+            public int DispatchAdviceId { get; set; }
+            public string? DispatchNo { get; set; }
+            public DateOnly DispatchDate { get; set; }
+            public int? DispatchAddressId { get; set; }
+            public string? DispatchAddressName { get; set; }
+            public string? AddressLine1 { get; set; }
+            public string? AddressLine2 { get; set; }
+            public string? PinCode { get; set; }
+            public int PartyId { get; set; }
+            public int? InvoiceId { get; set; }
+            public string? InvoiceNo { get; set; }
+            public DateOnly? InvoiceDate { get; set; }
+            public string? VehicleNumber { get; set; }
+            public string? TransporterName { get; set; }
+            public string? LRNumber { get; set; }
+            public DateOnly? LRDate { get; set; }
+        }
+
+        private sealed class InvoiceItemRow
+        {
+            public int InvoiceHeaderId { get; set; }
+            public int ItemId { get; set; }
+            public int NoOfBags { get; set; }
+            public decimal Quantity { get; set; }
+            public decimal RatePerKg { get; set; }
+            public int? UOMId { get; set; }
+            public int? LotId { get; set; }
+            public int? PackTypeId { get; set; }
         }
     }
 }

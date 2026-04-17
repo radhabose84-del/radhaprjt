@@ -62,11 +62,8 @@ namespace UserManagement.IntegrationTests.Repositories.UserGroup
         /// Soft-delete any test rows to keep tests isolated without breaking
         /// FKs from AppSecurity.Users rows seeded by other integration tests.
         /// </summary>
-        private async Task ClearTestUserGroupsAsync(ApplicationDbContext ctx)
-        {
-            await ctx.Database.ExecuteSqlRawAsync(
-                "UPDATE AppSecurity.UserGroup SET IsDeleted = 1 WHERE GroupCode LIKE 'TST%' OR GroupCode LIKE 'UPD%' OR GroupCode LIKE 'DEL%'");
-        }
+        private async Task ClearTestUserGroupsAsync(ApplicationDbContext ctx) =>
+            await _fixture.ClearAllTablesAsync();
 
         // --- CREATE ---
 

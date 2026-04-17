@@ -50,13 +50,8 @@ namespace ProjectManagement.IntegrationTests.Repositories.MiscMaster
             return result.Id;
         }
 
-        private async Task ClearTablesAsync()
-        {
-            await using var conn = new SqlConnection(_fixture.ConnectionString);
-            await conn.OpenAsync();
-            await conn.ExecuteAsync("DELETE FROM [Project].[MiscMaster]");
-            await conn.ExecuteAsync("DELETE FROM [Project].[MiscTypeMaster]");
-        }
+        private async Task ClearTablesAsync() =>
+            await _fixture.ClearAllTablesAsync();
 
         // --- GET ALL ---
 

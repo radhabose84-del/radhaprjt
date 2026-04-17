@@ -27,7 +27,7 @@ namespace ProductionManagement.IntegrationTests.Repositories.YarnTwistMaster
             };
 
         private async Task ClearTableAsync(ApplicationDbContext ctx) =>
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Production].[YarnTwistMaster]");
+            await _fixture.ClearAllTablesAsync();
 
         // --- CREATE ---
 

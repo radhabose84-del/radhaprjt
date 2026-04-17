@@ -70,12 +70,8 @@ namespace WarehouseManagement.IntegrationTests.Repositories.RackMaster
                 IsDeleted = BaseEntity.IsDelete.NotDeleted
             };
 
-        private async Task ClearTablesAsync(WarehouseManagement.Infrastructure.Data.ApplicationDbContext ctx)
-        {
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Warehouse].[BinMaster]");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Warehouse].[RackMaster]");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Warehouse].[WarehouseMaster]");
-        }
+        private async Task ClearTablesAsync(WarehouseManagement.Infrastructure.Data.ApplicationDbContext ctx) =>
+            await _fixture.ClearAllTablesAsync();
 
         // --- CREATE ---
 

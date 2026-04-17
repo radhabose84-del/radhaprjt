@@ -57,7 +57,7 @@ namespace UserManagement.IntegrationTests.Repositories.Currency
             };
 
         private async Task ClearTableAsync(ApplicationDbContext ctx) =>
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM AppData.Currency");
+            await _fixture.ClearAllTablesAsync();
 
         // --- CREATE ---
 

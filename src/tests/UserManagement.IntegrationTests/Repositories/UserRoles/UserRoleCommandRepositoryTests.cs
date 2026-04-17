@@ -60,14 +60,8 @@ namespace UserManagement.IntegrationTests.Repositories.UserRoles
                 IsDeleted = Enums.IsDelete.NotDeleted
             };
 
-        private async Task ClearTestRolesAsync(ApplicationDbContext ctx)
-        {
-            // Remove only test-prefixed roles to avoid FK conflicts with other tests in the collection
-            await ctx.Database.ExecuteSqlRawAsync(
-                "DELETE FROM AppSecurity.UserRoleAllocation WHERE UserRoleId IN (SELECT Id FROM AppSecurity.UserRole WHERE RoleName LIKE 'TestRole_URC%')");
-            await ctx.Database.ExecuteSqlRawAsync(
-                "DELETE FROM AppSecurity.UserRole WHERE RoleName LIKE 'TestRole_URC%'");
-        }
+        private async Task ClearTestRolesAsync(ApplicationDbContext ctx) =>
+            await _fixture.ClearAllTablesAsync();
 
         // --- CREATE ---
 

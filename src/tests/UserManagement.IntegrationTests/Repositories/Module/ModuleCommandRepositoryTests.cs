@@ -47,11 +47,8 @@ namespace UserManagement.IntegrationTests.Repositories.Module
         private ModuleCommandRepository CreateRepository(ApplicationDbContext ctx)
             => new ModuleCommandRepository(ctx);
 
-        private async Task ClearTestDataAsync(ApplicationDbContext ctx)
-        {
-            await ctx.Database.ExecuteSqlRawAsync(
-                "DELETE FROM AppData.Modules WHERE ModuleName LIKE 'TestModule_CMD%'");
-        }
+        private async Task ClearTestDataAsync(ApplicationDbContext ctx) =>
+            await _fixture.ClearAllTablesAsync();
 
         // --- ADD MODULE ---
 

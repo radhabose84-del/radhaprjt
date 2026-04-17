@@ -24,12 +24,8 @@ namespace GateEntryManagement.IntegrationTests.Repositories.VehicleMovementRecor
 
         private async Task<int> SeedPrerequisitesAndGetMiscIdAsync(ApplicationDbContext ctx)
         {
-            // Clear all tables in FK order
-            await ctx.Database.ExecuteSqlRawAsync(@"
-                DELETE FROM Gate.GateInwardDtl; DELETE FROM Gate.GateInwardHdr;
-                DELETE FROM Gate.GatePassDtl; DELETE FROM Gate.GatePassHdr;
-                DELETE FROM Gate.VehicleMovementRecord;
-                DELETE FROM Gate.MiscMaster; DELETE FROM Gate.MiscTypeMaster;");
+            // Clear all tables (FK-safe)
+            await _fixture.ClearAllTablesAsync();
 
             // Seed MiscTypeMaster
             var typeRepo = new MiscTypeMasterCommandRepository(ctx);

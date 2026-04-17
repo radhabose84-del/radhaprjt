@@ -2625,6 +2625,11 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("decimal(18,6)")
                         .HasColumnName("CgstPercentage");
 
+                    b.Property<decimal>("Charity")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("Charity");
+
                     b.Property<decimal>("Discount")
                         .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,6)")
@@ -2634,6 +2639,11 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,6)")
                         .HasColumnName("GstPercentage");
+
+                    b.Property<decimal>("HandlingCharges")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("HandlingCharges");
 
                     b.Property<string>("HsnCode")
                         .HasColumnType("varchar(20)")
@@ -2898,6 +2908,11 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Property<int>("TotalBags")
                         .HasColumnType("int")
                         .HasColumnName("TotalBags");
+
+                    b.Property<decimal>("TotalCharity")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("TotalCharity");
 
                     b.Property<decimal>("TotalWeight")
                         .HasPrecision(18, 6)

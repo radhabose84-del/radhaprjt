@@ -46,11 +46,7 @@ namespace PurchaseManagement.IntegrationTests.Repositories.DutyMaster
 
         private async Task<(int miscTypeId, int miscId)> SeedPrerequisitesAsync(ApplicationDbContext ctx)
         {
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Purchase.DutyMaster");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Purchase.PriceMasterDetail");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Purchase.PriceMasterHeader");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Purchase.MiscMaster");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Purchase.MiscTypeMaster");
+            await _fixture.ClearAllTablesAsync();
 
             var typeRepo = new MiscTypeMasterCommandRepository(ctx);
             var mt = await typeRepo.CreateAsync(new PurchaseManagement.Domain.Entities.MiscTypeMaster
@@ -102,11 +98,7 @@ namespace PurchaseManagement.IntegrationTests.Repositories.DutyMaster
         public async Task GetAllAsync_Should_Return_Empty_When_NoData()
         {
             await using var ctx = _fixture.CreateFreshDbContext();
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Purchase.DutyMaster");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Purchase.PriceMasterDetail");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Purchase.PriceMasterHeader");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Purchase.MiscMaster");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Purchase.MiscTypeMaster");
+            await _fixture.ClearAllTablesAsync();
 
             var (items, total) = await CreateQueryRepo(ctx).GetAllAsync(1, 10, null, CancellationToken.None);
 
@@ -181,7 +173,7 @@ namespace PurchaseManagement.IntegrationTests.Repositories.DutyMaster
         public async Task GetByIdAsync_Should_Return_Null_When_NotFound()
         {
             await using var ctx = _fixture.CreateFreshDbContext();
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Purchase.DutyMaster");
+            await _fixture.ClearAllTablesAsync();
 
             var result = await CreateQueryRepo(ctx).GetByIdAsync(9999, CancellationToken.None);
 
@@ -224,7 +216,7 @@ namespace PurchaseManagement.IntegrationTests.Repositories.DutyMaster
         public async Task ExistsAsync_Should_Return_False_When_No_Match()
         {
             await using var ctx = _fixture.CreateFreshDbContext();
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Purchase.DutyMaster");
+            await _fixture.ClearAllTablesAsync();
 
             var exists = await CreateQueryRepo(ctx).ExistsAsync(
                 "NOTEXIST", "99.99", DateTimeOffset.UtcNow, CancellationToken.None);
@@ -283,7 +275,7 @@ namespace PurchaseManagement.IntegrationTests.Repositories.DutyMaster
         public async Task GenerateDutyCodeAsync_Should_Return_Code_With_DUT_Prefix()
         {
             await using var ctx = _fixture.CreateFreshDbContext();
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Purchase.DutyMaster");
+            await _fixture.ClearAllTablesAsync();
 
             var code = await CreateQueryRepo(ctx).GenerateDutyCodeAsync(CancellationToken.None);
 

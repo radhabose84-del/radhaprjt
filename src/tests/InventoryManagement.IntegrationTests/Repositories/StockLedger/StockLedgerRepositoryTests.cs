@@ -14,11 +14,7 @@ namespace InventoryManagement.IntegrationTests.Repositories.Stock
 
         private StockLedgerRepository CreateRepo(ApplicationDbContext ctx) => new(ctx);
 
-        private async Task ClearTablesAsync(ApplicationDbContext ctx)
-        {
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Inventory].[SubStoreStockLedger]");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Inventory].[StockLedger]");
-        }
+        private async Task ClearTablesAsync(ApplicationDbContext ctx) => await _fixture.ClearAllTablesAsync();
 
         // --- INSERT STOCK LEDGER ---
 

@@ -1,6 +1,7 @@
 using Contracts.Interfaces;
 using Dapper;
 using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using WarehouseManagement.Domain.Common;
 using WarehouseManagement.Infrastructure.Repositories.WarehouseMaster;
@@ -61,14 +62,8 @@ namespace WarehouseManagement.IntegrationTests.Repositories.WarehouseMaster
             });
         }
 
-        private async Task ClearTablesAsync()
-        {
-            await using var conn = new SqlConnection(_fixture.ConnectionString);
-            await conn.OpenAsync();
-            await conn.ExecuteAsync("DELETE FROM [Warehouse].[BinMaster]");
-            await conn.ExecuteAsync("DELETE FROM [Warehouse].[RackMaster]");
-            await conn.ExecuteAsync("DELETE FROM [Warehouse].[WarehouseMaster]");
-        }
+        private async Task ClearTablesAsync() =>
+            await _fixture.ClearAllTablesAsync();
 
         // --- GET ALL ---
 
@@ -207,6 +202,104 @@ namespace WarehouseManagement.IntegrationTests.Repositories.WarehouseMaster
             var exists = await CreateQueryRepo().ExistsByNameAsync("NonExistentWarehouse");
 
             exists.Should().BeFalse();
+        }
+
+        // --- WAREHOUSE ITEM GROUP MAPPING (via query repo) ---
+
+        private async Task<int> SeedEntityWithMappingsAsync(
+            string code, string name, params int[] itemGroupIds)
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var entity = new WarehouseManagement.Domain.Entities.WarehouseMaster
+            {
+                WarehouseCode = code,
+                WarehouseName = name,
+                UnitId = 1,
+                IsGroup = false,
+                IsVirtualWarehouse = false,
+                WarehouseTypeId = 1,
+                DepartmentId = 1,
+                StorageTypeId = 1,
+                AreaTypeId = 1,
+                OperationTypeId = 1,
+                CapacityUOMId = 1,
+                AddressLine1 = "Test Address",
+                CityId = 1,
+                StateId = 1,
+                CountryId = 1,
+                Pincode = "000000",
+                IsScrapWarehouse = false,
+                IsTransitWarehouse = false,
+                MaxCapacity = 100,
+                IsDefaultStockEntry = false,
+                IsActive = BaseEntity.Status.Active,
+                IsDeleted = BaseEntity.IsDelete.NotDeleted
+            };
+            foreach (var gid in itemGroupIds)
+            {
+                entity.AllowedItemGroups.Add(new WarehouseManagement.Domain.Entities.WarehouseItemGroupMapping
+                {
+                    ItemGroupId = gid,
+                    IsActive = BaseEntity.Status.Active,
+                    IsDeleted = BaseEntity.IsDelete.NotDeleted
+                });
+            }
+            return await CreateCommandRepo(ctx).CreateAsync(entity);
+        }
+
+        [Fact]
+        public async Task GetAllAsync_Should_Return_AllowedItemGroupIds()
+        {
+            await ClearTablesAsync();
+            await SeedEntityWithMappingsAsync("WH100", "Mapped WH", 1, 2, 3);
+
+            var (items, _) = await CreateQueryRepo().GetAllAsync(1, 10, null);
+
+            items.Should().ContainSingle();
+            items[0].AllowedItemGroupIds.Should().BeEquivalentTo(new[] { 1, 2, 3 });
+        }
+
+        [Fact]
+        public async Task GetAllAsync_Should_Return_Empty_AllowedItemGroupIds_When_NoMappings()
+        {
+            await ClearTablesAsync();
+            await SeedEntityAsync("WH101", "No Map WH");
+
+            var (items, _) = await CreateQueryRepo().GetAllAsync(1, 10, null);
+
+            items.Should().ContainSingle();
+            items[0].AllowedItemGroupIds.Should().BeEmpty();
+        }
+
+        [Fact]
+        public async Task GetByIdAsync_Should_Return_AllowedItemGroupIds()
+        {
+            await ClearTablesAsync();
+            var id = await SeedEntityWithMappingsAsync("WH102", "ById WH", 5, 10);
+
+            var result = await CreateQueryRepo().GetByIdAsync(id);
+
+            result.Should().NotBeNull();
+            result!.AllowedItemGroupIds.Should().BeEquivalentTo(new[] { 5, 10 });
+        }
+
+        [Fact]
+        public async Task GetByIdAsync_Should_Exclude_SoftDeleted_Mappings()
+        {
+            await ClearTablesAsync();
+            var id = await SeedEntityWithMappingsAsync("WH103", "SoftDel Map WH", 1, 2);
+
+            // Soft-delete one mapping
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var mapping = await ctx.GetWarehouseItemGroupMappings
+                .FirstAsync(m => m.WarehouseId == id && m.ItemGroupId == 1);
+            mapping.IsDeleted = BaseEntity.IsDelete.Deleted;
+            await ctx.SaveChangesAsync();
+
+            var result = await CreateQueryRepo().GetByIdAsync(id);
+
+            result.Should().NotBeNull();
+            result!.AllowedItemGroupIds.Should().BeEquivalentTo(new[] { 2 });
         }
     }
 }

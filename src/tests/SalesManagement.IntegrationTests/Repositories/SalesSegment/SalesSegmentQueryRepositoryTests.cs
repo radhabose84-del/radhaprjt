@@ -120,13 +120,8 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesSegment
             return (org.Id, channel.Id, buIds);
         }
 
-        private async Task ClearSalesSegmentAsync()
-        {
-            await using var cnn = OpenConnection();
-            await cnn.OpenAsync();
-            await cnn.ExecuteAsync("DELETE FROM Sales.ItemPriceMaster");
-            await cnn.ExecuteAsync("DELETE FROM Sales.SalesSegment");
-        }
+        private async Task ClearSalesSegmentAsync() =>
+            await _fixture.ClearTablesAsync("Sales.SalesSegment");
 
         private async Task<int> SeedEntityAsync(
             int orgId, int channelId, int buId,

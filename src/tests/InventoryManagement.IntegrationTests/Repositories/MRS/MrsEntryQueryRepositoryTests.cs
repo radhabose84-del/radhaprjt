@@ -35,15 +35,7 @@ namespace InventoryManagement.IntegrationTests.Repositories.MRS
             return new MrsEntryCommandRepository(ctx, _fixture.IpMock.Object, miscRepo.Object);
         }
 
-        private async Task ClearTablesAsync(ApplicationDbContext ctx)
-        {
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Inventory].[MrsDetail]");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Inventory].[MrsHeader]");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Inventory].[UOMConversion]");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Inventory].[UOM]");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Inventory].[MiscMaster]");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Inventory].[MiscTypeMaster]");
-        }
+        private async Task ClearTablesAsync(ApplicationDbContext ctx) => await _fixture.ClearAllTablesAsync();
 
         private async Task<(int statusId, int categoryId)> SeedMiscDataAsync()
         {

@@ -69,12 +69,8 @@ namespace UserManagement.IntegrationTests.Repositories.UserGroup
             return created.Id;
         }
 
-        private async Task ClearTestUserGroupsAsync()
-        {
-            await using var ctx = CreateDbContext();
-            await ctx.Database.ExecuteSqlRawAsync(
-                "UPDATE AppSecurity.UserGroup SET IsDeleted = 1 WHERE 1=1");
-        }
+        private async Task ClearTestUserGroupsAsync() =>
+            await _fixture.ClearAllTablesAsync();
 
         // --- GET ALL ---
 
