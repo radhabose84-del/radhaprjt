@@ -36,12 +36,6 @@ namespace UserManagement.Presentation.Validation.Users
                             .NotEmpty()
                             .WithMessage($"{nameof(UpdateUserCommand.FirstName)} {rule.Error}");
 
-                        RuleFor(x => x.LastName)
-                            .NotNull()
-                            .WithMessage($"{nameof(UpdateUserCommand.LastName)} {rule.Error}")
-                            .NotEmpty()
-                            .WithMessage($"{nameof(UpdateUserCommand.LastName)} {rule.Error}");
-
                         RuleFor(x => x.UserName)
                             .NotNull()
                              .WithMessage($"{nameof(UpdateUserCommand.UserName)} {rule.Error}")

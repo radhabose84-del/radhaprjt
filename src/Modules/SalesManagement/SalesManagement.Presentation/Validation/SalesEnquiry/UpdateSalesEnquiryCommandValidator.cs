@@ -125,6 +125,12 @@ namespace SalesManagement.Presentation.Validation.SalesEnquiry
                         .WithMessage("Item does not exist in Item Master.")
                         .When(d => d.ItemId > 0);
 
+                    detail.RuleFor(d => d.VariantId)
+                        .MustAsync(async (variantId, ct) =>
+                            await _queryRepository.ItemExistsAsync(variantId!.Value))
+                        .WithMessage("Variant does not exist in Item Master.")
+                        .When(d => d.VariantId.HasValue && d.VariantId > 0);
+
                     detail.RuleFor(d => d.Quantity)
                         .GreaterThan(0)
                         .WithMessage("Quantity must be greater than zero.");

@@ -11,6 +11,8 @@ namespace GateEntryManagement.Application.GatePass.Dto
         public string? DriverName { get; set; }
         public string? DriverMobile { get; set; }
         public string? TransporterName { get; set; }
+        public DateTimeOffset? GateInTime { get; set; }
+        public DateTimeOffset? GateOutTime { get; set; }
         public int UnitId { get; set; }
         public string? UnitName { get; set; }
         public int TotalItems { get; set; }

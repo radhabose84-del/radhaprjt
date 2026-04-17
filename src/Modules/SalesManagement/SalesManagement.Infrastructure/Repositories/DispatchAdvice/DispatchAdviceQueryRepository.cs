@@ -468,11 +468,11 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
         public async Task<IReadOnlyList<DispatchAdviceLookupDto>> AutocompleteAsync(string term, CancellationToken ct)
         {
             const string sql = @"
-                SELECT Id, DispatchNo, DispatchDate, InvFlg
-                FROM Sales.DispatchAdviceHeader
-                WHERE IsActive = 1 AND IsDeleted = 0
-                AND DispatchNo LIKE @Term
-                ORDER BY DispatchNo ASC";
+                SELECT dah.Id, dah.DispatchNo, dah.DispatchDate, dah.InvFlg
+                FROM Sales.DispatchAdviceHeader dah
+                WHERE dah.IsActive = 1 AND dah.IsDeleted = 0
+                AND dah.DispatchNo LIKE @Term
+                ORDER BY dah.DispatchNo ASC";
 
             var result = await _dbConnection.QueryAsync<DispatchAdviceLookupDto>(sql, new { Term = $"%{term}%" });
             return result.ToList();

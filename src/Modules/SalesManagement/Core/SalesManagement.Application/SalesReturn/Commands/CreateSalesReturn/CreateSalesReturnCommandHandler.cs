@@ -108,7 +108,8 @@ namespace SalesManagement.Application.SalesReturn.Commands.CreateSalesReturn
                             TotalQty = 1,
                             TotalValue = 0,
                             StatusId = detail.BagStatusId,
-                            TypeId = typeId2
+                            TypeId = typeId2,
+                            SourceUnitId = unitId ?? 0
                         });
                     }
                 }
@@ -128,6 +129,8 @@ namespace SalesManagement.Application.SalesReturn.Commands.CreateSalesReturn
                 MiscEnumEntity.ReturnStatus, returnStatusCode);
             if (returnStatus != null)
             {
+                await _commandRepository.UpdateHeaderStatusAsync(newId, returnStatus.Id);
+
                 int? closureStatusId = null;
                 int? closedBy = null;
                 if (isFullyReturned)

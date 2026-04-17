@@ -1,4 +1,5 @@
 using System.Data;
+using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Users;
@@ -17,6 +18,7 @@ namespace SalesManagement.Infrastructure.Repositories.ComplaintResolution
         private readonly IItemLookup _itemLookup;
         private readonly IWarehouseLookup _warehouseLookup;
         private readonly IBinLookup _binLookup;
+        private readonly IDataAccessFilter _dataAccessFilter;
 
         public ComplaintResolutionQueryRepository(
             IDbConnection dbConnection,
@@ -24,7 +26,8 @@ namespace SalesManagement.Infrastructure.Repositories.ComplaintResolution
             IPartyLookup partyLookup,
             IItemLookup itemLookup,
             IWarehouseLookup warehouseLookup,
-            IBinLookup binLookup)
+            IBinLookup binLookup,
+            IDataAccessFilter dataAccessFilter)
         {
             _dbConnection = dbConnection;
             _userLookup = userLookup;
@@ -32,75 +35,66 @@ namespace SalesManagement.Infrastructure.Repositories.ComplaintResolution
             _itemLookup = itemLookup;
             _warehouseLookup = warehouseLookup;
             _binLookup = binLookup;
+            _dataAccessFilter = dataAccessFilter;
         }
 
         public async Task<(List<ResolutionListDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm, string? statusFilter)
         {
+            // Data access control
+            var accessCtx = await _dataAccessFilter.GetContextAsync();
+            if (accessCtx.IsCustomerRestricted && accessCtx.AllowedCustomerIds.Count == 0)
+                return (new List<ResolutionListDto>(), 0);
+
+            var partyFilter = accessCtx.IsCustomerRestricted && accessCtx.AllowedCustomerIds.Count > 0
+                ? " AND ch.CustomerId IN @AllowedCustomerIds"
+                : string.Empty;
+
             var searchFilter = string.IsNullOrWhiteSpace(searchTerm)
                 ? string.Empty
-                : @" AND (ch.ComplaintNumber LIKE @SearchTerm OR ch.Remarks LIKE @SearchTerm)";
+                : @" AND (ch.ComplaintNumber LIKE @SearchTerm OR cr.ResolutionSummary LIKE @SearchTerm)";
 
-            // Status filter: Open = no resolution yet, Ready for Closure, Closed
-            var statusCondition = string.Empty;
-            if (!string.IsNullOrWhiteSpace(statusFilter))
-            {
-                if (statusFilter.Equals("Open", StringComparison.OrdinalIgnoreCase))
-                    statusCondition = " AND cr.Id IS NULL";
-                else
-                    statusCondition = " AND cs.Description = @StatusFilter";
-            }
+            var statusFilterSql = string.IsNullOrWhiteSpace(statusFilter)
+                ? string.Empty
+                : " AND cs.Description = @StatusFilter";
 
-            // Show complaints where QC is accepted (feedback completed stage or beyond)
-            var baseSql = @"
-                FROM Sales.ComplaintHeader ch
-                INNER JOIN Sales.MiscMaster hst ON ch.StatusId = hst.Id AND hst.IsDeleted = 0
-                INNER JOIN Sales.MiscTypeMaster hmt ON hst.MiscTypeId = hmt.Id AND hmt.MiscTypeCode = 'QCComplaintStatus'
-                INNER JOIN Sales.ComplaintQCReview qr ON qr.ComplaintHeaderId = ch.Id AND qr.IsDeleted = 0
-                LEFT JOIN Sales.ComplaintResolution cr ON cr.ComplaintHeaderId = ch.Id AND cr.IsDeleted = 0
-                LEFT JOIN Sales.MiscMaster rt ON cr.ResolutionTypeId = rt.Id AND rt.IsDeleted = 0
+            var allFilters = $"{searchFilter}{partyFilter}{statusFilterSql}";
+
+            var countSql = $@"
+                SELECT COUNT(*)
+                FROM Sales.ComplaintResolution cr
+                INNER JOIN Sales.ComplaintHeader ch ON cr.ComplaintHeaderId = ch.Id AND ch.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster cs ON cr.ClosureStatusId = cs.Id AND cs.IsDeleted = 0
-                WHERE ch.IsDeleted = 0
-                  AND hst.Code = 'QC Accepted'
-                  AND EXISTS (
-                      SELECT 1 FROM Sales.ComplaintQCReviewAssignment a
-                      WHERE a.ComplaintQCReviewId = qr.Id AND a.IsDeleted = 0
-                  )
-                  AND NOT EXISTS (
-                      SELECT 1 FROM Sales.ComplaintQCReviewAssignment a
-                      INNER JOIN Sales.MiscMaster am ON a.AssignmentStatusId = am.Id AND am.IsDeleted = 0
-                      WHERE a.ComplaintQCReviewId = qr.Id AND a.IsDeleted = 0 AND am.Code = 'Pending'
-                  )";
-
-            var countSql = $"SELECT COUNT(*) {baseSql} {searchFilter} {statusCondition};";
+                WHERE cr.IsDeleted = 0 {allFilters};";
 
             var dataSql = $@"
                 SELECT
                     cr.Id AS ResolutionId,
-                    ch.Id AS ComplaintHeaderId,
+                    cr.ComplaintHeaderId,
                     ch.ComplaintNumber,
                     ch.ComplaintDate,
                     ch.CustomerId,
                     rt.Description AS ResolutionTypeName,
-                    CASE
-                        WHEN cr.Id IS NULL THEN 'Open'
-                        ELSE ISNULL(cs.Description, 'Open')
-                    END AS ClosureStatusName,
+                    ISNULL(cs.Description, 'Open') AS ClosureStatusName,
                     cr.ResolvedBy,
                     cr.ResolvedDate
-                {baseSql} {searchFilter} {statusCondition}
-                ORDER BY ch.Id DESC
+                FROM Sales.ComplaintResolution cr
+                INNER JOIN Sales.ComplaintHeader ch ON cr.ComplaintHeaderId = ch.Id AND ch.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster rt ON cr.ResolutionTypeId = rt.Id AND rt.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster cs ON cr.ClosureStatusId = cs.Id AND cs.IsDeleted = 0
+                WHERE cr.IsDeleted = 0 {allFilters}
+                ORDER BY cr.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;";
 
-            var parameters = new
-            {
-                SearchTerm = $"%{searchTerm}%",
-                StatusFilter = statusFilter,
-                Offset = (pageNumber - 1) * pageSize,
-                PageSize = pageSize
-            };
+            var dp = new DynamicParameters();
+            dp.Add("SearchTerm", $"%{searchTerm}%");
+            dp.Add("StatusFilter", statusFilter);
+            dp.Add("Offset", (pageNumber - 1) * pageSize);
+            dp.Add("PageSize", pageSize);
+            if (accessCtx.IsCustomerRestricted && accessCtx.AllowedCustomerIds.Count > 0)
+                dp.Add("AllowedCustomerIds", accessCtx.AllowedCustomerIds.ToList());
 
-            var totalCount = await _dbConnection.ExecuteScalarAsync<int>(countSql, parameters);
-            var data = (await _dbConnection.QueryAsync<ResolutionListDto>(dataSql, parameters)).ToList();
+            var totalCount = await _dbConnection.ExecuteScalarAsync<int>(countSql, dp);
+            var data = (await _dbConnection.QueryAsync<ResolutionListDto>(dataSql, dp)).ToList();
 
             if (data.Count > 0)
             {

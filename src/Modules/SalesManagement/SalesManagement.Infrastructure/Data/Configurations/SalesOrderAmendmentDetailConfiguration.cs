@@ -69,12 +69,15 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .IsRequired(false);
 
             // Detail-level Computed Fields
+            builder.Property(t => t.TotalWeight).HasColumnName("TotalWeight").HasColumnType("decimal(18,3)").IsRequired();
+            builder.Property(t => t.DiscountPerUnit).HasColumnName("DiscountPerUnit").HasColumnType("decimal(18,3)").IsRequired();
             builder.Property(t => t.TaxableAmount).HasColumnName("TaxableAmount").HasColumnType("decimal(18,3)").IsRequired();
             builder.Property(t => t.TaxAmount).HasColumnName("TaxAmount").HasColumnType("decimal(18,3)").IsRequired();
             builder.Property(t => t.TCSAmount).HasColumnName("TCSAmount").HasColumnType("decimal(18,3)").IsRequired();
             builder.Property(t => t.NetAmount).HasColumnName("NetAmount").HasColumnType("decimal(18,3)").IsRequired();
             builder.Property(t => t.NetRatePerKg).HasColumnName("NetRatePerKg").HasColumnType("decimal(18,3)").IsRequired();
             builder.Property(t => t.PendingQty).HasColumnName("PendingQty").HasColumnType("int").IsRequired();
+            builder.Property(t => t.AgentCommissionPercentage).HasColumnName("AgentCommissionPercentage").HasColumnType("decimal(18,3)").IsRequired(false);
 
             // Same-module FK constraints
             builder.HasOne(t => t.SalesOrderAmendmentHeader)

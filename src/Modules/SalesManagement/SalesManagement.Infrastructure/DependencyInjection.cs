@@ -355,15 +355,22 @@ namespace SalesManagement.Infrastructure
             // ── Sales Invoice Lookup (cross-module, for Finance EInvoice creation) ──
             services.AddScoped<ISalesInvoiceLookup, SalesInvoiceLookupRepository>();
 
+            // ── Agent Customer Mapping Lookup (cross-module, Party → Sales.AgentCustomerMapping) ──
+            services.AddScoped<IAgentCustomerMappingLookup, AgentCustomerMappingLookupRepository>();
+
             // ═══════════════════════════════════════════════════════════════
             // OUTBOX PATTERN SERVICES (SQL-based for transaction atomicity)
             // ═══════════════════════════════════════════════════════════════
             services.AddScoped<IOutboxRepository, OutboxRepository>();
             services.AddScoped<IOutboxEventPublisher, OutboxEventPublisher>();
 
-            // ── GatePass Document Processors (Strategy pattern) ─────────────
+            // ── GatePass Document Processors (Strategy pattern, write-side) ──
             services.AddScoped<Contracts.Interfaces.IGatePassDocumentProcessor, Repositories.GatePass.InvoiceGatePassProcessor>();
             services.AddScoped<Contracts.Interfaces.IGatePassDocumentProcessor, Repositories.GatePass.DeliveryChallanGatePassProcessor>();
+
+            // ── GatePass Document Resolvers (Strategy pattern, read-side) ───
+            services.AddScoped<Contracts.Interfaces.Gate.IGatePassDocResolver, Repositories.GatePass.InvoiceGatePassDocResolver>();
+            services.AddScoped<Contracts.Interfaces.Gate.IGatePassDocResolver, Repositories.GatePass.DeliveryChallanGatePassDocResolver>();
             
 
             // Validation repositories — cross-module referential integrity (Rule 25)

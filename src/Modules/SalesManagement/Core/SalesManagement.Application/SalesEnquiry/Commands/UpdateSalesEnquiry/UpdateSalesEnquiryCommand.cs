@@ -18,6 +18,7 @@ namespace SalesManagement.Application.SalesEnquiry.Commands.UpdateSalesEnquiry
         public class UpdateSalesEnquiryDetailDto
         {
             public int ItemId { get; set; }
+            public int? VariantId { get; set; }
             public decimal Quantity { get; set; }
             public decimal? ExmillRate { get; set; }
             public decimal? TargetPrice { get; set; }

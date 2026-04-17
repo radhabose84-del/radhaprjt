@@ -3911,11 +3911,17 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("decimal(18,6)")
                         .HasColumnName("TargetPrice");
 
+                    b.Property<int?>("VariantId")
+                        .HasColumnType("int")
+                        .HasColumnName("VariantId");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ItemId");
 
                     b.HasIndex("SalesEnquiryHeaderId");
+
+                    b.HasIndex("VariantId");
 
                     b.ToTable("SalesEnquiryDetail", "Sales");
                 });
@@ -4300,10 +4306,20 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<decimal?>("AgentCommissionPercentage")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,3)")
+                        .HasColumnName("AgentCommissionPercentage");
+
                     b.Property<string>("ChangeType")
                         .IsRequired()
                         .HasColumnType("varchar(10)")
                         .HasColumnName("ChangeType");
+
+                    b.Property<decimal>("DiscountPerUnit")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,3)")
+                        .HasColumnName("DiscountPerUnit");
 
                     b.Property<decimal>("NetAmount")
                         .HasPrecision(18, 6)
@@ -4372,6 +4388,11 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("decimal(18,3)")
                         .HasColumnName("TaxableAmount");
 
+                    b.Property<decimal>("TotalWeight")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,3)")
+                        .HasColumnName("TotalWeight");
+
                     b.HasKey("Id");
 
                     b.HasIndex("SalesOrderAmendmentHeaderId");
@@ -4379,6 +4400,60 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.HasIndex("SalesOrderDetailId");
 
                     b.ToTable("SalesOrderAmendmentDetail", "Sales");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.SalesOrderAmendmentDiscount", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("DiscountMasterId")
+                        .HasColumnType("int")
+                        .HasColumnName("DiscountMasterId");
+
+                    b.Property<decimal?>("DiscountRate")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,3)")
+                        .HasColumnName("DiscountRate");
+
+                    b.Property<int?>("DiscountSlabId")
+                        .HasColumnType("int")
+                        .HasColumnName("DiscountSlabId");
+
+                    b.Property<int>("PaymentTermId")
+                        .HasColumnType("int")
+                        .HasColumnName("PaymentTermId");
+
+                    b.Property<int>("SalesOrderAmendmentHeaderId")
+                        .HasColumnType("int")
+                        .HasColumnName("SalesOrderAmendmentHeaderId");
+
+                    b.Property<int?>("SalesOrderDiscountId")
+                        .HasColumnType("int")
+                        .HasColumnName("SalesOrderDiscountId");
+
+                    b.Property<int>("SlabTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("SlabTypeId");
+
+                    b.Property<decimal?>("TotalDiscountValue")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,3)")
+                        .HasColumnName("TotalDiscountValue");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DiscountMasterId");
+
+                    b.HasIndex("SalesOrderAmendmentHeaderId");
+
+                    b.HasIndex("SalesOrderDiscountId");
+
+                    b.ToTable("SalesOrderAmendmentDiscount", "Sales");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.SalesOrderAmendmentHeader", b =>
@@ -4389,6 +4464,18 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnName("Id");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("AgentCommissionId")
+                        .HasColumnType("int")
+                        .HasColumnName("AgentCommissionId");
+
+                    b.Property<int?>("AgentCommissionSlabId")
+                        .HasColumnType("int")
+                        .HasColumnName("AgentCommissionSlabId");
+
+                    b.Property<int>("AgentPaymentTermsId")
+                        .HasColumnType("int")
+                        .HasColumnName("AgentPaymentTermsId");
 
                     b.Property<DateOnly>("AmendmentDate")
                         .HasColumnType("date")
@@ -4406,6 +4493,16 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Property<DateTimeOffset?>("ApprovedDate")
                         .HasColumnType("datetimeoffset")
                         .HasColumnName("ApprovedDate");
+
+                    b.Property<decimal?>("CommissionRate")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,3)")
+                        .HasColumnName("CommissionRate");
+
+                    b.Property<decimal?>("CommissionValue")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,3)")
+                        .HasColumnName("CommissionValue");
 
                     b.Property<int>("CreatedBy")
                         .HasColumnType("int")
@@ -4445,6 +4542,11 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,3)")
                         .HasColumnName("ItemValue");
+
+                    b.Property<decimal?>("MdDiscountValue")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,3)")
+                        .HasColumnName("MdDiscountValue");
 
                     b.Property<int?>("ModifiedBy")
                         .HasColumnType("int")
@@ -4497,6 +4599,11 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,3)")
                         .HasColumnName("TotalDiscountPerKg");
+
+                    b.Property<decimal?>("TotalDiscountValue")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,3)")
+                        .HasColumnName("TotalDiscountValue");
 
                     b.Property<decimal>("TotalFreight")
                         .HasPrecision(18, 6)
@@ -4560,6 +4667,11 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("decimal(18,3)")
                         .HasColumnName("BagWeight");
 
+                    b.Property<decimal?>("Charity")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,3)")
+                        .HasColumnName("Charity");
+
                     b.Property<decimal>("DiscountPerUnit")
                         .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,3)")
@@ -4586,6 +4698,11 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Property<int>("HSNId")
                         .HasColumnType("int")
                         .HasColumnName("HSNId");
+
+                    b.Property<decimal?>("Handling")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,3)")
+                        .HasColumnName("Handling");
 
                     b.Property<int>("ItemId")
                         .HasColumnType("int")
@@ -4687,6 +4804,15 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("DiscountMasterId");
 
+                    b.Property<decimal?>("DiscountRate")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,3)")
+                        .HasColumnName("DiscountRate");
+
+                    b.Property<int?>("DiscountSlabId")
+                        .HasColumnType("int")
+                        .HasColumnName("DiscountSlabId");
+
                     b.Property<int>("PaymentTermId")
                         .HasColumnType("int")
                         .HasColumnName("PaymentTermId");
@@ -4699,9 +4825,16 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("SlabTypeId");
 
+                    b.Property<decimal?>("TotalDiscountValue")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,3)")
+                        .HasColumnName("TotalDiscountValue");
+
                     b.HasKey("Id");
 
                     b.HasIndex("DiscountMasterId");
+
+                    b.HasIndex("DiscountSlabId");
 
                     b.HasIndex("SalesOrderHeaderId");
 
@@ -4722,6 +4855,14 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("AgentCommissionId")
+                        .HasColumnType("int")
+                        .HasColumnName("AgentCommissionId");
+
+                    b.Property<int?>("AgentCommissionSlabId")
+                        .HasColumnType("int")
+                        .HasColumnName("AgentCommissionSlabId");
+
                     b.Property<int?>("AgentId")
                         .HasColumnType("int")
                         .HasColumnName("AgentId");
@@ -4729,6 +4870,10 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Property<string>("AgentPOAttachment")
                         .HasColumnType("nvarchar(500)")
                         .HasColumnName("AgentPOAttachment");
+
+                    b.Property<int>("AgentPaymentTermsId")
+                        .HasColumnType("int")
+                        .HasColumnName("AgentPaymentTermsId");
 
                     b.Property<string>("CancelledByName")
                         .HasColumnType("varchar(100)")
@@ -4741,6 +4886,16 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Property<string>("CancelledIP")
                         .HasColumnType("varchar(50)")
                         .HasColumnName("CancelledIP");
+
+                    b.Property<decimal?>("CommissionRate")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,3)")
+                        .HasColumnName("CommissionRate");
+
+                    b.Property<decimal?>("CommissionValue")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,3)")
+                        .HasColumnName("CommissionValue");
 
                     b.Property<int?>("CountListId")
                         .HasColumnType("int")
@@ -4815,10 +4970,20 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("varchar(200)")
                         .HasColumnName("MdApprovalDocument");
 
+                    b.Property<decimal?>("MdDiscountPercentage")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,3)")
+                        .HasColumnName("MdDiscountPercentage");
+
                     b.Property<decimal?>("MdDiscountRate")
                         .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,3)")
                         .HasColumnName("MdDiscountRate");
+
+                    b.Property<decimal?>("MdDiscountValue")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,3)")
+                        .HasColumnName("MdDiscountValue");
 
                     b.Property<int?>("ModifiedBy")
                         .HasColumnType("int")
@@ -4914,6 +5079,11 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("decimal(18,3)")
                         .HasColumnName("TotalDiscountPerKg");
 
+                    b.Property<decimal?>("TotalDiscountValue")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,3)")
+                        .HasColumnName("TotalDiscountValue");
+
                     b.Property<decimal>("TotalFreight")
                         .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,3)")
@@ -4939,7 +5109,7 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("decimal(18,3)")
                         .HasColumnName("TotalWithGST");
 
-                    b.Property<int>("UnitId")
+                    b.Property<int?>("UnitId")
                         .HasColumnType("int")
                         .HasColumnName("UnitId");
 
@@ -4949,7 +5119,13 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("AgentCommissionId");
+
+                    b.HasIndex("AgentCommissionSlabId");
+
                     b.HasIndex("AgentId");
+
+                    b.HasIndex("AgentPaymentTermsId");
 
                     b.HasIndex("CountListId");
 
@@ -5974,6 +6150,10 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("PackTypeId");
 
+                    b.Property<int?>("SourceUnitId")
+                        .HasColumnType("int")
+                        .HasColumnName("SourceUnitId");
+
                     b.Property<int>("StatusId")
                         .HasColumnType("int")
                         .HasColumnName("StatusId");
@@ -6009,6 +6189,8 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     b.HasIndex("DocType", "DocNo", "PackNo")
                         .IsUnique();
+
+                    b.HasIndex("ItemId", "UnitId", "SourceUnitId");
 
                     b.ToTable("StockLedger", "Sales");
                 });
@@ -6863,6 +7045,17 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("SalesOrderDetail");
                 });
 
+            modelBuilder.Entity("SalesManagement.Domain.Entities.SalesOrderAmendmentDiscount", b =>
+                {
+                    b.HasOne("SalesManagement.Domain.Entities.SalesOrderAmendmentHeader", "SalesOrderAmendmentHeader")
+                        .WithMany("SalesOrderAmendmentDiscounts")
+                        .HasForeignKey("SalesOrderAmendmentHeaderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("SalesOrderAmendmentHeader");
+                });
+
             modelBuilder.Entity("SalesManagement.Domain.Entities.SalesOrderAmendmentHeader", b =>
                 {
                     b.HasOne("SalesManagement.Domain.Entities.SalesOrderHeader", "SalesOrderHeader")
@@ -6907,6 +7100,11 @@ namespace SalesManagement.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("SalesManagement.Domain.Entities.DiscountSlab", "DiscountSlab")
+                        .WithMany("SalesOrderDiscounts")
+                        .HasForeignKey("DiscountSlabId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("SalesManagement.Domain.Entities.SalesOrderHeader", "SalesOrderHeader")
                         .WithMany("SalesOrderDiscounts")
                         .HasForeignKey("SalesOrderHeaderId")
@@ -6921,6 +7119,8 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     b.Navigation("DiscountMaster");
 
+                    b.Navigation("DiscountSlab");
+
                     b.Navigation("SalesOrderHeader");
 
                     b.Navigation("SlabTypeMisc");
@@ -6928,6 +7128,16 @@ namespace SalesManagement.Infrastructure.Migrations
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.SalesOrderHeader", b =>
                 {
+                    b.HasOne("SalesManagement.Domain.Entities.AgentCommissionConfig", "AgentCommissionConfig")
+                        .WithMany("SalesOrderHeaders")
+                        .HasForeignKey("AgentCommissionId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("SalesManagement.Domain.Entities.AgentCommissionSlab", "AgentCommissionSlab")
+                        .WithMany("SalesOrderHeaders")
+                        .HasForeignKey("AgentCommissionSlabId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "CountList")
                         .WithMany("SalesOrderHeadersAsCountList")
                         .HasForeignKey("CountListId")
@@ -6970,6 +7180,10 @@ namespace SalesManagement.Infrastructure.Migrations
                         .WithMany("SalesOrderHeadersAsStatus")
                         .HasForeignKey("StatusId")
                         .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("AgentCommissionConfig");
+
+                    b.Navigation("AgentCommissionSlab");
 
                     b.Navigation("CountList");
 
@@ -7220,6 +7434,13 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("AgentCommissionSalesGroups");
 
                     b.Navigation("AgentCommissionSlabs");
+
+                    b.Navigation("SalesOrderHeaders");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.AgentCommissionSlab", b =>
+                {
+                    b.Navigation("SalesOrderHeaders");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.BusinessUnit", b =>
@@ -7279,6 +7500,11 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     b.Navigation("DiscountSlabs");
 
+                    b.Navigation("SalesOrderDiscounts");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.DiscountSlab", b =>
+                {
                     b.Navigation("SalesOrderDiscounts");
                 });
 
@@ -7441,6 +7667,8 @@ namespace SalesManagement.Infrastructure.Migrations
             modelBuilder.Entity("SalesManagement.Domain.Entities.SalesOrderAmendmentHeader", b =>
                 {
                     b.Navigation("SalesOrderAmendmentDetails");
+
+                    b.Navigation("SalesOrderAmendmentDiscounts");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.SalesOrderDetail", b =>

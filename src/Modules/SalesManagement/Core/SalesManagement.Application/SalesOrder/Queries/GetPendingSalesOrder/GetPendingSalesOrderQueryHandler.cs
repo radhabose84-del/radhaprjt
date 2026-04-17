@@ -119,7 +119,7 @@ namespace SalesManagement.Application.SalesOrder.Queries.GetPendingSalesOrder
                 if (r.AgentId.HasValue && partyDict.TryGetValue(r.AgentId.Value, out var agentName))
                     r.AgentName = agentName;
 
-                if (unitDict.TryGetValue(r.UnitId, out var unitName))
+                if (r.UnitId.HasValue && unitDict.TryGetValue(r.UnitId.Value, out var unitName))
                     r.UnitName = unitName;
 
                 // Workflow enrichment

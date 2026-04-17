@@ -12,6 +12,7 @@ using SalesManagement.Application.SalesOrder.Commands.DeleteMdApprovalDocument;
 using SalesManagement.Application.SalesOrder.Commands.UploadSalesOrderImage;
 using SalesManagement.Application.SalesOrder.Commands.DeleteSalesOrderImage;
 using SalesManagement.Application.SalesOrder.Queries.GetAllSalesOrder;
+using SalesManagement.Application.SalesOrder.Queries.GetAgentCommissions;
 using SalesManagement.Application.SalesOrder.Queries.GetDiscountsBySalesGroup;
 using SalesManagement.Application.SalesOrder.Queries.GetSalesOrderAutoComplete;
 using SalesManagement.Application.SalesOrder.Queries.GetSalesOrderById;
@@ -57,9 +58,28 @@ namespace SalesManagement.Presentation.Controllers
         }
 
         [HttpGet("by-name")]
-        public async Task<IActionResult> GetSalesOrderAutoCompleteAsync([FromQuery] string? term = null)
+        public async Task<IActionResult> GetSalesOrderAutoCompleteAsync(
+            [FromQuery] string? term = null,
+            [FromQuery] bool proformaFilter = false)
         {
-            var result = await Mediator.Send(new GetSalesOrderAutoCompleteQuery(term));
+            var result = await Mediator.Send(new GetSalesOrderAutoCompleteQuery(term, proformaFilter));
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result
+            });
+        }
+
+        [HttpGet("agent-commissions")]
+        public async Task<IActionResult> GetAgentCommissionsAsync([FromQuery] int salesGroupId, [FromQuery] int paymentTermId, [FromQuery] int agentId)
+        {
+            var result = await Mediator.Send(new GetAgentCommissionsQuery
+            {
+                SalesGroupId = salesGroupId,
+                PaymentTermId = paymentTermId,
+                AgentId = agentId
+            });
 
             return Ok(new
             {

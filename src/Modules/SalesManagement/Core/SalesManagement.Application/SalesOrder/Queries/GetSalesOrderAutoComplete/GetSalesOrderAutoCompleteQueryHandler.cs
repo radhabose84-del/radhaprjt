@@ -26,7 +26,7 @@ namespace SalesManagement.Application.SalesOrder.Queries.GetSalesOrderAutoComple
             GetSalesOrderAutoCompleteQuery request,
             CancellationToken cancellationToken)
         {
-            var result = await _queryRepository.AutocompleteAsync(request.Term ?? string.Empty, cancellationToken);
+            var result = await _queryRepository.AutocompleteAsync(request.Term ?? string.Empty, cancellationToken, request.ProformaFilter);
             var dtos = _mapper.Map<List<SalesOrderLookupDto>>(result);
 
             var domainEvent = new AuditLogsDomainEvent(

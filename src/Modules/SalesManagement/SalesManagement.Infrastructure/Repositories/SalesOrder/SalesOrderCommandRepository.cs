@@ -116,6 +116,16 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             existingEntity.UnitId = entity.UnitId;
             existingEntity.PartyId = entity.PartyId;
             existingEntity.PaymentTypeId = entity.PaymentTypeId;
+            existingEntity.AgentCommissionId = entity.AgentCommissionId;
+            existingEntity.AgentPaymentTermsId = entity.AgentPaymentTermsId;
+            existingEntity.AgentCommissionSlabId = entity.AgentCommissionSlabId;
+            existingEntity.CommissionRate = entity.CommissionRate;
+            existingEntity.CommissionValue = entity.CommissionValue;
+            existingEntity.IsMdDiscountEnabled = entity.IsMdDiscountEnabled;
+            existingEntity.MdDiscountRate = entity.MdDiscountRate;
+            existingEntity.MdDiscountPercentage = entity.MdDiscountPercentage;
+            existingEntity.MdDiscountValue = entity.MdDiscountValue;
+            existingEntity.TotalDiscountValue = entity.TotalDiscountValue;
             existingEntity.FreightTypeId = entity.FreightTypeId;
             existingEntity.CountListId = entity.CountListId;
             existingEntity.Remarks = entity.Remarks;
@@ -242,6 +252,20 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 return false;
 
             existing.AgentPOAttachment = fileName;
+            _applicationDbContext.SalesOrderHeader.Update(existing);
+            await _applicationDbContext.SaveChangesAsync(ct);
+            return true;
+        }
+
+        public async Task<bool> UpdateMdApprovalDocumentAsync(int id, string fileName, CancellationToken ct)
+        {
+            var existing = await _applicationDbContext.SalesOrderHeader
+                .FirstOrDefaultAsync(x => x.Id == id && x.IsDeleted == IsDelete.NotDeleted, ct);
+
+            if (existing == null)
+                return false;
+
+            existing.MdApprovalDocument = fileName;
             _applicationDbContext.SalesOrderHeader.Update(existing);
             await _applicationDbContext.SaveChangesAsync(ct);
             return true;

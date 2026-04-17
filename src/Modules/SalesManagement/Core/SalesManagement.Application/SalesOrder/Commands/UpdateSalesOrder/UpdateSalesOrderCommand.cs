@@ -16,7 +16,7 @@ namespace SalesManagement.Application.SalesOrder.Commands.UpdateSalesOrder
         public int SalesGroupId { get; set; }
         public int? SalesSegmentId { get; set; }
         public int EnquiryType { get; set; }
-        public int UnitId { get; set; }
+        public int? UnitId { get; set; }
         public int PartyId { get; set; }
         public string? PartyAddress { get; set; }
         public int? AgentId { get; set; }
@@ -34,7 +34,17 @@ namespace SalesManagement.Application.SalesOrder.Commands.UpdateSalesOrder
         // MD Discount — when true, Rate + Document are mandatory
         public bool IsMdDiscountEnabled { get; set; }
         public decimal? MdDiscountRate { get; set; }
+        public decimal? MdDiscountPercentage { get; set; }
+        public decimal? MdDiscountValue { get; set; }
+        public decimal? TotalDiscountValue { get; set; }
         public string? MdApprovalDocument { get; set; }
+
+        // Agent Commission
+        public int? AgentCommissionId { get; set; }
+        public int AgentPaymentTermsId { get; set; }
+        public int? AgentCommissionSlabId { get; set; }
+        public decimal? CommissionRate { get; set; }
+        public decimal? CommissionValue { get; set; }
 
         // File Attachments
         public string? VisitNotesAttachment { get; set; }

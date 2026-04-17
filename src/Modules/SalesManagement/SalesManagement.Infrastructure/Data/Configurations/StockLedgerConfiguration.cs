@@ -97,6 +97,11 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnName("TypeId")
                 .HasColumnType("int");
 
+            builder.Property(t => t.SourceUnitId)
+                .HasColumnName("SourceUnitId")
+                .HasColumnType("int")
+                .IsRequired(false);
+
             // Unique composite index — prevents duplicate pack entries
             builder.HasIndex(t => new { t.DocType, t.DocNo, t.PackNo }).IsUnique();
 
@@ -104,6 +109,7 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             builder.HasIndex(t => t.ItemId);
             builder.HasIndex(t => t.WarehouseId);
             builder.HasIndex(t => t.DocDate);
+            builder.HasIndex(t => new { t.ItemId, t.UnitId, t.SourceUnitId });
         }
     }
 }

@@ -16,5 +16,8 @@ namespace SalesManagement.Domain.Entities
         public AgentCommissionConfig? AgentCommissionConfig { get; set; }
         public MiscMaster? CommissionType { get; set; }
         public MiscMaster? CommissionBasis { get; set; }
+
+        // Reverse navigation (SalesOrderHeader)
+        public ICollection<SalesOrderHeader>? SalesOrderHeaders { get; set; }
     }
 }

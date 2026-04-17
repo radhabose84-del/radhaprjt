@@ -54,13 +54,6 @@ namespace SalesManagement.Presentation.Validation.SalesOrder
                             .WithMessage($"SalesGroupId {rule.Error}")
                             .When(x => x.SalesOrderDetails != null);
 
-                        RuleFor(x => x.SalesOrderDetails!.UnitId)
-                            .NotNull()
-                            .WithMessage($"UnitId {rule.Error}")
-                            .NotEmpty()
-                            .WithMessage($"UnitId {rule.Error}")
-                            .When(x => x.SalesOrderDetails != null);
-
                         RuleFor(x => x.SalesOrderDetails!.PartyId)
                             .NotNull()
                             .WithMessage($"PartyId {rule.Error}")
@@ -177,9 +170,9 @@ namespace SalesManagement.Presentation.Validation.SalesOrder
 
                         RuleFor(x => x.SalesOrderDetails!.UnitId)
                             .MustAsync(async (unitId, ct) =>
-                                await _queryRepository.UnitExistsAsync(unitId))
+                                await _queryRepository.UnitExistsAsync(unitId!.Value))
                             .WithMessage($"UnitId {rule.Error}")
-                            .When(x => x.SalesOrderDetails != null && x.SalesOrderDetails.UnitId > 0);
+                            .When(x => x.SalesOrderDetails != null && x.SalesOrderDetails.UnitId.HasValue && x.SalesOrderDetails.UnitId > 0);
 
                         RuleFor(x => x.SalesOrderDetails!.PartyId)
                             .MustAsync(async (partyId, ct) =>
@@ -274,10 +267,14 @@ namespace SalesManagement.Presentation.Validation.SalesOrder
                 }
             }
 
-            // MD Discount — when checkbox enabled, Rate + Document are mandatory
-            RuleFor(x => x.SalesOrderDetails!.MdDiscountRate)
-                .NotNull().WithMessage("MdDiscountRate is required when MD Discount is enabled.")
-                .GreaterThan(0).WithMessage("MdDiscountRate must be greater than zero.")
+            // MD Discount — when checkbox enabled:
+            //   • Either MdDiscountRate OR MdDiscountPercentage must be provided (at least one)
+            //   • Whichever is provided must be > 0
+            //   • MdApprovalDocument is mandatory
+            RuleFor(x => x.SalesOrderDetails!)
+                .Must(d => (d.MdDiscountRate.HasValue && d.MdDiscountRate.Value > 0)
+                        || (d.MdDiscountPercentage.HasValue && d.MdDiscountPercentage.Value > 0))
+                .WithMessage("Either MdDiscountRate or MdDiscountPercentage is required (and must be greater than zero) when MD Discount is enabled.")
                 .When(x => x.SalesOrderDetails != null && x.SalesOrderDetails.IsMdDiscountEnabled);
 
             RuleFor(x => x.SalesOrderDetails!.MdApprovalDocument)

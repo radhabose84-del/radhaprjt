@@ -63,6 +63,17 @@ namespace SalesManagement.Infrastructure.Repositories.SalesReturn
             await _dbContext.SaveChangesAsync();
         }
 
+        public async Task UpdateHeaderStatusAsync(int id, int statusId)
+        {
+            var header = await _dbContext.SalesReturnHeader
+                .FirstOrDefaultAsync(x => x.Id == id && x.IsDeleted == IsDelete.NotDeleted);
+
+            if (header == null) return;
+
+            header.StatusId = statusId;
+            await _dbContext.SaveChangesAsync();
+        }
+
         public async Task UpdateComplaintResolutionReturnStatusAsync(int complaintHeaderId, int returnStatusId, decimal returnQuantity, int? closureStatusId = null, int? closedBy = null)
         {
             var resolution = await _dbContext.ComplaintResolution

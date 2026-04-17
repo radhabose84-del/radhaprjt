@@ -1,6 +1,8 @@
 using System.Data;
 using Dapper;
+using Contracts.Dtos.Common;
 using Contracts.Interfaces;
+using Contracts.Interfaces.Gate;
 using Contracts.Interfaces.Lookups.Users;
 using GateEntryManagement.Application.Common.Interfaces.IGatePass;
 using GateEntryManagement.Application.GatePass.Dto;
@@ -12,12 +14,18 @@ namespace GateEntryManagement.Infrastructure.Repositories.GatePass
         private readonly IDbConnection _dbConnection;
         private readonly IUnitLookup _unitLookup;
         private readonly IIPAddressService _ipAddressService;
+        private readonly IEnumerable<IGatePassDocResolver> _docResolvers;
 
-        public GatePassQueryRepository(IDbConnection dbConnection, IUnitLookup unitLookup, IIPAddressService ipAddressService)
+        public GatePassQueryRepository(
+            IDbConnection dbConnection,
+            IUnitLookup unitLookup,
+            IIPAddressService ipAddressService,
+            IEnumerable<IGatePassDocResolver> docResolvers)
         {
             _dbConnection = dbConnection;
             _unitLookup = unitLookup;
             _ipAddressService = ipAddressService;
+            _docResolvers = docResolvers;
         }
 
         public async Task<(List<GatePassHdrDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
@@ -56,7 +64,6 @@ namespace GateEntryManagement.Infrastructure.Repositories.GatePass
             var list = (await result.ReadAsync<GatePassHdrDto>()).ToList();
             var totalCount = await result.ReadFirstAsync<int>();
 
-            // Populate cross-module UnitName
             await PopulateUnitNames(list);
 
             return (list, totalCount);
@@ -68,6 +75,7 @@ namespace GateEntryManagement.Infrastructure.Repositories.GatePass
                 SELECT h.Id, h.GatePassNo, h.GatePassDate,
                     h.VehicleMovementRecordId, vmr.VehicleMovementId,
                     h.VehicleNumber, h.DriverName, h.DriverMobile, h.TransporterName,
+                    vmr.GateInTime, vmr.GateOutTime,
                     h.UnitId,
                     h.TotalItems, h.TotalDocumentQty, h.TotalDispatchQty,
                     h.ReturnableItems, h.TotalValue, h.Remarks,
@@ -79,9 +87,12 @@ namespace GateEntryManagement.Infrastructure.Repositories.GatePass
                 WHERE h.Id = @Id AND h.IsDeleted = 0";
 
             const string detailSql = @"
-                SELECT d.Id, d.GatePassHdrId, d.DocTypeId, d.DocId, d.DocNo,
+                SELECT d.Id, d.GatePassHdrId, d.DocTypeId,
+                    tt.ShortName AS DocTypeCode, tt.TypeName AS DocTypeName,
+                    d.DocId, d.DocNo,
                     d.PartyName, d.PartyCode, d.DocDate, d.TotalQty
                 FROM Gate.GatePassDtl d
+                LEFT JOIN Finance.TransactionTypeMaster tt ON tt.Id = d.DocTypeId AND tt.IsDeleted = 0
                 WHERE d.GatePassHdrId = @Id";
 
             var header = await _dbConnection.QueryFirstOrDefaultAsync<GatePassHdrDto>(headerSql, new { Id = id });
@@ -91,10 +102,60 @@ namespace GateEntryManagement.Infrastructure.Repositories.GatePass
             var details = (await _dbConnection.QueryAsync<GatePassDtlDto>(detailSql, new { Id = id })).ToList();
             header.GatePassDetails = details;
 
-            // Populate UnitName
             await PopulateUnitNames(new List<GatePassHdrDto> { header });
+            await ResolveDocFieldsAsync(header, details);
 
             return header;
+        }
+
+        private async Task ResolveDocFieldsAsync(GatePassHdrDto header, List<GatePassDtlDto> details)
+        {
+            var groups = details
+                .Where(d => !string.IsNullOrWhiteSpace(d.DocTypeName) && d.DocId > 0)
+                .GroupBy(d => d.DocTypeName!)
+                .ToList();
+
+            if (groups.Count == 0)
+                return;
+
+            GatePassDocSummaryDto? firstResolvedSummary = null;
+
+            foreach (var group in groups)
+            {
+                var resolver = _docResolvers.FirstOrDefault(r => r.DocumentType == group.Key);
+                if (resolver == null)
+                    continue;
+
+                var docIds = group.Select(d => d.DocId).Distinct().ToList();
+                var summaries = await resolver.GetSummariesAsync(docIds);
+                if (summaries.Count == 0)
+                    continue;
+
+                var dict = summaries.ToDictionary(s => s.DocId);
+
+                foreach (var detail in group)
+                {
+                    if (!dict.TryGetValue(detail.DocId, out var summary))
+                        continue;
+
+                    if (summary.TotalQty.HasValue)
+                        detail.TotalQty = summary.TotalQty.Value;
+
+                    detail.NetKgs = summary.NetKgs;
+                    detail.GrossKgs = summary.GrossKgs;
+                    detail.WithLoadKgs = summary.WithLoadKgs;
+                    detail.WithoutLoadKgs = summary.WithoutLoadKgs;
+                    detail.TotalWeight = summary.TotalWeight;
+                    detail.ItemDescription = summary.ItemDescription;
+                    detail.Uom = summary.Uom;
+
+                    if (firstResolvedSummary == null && !string.IsNullOrWhiteSpace(summary.TransporterName))
+                        firstResolvedSummary = summary;
+                }
+            }
+
+            if (string.IsNullOrWhiteSpace(header.TransporterName) && firstResolvedSummary != null)
+                header.TransporterName = firstResolvedSummary.TransporterName;
         }
 
         public async Task<IReadOnlyList<GatePassAutoCompleteDto>> AutocompleteAsync(string term, CancellationToken ct)

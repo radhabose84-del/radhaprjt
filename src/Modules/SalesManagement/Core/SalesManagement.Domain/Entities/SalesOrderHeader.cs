@@ -11,7 +11,7 @@ namespace SalesManagement.Domain.Entities
         public int SalesGroupId { get; set; }
         public int? SalesSegmentId { get; set; }
         public int EnquiryType { get; set; }            // 1=Unit, 2=Combined
-        public int UnitId { get; set; }                  // Cross-module FK (UserManagement)
+        public int? UnitId { get; set; }                  // Cross-module FK (UserManagement)
         public int PartyId { get; set; }                 // Cross-module FK (PartyManagement)
         public string? PartyAddress { get; set; }           // Free-text address (numbers, letters, special chars allowed)
         public int? AgentId { get; set; }                // Cross-module FK (PartyManagement) — nullable
@@ -32,7 +32,17 @@ namespace SalesManagement.Domain.Entities
         // MD Discount — when checkbox enabled, Rate + Document are mandatory
         public bool IsMdDiscountEnabled { get; set; }
         public decimal? MdDiscountRate { get; set; }
+        public decimal? MdDiscountPercentage { get; set; }
+        public decimal? MdDiscountValue { get; set; }
+        public decimal? TotalDiscountValue { get; set; }
         public string? MdApprovalDocument { get; set; }
+
+        // Agent Commission — all fields optional; slab/rate/value snapshotted only when resolved
+        public int? AgentCommissionId { get; set; }          // FK → Sales.AgentCommissionConfig (optional)
+        public int AgentPaymentTermsId { get; set; }         // Lookup — no DB FK (resolved via IPaymentTermLookup)
+        public int? AgentCommissionSlabId { get; set; }      // FK → Sales.AgentCommissionSlab (optional)
+        public decimal? CommissionRate { get; set; }         // Applied rate snapshot (optional)
+        public decimal? CommissionValue { get; set; }        // Calculated commission snapshot (optional)
 
         // File Attachments
         public string? VisitNotesAttachment { get; set; }
@@ -80,6 +90,8 @@ namespace SalesManagement.Domain.Entities
         public MiscMaster? FreightType { get; set; }
         public MiscMaster? CountList { get; set; }
         public MiscMaster? StatusMisc { get; set; }
+        public AgentCommissionConfig? AgentCommissionConfig { get; set; }
+        public AgentCommissionSlab? AgentCommissionSlab { get; set; }
 
         // Child collection
         public ICollection<SalesOrderDetail>? SalesOrderDetails { get; set; }

@@ -111,6 +111,9 @@ if (!app.Environment.IsDevelopment() && !app.Environment.IsEnvironment("QA"))
 {
     app.UseHttpsRedirection();
 }
+// ✅ Strip invisible characters (BOM, NBSP) from JSON request bodies
+app.UseMiddleware<JsonBodySanitizingMiddleware>();
+
 // ✅ Correct middleware order
 app.UseRouting();
 

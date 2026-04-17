@@ -9,6 +9,7 @@ using SalesManagement.Application.ProformaInvoice.Queries.GetAllProformaInvoice;
 using SalesManagement.Application.ProformaInvoice.Queries.GetProformaInvoiceById;
 using SalesManagement.Application.ProformaInvoice.Queries.GetProformaInvoiceAutoComplete;
 using SalesManagement.Application.ProformaInvoice.Queries.GetProformaInvoiceBySalesOrder;
+using SalesManagement.Application.ProformaInvoice.Queries.GetProformaInvoicePrintDetails;
 
 namespace SalesManagement.Presentation.Controllers
 {
@@ -115,6 +116,18 @@ namespace SalesManagement.Presentation.Controllers
                 isSuccess = result.IsSuccess,
                 message = result.Message,
                 data = result.Data
+            });
+        }
+
+        [HttpGet("{id}/print")]
+        public async Task<IActionResult> GetProformaInvoicePrintDetailsAsync(int id)
+        {
+            var result = await Mediator.Send(new GetProformaInvoicePrintDetailsQuery(id));
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result
             });
         }
 

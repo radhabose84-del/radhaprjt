@@ -56,10 +56,9 @@ public class UserProfile : Profile
             .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => true));
 
         CreateMap<User, UserDto>()
-            .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.Id));
-        // .ForMember(dest => dest.UserCompanies, opt => opt.MapFrom(src => src.UserCompanies))
-        // .ForMember(dest => dest.userRoleAllocations, opt => opt.MapFrom(src => src.UserRoleAllocations))
-        // .ForMember(dest => dest.UserUnits, opt => opt.MapFrom(src => src.UserUnits));
+            .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.Id))
+            .ForMember(dest => dest.UserGroupName, opt => opt.Ignore())
+            .ForMember(dest => dest.DepartmentName, opt => opt.Ignore());
 
         CreateMap<UpdateUserCommand, User>()
         .ForMember(dest => dest.PasswordHash, opt => opt.Ignore())
@@ -78,28 +77,38 @@ public class UserProfile : Profile
             .ForMember(dest => dest.IsDeleted, opt => opt.MapFrom(src => IsDelete.Deleted));
 
              CreateMap<UserCompany, UserCompanyDTO>()
-            .ForMember(dest => dest.CompanyId, opt => opt.MapFrom(src => src.CompanyId));
+            .ForMember(dest => dest.CompanyId, opt => opt.MapFrom(src => src.CompanyId))
+            .ForMember(dest => dest.CompanyName, opt => opt.Ignore());
 
         CreateMap<UserRoleAllocation, UserRoleAllocationDTO>()
-            .ForMember(dest => dest.UserRoleId, opt => opt.MapFrom(src => src.UserRoleId));
+            .ForMember(dest => dest.UserRoleId, opt => opt.MapFrom(src => src.UserRoleId))
+            .ForMember(dest => dest.RoleName, opt => opt.Ignore());
 
         CreateMap<UserUnit, UserUnitDTO>()
-            .ForMember(dest => dest.UnitId, opt => opt.MapFrom(src => src.UnitId));
+            .ForMember(dest => dest.UnitId, opt => opt.MapFrom(src => src.UnitId))
+            .ForMember(dest => dest.UnitName, opt => opt.Ignore());
 
             CreateMap<UserDivision, UserDivisionDTO>()
-            .ForMember(dest => dest.DivisionId, opt => opt.MapFrom(src => src.DivisionId));
+            .ForMember(dest => dest.DivisionId, opt => opt.MapFrom(src => src.DivisionId))
+            .ForMember(dest => dest.DivisionName, opt => opt.Ignore());
 
             CreateMap<UserDepartment, UserDepartmentDTO>()
-            .ForMember(dest => dest.DepartmentId, opt => opt.MapFrom(src => src.DepartmentId));
+            .ForMember(dest => dest.DepartmentId, opt => opt.MapFrom(src => src.DepartmentId))
+            .ForMember(dest => dest.DepartmentName, opt => opt.Ignore());
 
             CreateMap<User, UserByIdDTO>()
-            .ForMember(dest => dest.UserId, opt => opt.Ignore()) 
+            .ForMember(dest => dest.UserId, opt => opt.Ignore())
             .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.Id))
             .ForMember(dest => dest.UserCompanies, opt => opt.MapFrom(src => src.UserCompanies))
             .ForMember(dest => dest.userRoleAllocations, opt => opt.MapFrom(src => src.UserRoleAllocations))
             .ForMember(dest => dest.UserUnits, opt => opt.MapFrom(src => src.UserUnits))
             .ForMember(dest => dest.userDivisions, opt => opt.MapFrom(src => src.UserDivisions))
-            .ForMember(dest => dest.userDepartments, opt => opt.MapFrom(src => src.UserDepartments));
+            .ForMember(dest => dest.userDepartments, opt => opt.MapFrom(src => src.UserDepartments))
+            .ForMember(dest => dest.UserGroupName, opt => opt.Ignore())
+            .ForMember(dest => dest.DepartmentId, opt => opt.MapFrom(src => src.DepartmentId))
+            .ForMember(dest => dest.DepartmentName, opt => opt.Ignore())
+            .ForMember(dest => dest.EntityName, opt => opt.Ignore())
+            .ForMember(dest => dest.EmpName, opt => opt.Ignore());
             CreateMap<User, UserAutoCompleteDto>();
 
             CreateMap<PasswordLogDTO, PasswordLog>();

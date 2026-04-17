@@ -67,18 +67,18 @@ namespace SalesManagement.Presentation.Validation.ItemPriceMaster
                             .MustAsync(async (id, ct) => await _queryRepository.ItemExistsAsync(id, ct))
                             .WithMessage($"{nameof(CreateItemPriceMasterCommand.ItemId)} {rule.Error}");
 
-                        // VariantId FK exists (when provided)
+                        // VariantId FK exists (when provided and > 0)
                         RuleFor(x => x.VariantId!.Value)
                             .MustAsync(async (id, ct) => await _queryRepository.VariantExistsAsync(id, ct))
                             .WithMessage($"{nameof(CreateItemPriceMasterCommand.VariantId)} {rule.Error}")
-                            .When(x => x.VariantId.HasValue);
+                            .When(x => x.VariantId.HasValue && x.VariantId > 0);
 
                         // VariantId must belong to the selected ItemId
                         RuleFor(x => x)
                             .MustAsync(async (cmd, ct) =>
                                 await _queryRepository.VariantBelongsToItemAsync(cmd.VariantId!.Value, cmd.ItemId, ct))
                             .WithMessage("Selected Variant does not belong to the selected Item.")
-                            .When(x => x.VariantId.HasValue && x.ItemId > 0);
+                            .When(x => x.VariantId.HasValue && x.VariantId > 0 && x.ItemId > 0);
 
                         // SalesSegmentId FK exists
                         RuleFor(x => x.SalesSegmentId)

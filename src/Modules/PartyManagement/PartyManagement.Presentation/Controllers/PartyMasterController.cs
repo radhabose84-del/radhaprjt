@@ -174,7 +174,8 @@ namespace PartyManagement.Presentation.Controllers
         [HttpGet("by-name")]
         public async Task<IActionResult> GetPartyMasterAutoComplete(
             [FromQuery] string? partyTypeIds,
-            [FromQuery] string? Typename)
+            [FromQuery] string? Typename,
+            [FromQuery] int? agentId = null)
         {
             // Convert comma-separated string to List<int>
             List<int>? parsedPartyTypeIds = null;
@@ -189,7 +190,8 @@ namespace PartyManagement.Presentation.Controllers
             var partyMaster = await Mediator.Send(new GetPartyMasterAutoCompleteQuery
             {
                 PartyTypeIds = parsedPartyTypeIds,
-                SearchPattern = Typename ?? string.Empty
+                SearchPattern = Typename ?? string.Empty,
+                AgentId = agentId
             });
 
             return Ok(new

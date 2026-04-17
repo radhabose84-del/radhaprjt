@@ -33,6 +33,7 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
         private readonly ICountryLookup _countryLookup;
         private readonly IDataAccessFilter _dataAccessFilter;
         private readonly ISalesSegmentLookup _salesSegmentLookup;
+        private readonly IAgentCustomerMappingLookup _agentCustomerMappingLookup;
         private readonly IPartyMasterSalesValidation _salesValidation;
         private readonly IPartyMasterPurchaseValidation _purchaseValidation;
         private readonly IPartyMasterFinanceValidation _financeValidation;
@@ -47,7 +48,8 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
             IPartyMasterPurchaseValidation purchaseValidation,
             IPartyMasterFinanceValidation financeValidation,
             IPartyMasterMaintenanceValidation maintenanceValidation,
-            IFreightMasterLookup freightMasterLookup)
+            IFreightMasterLookup freightMasterLookup,
+            IAgentCustomerMappingLookup agentCustomerMappingLookup)
         {
             _dbConnection = dbConnection;
             _ipAddressService = ipAddressService;
@@ -63,6 +65,7 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
             _financeValidation = financeValidation;
             _maintenanceValidation = maintenanceValidation;
             _freightMasterLookup = freightMasterLookup;
+            _agentCustomerMappingLookup = agentCustomerMappingLookup;
         }
         public async Task<List<PartyGroupLoadDto>> GetPartyGroupsAsync(List<int> groupTypeIds)
         {
@@ -311,19 +314,78 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
             var partyMasters = result.Select(r => r.Item1).ToList();
             int totalCount = result.Any() ? result.First().Item2 : 0;
 
+            // Populate PartyTypes for each party (same as GetByIdPartyMasterAsync)
+            if (partyMasters.Count > 0)
+            {
+                var partyIds = partyMasters.Select(p => p.Id).ToList();
+
+                const string partyTypeSql = @"
+                    SELECT A.Id, A.PartyId, A.PartyTypeId, A.PartyGroupId,
+                           C.Description AS PartyTypeName
+                    FROM Party.PartyType A                    
+                    INNER JOIN Party.MiscMaster C ON A.PartyTypeId = C.Id
+                    WHERE A.PartyId IN @PartyIds";
+
+                var partyTypes = (await _dbConnection.QueryAsync<PartyTypeItemDto>(
+                    partyTypeSql, new { PartyIds = partyIds })).ToList();
+
+                var partyTypesByParty = partyTypes.GroupBy(pt => pt.PartyId)
+                    .ToDictionary(g => g.Key ?? 0, g => g.ToList());
+
+                foreach (var party in partyMasters)
+                {
+                    if (partyTypesByParty.TryGetValue(party.Id, out var types))
+                        party.PartyTypes = types;
+                }
+            }
+
             return (partyMasters, totalCount);
         }
 
-        public async Task<List<GetPartyMasterAutoCompleteDto>> GetPartyMasterAutoComplete(List<int> partyTypeIds, string searchPattern)
+        public async Task<List<GetPartyMasterAutoCompleteDto>> GetPartyMasterAutoComplete(List<int> partyTypeIds, string searchPattern, int? agentId = null)
         {
-            var UnitId = _ipAddressService.GetUnitId() ?? 0;
-
-            // Data access control — marketing officer and agent customer filtering (no bypass in Party)
+            // Data access control
             var accessCtx = await _dataAccessFilter.GetContextAsync();
             if (accessCtx.IsCustomerRestricted && accessCtx.AllowedCustomerIds.Count == 0)
                 return new List<GetPartyMasterAutoCompleteDto>();
 
-            var sql = @"
+            // Resolve allowed UnitIds based on user type
+            List<int> allowedUnitIds = null;
+            if (!accessCtx.BypassDataAccess)
+            {
+                if (accessCtx.PartyId.HasValue)
+                {
+                    // Agent → units from their own PartyUnitCompanyMapping
+                    const string agentUnitSql = "SELECT DISTINCT UnitId FROM Party.PartyUnitCompanyMapping WHERE PartyId = @PartyId";
+                    allowedUnitIds = (await _dbConnection.QueryAsync<int>(agentUnitSql, new { PartyId = accessCtx.PartyId.Value })).ToList();
+                }
+                else
+                {
+                    // Internal staff → units from AppSecurity.UserUnit
+                    var userId = _ipAddressService.GetUserId();
+                    const string userUnitSql = "SELECT UnitId FROM AppSecurity.UserUnit WHERE UserId = @UserId AND IsActive = 1";
+                    allowedUnitIds = (await _dbConnection.QueryAsync<int>(userUnitSql, new { UserId = userId })).ToList();
+                }
+
+                if (allowedUnitIds.Count == 0)
+                    return new List<GetPartyMasterAutoCompleteDto>();
+            }
+
+            // Optional explicit agent filter — pre-fetch customer ids mapped to the given agent
+            IReadOnlyList<int> agentCustomerIds = null;
+            if (agentId.HasValue && agentId.Value > 0)
+            {
+                agentCustomerIds = await _agentCustomerMappingLookup.GetCustomerIdsByAgentAsync(agentId.Value);
+                if (agentCustomerIds.Count == 0)
+                    return new List<GetPartyMasterAutoCompleteDto>();
+            }
+
+            // Unit filter: agents use their party units, internal staff use UserUnit
+            var unitFilter = allowedUnitIds != null
+                ? " AND UC.UnitId IN @AllowedUnitIds"
+                : string.Empty;
+
+            var sql = $@"
                 SELECT
                     a.Id,
                     a.PartyCode,
@@ -341,50 +403,57 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
                 INNER JOIN Party.PartyType b
                     ON a.Id = b.PartyId
                 INNER JOIN Party.PartyUnitCompanyMapping UC
-				    ON a.Id=UC.PartyId
+                    ON a.Id = UC.PartyId
                 INNER JOIN Party.MiscMaster c
                     ON b.PartyTypeId = c.Id
                 INNER JOIN Party.MiscMaster d
                     ON a.RegistrationTypeId = d.Id
-                 INNER JOIN Party.MiscMaster MM
-                 ON a.StatusId=MM.Id
+                INNER JOIN Party.MiscMaster MM
+                    ON a.StatusId = MM.Id
                 LEFT JOIN Party.PartyContact pc
-                    ON a.Id = pc.PartyId
-                AND pc.ContactBy = 'Primary'
+                    ON a.Id = pc.PartyId AND pc.ContactBy = 'Primary'
                 WHERE a.IsDeleted = 0
-                AND MM.description =  @MiscTypeCode
-                AND a.IsActive = 1
-                AND UC.UnitId=@UnitId
-                AND (a.PartyName LIKE @SearchPattern OR a.PartyCode LIKE @SearchPattern)
-
+                    AND MM.description = @MiscTypeCode
+                    AND a.IsActive = 1
+                    {unitFilter}
+                    AND (a.PartyName LIKE @SearchPattern OR a.PartyCode LIKE @SearchPattern)
             ";
 
-            // ✅ Apply optional PartyTypeId filter dynamically
+            // Apply optional PartyTypeId filter
             if (partyTypeIds != null && partyTypeIds.Any())
             {
                 sql += " AND b.PartyTypeId IN @PartyTypeIds";
             }
 
-            // ✅ Apply customer access filter (agent-level or marketing officer — no bypass in Party)
+            // Apply customer access filter (agent-level or marketing officer)
             if (accessCtx.IsCustomerRestricted && accessCtx.AllowedCustomerIds.Count > 0)
             {
                 sql += " AND a.Id IN @AllowedCustomerIds";
             }
 
-            // ✅ Group after filtering
+            // Apply explicit agent filter — restrict to customers mapped to the given agent
+            if (agentCustomerIds != null && agentCustomerIds.Count > 0)
+            {
+                sql += " AND a.Id IN @AgentCustomerIds";
+            }
+
+            // Group to avoid duplicates from unit/type joins
             sql += @"
                 GROUP BY
                     a.Id, a.PartyCode, a.PartyName, d.Description, a.GSTNumber,
-                    pc.EmailID, pc.MobileNo,UC.UnitId
-                    ORDER BY a.PartyName ASC";
+                    pc.EmailID, pc.MobileNo
+                ORDER BY a.PartyName ASC";
 
             var dp = new DynamicParameters();
             dp.Add("PartyTypeIds", partyTypeIds);
             dp.Add("SearchPattern", $"%{searchPattern}%");
             dp.Add("MiscTypeCode", MiscEnumEntity.PartyDocumentImage.Approved);
-            dp.Add("UnitId", UnitId);
+            if (allowedUnitIds != null)
+                dp.Add("AllowedUnitIds", allowedUnitIds);
             if (accessCtx.IsCustomerRestricted && accessCtx.AllowedCustomerIds.Count > 0)
                 dp.Add("AllowedCustomerIds", accessCtx.AllowedCustomerIds.ToList());
+            if (agentCustomerIds != null && agentCustomerIds.Count > 0)
+                dp.Add("AgentCustomerIds", agentCustomerIds.ToList());
 
             var result = (await _dbConnection.QueryAsync<GetPartyMasterAutoCompleteDto>(sql, dp)).ToList();
 

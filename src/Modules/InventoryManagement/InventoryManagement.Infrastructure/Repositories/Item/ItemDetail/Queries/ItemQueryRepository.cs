@@ -59,16 +59,15 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                 .Where(x => x.IsDeleted == BaseEntity.IsDelete.NotDeleted);
 
             // Role-based item group filtering
+            // null = feature not configured (no filtering); empty = user has no access
             var accessCtx = await _dataAccessFilter.GetContextAsync(ct);
-            if (!accessCtx.BypassDataAccess && accessCtx.AllowedItemGroupIds.Count > 0)
+            if (!accessCtx.BypassDataAccess && accessCtx.AllowedItemGroupIds != null)
             {
+                if (accessCtx.AllowedItemGroupIds.Count == 0)
+                    return (new List<ItemListDto>(), 0);
+
                 var allowedGroups = accessCtx.AllowedItemGroupIds;
                 q = q.Where(x => x.ItemGroupId.HasValue && allowedGroups.Contains(x.ItemGroupId.Value));
-            }
-            else if (!accessCtx.BypassDataAccess && accessCtx.AllowedItemGroupIds.Count == 0)
-            {
-                // No groups assigned and no bypass — return empty
-                return (new List<ItemListDto>(), 0);
             }
 
             if (onlyActive)
@@ -473,8 +472,10 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
         public async Task<List<GetItemAutoCompleteDto>> GetItemAutoCompleteAsync(string searchPattern,int? itemGroupId, int? itemCategoryId,int? sourceId,int? issueRuleId, int? moduleId = null, int? salesGroupId = null, CancellationToken ct = default)
         {
             // Role-based item group filtering
+            // null = feature not configured (no filtering); empty = user has no access
             var accessCtx = await _dataAccessFilter.GetContextAsync(ct);
-            if (!accessCtx.BypassDataAccess && accessCtx.AllowedItemGroupIds.Count == 0)
+            bool applyRoleFilter = !accessCtx.BypassDataAccess && accessCtx.AllowedItemGroupIds != null;
+            if (applyRoleFilter && accessCtx.AllowedItemGroupIds!.Count == 0)
                 return new List<GetItemAutoCompleteDto>();
 
             var UnitId = _ipAddressService.GetUnitId() ?? 0;
@@ -506,7 +507,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                 AND (@SalesGroupId IS NULL OR ISale.SalesGroupId = @SalesGroupId)";
 
             // Append role-based item group filter
-            if (!accessCtx.BypassDataAccess)
+            if (applyRoleFilter)
                 query += "\n                AND IM.ItemGroupId IN @AllowedGroupIds";
 
             // Append module-level item filtering via UsageType
@@ -537,8 +538,8 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
             dp.Add("IssueRuleId", issueRuleId);
             dp.Add("SalesGroupId", salesGroupId);
             dp.Add("UnitId", UnitId);
-            if (!accessCtx.BypassDataAccess)
-                dp.Add("AllowedGroupIds", accessCtx.AllowedItemGroupIds.ToList());
+            if (applyRoleFilter)
+                dp.Add("AllowedGroupIds", accessCtx.AllowedItemGroupIds!.ToList());
             if (moduleId.HasValue)
                 dp.Add("ModuleId", moduleId.Value);
 
@@ -662,8 +663,10 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
             bool? hasVariant, int? parentItemId, int? moduleId = null, CancellationToken ct = default)
         {
             // Role-based item group filtering
+            // null = feature not configured (no filtering); empty = user has no access
             var accessCtx = await _dataAccessFilter.GetContextAsync(ct);
-            if (!accessCtx.BypassDataAccess && accessCtx.AllowedItemGroupIds.Count == 0)
+            bool applyRoleFilter = !accessCtx.BypassDataAccess && accessCtx.AllowedItemGroupIds != null;
+            if (applyRoleFilter && accessCtx.AllowedItemGroupIds!.Count == 0)
                 return new List<GetItemAutoCompleteDto>();
 
             const string baseSelect = @"
@@ -699,7 +702,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                 : baseSelect + "\n                AND (@ParentItemId IS NULL OR IM.ParentItemId = @ParentItemId)";
 
             // Append role-based item group filter
-            if (!accessCtx.BypassDataAccess)
+            if (applyRoleFilter)
                 sql += "\n                AND IM.ItemGroupId IN @AllowedGroupIds";
 
             // Module-level item filtering via UsageType.ModuleId
@@ -726,8 +729,8 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
             if (hasVariant.HasValue)
                 dp.Add("HasVariant", hasVariant.Value, DbType.Boolean);
             dp.Add("ParentItemId", parentItemId, DbType.Int32);
-            if (!accessCtx.BypassDataAccess)
-                dp.Add("AllowedGroupIds", accessCtx.AllowedItemGroupIds.ToList());
+            if (applyRoleFilter)
+                dp.Add("AllowedGroupIds", accessCtx.AllowedItemGroupIds!.ToList());
             if (moduleId.HasValue && unitId > 0)
             {
                 dp.Add("ModuleId", moduleId.Value);

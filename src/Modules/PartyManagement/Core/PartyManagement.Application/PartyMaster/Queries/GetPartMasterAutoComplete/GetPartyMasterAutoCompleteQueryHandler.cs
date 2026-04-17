@@ -16,7 +16,7 @@ namespace PartyManagement.Application.PartyMaster.Queries.GetPartMasterAutoCompl
         }
         public async Task<List<GetPartyMasterAutoCompleteDto>> Handle(GetPartyMasterAutoCompleteQuery request, CancellationToken cancellationToken)
         {
-            var partymaster = await _ipartyMasterQueryRepository.GetPartyMasterAutoComplete(request.PartyTypeIds, request.SearchPattern ?? string.Empty);
+            var partymaster = await _ipartyMasterQueryRepository.GetPartyMasterAutoComplete(request.PartyTypeIds, request.SearchPattern ?? string.Empty, request.AgentId);
             //Domain Event
             var domainEvent = new AuditLogsDomainEvent(
                 actionDetail: "GetAll",
