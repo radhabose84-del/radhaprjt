@@ -10,6 +10,10 @@ namespace SalesManagement.Application.StoReceipt.Dto
         public int DeliveryChallanHeaderId { get; set; }
         public string? DeliveryNumber { get; set; }
 
+        // Source Unit (dispatch plant — from Delivery Challan)
+        public int? SourceUnitId { get; set; }
+        public string? SourceUnitName { get; set; }
+
         // Receiving Plant (cross-module lookup)
         public int ReceivingPlantId { get; set; }
         public string? ReceivingPlantName { get; set; }

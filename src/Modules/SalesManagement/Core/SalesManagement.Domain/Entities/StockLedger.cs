@@ -18,5 +18,6 @@ namespace SalesManagement.Domain.Entities
         public decimal TotalValue { get; set; }
         public int StatusId { get; set; }
         public int? TypeId { get; set; }
+        public int? SourceUnitId { get; set; }
     }
 }
