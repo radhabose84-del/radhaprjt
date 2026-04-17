@@ -100,11 +100,8 @@ namespace UserManagement.IntegrationTests.Repositories.Companies
         /// Soft-delete any existing test companies to keep tests isolated without
         /// breaking FK constraints from other integration tests.
         /// </summary>
-        private async Task ClearTestCompaniesAsync(ApplicationDbContext ctx)
-        {
-            await ctx.Database.ExecuteSqlRawAsync(
-                "UPDATE AppData.Company SET IsDeleted = 1 WHERE CompanyName LIKE 'Test Company%' OR CompanyName LIKE 'Update Co%' OR CompanyName LIKE 'Delete Co%'");
-        }
+        private async Task ClearTestCompaniesAsync(ApplicationDbContext ctx) =>
+            await _fixture.ClearAllTablesAsync();
 
         // --- CREATE ---
 

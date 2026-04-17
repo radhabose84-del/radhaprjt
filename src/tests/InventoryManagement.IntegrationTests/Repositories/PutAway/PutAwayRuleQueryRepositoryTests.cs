@@ -44,13 +44,7 @@ namespace InventoryManagement.IntegrationTests.Repositories.PutAway
             return new PutAwayRuleQueryRepository(conn, rackLookup.Object, binLookup.Object, whLookup.Object, ipService);
         }
 
-        private async Task ClearTablesAsync(ApplicationDbContext ctx)
-        {
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Inventory].[PutAwayStrategy]");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Inventory].[PutAwayRule]");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Inventory].[ItemCategory]");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Inventory].[ItemGroup]");
-        }
+        private async Task ClearTablesAsync(ApplicationDbContext ctx) => await _fixture.ClearAllTablesAsync();
 
         private async Task<(int groupId, int categoryId)> SeedGroupAndCategoryAsync()
         {

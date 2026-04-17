@@ -87,11 +87,8 @@ namespace UserManagement.IntegrationTests.Repositories.MiscMaster
             return result.Id;
         }
 
-        private async Task ClearTestDataAsync(ApplicationDbContext ctx, int miscTypeId)
-        {
-            await ctx.Database.ExecuteSqlRawAsync(
-                $"DELETE FROM AppData.MiscMaster WHERE MiscTypeId = {miscTypeId} AND Code LIKE 'MMQ_%'");
-        }
+        private async Task ClearTestDataAsync(ApplicationDbContext ctx, int miscTypeId) =>
+            await _fixture.ClearAllTablesAsync();
 
         // --- GET ALL ---
 
@@ -99,8 +96,8 @@ namespace UserManagement.IntegrationTests.Repositories.MiscMaster
         public async Task GetAllMiscMasterAsync_Should_Return_Seeded_Records()
         {
             await using var ctx = CreateDbContext();
+            await ClearTestDataAsync(ctx, 0);
             var miscTypeId = await EnsureMiscTypeAsync(ctx);
-            await ClearTestDataAsync(ctx, miscTypeId);
             await SeedAsync(ctx, miscTypeId, "MMQ_01", "Query MiscMaster Alpha");
 
             var repo = CreateQueryRepo();
@@ -114,8 +111,8 @@ namespace UserManagement.IntegrationTests.Repositories.MiscMaster
         public async Task GetAllMiscMasterAsync_Should_Filter_By_SearchTerm()
         {
             await using var ctx = CreateDbContext();
+            await ClearTestDataAsync(ctx, 0);
             var miscTypeId = await EnsureMiscTypeAsync(ctx);
-            await ClearTestDataAsync(ctx, miscTypeId);
             await SeedAsync(ctx, miscTypeId, "MMQ_02", "Searchable MiscMaster");
 
             var repo = CreateQueryRepo();
@@ -129,8 +126,8 @@ namespace UserManagement.IntegrationTests.Repositories.MiscMaster
         public async Task GetAllMiscMasterAsync_Should_Exclude_SoftDeleted()
         {
             await using var ctx = CreateDbContext();
+            await ClearTestDataAsync(ctx, 0);
             var miscTypeId = await EnsureMiscTypeAsync(ctx);
-            await ClearTestDataAsync(ctx, miscTypeId);
             var id = await SeedAsync(ctx, miscTypeId, "MMQ_03", "Deleted MiscMaster");
 
             await using var ctx2 = CreateDbContext();
@@ -149,8 +146,8 @@ namespace UserManagement.IntegrationTests.Repositories.MiscMaster
         public async Task GetByIdAsync_Should_Return_Correct_Entity()
         {
             await using var ctx = CreateDbContext();
+            await ClearTestDataAsync(ctx, 0);
             var miscTypeId = await EnsureMiscTypeAsync(ctx);
-            await ClearTestDataAsync(ctx, miscTypeId);
             var id = await SeedAsync(ctx, miscTypeId, "MMQ_04", "ById MiscMaster");
 
             var repo = CreateQueryRepo();
@@ -175,8 +172,8 @@ namespace UserManagement.IntegrationTests.Repositories.MiscMaster
         public async Task AlreadyExistsAsync_Should_Return_True_When_Duplicate()
         {
             await using var ctx = CreateDbContext();
+            await ClearTestDataAsync(ctx, 0);
             var miscTypeId = await EnsureMiscTypeAsync(ctx);
-            await ClearTestDataAsync(ctx, miscTypeId);
             await SeedAsync(ctx, miscTypeId, "MMQ_05", "Exists MiscMaster");
 
             var repo = CreateQueryRepo();
@@ -200,8 +197,8 @@ namespace UserManagement.IntegrationTests.Repositories.MiscMaster
         public async Task NotFoundAsync_Should_Return_True_When_Exists()
         {
             await using var ctx = CreateDbContext();
+            await ClearTestDataAsync(ctx, 0);
             var miscTypeId = await EnsureMiscTypeAsync(ctx);
-            await ClearTestDataAsync(ctx, miscTypeId);
             var id = await SeedAsync(ctx, miscTypeId, "MMQ_06", "Found MiscMaster");
 
             var repo = CreateQueryRepo();

@@ -66,11 +66,8 @@ namespace UserManagement.IntegrationTests.Repositories.MiscTypeMaster
             return result.Id;
         }
 
-        private async Task ClearTestDataAsync(ApplicationDbContext ctx)
-        {
-            await ctx.Database.ExecuteSqlRawAsync(
-                "DELETE FROM AppData.MiscTypeMaster WHERE MiscTypeCode LIKE 'MTM_QRY%'");
-        }
+        private async Task ClearTestDataAsync(ApplicationDbContext ctx) =>
+            await _fixture.ClearAllTablesAsync();
 
         // --- GET ALL ---
 

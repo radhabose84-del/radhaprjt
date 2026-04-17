@@ -29,7 +29,7 @@ namespace ProductionManagement.IntegrationTests.Repositories.ProcessMaster
             };
 
         private async Task ClearTableAsync(ApplicationDbContext ctx) =>
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Production].[ProcessMaster]");
+            await _fixture.ClearAllTablesAsync();
 
         // --- CREATE ---
 

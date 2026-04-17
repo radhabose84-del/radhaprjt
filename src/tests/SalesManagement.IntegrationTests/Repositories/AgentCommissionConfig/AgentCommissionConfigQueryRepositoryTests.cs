@@ -83,12 +83,8 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCommissionConfig
             return mock;
         }
 
-        private async Task ClearTableAsync()
-        {
-            await using var conn = new SqlConnection(_fixture.ConnectionString);
-            await conn.OpenAsync();
-            await conn.ExecuteAsync("DELETE FROM Sales.AgentCommissionConfig");
-        }
+        private async Task ClearTableAsync() =>
+            await _fixture.ClearTablesAsync("Sales.AgentCommissionConfig");
 
         private async Task<(int miscMasterId, int commissionSplitId)> EnsurePrerequisitesAsync()
         {

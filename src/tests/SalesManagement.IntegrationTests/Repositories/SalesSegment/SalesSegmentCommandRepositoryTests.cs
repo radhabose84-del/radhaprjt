@@ -90,11 +90,8 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesSegment
             return (org.Id, channel.Id, bu.Id);
         }
 
-        private async Task ClearTableAsync(ApplicationDbContext ctx)
-        {
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Sales.ItemPriceMaster");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Sales.SalesSegment");
-        }
+        private async Task ClearTableAsync(ApplicationDbContext ctx) =>
+            await _fixture.ClearTablesAsync("Sales.SalesSegment");
 
         private Domain.Entities.SalesSegment BuildEntity(
             int orgId, int channelId, int buId,

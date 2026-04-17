@@ -1,3 +1,4 @@
+using Contracts.Interfaces.Lookups.Party;
 using FluentValidation.TestHelper;
 using SalesManagement.Application.AgentCustomerMapping.Commands.CreateAgentCustomerMapping;
 using SalesManagement.Application.Common.Interfaces.IAgentCustomerMapping;
@@ -10,15 +11,26 @@ namespace SalesManagement.UnitTests.Validators.AgentCustomerMapping
     {
         private readonly Mock<IAgentCustomerMappingQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
         private readonly Mock<IMarketingOfficerAccessFilter> _mockAccessFilter = new(MockBehavior.Loose);
+        private readonly Mock<ICustomerLookup> _mockCustomerLookup = new(MockBehavior.Loose);
+        private readonly Mock<IAgentLookup> _mockAgentLookup = new(MockBehavior.Loose);
+
+        public CreateAgentCustomerMappingCommandValidatorTests()
+        {
+            // Default: allow access for any agent (overridable per test)
+            _mockAccessFilter
+                .Setup(f => f.CanAccessAgentAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(true);
+        }
 
         private CreateAgentCustomerMappingCommandValidator CreateValidator()
-            => new(TestMaxLengthProviderFactory.Create(), _mockQueryRepo.Object, _mockAccessFilter.Object);
+            => new(TestMaxLengthProviderFactory.Create(), _mockQueryRepo.Object, _mockAccessFilter.Object, _mockCustomerLookup.Object, _mockAgentLookup.Object);
 
         private void SetupAllAsyncMocks(int customerId = 1, int agentId = 2, int salesSegmentId = 1)
         {
             _mockQueryRepo.Setup(r => r.CustomerExistsAsync(customerId, It.IsAny<CancellationToken>())).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.AgentExistsAsync(agentId, It.IsAny<CancellationToken>())).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.SalesSegmentExistsAsync(salesSegmentId, It.IsAny<CancellationToken>())).ReturnsAsync(true);
+            _mockQueryRepo.Setup(r => r.MappingAlreadyExistsAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>())).ReturnsAsync(false);
             _mockAccessFilter.Setup(f => f.CanAccessAgentAsync(agentId, It.IsAny<CancellationToken>())).ReturnsAsync(true);
         }
 
@@ -67,6 +79,7 @@ namespace SalesManagement.UnitTests.Validators.AgentCustomerMapping
             _mockQueryRepo.Setup(r => r.CustomerExistsAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(false);
             _mockQueryRepo.Setup(r => r.AgentExistsAsync(2, It.IsAny<CancellationToken>())).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.SalesSegmentExistsAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(true);
+            _mockQueryRepo.Setup(r => r.MappingAlreadyExistsAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>())).ReturnsAsync(false);
 
             var result = await CreateValidator().TestValidateAsync(cmd);
 
@@ -101,6 +114,7 @@ namespace SalesManagement.UnitTests.Validators.AgentCustomerMapping
             cmd.SalesSegmentId = segId;
             _mockQueryRepo.Setup(r => r.CustomerExistsAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.AgentExistsAsync(2, It.IsAny<CancellationToken>())).ReturnsAsync(true);
+            _mockQueryRepo.Setup(r => r.MappingAlreadyExistsAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>())).ReturnsAsync(false);
 
             var result = await CreateValidator().TestValidateAsync(cmd);
 
@@ -114,6 +128,7 @@ namespace SalesManagement.UnitTests.Validators.AgentCustomerMapping
             _mockQueryRepo.Setup(r => r.CustomerExistsAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.AgentExistsAsync(2, It.IsAny<CancellationToken>())).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.SalesSegmentExistsAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(false);
+            _mockQueryRepo.Setup(r => r.MappingAlreadyExistsAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>())).ReturnsAsync(false);
 
             var result = await CreateValidator().TestValidateAsync(cmd);
 

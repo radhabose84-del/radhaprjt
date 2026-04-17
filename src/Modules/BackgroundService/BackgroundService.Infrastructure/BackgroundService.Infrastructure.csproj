@@ -43,4 +43,9 @@
     <ProjectReference Include="..\..\..\Modules\ProjectManagement\Core\ProjectManagement.Application\ProjectManagement.Application.csproj" />
 <ProjectReference Include="..\..\..\Modules\SalesManagement\Core\SalesManagement.Application\SalesManagement.Application.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>BackgroundService.IntegrationTests</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
 </Project>

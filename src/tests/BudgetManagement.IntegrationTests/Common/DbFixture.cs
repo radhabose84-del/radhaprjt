@@ -171,6 +171,71 @@ SET IDENTITY_INSERT Budget.BudgetGroup OFF;
             return new ApplicationDbContext(options, ipMock.Object, tzMock.Object);
         }
 
+        /// <summary>
+        /// Clears only the specified tables with FK constraints temporarily disabled.
+        /// Use this for tests that seed prerequisite data and only need to clear the entity under test.
+        /// </summary>
+        public async Task ClearTablesAsync(params string[] tableNames)
+        {
+            await using var conn = new SqlConnection(_testDbConnection);
+            await conn.OpenAsync();
+
+            var deleteSql = string.Join("\n", tableNames.Select(t => $"DELETE FROM {t};"));
+            var sql = $@"
+                DECLARE @d NVARCHAR(MAX)=N'',@e NVARCHAR(MAX)=N'';
+                SELECT @d+='ALTER TABLE '+QUOTENAME(s.name)+'.'+QUOTENAME(t.name)+' NOCHECK CONSTRAINT ALL;'
+                FROM sys.tables t JOIN sys.schemas s ON t.schema_id=s.schema_id WHERE s.name='Budget';
+                EXEC sp_executesql @d;
+
+                {deleteSql}
+
+                SET @e=N'';
+                SELECT @e+='ALTER TABLE '+QUOTENAME(s.name)+'.'+QUOTENAME(t.name)+' WITH CHECK CHECK CONSTRAINT ALL;'
+                FROM sys.tables t JOIN sys.schemas s ON t.schema_id=s.schema_id WHERE s.name='Budget';
+                EXEC sp_executesql @e;
+            ";
+
+            await conn.ExecuteAsync(sql, commandTimeout: 60);
+        }
+
+        /// <summary>
+        /// Clears all tables in the Budget schema by temporarily disabling FK constraints.
+        /// WARNING: This deletes ALL data including prerequisite/reference tables.
+        /// Use ClearTablesAsync(params) for tests that seed prerequisites first.
+        /// </summary>
+        public async Task ClearAllTablesAsync()
+        {
+            await using var conn = new SqlConnection(_testDbConnection);
+            await conn.OpenAsync();
+
+            const string sql = @"
+                DECLARE @disableSql NVARCHAR(MAX) = N'';
+                SELECT @disableSql += 'ALTER TABLE ' + QUOTENAME(s.name) + '.' + QUOTENAME(t.name)
+                    + ' NOCHECK CONSTRAINT ALL;' + CHAR(13)
+                FROM sys.tables t
+                JOIN sys.schemas s ON t.schema_id = s.schema_id
+                WHERE s.name = 'Budget';
+                EXEC sp_executesql @disableSql;
+
+                DECLARE @deleteSql NVARCHAR(MAX) = N'';
+                SELECT @deleteSql += 'DELETE FROM ' + QUOTENAME(s.name) + '.' + QUOTENAME(t.name) + ';' + CHAR(13)
+                FROM sys.tables t
+                JOIN sys.schemas s ON t.schema_id = s.schema_id
+                WHERE s.name = 'Budget';
+                EXEC sp_executesql @deleteSql;
+
+                DECLARE @enableSql NVARCHAR(MAX) = N'';
+                SELECT @enableSql += 'ALTER TABLE ' + QUOTENAME(s.name) + '.' + QUOTENAME(t.name)
+                    + ' WITH CHECK CHECK CONSTRAINT ALL;' + CHAR(13)
+                FROM sys.tables t
+                JOIN sys.schemas s ON t.schema_id = s.schema_id
+                WHERE s.name = 'Budget';
+                EXEC sp_executesql @enableSql;
+            ";
+
+            await conn.ExecuteAsync(sql, commandTimeout: 60);
+        }
+
         public async Task DisposeAsync()
         {
             if (DbContext != null)

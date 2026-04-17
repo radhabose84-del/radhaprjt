@@ -28,11 +28,7 @@ namespace PartyManagement.IntegrationTests.Repositories.BankMaster
                 IsDeleted = BaseEntity.IsDelete.NotDeleted
             };
 
-        private async Task ClearTableAsync(PartyManagement.Infrastructure.Data.ApplicationDbContext ctx)
-        {
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Party].[BankAccount]");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Party].[BankMaster]");
-        }
+        private async Task ClearTableAsync(PartyManagement.Infrastructure.Data.ApplicationDbContext ctx) => await _fixture.ClearAllTablesAsync();
 
         // --- ADD (CREATE) ---
 

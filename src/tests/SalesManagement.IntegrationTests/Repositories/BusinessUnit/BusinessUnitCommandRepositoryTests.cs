@@ -37,13 +37,8 @@ namespace SalesManagement.IntegrationTests.Repositories.BusinessUnit
                 IsDeleted = IsDelete.NotDeleted
             };
 
-        private async Task ClearTableAsync(ApplicationDbContext ctx)
-        {
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Sales.ItemPriceMaster");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Sales.SalesSegment");
-            ctx.BusinessUnit.RemoveRange(ctx.BusinessUnit);
-            await ctx.SaveChangesAsync();
-        }
+        private async Task ClearTableAsync(ApplicationDbContext ctx) =>
+            await _fixture.ClearTablesAsync("Sales.BusinessUnit");
 
         // ── CreateAsync ───────────────────────────────────────────────────────
 

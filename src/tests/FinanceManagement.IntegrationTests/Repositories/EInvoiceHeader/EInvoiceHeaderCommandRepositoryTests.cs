@@ -70,13 +70,8 @@ namespace FinanceManagement.IntegrationTests.Repositories.EInvoiceHeader
                 TotalAmount = totalAmount
             };
 
-        private async Task ClearTablesAsync(ApplicationDbContext ctx)
-        {
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Finance].[EInvoiceDetail]");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Finance].[EWaybillDetail]");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Finance].[EWaybillHeader]");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Finance].[EInvoiceHeader]");
-        }
+        private async Task ClearTablesAsync(ApplicationDbContext ctx) =>
+            await _fixture.ClearAllTablesAsync();
 
         // --- CREATE ---
 

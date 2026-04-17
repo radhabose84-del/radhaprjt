@@ -148,6 +148,40 @@ namespace InventoryManagement.UnitTests.Application.ItemCategory.Commands
         }
 
         [Fact]
+        public async Task Handle_ValidCommand_AuditEvent_HasExactFieldValues()
+        {
+            // Arrange — mapper returns an entity with known Id+Name so handler produces predictable audit
+            var mappedEntity = new InventoryManagement.Domain.Entities.Item.ItemCategory
+            {
+                Id = 123,
+                ItemCategoryName = "Audit Exact Test"
+            };
+            _mockMapper.Setup(m => m.Map<InventoryManagement.Domain.Entities.Item.ItemCategory>(
+                It.IsAny<CreateItemCategoryCommand>())).Returns(mappedEntity);
+
+            _mockCommandRepo.Setup(r => r.CreateAsync(
+                It.IsAny<InventoryManagement.Domain.Entities.Item.ItemCategory>(),
+                It.IsAny<List<int>>())).ReturnsAsync(123);
+
+            _mockMediator.Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
+
+            // Act
+            await CreateSut().Handle(ValidCommand(), CancellationToken.None);
+
+            // Assert — every audit field matched exactly (mirrors handler source lines 28-33)
+            _mockMediator.Verify(m => m.Publish(
+                It.Is<AuditLogsDomainEvent>(e =>
+                    e.ActionDetail == "Create" &&
+                    e.ActionCode == "123" &&
+                    e.ActionName == "Audit Exact Test" &&
+                    e.Details == "Item Category details was created" &&
+                    e.Module == "itemCategory"),
+                It.IsAny<CancellationToken>()),
+                Times.Once);
+        }
+
+        [Fact]
         public async Task Handle_RepoThrows_PropagatesException()
         {
             _mockMapper.Setup(m => m.Map<InventoryManagement.Domain.Entities.Item.ItemCategory>(

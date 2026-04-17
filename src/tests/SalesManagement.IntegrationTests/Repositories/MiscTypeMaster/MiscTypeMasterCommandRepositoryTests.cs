@@ -35,19 +35,8 @@ namespace SalesManagement.IntegrationTests.Repositories.MiscTypeMaster
                 IsDeleted = IsDelete.NotDeleted
             };
 
-        private async Task ClearTableAsync(ApplicationDbContext ctx)
-        {
-            await ctx.Database.ExecuteSqlRawAsync(@"
-                DELETE FROM Sales.AgentCommissionSlab;
-                DELETE FROM Sales.AgentCommissionPaymentTerm;
-                DELETE FROM Sales.AgentCommissionSalesGroup;
-                DELETE FROM Sales.AgentCommissionConfig;
-                DELETE FROM Sales.CommissionSplitDetail;
-                DELETE FROM Sales.CommissionSplit;
-                DELETE FROM Sales.ItemPriceMaster;
-                DELETE FROM Sales.MiscMaster;
-                DELETE FROM Sales.MiscTypeMaster;");
-        }
+        private async Task ClearTableAsync(ApplicationDbContext ctx) =>
+            await _fixture.ClearTablesAsync("Sales.MiscTypeMaster");
 
         // ── CreateAsync ───────────────────────────────────────────────────────
 

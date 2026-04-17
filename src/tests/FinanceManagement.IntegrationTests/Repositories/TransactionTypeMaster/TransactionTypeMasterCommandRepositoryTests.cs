@@ -41,7 +41,7 @@ namespace FinanceManagement.IntegrationTests.Repositories.TransactionTypeMaster
             };
 
         private async Task ClearTableAsync(ApplicationDbContext ctx) =>
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Finance].[TransactionTypeMaster]");
+            await _fixture.ClearAllTablesAsync();
 
         // --- CREATE ---
 

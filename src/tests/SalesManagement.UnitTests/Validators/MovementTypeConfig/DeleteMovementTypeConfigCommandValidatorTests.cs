@@ -15,6 +15,7 @@ namespace SalesManagement.UnitTests.Validators.MovementTypeConfig
         private void SetupHappyPath(int id = 1)
         {
             _mockQueryRepo.Setup(r => r.NotFoundAsync(id)).ReturnsAsync(false);
+            _mockQueryRepo.Setup(r => r.SoftDeleteValidationAsync(id)).ReturnsAsync(false);
         }
 
         // ── Happy Path ────────────────────────────────────────────────────────
@@ -35,6 +36,7 @@ namespace SalesManagement.UnitTests.Validators.MovementTypeConfig
         public async Task ZeroId_FailsValidation()
         {
             _mockQueryRepo.Setup(r => r.NotFoundAsync(0)).ReturnsAsync(true);
+            _mockQueryRepo.Setup(r => r.SoftDeleteValidationAsync(0)).ReturnsAsync(false);
 
             var result = await CreateValidator().TestValidateAsync(new DeleteMovementTypeConfigCommand(0));
 
@@ -47,6 +49,7 @@ namespace SalesManagement.UnitTests.Validators.MovementTypeConfig
         public async Task NotFound_FailsValidation()
         {
             _mockQueryRepo.Setup(r => r.NotFoundAsync(1)).ReturnsAsync(true);
+            _mockQueryRepo.Setup(r => r.SoftDeleteValidationAsync(1)).ReturnsAsync(false);
 
             var result = await CreateValidator().TestValidateAsync(new DeleteMovementTypeConfigCommand(1));
 

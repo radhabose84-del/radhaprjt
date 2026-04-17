@@ -46,4 +46,8 @@
       <NoWarn>CS8981</NoWarn>
   </PropertyGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="SalesManagement.IntegrationTests" />
+  </ItemGroup>
+
 </Project>

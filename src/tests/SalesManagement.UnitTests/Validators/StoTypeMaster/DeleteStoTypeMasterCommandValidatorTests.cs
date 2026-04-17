@@ -15,6 +15,7 @@ namespace SalesManagement.UnitTests.Validators.StoTypeMaster
         private void SetupHappyPath(int id = 1)
         {
             _mockQueryRepo.Setup(r => r.NotFoundAsync(id)).ReturnsAsync(false);
+            _mockQueryRepo.Setup(r => r.SoftDeleteValidationAsync(id)).ReturnsAsync(false);
         }
 
         [Fact]
@@ -29,6 +30,7 @@ namespace SalesManagement.UnitTests.Validators.StoTypeMaster
         public async Task ZeroId_FailsValidation()
         {
             _mockQueryRepo.Setup(r => r.NotFoundAsync(0)).ReturnsAsync(true);
+            _mockQueryRepo.Setup(r => r.SoftDeleteValidationAsync(0)).ReturnsAsync(false);
             var result = await CreateValidator().TestValidateAsync(new DeleteStoTypeMasterCommand(0));
             result.ShouldHaveValidationErrorFor(x => x.Id);
         }
@@ -37,6 +39,7 @@ namespace SalesManagement.UnitTests.Validators.StoTypeMaster
         public async Task NotFound_FailsValidation()
         {
             _mockQueryRepo.Setup(r => r.NotFoundAsync(1)).ReturnsAsync(true);
+            _mockQueryRepo.Setup(r => r.SoftDeleteValidationAsync(1)).ReturnsAsync(false);
             var result = await CreateValidator().TestValidateAsync(new DeleteStoTypeMasterCommand(1));
             result.ShouldHaveAnyValidationError();
         }

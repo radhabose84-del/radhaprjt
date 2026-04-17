@@ -10,11 +10,12 @@ namespace SalesManagement.UnitTests.Application.DispatchAddressMaster.Commands
     public sealed class UpdateDispatchAddressMasterCommandHandlerTests
     {
         private readonly Mock<IDispatchAddressMasterCommandRepository> _mockCommandRepo = new(MockBehavior.Strict);
+        private readonly Mock<IDispatchAddressMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Strict);
         private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Strict);
 
         private UpdateDispatchAddressMasterCommandHandler CreateSut() =>
-            new(_mockCommandRepo.Object, _mockMediator.Object, _mockMapper.Object);
+            new(_mockCommandRepo.Object, _mockQueryRepo.Object, _mockMediator.Object, _mockMapper.Object);
 
         private void SetupHappyPath(UpdateDispatchAddressMasterCommand command, int updatedId = 1)
         {

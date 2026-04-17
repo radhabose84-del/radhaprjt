@@ -31,11 +31,7 @@ namespace InventoryManagement.IntegrationTests.Repositories.Templates
                 }, CancellationToken.None);
         }
 
-        private async Task ClearTablesAsync(ApplicationDbContext ctx)
-        {
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Inventory].[InspectionParameter]");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Inventory].[InspectionTemplate]");
-        }
+        private async Task ClearTablesAsync(ApplicationDbContext ctx) => await _fixture.ClearAllTablesAsync();
 
         [Fact]
         public async Task GetByIdAsync_Should_Return_Template_When_Exists()

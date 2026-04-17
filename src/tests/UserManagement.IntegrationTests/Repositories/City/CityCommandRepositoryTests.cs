@@ -85,12 +85,8 @@ namespace UserManagement.IntegrationTests.Repositories.City
                 IsDeleted = Enums.IsDelete.NotDeleted
             };
 
-        private async Task ClearTablesAsync(ApplicationDbContext ctx)
-        {
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM AppData.City");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM AppData.State");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM AppData.Country");
-        }
+        private async Task ClearTablesAsync(ApplicationDbContext ctx) =>
+            await _fixture.ClearAllTablesAsync();
 
         private async Task<(int countryId, int stateId)> SeedCountryAndStateAsync(ApplicationDbContext ctx)
         {

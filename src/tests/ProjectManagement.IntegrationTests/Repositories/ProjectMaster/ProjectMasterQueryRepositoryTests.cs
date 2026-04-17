@@ -64,14 +64,8 @@ namespace ProjectManagement.IntegrationTests.Repositories.ProjectMaster
             return project.Id;
         }
 
-        private async Task ClearTablesAsync()
-        {
-            await using var conn = new SqlConnection(_fixture.ConnectionString);
-            await conn.OpenAsync();
-            await conn.ExecuteAsync("DELETE FROM [Project].[ProjectWorkBreakdownStructure]");
-            await conn.ExecuteAsync("DELETE FROM [Project].[ProjectDocument]");
-            await conn.ExecuteAsync("DELETE FROM [Project].[ProjectMaster]");
-        }
+        private async Task ClearTablesAsync() =>
+            await _fixture.ClearAllTablesAsync();
 
         // --- GET ALL (GetProjectmasterAsync) ---
 
