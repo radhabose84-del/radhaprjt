@@ -1,6 +1,7 @@
 using Contracts.Dtos.Lookups.Inventory;
 using Contracts.Dtos.Lookups.Party;
 using Contracts.Dtos.Lookups.Users;
+using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Users;
@@ -33,17 +34,28 @@ namespace SalesManagement.IntegrationTests.Repositories.ComplaintQCReview
         private ComplaintQCReviewQueryRepository CreateRepo(
             Mock<IUserLookup> userLookup = null,
             Mock<IPartyLookup> partyLookup = null,
-            Mock<IItemLookup> itemLookup = null)
+            Mock<IItemLookup> itemLookup = null,
+            Mock<IDataAccessFilter> dataAccessFilter = null)
         {
             userLookup ??= BuildDefaultUserLookup();
             partyLookup ??= BuildDefaultPartyLookup();
             itemLookup ??= BuildDefaultItemLookup();
+            dataAccessFilter ??= BuildUnrestrictedDataAccessFilter();
 
             return new ComplaintQCReviewQueryRepository(
                 new SqlConnection(_fixture.ConnectionString),
                 userLookup.Object,
                 partyLookup.Object,
-                itemLookup.Object);
+                itemLookup.Object,
+                dataAccessFilter.Object);
+        }
+
+        private static Mock<IDataAccessFilter> BuildUnrestrictedDataAccessFilter()
+        {
+            var mock = new Mock<IDataAccessFilter>(MockBehavior.Loose);
+            mock.Setup(d => d.GetContextAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(DataAccessContext.Unrestricted);
+            return mock;
         }
 
         private static Mock<IUserLookup> BuildDefaultUserLookup()

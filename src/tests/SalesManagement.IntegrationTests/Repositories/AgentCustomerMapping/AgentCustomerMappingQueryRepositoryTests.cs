@@ -1,8 +1,8 @@
 using Contracts.Dtos.Lookups.Party;
+using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Party;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Infrastructure.Data;
 using SalesManagement.Infrastructure.Repositories.AgentCustomerMapping;
 using SalesManagement.IntegrationTests.Common;
@@ -20,7 +20,7 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCustomerMapping
             Mock<ICustomerLookup>? customer = null,
             Mock<IAgentLookup>? agent = null,
             Mock<ISubAgentLookup>? subAgent = null,
-            Mock<IMarketingOfficerAccessFilter>? accessFilter = null)
+            Mock<IDataAccessFilter>? accessFilter = null)
         {
             if (customer == null)
             {
@@ -48,8 +48,9 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCustomerMapping
             }
             if (accessFilter == null)
             {
-                accessFilter = new Mock<IMarketingOfficerAccessFilter>(MockBehavior.Loose);
-                accessFilter.Setup(a => a.IsMarketingOfficer()).Returns(false);
+                accessFilter = new Mock<IDataAccessFilter>(MockBehavior.Loose);
+                accessFilter.Setup(a => a.GetContextAsync(It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(DataAccessContext.Unrestricted);
             }
 
             return new AgentCustomerMappingQueryRepository(

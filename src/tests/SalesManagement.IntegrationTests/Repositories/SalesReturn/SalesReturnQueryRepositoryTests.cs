@@ -2,6 +2,7 @@ using Contracts.Dtos.Lookups.Inventory;
 using Contracts.Dtos.Lookups.Party;
 using Contracts.Dtos.Lookups.Production;
 using Contracts.Dtos.Lookups.Warehouse;
+using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Production;
@@ -68,10 +69,15 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesReturn
                     .ReturnsAsync((IReadOnlyList<BinLookupDto>)new List<BinLookupDto>());
             }
 
+            var dataAccessFilter = new Mock<IDataAccessFilter>(MockBehavior.Loose);
+            dataAccessFilter.Setup(d => d.GetContextAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(DataAccessContext.Unrestricted);
+
             return new SalesReturnQueryRepository(
                 new SqlConnection(_fixture.ConnectionString),
                 partyLookup.Object, itemLookup.Object, lotLookup.Object,
-                warehouseLookup.Object, binLookup.Object);
+                warehouseLookup.Object, binLookup.Object,
+                dataAccessFilter.Object);
         }
 
         private async Task<int> EnsureMiscAsync(ApplicationDbContext ctx, int miscTypeId, string code)
@@ -155,7 +161,7 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesReturn
             await ClearAsync();
             await SeedReturnAsync("SR_A1");
 
-            var (rows, total) = await CreateRepo().GetAllAsync(1, 10, null);
+            var (rows, total) = await CreateRepo().GetAllAsync(1, 10, null, null, null, null, null);
 
             rows.Should().HaveCount(1);
             total.Should().Be(1);
@@ -167,7 +173,7 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesReturn
             await ClearAsync();
             await SeedReturnAsync("SR_DEL", deleted: IsDelete.Deleted);
 
-            var (_, total) = await CreateRepo().GetAllAsync(1, 10, null);
+            var (_, total) = await CreateRepo().GetAllAsync(1, 10, null, null, null, null, null);
 
             total.Should().Be(0);
         }
@@ -179,7 +185,7 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesReturn
             await SeedReturnAsync("UNIQUE_SR_A");
             await SeedReturnAsync("OTHER_SR_B");
 
-            var (rows, _) = await CreateRepo().GetAllAsync(1, 10, "UNIQUE_SR");
+            var (rows, _) = await CreateRepo().GetAllAsync(1, 10, "UNIQUE_SR", null, null, null, null);
 
             rows.Should().HaveCount(1);
         }

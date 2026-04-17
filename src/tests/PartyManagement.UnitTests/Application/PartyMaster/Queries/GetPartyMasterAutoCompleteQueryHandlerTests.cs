@@ -22,7 +22,7 @@ namespace PartyManagement.UnitTests.Application.PartyMaster.Queries
             };
 
             _mockQueryRepo
-                .Setup(r => r.GetPartyMasterAutoComplete(It.IsAny<List<int>>(), It.IsAny<string>()))
+                .Setup(r => r.GetPartyMasterAutoComplete(It.IsAny<List<int>>(), It.IsAny<string>(), It.IsAny<int?>()))
                 .ReturnsAsync(resultList);
 
             var result = await CreateSut().Handle(
@@ -39,7 +39,7 @@ namespace PartyManagement.UnitTests.Application.PartyMaster.Queries
             var emptyList = new List<GetPartyMasterAutoCompleteDto>();
 
             _mockQueryRepo
-                .Setup(r => r.GetPartyMasterAutoComplete(It.IsAny<List<int>>(), It.IsAny<string>()))
+                .Setup(r => r.GetPartyMasterAutoComplete(It.IsAny<List<int>>(), It.IsAny<string>(), It.IsAny<int?>()))
                 .ReturnsAsync(emptyList);
 
             var result = await CreateSut().Handle(
@@ -53,7 +53,7 @@ namespace PartyManagement.UnitTests.Application.PartyMaster.Queries
         public async Task Handle_CallsQueryRepoOnce()
         {
             _mockQueryRepo
-                .Setup(r => r.GetPartyMasterAutoComplete(It.IsAny<List<int>>(), It.IsAny<string>()))
+                .Setup(r => r.GetPartyMasterAutoComplete(It.IsAny<List<int>>(), It.IsAny<string>(), It.IsAny<int?>()))
                 .ReturnsAsync(new List<GetPartyMasterAutoCompleteDto>());
 
             await CreateSut().Handle(
@@ -61,7 +61,7 @@ namespace PartyManagement.UnitTests.Application.PartyMaster.Queries
                 CancellationToken.None);
 
             _mockQueryRepo.Verify(
-                r => r.GetPartyMasterAutoComplete(It.IsAny<List<int>>(), It.IsAny<string>()),
+                r => r.GetPartyMasterAutoComplete(It.IsAny<List<int>>(), It.IsAny<string>(), It.IsAny<int?>()),
                 Times.Once);
         }
     }

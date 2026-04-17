@@ -229,7 +229,7 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesOrderAmendment
             await ClearAsync(ctx);
 
             var (h, d) = await BuildAmendmentAsync("AM_C1");
-            var id = await CreateRepo(ctx).CreateAsync(h, d);
+            var id = await CreateRepo(ctx).CreateAsync(h, d, new List<SalesManagement.Domain.Entities.SalesOrderAmendmentDiscount>());
 
             id.Should().BeGreaterThan(0);
         }
@@ -241,7 +241,7 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesOrderAmendment
             await ClearAsync(ctx);
 
             var (h, d) = await BuildAmendmentAsync("AM_C2");
-            var id = await CreateRepo(ctx).CreateAsync(h, d);
+            var id = await CreateRepo(ctx).CreateAsync(h, d, new List<SalesManagement.Domain.Entities.SalesOrderAmendmentDiscount>());
             ctx.ChangeTracker.Clear();
 
             var saved = await ctx.SalesOrderAmendmentHeader.FirstAsync(x => x.Id == id);
@@ -257,7 +257,7 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesOrderAmendment
             await ClearAsync(ctx);
 
             var (h, d) = await BuildAmendmentAsync("AM_C3");
-            var id = await CreateRepo(ctx).CreateAsync(h, d);
+            var id = await CreateRepo(ctx).CreateAsync(h, d, new List<SalesManagement.Domain.Entities.SalesOrderAmendmentDiscount>());
             ctx.ChangeTracker.Clear();
 
             var details = await ctx.SalesOrderAmendmentDetail.Where(x => x.SalesOrderAmendmentHeaderId == id).ToListAsync();
@@ -271,7 +271,7 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesOrderAmendment
             await using var ctx = _fixture.CreateFreshDbContext();
             await ClearAsync(ctx);
             var (h, d) = await BuildAmendmentAsync("AM_AP1");
-            var id = await CreateRepo(ctx).CreateAsync(h, d);
+            var id = await CreateRepo(ctx).CreateAsync(h, d, new List<SalesManagement.Domain.Entities.SalesOrderAmendmentDiscount>());
             ctx.ChangeTracker.Clear();
 
             var result = await CreateRepo(ctx).ApplyAmendmentAsync(
@@ -291,7 +291,7 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesOrderAmendment
             await using var ctx = _fixture.CreateFreshDbContext();
             await ClearAsync(ctx);
             var (h, d) = await BuildAmendmentAsync("AM_AP2");
-            var id = await CreateRepo(ctx).CreateAsync(h, d);
+            var id = await CreateRepo(ctx).CreateAsync(h, d, new List<SalesManagement.Domain.Entities.SalesOrderAmendmentDiscount>());
             ctx.ChangeTracker.Clear();
 
             await CreateRepo(ctx).ApplyAmendmentAsync(
@@ -309,7 +309,7 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesOrderAmendment
             await using var ctx = _fixture.CreateFreshDbContext();
             await ClearAsync(ctx);
             var (h, d) = await BuildAmendmentAsync("AM_RJ1");
-            var id = await CreateRepo(ctx).CreateAsync(h, d);
+            var id = await CreateRepo(ctx).CreateAsync(h, d, new List<SalesManagement.Domain.Entities.SalesOrderAmendmentDiscount>());
             ctx.ChangeTracker.Clear();
 
             var originalDetail = await ctx.SalesOrderDetail.FirstAsync(x => x.Id == d[0].SalesOrderDetailId);
@@ -344,7 +344,7 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesOrderAmendment
             await using var ctx = _fixture.CreateFreshDbContext();
             await ClearAsync(ctx);
             var (h, d) = await BuildAmendmentAsync("AM_G1");
-            var id = await CreateRepo(ctx).CreateAsync(h, d);
+            var id = await CreateRepo(ctx).CreateAsync(h, d, new List<SalesManagement.Domain.Entities.SalesOrderAmendmentDiscount>());
             ctx.ChangeTracker.Clear();
 
             var result = await CreateRepo(ctx).GetByIdEntityAsync(id);
@@ -371,7 +371,7 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesOrderAmendment
             await using var ctx = _fixture.CreateFreshDbContext();
             await ClearAsync(ctx);
             var (h, d) = await BuildAmendmentAsync("AM_WF1");
-            var id = await CreateRepo(ctx).CreateAsync(h, d);
+            var id = await CreateRepo(ctx).CreateAsync(h, d, new List<SalesManagement.Domain.Entities.SalesOrderAmendmentDiscount>());
             ctx.ChangeTracker.Clear();
 
             var result = await CreateRepo(ctx).GetByIdAmendmentWorkFlowAsync(id);

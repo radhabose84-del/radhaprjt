@@ -22,7 +22,7 @@ public sealed class GetAllComplaintQueryHandlerTests
     {
         var dtoList = new List<ComplaintHeaderDto> { new ComplaintHeaderDto { Id = 1 } };
         _mockQueryRepo
-            .Setup(r => r.GetAllAsync(1, 10, null))
+            .Setup(r => r.GetAllAsync(1, 10, null, null))
             .ReturnsAsync((dtoList, 1));
 
         var result = await CreateSut().Handle(
@@ -38,7 +38,7 @@ public sealed class GetAllComplaintQueryHandlerTests
     {
         var dtoList = new List<ComplaintHeaderDto> { new ComplaintHeaderDto { Id = 1 } };
         _mockQueryRepo
-            .Setup(r => r.GetAllAsync(2, 5, "search"))
+            .Setup(r => r.GetAllAsync(2, 5, "search", null))
             .ReturnsAsync((dtoList, 11));
 
         var result = await CreateSut().Handle(
@@ -54,7 +54,7 @@ public sealed class GetAllComplaintQueryHandlerTests
     public async Task Handle_EmptyResult_ReturnsSuccess()
     {
         _mockQueryRepo
-            .Setup(r => r.GetAllAsync(1, 10, null))
+            .Setup(r => r.GetAllAsync(1, 10, null, null))
             .ReturnsAsync((new List<ComplaintHeaderDto>(), 0));
 
         var result = await CreateSut().Handle(

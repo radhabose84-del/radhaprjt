@@ -202,7 +202,7 @@ namespace SalesManagement.IntegrationTests.Repositories.Complaint
             await ClearAsync();
             await SeedComplaintAsync("CQQ_GA1");
 
-            var (rows, total) = await CreateRepo().GetAllAsync(1, 10, null);
+            var (rows, total) = await CreateRepo().GetAllAsync(1, 10, null, null);
 
             rows.Should().HaveCount(1);
             total.Should().Be(1);
@@ -214,7 +214,7 @@ namespace SalesManagement.IntegrationTests.Repositories.Complaint
             await ClearAsync();
             await SeedComplaintAsync("CQQ_DEL", deleted: IsDelete.Deleted);
 
-            var (_, total) = await CreateRepo().GetAllAsync(1, 10, null);
+            var (_, total) = await CreateRepo().GetAllAsync(1, 10, null, null);
 
             total.Should().Be(0);
         }
@@ -226,7 +226,7 @@ namespace SalesManagement.IntegrationTests.Repositories.Complaint
             await SeedComplaintAsync("CQQ_ALPHA");
             await SeedComplaintAsync("CQQ_BETA");
 
-            var (rows, _) = await CreateRepo().GetAllAsync(1, 10, "CQQ_ALPHA");
+            var (rows, _) = await CreateRepo().GetAllAsync(1, 10, "CQQ_ALPHA", null);
 
             rows.Should().HaveCount(1);
             rows[0].ComplaintNumber.Should().Be("CQQ_ALPHA");
@@ -244,7 +244,7 @@ namespace SalesManagement.IntegrationTests.Repositories.Complaint
                     (IReadOnlyList<PartyLookupDto>)ids.Select(id =>
                         new PartyLookupDto { Id = id, PartyName = "Acme Corp" }).ToList());
 
-            var (rows, _) = await CreateRepo(partyLookup: partyMock).GetAllAsync(1, 10, null);
+            var (rows, _) = await CreateRepo(partyLookup: partyMock).GetAllAsync(1, 10, null, null);
 
             rows.Should().HaveCount(1);
             rows[0].CustomerName.Should().Be("Acme Corp");
@@ -258,7 +258,7 @@ namespace SalesManagement.IntegrationTests.Repositories.Complaint
             await SeedComplaintAsync("CQQ_PG2");
             await SeedComplaintAsync("CQQ_PG3");
 
-            var (rows, total) = await CreateRepo().GetAllAsync(1, 2, null);
+            var (rows, total) = await CreateRepo().GetAllAsync(1, 2, null, null);
 
             rows.Should().HaveCount(2);
             total.Should().Be(3);

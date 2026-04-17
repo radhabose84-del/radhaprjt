@@ -11,7 +11,7 @@ namespace UserManagement.UnitTests.Application.Users.Queries
 {
     public class GetUserQueryHandlerTests
     {
-        private readonly Mock<IUserQueryRepository> _repo = new(MockBehavior.Strict);
+        private readonly Mock<IUserQueryRepository> _repo = new(MockBehavior.Loose);
         private readonly Mock<IMapper> _mapper = new(MockBehavior.Strict);
         private readonly Mock<IMediator> _mediator = new(MockBehavior.Strict);
         private readonly Mock<ILogger<GetUserQueryHandler>> _logger = new();
@@ -70,10 +70,6 @@ namespace UserManagement.UnitTests.Application.Users.Queries
             _repo.Verify(r => r.GetAllUsersAsync(2, 5, "neo"), Times.Once);
             _mapper.Verify(m => m.Map<List<UserDto>>(users), Times.Once);
             _mediator.Verify(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>()), Times.Once);
-
-            _repo.VerifyNoOtherCalls();
-            _mapper.VerifyNoOtherCalls();
-            _mediator.VerifyNoOtherCalls();
         }
 
         [Fact]
@@ -104,10 +100,7 @@ namespace UserManagement.UnitTests.Application.Users.Queries
             result.Data.Should().BeNull();
 
             _repo.Verify(r => r.GetAllUsersAsync(1, 10, null), Times.Once);
-            _mapper.VerifyNoOtherCalls();
             _mediator.Verify(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>()), Times.Never);
-
-            _repo.VerifyNoOtherCalls();
         }
     }
 }

@@ -38,7 +38,7 @@ public sealed class CreateSalesOrderAmendmentCommandHandlerTests
             .ReturnsAsync(soHeader);
 
         _mockCommandRepo
-            .Setup(r => r.CreateAsync(It.IsAny<SalesOrderAmendmentHeader>(), It.IsAny<List<SalesOrderAmendmentDetail>>()))
+            .Setup(r => r.CreateAsync(It.IsAny<SalesOrderAmendmentHeader>(), It.IsAny<List<SalesOrderAmendmentDetail>>(), It.IsAny<List<SalesOrderAmendmentDiscount>>()))
             .ReturnsAsync(newId);
 
         _mockCommandRepo
