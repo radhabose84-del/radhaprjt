@@ -106,6 +106,9 @@ namespace SalesManagement.Infrastructure.Repositories.AgentCustomerMapping
                 var allAgents = await _agentLookup.GetAllAgentAsync();
                 var agentDict = allAgents.ToDictionary(x => x.Id, x => x.AgentName);
 
+                var allSubAgents = await _subAgentLookup.GetAllSubAgentAsync();
+                var subAgentDict = allSubAgents.ToDictionary(x => x.Id, x => x.SubAgentName);
+
                 foreach (var item in list)
                 {
                     if (customerDict.TryGetValue(item.CustomerId, out var customerName))
@@ -114,7 +117,7 @@ namespace SalesManagement.Infrastructure.Repositories.AgentCustomerMapping
                     if (agentDict.TryGetValue(item.AgentId, out var agentName))
                         item.AgentName = agentName;
 
-                    if (item.SubAgentId.HasValue && agentDict.TryGetValue(item.SubAgentId.Value, out var subAgentName))
+                    if (item.SubAgentId.HasValue && subAgentDict.TryGetValue(item.SubAgentId.Value, out var subAgentName))
                         item.SubAgentName = subAgentName;
                 }
             }
@@ -185,8 +188,9 @@ namespace SalesManagement.Infrastructure.Repositories.AgentCustomerMapping
 
                 if (dto.SubAgentId.HasValue)
                 {
-                    if (agentDict.TryGetValue(dto.SubAgentId.Value, out var subAgentName))
-                        dto.SubAgentName = subAgentName;
+                    var allSubAgents = await _subAgentLookup.GetAllSubAgentAsync();
+                    var subAgent = allSubAgents.FirstOrDefault(x => x.Id == dto.SubAgentId.Value);
+                    dto.SubAgentName = subAgent?.SubAgentName;
                 }
             }
 
@@ -307,6 +311,9 @@ namespace SalesManagement.Infrastructure.Repositories.AgentCustomerMapping
                 var allAgents = await _agentLookup.GetAllAgentAsync();
                 var agentDict = allAgents.ToDictionary(x => x.Id, x => x.AgentName);
 
+                var allSubAgents = await _subAgentLookup.GetAllSubAgentAsync();
+                var subAgentDict = allSubAgents.ToDictionary(x => x.Id, x => x.SubAgentName);
+
                 foreach (var item in list)
                 {
                     if (customerDict.TryGetValue(item.CustomerId, out var customerName))
@@ -315,11 +322,8 @@ namespace SalesManagement.Infrastructure.Repositories.AgentCustomerMapping
                     if (agentDict.TryGetValue(item.AgentId, out var agentName))
                         item.AgentName = agentName;
 
-                    if (item.SubAgentId.HasValue)
-                    {
-                        if (agentDict.TryGetValue(item.SubAgentId.Value, out var subAgentName))
-                            item.SubAgentName = subAgentName;
-                    }
+                    if (item.SubAgentId.HasValue && subAgentDict.TryGetValue(item.SubAgentId.Value, out var subAgentName))
+                        item.SubAgentName = subAgentName;
                 }
             }
 
@@ -341,7 +345,7 @@ namespace SalesManagement.Infrastructure.Repositories.AgentCustomerMapping
         }
 
         public async Task<(List<AgentCustomerMappingDto>, int)> GetByFilterAsync(
-            int? salesGroupId, int? partyId, CancellationToken ct = default)
+            int? salesGroupId, int? customerId, CancellationToken ct = default)
         {
             var (accessFilter, dp) = await BuildAccessFilterAsync();
 
@@ -351,10 +355,10 @@ namespace SalesManagement.Infrastructure.Repositories.AgentCustomerMapping
                 filterClauses += " AND acm.SalesGroupId = @SalesGroupId";
                 dp.Add("SalesGroupId", salesGroupId.Value);
             }
-            if (partyId.HasValue)
+            if (customerId.HasValue)
             {
-                filterClauses += " AND acm.AgentId = @PartyId";
-                dp.Add("PartyId", partyId.Value);
+                filterClauses += " AND acm.CustomerId = @CustomerId";
+                dp.Add("CustomerId", customerId.Value);
             }
 
             var countSql = $@"
@@ -392,6 +396,9 @@ namespace SalesManagement.Infrastructure.Repositories.AgentCustomerMapping
                 var allAgents = await _agentLookup.GetAllAgentAsync();
                 var agentDict = allAgents.ToDictionary(x => x.Id, x => x.AgentName);
 
+                var allSubAgents = await _subAgentLookup.GetAllSubAgentAsync();
+                var subAgentDict = allSubAgents.ToDictionary(x => x.Id, x => x.SubAgentName);
+
                 foreach (var item in list)
                 {
                     if (customerDict.TryGetValue(item.CustomerId, out var customerName))
@@ -400,7 +407,7 @@ namespace SalesManagement.Infrastructure.Repositories.AgentCustomerMapping
                     if (agentDict.TryGetValue(item.AgentId, out var agentName))
                         item.AgentName = agentName;
 
-                    if (item.SubAgentId.HasValue && agentDict.TryGetValue(item.SubAgentId.Value, out var subAgentName))
+                    if (item.SubAgentId.HasValue && subAgentDict.TryGetValue(item.SubAgentId.Value, out var subAgentName))
                         item.SubAgentName = subAgentName;
                 }
             }
