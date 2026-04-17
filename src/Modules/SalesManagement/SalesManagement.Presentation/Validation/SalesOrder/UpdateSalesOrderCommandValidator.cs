@@ -40,12 +40,6 @@ namespace SalesManagement.Presentation.Validation.SalesOrder
                             .NotEmpty()
                             .WithMessage($"SalesGroupId {rule.Error}");
 
-                        RuleFor(x => x.UnitId)
-                            .NotNull()
-                            .WithMessage($"UnitId {rule.Error}")
-                            .NotEmpty()
-                            .WithMessage($"UnitId {rule.Error}");
-
                         RuleFor(x => x.PartyId)
                             .NotNull()
                             .WithMessage($"PartyId {rule.Error}")
@@ -164,9 +158,9 @@ namespace SalesManagement.Presentation.Validation.SalesOrder
 
                         RuleFor(x => x.UnitId)
                             .MustAsync(async (unitId, ct) =>
-                                await _queryRepository.UnitExistsAsync(unitId))
+                                await _queryRepository.UnitExistsAsync(unitId!.Value))
                             .WithMessage($"UnitId {rule.Error}")
-                            .When(x => x.UnitId > 0);
+                            .When(x => x.UnitId.HasValue && x.UnitId > 0);
 
                         RuleFor(x => x.PartyId)
                             .MustAsync(async (partyId, ct) =>
