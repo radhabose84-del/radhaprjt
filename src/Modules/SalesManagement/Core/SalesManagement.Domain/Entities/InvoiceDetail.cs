@@ -24,6 +24,8 @@ namespace SalesManagement.Domain.Entities
         public decimal TaxAmount { get; set; }
         public int? PackTypeId { get; set; }              // Cross-module FK → ProductionManagement
         public int? UOMId { get; set; }                   // Cross-module FK → Inventory.UOM
+        public decimal Charity { get; set; }
+        public decimal HandlingCharges { get; set; }
         public decimal TotalAmount { get; set; }
 
         // Navigation properties

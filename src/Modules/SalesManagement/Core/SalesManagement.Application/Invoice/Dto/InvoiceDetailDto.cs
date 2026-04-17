@@ -27,6 +27,8 @@ namespace SalesManagement.Application.Invoice.Dto
         public string? PackTypeName { get; set; }
         public int? UOMId { get; set; }
         public string? UOMName { get; set; }
+        public decimal Charity { get; set; }
+        public decimal HandlingCharges { get; set; }
         public decimal TotalAmount { get; set; }
     }
 }

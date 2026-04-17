@@ -105,6 +105,7 @@ namespace SalesManagement.Application.Invoice.Dto
         public decimal Freight { get; set; }
         public decimal Insurance { get; set; }
         public decimal HandlingCharges { get; set; }
+        public decimal TotalCharity { get; set; }
         public decimal OtherCharges { get; set; }
         public decimal ValueOfSupply { get; set; }
         public decimal CgstRate { get; set; }
@@ -155,6 +156,7 @@ namespace SalesManagement.Application.Invoice.Dto
         public decimal Freight { get; set; }
         public decimal Insurance { get; set; }
         public decimal HandlingCharge { get; set; }
+        public decimal TotalCharity { get; set; }
         public decimal OtherCharges { get; set; }
         public decimal CGST { get; set; }
         public decimal SGST { get; set; }

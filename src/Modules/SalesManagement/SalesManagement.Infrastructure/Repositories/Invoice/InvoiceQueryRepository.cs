@@ -103,7 +103,7 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                     sm.Description AS StatusName,
                     h.VehicleNumber, h.TransporterName, h.LRNumber, h.LRDate,
                     h.TotalBags, h.TotalWeight, h.TaxableValue, h.Discount,
-                    h.Freight, h.Insurance, h.HandlingCharge, h.OtherCharges,
+                    h.Freight, h.Insurance, h.HandlingCharge, h.TotalCharity, h.OtherCharges,
                     h.CGST, h.SGST, h.IGST, h.TaxAmount,
                     h.TCSPercentage, h.TCS, h.RoundOff,
                     h.InvoiceAmountBeforeTCS, h.InvoiceAmount,
@@ -158,6 +158,15 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                     item.UnitName           = unitDict.TryGetValue(item.UnitId, out var un) ? un : null;
                     item.FinancialYearName  = finYearDict.TryGetValue(item.FinancialYearId, out var fy) ? fy : null;
                     item.InvoiceTypeName    = invoiceTypeMap.TryGetValue(item.Id, out var itn) ? itn : null;
+
+                    if (!string.IsNullOrWhiteSpace(item.InvoiceNo))
+                    {
+                        var einvoice = await _eInvoiceLookup.GetByInvoiceAsync(item.InvoiceNo, item.UnitId);
+                        item.EInvoiceExists = einvoice != null;
+
+                        var ewaybill = await _eWaybillLookup.GetByInvoiceAsync(item.InvoiceNo, item.UnitId);
+                        item.EWaybillExists = ewaybill != null;
+                    }
                 }
             }
 
@@ -180,7 +189,7 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                     sm.Description AS StatusName,
                     h.VehicleNumber, h.TransporterName, h.LRNumber, h.LRDate,
                     h.TotalBags, h.TotalWeight, h.TaxableValue, h.Discount,
-                    h.Freight, h.Insurance, h.HandlingCharge, h.OtherCharges,
+                    h.Freight, h.Insurance, h.HandlingCharge, h.TotalCharity, h.OtherCharges,
                     h.CGST, h.SGST, h.IGST, h.TaxAmount,
                     h.TCSPercentage, h.TCS, h.RoundOff,
                     h.InvoiceAmountBeforeTCS, h.InvoiceAmount,
@@ -204,7 +213,7 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                     d.CgstPercentage, d.SgstPercentage, d.IgstPercentage,
                     d.CGST, d.SGST, d.IGST, d.TaxAmount,
                     d.PackTypeId,
-                    d.UOMId, d.TotalAmount
+                    d.UOMId, d.Charity, d.HandlingCharges, d.TotalAmount
                 FROM Sales.InvoiceDetail d
                 WHERE d.InvoiceHeaderId = @HeaderId
                 ORDER BY d.ItemSno";
@@ -421,6 +430,7 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                         h.Freight,
                         h.Insurance,
                         h.HandlingCharge,
+                        h.TotalCharity,
                         h.OtherCharges,
                         h.CGST,
                         h.SGST,
@@ -455,6 +465,8 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                         d.TaxAmount          AS TaxAmount_Detail,
                         d.PackTypeId,
                         d.UOMId,
+                        d.Charity,
+                        d.HandlingCharges,
                         d.TotalAmount
                     FROM Sales.InvoiceHeader h
                     JOIN Sales.InvoiceDetail d ON d.InvoiceHeaderId = h.Id
@@ -485,7 +497,7 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                     TransportMode, TransportModeName, StatusId, StatusName,
                     VehicleNumber, TransporterName, LRNumber, LRDate,
                     TotalBags, TotalWeight, TaxableValue, Discount,
-                    Freight, Insurance, HandlingCharge, OtherCharges,
+                    Freight, Insurance, HandlingCharge, TotalCharity, OtherCharges,
                     CGST, SGST, IGST, TaxAmount,
                     TCSPercentage, TCS, RoundOff,
                     InvoiceAmountBeforeTCS, InvoiceAmount, Remarks,
@@ -516,7 +528,7 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                     p.StatusId, p.StatusName,
                     p.VehicleNumber, p.TransporterName, p.LRNumber, p.LRDate,
                     p.TotalBags, p.TotalWeight, p.TaxableValue, p.Discount,
-                    p.Freight, p.Insurance, p.HandlingCharge, p.OtherCharges,
+                    p.Freight, p.Insurance, p.HandlingCharge, p.TotalCharity, p.OtherCharges,
                     p.CGST, p.SGST, p.IGST, p.TaxAmount,
                     p.TCSPercentage, p.TCS, p.RoundOff,
                     p.InvoiceAmountBeforeTCS, p.InvoiceAmount, p.Remarks,
@@ -534,7 +546,7 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                     f.CgstPercentage, f.SgstPercentage, f.IgstPercentage,
                     f.CGST_Detail AS CGST, f.SGST_Detail AS SGST,
                     f.IGST_Detail AS IGST, f.TaxAmount_Detail AS TaxAmount,
-                    f.PackTypeId, f.UOMId, f.TotalAmount
+                    f.PackTypeId, f.UOMId, f.Charity, f.HandlingCharges, f.TotalAmount
                 FROM #filtered f
                 JOIN #pg p ON p.Id = f.Id
                 ORDER BY f.Id DESC, f.ItemSno ASC;
@@ -625,7 +637,7 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                     sm.Description AS StatusName,
                     h.VehicleNumber, h.TransporterName, h.LRNumber, h.LRDate,
                     h.TotalBags, h.TotalWeight, h.TaxableValue, h.Discount,
-                    h.Freight, h.Insurance, h.HandlingCharge, h.OtherCharges,
+                    h.Freight, h.Insurance, h.HandlingCharge, h.TotalCharity, h.OtherCharges,
                     h.CGST, h.SGST, h.IGST, h.TaxAmount,
                     h.TCSPercentage, h.TCS, h.RoundOff,
                     h.InvoiceAmountBeforeTCS, h.InvoiceAmount,
@@ -649,7 +661,7 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                     d.RatePerKg, d.Discount, d.TaxableAmount,
                     d.CgstPercentage, d.SgstPercentage, d.IgstPercentage,
                     d.CGST, d.SGST, d.IGST, d.TaxAmount,
-                    d.PackTypeId, d.UOMId, d.TotalAmount
+                    d.PackTypeId, d.UOMId, d.Charity, d.HandlingCharges, d.TotalAmount
                 FROM Sales.InvoiceDetail d
                 INNER JOIN Sales.InvoiceHeader h ON d.InvoiceHeaderId = h.Id
                 WHERE h.IsDeleted = 0 AND h.GEFlag = 0
@@ -720,7 +732,7 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                     h.TransportMode, tm.Description AS TransportModeName,
                     h.VehicleNumber, h.TransporterName, h.LRNumber, h.LRDate,
                     h.TotalBags, h.TotalWeight, h.TaxableValue, h.Discount,
-                    h.Freight, h.Insurance, h.HandlingCharge, h.OtherCharges,
+                    h.Freight, h.Insurance, h.HandlingCharge, h.TotalCharity, h.OtherCharges,
                     h.CGST, h.SGST, h.IGST, h.TaxAmount,
                     h.TCSPercentage, h.TCS, h.RoundOff,
                     h.InvoiceAmountBeforeTCS, h.InvoiceAmount,
@@ -1071,6 +1083,7 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                 Freight = header.Freight,
                 Insurance = header.Insurance,
                 HandlingCharges = header.HandlingCharge,
+                TotalCharity = header.TotalCharity,
                 OtherCharges = header.OtherCharges,
                 ValueOfSupply = header.TaxableValue - header.Discount + header.Freight
                     + header.Insurance + header.HandlingCharge + header.OtherCharges,
@@ -1123,7 +1136,7 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
             const string headerSql = @"
                 SELECT h.Id, h.InvoiceNo, h.InvoiceDate, h.UnitId, h.PartyId,
                     h.TaxableValue, h.Discount, h.Freight, h.Insurance,
-                    h.HandlingCharge, h.OtherCharges,
+                    h.HandlingCharge, h.TotalCharity, h.OtherCharges,
                     h.CGST, h.SGST, h.IGST, h.TCS, h.RoundOff,
                     h.InvoiceAmount, h.Remarks,
                     da.TransporterId, da.VehicleNo,
@@ -1146,7 +1159,7 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
             const string detailSql = @"
                 SELECT d.ItemSno, d.ItemId, d.HsnCode, d.NoOfBags, d.Quantity,
                     d.RatePerKg, d.Discount, d.TaxableAmount, d.GstPercentage,
-                    d.CGST, d.SGST, d.IGST, d.TotalAmount,
+                    d.CGST, d.SGST, d.IGST, d.Charity, d.HandlingCharges, d.TotalAmount,
                     d.PackTypeId, d.UOMId
                 FROM Sales.InvoiceDetail d
                 WHERE d.InvoiceHeaderId = @HeaderId
