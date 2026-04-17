@@ -172,7 +172,7 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
             if (header == null)
                 return null;
 
-            // Fetch detail rows with same-module JOINs
+            // Fetch detail rows with all SalesOrderDetail columns
             const string detailSql = @"
                 SELECT d.Id, d.DispatchAdviceHeaderId,
                     d.SalesOrderDetailId,
@@ -180,15 +180,25 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
                     d.LotId,
                     d.StartPackNo, d.EndPackNo, d.DispatchQty,
                     d.PackTypeId,
+                    sod.VariantId,
                     sod.HSNId,
+                    sod.QtyInBags,
+                    sod.BagWeight,
+                    sod.SaleUOMId,
+                    sod.TotalWeight,
                     sod.ExMillRate,
+                    sod.DiscountPerUnit,
+                    sod.Freight,
+                    sod.Handling,
+                    sod.Charity,
                     sod.TaxableAmount,
                     sod.TaxPercentage,
                     sod.TaxAmount,
                     sod.TCSPercentage,
                     sod.TCSAmount,
                     sod.NetAmount,
-                    sod.BagWeight
+                    sod.NetRatePerKg,
+                    sod.AgentCommissionPercentage
                 FROM Sales.DispatchAdviceDetail d
                 LEFT JOIN Sales.SalesOrderDetail sod ON d.SalesOrderDetailId = sod.Id
                 WHERE d.DispatchAdviceHeaderId = @HeaderId";
@@ -212,14 +222,18 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
                 header.TransporterName = transporter?.PartyName;
             }
 
-            // Populate cross-module detail lookups: ItemName
+            // Populate cross-module detail lookups
             if (details.Count > 0)
             {
                 var itemIds = details.Select(d => d.ItemId).Distinct();
                 var items = await _itemLookup.GetByIdsAsync(itemIds);
                 var itemDict = items.ToDictionary(i => i.Id, i => i.ItemName);
 
-                // Populate cross-module: HSNCode
+                // Variant names (variants are also items in ItemMaster)
+                var variantIds = details.Where(d => d.VariantId.HasValue).Select(d => d.VariantId!.Value).Distinct();
+                var variants = variantIds.Any() ? await _itemLookup.GetByIdsAsync(variantIds) : [];
+                var variantDict = variants.ToDictionary(v => v.Id, v => v.ItemName);
+
                 var hsnIds = details.Where(d => d.HSNId.HasValue).Select(d => d.HSNId!.Value).Distinct();
                 var hsnList = await _hsnLookup.GetByIdsAsync(hsnIds);
                 var hsnDict = hsnList.ToDictionary(h => h.Id, h => h.HSNCode);
@@ -232,9 +246,16 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
                 var packTypeList = packTypeIds.Any() ? await _packTypeLookup.GetByIdsAsync(packTypeIds) : [];
                 var packTypeDict = packTypeList.ToDictionary(p => p.Id, p => p.PackTypeName);
 
+                var uomIds = details.Where(d => d.SaleUOMId > 0).Select(d => d.SaleUOMId).Distinct();
+                var uomList = uomIds.Any() ? await _uomLookup.GetByIdsAsync(uomIds) : [];
+                var uomDict = uomList.ToDictionary(u => u.Id, u => u.UOMName);
+
                 foreach (var detail in details)
                 {
                     detail.ItemName = itemDict.TryGetValue(detail.ItemId, out var iName) ? iName : null;
+
+                    if (detail.VariantId.HasValue)
+                        detail.VariantName = variantDict.TryGetValue(detail.VariantId.Value, out var vName) ? vName : null;
 
                     if (detail.HSNId.HasValue)
                         detail.HSNCode = hsnDict.TryGetValue(detail.HSNId.Value, out var hCode) ? hCode : null;
@@ -244,6 +265,9 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
 
                     if (detail.PackTypeId > 0)
                         detail.PackTypeName = packTypeDict.TryGetValue(detail.PackTypeId, out var pName) ? pName : null;
+
+                    if (detail.SaleUOMId > 0)
+                        detail.UOMName = uomDict.TryGetValue(detail.SaleUOMId, out var uName) ? uName : null;
                 }
             }
 
