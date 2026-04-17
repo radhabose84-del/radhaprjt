@@ -87,6 +87,14 @@ namespace SalesManagement.Application.SalesReturn.Commands.CreateSalesReturn
                     MiscEnumEntity.StockEntryType, MiscEnumEntity.StockEntryTypeSalesReturn);
                 var typeId2 = stockEntryType?.Id;
 
+                // Get SourceUnitId from DispatchAdviceHeader (via first invoice)
+                int? sourceUnitId = null;
+                if (request.InvoiceDetails != null && request.InvoiceDetails.Count > 0)
+                {
+                    sourceUnitId = await _queryRepository.GetSourceUnitIdByInvoiceAsync(
+                        request.InvoiceDetails[0].InvoiceHeaderId);
+                }
+
                 var stockEntries = new List<Domain.Entities.StockLedger>();
                 foreach (var detail in entity.SalesReturnDetails!)
                 {
@@ -109,7 +117,7 @@ namespace SalesManagement.Application.SalesReturn.Commands.CreateSalesReturn
                             TotalValue = 0,
                             StatusId = detail.BagStatusId,
                             TypeId = typeId2,
-                            SourceUnitId = unitId ?? 0
+                            SourceUnitId = sourceUnitId
                         });
                     }
                 }

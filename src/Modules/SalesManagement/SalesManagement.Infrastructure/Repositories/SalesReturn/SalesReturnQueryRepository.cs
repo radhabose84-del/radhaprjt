@@ -394,6 +394,17 @@ namespace SalesManagement.Infrastructure.Repositories.SalesReturn
             return (dispatched, returned);
         }
 
+        public async Task<int?> GetSourceUnitIdByInvoiceAsync(int invoiceHeaderId)
+        {
+            const string sql = @"
+                SELECT dah.UnitId
+                FROM Sales.InvoiceHeader ih
+                INNER JOIN Sales.DispatchAdviceHeader dah ON ih.DispatchAdviceId = dah.Id AND dah.IsDeleted = 0
+                WHERE ih.Id = @InvoiceHeaderId AND ih.IsDeleted = 0;";
+
+            return await _dbConnection.ExecuteScalarAsync<int?>(sql, new { InvoiceHeaderId = invoiceHeaderId });
+        }
+
         private async Task<SalesReturnHeaderDto?> GetReturnAsync(string whereClause, object parameters)
         {
             var sql = $@"
