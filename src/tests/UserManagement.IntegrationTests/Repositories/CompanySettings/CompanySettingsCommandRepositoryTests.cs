@@ -46,18 +46,14 @@ namespace UserManagement.IntegrationTests.Repositories.CompanySettings
         private CompanySettingsCommandRepository CreateRepository(ApplicationDbContext ctx)
             => new CompanySettingsCommandRepository(ctx);
 
-        private async Task ClearTableAsync(ApplicationDbContext ctx)
-        {
-            // CompanySetting has 1-to-1 relations to Company/Currency/Language/FinancialYear
-            // Clear child first, then parents to allow re-seeding
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM AppData.CompanySetting");
-        }
+        private async Task ClearTableAsync(ApplicationDbContext ctx) =>
+            await _fixture.ClearAllTablesAsync();
 
         private async Task<(int companyId, int currencyId, int languageId, int financialYearId)> SeedParentsAsync(
             ApplicationDbContext ctx, string suffix = "")
         {
-            // Clear CompanySetting first (it 1-to-1 references all of the below)
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM AppData.CompanySetting");
+            // Clear all tables (FK-safe)
+            await _fixture.ClearAllTablesAsync();
 
             // Currency
             var currency = new UserManagement.Domain.Entities.Currency

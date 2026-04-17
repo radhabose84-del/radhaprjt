@@ -74,14 +74,8 @@ namespace UserManagement.IntegrationTests.Repositories.UserRoles
             return created.Id;
         }
 
-        private async Task ClearTestRolesAsync()
-        {
-            await using var ctx = CreateDbContext();
-            await ctx.Database.ExecuteSqlRawAsync(
-                "DELETE FROM AppSecurity.UserRoleAllocation WHERE UserRoleId IN (SELECT Id FROM AppSecurity.UserRole WHERE RoleName LIKE 'TestRole_URQ%')");
-            await ctx.Database.ExecuteSqlRawAsync(
-                "DELETE FROM AppSecurity.UserRole WHERE RoleName LIKE 'TestRole_URQ%'");
-        }
+        private async Task ClearTestRolesAsync() =>
+            await _fixture.ClearAllTablesAsync();
 
         // --- GET ALL ROLES ---
 

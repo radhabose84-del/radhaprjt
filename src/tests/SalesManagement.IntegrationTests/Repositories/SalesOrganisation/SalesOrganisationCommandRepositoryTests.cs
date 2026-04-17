@@ -39,14 +39,8 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesOrganisation
                 IsDeleted = IsDelete.NotDeleted
             };
 
-        private async Task ClearTableAsync(ApplicationDbContext ctx)
-        {
-            await ctx.Database.ExecuteSqlRawAsync(@"
-                DELETE FROM Sales.ItemPriceMaster;
-                DELETE FROM Sales.SalesOffice;
-                DELETE FROM Sales.SalesSegment;
-                DELETE FROM Sales.SalesOrganisation;");
-        }
+        private async Task ClearTableAsync(ApplicationDbContext ctx) =>
+            await _fixture.ClearTablesAsync("Sales.SalesOrganisation");
 
         // ── CreateAsync ───────────────────────────────────────────────────────
 

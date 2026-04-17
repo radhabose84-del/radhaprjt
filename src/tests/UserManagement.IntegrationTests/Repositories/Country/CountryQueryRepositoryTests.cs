@@ -66,14 +66,8 @@ namespace UserManagement.IntegrationTests.Repositories.Country
             return created.Id;
         }
 
-        private async Task ClearTableAsync()
-        {
-            await using var conn = new SqlConnection(_fixture.ConnectionString);
-            await conn.OpenAsync();
-            await conn.ExecuteAsync("DELETE FROM AppData.City");
-            await conn.ExecuteAsync("DELETE FROM AppData.State");
-            await conn.ExecuteAsync("DELETE FROM AppData.Country");
-        }
+        private async Task ClearTableAsync() =>
+            await _fixture.ClearAllTablesAsync();
 
         private async Task SoftDeleteAsync(int id)
         {

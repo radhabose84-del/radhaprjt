@@ -114,11 +114,8 @@ namespace UserManagement.IntegrationTests.Repositories.Department
         /// Physical DELETE would conflict with FK_Users_Department_DepartmentId
         /// from Users seeded by other integration tests in the same collection.
         /// </summary>
-        private async Task ClearTestDepartmentsAsync(ApplicationDbContext ctx)
-        {
-            await ctx.Database.ExecuteSqlRawAsync(
-                "UPDATE AppData.Department SET IsDeleted = 1 WHERE ShortName LIKE 'TST%' OR ShortName LIKE 'UPD%' OR ShortName LIKE 'A0%' OR ShortName LIKE 'DEL%' OR ShortName LIKE 'BID%' OR ShortName LIKE 'GRP%' OR ShortName LIKE 'ACT%' OR ShortName LIKE 'INA%'");
-        }
+        private async Task ClearTestDepartmentsAsync(ApplicationDbContext ctx) =>
+            await _fixture.ClearAllTablesAsync();
 
         // --- GET ALL ---
 

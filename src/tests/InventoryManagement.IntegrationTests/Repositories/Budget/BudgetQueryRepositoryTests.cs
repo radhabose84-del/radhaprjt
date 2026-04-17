@@ -21,17 +21,7 @@ namespace InventoryManagement.IntegrationTests.Repositories.Budget
 
         private BudgetQueryRepository CreateQueryRepo(ApplicationDbContext ctx) => new(ctx);
 
-        private async Task ClearTablesAsync(ApplicationDbContext ctx)
-        {
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Inventory].[BudgetLog]");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Inventory].[BudgetDetail]");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Inventory].[BudgetMaster]");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Inventory].[PutAwayRule]");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Inventory].[ItemCategoryModule]");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Inventory].[ItemMaster]");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Inventory].[ItemCategory]");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Inventory].[ItemGroup]");
-        }
+        private async Task ClearTablesAsync(ApplicationDbContext ctx) => await _fixture.ClearAllTablesAsync();
 
         private async Task<(int groupId, int categoryId)> SeedGroupAndBudgetCategoryAsync()
         {

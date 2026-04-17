@@ -16,7 +16,7 @@ namespace InventoryManagement.UnitTests.Application.Item.Queries
             _mockRepo.Setup(r => r.GetAllAsync(
                     It.IsAny<int?>(), It.IsAny<int?>(), It.IsAny<string?>(),
                     It.IsAny<bool>(), It.IsAny<int?>(), It.IsAny<int?>(),
-                    It.IsAny<int?>(), It.IsAny<CancellationToken>()))
+                    It.IsAny<int?>(), It.IsAny<int?>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync((items, 1));
 
             var result = await CreateSut().Handle(new GetAllItemsQuery { PageNumber = 1, PageSize = 10 }, CancellationToken.None);
@@ -31,7 +31,7 @@ namespace InventoryManagement.UnitTests.Application.Item.Queries
             _mockRepo.Setup(r => r.GetAllAsync(
                     It.IsAny<int?>(), It.IsAny<int?>(), It.IsAny<string?>(),
                     It.IsAny<bool>(), It.IsAny<int?>(), It.IsAny<int?>(),
-                    It.IsAny<int?>(), It.IsAny<CancellationToken>()))
+                    It.IsAny<int?>(), It.IsAny<int?>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync((new List<ItemListDto>(), 0));
 
             var result = await CreateSut().Handle(new GetAllItemsQuery { PageNumber = 1, PageSize = 10 }, CancellationToken.None);
@@ -46,7 +46,7 @@ namespace InventoryManagement.UnitTests.Application.Item.Queries
             _mockRepo.Setup(r => r.GetAllAsync(
                     It.IsAny<int?>(), It.IsAny<int?>(), It.IsAny<string?>(),
                     It.IsAny<bool>(), It.IsAny<int?>(), It.IsAny<int?>(),
-                    It.IsAny<int?>(), It.IsAny<CancellationToken>()))
+                    It.IsAny<int?>(), It.IsAny<int?>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync((new List<ItemListDto>(), 0));
 
             await CreateSut().Handle(new GetAllItemsQuery { PageNumber = 1, PageSize = 10 }, CancellationToken.None);
@@ -54,7 +54,7 @@ namespace InventoryManagement.UnitTests.Application.Item.Queries
             _mockRepo.Verify(r => r.GetAllAsync(
                 It.IsAny<int?>(), It.IsAny<int?>(), It.IsAny<string?>(),
                 It.IsAny<bool>(), It.IsAny<int?>(), It.IsAny<int?>(),
-                It.IsAny<int?>(), It.IsAny<CancellationToken>()), Times.Once);
+                It.IsAny<int?>(), It.IsAny<int?>(), It.IsAny<CancellationToken>()), Times.Once);
         }
     }
 }

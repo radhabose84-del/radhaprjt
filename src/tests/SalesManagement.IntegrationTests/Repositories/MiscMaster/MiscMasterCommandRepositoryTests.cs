@@ -45,15 +45,7 @@ namespace SalesManagement.IntegrationTests.Repositories.MiscMaster
 
         private async Task ClearMiscMasterTableAsync(ApplicationDbContext ctx)
         {
-            await ctx.Database.ExecuteSqlRawAsync(@"
-                DELETE FROM Sales.AgentCommissionSlab;
-                DELETE FROM Sales.AgentCommissionPaymentTerm;
-                DELETE FROM Sales.AgentCommissionSalesGroup;
-                DELETE FROM Sales.AgentCommissionConfig;
-                DELETE FROM Sales.CommissionSplitDetail;
-                DELETE FROM Sales.CommissionSplit;
-                DELETE FROM Sales.ItemPriceMaster;
-                DELETE FROM Sales.MiscMaster;");
+            await _fixture.ClearAllMiscMasterDependentsAsync();
         }
 
         /// <summary>Seeds a MiscTypeMaster row if none exists for the given code; returns its Id.</summary>

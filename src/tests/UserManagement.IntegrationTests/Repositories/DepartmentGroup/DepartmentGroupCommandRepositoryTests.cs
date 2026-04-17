@@ -58,11 +58,8 @@ namespace UserManagement.IntegrationTests.Repositories.DepartmentGroup
                 IsDeleted = Enums.IsDelete.NotDeleted
             };
 
-        private async Task ClearTestDataAsync(ApplicationDbContext ctx)
-        {
-            await ctx.Database.ExecuteSqlRawAsync(
-                "DELETE FROM AppData.DepartmentGroup WHERE DepartmentGroupCode LIKE 'DGTST%' OR DepartmentGroupCode LIKE 'DGUPD%'");
-        }
+        private async Task ClearTestDataAsync(ApplicationDbContext ctx) =>
+            await _fixture.ClearAllTablesAsync();
 
         // --- CREATE ---
 

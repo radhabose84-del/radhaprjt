@@ -10,11 +10,12 @@ namespace SalesManagement.UnitTests.Application.MiscMaster.Commands
     public sealed class UpdateMiscMasterCommandHandlerTests
     {
         private readonly Mock<IMiscMasterCommandRepository> _mockCommandRepo = new(MockBehavior.Strict);
+        private readonly Mock<IMiscMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Strict);
         private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Strict);
 
         private UpdateMiscMasterCommandHandler CreateSut() =>
-            new(_mockCommandRepo.Object, _mockMediator.Object, _mockMapper.Object);
+            new(_mockCommandRepo.Object, _mockQueryRepo.Object, _mockMediator.Object, _mockMapper.Object);
 
         private void SetupHappyPath(UpdateMiscMasterCommand command, int updatedId = 1)
         {

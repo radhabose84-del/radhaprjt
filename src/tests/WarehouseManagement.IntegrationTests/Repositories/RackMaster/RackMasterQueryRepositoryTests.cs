@@ -73,14 +73,8 @@ namespace WarehouseManagement.IntegrationTests.Repositories.RackMaster
             });
         }
 
-        private async Task ClearTablesAsync()
-        {
-            await using var conn = new SqlConnection(_fixture.ConnectionString);
-            await conn.OpenAsync();
-            await conn.ExecuteAsync("DELETE FROM [Warehouse].[BinMaster]");
-            await conn.ExecuteAsync("DELETE FROM [Warehouse].[RackMaster]");
-            await conn.ExecuteAsync("DELETE FROM [Warehouse].[WarehouseMaster]");
-        }
+        private async Task ClearTablesAsync() =>
+            await _fixture.ClearAllTablesAsync();
 
         // --- GET ALL ---
 

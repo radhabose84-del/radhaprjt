@@ -162,12 +162,8 @@ namespace SalesManagement.IntegrationTests.Repositories.ItemPriceMaster
             return segment.Id;
         }
 
-        private async Task ClearPriceMasterAsync()
-        {
-            await using var cnn = OpenConnection();
-            await cnn.OpenAsync();
-            await cnn.ExecuteAsync("DELETE FROM Sales.ItemPriceMaster");
-        }
+        private async Task ClearPriceMasterAsync() =>
+            await _fixture.ClearTablesAsync("Sales.ItemPriceMaster");
 
         private async Task<int> SeedEntityAsync(
             int salesSegmentId,

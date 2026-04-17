@@ -15,6 +15,7 @@ namespace SalesManagement.UnitTests.Validators.DiscountMaster
         private void SetupAllValid()
         {
             _mockQueryRepo.Setup(r => r.NotFoundAsync(It.IsAny<int>())).ReturnsAsync(false);
+            _mockQueryRepo.Setup(r => r.SoftDeleteValidationAsync(It.IsAny<int>())).ReturnsAsync(false);
         }
 
         [Fact]
@@ -41,6 +42,7 @@ namespace SalesManagement.UnitTests.Validators.DiscountMaster
         public async Task NotFound_FailsValidation()
         {
             _mockQueryRepo.Setup(r => r.NotFoundAsync(99)).ReturnsAsync(true);
+            _mockQueryRepo.Setup(r => r.SoftDeleteValidationAsync(99)).ReturnsAsync(false);
 
             var result = await CreateValidator().TestValidateAsync(new DeleteDiscountMasterCommand(99));
 

@@ -35,13 +35,8 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesChannel
                 IsDeleted = IsDelete.NotDeleted
             };
 
-        private async Task ClearTableAsync(ApplicationDbContext ctx)
-        {
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Sales.ItemPriceMaster");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Sales.SalesSegment");
-            ctx.SalesChannel.RemoveRange(ctx.SalesChannel);
-            await ctx.SaveChangesAsync();
-        }
+        private async Task ClearTableAsync(ApplicationDbContext ctx) =>
+            await _fixture.ClearTablesAsync("Sales.SalesChannel");
 
         // ── CreateAsync ───────────────────────────────────────────────────────
 

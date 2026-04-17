@@ -50,11 +50,8 @@ namespace UserManagement.IntegrationTests.Repositories.TimeZones
             return new TimeZonesQueryRepository(conn);
         }
 
-        private async Task ClearTableAsync()
-        {
-            await using var ctx = CreateDbContext();
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM AppData.TimeZones");
-        }
+        private async Task ClearTableAsync() =>
+            await _fixture.ClearAllTablesAsync();
 
         private async Task<int> SeedAsync(string code = "IST", string name = "India Standard Time", string offset = "UTC+05:30")
         {

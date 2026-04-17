@@ -50,12 +50,8 @@ namespace WarehouseManagement.IntegrationTests.Repositories.WarehouseMaster
                 IsDeleted = BaseEntity.IsDelete.NotDeleted
             };
 
-        private async Task ClearTablesAsync(WarehouseManagement.Infrastructure.Data.ApplicationDbContext ctx)
-        {
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Warehouse].[BinMaster]");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Warehouse].[RackMaster]");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Warehouse].[WarehouseMaster]");
-        }
+        private async Task ClearTablesAsync(WarehouseManagement.Infrastructure.Data.ApplicationDbContext ctx) =>
+            await _fixture.ClearAllTablesAsync();
 
         // --- CREATE ---
 
@@ -201,6 +197,160 @@ namespace WarehouseManagement.IntegrationTests.Repositories.WarehouseMaster
             var result = await CreateRepository(ctx).DeleteAsync(9999, toDelete);
 
             result.Should().BeFalse();
+        }
+
+        // --- WAREHOUSE ITEM GROUP MAPPING (via WarehouseMaster) ---
+
+        private static WarehouseManagement.Domain.Entities.WarehouseMaster BuildEntityWithMappings(
+            string code = "WH001",
+            string name = "Test Warehouse",
+            params int[] itemGroupIds)
+        {
+            var entity = BuildEntity(code, name);
+            foreach (var groupId in itemGroupIds)
+            {
+                entity.AllowedItemGroups.Add(new WarehouseManagement.Domain.Entities.WarehouseItemGroupMapping
+                {
+                    ItemGroupId = groupId,
+                    IsActive = BaseEntity.Status.Active,
+                    IsDeleted = BaseEntity.IsDelete.NotDeleted
+                });
+            }
+            return entity;
+        }
+
+        [Fact]
+        public async Task CreateAsync_WithItemGroupMappings_Should_Persist_Mappings()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            await ClearTablesAsync(ctx);
+
+            var entity = BuildEntityWithMappings("WH010", "Mapped WH", 1, 2, 3);
+            var newId = await CreateRepository(ctx).CreateAsync(entity);
+            ctx.ChangeTracker.Clear();
+
+            var saved = await ctx.WarehouseMasters
+                .Include(w => w.AllowedItemGroups)
+                .FirstOrDefaultAsync(x => x.Id == newId);
+
+            saved.Should().NotBeNull();
+            saved!.AllowedItemGroups.Should().HaveCount(3);
+            saved.AllowedItemGroups.Select(m => m.ItemGroupId).Should().BeEquivalentTo(new[] { 1, 2, 3 });
+        }
+
+        [Fact]
+        public async Task CreateAsync_WithItemGroupMappings_Should_Set_WarehouseId_On_Mappings()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            await ClearTablesAsync(ctx);
+
+            var entity = BuildEntityWithMappings("WH011", "FK WH", 5);
+            var newId = await CreateRepository(ctx).CreateAsync(entity);
+            ctx.ChangeTracker.Clear();
+
+            var saved = await ctx.WarehouseMasters
+                .Include(w => w.AllowedItemGroups)
+                .FirstOrDefaultAsync(x => x.Id == newId);
+
+            saved!.AllowedItemGroups.Should().ContainSingle()
+                .Which.WarehouseId.Should().Be(newId);
+        }
+
+        [Fact]
+        public async Task CreateAsync_WithNoMappings_Should_Persist_EmptyCollection()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            await ClearTablesAsync(ctx);
+
+            var entity = BuildEntity("WH012", "No Mapping WH");
+            var newId = await CreateRepository(ctx).CreateAsync(entity);
+            ctx.ChangeTracker.Clear();
+
+            var saved = await ctx.WarehouseMasters
+                .Include(w => w.AllowedItemGroups)
+                .FirstOrDefaultAsync(x => x.Id == newId);
+
+            saved!.AllowedItemGroups.Should().BeEmpty();
+        }
+
+        [Fact]
+        public async Task UpdateAsync_Should_Replace_ItemGroupMappings()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            await ClearTablesAsync(ctx);
+
+            var entity = BuildEntityWithMappings("WH013", "Replace WH", 1, 2);
+            var newId = await CreateRepository(ctx).CreateAsync(entity);
+            ctx.ChangeTracker.Clear();
+
+            // Load, clear old mappings, add new ones
+            var loaded = await CreateRepository(ctx).GetByIdAsync(newId);
+            loaded!.AllowedItemGroups.Clear();
+            loaded.AllowedItemGroups.Add(new WarehouseManagement.Domain.Entities.WarehouseItemGroupMapping
+            {
+                ItemGroupId = 10,
+                IsActive = BaseEntity.Status.Active,
+                IsDeleted = BaseEntity.IsDelete.NotDeleted
+            });
+            loaded.AllowedItemGroups.Add(new WarehouseManagement.Domain.Entities.WarehouseItemGroupMapping
+            {
+                ItemGroupId = 20,
+                IsActive = BaseEntity.Status.Active,
+                IsDeleted = BaseEntity.IsDelete.NotDeleted
+            });
+            await CreateRepository(ctx).UpdateAsync(loaded);
+            ctx.ChangeTracker.Clear();
+
+            var updated = await ctx.WarehouseMasters
+                .Include(w => w.AllowedItemGroups)
+                .FirstOrDefaultAsync(x => x.Id == newId);
+
+            updated!.AllowedItemGroups.Select(m => m.ItemGroupId)
+                .Should().BeEquivalentTo(new[] { 10, 20 });
+        }
+
+        [Fact]
+        public async Task DeleteAsync_Should_SoftDelete_ItemGroupMappings()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            await ClearTablesAsync(ctx);
+
+            var entity = BuildEntityWithMappings("WH014", "Delete WH", 1, 2);
+            var newId = await CreateRepository(ctx).CreateAsync(entity);
+            ctx.ChangeTracker.Clear();
+
+            var toDelete = new WarehouseManagement.Domain.Entities.WarehouseMaster
+            {
+                IsDeleted = BaseEntity.IsDelete.Deleted
+            };
+            await CreateRepository(ctx).DeleteAsync(newId, toDelete);
+            ctx.ChangeTracker.Clear();
+
+            var mappings = await ctx.GetWarehouseItemGroupMappings
+                .IgnoreQueryFilters()
+                .Where(m => m.WarehouseId == newId)
+                .ToListAsync();
+
+            mappings.Should().HaveCount(2);
+            mappings.Should().AllSatisfy(m =>
+                m.IsDeleted.Should().Be(BaseEntity.IsDelete.Deleted));
+        }
+
+        [Fact]
+        public async Task GetByIdAsync_Should_Include_ItemGroupMappings()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            await ClearTablesAsync(ctx);
+
+            var entity = BuildEntityWithMappings("WH015", "Include WH", 3, 7);
+            var newId = await CreateRepository(ctx).CreateAsync(entity);
+            ctx.ChangeTracker.Clear();
+
+            var loaded = await CreateRepository(ctx).GetByIdAsync(newId);
+
+            loaded.Should().NotBeNull();
+            loaded!.AllowedItemGroups.Should().HaveCount(2);
+            loaded.AllowedItemGroups.Select(m => m.ItemGroupId).Should().BeEquivalentTo(new[] { 3, 7 });
         }
     }
 }

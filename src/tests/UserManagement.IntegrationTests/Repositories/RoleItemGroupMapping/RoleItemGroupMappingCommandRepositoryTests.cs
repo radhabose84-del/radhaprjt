@@ -67,11 +67,8 @@ namespace UserManagement.IntegrationTests.Repositories.RoleItemGroupMapping
             return result.Id;
         }
 
-        private async Task ClearTestDataAsync(ApplicationDbContext ctx, int roleId)
-        {
-            await ctx.Database.ExecuteSqlRawAsync(
-                $"DELETE FROM AppSecurity.RoleItemGroupMapping WHERE RoleId = {roleId}");
-        }
+        private async Task ClearTestDataAsync(ApplicationDbContext ctx, int roleId) =>
+            await _fixture.ClearAllTablesAsync();
 
         // --- CREATE ---
 
@@ -79,8 +76,8 @@ namespace UserManagement.IntegrationTests.Repositories.RoleItemGroupMapping
         public async Task CreateAsync_Should_Return_Entity_With_Id_GreaterThanZero()
         {
             await using var ctx = CreateDbContext();
+            await ClearTestDataAsync(ctx, 0);
             var roleId = await EnsureRoleAsync(ctx, "TestRole_RIGM_Create");
-            await ClearTestDataAsync(ctx, roleId);
 
             var repo = CreateRepository(ctx);
             var entity = new Domain.Entities.RoleItemGroupMapping
@@ -101,8 +98,8 @@ namespace UserManagement.IntegrationTests.Repositories.RoleItemGroupMapping
         public async Task CreateAsync_Should_Persist_Fields_Correctly()
         {
             await using var ctx = CreateDbContext();
+            await ClearTestDataAsync(ctx, 0);
             var roleId = await EnsureRoleAsync(ctx, "TestRole_RIGM_Persist");
-            await ClearTestDataAsync(ctx, roleId);
 
             var repo = CreateRepository(ctx);
             var entity = new Domain.Entities.RoleItemGroupMapping
@@ -130,8 +127,8 @@ namespace UserManagement.IntegrationTests.Repositories.RoleItemGroupMapping
         public async Task UpdateAsync_Should_Persist_Changes()
         {
             await using var ctx = CreateDbContext();
+            await ClearTestDataAsync(ctx, 0);
             var roleId = await EnsureRoleAsync(ctx, "TestRole_RIGM_Update");
-            await ClearTestDataAsync(ctx, roleId);
 
             var repo = CreateRepository(ctx);
             var entity = new Domain.Entities.RoleItemGroupMapping
@@ -168,8 +165,8 @@ namespace UserManagement.IntegrationTests.Repositories.RoleItemGroupMapping
         public async Task DeleteAsync_Should_Soft_Delete_Entity()
         {
             await using var ctx = CreateDbContext();
+            await ClearTestDataAsync(ctx, 0);
             var roleId = await EnsureRoleAsync(ctx, "TestRole_RIGM_Delete");
-            await ClearTestDataAsync(ctx, roleId);
 
             var repo = CreateRepository(ctx);
             var entity = new Domain.Entities.RoleItemGroupMapping
@@ -209,8 +206,8 @@ namespace UserManagement.IntegrationTests.Repositories.RoleItemGroupMapping
         public async Task CompositeKeyExistsAsync_Should_Return_True_When_Mapping_Exists()
         {
             await using var ctx = CreateDbContext();
+            await ClearTestDataAsync(ctx, 0);
             var roleId = await EnsureRoleAsync(ctx, "TestRole_RIGM_CompositeKey");
-            await ClearTestDataAsync(ctx, roleId);
 
             var repo = CreateRepository(ctx);
             var entity = new Domain.Entities.RoleItemGroupMapping

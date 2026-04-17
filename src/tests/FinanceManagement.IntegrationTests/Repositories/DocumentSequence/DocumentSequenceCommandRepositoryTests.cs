@@ -57,11 +57,8 @@ namespace FinanceManagement.IntegrationTests.Repositories.DocumentSequence
                 IsDeleted = IsDelete.NotDeleted
             };
 
-        private async Task ClearTablesAsync(ApplicationDbContext ctx)
-        {
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Finance].[DocumentSequence]");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Finance].[TransactionTypeMaster]");
-        }
+        private async Task ClearTablesAsync(ApplicationDbContext ctx) =>
+            await _fixture.ClearAllTablesAsync();
 
         // --- CREATE ---
 

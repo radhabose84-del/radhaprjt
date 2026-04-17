@@ -28,11 +28,8 @@ namespace ProjectManagement.IntegrationTests.Repositories.MiscTypeMaster
                 IsDeleted = BaseEntity.IsDelete.NotDeleted
             };
 
-        private async Task ClearTableAsync(ProjectManagement.Infrastructure.Data.ApplicationDbContext ctx)
-        {
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Project].[MiscMaster]");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Project].[MiscTypeMaster]");
-        }
+        private async Task ClearTableAsync(ProjectManagement.Infrastructure.Data.ApplicationDbContext ctx) =>
+            await _fixture.ClearAllTablesAsync();
 
         // --- CREATE ---
 

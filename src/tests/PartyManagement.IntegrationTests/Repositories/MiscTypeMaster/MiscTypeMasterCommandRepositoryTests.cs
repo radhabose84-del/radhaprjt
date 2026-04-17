@@ -28,12 +28,7 @@ namespace PartyManagement.IntegrationTests.Repositories.MiscTypeMaster
                 IsDeleted = BaseEntity.IsDelete.NotDeleted
             };
 
-        private async Task ClearTableAsync(PartyManagement.Infrastructure.Data.ApplicationDbContext ctx)
-        {
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Party].[PartyGroup]");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Party].[MiscMaster]");
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM [Party].[MiscTypeMaster]");
-        }
+        private async Task ClearTableAsync(PartyManagement.Infrastructure.Data.ApplicationDbContext ctx) => await _fixture.ClearAllTablesAsync();
 
         // --- CREATE ---
 

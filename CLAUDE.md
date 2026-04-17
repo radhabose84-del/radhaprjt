@@ -3535,6 +3535,89 @@ public async Task<bool> SoftDeleteValidationAsync(int id)
 
 ---
 
+### 26. **Mandatory Tests, No Production/Live-DB Changes, New Modules Allowed**
+
+This rule has **three parts** — all are mandatory.
+
+---
+
+#### Part A — Production Code & Live Database Are OFF-LIMITS
+
+> ❌ **NEVER modify production code or the live/production database under any circumstances.**
+
+| Forbidden Action | Why |
+|---|---|
+| Edit code in any production deployment | Production is frozen — only released through formal deployment process |
+| Run `dotnet ef database update` against live/production DB | Schema changes go through DBA-approved migration windows only |
+| Run any `INSERT` / `UPDATE` / `DELETE` / `DROP` SQL on production DB | Data integrity is protected by change-control |
+| Connect tools/scripts to production connection strings | Dev environment uses `192.168.1.126` test servers only |
+| Hot-fix on a production server file system | All fixes go through git → PR → CI/CD |
+
+✅ **Allowed environments:**
+- Local dev machine
+- Test/dev SQL Server: `192.168.1.126`
+- Test database: `{Module}_TestDb` (auto-recreated by `DbFixture`)
+- Feature branches in git
+
+---
+
+#### Part B — Mandatory Unit Tests AND Integration Tests for ALL Code Changes
+
+> ❌ **NEVER make any code change or create new code (including new modules) without ALSO adding/updating both unit tests and integration tests.**
+
+| Action | Tests Required |
+|---|---|
+| Create new module | ✅ Create `{Module}.UnitTests` + `{Module}.IntegrationTests` projects |
+| Create new entity in existing/new module | ✅ Unit tests + ✅ Integration tests |
+| Add column to existing entity | ✅ Update unit tests (handler + validator + entity) + ✅ Update integration tests (command + query repos) |
+| Modify existing handler/repo/validator/controller | ✅ Update both test types |
+| Modify domain entity | ✅ Update entity unit tests |
+| Add/change AutoMapper profile | ✅ Update handler unit tests |
+| Bug fix | ✅ Regression test that fails before fix and passes after |
+
+**Test Locations (mandatory):**
+
+| Test Type | Location |
+|---|---|
+| Unit tests | `src/tests/{Module}.UnitTests/` |
+| Integration tests | `src/tests/{Module}.IntegrationTests/` |
+
+If the test project does not exist, **create it first** using the patterns in the **Unit Testing** and **Integration Testing** sections of this file.
+
+**Definition of "Done":**
+- [ ] Production code (in dev/feature branch — never production) written/modified
+- [ ] Unit tests pass: `dotnet test src/tests/{Module}.UnitTests`
+- [ ] Integration tests pass: `dotnet test src/tests/{Module}.IntegrationTests`
+- [ ] Solution builds with `0 Warning(s), 0 Error(s)`
+
+> ❌ DO NOT split production code and tests across separate commits — they belong in the same change set.
+> ❌ DO NOT mark any task complete if either test type is missing or failing.
+
+---
+
+#### Part C — New Modules Are Allowed (with full test coverage)
+
+New modules **CAN** be created in BSOFT. When creating a new module:
+
+1. Follow the **Standard Module Structure** at the top of this file
+2. Register the module via the **New Module Registration Checklist** ([NewModuleRegistrationChecklist.md](NewModuleRegistrationChecklist.md))
+3. **Create both test projects from day one:**
+   - `src/tests/{NewModule}.UnitTests/{NewModule}.UnitTests.csproj`
+   - `src/tests/{NewModule}.IntegrationTests/{NewModule}.IntegrationTests.csproj`
+4. Every entity in the new module must have unit + integration tests before merge
+
+---
+
+#### Approval Gate — Wait for User Confirmation Before Any Code Work
+
+> ✋ Before making ANY code change, creating any new code, or creating any new module, the AI MUST:
+> 1. Share the proposed plan / file list with the user
+> 2. Wait for explicit confirmation (e.g., *"approved"*, *"proceed"*)
+> 3. Only then write the dev-branch code AND its tests in the same change set
+> 4. NEVER touch production code or live database — only dev environment + test DB
+
+---
+
 ## 📄 Technical Documentation Templates
 
 All generated documentation lives in `d:\BSOFT\docs\` using the naming:

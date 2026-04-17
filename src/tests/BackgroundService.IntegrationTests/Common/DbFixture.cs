@@ -95,6 +95,43 @@ namespace BackgroundService.IntegrationTests.Common
                 "IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name = 'AppNotification') EXEC('CREATE SCHEMA [AppNotification]')");
         }
 
+        /// <summary>
+        /// Clears all tables in the AppData and AppNotification schemas
+        /// by temporarily disabling FK constraints.
+        /// </summary>
+        public async Task ClearAllTablesAsync()
+        {
+            await using var conn = new SqlConnection(_testDbConnection);
+            await conn.OpenAsync();
+
+            const string sql = @"
+                DECLARE @disableSql NVARCHAR(MAX) = N'';
+                SELECT @disableSql += 'ALTER TABLE ' + QUOTENAME(s.name) + '.' + QUOTENAME(t.name)
+                    + ' NOCHECK CONSTRAINT ALL;' + CHAR(13)
+                FROM sys.tables t
+                JOIN sys.schemas s ON t.schema_id = s.schema_id
+                WHERE s.name IN ('AppData','AppNotification');
+                EXEC sp_executesql @disableSql;
+
+                DECLARE @deleteSql NVARCHAR(MAX) = N'';
+                SELECT @deleteSql += 'DELETE FROM ' + QUOTENAME(s.name) + '.' + QUOTENAME(t.name) + ';' + CHAR(13)
+                FROM sys.tables t
+                JOIN sys.schemas s ON t.schema_id = s.schema_id
+                WHERE s.name IN ('AppData','AppNotification');
+                EXEC sp_executesql @deleteSql;
+
+                DECLARE @enableSql NVARCHAR(MAX) = N'';
+                SELECT @enableSql += 'ALTER TABLE ' + QUOTENAME(s.name) + '.' + QUOTENAME(t.name)
+                    + ' WITH CHECK CHECK CONSTRAINT ALL;' + CHAR(13)
+                FROM sys.tables t
+                JOIN sys.schemas s ON t.schema_id = s.schema_id
+                WHERE s.name IN ('AppData','AppNotification');
+                EXEC sp_executesql @enableSql;
+            ";
+
+            await conn.ExecuteAsync(sql, commandTimeout: 60);
+        }
+
         public async Task DisposeAsync()
         {
             if (DbContext != null)

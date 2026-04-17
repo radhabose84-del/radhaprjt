@@ -32,7 +32,7 @@ namespace PurchaseManagement.IntegrationTests.Repositories.ServiceMaster
             };
 
         private async Task ClearTableAsync(ApplicationDbContext ctx) =>
-            await ctx.Database.ExecuteSqlRawAsync("DELETE FROM Purchase.ServiceMaster");
+            await _fixture.ClearAllTablesAsync();
 
         // --- CREATE ---
 

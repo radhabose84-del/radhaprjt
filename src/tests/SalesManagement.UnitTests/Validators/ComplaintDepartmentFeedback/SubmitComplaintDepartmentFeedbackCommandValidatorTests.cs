@@ -18,6 +18,7 @@ public sealed class SubmitComplaintDepartmentFeedbackCommandValidatorTests
         _mockQueryRepo.Setup(r => r.AssignmentExistsAsync(assignmentId)).ReturnsAsync(true);
         _mockQueryRepo.Setup(r => r.FeedbackAlreadyExistsForAssignmentAsync(assignmentId)).ReturnsAsync(false);
         _mockQueryRepo.Setup(r => r.MiscMasterExistsAsync(It.IsAny<int>())).ReturnsAsync(true);
+        _mockQueryRepo.Setup(r => r.IsQCApprovedForAssignmentAsync(It.IsAny<int>())).ReturnsAsync(true);
     }
 
     [Fact]
@@ -69,6 +70,7 @@ public sealed class SubmitComplaintDepartmentFeedbackCommandValidatorTests
         _mockQueryRepo.Setup(r => r.AssignmentExistsAsync(1)).ReturnsAsync(true);
         _mockQueryRepo.Setup(r => r.FeedbackAlreadyExistsForAssignmentAsync(1)).ReturnsAsync(true);
         _mockQueryRepo.Setup(r => r.MiscMasterExistsAsync(It.IsAny<int>())).ReturnsAsync(true);
+        _mockQueryRepo.Setup(r => r.IsQCApprovedForAssignmentAsync(It.IsAny<int>())).ReturnsAsync(true);
 
         var command = new SubmitComplaintDepartmentFeedbackCommand
         {
