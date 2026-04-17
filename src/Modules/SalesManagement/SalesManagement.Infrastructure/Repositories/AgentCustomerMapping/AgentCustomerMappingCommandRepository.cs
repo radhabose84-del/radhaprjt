@@ -64,6 +64,7 @@ namespace SalesManagement.Infrastructure.Repositories.AgentCustomerMapping
 
             existingEntity.AgentId = entity.AgentId;
             existingEntity.SubAgentId = entity.SubAgentId;
+            existingEntity.SalesGroupId = entity.SalesGroupId;
             existingEntity.EffectiveFrom = entity.EffectiveFrom;
             existingEntity.EffectiveTo = entity.EffectiveTo;
             existingEntity.IsDefaultAgent = entity.IsDefaultAgent;

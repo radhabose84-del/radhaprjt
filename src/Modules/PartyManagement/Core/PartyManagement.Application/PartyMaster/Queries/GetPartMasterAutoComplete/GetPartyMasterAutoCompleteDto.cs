@@ -22,6 +22,8 @@ namespace PartyManagement.Application.PartyMaster.Queries.GetPartMasterAutoCompl
         public int Id { get; set; }
         public int? SalesSegmentId { get; set; }
         public string? SegmentName { get; set; }
+        public int? PaymentTypeId { get; set; }
+        public string? PaymentTypeName { get; set; }
     }
 
     public class PartyAddressAutoCompleteDto

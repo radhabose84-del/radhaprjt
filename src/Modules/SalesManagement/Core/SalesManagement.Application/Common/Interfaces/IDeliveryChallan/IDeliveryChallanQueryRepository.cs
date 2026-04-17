@@ -8,6 +8,7 @@ namespace SalesManagement.Application.Common.Interfaces.IDeliveryChallan
         Task<(List<DeliveryChallanHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm);
         Task<DeliveryChallanHeaderDto?> GetByIdAsync(int id);
         Task<IReadOnlyList<DeliveryChallanLookupDto>> AutocompleteAsync(string term, CancellationToken ct);
+        Task<IReadOnlyList<DeliveryChallanLookupDto>> GetForReceiptAsync(string term, CancellationToken ct);
         Task<bool> NotFoundAsync(int id);
         Task<bool> StoHeaderExistsAsync(int stoHeaderId);
         Task<bool> LotExistsAsync(int lotId);

@@ -11,9 +11,10 @@ namespace SalesManagement.Application.Common.Interfaces.IAgentCustomerMapping
         Task<bool> CustomerExistsAsync(int customerId, CancellationToken ct = default);
         Task<bool> AgentExistsAsync(int agentId, CancellationToken ct = default);
         Task<bool> SubAgentExistsAsync(int subAgentId, CancellationToken ct = default);
-        Task<bool> SalesSegmentExistsAsync(int salesSegmentId, CancellationToken ct = default);
+        Task<bool> SalesGroupExistsAsync(int salesGroupId, CancellationToken ct = default);
         Task<bool> SoftDeleteValidationAsync(int id, CancellationToken ct = default);
         Task<List<AgentCustomerMappingDto>> GetByCustomerIdAsync(int customerId, CancellationToken ct = default);
         Task<bool> MappingAlreadyExistsAsync(int customerId, int agentId, CancellationToken ct = default);
+        Task<(List<AgentCustomerMappingDto>, int)> GetByFilterAsync(int? salesGroupId, int? customerId, CancellationToken ct = default);
     }
 }

@@ -80,13 +80,13 @@ namespace SalesManagement.Infrastructure.Repositories.AgentCustomerMapping
 
                 SELECT
                     acm.Id, acm.CustomerId, acm.AgentId, acm.SubAgentId,
-                    acm.SalesSegmentId, ss.SegmentName,
+                    acm.SalesGroupId, sg.SalesGroupName,
                     acm.EffectiveFrom, acm.EffectiveTo, acm.IsDefaultAgent, acm.Remarks,
                     acm.IsActive, acm.IsDeleted,
                     acm.CreatedBy, acm.CreatedDate, acm.CreatedByName, acm.CreatedIP,
                     acm.ModifiedBy, acm.ModifiedDate, acm.ModifiedByName, acm.ModifiedIP
                 FROM Sales.AgentCustomerMapping acm
-                LEFT JOIN Sales.SalesSegment ss ON acm.SalesSegmentId = ss.Id AND ss.IsDeleted = 0
+                LEFT JOIN Sales.SalesGroup sg ON acm.SalesGroupId = sg.Id AND sg.IsDeleted = 0
                 WHERE acm.IsDeleted = 0
                 {allFilters}
                 ORDER BY acm.Id DESC
@@ -106,6 +106,9 @@ namespace SalesManagement.Infrastructure.Repositories.AgentCustomerMapping
                 var allAgents = await _agentLookup.GetAllAgentAsync();
                 var agentDict = allAgents.ToDictionary(x => x.Id, x => x.AgentName);
 
+                var allSubAgents = await _subAgentLookup.GetAllSubAgentAsync();
+                var subAgentDict = allSubAgents.ToDictionary(x => x.Id, x => x.SubAgentName);
+
                 foreach (var item in list)
                 {
                     if (customerDict.TryGetValue(item.CustomerId, out var customerName))
@@ -114,7 +117,7 @@ namespace SalesManagement.Infrastructure.Repositories.AgentCustomerMapping
                     if (agentDict.TryGetValue(item.AgentId, out var agentName))
                         item.AgentName = agentName;
 
-                    if (item.SubAgentId.HasValue && agentDict.TryGetValue(item.SubAgentId.Value, out var subAgentName))
+                    if (item.SubAgentId.HasValue && subAgentDict.TryGetValue(item.SubAgentId.Value, out var subAgentName))
                         item.SubAgentName = subAgentName;
                 }
             }
@@ -158,13 +161,13 @@ namespace SalesManagement.Infrastructure.Repositories.AgentCustomerMapping
             var sql = $@"
                 SELECT
                     acm.Id, acm.CustomerId, acm.AgentId, acm.SubAgentId,
-                    acm.SalesSegmentId, ss.SegmentName,
+                    acm.SalesGroupId, sg.SalesGroupName,
                     acm.EffectiveFrom, acm.EffectiveTo, acm.IsDefaultAgent, acm.Remarks,
                     acm.IsActive, acm.IsDeleted,
                     acm.CreatedBy, acm.CreatedDate, acm.CreatedByName, acm.CreatedIP,
                     acm.ModifiedBy, acm.ModifiedDate, acm.ModifiedByName, acm.ModifiedIP
                 FROM Sales.AgentCustomerMapping acm
-                LEFT JOIN Sales.SalesSegment ss ON acm.SalesSegmentId = ss.Id AND ss.IsDeleted = 0
+                LEFT JOIN Sales.SalesGroup sg ON acm.SalesGroupId = sg.Id AND sg.IsDeleted = 0
                 WHERE acm.Id = @Id AND acm.IsDeleted = 0
                 {accessFilter}";
 
@@ -185,8 +188,9 @@ namespace SalesManagement.Infrastructure.Repositories.AgentCustomerMapping
 
                 if (dto.SubAgentId.HasValue)
                 {
-                    if (agentDict.TryGetValue(dto.SubAgentId.Value, out var subAgentName))
-                        dto.SubAgentName = subAgentName;
+                    var allSubAgents = await _subAgentLookup.GetAllSubAgentAsync();
+                    var subAgent = allSubAgents.FirstOrDefault(x => x.Id == dto.SubAgentId.Value);
+                    dto.SubAgentName = subAgent?.SubAgentName;
                 }
             }
 
@@ -265,13 +269,13 @@ namespace SalesManagement.Infrastructure.Repositories.AgentCustomerMapping
             return subAgents.Any(x => x.Id == subAgentId);
         }
 
-        public async Task<bool> SalesSegmentExistsAsync(int salesSegmentId, CancellationToken ct = default)
+        public async Task<bool> SalesGroupExistsAsync(int salesGroupId, CancellationToken ct = default)
         {
             const string sql = @"
-                SELECT COUNT(1) FROM Sales.SalesSegment
+                SELECT COUNT(1) FROM Sales.SalesGroup
                 WHERE Id = @Id AND IsActive = 1 AND IsDeleted = 0";
 
-            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = salesSegmentId });
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = salesGroupId });
             return count > 0;
         }
 
@@ -284,13 +288,13 @@ namespace SalesManagement.Infrastructure.Repositories.AgentCustomerMapping
             var sql = $@"
                 SELECT
                     acm.Id, acm.CustomerId, acm.AgentId, acm.SubAgentId,
-                    acm.SalesSegmentId, ss.SegmentName,
+                    acm.SalesGroupId, sg.SalesGroupName,
                     acm.EffectiveFrom, acm.EffectiveTo, acm.IsDefaultAgent, acm.Remarks,
                     acm.IsActive, acm.IsDeleted,
                     acm.CreatedBy, acm.CreatedDate, acm.CreatedByName, acm.CreatedIP,
                     acm.ModifiedBy, acm.ModifiedDate, acm.ModifiedByName, acm.ModifiedIP
                 FROM Sales.AgentCustomerMapping acm
-                LEFT JOIN Sales.SalesSegment ss ON acm.SalesSegmentId = ss.Id AND ss.IsDeleted = 0
+                LEFT JOIN Sales.SalesGroup sg ON acm.SalesGroupId = sg.Id AND sg.IsDeleted = 0
                 WHERE acm.CustomerId = @CustomerId AND acm.IsDeleted = 0
                 {accessFilter}
                 ORDER BY acm.Id DESC";
@@ -307,6 +311,9 @@ namespace SalesManagement.Infrastructure.Repositories.AgentCustomerMapping
                 var allAgents = await _agentLookup.GetAllAgentAsync();
                 var agentDict = allAgents.ToDictionary(x => x.Id, x => x.AgentName);
 
+                var allSubAgents = await _subAgentLookup.GetAllSubAgentAsync();
+                var subAgentDict = allSubAgents.ToDictionary(x => x.Id, x => x.SubAgentName);
+
                 foreach (var item in list)
                 {
                     if (customerDict.TryGetValue(item.CustomerId, out var customerName))
@@ -315,11 +322,8 @@ namespace SalesManagement.Infrastructure.Repositories.AgentCustomerMapping
                     if (agentDict.TryGetValue(item.AgentId, out var agentName))
                         item.AgentName = agentName;
 
-                    if (item.SubAgentId.HasValue)
-                    {
-                        if (agentDict.TryGetValue(item.SubAgentId.Value, out var subAgentName))
-                            item.SubAgentName = subAgentName;
-                    }
+                    if (item.SubAgentId.HasValue && subAgentDict.TryGetValue(item.SubAgentId.Value, out var subAgentName))
+                        item.SubAgentName = subAgentName;
                 }
             }
 
@@ -338,6 +342,77 @@ namespace SalesManagement.Infrastructure.Repositories.AgentCustomerMapping
 
             return await _dbConnection.ExecuteScalarAsync<bool>(
                 new CommandDefinition(sql, new { CustomerId = customerId, AgentId = agentId }, cancellationToken: ct));
+        }
+
+        public async Task<(List<AgentCustomerMappingDto>, int)> GetByFilterAsync(
+            int? salesGroupId, int? customerId, CancellationToken ct = default)
+        {
+            var (accessFilter, dp) = await BuildAccessFilterAsync();
+
+            var filterClauses = string.Empty;
+            if (salesGroupId.HasValue)
+            {
+                filterClauses += " AND acm.SalesGroupId = @SalesGroupId";
+                dp.Add("SalesGroupId", salesGroupId.Value);
+            }
+            if (customerId.HasValue)
+            {
+                filterClauses += " AND acm.CustomerId = @CustomerId";
+                dp.Add("CustomerId", customerId.Value);
+            }
+
+            var countSql = $@"
+                SELECT COUNT(*)
+                FROM Sales.AgentCustomerMapping acm
+                WHERE acm.IsDeleted = 0
+                {filterClauses}{accessFilter}";
+
+            var dataSql = $@"
+                SELECT
+                    acm.Id, acm.CustomerId, acm.AgentId, acm.SubAgentId,
+                    acm.SalesGroupId, sg.SalesGroupName,
+                    acm.EffectiveFrom, acm.EffectiveTo, acm.IsDefaultAgent, acm.Remarks,
+                    acm.IsActive, acm.IsDeleted,
+                    acm.CreatedBy, acm.CreatedDate, acm.CreatedByName, acm.CreatedIP,
+                    acm.ModifiedBy, acm.ModifiedDate, acm.ModifiedByName, acm.ModifiedIP
+                FROM Sales.AgentCustomerMapping acm
+                LEFT JOIN Sales.SalesGroup sg ON acm.SalesGroupId = sg.Id AND sg.IsDeleted = 0
+                WHERE acm.IsDeleted = 0
+                {filterClauses}{accessFilter}
+                ORDER BY acm.Id DESC";
+
+            var totalCount = await _dbConnection.ExecuteScalarAsync<int>(
+                new CommandDefinition(countSql, dp, cancellationToken: ct));
+
+            var list = (await _dbConnection.QueryAsync<AgentCustomerMappingDto>(
+                new CommandDefinition(dataSql, dp, cancellationToken: ct)))
+                .ToList();
+
+            if (list.Any())
+            {
+                var allCustomers = await _customerLookup.GetAllCustomerAsync();
+                var customerDict = allCustomers.ToDictionary(x => x.Id, x => x.CustomerName);
+
+                var allAgents = await _agentLookup.GetAllAgentAsync();
+                var agentDict = allAgents.ToDictionary(x => x.Id, x => x.AgentName);
+
+                var allSubAgents = await _subAgentLookup.GetAllSubAgentAsync();
+                var subAgentDict = allSubAgents.ToDictionary(x => x.Id, x => x.SubAgentName);
+
+                foreach (var item in list)
+                {
+                    if (customerDict.TryGetValue(item.CustomerId, out var customerName))
+                        item.CustomerName = customerName;
+
+                    if (agentDict.TryGetValue(item.AgentId, out var agentName))
+                        item.AgentName = agentName;
+
+                    if (item.SubAgentId.HasValue && subAgentDict.TryGetValue(item.SubAgentId.Value, out var subAgentName))
+                        item.SubAgentName = subAgentName;
+                }
+            }
+
+            return (list, totalCount);
         }
 
         public async Task<bool> SoftDeleteValidationAsync(int id, CancellationToken ct = default)

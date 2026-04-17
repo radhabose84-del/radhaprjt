@@ -18,6 +18,7 @@ using SalesManagement.Application.SalesOrder.Queries.GetSalesOrderAutoComplete;
 using SalesManagement.Application.SalesOrder.Queries.GetSalesOrderById;
 using SalesManagement.Application.SalesOrder.Queries.GetPendingSalesOrder;
 using SalesManagement.Application.SalesOrder.Queries.GetPendingSalesOrderById;
+using SalesManagement.Application.SalesOrder.Queries.GetSalesOrderInvoices;
 
 namespace SalesManagement.Presentation.Controllers
 {
@@ -109,6 +110,18 @@ namespace SalesManagement.Presentation.Controllers
         public async Task<IActionResult> GetSalesOrderByIdAsync(int id)
         {
             var result = await Mediator.Send(new GetSalesOrderByIdQuery { Id = id });
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result
+            });
+        }
+
+        [HttpGet("{id}/invoices")]
+        public async Task<IActionResult> GetSalesOrderInvoicesAsync(int id)
+        {
+            var result = await Mediator.Send(new GetSalesOrderInvoicesQuery { SalesOrderId = id });
 
             return Ok(new
             {

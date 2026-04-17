@@ -120,6 +120,10 @@ namespace SalesManagement.Presentation.Validation.Invoice
                             .GreaterThanOrEqualTo(0)
                             .WithMessage($"{nameof(UpdateInvoiceCommand.HandlingCharge)} {rule.Error}");
 
+                        RuleFor(x => x.TotalCharity)
+                            .GreaterThanOrEqualTo(0)
+                            .WithMessage($"{nameof(UpdateInvoiceCommand.TotalCharity)} {rule.Error}");
+
                         RuleFor(x => x.OtherCharges)
                             .GreaterThanOrEqualTo(0)
                             .WithMessage($"{nameof(UpdateInvoiceCommand.OtherCharges)} {rule.Error}");
@@ -134,6 +138,14 @@ namespace SalesManagement.Presentation.Validation.Invoice
                                 detail.RuleFor(d => d.Discount)
                                     .GreaterThanOrEqualTo(0)
                                     .WithMessage($"Discount {rule.Error}");
+
+                                detail.RuleFor(d => d.Charity)
+                                    .GreaterThanOrEqualTo(0)
+                                    .WithMessage($"Charity {rule.Error}");
+
+                                detail.RuleFor(d => d.HandlingCharges)
+                                    .GreaterThanOrEqualTo(0)
+                                    .WithMessage($"HandlingCharges {rule.Error}");
                             })
                             .When(x => x.Details != null && x.Details.Any());
                         break;
