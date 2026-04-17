@@ -43,8 +43,8 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("int")
                 .IsRequired(false);
 
-            builder.Property(t => t.SalesSegmentId)
-                .HasColumnName("SalesSegmentId")
+            builder.Property(t => t.SalesGroupId)
+                .HasColumnName("SalesGroupId")
                 .HasColumnType("int")
                 .IsRequired();
 
@@ -95,16 +95,16 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             builder.HasIndex(t => t.CustomerId).HasDatabaseName("IX_AgentCustomerMapping_CustomerId");
             builder.HasIndex(t => t.AgentId).HasDatabaseName("IX_AgentCustomerMapping_AgentId");
             builder.HasIndex(t => t.SubAgentId).HasDatabaseName("IX_AgentCustomerMapping_SubAgentId");
-            builder.HasIndex(t => t.SalesSegmentId).HasDatabaseName("IX_AgentCustomerMapping_SalesSegmentId");
+            builder.HasIndex(t => t.SalesGroupId).HasDatabaseName("IX_AgentCustomerMapping_SalesGroupId");
             builder.HasIndex(t => new { t.CustomerId, t.IsDefaultAgent })
                 .HasDatabaseName("IX_AgentCustomerMapping_CustomerId_IsDefaultAgent");
 
             // Cross-module FKs (CustomerId, AgentId, SubAgentId) — NO DB FK constraints
 
             // Same-module FK — DB FK constraint with Restrict
-            builder.HasOne(t => t.SalesSegment)
+            builder.HasOne(t => t.SalesGroup)
                 .WithMany()
-                .HasForeignKey(t => t.SalesSegmentId)
+                .HasForeignKey(t => t.SalesGroupId)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }

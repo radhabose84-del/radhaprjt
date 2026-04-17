@@ -38,9 +38,9 @@ namespace SalesManagement.Presentation.Validation.AgentCustomerMapping
                             .GreaterThan(0)
                             .WithMessage($"{nameof(UpdateAgentCustomerMappingCommand.AgentId)} {rule.Error}");
 
-                        RuleFor(x => x.SalesSegmentId)
+                        RuleFor(x => x.SalesGroupId)
                             .GreaterThan(0)
-                            .WithMessage($"{nameof(UpdateAgentCustomerMappingCommand.SalesSegmentId)} {rule.Error}");
+                            .WithMessage($"{nameof(UpdateAgentCustomerMappingCommand.SalesGroupId)} {rule.Error}");
 
                         RuleFor(x => x.EffectiveFrom)
                             .NotEqual(default(DateTime))
@@ -76,10 +76,10 @@ namespace SalesManagement.Presentation.Validation.AgentCustomerMapping
                             .WithMessage($"{nameof(UpdateAgentCustomerMappingCommand.SubAgentId)} {rule.Error}")
                             .When(x => x.SubAgentId.HasValue && x.SubAgentId.Value > 0);
 
-                        RuleFor(x => x.SalesSegmentId)
-                            .MustAsync(async (id, ct) => await _queryRepository.SalesSegmentExistsAsync(id, ct))
-                            .WithMessage($"{nameof(UpdateAgentCustomerMappingCommand.SalesSegmentId)} {rule.Error}")
-                            .When(x => x.SalesSegmentId > 0);
+                        RuleFor(x => x.SalesGroupId)
+                            .MustAsync(async (id, ct) => await _queryRepository.SalesGroupExistsAsync(id, ct))
+                            .WithMessage($"{nameof(UpdateAgentCustomerMappingCommand.SalesGroupId)} {rule.Error}")
+                            .When(x => x.SalesGroupId > 0);
                         break;
 
                     case "AlreadyExists":
