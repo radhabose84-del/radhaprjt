@@ -78,12 +78,12 @@ namespace SalesManagement.Presentation.Controllers
         [HttpGet("by-filter")]
         public async Task<IActionResult> GetAgentCustomerMappingByFilterAsync(
             [FromQuery] int? salesGroupId = null,
-            [FromQuery] int? partyId = null)
+            [FromQuery] int? customerId = null)
         {
             var result = await Mediator.Send(new GetAgentCustomerMappingByFilterQuery
             {
                 SalesGroupId = salesGroupId,
-                PartyId = partyId
+                CustomerId = customerId
             });
             return Ok(new
             {

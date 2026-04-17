@@ -29,7 +29,7 @@ namespace SalesManagement.Application.AgentCustomerMapping.Queries.GetAgentCusto
             CancellationToken cancellationToken)
         {
             var (data, totalCount) = await _queryRepository.GetByFilterAsync(
-                request.SalesGroupId, request.PartyId, cancellationToken);
+                request.SalesGroupId, request.CustomerId, cancellationToken);
 
             var dtos = _mapper.Map<List<AgentCustomerMappingDto>>(data);
 
@@ -37,7 +37,7 @@ namespace SalesManagement.Application.AgentCustomerMapping.Queries.GetAgentCusto
                 actionDetail: "GetByFilter",
                 actionCode: "GetAgentCustomerMappingByFilterQuery",
                 actionName: dtos.Count.ToString(),
-                details: $"AgentCustomerMapping records filtered by SalesGroupId={request.SalesGroupId}, PartyId={request.PartyId}. Count: {dtos.Count}.",
+                details: $"AgentCustomerMapping records filtered by SalesGroupId={request.SalesGroupId}, CustomerId={request.CustomerId}. Count: {dtos.Count}.",
                 module: "AgentCustomerMapping"
             );
             await _mediator.Publish(domainEvent, cancellationToken);

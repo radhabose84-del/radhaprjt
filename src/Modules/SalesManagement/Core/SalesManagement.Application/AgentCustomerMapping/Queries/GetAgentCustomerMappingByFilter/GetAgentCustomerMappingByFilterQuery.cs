@@ -7,6 +7,6 @@ namespace SalesManagement.Application.AgentCustomerMapping.Queries.GetAgentCusto
     public class GetAgentCustomerMappingByFilterQuery : IRequest<ApiResponseDTO<List<AgentCustomerMappingDto>>>
     {
         public int? SalesGroupId { get; set; }
-        public int? PartyId { get; set; }
+        public int? CustomerId { get; set; }
     }
 }
