@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using SalesManagement.Application.Common.Interfaces.IComplaint;
+using SalesManagement.Domain.Common;
 using SalesManagement.Domain.Entities;
 using SalesManagement.Infrastructure.Data;
 using static SalesManagement.Domain.Common.BaseEntity;
@@ -294,6 +295,74 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                     await _dbContext.SaveChangesAsync(ct);
                 }
             }
+        }
+
+        public async Task EnsureResolutionDraftIfQCAcceptedAsync(int complaintHeaderId, CancellationToken ct)
+        {
+            // Gate 1 — Header status must be 'QC Accepted'
+            var headerStatus = await (from ch in _dbContext.ComplaintHeader
+                                      join mm in _dbContext.MiscMaster on ch.StatusId equals mm.Id
+                                      join mt in _dbContext.MiscTypeMaster on mm.MiscTypeId equals mt.Id
+                                      where ch.Id == complaintHeaderId
+                                         && ch.IsDeleted == IsDelete.NotDeleted
+                                         && mm.IsDeleted == IsDelete.NotDeleted
+                                      select new { mm.Code, mt.MiscTypeCode }).FirstOrDefaultAsync(ct);
+
+            if (headerStatus == null
+                || headerStatus.MiscTypeCode != MiscEnumEntity.QCComplaintStatus
+                || headerStatus.Code != MiscEnumEntity.QCAccepted)
+                return;
+
+            // Gate 2 — every mandatory QC assignment must be 'Submitted'
+            var hasPendingMandatory = await (from a in _dbContext.ComplaintQCReviewAssignment
+                                             join qr in _dbContext.ComplaintQCReview on a.ComplaintQCReviewId equals qr.Id
+                                             join mm in _dbContext.MiscMaster on a.AssignmentStatusId equals mm.Id
+                                             where qr.ComplaintHeaderId == complaintHeaderId
+                                                && a.IsMandatory
+                                                && mm.Description != "Submitted"
+                                                && a.IsDeleted == IsDelete.NotDeleted
+                                                && qr.IsDeleted == IsDelete.NotDeleted
+                                             select a.Id).AnyAsync(ct);
+            if (hasPendingMandatory) return;
+
+            // Gate 3 — don't duplicate an existing resolution row
+            var alreadyExists = await _dbContext.ComplaintResolution
+                .AnyAsync(cr => cr.ComplaintHeaderId == complaintHeaderId
+                             && cr.IsDeleted == IsDelete.NotDeleted, ct);
+            if (alreadyExists) return;
+
+            var openStatusId = await (from mm in _dbContext.MiscMaster
+                                      join mt in _dbContext.MiscTypeMaster on mm.MiscTypeId equals mt.Id
+                                      where mt.MiscTypeCode == MiscEnumEntity.ClosureStatus
+                                         && mm.Code == MiscEnumEntity.ClosureStatusOpen
+                                         && mm.IsDeleted == IsDelete.NotDeleted
+                                      select (int?)mm.Id).FirstOrDefaultAsync(ct);
+
+            // ResolutionTypeId is NOT NULL in schema — seed with 'No Action' as a neutral placeholder.
+            // The resolver picks the real type when they Submit the resolution.
+            var defaultResolutionTypeId = await (from mm in _dbContext.MiscMaster
+                                                 join mt in _dbContext.MiscTypeMaster on mm.MiscTypeId equals mt.Id
+                                                 where mt.MiscTypeCode == MiscEnumEntity.ResolutionType
+                                                    && mm.Code == MiscEnumEntity.ResolutionNoAction
+                                                    && mm.IsDeleted == IsDelete.NotDeleted
+                                                 select (int?)mm.Id).FirstOrDefaultAsync(ct);
+
+            if (defaultResolutionTypeId == null) return; // no seedable default; skip silently
+
+            var draft = new SalesManagement.Domain.Entities.ComplaintResolution
+            {
+                ComplaintHeaderId = complaintHeaderId,
+                ResolutionTypeId = defaultResolutionTypeId.Value,
+                ResolutionSummary = "Auto-generated draft - pending resolver action.",
+                ClosureStatusId = openStatusId,
+                ResolvedBy = null,
+                ResolvedDate = null,
+                IsActive = Status.Active,
+                IsDeleted = IsDelete.NotDeleted
+            };
+
+            await _dbContext.ComplaintResolution.AddAsync(draft, ct);
+            await _dbContext.SaveChangesAsync(ct);
         }
     }
 }

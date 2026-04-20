@@ -17,6 +17,7 @@ namespace SalesManagement.Application.ComplaintResolution.Commands.SubmitResolut
     public class SubmitResolutionCommandHandler : IRequestHandler<SubmitResolutionCommand, ApiResponseDTO<int>>
     {
         private readonly IComplaintResolutionCommandRepository _commandRepository;
+        private readonly IComplaintResolutionQueryRepository _queryRepository;
         private readonly IMiscMasterQueryRepository _miscMasterQueryRepository;
         private readonly IIPAddressService _ipAddressService;
         private readonly ITimeZoneService _timeZoneService;
@@ -26,6 +27,7 @@ namespace SalesManagement.Application.ComplaintResolution.Commands.SubmitResolut
 
         public SubmitResolutionCommandHandler(
             IComplaintResolutionCommandRepository commandRepository,
+            IComplaintResolutionQueryRepository queryRepository,
             IMiscMasterQueryRepository miscMasterQueryRepository,
             IIPAddressService ipAddressService,
             ITimeZoneService timeZoneService,
@@ -34,6 +36,7 @@ namespace SalesManagement.Application.ComplaintResolution.Commands.SubmitResolut
             IMapper mapper)
         {
             _commandRepository = commandRepository;
+            _queryRepository = queryRepository;
             _miscMasterQueryRepository = miscMasterQueryRepository;
             _ipAddressService = ipAddressService;
             _timeZoneService = timeZoneService;
@@ -74,7 +77,18 @@ namespace SalesManagement.Application.ComplaintResolution.Commands.SubmitResolut
                 }
             }
 
-            var newId = await _commandRepository.CreateAsync(entity);
+            // Upsert: if an auto-seeded draft already exists for this complaint, update it; otherwise insert.
+            var existingDraft = await _queryRepository.GetByComplaintHeaderIdAsync(request.ComplaintHeaderId);
+            int newId;
+            if (existingDraft != null)
+            {
+                entity.Id = existingDraft.Id;
+                newId = await _commandRepository.UpdateAsync(entity);
+            }
+            else
+            {
+                newId = await _commandRepository.CreateAsync(entity);
+            }
 
             // Publish workflow approval request via Outbox
             var correlationId = Guid.NewGuid();
