@@ -1,4 +1,3 @@
-#nullable disable
 using BackgroundService.Application.DTO;
 using Contracts.Interfaces.Lookups.Common;
 using BackgroundService.Application.Interfaces.Notification;
@@ -120,9 +119,18 @@ internal sealed class WorkerInAppNotifier : IInAppNotifier
             }
         }
 
-        _logger.LogInformation(
-            "WorkerInAppNotifier: Users={Total}, DB_Saved={DbSaved}, SignalR_Sent={Sent}",
-            userIds.Count, dbSaved, signalRSent);
+        if (dbSaved < userIds.Count || signalRSent < dbSaved)
+        {
+            _logger.LogWarning(
+                "WorkerInAppNotifier: Partial failure — Users={Total}, DB_Saved={DbSaved}, SignalR_Sent={Sent}, DB_Failed={DbFailed}, SignalR_Failed={SignalRFailed}",
+                userIds.Count, dbSaved, signalRSent, userIds.Count - dbSaved, dbSaved - signalRSent);
+        }
+        else
+        {
+            _logger.LogInformation(
+                "WorkerInAppNotifier: Users={Total}, DB_Saved={DbSaved}, SignalR_Sent={Sent}",
+                userIds.Count, dbSaved, signalRSent);
+        }
 
         return dbSaved > 0;
     }

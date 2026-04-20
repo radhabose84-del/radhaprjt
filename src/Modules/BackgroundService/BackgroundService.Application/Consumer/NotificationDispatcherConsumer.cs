@@ -68,6 +68,8 @@ namespace BackgroundService.Application.Consumers
                     _logger.LogWarning(
                         "No notification channels configured for Module: {Module}, EventType: {EventType}, UnitId: {UnitId}",
                         msg.ModuleName, msg.EventTypeId, msg.UnitId);
+                    // Mark as processed to prevent infinite retries when no channels are configured
+                    await _inbox.MarkAsProcessedAsync(consumerName, messageId, msg.CorrelationId, context.CancellationToken);
                     return;
                 }
 
@@ -84,42 +86,52 @@ namespace BackgroundService.Application.Consumers
                     IsPrivate = a.IsPrivate
                 }).ToList() ?? new List<NotificationCreatedEvent.NotificationAttachment>();
 
-                // Step 3: Dispatch to each active channel
-                var dispatchTasks = new List<Task>();
+                // Step 3: Dispatch to each active channel (case-insensitive dedup)
+                var dispatched = 0;
+                var failed = 0;
 
-                foreach (var channel in channels.Distinct())
+                foreach (var channel in channels.Distinct(StringComparer.OrdinalIgnoreCase))
                 {
                     var normalizedChannel = channel.Trim().ToUpperInvariant();
 
-                    switch (normalizedChannel)
+                    try
                     {
-                        case "EMAIL":
-                            dispatchTasks.Add(DispatchEmailAsync(msg, attachments, context.CancellationToken));
-                            break;
+                        switch (normalizedChannel)
+                        {
+                            case "EMAIL":
+                                await DispatchEmailAsync(msg, attachments, context.CancellationToken);
+                                break;
 
-                        case "SMS":
-                            dispatchTasks.Add(DispatchSmsAsync(msg, context.CancellationToken));
-                            break;
+                            case "SMS":
+                                await DispatchSmsAsync(msg, context.CancellationToken);
+                                break;
 
-                        case "WHATSAPP":
-                            dispatchTasks.Add(DispatchWhatsAppAsync(msg, context.CancellationToken));
-                            break;
+                            case "WHATSAPP":
+                                await DispatchWhatsAppAsync(msg, context.CancellationToken);
+                                break;
 
-                        case "INAPP":
-                            dispatchTasks.Add(DispatchInAppAsync(msg, context.CancellationToken));
-                            break;
+                            case "INAPP":
+                                await DispatchInAppAsync(msg, context.CancellationToken);
+                                break;
 
-                        default:
-                            _logger.LogWarning("Unknown notification channel: {Channel}", channel);
-                            break;
+                            default:
+                                _logger.LogWarning("Unknown notification channel: {Channel}", channel);
+                                continue;
+                        }
+                        dispatched++;
+                    }
+                    catch (Exception ex)
+                    {
+                        failed++;
+                        _logger.LogError(ex,
+                            "Failed to dispatch {Channel} for CorrelationId: {CorrelationId}. Continuing with remaining channels.",
+                            normalizedChannel, msg.CorrelationId);
                     }
                 }
 
-                await Task.WhenAll(dispatchTasks);
-
                 _logger.LogInformation(
-                    "NotificationDispatcher completed. CorrelationId: {CorrelationId}, Channels dispatched: {Count}",
-                    msg.CorrelationId, dispatchTasks.Count);
+                    "NotificationDispatcher completed. CorrelationId: {CorrelationId}, Dispatched: {Dispatched}, Failed: {Failed}",
+                    msg.CorrelationId, dispatched, failed);
 
                 await _inbox.MarkAsProcessedAsync(consumerName, messageId, msg.CorrelationId, context.CancellationToken);
             }
