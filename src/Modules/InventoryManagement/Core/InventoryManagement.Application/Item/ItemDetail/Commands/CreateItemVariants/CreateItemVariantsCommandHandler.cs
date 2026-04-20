@@ -1,4 +1,5 @@
 using AutoMapper;
+using Contracts.Common;
 using InventoryManagement.Application.Common.Interfaces.Item.ItemDetail.Commands;
 using InventoryManagement.Application.Common.Interfaces.Item.ItemDetail.Queries;
 using InventoryManagement.Application.Item.ItemDetail.Queries.GetAllItems;
@@ -64,19 +65,19 @@ namespace InventoryManagement.Application.Item.ItemDetail.Commands.CreateItemVar
             var p = request.Payload;
 
             if (p.ParentItemId is null)
-                throw new InvalidOperationException("ParentItemId (template) is required.");
+                throw new ExceptionRules("ParentItemId (template) is required.");
 
             if (p.VariantValues is null || p.VariantValues.Count == 0)
-                throw new InvalidOperationException("VariantValues are required.");
+                throw new ExceptionRules("VariantValues are required.");
 
             var template = await _itemRepo.GetTrackingAsync(p.ParentItemId.Value, ct)
-                           ?? throw new InvalidOperationException("Template not found.");
+                           ?? throw new ExceptionRules("Template not found.");
             if (!template.HasVariants)
-                throw new InvalidOperationException("Parent is not a template.");
+                throw new ExceptionRules("Parent is not a template.");
 
             var attrs = await _attrRepo.GetForItemAsync(template.Id, ct);
             if (attrs.Count == 0)
-                throw new InvalidOperationException("Template has no attributes.");
+                throw new ExceptionRules("Template has no attributes.");
 
             var existingKeys = await _valueQry.GetExistingChildComboKeysAsync(template.Id, ct);
 
@@ -89,7 +90,7 @@ namespace InventoryManagement.Application.Item.ItemDetail.Commands.CreateItemVar
                 .ToList();
 
             if (groups.Count == 0)
-                throw new InvalidOperationException("VariantValues are empty.");
+                throw new ExceptionRules("VariantValues are empty.");
 
             var created = new List<int>();
 
@@ -103,7 +104,7 @@ namespace InventoryManagement.Application.Item.ItemDetail.Commands.CreateItemVar
                     ordered.OrderBy(v => v.VariantAttributeId)
                         .Select(v => $"{v.VariantAttributeId}:{v.SpecificationValueId}"));
                 if (existingKeys.Contains(comboKey))
-                    throw new InvalidOperationException(
+                    throw new ExceptionRules(
                         $"Variant already exists for ({string.Join(", ", ordered.Select(v => v.SpecificationValue ?? v.SpecificationValueId.ToString()))}).");
 
                 // Build child code & name
@@ -168,7 +169,7 @@ namespace InventoryManagement.Application.Item.ItemDetail.Commands.CreateItemVar
             foreach (var a in attrs.OrderBy(x => x.Order))
             {
                 if (!map.TryGetValue(a.Id, out var v))
-                    throw new InvalidOperationException($"Missing value for attribute {a.SpecificationMasterId}.");
+                    throw new ExceptionRules($"Missing value for attribute {a.SpecificationMasterId}.");
                 ordered.Add(v);
             }
             return ordered;
