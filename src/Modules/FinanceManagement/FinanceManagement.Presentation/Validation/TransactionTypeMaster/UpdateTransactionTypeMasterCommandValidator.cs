@@ -1,4 +1,4 @@
-using Contracts.Interfaces.Lookups.Users;
+using Contracts.Interfaces;
 using FinanceManagement.Application.Common.Interfaces.ITransactionTypeMaster;
 using FinanceManagement.Application.TransactionTypeMaster.Commands.UpdateTransactionTypeMaster;
 using FinanceManagement.Presentation.Validation.Common;
@@ -11,15 +11,15 @@ namespace FinanceManagement.Presentation.Validation.TransactionTypeMaster
     {
         private readonly List<ValidationRule> _validationRules;
         private readonly ITransactionTypeMasterQueryRepository _queryRepository;
-        private readonly IUnitLookup _unitLookup;
+        private readonly IIPAddressService _ipAddressService;
 
         public UpdateTransactionTypeMasterCommandValidator(
             MaxLengthProvider maxLengthProvider,
             ITransactionTypeMasterQueryRepository queryRepository,
-            IUnitLookup unitLookup)
+            IIPAddressService ipAddressService)
         {
             _queryRepository = queryRepository;
-            _unitLookup = unitLookup;
+            _ipAddressService = ipAddressService;
 
             var maxLengthTypeName  = maxLengthProvider.GetMaxLength<FinanceManagement.Domain.Entities.TransactionTypeMaster>("TypeName")  ?? 100;
             var maxLengthShortName = maxLengthProvider.GetMaxLength<FinanceManagement.Domain.Entities.TransactionTypeMaster>("ShortName") ?? 50;
@@ -43,9 +43,6 @@ namespace FinanceManagement.Presentation.Validation.TransactionTypeMaster
                         RuleFor(x => x.ShortName)
                             .NotNull().WithMessage($"{nameof(UpdateTransactionTypeMasterCommand.ShortName)} {rule.Error}")
                             .NotEmpty().WithMessage($"{nameof(UpdateTransactionTypeMasterCommand.ShortName)} {rule.Error}");
-
-                        RuleFor(x => x.UnitId)
-                            .NotEmpty().WithMessage($"{nameof(UpdateTransactionTypeMasterCommand.UnitId)} {rule.Error}");
 
                         RuleFor(x => x.ModuleId)
                             .NotEmpty().WithMessage($"{nameof(UpdateTransactionTypeMasterCommand.ModuleId)} {rule.Error}");
@@ -79,39 +76,26 @@ namespace FinanceManagement.Presentation.Validation.TransactionTypeMaster
                     case "AlreadyExists":
                         RuleFor(x => x).CustomAsync(async (cmd, context, ct) =>
                         {
-                            IReadOnlyList<Contracts.Dtos.Lookups.Users.UnitLookupDto>? units = null;
+                            var unitId = _ipAddressService.GetUnitId() ?? 0;
+                            if (unitId <= 0) return;
 
-                            if (!string.IsNullOrWhiteSpace(cmd.TypeName) && cmd.UnitId > 0)
+                            if (!string.IsNullOrWhiteSpace(cmd.TypeName))
                             {
-                                var typeNameExists = await _queryRepository.TypeNameExistsAsync(cmd.TypeName!, cmd.UnitId, cmd.Id);
+                                var typeNameExists = await _queryRepository.TypeNameExistsAsync(cmd.TypeName!, unitId, cmd.Id);
                                 if (typeNameExists)
-                                {
-                                    units ??= await _unitLookup.GetAllUnitAsync();
-                                    var unitName = units.FirstOrDefault(u => u.UnitId == cmd.UnitId)?.UnitName ?? cmd.UnitId.ToString();
-                                    context.AddFailure("TypeName", $"Transaction Type '{cmd.TypeName}' already exists for Unit '{unitName}'. Please use a different name.");
-                                }
+                                    context.AddFailure("TypeName", $"Transaction Type '{cmd.TypeName}' already exists. Please use a different name.");
                             }
 
-                            if (!string.IsNullOrWhiteSpace(cmd.ShortName) && cmd.UnitId > 0)
+                            if (!string.IsNullOrWhiteSpace(cmd.ShortName))
                             {
-                                var shortNameExists = await _queryRepository.ShortNameExistsAsync(cmd.ShortName!, cmd.UnitId, cmd.Id);
+                                var shortNameExists = await _queryRepository.ShortNameExistsAsync(cmd.ShortName!, unitId, cmd.Id);
                                 if (shortNameExists)
-                                {
-                                    units ??= await _unitLookup.GetAllUnitAsync();
-                                    var unitName = units.FirstOrDefault(u => u.UnitId == cmd.UnitId)?.UnitName ?? cmd.UnitId.ToString();
-                                    context.AddFailure("ShortName", $"Transaction Type ShortName '{cmd.ShortName}' already exists for Unit '{unitName}'. Please use a different name.");
-                                }
+                                    context.AddFailure("ShortName", $"Transaction Type ShortName '{cmd.ShortName}' already exists. Please use a different name.");
                             }
                         });
                         break;
 
                     case "FKColumnDelete":
-                        RuleFor(x => x.UnitId)
-                            .MustAsync(async (unitId, ct) =>
-                                await _queryRepository.UnitExistsAsync(unitId))
-                            .WithMessage($"{nameof(UpdateTransactionTypeMasterCommand.UnitId)} {rule.Error}")
-                            .When(x => x.UnitId > 0);
-
                         RuleFor(x => x.ModuleId)
                             .MustAsync(async (moduleId, ct) =>
                                 await _queryRepository.ModuleExistsAsync(moduleId))
