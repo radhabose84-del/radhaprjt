@@ -3,6 +3,7 @@ using Contracts.Interfaces;
 using Contracts.Dtos.Lookups.Inventory;
 using Contracts.Dtos.Lookups.Users;
 using Contracts.Dtos.Lookups.Warehouse;
+using Contracts.Interfaces.Lookups.Finance;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Production;
@@ -26,6 +27,7 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
         private readonly ILotMasterLookup _lotLookup;
         private readonly IUOMLookup _uomLookup;
         private readonly IUserLookup _userLookup;
+        private readonly IEWaybillLookup _eWaybillLookup;
         private readonly IIPAddressService _ipAddressService;
 
         public DeliveryChallanQueryRepository(
@@ -37,6 +39,7 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
             ILotMasterLookup lotLookup,
             IUOMLookup uomLookup,
             IUserLookup userLookup,
+            IEWaybillLookup eWaybillLookup,
             IIPAddressService ipAddressService)
         {
             _dbConnection = dbConnection;
@@ -47,6 +50,7 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
             _lotLookup = lotLookup;
             _uomLookup = uomLookup;
             _userLookup = userLookup;
+            _eWaybillLookup = eWaybillLookup;
             _ipAddressService = ipAddressService;
         }
 
@@ -140,6 +144,12 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
                     item.FromStorageLocationName = warehouseDict.TryGetValue(item.FromStorageLocationId, out var fsName) ? fsName : null;
                     item.ToStorageLocationName = warehouseDict.TryGetValue(item.ToStorageLocationId, out var tsName) ? tsName : null;
                     item.TransporterName = transporterDict.TryGetValue(item.TransporterId, out var trName) ? trName : null;
+
+                    if (!string.IsNullOrWhiteSpace(item.DeliveryNumber))
+                    {
+                        var ewaybill = await _eWaybillLookup.GetByDCAsync(item.DeliveryNumber, item.FromPlantId);
+                        item.EWaybillExists = ewaybill != null;
+                    }
                 }
             }
 
