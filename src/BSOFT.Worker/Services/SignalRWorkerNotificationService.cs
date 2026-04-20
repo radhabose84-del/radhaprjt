@@ -1,4 +1,3 @@
-#nullable disable
 using Microsoft.AspNetCore.SignalR.Client;
 
 namespace BSOFT.Worker.Services;
@@ -33,6 +32,12 @@ public sealed class SignalRWorkerNotificationService : IWorkerNotificationServic
         _connection.Closed += (error) =>
         {
             _logger.LogWarning(error, "SignalR connection closed. Auto-reconnect will attempt.");
+            return Task.CompletedTask;
+        };
+
+        _connection.Reconnecting += (error) =>
+        {
+            _logger.LogWarning(error, "SignalR reconnecting...");
             return Task.CompletedTask;
         };
 
