@@ -7,6 +7,7 @@ using SalesManagement.Application.AgentCustomerMapping.Commands.UpdateAgentCusto
 using SalesManagement.Application.AgentCustomerMapping.Queries.GetAgentCustomerMappingAutoComplete;
 using SalesManagement.Application.AgentCustomerMapping.Queries.GetAgentCustomerMappingByCustomerId;
 using SalesManagement.Application.AgentCustomerMapping.Queries.GetAgentCustomerMappingById;
+using SalesManagement.Application.AgentCustomerMapping.Queries.GetAgentCustomerMappingByFilter;
 using SalesManagement.Application.AgentCustomerMapping.Queries.GetAllAgentCustomerMapping;
 
 namespace SalesManagement.Presentation.Controllers
@@ -66,6 +67,24 @@ namespace SalesManagement.Presentation.Controllers
         public async Task<IActionResult> GetAgentCustomerMappingByCustomerIdAsync(int customerId)
         {
             var result = await Mediator.Send(new GetAgentCustomerMappingByCustomerIdQuery { CustomerId = customerId });
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result.Data,
+                TotalCount = result.TotalCount
+            });
+        }
+
+        [HttpGet("by-filter")]
+        public async Task<IActionResult> GetAgentCustomerMappingByFilterAsync(
+            [FromQuery] int? salesGroupId = null,
+            [FromQuery] int? customerId = null)
+        {
+            var result = await Mediator.Send(new GetAgentCustomerMappingByFilterQuery
+            {
+                SalesGroupId = salesGroupId,
+                CustomerId = customerId
+            });
             return Ok(new
             {
                 StatusCode = StatusCodes.Status200OK,

@@ -97,13 +97,13 @@ namespace SalesManagement.Infrastructure.Repositories.AgentPortal
             var dataSql = $@"
                 SELECT
                     acm.CustomerId,
-                    acm.SalesSegmentId,
-                    ss.SegmentName AS SalesSegmentName,
+                    acm.SalesGroupId,
+                    sg.SalesGroupName,
                     acm.EffectiveFrom,
                     acm.EffectiveTo,
                     acm.IsDefaultAgent
                 FROM Sales.AgentCustomerMapping acm
-                LEFT JOIN Sales.SalesSegment ss ON acm.SalesSegmentId = ss.Id AND ss.IsDeleted = 0
+                LEFT JOIN Sales.SalesGroup sg ON acm.SalesGroupId = sg.Id AND sg.IsDeleted = 0
                 WHERE acm.AgentId = @AgentId AND acm.IsActive = 1 AND acm.IsDeleted = 0
                     AND (acm.EffectiveTo IS NULL OR acm.EffectiveTo >= GETDATE()) {searchFilter}
                 ORDER BY acm.CustomerId

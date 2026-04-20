@@ -278,6 +278,32 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
             return result.ToList();
         }
 
+        public async Task<IReadOnlyList<DeliveryChallanLookupDto>> GetForReceiptAsync(string term, CancellationToken ct)
+        {
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
+
+            const string sql = @"
+                SELECT TOP 20
+                    h.Id,
+                    h.DeliveryNumber,
+                    h.DeliveryDate,
+                    sh.StoNumber
+                FROM Sales.DeliveryChallanHeader h
+                LEFT JOIN Sales.StoHeader sh ON h.StoHeaderId = sh.Id AND sh.IsDeleted = 0
+                WHERE h.IsDeleted = 0 AND h.IsActive = 1
+                  AND h.ToPlantId = @UnitId
+                  AND NOT EXISTS (
+                      SELECT 1 FROM Sales.StoReceiptHeader sr
+                      WHERE sr.DeliveryChallanHeaderId = h.Id AND sr.IsDeleted = 0
+                  )
+                  AND (h.DeliveryNumber LIKE @Term OR sh.StoNumber LIKE @Term)
+                ORDER BY h.DeliveryNumber ASC;";
+
+            var result = await _dbConnection.QueryAsync<DeliveryChallanLookupDto>(
+                new CommandDefinition(sql, new { UnitId = unitId, Term = $"%{term}%" }, cancellationToken: ct));
+            return result.ToList();
+        }
+
         public async Task<bool> NotFoundAsync(int id)
         {
             const string sql = @"

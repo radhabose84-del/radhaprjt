@@ -4,6 +4,7 @@ using PurchaseManagement.Application.DutyMaster;
 using Dapper;
 using Microsoft.EntityFrameworkCore;
 using PurchaseManagement.Infrastructure.Data;
+using static PurchaseManagement.Domain.Common.BaseEntity;
 
 namespace PurchaseManagement.Infrastructure.Repositories.DutyMaster
 {
@@ -23,7 +24,8 @@ namespace PurchaseManagement.Infrastructure.Repositories.DutyMaster
             page = page <= 0 ? 1 : page;
             size = size <= 0 ? 20 : size;
 
-            var q = _db.Set<PurchaseManagement.Domain.Entities.DutyMaster>().AsNoTracking();
+            var q = _db.Set<PurchaseManagement.Domain.Entities.DutyMaster>().AsNoTracking()
+                .Where(x => x.IsDeleted == IsDelete.NotDeleted);
 
             if (!string.IsNullOrWhiteSpace(search))
             {
@@ -46,20 +48,22 @@ namespace PurchaseManagement.Infrastructure.Repositories.DutyMaster
         }
 
         public Task<PurchaseManagement.Domain.Entities.DutyMaster?> GetByIdAsync(int id, CancellationToken ct)
-            => _db.Set<PurchaseManagement.Domain.Entities.DutyMaster>().AsNoTracking().FirstOrDefaultAsync(x => x.Id == id, ct);
+            => _db.Set<PurchaseManagement.Domain.Entities.DutyMaster>().AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Id == id && x.IsDeleted == IsDelete.NotDeleted, ct);
 
         public Task<bool> ExistsAsync(string dutyCode, string tariffNumber, DateTimeOffset effectiveFrom, CancellationToken ct)
             => _db.Set<PurchaseManagement.Domain.Entities.DutyMaster>().AnyAsync(x =>
                     x.DutyCode == dutyCode &&
                     x.TariffNumber == tariffNumber &&
-                    x.EffectiveFrom == effectiveFrom, ct);
+                    x.EffectiveFrom == effectiveFrom &&
+                    x.IsDeleted == IsDelete.NotDeleted, ct);
 
         public async Task<IReadOnlyList<DutyMasterAutocompleteDto>> GetAutocompleteAsync(string? term, CancellationToken ct)
         {
             term = (term ?? string.Empty).Trim();
 
-            // Global filter should already exclude IsDeleted = true
-            IQueryable<PurchaseManagement.Domain.Entities.DutyMaster> q = _db.Set<PurchaseManagement.Domain.Entities.DutyMaster>().AsNoTracking();
+            IQueryable<PurchaseManagement.Domain.Entities.DutyMaster> q = _db.Set<PurchaseManagement.Domain.Entities.DutyMaster>().AsNoTracking()
+                .Where(x => x.IsActive == Status.Active && x.IsDeleted == IsDelete.NotDeleted);
 
             if (!string.IsNullOrWhiteSpace(term))
             {
