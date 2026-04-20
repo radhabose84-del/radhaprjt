@@ -553,9 +553,9 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
                     }
                 }
 
-                // ─── Step 4: Fetch SalesTypes with SalesSegment names ───
+                // ─── Step 4: Fetch SalesTypes with SalesSegment + PaymentType names ───
                 const string salesTypeSql = @"
-                    SELECT Id, PartyId, SalesSegmentId
+                    SELECT Id, PartyId, SalesSegmentId, PaymentTermsId
                     FROM Party.SalesType
                     WHERE PartyId IN @PartyIds";
 
@@ -565,6 +565,9 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
                 {
                     var allSegments = await _salesSegmentLookup.GetAllSalesSegmentAsync();
                     var segmentDict = allSegments.ToDictionary(s => s.Id, s => s.SegmentName);
+
+                    var allPaymentTerms = await _paymentTermLookup.GetAllPaymentTermAsync();
+                    var paymentTermDict = allPaymentTerms.ToDictionary(p => p.Id, p => p.Description);
 
                     var salesTypesByParty = flatSalesTypes.GroupBy(st => st.PartyId).ToDictionary(g => g.Key, g => g.ToList());
 
@@ -577,7 +580,10 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
                                 Id = st.Id,
                                 SalesSegmentId = st.SalesSegmentId,
                                 SegmentName = st.SalesSegmentId.HasValue && segmentDict.TryGetValue(st.SalesSegmentId.Value, out var name)
-                                    ? name : null
+                                    ? name : null,
+                                PaymentTypeId = st.PaymentTermsId,
+                                PaymentTypeName = st.PaymentTermsId.HasValue && paymentTermDict.TryGetValue(st.PaymentTermsId.Value, out var ptName)
+                                    ? ptName : null
                             }).ToList();
                         }
                     }

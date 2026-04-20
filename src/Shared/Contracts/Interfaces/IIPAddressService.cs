@@ -14,6 +14,8 @@ public interface IIPAddressService
     string GetGroupCode();
     int    GetEntityId();
     int?   GetUnitId();
+    int    GetUnitTypeId();
+    string GetUnitTypeName();
     string GetOldUnitId();
     int?   GetPartyId();
     int?   GetEmpId();

@@ -71,13 +71,24 @@ public class SqlOutboxProcessorJob
             return;
         }
 
-        await using var connection = new SqlConnection(connectionString);
-        await connection.OpenAsync(cancellationToken);
-
         foreach (var (schema, table) in OutboxTables)
         {
             if (cancellationToken.IsCancellationRequested) break;
-            await ProcessTableAsync(connection, schema, table, cancellationToken);
+
+            // Fresh connection per table — if one table's processing causes a connection
+            // failure (timeout, broken pipe), subsequent tables are not affected
+            try
+            {
+                await using var connection = new SqlConnection(connectionString);
+                await connection.OpenAsync(cancellationToken);
+                await ProcessTableAsync(connection, schema, table, cancellationToken);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                _logger.LogError(ex,
+                    "SqlOutboxProcessorJob: Failed to process [{Schema}].[{Table}]. Continuing with next table.",
+                    schema, table);
+            }
         }
     }
 

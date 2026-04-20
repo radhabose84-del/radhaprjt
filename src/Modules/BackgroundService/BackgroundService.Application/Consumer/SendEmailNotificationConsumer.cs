@@ -138,6 +138,8 @@ namespace BackgroundService.Application.Consumers
                         CorrelationId = msg.CorrelationId,
                         Reason = "No recipients found"
                     });
+                    // Mark as processed to prevent infinite retries when no recipients are configured
+                    await _inbox.MarkAsProcessedAsync(consumerName, messageId, msg.CorrelationId, context.CancellationToken);
                     return;
                 }
 
@@ -159,11 +161,21 @@ namespace BackgroundService.Application.Consumers
                     }
                     else
                     {
-                        param4Html = await _htmlTableRenderer.RenderFromTemplateAsync(
-                            templateId, msg.param10, context.CancellationToken);
+                        try
+                        {
+                            param4Html = await _htmlTableRenderer.RenderFromTemplateAsync(
+                                templateId, msg.param10, context.CancellationToken);
 
-                        if (string.IsNullOrWhiteSpace(param4Html))
-                            _logger.LogWarning("SQL renderer returned empty HTML for TemplateId={TemplateId}.", templateId);
+                            if (string.IsNullOrWhiteSpace(param4Html))
+                                _logger.LogWarning("SQL renderer returned empty HTML for TemplateId={TemplateId}.", templateId);
+                        }
+                        catch (Exception renderEx)
+                        {
+                            _logger.LogError(renderEx,
+                                "Table renderer failed for TemplateId={TemplateId}. Falling back to empty param4.",
+                                templateId);
+                            param4Html = string.Empty;
+                        }
                     }
                 }
 
@@ -173,7 +185,7 @@ namespace BackgroundService.Application.Consumers
                     { "Module",  msg.ModuleName ?? "" },
                     { "param1",  msg.param1 ?? "" },
                     { "param2",  msg.param2 ?? "" },
-                    { "param3",  msg.param3.ToString("dd-MMM-yyyy") },
+                    { "param3",  msg.param3.ToString(NotificationEnum.DateFormat) },
                     { "param4",  param4Html ?? "" }, // rendered table
                     { "param5",  msg.param5 ?? "" },
                     { "param6",  msg.param6 ?? "" },
@@ -270,6 +282,11 @@ namespace BackgroundService.Application.Consumers
             }
         }
 
+        // Pre-compiled regex patterns for NormalizeTemplate — avoids recompilation on every call
+        private static readonly Regex RegexOpenTagSpaces = new(@"<\s+", RegexOptions.Compiled);
+        private static readonly Regex RegexCloseTagSpaces = new(@"\s+>", RegexOptions.Compiled);
+        private static readonly Regex RegexEndTagSpaces = new(@"</\s+", RegexOptions.Compiled);
+
         // Gentle cleanup only; do not break table HTML
         private static string NormalizeTemplate(string html)
         {
@@ -280,9 +297,9 @@ namespace BackgroundService.Application.Consumers
                        .Replace("<strorng>", "<strong>", StringComparison.OrdinalIgnoreCase)
                        .Replace("<s/trong>", "</strong>", StringComparison.OrdinalIgnoreCase);
 
-            html = Regex.Replace(html, @"<\s+", "<");   // "<  p"  -> "<p"
-            html = Regex.Replace(html, @"\s+>", ">");   // "p  >"  -> "p>"
-            html = Regex.Replace(html, @"</\s+", "</"); // "</  p" -> "</p>"
+            html = RegexOpenTagSpaces.Replace(html, "<");   // "<  p"  -> "<p"
+            html = RegexCloseTagSpaces.Replace(html, ">");   // "p  >"  -> "p>"
+            html = RegexEndTagSpaces.Replace(html, "</"); // "</  p" -> "</p>"
 
             return html;
         }

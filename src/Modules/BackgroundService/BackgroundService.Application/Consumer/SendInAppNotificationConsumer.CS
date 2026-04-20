@@ -67,11 +67,6 @@ namespace BackgroundService.Application.Consumers
                         msg.param1, msg.param2, msg.param3,
                         msg.param4, msg.param5, msg.param6, msg.param7, msg.param8, msg.param9, msg.param10);
 
-                Console.WriteLine($"User: {userIds}");
-                Console.WriteLine($"eventRuleId: {eventRuleId}");
-                Console.WriteLine($"eventTypeId: {eventTypeId}");
-                Console.WriteLine($"channelId: {channelId}");
-
                 if (userIds == null || userIds.Count == 0)
                 {
                     _logger.LogWarning("No in-app users found to notify. CorrId={CorrelationId}", msg.CorrelationId);
@@ -80,6 +75,8 @@ namespace BackgroundService.Application.Consumers
                         CorrelationId = msg.CorrelationId,
                         Reason = "No in-app user IDs resolved"
                     });
+                    // Mark as processed to prevent infinite retries when no users are configured
+                    await _inbox.MarkAsProcessedAsync(consumerName, messageId, msg.CorrelationId, context.CancellationToken);
                     return;
                 }
 
@@ -88,7 +85,7 @@ namespace BackgroundService.Application.Consumers
                     { "Module",  msg.ModuleName ?? "" },
                     { "param1",  msg.param1 ?? "" },
                     { "param2",  msg.param2 ?? "" },
-                    { "param3",  msg.param3.ToString("dd-MMM-yyyy") },
+                    { "param3",  msg.param3.ToString(NotificationEnum.DateFormat) },
                     { "param4",  msg.param4 ?? "" },
                     { "param5",  msg.param5 ?? "" },
                     { "param6",  msg.param6 ?? "" },

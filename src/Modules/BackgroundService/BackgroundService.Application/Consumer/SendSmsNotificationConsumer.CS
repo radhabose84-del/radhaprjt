@@ -93,6 +93,8 @@ namespace BackgroundService.Application.Consumers
                         CorrelationId = msg.CorrelationId,
                         Reason = "No mobile numbers found"
                     });
+                    // Mark as processed to prevent infinite retries when no numbers are configured
+                    await _inbox.MarkAsProcessedAsync(consumerName, messageId, msg.CorrelationId, context.CancellationToken);
                     return;
                 }
 
@@ -106,7 +108,7 @@ namespace BackgroundService.Application.Consumers
                     { "Module",  msg.ModuleName ?? string.Empty },
                     { "param1",  msg.param1 ?? string.Empty },
                     { "param2",  msg.param2 ?? string.Empty },
-                    { "param3",  msg.param3.ToString("dd-MMM-yyyy") },
+                    { "param3",  msg.param3.ToString(NotificationEnum.DateFormat) },
                     { "param4",  msg.param4 ?? string.Empty },
                     { "param5",  msg.param5 ?? string.Empty },
                     { "param6",  msg.param6 ?? string.Empty },
@@ -125,6 +127,8 @@ namespace BackgroundService.Application.Consumers
                         CorrelationId = msg.CorrelationId,
                         Reason = "Resolved SMS body is empty"
                     });
+                    // Mark as processed to prevent infinite retries on empty body
+                    await _inbox.MarkAsProcessedAsync(consumerName, messageId, msg.CorrelationId, context.CancellationToken);
                     return;
                 }
 

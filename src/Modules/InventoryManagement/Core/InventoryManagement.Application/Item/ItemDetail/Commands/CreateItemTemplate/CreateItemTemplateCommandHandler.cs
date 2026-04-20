@@ -1,5 +1,6 @@
 #nullable disable
 using AutoMapper;
+using Contracts.Common;
 using InventoryManagement.Application.Common.Interfaces.Item.ItemDetail.Commands;
 using InventoryManagement.Application.Common.Interfaces.Item.ItemDetail.Queries;
 using InventoryManagement.Domain.Common;
@@ -33,12 +34,12 @@ namespace InventoryManagement.Application.Item.ItemDetail.Commands.CreateItemTem
             var p = request.Payload;
 
             // validate (you can hook FluentValidation pipeline)
-            if (!p.HasVariants) throw new InvalidOperationException("Template must have HasVariants=true.");
+            if (!p.HasVariants) throw new ExceptionRules("Template must have HasVariants=true.");
 
             var code = await _itemQry.GetLatestItemCode(p.ItemGroupId!.Value, p.ItemCategoryId!.Value, ct)
-                       ?? throw new InvalidOperationException("Failed to generate ItemCode.");
+                       ?? throw new ExceptionRules("Failed to generate ItemCode.");
             if (await _itemRepo.ExistsByCodeForCreateAsync(code, ct))
-                throw new InvalidOperationException($"Generated ItemCode '{code}' already exists.");
+                throw new ExceptionRules($"Generated ItemCode '{code}' already exists.");
 
             var id = await _uow.ExecuteInTransactionAsync<int>(async _ =>
             {
