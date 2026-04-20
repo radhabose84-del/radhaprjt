@@ -11,5 +11,7 @@ namespace SalesManagement.Application.DispatchAdvice.Queries.GetDispatchAdvicePa
         public int Range { get; set; }
         // Optional — "FIFO" (default) orders by DocDate, PackNo ASC; "LIFO" orders by DocDate, PackNo DESC
         public string? OrderType { get; set; }
+        // Optional — if null, UnitId from token is used (filter on UnitId); if provided, filter on SourceUnitId
+        public int? UnitId { get; set; }
     }
 }

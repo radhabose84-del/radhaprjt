@@ -52,9 +52,10 @@ namespace ProductionManagement.Presentation.Controllers
         [HttpGet("by-name")]
         public async Task<IActionResult> GetLotMasterAutoCompleteAsync(
             [FromQuery] string? term = null,
-            [FromQuery] int? itemId = null)
+            [FromQuery] int? itemId = null,
+            [FromQuery] int? unitId = null)
         {
-            var result = await Mediator.Send(new GetLotMasterAutoCompleteQuery(term, itemId));
+            var result = await Mediator.Send(new GetLotMasterAutoCompleteQuery(term, itemId, unitId));
             return Ok(new
             {
                 StatusCode = StatusCodes.Status200OK,
