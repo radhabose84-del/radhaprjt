@@ -44,7 +44,7 @@ namespace UserManagement.Infrastructure.Repositories
             } 
         }
 
-      public string GenerateToken(string username,int userid,string Mobile,string EmailId,string IsFirstTimeUser,int EntityId,string GroupCode,int CompanyId,int DivisionId,int UnitId,string OldUnitId,string FirstName,string LastName,int? PartyId,int? EmpId, out string jti)
+      public string GenerateToken(string username,int userid,string Mobile,string EmailId,string IsFirstTimeUser,int EntityId,string GroupCode,int CompanyId,int DivisionId,int UnitId,string OldUnitId,string FirstName,string LastName,int? PartyId,int? EmpId,int UnitTypeId,string UnitTypeName, out string jti)
         {
             jti = Guid.NewGuid().ToString();
             var systemTimeZoneId = _timeZoneService.GetSystemTimeZone();
@@ -59,6 +59,8 @@ namespace UserManagement.Infrastructure.Repositories
                 new Claim("CompanyId", CompanyId.ToString()),
                 new Claim("DivisionId", DivisionId.ToString()),
                 new Claim("UnitId", UnitId.ToString()),
+                new Claim("UnitTypeId", UnitTypeId.ToString()),
+                new Claim("UnitTypeName", UnitTypeName ?? string.Empty),
                  new Claim("IsFirstTimeUser", IsFirstTimeUser.ToString()),
                 new Claim("EntityId", EntityId.ToString()),
                 new Claim("GroupCode", GroupCode.ToString()),

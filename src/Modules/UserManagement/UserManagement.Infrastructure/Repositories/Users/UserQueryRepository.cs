@@ -319,15 +319,30 @@ namespace UserManagement.Infrastructure.Repositories.Users
                 Inner join [AppData].[Division] D on D.Id = U1.DivisionId
                 Inner join [AppData].[Company] C on C.Id = U1.CompanyId
                 WHERE U.IsDeleted = 0 AND U.UserId = @UserId and UU.UnitId = @UnitId";
-                
-            
+
+
             return await _dbConnection.QueryFirstOrDefaultAsync<User>(query, new
              {
                  UserId,
                  UnitId
              });
-            
-            
+
+
+          }
+
+          public async Task<(int UnitTypeId, string UnitTypeName)> GetUnitTypeByUnitIdAsync(int unitId)
+          {
+            const string query = @"
+                SELECT U.UnitTypeId, ISNULL(M.description, '') AS UnitTypeName
+                FROM [AppData].[Unit] U
+                LEFT JOIN [AppData].[MiscMaster] M ON M.Id = U.UnitTypeId AND M.IsDeleted = 0
+                WHERE U.Id = @UnitId AND U.IsDeleted = 0";
+
+            var row = await _dbConnection.QueryFirstOrDefaultAsync(query, new { UnitId = unitId });
+            if (row == null) return (0, string.Empty);
+            int unitTypeId = (int)(row.UnitTypeId ?? 0);
+            string unitTypeName = (string)(row.UnitTypeName ?? string.Empty);
+            return (unitTypeId, unitTypeName);
           }
             public async Task<bool> ValidateUsernameAsync(string username, int? id = null)
           {

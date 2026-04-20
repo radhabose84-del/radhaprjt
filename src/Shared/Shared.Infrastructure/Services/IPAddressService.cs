@@ -149,6 +149,17 @@ internal sealed class IPAddressService : IIPAddressService
         return int.TryParse(claim, out int unitId) ? unitId : null;
     }
 
+    public int GetUnitTypeId()
+    {
+        var claim = _httpContextAccessor.HttpContext?.User?.FindFirst("UnitTypeId")?.Value;
+        return int.TryParse(claim, out int unitTypeId) ? unitTypeId : 0;
+    }
+
+    public string GetUnitTypeName()
+    {
+        return _httpContextAccessor.HttpContext?.User?.FindFirst("UnitTypeName")?.Value ?? string.Empty;
+    }
+
     public string GetOldUnitId()
     {
         return _httpContextAccessor.HttpContext?.User?.FindFirst("OldUnitId")?.Value ?? string.Empty;

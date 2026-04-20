@@ -42,9 +42,10 @@ namespace UserManagement.Application.SwitchProfile.Commands.SwitchProfileByUnit
             if (user == null)
             {
                 throw new ValidationException("User does not exist.");
-               
+
             }
-            var token = _jwtTokenHelper.GenerateToken(user.UserName,userId,user.Mobile,user.EmailId,user.IsFirstTimeUser.ToString(),user.EntityId ?? 0,groupCode,request.CompanyId,request.DivisionId,request.UnitId ,request.OldUnitId,user.FirstName,user.LastName,user.PartyId,user.EmpId, out var jti);
+            var (unitTypeId, unitTypeName) = await _userQueryRepository.GetUnitTypeByUnitIdAsync(request.UnitId);
+            var token = _jwtTokenHelper.GenerateToken(user.UserName,userId,user.Mobile,user.EmailId,user.IsFirstTimeUser.ToString(),user.EntityId ?? 0,groupCode,request.CompanyId,request.DivisionId,request.UnitId ,request.OldUnitId,user.FirstName,user.LastName,user.PartyId,user.EmpId,unitTypeId,unitTypeName, out var jti);
            
             var httpContext = _httpContextAccessor.HttpContext;
             var browserInfo = httpContext?.Request.Headers["User-Agent"].ToString();
