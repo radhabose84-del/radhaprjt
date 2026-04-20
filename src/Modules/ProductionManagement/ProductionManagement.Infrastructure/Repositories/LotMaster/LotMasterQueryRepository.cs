@@ -1,5 +1,6 @@
 using System.Data;
 using Contracts.Dtos.Lookups.Production;
+using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Users;
 using Contracts.Interfaces.Validations.SalesManagement;
@@ -15,17 +16,20 @@ namespace ProductionManagement.Infrastructure.Repositories.LotMaster
         private readonly IItemLookup _itemLookup;
         private readonly IUnitLookup _unitLookup;
         private readonly ILotMasterSalesValidation _salesValidation;
+        private readonly IIPAddressService _ipAddressService;
 
         public LotMasterQueryRepository(
             IDbConnection dbConnection,
             IItemLookup itemLookup,
             IUnitLookup unitLookup,
-            ILotMasterSalesValidation salesValidation)
+            ILotMasterSalesValidation salesValidation,
+            IIPAddressService ipAddressService)
         {
             _dbConnection = dbConnection;
             _itemLookup = itemLookup;
             _unitLookup = unitLookup;
             _salesValidation = salesValidation;
+            _ipAddressService = ipAddressService;
         }
 
         public async Task<(List<LotMasterDto>, int)> GetAllAsync(
@@ -165,9 +169,12 @@ namespace ProductionManagement.Infrastructure.Repositories.LotMaster
         }
 
         public async Task<IReadOnlyList<LotMasterLookupDto>> AutocompleteAsync(
-            string term, int? itemId, CancellationToken ct)
+            string term, int? itemId, int? unitId, CancellationToken ct)
         {
+            unitId ??= _ipAddressService.GetUnitId();
+
             var itemFilter = itemId.HasValue ? "AND lm.ItemId = @ItemId" : "";
+            var unitFilter = unitId.HasValue ? "AND lm.UnitId = @UnitId" : "";
 
             var sql = $@"
                 SELECT TOP 20
@@ -176,10 +183,11 @@ namespace ProductionManagement.Infrastructure.Repositories.LotMaster
                 WHERE lm.IsDeleted = 0 AND lm.IsActive = 1
                   AND (lm.LotCode LIKE @Term OR lm.BatchNumber LIKE @Term)
                   {itemFilter}
+                  {unitFilter}
                 ORDER BY lm.LotCode ASC";
 
             var result = (await _dbConnection.QueryAsync<LotMasterLookupDto>(
-                new CommandDefinition(sql, new { Term = $"%{term}%", ItemId = itemId }, cancellationToken: ct))).ToList();
+                new CommandDefinition(sql, new { Term = $"%{term}%", ItemId = itemId, UnitId = unitId }, cancellationToken: ct))).ToList();
 
             if (result.Count > 0)
             {

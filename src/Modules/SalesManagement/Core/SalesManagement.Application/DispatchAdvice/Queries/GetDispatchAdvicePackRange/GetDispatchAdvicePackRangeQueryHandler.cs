@@ -34,7 +34,7 @@ namespace SalesManagement.Application.DispatchAdvice.Queries.GetDispatchAdvicePa
             var statusId = packedStatus?.Id ?? 0;
 
             var result = await _queryRepository.GetPackRangeAsync(
-                request.ItemId, request.LotId, request.PackTypeId, statusId, request.Range, request.OrderType);
+                request.ItemId, request.LotId, request.PackTypeId, statusId, request.Range, request.OrderType, request.UnitId);
 
             var domainEvent = new AuditLogsDomainEvent(
                 actionDetail: "GetDispatchAdvicePackRangeQuery",
