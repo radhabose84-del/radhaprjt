@@ -15,6 +15,7 @@ namespace SalesManagement.UnitTests.Application.ComplaintResolution.Commands;
 public sealed class SubmitResolutionCommandHandlerTests
 {
     private readonly Mock<IComplaintResolutionCommandRepository> _mockCommandRepo = new(MockBehavior.Strict);
+    private readonly Mock<IComplaintResolutionQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
     private readonly Mock<IMiscMasterQueryRepository> _mockMiscRepo = new(MockBehavior.Loose);
     private readonly Mock<IIPAddressService> _mockIpService = new(MockBehavior.Loose);
     private readonly Mock<ITimeZoneService> _mockTzService = new(MockBehavior.Loose);
@@ -23,7 +24,7 @@ public sealed class SubmitResolutionCommandHandlerTests
     private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Loose);
 
     private SubmitResolutionCommandHandler CreateSut() =>
-        new(_mockCommandRepo.Object, _mockMiscRepo.Object, _mockIpService.Object,
+        new(_mockCommandRepo.Object, _mockQueryRepo.Object, _mockMiscRepo.Object, _mockIpService.Object,
             _mockTzService.Object, _mockOutbox.Object, _mockMediator.Object, _mockMapper.Object);
 
     private void SetupHappyPath(int newId = 1)
