@@ -91,7 +91,6 @@ namespace FinanceManagement.UnitTests.Controllers
             {
                 TypeName = "Test",
                 ShortName = "T",
-                UnitId = 1,
                 ModuleId = 1,
                 MenuId = 1
             });
@@ -111,7 +110,6 @@ namespace FinanceManagement.UnitTests.Controllers
                 Id = 1,
                 TypeName = "Test",
                 ShortName = "T",
-                UnitId = 1,
                 ModuleId = 1,
                 MenuId = 1,
                 IsActive = 1

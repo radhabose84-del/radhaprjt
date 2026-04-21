@@ -35,6 +35,8 @@ namespace ProductionManagement.Infrastructure.Repositories.LotMaster
         public async Task<(List<LotMasterDto>, int)> GetAllAsync(
             int pageNumber, int pageSize, string? searchTerm)
         {
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
+
             var searchFilter = string.IsNullOrWhiteSpace(searchTerm)
                 ? ""
                 : "AND (lm.LotCode LIKE @Search OR lm.BatchNumber LIKE @Search)";
@@ -45,7 +47,7 @@ namespace ProductionManagement.Infrastructure.Repositories.LotMaster
                 FROM Production.LotMaster lm
                 LEFT JOIN Production.MiscMaster lt ON lm.LotTypeId = lt.Id AND lt.IsDeleted = 0
                 LEFT JOIN Production.MiscMaster st ON lm.StatusId  = st.Id AND st.IsDeleted = 0
-                WHERE lm.IsDeleted = 0
+                WHERE lm.IsDeleted = 0 AND lm.UnitId = @UnitId
                 {searchFilter};
 
                 SELECT
@@ -64,7 +66,7 @@ namespace ProductionManagement.Infrastructure.Repositories.LotMaster
                 FROM Production.LotMaster lm
                 LEFT JOIN Production.MiscMaster lt ON lm.LotTypeId = lt.Id AND lt.IsDeleted = 0
                 LEFT JOIN Production.MiscMaster st ON lm.StatusId  = st.Id AND st.IsDeleted = 0
-                WHERE lm.IsDeleted = 0
+                WHERE lm.IsDeleted = 0 AND lm.UnitId = @UnitId
                 {searchFilter}
                 ORDER BY lm.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
@@ -73,6 +75,7 @@ namespace ProductionManagement.Infrastructure.Repositories.LotMaster
 
             var parameters = new
             {
+                UnitId = unitId,
                 Search = $"%{searchTerm}%",
                 Offset = (pageNumber - 1) * pageSize,
                 PageSize = pageSize
@@ -120,6 +123,8 @@ namespace ProductionManagement.Infrastructure.Repositories.LotMaster
 
         public async Task<LotMasterDto?> GetByIdAsync(int id)
         {
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
+
             const string sql = @"
                 SELECT
                     lm.Id, lm.LotCode, lm.BatchNumber,
@@ -137,9 +142,10 @@ namespace ProductionManagement.Infrastructure.Repositories.LotMaster
                 FROM Production.LotMaster lm
                 LEFT JOIN Production.MiscMaster lt ON lm.LotTypeId = lt.Id AND lt.IsDeleted = 0
                 LEFT JOIN Production.MiscMaster st ON lm.StatusId  = st.Id AND st.IsDeleted = 0
-                WHERE lm.Id = @Id AND lm.IsDeleted = 0";
+                WHERE lm.Id = @Id AND lm.IsDeleted = 0 AND lm.UnitId = @UnitId";
 
-            var dto = await _dbConnection.QueryFirstOrDefaultAsync<LotMasterDto>(sql, new { Id = id });
+            var dto = await _dbConnection.QueryFirstOrDefaultAsync<LotMasterDto>(
+                sql, new { Id = id, UnitId = unitId });
 
             if (dto != null)
             {
@@ -169,25 +175,24 @@ namespace ProductionManagement.Infrastructure.Repositories.LotMaster
         }
 
         public async Task<IReadOnlyList<LotMasterLookupDto>> AutocompleteAsync(
-            string term, int? itemId, int? unitId, CancellationToken ct)
+            string term, int? itemId, CancellationToken ct)
         {
-            unitId ??= _ipAddressService.GetUnitId();
-
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
             var itemFilter = itemId.HasValue ? "AND lm.ItemId = @ItemId" : "";
-            var unitFilter = unitId.HasValue ? "AND lm.UnitId = @UnitId" : "";
 
             var sql = $@"
                 SELECT TOP 20
                     lm.Id, lm.LotCode, lm.BatchNumber, lm.ItemId
                 FROM Production.LotMaster lm
-                WHERE lm.IsDeleted = 0 AND lm.IsActive = 1
+                WHERE lm.IsDeleted = 0 AND lm.IsActive = 1 AND lm.UnitId = @UnitId
                   AND (lm.LotCode LIKE @Term OR lm.BatchNumber LIKE @Term)
                   {itemFilter}
-                  {unitFilter}
                 ORDER BY lm.LotCode ASC";
 
             var result = (await _dbConnection.QueryAsync<LotMasterLookupDto>(
-                new CommandDefinition(sql, new { Term = $"%{term}%", ItemId = itemId, UnitId = unitId }, cancellationToken: ct))).ToList();
+                new CommandDefinition(sql,
+                    new { Term = $"%{term}%", ItemId = itemId, UnitId = unitId },
+                    cancellationToken: ct))).ToList();
 
             if (result.Count > 0)
             {
@@ -205,23 +210,27 @@ namespace ProductionManagement.Infrastructure.Repositories.LotMaster
             return result;
         }
 
-        public async Task<bool> AlreadyExistsAsync(string lotCode)
+        public async Task<bool> AlreadyExistsAsync(string lotCode, int unitId)
         {
             const string sql = @"
                 SELECT COUNT(1) FROM Production.LotMaster
-                WHERE LotCode = @LotCode AND IsDeleted = 0";
+                WHERE LotCode = @LotCode AND UnitId = @UnitId AND IsDeleted = 0";
 
-            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { LotCode = lotCode });
+            var count = await _dbConnection.ExecuteScalarAsync<int>(
+                sql, new { LotCode = lotCode, UnitId = unitId });
             return count > 0;
         }
 
         public async Task<bool> NotFoundAsync(int id)
         {
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
+
             const string sql = @"
                 SELECT COUNT(1) FROM Production.LotMaster
-                WHERE Id = @Id AND IsDeleted = 0";
+                WHERE Id = @Id AND UnitId = @UnitId AND IsDeleted = 0";
 
-            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = id });
+            var count = await _dbConnection.ExecuteScalarAsync<int>(
+                sql, new { Id = id, UnitId = unitId });
             return count == 0;
         }
 

@@ -7,8 +7,8 @@ namespace ProductionManagement.Application.Common.Interfaces.ILotMaster
     {
         Task<(List<LotMasterDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm);
         Task<LotMasterDto?> GetByIdAsync(int id);
-        Task<IReadOnlyList<LotMasterLookupDto>> AutocompleteAsync(string term, int? itemId, int? unitId, CancellationToken ct);
-        Task<bool> AlreadyExistsAsync(string lotCode);
+        Task<IReadOnlyList<LotMasterLookupDto>> AutocompleteAsync(string term, int? itemId, CancellationToken ct);
+        Task<bool> AlreadyExistsAsync(string lotCode, int unitId);
         Task<bool> NotFoundAsync(int id);
         Task<bool> LotTypeExistsAsync(int lotTypeId);
         Task<bool> StatusExistsAsync(int statusId);

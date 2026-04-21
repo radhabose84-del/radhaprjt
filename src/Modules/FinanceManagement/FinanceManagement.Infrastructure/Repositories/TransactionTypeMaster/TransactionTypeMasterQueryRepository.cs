@@ -1,4 +1,5 @@
 using System.Data;
+using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Users;
 using Dapper;
 using FinanceManagement.Application.Common.Interfaces.ITransactionTypeMaster;
@@ -12,21 +13,26 @@ namespace FinanceManagement.Infrastructure.Repositories.TransactionTypeMaster
         private readonly IUnitLookup _unitLookup;
         private readonly IModuleLookup _moduleLookup;
         private readonly IMenuLookup _menuLookup;
+        private readonly IIPAddressService _ipAddressService;
 
         public TransactionTypeMasterQueryRepository(
             IDbConnection dbConnection,
             IUnitLookup unitLookup,
             IModuleLookup moduleLookup,
-            IMenuLookup menuLookup)
+            IMenuLookup menuLookup,
+            IIPAddressService ipAddressService)
         {
             _dbConnection = dbConnection;
             _unitLookup = unitLookup;
             _moduleLookup = moduleLookup;
             _menuLookup = menuLookup;
+            _ipAddressService = ipAddressService;
         }
 
         public async Task<(List<TransactionTypeMasterDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
         {
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
+
             var units = await _unitLookup.GetAllUnitAsync();
             var unitDict = units.ToDictionary(u => u.UnitId, u => u.UnitName);
 
@@ -36,20 +42,24 @@ namespace FinanceManagement.Infrastructure.Repositories.TransactionTypeMaster
             var menus = await _menuLookup.GetAllMenuAsync();
             var menuDict = menus.ToDictionary(m => m.MenuId, m => m.MenuName);
 
+            var searchClause = string.IsNullOrWhiteSpace(searchTerm)
+                ? ""
+                : "AND (TypeName LIKE @Search OR ShortName LIKE @Search)";
+
             var query = $$"""
                 DECLARE @TotalCount INT;
                 SELECT @TotalCount = COUNT(*)
                 FROM [Finance].[TransactionTypeMaster]
-                WHERE IsDeleted = 0
-                {{(string.IsNullOrWhiteSpace(searchTerm) ? "" : "AND (TypeName LIKE @Search OR ShortName LIKE @Search)")}};
+                WHERE IsDeleted = 0 AND UnitId = @UnitId
+                {{searchClause}};
 
                 SELECT Id, UnitId, ModuleId, MenuId, TypeName, ShortName, Description,
                        IsActive, IsDeleted,
                        CreatedBy, CreatedDate, CreatedByName, CreatedIP,
                        ModifiedBy, ModifiedDate, ModifiedByName, ModifiedIP
                 FROM [Finance].[TransactionTypeMaster]
-                WHERE IsDeleted = 0
-                {{(string.IsNullOrWhiteSpace(searchTerm) ? "" : "AND (TypeName LIKE @Search OR ShortName LIKE @Search)")}}
+                WHERE IsDeleted = 0 AND UnitId = @UnitId
+                {{searchClause}}
                 ORDER BY Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
 
@@ -58,6 +68,7 @@ namespace FinanceManagement.Infrastructure.Repositories.TransactionTypeMaster
 
             var parameters = new
             {
+                UnitId = unitId,
                 Search = $"%{searchTerm}%",
                 Offset = (pageNumber - 1) * pageSize,
                 PageSize = pageSize
@@ -79,15 +90,18 @@ namespace FinanceManagement.Infrastructure.Repositories.TransactionTypeMaster
 
         public async Task<TransactionTypeMasterDto?> GetByIdAsync(int id)
         {
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
+
             const string sql = @"
                 SELECT Id, UnitId, ModuleId, MenuId, TypeName, ShortName, Description,
                        IsActive, IsDeleted,
                        CreatedBy, CreatedDate, CreatedByName, CreatedIP,
                        ModifiedBy, ModifiedDate, ModifiedByName, ModifiedIP
                 FROM [Finance].[TransactionTypeMaster]
-                WHERE Id = @Id AND IsDeleted = 0";
+                WHERE Id = @Id AND IsDeleted = 0 AND UnitId = @UnitId";
 
-            var dto = await _dbConnection.QueryFirstOrDefaultAsync<TransactionTypeMasterDto>(sql, new { Id = id });
+            var dto = await _dbConnection.QueryFirstOrDefaultAsync<TransactionTypeMasterDto>(
+                sql, new { Id = id, UnitId = unitId });
 
             if (dto != null)
             {
@@ -106,15 +120,19 @@ namespace FinanceManagement.Infrastructure.Repositories.TransactionTypeMaster
 
         public async Task<IReadOnlyList<TransactionTypeMasterLookupDto>> AutocompleteAsync(string term, CancellationToken ct)
         {
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
+
             const string sql = @"
                 SELECT TOP 20 Id, TypeName, ShortName
                 FROM [Finance].[TransactionTypeMaster]
-                WHERE IsDeleted = 0 AND IsActive = 1
+                WHERE IsDeleted = 0 AND IsActive = 1 AND UnitId = @UnitId
                 AND (TypeName LIKE @Term OR ShortName LIKE @Term)
                 ORDER BY TypeName ASC";
 
             var result = await _dbConnection.QueryAsync<TransactionTypeMasterLookupDto>(
-                new CommandDefinition(sql, new { Term = $"%{term}%" }, cancellationToken: ct));
+                new CommandDefinition(sql,
+                    new { Term = $"%{term}%", UnitId = unitId },
+                    cancellationToken: ct));
             return result.ToList();
         }
 
@@ -148,12 +166,14 @@ namespace FinanceManagement.Infrastructure.Repositories.TransactionTypeMaster
 
         public async Task<bool> NotFoundAsync(int id)
         {
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
+
             const string sql = @"
                 SELECT COUNT(1)
                 FROM [Finance].[TransactionTypeMaster]
-                WHERE Id = @Id AND IsDeleted = 0";
+                WHERE Id = @Id AND UnitId = @UnitId AND IsDeleted = 0";
 
-            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = id });
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = id, UnitId = unitId });
             return count == 0;
         }
 

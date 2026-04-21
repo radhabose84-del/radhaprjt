@@ -1,3 +1,4 @@
+using Contracts.Interfaces;
 using Dapper;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
@@ -18,8 +19,12 @@ namespace FinanceManagement.IntegrationTests.Repositories.TransactionTypeMaster
             _fixture = fixture;
         }
 
-        private TransactionTypeMasterCommandRepository CreateRepository(ApplicationDbContext ctx) =>
-            new(ctx);
+        private TransactionTypeMasterCommandRepository CreateRepository(ApplicationDbContext ctx, int? tokenUnitId = 1)
+        {
+            var ip = new Mock<IIPAddressService>(MockBehavior.Loose);
+            ip.Setup(x => x.GetUnitId()).Returns(tokenUnitId);
+            return new TransactionTypeMasterCommandRepository(ctx, ip.Object);
+        }
 
         private static Domain.Entities.TransactionTypeMaster BuildEntity(
             string typeName = "Invoice",
@@ -136,6 +141,44 @@ namespace FinanceManagement.IntegrationTests.Repositories.TransactionTypeMaster
             result.Should().Be(0);
         }
 
+        [Fact]
+        public async Task UpdateAsync_Should_Return_Zero_When_DifferentUnit()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            await ClearTableAsync(ctx);
+            var id = await CreateRepository(ctx).CreateAsync(BuildEntity(unitId: 2));
+            ctx.ChangeTracker.Clear();
+
+            var entity = BuildEntity(unitId: 2);
+            entity.Id = id;
+            entity.TypeName = "Hacked";
+
+            var result = await CreateRepository(ctx, tokenUnitId: 1).UpdateAsync(entity);
+
+            result.Should().Be(0);
+        }
+
+        [Fact]
+        public async Task UpdateAsync_Should_Preserve_UnitId()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            await ClearTableAsync(ctx);
+            var id = await CreateRepository(ctx).CreateAsync(BuildEntity(unitId: 1));
+            ctx.ChangeTracker.Clear();
+
+            // Attacker attempts to change UnitId via payload
+            var entity = BuildEntity(unitId: 99);
+            entity.Id = id;
+            entity.TypeName = "Modified";
+
+            await CreateRepository(ctx).UpdateAsync(entity);
+            ctx.ChangeTracker.Clear();
+
+            var reloaded = await ctx.TransactionTypeMaster.FirstAsync(x => x.Id == id);
+            reloaded.UnitId.Should().Be(1);
+            reloaded.TypeName.Should().Be("Modified");
+        }
+
         // --- SOFT DELETE ---
 
         [Fact]
@@ -177,6 +220,20 @@ namespace FinanceManagement.IntegrationTests.Repositories.TransactionTypeMaster
             await ClearTableAsync(ctx);
 
             var result = await CreateRepository(ctx).SoftDeleteAsync(9999, CancellationToken.None);
+
+            result.Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task SoftDeleteAsync_Should_Return_False_When_DifferentUnit()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            await ClearTableAsync(ctx);
+            var id = await CreateRepository(ctx).CreateAsync(BuildEntity(unitId: 2));
+            ctx.ChangeTracker.Clear();
+
+            var result = await CreateRepository(ctx, tokenUnitId: 1)
+                .SoftDeleteAsync(id, CancellationToken.None);
 
             result.Should().BeFalse();
         }

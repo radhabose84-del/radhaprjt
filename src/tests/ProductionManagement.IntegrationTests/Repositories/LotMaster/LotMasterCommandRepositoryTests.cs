@@ -1,3 +1,4 @@
+using Contracts.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using ProductionManagement.Infrastructure.Data;
 using ProductionManagement.Infrastructure.Repositories.LotMaster;
@@ -12,7 +13,12 @@ namespace ProductionManagement.IntegrationTests.Repositories.LotMaster
         private readonly DbFixture _fixture;
         public LotMasterCommandRepositoryTests(DbFixture fixture) => _fixture = fixture;
 
-        private LotMasterCommandRepository CreateRepo(ApplicationDbContext ctx) => new(ctx);
+        private LotMasterCommandRepository CreateRepo(ApplicationDbContext ctx, int? tokenUnitId = 1)
+        {
+            var ip = new Mock<IIPAddressService>(MockBehavior.Loose);
+            ip.Setup(x => x.GetUnitId()).Returns(tokenUnitId);
+            return new LotMasterCommandRepository(ctx, ip.Object);
+        }
 
         private async Task<(int LotTypeId, int StatusId)> EnsureMiscAsync()
         {
@@ -53,7 +59,7 @@ namespace ProductionManagement.IntegrationTests.Repositories.LotMaster
             return (lotType.Id, status.Id);
         }
 
-        private async Task<Domain.Entities.LotMaster> BuildEntityAsync(string code = "LM_C1")
+        private async Task<Domain.Entities.LotMaster> BuildEntityAsync(string code = "LM_C1", int unitId = 1)
         {
             var (lotTypeId, statusId) = await EnsureMiscAsync();
             return new Domain.Entities.LotMaster
@@ -63,7 +69,7 @@ namespace ProductionManagement.IntegrationTests.Repositories.LotMaster
                 LotTypeId = lotTypeId,
                 StatusId = statusId,
                 ItemId = 1,
-                UnitId = 1,
+                UnitId = unitId,
                 StartDate = DateOnly.FromDateTime(DateTime.UtcNow),
                 TotalProducedQty = 100m,
                 AvailableQty = 100m,
@@ -141,6 +147,23 @@ namespace ProductionManagement.IntegrationTests.Repositories.LotMaster
         }
 
         [Fact]
+        public async Task UpdateAsync_Should_Return_Zero_When_DifferentUnit()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            await ClearAsync(ctx);
+            var id = await CreateRepo(ctx).CreateAsync(await BuildEntityAsync("LMUU", unitId: 2));
+            ctx.ChangeTracker.Clear();
+
+            var updated = await BuildEntityAsync("LMUU", unitId: 2);
+            updated.Id = id;
+            updated.Remarks = "Hacked";
+
+            var result = await CreateRepo(ctx, tokenUnitId: 1).UpdateAsync(updated);
+
+            result.Should().Be(0);
+        }
+
+        [Fact]
         public async Task SoftDeleteAsync_Should_Return_True_When_Successful()
         {
             await using var ctx = _fixture.CreateFreshDbContext();
@@ -174,6 +197,20 @@ namespace ProductionManagement.IntegrationTests.Repositories.LotMaster
             await using var ctx = _fixture.CreateFreshDbContext();
 
             var result = await CreateRepo(ctx).SoftDeleteAsync(9999999, CancellationToken.None);
+
+            result.Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task SoftDeleteAsync_Should_Return_False_When_DifferentUnit()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            await ClearAsync(ctx);
+            var id = await CreateRepo(ctx).CreateAsync(await BuildEntityAsync("LMDU", unitId: 2));
+            ctx.ChangeTracker.Clear();
+
+            var result = await CreateRepo(ctx, tokenUnitId: 1)
+                .SoftDeleteAsync(id, CancellationToken.None);
 
             result.Should().BeFalse();
         }
