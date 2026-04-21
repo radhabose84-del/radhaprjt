@@ -25,7 +25,9 @@ namespace SalesManagement.Application.ComplaintDepartmentFeedback.Queries.GetAll
 
         public async Task<ApiResponseDTO<List<FeedbackListDto>>> Handle(GetAllComplaintDepartmentFeedbackQuery request, CancellationToken cancellationToken)
         {
-            int? responsiblePersonId = request.MyPendingOnly ? _ipAddressService.GetUserId() : null;
+            // Always scope feedback list to the logged-in user — each responsible person
+            // sees only the assignments assigned to them via ComplaintQCReviewAssignment.ResponsiblePersonId.
+            int? responsiblePersonId = _ipAddressService.GetUserId();
             var (data, totalCount) = await _queryRepository.GetAllAsync(request.PageNumber, request.PageSize, request.SearchTerm, request.StatusFilter, responsiblePersonId);
 
             var domainEvent = new AuditLogsDomainEvent(

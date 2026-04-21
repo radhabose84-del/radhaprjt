@@ -19,7 +19,7 @@ namespace UserManagement.Application.Menu.Queries.GetParentMenu
         {
             
              
-            var result = await _menuQuery.GetParentMenuAutoComplete(request.SearchPattern);
+            var result = await _menuQuery.GetParentMenuAutoComplete(request.SearchPattern, request.ModuleId);
             var MenuList = _mapper.Map<List<ParentMenuDto>>(result);
              
             return MenuList;  
