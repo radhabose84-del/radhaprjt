@@ -43,6 +43,13 @@ namespace SalesManagement.Infrastructure.Repositories.ComplaintResolution
             existing.ClosureRemarks = entity.ClosureRemarks;
             existing.IsActive = entity.IsActive;
 
+            // First-time resolver stamp (from SubmitResolution upsert path) — never overwrite existing stamp
+            if (existing.ResolvedBy == null && entity.ResolvedBy.HasValue)
+            {
+                existing.ResolvedBy = entity.ResolvedBy;
+                existing.ResolvedDate = entity.ResolvedDate;
+            }
+
             // Set closed audit fields if provided
             if (entity.ClosedBy.HasValue)
             {

@@ -26,5 +26,18 @@ namespace FinanceManagement.Infrastructure.Repositories.Lookups.Finance
             return await _dbConnection.QueryFirstOrDefaultAsync<EWaybillLookupDto>(
                 new CommandDefinition(sql, new { InvoiceNo = invoiceNo, UnitId = unitId }, cancellationToken: ct));
         }
+
+        public async Task<EWaybillLookupDto?> GetByDCAsync(string deliveryNumber, int unitId, CancellationToken ct = default)
+        {
+            const string sql = @"
+                SELECT TOP 1 ew.EWBNumber, ew.GeneratedDate
+                FROM Finance.EWaybillHeader ew
+                WHERE ew.InvoiceNo = @DeliveryNumber
+                  AND ew.UnitId    = @UnitId
+                  AND ew.IsDeleted = 0";
+
+            return await _dbConnection.QueryFirstOrDefaultAsync<EWaybillLookupDto>(
+                new CommandDefinition(sql, new { DeliveryNumber = deliveryNumber, UnitId = unitId }, cancellationToken: ct));
+        }
     }
 }

@@ -127,7 +127,8 @@ namespace SalesManagement.Presentation.Controllers
             [FromQuery] int lotId,
             [FromQuery] int packTypeId,
             [FromQuery] int range,
-            [FromQuery] string? orderType = null)
+            [FromQuery] string? orderType = null,
+            [FromQuery] int? unitId = null)
         {
             var result = await Mediator.Send(new GetDispatchAdvicePackRangeQuery
             {
@@ -135,7 +136,8 @@ namespace SalesManagement.Presentation.Controllers
                 LotId = lotId,
                 PackTypeId = packTypeId,
                 Range = range,
-                OrderType = orderType
+                OrderType = orderType,
+                UnitId = unitId
             });
 
             return Ok(new

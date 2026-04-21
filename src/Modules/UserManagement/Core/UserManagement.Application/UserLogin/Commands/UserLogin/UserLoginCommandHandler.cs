@@ -97,7 +97,7 @@ namespace UserManagement.Application.UserLogin.Commands.UserLogin
 
             
             // Generate JWT token            
- 			var token = _jwtTokenHelper.GenerateToken(user.UserName,user.UserId,user.Mobile,user.EmailId,user.IsFirstTimeUser.ToString(),user.EntityId ?? 0,user.UserGroup.GroupCode,0,0,0,"",user.FirstName,user.LastName,user.PartyId,user.EmpId, out var jti);            var httpContext = _httpContextAccessor.HttpContext;
+ 			var token = _jwtTokenHelper.GenerateToken(user.UserName,user.UserId,user.Mobile,user.EmailId,user.IsFirstTimeUser.ToString(),user.EntityId ?? 0,user.UserGroup.GroupCode,0,0,0,"",user.FirstName,user.LastName,user.PartyId,user.EmpId,0,string.Empty, out var jti);            var httpContext = _httpContextAccessor.HttpContext;
             var browserInfo = httpContext?.Request.Headers["User-Agent"].ToString();
             string broswerDetails = browserInfo != null ? _ipAddressService.GetUserBrowserDetails(browserInfo) : string.Empty;
 

@@ -32,5 +32,8 @@ namespace Contracts.Events.Notifications
         public const string Update = "Update";
         public const string Delete = "Delete";
         public const string Approve = "Approve";
+
+        // Shared format constants
+        public const string DateFormat = "dd-MMM-yyyy";
     }
 }

@@ -1,6 +1,7 @@
 #nullable disable
 using System.Text;
 using AutoMapper;
+using Contracts.Common;
 using InventoryManagement.Application.Common.Interfaces.Item.ItemDetail.Commands;
 using InventoryManagement.Application.Common.Interfaces.Item.ItemDetail.Queries;
 using InventoryManagement.Application.Item.ItemDetail.Commands.CreateItem;
@@ -89,13 +90,13 @@ namespace InventoryManagement.Application.Item.ItemAggregate.Handlers
         private async Task<int> CreateTemplateAsync(ItemDto p, CancellationToken ct)
         {
             if (!p.ItemGroupId.HasValue || !p.ItemCategoryId.HasValue)
-                throw new InvalidOperationException("ItemGroupId and ItemCategoryId are required for template creation.");
+                throw new ExceptionRules("ItemGroupId and ItemCategoryId are required for template creation.");
 
             var itemCode = await _itemQry.GetLatestItemCode(p.ItemGroupId.Value, p.ItemCategoryId.Value, ct)
-                         ?? throw new InvalidOperationException("Failed to generate ItemCode.");
+                         ?? throw new ExceptionRules("Failed to generate ItemCode.");
 
             if (await _itemRepo.ExistsByCodeForCreateAsync(itemCode, ct))
-                throw new InvalidOperationException($"Generated ItemCode '{itemCode}' already exists.");
+                throw new ExceptionRules($"Generated ItemCode '{itemCode}' already exists.");
 
             var templateId = await _uow.ExecuteInTransactionAsync<int>(async _ =>
             {
@@ -177,11 +178,11 @@ namespace InventoryManagement.Application.Item.ItemAggregate.Handlers
         private async Task<int> CreateVariantItemsAsync(ItemDto p, CancellationToken ct)
         {
             if (p.VariantValues is null || p.VariantValues.Count == 0)
-                throw new InvalidOperationException("VariantValues are required to create child items.");
+                throw new ExceptionRules("VariantValues are required to create child items.");
 
             // 1) Load template (tracked — we may need to flip HasVariants)
             var template = await _itemRepo.GetTrackingAsync(p.ParentItemId!.Value, ct)
-                            ?? throw new InvalidOperationException("Template item not found.");
+                            ?? throw new ExceptionRules("Template item not found.");
 
             // 2) Resolve SpecificationValueId → (SpecMasterId, SpecValueName)
             //    The payload's variantAttributeId is ignored — we derive the attribute
@@ -194,11 +195,11 @@ namespace InventoryManagement.Application.Item.ItemAggregate.Handlers
 
             var specValueMap = await _variantAttrCmd.GetSpecificationValueMapAsync(incomingSpecValueIds, ct);
             if (specValueMap.Count == 0)
-                throw new InvalidOperationException("None of the provided SpecificationValueIds were found.");
+                throw new ExceptionRules("None of the provided SpecificationValueIds were found.");
 
             var missingSpecValueIds = incomingSpecValueIds.Except(specValueMap.Keys).ToList();
             if (missingSpecValueIds.Count > 0)
-                throw new InvalidOperationException(
+                throw new ExceptionRules(
                     $"SpecificationValueId(s) not found or deleted: {string.Join(", ", missingSpecValueIds)}.");
 
             // 3) Auto-provision variant attributes on the template for every distinct
@@ -243,7 +244,7 @@ namespace InventoryManagement.Application.Item.ItemAggregate.Handlers
             // 4) Re-load attributes so we have Ids for the newly-created rows.
             var attrs = await _variantAttrCmd.GetForItemAsync(template.Id, ct);
             if (attrs.Count == 0)
-                throw new InvalidOperationException("Failed to provision variant attributes on template.");
+                throw new ExceptionRules("Failed to provision variant attributes on template.");
 
             var attrIdBySpecMaster = attrs.ToDictionary(a => a.SpecificationMasterId, a => a.Id);
             var orderedAttrIds = attrs.OrderBy(a => a.Order).Select(a => a.Id).ToList();
@@ -302,7 +303,7 @@ namespace InventoryManagement.Application.Item.ItemAggregate.Handlers
                     if (existingCombos.Any(ex => IsSubset(ex, sparseSet) || IsSubset(sparseSet, ex)))
                     {
                         var label = string.Join(", ", sparse.OrderBy(x => x.VarAttrId).Select(x => $"{x.VarAttrId}:{x.SpecValueId}"));
-                        throw new InvalidOperationException($"A variant overlapping this selection already exists ({label}).");
+                        throw new ExceptionRules($"A variant overlapping this selection already exists ({label}).");
                     }
 
                     // Ordered selections for naming and persistence
@@ -369,7 +370,7 @@ namespace InventoryManagement.Application.Item.ItemAggregate.Handlers
             }, ct);
 
             if (!createdAny)
-                throw new InvalidOperationException("No child variants were created. Ensure each selection references valid specification values.");
+                throw new ExceptionRules("No child variants were created. Ensure each selection references valid specification values.");
 
             return lastCreatedId;
 
@@ -382,13 +383,13 @@ namespace InventoryManagement.Application.Item.ItemAggregate.Handlers
         private async Task<int> CreateSingleItemAsync(ItemDto p, CancellationToken ct)
         {
             if (!p.ItemGroupId.HasValue || !p.ItemCategoryId.HasValue)
-                throw new InvalidOperationException("ItemGroupId and ItemCategoryId are required.");
+                throw new ExceptionRules("ItemGroupId and ItemCategoryId are required.");
 
             var itemCode = await _itemQry.GetLatestItemCode(p.ItemGroupId.Value, p.ItemCategoryId.Value, ct)
-                         ?? throw new InvalidOperationException("Failed to generate ItemCode.");
+                         ?? throw new ExceptionRules("Failed to generate ItemCode.");
 
             if (await _itemRepo.ExistsByCodeForCreateAsync(itemCode, ct))
-                throw new InvalidOperationException($"Generated ItemCode '{itemCode}' already exists.");
+                throw new ExceptionRules($"Generated ItemCode '{itemCode}' already exists.");
 
             var itemId = await _uow.ExecuteInTransactionAsync<int>(async _ =>
             {

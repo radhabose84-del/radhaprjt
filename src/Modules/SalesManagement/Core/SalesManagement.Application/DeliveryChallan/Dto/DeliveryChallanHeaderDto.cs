@@ -43,6 +43,8 @@ namespace SalesManagement.Application.DeliveryChallan.Dto
         public string? ApproverName { get; set; }
         public int ApprovalRequestHeaderId { get; set; }
 
+        public bool EWaybillExists { get; set; }
+
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }
 

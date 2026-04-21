@@ -104,6 +104,10 @@ namespace SalesManagement.Application.Consumers
                         _logger.LogInformation(
                             "Complaint QC Review {Id} approval status updated to {Status}",
                             msg.ModuleTransactionId, msg.Status);
+
+                        // Auto-seed a draft ComplaintResolution row when QC lands on 'QC Accepted'
+                        await _complaintCommandRepo.EnsureResolutionDraftIfQCAcceptedAsync(
+                            msg.ModuleTransactionId, context.CancellationToken);
                         break;
 
                     case MiscEnumEntity.ComplaintResolutionModuleTypeName:

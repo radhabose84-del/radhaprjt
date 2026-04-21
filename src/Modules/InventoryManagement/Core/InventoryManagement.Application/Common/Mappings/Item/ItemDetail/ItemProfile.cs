@@ -21,7 +21,8 @@ namespace InventoryManagement.Application.Common.Mappings.Item.ItemDetail
             CreateMap<ItemDto, ItemMaster>()
                 .ForMember(d => d.Id, o => o.Ignore())
                 .ForMember(d => d.ParentItemId,
-                    o => o.MapFrom(src => src.ParentItemId > 0 ? src.ParentItemId : (int?)null))
+                    o => o.MapFrom(src => src.ParentItemId > 0 && src.ParentItemId != src.Id
+                        ? src.ParentItemId : (int?)null))
                 .ForMember(d => d.IssueRuleId,
                     o => o.MapFrom(src => src.IssueRuleId > 0 ? src.IssueRuleId : (int?)null))
                 .ForMember(d => d.PriceGroupId,

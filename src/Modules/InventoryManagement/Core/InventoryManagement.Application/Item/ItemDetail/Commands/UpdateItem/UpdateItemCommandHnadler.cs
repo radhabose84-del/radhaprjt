@@ -78,10 +78,15 @@ namespace InventoryManagement.Application.Item.ItemDetail.Commands.UpdateItem
 
                 if (!string.IsNullOrWhiteSpace(p.ItemCode) &&
                     await _itemRepo.ExistsByCodeForUpdateAsync(p.ItemCode, item.Id, ct))
-                    throw new InvalidOperationException("Another item with the same ItemCode exists.");
+                    throw new ExceptionRules("Another item with the same ItemCode exists.");
 
                 // 2) Base update (mapper profile must ignore entity keys/navs)
                 _mapper.Map(p, item);
+
+                // Guard: ParentItemId must never equal the item's own Id (self-reference)
+                if (item.ParentItemId.HasValue && item.ParentItemId.Value == item.Id)
+                    item.ParentItemId = null;
+
                 await _itemRepo.UpdateAsync(item, ct);
 
                 // 3) Tabs (upsert)
