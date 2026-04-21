@@ -320,7 +320,9 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     h.CancelledDate, h.CancelledByName, h.CancelledIP,
                     h.ForeClosedDate, h.ForeClosedByName, h.ForeClosedIP,
                     h.IsActive, h.IsDeleted,
-                    h.CreatedBy, h.CreatedDate, h.CreatedByName
+                    h.CreatedBy, h.CreatedDate, h.CreatedByName,
+                    amd_latest.StatusId AS AmendmentStatusId,
+                    amd_mm.Description AS AmendmentStatusName
                 FROM Sales.SalesOrderHeader h
                 LEFT JOIN Sales.SalesGroup sg ON h.SalesGroupId = sg.Id AND sg.IsDeleted = 0
                 LEFT JOIN Sales.SalesSegment ss ON h.SalesSegmentId = ss.Id AND ss.IsDeleted = 0
@@ -329,6 +331,20 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 LEFT JOIN Sales.MiscMaster ft ON h.FreightTypeId = ft.Id AND ft.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster cl ON h.CountListId = cl.Id AND cl.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster st ON h.StatusId = st.Id AND st.IsDeleted = 0
+                LEFT JOIN (
+                    SELECT ah.SalesOrderHeaderId, ah.StatusId
+                    FROM Sales.SalesOrderAmendmentHeader ah
+                    INNER JOIN (
+                        SELECT SalesOrderHeaderId, MAX(RevisionNumber) AS MaxRevision
+                        FROM Sales.SalesOrderAmendmentHeader
+                        WHERE IsDeleted = 0
+                        GROUP BY SalesOrderHeaderId
+                    ) latest ON ah.SalesOrderHeaderId = latest.SalesOrderHeaderId
+                              AND ah.RevisionNumber = latest.MaxRevision
+                    WHERE ah.IsDeleted = 0
+                ) amd_latest ON amd_latest.SalesOrderHeaderId = h.Id
+                    AND LOWER(st.Code) = LOWER('Approved')
+                LEFT JOIN Sales.MiscMaster amd_mm ON amd_latest.StatusId = amd_mm.Id AND amd_mm.IsDeleted = 0
                 WHERE h.Id = @Id AND h.IsDeleted = 0
                 {moFilter}";
 
