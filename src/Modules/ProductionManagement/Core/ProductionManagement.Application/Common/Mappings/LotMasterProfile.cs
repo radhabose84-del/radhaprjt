@@ -15,6 +15,7 @@ namespace ProductionManagement.Application.Common.Mappings
                 .ForMember(dest => dest.IsDeleted, opt => opt.MapFrom(_ => IsDelete.NotDeleted))
                 .ForMember(dest => dest.TotalProducedQty, opt => opt.MapFrom(_ => 0m))
                 .ForMember(dest => dest.AvailableQty,     opt => opt.MapFrom(_ => 0m))
+                .ForMember(dest => dest.UnitId,            opt => opt.Ignore())
                 .ForMember(dest => dest.RunOutDate,        opt => opt.Ignore())
                 .ForMember(dest => dest.LotTypeMisc,       opt => opt.Ignore())
                 .ForMember(dest => dest.StatusMisc,        opt => opt.Ignore());

@@ -1,3 +1,4 @@
+using Contracts.Interfaces;
 using FluentValidation;
 using ProductionManagement.Application.Common.Interfaces.ILotMaster;
 using ProductionManagement.Application.LotMaster.Commands.CreateLotMaster;
@@ -10,12 +11,15 @@ namespace ProductionManagement.Presentation.Validation.LotMaster
     {
         private readonly List<ValidationRule> _validationRules;
         private readonly ILotMasterQueryRepository _queryRepository;
+        private readonly IIPAddressService _ipAddressService;
 
         public CreateLotMasterCommandValidator(
             MaxLengthProvider maxLengthProvider,
-            ILotMasterQueryRepository queryRepository)
+            ILotMasterQueryRepository queryRepository,
+            IIPAddressService ipAddressService)
         {
             _queryRepository = queryRepository;
+            _ipAddressService = ipAddressService;
 
             var maxLengthCode        = maxLengthProvider.GetMaxLength<Domain.Entities.LotMaster>("LotCode")      ?? 20;
             var maxLengthBatchNumber = maxLengthProvider.GetMaxLength<Domain.Entities.LotMaster>("BatchNumber")  ?? 50;
@@ -28,7 +32,6 @@ namespace ProductionManagement.Presentation.Validation.LotMaster
             // Inline: FK int fields must be > 0
             RuleFor(x => x.LotTypeId).GreaterThan(0).WithMessage("LotTypeId must be greater than zero.");
             RuleFor(x => x.ItemId).GreaterThan(0).WithMessage("ItemId must be greater than zero.");
-            RuleFor(x => x.UnitId).GreaterThan(0).WithMessage("UnitId must be greater than zero.");
             RuleFor(x => x.StatusId).GreaterThan(0).WithMessage("StatusId must be greater than zero.");
 
             // Inline: StartDate cannot be future-dated
@@ -72,7 +75,9 @@ namespace ProductionManagement.Presentation.Validation.LotMaster
 
                     case "AlreadyExists":
                         RuleFor(x => x.LotCode)
-                            .MustAsync(async (code, ct) => !await _queryRepository.AlreadyExistsAsync(code!))
+                            .MustAsync(async (code, ct) =>
+                                !await _queryRepository.AlreadyExistsAsync(
+                                    code!, _ipAddressService.GetUnitId() ?? 0))
                             .WithMessage($"{nameof(CreateLotMasterCommand.LotCode)} {rule.Error}")
                             .When(x => !string.IsNullOrWhiteSpace(x.LotCode));
                         break;
@@ -87,11 +92,6 @@ namespace ProductionManagement.Presentation.Validation.LotMaster
                             .MustAsync(async (id, ct) => await _queryRepository.ItemExistsAsync(id, ct))
                             .WithMessage($"{nameof(CreateLotMasterCommand.ItemId)} {rule.Error}")
                             .When(x => x.ItemId > 0);
-
-                        RuleFor(x => x.UnitId)
-                            .MustAsync(async (id, ct) => await _queryRepository.UnitExistsAsync(id, ct))
-                            .WithMessage($"{nameof(CreateLotMasterCommand.UnitId)} {rule.Error}")
-                            .When(x => x.UnitId > 0);
 
                         RuleFor(x => x.StatusId)
                             .MustAsync(async (id, ct) => await _queryRepository.StatusExistsAsync(id))

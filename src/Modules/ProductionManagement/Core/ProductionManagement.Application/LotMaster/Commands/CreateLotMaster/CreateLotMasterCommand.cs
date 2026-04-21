@@ -10,7 +10,6 @@ namespace ProductionManagement.Application.LotMaster.Commands.CreateLotMaster
         public int LotTypeId { get; set; }
         public int ItemId { get; set; }
         public int? VariantId { get; set; }
-        public int UnitId { get; set; }
         public DateOnly StartDate { get; set; }
         public int StatusId { get; set; }
         public string? ProductionOrderRef { get; set; }

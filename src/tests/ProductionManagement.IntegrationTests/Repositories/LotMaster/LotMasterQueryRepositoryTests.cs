@@ -1,5 +1,6 @@
 using Contracts.Dtos.Lookups.Inventory;
 using Contracts.Dtos.Lookups.Users;
+using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Users;
 using Contracts.Interfaces.Validations.SalesManagement;
@@ -21,7 +22,8 @@ namespace ProductionManagement.IntegrationTests.Repositories.LotMaster
         private LotMasterQueryRepository CreateRepo(
             Mock<IItemLookup>? itemLookup = null,
             Mock<IUnitLookup>? unitLookup = null,
-            Mock<ILotMasterSalesValidation>? salesValidation = null)
+            Mock<ILotMasterSalesValidation>? salesValidation = null,
+            int? tokenUnitId = 1)
         {
             if (itemLookup == null)
             {
@@ -42,9 +44,12 @@ namespace ProductionManagement.IntegrationTests.Repositories.LotMaster
                 salesValidation.Setup(s => s.HasActiveLotMasterAsync(It.IsAny<int>())).ReturnsAsync(false);
             }
 
+            var ip = new Mock<IIPAddressService>(MockBehavior.Loose);
+            ip.Setup(x => x.GetUnitId()).Returns(tokenUnitId);
+
             return new LotMasterQueryRepository(
                 new SqlConnection(_fixture.ConnectionString),
-                itemLookup.Object, unitLookup.Object, salesValidation.Object);
+                itemLookup.Object, unitLookup.Object, salesValidation.Object, ip.Object);
         }
 
         private async Task<(int LotTypeId, int StatusId)> EnsureMiscAsync()
@@ -86,7 +91,11 @@ namespace ProductionManagement.IntegrationTests.Repositories.LotMaster
             return (lotType.Id, status.Id);
         }
 
-        private async Task<int> SeedAsync(string code, Status active = Status.Active, IsDelete deleted = IsDelete.NotDeleted)
+        private async Task<int> SeedAsync(
+            string code,
+            int unitId = 1,
+            Status active = Status.Active,
+            IsDelete deleted = IsDelete.NotDeleted)
         {
             var (lotTypeId, statusId) = await EnsureMiscAsync();
             await using var ctx = _fixture.CreateFreshDbContext();
@@ -94,7 +103,7 @@ namespace ProductionManagement.IntegrationTests.Repositories.LotMaster
             {
                 LotCode = code, BatchNumber = code + "B",
                 LotTypeId = lotTypeId, StatusId = statusId,
-                ItemId = 1, UnitId = 1,
+                ItemId = 1, UnitId = unitId,
                 StartDate = DateOnly.FromDateTime(DateTime.UtcNow),
                 TotalProducedQty = 100m, AvailableQty = 100m,
                 IsActive = active, IsDeleted = deleted
@@ -131,6 +140,34 @@ namespace ProductionManagement.IntegrationTests.Repositories.LotMaster
         }
 
         [Fact]
+        public async Task GetAllAsync_Should_Return_Only_CurrentUnit_Records()
+        {
+            await ClearAsync();
+            await SeedAsync("LMU1A", unitId: 1);
+            await SeedAsync("LMU1B", unitId: 1);
+            await SeedAsync("LMU2A", unitId: 2);
+
+            var (rows, total) = await CreateRepo(tokenUnitId: 1).GetAllAsync(1, 10, null);
+
+            rows.Should().HaveCount(2);
+            total.Should().Be(2);
+            rows.Should().OnlyContain(r => r.UnitId == 1);
+        }
+
+        [Fact]
+        public async Task GetAllAsync_Should_Return_Empty_When_NoUnitClaim()
+        {
+            await ClearAsync();
+            await SeedAsync("LMX1", unitId: 1);
+            await SeedAsync("LMX2", unitId: 2);
+
+            var (rows, total) = await CreateRepo(tokenUnitId: null).GetAllAsync(1, 10, null);
+
+            rows.Should().BeEmpty();
+            total.Should().Be(0);
+        }
+
+        [Fact]
         public async Task GetByIdAsync_Should_Return_Matching()
         {
             await ClearAsync();
@@ -154,6 +191,17 @@ namespace ProductionManagement.IntegrationTests.Repositories.LotMaster
         }
 
         [Fact]
+        public async Task GetByIdAsync_Should_Return_Null_When_DifferentUnit()
+        {
+            await ClearAsync();
+            var id = await SeedAsync("LMQOU", unitId: 2);
+
+            var result = await CreateRepo(tokenUnitId: 1).GetByIdAsync(id);
+
+            result.Should().BeNull();
+        }
+
+        [Fact]
         public async Task AutocompleteAsync_Should_Return_Active_Matching()
         {
             await ClearAsync();
@@ -166,20 +214,55 @@ namespace ProductionManagement.IntegrationTests.Repositories.LotMaster
         }
 
         [Fact]
-        public async Task AlreadyExistsAsync_Should_Return_True_For_Duplicate()
+        public async Task AutocompleteAsync_Should_Exclude_OtherUnits()
         {
             await ClearAsync();
-            await SeedAsync("LMDUP");
+            await SeedAsync("LMACU1", unitId: 1);
+            await SeedAsync("LMACU2", unitId: 2);
 
-            var result = await CreateRepo().AlreadyExistsAsync("LMDUP");
+            var result = await CreateRepo(tokenUnitId: 1).AutocompleteAsync("LMAC", null, CancellationToken.None);
+
+            result.Should().HaveCount(1);
+            result[0].LotCode.Should().Be("LMACU1");
+        }
+
+        [Fact]
+        public async Task AlreadyExistsAsync_Should_Return_True_For_Duplicate_In_SameUnit()
+        {
+            await ClearAsync();
+            await SeedAsync("LMDUP", unitId: 1);
+
+            var result = await CreateRepo().AlreadyExistsAsync("LMDUP", 1);
 
             result.Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task AlreadyExistsAsync_Should_Return_False_When_SameCode_In_DifferentUnit()
+        {
+            await ClearAsync();
+            await SeedAsync("LMDUP", unitId: 2);
+
+            var result = await CreateRepo().AlreadyExistsAsync("LMDUP", 1);
+
+            result.Should().BeFalse();
         }
 
         [Fact]
         public async Task NotFoundAsync_Should_Return_True_For_Missing()
         {
             var result = await CreateRepo().NotFoundAsync(9999999);
+            result.Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task NotFoundAsync_Should_Return_True_When_Exists_In_OtherUnit()
+        {
+            await ClearAsync();
+            var id = await SeedAsync("LMNF", unitId: 2);
+
+            var result = await CreateRepo(tokenUnitId: 1).NotFoundAsync(id);
+
             result.Should().BeTrue();
         }
 

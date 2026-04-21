@@ -17,7 +17,6 @@ namespace FinanceManagement.UnitTests.Application.TransactionTypeMaster.Commands
             new()
             {
                 Id = 1,
-                UnitId = 1,
                 ModuleId = 2,
                 MenuId = 3,
                 TypeName = "Updated Invoice",
