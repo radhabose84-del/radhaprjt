@@ -2,6 +2,7 @@ using Dapper;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Contracts.Dtos.Lookups.Users;
+using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Users;
 using FinanceManagement.Infrastructure.Data;
 using FinanceManagement.IntegrationTests.Common;
@@ -75,7 +76,9 @@ namespace FinanceManagement.IntegrationTests.Repositories.DocumentSequence
             int menuId = 1)
         {
             await using var ctx = _fixture.CreateFreshDbContext();
-            var repo = new TransactionTypeMasterCommandRepository(ctx);
+            var ip = new Mock<IIPAddressService>(MockBehavior.Loose);
+            ip.Setup(x => x.GetUnitId()).Returns(unitId);
+            var repo = new TransactionTypeMasterCommandRepository(ctx, ip.Object);
             return await repo.CreateAsync(new Domain.Entities.TransactionTypeMaster
             {
                 UnitId = unitId,

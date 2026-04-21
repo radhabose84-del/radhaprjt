@@ -5,7 +5,6 @@ namespace FinanceManagement.Application.TransactionTypeMaster.Commands.CreateTra
 {
     public class CreateTransactionTypeMasterCommand : IRequest<ApiResponseDTO<int>>
     {
-        public int UnitId { get; set; }
         public int ModuleId { get; set; }
         public int MenuId { get; set; }
         public string? TypeName { get; set; }

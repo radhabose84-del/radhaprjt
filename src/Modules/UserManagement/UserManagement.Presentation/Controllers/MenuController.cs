@@ -135,10 +135,10 @@ namespace UserManagement.Presentation.Controllers
             return Ok(result);
         }
             [HttpGet("by-name")]
-        public async Task<IActionResult> GetMenu([FromQuery] string? name)
+        public async Task<IActionResult> GetMenu([FromQuery] string? name, [FromQuery] int? moduleId = null)
         {
-           
-            var MenuList = await Mediator.Send(new GetParentMenuQuery {SearchPattern = name});
+
+            var MenuList = await Mediator.Send(new GetParentMenuQuery { SearchPattern = name, ModuleId = moduleId });
             return Ok( new { StatusCode=StatusCodes.Status200OK, data = MenuList });
         }
     }

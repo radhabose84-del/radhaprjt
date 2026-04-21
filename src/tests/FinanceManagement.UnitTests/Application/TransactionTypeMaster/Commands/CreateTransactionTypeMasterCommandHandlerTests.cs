@@ -1,3 +1,4 @@
+using Contracts.Interfaces;
 using FinanceManagement.Application.Common.Interfaces.ITransactionTypeMaster;
 using FinanceManagement.Application.TransactionTypeMaster.Commands.CreateTransactionTypeMaster;
 
@@ -8,14 +9,14 @@ namespace FinanceManagement.UnitTests.Application.TransactionTypeMaster.Commands
         private readonly Mock<ITransactionTypeMasterCommandRepository> _mockCommandRepo = new(MockBehavior.Strict);
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Loose);
         private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Loose);
+        private readonly Mock<IIPAddressService> _mockIp = new(MockBehavior.Loose);
 
         private CreateTransactionTypeMasterCommandHandler CreateSut() =>
-            new(_mockCommandRepo.Object, _mockMediator.Object, _mockMapper.Object);
+            new(_mockCommandRepo.Object, _mockMediator.Object, _mockMapper.Object, _mockIp.Object);
 
         private CreateTransactionTypeMasterCommand ValidCommand() =>
             new()
             {
-                UnitId = 1,
                 ModuleId = 2,
                 MenuId = 3,
                 TypeName = "Invoice",
@@ -23,8 +24,10 @@ namespace FinanceManagement.UnitTests.Application.TransactionTypeMaster.Commands
                 Description = "Invoice Type"
             };
 
-        private void SetupHappyPath(int newId = 1)
+        private void SetupHappyPath(int newId = 1, int unitId = 1)
         {
+            _mockIp.Setup(x => x.GetUnitId()).Returns(unitId);
+
             _mockMapper
                 .Setup(m => m.Map<FinanceManagement.Domain.Entities.TransactionTypeMaster>(It.IsAny<CreateTransactionTypeMasterCommand>()))
                 .Returns(new FinanceManagement.Domain.Entities.TransactionTypeMaster());
@@ -90,6 +93,43 @@ namespace FinanceManagement.UnitTests.Application.TransactionTypeMaster.Commands
             _mockMapper.Verify(
                 m => m.Map<FinanceManagement.Domain.Entities.TransactionTypeMaster>(command),
                 Times.Once);
+        }
+
+        [Fact]
+        public async Task Handle_ValidCommand_StampsUnitIdFromToken()
+        {
+            FinanceManagement.Domain.Entities.TransactionTypeMaster? captured = null;
+            _mockIp.Setup(x => x.GetUnitId()).Returns(7);
+            _mockMapper
+                .Setup(m => m.Map<FinanceManagement.Domain.Entities.TransactionTypeMaster>(It.IsAny<CreateTransactionTypeMasterCommand>()))
+                .Returns(new FinanceManagement.Domain.Entities.TransactionTypeMaster());
+            _mockCommandRepo
+                .Setup(r => r.CreateAsync(It.IsAny<FinanceManagement.Domain.Entities.TransactionTypeMaster>()))
+                .Callback<FinanceManagement.Domain.Entities.TransactionTypeMaster>(e => captured = e)
+                .ReturnsAsync(1);
+
+            await CreateSut().Handle(ValidCommand(), CancellationToken.None);
+
+            captured.Should().NotBeNull();
+            captured!.UnitId.Should().Be(7);
+        }
+
+        [Fact]
+        public async Task Handle_NoUnitClaim_StampsZeroUnitId()
+        {
+            FinanceManagement.Domain.Entities.TransactionTypeMaster? captured = null;
+            _mockIp.Setup(x => x.GetUnitId()).Returns((int?)null);
+            _mockMapper
+                .Setup(m => m.Map<FinanceManagement.Domain.Entities.TransactionTypeMaster>(It.IsAny<CreateTransactionTypeMasterCommand>()))
+                .Returns(new FinanceManagement.Domain.Entities.TransactionTypeMaster());
+            _mockCommandRepo
+                .Setup(r => r.CreateAsync(It.IsAny<FinanceManagement.Domain.Entities.TransactionTypeMaster>()))
+                .Callback<FinanceManagement.Domain.Entities.TransactionTypeMaster>(e => captured = e)
+                .ReturnsAsync(1);
+
+            await CreateSut().Handle(ValidCommand(), CancellationToken.None);
+
+            captured!.UnitId.Should().Be(0);
         }
     }
 }

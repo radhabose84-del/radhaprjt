@@ -1,3 +1,4 @@
+using Contracts.Interfaces;
 using FinanceManagement.Application.Common.Interfaces.ITransactionTypeMaster;
 using FinanceManagement.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -8,10 +9,14 @@ namespace FinanceManagement.Infrastructure.Repositories.TransactionTypeMaster
     public class TransactionTypeMasterCommandRepository : ITransactionTypeMasterCommandRepository
     {
         private readonly ApplicationDbContext _applicationDbContext;
+        private readonly IIPAddressService _ipAddressService;
 
-        public TransactionTypeMasterCommandRepository(ApplicationDbContext applicationDbContext)
+        public TransactionTypeMasterCommandRepository(
+            ApplicationDbContext applicationDbContext,
+            IIPAddressService ipAddressService)
         {
             _applicationDbContext = applicationDbContext;
+            _ipAddressService = ipAddressService;
         }
 
         public async Task<int> CreateAsync(Domain.Entities.TransactionTypeMaster entity)
@@ -23,14 +28,18 @@ namespace FinanceManagement.Infrastructure.Repositories.TransactionTypeMaster
 
         public async Task<int> UpdateAsync(Domain.Entities.TransactionTypeMaster entity)
         {
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
+
             var existingEntity = await _applicationDbContext.TransactionTypeMaster
-                .FirstOrDefaultAsync(x => x.Id == entity.Id && x.IsDeleted == IsDelete.NotDeleted);
+                .FirstOrDefaultAsync(x => x.Id == entity.Id
+                                       && x.UnitId == unitId
+                                       && x.IsDeleted == IsDelete.NotDeleted);
 
             if (existingEntity == null)
                 return 0;
 
-            existingEntity.UnitId = entity.UnitId;
             existingEntity.ModuleId = entity.ModuleId;
+            existingEntity.MenuId = entity.MenuId;
             existingEntity.TypeName = entity.TypeName;
             existingEntity.ShortName = entity.ShortName;
             existingEntity.Description = entity.Description;
@@ -43,8 +52,12 @@ namespace FinanceManagement.Infrastructure.Repositories.TransactionTypeMaster
 
         public async Task<bool> SoftDeleteAsync(int id, CancellationToken ct)
         {
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
+
             var existing = await _applicationDbContext.TransactionTypeMaster
-                .FirstOrDefaultAsync(x => x.Id == id && x.IsDeleted == IsDelete.NotDeleted, ct);
+                .FirstOrDefaultAsync(x => x.Id == id
+                                       && x.UnitId == unitId
+                                       && x.IsDeleted == IsDelete.NotDeleted, ct);
 
             if (existing == null)
                 return false;

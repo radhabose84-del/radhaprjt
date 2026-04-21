@@ -1,8 +1,9 @@
+using Contracts.Dtos.Lookups.Users;
+using Contracts.Interfaces;
+using Contracts.Interfaces.Lookups.Users;
 using Dapper;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using Contracts.Dtos.Lookups.Users;
-using Contracts.Interfaces.Lookups.Users;
 using FinanceManagement.Infrastructure.Data;
 using FinanceManagement.IntegrationTests.Common;
 using FinanceManagement.Infrastructure.Repositories.TransactionTypeMaster;
@@ -23,14 +24,19 @@ namespace FinanceManagement.IntegrationTests.Repositories.TransactionTypeMaster
         private TransactionTypeMasterQueryRepository CreateQueryRepo(
             Mock<IUnitLookup>? unitLookup = null,
             Mock<IModuleLookup>? moduleLookup = null,
-            Mock<IMenuLookup>? menuLookup = null)
+            Mock<IMenuLookup>? menuLookup = null,
+            int? tokenUnitId = 1)
         {
             unitLookup ??= BuildDefaultUnitLookup();
             moduleLookup ??= BuildDefaultModuleLookup();
             menuLookup ??= BuildDefaultMenuLookup();
 
+            var ip = new Mock<IIPAddressService>(MockBehavior.Loose);
+            ip.Setup(x => x.GetUnitId()).Returns(tokenUnitId);
+
             var conn = new SqlConnection(_fixture.ConnectionString);
-            return new TransactionTypeMasterQueryRepository(conn, unitLookup.Object, moduleLookup.Object, menuLookup.Object);
+            return new TransactionTypeMasterQueryRepository(
+                conn, unitLookup.Object, moduleLookup.Object, menuLookup.Object, ip.Object);
         }
 
         private static Mock<IUnitLookup> BuildDefaultUnitLookup(int unitId = 1, string unitName = "Test Unit", string shortName = "TU")
@@ -75,7 +81,9 @@ namespace FinanceManagement.IntegrationTests.Repositories.TransactionTypeMaster
             int menuId = 1)
         {
             await using var ctx = _fixture.CreateFreshDbContext();
-            var repo = new TransactionTypeMasterCommandRepository(ctx);
+            var ip = new Mock<IIPAddressService>(MockBehavior.Loose);
+            ip.Setup(x => x.GetUnitId()).Returns(unitId);
+            var repo = new TransactionTypeMasterCommandRepository(ctx, ip.Object);
             return await repo.CreateAsync(new Domain.Entities.TransactionTypeMaster
             {
                 UnitId = unitId,
@@ -112,7 +120,9 @@ namespace FinanceManagement.IntegrationTests.Repositories.TransactionTypeMaster
             await ClearTableAsync();
             var id = await SeedEntityAsync();
             await using var ctx = _fixture.CreateFreshDbContext();
-            await new TransactionTypeMasterCommandRepository(ctx).SoftDeleteAsync(id, CancellationToken.None);
+            var ip = new Mock<IIPAddressService>(MockBehavior.Loose);
+            ip.Setup(x => x.GetUnitId()).Returns(1);
+            await new TransactionTypeMasterCommandRepository(ctx, ip.Object).SoftDeleteAsync(id, CancellationToken.None);
 
             var (items, total) = await CreateQueryRepo().GetAllAsync(1, 10, null);
 
@@ -150,6 +160,34 @@ namespace FinanceManagement.IntegrationTests.Repositories.TransactionTypeMaster
             items[0].MenuName.Should().Be("Finance Menu");
         }
 
+        [Fact]
+        public async Task GetAllAsync_Should_Return_Only_CurrentUnit_Records()
+        {
+            await ClearTableAsync();
+            await SeedEntityAsync("Invoice1", "INV1", unitId: 1);
+            await SeedEntityAsync("Invoice2", "INV2", unitId: 1);
+            await SeedEntityAsync("Invoice3", "INV3", unitId: 2);
+
+            var (items, total) = await CreateQueryRepo(tokenUnitId: 1).GetAllAsync(1, 10, null);
+
+            items.Should().HaveCount(2);
+            total.Should().Be(2);
+            items.Should().OnlyContain(i => i.UnitId == 1);
+        }
+
+        [Fact]
+        public async Task GetAllAsync_Should_Return_Empty_When_NoUnitClaim()
+        {
+            await ClearTableAsync();
+            await SeedEntityAsync("Invoice1", "INV1", unitId: 1);
+            await SeedEntityAsync("Invoice2", "INV2", unitId: 2);
+
+            var (items, total) = await CreateQueryRepo(tokenUnitId: null).GetAllAsync(1, 10, null);
+
+            items.Should().BeEmpty();
+            total.Should().Be(0);
+        }
+
         // --- GET BY ID ---
 
         [Fact]
@@ -172,9 +210,22 @@ namespace FinanceManagement.IntegrationTests.Repositories.TransactionTypeMaster
             await ClearTableAsync();
             var id = await SeedEntityAsync();
             await using var ctx = _fixture.CreateFreshDbContext();
-            await new TransactionTypeMasterCommandRepository(ctx).SoftDeleteAsync(id, CancellationToken.None);
+            var ip = new Mock<IIPAddressService>(MockBehavior.Loose);
+            ip.Setup(x => x.GetUnitId()).Returns(1);
+            await new TransactionTypeMasterCommandRepository(ctx, ip.Object).SoftDeleteAsync(id, CancellationToken.None);
 
             var dto = await CreateQueryRepo().GetByIdAsync(id);
+
+            dto.Should().BeNull();
+        }
+
+        [Fact]
+        public async Task GetByIdAsync_Should_Return_Null_When_DifferentUnit()
+        {
+            await ClearTableAsync();
+            var id = await SeedEntityAsync(unitId: 2);
+
+            var dto = await CreateQueryRepo(tokenUnitId: 1).GetByIdAsync(id);
 
             dto.Should().BeNull();
         }
@@ -209,6 +260,19 @@ namespace FinanceManagement.IntegrationTests.Repositories.TransactionTypeMaster
             results.Should().BeEmpty();
         }
 
+        [Fact]
+        public async Task AutocompleteAsync_Should_Exclude_OtherUnits()
+        {
+            await ClearTableAsync();
+            await SeedEntityAsync("InvoiceU1", "IU1", unitId: 1);
+            await SeedEntityAsync("InvoiceU2", "IU2", unitId: 2);
+
+            var results = await CreateQueryRepo(tokenUnitId: 1).AutocompleteAsync("Invoice", CancellationToken.None);
+
+            results.Should().HaveCount(1);
+            results[0].TypeName.Should().Be("InvoiceU1");
+        }
+
         // --- TYPE NAME EXISTS ---
 
         [Fact]
@@ -228,7 +292,20 @@ namespace FinanceManagement.IntegrationTests.Repositories.TransactionTypeMaster
             await ClearTableAsync();
             var id = await SeedEntityAsync("Invoice", "INV");
             await using var ctx = _fixture.CreateFreshDbContext();
-            await new TransactionTypeMasterCommandRepository(ctx).SoftDeleteAsync(id, CancellationToken.None);
+            var ip = new Mock<IIPAddressService>(MockBehavior.Loose);
+            ip.Setup(x => x.GetUnitId()).Returns(1);
+            await new TransactionTypeMasterCommandRepository(ctx, ip.Object).SoftDeleteAsync(id, CancellationToken.None);
+
+            var exists = await CreateQueryRepo().TypeNameExistsAsync("Invoice", 1);
+
+            exists.Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task TypeNameExistsAsync_Should_Return_False_For_SameName_In_DifferentUnit()
+        {
+            await ClearTableAsync();
+            await SeedEntityAsync("Invoice", "INV", unitId: 2);
 
             var exists = await CreateQueryRepo().TypeNameExistsAsync("Invoice", 1);
 
@@ -246,6 +323,17 @@ namespace FinanceManagement.IntegrationTests.Repositories.TransactionTypeMaster
             var exists = await CreateQueryRepo().ShortNameExistsAsync("INV", 1);
 
             exists.Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task ShortNameExistsAsync_Should_Return_False_For_SameShort_In_DifferentUnit()
+        {
+            await ClearTableAsync();
+            await SeedEntityAsync("Invoice", "INV", unitId: 2);
+
+            var exists = await CreateQueryRepo().ShortNameExistsAsync("INV", 1);
+
+            exists.Should().BeFalse();
         }
 
         // --- NOT FOUND ---
@@ -269,6 +357,17 @@ namespace FinanceManagement.IntegrationTests.Repositories.TransactionTypeMaster
             var notFound = await CreateQueryRepo().NotFoundAsync(id);
 
             notFound.Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task NotFoundAsync_Should_Return_True_When_Exists_In_OtherUnit()
+        {
+            await ClearTableAsync();
+            var id = await SeedEntityAsync(unitId: 2);
+
+            var notFound = await CreateQueryRepo(tokenUnitId: 1).NotFoundAsync(id);
+
+            notFound.Should().BeTrue();
         }
 
         // --- UNIT/MODULE/MENU EXISTS (lookup-based) ---

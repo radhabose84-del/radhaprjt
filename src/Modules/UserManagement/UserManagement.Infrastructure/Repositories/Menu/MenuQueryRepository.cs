@@ -119,20 +119,20 @@ namespace UserManagement.Infrastructure.Repositories.Menu
             var Menus = await _dbConnection.QueryAsync<UserManagement.Domain.Entities.Menu>(query, new { MenuName });
             return Menus.FirstOrDefault();
         }
-        public async Task<List<UserManagement.Domain.Entities.Menu>> GetParentMenuAutoComplete(string searchPattern)
+        public async Task<List<UserManagement.Domain.Entities.Menu>> GetParentMenuAutoComplete(string searchPattern, int? moduleId = null)
         {
-
+            var moduleFilter = moduleId.HasValue ? " AND ModuleId = @ModuleId" : string.Empty;
 
             var query = $@"
-                 SELECT Id, MenuName 
-                 FROM AppData.Menus 
-                 WHERE IsDeleted = 0 
-                 AND MenuName LIKE @SearchPattern";
-
+                 SELECT Id, MenuName
+                 FROM AppData.Menus
+                 WHERE IsDeleted = 0
+                 AND MenuName LIKE @SearchPattern{moduleFilter}";
 
             var parameters = new
             {
-                SearchPattern = $"%{searchPattern ?? string.Empty}%"
+                SearchPattern = $"%{searchPattern ?? string.Empty}%",
+                ModuleId = moduleId
             };
 
             var modules = await _dbConnection.QueryAsync<UserManagement.Domain.Entities.Menu>(query, parameters);

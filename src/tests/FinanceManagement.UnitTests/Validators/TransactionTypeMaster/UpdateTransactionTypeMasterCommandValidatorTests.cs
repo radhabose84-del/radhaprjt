@@ -1,4 +1,4 @@
-using Contracts.Interfaces.Lookups.Users;
+using Contracts.Interfaces;
 using FluentValidation.TestHelper;
 using FinanceManagement.Application.Common.Interfaces.ITransactionTypeMaster;
 using FinanceManagement.Application.TransactionTypeMaster.Commands.UpdateTransactionTypeMaster;
@@ -10,25 +10,25 @@ namespace FinanceManagement.UnitTests.Validators.TransactionTypeMaster
     public sealed class UpdateTransactionTypeMasterCommandValidatorTests
     {
         private readonly Mock<ITransactionTypeMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
-        private readonly Mock<IUnitLookup> _mockUnitLookup = new(MockBehavior.Loose);
+        private readonly Mock<IIPAddressService> _mockIp = new(MockBehavior.Loose);
 
-        private UpdateTransactionTypeMasterCommandValidator CreateValidator() =>
-            new(TestMaxLengthProviderFactory.Create(), _mockQueryRepo.Object, _mockUnitLookup.Object);
+        private UpdateTransactionTypeMasterCommandValidator CreateValidator()
+        {
+            _mockIp.Setup(x => x.GetUnitId()).Returns(1);
+            return new UpdateTransactionTypeMasterCommandValidator(
+                TestMaxLengthProviderFactory.Create(),
+                _mockQueryRepo.Object,
+                _mockIp.Object);
+        }
 
         private void SetupAllAsyncMocks(int id = 1, string typeName = "TestType", string shortName = "TT", int unitId = 1)
         {
+            _mockIp.Setup(x => x.GetUnitId()).Returns(unitId);
             _mockQueryRepo.Setup(r => r.NotFoundAsync(id)).ReturnsAsync(false);
             _mockQueryRepo.Setup(r => r.TypeNameExistsAsync(typeName, unitId, id)).ReturnsAsync(false);
             _mockQueryRepo.Setup(r => r.ShortNameExistsAsync(shortName, unitId, id)).ReturnsAsync(false);
-            _mockQueryRepo.Setup(r => r.UnitExistsAsync(It.IsAny<int>())).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.ModuleExistsAsync(It.IsAny<int>())).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.MenuExistsAsync(It.IsAny<int>())).ReturnsAsync(true);
-
-            _mockUnitLookup.Setup(u => u.GetAllUnitAsync())
-                .ReturnsAsync(new List<Contracts.Dtos.Lookups.Users.UnitLookupDto>
-                {
-                    new() { UnitId = unitId, UnitName = $"Unit{unitId}" }
-                });
         }
 
         private static UpdateTransactionTypeMasterCommand ValidCommand() =>
@@ -38,7 +38,6 @@ namespace FinanceManagement.UnitTests.Validators.TransactionTypeMaster
                 TypeName = "TestType",
                 ShortName = "TT",
                 Description = "Test Description",
-                UnitId = 1,
                 ModuleId = 1,
                 MenuId = 1,
                 IsActive = 1
@@ -70,10 +69,10 @@ namespace FinanceManagement.UnitTests.Validators.TransactionTypeMaster
         public async Task Validate_NotFoundId_FailsValidation()
         {
             var command = ValidCommand();
+            _mockIp.Setup(x => x.GetUnitId()).Returns(1);
             _mockQueryRepo.Setup(r => r.NotFoundAsync(1)).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.TypeNameExistsAsync("TestType", 1, 1)).ReturnsAsync(false);
             _mockQueryRepo.Setup(r => r.ShortNameExistsAsync("TT", 1, 1)).ReturnsAsync(false);
-            _mockQueryRepo.Setup(r => r.UnitExistsAsync(1)).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.ModuleExistsAsync(1)).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.MenuExistsAsync(1)).ReturnsAsync(true);
 
@@ -147,18 +146,6 @@ namespace FinanceManagement.UnitTests.Validators.TransactionTypeMaster
         }
 
         [Fact]
-        public async Task Validate_InvalidUnitId_FailsValidation()
-        {
-            var command = ValidCommand();
-            SetupAllAsyncMocks();
-            _mockQueryRepo.Setup(r => r.UnitExistsAsync(1)).ReturnsAsync(false);
-
-            var result = await CreateValidator().TestValidateAsync(command);
-
-            result.ShouldHaveValidationErrorFor(x => x.UnitId);
-        }
-
-        [Fact]
         public async Task Validate_TypeNameExceedsMaxLength_FailsValidation()
         {
             var command = ValidCommand();
@@ -168,6 +155,23 @@ namespace FinanceManagement.UnitTests.Validators.TransactionTypeMaster
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.TypeName);
+        }
+
+        [Fact]
+        public async Task Validate_UsesUnitIdFromToken_ForAlreadyExistsCheck()
+        {
+            var command = ValidCommand();
+            _mockIp.Setup(x => x.GetUnitId()).Returns(9);
+            _mockQueryRepo.Setup(r => r.NotFoundAsync(1)).ReturnsAsync(false);
+            _mockQueryRepo.Setup(r => r.TypeNameExistsAsync("TestType", 9, 1)).ReturnsAsync(false);
+            _mockQueryRepo.Setup(r => r.ShortNameExistsAsync("TT", 9, 1)).ReturnsAsync(false);
+            _mockQueryRepo.Setup(r => r.ModuleExistsAsync(1)).ReturnsAsync(true);
+            _mockQueryRepo.Setup(r => r.MenuExistsAsync(1)).ReturnsAsync(true);
+
+            await CreateValidator().TestValidateAsync(command);
+
+            _mockQueryRepo.Verify(r => r.TypeNameExistsAsync("TestType", 9, 1), Times.AtLeastOnce);
+            _mockQueryRepo.Verify(r => r.ShortNameExistsAsync("TT", 9, 1), Times.AtLeastOnce);
         }
     }
 }

@@ -1,3 +1,4 @@
+using Contracts.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using ProductionManagement.Application.Common.Interfaces.ILotMaster;
 using ProductionManagement.Infrastructure.Data;
@@ -8,10 +9,14 @@ namespace ProductionManagement.Infrastructure.Repositories.LotMaster
     public class LotMasterCommandRepository : ILotMasterCommandRepository
     {
         private readonly ApplicationDbContext _dbContext;
+        private readonly IIPAddressService _ipAddressService;
 
-        public LotMasterCommandRepository(ApplicationDbContext dbContext)
+        public LotMasterCommandRepository(
+            ApplicationDbContext dbContext,
+            IIPAddressService ipAddressService)
         {
             _dbContext = dbContext;
+            _ipAddressService = ipAddressService;
         }
 
         public async Task<int> CreateAsync(Domain.Entities.LotMaster entity)
@@ -23,8 +28,12 @@ namespace ProductionManagement.Infrastructure.Repositories.LotMaster
 
         public async Task<int> UpdateAsync(Domain.Entities.LotMaster entity)
         {
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
+
             var existing = await _dbContext.LotMaster
-                .FirstOrDefaultAsync(x => x.Id == entity.Id && x.IsDeleted == IsDelete.NotDeleted);
+                .FirstOrDefaultAsync(x => x.Id == entity.Id
+                                       && x.UnitId == unitId
+                                       && x.IsDeleted == IsDelete.NotDeleted);
 
             if (existing == null)
                 return 0;
@@ -43,8 +52,12 @@ namespace ProductionManagement.Infrastructure.Repositories.LotMaster
 
         public async Task<bool> SoftDeleteAsync(int id, CancellationToken ct)
         {
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
+
             var existing = await _dbContext.LotMaster
-                .FirstOrDefaultAsync(x => x.Id == id && x.IsDeleted == IsDelete.NotDeleted, ct);
+                .FirstOrDefaultAsync(x => x.Id == id
+                                       && x.UnitId == unitId
+                                       && x.IsDeleted == IsDelete.NotDeleted, ct);
 
             if (existing == null)
                 return false;

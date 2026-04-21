@@ -386,13 +386,14 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
             return result.ToList();
         }
 
-        public async Task<List<DispatchAdvicePackRangeDto>> GetPackRangeAsync(int itemId, int lotId, int packTypeId, int statusId, int range, string? orderType, int? unitId)
+        public async Task<List<DispatchAdvicePackRangeDto>> GetPackRangeAsync(int itemId, int lotId, int packTypeId, int statusId, int range, string? orderType, int? sourceUnitId)
         {
-            // If unitId param is null → get from token, filter on S.UnitId
-            // If unitId param is provided → use it, filter on S.SourceUnitId
-            var fromToken = !unitId.HasValue;
-            var resolvedUnitId = unitId ?? (_ipAddressService.GetUnitId() ?? 0);
-            var unitColumn = fromToken ? "S.UnitId" : "S.SourceUnitId";
+            // UnitId is ALWAYS from IP/Address service (token) — filter on S.UnitId
+            // SourceUnitId is user-selectable: null → S.SourceUnitId IS NULL ; value → S.SourceUnitId = @SourceUnitId
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
+            var sourceUnitFilter = sourceUnitId.HasValue
+                ? "S.SourceUnitId = @SourceUnitId"
+                : "S.SourceUnitId IS NULL";
 
             // FIFO (default) → DocDate, PackNo ASC ; LIFO → DocDate, PackNo DESC
             var isLifo = string.Equals(orderType, "LIFO", StringComparison.OrdinalIgnoreCase);
@@ -401,12 +402,13 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
             var sql = $@"
                 SELECT S.PackNo, S.ItemId, S.LotId, S.PackTypeId
                 FROM Sales.StockLedger S
-                WHERE {unitColumn} = @UnitId AND S.ItemId = @ItemId AND S.StatusId = @StatusId
+                WHERE S.UnitId = @UnitId AND {sourceUnitFilter}
+                    AND S.ItemId = @ItemId AND S.StatusId = @StatusId
                     AND S.LotId = @LotId AND S.PackTypeId = @PackTypeId
                 ORDER BY S.DocDate, S.PackNo {direction}";
 
             var rows = (await _dbConnection.QueryAsync<dynamic>(sql,
-                new { UnitId = resolvedUnitId, ItemId = itemId, StatusId = statusId, LotId = lotId, PackTypeId = packTypeId })).ToList();
+                new { UnitId = unitId, SourceUnitId = sourceUnitId, ItemId = itemId, StatusId = statusId, LotId = lotId, PackTypeId = packTypeId })).ToList();
 
             // Resolve LotName and PackTypeName via lookups
             var lotLookupList = await _lotMasterLookup.GetByIdsAsync(new[] { lotId });
