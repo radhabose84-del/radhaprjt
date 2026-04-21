@@ -25,11 +25,11 @@ namespace SalesManagement.UnitTests.Validators.AgentCustomerMapping
         private CreateAgentCustomerMappingCommandValidator CreateValidator()
             => new(TestMaxLengthProviderFactory.Create(), _mockQueryRepo.Object, _mockAccessFilter.Object, _mockCustomerLookup.Object, _mockAgentLookup.Object);
 
-        private void SetupAllAsyncMocks(int customerId = 1, int agentId = 2, int salesSegmentId = 1)
+        private void SetupAllAsyncMocks(int customerId = 1, int agentId = 2, int salesGroupId = 1)
         {
             _mockQueryRepo.Setup(r => r.CustomerExistsAsync(customerId, It.IsAny<CancellationToken>())).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.AgentExistsAsync(agentId, It.IsAny<CancellationToken>())).ReturnsAsync(true);
-            _mockQueryRepo.Setup(r => r.SalesSegmentExistsAsync(salesSegmentId, It.IsAny<CancellationToken>())).ReturnsAsync(true);
+            _mockQueryRepo.Setup(r => r.SalesGroupExistsAsync(salesGroupId, It.IsAny<CancellationToken>())).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.MappingAlreadyExistsAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>())).ReturnsAsync(false);
             _mockAccessFilter.Setup(f => f.CanAccessAgentAsync(agentId, It.IsAny<CancellationToken>())).ReturnsAsync(true);
         }
@@ -38,7 +38,7 @@ namespace SalesManagement.UnitTests.Validators.AgentCustomerMapping
         {
             CustomerId = 1,
             AgentId = 2,
-            SalesSegmentId = 1,
+            SalesGroupId = 1,
             EffectiveFrom = DateTime.Today.AddDays(-1)
         };
 
@@ -65,7 +65,7 @@ namespace SalesManagement.UnitTests.Validators.AgentCustomerMapping
             var cmd = ValidCommand();
             cmd.CustomerId = customerId;
             _mockQueryRepo.Setup(r => r.AgentExistsAsync(2, It.IsAny<CancellationToken>())).ReturnsAsync(true);
-            _mockQueryRepo.Setup(r => r.SalesSegmentExistsAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(true);
+            _mockQueryRepo.Setup(r => r.SalesGroupExistsAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(true);
 
             var result = await CreateValidator().TestValidateAsync(cmd);
 
@@ -78,7 +78,7 @@ namespace SalesManagement.UnitTests.Validators.AgentCustomerMapping
             var cmd = ValidCommand();
             _mockQueryRepo.Setup(r => r.CustomerExistsAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(false);
             _mockQueryRepo.Setup(r => r.AgentExistsAsync(2, It.IsAny<CancellationToken>())).ReturnsAsync(true);
-            _mockQueryRepo.Setup(r => r.SalesSegmentExistsAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(true);
+            _mockQueryRepo.Setup(r => r.SalesGroupExistsAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.MappingAlreadyExistsAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>())).ReturnsAsync(false);
 
             var result = await CreateValidator().TestValidateAsync(cmd);
@@ -96,43 +96,43 @@ namespace SalesManagement.UnitTests.Validators.AgentCustomerMapping
             var cmd = ValidCommand();
             cmd.AgentId = agentId;
             _mockQueryRepo.Setup(r => r.CustomerExistsAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(true);
-            _mockQueryRepo.Setup(r => r.SalesSegmentExistsAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(true);
+            _mockQueryRepo.Setup(r => r.SalesGroupExistsAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(true);
 
             var result = await CreateValidator().TestValidateAsync(cmd);
 
             result.ShouldHaveValidationErrorFor(x => x.AgentId);
         }
 
-        // ── SalesSegmentId Rules ──────────────────────────────────────────────
+        // ── SalesGroupId Rules ──────────────────────────────────────────────
 
         [Theory]
         [InlineData(0)]
         [InlineData(-1)]
-        public async Task SalesSegmentId_ZeroOrNegative_FailsValidation(int segId)
+        public async Task SalesGroupId_ZeroOrNegative_FailsValidation(int grpId)
         {
             var cmd = ValidCommand();
-            cmd.SalesSegmentId = segId;
+            cmd.SalesGroupId = grpId;
             _mockQueryRepo.Setup(r => r.CustomerExistsAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.AgentExistsAsync(2, It.IsAny<CancellationToken>())).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.MappingAlreadyExistsAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>())).ReturnsAsync(false);
 
             var result = await CreateValidator().TestValidateAsync(cmd);
 
-            result.ShouldHaveValidationErrorFor(x => x.SalesSegmentId);
+            result.ShouldHaveValidationErrorFor(x => x.SalesGroupId);
         }
 
         [Fact]
-        public async Task SalesSegmentId_NotFound_FailsValidation()
+        public async Task SalesGroupId_NotFound_FailsValidation()
         {
             var cmd = ValidCommand();
             _mockQueryRepo.Setup(r => r.CustomerExistsAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.AgentExistsAsync(2, It.IsAny<CancellationToken>())).ReturnsAsync(true);
-            _mockQueryRepo.Setup(r => r.SalesSegmentExistsAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(false);
+            _mockQueryRepo.Setup(r => r.SalesGroupExistsAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(false);
             _mockQueryRepo.Setup(r => r.MappingAlreadyExistsAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>())).ReturnsAsync(false);
 
             var result = await CreateValidator().TestValidateAsync(cmd);
 
-            result.ShouldHaveValidationErrorFor(x => x.SalesSegmentId);
+            result.ShouldHaveValidationErrorFor(x => x.SalesGroupId);
         }
 
         // ── EffectiveFrom Rules ───────────────────────────────────────────────

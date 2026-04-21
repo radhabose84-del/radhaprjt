@@ -14,7 +14,7 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCustomerMapping
 
         private AgentCustomerMappingCommandRepository CreateRepo(ApplicationDbContext ctx) => new(ctx);
 
-        private async Task<int> EnsureSalesSegmentAsync()
+        private async Task<int> EnsureSalesGroupAsync()
         {
             await using var ctx = _fixture.CreateFreshDbContext();
 
@@ -31,59 +31,46 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCustomerMapping
                 await ctx.SaveChangesAsync();
             }
 
-            var ch = await ctx.SalesChannel.IgnoreQueryFilters()
-                .FirstOrDefaultAsync(x => x.SalesChannelCode == "ACMSC");
-            if (ch == null)
+            var office = await ctx.SalesOffice.IgnoreQueryFilters()
+                .FirstOrDefaultAsync(x => x.SalesOrganisationId == org.Id);
+            if (office == null)
             {
-                ch = new SalesManagement.Domain.Entities.SalesChannel
+                office = new SalesManagement.Domain.Entities.SalesOffice
                 {
-                    SalesChannelCode = "ACMSC", SalesChannelName = "ACM Channel",
-                    IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted
+                    SalesOfficeName = "ACM Office",
+                    SalesOrganisationId = org.Id,
+                    IsActive = Status.Active,
+                    IsDeleted = IsDelete.NotDeleted
                 };
-                await ctx.SalesChannel.AddAsync(ch);
+                await ctx.SalesOffice.AddAsync(office);
                 await ctx.SaveChangesAsync();
             }
 
-            var bu = await ctx.BusinessUnit.IgnoreQueryFilters()
-                .FirstOrDefaultAsync(x => x.BusinessUnitCode == "ACMBU");
-            if (bu == null)
-            {
-                bu = new SalesManagement.Domain.Entities.BusinessUnit
-                {
-                    BusinessUnitCode = "ACMBU", BusinessUnitName = "ACM BU",
-                    Description = "ACM BU", IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted
-                };
-                await ctx.BusinessUnit.AddAsync(bu);
-                await ctx.SaveChangesAsync();
-            }
-
-            var existing = await ctx.SalesSegment.IgnoreQueryFilters()
-                .FirstOrDefaultAsync(x => x.SalesOrganisationId == org.Id && x.SalesChannelId == ch.Id && x.BusinessUnitId == bu.Id);
+            var existing = await ctx.SalesGroup.IgnoreQueryFilters()
+                .FirstOrDefaultAsync(x => x.SalesOfficeId == office.Id);
             if (existing != null) return existing.Id;
 
-            var s = new SalesManagement.Domain.Entities.SalesSegment
+            var g = new SalesManagement.Domain.Entities.SalesGroup
             {
-                SalesOrganisationId = org.Id,
-                SalesChannelId = ch.Id,
-                BusinessUnitId = bu.Id,
-                SegmentName = "ACM Seg",
+                SalesGroupName = "ACM Group",
+                SalesOfficeId = office.Id,
                 IsActive = Status.Active,
                 IsDeleted = IsDelete.NotDeleted
             };
-            await ctx.SalesSegment.AddAsync(s);
+            await ctx.SalesGroup.AddAsync(g);
             await ctx.SaveChangesAsync();
-            return s.Id;
+            return g.Id;
         }
 
         private async Task<SalesManagement.Domain.Entities.AgentCustomerMapping> BuildEntityAsync(
             int customerId, int agentId, bool isDefault = false)
         {
-            var segId = await EnsureSalesSegmentAsync();
+            var grpId = await EnsureSalesGroupAsync();
             return new SalesManagement.Domain.Entities.AgentCustomerMapping
             {
                 CustomerId = customerId,
                 AgentId = agentId,
-                SalesSegmentId = segId,
+                SalesGroupId = grpId,
                 EffectiveFrom = DateTime.UtcNow.Date,
                 IsDefaultAgent = isDefault,
                 Remarks = "test",

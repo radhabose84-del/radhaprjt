@@ -59,23 +59,23 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentPortal
             await conn.OpenAsync();
             await conn.ExecuteAsync(@"
                 INSERT INTO Sales.AgentCustomerMapping
-                    (AgentId, CustomerId, SalesSegmentId, IsDefaultAgent, EffectiveFrom, EffectiveTo, IsActive, IsDeleted,
+                    (AgentId, CustomerId, SalesGroupId, IsDefaultAgent, EffectiveFrom, EffectiveTo, IsActive, IsDeleted,
                      CreatedBy, CreatedDate, CreatedByName, CreatedIP)
                 VALUES
-                    (@AgentId, @CustomerId, @SegmentId, 1, GETDATE(), @EffectiveTo, @IsActive, @IsDeleted,
+                    (@AgentId, @CustomerId, @GroupId, 1, GETDATE(), @EffectiveTo, @IsActive, @IsDeleted,
                      1, GETDATE(), 'test-user', '127.0.0.1')",
                 new
                 {
                     AgentId = agentId,
                     CustomerId = customerId,
-                    SegmentId = _segmentId,
+                    GroupId = _salesGroupId,
                     IsActive = isActive ? 1 : 0,
                     IsDeleted = isDeleted ? 1 : 0,
                     EffectiveTo = effectiveTo?.ToDateTime(TimeOnly.MinValue)
                 });
         }
 
-        private int _segmentId = 1;
+        private int _salesGroupId = 1;
 
         private async Task EnsurePrerequisitesAsync()
         {
@@ -94,49 +94,36 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentPortal
             }
             ctx.ChangeTracker.Clear();
 
-            var ch = await ctx.SalesChannel.IgnoreQueryFilters()
-                .FirstOrDefaultAsync(x => x.SalesChannelCode == "APCH");
-            if (ch == null)
+            var office = await ctx.SalesOffice.IgnoreQueryFilters()
+                .FirstOrDefaultAsync(x => x.SalesOrganisationId == org.Id && x.SalesOfficeName == "AP Office");
+            if (office == null)
             {
-                ch = new SalesManagement.Domain.Entities.SalesChannel
+                office = new SalesManagement.Domain.Entities.SalesOffice
                 {
-                    SalesChannelCode = "APCH", SalesChannelName = "AP Channel",
+                    SalesOfficeName = "AP Office",
+                    SalesOrganisationId = org.Id,
                     IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted
                 };
-                await ctx.SalesChannel.AddAsync(ch);
+                await ctx.SalesOffice.AddAsync(office);
                 await ctx.SaveChangesAsync();
             }
             ctx.ChangeTracker.Clear();
 
-            var bu = await ctx.BusinessUnit.IgnoreQueryFilters()
-                .FirstOrDefaultAsync(x => x.BusinessUnitCode == "APBU");
-            if (bu == null)
+            var group = await ctx.SalesGroup.IgnoreQueryFilters()
+                .FirstOrDefaultAsync(x => x.SalesOfficeId == office.Id && x.SalesGroupName == "AP_GRP");
+            if (group == null)
             {
-                bu = new SalesManagement.Domain.Entities.BusinessUnit
+                group = new SalesManagement.Domain.Entities.SalesGroup
                 {
-                    BusinessUnitCode = "APBU", BusinessUnitName = "AP BU", Description = "AP BU",
+                    SalesGroupName = "AP_GRP",
+                    SalesOfficeId = office.Id,
                     IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted
                 };
-                await ctx.BusinessUnit.AddAsync(bu);
-                await ctx.SaveChangesAsync();
-            }
-            ctx.ChangeTracker.Clear();
-
-            var seg = await ctx.SalesSegment.IgnoreQueryFilters()
-                .FirstOrDefaultAsync(x => x.SegmentName == "AP_SEG");
-            if (seg == null)
-            {
-                seg = new SalesManagement.Domain.Entities.SalesSegment
-                {
-                    SalesOrganisationId = org.Id, SalesChannelId = ch.Id, BusinessUnitId = bu.Id,
-                    SegmentName = "AP_SEG",
-                    IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted
-                };
-                await ctx.SalesSegment.AddAsync(seg);
+                await ctx.SalesGroup.AddAsync(group);
                 await ctx.SaveChangesAsync();
             }
 
-            _segmentId = seg.Id;
+            _salesGroupId = group.Id;
         }
 
         private async Task ClearAsync()

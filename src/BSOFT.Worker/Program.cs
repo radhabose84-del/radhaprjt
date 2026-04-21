@@ -42,7 +42,7 @@ builder.Services.AddSerilog(lc => lc
     .Enrich.FromLogContext()
     .WriteTo.Console()
     .WriteTo.File(
-        path: "logs/bsoft-worker-.log",
+        path: Path.Combine(AppContext.BaseDirectory, "logs", "bsoft-worker-.log"),
         rollingInterval: RollingInterval.Day,
         retainedFileCountLimit: 30));
 
