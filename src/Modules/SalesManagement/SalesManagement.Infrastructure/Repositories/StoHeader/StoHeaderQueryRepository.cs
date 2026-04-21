@@ -21,6 +21,7 @@ namespace SalesManagement.Infrastructure.Repositories.StoHeader
         private readonly IUOMLookup _uomLookup;
         private readonly IUserLookup _userLookup;
         private readonly IIPAddressService _ipAddressService;
+        private readonly IDataAccessFilter _dataAccessFilter;
 
         public StoHeaderQueryRepository(
             IDbConnection dbConnection,
@@ -29,7 +30,8 @@ namespace SalesManagement.Infrastructure.Repositories.StoHeader
             IItemLookup itemLookup,
             IUOMLookup uomLookup,
             IUserLookup userLookup,
-            IIPAddressService ipAddressService)
+            IIPAddressService ipAddressService,
+            IDataAccessFilter dataAccessFilter)
         {
             _dbConnection = dbConnection;
             _unitLookup = unitLookup;
@@ -38,6 +40,7 @@ namespace SalesManagement.Infrastructure.Repositories.StoHeader
             _uomLookup = uomLookup;
             _userLookup = userLookup;
             _ipAddressService = ipAddressService;
+            _dataAccessFilter = dataAccessFilter;
         }
 
         public async Task<(List<StoHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
@@ -52,13 +55,20 @@ namespace SalesManagement.Infrastructure.Repositories.StoHeader
                        OR hs.Description LIKE @SearchTerm
                        OR h.Remarks LIKE @SearchTerm)";
 
+            // From-unit filter: restrict to user's own SupplyingPlantId unless admin bypass
+            var ctx = await _dataAccessFilter.GetContextAsync();
+            var unitId = _ipAddressService.GetUnitId();
+            var unitFilter = ctx.BypassDataAccess || !unitId.HasValue
+                ? string.Empty
+                : " AND h.SupplyingPlantId = @UnitId";
+
             var countSql = $@"
                 SELECT COUNT(*)
                 FROM Sales.StoHeader h
                 LEFT JOIN Sales.StoTypeMaster st ON h.StoTypeId = st.Id AND st.IsDeleted = 0
                 LEFT JOIN Sales.MovementTypeConfig mt ON h.MovementTypeId = mt.Id AND mt.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster hs ON h.HeaderStatusId = hs.Id AND hs.IsDeleted = 0
-                WHERE h.IsDeleted = 0 {searchFilter};";
+                WHERE h.IsDeleted = 0 {unitFilter} {searchFilter};";
 
             var dataSql = $@"
                 SELECT
@@ -93,13 +103,14 @@ namespace SalesManagement.Infrastructure.Repositories.StoHeader
                 LEFT JOIN Sales.StoTypeMaster st ON h.StoTypeId = st.Id AND st.IsDeleted = 0
                 LEFT JOIN Sales.MovementTypeConfig mt ON h.MovementTypeId = mt.Id AND mt.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster hs ON h.HeaderStatusId = hs.Id AND hs.IsDeleted = 0
-                WHERE h.IsDeleted = 0 {searchFilter}
+                WHERE h.IsDeleted = 0 {unitFilter} {searchFilter}
                 ORDER BY h.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;";
 
             var parameters = new
             {
                 SearchTerm = $"%{searchTerm}%",
+                UnitId = unitId,
                 Offset = (pageNumber - 1) * pageSize,
                 PageSize = pageSize
             };
@@ -137,7 +148,13 @@ namespace SalesManagement.Infrastructure.Repositories.StoHeader
 
         public async Task<StoHeaderDto?> GetByIdAsync(int id)
         {
-            const string headerSql = @"
+            var ctx = await _dataAccessFilter.GetContextAsync();
+            var unitId = _ipAddressService.GetUnitId();
+            var unitFilter = ctx.BypassDataAccess || !unitId.HasValue
+                ? string.Empty
+                : " AND h.SupplyingPlantId = @UnitId";
+
+            var headerSql = $@"
                 SELECT
                     h.Id,
                     h.StoNumber,
@@ -170,9 +187,9 @@ namespace SalesManagement.Infrastructure.Repositories.StoHeader
                 LEFT JOIN Sales.StoTypeMaster st ON h.StoTypeId = st.Id AND st.IsDeleted = 0
                 LEFT JOIN Sales.MovementTypeConfig mt ON h.MovementTypeId = mt.Id AND mt.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster hs ON h.HeaderStatusId = hs.Id AND hs.IsDeleted = 0
-                WHERE h.Id = @Id AND h.IsDeleted = 0;";
+                WHERE h.Id = @Id AND h.IsDeleted = 0 {unitFilter};";
 
-            var header = await _dbConnection.QueryFirstOrDefaultAsync<StoHeaderDto>(headerSql, new { Id = id });
+            var header = await _dbConnection.QueryFirstOrDefaultAsync<StoHeaderDto>(headerSql, new { Id = id, UnitId = unitId });
 
             if (header == null)
                 return null;
@@ -235,7 +252,13 @@ namespace SalesManagement.Infrastructure.Repositories.StoHeader
 
         public async Task<IReadOnlyList<StoHeaderLookupDto>> AutocompleteAsync(string term, CancellationToken ct)
         {
-            const string sql = @"
+            var ctx = await _dataAccessFilter.GetContextAsync(ct);
+            var unitId = _ipAddressService.GetUnitId();
+            var unitFilter = ctx.BypassDataAccess || !unitId.HasValue
+                ? string.Empty
+                : " AND h.SupplyingPlantId = @UnitId";
+
+            var sql = $@"
                 SELECT TOP 20
                     h.Id,
                     h.StoNumber,
@@ -247,9 +270,11 @@ namespace SalesManagement.Infrastructure.Repositories.StoHeader
                 WHERE h.IsDeleted = 0 AND h.IsActive = 1
                   AND ms.Code = 'Approved'
                   AND (h.StoNumber LIKE @Term OR st.StoTypeName LIKE @Term)
+                  {unitFilter}
                 ORDER BY h.StoNumber ASC;";
 
-            var result = await _dbConnection.QueryAsync<StoHeaderLookupDto>(sql, new { Term = $"%{term}%" });
+            var result = await _dbConnection.QueryAsync<StoHeaderLookupDto>(
+                new CommandDefinition(sql, new { Term = $"%{term}%", UnitId = unitId }, cancellationToken: ct));
             return result.ToList();
         }
 
