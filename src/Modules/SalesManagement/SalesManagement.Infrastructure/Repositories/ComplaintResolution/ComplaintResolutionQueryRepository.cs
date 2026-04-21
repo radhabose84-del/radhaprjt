@@ -7,6 +7,7 @@ using Contracts.Interfaces.Lookups.Warehouse;
 using Dapper;
 using SalesManagement.Application.Common.Interfaces.IComplaintResolution;
 using SalesManagement.Application.ComplaintResolution.Dto;
+using SalesManagement.Domain.Common;
 
 namespace SalesManagement.Infrastructure.Repositories.ComplaintResolution
 {
@@ -64,6 +65,7 @@ namespace SalesManagement.Infrastructure.Repositories.ComplaintResolution
                 FROM Sales.ComplaintResolution cr
                 INNER JOIN Sales.ComplaintHeader ch ON cr.ComplaintHeaderId = ch.Id AND ch.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster cs ON cr.ClosureStatusId = cs.Id AND cs.IsDeleted = 0
+                LEFT JOIN Sales.MiscTypeMaster cst ON cs.MiscTypeId = cst.Id AND cst.MiscTypeCode = @ClosureStatusType AND cst.IsDeleted = 0
                 WHERE cr.IsDeleted = 0 {allFilters};";
 
             var dataSql = $@"
@@ -74,13 +76,15 @@ namespace SalesManagement.Infrastructure.Repositories.ComplaintResolution
                     ch.ComplaintDate,
                     ch.CustomerId,
                     rt.Description AS ResolutionTypeName,
-                    ISNULL(cs.Description, 'Open') AS ClosureStatusName,
+                    ISNULL(cs.Description, @DefaultClosureStatus) AS ClosureStatusName,
                     cr.ResolvedBy,
                     cr.ResolvedDate
                 FROM Sales.ComplaintResolution cr
                 INNER JOIN Sales.ComplaintHeader ch ON cr.ComplaintHeaderId = ch.Id AND ch.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster rt ON cr.ResolutionTypeId = rt.Id AND rt.IsDeleted = 0
+                LEFT JOIN Sales.MiscTypeMaster rtt ON rt.MiscTypeId = rtt.Id AND rtt.MiscTypeCode = @ResolutionTypeType AND rtt.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster cs ON cr.ClosureStatusId = cs.Id AND cs.IsDeleted = 0
+                LEFT JOIN Sales.MiscTypeMaster cst ON cs.MiscTypeId = cst.Id AND cst.MiscTypeCode = @ClosureStatusType AND cst.IsDeleted = 0
                 WHERE cr.IsDeleted = 0 {allFilters}
                 ORDER BY cr.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;";
@@ -88,6 +92,9 @@ namespace SalesManagement.Infrastructure.Repositories.ComplaintResolution
             var dp = new DynamicParameters();
             dp.Add("SearchTerm", $"%{searchTerm}%");
             dp.Add("StatusFilter", statusFilter);
+            dp.Add("ClosureStatusType", MiscEnumEntity.ClosureStatus);
+            dp.Add("ResolutionTypeType", MiscEnumEntity.ResolutionType);
+            dp.Add("DefaultClosureStatus", MiscEnumEntity.ClosureStatusOpen);
             dp.Add("Offset", (pageNumber - 1) * pageSize);
             dp.Add("PageSize", pageSize);
             if (accessCtx.IsCustomerRestricted && accessCtx.AllowedCustomerIds.Count > 0)

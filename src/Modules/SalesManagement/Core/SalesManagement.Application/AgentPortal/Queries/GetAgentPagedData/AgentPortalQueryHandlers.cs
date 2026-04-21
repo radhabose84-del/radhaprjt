@@ -78,8 +78,7 @@ namespace SalesManagement.Application.AgentPortal.Queries.GetAgentPagedData
             if (!partyId.HasValue)
                 return new ApiResponseDTO<List<AgentSalesOrderListDto>> { IsSuccess = false, Message = "Agent not identified." };
 
-            var customerIds = await _queryRepository.GetAgentCustomerIdsAsync(partyId.Value);
-            var (data, totalCount) = await _queryRepository.GetSalesOrdersAsync(customerIds, request.PageNumber, request.PageSize, request.SearchTerm);
+            var (data, totalCount) = await _queryRepository.GetSalesOrdersAsync(partyId.Value, request.PageNumber, request.PageSize, request.SearchTerm);
 
             return new ApiResponseDTO<List<AgentSalesOrderListDto>>
             {
