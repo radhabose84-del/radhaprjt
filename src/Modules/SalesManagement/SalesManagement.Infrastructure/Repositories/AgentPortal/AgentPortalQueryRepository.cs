@@ -178,9 +178,9 @@ namespace SalesManagement.Infrastructure.Repositories.AgentPortal
             return (data, totalCount);
         }
 
-        public async Task<(List<AgentSalesOrderListDto>, int)> GetSalesOrdersAsync(List<int> customerIds, int pageNumber, int pageSize, string? searchTerm)
+        public async Task<(List<AgentSalesOrderListDto>, int)> GetSalesOrdersAsync(int agentId, int pageNumber, int pageSize, string? searchTerm)
         {
-            if (customerIds.Count == 0) return (new List<AgentSalesOrderListDto>(), 0);
+            if (agentId <= 0) return (new List<AgentSalesOrderListDto>(), 0);
 
             var searchFilter = string.IsNullOrWhiteSpace(searchTerm)
                 ? string.Empty
@@ -189,7 +189,7 @@ namespace SalesManagement.Infrastructure.Repositories.AgentPortal
             var countSql = $@"
                 SELECT COUNT(*)
                 FROM Sales.SalesOrderHeader so
-                WHERE so.PartyId IN @CustomerIds AND so.IsDeleted = 0 {searchFilter};";
+                WHERE so.AgentId = @AgentId AND so.IsDeleted = 0 {searchFilter};";
 
             var dataSql = $@"
                 SELECT
@@ -206,13 +206,13 @@ namespace SalesManagement.Infrastructure.Repositories.AgentPortal
                 FROM Sales.SalesOrderHeader so
                 LEFT JOIN Sales.SalesGroup sg ON so.SalesGroupId = sg.Id AND sg.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster ms ON so.StatusId = ms.Id AND ms.IsDeleted = 0
-                WHERE so.PartyId IN @CustomerIds AND so.IsDeleted = 0 {searchFilter}
+                WHERE so.AgentId = @AgentId AND so.IsDeleted = 0 {searchFilter}
                 ORDER BY so.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;";
 
             var parameters = new
             {
-                CustomerIds = customerIds,
+                AgentId = agentId,
                 SearchTerm = $"%{searchTerm}%",
                 Offset = (pageNumber - 1) * pageSize,
                 PageSize = pageSize
