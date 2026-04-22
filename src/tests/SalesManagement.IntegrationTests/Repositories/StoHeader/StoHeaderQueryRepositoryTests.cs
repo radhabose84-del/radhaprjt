@@ -26,7 +26,8 @@ namespace SalesManagement.IntegrationTests.Repositories.StoHeader
             Mock<IItemLookup>? itemLookup = null,
             Mock<IUOMLookup>? uomLookup = null,
             Mock<IUserLookup>? userLookup = null,
-            Mock<IIPAddressService>? ip = null)
+            Mock<IIPAddressService>? ip = null,
+            Mock<IDataAccessFilter>? dataAccessFilter = null)
         {
             if (unitLookup == null)
             {
@@ -71,11 +72,19 @@ namespace SalesManagement.IntegrationTests.Repositories.StoHeader
                 ip = new Mock<IIPAddressService>(MockBehavior.Loose);
                 ip.Setup(x => x.GetUserId()).Returns(1);
             }
+            if (dataAccessFilter == null)
+            {
+                dataAccessFilter = new Mock<IDataAccessFilter>(MockBehavior.Loose);
+                dataAccessFilter
+                    .Setup(f => f.GetContextAsync(It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(new DataAccessContext { BypassDataAccess = true });
+            }
 
             return new StoHeaderQueryRepository(
                 new SqlConnection(_fixture.ConnectionString),
                 unitLookup.Object, warehouseLookup.Object, itemLookup.Object,
-                uomLookup.Object, userLookup.Object, ip.Object);
+                uomLookup.Object, userLookup.Object, ip.Object,
+                dataAccessFilter.Object);
         }
 
         private async Task<int> EnsureMiscAsync(ApplicationDbContext ctx, int miscTypeId, string code)

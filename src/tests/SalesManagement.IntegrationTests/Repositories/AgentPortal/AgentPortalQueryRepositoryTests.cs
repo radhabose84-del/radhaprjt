@@ -252,10 +252,10 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentPortal
         // ── GetSalesOrdersAsync ───────────────────────────────────────────
 
         [Fact]
-        public async Task GetSalesOrdersAsync_Should_Return_Empty_When_NoCustomerIds()
+        public async Task GetSalesOrdersAsync_Should_Return_Empty_When_AgentIdZero()
         {
             var (data, total) = await CreateRepo().GetSalesOrdersAsync(
-                new List<int>(), 1, 10, null);
+                0, 1, 10, null);
 
             data.Should().BeEmpty();
             total.Should().Be(0);

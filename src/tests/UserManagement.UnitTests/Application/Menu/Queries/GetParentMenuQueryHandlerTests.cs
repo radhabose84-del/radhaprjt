@@ -19,7 +19,7 @@ namespace UserManagement.UnitTests.Application.Menu.Queries
             var dtoList = new List<ParentMenuDto> { new() { Id = 1 } };
 
             _mockMenuQuery
-                .Setup(r => r.GetParentMenuAutoComplete("test"))
+                .Setup(r => r.GetParentMenuAutoComplete("test", null))
                 .ReturnsAsync(entities);
 
             _mockMapper
@@ -38,7 +38,7 @@ namespace UserManagement.UnitTests.Application.Menu.Queries
             var entities = new List<UserManagement.Domain.Entities.Menu>();
 
             _mockMenuQuery
-                .Setup(r => r.GetParentMenuAutoComplete("none"))
+                .Setup(r => r.GetParentMenuAutoComplete("none", null))
                 .ReturnsAsync(entities);
 
             _mockMapper
