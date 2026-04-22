@@ -5,6 +5,7 @@ namespace SalesManagement.Application.Invoice.Dto
         public int Id { get; set; }
         public string? InvoiceNo { get; set; }
         public DateOnly InvoiceDate { get; set; }
+        public int? InvoiceTypeId { get; set; }
         public string? InvoiceTypeName { get; set; }
         public int DispatchAdviceId { get; set; }
         public string? DispatchNo { get; set; }
@@ -27,8 +28,9 @@ namespace SalesManagement.Application.Invoice.Dto
         public int TotalBags { get; set; }
         public decimal TotalWeight { get; set; }
         public decimal TaxableValue { get; set; }
-        public decimal Discount { get; set; }
-        public decimal Freight { get; set; }
+        public decimal TotalDiscount { get; set; }
+        public decimal TotalFreight { get; set; }
+        public decimal TotalCommission { get; set; }
         public decimal Insurance { get; set; }
         public decimal HandlingCharge { get; set; }
         public decimal TotalCharity { get; set; }

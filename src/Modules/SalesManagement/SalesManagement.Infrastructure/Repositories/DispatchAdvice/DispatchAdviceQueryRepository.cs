@@ -182,25 +182,26 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
                     d.PackTypeId,
                     sod.VariantId,
                     sod.HSNId,
-                    sod.QtyInBags,
+                    d.DispatchQty QtyInBags,
                     sod.BagWeight,
                     sod.SaleUOMId,
-                    sod.TotalWeight,
+                    d.DispatchQty*sod.BagWeight TotalWeight,
                     sod.ExMillRate,
                     sod.DiscountPerUnit,
                     sod.Freight,
-                    sod.Handling,
-                    sod.Charity,
-                    sod.TaxableAmount,
+                    PM.HandlingCharges*d.DispatchQty Handling,
+                    PM.CharityValue*d.DispatchQty Charity,
+					((d.DispatchQty*sod.BagWeight) *sod.ExMillRate)  TaxableAmount,
                     sod.TaxPercentage,
-                    sod.TaxAmount,
+                    round((((d.DispatchQty*sod.BagWeight) *sod.ExMillRate)*sod.TaxPercentage)/100,2)  TaxAmount,
                     sod.TCSPercentage,
                     sod.TCSAmount,
-                    sod.NetAmount,
-                    sod.NetRatePerKg,
+                    round((((d.DispatchQty*sod.BagWeight) *sod.ExMillRate)*sod.TaxPercentage)/100,2) +((d.DispatchQty*sod.BagWeight) *sod.ExMillRate) NetAmount,	
+                    (round((((d.DispatchQty*sod.BagWeight) *sod.ExMillRate)*sod.TaxPercentage)/100,2) +((d.DispatchQty*sod.BagWeight) *sod.ExMillRate))/(d.DispatchQty*sod.BagWeight ) NetRatePerKg,
                     sod.AgentCommissionPercentage
                 FROM Sales.DispatchAdviceDetail d
                 LEFT JOIN Sales.SalesOrderDetail sod ON d.SalesOrderDetailId = sod.Id
+                LEFT join Sales.ItemPriceMaster PM on (PM.ItemId=sod.ItemId or  sod.ItemId=sod.VariantId)
                 WHERE d.DispatchAdviceHeaderId = @HeaderId";
 
             var details = (await _dbConnection.QueryAsync<DispatchAdviceDetailDto>(detailSql, new { HeaderId = id })).ToList();

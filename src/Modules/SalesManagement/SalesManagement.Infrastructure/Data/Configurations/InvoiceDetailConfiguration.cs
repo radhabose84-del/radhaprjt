@@ -21,7 +21,9 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             builder.Property(t => t.NoOfBags).HasColumnName("NoOfBags").HasColumnType("int").IsRequired();
             builder.Property(t => t.Quantity).HasColumnName("Quantity").HasColumnType("decimal(18,6)").IsRequired();
             builder.Property(t => t.RatePerKg).HasColumnName("RatePerKg").HasColumnType("decimal(18,6)").IsRequired();
-            builder.Property(t => t.Discount).HasColumnName("Discount").HasColumnType("decimal(18,6)").IsRequired();
+            builder.Property(t => t.DiscountValue).HasColumnName("DiscountValue").HasColumnType("decimal(18,6)").IsRequired();
+            builder.Property(t => t.FreightValue).HasColumnName("FreightValue").HasColumnType("decimal(18,6)").IsRequired();
+            builder.Property(t => t.CommissionValue).HasColumnName("CommissionValue").HasColumnType("decimal(18,6)").IsRequired();
             builder.Property(t => t.TaxableAmount).HasColumnName("TaxableAmount").HasColumnType("decimal(18,6)").IsRequired();
             builder.Property(t => t.CgstPercentage).HasColumnName("CgstPercentage").HasColumnType("decimal(18,6)").IsRequired();
             builder.Property(t => t.SgstPercentage).HasColumnName("SgstPercentage").HasColumnType("decimal(18,6)").IsRequired();

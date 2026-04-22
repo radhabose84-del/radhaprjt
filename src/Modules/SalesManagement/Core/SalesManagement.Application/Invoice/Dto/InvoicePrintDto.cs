@@ -101,8 +101,9 @@ namespace SalesManagement.Application.Invoice.Dto
         public int TotalBags { get; set; }
         public decimal TotalQtyKg { get; set; }
         public decimal TotalValue { get; set; }
-        public decimal Discount { get; set; }
-        public decimal Freight { get; set; }
+        public decimal TotalDiscount { get; set; }
+        public decimal TotalFreight { get; set; }
+        public decimal TotalCommission { get; set; }
         public decimal Insurance { get; set; }
         public decimal HandlingCharges { get; set; }
         public decimal TotalCharity { get; set; }
@@ -152,8 +153,9 @@ namespace SalesManagement.Application.Invoice.Dto
         public int TotalBags { get; set; }
         public decimal TotalWeight { get; set; }
         public decimal TaxableValue { get; set; }
-        public decimal Discount { get; set; }
-        public decimal Freight { get; set; }
+        public decimal TotalDiscount { get; set; }
+        public decimal TotalFreight { get; set; }
+        public decimal TotalCommission { get; set; }
         public decimal Insurance { get; set; }
         public decimal HandlingCharge { get; set; }
         public decimal TotalCharity { get; set; }

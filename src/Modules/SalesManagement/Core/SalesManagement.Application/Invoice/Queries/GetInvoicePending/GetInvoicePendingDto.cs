@@ -6,6 +6,7 @@ namespace SalesManagement.Application.Invoice.Queries.GetInvoicePending
         public int Id { get; set; }
         public string? InvoiceNo { get; set; }
         public DateOnly InvoiceDate { get; set; }
+        public int? InvoiceTypeId { get; set; }
         public string? InvoiceTypeName { get; set; }
         public int DispatchAdviceId { get; set; }
         public string? DispatchNo { get; set; }
@@ -28,8 +29,9 @@ namespace SalesManagement.Application.Invoice.Queries.GetInvoicePending
         public int TotalBags { get; set; }
         public decimal TotalWeight { get; set; }
         public decimal TaxableValue { get; set; }
-        public decimal Discount { get; set; }
-        public decimal Freight { get; set; }
+        public decimal TotalDiscount { get; set; }
+        public decimal TotalFreight { get; set; }
+        public decimal TotalCommission { get; set; }
         public decimal Insurance { get; set; }
         public decimal HandlingCharge { get; set; }
         public decimal TotalCharity { get; set; }
@@ -69,7 +71,9 @@ namespace SalesManagement.Application.Invoice.Queries.GetInvoicePending
             public int NoOfBags { get; set; }
             public decimal Quantity { get; set; }
             public decimal RatePerKg { get; set; }
-            public decimal Discount { get; set; }
+            public decimal DiscountValue { get; set; }
+            public decimal FreightValue { get; set; }
+            public decimal CommissionValue { get; set; }
             public decimal TaxableAmount { get; set; }
             public decimal CgstPercentage { get; set; }
             public decimal SgstPercentage { get; set; }

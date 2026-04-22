@@ -3,17 +3,20 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SalesManagement.Infrastructure.Data;
 
 #nullable disable
 
-namespace SalesManagement.Infrastructure.Migrations
+namespace SalesManagement.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260422064030_InvoiceDiscountFreightCommissionRename")]
+    partial class InvoiceDiscountFreightCommissionRename
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -2763,6 +2766,11 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("decimal(18,6)")
                         .HasColumnName("CGST");
 
+                    b.Property<decimal>("CommissionValue")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("CommissionValue");
+
                     b.Property<int>("CreatedBy")
                         .HasColumnType("int")
                         .HasColumnName("CreatedBy");
@@ -2779,6 +2787,11 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("varchar(50)")
                         .HasColumnName("CreatedIP");
 
+                    b.Property<decimal>("DiscountValue")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("DiscountValue");
+
                     b.Property<int>("DispatchAdviceId")
                         .HasColumnType("int")
                         .HasColumnName("DispatchAdviceId");
@@ -2786,6 +2799,11 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Property<int>("FinancialYearId")
                         .HasColumnType("int")
                         .HasColumnName("FinancialYearId");
+
+                    b.Property<decimal>("FreightValue")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("FreightValue");
 
                     b.Property<bool>("GEFlag")
                         .ValueGeneratedOnAdd()
@@ -2825,10 +2843,6 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Property<string>("InvoiceNo")
                         .HasColumnType("varchar(30)")
                         .HasColumnName("InvoiceNo");
-
-                    b.Property<int?>("InvoiceTypeId")
-                        .HasColumnType("int")
-                        .HasColumnName("InvoiceTypeId");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit")
@@ -2918,21 +2932,6 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("decimal(18,6)")
                         .HasColumnName("TotalCharity");
 
-                    b.Property<decimal>("TotalCommission")
-                        .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,6)")
-                        .HasColumnName("TotalCommission");
-
-                    b.Property<decimal>("TotalDiscount")
-                        .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,6)")
-                        .HasColumnName("TotalDiscount");
-
-                    b.Property<decimal>("TotalFreight")
-                        .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,6)")
-                        .HasColumnName("TotalFreight");
-
                     b.Property<decimal>("TotalWeight")
                         .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,6)")
@@ -2965,8 +2964,6 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.HasIndex("InvoiceNo")
                         .IsUnique()
                         .HasFilter("[InvoiceNo] IS NOT NULL");
-
-                    b.HasIndex("InvoiceTypeId");
 
                     b.HasIndex("PartyId");
 
