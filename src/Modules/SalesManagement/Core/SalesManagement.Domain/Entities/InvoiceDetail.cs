@@ -4,14 +4,15 @@ namespace SalesManagement.Domain.Entities
     public class InvoiceDetail
     {
         public int Id { get; set; }
-        public int InvoiceHeaderId { get; set; }          // FK → Sales.InvoiceHeader
+        public int InvoiceHeaderId { get; set; }        
         public int ItemSno { get; set; }
-        public int ItemId { get; set; }                   // Cross-module FK → InventoryManagement
+        public int ItemId { get; set; }                 
         public string? HsnCode { get; set; }
         public decimal GstPercentage { get; set; }
-        public int? LotId { get; set; }                   // Cross-module FK → ProductionManagement
-        public int NoOfBags { get; set; }
-        public decimal Quantity { get; set; }
+        public int? LotId { get; set; }                 
+        public decimal NoOfBags { get; set; }
+        public decimal BagWeight { get; set; }
+        public decimal NetWeight { get; set; }
         public decimal RatePerKg { get; set; }
         public decimal DiscountValue { get; set; }
         public decimal FreightValue { get; set; }
@@ -24,14 +25,14 @@ namespace SalesManagement.Domain.Entities
         public decimal SGST { get; set; }
         public decimal IGST { get; set; }
         public decimal TaxAmount { get; set; }
-        public int? PackTypeId { get; set; }              // Cross-module FK → ProductionManagement
-        public int? UOMId { get; set; }                   // Cross-module FK → Inventory.UOM
+        public int? PackTypeId { get; set; }              
+        public int? UOMId { get; set; }                   
         public decimal Charity { get; set; }
         public decimal HandlingCharges { get; set; }
         public decimal TotalAmount { get; set; }
 
         // Navigation properties
         public InvoiceHeader? InvoiceHeader { get; set; }
-        // PackType and LotMaster moved to ProductionManagement — use lookups for names
+        
     }
 }

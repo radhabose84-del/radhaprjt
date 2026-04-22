@@ -123,9 +123,13 @@ namespace SalesManagement.Presentation.Validation.Invoice
                                     .GreaterThan(0)
                                     .WithMessage($"NoOfBags {rule.Error}");
 
-                                detail.RuleFor(d => d.Quantity)
+                                detail.RuleFor(d => d.BagWeight)
                                     .GreaterThan(0)
-                                    .WithMessage($"Quantity {rule.Error}");
+                                    .WithMessage($"BagWeight {rule.Error}");
+
+                                detail.RuleFor(d => d.NetWeight)
+                                    .GreaterThan(0)
+                                    .WithMessage($"NetWeight {rule.Error}");
 
                                 detail.RuleFor(d => d.RatePerKg)
                                     .GreaterThan(0)
@@ -140,7 +144,7 @@ namespace SalesManagement.Presentation.Validation.Invoice
                                 var (dispatchedBags, dispatchedQty) = await _queryRepository
                                     .GetDispatchedQuantityAsync(cmd.DispatchAdviceId, detail.ItemId);
 
-                                return detail.NoOfBags <= dispatchedBags && detail.Quantity <= dispatchedQty;
+                                return detail.NoOfBags <= dispatchedBags && detail.BagWeight <= dispatchedQty;
                             })
                             .WithMessage("Invoice quantity cannot exceed dispatched quantity.")
                             .When(x => x.DispatchAdviceId > 0 && x.Details != null && x.Details.Any());

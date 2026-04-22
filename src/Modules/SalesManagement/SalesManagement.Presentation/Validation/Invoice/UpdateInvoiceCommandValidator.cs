@@ -101,9 +101,13 @@ namespace SalesManagement.Presentation.Validation.Invoice
                                     .GreaterThan(0)
                                     .WithMessage($"NoOfBags {rule.Error}");
 
-                                detail.RuleFor(d => d.Quantity)
+                                detail.RuleFor(d => d.BagWeight)
                                     .GreaterThan(0)
-                                    .WithMessage($"Quantity {rule.Error}");
+                                    .WithMessage($"BagWeight {rule.Error}");
+
+                                detail.RuleFor(d => d.NetWeight)
+                                    .GreaterThan(0)
+                                    .WithMessage($"NetWeight {rule.Error}");
 
                                 detail.RuleFor(d => d.RatePerKg)
                                     .GreaterThan(0)

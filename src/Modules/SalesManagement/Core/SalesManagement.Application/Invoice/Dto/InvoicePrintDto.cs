@@ -90,7 +90,7 @@ namespace SalesManagement.Application.Invoice.Dto
         public string? Description { get; set; }
         public string? LotNo { get; set; }
         public string? BagSNo { get; set; }
-        public int NoBags { get; set; }
+        public decimal NoBags { get; set; }
         public decimal QuantityKg { get; set; }
         public decimal Rate { get; set; }
         public decimal Value { get; set; }
@@ -178,8 +178,9 @@ namespace SalesManagement.Application.Invoice.Dto
         public int ItemSno { get; set; }
         public int ItemId { get; set; }
         public string? HsnCode { get; set; }
-        public int NoOfBags { get; set; }
-        public decimal Quantity { get; set; }
+        public decimal NoOfBags { get; set; }
+        public decimal BagWeight { get; set; }
+        public decimal NetWeight { get; set; }
         public decimal RatePerKg { get; set; }
         public decimal TaxableAmount { get; set; }
         public int? LotId { get; set; }

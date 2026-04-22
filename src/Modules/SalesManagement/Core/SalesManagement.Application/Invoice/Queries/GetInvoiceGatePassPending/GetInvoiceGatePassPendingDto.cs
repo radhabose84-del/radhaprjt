@@ -66,8 +66,9 @@ namespace SalesManagement.Application.Invoice.Queries.GetInvoiceGatePassPending
             public decimal GstPercentage { get; set; }
             public int? LotId { get; set; }
             public string? LotNo { get; set; }
-            public int NoOfBags { get; set; }
-            public decimal Quantity { get; set; }
+            public decimal NoOfBags { get; set; }
+            public decimal BagWeight { get; set; }
+            public decimal NetWeight { get; set; }
             public decimal RatePerKg { get; set; }
             public decimal DiscountValue { get; set; }
             public decimal FreightValue { get; set; }
