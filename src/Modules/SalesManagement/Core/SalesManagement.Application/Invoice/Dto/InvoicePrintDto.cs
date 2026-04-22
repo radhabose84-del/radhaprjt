@@ -90,7 +90,7 @@ namespace SalesManagement.Application.Invoice.Dto
         public string? Description { get; set; }
         public string? LotNo { get; set; }
         public string? BagSNo { get; set; }
-        public int NoBags { get; set; }
+        public decimal NoBags { get; set; }
         public decimal QuantityKg { get; set; }
         public decimal Rate { get; set; }
         public decimal Value { get; set; }
@@ -101,8 +101,9 @@ namespace SalesManagement.Application.Invoice.Dto
         public int TotalBags { get; set; }
         public decimal TotalQtyKg { get; set; }
         public decimal TotalValue { get; set; }
-        public decimal Discount { get; set; }
-        public decimal Freight { get; set; }
+        public decimal TotalDiscount { get; set; }
+        public decimal TotalFreight { get; set; }
+        public decimal TotalCommission { get; set; }
         public decimal Insurance { get; set; }
         public decimal HandlingCharges { get; set; }
         public decimal TotalCharity { get; set; }
@@ -152,8 +153,9 @@ namespace SalesManagement.Application.Invoice.Dto
         public int TotalBags { get; set; }
         public decimal TotalWeight { get; set; }
         public decimal TaxableValue { get; set; }
-        public decimal Discount { get; set; }
-        public decimal Freight { get; set; }
+        public decimal TotalDiscount { get; set; }
+        public decimal TotalFreight { get; set; }
+        public decimal TotalCommission { get; set; }
         public decimal Insurance { get; set; }
         public decimal HandlingCharge { get; set; }
         public decimal TotalCharity { get; set; }
@@ -176,8 +178,9 @@ namespace SalesManagement.Application.Invoice.Dto
         public int ItemSno { get; set; }
         public int ItemId { get; set; }
         public string? HsnCode { get; set; }
-        public int NoOfBags { get; set; }
-        public decimal Quantity { get; set; }
+        public decimal NoOfBags { get; set; }
+        public decimal BagWeight { get; set; }
+        public decimal NetWeight { get; set; }
         public decimal RatePerKg { get; set; }
         public decimal TaxableAmount { get; set; }
         public int? LotId { get; set; }

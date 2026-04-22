@@ -11,6 +11,7 @@ namespace SalesManagement.Domain.Entities
         public int? AgentId { get; set; }                 // FK → Sales.OfficerAgent
         public int UnitId { get; set; }                   // Cross-module FK → UserManagement
         public int FinancialYearId { get; set; }          // Cross-module FK → UserManagement
+        public int? InvoiceTypeId { get; set; }              // FK → Sales.MiscMaster (MiscTypeCode = 'InvoiceType')
         public int? TransportMode { get; set; }           // FK → Sales.MiscMaster
         public int? StatusId { get; set; }                // FK → Sales.MiscMaster
         public string? VehicleNumber { get; set; }
@@ -20,8 +21,9 @@ namespace SalesManagement.Domain.Entities
         public int TotalBags { get; set; }
         public decimal TotalWeight { get; set; }
         public decimal TaxableValue { get; set; }
-        public decimal Discount { get; set; }
-        public decimal Freight { get; set; }
+        public decimal TotalDiscount { get; set; }
+        public decimal TotalFreight { get; set; }
+        public decimal TotalCommission { get; set; }
         public decimal Insurance { get; set; }
         public decimal HandlingCharge { get; set; }
         public decimal TotalCharity { get; set; }

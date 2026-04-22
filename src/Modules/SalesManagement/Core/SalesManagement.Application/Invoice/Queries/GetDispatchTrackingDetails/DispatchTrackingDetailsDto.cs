@@ -41,8 +41,9 @@ namespace SalesManagement.Application.Invoice.Queries.GetDispatchTrackingDetails
     {
         public int ItemId { get; set; }
         public string? ItemName { get; set; }
-        public int NoOfBags { get; set; }
-        public decimal Quantity { get; set; }
+        public decimal NoOfBags { get; set; }
+        public decimal BagWeight { get; set; }
+        public decimal NetWeight { get; set; }
         public decimal RatePerKg { get; set; }
         public int? UOMId { get; set; }
         public string? UOMName { get; set; }

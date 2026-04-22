@@ -9,8 +9,9 @@ namespace SalesManagement.Application.Invoice.Dto
         public int UnitId { get; set; }
         public int PartyId { get; set; }
         public decimal TaxableValue { get; set; }
-        public decimal Discount { get; set; }
-        public decimal Freight { get; set; }
+        public decimal TotalDiscount { get; set; }
+        public decimal TotalFreight { get; set; }
+        public decimal TotalCommission { get; set; }
         public decimal Insurance { get; set; }
         public decimal HandlingCharge { get; set; }
         public decimal TotalCharity { get; set; }
@@ -48,10 +49,13 @@ namespace SalesManagement.Application.Invoice.Dto
         public int ItemId { get; set; }
         public string? ItemName { get; set; }
         public string? HsnCode { get; set; }
-        public int NoOfBags { get; set; }
-        public decimal Quantity { get; set; }
+        public decimal NoOfBags { get; set; }
+        public decimal BagWeight { get; set; }
+        public decimal NetWeight { get; set; }
         public decimal RatePerKg { get; set; }
-        public decimal Discount { get; set; }
+        public decimal DiscountValue { get; set; }
+        public decimal FreightValue { get; set; }
+        public decimal CommissionValue { get; set; }
         public decimal TaxableAmount { get; set; }
         public decimal GstPercentage { get; set; }
         public decimal CGST { get; set; }

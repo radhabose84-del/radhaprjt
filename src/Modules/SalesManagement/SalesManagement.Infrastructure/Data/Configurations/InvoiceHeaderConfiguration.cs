@@ -41,6 +41,7 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             builder.Property(t => t.AgentId).HasColumnName("AgentId").HasColumnType("int").IsRequired(false);
             builder.Property(t => t.UnitId).HasColumnName("UnitId").HasColumnType("int").IsRequired();
             builder.Property(t => t.FinancialYearId).HasColumnName("FinancialYearId").HasColumnType("int").IsRequired();
+            builder.Property(t => t.InvoiceTypeId).HasColumnName("InvoiceTypeId").HasColumnType("int").IsRequired(false);
             builder.Property(t => t.TransportMode).HasColumnName("TransportMode").HasColumnType("int").IsRequired(false);
             builder.Property(t => t.StatusId).HasColumnName("StatusId").HasColumnType("int").IsRequired(false);
             builder.Property(t => t.VehicleNumber).HasColumnName("VehicleNumber").HasColumnType("varchar(20)").IsRequired(false);
@@ -50,8 +51,9 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             builder.Property(t => t.TotalBags).HasColumnName("TotalBags").HasColumnType("int").IsRequired();
             builder.Property(t => t.TotalWeight).HasColumnName("TotalWeight").HasColumnType("decimal(18,6)").IsRequired();
             builder.Property(t => t.TaxableValue).HasColumnName("TaxableValue").HasColumnType("decimal(18,6)").IsRequired();
-            builder.Property(t => t.Discount).HasColumnName("Discount").HasColumnType("decimal(18,6)").IsRequired();
-            builder.Property(t => t.Freight).HasColumnName("Freight").HasColumnType("decimal(18,6)").IsRequired();
+            builder.Property(t => t.TotalDiscount).HasColumnName("TotalDiscount").HasColumnType("decimal(18,6)").IsRequired();
+            builder.Property(t => t.TotalFreight).HasColumnName("TotalFreight").HasColumnType("decimal(18,6)").IsRequired();
+            builder.Property(t => t.TotalCommission).HasColumnName("TotalCommission").HasColumnType("decimal(18,6)").IsRequired();
             builder.Property(t => t.Insurance).HasColumnName("Insurance").HasColumnType("decimal(18,6)").IsRequired();
             builder.Property(t => t.HandlingCharge).HasColumnName("HandlingCharge").HasColumnType("decimal(18,6)").IsRequired();
             builder.Property(t => t.TotalCharity).HasColumnName("TotalCharity").HasColumnType("decimal(18,6)").IsRequired();
@@ -105,6 +107,7 @@ namespace SalesManagement.Infrastructure.Data.Configurations
 
             // Indexes
             builder.HasIndex(t => t.InvoiceNo).IsUnique();
+            builder.HasIndex(t => t.InvoiceTypeId);
             builder.HasIndex(t => t.DispatchAdviceId);
             builder.HasIndex(t => t.PartyId);
             builder.HasIndex(t => t.InvoiceDate);
