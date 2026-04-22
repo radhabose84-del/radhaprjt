@@ -208,7 +208,7 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
             const string detailSql = @"
                 SELECT d.Id, d.InvoiceHeaderId, d.ItemSno, d.ItemId,
                     d.HsnCode, d.GstPercentage, d.LotId,
-                    d.NoOfBags, d.Quantity,
+                    d.NoOfBags, d.BagWeight, d.NetWeight,
                     d.RatePerKg, d.DiscountValue, d.FreightValue, d.CommissionValue, d.TaxableAmount,
                     d.CgstPercentage, d.SgstPercentage, d.IgstPercentage,
                     d.CGST, d.SGST, d.IGST, d.TaxAmount,
@@ -461,7 +461,8 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                         d.GstPercentage,
                         d.LotId,
                         d.NoOfBags,
-                        d.Quantity,
+                        d.BagWeight,
+                        d.NetWeight,
                         d.RatePerKg,
                         d.DiscountValue      AS DiscountValue_Detail,
                         d.FreightValue       AS FreightValue_Detail,
@@ -554,7 +555,7 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                 SELECT
                     f.Id AS InvoiceId,
                     f.ItemSno, f.ItemId, f.HsnCode, f.GstPercentage,
-                    f.LotId, f.NoOfBags, f.Quantity,
+                    f.LotId, f.NoOfBags, f.BagWeight, f.NetWeight,
                     f.RatePerKg, f.DiscountValue_Detail AS DiscountValue,
                     f.FreightValue_Detail AS FreightValue,
                     f.CommissionValue_Detail AS CommissionValue,
@@ -668,7 +669,7 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                 SELECT
                     d.InvoiceHeaderId AS InvoiceId,
                     d.ItemSno, d.ItemId, d.HsnCode, d.GstPercentage,
-                    d.LotId, d.NoOfBags, d.Quantity,
+                    d.LotId, d.NoOfBags, d.BagWeight, d.NetWeight,
                     d.RatePerKg, d.DiscountValue, d.FreightValue, d.CommissionValue, d.TaxableAmount,
                     d.CgstPercentage, d.SgstPercentage, d.IgstPercentage,
                     d.CGST, d.SGST, d.IGST, d.TaxAmount,
@@ -752,7 +753,7 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
 
             // 2. Fetch invoice details
             const string detailSql = @"
-                SELECT d.ItemSno, d.ItemId, d.HsnCode, d.NoOfBags, d.Quantity,
+                SELECT d.ItemSno, d.ItemId, d.HsnCode, d.NoOfBags, d.BagWeight, d.NetWeight,
                     d.RatePerKg, d.TaxableAmount, d.LotId,
                     d.CgstPercentage, d.SgstPercentage, d.IgstPercentage
                 FROM Sales.InvoiceDetail d
@@ -1060,7 +1061,7 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                     LotNo = lotNo,
                     BagSNo = bagSNo,
                     NoBags = d.NoOfBags,
-                    QuantityKg = d.Quantity,
+                    QuantityKg = d.BagWeight,
                     Rate = d.RatePerKg,
                     Value = d.TaxableAmount
                 };
@@ -1151,7 +1152,7 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
 
             // 2. Fetch detail lines
             const string detailSql = @"
-                SELECT d.ItemSno, d.ItemId, d.HsnCode, d.NoOfBags, d.Quantity,
+                SELECT d.ItemSno, d.ItemId, d.HsnCode, d.NoOfBags, d.BagWeight, d.NetWeight,
                     d.RatePerKg, d.DiscountValue, d.FreightValue, d.CommissionValue, d.TaxableAmount, d.GstPercentage,
                     d.CGST, d.SGST, d.IGST, d.Charity, d.HandlingCharges, d.TotalAmount,
                     d.PackTypeId, d.UOMId
@@ -1327,7 +1328,7 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
             if (invoiceIds.Count > 0)
             {
                 const string itemSql = @"
-                    SELECT d.InvoiceHeaderId, d.ItemId, d.NoOfBags, d.Quantity,
+                    SELECT d.InvoiceHeaderId, d.ItemId, d.NoOfBags, d.BagWeight, d.NetWeight,
                            d.RatePerKg, d.UOMId, d.LotId, d.PackTypeId
                     FROM Sales.InvoiceDetail d
                     WHERE d.InvoiceHeaderId IN @InvoiceIds";
@@ -1417,7 +1418,8 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                             ItemId = i.ItemId,
                             ItemName = itemDict.TryGetValue(i.ItemId, out var iName) ? iName : null,
                             NoOfBags = i.NoOfBags,
-                            Quantity = i.Quantity,
+                            BagWeight = i.BagWeight,
+                            NetWeight = i.NetWeight,
                             RatePerKg = i.RatePerKg,
                             UOMId = i.UOMId,
                             UOMName = i.UOMId.HasValue && uomDict.TryGetValue(i.UOMId.Value, out var uName) ? uName : null,
@@ -1459,8 +1461,9 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
         {
             public int InvoiceHeaderId { get; set; }
             public int ItemId { get; set; }
-            public int NoOfBags { get; set; }
-            public decimal Quantity { get; set; }
+            public decimal NoOfBags { get; set; }
+            public decimal BagWeight { get; set; }
+            public decimal NetWeight { get; set; }
             public decimal RatePerKg { get; set; }
             public int? UOMId { get; set; }
             public int? LotId { get; set; }

@@ -197,13 +197,13 @@ namespace SalesManagement.IntegrationTests.Repositories.Validations
 
                 INSERT INTO Sales.InvoiceDetail
                     (InvoiceHeaderId, ItemSno, ItemId, GstPercentage,
-                     LotId, NoOfBags, Quantity, RatePerKg, Discount,
+                     LotId, NoOfBags, BagWeight, NetWeight, RatePerKg, Discount,
                      TaxableAmount, CgstPercentage, SgstPercentage, IgstPercentage,
                      CGST, SGST, IGST, TaxAmount, Charity, HandlingCharges,
                      PackTypeId, UOMId, TotalAmount)
                 VALUES
                     (@HeaderId, 1, @ItemId, 0,
-                     @LotId, 0, 1, 0, 0,
+                     @LotId, 0, 1, 1, 0, 0,
                      0, 0, 0, 0,
                      0, 0, 0, 0, 0, 0,
                      @PackTypeId, @UOMId, 0);",
