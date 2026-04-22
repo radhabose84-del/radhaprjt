@@ -6,6 +6,7 @@ namespace SalesManagement.Application.AgentCustomerMapping.Commands.UpdateAgentC
     public class UpdateAgentCustomerMappingCommand : IRequest<ApiResponseDTO<int>>
     {
         public int Id { get; set; }
+        public int CustomerId { get; set; }
         public int AgentId { get; set; }
         public int? SubAgentId { get; set; }
         public int SalesGroupId { get; set; }

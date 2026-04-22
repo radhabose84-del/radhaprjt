@@ -148,6 +148,56 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCustomerMapping
         }
 
         [Fact]
+        public async Task UpdateAsync_Should_Persist_Changed_CustomerId()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            await ClearAsync(ctx);
+            var id = await CreateRepo(ctx).CreateAsync(await BuildEntityAsync(customerId: 1096, agentId: 1077));
+            ctx.ChangeTracker.Clear();
+
+            var entity = await BuildEntityAsync(customerId: 1103, agentId: 1077);
+            entity.Id = id;
+
+            await CreateRepo(ctx).UpdateAsync(entity);
+            ctx.ChangeTracker.Clear();
+
+            var reloaded = await ctx.AgentCustomerMapping.FirstAsync(x => x.Id == id);
+            reloaded.CustomerId.Should().Be(1103);
+        }
+
+        [Fact]
+        public async Task UpdateAsync_WithIsDefault_Should_Clear_Defaults_For_New_Customer_Not_Old()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            await ClearAsync(ctx);
+
+            // Existing default on OLD customer (1096) — should remain unchanged after re-parent
+            var oldCustomerDefaultId = await CreateRepo(ctx).CreateAsync(
+                await BuildEntityAsync(customerId: 1096, agentId: 2001, isDefault: true));
+
+            // Existing default on NEW customer (1103) — should be cleared when our row is re-parented to 1103
+            var newCustomerDefaultId = await CreateRepo(ctx).CreateAsync(
+                await BuildEntityAsync(customerId: 1103, agentId: 2002, isDefault: true));
+
+            // Row under test — starts on 1096, non-default
+            var rowUnderTestId = await CreateRepo(ctx).CreateAsync(
+                await BuildEntityAsync(customerId: 1096, agentId: 2003, isDefault: false));
+            ctx.ChangeTracker.Clear();
+
+            // Re-parent to 1103 AND mark as default
+            var update = await BuildEntityAsync(customerId: 1103, agentId: 2003, isDefault: true);
+            update.Id = rowUnderTestId;
+            await CreateRepo(ctx).UpdateAsync(update);
+            ctx.ChangeTracker.Clear();
+
+            var oldCustomerDefault = await ctx.AgentCustomerMapping.FirstAsync(x => x.Id == oldCustomerDefaultId);
+            var newCustomerDefault = await ctx.AgentCustomerMapping.FirstAsync(x => x.Id == newCustomerDefaultId);
+
+            oldCustomerDefault.IsDefaultAgent.Should().BeTrue("re-parent must not touch the OLD customer's default");
+            newCustomerDefault.IsDefaultAgent.Should().BeFalse("new customer's previous default must be cleared");
+        }
+
+        [Fact]
         public async Task UpdateAsync_Should_Return_Zero_When_NotFound()
         {
             await using var ctx = _fixture.CreateFreshDbContext();
