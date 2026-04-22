@@ -14,7 +14,9 @@ namespace SalesManagement.Application.Invoice.Dto
         public int NoOfBags { get; set; }
         public decimal Quantity { get; set; }
         public decimal RatePerKg { get; set; }
-        public decimal Discount { get; set; }
+        public decimal DiscountValue { get; set; }
+        public decimal FreightValue { get; set; }
+        public decimal CommissionValue { get; set; }
         public decimal TaxableAmount { get; set; }
         public decimal CgstPercentage { get; set; }
         public decimal SgstPercentage { get; set; }

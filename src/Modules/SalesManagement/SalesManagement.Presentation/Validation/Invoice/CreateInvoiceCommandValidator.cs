@@ -81,6 +81,12 @@ namespace SalesManagement.Presentation.Validation.Invoice
                             .WithMessage($"{nameof(CreateInvoiceCommand.DispatchAdviceId)} {rule.Error}")
                             .When(x => x.DispatchAdviceId > 0);
 
+                        // InvoiceTypeId must reference a valid MiscMaster record
+                        RuleFor(x => x.InvoiceTypeId)
+                            .MustAsync(async (id, ct) => await _queryRepository.MiscMasterExistsAsync(id!.Value))
+                            .WithMessage($"{nameof(CreateInvoiceCommand.InvoiceTypeId)} {rule.Error}")
+                            .When(x => x.InvoiceTypeId.HasValue && x.InvoiceTypeId > 0);
+
                         break;
 
                     case "AlreadyExists":
@@ -141,9 +147,17 @@ namespace SalesManagement.Presentation.Validation.Invoice
                         break;
 
                     case "GreaterThanOrEqualToZero":
-                        RuleFor(x => x.Freight)
+                        RuleFor(x => x.TotalDiscount)
                             .GreaterThanOrEqualTo(0)
-                            .WithMessage($"{nameof(CreateInvoiceCommand.Freight)} {rule.Error}");
+                            .WithMessage($"{nameof(CreateInvoiceCommand.TotalDiscount)} {rule.Error}");
+
+                        RuleFor(x => x.TotalFreight)
+                            .GreaterThanOrEqualTo(0)
+                            .WithMessage($"{nameof(CreateInvoiceCommand.TotalFreight)} {rule.Error}");
+
+                        RuleFor(x => x.TotalCommission)
+                            .GreaterThanOrEqualTo(0)
+                            .WithMessage($"{nameof(CreateInvoiceCommand.TotalCommission)} {rule.Error}");
 
                         RuleFor(x => x.Insurance)
                             .GreaterThanOrEqualTo(0)
@@ -168,9 +182,17 @@ namespace SalesManagement.Presentation.Validation.Invoice
                         RuleForEach(x => x.Details)
                             .ChildRules(detail =>
                             {
-                                detail.RuleFor(d => d.Discount)
+                                detail.RuleFor(d => d.DiscountValue)
                                     .GreaterThanOrEqualTo(0)
-                                    .WithMessage($"Discount {rule.Error}");
+                                    .WithMessage($"DiscountValue {rule.Error}");
+
+                                detail.RuleFor(d => d.FreightValue)
+                                    .GreaterThanOrEqualTo(0)
+                                    .WithMessage($"FreightValue {rule.Error}");
+
+                                detail.RuleFor(d => d.CommissionValue)
+                                    .GreaterThanOrEqualTo(0)
+                                    .WithMessage($"CommissionValue {rule.Error}");
 
                                 detail.RuleFor(d => d.Charity)
                                     .GreaterThanOrEqualTo(0)

@@ -17,7 +17,9 @@ public class InvoiceDetailEntityTests
             NoOfBags = 50,
             Quantity = 2500m,
             RatePerKg = 120.50m,
-            Discount = 5m,
+            DiscountValue = 5m,
+            FreightValue = 2m,
+            CommissionValue = 3m,
             TaxableAmount = 288750m,
             TaxAmount = 51975m,
             TotalAmount = 340725m

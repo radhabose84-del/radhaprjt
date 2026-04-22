@@ -28,7 +28,6 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
         private readonly IIPAddressService _ipAddressService;
         private readonly IStateLookup _stateLookup;
         private readonly ICityLookup _cityLookup;
-        private readonly ITransactionTypeLookup _transactionTypeLookup;
         private readonly ICompanyDetailLookup _companyDetailLookup;
         private readonly IUnitDetailLookup _unitDetailLookup;
         private readonly IPartyDetailLookup _partyDetailLookup;
@@ -48,7 +47,6 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
             IIPAddressService ipAddressService,
             IStateLookup stateLookup,
             ICityLookup cityLookup,
-            ITransactionTypeLookup transactionTypeLookup,
             ICompanyDetailLookup companyDetailLookup,
             IUnitDetailLookup unitDetailLookup,
             IPartyDetailLookup partyDetailLookup,
@@ -67,7 +65,6 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
             _ipAddressService = ipAddressService;
             _stateLookup = stateLookup;
             _cityLookup = cityLookup;
-            _transactionTypeLookup = transactionTypeLookup;
             _companyDetailLookup = companyDetailLookup;
             _unitDetailLookup = unitDetailLookup;
             _partyDetailLookup = partyDetailLookup;
@@ -95,6 +92,8 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                 WHERE h.IsDeleted = 0 {unitFilter} {searchFilter} {statusFilter};
 
                 SELECT h.Id, h.InvoiceNo, h.InvoiceDate,
+                    h.InvoiceTypeId,
+                    itm.Description AS InvoiceTypeName,
                     h.DispatchAdviceId,
                     da.DispatchNo,
                     h.PartyId, h.AgentId, h.UnitId, h.FinancialYearId,
@@ -103,14 +102,15 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                     h.StatusId,
                     sm.Description AS StatusName,
                     h.VehicleNumber, h.TransporterName, h.LRNumber, h.LRDate,
-                    h.TotalBags, h.TotalWeight, h.TaxableValue, h.Discount,
-                    h.Freight, h.Insurance, h.HandlingCharge, h.TotalCharity, h.OtherCharges,
+                    h.TotalBags, h.TotalWeight, h.TaxableValue, h.TotalDiscount,
+                    h.TotalFreight, h.TotalCommission, h.Insurance, h.HandlingCharge, h.TotalCharity, h.OtherCharges,
                     h.CGST, h.SGST, h.IGST, h.TaxAmount,
                     h.TCSPercentage, h.TCS, h.RoundOff,
                     h.InvoiceAmountBeforeTCS, h.InvoiceAmount,
                     h.Remarks, h.GEFlag, h.IsActive, h.IsDeleted,
                     h.CreatedBy, h.CreatedDate
                 FROM Sales.InvoiceHeader h
+                LEFT JOIN Sales.MiscMaster itm ON h.InvoiceTypeId = itm.Id AND itm.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster tm  ON h.TransportMode = tm.Id  AND tm.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster sm  ON h.StatusId      = sm.Id  AND sm.IsDeleted = 0
                 LEFT JOIN Sales.DispatchAdviceHeader da ON h.DispatchAdviceId = da.Id AND da.IsDeleted = 0
@@ -149,16 +149,12 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                 var finYears = await _financialYearLookup.GetByIdsAsync(finYearIds);
                 var finYearDict = finYears.ToDictionary(f => f.FinancialYearId, f => f.FinancialYearName);
 
-                // Derive InvoiceTypeName via DA → SO → SalesOrderTypeId → TransactionTypeLookup
-                var invoiceTypeMap = await GetInvoiceTypeNameMapAsync(list.Select(h => h.Id));
-
                 foreach (var item in list)
                 {
                     item.PartyName          = partyDict.TryGetValue(item.PartyId, out var pn) ? pn : null;
                     item.AgentName          = item.AgentId.HasValue && partyDict.TryGetValue(item.AgentId.Value, out var an) ? an : null;
                     item.UnitName           = unitDict.TryGetValue(item.UnitId, out var un) ? un : null;
                     item.FinancialYearName  = finYearDict.TryGetValue(item.FinancialYearId, out var fy) ? fy : null;
-                    item.InvoiceTypeName    = invoiceTypeMap.TryGetValue(item.Id, out var itn) ? itn : null;
 
                     if (!string.IsNullOrWhiteSpace(item.InvoiceNo))
                     {
@@ -181,6 +177,8 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
 
             var headerSql = $@"
                 SELECT h.Id, h.InvoiceNo, h.InvoiceDate,
+                    h.InvoiceTypeId,
+                    itm.Description AS InvoiceTypeName,
                     h.DispatchAdviceId,
                     da.DispatchNo,
                     h.PartyId, h.AgentId, h.UnitId, h.FinancialYearId,
@@ -189,14 +187,15 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                     h.StatusId,
                     sm.Description AS StatusName,
                     h.VehicleNumber, h.TransporterName, h.LRNumber, h.LRDate,
-                    h.TotalBags, h.TotalWeight, h.TaxableValue, h.Discount,
-                    h.Freight, h.Insurance, h.HandlingCharge, h.TotalCharity, h.OtherCharges,
+                    h.TotalBags, h.TotalWeight, h.TaxableValue, h.TotalDiscount,
+                    h.TotalFreight, h.TotalCommission, h.Insurance, h.HandlingCharge, h.TotalCharity, h.OtherCharges,
                     h.CGST, h.SGST, h.IGST, h.TaxAmount,
                     h.TCSPercentage, h.TCS, h.RoundOff,
                     h.InvoiceAmountBeforeTCS, h.InvoiceAmount,
                     h.Remarks, h.GEFlag, h.IsActive, h.IsDeleted,
                     h.CreatedBy, h.CreatedDate
                 FROM Sales.InvoiceHeader h
+                LEFT JOIN Sales.MiscMaster itm ON h.InvoiceTypeId = itm.Id AND itm.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster tm  ON h.TransportMode = tm.Id  AND tm.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster sm  ON h.StatusId      = sm.Id  AND sm.IsDeleted = 0
                 LEFT JOIN Sales.DispatchAdviceHeader da ON h.DispatchAdviceId = da.Id AND da.IsDeleted = 0
@@ -210,7 +209,7 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                 SELECT d.Id, d.InvoiceHeaderId, d.ItemSno, d.ItemId,
                     d.HsnCode, d.GstPercentage, d.LotId,
                     d.NoOfBags, d.Quantity,
-                    d.RatePerKg, d.Discount, d.TaxableAmount,
+                    d.RatePerKg, d.DiscountValue, d.FreightValue, d.CommissionValue, d.TaxableAmount,
                     d.CgstPercentage, d.SgstPercentage, d.IgstPercentage,
                     d.CGST, d.SGST, d.IGST, d.TaxAmount,
                     d.PackTypeId,
@@ -236,10 +235,6 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
 
             var finYear = await _financialYearLookup.GetByIdAsync(header.FinancialYearId);
             header.FinancialYearName = finYear?.FinancialYearName;
-
-            // Derive InvoiceTypeName via DA → SO → SalesOrderTypeId → TransactionTypeLookup
-            var invoiceTypeMap = await GetInvoiceTypeNameMapAsync(new[] { header.Id });
-            header.InvoiceTypeName = invoiceTypeMap.TryGetValue(header.Id, out var typeName) ? typeName : null;
 
             if (details.Count > 0)
             {
@@ -310,6 +305,16 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
         {
             const string sql = "SELECT COUNT(1) FROM Sales.DispatchAdviceHeader WHERE Id = @Id AND IsDeleted = 0";
             var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = dispatchAdviceId });
+            return count > 0;
+        }
+
+        public async Task<bool> MiscMasterExistsAsync(int id)
+        {
+            const string sql = @"
+                SELECT COUNT(1) FROM Sales.MiscMaster
+                WHERE Id = @Id AND IsDeleted = 0";
+
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = id });
             return count > 0;
         }
 
@@ -410,6 +415,8 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                         h.Id,
                         h.InvoiceNo,
                         h.InvoiceDate,
+                        h.InvoiceTypeId,
+                        mmInvType.Description AS InvoiceTypeName,
                         h.DispatchAdviceId,
                         da.DispatchNo,
                         h.PartyId,
@@ -427,8 +434,9 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                         h.TotalBags,
                         h.TotalWeight,
                         h.TaxableValue,
-                        h.Discount,
-                        h.Freight,
+                        h.TotalDiscount,
+                        h.TotalFreight,
+                        h.TotalCommission,
                         h.Insurance,
                         h.HandlingCharge,
                         h.TotalCharity,
@@ -455,7 +463,9 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                         d.NoOfBags,
                         d.Quantity,
                         d.RatePerKg,
-                        d.Discount           AS Discount_Detail,
+                        d.DiscountValue      AS DiscountValue_Detail,
+                        d.FreightValue       AS FreightValue_Detail,
+                        d.CommissionValue    AS CommissionValue_Detail,
                         d.TaxableAmount,
                         d.CgstPercentage,
                         d.SgstPercentage,
@@ -471,6 +481,7 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                         d.TotalAmount
                     FROM Sales.InvoiceHeader h
                     JOIN Sales.InvoiceDetail d ON d.InvoiceHeaderId = h.Id
+                    LEFT JOIN Sales.MiscMaster mmInvType ON h.InvoiceTypeId = mmInvType.Id AND mmInvType.IsDeleted = 0
                     LEFT JOIN Sales.MiscMaster mmTrans  ON h.TransportMode = mmTrans.Id  AND mmTrans.IsDeleted = 0
                     LEFT JOIN Sales.MiscMaster mmStatus ON h.StatusId      = mmStatus.Id AND mmStatus.IsDeleted = 0
                     LEFT JOIN Sales.DispatchAdviceHeader da ON h.DispatchAdviceId = da.Id AND da.IsDeleted = 0
@@ -494,11 +505,12 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                 -- Distinct headers for pagination
                 SELECT DISTINCT
                     Id, InvoiceNo, InvoiceDate,
+                    InvoiceTypeId, InvoiceTypeName,
                     DispatchAdviceId, DispatchNo, PartyId, AgentId, UnitId, FinancialYearId,
                     TransportMode, TransportModeName, StatusId, StatusName,
                     VehicleNumber, TransporterName, LRNumber, LRDate,
-                    TotalBags, TotalWeight, TaxableValue, Discount,
-                    Freight, Insurance, HandlingCharge, TotalCharity, OtherCharges,
+                    TotalBags, TotalWeight, TaxableValue, TotalDiscount,
+                    TotalFreight, TotalCommission, Insurance, HandlingCharge, TotalCharity, OtherCharges,
                     CGST, SGST, IGST, TaxAmount,
                     TCSPercentage, TCS, RoundOff,
                     InvoiceAmountBeforeTCS, InvoiceAmount, Remarks,
@@ -523,13 +535,14 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                 -- Result set 2: Paged headers only
                 SELECT
                     p.Id, p.InvoiceNo, p.InvoiceDate,
+                    p.InvoiceTypeId, p.InvoiceTypeName,
                     p.DispatchAdviceId, p.DispatchNo,
                     p.PartyId, p.AgentId, p.UnitId, p.FinancialYearId,
                     p.TransportMode, p.TransportModeName,
                     p.StatusId, p.StatusName,
                     p.VehicleNumber, p.TransporterName, p.LRNumber, p.LRDate,
-                    p.TotalBags, p.TotalWeight, p.TaxableValue, p.Discount,
-                    p.Freight, p.Insurance, p.HandlingCharge, p.TotalCharity, p.OtherCharges,
+                    p.TotalBags, p.TotalWeight, p.TaxableValue, p.TotalDiscount,
+                    p.TotalFreight, p.TotalCommission, p.Insurance, p.HandlingCharge, p.TotalCharity, p.OtherCharges,
                     p.CGST, p.SGST, p.IGST, p.TaxAmount,
                     p.TCSPercentage, p.TCS, p.RoundOff,
                     p.InvoiceAmountBeforeTCS, p.InvoiceAmount, p.Remarks,
@@ -542,7 +555,9 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                     f.Id AS InvoiceId,
                     f.ItemSno, f.ItemId, f.HsnCode, f.GstPercentage,
                     f.LotId, f.NoOfBags, f.Quantity,
-                    f.RatePerKg, f.Discount_Detail AS Discount,
+                    f.RatePerKg, f.DiscountValue_Detail AS DiscountValue,
+                    f.FreightValue_Detail AS FreightValue,
+                    f.CommissionValue_Detail AS CommissionValue,
                     f.TaxableAmount,
                     f.CgstPercentage, f.SgstPercentage, f.IgstPercentage,
                     f.CGST_Detail AS CGST, f.SGST_Detail AS SGST,
@@ -602,14 +617,6 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                 h.InvoiceDetails = detailLookup[h.Id].ToList();
             }
 
-            // Derive InvoiceTypeName via DA → SO → SalesOrderTypeId → TransactionTypeLookup
-            if (headers.Count > 0)
-            {
-                var invoiceTypeMap = await GetInvoiceTypeNameMapAsync(headers.Select(h => h.Id));
-                foreach (var h in headers)
-                    h.InvoiceTypeName = invoiceTypeMap.TryGetValue(h.Id, out var itn) ? itn : null;
-            }
-
             return (headers, total);
         }
 
@@ -629,6 +636,8 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
 
                 -- Result set 1: Headers
                 SELECT h.Id, h.InvoiceNo, h.InvoiceDate,
+                    h.InvoiceTypeId,
+                    itm.Description AS InvoiceTypeName,
                     h.DispatchAdviceId,
                     da.DispatchNo,
                     h.PartyId, h.AgentId, h.UnitId, h.FinancialYearId,
@@ -637,14 +646,15 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                     h.StatusId,
                     sm.Description AS StatusName,
                     h.VehicleNumber, h.TransporterName, h.LRNumber, h.LRDate,
-                    h.TotalBags, h.TotalWeight, h.TaxableValue, h.Discount,
-                    h.Freight, h.Insurance, h.HandlingCharge, h.TotalCharity, h.OtherCharges,
+                    h.TotalBags, h.TotalWeight, h.TaxableValue, h.TotalDiscount,
+                    h.TotalFreight, h.TotalCommission, h.Insurance, h.HandlingCharge, h.TotalCharity, h.OtherCharges,
                     h.CGST, h.SGST, h.IGST, h.TaxAmount,
                     h.TCSPercentage, h.TCS, h.RoundOff,
                     h.InvoiceAmountBeforeTCS, h.InvoiceAmount,
                     h.Remarks, h.GEFlag, h.IsActive, h.IsDeleted,
                     h.CreatedBy, h.CreatedByName, h.CreatedDate
                 FROM Sales.InvoiceHeader h
+                LEFT JOIN Sales.MiscMaster itm ON h.InvoiceTypeId = itm.Id AND itm.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster tm  ON h.TransportMode = tm.Id  AND tm.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster sm  ON h.StatusId      = sm.Id  AND sm.IsDeleted = 0
                 LEFT JOIN Sales.DispatchAdviceHeader da ON h.DispatchAdviceId = da.Id AND da.IsDeleted = 0
@@ -659,7 +669,7 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                     d.InvoiceHeaderId AS InvoiceId,
                     d.ItemSno, d.ItemId, d.HsnCode, d.GstPercentage,
                     d.LotId, d.NoOfBags, d.Quantity,
-                    d.RatePerKg, d.Discount, d.TaxableAmount,
+                    d.RatePerKg, d.DiscountValue, d.FreightValue, d.CommissionValue, d.TaxableAmount,
                     d.CgstPercentage, d.SgstPercentage, d.IgstPercentage,
                     d.CGST, d.SGST, d.IGST, d.TaxAmount,
                     d.PackTypeId, d.UOMId, d.Charity, d.HandlingCharges, d.TotalAmount
@@ -710,14 +720,6 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                 h.InvoiceDetails = detailLookup[h.Id].ToList();
             }
 
-            // Derive InvoiceTypeName via DA → SO → SalesOrderTypeId → TransactionTypeLookup
-            if (headers.Count > 0)
-            {
-                var invoiceTypeMap = await GetInvoiceTypeNameMapAsync(headers.Select(h => h.Id));
-                foreach (var h in headers)
-                    h.InvoiceTypeName = invoiceTypeMap.TryGetValue(h.Id, out var itn) ? itn : null;
-            }
-
             return headers;
         }
 
@@ -729,16 +731,18 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
             // 1. Fetch invoice header with same-module JOINs
             var headerSql = $@"
                 SELECT h.Id, h.InvoiceNo, h.InvoiceDate,
+                    itm.Description AS InvoiceTypeName,
                     h.DispatchAdviceId, h.PartyId, h.AgentId, h.UnitId,
                     h.TransportMode, tm.Description AS TransportModeName,
                     h.VehicleNumber, h.TransporterName, h.LRNumber, h.LRDate,
-                    h.TotalBags, h.TotalWeight, h.TaxableValue, h.Discount,
-                    h.Freight, h.Insurance, h.HandlingCharge, h.TotalCharity, h.OtherCharges,
+                    h.TotalBags, h.TotalWeight, h.TaxableValue, h.TotalDiscount,
+                    h.TotalFreight, h.TotalCommission, h.Insurance, h.HandlingCharge, h.TotalCharity, h.OtherCharges,
                     h.CGST, h.SGST, h.IGST, h.TaxAmount,
                     h.TCSPercentage, h.TCS, h.RoundOff,
                     h.InvoiceAmountBeforeTCS, h.InvoiceAmount,
                     h.Remarks, h.CreatedDate
                 FROM Sales.InvoiceHeader h
+                LEFT JOIN Sales.MiscMaster itm ON h.InvoiceTypeId = itm.Id AND itm.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster tm ON h.TransportMode = tm.Id AND tm.IsDeleted = 0
                 WHERE h.Id = @Id AND h.IsDeleted = 0 {unitFilter}";
 
@@ -778,28 +782,16 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
 
             // 5. Fetch sales order (CustomerPO + SalesOrderTypeId for InvoiceTypeName)
             string? customerPO = null;
-            int? salesOrderTypeId = null;
             if (dispatch?.SalesOrderId > 0)
             {
                 const string orderSql = @"
-                    SELECT so.SalesOrderNo, so.SalesOrderTypeId
+                    SELECT so.SalesOrderNo
                     FROM Sales.SalesOrderHeader so
                     WHERE so.Id = @SalesOrderId AND so.IsDeleted = 0";
 
-                var salesOrder = await _dbConnection.QueryFirstOrDefaultAsync<(string? SalesOrderNo, int? SalesOrderTypeId)>(
+                customerPO = await _dbConnection.ExecuteScalarAsync<string?>(
                     orderSql, new { SalesOrderId = dispatch.SalesOrderId });
-                customerPO = salesOrder.SalesOrderNo;
-                salesOrderTypeId = salesOrder.SalesOrderTypeId;
             }
-
-            // Derive InvoiceTypeName via SalesOrderTypeId → TransactionTypeLookup
-            string? invoiceTypeName = null;
-            if (salesOrderTypeId.HasValue)
-            {
-                var types = await _transactionTypeLookup.GetByIdsAsync(new[] { salesOrderTypeId.Value });
-                invoiceTypeName = types.FirstOrDefault()?.TypeName;
-            }
-            header.InvoiceTypeName = invoiceTypeName;
 
             // 6. Fetch consignee (dispatch address)
             PrintConsigneeRawDto? consignee = null;
@@ -1080,13 +1072,14 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                 TotalBags = header.TotalBags,
                 TotalQtyKg = header.TotalWeight,
                 TotalValue = header.TaxableValue,
-                Discount = header.Discount,
-                Freight = header.Freight,
+                TotalDiscount = header.TotalDiscount,
+                TotalFreight = header.TotalFreight,
+                TotalCommission = header.TotalCommission,
                 Insurance = header.Insurance,
                 HandlingCharges = header.HandlingCharge,
                 TotalCharity = header.TotalCharity,
                 OtherCharges = header.OtherCharges,
-                ValueOfSupply = header.TaxableValue - header.Discount + header.Freight
+                ValueOfSupply = header.TaxableValue - header.TotalDiscount + header.TotalFreight
                     + header.Insurance + header.HandlingCharge + header.OtherCharges,
                 CgstRate = cgstRate,
                 CgstAmount = header.CGST,
@@ -1136,7 +1129,7 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
             // 1. Fetch header + dispatch advice transport + sales order type via same-module JOINs
             const string headerSql = @"
                 SELECT h.Id, h.InvoiceNo, h.InvoiceDate, h.UnitId, h.PartyId,
-                    h.TaxableValue, h.Discount, h.Freight, h.Insurance,
+                    h.TaxableValue, h.TotalDiscount, h.TotalFreight, h.TotalCommission, h.Insurance,
                     h.HandlingCharge, h.TotalCharity, h.OtherCharges,
                     h.CGST, h.SGST, h.IGST, h.TCS, h.RoundOff,
                     h.InvoiceAmount, h.Remarks,
@@ -1159,7 +1152,7 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
             // 2. Fetch detail lines
             const string detailSql = @"
                 SELECT d.ItemSno, d.ItemId, d.HsnCode, d.NoOfBags, d.Quantity,
-                    d.RatePerKg, d.Discount, d.TaxableAmount, d.GstPercentage,
+                    d.RatePerKg, d.DiscountValue, d.FreightValue, d.CommissionValue, d.TaxableAmount, d.GstPercentage,
                     d.CGST, d.SGST, d.IGST, d.Charity, d.HandlingCharges, d.TotalAmount,
                     d.PackTypeId, d.UOMId
                 FROM Sales.InvoiceDetail d
@@ -1206,35 +1199,6 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
 
             header.Details = details;
             return header;
-        }
-
-        // --- Derive InvoiceTypeName via DA → SO → SalesOrderTypeId → TransactionTypeLookup ---
-        private async Task<Dictionary<int, string?>> GetInvoiceTypeNameMapAsync(IEnumerable<int> invoiceIds)
-        {
-            var idList = invoiceIds.ToList();
-            if (idList.Count == 0)
-                return new Dictionary<int, string?>();
-
-            const string sql = @"
-                SELECT h.Id AS InvoiceId, so.SalesOrderTypeId
-                FROM Sales.InvoiceHeader h
-                INNER JOIN Sales.DispatchAdviceHeader da ON h.DispatchAdviceId = da.Id AND da.IsDeleted = 0
-                INNER JOIN Sales.SalesOrderHeader so ON da.SalesOrderId = so.Id AND so.IsDeleted = 0
-                WHERE h.Id IN @Ids AND so.SalesOrderTypeId IS NOT NULL";
-
-            var mappings = (await _dbConnection.QueryAsync<(int InvoiceId, int SalesOrderTypeId)>(
-                sql, new { Ids = idList })).ToList();
-
-            if (mappings.Count == 0)
-                return new Dictionary<int, string?>();
-
-            var typeIds = mappings.Select(m => m.SalesOrderTypeId).Distinct();
-            var types = await _transactionTypeLookup.GetByIdsAsync(typeIds);
-            var typeDict = types.ToDictionary(t => t.Id, t => t.TypeName);
-
-            return mappings.ToDictionary(
-                m => m.InvoiceId,
-                m => typeDict.TryGetValue(m.SalesOrderTypeId, out var name) ? name : null);
         }
 
         // --- Bag serial number formatting ---
