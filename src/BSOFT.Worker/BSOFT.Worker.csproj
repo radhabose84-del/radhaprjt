@@ -50,17 +50,12 @@
   <ItemGroup>
     <None Update="appsettings*.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </None>
     <None Update="settings\serilogsetting.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </None>
-  </ItemGroup>
-
-  <!-- Exclude appsettings from publish to prevent overwriting production configs -->
-  <ItemGroup>
-    <Content Update="appsettings.json" CopyToPublishDirectory="Never" />
-    <Content Update="appsettings.Development.json" CopyToPublishDirectory="Never" />
-    <Content Update="appsettings.QA.json" CopyToPublishDirectory="Never" />
   </ItemGroup>
 
 </Project>

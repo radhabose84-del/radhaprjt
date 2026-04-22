@@ -102,7 +102,7 @@ public sealed class AgentPagedDataQueryHandlerTests
         _mockIpService.Setup(s => s.GetPartyId()).Returns(10);
         _mockQueryRepo.Setup(r => r.GetAgentCustomerIdsAsync(10)).ReturnsAsync(new List<int> { 1 });
         _mockQueryRepo
-            .Setup(r => r.GetSalesOrdersAsync(It.IsAny<List<int>>(), 1, 10, null))
+            .Setup(r => r.GetSalesOrdersAsync(It.IsAny<int>(), 1, 10, null))
             .ReturnsAsync((new List<AgentSalesOrderListDto>(), 0));
 
         var handler = new GetAgentSalesOrdersQueryHandler(_mockQueryRepo.Object, _mockIpService.Object);

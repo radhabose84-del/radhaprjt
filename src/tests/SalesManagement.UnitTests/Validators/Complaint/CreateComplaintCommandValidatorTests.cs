@@ -1,3 +1,4 @@
+using Contracts.Interfaces;
 using FluentValidation.TestHelper;
 using SalesManagement.Application.Common.Interfaces.IComplaint;
 using SalesManagement.Application.Complaint.Commands.CreateComplaint;
@@ -10,9 +11,16 @@ namespace SalesManagement.UnitTests.Validators.Complaint;
 public sealed class CreateComplaintCommandValidatorTests
 {
     private readonly Mock<IComplaintQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
+    private readonly Mock<IDataAccessFilter> _mockDataAccessFilter = new(MockBehavior.Loose);
 
-    private CreateComplaintCommandValidator CreateValidator() =>
-        new(TestMaxLengthProviderFactory.Create(), _mockQueryRepo.Object);
+    private CreateComplaintCommandValidator CreateValidator()
+    {
+        _mockDataAccessFilter
+            .Setup(f => f.GetContextAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(DataAccessContext.Unrestricted);
+
+        return new(TestMaxLengthProviderFactory.Create(), _mockQueryRepo.Object, _mockDataAccessFilter.Object);
+    }
 
     private void SetupAllAsyncMocks(int customerId = 1)
     {

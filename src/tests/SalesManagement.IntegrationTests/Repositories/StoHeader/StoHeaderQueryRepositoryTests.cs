@@ -26,7 +26,8 @@ namespace SalesManagement.IntegrationTests.Repositories.StoHeader
             Mock<IItemLookup>? itemLookup = null,
             Mock<IUOMLookup>? uomLookup = null,
             Mock<IUserLookup>? userLookup = null,
-            Mock<IIPAddressService>? ip = null)
+            Mock<IIPAddressService>? ip = null,
+            Mock<IDataAccessFilter>? dataAccessFilter = null)
         {
             if (unitLookup == null)
             {
@@ -71,11 +72,19 @@ namespace SalesManagement.IntegrationTests.Repositories.StoHeader
                 ip = new Mock<IIPAddressService>(MockBehavior.Loose);
                 ip.Setup(x => x.GetUserId()).Returns(1);
             }
+            if (dataAccessFilter == null)
+            {
+                dataAccessFilter = new Mock<IDataAccessFilter>(MockBehavior.Loose);
+                dataAccessFilter
+                    .Setup(f => f.GetContextAsync(It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(new DataAccessContext { BypassDataAccess = true });
+            }
 
             return new StoHeaderQueryRepository(
                 new SqlConnection(_fixture.ConnectionString),
                 unitLookup.Object, warehouseLookup.Object, itemLookup.Object,
-                uomLookup.Object, userLookup.Object, ip.Object);
+                uomLookup.Object, userLookup.Object, ip.Object,
+                dataAccessFilter.Object);
         }
 
         private async Task<int> EnsureMiscAsync(ApplicationDbContext ctx, int miscTypeId, string code)
@@ -94,7 +103,7 @@ namespace SalesManagement.IntegrationTests.Repositories.StoHeader
             return m.Id;
         }
 
-        private async Task<(int stoTypeId, int movementId, int pendingStatusId)> EnsurePrerequisitesAsync()
+        private async Task<(int stoTypeId, int movementId, int pendingStatusId, int approvedStatusId)> EnsurePrerequisitesAsync()
         {
             await using var ctx = _fixture.CreateFreshDbContext();
 
@@ -128,6 +137,7 @@ namespace SalesManagement.IntegrationTests.Repositories.StoHeader
                 await ctx.SaveChangesAsync();
             }
             var pendingId = await EnsureMiscAsync(ctx, approvalType.Id, "Pending");
+            var approvedId = await EnsureMiscAsync(ctx, approvalType.Id, "Approved");
 
             var aux = await ctx.MiscTypeMaster.FirstOrDefaultAsync(x => x.MiscTypeCode == "SHQ_AUX");
             if (aux == null)
@@ -174,13 +184,14 @@ namespace SalesManagement.IntegrationTests.Repositories.StoHeader
                 await ctx.SaveChangesAsync();
             }
 
-            return (stoType.Id, movement.Id, pendingId);
+            return (stoType.Id, movement.Id, pendingId, approvedId);
         }
 
         private async Task<int> SeedAsync(string stoNumber = "STO_Q1", int detailCount = 2,
-            IsDelete deleted = IsDelete.NotDeleted, Status active = Status.Active, int? statusId = null)
+            IsDelete deleted = IsDelete.NotDeleted, Status active = Status.Active, int? statusId = null,
+            bool approved = false)
         {
-            var (stoTypeId, movementId, pendingId) = await EnsurePrerequisitesAsync();
+            var (stoTypeId, movementId, pendingId, approvedId) = await EnsurePrerequisitesAsync();
             await using var ctx = _fixture.CreateFreshDbContext();
             var h = new SalesManagement.Domain.Entities.StoHeader
             {
@@ -192,7 +203,7 @@ namespace SalesManagement.IntegrationTests.Repositories.StoHeader
                 SupplyingPlantId = 1, SupplyingStorageLocationId = 1,
                 ReceivingPlantId = 2, ReceivingStorageLocationId = 2,
                 Remarks = "test",
-                HeaderStatusId = statusId ?? pendingId,
+                HeaderStatusId = statusId ?? (approved ? approvedId : pendingId),
                 IsActive = active, IsDeleted = deleted,
                 StoDetails = Enumerable.Range(1, detailCount).Select(i =>
                     new SalesManagement.Domain.Entities.StoDetail
@@ -267,7 +278,7 @@ namespace SalesManagement.IntegrationTests.Repositories.StoHeader
         public async Task AutocompleteAsync_Should_Return_Active_Matching()
         {
             await ClearAsync();
-            await SeedAsync("STO_AC");
+            await SeedAsync("STO_AC", approved: true);
 
             var result = await CreateRepo().AutocompleteAsync("STO_AC", CancellationToken.None);
 
@@ -278,7 +289,7 @@ namespace SalesManagement.IntegrationTests.Repositories.StoHeader
         public async Task AutocompleteAsync_Should_Exclude_Inactive()
         {
             await ClearAsync();
-            await SeedAsync("STO_INACT", active: Status.Inactive);
+            await SeedAsync("STO_INACT", active: Status.Inactive, approved: true);
 
             var result = await CreateRepo().AutocompleteAsync("STO_INACT", CancellationToken.None);
 
@@ -306,7 +317,7 @@ namespace SalesManagement.IntegrationTests.Repositories.StoHeader
         [Fact]
         public async Task StoTypeExistsAsync_Should_Return_True_For_Active()
         {
-            var (stoTypeId, _, _) = await EnsurePrerequisitesAsync();
+            var (stoTypeId, _, _, _) = await EnsurePrerequisitesAsync();
 
             var result = await CreateRepo().StoTypeExistsAsync(stoTypeId);
 
@@ -323,7 +334,7 @@ namespace SalesManagement.IntegrationTests.Repositories.StoHeader
         [Fact]
         public async Task MovementTypeExistsAsync_Should_Return_True_For_Active()
         {
-            var (_, movementId, _) = await EnsurePrerequisitesAsync();
+            var (_, movementId, _, _) = await EnsurePrerequisitesAsync();
 
             var result = await CreateRepo().MovementTypeExistsAsync(movementId);
 

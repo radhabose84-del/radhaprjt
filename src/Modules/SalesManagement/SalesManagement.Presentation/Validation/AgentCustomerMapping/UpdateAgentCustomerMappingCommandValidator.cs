@@ -34,6 +34,10 @@ namespace SalesManagement.Presentation.Validation.AgentCustomerMapping
                 switch (rule.Rule)
                 {
                     case "NotEmpty":
+                        RuleFor(x => x.CustomerId)
+                            .GreaterThan(0)
+                            .WithMessage($"{nameof(UpdateAgentCustomerMappingCommand.CustomerId)} {rule.Error}");
+
                         RuleFor(x => x.AgentId)
                             .GreaterThan(0)
                             .WithMessage($"{nameof(UpdateAgentCustomerMappingCommand.AgentId)} {rule.Error}");
@@ -66,6 +70,11 @@ namespace SalesManagement.Presentation.Validation.AgentCustomerMapping
                         break;
 
                     case "FKColumnDelete":
+                        RuleFor(x => x.CustomerId)
+                            .MustAsync(async (id, ct) => await _queryRepository.CustomerExistsAsync(id, ct))
+                            .WithMessage($"{nameof(UpdateAgentCustomerMappingCommand.CustomerId)} {rule.Error}")
+                            .When(x => x.CustomerId > 0);
+
                         RuleFor(x => x.AgentId)
                             .MustAsync(async (id, ct) => await _queryRepository.AgentExistsAsync(id, ct))
                             .WithMessage($"{nameof(UpdateAgentCustomerMappingCommand.AgentId)} {rule.Error}")

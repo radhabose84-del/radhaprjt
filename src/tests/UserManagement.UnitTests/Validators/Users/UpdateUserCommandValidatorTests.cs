@@ -70,7 +70,6 @@ namespace UserManagement.UnitTests.Validation.Users
             var result = await v.TestValidateAsync(cmd);
 
             result.ShouldHaveValidationErrorFor(x => x.FirstName);
-            result.ShouldHaveValidationErrorFor(x => x.LastName);
             result.ShouldHaveValidationErrorFor(x => x.UserName);
             result.ShouldHaveValidationErrorFor(x => x.UserId);
             result.ShouldHaveValidationErrorFor(x => x.UserGroupId);

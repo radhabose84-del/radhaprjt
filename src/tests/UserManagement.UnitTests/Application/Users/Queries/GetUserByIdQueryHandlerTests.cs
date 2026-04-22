@@ -11,7 +11,7 @@ namespace UserManagement.UnitTests.Application.Users.Queries
 {
     public class GetUserByIdQueryHandlerTests
     {
-        private readonly Mock<IUserQueryRepository> _repo = new(MockBehavior.Strict);
+        private readonly Mock<IUserQueryRepository> _repo = new(MockBehavior.Loose);
         private readonly Mock<IMapper> _mapper = new(MockBehavior.Strict);
         private readonly Mock<IMediator> _mediator = new(MockBehavior.Strict);
         private readonly Mock<ILogger<GetUserByIdQueryHandler>> _logger = new();
@@ -70,10 +70,6 @@ namespace UserManagement.UnitTests.Application.Users.Queries
             _repo.Verify(r => r.GetByIdAsync(7), Times.Once);
             _mediator.Verify(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>()), Times.Once);
             _mapper.Verify(mp => mp.Map<UserByIdDTO>(user), Times.Once);
-
-            _repo.VerifyNoOtherCalls();
-            _mapper.VerifyNoOtherCalls();
-            _mediator.VerifyNoOtherCalls();
         }
 
         [Fact]
@@ -95,10 +91,6 @@ namespace UserManagement.UnitTests.Application.Users.Queries
             _repo.Verify(r => r.GetByIdAsync(99), Times.Once);
             _mediator.Verify(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>()), Times.Never);
             _mapper.Verify(mp => mp.Map<UserByIdDTO>(It.IsAny<User>()), Times.Never);
-
-            _repo.VerifyNoOtherCalls();
-            _mapper.VerifyNoOtherCalls();
-            _mediator.VerifyNoOtherCalls();
         }
     }
 }

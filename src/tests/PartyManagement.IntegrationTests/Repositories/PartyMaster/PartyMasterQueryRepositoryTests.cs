@@ -70,13 +70,14 @@ namespace PartyManagement.IntegrationTests.Repositories.PartyMaster
             var country = new Mock<ICountryLookup>(MockBehavior.Loose);
             var salesSegment = new Mock<ISalesSegmentLookup>(MockBehavior.Loose);
             var freight = new Mock<IFreightMasterLookup>(MockBehavior.Loose);
+            var agentCustomerMapping = new Mock<IAgentCustomerMappingLookup>(MockBehavior.Loose);
 
             var conn = new SqlConnection(_fixture.ConnectionString);
             return new PartyMasterQueryRepository(conn, _fixture.IpMock.Object,
                 incoterm.Object, paymentTerm.Object, city.Object, state.Object, country.Object,
                 dataAccess.Object, salesSegment.Object,
                 sales.Object, purchase.Object, finance.Object, maintenance.Object,
-                freight.Object);
+                freight.Object, agentCustomerMapping.Object);
         }
 
         // Seeds an ApprovalStatus type + Pending row + RegistrationType + Registered row.

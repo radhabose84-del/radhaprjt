@@ -14,7 +14,7 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCustomerMapping
 
         private AgentCustomerMappingCommandRepository CreateRepo(ApplicationDbContext ctx) => new(ctx);
 
-        private async Task<int> EnsureSalesSegmentAsync()
+        private async Task<int> EnsureSalesGroupAsync()
         {
             await using var ctx = _fixture.CreateFreshDbContext();
 
@@ -31,59 +31,46 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCustomerMapping
                 await ctx.SaveChangesAsync();
             }
 
-            var ch = await ctx.SalesChannel.IgnoreQueryFilters()
-                .FirstOrDefaultAsync(x => x.SalesChannelCode == "ACMSC");
-            if (ch == null)
+            var office = await ctx.SalesOffice.IgnoreQueryFilters()
+                .FirstOrDefaultAsync(x => x.SalesOrganisationId == org.Id);
+            if (office == null)
             {
-                ch = new SalesManagement.Domain.Entities.SalesChannel
+                office = new SalesManagement.Domain.Entities.SalesOffice
                 {
-                    SalesChannelCode = "ACMSC", SalesChannelName = "ACM Channel",
-                    IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted
+                    SalesOfficeName = "ACM Office",
+                    SalesOrganisationId = org.Id,
+                    IsActive = Status.Active,
+                    IsDeleted = IsDelete.NotDeleted
                 };
-                await ctx.SalesChannel.AddAsync(ch);
+                await ctx.SalesOffice.AddAsync(office);
                 await ctx.SaveChangesAsync();
             }
 
-            var bu = await ctx.BusinessUnit.IgnoreQueryFilters()
-                .FirstOrDefaultAsync(x => x.BusinessUnitCode == "ACMBU");
-            if (bu == null)
-            {
-                bu = new SalesManagement.Domain.Entities.BusinessUnit
-                {
-                    BusinessUnitCode = "ACMBU", BusinessUnitName = "ACM BU",
-                    Description = "ACM BU", IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted
-                };
-                await ctx.BusinessUnit.AddAsync(bu);
-                await ctx.SaveChangesAsync();
-            }
-
-            var existing = await ctx.SalesSegment.IgnoreQueryFilters()
-                .FirstOrDefaultAsync(x => x.SalesOrganisationId == org.Id && x.SalesChannelId == ch.Id && x.BusinessUnitId == bu.Id);
+            var existing = await ctx.SalesGroup.IgnoreQueryFilters()
+                .FirstOrDefaultAsync(x => x.SalesOfficeId == office.Id);
             if (existing != null) return existing.Id;
 
-            var s = new SalesManagement.Domain.Entities.SalesSegment
+            var g = new SalesManagement.Domain.Entities.SalesGroup
             {
-                SalesOrganisationId = org.Id,
-                SalesChannelId = ch.Id,
-                BusinessUnitId = bu.Id,
-                SegmentName = "ACM Seg",
+                SalesGroupName = "ACM Group",
+                SalesOfficeId = office.Id,
                 IsActive = Status.Active,
                 IsDeleted = IsDelete.NotDeleted
             };
-            await ctx.SalesSegment.AddAsync(s);
+            await ctx.SalesGroup.AddAsync(g);
             await ctx.SaveChangesAsync();
-            return s.Id;
+            return g.Id;
         }
 
         private async Task<SalesManagement.Domain.Entities.AgentCustomerMapping> BuildEntityAsync(
             int customerId, int agentId, bool isDefault = false)
         {
-            var segId = await EnsureSalesSegmentAsync();
+            var grpId = await EnsureSalesGroupAsync();
             return new SalesManagement.Domain.Entities.AgentCustomerMapping
             {
                 CustomerId = customerId,
                 AgentId = agentId,
-                SalesSegmentId = segId,
+                SalesGroupId = grpId,
                 EffectiveFrom = DateTime.UtcNow.Date,
                 IsDefaultAgent = isDefault,
                 Remarks = "test",
@@ -158,6 +145,56 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCustomerMapping
             reloaded.AgentId.Should().Be(800);
             reloaded.Remarks.Should().Be("updated");
             reloaded.IsActive.Should().Be(Status.Inactive);
+        }
+
+        [Fact]
+        public async Task UpdateAsync_Should_Persist_Changed_CustomerId()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            await ClearAsync(ctx);
+            var id = await CreateRepo(ctx).CreateAsync(await BuildEntityAsync(customerId: 1096, agentId: 1077));
+            ctx.ChangeTracker.Clear();
+
+            var entity = await BuildEntityAsync(customerId: 1103, agentId: 1077);
+            entity.Id = id;
+
+            await CreateRepo(ctx).UpdateAsync(entity);
+            ctx.ChangeTracker.Clear();
+
+            var reloaded = await ctx.AgentCustomerMapping.FirstAsync(x => x.Id == id);
+            reloaded.CustomerId.Should().Be(1103);
+        }
+
+        [Fact]
+        public async Task UpdateAsync_WithIsDefault_Should_Clear_Defaults_For_New_Customer_Not_Old()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            await ClearAsync(ctx);
+
+            // Existing default on OLD customer (1096) — should remain unchanged after re-parent
+            var oldCustomerDefaultId = await CreateRepo(ctx).CreateAsync(
+                await BuildEntityAsync(customerId: 1096, agentId: 2001, isDefault: true));
+
+            // Existing default on NEW customer (1103) — should be cleared when our row is re-parented to 1103
+            var newCustomerDefaultId = await CreateRepo(ctx).CreateAsync(
+                await BuildEntityAsync(customerId: 1103, agentId: 2002, isDefault: true));
+
+            // Row under test — starts on 1096, non-default
+            var rowUnderTestId = await CreateRepo(ctx).CreateAsync(
+                await BuildEntityAsync(customerId: 1096, agentId: 2003, isDefault: false));
+            ctx.ChangeTracker.Clear();
+
+            // Re-parent to 1103 AND mark as default
+            var update = await BuildEntityAsync(customerId: 1103, agentId: 2003, isDefault: true);
+            update.Id = rowUnderTestId;
+            await CreateRepo(ctx).UpdateAsync(update);
+            ctx.ChangeTracker.Clear();
+
+            var oldCustomerDefault = await ctx.AgentCustomerMapping.FirstAsync(x => x.Id == oldCustomerDefaultId);
+            var newCustomerDefault = await ctx.AgentCustomerMapping.FirstAsync(x => x.Id == newCustomerDefaultId);
+
+            oldCustomerDefault.IsDefaultAgent.Should().BeTrue("re-parent must not touch the OLD customer's default");
+            newCustomerDefault.IsDefaultAgent.Should().BeFalse("new customer's previous default must be cleared");
         }
 
         [Fact]

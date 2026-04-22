@@ -2,6 +2,7 @@ using Contracts.Dtos.Lookups.Inventory;
 using Contracts.Dtos.Lookups.Party;
 using Contracts.Dtos.Lookups.Users;
 using Contracts.Dtos.Lookups.Warehouse;
+using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Users;
@@ -39,7 +40,16 @@ namespace SalesManagement.IntegrationTests.Repositories.ComplaintResolution
                 BuildDefaultPartyLookup().Object,
                 BuildDefaultItemLookup().Object,
                 BuildDefaultWarehouseLookup().Object,
-                BuildDefaultBinLookup().Object);
+                BuildDefaultBinLookup().Object,
+                BuildUnrestrictedDataAccessFilter().Object);
+        }
+
+        private static Mock<IDataAccessFilter> BuildUnrestrictedDataAccessFilter()
+        {
+            var mock = new Mock<IDataAccessFilter>(MockBehavior.Loose);
+            mock.Setup(d => d.GetContextAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(DataAccessContext.Unrestricted);
+            return mock;
         }
 
         private static Mock<IUserLookup> BuildDefaultUserLookup()

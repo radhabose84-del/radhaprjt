@@ -1,5 +1,6 @@
 using Contracts.Dtos.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Inventory;
+using Contracts.Interfaces.Lookups.Purchase;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using SalesManagement.Infrastructure.Data;
@@ -25,7 +26,8 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesOrderAmendment
                         (IReadOnlyList<ItemLookupDto>)ids.Select(id =>
                             new ItemLookupDto { Id = id, ItemCode = "I" + id, ItemName = "Item " + id }).ToList());
             }
-            return new SalesOrderAmendmentQueryRepository(new SqlConnection(_fixture.ConnectionString), item.Object);
+            var paymentTermLookup = new Mock<IPaymentTermLookup>(MockBehavior.Loose);
+            return new SalesOrderAmendmentQueryRepository(new SqlConnection(_fixture.ConnectionString), item.Object, paymentTermLookup.Object);
         }
 
         private async Task<(int pendingStatusId, int approvedStatusId)> EnsureApprovalStatusMiscAsync()
