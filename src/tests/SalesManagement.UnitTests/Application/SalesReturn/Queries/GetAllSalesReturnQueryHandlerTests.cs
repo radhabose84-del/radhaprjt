@@ -18,7 +18,7 @@ public sealed class GetAllSalesReturnQueryHandlerTests
     public async Task Handle_ReturnsSuccess()
     {
         _mockQueryRepo
-            .Setup(r => r.GetAllAsync(1, 10, null))
+            .Setup(r => r.GetAllAsync(1, 10, null, null, null, null, null))
             .ReturnsAsync((new List<SalesReturnListDto> { new() { Id = 1 } }, 1));
 
         var result = await CreateSut().Handle(
@@ -33,7 +33,7 @@ public sealed class GetAllSalesReturnQueryHandlerTests
     public async Task Handle_EmptyResult_ReturnsEmptyList()
     {
         _mockQueryRepo
-            .Setup(r => r.GetAllAsync(1, 10, null))
+            .Setup(r => r.GetAllAsync(1, 10, null, null, null, null, null))
             .ReturnsAsync((new List<SalesReturnListDto>(), 0));
 
         var result = await CreateSut().Handle(
@@ -48,7 +48,7 @@ public sealed class GetAllSalesReturnQueryHandlerTests
     public async Task Handle_ReturnsPaginationMetadata()
     {
         _mockQueryRepo
-            .Setup(r => r.GetAllAsync(2, 5, "search"))
+            .Setup(r => r.GetAllAsync(2, 5, "search", null, null, null, null))
             .ReturnsAsync((new List<SalesReturnListDto>(), 0));
 
         var result = await CreateSut().Handle(

@@ -19,9 +19,10 @@ public sealed class GetAllComplaintDepartmentFeedbackQueryHandlerTests
     [Fact]
     public async Task Handle_ReturnsSuccess()
     {
+        _mockIpService.Setup(s => s.GetUserId()).Returns(7);
         var dtoList = new List<FeedbackListDto> { new FeedbackListDto { AssignmentId = 1 } };
         _mockQueryRepo
-            .Setup(r => r.GetAllAsync(1, 10, null, null, null))
+            .Setup(r => r.GetAllAsync(1, 10, null, null, 7))
             .ReturnsAsync((dtoList, 1));
 
         var result = await CreateSut().Handle(
@@ -33,7 +34,7 @@ public sealed class GetAllComplaintDepartmentFeedbackQueryHandlerTests
     }
 
     [Fact]
-    public async Task Handle_MyPendingOnly_PassesUserId()
+    public async Task Handle_ScopesToLoggedInUser_PassesUserId()
     {
         _mockIpService.Setup(s => s.GetUserId()).Returns(42);
 
@@ -45,8 +46,7 @@ public sealed class GetAllComplaintDepartmentFeedbackQueryHandlerTests
             new GetAllComplaintDepartmentFeedbackQuery
             {
                 PageNumber = 1,
-                PageSize = 10,
-                MyPendingOnly = true
+                PageSize = 10
             },
             CancellationToken.None);
 
@@ -59,8 +59,9 @@ public sealed class GetAllComplaintDepartmentFeedbackQueryHandlerTests
     [Fact]
     public async Task Handle_EmptyResult_ReturnsSuccess()
     {
+        _mockIpService.Setup(s => s.GetUserId()).Returns(7);
         _mockQueryRepo
-            .Setup(r => r.GetAllAsync(1, 10, null, null, null))
+            .Setup(r => r.GetAllAsync(1, 10, null, null, 7))
             .ReturnsAsync((new List<FeedbackListDto>(), 0));
 
         var result = await CreateSut().Handle(

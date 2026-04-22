@@ -35,6 +35,7 @@ namespace GateEntryManagement.IntegrationTests.Common
             await CreateDbContextAsync();
             await EnsureSchemaAsync();
             await DbContext.Database.EnsureCreatedAsync();
+            await CreateCrossModuleStubsAsync();
         }
 
         public ApplicationDbContext CreateFreshDbContext()
@@ -101,6 +102,27 @@ namespace GateEntryManagement.IntegrationTests.Common
             await conn.OpenAsync();
             await conn.ExecuteAsync(
                 "IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name = 'Gate') EXEC('CREATE SCHEMA [Gate]')");
+        }
+
+        /// <summary>
+        /// Creates stub tables for cross-module JOINs used in Dapper queries.
+        /// Called AFTER EnsureCreatedAsync so EF Core tables exist first.
+        /// </summary>
+        private async Task CreateCrossModuleStubsAsync()
+        {
+            await using var conn = new SqlConnection(_testDbConnection);
+            await conn.OpenAsync();
+
+            await conn.ExecuteAsync(
+                "IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name = 'Finance') EXEC('CREATE SCHEMA [Finance]')");
+            await conn.ExecuteAsync(@"
+                IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'Finance' AND TABLE_NAME = 'TransactionTypeMaster')
+                CREATE TABLE Finance.TransactionTypeMaster (
+                    Id INT PRIMARY KEY IDENTITY(1,1),
+                    ShortName VARCHAR(50),
+                    TypeName VARCHAR(100),
+                    IsDeleted BIT NOT NULL DEFAULT 0
+                )");
         }
 
         /// <summary>

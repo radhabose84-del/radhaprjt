@@ -40,7 +40,7 @@ namespace SalesManagement.UnitTests.Domain
                 CustomerId = 10,
                 AgentId = 20,
                 SubAgentId = 30,
-                SalesSegmentId = 40,
+                SalesGroupId = 40,
                 EffectiveFrom = effectiveFrom,
                 EffectiveTo = effectiveTo,
                 IsDefaultAgent = true,
@@ -51,7 +51,7 @@ namespace SalesManagement.UnitTests.Domain
             entity.CustomerId.Should().Be(10);
             entity.AgentId.Should().Be(20);
             entity.SubAgentId.Should().Be(30);
-            entity.SalesSegmentId.Should().Be(40);
+            entity.SalesGroupId.Should().Be(40);
             entity.EffectiveFrom.Should().Be(effectiveFrom);
             entity.EffectiveTo.Should().Be(effectiveTo);
             entity.IsDefaultAgent.Should().BeTrue();
@@ -91,14 +91,14 @@ namespace SalesManagement.UnitTests.Domain
         [Fact]
         public void AgentCustomerMapping_NavigationProperty_ShouldBeAssignable()
         {
-            var segment = new SalesSegment { Id = 1 };
+            var group = new SalesGroup { Id = 1 };
             var entity = new AgentCustomerMapping
             {
-                SalesSegment = segment
+                SalesGroup = group
             };
 
-            entity.SalesSegment.Should().NotBeNull();
-            entity.SalesSegment!.Id.Should().Be(1);
+            entity.SalesGroup.Should().NotBeNull();
+            entity.SalesGroup!.Id.Should().Be(1);
         }
 
         [Fact]

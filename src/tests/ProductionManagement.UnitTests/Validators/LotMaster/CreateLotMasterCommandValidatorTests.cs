@@ -13,14 +13,16 @@ namespace ProductionManagement.UnitTests.Validators.LotMaster
         private readonly Mock<ILotMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
         private readonly Mock<IIPAddressService> _mockIp = new(MockBehavior.Loose);
 
-        private CreateLotMasterCommandValidator CreateValidator()
+        public CreateLotMasterCommandValidatorTests()
         {
             _mockIp.Setup(x => x.GetUnitId()).Returns(1);
-            return new CreateLotMasterCommandValidator(
+        }
+
+        private CreateLotMasterCommandValidator CreateValidator() =>
+            new CreateLotMasterCommandValidator(
                 TestMaxLengthProviderFactory.Create(),
                 _mockQueryRepo.Object,
                 _mockIp.Object);
-        }
 
         [Fact]
         public async Task Validate_EmptyCommand_HasValidationErrors()

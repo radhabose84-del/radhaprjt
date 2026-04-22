@@ -20,6 +20,7 @@ public sealed class SubmitQCReviewCommandValidatorTests
         _mockQueryRepo.Setup(r => r.MiscMasterExistsAsync(It.IsAny<int>())).ReturnsAsync(true);
         _mockQueryRepo.Setup(r => r.UserExistsAsync(It.IsAny<int>())).ReturnsAsync(true);
         _mockQueryRepo.Setup(r => r.ReviewAlreadyExistsAsync(complaintHeaderId, null)).ReturnsAsync(false);
+        _mockQueryRepo.Setup(r => r.IsComplaintApprovedAsync(complaintHeaderId)).ReturnsAsync(true);
     }
 
     [Fact]
@@ -80,6 +81,7 @@ public sealed class SubmitQCReviewCommandValidatorTests
         _mockQueryRepo.Setup(r => r.ComplaintExistsAsync(1)).ReturnsAsync(true);
         _mockQueryRepo.Setup(r => r.MiscMasterExistsAsync(It.IsAny<int>())).ReturnsAsync(true);
         _mockQueryRepo.Setup(r => r.ReviewAlreadyExistsAsync(1, null)).ReturnsAsync(true);
+        _mockQueryRepo.Setup(r => r.IsComplaintApprovedAsync(1)).ReturnsAsync(false);
 
         var command = new SubmitQCReviewCommand
         {

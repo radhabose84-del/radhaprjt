@@ -24,7 +24,7 @@ public sealed class GetSalesOrderAutoCompleteQueryHandlerTests
         } as IReadOnlyList<SalesOrderLookupDto>;
 
         _mockQueryRepo
-            .Setup(r => r.AutocompleteAsync("test", It.IsAny<CancellationToken>()))
+            .Setup(r => r.AutocompleteAsync("test", It.IsAny<CancellationToken>(), false))
             .ReturnsAsync(list);
         _mockMapper
             .Setup(m => m.Map<List<SalesOrderLookupDto>>(It.IsAny<object>()))
@@ -40,7 +40,7 @@ public sealed class GetSalesOrderAutoCompleteQueryHandlerTests
     public async Task Handle_NullTerm_UsesEmptyString()
     {
         _mockQueryRepo
-            .Setup(r => r.AutocompleteAsync(string.Empty, It.IsAny<CancellationToken>()))
+            .Setup(r => r.AutocompleteAsync(string.Empty, It.IsAny<CancellationToken>(), false))
             .ReturnsAsync(new List<SalesOrderLookupDto>() as IReadOnlyList<SalesOrderLookupDto>);
         _mockMapper
             .Setup(m => m.Map<List<SalesOrderLookupDto>>(It.IsAny<object>()))

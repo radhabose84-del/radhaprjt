@@ -4,6 +4,7 @@ using Contracts.Dtos.Lookups.Production;
 using Contracts.Dtos.Lookups.Users;
 using Contracts.Dtos.Lookups.Warehouse;
 using Contracts.Interfaces;
+using Contracts.Interfaces.Lookups.Finance;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Production;
@@ -68,6 +69,8 @@ namespace SalesManagement.IntegrationTests.Repositories.DeliveryChallan
             user.Setup(u => u.GetAllUserAsync())
                 .ReturnsAsync(new List<UserLookupDto>());
 
+            var eWaybill = new Mock<IEWaybillLookup>(MockBehavior.Loose);
+
             var ip = new Mock<IIPAddressService>(MockBehavior.Loose);
             ip.Setup(x => x.GetUserId()).Returns(1);
             ip.Setup(x => x.GetUnitId()).Returns(1);
@@ -75,7 +78,8 @@ namespace SalesManagement.IntegrationTests.Repositories.DeliveryChallan
             return new DeliveryChallanQueryRepository(
                 new SqlConnection(_fixture.ConnectionString),
                 unit.Object, warehouse.Object, party.Object,
-                item.Object, lot.Object, uom.Object, user.Object, ip.Object);
+                item.Object, lot.Object, uom.Object, user.Object,
+                eWaybill.Object, ip.Object);
         }
 
         // ----- Seeding helpers -----

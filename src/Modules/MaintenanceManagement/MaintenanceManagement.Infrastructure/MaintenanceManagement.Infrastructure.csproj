@@ -46,4 +46,9 @@
     <Nullable>enable</Nullable>
       <NoWarn>CS8981</NoWarn>
   </PropertyGroup>
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>MaintenanceManagement.IntegrationTests</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
 </Project>

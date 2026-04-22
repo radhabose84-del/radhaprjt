@@ -59,7 +59,7 @@ namespace BudgetManagement.IntegrationTests.Repositories.BudgetRequest
 
         private async Task ClearTableAsync(BudgetManagement.Infrastructure.Data.ApplicationDbContext ctx)
         {
-            await _fixture.ClearTablesAsync("Budget.BudgetRequest");
+            await _fixture.ClearAllTablesAsync();
             await _fixture.SeedPrerequisiteDataAsync();
         }
 

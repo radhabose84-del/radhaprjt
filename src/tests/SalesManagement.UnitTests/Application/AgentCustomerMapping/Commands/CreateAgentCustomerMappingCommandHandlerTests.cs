@@ -21,7 +21,7 @@ namespace SalesManagement.UnitTests.Application.AgentCustomerMapping.Commands
             CustomerId = 1,
             AgentId = 2,
             SubAgentId = 3,
-            SalesSegmentId = 4,
+            SalesGroupId = 4,
             EffectiveFrom = DateTime.Today.AddDays(-30),
             EffectiveTo = DateTime.Today.AddDays(30),
             IsDefaultAgent = true,
@@ -36,7 +36,7 @@ namespace SalesManagement.UnitTests.Application.AgentCustomerMapping.Commands
                 {
                     CustomerId = cmd.CustomerId,
                     AgentId = cmd.AgentId,
-                    SalesSegmentId = cmd.SalesSegmentId
+                    SalesGroupId = cmd.SalesGroupId
                 });
         }
 

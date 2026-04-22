@@ -3,6 +3,7 @@ using Dapper;
 using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Users;
 using Contracts.Interfaces.Lookups.Finance;
+using Contracts.Interfaces.Gate;
 using Contracts.Dtos.Lookups.Users;
 using GateEntryManagement.Infrastructure.Repositories.GatePass;
 using GateEntryManagement.Infrastructure.Data;
@@ -23,7 +24,7 @@ namespace GateEntryManagement.IntegrationTests.Repositories.GatePass
             unitLookup ??= BuildDefaultUnitLookup();
             ipService ??= BuildDefaultIpService();
             var conn = new SqlConnection(_fixture.ConnectionString);
-            return new GatePassQueryRepository(conn, unitLookup.Object, ipService.Object);
+            return new GatePassQueryRepository(conn, unitLookup.Object, ipService.Object, Enumerable.Empty<IGatePassDocResolver>());
         }
 
         private static Mock<IUnitLookup> BuildDefaultUnitLookup(int unitId = 1, string unitName = "Test Unit")

@@ -54,6 +54,10 @@ public sealed class CreateSalesReturnCommandHandlerTests
             .ReturnsAsync((10, 10));
 
         _mockCommandRepo
+            .Setup(r => r.UpdateHeaderStatusAsync(It.IsAny<int>(), It.IsAny<int>()))
+            .Returns(Task.CompletedTask);
+
+        _mockCommandRepo
             .Setup(r => r.UpdateComplaintResolutionReturnStatusAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<decimal>(), It.IsAny<int?>(), It.IsAny<int?>()))
             .Returns(Task.CompletedTask);
 

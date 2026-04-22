@@ -1,6 +1,7 @@
 using Contracts.Dtos.Lookups.Party;
-using Contracts.Interfaces.Lookups.Finance;
+using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Party;
+using Contracts.Interfaces.Lookups.Users;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using SalesManagement.Infrastructure.Data;
@@ -31,7 +32,24 @@ namespace SalesManagement.IntegrationTests.Repositories.ProformaInvoice
                     .ReturnsAsync((int id, CancellationToken _) =>
                         new PartyLookupDto { Id = id, PartyName = "Party " + id });
             }
-            return new ProformaInvoiceQueryRepository(new SqlConnection(_fixture.ConnectionString), party.Object);
+            var unitDetailLookup = new Mock<IUnitDetailLookup>(MockBehavior.Loose);
+            var companyDetailLookup = new Mock<ICompanyDetailLookup>(MockBehavior.Loose);
+            var partyDetailLookup = new Mock<IPartyDetailLookup>(MockBehavior.Loose);
+            var partyBankLookup = new Mock<IPartyBankLookup>(MockBehavior.Loose);
+            var itemLookup = new Mock<IItemLookup>(MockBehavior.Loose);
+            var stateLookup = new Mock<IStateLookup>(MockBehavior.Loose);
+            var cityLookup = new Mock<ICityLookup>(MockBehavior.Loose);
+
+            return new ProformaInvoiceQueryRepository(
+                new SqlConnection(_fixture.ConnectionString),
+                party.Object,
+                unitDetailLookup.Object,
+                companyDetailLookup.Object,
+                partyDetailLookup.Object,
+                partyBankLookup.Object,
+                itemLookup.Object,
+                stateLookup.Object,
+                cityLookup.Object);
         }
 
         private async Task<(int soId, int partyId, int statusMiscId)> EnsureSalesOrderAsync()

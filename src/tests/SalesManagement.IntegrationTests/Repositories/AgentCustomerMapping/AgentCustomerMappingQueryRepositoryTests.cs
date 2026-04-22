@@ -1,8 +1,8 @@
 using Contracts.Dtos.Lookups.Party;
+using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Party;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Infrastructure.Data;
 using SalesManagement.Infrastructure.Repositories.AgentCustomerMapping;
 using SalesManagement.IntegrationTests.Common;
@@ -20,7 +20,7 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCustomerMapping
             Mock<ICustomerLookup>? customer = null,
             Mock<IAgentLookup>? agent = null,
             Mock<ISubAgentLookup>? subAgent = null,
-            Mock<IMarketingOfficerAccessFilter>? accessFilter = null)
+            Mock<IDataAccessFilter>? accessFilter = null)
         {
             if (customer == null)
             {
@@ -48,8 +48,9 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCustomerMapping
             }
             if (accessFilter == null)
             {
-                accessFilter = new Mock<IMarketingOfficerAccessFilter>(MockBehavior.Loose);
-                accessFilter.Setup(a => a.IsMarketingOfficer()).Returns(false);
+                accessFilter = new Mock<IDataAccessFilter>(MockBehavior.Loose);
+                accessFilter.Setup(a => a.GetContextAsync(It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(DataAccessContext.Unrestricted);
             }
 
             return new AgentCustomerMappingQueryRepository(
@@ -57,7 +58,7 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCustomerMapping
                 customer.Object, agent.Object, subAgent.Object, accessFilter.Object);
         }
 
-        private async Task<int> EnsureSegmentAsync()
+        private async Task<int> EnsureSalesGroupAsync()
         {
             await using var ctx = _fixture.CreateFreshDbContext();
 
@@ -74,60 +75,47 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCustomerMapping
                 await ctx.SaveChangesAsync();
             }
 
-            var ch = await ctx.SalesChannel.IgnoreQueryFilters()
-                .FirstOrDefaultAsync(x => x.SalesChannelCode == "ACMQSC");
-            if (ch == null)
+            var office = await ctx.SalesOffice.IgnoreQueryFilters()
+                .FirstOrDefaultAsync(x => x.SalesOrganisationId == org.Id);
+            if (office == null)
             {
-                ch = new SalesManagement.Domain.Entities.SalesChannel
+                office = new SalesManagement.Domain.Entities.SalesOffice
                 {
-                    SalesChannelCode = "ACMQSC", SalesChannelName = "ACMQ Channel",
-                    IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted
+                    SalesOfficeName = "ACMQ Office",
+                    SalesOrganisationId = org.Id,
+                    IsActive = Status.Active,
+                    IsDeleted = IsDelete.NotDeleted
                 };
-                await ctx.SalesChannel.AddAsync(ch);
+                await ctx.SalesOffice.AddAsync(office);
                 await ctx.SaveChangesAsync();
             }
 
-            var bu = await ctx.BusinessUnit.IgnoreQueryFilters()
-                .FirstOrDefaultAsync(x => x.BusinessUnitCode == "ACMQBU");
-            if (bu == null)
-            {
-                bu = new SalesManagement.Domain.Entities.BusinessUnit
-                {
-                    BusinessUnitCode = "ACMQBU", BusinessUnitName = "ACMQ BU",
-                    Description = "ACMQ BU", IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted
-                };
-                await ctx.BusinessUnit.AddAsync(bu);
-                await ctx.SaveChangesAsync();
-            }
-
-            var existing = await ctx.SalesSegment.IgnoreQueryFilters()
-                .FirstOrDefaultAsync(x => x.SalesOrganisationId == org.Id && x.SalesChannelId == ch.Id && x.BusinessUnitId == bu.Id);
+            var existing = await ctx.SalesGroup.IgnoreQueryFilters()
+                .FirstOrDefaultAsync(x => x.SalesOfficeId == office.Id);
             if (existing != null) return existing.Id;
 
-            var s = new SalesManagement.Domain.Entities.SalesSegment
+            var g = new SalesManagement.Domain.Entities.SalesGroup
             {
-                SalesOrganisationId = org.Id,
-                SalesChannelId = ch.Id,
-                BusinessUnitId = bu.Id,
-                SegmentName = "ACMQ Seg",
+                SalesGroupName = "ACMQ Group",
+                SalesOfficeId = office.Id,
                 IsActive = Status.Active,
                 IsDeleted = IsDelete.NotDeleted
             };
-            await ctx.SalesSegment.AddAsync(s);
+            await ctx.SalesGroup.AddAsync(g);
             await ctx.SaveChangesAsync();
-            return s.Id;
+            return g.Id;
         }
 
         private async Task<int> SeedAsync(int customerId, int agentId,
             Status active = Status.Active, IsDelete deleted = IsDelete.NotDeleted)
         {
-            var segId = await EnsureSegmentAsync();
+            var grpId = await EnsureSalesGroupAsync();
             await using var ctx = _fixture.CreateFreshDbContext();
             var m = new SalesManagement.Domain.Entities.AgentCustomerMapping
             {
                 CustomerId = customerId,
                 AgentId = agentId,
-                SalesSegmentId = segId,
+                SalesGroupId = grpId,
                 EffectiveFrom = DateTime.UtcNow.Date,
                 IsActive = active,
                 IsDeleted = deleted
@@ -225,11 +213,11 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCustomerMapping
         }
 
         [Fact]
-        public async Task SalesSegmentExistsAsync_Should_Return_True_For_Active()
+        public async Task SalesGroupExistsAsync_Should_Return_True_For_Active()
         {
-            var segId = await EnsureSegmentAsync();
+            var grpId = await EnsureSalesGroupAsync();
 
-            var result = await CreateRepo().SalesSegmentExistsAsync(segId);
+            var result = await CreateRepo().SalesGroupExistsAsync(grpId);
 
             result.Should().BeTrue();
         }
