@@ -45,11 +45,11 @@ namespace SalesManagement.Infrastructure.Repositories.AgentCustomerMapping
             if (existingEntity == null)
                 return 0;
 
-            // BR-1: If this mapping is marked as Default Agent, clear any existing default for the same customer (excluding self)
+            // BR-1: If this mapping is marked as Default Agent, clear any existing default for the NEW customer (excluding self)
             if (entity.IsDefaultAgent)
             {
                 var existingDefaults = await _applicationDbContext.AgentCustomerMapping
-                    .Where(x => x.CustomerId == existingEntity.CustomerId
+                    .Where(x => x.CustomerId == entity.CustomerId
                              && x.IsDefaultAgent
                              && x.IsDeleted == IsDelete.NotDeleted
                              && x.Id != entity.Id)
@@ -62,6 +62,7 @@ namespace SalesManagement.Infrastructure.Repositories.AgentCustomerMapping
                 }
             }
 
+            existingEntity.CustomerId = entity.CustomerId;
             existingEntity.AgentId = entity.AgentId;
             existingEntity.SubAgentId = entity.SubAgentId;
             existingEntity.SalesGroupId = entity.SalesGroupId;
