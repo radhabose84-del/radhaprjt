@@ -25,7 +25,7 @@ namespace SalesManagement.IntegrationTests.Repositories.GatePass
                 ALTER TABLE Sales.InvoiceHeader NOCHECK CONSTRAINT ALL;
                 INSERT INTO Sales.InvoiceHeader
                     (InvoiceNo, InvoiceDate, DispatchAdviceId, PartyId, UnitId, FinancialYearId,
-                     TotalBags, TotalWeight, TaxableValue, Discount, Freight, Insurance,
+                     TotalBags, TotalWeight, TaxableValue, TotalDiscount, TotalFreight, TotalCommission, Insurance,
                      HandlingCharge, TotalCharity, OtherCharges, CGST, SGST, IGST, TaxAmount,
                      TCSPercentage, TCS, RoundOff, InvoiceAmountBeforeTCS, InvoiceAmount,
                      GEFlag, IsActive, IsDeleted,
@@ -33,7 +33,7 @@ namespace SalesManagement.IntegrationTests.Repositories.GatePass
                 OUTPUT INSERTED.Id
                 VALUES
                     ('INV-001', SYSDATETIME(), 1, 1, @UnitId, 1,
-                     0, 0, 0, 0, 0, 0,
+                     0, 0, 0, 0, 0, 0, 0,
                      0, 0, 0, 0, 0, 0, 0,
                      0, 0, 0, 0, 0,
                      @InitialGeFlag, 1, @IsDeleted,

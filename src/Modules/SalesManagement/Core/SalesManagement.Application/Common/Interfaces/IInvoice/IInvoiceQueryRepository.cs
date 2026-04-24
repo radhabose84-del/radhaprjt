@@ -21,8 +21,9 @@ namespace SalesManagement.Application.Common.Interfaces.IInvoice
         Task<bool> IsCustomerTCSEnabledAsync(int partyId);
         Task<DateOnly> GetDispatchAdviceDateAsync(int dispatchAdviceId);
         Task<bool> IsInvoicePendingAsync(int invoiceId);
-        Task<InvoicePrintDto?> GetPrintDetailsAsync(int id);
+        Task<InvoicePrintDto?> GetPrintDetailsAsync(int id, bool skipUnitFilter = false);
         Task<InvoiceForEInvoiceDto?> GetInvoiceForEInvoiceAsync(int invoiceId);
         Task<DispatchTrackingDetailsDto?> GetDispatchTrackingDetailsAsync(int salesOrderId, CancellationToken ct);
+        Task<List<InvoicePrintDto>> GetPrintDetailsByTripSheetAsync(int tripSheetHeaderId, CancellationToken ct);
     }
 }
