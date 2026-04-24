@@ -1,6 +1,7 @@
 using System.Data;
 using Contracts.Interfaces.Lookups.Logistics;
 using Contracts.Interfaces.Lookups.Party;
+using Contracts.Interfaces.Lookups.Users;
 using Dapper;
 using SalesManagement.Application.Common.Interfaces.IDispatchAddressMapping;
 using SalesManagement.Application.DispatchAddressMapping.Dto;
@@ -12,15 +13,24 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAddressMapping
         private readonly IDbConnection _dbConnection;
         private readonly IPartyLookup _partyLookup;
         private readonly IFreightMasterLookup _freightMasterLookup;
+        private readonly ICityLookup _cityLookup;
+        private readonly IStateLookup _stateLookup;
+        private readonly ICountryLookup _countryLookup;
 
         public DispatchAddressMappingQueryRepository(
             IDbConnection dbConnection,
             IPartyLookup partyLookup,
-            IFreightMasterLookup freightMasterLookup)
+            IFreightMasterLookup freightMasterLookup,
+            ICityLookup cityLookup,
+            IStateLookup stateLookup,
+            ICountryLookup countryLookup)
         {
             _dbConnection = dbConnection;
             _partyLookup = partyLookup;
             _freightMasterLookup = freightMasterLookup;
+            _cityLookup = cityLookup;
+            _stateLookup = stateLookup;
+            _countryLookup = countryLookup;
         }
 
         public async Task<(List<DispatchAddressMappingDto>, int)> GetAllAsync(
@@ -43,6 +53,10 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAddressMapping
                 SELECT dam.Id, dam.PartyId, dam.DispatchAddressId, dam.UsageTypeId, dam.IsDefault,
                     damaster.DispatchAddressName, damaster.AddressLine1 AS DispatchAddressLine1,
                     damaster.FreightId,
+                    damaster.CityId, damaster.StateId, damaster.CountryId,
+                    damaster.PinCode, damaster.ContactPerson, damaster.MobileNumber,
+                    damaster.Email, damaster.GSTIN,
+                    damaster.Latitude, damaster.Longitude,
                     mm.Description AS UsageTypeName,
                     dam.IsActive, dam.IsDeleted,
                     dam.CreatedBy, dam.CreatedDate, dam.CreatedByName, dam.CreatedIP,
@@ -76,6 +90,25 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAddressMapping
 
                 foreach (var item in list)
                     item.PartyName = partyDict.TryGetValue(item.PartyId, out var name) ? name : null;
+
+                // Populate City/State/Country names via cross-module lookups
+                var cities = await _cityLookup.GetAllCityAsync();
+                var states = await _stateLookup.GetAllStatesAsync();
+                var countries = await _countryLookup.GetAllCountriesAsync();
+
+                var cityDict = cities.ToDictionary(c => c.CityId, c => c.CityName);
+                var stateDict = states.ToDictionary(s => s.StateId, s => s.StateName);
+                var countryDict = countries.ToDictionary(c => c.CountryId, c => c.CountryName);
+
+                foreach (var item in list)
+                {
+                    if (item.CityId.HasValue)
+                        item.CityName = cityDict.TryGetValue(item.CityId.Value, out var cn) ? cn : null;
+                    if (item.StateId.HasValue)
+                        item.StateName = stateDict.TryGetValue(item.StateId.Value, out var sn) ? sn : null;
+                    if (item.CountryId.HasValue)
+                        item.CountryName = countryDict.TryGetValue(item.CountryId.Value, out var ctn) ? ctn : null;
+                }
             }
 
             // Populate freight details via cross-module lookup
