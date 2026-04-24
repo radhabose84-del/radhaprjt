@@ -1,7 +1,9 @@
 using Contracts.Dtos.Lookups.Logistics;
 using Contracts.Dtos.Lookups.Party;
+using Contracts.Dtos.Lookups.Users;
 using Contracts.Interfaces.Lookups.Logistics;
 using Contracts.Interfaces.Lookups.Party;
+using Contracts.Interfaces.Lookups.Users;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using SalesManagement.Infrastructure.Data;
@@ -18,8 +20,11 @@ namespace SalesManagement.IntegrationTests.Repositories.DispatchAddressMapping
         public DispatchAddressMappingQueryRepositoryTests(DbFixture fixture) => _fixture = fixture;
 
         private DispatchAddressMappingQueryRepository CreateRepo(
-            Mock<IPartyLookup>? party = null,
-            Mock<IFreightMasterLookup>? freight = null)
+            Mock<IPartyLookup> party = null,
+            Mock<IFreightMasterLookup> freight = null,
+            Mock<ICityLookup> city = null,
+            Mock<IStateLookup> state = null,
+            Mock<ICountryLookup> country = null)
         {
             if (party == null)
             {
@@ -33,9 +38,28 @@ namespace SalesManagement.IntegrationTests.Repositories.DispatchAddressMapping
                 freight.Setup(f => f.GetAllFreightMasterAsync())
                     .ReturnsAsync(new List<FreightMasterLookupDto>());
             }
+            if (city == null)
+            {
+                city = new Mock<ICityLookup>(MockBehavior.Loose);
+                city.Setup(c => c.GetAllCityAsync(It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(new List<CityLookupDto>());
+            }
+            if (state == null)
+            {
+                state = new Mock<IStateLookup>(MockBehavior.Loose);
+                state.Setup(s => s.GetAllStatesAsync(It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(new List<StateLookupDto>());
+            }
+            if (country == null)
+            {
+                country = new Mock<ICountryLookup>(MockBehavior.Loose);
+                country.Setup(c => c.GetAllCountriesAsync(It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(new List<CountryLookupDto>());
+            }
 
             return new DispatchAddressMappingQueryRepository(
-                new SqlConnection(_fixture.ConnectionString), party.Object, freight.Object);
+                new SqlConnection(_fixture.ConnectionString),
+                party.Object, freight.Object, city.Object, state.Object, country.Object);
         }
 
         private async Task<int> EnsureMiscIdAsync(string code = "DAMQ_USG")

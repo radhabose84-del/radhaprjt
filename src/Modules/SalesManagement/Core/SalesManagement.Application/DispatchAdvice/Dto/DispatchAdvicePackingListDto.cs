@@ -2,6 +2,9 @@ namespace SalesManagement.Application.DispatchAdvice.Dto
 {
     public sealed class DispatchAdvicePackingListDto
     {
+        // Trip sheet context (populated only when fetched via trip sheet)
+        public string? TripSheetNo { get; set; }
+
         // Header — appears once
         public int DispatchAdviceId { get; set; }
         public string? DispatchNo { get; set; }

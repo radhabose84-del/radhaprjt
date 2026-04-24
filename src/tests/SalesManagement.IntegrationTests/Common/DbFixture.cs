@@ -129,6 +129,10 @@ namespace SalesManagement.IntegrationTests.Common
 
         private async Task RecreateDatabaseAsync()
         {
+            // Clear all pooled connections first — stale connections to the old (dropped) DB
+            // cause "Login failed for user" errors when the pool tries to reuse them.
+            SqlConnection.ClearAllPools();
+
             await using var cnn = new SqlConnection(_masterConnection);
             await cnn.OpenAsync();
 
@@ -141,7 +145,10 @@ END;
 
 CREATE DATABASE [{DbName}];
 ";
-            await cnn.ExecuteAsync(sql);
+            await cnn.ExecuteAsync(sql, commandTimeout: 60);
+
+            // Clear pools again after DB recreation to ensure no stale connections remain.
+            SqlConnection.ClearAllPools();
         }
 
         private async Task CreateDbContextAsync()
