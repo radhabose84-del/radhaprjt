@@ -1,8 +1,10 @@
 using Contracts.Dtos.Lookups.Inventory;
 using Contracts.Dtos.Lookups.Production;
+using Contracts.Dtos.Lookups.Users;
 using Contracts.Dtos.Stock;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Production;
+using Contracts.Interfaces.Lookups.Users;
 using Dapper;
 using Microsoft.Data.SqlClient;
 using SalesManagement.Infrastructure.Repositories.Lookups.Sales;
@@ -26,14 +28,16 @@ namespace SalesManagement.IntegrationTests.Repositories.Lookups.Sales
         private SalesStockLedgerLookupRepository CreateRepo(
             Mock<IItemLookup> itemLookup = null,
             Mock<ILotMasterLookup> lotLookup = null,
-            Mock<IPackTypeLookup> packTypeLookup = null)
+            Mock<IPackTypeLookup> packTypeLookup = null,
+            Mock<IUnitLookup> unitLookup = null)
         {
             itemLookup ??= BuildItemLookupMock();
             lotLookup ??= BuildLotLookupMock();
             packTypeLookup ??= BuildPackTypeLookupMock();
+            unitLookup ??= BuildUnitLookupMock();
 
             var conn = new SqlConnection(_fixture.ConnectionString);
-            return new SalesStockLedgerLookupRepository(conn, itemLookup.Object, lotLookup.Object, packTypeLookup.Object);
+            return new SalesStockLedgerLookupRepository(conn, itemLookup.Object, lotLookup.Object, packTypeLookup.Object, unitLookup.Object);
         }
 
         private static Mock<IItemLookup> BuildItemLookupMock(params (int id, string name)[] items)
@@ -58,6 +62,14 @@ namespace SalesManagement.IntegrationTests.Repositories.Lookups.Sales
             var mock = new Mock<IPackTypeLookup>(MockBehavior.Loose);
             mock.Setup(x => x.GetByIdsAsync(It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(packTypes.ToList());
+            return mock;
+        }
+
+        private static Mock<IUnitLookup> BuildUnitLookupMock(params UnitLookupDto[] units)
+        {
+            var mock = new Mock<IUnitLookup>(MockBehavior.Loose);
+            mock.Setup(x => x.GetByIdsAsync(It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(units.ToList());
             return mock;
         }
 

@@ -14,6 +14,8 @@ namespace ProductionManagement.Application.ProductionPack.Dto
         // Item / Lot / Pack identification
         public int ItemId { get; set; }
         public string? ItemName { get; set; }
+        public int? VariantId { get; set; }
+        public string? VariantName { get; set; }
         public int LotId { get; set; }
         public string? LotCode { get; set; }
         public int? PackTypeId { get; set; }

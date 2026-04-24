@@ -36,7 +36,7 @@ namespace ProductionManagement.Application.ProductionPack.Commands.UpdateProduct
             UpdateProductionCommand request,
             CancellationToken cancellationToken)
         {
-            var entity = _mapper.Map<ProductionPackDetail>(request.ProductionPackDetails!);
+            var entity = _mapper.Map<ProductionPackEntry>(request.ProductionPackEntries!);
             entity.UnitId = _ipAddressService.GetUnitId() ?? 0;
 
             var result = await _commandRepository.UpdateAsync(entity);
@@ -44,8 +44,8 @@ namespace ProductionManagement.Application.ProductionPack.Commands.UpdateProduct
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Update",
                 actionCode: "PACK_ALLOCATION_UPDATE",
-                actionName: request.ProductionPackDetails!.Id.ToString(),
-                details: $"Pack Allocation with Id {request.ProductionPackDetails.Id} updated successfully.",
+                actionName: request.ProductionPackEntries!.Id.ToString(),
+                details: $"Pack Allocation with Id {request.ProductionPackEntries.Id} updated successfully.",
                 module: "Production"
             );
             await _mediator.Publish(auditEvent, cancellationToken);

@@ -17,6 +17,6 @@ namespace ProductionManagement.Domain.Entities
         public MiscMaster? PackMaterial { get; set; }
 
         // Reverse navigation (Production)
-        public ICollection<ProductionPackDetail>? ProductionPackDetails { get; set; }
+        public ICollection<ProductionPackEntry>? ProductionPackEntries { get; set; }
     }
 }

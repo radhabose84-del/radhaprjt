@@ -17,7 +17,7 @@ namespace ProductionManagement.UnitTests.Application.LotMaster.Queries
         public async Task Handle_ReturnsSuccess()
         {
             var dtoList = new List<LotMasterDto> { new() };
-            _mockQueryRepo.Setup(r => r.GetAllAsync(1, 10, null)).ReturnsAsync((dtoList, 1));
+            _mockQueryRepo.Setup(r => r.GetAllAsync(1, 10, null, null)).ReturnsAsync((dtoList, 1));
             _mockMapper.Setup(m => m.Map<List<LotMasterDto>>(It.IsAny<object>())).Returns(dtoList);
             _mockMediator.Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 
@@ -31,7 +31,7 @@ namespace ProductionManagement.UnitTests.Application.LotMaster.Queries
         public async Task Handle_EmptyResult_ReturnsSuccess()
         {
             var dtoList = new List<LotMasterDto>();
-            _mockQueryRepo.Setup(r => r.GetAllAsync(1, 10, null)).ReturnsAsync((dtoList, 0));
+            _mockQueryRepo.Setup(r => r.GetAllAsync(1, 10, null, null)).ReturnsAsync((dtoList, 0));
             _mockMapper.Setup(m => m.Map<List<LotMasterDto>>(It.IsAny<object>())).Returns(dtoList);
             _mockMediator.Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 
@@ -45,7 +45,7 @@ namespace ProductionManagement.UnitTests.Application.LotMaster.Queries
         public async Task Handle_ReturnsPaginationMetadata()
         {
             var dtoList = new List<LotMasterDto> { new() };
-            _mockQueryRepo.Setup(r => r.GetAllAsync(2, 5, "test")).ReturnsAsync((dtoList, 11));
+            _mockQueryRepo.Setup(r => r.GetAllAsync(2, 5, "test", null)).ReturnsAsync((dtoList, 11));
             _mockMapper.Setup(m => m.Map<List<LotMasterDto>>(It.IsAny<object>())).Returns(dtoList);
             _mockMediator.Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 

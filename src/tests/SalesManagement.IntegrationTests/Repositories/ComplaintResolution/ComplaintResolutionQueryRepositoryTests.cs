@@ -354,5 +354,200 @@ namespace SalesManagement.IntegrationTests.Repositories.ComplaintResolution
             result.Should().NotBeNull();
             result!.Id.Should().Be(resId);
         }
+
+        // ---------------------------------------------------------------------------
+        // GetAllAsync — readiness filter
+        //
+        // A resolution is only visible on the GetAll list when:
+        //   (a) parent ComplaintHeader.StatusId points to MiscMaster 'QC Accepted'
+        //       under MiscTypeCode 'QCComplaintStatus', AND
+        //   (b) no mandatory ComplaintQCReviewAssignment remains non-Submitted.
+        // ---------------------------------------------------------------------------
+
+        /// <summary>
+        /// Seeds a fully-linked chain (MiscMaster → Header → QCReview → optional Assignment → Resolution)
+        /// and returns the Resolution.Id. Parameters let each test vary the readiness inputs.
+        /// </summary>
+        private async Task<int> SeedResolutionReadinessChainAsync(
+            bool headerIsQcAccepted,
+            bool createMandatoryAssignment,
+            bool mandatoryAssignmentSubmitted)
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+
+            // MiscTypes that the readiness filter uses verbatim
+            var qcMtId = await EnsureMiscTypeAsync(ctx, "QCComplaintStatus");
+            var rtMtId = await EnsureMiscTypeAsync(ctx, "ResolutionType");
+            var csMtId = await EnsureMiscTypeAsync(ctx, "ClosureStatus");
+
+            var qcAcceptedId = await EnsureMiscAsync(ctx, qcMtId, "QC Accepted");
+            var qcRejectedId = await EnsureMiscAsync(ctx, qcMtId, "QC Rejected");
+            var resTypeId    = await EnsureMiscAsync(ctx, rtMtId, "No Action");
+            await EnsureMiscAsync(ctx, csMtId, "Open");
+
+            // Assignment status rows — need Description = "Submitted" to satisfy the NOT-EXISTS filter
+            var auxMtId = await EnsureMiscTypeAsync(ctx, "CRQ_ASTATUS_MT");
+            var submittedRow = await ctx.MiscMaster.FirstOrDefaultAsync(x => x.MiscTypeId == auxMtId && x.Description == "Submitted");
+            if (submittedRow == null)
+            {
+                submittedRow = new SalesManagement.Domain.Entities.MiscMaster
+                {
+                    MiscTypeId = auxMtId, Code = "Submitted", Description = "Submitted",
+                    IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted
+                };
+                await ctx.MiscMaster.AddAsync(submittedRow);
+                await ctx.SaveChangesAsync();
+            }
+            var pendingRow = await ctx.MiscMaster.FirstOrDefaultAsync(x => x.MiscTypeId == auxMtId && x.Description == "Pending");
+            if (pendingRow == null)
+            {
+                pendingRow = new SalesManagement.Domain.Entities.MiscMaster
+                {
+                    MiscTypeId = auxMtId, Code = "Pending", Description = "Pending",
+                    IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted
+                };
+                await ctx.MiscMaster.AddAsync(pendingRow);
+                await ctx.SaveChangesAsync();
+            }
+
+            // Aux values for non-readiness FKs
+            var roleId = await EnsureMiscAsync(ctx, auxMtId, "CRQ_ROLE");
+            var pvId   = await EnsureMiscAsync(ctx, auxMtId, "CRQ_PV");
+
+            var header = new SalesManagement.Domain.Entities.ComplaintHeader
+            {
+                ComplaintNumber = "CRQ_RF_" + Guid.NewGuid().ToString("N")[..6],
+                ComplaintDate = DateOnly.FromDateTime(DateTime.UtcNow.Date),
+                CustomerId = 100,
+                StatusId = headerIsQcAccepted ? qcAcceptedId : qcRejectedId,
+                IsActive = Status.Active,
+                IsDeleted = IsDelete.NotDeleted
+            };
+            await ctx.ComplaintHeader.AddAsync(header);
+            await ctx.SaveChangesAsync();
+
+            var review = new SalesManagement.Domain.Entities.ComplaintQCReview
+            {
+                ComplaintHeaderId = header.Id,
+                PhysicalVerificationId = pvId,
+                LabVerificationRequired = false,
+                IsActive = Status.Active,
+                IsDeleted = IsDelete.NotDeleted
+            };
+            await ctx.ComplaintQCReview.AddAsync(review);
+            await ctx.SaveChangesAsync();
+
+            if (createMandatoryAssignment)
+            {
+                var assignment = new SalesManagement.Domain.Entities.ComplaintQCReviewAssignment
+                {
+                    ComplaintQCReviewId = review.Id,
+                    RoleId = roleId,
+                    ResponsiblePersonId = 1,
+                    IsMandatory = true,
+                    AssignmentStatusId = mandatoryAssignmentSubmitted ? submittedRow.Id : pendingRow.Id,
+                    IsActive = Status.Active,
+                    IsDeleted = IsDelete.NotDeleted
+                };
+                await ctx.ComplaintQCReviewAssignment.AddAsync(assignment);
+                await ctx.SaveChangesAsync();
+            }
+
+            var resolution = new SalesManagement.Domain.Entities.ComplaintResolution
+            {
+                ComplaintHeaderId = header.Id,
+                ResolutionTypeId = resTypeId,
+                ResolutionSummary = "Auto-generated draft - pending resolver action.",
+                IsActive = Status.Active,
+                IsDeleted = IsDelete.NotDeleted
+            };
+            await ctx.ComplaintResolution.AddAsync(resolution);
+            await ctx.SaveChangesAsync();
+
+            return resolution.Id;
+        }
+
+        [Fact]
+        public async Task GetAllAsync_Should_Include_QcAccepted_WithNoMandatoryFeedbackAssignment()
+        {
+            await ClearAsync();
+            var resId = await SeedResolutionReadinessChainAsync(
+                headerIsQcAccepted: true,
+                createMandatoryAssignment: false,
+                mandatoryAssignmentSubmitted: false);
+
+            var (rows, total) = await CreateRepo().GetAllAsync(1, 10, null, null);
+
+            total.Should().Be(1);
+            rows.Should().ContainSingle(r => r.ResolutionId == resId);
+        }
+
+        [Fact]
+        public async Task GetAllAsync_Should_Include_QcAccepted_WhenAllMandatoryFeedbackSubmitted()
+        {
+            await ClearAsync();
+            var resId = await SeedResolutionReadinessChainAsync(
+                headerIsQcAccepted: true,
+                createMandatoryAssignment: true,
+                mandatoryAssignmentSubmitted: true);
+
+            var (rows, total) = await CreateRepo().GetAllAsync(1, 10, null, null);
+
+            total.Should().Be(1);
+            rows.Should().ContainSingle(r => r.ResolutionId == resId);
+        }
+
+        [Fact]
+        public async Task GetAllAsync_Should_Exclude_QcAccepted_WithPendingMandatoryFeedback()
+        {
+            await ClearAsync();
+            await SeedResolutionReadinessChainAsync(
+                headerIsQcAccepted: true,
+                createMandatoryAssignment: true,
+                mandatoryAssignmentSubmitted: false);
+
+            var (rows, total) = await CreateRepo().GetAllAsync(1, 10, null, null);
+
+            total.Should().Be(0);
+            rows.Should().BeEmpty();
+        }
+
+        [Fact]
+        public async Task GetAllAsync_Should_Exclude_NotQcAccepted()
+        {
+            await ClearAsync();
+            await SeedResolutionReadinessChainAsync(
+                headerIsQcAccepted: false,
+                createMandatoryAssignment: true,
+                mandatoryAssignmentSubmitted: true);
+
+            var (rows, total) = await CreateRepo().GetAllAsync(1, 10, null, null);
+
+            total.Should().Be(0);
+            rows.Should().BeEmpty();
+        }
+
+        [Fact]
+        public async Task GetAllAsync_MixedComplaints_OnlyReadyOnesSurface()
+        {
+            await ClearAsync();
+            var ready = await SeedResolutionReadinessChainAsync(
+                headerIsQcAccepted: true,
+                createMandatoryAssignment: true,
+                mandatoryAssignmentSubmitted: true);
+            await SeedResolutionReadinessChainAsync(
+                headerIsQcAccepted: true,
+                createMandatoryAssignment: true,
+                mandatoryAssignmentSubmitted: false);
+            await SeedResolutionReadinessChainAsync(
+                headerIsQcAccepted: false,
+                createMandatoryAssignment: false,
+                mandatoryAssignmentSubmitted: false);
+
+            var (rows, total) = await CreateRepo().GetAllAsync(1, 10, null, null);
+
+            total.Should().Be(1);
+            rows.Should().ContainSingle(r => r.ResolutionId == ready);
+        }
     }
 }

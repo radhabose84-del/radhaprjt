@@ -46,6 +46,11 @@
         "error": " must be alphanumeric only."
     },
     {
+        "rule": "NameField",
+        "pattern": "^[A-Za-z0-9 ]+$",
+        "error": " must not contain special characters."
+    },
+    {
         "rule": "AlphanumericWithUnderscore",
         "pattern": "^[A-Za-z0-9_]+$",
         "error": " must be alphanumeric (underscore allowed)."

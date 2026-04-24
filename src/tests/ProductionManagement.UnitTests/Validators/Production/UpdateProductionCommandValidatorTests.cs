@@ -36,7 +36,7 @@ namespace ProductionManagement.UnitTests.Validators.Production
         [Fact]
         public async Task Validate_NullDetails_FailsValidation()
         {
-            var cmd = new UpdateProductionCommand { ProductionPackDetails = null };
+            var cmd = new UpdateProductionCommand { ProductionPackEntries = null };
             var result = await CreateValidator().TestValidateAsync(cmd);
             result.ShouldHaveAnyValidationError();
         }
@@ -47,7 +47,7 @@ namespace ProductionManagement.UnitTests.Validators.Production
             _mockQueryRepo.Setup(r => r.NotFoundAsync(0)).ReturnsAsync(true);
             var cmd = new UpdateProductionCommand
             {
-                ProductionPackDetails = ValidDto(id: 0)
+                ProductionPackEntries = ValidDto(id: 0)
             };
             var result = await CreateValidator().TestValidateAsync(cmd);
             result.ShouldHaveAnyValidationError();
@@ -67,7 +67,7 @@ namespace ProductionManagement.UnitTests.Validators.Production
 
             var cmd = new UpdateProductionCommand
             {
-                ProductionPackDetails = ValidDto(id: 1)
+                ProductionPackEntries = ValidDto(id: 1)
             };
             var result = await CreateValidator().TestValidateAsync(cmd);
             result.ShouldNotHaveAnyValidationErrors();

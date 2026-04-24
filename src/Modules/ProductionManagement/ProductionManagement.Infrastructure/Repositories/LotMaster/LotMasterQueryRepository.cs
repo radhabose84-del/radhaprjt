@@ -33,13 +33,17 @@ namespace ProductionManagement.Infrastructure.Repositories.LotMaster
         }
 
         public async Task<(List<LotMasterDto>, int)> GetAllAsync(
-            int pageNumber, int pageSize, string? searchTerm)
+            int pageNumber, int pageSize, string? searchTerm, int? itemId = null)
         {
             var unitId = _ipAddressService.GetUnitId() ?? 0;
 
             var searchFilter = string.IsNullOrWhiteSpace(searchTerm)
                 ? ""
                 : "AND (lm.LotCode LIKE @Search OR lm.BatchNumber LIKE @Search)";
+
+            var itemFilter = itemId.HasValue
+                ? "AND (lm.ItemId = @ItemId OR lm.VariantId = @ItemId)"
+                : "";
 
             var query = $@"
                 DECLARE @TotalCount INT;
@@ -48,7 +52,8 @@ namespace ProductionManagement.Infrastructure.Repositories.LotMaster
                 LEFT JOIN Production.MiscMaster lt ON lm.LotTypeId = lt.Id AND lt.IsDeleted = 0
                 LEFT JOIN Production.MiscMaster st ON lm.StatusId  = st.Id AND st.IsDeleted = 0
                 WHERE lm.IsDeleted = 0 AND lm.UnitId = @UnitId
-                {searchFilter};
+                {searchFilter}
+                {itemFilter};
 
                 SELECT
                     lm.Id, lm.LotCode, lm.BatchNumber,
@@ -68,6 +73,7 @@ namespace ProductionManagement.Infrastructure.Repositories.LotMaster
                 LEFT JOIN Production.MiscMaster st ON lm.StatusId  = st.Id AND st.IsDeleted = 0
                 WHERE lm.IsDeleted = 0 AND lm.UnitId = @UnitId
                 {searchFilter}
+                {itemFilter}
                 ORDER BY lm.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
 
@@ -77,6 +83,7 @@ namespace ProductionManagement.Infrastructure.Repositories.LotMaster
             {
                 UnitId = unitId,
                 Search = $"%{searchTerm}%",
+                ItemId = itemId,
                 Offset = (pageNumber - 1) * pageSize,
                 PageSize = pageSize
             };
@@ -178,7 +185,7 @@ namespace ProductionManagement.Infrastructure.Repositories.LotMaster
             string term, int? itemId, CancellationToken ct)
         {
             var unitId = _ipAddressService.GetUnitId() ?? 0;
-            var itemFilter = itemId.HasValue ? "AND lm.ItemId = @ItemId" : "";
+            var itemFilter = itemId.HasValue ? "AND (lm.ItemId = @ItemId OR lm.VariantId = @ItemId)" : "";
 
             var sql = $@"
                 SELECT TOP 20
@@ -283,7 +290,7 @@ namespace ProductionManagement.Infrastructure.Repositories.LotMaster
         {
             const string sql = @"
                 SELECT CASE WHEN
-                    EXISTS (SELECT 1 FROM [Production].[ProductionPackDetail] WHERE LotMasterId = @Id AND IsDeleted = 0)
+                    EXISTS (SELECT 1 FROM [Production].[ProductionPackEntry] WHERE LotMasterId = @Id AND IsDeleted = 0)
                     OR EXISTS (SELECT 1 FROM [Production].[RepackingHeader] WHERE LotId = @Id AND IsDeleted = 0)
                 THEN 1 ELSE 0 END";
 
@@ -297,7 +304,7 @@ namespace ProductionManagement.Infrastructure.Repositories.LotMaster
         {
             const string sql = @"
                 SELECT CASE WHEN
-                    EXISTS (SELECT 1 FROM [Production].[ProductionPackDetail] WHERE LotMasterId = @Id AND IsDeleted = 0 AND IsActive = 1)
+                    EXISTS (SELECT 1 FROM [Production].[ProductionPackEntry] WHERE LotMasterId = @Id AND IsDeleted = 0 AND IsActive = 1)
                     OR EXISTS (SELECT 1 FROM [Production].[RepackingHeader] WHERE LotId = @Id AND IsDeleted = 0 AND IsActive = 1)
                 THEN 1 ELSE 0 END";
 

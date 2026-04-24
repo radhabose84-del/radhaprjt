@@ -6,9 +6,9 @@ using static ProductionManagement.Domain.Common.BaseEntity;
 
 namespace ProductionManagement.Infrastructure.Data.Configurations
 {
-    public class ProductionPackDetailConfiguration : IEntityTypeConfiguration<ProductionPackDetail>
+    public class ProductionPackEntryConfiguration : IEntityTypeConfiguration<ProductionPackEntry>
     {
-        public void Configure(EntityTypeBuilder<ProductionPackDetail> builder)
+        public void Configure(EntityTypeBuilder<ProductionPackEntry> builder)
         {
             var statusConverter = new ValueConverter<Status, bool>(
                 v => v == Status.Active, v => v ? Status.Active : Status.Inactive);
@@ -18,7 +18,7 @@ namespace ProductionManagement.Infrastructure.Data.Configurations
                 v => v.ToDateTime(TimeOnly.MinValue),
                 v => DateOnly.FromDateTime(v));
 
-            builder.ToTable("ProductionPackDetail", "Production");
+            builder.ToTable("ProductionPackEntry", "Production");
             builder.HasKey(t => t.Id);
 
             builder.Property(t => t.Id).HasColumnName("Id").HasColumnType("int").IsRequired();
@@ -28,6 +28,7 @@ namespace ProductionManagement.Infrastructure.Data.Configurations
             builder.Property(t => t.UnitId).HasColumnName("UnitId").HasColumnType("int").IsRequired();
             builder.Property(t => t.WarehouseId).HasColumnName("WarehouseId").HasColumnType("int").IsRequired();
             builder.Property(t => t.ItemId).HasColumnName("ItemId").HasColumnType("int").IsRequired();
+            builder.Property(t => t.VariantId).HasColumnName("VariantId").HasColumnType("int").IsRequired(false);
             builder.Property(t => t.LotId).HasColumnName("LotId").HasColumnType("int").IsRequired();
             builder.Property(t => t.PackTypeId).HasColumnName("PackTypeId").HasColumnType("int").IsRequired(false);
             builder.Property(t => t.NetWeightPerPack).HasColumnName("NetWeightPerPack").HasColumnType("decimal(18,3)").IsRequired(false);

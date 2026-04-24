@@ -9,16 +9,16 @@ namespace ProductionManagement.Application.Common.Mappings
     {
         public ProductionProfile()
         {
-            // Create: DTO → flat ProductionPackDetail entity
-            CreateMap<CreateProductionDto, ProductionPackDetail>()
+            // Create: DTO → flat ProductionPackEntry entity
+            CreateMap<CreateProductionDto, ProductionPackEntry>()
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
                 .ForMember(dest => dest.PackNo, opt => opt.Ignore())
                 .ForMember(dest => dest.UnitId, opt => opt.Ignore())
                 .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => Status.Active))
                 .ForMember(dest => dest.IsDeleted, opt => opt.MapFrom(src => IsDelete.NotDeleted));
 
-            // Update: DTO → flat ProductionPackDetail entity
-            CreateMap<UpdateProductionDto, ProductionPackDetail>()
+            // Update: DTO → flat ProductionPackEntry entity
+            CreateMap<UpdateProductionDto, ProductionPackEntry>()
                 .ForMember(dest => dest.PackNo, opt => opt.Ignore())
                 .ForMember(dest => dest.UnitId, opt => opt.Ignore())
                 .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src =>

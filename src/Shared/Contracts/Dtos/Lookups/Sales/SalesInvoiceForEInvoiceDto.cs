@@ -9,8 +9,8 @@ namespace Contracts.Dtos.Lookups.Sales
         public int UnitId { get; set; }
         public int PartyId { get; set; }
         public decimal TaxableValue { get; set; }
-        public decimal Discount { get; set; }
-        public decimal Freight { get; set; }
+        public decimal TotalDiscount { get; set; }
+        public decimal TotalFreight { get; set; }
         public decimal Insurance { get; set; }
         public decimal HandlingCharge { get; set; }
         public decimal OtherCharges { get; set; }
@@ -50,9 +50,9 @@ namespace Contracts.Dtos.Lookups.Sales
         public string? ItemName { get; set; }
         public string? HsnCode { get; set; }
         public int NoOfBags { get; set; }
-        public decimal Quantity { get; set; }
+        public decimal NetWeight { get; set; }
         public decimal RatePerKg { get; set; }
-        public decimal Discount { get; set; }
+        public decimal DiscountValue { get; set; }
         public decimal TaxableAmount { get; set; }
         public decimal GstPercentage { get; set; }
         public decimal CGST { get; set; }

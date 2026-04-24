@@ -5,6 +5,8 @@ namespace SalesManagement.Application.StockLedger.Dto
         public int Id { get; set; }
         public int UnitId { get; set; }
         public string? UnitName { get; set; }
+        public int? SourceUnitId { get; set; }
+        public string? SourceUnitName { get; set; }
         public string? DocType { get; set; }
         public int DocNo { get; set; }
         public int DetailDocNo { get; set; }

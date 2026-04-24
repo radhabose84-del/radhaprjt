@@ -6,6 +6,6 @@ namespace ProductionManagement.Application.ProductionPack.Commands.UpdateProduct
 {
     public class UpdateProductionCommand : IRequest<ApiResponseDTO<int>>
     {
-        public UpdateProductionDto? ProductionPackDetails { get; set; }
+        public UpdateProductionDto? ProductionPackEntries { get; set; }
     }
 }
