@@ -76,10 +76,10 @@ namespace ProductionManagement.UnitTests.Domain
             var entity = new PackType
             {
                 PackMaterial = null,
-                ProductionPackDetails = null
+                ProductionPackEntries = null
             };
             entity.PackMaterial.Should().BeNull();
-            entity.ProductionPackDetails.Should().BeNull();
+            entity.ProductionPackEntries.Should().BeNull();
         }
 
         [Fact]

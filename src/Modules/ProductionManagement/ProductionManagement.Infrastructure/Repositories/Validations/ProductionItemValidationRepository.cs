@@ -16,7 +16,7 @@ internal sealed class ProductionItemValidationRepository : IProductionItemValida
         const string sql = @"
             SELECT CASE WHEN
                 EXISTS (SELECT 1 FROM [Production].[LotMaster] WHERE ItemId = @Id AND IsDeleted = 0)
-                OR EXISTS (SELECT 1 FROM [Production].[ProductionPackDetail] WHERE ItemId = @Id AND IsDeleted = 0)
+                OR EXISTS (SELECT 1 FROM [Production].[ProductionPackEntry] WHERE ItemId = @Id AND IsDeleted = 0)
                 OR EXISTS (SELECT 1 FROM [Production].[RepackingHeader] WHERE ItemId = @Id AND IsDeleted = 0)
                 OR EXISTS (SELECT 1 FROM [Production].[RepackingHeader] WHERE OldItemId = @Id AND IsDeleted = 0)
                 OR EXISTS (SELECT 1 FROM [Production].[LooseConeLedger] WHERE ItemId = @Id)
@@ -30,7 +30,7 @@ internal sealed class ProductionItemValidationRepository : IProductionItemValida
         const string sql = @"
             SELECT CASE WHEN
                 EXISTS (SELECT 1 FROM [Production].[LotMaster] WHERE ItemId = @Id AND IsDeleted = 0 AND IsActive = 1)
-                OR EXISTS (SELECT 1 FROM [Production].[ProductionPackDetail] WHERE ItemId = @Id AND IsDeleted = 0 AND IsActive = 1)
+                OR EXISTS (SELECT 1 FROM [Production].[ProductionPackEntry] WHERE ItemId = @Id AND IsDeleted = 0 AND IsActive = 1)
                 OR EXISTS (SELECT 1 FROM [Production].[RepackingHeader] WHERE ItemId = @Id AND IsDeleted = 0 AND IsActive = 1)
                 OR EXISTS (SELECT 1 FROM [Production].[RepackingHeader] WHERE OldItemId = @Id AND IsDeleted = 0 AND IsActive = 1)
                 OR EXISTS (SELECT 1 FROM [Production].[LooseConeLedger] WHERE ItemId = @Id)

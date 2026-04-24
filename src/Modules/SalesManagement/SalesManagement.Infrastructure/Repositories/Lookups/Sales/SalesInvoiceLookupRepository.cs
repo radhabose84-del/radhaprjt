@@ -30,7 +30,7 @@ internal sealed class SalesInvoiceLookupRepository : ISalesInvoiceLookup
     {
         const string sql = @"
             SELECT h.Id, h.InvoiceNo, h.InvoiceDate, h.UnitId, h.PartyId,
-                h.TaxableValue, h.Discount, h.Freight, h.Insurance,
+                h.TaxableValue, h.TotalDiscount, h.TotalFreight, h.Insurance,
                 h.HandlingCharge, h.OtherCharges,
                 h.CGST, h.SGST, h.IGST, h.TCS, h.RoundOff,
                 h.InvoiceAmount, h.Remarks,
@@ -62,7 +62,7 @@ internal sealed class SalesInvoiceLookupRepository : ISalesInvoiceLookup
     {
         const string sql = @"
             SELECT h.Id, h.InvoiceNo, h.InvoiceDate, h.UnitId, h.PartyId,
-                h.TaxableValue, h.Discount, h.Freight, h.Insurance,
+                h.TaxableValue, h.TotalDiscount, h.TotalFreight, h.Insurance,
                 h.HandlingCharge, h.OtherCharges,
                 h.CGST, h.SGST, h.IGST, h.TCS, h.RoundOff,
                 h.InvoiceAmount, h.Remarks,
@@ -94,8 +94,8 @@ internal sealed class SalesInvoiceLookupRepository : ISalesInvoiceLookup
     {
         // Fetch detail lines
         const string detailSql = @"
-            SELECT d.ItemSno, d.ItemId, d.HsnCode, d.NoOfBags, d.Quantity,
-                d.RatePerKg, d.Discount, d.TaxableAmount, d.GstPercentage,
+            SELECT d.ItemSno, d.ItemId, d.HsnCode, d.NoOfBags, d.NetWeight,
+                d.RatePerKg, d.DiscountValue, d.TaxableAmount, d.GstPercentage,
                 d.CGST, d.SGST, d.IGST, d.TotalAmount,
                 d.PackTypeId, d.UOMId
             FROM Sales.InvoiceDetail d

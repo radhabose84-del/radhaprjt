@@ -11,7 +11,7 @@ namespace ProductionManagement.IntegrationTests.Repositories.Validations
     /// Integration tests for ProductionItemValidationRepository (internal sealed).
     /// Since the class is internal with no InternalsVisibleTo, we test the same SQL
     /// logic via raw Dapper against the real test database, verifying the EXISTS queries
-    /// that check LotMaster, ProductionPackDetail, RepackingHeader, and LooseConeLedger.
+    /// that check LotMaster, ProductionPackEntry, RepackingHeader, and LooseConeLedger.
     /// </summary>
     [Collection("DatabaseCollection")]
     public sealed class ProductionItemValidationRepositoryTests
@@ -30,7 +30,7 @@ namespace ProductionManagement.IntegrationTests.Repositories.Validations
             const string sql = @"
                 SELECT CASE WHEN
                     EXISTS (SELECT 1 FROM [Production].[LotMaster] WHERE ItemId = @Id AND IsDeleted = 0)
-                    OR EXISTS (SELECT 1 FROM [Production].[ProductionPackDetail] WHERE ItemId = @Id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM [Production].[ProductionPackEntry] WHERE ItemId = @Id AND IsDeleted = 0)
                     OR EXISTS (SELECT 1 FROM [Production].[RepackingHeader] WHERE ItemId = @Id AND IsDeleted = 0)
                     OR EXISTS (SELECT 1 FROM [Production].[RepackingHeader] WHERE OldItemId = @Id AND IsDeleted = 0)
                     -- LooseConeLedger excluded: table not in EF model/test DB
@@ -50,7 +50,7 @@ namespace ProductionManagement.IntegrationTests.Repositories.Validations
             const string sql = @"
                 SELECT CASE WHEN
                     EXISTS (SELECT 1 FROM [Production].[LotMaster] WHERE ItemId = @Id AND IsDeleted = 0 AND IsActive = 1)
-                    OR EXISTS (SELECT 1 FROM [Production].[ProductionPackDetail] WHERE ItemId = @Id AND IsDeleted = 0 AND IsActive = 1)
+                    OR EXISTS (SELECT 1 FROM [Production].[ProductionPackEntry] WHERE ItemId = @Id AND IsDeleted = 0 AND IsActive = 1)
                     OR EXISTS (SELECT 1 FROM [Production].[RepackingHeader] WHERE ItemId = @Id AND IsDeleted = 0 AND IsActive = 1)
                     OR EXISTS (SELECT 1 FROM [Production].[RepackingHeader] WHERE OldItemId = @Id AND IsDeleted = 0 AND IsActive = 1)
                     -- LooseConeLedger excluded: table not in EF model/test DB

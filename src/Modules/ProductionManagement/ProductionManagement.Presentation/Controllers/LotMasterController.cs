@@ -6,6 +6,7 @@ using ProductionManagement.Application.LotMaster.Commands.DeleteLotMaster;
 using ProductionManagement.Application.LotMaster.Commands.UpdateLotMaster;
 using ProductionManagement.Application.LotMaster.Queries.GetAllLotMaster;
 using ProductionManagement.Application.LotMaster.Queries.GetLotMasterAutoComplete;
+using ProductionManagement.Application.LotMaster.Queries.GetLotByStock;
 using ProductionManagement.Application.LotMaster.Queries.GetLotMasterById;
 
 namespace ProductionManagement.Presentation.Controllers
@@ -19,13 +20,15 @@ namespace ProductionManagement.Presentation.Controllers
         public async Task<IActionResult> GetAllLotMasterAsync(
             [FromQuery] int PageNumber,
             [FromQuery] int PageSize,
-            [FromQuery] string? SearchTerm = null)
+            [FromQuery] string? SearchTerm = null,
+            [FromQuery] int? ItemId = null)
         {
             var result = await Mediator.Send(new GetAllLotMasterQuery
             {
                 PageNumber = PageNumber,
                 PageSize = PageSize,
-                SearchTerm = SearchTerm
+                SearchTerm = SearchTerm,
+                ItemId = ItemId
             });
 
             return Ok(new
@@ -55,6 +58,23 @@ namespace ProductionManagement.Presentation.Controllers
             [FromQuery] int? itemId = null)
         {
             var result = await Mediator.Send(new GetLotMasterAutoCompleteQuery(term, itemId));
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result
+            });
+        }
+
+        [HttpGet("by-stock")]
+        public async Task<IActionResult> GetLotByStockAsync(
+            [FromQuery] int itemId,
+            [FromQuery] int? sourceUnitId = null)
+        {
+            var result = await Mediator.Send(new GetLotByStockQuery
+            {
+                ItemId = itemId,
+                SourceUnitId = sourceUnitId
+            });
             return Ok(new
             {
                 StatusCode = StatusCodes.Status200OK,

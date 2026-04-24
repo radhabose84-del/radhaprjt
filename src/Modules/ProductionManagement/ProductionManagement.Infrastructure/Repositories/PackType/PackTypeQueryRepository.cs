@@ -126,7 +126,7 @@ namespace ProductionManagement.Infrastructure.Repositories.PackType
         {
             const string sql = @"
                 SELECT CASE WHEN
-                    EXISTS (SELECT 1 FROM [Production].[ProductionPackDetail] WHERE PackTypeId = @Id AND IsDeleted = 0)
+                    EXISTS (SELECT 1 FROM [Production].[ProductionPackEntry] WHERE PackTypeId = @Id AND IsDeleted = 0)
                     OR EXISTS (SELECT 1 FROM [Production].[RepackingHeader] WHERE (PackTypeId = @Id OR OldPackTypeId = @Id) AND IsDeleted = 0)
                 THEN 1 ELSE 0 END";
 
@@ -140,7 +140,7 @@ namespace ProductionManagement.Infrastructure.Repositories.PackType
         {
             const string sql = @"
                 SELECT CASE WHEN
-                    EXISTS (SELECT 1 FROM [Production].[ProductionPackDetail] WHERE PackTypeId = @Id AND IsDeleted = 0 AND IsActive = 1)
+                    EXISTS (SELECT 1 FROM [Production].[ProductionPackEntry] WHERE PackTypeId = @Id AND IsDeleted = 0 AND IsActive = 1)
                     OR EXISTS (SELECT 1 FROM [Production].[RepackingHeader] WHERE (PackTypeId = @Id OR OldPackTypeId = @Id) AND IsDeleted = 0 AND IsActive = 1)
                 THEN 1 ELSE 0 END";
 

@@ -722,7 +722,7 @@ namespace ProductionManagement.Infrastructure.Repositories.RepackingHeader
                             // Has PACK data — clear REPACK fields and restore ClosingLooseKgs to PACK-only value
                             ledgerEntry.BagsRepacked = 0;
                             ledgerEntry.RepackKgs = 0;
-                            var packDetail = await _applicationDbContext.ProductionPackDetail
+                            var packDetail = await _applicationDbContext.ProductionPackEntry
                                 .Where(p => p.UnitId == existing.UnitId && p.ItemId == existing.OldItemId
                                     && p.LotId == lotId && p.PackDate == existing.RepackDate
                                     && p.IsDeleted == IsDelete.NotDeleted)

@@ -29,7 +29,7 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
             _documentSequenceLookup = documentSequenceLookup;
         }
 
-        public async Task<int> CreateAsync(ProductionPackDetail entity, int typeId)
+        public async Task<int> CreateAsync(ProductionPackEntry entity, int typeId)
         {
             var strategy = _applicationDbContext.Database.CreateExecutionStrategy();
 
@@ -38,7 +38,7 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
                 using var transaction = await _applicationDbContext.Database.BeginTransactionAsync();
                 try
                 {
-                    await _applicationDbContext.ProductionPackDetail.AddAsync(entity);
+                    await _applicationDbContext.ProductionPackEntry.AddAsync(entity);
                     await _applicationDbContext.SaveChangesAsync();
 
                     // Insert one StockLedger row per physical bag (only when pack range exists)
@@ -57,7 +57,7 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
                                 DocNo       = entity.Id,
                                 DetailDocNo = 0,
                                 DocDate     = entity.PackDate.ToDateTime(TimeOnly.MinValue),
-                                ItemId      = entity.ItemId,
+                                ItemId      = entity.VariantId ?? entity.ItemId,
                                 LotId       = entity.LotId,
                                 PackNo      = packNo,
                                 PackTypeId  = entity.PackTypeId ?? 0,
@@ -73,9 +73,12 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
                     }
 
                     // Upsert ProductionStockLedger — one row per (UnitId, ItemId, LotId, DocDate)
+                    // Use VariantId when available, otherwise ItemId
+                    var ledgerItemId = entity.VariantId ?? entity.ItemId;
+
                     // Get previous date's cumulative closing for running balance
                     var prevPackLedger = await _applicationDbContext.ProductionStockLedger
-                        .Where(l => l.UnitId == entity.UnitId && l.ItemId == entity.ItemId
+                        .Where(l => l.UnitId == entity.UnitId && l.ItemId == ledgerItemId
                             && l.LotId == entity.LotId && l.DocDate < entity.PackDate)
                         .OrderByDescending(l => l.DocDate)
                         .ThenByDescending(l => l.Id)
@@ -85,7 +88,7 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
 
                     var existingLedger = await _applicationDbContext.ProductionStockLedger
                         .FirstOrDefaultAsync(l => l.UnitId == entity.UnitId
-                            && l.ItemId == entity.ItemId && l.LotId == entity.LotId
+                            && l.ItemId == ledgerItemId && l.LotId == entity.LotId
                             && l.DocDate == entity.PackDate);
 
                     if (existingLedger != null)
@@ -106,7 +109,7 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
                         await _applicationDbContext.ProductionStockLedger.AddAsync(new ProductionStockLedger
                         {
                             UnitId           = entity.UnitId,
-                            ItemId           = entity.ItemId,
+                            ItemId           = ledgerItemId,
                             LotId            = entity.LotId,
                             DocDate          = entity.PackDate,
                             OpeningLooseKgs  = entity.OpeningLooseKgs,
@@ -126,7 +129,7 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
 
                     // Mark previous date entries as stock-closed
                     var prevEntries = await _applicationDbContext.ProductionStockLedger
-                        .Where(l => l.UnitId == entity.UnitId && l.ItemId == entity.ItemId
+                        .Where(l => l.UnitId == entity.UnitId && l.ItemId == ledgerItemId
                             && l.LotId == entity.LotId && l.DocDate < entity.PackDate && !l.StockClosing)
                         .ToListAsync();
                     foreach (var prev in prevEntries)
@@ -149,9 +152,9 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
             });
         }
 
-        public async Task<int> UpdateAsync(ProductionPackDetail entity)
+        public async Task<int> UpdateAsync(ProductionPackEntry entity)
         {
-            var existingEntity = await _applicationDbContext.ProductionPackDetail
+            var existingEntity = await _applicationDbContext.ProductionPackEntry
                 .FirstOrDefaultAsync(x => x.Id == entity.Id && x.IsDeleted == IsDelete.NotDeleted);
 
             if (existingEntity == null)
@@ -164,9 +167,9 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
                 using var transaction = await _applicationDbContext.Database.BeginTransactionAsync();
                 try
                 {
-                    // Save old key for ledger cleanup
+                    // Save old key for ledger cleanup (VariantId ?? ItemId to match ledger key)
                     var oldUnitId = existingEntity.UnitId;
-                    var oldItemId = existingEntity.ItemId;
+                    var oldItemId = existingEntity.VariantId ?? existingEntity.ItemId;
                     var oldLotId = existingEntity.LotId;
                     var oldPackDate = existingEntity.PackDate;
 
@@ -175,6 +178,7 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
                     existingEntity.UnitId            = entity.UnitId;
                     existingEntity.WarehouseId       = entity.WarehouseId;
                     existingEntity.ItemId            = entity.ItemId;
+                    existingEntity.VariantId         = entity.VariantId;
                     existingEntity.LotId             = entity.LotId;
                     existingEntity.PackTypeId        = entity.PackTypeId;
                     existingEntity.NetWeightPerPack  = entity.NetWeightPerPack;
@@ -210,7 +214,7 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
                                 DocNo       = existingEntity.Id,
                                 DetailDocNo = existingEntity.Id,
                                 DocDate     = existingEntity.PackDate.ToDateTime(TimeOnly.MinValue),
-                                ItemId      = existingEntity.ItemId,
+                                ItemId      = existingEntity.VariantId ?? existingEntity.ItemId,
                                 LotId       = existingEntity.LotId,
                                 PackNo      = packNo,
                                 PackTypeId  = existingEntity.PackTypeId ?? 0,
@@ -225,12 +229,15 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
                         await _salesStockLedgerLookup.InsertAsync(stockEntries);
                     }
 
-                    _applicationDbContext.ProductionPackDetail.Update(existingEntity);
+                    _applicationDbContext.ProductionPackEntry.Update(existingEntity);
                     await _applicationDbContext.SaveChangesAsync();
 
                     // Upsert ProductionStockLedger — one row per (UnitId, ItemId, LotId, DocDate)
+                    // Use VariantId when available, otherwise ItemId
+                    var updLedgerItemId = existingEntity.VariantId ?? existingEntity.ItemId;
+
                     // If key changed, clean up old row first
-                    if (oldUnitId != existingEntity.UnitId || oldItemId != existingEntity.ItemId
+                    if (oldUnitId != existingEntity.UnitId || oldItemId != updLedgerItemId
                         || oldLotId != existingEntity.LotId || oldPackDate != existingEntity.PackDate)
                     {
                         var oldLedger = await _applicationDbContext.ProductionStockLedger
@@ -258,7 +265,7 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
 
                     // Get previous date's cumulative closing for running balance
                     var prevUpdLedger = await _applicationDbContext.ProductionStockLedger
-                        .Where(l => l.UnitId == existingEntity.UnitId && l.ItemId == existingEntity.ItemId
+                        .Where(l => l.UnitId == existingEntity.UnitId && l.ItemId == updLedgerItemId
                             && l.LotId == existingEntity.LotId && l.DocDate < existingEntity.PackDate)
                         .OrderByDescending(l => l.DocDate)
                         .ThenByDescending(l => l.Id)
@@ -268,7 +275,7 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
 
                     var ledger = await _applicationDbContext.ProductionStockLedger
                         .FirstOrDefaultAsync(l => l.UnitId == existingEntity.UnitId
-                            && l.ItemId == existingEntity.ItemId && l.LotId == existingEntity.LotId
+                            && l.ItemId == updLedgerItemId && l.LotId == existingEntity.LotId
                             && l.DocDate == existingEntity.PackDate);
 
                     if (ledger != null)
@@ -289,7 +296,7 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
                         await _applicationDbContext.ProductionStockLedger.AddAsync(new ProductionStockLedger
                         {
                             UnitId           = existingEntity.UnitId,
-                            ItemId           = existingEntity.ItemId,
+                            ItemId           = updLedgerItemId,
                             LotId            = existingEntity.LotId,
                             DocDate          = existingEntity.PackDate,
                             OpeningLooseKgs  = existingEntity.OpeningLooseKgs,
@@ -309,7 +316,7 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
 
                     // Mark previous date entries as stock-closed
                     var prevEntries = await _applicationDbContext.ProductionStockLedger
-                        .Where(l => l.UnitId == existingEntity.UnitId && l.ItemId == existingEntity.ItemId
+                        .Where(l => l.UnitId == existingEntity.UnitId && l.ItemId == updLedgerItemId
                             && l.LotId == existingEntity.LotId && l.DocDate < existingEntity.PackDate && !l.StockClosing)
                         .ToListAsync();
                     foreach (var prev in prevEntries)
