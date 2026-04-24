@@ -379,5 +379,148 @@ namespace SalesManagement.IntegrationTests.Repositories.ComplaintDepartmentFeedb
             result!.AssignmentId.Should().Be(assignmentId);
             result.FeedbackStatusName.Should().Be("Pending");
         }
+
+        // ---------------------------------------------------------------------------
+        // GetAllAsync — "QC Accepted" parent-status filter
+        // (Only feedbacks whose parent ComplaintQCReview has Code = 'QC Accepted'
+        //  should surface to responsible-person users.)
+        // ---------------------------------------------------------------------------
+
+        /// <summary>
+        /// Seeds full chain and allows caller to control the QC Review's ComplaintStatusId.
+        /// Pass "QC Accepted" / "QC Rejected" / null.
+        /// </summary>
+        private async Task<(int feedbackId, int assignmentId)> SeedFullChainWithQcStatusAsync(
+            string? qcReviewStatusCode,
+            int responsiblePersonId = 1)
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var mtId = await EnsureMiscTypeAsync(ctx);
+            var pvId = await EnsureMiscAsync(ctx, mtId, "CDFQ_PV");
+            var statusId = await EnsureMiscAsync(ctx, mtId, "CDFQ_STATUS");
+            var roleId = await EnsureMiscAsync(ctx, mtId, "CDFQ_ROLE");
+            var aStatusId = await EnsureMiscAsync(ctx, mtId, "CDFQ_ASTATUS");
+            var fbStatusId = await EnsureMiscAsync(ctx, mtId, "CDFQ_FBSTATUS");
+
+            int? qcrStatusId = null;
+            if (!string.IsNullOrWhiteSpace(qcReviewStatusCode))
+                qcrStatusId = await EnsureMiscAsync(ctx, mtId, qcReviewStatusCode);
+
+            var complaint = new SalesManagement.Domain.Entities.ComplaintHeader
+            {
+                ComplaintNumber = "CDFQ_S" + Guid.NewGuid().ToString("N")[..6],
+                ComplaintDate = DateOnly.FromDateTime(DateTime.UtcNow.Date),
+                CustomerId = 100,
+                StatusId = statusId,
+                IsActive = Status.Active,
+                IsDeleted = IsDelete.NotDeleted
+            };
+            await ctx.ComplaintHeader.AddAsync(complaint);
+            await ctx.SaveChangesAsync();
+
+            var review = new SalesManagement.Domain.Entities.ComplaintQCReview
+            {
+                ComplaintHeaderId = complaint.Id,
+                PhysicalVerificationId = pvId,
+                ComplaintStatusId = qcrStatusId,
+                LabVerificationRequired = false,
+                IsActive = Status.Active,
+                IsDeleted = IsDelete.NotDeleted
+            };
+            await ctx.ComplaintQCReview.AddAsync(review);
+            await ctx.SaveChangesAsync();
+
+            var assignment = new SalesManagement.Domain.Entities.ComplaintQCReviewAssignment
+            {
+                ComplaintQCReviewId = review.Id,
+                RoleId = roleId,
+                ResponsiblePersonId = responsiblePersonId,
+                IsMandatory = true,
+                AssignmentStatusId = aStatusId,
+                IsActive = Status.Active,
+                IsDeleted = IsDelete.NotDeleted
+            };
+            await ctx.ComplaintQCReviewAssignment.AddAsync(assignment);
+            await ctx.SaveChangesAsync();
+
+            var feedback = new SalesManagement.Domain.Entities.ComplaintDepartmentFeedback
+            {
+                AssignmentId = assignment.Id,
+                RootCauseText = "Test root cause",
+                CorrectiveAction = "Test corrective",
+                FeedbackStatusId = fbStatusId,
+                ReworkCount = 0,
+                IsActive = Status.Active,
+                IsDeleted = IsDelete.NotDeleted
+            };
+            await ctx.ComplaintDepartmentFeedback.AddAsync(feedback);
+            await ctx.SaveChangesAsync();
+
+            return (feedback.Id, assignment.Id);
+        }
+
+        [Fact]
+        public async Task GetAllAsync_Should_Return_Feedback_When_QCReview_Status_Is_QC_Accepted()
+        {
+            await ClearAsync();
+            var (_, assignmentId) = await SeedFullChainWithQcStatusAsync("QC Accepted", responsiblePersonId: 1);
+
+            var (data, totalCount) = await CreateRepo().GetAllAsync(1, 10, null, null, responsiblePersonId: 1);
+
+            totalCount.Should().Be(1);
+            data.Should().ContainSingle(d => d.AssignmentId == assignmentId);
+        }
+
+        [Fact]
+        public async Task GetAllAsync_Should_Exclude_Feedback_When_QCReview_Status_Is_QC_Rejected()
+        {
+            await ClearAsync();
+            await SeedFullChainWithQcStatusAsync("QC Rejected", responsiblePersonId: 1);
+
+            var (data, totalCount) = await CreateRepo().GetAllAsync(1, 10, null, null, responsiblePersonId: 1);
+
+            totalCount.Should().Be(0);
+            data.Should().BeEmpty();
+        }
+
+        [Fact]
+        public async Task GetAllAsync_Should_Exclude_Feedback_When_QCReview_Status_Is_Null()
+        {
+            await ClearAsync();
+            // Null ComplaintStatusId => INNER JOIN on MiscMaster fails => row excluded.
+            await SeedFullChainWithQcStatusAsync(qcReviewStatusCode: null, responsiblePersonId: 1);
+
+            var (data, totalCount) = await CreateRepo().GetAllAsync(1, 10, null, null, responsiblePersonId: 1);
+
+            totalCount.Should().Be(0);
+            data.Should().BeEmpty();
+        }
+
+        [Fact]
+        public async Task GetAllAsync_Should_Respect_ResponsiblePerson_Filter_With_QC_Accepted_Status()
+        {
+            await ClearAsync();
+            var (_, assignmentForUser1) = await SeedFullChainWithQcStatusAsync("QC Accepted", responsiblePersonId: 1);
+            await SeedFullChainWithQcStatusAsync("QC Accepted", responsiblePersonId: 2);
+
+            var (data, totalCount) = await CreateRepo().GetAllAsync(1, 10, null, null, responsiblePersonId: 1);
+
+            totalCount.Should().Be(1);
+            data.Should().ContainSingle(d => d.AssignmentId == assignmentForUser1);
+        }
+
+        [Fact]
+        public async Task GetAllAsync_Should_Exclude_Feedback_When_Status_Is_Mixed_Only_Approved_Remain()
+        {
+            await ClearAsync();
+            var (_, approvedAssignment) = await SeedFullChainWithQcStatusAsync("QC Accepted", responsiblePersonId: 1);
+            await SeedFullChainWithQcStatusAsync("QC Rejected", responsiblePersonId: 1);
+            await SeedFullChainWithQcStatusAsync(qcReviewStatusCode: null, responsiblePersonId: 1);
+
+            var (data, totalCount) = await CreateRepo().GetAllAsync(1, 10, null, null, responsiblePersonId: 1);
+
+            totalCount.Should().Be(1);
+            data.Should().ContainSingle(d => d.AssignmentId == approvedAssignment);
+        }
     }
 }

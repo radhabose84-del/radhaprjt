@@ -23,4 +23,9 @@
   <ItemGroup>
     <ProjectReference Include="..\Core\ProductionManagement.Application\ProductionManagement.Application.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>ProductionManagement.IntegrationTests</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
 </Project>

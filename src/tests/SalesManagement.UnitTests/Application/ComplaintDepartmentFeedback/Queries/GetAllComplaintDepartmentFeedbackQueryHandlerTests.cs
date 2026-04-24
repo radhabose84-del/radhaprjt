@@ -71,4 +71,31 @@ public sealed class GetAllComplaintDepartmentFeedbackQueryHandlerTests
         result.IsSuccess.Should().BeTrue();
         result.Data.Should().BeEmpty();
     }
+
+    /// <summary>
+    /// Contract: handler always scopes list to the logged-in user's UserId.
+    /// The repository is responsible for the "QC Accepted" parent-status filter —
+    /// the handler must not bypass or duplicate that filter. Verified here by
+    /// asserting the handler only passes the scoped UserId and defers page/search/status
+    /// to the repository without mutation.
+    /// </summary>
+    [Fact]
+    public async Task Handle_OnlyApprovedQCFeedback_DelegatesFilterToRepository()
+    {
+        _mockIpService.Setup(s => s.GetUserId()).Returns(99);
+
+        _mockQueryRepo
+            .Setup(r => r.GetAllAsync(1, 10, null, null, 99))
+            .ReturnsAsync((new List<FeedbackListDto> { new() { AssignmentId = 5 } }, 1));
+
+        var result = await CreateSut().Handle(
+            new GetAllComplaintDepartmentFeedbackQuery { PageNumber = 1, PageSize = 10 },
+            CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Data.Should().ContainSingle(d => d.AssignmentId == 5);
+        _mockQueryRepo.Verify(
+            r => r.GetAllAsync(1, 10, null, null, 99),
+            Times.Once);
+    }
 }

@@ -313,17 +313,12 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                 || headerStatus.Code != MiscEnumEntity.QCAccepted)
                 return;
 
-            // Gate 2 — every mandatory QC assignment must be 'Submitted'
-            var hasPendingMandatory = await (from a in _dbContext.ComplaintQCReviewAssignment
-                                             join qr in _dbContext.ComplaintQCReview on a.ComplaintQCReviewId equals qr.Id
-                                             join mm in _dbContext.MiscMaster on a.AssignmentStatusId equals mm.Id
-                                             where qr.ComplaintHeaderId == complaintHeaderId
-                                                && a.IsMandatory
-                                                && mm.Description != "Submitted"
-                                                && a.IsDeleted == IsDelete.NotDeleted
-                                                && qr.IsDeleted == IsDelete.NotDeleted
-                                             select a.Id).AnyAsync(ct);
-            if (hasPendingMandatory) return;
+            // Gate 2 (was: hasPendingMandatory) has been removed per business decision
+            // on 2026-04-24. Previous behaviour required every mandatory QC assignment to
+            // be 'Submitted' before seeding a draft — that gate caused approved complaints
+            // to appear stuck on the Resolution page when department feedback came in
+            // later. Draft is now seeded immediately on 'QC Accepted'; department feedback
+            // can be submitted in parallel with the resolver's work.
 
             // Gate 3 — don't duplicate an existing resolution row
             var alreadyExists = await _dbContext.ComplaintResolution

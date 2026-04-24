@@ -186,13 +186,16 @@ namespace FinanceManagement.UnitTests.Validators.TransactionTypeMaster
         public async Task Validate_UsesUnitIdFromToken_ForAlreadyExistsCheck()
         {
             var command = ValidCommand();
+            var validator = CreateValidator();
+            // Override after CreateValidator (which sets GetUnitId to 1) — validator resolves unitId
+            // at validation time via the mock reference, so the later Setup wins.
             _mockIp.Setup(x => x.GetUnitId()).Returns(9);
             _mockQueryRepo.Setup(r => r.TypeNameExistsAsync("TestType", 9, null)).ReturnsAsync(false);
             _mockQueryRepo.Setup(r => r.ShortNameExistsAsync("TT", 9, null)).ReturnsAsync(false);
             _mockQueryRepo.Setup(r => r.ModuleExistsAsync(1)).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.MenuExistsAsync(1)).ReturnsAsync(true);
 
-            await CreateValidator().TestValidateAsync(command);
+            await validator.TestValidateAsync(command);
 
             _mockQueryRepo.Verify(r => r.TypeNameExistsAsync("TestType", 9, null), Times.AtLeastOnce);
             _mockQueryRepo.Verify(r => r.ShortNameExistsAsync("TT", 9, null), Times.AtLeastOnce);
