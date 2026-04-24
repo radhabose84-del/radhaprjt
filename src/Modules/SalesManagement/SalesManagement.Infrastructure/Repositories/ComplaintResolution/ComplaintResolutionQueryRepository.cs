@@ -60,13 +60,42 @@ namespace SalesManagement.Infrastructure.Repositories.ComplaintResolution
 
             var allFilters = $"{searchFilter}{partyFilter}{statusFilterSql}";
 
+            // Readiness filter — a resolution only appears on the list when:
+            //   (a) parent ComplaintHeader.StatusId points to MiscMaster.Code = 'QC Accepted'
+            //       under MiscTypeCode 'QCComplaintStatus', AND
+            //   (b) no mandatory ComplaintQCReviewAssignment is still in a non-Submitted state.
+            // The draft row itself is seeded on 'QC Accepted' (see EnsureResolutionDraftIfQCAcceptedAsync);
+            // this filter keeps it hidden from the resolver until all mandatory RCA feedback is in.
+            const string readinessFilter = @"
+                AND EXISTS (
+                    SELECT 1
+                    FROM Sales.MiscMaster hs
+                    INNER JOIN Sales.MiscTypeMaster ht ON hs.MiscTypeId = ht.Id
+                    WHERE hs.Id = ch.StatusId
+                      AND hs.Code = @QcAcceptedCode
+                      AND ht.MiscTypeCode = @QcStatusType
+                      AND hs.IsDeleted = 0
+                      AND ht.IsDeleted = 0
+                )
+                AND NOT EXISTS (
+                    SELECT 1
+                    FROM Sales.ComplaintQCReview qr
+                    INNER JOIN Sales.ComplaintQCReviewAssignment a ON a.ComplaintQCReviewId = qr.Id
+                    INNER JOIN Sales.MiscMaster ams ON a.AssignmentStatusId = ams.Id
+                    WHERE qr.ComplaintHeaderId = cr.ComplaintHeaderId
+                      AND qr.IsDeleted = 0
+                      AND a.IsDeleted = 0
+                      AND a.IsMandatory = 1
+                      AND ams.Description <> @SubmittedDescription
+                )";
+
             var countSql = $@"
                 SELECT COUNT(*)
                 FROM Sales.ComplaintResolution cr
                 INNER JOIN Sales.ComplaintHeader ch ON cr.ComplaintHeaderId = ch.Id AND ch.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster cs ON cr.ClosureStatusId = cs.Id AND cs.IsDeleted = 0
                 LEFT JOIN Sales.MiscTypeMaster cst ON cs.MiscTypeId = cst.Id AND cst.MiscTypeCode = @ClosureStatusType AND cst.IsDeleted = 0
-                WHERE cr.IsDeleted = 0 {allFilters};";
+                WHERE cr.IsDeleted = 0 {allFilters} {readinessFilter};";
 
             var dataSql = $@"
                 SELECT
@@ -85,7 +114,7 @@ namespace SalesManagement.Infrastructure.Repositories.ComplaintResolution
                 LEFT JOIN Sales.MiscTypeMaster rtt ON rt.MiscTypeId = rtt.Id AND rtt.MiscTypeCode = @ResolutionTypeType AND rtt.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster cs ON cr.ClosureStatusId = cs.Id AND cs.IsDeleted = 0
                 LEFT JOIN Sales.MiscTypeMaster cst ON cs.MiscTypeId = cst.Id AND cst.MiscTypeCode = @ClosureStatusType AND cst.IsDeleted = 0
-                WHERE cr.IsDeleted = 0 {allFilters}
+                WHERE cr.IsDeleted = 0 {allFilters} {readinessFilter}
                 ORDER BY cr.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;";
 
@@ -95,6 +124,9 @@ namespace SalesManagement.Infrastructure.Repositories.ComplaintResolution
             dp.Add("ClosureStatusType", MiscEnumEntity.ClosureStatus);
             dp.Add("ResolutionTypeType", MiscEnumEntity.ResolutionType);
             dp.Add("DefaultClosureStatus", MiscEnumEntity.ClosureStatusOpen);
+            dp.Add("QcStatusType", MiscEnumEntity.QCComplaintStatus);
+            dp.Add("QcAcceptedCode", MiscEnumEntity.QCAccepted);
+            dp.Add("SubmittedDescription", "Submitted");
             dp.Add("Offset", (pageNumber - 1) * pageSize);
             dp.Add("PageSize", pageSize);
             if (accessCtx.IsCustomerRestricted && accessCtx.AllowedCustomerIds.Count > 0)

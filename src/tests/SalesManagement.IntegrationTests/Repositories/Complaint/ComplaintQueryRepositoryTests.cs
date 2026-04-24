@@ -7,6 +7,7 @@ using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Production;
 using Contracts.Interfaces.Lookups.Users;
+using Dapper;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using SalesManagement.Infrastructure.Data;
@@ -398,6 +399,164 @@ namespace SalesManagement.IntegrationTests.Repositories.Complaint
             var result = await CreateRepo().IsReadyForResolutionAsync(id);
 
             result.Should().BeFalse();
+        }
+
+        // ---------------------------------------------------------------------------
+        // SearchInvoicesAsync — NetWeight output must come from id.BagWeight column
+        // (verifies the column-alias swap from id.Quantity → id.BagWeight)
+        // ---------------------------------------------------------------------------
+
+        private const string DisableSalesFKs = @"
+            DECLARE @sql NVARCHAR(MAX) = N'';
+            SELECT @sql += 'ALTER TABLE ' + QUOTENAME(s.name) + '.' + QUOTENAME(t.name)
+                + ' NOCHECK CONSTRAINT ALL;' + CHAR(13)
+            FROM sys.tables t JOIN sys.schemas s ON t.schema_id = s.schema_id
+            WHERE s.name = 'Sales';
+            EXEC sp_executesql @sql;";
+
+        private const string EnableSalesFKs = @"
+            DECLARE @sql NVARCHAR(MAX) = N'';
+            SELECT @sql += 'ALTER TABLE ' + QUOTENAME(s.name) + '.' + QUOTENAME(t.name)
+                + ' CHECK CONSTRAINT ALL;' + CHAR(13)
+            FROM sys.tables t JOIN sys.schemas s ON t.schema_id = s.schema_id
+            WHERE s.name = 'Sales';
+            EXEC sp_executesql @sql;";
+
+        /// <summary>
+        /// Seeds one InvoiceHeader + one InvoiceDetail with distinct BagWeight and NetWeight
+        /// values so the test can tell which column ends up as the NetWeight DTO field.
+        /// Uses raw SQL with FK constraints disabled to avoid seeding the whole parent chain
+        /// (DispatchAdviceHeader, SalesOrderHeader, etc.).
+        /// </summary>
+        private async Task<(int invoiceHeaderId, int invoiceDetailId)> SeedInvoiceWithBagWeightAsync(
+            int partyId, decimal bagWeight, decimal netWeight)
+        {
+            await using var conn = new SqlConnection(_fixture.ConnectionString);
+            await conn.OpenAsync();
+
+            var invoiceNo = "INV-CQQ-" + Guid.NewGuid().ToString("N")[..8];
+
+            var invoiceHeaderId = await conn.ExecuteScalarAsync<int>($@"
+                {DisableSalesFKs}
+
+                INSERT INTO Sales.InvoiceHeader
+                    (InvoiceNo, InvoiceDate, DispatchAdviceId, PartyId, UnitId, FinancialYearId,
+                     TotalBags, TotalWeight, TaxableValue, TotalDiscount, TotalFreight, TotalCommission,
+                     Insurance, HandlingCharge, OtherCharges, TotalCharity,
+                     CGST, SGST, IGST, TaxAmount, TCSPercentage, TCS,
+                     RoundOff, InvoiceAmountBeforeTCS, InvoiceAmount,
+                     IsActive, IsDeleted, CreatedBy)
+                VALUES
+                    (@InvoiceNo, GETDATE(), 0, @PartyId, 1, 1,
+                     0, 0, 0, 0, 0, 0,
+                     0, 0, 0, 0,
+                     0, 0, 0, 0, 0, 0,
+                     0, 0, 0,
+                     1, 0, 1);
+                SELECT CAST(SCOPE_IDENTITY() AS INT);",
+                new { InvoiceNo = invoiceNo, PartyId = partyId });
+
+            var invoiceDetailId = await conn.ExecuteScalarAsync<int>($@"
+                INSERT INTO Sales.InvoiceDetail
+                    (InvoiceHeaderId, ItemSno, ItemId, GstPercentage,
+                     LotId, NoOfBags, BagWeight, NetWeight, RatePerKg,
+                     DiscountValue, FreightValue, CommissionValue,
+                     TaxableAmount, CgstPercentage, SgstPercentage, IgstPercentage,
+                     CGST, SGST, IGST, TaxAmount, Charity, HandlingCharges,
+                     PackTypeId, UOMId, TotalAmount)
+                VALUES
+                    (@HeaderId, 1, 1, 0,
+                     NULL, 2, @BagWeight, @NetWeight, 100,
+                     0, 0, 0,
+                     0, 0, 0, 0,
+                     0, 0, 0, 0, 0, 0,
+                     NULL, 1, 200);
+                SELECT CAST(SCOPE_IDENTITY() AS INT);
+                {EnableSalesFKs}",
+                new { HeaderId = invoiceHeaderId, BagWeight = bagWeight, NetWeight = netWeight });
+
+            return (invoiceHeaderId, invoiceDetailId);
+        }
+
+        private async Task ClearInvoiceTablesAsync()
+        {
+            await using var conn = new SqlConnection(_fixture.ConnectionString);
+            await conn.OpenAsync();
+
+            // Ensure Finance.TransactionTypeMaster stub exists — SearchInvoicesAsync LEFT JOINs it.
+            // The table is created lazily here to avoid polluting the shared DbFixture.
+            await conn.ExecuteAsync(@"
+                IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'Finance')
+                    EXEC('CREATE SCHEMA Finance');
+
+                IF NOT EXISTS (
+                    SELECT 1 FROM sys.tables t
+                    JOIN sys.schemas s ON t.schema_id = s.schema_id
+                    WHERE s.name = 'Finance' AND t.name = 'TransactionTypeMaster')
+                BEGIN
+                    CREATE TABLE [Finance].[TransactionTypeMaster] (
+                        Id          INT IDENTITY(1,1) PRIMARY KEY,
+                        TypeName    NVARCHAR(100) NULL,
+                        ShortName   NVARCHAR(20)  NULL,
+                        IsActive    BIT           NOT NULL DEFAULT 1,
+                        IsDeleted   BIT           NOT NULL DEFAULT 0
+                    );
+                END
+
+                DELETE FROM Sales.InvoiceDetail;
+                DELETE FROM Sales.InvoiceHeader;");
+        }
+
+        /// <summary>
+        /// UOM lookup that returns an empty list so the repository's ToDictionary call doesn't throw.
+        /// </summary>
+        private static Mock<IUOMLookup> BuildEmptyUomLookup()
+        {
+            var mock = new Mock<IUOMLookup>(MockBehavior.Loose);
+            mock.Setup(u => u.GetByIdsAsync(It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((IReadOnlyList<UOMLookupDto>)new List<UOMLookupDto>());
+            return mock;
+        }
+
+        [Fact]
+        public async Task SearchInvoicesAsync_Should_Return_NetWeight_Sourced_From_BagWeight_Column()
+        {
+            // Arrange: seed one invoice line where BagWeight differs from NetWeight,
+            // so the assertion can tell which column feeds the output.
+            const int partyId = 88888;
+            const decimal bagWeight = 7.5m;
+            const decimal netWeightColumn = 99m;
+
+            await ClearInvoiceTablesAsync();
+            await SeedInvoiceWithBagWeightAsync(partyId, bagWeight, netWeightColumn);
+
+            // Act
+            var (rows, total) = await CreateRepo(uomLookup: BuildEmptyUomLookup())
+                .SearchInvoicesAsync(partyId, searchTerm: null, lastOneYear: false, pageNumber: 1, pageSize: 10);
+
+            // Assert: the DTO's NetWeight field carries the BagWeight value, not the NetWeight column.
+            total.Should().Be(1);
+            rows.Should().HaveCount(1);
+            rows[0].NetWeight.Should().Be(bagWeight, "SearchInvoicesAsync projects id.BagWeight AS NetWeight");
+            rows[0].NetWeight.Should().NotBe(netWeightColumn, "the output must NOT come from the renamed Quantity/NetWeight column");
+        }
+
+        [Fact]
+        public async Task SearchInvoicesAsync_Should_Scope_By_PartyId()
+        {
+            const int targetParty = 88881;
+            const int otherParty = 88882;
+
+            await ClearInvoiceTablesAsync();
+            await SeedInvoiceWithBagWeightAsync(targetParty, bagWeight: 1m, netWeight: 1m);
+            await SeedInvoiceWithBagWeightAsync(otherParty, bagWeight: 2m, netWeight: 2m);
+
+            var (rows, total) = await CreateRepo(uomLookup: BuildEmptyUomLookup())
+                .SearchInvoicesAsync(targetParty, searchTerm: null, lastOneYear: false, pageNumber: 1, pageSize: 10);
+
+            total.Should().Be(1);
+            rows.Should().HaveCount(1);
+            rows[0].NetWeight.Should().Be(1m);
         }
     }
 }

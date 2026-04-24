@@ -67,14 +67,14 @@ namespace SalesManagement.IntegrationTests.Repositories.Validations
 
                 INSERT INTO Sales.InvoiceHeader
                     (InvoiceDate, DispatchAdviceId, PartyId, UnitId, FinancialYearId,
-                     TotalBags, TotalWeight, TaxableValue, Discount, Freight,
+                     TotalBags, TotalWeight, TaxableValue, TotalDiscount, TotalFreight, TotalCommission,
                      Insurance, HandlingCharge, OtherCharges, TotalCharity,
                      CGST, SGST, IGST, TaxAmount, TCSPercentage, TCS,
                      RoundOff, InvoiceAmountBeforeTCS, InvoiceAmount,
                      IsActive, IsDeleted, CreatedBy)
                 VALUES
                     (GETDATE(), 0, @PartyId, 1, 1,
-                     0, 0, 0, 0, 0,
+                     0, 0, 0, 0, 0, 0,
                      0, 0, 0, 0,
                      0, 0, 0, 0, 0, 0,
                      0, 0, 0,
@@ -197,13 +197,15 @@ namespace SalesManagement.IntegrationTests.Repositories.Validations
 
                 INSERT INTO Sales.InvoiceDetail
                     (InvoiceHeaderId, ItemSno, ItemId, GstPercentage,
-                     LotId, NoOfBags, BagWeight, NetWeight, RatePerKg, Discount,
+                     LotId, NoOfBags, BagWeight, NetWeight, RatePerKg,
+                     DiscountValue, FreightValue, CommissionValue,
                      TaxableAmount, CgstPercentage, SgstPercentage, IgstPercentage,
                      CGST, SGST, IGST, TaxAmount, Charity, HandlingCharges,
                      PackTypeId, UOMId, TotalAmount)
                 VALUES
                     (@HeaderId, 1, @ItemId, 0,
-                     @LotId, 0, 1, 1, 0, 0,
+                     @LotId, 0, 1, 1, 0,
+                     0, 0, 0,
                      0, 0, 0, 0,
                      0, 0, 0, 0, 0, 0,
                      @PackTypeId, @UOMId, 0);",

@@ -289,5 +289,137 @@ namespace SalesManagement.IntegrationTests.Repositories.Complaint
 
             result.Should().BeFalse();
         }
+
+        // ---------------------------------------------------------------------------
+        // EnsureResolutionDraftIfQCAcceptedAsync (Option B — no mandatory-feedback gate)
+        //
+        // Validates the business decision of 2026-04-24: as soon as the parent
+        // ComplaintHeader is at 'QC Accepted' the draft resolution must be seeded,
+        // irrespective of whether mandatory QC assignments have been Submitted.
+        // ---------------------------------------------------------------------------
+
+        /// <summary>
+        /// Seeds the MiscMaster rows that EnsureResolutionDraftIfQCAcceptedAsync needs:
+        /// (QCComplaintStatus / 'QC Accepted'), (ResolutionType / 'No Action'),
+        /// (ClosureStatus / 'Open'). Returns the MiscMaster Id of 'QC Accepted'.
+        /// </summary>
+        private async Task<int> SeedResolutionSeedMasterDataAsync(ApplicationDbContext ctx)
+        {
+            var qcMtId = await EnsureMiscTypeAsync(ctx, "QCComplaintStatus");
+            var rtMtId = await EnsureMiscTypeAsync(ctx, "ResolutionType");
+            var csMtId = await EnsureMiscTypeAsync(ctx, "ClosureStatus");
+
+            var qcAcceptedId = await EnsureMiscAsync(ctx, qcMtId, "QC Accepted");
+            await EnsureMiscAsync(ctx, rtMtId, "No Action");
+            await EnsureMiscAsync(ctx, csMtId, "Open");
+
+            return qcAcceptedId;
+        }
+
+        [Fact]
+        public async Task EnsureResolutionDraftIfQCAcceptedAsync_HeaderQcAcceptedWithPendingMandatoryAssignment_CreatesDraft()
+        {
+            await ClearAsync();
+
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var qcAcceptedId = await SeedResolutionSeedMasterDataAsync(ctx);
+
+            // Aux status for the pending assignment — deliberately NOT 'Submitted'.
+            var auxMtId = await EnsureMiscTypeAsync(ctx, "CCR_AUX");
+            var pendingStatusId = await EnsureMiscAsync(ctx, auxMtId, "Pending");
+            var roleId = await EnsureMiscAsync(ctx, auxMtId, "CCR_ROLE");
+            var pvId = await EnsureMiscAsync(ctx, auxMtId, "CCR_PV");
+
+            var header = BuildEntity(statusId: qcAcceptedId, complaintNumber: "CCR_OPTB_1");
+            await ctx.ComplaintHeader.AddAsync(header);
+            await ctx.SaveChangesAsync();
+
+            var review = new SalesManagement.Domain.Entities.ComplaintQCReview
+            {
+                ComplaintHeaderId = header.Id,
+                PhysicalVerificationId = pvId,
+                LabVerificationRequired = false,
+                IsActive = Status.Active,
+                IsDeleted = IsDelete.NotDeleted
+            };
+            await ctx.ComplaintQCReview.AddAsync(review);
+            await ctx.SaveChangesAsync();
+
+            // Mandatory assignment, still Pending — pre-Option-B this would have blocked Gate 2.
+            var assignment = new SalesManagement.Domain.Entities.ComplaintQCReviewAssignment
+            {
+                ComplaintQCReviewId = review.Id,
+                RoleId = roleId,
+                ResponsiblePersonId = 1,
+                IsMandatory = true,
+                AssignmentStatusId = pendingStatusId,
+                IsActive = Status.Active,
+                IsDeleted = IsDelete.NotDeleted
+            };
+            await ctx.ComplaintQCReviewAssignment.AddAsync(assignment);
+            await ctx.SaveChangesAsync();
+
+            // Act
+            await CreateRepository(ctx).EnsureResolutionDraftIfQCAcceptedAsync(header.Id, CancellationToken.None);
+
+            // Assert
+            ctx.ChangeTracker.Clear();
+            var resolutionCount = await ctx.ComplaintResolution
+                .CountAsync(cr => cr.ComplaintHeaderId == header.Id && cr.IsDeleted == IsDelete.NotDeleted);
+
+            resolutionCount.Should().Be(1,
+                "Option B: draft must be created on 'QC Accepted' even if mandatory feedback is still Pending");
+        }
+
+        [Fact]
+        public async Task EnsureResolutionDraftIfQCAcceptedAsync_HeaderNotQcAccepted_DoesNotCreateDraft()
+        {
+            await ClearAsync();
+
+            await using var ctx = _fixture.CreateFreshDbContext();
+            await SeedResolutionSeedMasterDataAsync(ctx);
+
+            // Header is at 'QC Rejected' — Gate 1 must block.
+            var qcMtId = await EnsureMiscTypeAsync(ctx, "QCComplaintStatus");
+            var qcRejectedId = await EnsureMiscAsync(ctx, qcMtId, "QC Rejected");
+
+            var header = BuildEntity(statusId: qcRejectedId, complaintNumber: "CCR_OPTB_2");
+            await ctx.ComplaintHeader.AddAsync(header);
+            await ctx.SaveChangesAsync();
+
+            // Act
+            await CreateRepository(ctx).EnsureResolutionDraftIfQCAcceptedAsync(header.Id, CancellationToken.None);
+
+            // Assert
+            ctx.ChangeTracker.Clear();
+            var resolutionCount = await ctx.ComplaintResolution
+                .CountAsync(cr => cr.ComplaintHeaderId == header.Id && cr.IsDeleted == IsDelete.NotDeleted);
+
+            resolutionCount.Should().Be(0, "Gate 1 still blocks when the header is not 'QC Accepted'");
+        }
+
+        [Fact]
+        public async Task EnsureResolutionDraftIfQCAcceptedAsync_CalledTwiceOnQcAcceptedHeader_DoesNotCreateDuplicate()
+        {
+            await ClearAsync();
+
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var qcAcceptedId = await SeedResolutionSeedMasterDataAsync(ctx);
+
+            var header = BuildEntity(statusId: qcAcceptedId, complaintNumber: "CCR_OPTB_3");
+            await ctx.ComplaintHeader.AddAsync(header);
+            await ctx.SaveChangesAsync();
+
+            // Act — invoke twice
+            await CreateRepository(ctx).EnsureResolutionDraftIfQCAcceptedAsync(header.Id, CancellationToken.None);
+            await CreateRepository(ctx).EnsureResolutionDraftIfQCAcceptedAsync(header.Id, CancellationToken.None);
+
+            // Assert — Gate 3 (no-duplicate) holds
+            ctx.ChangeTracker.Clear();
+            var resolutionCount = await ctx.ComplaintResolution
+                .CountAsync(cr => cr.ComplaintHeaderId == header.Id && cr.IsDeleted == IsDelete.NotDeleted);
+
+            resolutionCount.Should().Be(1, "Gate 3 must still prevent duplicate draft rows");
+        }
     }
 }
