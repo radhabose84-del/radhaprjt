@@ -46,5 +46,49 @@ namespace FixedAssetManagement.UnitTests.Validators.AssetGroup
 
             result.Errors.Should().NotBeEmpty();
         }
+
+        [Theory]
+        [InlineData("Asset Group One")]
+        [InlineData("AssetGroup1")]
+        [InlineData("Group 1 2 3")]
+        [InlineData("Asset Group 123")]
+        public async Task Validate_GroupName_AllowsLettersDigitsAndSpaces(string groupName)
+        {
+            var command = AssetGroupBuilders.ValidCreateCommand(groupName: groupName);
+
+            var result = await CreateValidator().TestValidateAsync(command);
+
+            result.ShouldNotHaveValidationErrorFor(x => x.GroupName);
+        }
+
+        [Theory]
+        [InlineData("Asset@Group")]
+        [InlineData("Asset#Group")]
+        [InlineData("Asset$Group")]
+        [InlineData("Asset-Group")]
+        [InlineData("Asset_Group")]
+        [InlineData("Asset!Group")]
+        public async Task Validate_GroupName_RejectsSpecialCharacters(string groupName)
+        {
+            var command = AssetGroupBuilders.ValidCreateCommand(groupName: groupName);
+
+            var result = await CreateValidator().TestValidateAsync(command);
+
+            result.ShouldHaveValidationErrorFor(x => x.GroupName)
+                  .WithErrorMessage("GroupName  must not contain special characters.");
+        }
+
+        [Theory]
+        [InlineData("AG 001")]
+        [InlineData("AG-001")]
+        [InlineData("AG@001")]
+        public async Task Validate_Code_RejectsSpacesAndSpecialCharacters(string code)
+        {
+            var command = AssetGroupBuilders.ValidCreateCommand(code: code);
+
+            var result = await CreateValidator().TestValidateAsync(command);
+
+            result.ShouldHaveValidationErrorFor(x => x.Code);
+        }
     }
 }
