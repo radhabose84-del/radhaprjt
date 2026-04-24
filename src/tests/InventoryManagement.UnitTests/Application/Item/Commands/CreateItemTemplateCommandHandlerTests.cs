@@ -1,3 +1,4 @@
+using Contracts.Common;
 using InventoryManagement.Application.Item.ItemDetail.Commands.CreateItemTemplate;
 using InventoryManagement.Application.Item.ItemDetail.Queries.GetAllItems;
 
@@ -24,13 +25,13 @@ namespace InventoryManagement.UnitTests.Application.Item.Commands
             };
 
         [Fact]
-        public async Task Handle_HasVariantsFalse_ThrowsInvalidOperationException()
+        public async Task Handle_HasVariantsFalse_ThrowsExceptionRules()
         {
             var sut = CreateSut();
 
             Func<Task> act = () => sut.Handle(BuildCommand(hasVariants: false), CancellationToken.None);
 
-            await act.Should().ThrowAsync<InvalidOperationException>()
+            await act.Should().ThrowAsync<ExceptionRules>()
                 .WithMessage("*HasVariants=true*");
         }
 
@@ -44,7 +45,7 @@ namespace InventoryManagement.UnitTests.Application.Item.Commands
             Func<Task> act = () => sut.Handle(BuildCommand(hasVariants: true), CancellationToken.None);
 
             var exception = await Record.ExceptionAsync(act);
-            exception.Should().NotBeOfType<InvalidOperationException>(
+            exception.Should().NotBeOfType<ExceptionRules>(
                 "the HasVariants guard should pass when HasVariants is true");
         }
     }

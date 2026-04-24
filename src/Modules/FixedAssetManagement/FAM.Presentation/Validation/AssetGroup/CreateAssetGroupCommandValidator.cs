@@ -44,12 +44,15 @@ namespace FAM.Presentation.Validation.AssetGroup
                             .WithMessage($"{nameof(CreateAssetGroupCommand.GroupName)} {rule.Error} {GroupNameMaxLength}");
                         break;
                     case "Alphanumeric":
-                              RuleFor(x => x.Code)
-                             .Matches(new System.Text.RegularExpressions.Regex(rule.Pattern))
-                             .WithMessage($"{nameof(CreateAssetGroupCommand.Code)} {rule.Error}");
+                        RuleFor(x => x.Code)
+                            .Matches(new System.Text.RegularExpressions.Regex(rule.Pattern))
+                            .WithMessage($"{nameof(CreateAssetGroupCommand.Code)} {rule.Error}");
+                        break;
+                    case "NameField":
                         RuleFor(x => x.GroupName)
                             .Matches(new System.Text.RegularExpressions.Regex(rule.Pattern))
-                            .WithMessage($"{nameof(CreateAssetGroupCommand.GroupName)} {rule.Error}");
+                            .WithMessage($"{nameof(CreateAssetGroupCommand.GroupName)} {rule.Error}")
+                            .When(x => !string.IsNullOrWhiteSpace(x.GroupName));
                         break;
                     default:
                         // Handle unknown rule (log or throw)

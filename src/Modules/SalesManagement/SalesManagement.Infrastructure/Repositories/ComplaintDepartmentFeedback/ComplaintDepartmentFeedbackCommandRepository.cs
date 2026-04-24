@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using SalesManagement.Application.Common.Interfaces.IComplaint;
 using SalesManagement.Application.Common.Interfaces.IComplaintDepartmentFeedback;
 using SalesManagement.Domain.Entities;
 using SalesManagement.Infrastructure.Data;
@@ -9,10 +10,14 @@ namespace SalesManagement.Infrastructure.Repositories.ComplaintDepartmentFeedbac
     public class ComplaintDepartmentFeedbackCommandRepository : IComplaintDepartmentFeedbackCommandRepository
     {
         private readonly ApplicationDbContext _dbContext;
+        private readonly IComplaintCommandRepository _complaintCommandRepo;
 
-        public ComplaintDepartmentFeedbackCommandRepository(ApplicationDbContext dbContext)
+        public ComplaintDepartmentFeedbackCommandRepository(
+            ApplicationDbContext dbContext,
+            IComplaintCommandRepository complaintCommandRepo)
         {
             _dbContext = dbContext;
+            _complaintCommandRepo = complaintCommandRepo;
         }
 
         public async Task<int> CreateAsync(Domain.Entities.ComplaintDepartmentFeedback entity)
@@ -124,6 +129,20 @@ namespace SalesManagement.Infrastructure.Repositories.ComplaintDepartmentFeedbac
 
             assignment.AssignmentStatusId = assignmentStatusId;
             await _dbContext.SaveChangesAsync();
+
+            // Re-evaluate the resolution-draft auto-seed. The seed's 3-gate check inside
+            // EnsureResolutionDraftIfQCAcceptedAsync only passes when header is QC Accepted,
+            // all mandatory assignments are Submitted, and no resolution exists yet.
+            // Calling it unconditionally here fixes the race where the QC approval consumer
+            // fires before the last mandatory assignment flips to Submitted.
+            var parentHeaderId = await _dbContext.ComplaintQCReview
+                .Where(r => r.Id == assignment.ComplaintQCReviewId && r.IsDeleted == IsDelete.NotDeleted)
+                .Select(r => r.ComplaintHeaderId)
+                .FirstOrDefaultAsync();
+
+            if (parentHeaderId > 0)
+                await _complaintCommandRepo.EnsureResolutionDraftIfQCAcceptedAsync(parentHeaderId, CancellationToken.None);
+
             return assignment.Id;
         }
     }

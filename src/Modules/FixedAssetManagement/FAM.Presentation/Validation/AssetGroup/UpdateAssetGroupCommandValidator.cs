@@ -39,10 +39,11 @@ namespace FAM.Presentation.Validation.AssetGroup
                             .MaximumLength(GroupNameMaxLength)
                             .WithMessage($"{nameof(UpdateAssetGroupCommand.GroupName)} {rule.Error} {GroupNameMaxLength}");
                         break;
-                    case "Alphanumeric":
+                    case "NameField":
                         RuleFor(x => x.GroupName)
                             .Matches(new System.Text.RegularExpressions.Regex(rule.Pattern))
-                            .WithMessage($"{nameof(UpdateAssetGroupCommand.GroupName)} {rule.Error}");
+                            .WithMessage($"{nameof(UpdateAssetGroupCommand.GroupName)} {rule.Error}")
+                            .When(x => !string.IsNullOrWhiteSpace(x.GroupName));
                         break;
 
                     case "NonNegativeInteger":

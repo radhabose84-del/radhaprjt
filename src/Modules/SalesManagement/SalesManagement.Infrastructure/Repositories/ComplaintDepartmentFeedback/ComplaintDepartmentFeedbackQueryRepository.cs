@@ -51,14 +51,20 @@ namespace SalesManagement.Infrastructure.Repositories.ComplaintDepartmentFeedbac
                     statusCondition = " AND fs.Description = @StatusFilter";
             }
 
+            // Only surface feedback whose parent QC Review has been approved
+            // (ComplaintQCReview.ComplaintStatusId → Sales.MiscMaster.Code = 'QC Accepted').
+            // Rejected or still-pending QC reviews are hidden from the list.
             var countSql = $@"
                 SELECT COUNT(*)
                 FROM Sales.ComplaintQCReviewAssignment a
                 INNER JOIN Sales.ComplaintQCReview r ON a.ComplaintQCReviewId = r.Id AND r.IsDeleted = 0
+                INNER JOIN Sales.MiscMaster qcrStatus ON r.ComplaintStatusId = qcrStatus.Id AND qcrStatus.IsDeleted = 0
                 INNER JOIN Sales.ComplaintHeader ch ON r.ComplaintHeaderId = ch.Id AND ch.IsDeleted = 0
                 LEFT JOIN Sales.ComplaintDepartmentFeedback f ON f.AssignmentId = a.Id AND f.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster fs ON f.FeedbackStatusId = fs.Id AND fs.IsDeleted = 0
-                WHERE a.IsDeleted = 0 {searchFilter} {statusCondition} {personFilter};";
+                WHERE a.IsDeleted = 0
+                    AND qcrStatus.Code = 'QC Accepted'
+                    {searchFilter} {statusCondition} {personFilter};";
 
             var dataSql = $@"
                 SELECT
@@ -80,12 +86,15 @@ namespace SalesManagement.Infrastructure.Repositories.ComplaintDepartmentFeedbac
                     a.IsMandatory
                 FROM Sales.ComplaintQCReviewAssignment a
                 INNER JOIN Sales.ComplaintQCReview r ON a.ComplaintQCReviewId = r.Id AND r.IsDeleted = 0
+                INNER JOIN Sales.MiscMaster qcrStatus ON r.ComplaintStatusId = qcrStatus.Id AND qcrStatus.IsDeleted = 0
                 INNER JOIN Sales.ComplaintHeader ch ON r.ComplaintHeaderId = ch.Id AND ch.IsDeleted = 0
                 LEFT JOIN Sales.ComplaintDepartmentFeedback f ON f.AssignmentId = a.Id AND f.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster role ON a.RoleId = role.Id AND role.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster fs ON f.FeedbackStatusId = fs.Id AND fs.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster sev ON r.SeverityId = sev.Id AND sev.IsDeleted = 0
-                WHERE a.IsDeleted = 0 {searchFilter} {statusCondition} {personFilter}
+                WHERE a.IsDeleted = 0
+                    AND qcrStatus.Code = 'QC Accepted'
+                    {searchFilter} {statusCondition} {personFilter}
                 ORDER BY a.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;";
 

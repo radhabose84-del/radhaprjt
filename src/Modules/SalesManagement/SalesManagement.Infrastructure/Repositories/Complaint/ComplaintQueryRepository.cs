@@ -601,7 +601,7 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                     id.LotId,
                     ih.UnitId,
                     id.NoOfBags AS Packs,
-                    id.Quantity AS NetWeight,
+                    id.BagWeight AS NetWeight,
                     id.TotalAmount AS InvAmount,
                     id.UOMId
                 FROM Sales.InvoiceDetail id
