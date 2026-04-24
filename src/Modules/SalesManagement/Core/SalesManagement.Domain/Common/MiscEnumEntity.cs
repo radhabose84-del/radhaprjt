@@ -72,6 +72,7 @@ namespace SalesManagement.Domain.Common
         public const string TransactionTypeSto = "Stock Transfer Order";
         public const string TransactionTypeStodc = "STO Delivery Challan";
         public const string TransactionTypeStogr = "STO Goods Receipt";
+        public const string TransactionTypeTripSheet = "Trip Sheet";
         public const string ModuleSales = "Sales";
 
         // Complaint Workflow

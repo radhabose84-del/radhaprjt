@@ -630,5 +630,37 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
 
             return header;
         }
+
+        public async Task<List<DispatchAdvicePackingListDto>> GetPackingListByTripSheetAsync(int tripSheetHeaderId, CancellationToken ct)
+        {
+            // Step 1: Get all dispatch IDs for this trip sheet, ordered by sequence
+            const string dispatchIdsSql = @"
+                SELECT td.DispatchAdviceHeaderId, td.SequenceNo, th.TripSheetNo
+                FROM Sales.TripSheetDetail td
+                INNER JOIN Sales.TripSheetHeader th ON td.TripSheetHeaderId = th.Id AND th.IsDeleted = 0
+                WHERE td.TripSheetHeaderId = @TripSheetHeaderId
+                ORDER BY td.SequenceNo";
+
+            var dispatches = (await _dbConnection.QueryAsync<(int DispatchAdviceHeaderId, int SequenceNo, string TripSheetNo)>(
+                new CommandDefinition(dispatchIdsSql, new { TripSheetHeaderId = tripSheetHeaderId }, cancellationToken: ct))).ToList();
+
+            if (dispatches.Count == 0)
+                return [];
+
+            // Step 2: Fetch full packing list for each dispatch
+            var tripSheetNo = dispatches[0].TripSheetNo;
+            var result = new List<DispatchAdvicePackingListDto>();
+            foreach (var dispatch in dispatches)
+            {
+                var packingList = await GetPackingListAsync(dispatch.DispatchAdviceHeaderId, ct);
+                if (packingList != null)
+                {
+                    packingList.TripSheetNo = tripSheetNo;
+                    result.Add(packingList);
+                }
+            }
+
+            return result;
+        }
     }
 }

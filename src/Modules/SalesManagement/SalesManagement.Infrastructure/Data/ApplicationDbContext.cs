@@ -90,6 +90,8 @@ namespace SalesManagement.Infrastructure.Data
         public DbSet<CommissionSplit> CommissionSplit { get; set; }
         public DbSet<CommissionSplitDetail> CommissionSplitDetail { get; set; }
         public DbSet<ProformaInvoice> ProformaInvoice { get; set; }
+        public DbSet<TripSheetHeader> TripSheetHeader { get; set; }
+        public DbSet<TripSheetDetail> TripSheetDetail { get; set; }
 
         // ── Outbox (SQL-based for workflow transaction atomicity) ─────────
         public DbSet<OutboxMessage> OutboxMessages { get; set; }
@@ -161,6 +163,8 @@ namespace SalesManagement.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new CommissionSplitConfiguration());
             modelBuilder.ApplyConfiguration(new CommissionSplitDetailConfiguration());
             modelBuilder.ApplyConfiguration(new ProformaInvoiceConfiguration());
+            modelBuilder.ApplyConfiguration(new TripSheetHeaderConfiguration());
+            modelBuilder.ApplyConfiguration(new TripSheetDetailConfiguration());
             // ── Outbox (SQL-based for workflow) ─────────────────────────────
             modelBuilder.ApplyConfiguration(new OutboxMessageConfiguration());
 

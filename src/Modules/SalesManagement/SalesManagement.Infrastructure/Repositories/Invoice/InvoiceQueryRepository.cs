@@ -724,9 +724,9 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
             return headers;
         }
 
-        public async Task<InvoicePrintDto?> GetPrintDetailsAsync(int id)
+        public async Task<InvoicePrintDto?> GetPrintDetailsAsync(int id, bool skipUnitFilter = false)
         {
-            var unitId = _ipAddressService.GetUnitId();
+            var unitId = skipUnitFilter ? null : _ipAddressService.GetUnitId();
             var unitFilter = unitId.HasValue ? "AND h.UnitId = @UnitId" : "";
 
             // 1. Fetch invoice header with same-module JOINs
@@ -1435,6 +1435,38 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
             }).ToList();
 
             return header;
+        }
+
+        public async Task<List<InvoicePrintDto>> GetPrintDetailsByTripSheetAsync(int tripSheetHeaderId, CancellationToken ct)
+        {
+            const string invoiceIdsSql = @"
+                SELECT ih.Id AS InvoiceId, td.SequenceNo, th.TripSheetNo
+                FROM Sales.TripSheetDetail td
+                INNER JOIN Sales.TripSheetHeader th ON td.TripSheetHeaderId = th.Id AND th.IsDeleted = 0
+                INNER JOIN Sales.DispatchAdviceHeader da ON td.DispatchAdviceHeaderId = da.Id AND da.IsDeleted = 0
+                INNER JOIN Sales.InvoiceHeader ih ON ih.DispatchAdviceId = da.Id AND ih.IsDeleted = 0
+                WHERE td.TripSheetHeaderId = @TripSheetHeaderId
+                ORDER BY td.SequenceNo";
+
+            var invoices = (await _dbConnection.QueryAsync<(int InvoiceId, int SequenceNo, string TripSheetNo)>(
+                new CommandDefinition(invoiceIdsSql, new { TripSheetHeaderId = tripSheetHeaderId }, cancellationToken: ct))).ToList();
+
+            if (invoices.Count == 0)
+                return [];
+
+            var tripSheetNo = invoices[0].TripSheetNo;
+            var result = new List<InvoicePrintDto>();
+            foreach (var invoice in invoices)
+            {
+                var printDetail = await GetPrintDetailsAsync(invoice.InvoiceId, skipUnitFilter: true);
+                if (printDetail != null)
+                {
+                    printDetail.TripSheetNo = tripSheetNo;
+                    result.Add(printDetail);
+                }
+            }
+
+            return result;
         }
 
         private sealed class ShipmentRow

@@ -2,6 +2,7 @@ namespace SalesManagement.Application.Invoice.Dto
 {
     public class InvoicePrintDto
     {
+        public string? TripSheetNo { get; set; }
         public InvoicePrintCompanyDto? Company { get; set; }
         public InvoicePrintRegisteredOfficeDto? RegisteredOffice { get; set; }
         public InvoicePrintHeaderDto? Invoice { get; set; }
