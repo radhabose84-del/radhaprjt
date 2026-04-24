@@ -14,10 +14,13 @@ public class InvoiceDetailEntityTests
             ItemSno = 1,
             ItemId = 5,
             GstPercentage = 18m,
-            NoOfBags = 50,
-            Quantity = 2500m,
+            NoOfBags = 50m,
+            BagWeight = 2500m,
+            NetWeight = 2450m,
             RatePerKg = 120.50m,
-            Discount = 5m,
+            DiscountValue = 5m,
+            FreightValue = 2m,
+            CommissionValue = 3m,
             TaxableAmount = 288750m,
             TaxAmount = 51975m,
             TotalAmount = 340725m
@@ -26,7 +29,8 @@ public class InvoiceDetailEntityTests
         entity.Id.Should().Be(1);
         entity.InvoiceHeaderId.Should().Be(10);
         entity.ItemId.Should().Be(5);
-        entity.Quantity.Should().Be(2500m);
+        entity.BagWeight.Should().Be(2500m);
+        entity.NetWeight.Should().Be(2450m);
         entity.TotalAmount.Should().Be(340725m);
     }
 

@@ -3,17 +3,20 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SalesManagement.Infrastructure.Data;
 
 #nullable disable
 
-namespace SalesManagement.Infrastructure.Migrations
+namespace SalesManagement.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260422092134_AddInvoiceTypeIdToInvoiceHeader")]
+    partial class AddInvoiceTypeIdToInvoiceHeader
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -2615,11 +2618,6 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<decimal>("BagWeight")
-                        .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,6)")
-                        .HasColumnName("BagWeight");
-
                     b.Property<decimal>("CGST")
                         .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,6)")
@@ -2690,19 +2688,18 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("LotId");
 
-                    b.Property<decimal>("NetWeight")
-                        .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,6)")
-                        .HasColumnName("NetWeight");
-
-                    b.Property<decimal>("NoOfBags")
-                        .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,6)")
+                    b.Property<int>("NoOfBags")
+                        .HasColumnType("int")
                         .HasColumnName("NoOfBags");
 
                     b.Property<int?>("PackTypeId")
                         .HasColumnType("int")
                         .HasColumnName("PackTypeId");
+
+                    b.Property<decimal>("Quantity")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("Quantity");
 
                     b.Property<decimal>("RatePerKg")
                         .HasPrecision(18, 6)

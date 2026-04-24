@@ -23,7 +23,7 @@ public sealed class UpdateInvoiceCommandValidatorTests
     {
         Id = 1,
         InvoiceDate = new DateOnly(2026, 1, 1),
-        Details = new List<UpdateInvoiceDetailDto> { new() { ItemId = 1, Quantity = 10 } }
+        Details = new List<UpdateInvoiceDetailDto> { new() { ItemId = 1, BagWeight = 10, NetWeight = 10 } }
     };
 
     [Fact]

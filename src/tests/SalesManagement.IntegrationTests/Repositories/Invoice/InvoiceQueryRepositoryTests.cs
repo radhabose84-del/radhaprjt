@@ -80,10 +80,6 @@ namespace SalesManagement.IntegrationTests.Repositories.Invoice
             city.Setup(c => c.GetByIdsAsync(It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync((IReadOnlyList<CityLookupDto>)new List<CityLookupDto>());
 
-            var txnType = new Mock<ITransactionTypeLookup>(MockBehavior.Loose);
-            txnType.Setup(t => t.GetByIdsAsync(It.IsAny<IEnumerable<int>>()))
-                .ReturnsAsync((IReadOnlyList<TransactionTypeLookupDto>)new List<TransactionTypeLookupDto>());
-
             var companyDetail = new Mock<ICompanyDetailLookup>(MockBehavior.Loose);
             var unitDetail = new Mock<IUnitDetailLookup>(MockBehavior.Loose);
             var partyDetail = new Mock<IPartyDetailLookup>(MockBehavior.Loose);
@@ -103,7 +99,6 @@ namespace SalesManagement.IntegrationTests.Repositories.Invoice
                 ip.Object,
                 state.Object,
                 city.Object,
-                txnType.Object,
                 companyDetail.Object,
                 unitDetail.Object,
                 partyDetail.Object,

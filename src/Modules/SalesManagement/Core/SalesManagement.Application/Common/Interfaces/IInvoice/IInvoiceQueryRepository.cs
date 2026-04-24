@@ -14,6 +14,7 @@ namespace SalesManagement.Application.Common.Interfaces.IInvoice
         Task<IReadOnlyList<InvoiceLookupDto>> AutocompleteAsync(string term, CancellationToken ct);
         Task<bool> NotFoundAsync(int id);
         Task<bool> DispatchAdviceExistsAsync(int dispatchAdviceId);
+        Task<bool> MiscMasterExistsAsync(int id);
         Task<bool> IsAlreadyInvoicedAsync(int dispatchAdviceId);
 
         Task<(int bags, decimal qty)> GetDispatchedQuantityAsync(int dispatchAdviceId, int itemId);
