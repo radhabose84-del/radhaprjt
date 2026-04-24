@@ -138,6 +138,10 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAddressMapping
                 SELECT dam.Id, dam.PartyId, dam.DispatchAddressId, dam.UsageTypeId, dam.IsDefault,
                     damaster.DispatchAddressName, damaster.AddressLine1 AS DispatchAddressLine1,
                     damaster.FreightId,
+                    damaster.CityId, damaster.StateId, damaster.CountryId,
+                    damaster.PinCode, damaster.ContactPerson, damaster.MobileNumber,
+                    damaster.Email, damaster.GSTIN,
+                    damaster.Latitude, damaster.Longitude,
                     mm.Description AS UsageTypeName,
                     dam.IsActive, dam.IsDeleted,
                     dam.CreatedBy, dam.CreatedDate, dam.CreatedByName, dam.CreatedIP,
@@ -163,6 +167,23 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAddressMapping
                         dto.RateMethodName = freight.RateMethodName;
                         dto.FreightRate = freight.Rate;
                     }
+                }
+
+                // Populate City/State/Country names via cross-module lookups
+                if (dto.CityId.HasValue)
+                {
+                    var city = await _cityLookup.GetByIdAsync(dto.CityId.Value);
+                    dto.CityName = city?.CityName;
+                }
+                if (dto.StateId.HasValue)
+                {
+                    var state = await _stateLookup.GetByIdAsync(dto.StateId.Value);
+                    dto.StateName = state?.StateName;
+                }
+                if (dto.CountryId.HasValue)
+                {
+                    var country = await _countryLookup.GetByIdAsync(dto.CountryId.Value);
+                    dto.CountryName = country?.CountryName;
                 }
             }
 
