@@ -6,6 +6,6 @@ namespace ProductionManagement.Application.ProductionPack.Commands.CreateProduct
 {
     public class CreateProductionCommand : IRequest<ApiResponseDTO<int>>
     {
-        public CreateProductionDto? ProductionPackDetails { get; set; }
+        public CreateProductionDto? ProductionPackEntries { get; set; }
     }
 }

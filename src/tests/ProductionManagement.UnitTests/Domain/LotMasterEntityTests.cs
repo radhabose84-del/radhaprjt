@@ -79,19 +79,19 @@ namespace ProductionManagement.UnitTests.Domain
             {
                 LotTypeMisc = null,
                 StatusMisc = null,
-                ProductionPackDetails = null
+                ProductionPackEntries = null
             };
             entity.LotTypeMisc.Should().BeNull();
             entity.StatusMisc.Should().BeNull();
-            entity.ProductionPackDetails.Should().BeNull();
+            entity.ProductionPackEntries.Should().BeNull();
         }
 
         [Fact]
         public void LotMaster_NavigationCollections_ShouldBeAssignable()
         {
-            var details = new List<ProductionPackDetail> { new ProductionPackDetail { Id = 1 } };
-            var entity = new LotMaster { ProductionPackDetails = details };
-            entity.ProductionPackDetails.Should().HaveCount(1);
+            var details = new List<ProductionPackEntry> { new ProductionPackEntry { Id = 1 } };
+            var entity = new LotMaster { ProductionPackEntries = details };
+            entity.ProductionPackEntries.Should().HaveCount(1);
         }
     }
 }

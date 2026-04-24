@@ -78,7 +78,7 @@ namespace ProductionManagement.IntegrationTests.Repositories.ProductionPack
             IsDelete deleted = IsDelete.NotDeleted)
         {
             await using var ctx = _fixture.CreateFreshDbContext();
-            var p = new Domain.Entities.ProductionPackDetail
+            var p = new Domain.Entities.ProductionPackEntry
             {
                 PackNo = packNo,
                 PackDate = DateOnly.FromDateTime(DateTime.UtcNow),
@@ -89,7 +89,7 @@ namespace ProductionManagement.IntegrationTests.Repositories.ProductionPack
                 TotalBags = 0, TotalNetWeight = 0m,
                 IsActive = Status.Active, IsDeleted = deleted
             };
-            await ctx.ProductionPackDetail.AddAsync(p);
+            await ctx.ProductionPackEntry.AddAsync(p);
             await ctx.SaveChangesAsync();
             return p.Id;
         }

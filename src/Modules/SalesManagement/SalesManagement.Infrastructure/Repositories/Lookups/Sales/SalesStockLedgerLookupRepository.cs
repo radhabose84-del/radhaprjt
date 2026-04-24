@@ -3,6 +3,7 @@ using Contracts.Dtos.Stock;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Production;
 using Contracts.Interfaces.Lookups.Sales;
+using Contracts.Interfaces.Lookups.Users;
 using Dapper;
 
 namespace SalesManagement.Infrastructure.Repositories.Lookups.Sales;
@@ -13,17 +14,20 @@ internal sealed class SalesStockLedgerLookupRepository : ISalesStockLedgerServic
     private readonly IItemLookup _itemLookup;
     private readonly ILotMasterLookup _lotMasterLookup;
     private readonly IPackTypeLookup _packTypeLookup;
+    private readonly IUnitLookup _unitLookup;
 
     public SalesStockLedgerLookupRepository(
         IDbConnection dbConnection,
         IItemLookup itemLookup,
         ILotMasterLookup lotMasterLookup,
-        IPackTypeLookup packTypeLookup)
+        IPackTypeLookup packTypeLookup,
+        IUnitLookup unitLookup)
     {
         _dbConnection = dbConnection;
         _itemLookup = itemLookup;
         _lotMasterLookup = lotMasterLookup;
         _packTypeLookup = packTypeLookup;
+        _unitLookup = unitLookup;
     }
 
     public async Task<bool> InsertAsync(List<SalesStockLedgerDto> entries, CancellationToken ct = default)
@@ -182,6 +186,72 @@ internal sealed class SalesStockLedgerLookupRepository : ISalesStockLedgerServic
 
         return await _dbConnection.QueryFirstOrDefaultAsync<StockPackSourceDto>(sql,
             new { StartPackNo = startPackNo, EndPackNo = endPackNo, ProductionYear = productionYear, UnitId = unitId });
+    }
+
+    public async Task<IReadOnlyList<StockLotByItemDto>> GetLotByStockAsync(
+        int itemId, int? sourceUnitId, int unitId,
+        CancellationToken ct = default)
+    {
+        var sourceUnitFilter = sourceUnitId.HasValue
+            ? "S.SourceUnitId = @SourceUnitId"
+            : "S.SourceUnitId IS NULL";
+
+        var sql = $@"
+            SELECT DISTINCT S.ItemId, S.LotId, S.PackTypeId, S.SourceUnitId
+            FROM Sales.StockLedger S
+            INNER JOIN Sales.MiscMaster mm ON S.StatusId = mm.Id AND mm.IsDeleted = 0
+            WHERE S.UnitId = @UnitId AND {sourceUnitFilter}
+                AND S.ItemId = @ItemId AND mm.Description = 'Packed'
+            ORDER BY S.LotId, S.PackTypeId";
+
+        var items = (await _dbConnection.QueryAsync<StockLotByItemDto>(sql,
+            new { UnitId = unitId, SourceUnitId = sourceUnitId, ItemId = itemId })).ToList();
+
+        if (items.Count > 0)
+        {
+            // Populate ItemName
+            var itemLookup = await _itemLookup.GetByIdsAsync(new[] { itemId }, ct);
+            var itemName = itemLookup.FirstOrDefault()?.ItemName;
+
+            // Populate LotCode, BatchNumber
+            var lotIds = items.Select(x => x.LotId).Distinct();
+            var lotLookup = await _lotMasterLookup.GetByIdsAsync(lotIds, ct);
+            var lotDict = lotLookup.ToDictionary(x => x.Id);
+
+            // Populate PackTypeName
+            var packTypeIds = items.Select(x => x.PackTypeId).Distinct();
+            var packTypeLookup = await _packTypeLookup.GetByIdsAsync(packTypeIds, ct);
+            var packTypeDict = packTypeLookup.ToDictionary(x => x.Id);
+
+            // Populate SourceUnitName
+            var sourceUnitIds = items.Where(x => x.SourceUnitId.HasValue)
+                                     .Select(x => x.SourceUnitId!.Value).Distinct();
+            var unitDict = new Dictionary<int, string>();
+            if (sourceUnitIds.Any())
+            {
+                var units = await _unitLookup.GetByIdsAsync(sourceUnitIds, ct);
+                unitDict = units.ToDictionary(x => x.UnitId, x => x.UnitName);
+            }
+
+            foreach (var dto in items)
+            {
+                dto.ItemName = itemName;
+
+                if (lotDict.TryGetValue(dto.LotId, out var lot))
+                {
+                    dto.LotCode = lot.LotCode;
+                    dto.BatchNumber = lot.BatchNumber;
+                }
+
+                if (packTypeDict.TryGetValue(dto.PackTypeId, out var pt))
+                    dto.PackTypeName = pt.PackTypeName;
+
+                if (dto.SourceUnitId.HasValue && unitDict.TryGetValue(dto.SourceUnitId.Value, out var unitName))
+                    dto.SourceUnitName = unitName;
+            }
+        }
+
+        return items.AsReadOnly();
     }
 
     public async Task<IReadOnlyList<StockPackSummaryDto>> GetPacksByItemAndLotAsync(

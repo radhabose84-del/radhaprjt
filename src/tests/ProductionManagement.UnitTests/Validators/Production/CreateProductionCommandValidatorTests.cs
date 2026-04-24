@@ -34,7 +34,7 @@ namespace ProductionManagement.UnitTests.Validators.Production
         [Fact]
         public async Task Validate_NullDetails_FailsValidation()
         {
-            var cmd = new CreateProductionCommand { ProductionPackDetails = null };
+            var cmd = new CreateProductionCommand { ProductionPackEntries = null };
             var result = await CreateValidator().TestValidateAsync(cmd);
             result.ShouldHaveAnyValidationError();
         }
@@ -52,7 +52,7 @@ namespace ProductionManagement.UnitTests.Validators.Production
 
             var cmd = new CreateProductionCommand
             {
-                ProductionPackDetails = ValidDto()
+                ProductionPackEntries = ValidDto()
             };
             var result = await CreateValidator().TestValidateAsync(cmd);
             result.ShouldNotHaveAnyValidationErrors();

@@ -9,5 +9,6 @@ namespace ProductionManagement.Application.LotMaster.Queries.GetAllLotMaster
         public int PageNumber { get; set; }
         public int PageSize { get; set; }
         public string? SearchTerm { get; set; }
+        public int? ItemId { get; set; }
     }
 }

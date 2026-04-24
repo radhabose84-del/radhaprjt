@@ -139,7 +139,7 @@ namespace ProductionManagement.Infrastructure.Repositories.MiscMaster
                     EXISTS (SELECT 1 FROM [Production].[CountMaster] WHERE (CountTypeId = @Id OR CountCategoryId = @Id) AND IsDeleted = 0)
                     OR EXISTS (SELECT 1 FROM [Production].[LotMaster] WHERE (LotTypeId = @Id OR StatusId = @Id) AND IsDeleted = 0)
                     OR EXISTS (SELECT 1 FROM [Production].[PackType] WHERE PackMaterialId = @Id AND IsDeleted = 0)
-                    OR EXISTS (SELECT 1 FROM [Production].[ProductionPackDetail] WHERE MiscMasterId = @Id AND IsDeleted = 0)
+                    OR EXISTS (SELECT 1 FROM [Production].[ProductionPackEntry] WHERE MiscMasterId = @Id AND IsDeleted = 0)
                     OR EXISTS (SELECT 1 FROM [Production].[RepackingHeader] WHERE (FaultId = @Id OR LooseHandlingId = @Id OR WasteTypeId = @Id) AND IsDeleted = 0)
                 THEN 1 ELSE 0 END";
 
@@ -153,7 +153,7 @@ namespace ProductionManagement.Infrastructure.Repositories.MiscMaster
                     EXISTS (SELECT 1 FROM [Production].[CountMaster] WHERE (CountTypeId = @Id OR CountCategoryId = @Id) AND IsDeleted = 0 AND IsActive = 1)
                     OR EXISTS (SELECT 1 FROM [Production].[LotMaster] WHERE (LotTypeId = @Id OR StatusId = @Id) AND IsDeleted = 0 AND IsActive = 1)
                     OR EXISTS (SELECT 1 FROM [Production].[PackType] WHERE PackMaterialId = @Id AND IsDeleted = 0 AND IsActive = 1)
-                    OR EXISTS (SELECT 1 FROM [Production].[ProductionPackDetail] WHERE MiscMasterId = @Id AND IsDeleted = 0 AND IsActive = 1)
+                    OR EXISTS (SELECT 1 FROM [Production].[ProductionPackEntry] WHERE MiscMasterId = @Id AND IsDeleted = 0 AND IsActive = 1)
                     OR EXISTS (SELECT 1 FROM [Production].[RepackingHeader] WHERE (FaultId = @Id OR LooseHandlingId = @Id OR WasteTypeId = @Id) AND IsDeleted = 0 AND IsActive = 1)
                 THEN 1 ELSE 0 END";
 

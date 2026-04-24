@@ -4,7 +4,7 @@ namespace ProductionManagement.Application.Common.Interfaces.IProductionPack
 {
     public interface IProductionCommandRepository
     {
-        Task<int> CreateAsync(ProductionPackDetail entity, int typeId);
-        Task<int> UpdateAsync(ProductionPackDetail entity);
+        Task<int> CreateAsync(ProductionPackEntry entity, int typeId);
+        Task<int> UpdateAsync(ProductionPackEntry entity);
     }
 }

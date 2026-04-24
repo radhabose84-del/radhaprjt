@@ -3,32 +3,32 @@ using ProductionManagement.Domain.Entities;
 
 namespace ProductionManagement.UnitTests.Domain
 {
-    public class ProductionPackDetailEntityTests
+    public class ProductionPackEntryEntityTests
     {
         [Fact]
-        public void ProductionPackDetail_ShouldInheritFromBaseEntity()
+        public void ProductionPackEntry_ShouldInheritFromBaseEntity()
         {
-            typeof(BaseEntity).IsAssignableFrom(typeof(ProductionPackDetail)).Should().BeTrue();
+            typeof(BaseEntity).IsAssignableFrom(typeof(ProductionPackEntry)).Should().BeTrue();
         }
 
         [Fact]
-        public void ProductionPackDetail_DefaultIsActive_ShouldBeActive()
+        public void ProductionPackEntry_DefaultIsActive_ShouldBeActive()
         {
-            var entity = new ProductionPackDetail();
+            var entity = new ProductionPackEntry();
             entity.IsActive.Should().Be(Status.Active);
         }
 
         [Fact]
-        public void ProductionPackDetail_DefaultIsDeleted_ShouldBeNotDeleted()
+        public void ProductionPackEntry_DefaultIsDeleted_ShouldBeNotDeleted()
         {
-            var entity = new ProductionPackDetail();
+            var entity = new ProductionPackEntry();
             entity.IsDeleted.Should().Be(IsDelete.NotDeleted);
         }
 
         [Fact]
-        public void ProductionPackDetail_Properties_ShouldBeAssignable()
+        public void ProductionPackEntry_Properties_ShouldBeAssignable()
         {
-            var entity = new ProductionPackDetail
+            var entity = new ProductionPackEntry
             {
                 Id = 1,
                 LotId = 5,
@@ -64,9 +64,9 @@ namespace ProductionManagement.UnitTests.Domain
         }
 
         [Fact]
-        public void ProductionPackDetail_NullableProperties_ShouldAcceptNull()
+        public void ProductionPackEntry_NullableProperties_ShouldAcceptNull()
         {
-            var entity = new ProductionPackDetail
+            var entity = new ProductionPackEntry
             {
                 PackNo = null,
                 StartPackNo = null,

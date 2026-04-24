@@ -75,7 +75,7 @@ namespace ProductionManagement.IntegrationTests.Repositories.ProductionPack
             return lm.Id;
         }
 
-        private static ProductionPackDetail BuildEntity(int lotId, string packNo = "PCMD1") =>
+        private static ProductionPackEntry BuildEntity(int lotId, string packNo = "PCMD1") =>
             new()
             {
                 PackNo = packNo,
@@ -102,7 +102,7 @@ namespace ProductionManagement.IntegrationTests.Repositories.ProductionPack
             ctx.ChangeTracker.Clear();
 
             id.Should().BeGreaterThan(0);
-            var saved = await ctx.ProductionPackDetail.FirstAsync(x => x.Id == id);
+            var saved = await ctx.ProductionPackEntry.FirstAsync(x => x.Id == id);
             saved.PackNo.Should().Be("PCMD_1");
         }
 
