@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using SalesManagement.Application.DeliveryChallan.Commands.CreateDeliveryChallan;
 using SalesManagement.Application.DeliveryChallan.Commands.DeleteDeliveryChallan;
+using SalesManagement.Application.DeliveryChallan.Commands.GenerateEWaybillForDC;
 using SalesManagement.Application.DeliveryChallan.Dto;
 using SalesManagement.Application.DeliveryChallan.Queries.GetAllDeliveryChallan;
 using SalesManagement.Application.DeliveryChallan.Queries.GetDeliveryChallanAutoComplete;
@@ -145,6 +146,51 @@ namespace SalesManagement.UnitTests.Controllers
 
             _mockMediator.Verify(
                 m => m.Send(It.IsAny<CreateDeliveryChallanCommand>(), It.IsAny<CancellationToken>()),
+                Times.Once);
+        }
+
+        [Fact]
+        public async Task GenerateEWaybill_ReturnsOkResult()
+        {
+            _mockMediator
+                .Setup(m => m.Send(It.IsAny<GenerateEWaybillForDCCommand>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ApiResponseDTO<GenerateEWaybillResponseDto>
+                {
+                    IsSuccess = true,
+                    Message = "ok",
+                    Data = new GenerateEWaybillResponseDto
+                    {
+                        EWaybillHeaderId = 42,
+                        DeliveryNumber = "DC-2026-0001",
+                        EwbStatus = "Pending",
+                        AlreadyExisted = false
+                    }
+                });
+
+            var result = await CreateSut().GenerateEWaybillAsync(1);
+            result.Should().BeOfType<OkObjectResult>();
+        }
+
+        [Fact]
+        public async Task GenerateEWaybill_CallsMediatorSend_WithDcId()
+        {
+            GenerateEWaybillForDCCommand? captured = null;
+            _mockMediator
+                .Setup(m => m.Send(It.IsAny<GenerateEWaybillForDCCommand>(), It.IsAny<CancellationToken>()))
+                .Callback<IRequest<ApiResponseDTO<GenerateEWaybillResponseDto>>, CancellationToken>(
+                    (cmd, _) => captured = (GenerateEWaybillForDCCommand)cmd)
+                .ReturnsAsync(new ApiResponseDTO<GenerateEWaybillResponseDto>
+                {
+                    IsSuccess = true,
+                    Data = new GenerateEWaybillResponseDto { EWaybillHeaderId = 7 }
+                });
+
+            await CreateSut().GenerateEWaybillAsync(123);
+
+            captured.Should().NotBeNull();
+            captured!.DeliveryChallanId.Should().Be(123);
+            _mockMediator.Verify(
+                m => m.Send(It.IsAny<GenerateEWaybillForDCCommand>(), It.IsAny<CancellationToken>()),
                 Times.Once);
         }
     }

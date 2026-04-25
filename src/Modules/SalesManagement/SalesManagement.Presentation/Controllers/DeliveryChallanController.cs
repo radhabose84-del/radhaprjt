@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SalesManagement.Application.DeliveryChallan.Commands.CreateDeliveryChallan;
 using SalesManagement.Application.DeliveryChallan.Commands.DeleteDeliveryChallan;
+using SalesManagement.Application.DeliveryChallan.Commands.GenerateEWaybillForDC;
 using SalesManagement.Application.DeliveryChallan.Queries.GetAllDeliveryChallan;
 using SalesManagement.Application.DeliveryChallan.Queries.GetDeliveryChallanById;
 using SalesManagement.Application.DeliveryChallan.Queries.GetDeliveryChallanAutoComplete;
@@ -167,6 +168,25 @@ namespace SalesManagement.Presentation.Controllers
                 StatusCode = StatusCodes.Status200OK,
                 isSuccess = result,
                 message = "Delivery Challan deleted successfully."
+            });
+        }
+
+        /// <summary>
+        /// Generates an e-waybill header for the given Delivery Challan.
+        /// Idempotent — if an e-waybill already exists for this DC the existing record
+        /// is returned with AlreadyExisted = true. Frontend can call this safely on retry.
+        /// </summary>
+        [HttpPost("{id}/generate-ewaybill")]
+        public async Task<IActionResult> GenerateEWaybillAsync(int id)
+        {
+            var result = await Mediator.Send(new GenerateEWaybillForDCCommand(id));
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                isSuccess = result.IsSuccess,
+                message = result.Message,
+                data = result.Data
             });
         }
     }

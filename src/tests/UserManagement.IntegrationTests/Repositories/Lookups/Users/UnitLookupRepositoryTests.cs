@@ -377,5 +377,52 @@ namespace UserManagement.IntegrationTests.Repositories.Lookups.Users
 
             results.Should().BeEmpty();
         }
+
+        // CompanyId was added to UnitLookupDto to support Unit → Company → GSTIN lookups
+        // (e.g. the DC "Generate E-Waybill" endpoint). Verify all three access paths return it.
+
+        [Fact]
+        public async Task GetByIdAsync_Should_Return_CompanyId()
+        {
+            await ClearAsync();
+            var companyId = await EnsureCompanyAsync();
+            var divId = await SeedDivisionAsync(companyId);
+            var (_, unitTypeId) = await EnsureUnitTypeAsync();
+            var unitId = await SeedUnitAsync(companyId, divId, unitTypeId);
+
+            var result = await CreateLookupRepo().GetByIdAsync(unitId);
+
+            result.Should().NotBeNull();
+            result!.CompanyId.Should().Be(companyId);
+        }
+
+        [Fact]
+        public async Task GetByIdsAsync_Should_Return_CompanyId()
+        {
+            await ClearAsync();
+            var companyId = await EnsureCompanyAsync();
+            var divId = await SeedDivisionAsync(companyId);
+            var (_, unitTypeId) = await EnsureUnitTypeAsync();
+            var unitId = await SeedUnitAsync(companyId, divId, unitTypeId);
+
+            var results = await CreateLookupRepo().GetByIdsAsync(new[] { unitId });
+
+            results.Should().ContainSingle();
+            results[0].CompanyId.Should().Be(companyId);
+        }
+
+        [Fact]
+        public async Task GetAllUnitAsync_Should_Return_CompanyId()
+        {
+            await ClearAsync();
+            var companyId = await EnsureCompanyAsync();
+            var divId = await SeedDivisionAsync(companyId);
+            var (_, unitTypeId) = await EnsureUnitTypeAsync();
+            var unitId = await SeedUnitAsync(companyId, divId, unitTypeId);
+
+            var results = await CreateLookupRepo().GetAllUnitAsync();
+
+            results.Should().Contain(u => u.UnitId == unitId && u.CompanyId == companyId);
+        }
     }
 }

@@ -17,7 +17,7 @@ namespace FinanceManagement.Infrastructure.Repositories.Lookups.Finance
         public async Task<EWaybillLookupDto?> GetByInvoiceAsync(string invoiceNo, int unitId, CancellationToken ct = default)
         {
             const string sql = @"
-                SELECT ew.EWBNumber, ew.GeneratedDate
+                SELECT ew.Id, ew.EWBNumber, ew.EwbStatus, ew.GeneratedDate
                 FROM Finance.EWaybillHeader ew
                 INNER JOIN Finance.EInvoiceHeader ei ON ew.EInvoiceHeaderId = ei.Id
                 WHERE ei.InvoiceNo = @InvoiceNo AND ei.UnitId = @UnitId
@@ -30,7 +30,7 @@ namespace FinanceManagement.Infrastructure.Repositories.Lookups.Finance
         public async Task<EWaybillLookupDto?> GetByDCAsync(string deliveryNumber, int unitId, CancellationToken ct = default)
         {
             const string sql = @"
-                SELECT TOP 1 ew.EWBNumber, ew.GeneratedDate
+                SELECT TOP 1 ew.Id, ew.EWBNumber, ew.EwbStatus, ew.GeneratedDate
                 FROM Finance.EWaybillHeader ew
                 WHERE ew.InvoiceNo = @DeliveryNumber
                   AND ew.UnitId    = @UnitId

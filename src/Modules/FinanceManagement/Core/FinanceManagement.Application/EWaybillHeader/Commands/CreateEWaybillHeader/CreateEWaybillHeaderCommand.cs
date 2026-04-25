@@ -35,5 +35,11 @@ namespace FinanceManagement.Application.EWaybillHeader.Commands.CreateEWaybillHe
         public int? Distance { get; set; }
         public int? PartyId { get; set; }
         public string? EwbStatus { get; set; }
+
+        /// <summary>
+        /// Optional line items. Empty list = header-only (original behaviour).
+        /// Each entry becomes one Finance.EWaybillDetail row inserted in the same save.
+        /// </summary>
+        public List<CreateEWaybillDetailDto> Details { get; set; } = new();
     }
 }
