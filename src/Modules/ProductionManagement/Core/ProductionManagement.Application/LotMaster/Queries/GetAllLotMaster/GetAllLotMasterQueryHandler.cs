@@ -27,7 +27,7 @@ namespace ProductionManagement.Application.LotMaster.Queries.GetAllLotMaster
             GetAllLotMasterQuery request, CancellationToken cancellationToken)
         {
             var (data, totalCount) = await _queryRepository.GetAllAsync(
-                request.PageNumber, request.PageSize, request.SearchTerm);
+                request.PageNumber, request.PageSize, request.SearchTerm, request.ItemId);
 
             var domainEvent = new AuditLogsDomainEvent(
                 actionDetail: "GetAllLotMasterQuery",

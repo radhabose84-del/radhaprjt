@@ -2,7 +2,7 @@ using ProductionManagement.Domain.Common;
 
 namespace ProductionManagement.Domain.Entities
 {
-    public class ProductionPackDetail : BaseEntity
+    public class ProductionPackEntry : BaseEntity
     {
         public string? PackNo { get; set; }
         public DateOnly PackDate { get; set; }
@@ -12,6 +12,7 @@ namespace ProductionManagement.Domain.Entities
 
         // Item / Lot / Pack identification
         public int ItemId { get; set; }
+        public int? VariantId { get; set; }
         public int LotId { get; set; }
         public int? PackTypeId { get; set; }
         public decimal? NetWeightPerPack { get; set; }

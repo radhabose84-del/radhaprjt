@@ -76,7 +76,7 @@ namespace SalesManagement.Infrastructure.Repositories.Reports.StockLedger
                 WHERE {where};
 
                 SELECT
-                    sl.Id, sl.UnitId, sl.DocType, sl.DocNo, sl.DetailDocNo, sl.DocDate,
+                    sl.Id, sl.UnitId, sl.SourceUnitId, sl.DocType, sl.DocNo, sl.DetailDocNo, sl.DocDate,
                     sl.ItemId, sl.LotId,
                     sl.PackNo, sl.PackTypeId,
                     sl.WarehouseId, sl.BinId,
@@ -142,12 +142,13 @@ namespace SalesManagement.Infrastructure.Repositories.Reports.StockLedger
 
             foreach (var row in list)
             {
-                row.UnitName      = unitDict.TryGetValue(row.UnitId,      out var un) ? un : null;
-                row.ItemName      = itemDict.TryGetValue(row.ItemId,      out var im) ? im : null;
-                row.WarehouseName = warehouseDict.TryGetValue(row.WarehouseId, out var wn) ? wn : null;
-                row.BinName       = binDict.TryGetValue(row.BinId,        out var bn) ? bn : null;
-                row.PackTypeName  = packTypeDict.TryGetValue(row.PackTypeId, out var pn) ? pn : null;
-                row.LotCode       = lotDict.TryGetValue(row.LotId,       out var lc) ? lc : null;
+                row.UnitName       = unitDict.TryGetValue(row.UnitId,      out var un) ? un : null;
+                row.SourceUnitName = row.SourceUnitId.HasValue && unitDict.TryGetValue(row.SourceUnitId.Value, out var sun) ? sun : null;
+                row.ItemName       = itemDict.TryGetValue(row.ItemId,      out var im) ? im : null;
+                row.WarehouseName  = warehouseDict.TryGetValue(row.WarehouseId, out var wn) ? wn : null;
+                row.BinName        = binDict.TryGetValue(row.BinId,        out var bn) ? bn : null;
+                row.PackTypeName   = packTypeDict.TryGetValue(row.PackTypeId, out var pn) ? pn : null;
+                row.LotCode        = lotDict.TryGetValue(row.LotId,       out var lc) ? lc : null;
             }
 
             return (list, total);
@@ -165,7 +166,7 @@ namespace SalesManagement.Infrastructure.Repositories.Reports.StockLedger
 
             const string sql = @"
                 SELECT
-                    sl.Id, sl.UnitId, sl.DocType, sl.DocNo, sl.DetailDocNo, sl.DocDate,
+                    sl.Id, sl.UnitId, sl.SourceUnitId, sl.DocType, sl.DocNo, sl.DetailDocNo, sl.DocDate,
                     sl.ItemId, sl.LotId,
                     sl.PackNo, sl.PackTypeId,
                     sl.WarehouseId, sl.BinId,
@@ -218,11 +219,12 @@ namespace SalesManagement.Infrastructure.Repositories.Reports.StockLedger
 
             foreach (var row in list)
             {
-                row.UnitName      = unitDict.TryGetValue(row.UnitId,      out var un) ? un : null;
-                row.ItemName      = itemDict.TryGetValue(row.ItemId,      out var im) ? im : null;
-                row.WarehouseName = warehouseDict.TryGetValue(row.WarehouseId, out var wn) ? wn : null;
-                row.BinName       = binDict.TryGetValue(row.BinId,        out var bn) ? bn : null;
-                row.PackTypeName  = packTypeDict.TryGetValue(row.PackTypeId, out var pn) ? pn : null;
+                row.UnitName       = unitDict.TryGetValue(row.UnitId,      out var un) ? un : null;
+                row.SourceUnitName = row.SourceUnitId.HasValue && unitDict.TryGetValue(row.SourceUnitId.Value, out var sun) ? sun : null;
+                row.ItemName       = itemDict.TryGetValue(row.ItemId,      out var im) ? im : null;
+                row.WarehouseName  = warehouseDict.TryGetValue(row.WarehouseId, out var wn) ? wn : null;
+                row.BinName        = binDict.TryGetValue(row.BinId,        out var bn) ? bn : null;
+                row.PackTypeName   = packTypeDict.TryGetValue(row.PackTypeId, out var pn) ? pn : null;
             }
 
             return list;

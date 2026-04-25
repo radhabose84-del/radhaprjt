@@ -303,7 +303,7 @@ namespace FinanceManagement.Application.EInvoiceHeader.Commands.CreateEInvoiceFr
                 SGST = invoice.SGST,
                 IGST = invoice.IGST,
                 TCS = invoice.TCS,
-                Discount = invoice.Discount,
+                Discount = invoice.TotalDiscount,
                 OtherCharges = invoice.OtherCharges,
                 RoundOff = invoice.RoundOff,
                 InvoiceAmount = invoice.InvoiceAmount,
@@ -311,8 +311,8 @@ namespace FinanceManagement.Application.EInvoiceHeader.Commands.CreateEInvoiceFr
                 IrnStatus = "Pending",
                 Details = invoice.Details.Select(d =>
                 {
-                    var grossAmount = d.TaxableAmount + d.Discount;
-                    var unitPrice = d.Quantity != 0 ? Math.Round(grossAmount / d.Quantity, 6) : 0;
+                    var grossAmount = d.TaxableAmount + d.DiscountValue;
+                    var unitPrice = d.NetWeight != 0 ? Math.Round(grossAmount / d.NetWeight, 6) : 0;
                     return new CreateEInvoiceDetailDto
                     {
                         ItemSno = d.ItemSno,
@@ -320,10 +320,10 @@ namespace FinanceManagement.Application.EInvoiceHeader.Commands.CreateEInvoiceFr
                         ItemName = d.ItemName,
                         HsnNo = d.HsnCode,
                         NoOfBags = d.NoOfBags,
-                        Qty = d.Quantity,
+                        Qty = d.NetWeight,
                         UnitPrice = unitPrice,
                         Rate = d.RatePerKg,
-                        Discount = d.Discount,
+                        Discount = d.DiscountValue,
                         GrossAmount = grossAmount,
                         TaxableAmount = d.TaxableAmount,
                         GstPercentage = d.GstPercentage,

@@ -601,7 +601,7 @@ namespace ProductionManagement.Infrastructure.Migrations
                     b.ToTable("ProcessMaster", "Production");
                 });
 
-            modelBuilder.Entity("ProductionManagement.Domain.Entities.ProductionPackDetail", b =>
+            modelBuilder.Entity("ProductionManagement.Domain.Entities.ProductionPackEntry", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -732,6 +732,10 @@ namespace ProductionManagement.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("UnitId");
 
+                    b.Property<int?>("VariantId")
+                        .HasColumnType("int")
+                        .HasColumnName("VariantId");
+
                     b.Property<int>("WarehouseId")
                         .HasColumnType("int")
                         .HasColumnName("WarehouseId");
@@ -752,7 +756,7 @@ namespace ProductionManagement.Infrastructure.Migrations
 
                     b.HasIndex("PackNo", "ProductionYear");
 
-                    b.ToTable("ProductionPackDetail", "Production");
+                    b.ToTable("ProductionPackEntry", "Production");
                 });
 
             modelBuilder.Entity("ProductionManagement.Domain.Entities.ProductionStockLedger", b =>
@@ -1321,18 +1325,18 @@ namespace ProductionManagement.Infrastructure.Migrations
                     b.Navigation("PackMaterial");
                 });
 
-            modelBuilder.Entity("ProductionManagement.Domain.Entities.ProductionPackDetail", b =>
+            modelBuilder.Entity("ProductionManagement.Domain.Entities.ProductionPackEntry", b =>
                 {
                     b.HasOne("ProductionManagement.Domain.Entities.LotMaster", null)
-                        .WithMany("ProductionPackDetails")
+                        .WithMany("ProductionPackEntries")
                         .HasForeignKey("LotMasterId");
 
                     b.HasOne("ProductionManagement.Domain.Entities.MiscMaster", null)
-                        .WithMany("ProductionPackDetailsAsQualityStatus")
+                        .WithMany("ProductionPackEntriesAsQualityStatus")
                         .HasForeignKey("MiscMasterId");
 
                     b.HasOne("ProductionManagement.Domain.Entities.PackType", null)
-                        .WithMany("ProductionPackDetails")
+                        .WithMany("ProductionPackEntries")
                         .HasForeignKey("PackTypeId");
                 });
 
@@ -1397,7 +1401,7 @@ namespace ProductionManagement.Infrastructure.Migrations
 
             modelBuilder.Entity("ProductionManagement.Domain.Entities.LotMaster", b =>
                 {
-                    b.Navigation("ProductionPackDetails");
+                    b.Navigation("ProductionPackEntries");
                 });
 
             modelBuilder.Entity("ProductionManagement.Domain.Entities.MiscMaster", b =>
@@ -1412,7 +1416,7 @@ namespace ProductionManagement.Infrastructure.Migrations
 
                     b.Navigation("PackTypesAsPackMaterial");
 
-                    b.Navigation("ProductionPackDetailsAsQualityStatus");
+                    b.Navigation("ProductionPackEntriesAsQualityStatus");
                 });
 
             modelBuilder.Entity("ProductionManagement.Domain.Entities.MiscTypeMaster", b =>
@@ -1422,7 +1426,7 @@ namespace ProductionManagement.Infrastructure.Migrations
 
             modelBuilder.Entity("ProductionManagement.Domain.Entities.PackType", b =>
                 {
-                    b.Navigation("ProductionPackDetails");
+                    b.Navigation("ProductionPackEntries");
                 });
 
             modelBuilder.Entity("ProductionManagement.Domain.Entities.RepackingHeader", b =>

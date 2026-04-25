@@ -8,6 +8,7 @@ namespace ProductionManagement.Application.ProductionPack.Dto
 
         // Item / Lot / Pack identification
         public int ItemId { get; set; }
+        public int? VariantId { get; set; }
         public int LotId { get; set; }
         public int? PackTypeId { get; set; }
         public decimal? NetWeightPerPack { get; set; }

@@ -64,5 +64,13 @@ namespace Contracts.Interfaces.Lookups.Sales
         Task<IReadOnlyList<StockPackSummaryDto>> GetPacksByItemAndLotAsync(
             int itemId, int? lotId, int productionYear, int unitId,
             CancellationToken ct = default);
+
+        /// <summary>
+        /// Returns packed stock entries (PackNo, ItemId, LotId, PackTypeId) for a given ItemId.
+        /// Filters by UnitId (from token) and optional SourceUnitId.
+        /// </summary>
+        Task<IReadOnlyList<StockLotByItemDto>> GetLotByStockAsync(
+            int itemId, int? sourceUnitId, int unitId,
+            CancellationToken ct = default);
     }
 }

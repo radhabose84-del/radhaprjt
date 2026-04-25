@@ -38,9 +38,9 @@ namespace ProductionManagement.Application.ProductionPack.Commands.CreateProduct
             CreateProductionCommand request,
             CancellationToken cancellationToken)
         {
-            var details = request.ProductionPackDetails!;
+            var details = request.ProductionPackEntries!;
 
-            var entity = _mapper.Map<ProductionPackDetail>(details);
+            var entity = _mapper.Map<ProductionPackEntry>(details);
             var unitId = _ipAddressService.GetUnitId() ?? 0;
             entity.UnitId = unitId;
 

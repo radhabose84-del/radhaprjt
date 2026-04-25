@@ -6237,6 +6237,127 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.ToTable("StockLedger", "Sales");
                 });
 
+            modelBuilder.Entity("SalesManagement.Domain.Entities.TripSheetDetail", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("DispatchAdviceHeaderId")
+                        .HasColumnType("int")
+                        .HasColumnName("DispatchAdviceHeaderId");
+
+                    b.Property<int>("SequenceNo")
+                        .HasColumnType("int")
+                        .HasColumnName("SequenceNo");
+
+                    b.Property<int>("TripSheetHeaderId")
+                        .HasColumnType("int")
+                        .HasColumnName("TripSheetHeaderId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DispatchAdviceHeaderId");
+
+                    b.HasIndex("TripSheetHeaderId");
+
+                    b.HasIndex("TripSheetHeaderId", "DispatchAdviceHeaderId")
+                        .IsUnique();
+
+                    b.HasIndex("TripSheetHeaderId", "SequenceNo")
+                        .IsUnique();
+
+                    b.ToTable("TripSheetDetail", "Sales");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.TripSheetHeader", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<string>("Remarks")
+                        .HasColumnType("varchar(500)")
+                        .HasColumnName("Remarks");
+
+                    b.Property<DateOnly>("TripDate")
+                        .HasColumnType("date")
+                        .HasColumnName("TripDate");
+
+                    b.Property<string>("TripSheetNo")
+                        .IsRequired()
+                        .HasColumnType("varchar(30)")
+                        .HasColumnName("TripSheetNo");
+
+                    b.Property<int>("UnitId")
+                        .HasColumnType("int")
+                        .HasColumnName("UnitId");
+
+                    b.Property<string>("VehicleNo")
+                        .IsRequired()
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("VehicleNo");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TripDate");
+
+                    b.HasIndex("TripSheetNo")
+                        .IsUnique();
+
+                    b.HasIndex("UnitId");
+
+                    b.HasIndex("VehicleNo");
+
+                    b.ToTable("TripSheetHeader", "Sales");
+                });
+
             modelBuilder.Entity("SalesManagement.Domain.Entities.AgentCommissionConfig", b =>
                 {
                     b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "ApplicableLevel")
@@ -7469,6 +7590,25 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("PgiMovementType");
                 });
 
+            modelBuilder.Entity("SalesManagement.Domain.Entities.TripSheetDetail", b =>
+                {
+                    b.HasOne("SalesManagement.Domain.Entities.DispatchAdviceHeader", "DispatchAdviceHeader")
+                        .WithMany()
+                        .HasForeignKey("DispatchAdviceHeaderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SalesManagement.Domain.Entities.TripSheetHeader", "TripSheetHeader")
+                        .WithMany("TripSheetDetails")
+                        .HasForeignKey("TripSheetHeaderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("DispatchAdviceHeader");
+
+                    b.Navigation("TripSheetHeader");
+                });
+
             modelBuilder.Entity("SalesManagement.Domain.Entities.AgentCommissionConfig", b =>
                 {
                     b.Navigation("AgentCommissionPaymentTerms");
@@ -7775,6 +7915,11 @@ namespace SalesManagement.Infrastructure.Migrations
             modelBuilder.Entity("SalesManagement.Domain.Entities.StoTypeMaster", b =>
                 {
                     b.Navigation("StoHeaders");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.TripSheetHeader", b =>
+                {
+                    b.Navigation("TripSheetDetails");
                 });
 #pragma warning restore 612, 618
         }

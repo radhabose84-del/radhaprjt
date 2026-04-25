@@ -79,7 +79,7 @@ namespace ProductionManagement.UnitTests.Domain
                 CountMastersAsCountCategory = null,
                 LotMastersAsLotType = null,
                 LotMastersAsStatus = null,
-                ProductionPackDetailsAsQualityStatus = null,
+                ProductionPackEntriesAsQualityStatus = null,
                 PackTypesAsPackMaterial = null
             };
             entity.CountMastersAsCountType.Should().BeNull();

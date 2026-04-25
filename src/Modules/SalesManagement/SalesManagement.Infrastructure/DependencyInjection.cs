@@ -80,6 +80,8 @@ using SalesManagement.Infrastructure.Repositories.AgentCustomerMapping;
 using SalesManagement.Application.Common.Interfaces.IOutbox;
 using SalesManagement.Infrastructure.Repositories.Outbox;
 using SalesManagement.Infrastructure.Services.Outbox;
+using SalesManagement.Application.Common.Interfaces.ITripSheet;
+using SalesManagement.Infrastructure.Repositories.TripSheet;
 using SalesManagement.Application.Common.Interfaces.IComplaint;
 using SalesManagement.Infrastructure.Repositories.Complaint;
 using SalesManagement.Application.Common.Interfaces.IComplaintQCReview;
@@ -341,6 +343,9 @@ namespace SalesManagement.Infrastructure
             services.AddScoped<ICommissionSplitCommandRepository, CommissionSplitCommandRepository>();
             services.AddScoped<ICommissionSplitQueryRepository, CommissionSplitQueryRepository>();
 
+            // ── Trip Sheet Repositories ─────────────────────────────────────────
+            services.AddScoped<ITripSheetCommandRepository, TripSheetCommandRepository>();
+            services.AddScoped<ITripSheetQueryRepository, TripSheetQueryRepository>();
 
             // ── Stock Ledger Report Repository ───────────────────────────────────
             services.AddScoped<IStockLedgerReportRepository, StockLedgerReportRepository>();

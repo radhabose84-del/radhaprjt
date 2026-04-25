@@ -33,5 +33,33 @@ namespace FixedAssetManagement.UnitTests.Validators.AssetGroup
 
             result.Errors.Should().NotBeEmpty();
         }
+
+        [Theory]
+        [InlineData("Asset Group One")]
+        [InlineData("UpdatedAssetGroup")]
+        [InlineData("Group 1 2 3")]
+        public async Task Validate_GroupName_AllowsLettersDigitsAndSpaces(string groupName)
+        {
+            var command = AssetGroupBuilders.ValidUpdateCommand(groupName: groupName);
+
+            var result = await CreateValidator().TestValidateAsync(command);
+
+            result.ShouldNotHaveValidationErrorFor(x => x.GroupName);
+        }
+
+        [Theory]
+        [InlineData("Asset@Group")]
+        [InlineData("Asset#Group")]
+        [InlineData("Asset-Group")]
+        [InlineData("Asset_Group")]
+        public async Task Validate_GroupName_RejectsSpecialCharacters(string groupName)
+        {
+            var command = AssetGroupBuilders.ValidUpdateCommand(groupName: groupName);
+
+            var result = await CreateValidator().TestValidateAsync(command);
+
+            result.ShouldHaveValidationErrorFor(x => x.GroupName)
+                  .WithErrorMessage("GroupName  must not contain special characters.");
+        }
     }
 }

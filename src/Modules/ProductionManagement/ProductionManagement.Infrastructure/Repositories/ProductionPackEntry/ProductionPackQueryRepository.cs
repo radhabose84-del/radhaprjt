@@ -52,12 +52,12 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
             var query = $@"
                 DECLARE @TotalCount INT;
                 SELECT @TotalCount = COUNT(*)
-                FROM Production.ProductionPackDetail h
+                FROM Production.ProductionPackEntry h
                 WHERE h.IsDeleted = 0 {unitFilter} {searchFilter};
 
                 SELECT h.Id, h.PackNo, h.PackDate, h.ProductionYear,
                     h.UnitId, h.WarehouseId,
-                    h.ItemId, h.LotId, h.PackTypeId, h.NetWeightPerPack,
+                    h.ItemId, h.VariantId, h.LotId, h.PackTypeId, h.NetWeightPerPack,
                     h.StartPackNo, h.EndPackNo,
                     h.OpeningLooseKgs, h.TotalProductionKgs,
                     h.TotalBags, h.TotalNetWeight,
@@ -69,7 +69,7 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
                     h.ModifiedBy, h.ModifiedDate, h.ModifiedByName,
                     lm.LotCode,
                     pt.PackTypeName
-                FROM Production.ProductionPackDetail h
+                FROM Production.ProductionPackEntry h
                 LEFT JOIN Production.LotMaster lm ON h.LotId = lm.Id AND lm.IsDeleted = 0
                 LEFT JOIN Production.PackType   pt ON h.PackTypeId = pt.Id AND pt.IsDeleted = 0
                 WHERE h.IsDeleted = 0 {unitFilter} {searchFilter}
@@ -104,6 +104,11 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
                 var items    = await _itemLookup.GetByIdsAsync(itemIds);
                 var itemDict = items.ToDictionary(i => i.Id, i => i.ItemName);
 
+                var variantIds = list.Where(x => x.VariantId.HasValue).Select(x => x.VariantId!.Value).Distinct();
+                var variantDict = variantIds.Any()
+                    ? (await _itemLookup.GetByIdsAsync(variantIds)).ToDictionary(i => i.Id, i => (string?)i.ItemName)
+                    : new Dictionary<int, string?>();
+
                 var binIds  = list.Where(x => x.BinId.HasValue).Select(x => x.BinId!.Value).Distinct();
                 var bins    = binIds.Any() ? await _binLookup.GetByIdsAsync(binIds) : [];
                 var binDict = bins.ToDictionary(b => b.Id, b => b.BinName);
@@ -113,6 +118,7 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
                     item.UnitName      = unitDict.TryGetValue(item.UnitId,    out var uName) ? uName : null;
                     item.WarehouseName = whDict.TryGetValue(item.WarehouseId, out var wName) ? wName : null;
                     item.ItemName      = itemDict.TryGetValue(item.ItemId,    out var iName) ? iName : null;
+                    item.VariantName   = item.VariantId.HasValue && variantDict.TryGetValue(item.VariantId.Value, out var vName) ? vName : null;
                     item.BinName       = item.BinId.HasValue && binDict.TryGetValue(item.BinId.Value, out var bName) ? bName : null;
                 }
             }
@@ -128,7 +134,7 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
             var sql = $@"
                 SELECT h.Id, h.PackNo, h.PackDate, h.ProductionYear,
                     h.UnitId, h.WarehouseId,
-                    h.ItemId, h.LotId, h.PackTypeId, h.NetWeightPerPack,
+                    h.ItemId, h.VariantId, h.LotId, h.PackTypeId, h.NetWeightPerPack,
                     h.StartPackNo, h.EndPackNo,
                     h.OpeningLooseKgs, h.TotalProductionKgs,
                     h.TotalBags, h.TotalNetWeight,
@@ -141,7 +147,7 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
                     lm.LotCode,
                     pt.PackTypeName,
                     qs.Description AS QualityStatusName
-                FROM Production.ProductionPackDetail h
+                FROM Production.ProductionPackEntry h
                 LEFT JOIN Production.LotMaster  lm ON h.LotId           = lm.Id AND lm.IsDeleted = 0
                 LEFT JOIN Production.PackType    pt ON h.PackTypeId       = pt.Id AND pt.IsDeleted = 0
                 LEFT JOIN Production.MiscMaster  qs ON h.QualityStatusId  = qs.Id AND qs.IsDeleted = 0
@@ -162,6 +168,12 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
             var items = await _itemLookup.GetByIdsAsync(new[] { dto.ItemId });
             dto.ItemName = items.FirstOrDefault()?.ItemName;
 
+            if (dto.VariantId.HasValue)
+            {
+                var variants = await _itemLookup.GetByIdsAsync(new[] { dto.VariantId.Value });
+                dto.VariantName = variants.FirstOrDefault()?.ItemName;
+            }
+
             if (dto.BinId.HasValue)
             {
                 var bins = await _binLookup.GetByIdsAsync(new[] { dto.BinId.Value });
@@ -179,7 +191,7 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
 
             var sql = $@"
                 SELECT Id, PackNo, PackDate
-                FROM Production.ProductionPackDetail
+                FROM Production.ProductionPackEntry
                 WHERE IsActive = 1 AND IsDeleted = 0
                     AND PackNo LIKE @Search
                     {unitFilter}
@@ -195,7 +207,7 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
         {
             const string sql = @"
                 SELECT CASE WHEN EXISTS (
-                    SELECT 1 FROM Production.ProductionPackDetail
+                    SELECT 1 FROM Production.ProductionPackEntry
                     WHERE Id = @Id AND IsDeleted = 0
                 ) THEN 0 ELSE 1 END";
 
@@ -280,7 +292,7 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
 
             var sql = $@"
                 SELECT CASE WHEN EXISTS (
-                    SELECT 1 FROM Production.ProductionPackDetail h
+                    SELECT 1 FROM Production.ProductionPackEntry h
                     WHERE h.LotId = @LotId
                         AND h.StartPackNo <= @EndPackNo
                         AND h.EndPackNo >= @StartPackNo

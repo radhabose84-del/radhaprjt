@@ -20,9 +20,9 @@ namespace ProductionManagement.UnitTests.Application.ProductionPack.Commands
         private void SetupHappyPath()
         {
             _mockIpService.Setup(s => s.GetUnitId()).Returns(1);
-            _mockMapper.Setup(m => m.Map<ProductionPackDetail>(It.IsAny<object>()))
-                .Returns(new ProductionPackDetail());
-            _mockCommandRepo.Setup(r => r.UpdateAsync(It.IsAny<ProductionPackDetail>())).ReturnsAsync(1);
+            _mockMapper.Setup(m => m.Map<ProductionPackEntry>(It.IsAny<object>()))
+                .Returns(new ProductionPackEntry());
+            _mockCommandRepo.Setup(r => r.UpdateAsync(It.IsAny<ProductionPackEntry>())).ReturnsAsync(1);
             _mockMediator.Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);
         }
@@ -31,7 +31,7 @@ namespace ProductionManagement.UnitTests.Application.ProductionPack.Commands
         public async Task Handle_ValidCommand_ReturnsSuccess()
         {
             SetupHappyPath();
-            var result = await CreateSut().Handle(new UpdateProductionCommand { ProductionPackDetails = new UpdateProductionDto() }, CancellationToken.None);
+            var result = await CreateSut().Handle(new UpdateProductionCommand { ProductionPackEntries = new UpdateProductionDto() }, CancellationToken.None);
             result.IsSuccess.Should().BeTrue();
         }
 
@@ -39,15 +39,15 @@ namespace ProductionManagement.UnitTests.Application.ProductionPack.Commands
         public async Task Handle_ValidCommand_CallsUpdateOnce()
         {
             SetupHappyPath();
-            await CreateSut().Handle(new UpdateProductionCommand { ProductionPackDetails = new UpdateProductionDto() }, CancellationToken.None);
-            _mockCommandRepo.Verify(r => r.UpdateAsync(It.IsAny<ProductionPackDetail>()), Times.Once);
+            await CreateSut().Handle(new UpdateProductionCommand { ProductionPackEntries = new UpdateProductionDto() }, CancellationToken.None);
+            _mockCommandRepo.Verify(r => r.UpdateAsync(It.IsAny<ProductionPackEntry>()), Times.Once);
         }
 
         [Fact]
         public async Task Handle_ValidCommand_PublishesAuditEvent()
         {
             SetupHappyPath();
-            await CreateSut().Handle(new UpdateProductionCommand { ProductionPackDetails = new UpdateProductionDto() }, CancellationToken.None);
+            await CreateSut().Handle(new UpdateProductionCommand { ProductionPackEntries = new UpdateProductionDto() }, CancellationToken.None);
             _mockMediator.Verify(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>()), Times.Once);
         }
     }
