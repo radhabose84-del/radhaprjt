@@ -314,5 +314,65 @@ namespace PartyManagement.IntegrationTests.Repositories.Lookups
             result.First(r => r.Id == id1).Addresses!.Single().City.Should().Be("City A");
             result.First(r => r.Id == id2).Addresses!.Single().City.Should().Be("City B");
         }
+
+        // GstNumber was added to PartyLookupDto so cross-module callers (e.g. e-waybill
+        // generation) can obtain a transporter/party's GSTIN without a second lookup.
+
+        private async Task<int> SeedPartyWithGstAsync(string partyCode, string gstNumber)
+        {
+            var regId = await EnsureRegistrationTypeAsync();
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var party = new PartyManagement.Domain.Entities.PartyMaster
+            {
+                PartyCode = partyCode,
+                PartyName = "Party " + partyCode,
+                GSTNumber = gstNumber,
+                RegistrationTypeId = regId,
+                UnitId = 1,
+                StatusId = regId,
+                IsActive = Status.Active,
+                IsDeleted = IsDelete.NotDeleted
+            };
+            ctx.PartyMaster.Add(party);
+            await ctx.SaveChangesAsync();
+            return party.Id;
+        }
+
+        [Fact]
+        public async Task GetByIdAsync_Should_Return_GstNumber()
+        {
+            await _fixture.ClearAllTablesAsync();
+            var id = await SeedPartyWithGstAsync("PG1", "33AACCA8432H1ZX");
+
+            var result = await CreateRepo().GetByIdAsync(id);
+
+            result.Should().NotBeNull();
+            result!.GstNumber.Should().Be("33AACCA8432H1ZX");
+        }
+
+        [Fact]
+        public async Task GetByIdAsync_Should_Return_Null_GstNumber_When_Not_Set()
+        {
+            await _fixture.ClearAllTablesAsync();
+            var id = await SeedPartyAsync(partyCode: "PGNULL");  // no GstNumber
+
+            var result = await CreateRepo().GetByIdAsync(id);
+
+            result.Should().NotBeNull();
+            result!.GstNumber.Should().BeNull();
+        }
+
+        [Fact]
+        public async Task GetByIdsAsync_Should_Return_GstNumber_Per_Party()
+        {
+            await _fixture.ClearAllTablesAsync();
+            var id1 = await SeedPartyWithGstAsync("PG2", "27AACCA0000A1Z0");
+            var id2 = await SeedPartyWithGstAsync("PG3", "29AACCA0000A1Z9");
+
+            var result = await CreateRepo().GetByIdsAsync(new[] { id1, id2 });
+
+            result.First(r => r.Id == id1).GstNumber.Should().Be("27AACCA0000A1Z0");
+            result.First(r => r.Id == id2).GstNumber.Should().Be("29AACCA0000A1Z9");
+        }
     }
 }

@@ -32,7 +32,8 @@ namespace PartyManagement.Infrastructure.Repositories.Lookups
         public async Task<PartyLookupDto?> GetByIdAsync(int partyId, CancellationToken ct = default)
         {
             const string partySql = @"
-                SELECT p.Id, p.PartyCode, p.PartyName, p.SalesFreightId, p.PurchaseFreightId,
+                SELECT p.Id, p.PartyCode, p.PartyName, p.GSTNumber AS GstNumber,
+                       p.SalesFreightId, p.PurchaseFreightId,
                        c.Email, c.Mobile
                 FROM Party.PartyMaster p
                 OUTER APPLY (
@@ -66,7 +67,8 @@ namespace PartyManagement.Infrastructure.Repositories.Lookups
                 return new List<PartyLookupDto>();
 
             const string partySql = @"
-                SELECT p.Id, p.PartyCode, p.PartyName, p.SalesFreightId, p.PurchaseFreightId,
+                SELECT p.Id, p.PartyCode, p.PartyName, p.GSTNumber AS GstNumber,
+                       p.SalesFreightId, p.PurchaseFreightId,
                        c.Email, c.Mobile
                 FROM Party.PartyMaster p
                 OUTER APPLY (

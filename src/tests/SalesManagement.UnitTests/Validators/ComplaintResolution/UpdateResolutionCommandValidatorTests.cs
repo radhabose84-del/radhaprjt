@@ -17,6 +17,8 @@ public sealed class UpdateResolutionCommandValidatorTests
     {
         _mockQueryRepo.Setup(r => r.NotFoundAsync(id)).ReturnsAsync(false);
         _mockQueryRepo.Setup(r => r.MiscMasterExistsAsync(It.IsAny<int>())).ReturnsAsync(true);
+        // Default: ClosureStatusId is NOT 'Closed' — passes the new manual-Closed block.
+        _mockQueryRepo.Setup(r => r.IsClosureStatusClosedAsync(It.IsAny<int>())).ReturnsAsync(false);
     }
 
     [Fact]
@@ -124,5 +126,75 @@ public sealed class UpdateResolutionCommandValidatorTests
 
         var result = await CreateValidator().TestValidateAsync(command);
         result.ShouldHaveValidationErrorFor(x => x.IsActive);
+    }
+
+    // ---------------------------------------------------------------------------
+    // Block manual ClosureStatus = "Closed"
+    // ---------------------------------------------------------------------------
+
+    [Fact]
+    public async Task Validate_ClosureStatusClosed_FailsValidation()
+    {
+        const int closedStatusId = 159;  // any id; mock decides the verdict
+        _mockQueryRepo.Setup(r => r.NotFoundAsync(1)).ReturnsAsync(false);
+        _mockQueryRepo.Setup(r => r.MiscMasterExistsAsync(It.IsAny<int>())).ReturnsAsync(true);
+        _mockQueryRepo.Setup(r => r.IsClosureStatusClosedAsync(closedStatusId)).ReturnsAsync(true);
+
+        var command = new UpdateResolutionCommand
+        {
+            Id = 1,
+            ResolutionTypeId = 3,
+            ResolutionSummary = "Resolved",
+            ClosureStatusId = closedStatusId,
+            ClosureRemarks = "Closing now",
+            IsActive = 1
+        };
+
+        var result = await CreateValidator().TestValidateAsync(command);
+
+        result.ShouldHaveValidationErrorFor(x => x.ClosureStatusId)
+              .WithErrorMessage("ClosureStatus 'Closed' cannot be set manually. The system will mark a resolution as Closed only after the downstream action (Credit Note / Sales Return / Replacement) is verified.");
+    }
+
+    [Fact]
+    public async Task Validate_ClosureStatusOpenOrReadyForClosure_PassesValidation()
+    {
+        const int readyForClosureId = 158;
+        _mockQueryRepo.Setup(r => r.NotFoundAsync(1)).ReturnsAsync(false);
+        _mockQueryRepo.Setup(r => r.MiscMasterExistsAsync(It.IsAny<int>())).ReturnsAsync(true);
+        _mockQueryRepo.Setup(r => r.IsClosureStatusClosedAsync(readyForClosureId)).ReturnsAsync(false);
+
+        var command = new UpdateResolutionCommand
+        {
+            Id = 1,
+            ResolutionTypeId = 3,
+            ResolutionSummary = "In progress",
+            ClosureStatusId = readyForClosureId,
+            ClosureRemarks = "Awaiting verification",
+            IsActive = 1
+        };
+
+        var result = await CreateValidator().TestValidateAsync(command);
+
+        result.ShouldNotHaveValidationErrorFor(x => x.ClosureStatusId);
+    }
+
+    [Fact]
+    public async Task Validate_ClosureStatusNull_RuleSkipped()
+    {
+        // ClosureStatusId is nullable; when null, the ClosureStatus rule chain shouldn't fire.
+        SetupAllAsyncMocks();
+        var command = new UpdateResolutionCommand
+        {
+            Id = 1,
+            ResolutionTypeId = 3,
+            ResolutionSummary = "Resolved",
+            ClosureStatusId = null,
+            IsActive = 1
+        };
+
+        var result = await CreateValidator().TestValidateAsync(command);
+
+        result.ShouldNotHaveValidationErrorFor(x => x.ClosureStatusId);
     }
 }

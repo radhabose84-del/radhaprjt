@@ -128,5 +128,83 @@ namespace FinanceManagement.IntegrationTests.Repositories.Lookups
 
             result.Should().BeNull();
         }
+
+        // Id + EwbStatus were added to EWaybillLookupDto so cross-module callers can
+        // branch on the status (Pending / Generated / Cancelled) and navigate by id.
+
+        private async Task<int> SeedDCEWaybillWithStatusAsync(
+            string deliveryNumber, string ewbStatus, int unitId = 1)
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var wb = new FinanceManagement.Domain.Entities.EWaybillHeader
+            {
+                UnitId = unitId,
+                InvoiceNo = deliveryNumber,  // DC link uses DeliveryNumber via InvoiceNo column
+                InvoiceDate = DateOnly.FromDateTime(DateTime.UtcNow),
+                SupplyType = "Outward",
+                DocumentType = "Delivery Challan",
+                EwbStatus = ewbStatus,
+                IsActive = BaseEntity.Status.Active,
+                IsDeleted = BaseEntity.IsDelete.NotDeleted
+            };
+            await ctx.EWaybillHeader.AddAsync(wb);
+            await ctx.SaveChangesAsync();
+            return wb.Id;
+        }
+
+        [Fact]
+        public async Task GetByInvoiceAsync_Should_Return_Id_And_EwbStatus()
+        {
+            await ClearAsync();
+            var (_, wbId) = await SeedAsync("INV-IDS", ewbNumber: "EWB-IDS-1");
+
+            // Separately set EwbStatus on the seeded row
+            await using (var ctx = _fixture.CreateFreshDbContext())
+            {
+                var wb = await ctx.EWaybillHeader.FirstAsync(x => x.Id == wbId);
+                wb.EwbStatus = "Generated";
+                await ctx.SaveChangesAsync();
+            }
+
+            var result = await CreateRepo().GetByInvoiceAsync("INV-IDS", 1);
+
+            result.Should().NotBeNull();
+            result!.Id.Should().Be(wbId);
+            result.EwbStatus.Should().Be("Generated");
+        }
+
+        [Fact]
+        public async Task GetByDCAsync_Should_Return_Matching_EWaybill_With_Id_And_EwbStatus()
+        {
+            await ClearAsync();
+            var wbId = await SeedDCEWaybillWithStatusAsync("DC-2026-0099", "Pending");
+
+            var result = await CreateRepo().GetByDCAsync("DC-2026-0099", 1);
+
+            result.Should().NotBeNull();
+            result!.Id.Should().Be(wbId);
+            result.EwbStatus.Should().Be("Pending");
+        }
+
+        [Fact]
+        public async Task GetByDCAsync_Should_Return_Null_When_DeliveryNumber_NotFound()
+        {
+            await ClearAsync();
+
+            var result = await CreateRepo().GetByDCAsync("DC-MISSING", 1);
+
+            result.Should().BeNull();
+        }
+
+        [Fact]
+        public async Task GetByDCAsync_Should_Return_Null_When_Different_Unit()
+        {
+            await ClearAsync();
+            await SeedDCEWaybillWithStatusAsync("DC-U1", "Pending", unitId: 1);
+
+            var result = await CreateRepo().GetByDCAsync("DC-U1", unitId: 2);
+
+            result.Should().BeNull();
+        }
     }
 }

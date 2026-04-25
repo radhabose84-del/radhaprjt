@@ -126,6 +126,16 @@ namespace SalesManagement.Presentation.Validation.ComplaintResolution
                 }
             }
 
+            // Block resolvers from setting ClosureStatus = "Closed" manually on submit.
+            // Closed is reserved for system-driven transitions when the downstream
+            // artifact (Credit Note posted, Sales Return goods received, Replacement
+            // dispatched) is verified complete. Resolver should leave it at "Open" or
+            // "Ready for Closure"; the system will close it once verification fires.
+            RuleFor(x => x.ClosureStatusId)
+                .MustAsync(async (id, ct) => !await _queryRepository.IsClosureStatusClosedAsync(id!.Value))
+                .WithMessage("ClosureStatus 'Closed' cannot be set manually. The system will mark a resolution as Closed only after the downstream action (Credit Note / Sales Return / Replacement) is verified.")
+                .When(x => x.ClosureStatusId.HasValue && x.ClosureStatusId.Value > 0);
+
             // Business rule: Sales Return fields mandatory when resolution type requires
             // Note: Conditional validation based on resolution type name would require async lookup.
             // Instead, validate that if return fields are provided, they are valid.
