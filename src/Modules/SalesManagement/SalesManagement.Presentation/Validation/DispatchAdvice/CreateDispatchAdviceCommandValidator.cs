@@ -96,6 +96,10 @@ namespace SalesManagement.Presentation.Validation.DispatchAdvice
                         break;
 
                     case "GreaterThan":
+                        RuleFor(x => x.Distance)
+                            .GreaterThan(0)
+                            .WithMessage($"{nameof(CreateDispatchAdviceCommand.Distance)} {rule.Error}");
+
                         RuleForEach(x => x.Details)
                             .ChildRules(detail =>
                             {
