@@ -81,7 +81,7 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
                     h.FreightId,
                     h.TransporterId,
                     h.VehicleNo, h.DriverName, h.LRNo,
-                    h.UnitId, h.InvFlg,
+                    h.UnitId, h.InvFlg, h.Distance,
                     h.IsActive, h.IsDeleted,
                     h.CreatedBy, h.CreatedDate, h.CreatedByName,
                     h.ModifiedBy, h.ModifiedDate, h.ModifiedByName
@@ -156,7 +156,7 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
                     h.FreightId,
                     h.TransporterId,
                     h.VehicleNo, h.DriverName, h.LRNo,
-                    h.UnitId, h.InvFlg,
+                    h.UnitId, h.InvFlg, h.Distance,
                     h.IsActive, h.IsDeleted,
                     h.CreatedBy, h.CreatedDate, h.CreatedByName,
                     h.ModifiedBy, h.ModifiedDate, h.ModifiedByName

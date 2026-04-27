@@ -30,6 +30,7 @@ namespace SalesManagement.Application.DispatchAdvice.Dto
         public int UnitId { get; set; }
         public string? UnitName { get; set; }
         public bool InvFlg { get; set; }
+        public decimal Distance { get; set; }
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }
         public int CreatedBy { get; set; }

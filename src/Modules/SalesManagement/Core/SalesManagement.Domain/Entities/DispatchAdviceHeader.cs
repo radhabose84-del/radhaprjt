@@ -21,6 +21,7 @@ namespace SalesManagement.Domain.Entities
         public string? LRNo { get; set; }
         public int UnitId { get; set; }                    // Cross-module FK → UserManagement
         public bool InvFlg { get; set; }                   // Invoice flag: false=N, true=Y
+        public decimal Distance { get; set; }              // Distance in km between FROM (unit pincode) and TO (party pincode)
 
         // Same-module navigation properties
         public MiscMaster? StatusMisc { get; set; }
