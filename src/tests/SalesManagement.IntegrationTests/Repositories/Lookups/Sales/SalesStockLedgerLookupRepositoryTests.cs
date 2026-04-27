@@ -1,5 +1,6 @@
 using Contracts.Dtos.Lookups.Inventory;
 using Contracts.Dtos.Lookups.Production;
+using Contracts.Dtos.Lookups.Users;
 using Contracts.Dtos.Stock;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Production;
@@ -64,9 +65,11 @@ namespace SalesManagement.IntegrationTests.Repositories.Lookups.Sales
             return mock;
         }
 
-        private static Mock<IUnitLookup> BuildUnitLookupMock()
+        private static Mock<IUnitLookup> BuildUnitLookupMock(params UnitLookupDto[] units)
         {
             var mock = new Mock<IUnitLookup>(MockBehavior.Loose);
+            mock.Setup(x => x.GetByIdsAsync(It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(units.ToList());
             return mock;
         }
 

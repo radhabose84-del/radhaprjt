@@ -67,14 +67,16 @@ namespace SalesManagement.IntegrationTests.Repositories.Validations
 
                 INSERT INTO Sales.InvoiceHeader
                     (InvoiceDate, DispatchAdviceId, PartyId, UnitId, FinancialYearId,
-                     TotalBags, TotalWeight, TaxableValue, TotalDiscount, TotalFreight, TotalCommission,
+                     TotalBags, TotalWeight, TaxableValue,
+                     TotalDiscount, TotalFreight, TotalCommission,
                      Insurance, HandlingCharge, OtherCharges, TotalCharity,
                      CGST, SGST, IGST, TaxAmount, TCSPercentage, TCS,
                      RoundOff, InvoiceAmountBeforeTCS, InvoiceAmount,
                      IsActive, IsDeleted, CreatedBy)
                 VALUES
                     (GETDATE(), 0, @PartyId, 1, 1,
-                     0, 0, 0, 0, 0, 0,
+                     0, 0, 0,
+                     0, 0, 0,
                      0, 0, 0, 0,
                      0, 0, 0, 0, 0, 0,
                      0, 0, 0,

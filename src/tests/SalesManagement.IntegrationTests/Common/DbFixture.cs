@@ -236,9 +236,6 @@ END
         /// </summary>
         public async Task ClearTablesAsync(params string[] tableNames)
         {
-            await using var conn = new SqlConnection(_testDbConnection);
-            await conn.OpenAsync();
-
             var deleteSql = string.Join("\n", tableNames.Select(t => $"DELETE FROM {t};"));
             var sql = $@"
                 DECLARE @d NVARCHAR(MAX)=N'',@e NVARCHAR(MAX)=N'';
@@ -254,7 +251,29 @@ END
                 EXEC sp_executesql @e;
             ";
 
-            await conn.ExecuteAsync(sql, commandTimeout: 60);
+            await ExecuteWithDeadlockRetryAsync(sql);
+        }
+
+        // SQL Server error 1205 = deadlock victim. The `ALTER TABLE ... NOCHECK CONSTRAINT ALL`
+        // sweep over every table in the Sales schema takes heavy schema locks and can lose a
+        // deadlock race with any other concurrent session. The error message itself says
+        // "Rerun the transaction" — this helper does that with short backoff.
+        private async Task ExecuteWithDeadlockRetryAsync(string sql, int maxAttempts = 5)
+        {
+            for (var attempt = 1; ; attempt++)
+            {
+                try
+                {
+                    await using var conn = new SqlConnection(_testDbConnection);
+                    await conn.OpenAsync();
+                    await conn.ExecuteAsync(sql, commandTimeout: 60);
+                    return;
+                }
+                catch (SqlException ex) when (ex.Number == 1205 && attempt < maxAttempts)
+                {
+                    await Task.Delay(100 * attempt);
+                }
+            }
         }
 
         /// <summary>
@@ -276,9 +295,6 @@ END
         /// </summary>
         public async Task ClearAllTablesAsync()
         {
-            await using var conn = new SqlConnection(_testDbConnection);
-            await conn.OpenAsync();
-
             var exclusionList = string.Join(",", PrerequisiteTableNames.Select(n => $"N'{n}'"));
 
             var sql = $@"
@@ -307,7 +323,7 @@ END
                 EXEC sp_executesql @enableSql;
             ";
 
-            await conn.ExecuteAsync(sql, commandTimeout: 60);
+            await ExecuteWithDeadlockRetryAsync(sql);
         }
 
         /// <summary>
@@ -317,9 +333,6 @@ END
         /// </summary>
         public async Task ClearAllTablesIncludingPrerequisitesAsync()
         {
-            await using var conn = new SqlConnection(_testDbConnection);
-            await conn.OpenAsync();
-
             const string sql = @"
                 DECLARE @disableSql NVARCHAR(MAX) = N'';
                 SELECT @disableSql += 'ALTER TABLE ' + QUOTENAME(s.name) + '.' + QUOTENAME(t.name)
@@ -345,7 +358,7 @@ END
                 EXEC sp_executesql @enableSql;
             ";
 
-            await conn.ExecuteAsync(sql, commandTimeout: 60);
+            await ExecuteWithDeadlockRetryAsync(sql);
         }
 
         public async Task DisposeAsync()
