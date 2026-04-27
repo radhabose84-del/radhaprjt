@@ -21,6 +21,7 @@ namespace SalesManagement.Application.SalesOrder.Dto
         public string? EnquiryTypeName { get; set; }
         public int? UnitId { get; set; }
         public string? UnitName { get; set; }
+        public string? UnitPinCode { get; set; }
         public int PartyId { get; set; }
         public string? PartyName { get; set; }
         public string? PartyAddress { get; set; }

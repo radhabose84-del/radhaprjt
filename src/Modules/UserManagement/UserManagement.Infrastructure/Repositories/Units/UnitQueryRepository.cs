@@ -148,10 +148,17 @@ namespace UserManagement.Infrastructure.Repositories.Units
                 U.UnitName,
                 U.DivisionId,
                 U.UnitTypeId,
-                MM.Description AS UnitTypeName
+                MM.Description AS UnitTypeName,
+                UA.PinCode
             FROM AppData.Unit U
             INNER JOIN [AppSecurity].[UserUnit] UU ON UU.UnitId = U.Id AND UU.IsActive = 1
             LEFT JOIN AppData.MiscMaster MM ON MM.Id = U.UnitTypeId AND MM.IsDeleted = 0
+            OUTER APPLY (
+                SELECT TOP 1 PinCode
+                FROM AppData.UnitAddress
+                WHERE UnitId = U.Id
+                ORDER BY Id
+            ) UA
             WHERE U.IsDeleted = 0
             AND UU.UserId = @UserId AND U.CompanyId = @CompanyId";
 
