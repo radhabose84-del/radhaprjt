@@ -20,11 +20,8 @@ namespace SalesManagement.IntegrationTests.Repositories.DispatchAddressMapping
         public DispatchAddressMappingQueryRepositoryTests(DbFixture fixture) => _fixture = fixture;
 
         private DispatchAddressMappingQueryRepository CreateRepo(
-            Mock<IPartyLookup> party = null,
-            Mock<IFreightMasterLookup> freight = null,
-            Mock<ICityLookup> city = null,
-            Mock<IStateLookup> state = null,
-            Mock<ICountryLookup> country = null)
+            Mock<IPartyLookup>? party = null,
+            Mock<IFreightMasterLookup>? freight = null)
         {
             if (party == null)
             {
@@ -38,28 +35,22 @@ namespace SalesManagement.IntegrationTests.Repositories.DispatchAddressMapping
                 freight.Setup(f => f.GetAllFreightMasterAsync())
                     .ReturnsAsync(new List<FreightMasterLookupDto>());
             }
-            if (city == null)
-            {
-                city = new Mock<ICityLookup>(MockBehavior.Loose);
-                city.Setup(c => c.GetAllCityAsync(It.IsAny<CancellationToken>()))
-                    .ReturnsAsync(new List<CityLookupDto>());
-            }
-            if (state == null)
-            {
-                state = new Mock<IStateLookup>(MockBehavior.Loose);
-                state.Setup(s => s.GetAllStatesAsync(It.IsAny<CancellationToken>()))
-                    .ReturnsAsync(new List<StateLookupDto>());
-            }
-            if (country == null)
-            {
-                country = new Mock<ICountryLookup>(MockBehavior.Loose);
-                country.Setup(c => c.GetAllCountriesAsync(It.IsAny<CancellationToken>()))
-                    .ReturnsAsync(new List<CountryLookupDto>());
-            }
+
+            var cityMock = new Mock<ICityLookup>(MockBehavior.Loose);
+            cityMock.Setup(c => c.GetByIdsAsync(It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((IReadOnlyList<CityLookupDto>)new List<CityLookupDto>());
+
+            var stateMock = new Mock<IStateLookup>(MockBehavior.Loose);
+            stateMock.Setup(s => s.GetByIdsAsync(It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((IReadOnlyList<StateLookupDto>)new List<StateLookupDto>());
+
+            var countryMock = new Mock<ICountryLookup>(MockBehavior.Loose);
+            countryMock.Setup(c => c.GetByIdsAsync(It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((IReadOnlyList<CountryLookupDto>)new List<CountryLookupDto>());
 
             return new DispatchAddressMappingQueryRepository(
-                new SqlConnection(_fixture.ConnectionString),
-                party.Object, freight.Object, city.Object, state.Object, country.Object);
+                new SqlConnection(_fixture.ConnectionString), party.Object, freight.Object,
+                cityMock.Object, stateMock.Object, countryMock.Object);
         }
 
         private async Task<int> EnsureMiscIdAsync(string code = "DAMQ_USG")

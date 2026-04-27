@@ -1,3 +1,4 @@
+using Contracts.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using SalesManagement.Infrastructure.Data;
 using SalesManagement.Infrastructure.Repositories.Complaint;
@@ -19,7 +20,13 @@ namespace SalesManagement.IntegrationTests.Repositories.ComplaintDepartmentFeedb
         public ComplaintDepartmentFeedbackCommandRepositoryTests(DbFixture fixture) => _fixture = fixture;
 
         private ComplaintDepartmentFeedbackCommandRepository CreateRepository(ApplicationDbContext ctx)
-            => new ComplaintDepartmentFeedbackCommandRepository(ctx, new ComplaintCommandRepository(ctx));
+        {
+            var ipMock = new Mock<IIPAddressService>(MockBehavior.Loose);
+            ipMock.Setup(s => s.GetUserId()).Returns(7);
+            ipMock.Setup(s => s.GetUserName()).Returns("tester");
+            ipMock.Setup(s => s.GetUserIPAddress()).Returns("127.0.0.1");
+            return new ComplaintDepartmentFeedbackCommandRepository(ctx, new ComplaintCommandRepository(ctx), ipMock.Object);
+        }
 
         // ---------------------------------------------------------------------------
         // Seeding helpers
