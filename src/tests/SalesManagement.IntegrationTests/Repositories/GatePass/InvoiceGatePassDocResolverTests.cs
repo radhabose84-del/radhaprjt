@@ -61,8 +61,10 @@ namespace SalesManagement.IntegrationTests.Repositories.GatePass
                 ALTER TABLE Sales.InvoiceHeader NOCHECK CONSTRAINT ALL;
                 INSERT INTO Sales.InvoiceHeader
                     (InvoiceNo, InvoiceDate, DispatchAdviceId, PartyId, UnitId, FinancialYearId,
-                     TotalBags, TotalWeight, TaxableValue, TotalDiscount, TotalFreight, TotalCommission, Insurance,
-                     HandlingCharge, TotalCharity, OtherCharges, CGST, SGST, IGST, TaxAmount,
+                     TotalBags, TotalWeight, TaxableValue,
+                     TotalDiscount, TotalFreight, TotalCommission,
+                     Insurance, HandlingCharge, TotalCharity, OtherCharges,
+                     CGST, SGST, IGST, TaxAmount,
                      TCSPercentage, TCS, RoundOff, InvoiceAmountBeforeTCS, InvoiceAmount,
                      TransporterName,
                      GEFlag, IsActive, IsDeleted,
@@ -70,8 +72,10 @@ namespace SalesManagement.IntegrationTests.Repositories.GatePass
                 OUTPUT INSERTED.Id
                 VALUES
                     ('INV-001', SYSDATETIME(), 1, 1, 1, 1,
-                     @TotalBags, @TotalWeight, 0, 0, 0, 0, 0,
-                     0, 0, 0, 0, 0, 0, 0,
+                     @TotalBags, @TotalWeight, 0,
+                     0, 0, 0,
+                     0, 0, 0, 0,
+                     0, 0, 0, 0,
                      0, 0, 0, 0, 0,
                      @TransporterName,
                      0, 1, @IsDeleted,
@@ -95,14 +99,16 @@ namespace SalesManagement.IntegrationTests.Repositories.GatePass
                 INSERT INTO Sales.InvoiceDetail
                     (InvoiceHeaderId, ItemSno, ItemId, HsnCode, GstPercentage,
                      NoOfBags, BagWeight, NetWeight, RatePerKg,
-                     DiscountValue, FreightValue, CommissionValue, TaxableAmount,
+                     DiscountValue, FreightValue, CommissionValue,
+                     TaxableAmount,
                      CgstPercentage, SgstPercentage, IgstPercentage,
                      CGST, SGST, IGST, TaxAmount,
                      UOMId, Charity, HandlingCharges, TotalAmount)
                 VALUES
                     (@HeaderId, @ItemSno, @ItemId, '52010000', 5,
-                     10, 1, 100, 150,
-                     0, 0, 0, 15000,
+                     10, 10, 100, 150,
+                     0, 0, 0,
+                     15000,
                      2.5, 2.5, 0,
                      375, 375, 0, 750,
                      @UomId, 0, 0, 15750);
