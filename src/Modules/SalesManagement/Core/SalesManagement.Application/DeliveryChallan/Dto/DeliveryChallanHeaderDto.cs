@@ -36,6 +36,15 @@ namespace SalesManagement.Application.DeliveryChallan.Dto
         public int StatusId { get; set; }
         public string? StatusName { get; set; }
 
+        // DC Type — same-module JOIN to MiscMaster (Returnable / Non-Returnable)
+        public int DcTypeId { get; set; }
+        public string? DcTypeName { get; set; }
+
+        // Movement Type — same-module JOIN to Sales.MovementTypeConfig
+        public int MovementTypeId { get; set; }
+        public string? MovementCode { get; set; }
+        public string? MovementDescription { get; set; }
+
         public string? Remarks { get; set; }
 
         // Workflow fields (populated only in GetPendingAsync, null/0 in GetAll)

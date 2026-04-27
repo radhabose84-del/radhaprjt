@@ -103,10 +103,10 @@ namespace SalesManagement.IntegrationTests.Repositories.DeliveryChallan
         /// <summary>
         /// Seeds the full FK chain: MiscTypeMaster -> MiscMaster (x3 for MovementTypeConfig)
         /// -> MovementTypeConfig -> StoTypeMaster -> StoHeader.
-        /// Also seeds a StatusId MiscMaster for DeliveryChallanHeader.
-        /// Returns (stoHeaderId, statusId).
+        /// Also seeds StatusId + DcType MiscMaster rows for DeliveryChallanHeader.
+        /// Returns (stoHeaderId, statusId, dcTypeId, movementTypeId).
         /// </summary>
-        private async Task<(int stoHeaderId, int statusId)> EnsureStoChainAsync()
+        private async Task<(int stoHeaderId, int statusId, int dcTypeId, int movementTypeId)> EnsureStoChainAsync()
         {
             await using var ctx = _fixture.CreateFreshDbContext();
 
@@ -181,7 +181,21 @@ namespace SalesManagement.IntegrationTests.Repositories.DeliveryChallan
                 await ctx.SaveChangesAsync();
             }
 
-            return (sto.Id, statusId);
+            // DCType MiscType + Non-Returnable MiscMaster — needed for new DcTypeId NOT NULL FK
+            var dcTypeMt = await ctx.MiscTypeMaster.FirstOrDefaultAsync(x => x.MiscTypeCode == "DCType");
+            if (dcTypeMt == null)
+            {
+                dcTypeMt = new SalesManagement.Domain.Entities.MiscTypeMaster
+                {
+                    MiscTypeCode = "DCType", Description = "DC Type",
+                    IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted
+                };
+                await ctx.MiscTypeMaster.AddAsync(dcTypeMt);
+                await ctx.SaveChangesAsync();
+            }
+            var dcTypeId = await EnsureMiscAsync(ctx, dcTypeMt.Id, "Non-Returnable");
+
+            return (sto.Id, statusId, dcTypeId, mvc.Id);
         }
 
         private async Task<int> SeedAsync(
@@ -189,7 +203,7 @@ namespace SalesManagement.IntegrationTests.Repositories.DeliveryChallan
             IsDelete deleted = IsDelete.NotDeleted,
             Status active = Status.Active)
         {
-            var (stoHeaderId, statusId) = await EnsureStoChainAsync();
+            var (stoHeaderId, statusId, dcTypeId, movementTypeId) = await EnsureStoChainAsync();
 
             await using var ctx = _fixture.CreateFreshDbContext();
             var dc = new SalesManagement.Domain.Entities.DeliveryChallanHeader
@@ -207,6 +221,8 @@ namespace SalesManagement.IntegrationTests.Repositories.DeliveryChallan
                 DeliveryValue = 5000m,
                 ConsignmentValue = 4800m,
                 StatusId = statusId,
+                DcTypeId = dcTypeId,
+                MovementTypeId = movementTypeId,
                 Remarks = "Integration test DC",
                 GEFlag = false,
                 IsActive = active, IsDeleted = deleted
@@ -329,7 +345,7 @@ namespace SalesManagement.IntegrationTests.Repositories.DeliveryChallan
         [Fact]
         public async Task StoHeaderExistsAsync_Should_Return_True_When_Active()
         {
-            var (stoHeaderId, _) = await EnsureStoChainAsync();
+            var (stoHeaderId, _, _, _) = await EnsureStoChainAsync();
 
             var result = await CreateRepo().StoHeaderExistsAsync(stoHeaderId);
 

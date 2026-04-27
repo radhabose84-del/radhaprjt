@@ -55,6 +55,14 @@ namespace SalesManagement.Presentation.Validation.DeliveryChallan
                             .NotEmpty()
                             .WithMessage($"{nameof(CreateDeliveryChallanCommand.TransporterId)} {rule.Error}");
 
+                        RuleFor(x => x.DcTypeId)
+                            .NotEmpty()
+                            .WithMessage($"{nameof(CreateDeliveryChallanCommand.DcTypeId)} {rule.Error}");
+
+                        RuleFor(x => x.MovementTypeId)
+                            .NotEmpty()
+                            .WithMessage($"{nameof(CreateDeliveryChallanCommand.MovementTypeId)} {rule.Error}");
+
                         RuleFor(x => x.VehicleNumber)
                             .NotNull()
                             .WithMessage($"{nameof(CreateDeliveryChallanCommand.VehicleNumber)} {rule.Error}")
@@ -85,6 +93,16 @@ namespace SalesManagement.Presentation.Validation.DeliveryChallan
                             .MustAsync(async (id, ct) => await _queryRepository.StoHeaderExistsAsync(id))
                             .WithMessage($"{nameof(CreateDeliveryChallanCommand.StoHeaderId)} {rule.Error}")
                             .When(x => x.StoHeaderId > 0);
+
+                        RuleFor(x => x.DcTypeId)
+                            .MustAsync(async (id, ct) => await _queryRepository.DcTypeExistsAsync(id))
+                            .WithMessage($"{nameof(CreateDeliveryChallanCommand.DcTypeId)} {rule.Error}")
+                            .When(x => x.DcTypeId > 0);
+
+                        RuleFor(x => x.MovementTypeId)
+                            .MustAsync(async (id, ct) => await _queryRepository.MovementTypeConfigExistsAsync(id))
+                            .WithMessage($"{nameof(CreateDeliveryChallanCommand.MovementTypeId)} {rule.Error}")
+                            .When(x => x.MovementTypeId > 0);
                         break;
 
                     case "AlreadyExists":
