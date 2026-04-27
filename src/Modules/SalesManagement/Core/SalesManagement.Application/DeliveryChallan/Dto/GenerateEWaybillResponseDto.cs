@@ -12,5 +12,9 @@ namespace SalesManagement.Application.DeliveryChallan.Dto
         public string? EwbStatus { get; set; }
         public string? EwbNumber { get; set; }
         public bool AlreadyExisted { get; set; }
+
+        // Populated only when validation fails (Option 1 — no DB row written).
+        // Caller surfaces each entry to the operator so they can fix master data and retry.
+        public List<string>? Errors { get; set; }
     }
 }

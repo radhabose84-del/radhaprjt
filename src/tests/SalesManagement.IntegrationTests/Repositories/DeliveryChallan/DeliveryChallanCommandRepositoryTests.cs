@@ -60,9 +60,11 @@ namespace SalesManagement.IntegrationTests.Repositories.DeliveryChallan
 
         /// <summary>
         /// Seeds the full MovementTypeConfig → StoTypeMaster → StoHeader chain and approval
-        /// status rows. Returns (stoHeaderId, approvedStatusId, pendingStatusId).
+        /// status rows. Returns (stoHeaderId, approvedStatusId, pendingStatusId, dcTypeId, movementTypeId).
+        /// dcTypeId + movementTypeId are required because DeliveryChallanHeader now has NOT NULL
+        /// FK columns to MiscMaster (DCType) and MovementTypeConfig.
         /// </summary>
-        private async Task<(int stoHeaderId, int approvedStatusId, int pendingStatusId)> EnsurePrerequisitesAsync()
+        private async Task<(int stoHeaderId, int approvedStatusId, int pendingStatusId, int dcTypeId, int movementTypeId)> EnsurePrerequisitesAsync()
         {
             await using var ctx = _fixture.CreateFreshDbContext();
 
@@ -146,10 +148,24 @@ namespace SalesManagement.IntegrationTests.Repositories.DeliveryChallan
                 await ctx.SaveChangesAsync();
             }
 
-            return (sto.Id, approvedId, pendingId);
+            // DCType MiscMaster — needed for the new DeliveryChallanHeader.DcTypeId NOT NULL FK
+            var dcTypeMisc = await ctx.MiscTypeMaster.FirstOrDefaultAsync(x => x.MiscTypeCode == "DCType");
+            if (dcTypeMisc == null)
+            {
+                dcTypeMisc = new SalesManagement.Domain.Entities.MiscTypeMaster
+                {
+                    MiscTypeCode = "DCType", Description = "DC Type",
+                    IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted
+                };
+                await ctx.MiscTypeMaster.AddAsync(dcTypeMisc);
+                await ctx.SaveChangesAsync();
+            }
+            var dcTypeId = await EnsureMiscAsync(ctx, dcTypeMisc.Id, "Non-Returnable");
+
+            return (sto.Id, approvedId, pendingId, dcTypeId, movement.Id);
         }
 
-        private async Task<int> SeedDeliveryChallanAsync(int stoHeaderId, int statusId, string dcNumber = "DCC_01")
+        private async Task<int> SeedDeliveryChallanAsync(int stoHeaderId, int statusId, int dcTypeId, int movementTypeId, string dcNumber = "DCC_01")
         {
             await using var ctx = _fixture.CreateFreshDbContext();
             var dc = new SalesManagement.Domain.Entities.DeliveryChallanHeader
@@ -162,6 +178,8 @@ namespace SalesManagement.IntegrationTests.Repositories.DeliveryChallan
                 TransporterId = 1, VehicleNumber = "TN01AB1234",
                 DeliveryValue = 5000m, ConsignmentValue = 5000m,
                 StatusId = statusId,
+                DcTypeId = dcTypeId,
+                MovementTypeId = movementTypeId,
                 IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted
             };
             await ctx.DeliveryChallanHeader.AddAsync(dc);
@@ -182,8 +200,8 @@ namespace SalesManagement.IntegrationTests.Repositories.DeliveryChallan
         public async Task UpdateApprovalStatusAsync_Should_Update_StatusId()
         {
             await ClearAsync();
-            var (stoId, approvedId, pendingId) = await EnsurePrerequisitesAsync();
-            var dcId = await SeedDeliveryChallanAsync(stoId, pendingId, "DCC_UAS1");
+            var (stoId, approvedId, pendingId, dcTypeId, movementTypeId) = await EnsurePrerequisitesAsync();
+            var dcId = await SeedDeliveryChallanAsync(stoId, pendingId, dcTypeId, movementTypeId, "DCC_UAS1");
 
             await using var ctx = _fixture.CreateFreshDbContext();
             await CreateRepo(ctx).UpdateApprovalStatusAsync(dcId, "Approved", CancellationToken.None);
@@ -220,8 +238,8 @@ namespace SalesManagement.IntegrationTests.Repositories.DeliveryChallan
         public async Task SoftDeleteAsync_Should_SetIsDeleted_On_HeaderOnly_Record()
         {
             await ClearAsync();
-            var (stoId, _, pendingId) = await EnsurePrerequisitesAsync();
-            var dcId = await SeedDeliveryChallanAsync(stoId, pendingId, "DCC_SD1");
+            var (stoId, _, pendingId, dcTypeId, movementTypeId) = await EnsurePrerequisitesAsync();
+            var dcId = await SeedDeliveryChallanAsync(stoId, pendingId, dcTypeId, movementTypeId, "DCC_SD1");
 
             await using var ctx = _fixture.CreateFreshDbContext();
             // No detail lines — no StockLedger reversal occurs

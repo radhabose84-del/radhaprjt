@@ -12,6 +12,8 @@ namespace SalesManagement.Application.Common.Interfaces.IDeliveryChallan
         Task<bool> NotFoundAsync(int id);
         Task<bool> StoHeaderExistsAsync(int stoHeaderId);
         Task<bool> LotExistsAsync(int lotId);
+        Task<bool> DcTypeExistsAsync(int dcTypeId);
+        Task<bool> MovementTypeConfigExistsAsync(int movementTypeId);
         Task<StoOpenQtyDto?> GetStoOpenQtyAsync(int stoDetailId);
         Task<bool> HasStoReceiptAsync(int dcHeaderId);
         Task<bool> IsStoApprovedAsync(int stoHeaderId);

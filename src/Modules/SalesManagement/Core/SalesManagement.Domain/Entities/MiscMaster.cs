@@ -43,6 +43,7 @@ namespace SalesManagement.Domain.Entities
 
         // Reverse navigation (DeliveryChallanHeader)
         public ICollection<DeliveryChallanHeader>? DeliveryChallanHeadersAsStatus { get; set; }
+        public ICollection<DeliveryChallanHeader>? DeliveryChallanHeadersAsDcType { get; set; }
 
         // Reverse navigation (InvoiceHeader)
         public ICollection<InvoiceHeader>? InvoiceHeadersAsTransportMode { get; set; }
