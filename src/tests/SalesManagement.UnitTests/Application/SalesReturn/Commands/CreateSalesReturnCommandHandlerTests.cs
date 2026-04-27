@@ -134,4 +134,77 @@ public sealed class CreateSalesReturnCommandHandlerTests
         await act.Should().ThrowAsync<ExceptionRules>()
             .WithMessage("*Transaction Type*");
     }
+
+    // ---------------------------------------------------------------------------
+    // Auto-close: ClosureStatus → Closed when SalesReturn goods receipt is FullyReturned.
+    // ---------------------------------------------------------------------------
+
+    [Fact]
+    public async Task Handle_FullyReturned_PassesClosureStatusAndClosedByToUpdate()
+    {
+        SetupHappyPath();
+        _mockQueryRepo.Setup(r => r.GetReturnProgressAsync(It.IsAny<int>())).ReturnsAsync((10, 10));
+        _mockIpService.Setup(s => s.GetUserId()).Returns(7);
+
+        await CreateSut().Handle(ValidCommand(), CancellationToken.None);
+
+        _mockCommandRepo.Verify(
+            r => r.UpdateComplaintResolutionReturnStatusAsync(
+                It.IsAny<int>(),
+                It.IsAny<int>(),
+                It.IsAny<decimal>(),
+                It.Is<int?>(c => c.HasValue),
+                It.Is<int?>(b => b == 7)),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_PartiallyReturned_PassesNullClosureStatus()
+    {
+        SetupHappyPath();
+        _mockQueryRepo.Setup(r => r.GetReturnProgressAsync(It.IsAny<int>())).ReturnsAsync((10, 4));
+
+        await CreateSut().Handle(ValidCommand(), CancellationToken.None);
+
+        _mockCommandRepo.Verify(
+            r => r.UpdateComplaintResolutionReturnStatusAsync(
+                It.IsAny<int>(),
+                It.IsAny<int>(),
+                It.IsAny<decimal>(),
+                It.Is<int?>(c => c == null),
+                It.Is<int?>(b => b == null)),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_FullyReturned_PublishesAutoCloseAuditEvent()
+    {
+        SetupHappyPath();
+        _mockQueryRepo.Setup(r => r.GetReturnProgressAsync(It.IsAny<int>())).ReturnsAsync((5, 5));
+
+        await CreateSut().Handle(ValidCommand(), CancellationToken.None);
+
+        _mockMediator.Verify(
+            m => m.Publish(
+                It.Is<AuditLogsDomainEvent>(e =>
+                    e.ActionDetail == "AutoClose" &&
+                    e.ActionCode == "COMPLAINT_RESOLUTION_AUTOCLOSE"),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_PartiallyReturned_DoesNotPublishAutoCloseAuditEvent()
+    {
+        SetupHappyPath();
+        _mockQueryRepo.Setup(r => r.GetReturnProgressAsync(It.IsAny<int>())).ReturnsAsync((10, 3));
+
+        await CreateSut().Handle(ValidCommand(), CancellationToken.None);
+
+        _mockMediator.Verify(
+            m => m.Publish(
+                It.Is<AuditLogsDomainEvent>(e => e.ActionCode == "COMPLAINT_RESOLUTION_AUTOCLOSE"),
+                It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
 }

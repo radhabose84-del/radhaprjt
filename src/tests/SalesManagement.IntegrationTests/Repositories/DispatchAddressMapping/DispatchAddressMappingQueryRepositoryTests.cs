@@ -1,7 +1,9 @@
 using Contracts.Dtos.Lookups.Logistics;
 using Contracts.Dtos.Lookups.Party;
+using Contracts.Dtos.Lookups.Users;
 using Contracts.Interfaces.Lookups.Logistics;
 using Contracts.Interfaces.Lookups.Party;
+using Contracts.Interfaces.Lookups.Users;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using SalesManagement.Infrastructure.Data;
@@ -34,8 +36,21 @@ namespace SalesManagement.IntegrationTests.Repositories.DispatchAddressMapping
                     .ReturnsAsync(new List<FreightMasterLookupDto>());
             }
 
+            var cityMock = new Mock<ICityLookup>(MockBehavior.Loose);
+            cityMock.Setup(c => c.GetByIdsAsync(It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((IReadOnlyList<CityLookupDto>)new List<CityLookupDto>());
+
+            var stateMock = new Mock<IStateLookup>(MockBehavior.Loose);
+            stateMock.Setup(s => s.GetByIdsAsync(It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((IReadOnlyList<StateLookupDto>)new List<StateLookupDto>());
+
+            var countryMock = new Mock<ICountryLookup>(MockBehavior.Loose);
+            countryMock.Setup(c => c.GetByIdsAsync(It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((IReadOnlyList<CountryLookupDto>)new List<CountryLookupDto>());
+
             return new DispatchAddressMappingQueryRepository(
-                new SqlConnection(_fixture.ConnectionString), party.Object, freight.Object);
+                new SqlConnection(_fixture.ConnectionString), party.Object, freight.Object,
+                cityMock.Object, stateMock.Object, countryMock.Object);
         }
 
         private async Task<int> EnsureMiscIdAsync(string code = "DAMQ_USG")

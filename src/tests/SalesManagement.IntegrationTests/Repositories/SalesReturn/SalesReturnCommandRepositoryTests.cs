@@ -171,5 +171,89 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesReturn
 
             result.Should().BeFalse();
         }
+
+        // -----------------------------------------------------------------------
+        // Auto-close: UpdateComplaintResolutionReturnStatusAsync — closure branch
+        // -----------------------------------------------------------------------
+
+        private async Task<int> SeedComplaintResolutionAsync(int complaintHeaderId, int? existingClosureStatusId = null)
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var mt = await ctx.MiscTypeMaster.FirstAsync(x => x.MiscTypeCode == "SRC_MT");
+            var defaultMiscId = await EnsureMiscAsync(ctx, mt.Id, "SRC_DEF");
+
+            var resolution = new SalesManagement.Domain.Entities.ComplaintResolution
+            {
+                ComplaintHeaderId = complaintHeaderId,
+                ResolutionTypeId = defaultMiscId,
+                ResolutionSummary = "seeded for auto-close test",
+                ClosureStatusId = existingClosureStatusId,
+                IsActive = Status.Active,
+                IsDeleted = IsDelete.NotDeleted
+            };
+            await ctx.ComplaintResolution.AddAsync(resolution);
+            await ctx.SaveChangesAsync();
+            return resolution.Id;
+        }
+
+        [Fact]
+        public async Task UpdateComplaintResolutionReturnStatusAsync_WithClosure_SetsClosedFields()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            await ClearAsync(ctx);
+            var (_, returnStatusId, complaintId) = await EnsureComplaintAsync("SRC_AC1");
+            var resolutionId = await SeedComplaintResolutionAsync(complaintId);
+
+            var mt = await ctx.MiscTypeMaster.FirstAsync(x => x.MiscTypeCode == "SRC_MT");
+            var closedStatusId = await EnsureMiscAsync(ctx, mt.Id, "SRC_CLOSED");
+
+            await CreateRepo(ctx).UpdateComplaintResolutionReturnStatusAsync(
+                complaintId, returnStatusId, returnQuantity: 8m,
+                closureStatusId: closedStatusId, closedBy: 42);
+
+            await using var verifyCtx = _fixture.CreateFreshDbContext();
+            var saved = await verifyCtx.ComplaintResolution.FirstAsync(x => x.Id == resolutionId);
+            saved.ReturnStatusId.Should().Be(returnStatusId);
+            saved.ReturnQuantity.Should().Be(8m);
+            saved.ClosureStatusId.Should().Be(closedStatusId);
+            saved.ClosedBy.Should().Be(42);
+            saved.ClosedDate.Should().NotBeNull();
+        }
+
+        [Fact]
+        public async Task UpdateComplaintResolutionReturnStatusAsync_WithoutClosure_LeavesClosedFieldsUntouched()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            await ClearAsync(ctx);
+            var (_, returnStatusId, complaintId) = await EnsureComplaintAsync("SRC_AC2");
+            var resolutionId = await SeedComplaintResolutionAsync(complaintId, existingClosureStatusId: null);
+
+            await CreateRepo(ctx).UpdateComplaintResolutionReturnStatusAsync(
+                complaintId, returnStatusId, returnQuantity: 3m,
+                closureStatusId: null, closedBy: null);
+
+            await using var verifyCtx = _fixture.CreateFreshDbContext();
+            var saved = await verifyCtx.ComplaintResolution.FirstAsync(x => x.Id == resolutionId);
+            saved.ReturnStatusId.Should().Be(returnStatusId);
+            saved.ReturnQuantity.Should().Be(3m);
+            saved.ClosureStatusId.Should().BeNull();
+            saved.ClosedBy.Should().BeNull();
+            saved.ClosedDate.Should().BeNull();
+        }
+
+        [Fact]
+        public async Task UpdateComplaintResolutionReturnStatusAsync_NoMatchingResolution_DoesNothing()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            await ClearAsync(ctx);
+            var (_, returnStatusId, _) = await EnsureComplaintAsync("SRC_AC3");
+
+            // No resolution seeded for header id 999999 — should silently no-op
+            var act = async () => await CreateRepo(ctx).UpdateComplaintResolutionReturnStatusAsync(
+                complaintHeaderId: 999999, returnStatusId: returnStatusId, returnQuantity: 1m,
+                closureStatusId: 1, closedBy: 1);
+
+            await act.Should().NotThrowAsync();
+        }
     }
 }

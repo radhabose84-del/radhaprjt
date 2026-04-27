@@ -1,3 +1,4 @@
+using Contracts.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using SalesManagement.Application.Common.Interfaces.IComplaint;
 using SalesManagement.Application.Common.Interfaces.IComplaintDepartmentFeedback;
@@ -11,13 +12,16 @@ namespace SalesManagement.Infrastructure.Repositories.ComplaintDepartmentFeedbac
     {
         private readonly ApplicationDbContext _dbContext;
         private readonly IComplaintCommandRepository _complaintCommandRepo;
+        private readonly IIPAddressService _ipAddressService;
 
         public ComplaintDepartmentFeedbackCommandRepository(
             ApplicationDbContext dbContext,
-            IComplaintCommandRepository complaintCommandRepo)
+            IComplaintCommandRepository complaintCommandRepo,
+            IIPAddressService ipAddressService)
         {
             _dbContext = dbContext;
             _complaintCommandRepo = complaintCommandRepo;
+            _ipAddressService = ipAddressService;
         }
 
         public async Task<int> CreateAsync(Domain.Entities.ComplaintDepartmentFeedback entity)
@@ -141,7 +145,15 @@ namespace SalesManagement.Infrastructure.Repositories.ComplaintDepartmentFeedbac
                 .FirstOrDefaultAsync();
 
             if (parentHeaderId > 0)
-                await _complaintCommandRepo.EnsureResolutionDraftIfQCAcceptedAsync(parentHeaderId, CancellationToken.None);
+            {
+                // HTTP context — read user identity from IIPAddressService so the
+                // auto-seeded draft is attributed to the operator, not "Anonymous".
+                var userId = _ipAddressService.GetUserId();
+                var userName = _ipAddressService.GetUserName();
+                var userIp = _ipAddressService.GetUserIPAddress();
+                await _complaintCommandRepo.EnsureResolutionDraftIfQCAcceptedAsync(
+                    parentHeaderId, userId, userName, userIp, CancellationToken.None);
+            }
 
             return assignment.Id;
         }
