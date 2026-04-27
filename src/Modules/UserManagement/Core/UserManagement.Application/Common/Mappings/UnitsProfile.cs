@@ -88,7 +88,8 @@ namespace UserManagement.Application.Common.Mappings
             CreateMap<Unit, UnitAutoCompleteDTO>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
             .ForMember(dest => dest.UnitName, opt => opt.MapFrom(src => src.UnitName))
-            .ForMember(dest => dest.UnitTypeId, opt => opt.MapFrom(src => src.UnitTypeId));
+            .ForMember(dest => dest.UnitTypeId, opt => opt.MapFrom(src => src.UnitTypeId))
+            .ForMember(dest => dest.PinCode, opt => opt.MapFrom(src => src.PinCode));
 
 
             CreateMap<Unit, GetUnitsByIdDto>()

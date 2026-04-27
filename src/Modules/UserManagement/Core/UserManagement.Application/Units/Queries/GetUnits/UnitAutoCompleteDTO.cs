@@ -7,5 +7,6 @@ namespace UserManagement.Application.Units.Queries.GetUnits
         public int DivisionId { get; set; }
         public int UnitTypeId { get; set; }
         public string? UnitTypeName { get; set; }
+        public int? PinCode { get; set; }
     }
 }
