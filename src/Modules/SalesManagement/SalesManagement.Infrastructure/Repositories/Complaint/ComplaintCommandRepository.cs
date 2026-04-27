@@ -136,15 +136,9 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
             return true;
         }
 
-        public async Task UpdateApprovalStatusAsync(int id, string status, CancellationToken ct)
+        public async Task UpdateApprovalStatusAsync(int id, string status, int modifiedBy, string? modifiedByName, string? modifiedIP, CancellationToken ct)
         {
-            var existing = await _dbContext.ComplaintHeader
-                .FirstOrDefaultAsync(x => x.Id == id && x.IsDeleted == IsDelete.NotDeleted, ct);
-
-            if (existing == null)
-                return;
-
-            // Resolve the status Id from MiscMaster
+            // Resolve target status id (Approved / Rejected)
             var statusEntity = await _dbContext.MiscMaster
                 .Include(m => m.MiscTypeMaster)
                 .FirstOrDefaultAsync(m =>
@@ -153,68 +147,62 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                     m.Code == status &&
                     m.IsDeleted == IsDelete.NotDeleted, ct);
 
-            if (statusEntity != null)
+            if (statusEntity == null) return;
+
+            // Raw SQL bypasses ApplicationDbContext.UpdateIpFields() which would otherwise
+            // overwrite ModifiedBy/Name/IP with the consumer-context defaults (0/Anonymous).
+            var rows = await _dbContext.Database.ExecuteSqlInterpolatedAsync($@"
+                UPDATE Sales.ComplaintHeader
+                SET StatusId       = {statusEntity.Id},
+                    ModifiedBy     = {modifiedBy},
+                    ModifiedByName = {modifiedByName},
+                    ModifiedIP     = {modifiedIP},
+                    ModifiedDate   = SYSDATETIMEOFFSET()
+                WHERE Id = {id} AND IsDeleted = 0", ct);
+
+            if (rows == 0) return;
+
+            // Auto-create QC Review record when complaint is Approved
+            if (status == "Approved")
             {
-                existing.StatusId = statusEntity.Id;
-                await _dbContext.SaveChangesAsync(ct);
+                var qcReviewExists = await _dbContext.ComplaintQCReview
+                    .AnyAsync(x => x.ComplaintHeaderId == id && x.IsDeleted == IsDelete.NotDeleted, ct);
 
-                // Auto-create QC Review record when complaint is Approved
-                if (status == "Approved")
+                if (!qcReviewExists)
                 {
-                    var qcReviewExists = await _dbContext.ComplaintQCReview
-                        .AnyAsync(x => x.ComplaintHeaderId == id && x.IsDeleted == IsDelete.NotDeleted, ct);
+                    var pendingPV = await _dbContext.MiscMaster
+                        .Include(m => m.MiscTypeMaster)
+                        .FirstOrDefaultAsync(m =>
+                            m.MiscTypeMaster != null &&
+                            m.MiscTypeMaster.MiscTypeCode == "PhysicalVerification" &&
+                            m.Code == "Pending" &&
+                            m.IsDeleted == IsDelete.NotDeleted, ct);
 
-                    if (!qcReviewExists)
-                    {
-                        // Get Pending status for PhysicalVerification
-                        var pendingPV = await _dbContext.MiscMaster
-                            .Include(m => m.MiscTypeMaster)
-                            .FirstOrDefaultAsync(m =>
-                                m.MiscTypeMaster != null &&
-                                m.MiscTypeMaster.MiscTypeCode == "PhysicalVerification" &&
-                                m.Code == "Pending" &&
-                                m.IsDeleted == IsDelete.NotDeleted, ct);
-
-                        var qcReview = new Domain.Entities.ComplaintQCReview
-                        {
-                            ComplaintHeaderId = id,
-                            PhysicalVerificationId = pendingPV?.Id ?? 0,
-                            LabVerificationRequired = false,
-                            IsActive = Status.Active,
-                            IsDeleted = IsDelete.NotDeleted
-                        };
-
-                        await _dbContext.ComplaintQCReview.AddAsync(qcReview, ct);
-                        await _dbContext.SaveChangesAsync(ct);
-                    }
+                    await _dbContext.Database.ExecuteSqlInterpolatedAsync($@"
+                        INSERT INTO Sales.ComplaintQCReview
+                            (ComplaintHeaderId, PhysicalVerificationId, LabVerificationRequired,
+                             IsActive, IsDeleted, CreatedBy, CreatedByName, CreatedIP, CreatedDate)
+                        VALUES
+                            ({id}, {pendingPV?.Id ?? 0}, 0,
+                             1, 0, {modifiedBy}, {modifiedByName}, {modifiedIP}, SYSDATETIMEOFFSET())", ct);
                 }
             }
         }
 
-        public async Task UpdateQCReviewApprovalStatusAsync(int complaintHeaderId, string status, CancellationToken ct)
+        public async Task UpdateQCReviewApprovalStatusAsync(int complaintHeaderId, string status, int modifiedBy, string? modifiedByName, string? modifiedIP, CancellationToken ct)
         {
-            var existing = await _dbContext.ComplaintHeader
-                .FirstOrDefaultAsync(x => x.Id == complaintHeaderId && x.IsDeleted == IsDelete.NotDeleted, ct);
-
-            if (existing == null)
-                return;
+            int? targetStatusId = null;
 
             if (status == "Approved")
             {
-                // Read QC decision from ComplaintQCReview
+                // Header transitions to QC's recorded decision (QC Accepted / QC Rejected)
                 var qcReview = await _dbContext.ComplaintQCReview
                     .FirstOrDefaultAsync(x => x.ComplaintHeaderId == complaintHeaderId && x.IsDeleted == IsDelete.NotDeleted, ct);
-
-                if (qcReview?.ComplaintStatusId != null)
-                {
-                    // Set header status to QC's decision (QC Accepted or QC Rejected)
-                    existing.StatusId = qcReview.ComplaintStatusId.Value;
-                    await _dbContext.SaveChangesAsync(ct);
-                }
+                targetStatusId = qcReview?.ComplaintStatusId;
             }
             else if (status == "Rejected")
             {
-                // Workflow rejected → revert to Approved status (back to QC for re-review)
+                // Workflow rejected → revert to ApprovalStatus.Approved (back to QC for re-review)
                 var approvedStatus = await _dbContext.MiscMaster
                     .Include(m => m.MiscTypeMaster)
                     .FirstOrDefaultAsync(m =>
@@ -222,13 +210,19 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                         m.MiscTypeMaster.MiscTypeCode == "ApprovalStatus" &&
                         m.Code == "Approved" &&
                         m.IsDeleted == IsDelete.NotDeleted, ct);
-
-                if (approvedStatus != null)
-                {
-                    existing.StatusId = approvedStatus.Id;
-                    await _dbContext.SaveChangesAsync(ct);
-                }
+                targetStatusId = approvedStatus?.Id;
             }
+
+            if (targetStatusId == null) return;
+
+            await _dbContext.Database.ExecuteSqlInterpolatedAsync($@"
+                UPDATE Sales.ComplaintHeader
+                SET StatusId       = {targetStatusId.Value},
+                    ModifiedBy     = {modifiedBy},
+                    ModifiedByName = {modifiedByName},
+                    ModifiedIP     = {modifiedIP},
+                    ModifiedDate   = SYSDATETIMEOFFSET()
+                WHERE Id = {complaintHeaderId} AND IsDeleted = 0", ct);
         }
 
         public async Task<int> AddAttachmentAsync(ComplaintAttachment attachment)
@@ -252,18 +246,14 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
             return true;
         }
 
-        public async Task UpdateResolutionApprovalStatusAsync(int complaintHeaderId, string status, CancellationToken ct)
+        public async Task UpdateResolutionApprovalStatusAsync(int complaintHeaderId, string status, int modifiedBy, string? modifiedByName, string? modifiedIP, CancellationToken ct)
         {
-            var existing = await _dbContext.ComplaintHeader
-                .FirstOrDefaultAsync(x => x.Id == complaintHeaderId && x.IsDeleted == IsDelete.NotDeleted, ct);
-
-            if (existing == null)
-                return;
+            int? targetStatusId = null;
 
             if (status == "Approved")
             {
-                // Resolution approved → set to Open (Resolution In Progress)
-                // Complaint stays open so Sales Return can be created against it
+                // Resolution approved → ClosureStatus.Open (Resolution In Progress)
+                // Header stays open so Sales Return / downstream actions can run against it.
                 var openStatus = await _dbContext.MiscMaster
                     .Include(m => m.MiscTypeMaster)
                     .FirstOrDefaultAsync(m =>
@@ -271,12 +261,7 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                         m.MiscTypeMaster.MiscTypeCode == "ClosureStatus" &&
                         m.Code == "Open" &&
                         m.IsDeleted == IsDelete.NotDeleted, ct);
-
-                if (openStatus != null)
-                {
-                    existing.StatusId = openStatus.Id;
-                    await _dbContext.SaveChangesAsync(ct);
-                }
+                targetStatusId = openStatus?.Id;
             }
             else if (status == "Rejected")
             {
@@ -288,16 +273,22 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                         m.MiscTypeMaster.MiscTypeCode == "FeedbackStatus" &&
                         m.Code == "Submitted" &&
                         m.IsDeleted == IsDelete.NotDeleted, ct);
-
-                if (rcaCompletedStatus != null)
-                {
-                    existing.StatusId = rcaCompletedStatus.Id;
-                    await _dbContext.SaveChangesAsync(ct);
-                }
+                targetStatusId = rcaCompletedStatus?.Id;
             }
+
+            if (targetStatusId == null) return;
+
+            await _dbContext.Database.ExecuteSqlInterpolatedAsync($@"
+                UPDATE Sales.ComplaintHeader
+                SET StatusId       = {targetStatusId.Value},
+                    ModifiedBy     = {modifiedBy},
+                    ModifiedByName = {modifiedByName},
+                    ModifiedIP     = {modifiedIP},
+                    ModifiedDate   = SYSDATETIMEOFFSET()
+                WHERE Id = {complaintHeaderId} AND IsDeleted = 0", ct);
         }
 
-        public async Task EnsureResolutionDraftIfQCAcceptedAsync(int complaintHeaderId, CancellationToken ct)
+        public async Task EnsureResolutionDraftIfQCAcceptedAsync(int complaintHeaderId, int createdBy, string? createdByName, string? createdIP, CancellationToken ct)
         {
             // Gate 1 — Header status must be 'QC Accepted'
             var headerStatus = await (from ch in _dbContext.ComplaintHeader
@@ -344,20 +335,17 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
 
             if (defaultResolutionTypeId == null) return; // no seedable default; skip silently
 
-            var draft = new SalesManagement.Domain.Entities.ComplaintResolution
-            {
-                ComplaintHeaderId = complaintHeaderId,
-                ResolutionTypeId = defaultResolutionTypeId.Value,
-                ResolutionSummary = "Auto-generated draft - pending resolver action.",
-                ClosureStatusId = openStatusId,
-                ResolvedBy = null,
-                ResolvedDate = null,
-                IsActive = Status.Active,
-                IsDeleted = IsDelete.NotDeleted
-            };
-
-            await _dbContext.ComplaintResolution.AddAsync(draft, ct);
-            await _dbContext.SaveChangesAsync(ct);
+            // Raw SQL bypasses ApplicationDbContext.UpdateIpFields() which would otherwise
+            // overwrite CreatedBy/Name/IP with the consumer-context defaults (0/Anonymous).
+            await _dbContext.Database.ExecuteSqlInterpolatedAsync($@"
+                INSERT INTO Sales.ComplaintResolution
+                    (ComplaintHeaderId, ResolutionTypeId, ResolutionSummary, ClosureStatusId,
+                     IsActive, IsDeleted, CreatedBy, CreatedByName, CreatedIP, CreatedDate)
+                VALUES
+                    ({complaintHeaderId}, {defaultResolutionTypeId.Value},
+                     'Auto-generated draft - pending resolver action.',
+                     {openStatusId},
+                     1, 0, {createdBy}, {createdByName}, {createdIP}, SYSDATETIMEOFFSET())", ct);
         }
     }
 }
