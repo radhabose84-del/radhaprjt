@@ -400,6 +400,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             {
                 var unitLookup = await _unitLookup.GetByIdAsync(header.UnitId.Value);
                 header.UnitName = unitLookup?.UnitName;
+                header.UnitPinCode = unitLookup?.PinCode;
             }
 
             if (header.OrderUnitId.HasValue)

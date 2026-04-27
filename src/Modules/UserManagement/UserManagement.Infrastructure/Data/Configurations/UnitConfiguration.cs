@@ -134,6 +134,7 @@ namespace UserManagement.Infrastructure.Data.Configurations
                 .OnDelete(DeleteBehavior.Restrict);
 
             builder.Ignore(u => u.UnitTypeName);
+            builder.Ignore(u => u.PinCode);
 
         }
     }
