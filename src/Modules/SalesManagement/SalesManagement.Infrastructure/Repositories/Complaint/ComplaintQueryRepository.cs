@@ -530,7 +530,7 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                     id.LotId,
                     id.ItemId,
                     id.NoOfBags,
-                    id.Quantity,
+                    id.NetWeight AS Quantity,
                     id.TotalAmount
                 FROM Sales.InvoiceDetail id
                 INNER JOIN Sales.InvoiceHeader ih ON id.InvoiceHeaderId = ih.Id AND ih.IsDeleted = 0

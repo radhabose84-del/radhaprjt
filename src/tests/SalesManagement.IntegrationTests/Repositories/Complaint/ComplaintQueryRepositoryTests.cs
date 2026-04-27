@@ -558,5 +558,27 @@ namespace SalesManagement.IntegrationTests.Repositories.Complaint
             rows.Should().HaveCount(1);
             rows[0].NetWeight.Should().Be(1m);
         }
+
+        [Fact]
+        public async Task GetInvoiceLineDetailsAsync_Should_Return_Quantity_Sourced_From_NetWeight_Column()
+        {
+            // Repro for production SQL207 ('Invalid column name Quantity'): the table has
+            // no Quantity column — the DTO's Quantity field must come from id.NetWeight.
+            const int partyId = 88899;
+            const decimal bagWeightColumn = 7.5m;
+            const decimal netWeightColumn = 42m;
+
+            await ClearInvoiceTablesAsync();
+            var (invoiceHeaderId, _) = await SeedInvoiceWithBagWeightAsync(partyId, bagWeightColumn, netWeightColumn);
+
+            var lines = await CreateRepo(uomLookup: BuildEmptyUomLookup())
+                .GetInvoiceLineDetailsAsync(invoiceHeaderId);
+
+            lines.Should().HaveCount(1);
+            lines[0].Quantity.Should().Be(netWeightColumn,
+                "GetInvoiceLineDetailsAsync projects id.NetWeight AS Quantity");
+            lines[0].Quantity.Should().NotBe(bagWeightColumn,
+                "Quantity output must NOT come from id.BagWeight in this query");
+        }
     }
 }

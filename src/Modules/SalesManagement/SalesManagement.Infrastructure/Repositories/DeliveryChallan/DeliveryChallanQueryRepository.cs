@@ -69,6 +69,8 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
                 FROM Sales.DeliveryChallanHeader h
                 LEFT JOIN Sales.StoHeader sh ON h.StoHeaderId = sh.Id AND sh.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster ms ON h.StatusId = ms.Id AND ms.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster dt ON h.DcTypeId = dt.Id AND dt.IsDeleted = 0
+                LEFT JOIN Sales.MovementTypeConfig mt ON h.MovementTypeId = mt.Id AND mt.IsDeleted = 0
                 WHERE h.IsDeleted = 0 {searchFilter};";
 
             var dataSql = $@"
@@ -89,6 +91,11 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
                     h.ConsignmentValue,
                     h.StatusId,
                     ms.Description AS StatusName,
+                    h.DcTypeId,
+                    dt.Description AS DcTypeName,
+                    h.MovementTypeId,
+                    mt.MovementCode,
+                    mt.MovementDescription,
                     h.Remarks,
                     h.IsActive,
                     h.IsDeleted,
@@ -103,6 +110,8 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
                 FROM Sales.DeliveryChallanHeader h
                 LEFT JOIN Sales.StoHeader sh ON h.StoHeaderId = sh.Id AND sh.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster ms ON h.StatusId = ms.Id AND ms.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster dt ON h.DcTypeId = dt.Id AND dt.IsDeleted = 0
+                LEFT JOIN Sales.MovementTypeConfig mt ON h.MovementTypeId = mt.Id AND mt.IsDeleted = 0
                 WHERE h.IsDeleted = 0 {searchFilter}
                 ORDER BY h.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;";
@@ -176,6 +185,11 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
                     h.ConsignmentValue,
                     h.StatusId,
                     ms.Description AS StatusName,
+                    h.DcTypeId,
+                    dt.Description AS DcTypeName,
+                    h.MovementTypeId,
+                    mt.MovementCode,
+                    mt.MovementDescription,
                     h.Remarks,
                     h.IsActive,
                     h.IsDeleted,
@@ -190,6 +204,8 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
                 FROM Sales.DeliveryChallanHeader h
                 LEFT JOIN Sales.StoHeader sh ON h.StoHeaderId = sh.Id AND sh.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster ms ON h.StatusId = ms.Id AND ms.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster dt ON h.DcTypeId = dt.Id AND dt.IsDeleted = 0
+                LEFT JOIN Sales.MovementTypeConfig mt ON h.MovementTypeId = mt.Id AND mt.IsDeleted = 0
                 WHERE h.Id = @Id AND h.IsDeleted = 0;";
 
             var header = await _dbConnection.QueryFirstOrDefaultAsync<DeliveryChallanHeaderDto>(headerSql, new { Id = id });
@@ -342,6 +358,32 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
             return lots.Count > 0;
         }
 
+        public async Task<bool> DcTypeExistsAsync(int dcTypeId)
+        {
+            const string sql = @"
+                SELECT COUNT(1)
+                FROM Sales.MiscMaster mm
+                INNER JOIN Sales.MiscTypeMaster mt ON mm.MiscTypeId = mt.Id
+                WHERE mm.Id = @Id
+                  AND mt.MiscTypeCode = 'DCType'
+                  AND mm.IsActive = 1 AND mm.IsDeleted = 0
+                  AND mt.IsDeleted = 0;";
+
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = dcTypeId });
+            return count > 0;
+        }
+
+        public async Task<bool> MovementTypeConfigExistsAsync(int movementTypeId)
+        {
+            const string sql = @"
+                SELECT COUNT(1)
+                FROM Sales.MovementTypeConfig
+                WHERE Id = @Id AND IsActive = 1 AND IsDeleted = 0;";
+
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = movementTypeId });
+            return count > 0;
+        }
+
         public async Task<StoOpenQtyDto?> GetStoOpenQtyAsync(int stoDetailId)
         {
             const string sql = @"
@@ -424,6 +466,8 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
                 FROM Sales.DeliveryChallanHeader h
                 LEFT JOIN Sales.StoHeader sh ON h.StoHeaderId = sh.Id AND sh.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster ms ON h.StatusId = ms.Id AND ms.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster dt ON h.DcTypeId = dt.Id AND dt.IsDeleted = 0
+                LEFT JOIN Sales.MovementTypeConfig mt ON h.MovementTypeId = mt.Id AND mt.IsDeleted = 0
                 WHERE h.IsDeleted = 0 AND h.StatusId = @PendingStatusId {approverFilter} {searchFilter};";
 
             var dataSql = $@"
@@ -444,6 +488,11 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
                     h.ConsignmentValue,
                     h.StatusId,
                     ms.Description AS StatusName,
+                    h.DcTypeId,
+                    dt.Description AS DcTypeName,
+                    h.MovementTypeId,
+                    mt.MovementCode,
+                    mt.MovementDescription,
                     h.Remarks,
                     h.IsActive,
                     h.IsDeleted,
@@ -458,6 +507,8 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
                 FROM Sales.DeliveryChallanHeader h
                 LEFT JOIN Sales.StoHeader sh ON h.StoHeaderId = sh.Id AND sh.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster ms ON h.StatusId = ms.Id AND ms.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster dt ON h.DcTypeId = dt.Id AND dt.IsDeleted = 0
+                LEFT JOIN Sales.MovementTypeConfig mt ON h.MovementTypeId = mt.Id AND mt.IsDeleted = 0
                 WHERE h.IsDeleted = 0 AND h.StatusId = @PendingStatusId {approverFilter} {searchFilter}
                 ORDER BY h.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;";
@@ -574,6 +625,8 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
                     h.TransporterId, h.VehicleNumber, h.TransportDistance,
                     h.DeliveryValue, h.ConsignmentValue,
                     h.StatusId, ms.Description AS StatusName,
+                    h.DcTypeId, dt.Description AS DcTypeName,
+                    h.MovementTypeId, mt.MovementCode, mt.MovementDescription,
                     h.Remarks,
                     h.IsActive, h.IsDeleted,
                     h.CreatedBy, h.CreatedDate, h.CreatedByName, h.CreatedIP,
@@ -581,6 +634,8 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
                 FROM Sales.DeliveryChallanHeader h
                 LEFT JOIN Sales.StoHeader sh ON h.StoHeaderId = sh.Id AND sh.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster ms ON h.StatusId = ms.Id AND ms.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster dt ON h.DcTypeId = dt.Id AND dt.IsDeleted = 0
+                LEFT JOIN Sales.MovementTypeConfig mt ON h.MovementTypeId = mt.Id AND mt.IsDeleted = 0
                 WHERE h.Id = @Id AND h.IsDeleted = 0 AND h.StatusId = @PendingStatusId
                   AND h.Id IN (
                       SELECT ar.ModuleTransactionId

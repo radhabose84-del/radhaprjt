@@ -93,6 +93,16 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("int")
                 .IsRequired();
 
+            builder.Property(t => t.DcTypeId)
+                .HasColumnName("DcTypeId")
+                .HasColumnType("int")
+                .IsRequired();
+
+            builder.Property(t => t.MovementTypeId)
+                .HasColumnName("MovementTypeId")
+                .HasColumnType("int")
+                .IsRequired();
+
             builder.Property(t => t.Remarks)
                 .HasColumnName("Remarks")
                 .HasColumnType("nvarchar(500)")
@@ -138,6 +148,18 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasForeignKey(t => t.StatusId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // Same-module FK: DeliveryChallanHeader → MiscMaster (DcType)
+            builder.HasOne(t => t.DcType)
+                .WithMany(m => m.DeliveryChallanHeadersAsDcType)
+                .HasForeignKey(t => t.DcTypeId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Same-module FK: DeliveryChallanHeader → MovementTypeConfig
+            builder.HasOne(t => t.MovementType)
+                .WithMany(m => m.DeliveryChallanHeaders)
+                .HasForeignKey(t => t.MovementTypeId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             // Child collection: DeliveryChallanHeader → DeliveryChallanDetails
             builder.HasMany(t => t.DeliveryChallanDetails)
                 .WithOne(d => d.DeliveryChallanHeader)
@@ -151,6 +173,8 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             builder.HasIndex(t => t.ToPlantId);
             builder.HasIndex(t => t.TransporterId);
             builder.HasIndex(t => t.StatusId);
+            builder.HasIndex(t => t.DcTypeId);
+            builder.HasIndex(t => t.MovementTypeId);
             builder.HasIndex(t => t.DeliveryDate);
         }
     }
