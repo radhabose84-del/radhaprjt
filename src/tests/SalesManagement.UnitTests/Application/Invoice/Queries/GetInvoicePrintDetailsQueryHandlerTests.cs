@@ -18,7 +18,7 @@ namespace SalesManagement.UnitTests.Application.Invoice.Queries
         [Fact]
         public async Task Handle_ExistingId_ReturnsDto()
         {
-            _mockQueryRepo.Setup(r => r.GetPrintDetailsAsync(1)).ReturnsAsync(new InvoicePrintDto());
+            _mockQueryRepo.Setup(r => r.GetPrintDetailsAsync(1, It.IsAny<bool>())).ReturnsAsync(new InvoicePrintDto());
 
             var result = await CreateSut().Handle(new GetInvoicePrintDetailsQuery(1), CancellationToken.None);
 
@@ -28,7 +28,7 @@ namespace SalesManagement.UnitTests.Application.Invoice.Queries
         [Fact]
         public async Task Handle_NonExistentId_ReturnsNull()
         {
-            _mockQueryRepo.Setup(r => r.GetPrintDetailsAsync(99)).ReturnsAsync((InvoicePrintDto?)null);
+            _mockQueryRepo.Setup(r => r.GetPrintDetailsAsync(99, It.IsAny<bool>())).ReturnsAsync((InvoicePrintDto?)null);
 
             var result = await CreateSut().Handle(new GetInvoicePrintDetailsQuery(99), CancellationToken.None);
 
