@@ -65,13 +65,33 @@ namespace SalesManagement.Application.ComplaintResolution.Commands.SubmitResolut
                 entity.ClosureStatusId = openStatus?.Id;
             }
 
-            // If closure status is "Closed", set closed audit fields
-            if (request.ClosureStatusId.HasValue && request.ClosureStatusId.Value > 0)
+            // Auto-close: if the resolver has filled the type-specific "done" signal,
+            // promote ClosureStatus to "Closed" automatically. Manual "Closed" is blocked
+            // by the validator, so this is the only legitimate path.
+            //   • No Action       — always closeable
+            //   • Credit Note     — FinanceReference filled (operator recorded it after Tally posted)
+            //   • Replacement     — DispatchReference filled
+            //   • Reprocess       — ActionDescription filled
+            //   • Sales Return    — left to the SalesReturn-receipt hook (separate workstream)
+            var resolutionType = await _miscMasterQueryRepository.GetByIdAsync(request.ResolutionTypeId);
+            var resolutionTypeCode = resolutionType?.Code;
+
+            bool autoCloseEligible = resolutionTypeCode switch
+            {
+                MiscEnumEntity.ResolutionNoAction    => true,
+                MiscEnumEntity.ResolutionCreditNote  => !string.IsNullOrWhiteSpace(request.FinanceReference),
+                MiscEnumEntity.ResolutionReplacement => !string.IsNullOrWhiteSpace(request.DispatchReference),
+                MiscEnumEntity.ResolutionReprocess   => !string.IsNullOrWhiteSpace(request.ActionDescription),
+                _                                    => false
+            };
+
+            if (autoCloseEligible)
             {
                 var closedStatus = await _miscMasterQueryRepository.GetMiscMasterByName(
                     MiscEnumEntity.ClosureStatus, MiscEnumEntity.ClosureStatusClosed);
-                if (closedStatus != null && request.ClosureStatusId.Value == closedStatus.Id)
+                if (closedStatus != null)
                 {
+                    entity.ClosureStatusId = closedStatus.Id;
                     entity.ClosedBy = userId;
                     entity.ClosedDate = currentTime;
                 }

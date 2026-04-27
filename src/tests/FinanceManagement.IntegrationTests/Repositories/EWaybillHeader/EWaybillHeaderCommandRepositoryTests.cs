@@ -188,5 +188,71 @@ namespace FinanceManagement.IntegrationTests.Repositories.EWaybillHeader
 
             result.Should().BeFalse();
         }
+
+        // ------------------------------------------------------------------
+        // CREATE with Details — EF cascade via EWaybillDetails nav property
+        // (added with DC → e-waybill detail mapping feature on 2026-04-24)
+        // ------------------------------------------------------------------
+
+        [Fact]
+        public async Task CreateAsync_With_Details_Should_Persist_All_Lines()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            await ClearTablesAsync(ctx);
+
+            var header = BuildEntity(ewbNumber: "EWB-D1", invoiceNo: "DC-D1", invoiceValue: 4500m);
+            header.EWaybillDetails = new List<Domain.Entities.EWaybillDetail>
+            {
+                new() { ItemSno = 1, ItemId = 2222, ItemName = "Yarn",
+                        HsnNo = "5205", IsService = "N",
+                        Qty = 3m, UOM = "KGS", TaxableValue = 4500m,
+                        TaxRate = 0, CGST = 0, SGST = 0, IGST = 0, Cess = 0,
+                        IsActive = true, IsDeleted = false },
+                new() { ItemSno = 2, ItemId = 3333, ItemName = "Cotton",
+                        HsnNo = "5201", IsService = "N",
+                        Qty = 12m, UOM = "NOS", TaxableValue = 8000m,
+                        TaxRate = 0, CGST = 0, SGST = 0, IGST = 0, Cess = 0,
+                        IsActive = true, IsDeleted = false }
+            };
+
+            var newId = await CreateRepository(ctx).CreateAsync(header);
+            ctx.ChangeTracker.Clear();
+
+            // Header saved
+            newId.Should().BeGreaterThan(0);
+
+            // Two detail rows landed, linked to this header
+            var details = await ctx.EWaybillDetail
+                .Where(d => d.EWaybillHeaderId == newId)
+                .OrderBy(d => d.ItemSno)
+                .ToListAsync();
+
+            details.Should().HaveCount(2);
+            details[0].ItemSno.Should().Be(1);
+            details[0].ItemId.Should().Be(2222);
+            details[0].HsnNo.Should().Be("5205");
+            details[0].UOM.Should().Be("KGS");
+            details[0].TaxableValue.Should().Be(4500m);
+            details[1].ItemSno.Should().Be(2);
+            details[1].ItemId.Should().Be(3333);
+            details[1].HsnNo.Should().Be("5201");
+        }
+
+        [Fact]
+        public async Task CreateAsync_With_Empty_Details_Should_Persist_Header_Only()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            await ClearTablesAsync(ctx);
+
+            var header = BuildEntity(ewbNumber: "EWB-D0", invoiceNo: "DC-D0");
+            // No EWaybillDetails set — existing "header-only" contract must still work
+
+            var newId = await CreateRepository(ctx).CreateAsync(header);
+            ctx.ChangeTracker.Clear();
+
+            newId.Should().BeGreaterThan(0);
+            var count = await ctx.EWaybillDetail.CountAsync(d => d.EWaybillHeaderId == newId);
+            count.Should().Be(0);
+        }
     }
 }

@@ -8,7 +8,8 @@ using SalesManagement.Application.Common.Interfaces.IMiscMaster;
 using SalesManagement.Application.Common.Interfaces.IOutbox;
 using SalesManagement.Application.ComplaintResolution.Commands.UpdateResolution;
 using SalesManagement.Application.ComplaintResolution.Dto;
-
+using SalesManagement.Application.MiscMaster.Dto;
+using SalesManagement.Domain.Common;
 using SalesManagement.Domain.Events;
 
 namespace SalesManagement.UnitTests.Application.ComplaintResolution.Commands;
@@ -115,5 +116,151 @@ public sealed class UpdateResolutionCommandHandlerTests
                     e.ActionCode == "COMPLAINT_RESOLUTION_UPDATE"),
                 It.IsAny<CancellationToken>()),
             Times.Once);
+    }
+
+    // ---------------------------------------------------------------------------
+    // Auto-close: ClosureStatus → Closed when type-specific "done" signal is present.
+    // ---------------------------------------------------------------------------
+
+    private const int ClosedStatusId = 999;
+
+    private (Mock<IComplaintResolutionCommandRepository> repo,
+             global::SalesManagement.Domain.Entities.ComplaintResolution captured)
+        SetupAutoCloseScenario(string resolutionTypeCode)
+    {
+        var captured = new global::SalesManagement.Domain.Entities.ComplaintResolution { Id = 1 };
+
+        _mockMapper
+            .Setup(m => m.Map<global::SalesManagement.Domain.Entities.ComplaintResolution>(It.IsAny<UpdateResolutionCommand>()))
+            .Returns(captured);
+
+        _mockIpService.Setup(s => s.GetUserId()).Returns(7);
+        _mockIpService.Setup(s => s.GetUnitId()).Returns(1);
+        _mockTzService.Setup(s => s.GetSystemTimeZone()).Returns("UTC");
+        _mockTzService.Setup(s => s.GetCurrentTime(It.IsAny<string>())).Returns(DateTimeOffset.UtcNow);
+
+        // Mock the resolution type lookup
+        _mockMiscRepo
+            .Setup(r => r.GetByIdAsync(It.IsAny<int>()))
+            .ReturnsAsync(new MiscMasterDto { Id = 1, Code = resolutionTypeCode });
+
+        // Mock the Closed status lookup
+        _mockMiscRepo
+            .Setup(r => r.GetMiscMasterByName(MiscEnumEntity.ClosureStatus, MiscEnumEntity.ClosureStatusClosed))
+            .ReturnsAsync(new global::SalesManagement.Domain.Entities.MiscMaster
+            {
+                Id = ClosedStatusId, Code = MiscEnumEntity.ClosureStatusClosed
+            });
+
+        _mockCommandRepo
+            .Setup(r => r.UpdateAsync(It.IsAny<global::SalesManagement.Domain.Entities.ComplaintResolution>()))
+            .ReturnsAsync(1);
+
+        _mockQueryRepo
+            .Setup(r => r.GetByIdAsync(It.IsAny<int>()))
+            .ReturnsAsync(new ComplaintResolutionDto { Id = 1, ComplaintHeaderId = 5 });
+
+        return (_mockCommandRepo, captured);
+    }
+
+    [Fact]
+    public async Task Handle_NoActionType_AutoClosesAlways()
+    {
+        var (_, captured) = SetupAutoCloseScenario(MiscEnumEntity.ResolutionNoAction);
+
+        await CreateSut().Handle(new UpdateResolutionCommand
+        {
+            Id = 1, ResolutionTypeId = 3, ResolutionSummary = "Nothing to do", IsActive = 1
+        }, CancellationToken.None);
+
+        captured.ClosureStatusId.Should().Be(ClosedStatusId);
+        captured.ClosedBy.Should().Be(7);
+        captured.ClosedDate.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task Handle_CreditNoteWithFinanceReference_AutoCloses()
+    {
+        var (_, captured) = SetupAutoCloseScenario(MiscEnumEntity.ResolutionCreditNote);
+
+        await CreateSut().Handle(new UpdateResolutionCommand
+        {
+            Id = 1, ResolutionTypeId = 3, ResolutionSummary = "Credit issued",
+            CreditAmount = 1000m, FinanceReference = "CN-2026-001", IsActive = 1
+        }, CancellationToken.None);
+
+        captured.ClosureStatusId.Should().Be(ClosedStatusId);
+        captured.ClosedBy.Should().Be(7);
+    }
+
+    [Fact]
+    public async Task Handle_CreditNoteWithoutFinanceReference_DoesNotAutoClose()
+    {
+        var (_, captured) = SetupAutoCloseScenario(MiscEnumEntity.ResolutionCreditNote);
+
+        await CreateSut().Handle(new UpdateResolutionCommand
+        {
+            Id = 1, ResolutionTypeId = 3, ResolutionSummary = "Credit pending",
+            CreditAmount = 1000m, FinanceReference = null, IsActive = 1
+        }, CancellationToken.None);
+
+        captured.ClosureStatusId.Should().NotBe(ClosedStatusId);
+        captured.ClosedBy.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task Handle_ReplacementWithDispatchReference_AutoCloses()
+    {
+        var (_, captured) = SetupAutoCloseScenario(MiscEnumEntity.ResolutionReplacement);
+
+        await CreateSut().Handle(new UpdateResolutionCommand
+        {
+            Id = 1, ResolutionTypeId = 3, ResolutionSummary = "Replacement sent",
+            ReplacementQuantity = 5m, DispatchReference = "DA-2026-001", IsActive = 1
+        }, CancellationToken.None);
+
+        captured.ClosureStatusId.Should().Be(ClosedStatusId);
+    }
+
+    [Fact]
+    public async Task Handle_ReprocessWithActionDescription_AutoCloses()
+    {
+        var (_, captured) = SetupAutoCloseScenario(MiscEnumEntity.ResolutionReprocess);
+
+        await CreateSut().Handle(new UpdateResolutionCommand
+        {
+            Id = 1, ResolutionTypeId = 3, ResolutionSummary = "Reprocessed",
+            ActionDescription = "Re-spun the lot through machine 12", IsActive = 1
+        }, CancellationToken.None);
+
+        captured.ClosureStatusId.Should().Be(ClosedStatusId);
+    }
+
+    [Fact]
+    public async Task Handle_SalesReturnType_DoesNotAutoClose()
+    {
+        // Sales Return auto-close is the SalesReturn-receipt hook (separate workstream).
+        var (_, captured) = SetupAutoCloseScenario(MiscEnumEntity.ResolutionSalesReturn);
+
+        await CreateSut().Handle(new UpdateResolutionCommand
+        {
+            Id = 1, ResolutionTypeId = 3, ResolutionSummary = "Awaiting goods receipt",
+            ReturnQuantity = 5m, ReturnLocationId = 1, IsActive = 1
+        }, CancellationToken.None);
+
+        captured.ClosureStatusId.Should().NotBe(ClosedStatusId);
+    }
+
+    [Fact]
+    public async Task Handle_UnknownTypeCode_DoesNotAutoClose()
+    {
+        var (_, captured) = SetupAutoCloseScenario("SomeFutureType");
+
+        await CreateSut().Handle(new UpdateResolutionCommand
+        {
+            Id = 1, ResolutionTypeId = 3, ResolutionSummary = "Unknown", IsActive = 1
+        }, CancellationToken.None);
+
+        captured.ClosureStatusId.Should().NotBe(ClosedStatusId);
     }
 }

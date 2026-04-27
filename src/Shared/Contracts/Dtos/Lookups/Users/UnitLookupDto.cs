@@ -11,6 +11,9 @@ namespace Contracts.Dtos.Lookups.Users
         public int UnitTypeId { get; set; }
         public string? UnitTypeName { get; set; }
         public int DivisionId { get; set; }
+        // Plant/Unit → Company bridge — needed by cross-module callers that traverse
+        // Unit → Company → GSTIN (e.g., e-waybill generation).
+        public int CompanyId { get; set; }
 
     }
 }

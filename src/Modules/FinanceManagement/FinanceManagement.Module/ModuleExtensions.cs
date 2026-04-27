@@ -3,6 +3,7 @@ using Contracts.Common;
 using Contracts.Dtos.Finance;
 using FinanceManagement.Application.Common.Mappings;
 using FinanceManagement.Application.EInvoiceHeader.Commands.CreateEInvoiceFromSales;
+using FinanceManagement.Application.EWaybillHeader.Commands.CreateEWaybillHeader;
 using FinanceManagement.Infrastructure;
 using FinanceManagement.Presentation.Validation.Common;
 using FluentValidation;
@@ -34,6 +35,12 @@ namespace FinanceManagement.Module
             // MediatR 12.x TryAddTransient may skip handlers when AddMediatR is called multiple times
             services.AddTransient<IRequestHandler<CreateEInvoiceFromSalesCommand, ApiResponseDTO<EInvoiceCreationResultDto>>,
                 CreateEInvoiceFromSalesCommandHandler>();
+
+            // ✅ 2c) Cross-module dispatch — Sales DeliveryChallan's "Generate E-Waybill"
+            // endpoint sends CreateEWaybillHeaderCommand via MediatR. Explicit registration
+            // protects against AddMediatR TryAddTransient skipping this handler.
+            services.AddTransient<IRequestHandler<CreateEWaybillHeaderCommand, ApiResponseDTO<int>>,
+                CreateEWaybillHeaderCommandHandler>();
 
             // ✅ 3) AutoMapper profiles from Application (register ALL profiles)
             services.AddAutoMapper(applicationAssembly);

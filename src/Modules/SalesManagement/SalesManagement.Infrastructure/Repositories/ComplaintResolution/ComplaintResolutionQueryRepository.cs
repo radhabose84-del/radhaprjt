@@ -541,5 +541,30 @@ namespace SalesManagement.Infrastructure.Repositories.ComplaintResolution
             var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = id });
             return count > 0;
         }
+
+        public async Task<bool> IsClosureStatusClosedAsync(int closureStatusId)
+        {
+            // Resolves whether the given MiscMaster Id is (MiscTypeCode='ClosureStatus', Code='Closed').
+            // Used by validators to block resolvers from setting Closed manually — Closed is
+            // a system-set state, only valid when the downstream artifact (Credit Note,
+            // Sales Return receipt, Replacement dispatch) is verified complete.
+            const string sql = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1 FROM Sales.MiscMaster mm
+                    INNER JOIN Sales.MiscTypeMaster mt ON mm.MiscTypeId = mt.Id
+                    WHERE mm.Id = @Id
+                      AND mt.MiscTypeCode = @ClosureStatusType
+                      AND mm.Code = @ClosedCode
+                      AND mm.IsDeleted = 0
+                      AND mt.IsDeleted = 0
+                ) THEN 1 ELSE 0 END";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new
+            {
+                Id = closureStatusId,
+                ClosureStatusType = MiscEnumEntity.ClosureStatus,
+                ClosedCode = MiscEnumEntity.ClosureStatusClosed
+            });
+        }
     }
 }
