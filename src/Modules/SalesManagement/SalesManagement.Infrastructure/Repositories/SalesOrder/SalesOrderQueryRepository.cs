@@ -116,6 +116,11 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     et.Description AS EnquiryTypeName,
                     h.UnitId, h.PartyId, h.PartyAddress, h.AgentId, h.SubAgentId,
                     h.SalesOrderTypeId,
+                    h.SalesOrderTypeMasterId,
+                    sotm.TypeName AS SalesOrderTypeMasterName,
+                    h.SalesEnquiryHeaderId,
+                    h.CustomerPoRefno,
+                    h.ComplaintRefno,
                     h.OrderUnitId,
                     h.PaymentTypeId,
                     pt.Description AS PaymentTypeName,
@@ -157,6 +162,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 FROM Sales.SalesOrderHeader h
                 LEFT JOIN Sales.SalesGroup sg ON h.SalesGroupId = sg.Id AND sg.IsDeleted = 0
                 LEFT JOIN Sales.SalesSegment ss ON h.SalesSegmentId = ss.Id AND ss.IsDeleted = 0
+                LEFT JOIN Sales.SalesOrderTypeMaster sotm ON h.SalesOrderTypeMasterId = sotm.Id AND sotm.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster et ON h.EnquiryType = et.Id AND et.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster pt ON h.PaymentTypeId = pt.Id AND pt.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster ft ON h.FreightTypeId = ft.Id AND ft.IsDeleted = 0
@@ -298,6 +304,11 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     et.Description AS EnquiryTypeName,
                     h.UnitId, h.PartyId, h.PartyAddress, h.AgentId, h.SubAgentId,
                     h.SalesOrderTypeId,
+                    h.SalesOrderTypeMasterId,
+                    sotm.TypeName AS SalesOrderTypeMasterName,
+                    h.SalesEnquiryHeaderId,
+                    h.CustomerPoRefno,
+                    h.ComplaintRefno,
                     h.OrderUnitId,
                     h.PaymentTypeId,
                     pt.Description AS PaymentTypeName,
@@ -326,6 +337,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 FROM Sales.SalesOrderHeader h
                 LEFT JOIN Sales.SalesGroup sg ON h.SalesGroupId = sg.Id AND sg.IsDeleted = 0
                 LEFT JOIN Sales.SalesSegment ss ON h.SalesSegmentId = ss.Id AND ss.IsDeleted = 0
+                LEFT JOIN Sales.SalesOrderTypeMaster sotm ON h.SalesOrderTypeMasterId = sotm.Id AND sotm.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster et ON h.EnquiryType = et.Id AND et.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster pt ON h.PaymentTypeId = pt.Id AND pt.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster ft ON h.FreightTypeId = ft.Id AND ft.IsDeleted = 0
@@ -799,6 +811,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 FROM Sales.SalesOrderHeader h
                 LEFT JOIN Sales.SalesGroup sg ON h.SalesGroupId = sg.Id AND sg.IsDeleted = 0
                 LEFT JOIN Sales.SalesSegment ss ON h.SalesSegmentId = ss.Id AND ss.IsDeleted = 0
+                LEFT JOIN Sales.SalesOrderTypeMaster sotm ON h.SalesOrderTypeMasterId = sotm.Id AND sotm.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster et ON h.EnquiryType = et.Id AND et.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster st2 ON h.StatusId = st2.Id AND st2.IsDeleted = 0
                 INNER JOIN Sales.MiscMaster stf ON h.StatusId = stf.Id AND stf.IsDeleted = 0

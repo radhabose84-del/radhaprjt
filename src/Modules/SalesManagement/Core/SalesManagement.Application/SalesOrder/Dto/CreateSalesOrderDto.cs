@@ -18,6 +18,16 @@ namespace SalesManagement.Application.SalesOrder.Dto
         // Sales Order Type (cross-module FK → Finance.TransactionTypeMaster)
         public int? SalesOrderTypeId { get; set; }
 
+        // Same-module FK → Sales.SalesOrderTypeMaster (nullable)
+        public int? SalesOrderTypeMasterId { get; set; }
+
+        // Same-module FK → Sales.SalesEnquiryHeader (nullable)
+        public int? SalesEnquiryHeaderId { get; set; }
+
+        // Reference numbers (nullable)
+        public string? CustomerPoRefno { get; set; }
+        public string? ComplaintRefno { get; set; }
+
         // Commercial Details
         public int? PaymentTypeId { get; set; }
         public int FreightTypeId { get; set; }

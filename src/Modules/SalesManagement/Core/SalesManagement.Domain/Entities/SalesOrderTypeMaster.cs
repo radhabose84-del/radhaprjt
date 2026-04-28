@@ -29,5 +29,8 @@ namespace SalesManagement.Domain.Entities
 
         // Navigation (same-module only)
         public MiscMaster? SoType { get; set; }
+
+        // Reverse navigation (SalesOrder)
+        public ICollection<SalesOrderHeader>? SalesOrderHeaders { get; set; }
     }
 }
