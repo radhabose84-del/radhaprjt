@@ -27,6 +27,8 @@ using SalesManagement.Application.Common.Interfaces.IMiscTypeMaster;
 using SalesManagement.Infrastructure.Repositories.MiscTypeMaster;
 using SalesManagement.Application.Common.Interfaces.IMiscMaster;
 using SalesManagement.Infrastructure.Repositories.MiscMaster;
+using SalesManagement.Application.Common.Interfaces.ISalesOrderTypeMaster;
+using SalesManagement.Infrastructure.Repositories.SalesOrderTypeMaster;
 using SalesManagement.Application.Common.Interfaces.IAgentCommissionConfig;
 using SalesManagement.Infrastructure.Repositories.AgentCommissionConfig;
 using SalesManagement.Application.Common.Interfaces.IDispatchAddressMaster;
@@ -226,6 +228,10 @@ namespace SalesManagement.Infrastructure
             // ── Misc Master Repositories ──────────────────────────────────
             services.AddScoped<IMiscMasterCommandRepository, MiscMasterCommandRepository>();
             services.AddScoped<IMiscMasterQueryRepository, MiscMasterQueryRepository>();
+
+            // ── Sales Order Type Master Repositories ──────────────────────
+            services.AddScoped<ISalesOrderTypeMasterCommandRepository, SalesOrderTypeMasterCommandRepository>();
+            services.AddScoped<ISalesOrderTypeMasterQueryRepository, SalesOrderTypeMasterQueryRepository>();
 
             // ── Agent Commission Configuration Repositories ─────────────
             services.AddScoped<IAgentCommissionConfigCommandRepository, AgentCommissionConfigCommandRepository>();
