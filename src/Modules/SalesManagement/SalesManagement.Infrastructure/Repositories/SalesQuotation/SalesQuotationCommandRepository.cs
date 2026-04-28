@@ -1,4 +1,6 @@
+using Contracts.Interfaces.Lookups.Finance;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using SalesManagement.Application.Common.Interfaces.ISalesQuotation;
 using SalesManagement.Domain.Entities;
 using SalesManagement.Infrastructure.Data;
@@ -9,13 +11,17 @@ namespace SalesManagement.Infrastructure.Repositories.SalesQuotation
     public class SalesQuotationCommandRepository : ISalesQuotationCommandRepository
     {
         private readonly ApplicationDbContext _applicationDbContext;
+        private readonly IDocumentSequenceLookup _documentSequenceLookup;
 
-        public SalesQuotationCommandRepository(ApplicationDbContext applicationDbContext)
+        public SalesQuotationCommandRepository(
+            ApplicationDbContext applicationDbContext,
+            IDocumentSequenceLookup documentSequenceLookup)
         {
             _applicationDbContext = applicationDbContext;
+            _documentSequenceLookup = documentSequenceLookup;
         }
 
-        public async Task<int> CreateAsync(SalesQuotationHeader entity)
+        public async Task<int> CreateAsync(SalesQuotationHeader entity, int transactionTypeId)
         {
             var strategy = _applicationDbContext.Database.CreateExecutionStrategy();
 
@@ -43,6 +49,12 @@ namespace SalesManagement.Infrastructure.Repositories.SalesQuotation
                         await _applicationDbContext.SaveChangesAsync();
                     }
 
+                    // Increment DocNo via lookup — same connection + transaction
+                    var dbConnection = _applicationDbContext.Database.GetDbConnection();
+                    var dbTransaction = transaction.GetDbTransaction();
+                    await _documentSequenceLookup.IncrementDocNoAsync(transactionTypeId, dbConnection, dbTransaction);
+
+                    await _applicationDbContext.SaveChangesAsync();
                     await transaction.CommitAsync();
                     return entity.Id;
                 }

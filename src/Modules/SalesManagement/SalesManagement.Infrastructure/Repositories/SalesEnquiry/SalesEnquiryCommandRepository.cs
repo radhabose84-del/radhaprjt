@@ -1,4 +1,6 @@
+using Contracts.Interfaces.Lookups.Finance;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using SalesManagement.Application.Common.Interfaces.ISalesEnquiry;
 using SalesManagement.Domain.Entities;
 using SalesManagement.Infrastructure.Data;
@@ -9,17 +11,59 @@ namespace SalesManagement.Infrastructure.Repositories.SalesEnquiry
     public class SalesEnquiryCommandRepository : ISalesEnquiryCommandRepository
     {
         private readonly ApplicationDbContext _applicationDbContext;
+        private readonly IDocumentSequenceLookup _documentSequenceLookup;
 
-        public SalesEnquiryCommandRepository(ApplicationDbContext applicationDbContext)
+        public SalesEnquiryCommandRepository(
+            ApplicationDbContext applicationDbContext,
+            IDocumentSequenceLookup documentSequenceLookup)
         {
             _applicationDbContext = applicationDbContext;
+            _documentSequenceLookup = documentSequenceLookup;
         }
 
-        public async Task<int> CreateAsync(SalesEnquiryHeader entity)
+        public async Task<int> CreateAsync(SalesEnquiryHeader entity, int transactionTypeId)
         {
-            await _applicationDbContext.SalesEnquiryHeader.AddAsync(entity);
-            await _applicationDbContext.SaveChangesAsync();
-            return entity.Id;
+            var strategy = _applicationDbContext.Database.CreateExecutionStrategy();
+
+            return await strategy.ExecuteAsync(async () =>
+            {
+                using var transaction = await _applicationDbContext.Database.BeginTransactionAsync();
+                try
+                {
+                    // Separate details from header
+                    var details = entity.SalesEnquiryDetails?.ToList();
+                    entity.SalesEnquiryDetails = null;
+
+                    // Insert header
+                    await _applicationDbContext.SalesEnquiryHeader.AddAsync(entity);
+                    await _applicationDbContext.SaveChangesAsync();
+
+                    // Insert details
+                    if (details != null && details.Count > 0)
+                    {
+                        foreach (var detail in details)
+                        {
+                            detail.SalesEnquiryHeaderId = entity.Id;
+                            await _applicationDbContext.SalesEnquiryDetail.AddAsync(detail);
+                        }
+                        await _applicationDbContext.SaveChangesAsync();
+                    }
+
+                    // Increment DocNo via lookup — same connection + transaction
+                    var dbConnection = _applicationDbContext.Database.GetDbConnection();
+                    var dbTransaction = transaction.GetDbTransaction();
+                    await _documentSequenceLookup.IncrementDocNoAsync(transactionTypeId, dbConnection, dbTransaction);
+
+                    await _applicationDbContext.SaveChangesAsync();
+                    await transaction.CommitAsync();
+                    return entity.Id;
+                }
+                catch
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
+            });
         }
 
         public async Task<int> UpdateAsync(SalesEnquiryHeader entity)

@@ -58,6 +58,10 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("int")
                 .IsRequired(false);
 
+            builder.Property(t => t.VariantId)
+                .HasColumnType("int")
+                .IsRequired(false);
+
             builder.Property(t => t.RequirementQty)
                 .HasColumnType("decimal(18,2)")
                 .IsRequired(false);

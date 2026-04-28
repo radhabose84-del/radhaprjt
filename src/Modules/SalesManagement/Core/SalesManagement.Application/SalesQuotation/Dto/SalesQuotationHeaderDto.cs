@@ -3,6 +3,7 @@ namespace SalesManagement.Application.SalesQuotation.Dto
     public class SalesQuotationHeaderDto
     {
         public int Id { get; set; }
+        public string? QuotationNo { get; set; }
         public int CustomerId { get; set; }
         public string? CustomerName { get; set; }
         public DateOnly QuotationDate { get; set; }

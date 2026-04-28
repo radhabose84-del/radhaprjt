@@ -43,7 +43,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesQuotation
         {
             var searchFilter = string.IsNullOrWhiteSpace(searchTerm)
                 ? ""
-                : "AND (h.Remarks LIKE @Search OR sc.ContactName LIKE @Search OR mm.Description LIKE @Search)";
+                : "AND (h.QuotationNo LIKE @Search OR h.Remarks LIKE @Search OR sc.ContactName LIKE @Search OR mm.Description LIKE @Search)";
 
             // Marketing Officer access scoping
             var moFilter = "";
@@ -72,7 +72,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesQuotation
                 LEFT JOIN Sales.MiscMaster sm ON h.StatusId = sm.Id AND sm.IsDeleted = 0
                 WHERE h.IsDeleted = 0 {searchFilter} {moFilter};
 
-                SELECT h.Id, h.CustomerId, h.QuotationDate,
+                SELECT h.Id, h.QuotationNo, h.CustomerId, h.QuotationDate,
                     h.SalesEnquiryId, h.ContactPersonId,
                     sc.ContactName AS ContactPersonName,
                     h.ValidityDate, h.PaymentTermId, h.Remarks,
@@ -183,7 +183,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesQuotation
             }
 
             var headerSql = $@"
-                SELECT h.Id, h.CustomerId, h.QuotationDate,
+                SELECT h.Id, h.QuotationNo, h.CustomerId, h.QuotationDate,
                     h.SalesEnquiryId, h.ContactPersonId,
                     sc.ContactName AS ContactPersonName,
                     h.ValidityDate, h.PaymentTermId, h.Remarks,
@@ -279,11 +279,11 @@ namespace SalesManagement.Infrastructure.Repositories.SalesQuotation
             }
 
             var sql = $@"
-                SELECT h.Id, h.QuotationDate, h.GrandTotal,
+                SELECT h.Id, h.QuotationNo, h.QuotationDate, h.GrandTotal,
                     (SELECT COUNT(*) FROM Sales.SalesQuotationDetail d WHERE d.SalesQuotationHeaderId = h.Id) AS TotalItems
                 FROM Sales.SalesQuotationHeader h
                 WHERE h.IsActive = 1 AND h.IsDeleted = 0
-                AND (CAST(h.Id AS VARCHAR) LIKE @Term OR h.Remarks LIKE @Term)
+                AND (h.QuotationNo LIKE @Term OR CAST(h.Id AS VARCHAR) LIKE @Term OR h.Remarks LIKE @Term)
                 {moFilter}
                 ORDER BY h.Id DESC";
 

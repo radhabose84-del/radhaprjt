@@ -1,10 +1,11 @@
 using SalesManagement.Domain.Entities;
 using AutoMapper;
 using Contracts.Common;
+using Contracts.Interfaces;
+using Contracts.Interfaces.Lookups.Finance;
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.ISalesEnquiry;
 using SalesManagement.Application.SalesEnquiry.Commands.CreateSalesEnquiry;
-
 using SalesManagement.Domain.Events;
 
 namespace SalesManagement.UnitTests.Application.SalesEnquiry.Commands;
@@ -15,9 +16,12 @@ public sealed class CreateSalesEnquiryCommandHandlerTests
     private readonly Mock<ISalesEnquiryQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
     private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Loose);
     private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Loose);
+    private readonly Mock<IDocumentSequenceLookup> _mockDocSeqLookup = new(MockBehavior.Loose);
+    private readonly Mock<IIPAddressService> _mockIpService = new(MockBehavior.Loose);
 
     private CreateSalesEnquiryCommandHandler CreateSut() =>
-        new(_mockCommandRepo.Object, _mockQueryRepo.Object, _mockMapper.Object, _mockMediator.Object);
+        new(_mockCommandRepo.Object, _mockQueryRepo.Object, _mockMapper.Object, _mockMediator.Object,
+            _mockDocSeqLookup.Object, _mockIpService.Object);
 
     private CreateSalesEnquiryCommand BuildCommand() =>
         new()
@@ -39,8 +43,18 @@ public sealed class CreateSalesEnquiryCommandHandlerTests
             .Setup(m => m.Map<SalesEnquiryHeader>(It.IsAny<object>()))
             .Returns(new SalesEnquiryHeader { PartyId = 1 });
 
+        _mockIpService.Setup(s => s.GetUnitId()).Returns(1);
+
+        _mockDocSeqLookup
+            .Setup(d => d.GetTransactionTypeIdAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()))
+            .ReturnsAsync(5);
+
+        _mockDocSeqLookup
+            .Setup(d => d.GenerateDocumentNumber(It.IsAny<int>()))
+            .ReturnsAsync(new List<string> { "SE-0001" });
+
         _mockCommandRepo
-            .Setup(r => r.CreateAsync(It.IsAny<SalesEnquiryHeader>()))
+            .Setup(r => r.CreateAsync(It.IsAny<SalesEnquiryHeader>(), It.IsAny<int>()))
             .ReturnsAsync(newId);
     }
 
@@ -59,7 +73,7 @@ public sealed class CreateSalesEnquiryCommandHandlerTests
         await CreateSut().Handle(BuildCommand(), CancellationToken.None);
 
         _mockCommandRepo.Verify(
-            r => r.CreateAsync(It.IsAny<SalesEnquiryHeader>()),
+            r => r.CreateAsync(It.IsAny<SalesEnquiryHeader>(), It.IsAny<int>()),
             Times.Once);
     }
 

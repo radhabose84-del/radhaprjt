@@ -1,5 +1,7 @@
 using AutoMapper;
 using Contracts.Common;
+using Contracts.Interfaces;
+using Contracts.Interfaces.Lookups.Finance;
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.IMiscMaster;
 using SalesManagement.Application.Common.Interfaces.ISalesQuotation;
@@ -16,10 +18,12 @@ public sealed class CreateSalesQuotationCommandHandlerTests
     private readonly Mock<IMiscMasterQueryRepository> _mockMiscRepo = new(MockBehavior.Loose);
     private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Loose);
     private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Loose);
+    private readonly Mock<IDocumentSequenceLookup> _mockDocSeqLookup = new(MockBehavior.Loose);
+    private readonly Mock<IIPAddressService> _mockIpService = new(MockBehavior.Loose);
 
     private CreateSalesQuotationCommandHandler CreateSut() =>
         new(_mockCommandRepo.Object, _mockQueryRepo.Object, _mockMiscRepo.Object,
-            _mockMapper.Object, _mockMediator.Object);
+            _mockMapper.Object, _mockMediator.Object, _mockDocSeqLookup.Object, _mockIpService.Object);
 
     private void SetupHappyPath(int newId = 1)
     {
@@ -31,8 +35,18 @@ public sealed class CreateSalesQuotationCommandHandlerTests
             .Setup(r => r.GetMiscMasterByName(It.IsAny<string>(), It.IsAny<string>()))
             .ReturnsAsync(new SalesManagement.Domain.Entities.MiscMaster { Id = 10, Description = "Pending" });
 
+        _mockIpService.Setup(s => s.GetUnitId()).Returns(1);
+
+        _mockDocSeqLookup
+            .Setup(d => d.GetTransactionTypeIdAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()))
+            .ReturnsAsync(5);
+
+        _mockDocSeqLookup
+            .Setup(d => d.GenerateDocumentNumber(It.IsAny<int>()))
+            .ReturnsAsync(new List<string> { "SQ-0001" });
+
         _mockCommandRepo
-            .Setup(r => r.CreateAsync(It.IsAny<SalesQuotationHeader>()))
+            .Setup(r => r.CreateAsync(It.IsAny<SalesQuotationHeader>(), It.IsAny<int>()))
             .ReturnsAsync(newId);
     }
 

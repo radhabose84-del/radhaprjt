@@ -17,6 +17,7 @@ namespace SalesManagement.Domain.Entities
 
         // Requirement snapshot
         public int? ItemId { get; set; }                // cross-module FK → InventoryManagement (no DB constraint)
+        public int? VariantId { get; set; }              // cross-module FK → InventoryManagement (no DB constraint)
         public decimal? RequirementQty { get; set; }
         public DateOnly? ExpectedDate { get; set; }
         public string? Remarks { get; set; }
