@@ -91,5 +91,8 @@ namespace SalesManagement.Domain.Entities
         // Reverse navigation (ProformaInvoice)
         public ICollection<ProformaInvoice>? ProformaInvoicesAsStatus { get; set; }
 
+        // Reverse navigation (SalesOrderTypeMaster — SoType FK)
+        public ICollection<SalesOrderTypeMaster>? SalesOrderTypeMastersAsSoType { get; set; }
+
     }
 }

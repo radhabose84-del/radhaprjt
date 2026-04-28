@@ -92,6 +92,7 @@ namespace SalesManagement.Infrastructure.Data
         public DbSet<ProformaInvoice> ProformaInvoice { get; set; }
         public DbSet<TripSheetHeader> TripSheetHeader { get; set; }
         public DbSet<TripSheetDetail> TripSheetDetail { get; set; }
+        public DbSet<SalesOrderTypeMaster> SalesOrderTypeMaster { get; set; }
 
         // ── Outbox (SQL-based for workflow transaction atomicity) ─────────
         public DbSet<OutboxMessage> OutboxMessages { get; set; }
@@ -165,6 +166,7 @@ namespace SalesManagement.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new ProformaInvoiceConfiguration());
             modelBuilder.ApplyConfiguration(new TripSheetHeaderConfiguration());
             modelBuilder.ApplyConfiguration(new TripSheetDetailConfiguration());
+            modelBuilder.ApplyConfiguration(new SalesOrderTypeMasterConfiguration());
             // ── Outbox (SQL-based for workflow) ─────────────────────────────
             modelBuilder.ApplyConfiguration(new OutboxMessageConfiguration());
 
