@@ -9,6 +9,7 @@ using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Logistics;
 using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Production;
+using Contracts.Interfaces.Lookups.Users;
 using Contracts.Interfaces.Lookups.Warehouse;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
@@ -26,13 +27,25 @@ namespace SalesManagement.IntegrationTests.Repositories.DispatchAdvice
         private readonly DbFixture _fixture;
         public DispatchAdviceQueryRepositoryTests(DbFixture fixture) => _fixture = fixture;
 
-        private DispatchAdviceQueryRepository CreateRepo()
+        private DispatchAdviceQueryRepository CreateRepo(IPartyLookup? partyLookup = null)
         {
-            var party = new Mock<IPartyLookup>(MockBehavior.Loose);
-            party.Setup(p => p.GetByIdsAsync(It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((IEnumerable<int> ids, CancellationToken _) =>
-                    (IReadOnlyList<PartyLookupDto>)ids.Select(id =>
-                        new PartyLookupDto { Id = id, PartyName = "Party " + id }).ToList());
+            IPartyLookup party;
+            if (partyLookup != null)
+            {
+                party = partyLookup;
+            }
+            else
+            {
+                var partyMock = new Mock<IPartyLookup>(MockBehavior.Loose);
+                partyMock.Setup(p => p.GetByIdsAsync(It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync((IEnumerable<int> ids, CancellationToken _) =>
+                        (IReadOnlyList<PartyLookupDto>)ids.Select(id =>
+                            new PartyLookupDto { Id = id, PartyName = "Party " + id }).ToList());
+                partyMock.Setup(p => p.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync((int id, CancellationToken _) =>
+                        new PartyLookupDto { Id = id, PartyName = "Party " + id });
+                party = partyMock.Object;
+            }
 
             var item = new Mock<IItemLookup>(MockBehavior.Loose);
             item.Setup(i => i.GetByIdsAsync(It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))
@@ -72,11 +85,43 @@ namespace SalesManagement.IntegrationTests.Repositories.DispatchAdvice
             uom.Setup(u => u.GetByIdsAsync(It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync((IReadOnlyList<UOMLookupDto>)new List<UOMLookupDto>());
 
+            var city = new Mock<ICityLookup>(MockBehavior.Loose);
+            city.Setup(c => c.GetAllCityAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new List<CityLookupDto>());
+
+            var state = new Mock<IStateLookup>(MockBehavior.Loose);
+            state.Setup(s => s.GetAllStatesAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new List<StateLookupDto>());
+
+            var country = new Mock<ICountryLookup>(MockBehavior.Loose);
+            country.Setup(c => c.GetAllCountriesAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new List<CountryLookupDto>());
+
             return new DispatchAdviceQueryRepository(
                 new SqlConnection(_fixture.ConnectionString),
-                party.Object, item.Object, hsn.Object, ip.Object,
+                party, item.Object, hsn.Object, ip.Object,
                 packType.Object, lot.Object, freight.Object,
-                warehouse.Object, bin.Object, uom.Object);
+                warehouse.Object, bin.Object, uom.Object,
+                city.Object, state.Object, country.Object);
+        }
+
+        private static IPartyLookup BuildPartyLookupWithAddresses(int partyId, params PartyAddressLookupDto[] addresses)
+        {
+            var dto = new PartyLookupDto
+            {
+                Id = partyId,
+                PartyName = "Party " + partyId,
+                Addresses = addresses.ToList()
+            };
+            var mock = new Mock<IPartyLookup>(MockBehavior.Loose);
+            mock.Setup(p => p.GetByIdsAsync(It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((IEnumerable<int> ids, CancellationToken _) =>
+                    (IReadOnlyList<PartyLookupDto>)ids.Select(id =>
+                        id == partyId ? dto : new PartyLookupDto { Id = id, PartyName = "Party " + id }).ToList());
+            mock.Setup(p => p.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((int id, CancellationToken _) =>
+                    id == partyId ? dto : new PartyLookupDto { Id = id, PartyName = "Party " + id });
+            return mock.Object;
         }
 
         private async Task<int> EnsureMiscAsync(ApplicationDbContext ctx, int miscTypeId, string code)
@@ -327,6 +372,269 @@ namespace SalesManagement.IntegrationTests.Repositories.DispatchAdvice
 
             // OrderUnitId is nullable and not seeded in test fixture — returns 0 via ExecuteScalar<int>
             result.Should().Be(0);
+        }
+
+        // -----------------------------------------------------------------------------------------
+        // DispatchAddress array shape — Direct-To-Party / Others / Unknown
+        // -----------------------------------------------------------------------------------------
+
+        private async Task<int> EnsureMiscWithDescriptionAsync(string code, string description)
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var mt = await ctx.MiscTypeMaster.FirstOrDefaultAsync(x => x.MiscTypeCode == "DAQ_MT");
+            if (mt == null)
+            {
+                mt = new SalesManagement.Domain.Entities.MiscTypeMaster
+                {
+                    MiscTypeCode = "DAQ_MT",
+                    Description = "DA Misc",
+                    IsActive = Status.Active,
+                    IsDeleted = IsDelete.NotDeleted
+                };
+                await ctx.MiscTypeMaster.AddAsync(mt);
+                await ctx.SaveChangesAsync();
+            }
+            var existing = await ctx.MiscMaster.FirstOrDefaultAsync(x => x.MiscTypeId == mt.Id && x.Code == code);
+            if (existing != null)
+            {
+                if (existing.Description != description)
+                {
+                    existing.Description = description;
+                    await ctx.SaveChangesAsync();
+                }
+                return existing.Id;
+            }
+            var m = new SalesManagement.Domain.Entities.MiscMaster
+            {
+                MiscTypeId = mt.Id,
+                Code = code,
+                Description = description,
+                IsActive = Status.Active,
+                IsDeleted = IsDelete.NotDeleted
+            };
+            await ctx.MiscMaster.AddAsync(m);
+            await ctx.SaveChangesAsync();
+            return m.Id;
+        }
+
+        private async Task<int> SeedDispatchAddressMasterAsync(string name, string addr1, string addr2,
+            int cityId, int stateId, int countryId, string pin)
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var entity = new SalesManagement.Domain.Entities.DispatchAddressMaster
+            {
+                DispatchAddressName = name,
+                AddressLine1 = addr1,
+                AddressLine2 = addr2,
+                CityId = cityId,
+                StateId = stateId,
+                CountryId = countryId,
+                PinCode = pin,
+                FreightId = 1,
+                IsActive = Status.Active,
+                IsDeleted = IsDelete.NotDeleted
+            };
+            await ctx.DispatchAddressMaster.AddAsync(entity);
+            await ctx.SaveChangesAsync();
+            return entity.Id;
+        }
+
+        private async Task<(int dispatchId, int partyId)> SeedAdviceWithDispatchTypeAsync(
+            string dispatchNo,
+            string dispatchTypeCode,
+            string dispatchTypeDescription,
+            int? dispatchAddressId = null,
+            int partyId = 200)
+        {
+            var (soId, statusId, _) = await EnsureSalesOrderAndMiscAsync();
+            var dispTypeId = await EnsureMiscWithDescriptionAsync(dispatchTypeCode, dispatchTypeDescription);
+
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var da = new SalesManagement.Domain.Entities.DispatchAdviceHeader
+            {
+                DispatchNo = dispatchNo,
+                DispatchDate = DateOnly.FromDateTime(DateTime.UtcNow.Date),
+                StatusId = statusId,
+                SalesOrderId = soId,
+                PartyId = partyId,
+                TotOrderQty = 100m,
+                TotDispatchedQty = 50m,
+                TotPendingQty = 50m,
+                DispatchTypeId = dispTypeId,
+                DispatchAddressId = dispatchAddressId,
+                FreightId = 1,
+                UnitId = 1,
+                InvFlg = false,
+                IsActive = Status.Active,
+                IsDeleted = IsDelete.NotDeleted
+            };
+            await ctx.DispatchAdviceHeader.AddAsync(da);
+            await ctx.SaveChangesAsync();
+            return (da.Id, partyId);
+        }
+
+        [Fact]
+        public async Task GetAllAsync_DirectToParty_PopulatesDispatchAddress_FromPartyShipping()
+        {
+            await ClearAsync();
+            var (_, partyId) = await SeedAdviceWithDispatchTypeAsync("DA_D2P_1", "DAQ_D2P", "Direct-To-Party");
+
+            var partyLookup = BuildPartyLookupWithAddresses(partyId, new PartyAddressLookupDto
+            {
+                Id = 901, PartyId = partyId, AddressType = "Shipping",
+                AddressLine1 = "NO.32/50", AddressLine2 = "AVINASHI ROAD",
+                CityId = 138, City = "Tirupur",
+                StateId = 97, State = "Tamil Nadu",
+                CountryId = 1145, Country = "India",
+                PostalCode = "641602"
+            });
+
+            var (rows, _) = await CreateRepo(partyLookup).GetAllAsync(1, 10, null);
+
+            rows.Should().HaveCount(1);
+            rows[0].DispatchAddress.Should().HaveCount(1);
+            var addr = rows[0].DispatchAddress[0];
+            addr.Source.Should().Be("Party");
+            addr.Id.Should().Be(901);
+            addr.DispatchAddressId.Should().BeNull();
+            addr.DispatchAddressName.Should().BeNull();
+            addr.AddressLine1.Should().Be("NO.32/50");
+            addr.AddressLine2.Should().Be("AVINASHI ROAD");
+            addr.CityId.Should().Be(138);
+            addr.CityName.Should().Be("Tirupur");
+            addr.StateId.Should().Be(97);
+            addr.StateName.Should().Be("Tamil Nadu");
+            addr.CountryId.Should().Be(1145);
+            addr.CountryName.Should().Be("India");
+            addr.PinCode.Should().Be("641602");
+        }
+
+        [Fact]
+        public async Task GetAllAsync_DirectToParty_MultipleShippingRows_ReturnsAllAsArray()
+        {
+            await ClearAsync();
+            var (_, partyId) = await SeedAdviceWithDispatchTypeAsync("DA_D2P_2", "DAQ_D2P", "Direct-To-Party");
+
+            var partyLookup = BuildPartyLookupWithAddresses(partyId,
+                new PartyAddressLookupDto
+                {
+                    Id = 1, PartyId = partyId, AddressType = "Shipping",
+                    AddressLine1 = "Addr 1", CityId = 1, City = "C1",
+                    StateId = 1, State = "S1", CountryId = 1, Country = "Co1", PostalCode = "100001"
+                },
+                new PartyAddressLookupDto
+                {
+                    Id = 2, PartyId = partyId, AddressType = "Shipping",
+                    AddressLine1 = "Addr 2", CityId = 2, City = "C2",
+                    StateId = 2, State = "S2", CountryId = 2, Country = "Co2", PostalCode = "100002"
+                },
+                new PartyAddressLookupDto
+                {
+                    Id = 3, PartyId = partyId, AddressType = "Billing",  // ← excluded
+                    AddressLine1 = "Bill", CityId = 9, City = "B", PostalCode = "999999"
+                });
+
+            var (rows, _) = await CreateRepo(partyLookup).GetAllAsync(1, 10, null);
+
+            rows[0].DispatchAddress.Should().HaveCount(2);
+            rows[0].DispatchAddress.Select(a => a.Id).Should().BeEquivalentTo(new int?[] { 1, 2 });
+            rows[0].DispatchAddress.Should().AllSatisfy(a => a.Source.Should().Be("Party"));
+        }
+
+        [Fact]
+        public async Task GetAllAsync_Others_PopulatesDispatchAddress_FromDispatchAddressMaster()
+        {
+            await ClearAsync();
+            var masterId = await SeedDispatchAddressMasterAsync("MAINPLANT", "Coimbatore", "Saravanampatti",
+                cityId: 1210, stateId: 2129, countryId: 2190, pin: "630207");
+            await SeedAdviceWithDispatchTypeAsync("DA_OTH_1", "DAQ_OTH", "Others", dispatchAddressId: masterId);
+
+            var (rows, _) = await CreateRepo().GetAllAsync(1, 10, null);
+
+            rows.Should().HaveCount(1);
+            rows[0].DispatchAddress.Should().HaveCount(1);
+            var addr = rows[0].DispatchAddress[0];
+            addr.Source.Should().Be("Master");
+            addr.Id.Should().Be(masterId);
+            addr.DispatchAddressId.Should().Be(masterId);
+            addr.DispatchAddressName.Should().Be("MAINPLANT");
+            addr.AddressLine1.Should().Be("Coimbatore");
+            addr.AddressLine2.Should().Be("Saravanampatti");
+            addr.CityId.Should().Be(1210);
+            addr.StateId.Should().Be(2129);
+            addr.CountryId.Should().Be(2190);
+            addr.PinCode.Should().Be("630207");
+            // City/state/country names are null because the lookup mocks return empty lists — that is expected.
+        }
+
+        [Fact]
+        public async Task GetAllAsync_UnknownDispatchType_ReturnsEmptyArray()
+        {
+            await ClearAsync();
+            await SeedAdviceWithDispatchTypeAsync("DA_UNK_1", "DAQ_UNK", "SomeRandomType");
+
+            var (rows, _) = await CreateRepo().GetAllAsync(1, 10, null);
+
+            rows.Should().HaveCount(1);
+            rows[0].DispatchAddress.Should().NotBeNull();
+            rows[0].DispatchAddress.Should().BeEmpty();
+        }
+
+        [Fact]
+        public async Task GetByIdAsync_DirectToParty_PopulatesDispatchAddress_FromPartyShipping()
+        {
+            await ClearAsync();
+            var (id, partyId) = await SeedAdviceWithDispatchTypeAsync("DA_D2P_3", "DAQ_D2P", "Direct-To-Party");
+
+            var partyLookup = BuildPartyLookupWithAddresses(partyId, new PartyAddressLookupDto
+            {
+                Id = 555, PartyId = partyId, AddressType = "Shipping",
+                AddressLine1 = "Line1", AddressLine2 = "Line2",
+                CityId = 10, City = "X", StateId = 11, State = "Y",
+                CountryId = 12, Country = "Z", PostalCode = "123456"
+            });
+
+            var result = await CreateRepo(partyLookup).GetByIdAsync(id);
+
+            result.Should().NotBeNull();
+            result!.DispatchAddress.Should().HaveCount(1);
+            result.DispatchAddress[0].Source.Should().Be("Party");
+            result.DispatchAddress[0].Id.Should().Be(555);
+            result.DispatchAddress[0].PinCode.Should().Be("123456");
+        }
+
+        [Fact]
+        public async Task GetByIdAsync_Others_PopulatesDispatchAddress_FromDispatchAddressMaster()
+        {
+            await ClearAsync();
+            var masterId = await SeedDispatchAddressMasterAsync("WHSE", "AddrA", "AddrB",
+                cityId: 5, stateId: 6, countryId: 7, pin: "555555");
+            var (id, _) = await SeedAdviceWithDispatchTypeAsync("DA_OTH_2", "DAQ_OTH", "Others", dispatchAddressId: masterId);
+
+            var result = await CreateRepo().GetByIdAsync(id);
+
+            result.Should().NotBeNull();
+            result!.DispatchAddress.Should().HaveCount(1);
+            var addr = result.DispatchAddress[0];
+            addr.Source.Should().Be("Master");
+            addr.DispatchAddressId.Should().Be(masterId);
+            addr.DispatchAddressName.Should().Be("WHSE");
+            addr.AddressLine1.Should().Be("AddrA");
+            addr.AddressLine2.Should().Be("AddrB");
+            addr.PinCode.Should().Be("555555");
+        }
+
+        [Fact]
+        public async Task GetByIdAsync_UnknownDispatchType_ReturnsEmptyArray()
+        {
+            await ClearAsync();
+            var (id, _) = await SeedAdviceWithDispatchTypeAsync("DA_UNK_2", "DAQ_UNK", "SomeRandomType");
+
+            var result = await CreateRepo().GetByIdAsync(id);
+
+            result.Should().NotBeNull();
+            result!.DispatchAddress.Should().NotBeNull();
+            result.DispatchAddress.Should().BeEmpty();
         }
     }
 }
