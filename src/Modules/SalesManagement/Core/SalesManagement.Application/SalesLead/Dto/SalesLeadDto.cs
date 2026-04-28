@@ -21,6 +21,8 @@ namespace SalesManagement.Application.SalesLead.Dto
         // Requirement snapshot
         public int? ItemId { get; set; }
         public string? ItemName { get; set; }           // populated via IItemLookup
+        public int? VariantId { get; set; }
+        public string? VariantName { get; set; }       // populated via IItemLookup
         public decimal? RequirementQty { get; set; }
         public DateOnly? ExpectedDate { get; set; }
         public string? Remarks { get; set; }
@@ -31,6 +33,10 @@ namespace SalesManagement.Application.SalesLead.Dto
         public int MarketingOfficerId { get; set; }
         public string? MarketingOfficerName { get; set; } // populated via SQL JOIN → MarketingOfficer
         public DateTimeOffset InteractionDate { get; set; }
+
+        // Enquiry linkage
+        public bool IsEditable { get; set; }           // false when enquiry exists against this lead
+        public string? EnquiryNo { get; set; }         // populated via OUTER APPLY → SalesEnquiryHeader
 
         // Status
         public bool IsActive { get; set; }

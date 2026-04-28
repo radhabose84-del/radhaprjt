@@ -63,11 +63,13 @@ namespace SalesManagement.Infrastructure.Repositories.SalesLead
                 SELECT sl.Id, sl.PartyId, sl.ProspectCompanyName, sl.CityId,
                     sl.ContactName, sl.MobileNumber, sl.EmailId, sl.ContactId,
                     sc.ContactName AS ExistingContactName,
-                    sl.ItemId, sl.RequirementQty, sl.ExpectedDate, sl.Remarks,
+                    sl.ItemId, sl.VariantId, sl.RequirementQty, sl.ExpectedDate, sl.Remarks,
                     sl.LeadSourceId, mm.Description AS LeadSourceName,
                     sl.MarketingOfficerId,
                     mo.EmployeeName AS MarketingOfficerName,
                     sl.InteractionDate,
+                    CASE WHEN enq.EnquiryNo IS NULL THEN CAST(1 AS BIT) ELSE CAST(0 AS BIT) END AS IsEditable,
+                    enq.EnquiryNo,
                     sl.IsActive, sl.IsDeleted,
                     sl.CreatedBy, sl.CreatedDate, sl.CreatedByName, sl.CreatedIP,
                     sl.ModifiedBy, sl.ModifiedDate, sl.ModifiedByName, sl.ModifiedIP
@@ -75,6 +77,11 @@ namespace SalesManagement.Infrastructure.Repositories.SalesLead
                 LEFT JOIN Sales.SalesContact sc ON sl.ContactId = sc.Id AND sc.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster mm ON sl.LeadSourceId = mm.Id AND mm.IsDeleted = 0
                 LEFT JOIN Sales.MarketingOfficer mo ON sl.MarketingOfficerId = mo.Id AND mo.IsDeleted = 0
+                OUTER APPLY (
+                    SELECT TOP 1 seh.EnquiryNo
+                    FROM Sales.SalesEnquiryHeader seh
+                    WHERE seh.SalesLeadId = sl.Id AND seh.IsDeleted = 0
+                ) enq
                 WHERE {whereClause}
                 ORDER BY sl.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
@@ -113,17 +120,24 @@ namespace SalesManagement.Infrastructure.Repositories.SalesLead
                         item.CityName = cityDict.TryGetValue(item.CityId!.Value, out var name) ? name : null;
                 }
 
-                // Cross-module: Item names
+                // Cross-module: Item names + Variant names (both use IItemLookup)
                 var itemIds = list
                     .Where(x => x.ItemId.HasValue)
                     .Select(x => x.ItemId!.Value)
                     .Distinct();
-                if (itemIds.Any())
+                var variantIds = list
+                    .Where(x => x.VariantId.HasValue)
+                    .Select(x => x.VariantId!.Value)
+                    .Distinct();
+                var allItemIds = itemIds.Union(variantIds).Distinct();
+                if (allItemIds.Any())
                 {
-                    var items = await _itemLookup.GetByIdsAsync(itemIds);
+                    var items = await _itemLookup.GetByIdsAsync(allItemIds);
                     var itemDict = items.ToDictionary(i => i.Id, i => i.ItemName);
                     foreach (var item in list.Where(x => x.ItemId.HasValue))
                         item.ItemName = itemDict.TryGetValue(item.ItemId!.Value, out var name) ? name : null;
+                    foreach (var item in list.Where(x => x.VariantId.HasValue))
+                        item.VariantName = itemDict.TryGetValue(item.VariantId!.Value, out var vName) ? vName : null;
                 }
 
                 // MarketingOfficerName is populated via SQL JOIN — no cross-module lookup needed
@@ -152,7 +166,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesLead
                 SELECT sl.Id, sl.PartyId, sl.ProspectCompanyName, sl.CityId,
                     sl.ContactName, sl.MobileNumber, sl.EmailId, sl.ContactId,
                     sc.ContactName AS ExistingContactName,
-                    sl.ItemId, sl.RequirementQty, sl.ExpectedDate, sl.Remarks,
+                    sl.ItemId, sl.VariantId, sl.RequirementQty, sl.ExpectedDate, sl.Remarks,
                     sl.LeadSourceId, mm.Description AS LeadSourceName,
                     sl.MarketingOfficerId,
                     mo.EmployeeName AS MarketingOfficerName,
@@ -183,10 +197,18 @@ namespace SalesManagement.Infrastructure.Repositories.SalesLead
                     dto.CityName = city?.CityName;
                 }
 
-                if (dto.ItemId.HasValue)
+                // Cross-module: Item + Variant names (both use IItemLookup)
+                var lookupIds = new List<int>();
+                if (dto.ItemId.HasValue) lookupIds.Add(dto.ItemId.Value);
+                if (dto.VariantId.HasValue) lookupIds.Add(dto.VariantId.Value);
+                if (lookupIds.Count > 0)
                 {
-                    var items = await _itemLookup.GetByIdsAsync(new[] { dto.ItemId.Value });
-                    dto.ItemName = items.FirstOrDefault()?.ItemName;
+                    var items = await _itemLookup.GetByIdsAsync(lookupIds.Distinct());
+                    var itemDict = items.ToDictionary(i => i.Id, i => i.ItemName);
+                    if (dto.ItemId.HasValue)
+                        dto.ItemName = itemDict.TryGetValue(dto.ItemId.Value, out var iName) ? iName : null;
+                    if (dto.VariantId.HasValue)
+                        dto.VariantName = itemDict.TryGetValue(dto.VariantId.Value, out var vName) ? vName : null;
                 }
 
                 // MarketingOfficerName is populated via SQL JOIN — no cross-module lookup needed

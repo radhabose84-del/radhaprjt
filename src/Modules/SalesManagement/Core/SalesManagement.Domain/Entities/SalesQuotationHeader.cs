@@ -4,6 +4,7 @@ namespace SalesManagement.Domain.Entities
 {
     public class SalesQuotationHeader : BaseEntity
     {
+        public string? QuotationNo { get; set; }
         public int CustomerId { get; set; }
         public DateOnly QuotationDate { get; set; }
         public int? SalesEnquiryId { get; set; }

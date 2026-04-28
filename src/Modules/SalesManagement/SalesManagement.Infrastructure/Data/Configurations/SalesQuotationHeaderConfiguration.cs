@@ -28,6 +28,11 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("int")
                 .IsRequired();
 
+            builder.Property(t => t.QuotationNo)
+                .HasColumnName("QuotationNo")
+                .HasColumnType("varchar(50)")
+                .IsRequired(false);
+
             builder.Property(t => t.CustomerId)
                 .HasColumnName("CustomerId")
                 .HasColumnType("int")
@@ -153,6 +158,9 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .OnDelete(DeleteBehavior.Restrict);
 
             // Indexes
+            builder.HasIndex(t => t.QuotationNo)
+                .IsUnique()
+                .HasFilter("[QuotationNo] IS NOT NULL");
             builder.HasIndex(t => t.CustomerId);
             builder.HasIndex(t => t.SalesEnquiryId);
             builder.HasIndex(t => t.PaymentTermId);

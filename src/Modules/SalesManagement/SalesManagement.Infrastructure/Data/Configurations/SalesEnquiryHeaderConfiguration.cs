@@ -28,6 +28,11 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("int")
                 .IsRequired();
 
+            builder.Property(t => t.EnquiryNo)
+                .HasColumnName("EnquiryNo")
+                .HasColumnType("varchar(50)")
+                .IsRequired(false);
+
             builder.Property(t => t.PartyId)
                 .HasColumnName("PartyId")
                 .HasColumnType("int")
@@ -90,6 +95,7 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .OnDelete(DeleteBehavior.Restrict)
                 .IsRequired(false);
 
+            builder.HasIndex(t => t.EnquiryNo).IsUnique().HasFilter("[EnquiryNo] IS NOT NULL");
             builder.HasIndex(t => t.PartyId);
             builder.HasIndex(t => t.SalesLeadId);
         }

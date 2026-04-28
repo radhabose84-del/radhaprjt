@@ -37,6 +37,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesLead
             existingEntity.EmailId = entity.EmailId;
             existingEntity.ContactId = entity.ContactId;
             existingEntity.ItemId = entity.ItemId;
+            existingEntity.VariantId = entity.VariantId;
             existingEntity.RequirementQty = entity.RequirementQty;
             existingEntity.ExpectedDate = entity.ExpectedDate;
             existingEntity.Remarks = entity.Remarks;
