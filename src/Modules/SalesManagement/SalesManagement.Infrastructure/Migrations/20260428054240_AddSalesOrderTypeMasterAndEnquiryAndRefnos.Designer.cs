@@ -3,17 +3,20 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SalesManagement.Infrastructure.Data;
 
 #nullable disable
 
-namespace SalesManagement.Infrastructure.Migrations
+namespace SalesManagement.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260428054240_AddSalesOrderTypeMasterAndEnquiryAndRefnos")]
+    partial class AddSalesOrderTypeMasterAndEnquiryAndRefnos
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -4020,10 +4023,6 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("datetimeoffset")
                         .HasColumnName("EnquiryDate");
 
-                    b.Property<string>("EnquiryNo")
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("EnquiryNo");
-
                     b.Property<DateTimeOffset?>("ExpectedDeliveryDate")
                         .HasColumnType("datetimeoffset")
                         .HasColumnName("ExpectedDeliveryDate");
@@ -4069,10 +4068,6 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnName("SalesLeadId");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("EnquiryNo")
-                        .IsUnique()
-                        .HasFilter("[EnquiryNo] IS NOT NULL");
 
                     b.HasIndex("PartyId");
 
@@ -4246,9 +4241,6 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Property<decimal?>("RequirementQty")
                         .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,2)");
-
-                    b.Property<int?>("VariantId")
-                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -5638,10 +5630,6 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("date")
                         .HasColumnName("QuotationDate");
 
-                    b.Property<string>("QuotationNo")
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("QuotationNo");
-
                     b.Property<string>("Remarks")
                         .HasColumnType("varchar(500)")
                         .HasColumnName("Remarks");
@@ -5682,10 +5670,6 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.HasIndex("DeliveryTermId");
 
                     b.HasIndex("PaymentTermId");
-
-                    b.HasIndex("QuotationNo")
-                        .IsUnique()
-                        .HasFilter("[QuotationNo] IS NOT NULL");
 
                     b.HasIndex("SalesEnquiryId");
 

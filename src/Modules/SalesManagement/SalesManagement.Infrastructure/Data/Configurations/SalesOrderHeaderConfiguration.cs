@@ -85,6 +85,29 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("int")
                 .IsRequired(false);
 
+            // Sales Order Type Master (same-module FK — DB constraint)
+            builder.Property(t => t.SalesOrderTypeMasterId)
+                .HasColumnName("SalesOrderTypeMasterId")
+                .HasColumnType("int")
+                .IsRequired(false);
+
+            // Sales Enquiry Header (same-module FK — DB constraint)
+            builder.Property(t => t.SalesEnquiryHeaderId)
+                .HasColumnName("SalesEnquiryHeaderId")
+                .HasColumnType("int")
+                .IsRequired(false);
+
+            // Reference numbers (nullable)
+            builder.Property(t => t.CustomerPoRefno)
+                .HasColumnName("CustomerPoRefno")
+                .HasColumnType("varchar(50)")
+                .IsRequired(false);
+
+            builder.Property(t => t.ComplaintRefno)
+                .HasColumnName("ComplaintRefno")
+                .HasColumnType("varchar(50)")
+                .IsRequired(false);
+
             // Order Unit (cross-module FK — no DB constraint)
             builder.Property(t => t.OrderUnitId)
                 .HasColumnName("OrderUnitId")
@@ -369,6 +392,20 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // Sales Order Type Master (same-module FK — nullable)
+            builder.HasOne(t => t.SalesOrderTypeMaster)
+                .WithMany(m => m.SalesOrderHeaders)
+                .HasForeignKey(t => t.SalesOrderTypeMasterId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Sales Enquiry Header (same-module FK — nullable)
+            builder.HasOne(t => t.SalesEnquiryHeader)
+                .WithMany(e => e.SalesOrderHeaders)
+                .HasForeignKey(t => t.SalesEnquiryHeaderId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+
             // Child collection — reverse navigation (Header → Details)
             builder.HasMany(t => t.SalesOrderDetails)
                 .WithOne(d => d.SalesOrderHeader)
@@ -387,6 +424,8 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             builder.HasIndex(t => t.AgentCommissionId);
             builder.HasIndex(t => t.AgentPaymentTermsId);
             builder.HasIndex(t => t.AgentCommissionSlabId);
+            builder.HasIndex(t => t.SalesOrderTypeMasterId);
+            builder.HasIndex(t => t.SalesEnquiryHeaderId);
         }
     }
 }
