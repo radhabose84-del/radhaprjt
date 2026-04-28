@@ -14,6 +14,12 @@ namespace SalesManagement.Application.Common.Interfaces.IComplaintResolution
         Task<bool> MiscMasterExistsAsync(int id);
 
         /// <summary>
+        /// Returns true when the given Id is an active, non-deleted Warehouse master row.
+        /// Used by validators for cross-module FK existence on ReturnLocationId.
+        /// </summary>
+        Task<bool> WarehouseExistsAsync(int warehouseId);
+
+        /// <summary>
         /// Returns true when the given MiscMaster Id is the "Closed" closure status —
         /// MiscTypeCode = 'ClosureStatus' and Code = 'Closed'. Validators use this to block
         /// resolvers from setting ClosureStatus = Closed manually; that state is reserved

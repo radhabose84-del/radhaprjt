@@ -16,8 +16,10 @@ namespace SalesManagement.Domain.Entities
 
         // Sales Return Details (when ResolutionType = Sales Return)
         public decimal? ReturnQuantity { get; set; }
+
+        // Cross-module FK → Warehouse.WarehouseMaster (no DB constraint, validated via IWarehouseLookup)
         public int? ReturnLocationId { get; set; }
-        public MiscMaster? ReturnLocation { get; set; }
+
         public int? ReturnStatusId { get; set; }
         public MiscMaster? ReturnStatus { get; set; }
 

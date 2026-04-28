@@ -99,13 +99,13 @@ public class ComplaintResolutionEntityTests
         {
             ComplaintHeader = new ComplaintHeader { Id = 10 },
             ResolutionType = new MiscMaster { Id = 3 },
-            ReturnLocation = new MiscMaster { Id = 5 },
+            ReturnLocationId = 5,                                  // Cross-module FK to Warehouse — no nav prop
             ReturnStatus = new MiscMaster { Id = 2 },
             ClosureStatus = new MiscMaster { Id = 1 }
         };
 
         entity.ComplaintHeader.Should().NotBeNull();
         entity.ResolutionType.Should().NotBeNull();
-        entity.ReturnLocation.Should().NotBeNull();
+        entity.ReturnLocationId.Should().Be(5);
     }
 }
