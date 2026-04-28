@@ -80,12 +80,8 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // FK → MiscMaster (ReturnLocation)
-            builder.HasOne(t => t.ReturnLocation)
-                .WithMany()
-                .HasForeignKey(t => t.ReturnLocationId)
-                .IsRequired(false)
-                .OnDelete(DeleteBehavior.Restrict);
+            // ReturnLocationId is a CROSS-MODULE FK → Warehouse.WarehouseMaster (no DB constraint).
+            // Validated at the application boundary via IWarehouseLookup. No HasOne mapping here.
 
             // FK → MiscMaster (ReturnStatus)
             builder.HasOne(t => t.ReturnStatus)
