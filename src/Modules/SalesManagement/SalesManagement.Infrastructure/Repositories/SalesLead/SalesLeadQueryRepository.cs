@@ -35,7 +35,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesLead
         {
             var whereClause = "sl.IsDeleted = 0";
             if (!string.IsNullOrWhiteSpace(searchTerm))
-                whereClause += " AND (sl.ContactName LIKE @Search OR sl.MobileNumber LIKE @Search OR sl.ProspectCompanyName LIKE @Search)";
+                whereClause += " AND (sl.LeadNo LIKE @Search OR sl.ContactName LIKE @Search OR sl.MobileNumber LIKE @Search OR sl.ProspectCompanyName LIKE @Search)";
 
             // Marketing Officer access scoping: own records OR records assigned to officer OR records with mapped customer
             var parameters = new DynamicParameters();
@@ -60,7 +60,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesLead
                 FROM Sales.SalesLead sl
                 WHERE {whereClause};
 
-                SELECT sl.Id, sl.PartyId, sl.ProspectCompanyName, sl.CityId,
+                SELECT sl.Id, sl.LeadNo, sl.PartyId, sl.ProspectCompanyName, sl.CityId,
                     sl.ContactName, sl.MobileNumber, sl.EmailId, sl.ContactId,
                     sc.ContactName AS ExistingContactName,
                     sl.ItemId, sl.VariantId, sl.RequirementQty, sl.ExpectedDate, sl.Remarks,
@@ -163,7 +163,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesLead
             }
 
             var sql = $@"
-                SELECT sl.Id, sl.PartyId, sl.ProspectCompanyName, sl.CityId,
+                SELECT sl.Id, sl.LeadNo, sl.PartyId, sl.ProspectCompanyName, sl.CityId,
                     sl.ContactName, sl.MobileNumber, sl.EmailId, sl.ContactId,
                     sc.ContactName AS ExistingContactName,
                     sl.ItemId, sl.VariantId, sl.RequirementQty, sl.ExpectedDate, sl.Remarks,
@@ -234,10 +234,10 @@ namespace SalesManagement.Infrastructure.Repositories.SalesLead
             }
 
             var sql = $@"
-                SELECT  sl.Id, sl.ContactName, sl.MobileNumber
+                SELECT  sl.Id, sl.LeadNo, sl.ContactName, sl.MobileNumber
                 FROM Sales.SalesLead sl
                 WHERE sl.IsDeleted = 0 AND sl.IsActive = 1
-                AND (sl.ContactName LIKE @Term OR sl.MobileNumber LIKE @Term)
+                AND (sl.LeadNo LIKE @Term OR sl.ContactName LIKE @Term OR sl.MobileNumber LIKE @Term)
                 {moFilter}
                 ORDER BY sl.ContactName ASC";
 

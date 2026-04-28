@@ -23,6 +23,14 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             builder.ToTable("SalesLead", "Sales");
             builder.HasKey(t => t.Id);
 
+            builder.Property(t => t.LeadNo)
+                .HasColumnType("varchar(50)")
+                .IsRequired(false);
+
+            builder.HasIndex(t => t.LeadNo)
+                .IsUnique()
+                .HasFilter("[LeadNo] IS NOT NULL");
+
             // Party identification
             builder.Property(t => t.PartyId)
                 .HasColumnType("int")

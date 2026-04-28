@@ -1,4 +1,6 @@
 using AutoMapper;
+using Contracts.Interfaces;
+using Contracts.Interfaces.Lookups.Finance;
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.ISalesContact;
 using SalesManagement.Application.Common.Interfaces.ISalesLead;
@@ -14,9 +16,12 @@ public class CreateSalesLeadCommandHandlerTests
     private readonly Mock<ISalesContactCommandRepository> _mockContactCommandRepo = new(MockBehavior.Strict);
     private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Strict);
     private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Strict);
+    private readonly Mock<IDocumentSequenceLookup> _mockDocSeqLookup = new(MockBehavior.Loose);
+    private readonly Mock<IIPAddressService> _mockIpService = new(MockBehavior.Loose);
 
     private CreateSalesLeadCommandHandler CreateSut() =>
-        new(_mockCommandRepo.Object, _mockQueryRepo.Object, _mockContactCommandRepo.Object, _mockMediator.Object, _mockMapper.Object);
+        new(_mockCommandRepo.Object, _mockQueryRepo.Object, _mockContactCommandRepo.Object,
+            _mockMediator.Object, _mockMapper.Object, _mockDocSeqLookup.Object, _mockIpService.Object);
 
     private CreateSalesLeadCommand ValidCommand() => new()
     {
@@ -40,15 +45,22 @@ public class CreateSalesLeadCommandHandlerTests
             });
     }
 
-    private void SetupCreateAsync(int returnId = 1)
+    private void SetupHappyPath(int returnId = 1)
     {
-        _mockCommandRepo
-            .Setup(r => r.CreateAsync(It.IsAny<SalesManagement.Domain.Entities.SalesLead>()))
-            .ReturnsAsync(returnId);
-    }
+        _mockIpService.Setup(s => s.GetUnitId()).Returns(1);
 
-    private void SetupPublishAudit()
-    {
+        _mockDocSeqLookup
+            .Setup(d => d.GetTransactionTypeIdAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()))
+            .ReturnsAsync(5);
+
+        _mockDocSeqLookup
+            .Setup(d => d.GenerateDocumentNumber(It.IsAny<int>()))
+            .ReturnsAsync(new List<string> { "SL-0001" });
+
+        _mockCommandRepo
+            .Setup(r => r.CreateAsync(It.IsAny<SalesManagement.Domain.Entities.SalesLead>(), It.IsAny<int>()))
+            .ReturnsAsync(returnId);
+
         _mockMediator
             .Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
@@ -59,8 +71,7 @@ public class CreateSalesLeadCommandHandlerTests
     {
         var command = ValidCommand();
         SetupMapper(command);
-        SetupCreateAsync(1);
-        SetupPublishAudit();
+        SetupHappyPath(1);
 
         var result = await CreateSut().Handle(command, CancellationToken.None);
 
@@ -73,8 +84,7 @@ public class CreateSalesLeadCommandHandlerTests
     {
         var command = ValidCommand();
         SetupMapper(command);
-        SetupCreateAsync(42);
-        SetupPublishAudit();
+        SetupHappyPath(42);
 
         var result = await CreateSut().Handle(command, CancellationToken.None);
 
@@ -86,13 +96,12 @@ public class CreateSalesLeadCommandHandlerTests
     {
         var command = ValidCommand();
         SetupMapper(command);
-        SetupCreateAsync(1);
-        SetupPublishAudit();
+        SetupHappyPath(1);
 
         await CreateSut().Handle(command, CancellationToken.None);
 
         _mockCommandRepo.Verify(
-            r => r.CreateAsync(It.IsAny<SalesManagement.Domain.Entities.SalesLead>()),
+            r => r.CreateAsync(It.IsAny<SalesManagement.Domain.Entities.SalesLead>(), It.IsAny<int>()),
             Times.Once);
     }
 
@@ -101,8 +110,7 @@ public class CreateSalesLeadCommandHandlerTests
     {
         var command = ValidCommand();
         SetupMapper(command);
-        SetupCreateAsync(1);
-        SetupPublishAudit();
+        SetupHappyPath(1);
 
         await CreateSut().Handle(command, CancellationToken.None);
 
@@ -142,8 +150,7 @@ public class CreateSalesLeadCommandHandlerTests
             .Setup(r => r.CreateAsync(It.IsAny<SalesManagement.Domain.Entities.SalesContact>()))
             .ReturnsAsync(99);
 
-        SetupCreateAsync(1);
-        SetupPublishAudit();
+        SetupHappyPath(1);
 
         await CreateSut().Handle(command, CancellationToken.None);
 

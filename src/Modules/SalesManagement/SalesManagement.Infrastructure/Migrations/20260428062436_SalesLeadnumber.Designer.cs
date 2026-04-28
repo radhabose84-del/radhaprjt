@@ -3,17 +3,20 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SalesManagement.Infrastructure.Data;
 
 #nullable disable
 
-namespace SalesManagement.Infrastructure.Migrations
+namespace SalesManagement.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260428062436_SalesLeadnumber")]
+    partial class SalesLeadnumber
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -4976,10 +4979,6 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("decimal(18,3)")
                         .HasColumnName("CommissionValue");
 
-                    b.Property<string>("ComplaintRefno")
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("ComplaintRefno");
-
                     b.Property<int?>("CountListId")
                         .HasColumnType("int")
                         .HasColumnName("CountListId");
@@ -4999,10 +4998,6 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Property<string>("CreatedIP")
                         .HasColumnType("varchar(50)")
                         .HasColumnName("CreatedIP");
-
-                    b.Property<string>("CustomerPoRefno")
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("CustomerPoRefno");
 
                     b.Property<int>("EnquiryType")
                         .HasColumnType("int")
@@ -5118,10 +5113,6 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasDefaultValue(0)
                         .HasColumnName("RevisionNumber");
 
-                    b.Property<int?>("SalesEnquiryHeaderId")
-                        .HasColumnType("int")
-                        .HasColumnName("SalesEnquiryHeaderId");
-
                     b.Property<int>("SalesGroupId")
                         .HasColumnType("int")
                         .HasColumnName("SalesGroupId");
@@ -5134,10 +5125,6 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Property<int?>("SalesOrderTypeId")
                         .HasColumnType("int")
                         .HasColumnName("SalesOrderTypeId");
-
-                    b.Property<int?>("SalesOrderTypeMasterId")
-                        .HasColumnType("int")
-                        .HasColumnName("SalesOrderTypeMasterId");
 
                     b.Property<int?>("SalesQuotationHeaderId")
                         .HasColumnType("int")
@@ -5234,14 +5221,10 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     b.HasIndex("PaymentTypeId");
 
-                    b.HasIndex("SalesEnquiryHeaderId");
-
                     b.HasIndex("SalesGroupId");
 
                     b.HasIndex("SalesOrderNo")
                         .IsUnique();
-
-                    b.HasIndex("SalesOrderTypeMasterId");
 
                     b.HasIndex("SalesQuotationHeaderId");
 
@@ -7562,21 +7545,11 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasForeignKey("PaymentTypeId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("SalesManagement.Domain.Entities.SalesEnquiryHeader", "SalesEnquiryHeader")
-                        .WithMany("SalesOrderHeaders")
-                        .HasForeignKey("SalesEnquiryHeaderId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("SalesManagement.Domain.Entities.SalesGroup", "SalesGroup")
                         .WithMany("SalesOrderHeaders")
                         .HasForeignKey("SalesGroupId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.HasOne("SalesManagement.Domain.Entities.SalesOrderTypeMaster", "SalesOrderTypeMaster")
-                        .WithMany("SalesOrderHeaders")
-                        .HasForeignKey("SalesOrderTypeMasterId")
-                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("SalesManagement.Domain.Entities.SalesQuotationHeader", "SalesQuotation")
                         .WithMany("SalesOrderHeaders")
@@ -7605,11 +7578,7 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     b.Navigation("PaymentType");
 
-                    b.Navigation("SalesEnquiryHeader");
-
                     b.Navigation("SalesGroup");
-
-                    b.Navigation("SalesOrderTypeMaster");
 
                     b.Navigation("SalesQuotation");
 
@@ -8091,8 +8060,6 @@ namespace SalesManagement.Infrastructure.Migrations
             modelBuilder.Entity("SalesManagement.Domain.Entities.SalesEnquiryHeader", b =>
                 {
                     b.Navigation("SalesEnquiryDetails");
-
-                    b.Navigation("SalesOrderHeaders");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.SalesGroup", b =>
@@ -8141,11 +8108,6 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("SalesOrderDetails");
 
                     b.Navigation("SalesOrderDiscounts");
-                });
-
-            modelBuilder.Entity("SalesManagement.Domain.Entities.SalesOrderTypeMaster", b =>
-                {
-                    b.Navigation("SalesOrderHeaders");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.SalesOrganisation", b =>

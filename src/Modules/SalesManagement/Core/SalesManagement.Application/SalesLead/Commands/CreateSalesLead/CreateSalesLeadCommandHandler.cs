@@ -1,8 +1,11 @@
 using AutoMapper;
 using Contracts.Common;
+using Contracts.Interfaces;
+using Contracts.Interfaces.Lookups.Finance;
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.ISalesContact;
 using SalesManagement.Application.Common.Interfaces.ISalesLead;
+using SalesManagement.Domain.Common;
 using SalesManagement.Domain.Events;
 using static SalesManagement.Domain.Common.BaseEntity;
 
@@ -15,19 +18,25 @@ namespace SalesManagement.Application.SalesLead.Commands.CreateSalesLead
         private readonly ISalesContactCommandRepository _salesContactCommandRepository;
         private readonly IMediator _mediator;
         private readonly IMapper _mapper;
+        private readonly IDocumentSequenceLookup _documentSequenceLookup;
+        private readonly IIPAddressService _ipAddressService;
 
         public CreateSalesLeadCommandHandler(
             ISalesLeadCommandRepository commandRepository,
             ISalesLeadQueryRepository queryRepository,
             ISalesContactCommandRepository salesContactCommandRepository,
             IMediator mediator,
-            IMapper mapper)
+            IMapper mapper,
+            IDocumentSequenceLookup documentSequenceLookup,
+            IIPAddressService ipAddressService)
         {
             _commandRepository = commandRepository;
             _queryRepository = queryRepository;
             _salesContactCommandRepository = salesContactCommandRepository;
             _mediator = mediator;
             _mapper = mapper;
+            _documentSequenceLookup = documentSequenceLookup;
+            _ipAddressService = ipAddressService;
         }
 
         public async Task<ApiResponseDTO<int>> Handle(CreateSalesLeadCommand request, CancellationToken cancellationToken)
@@ -52,13 +61,28 @@ namespace SalesManagement.Application.SalesLead.Commands.CreateSalesLead
                 entity.ContactId = contactId;
             }
 
-            var newId = await _commandRepository.CreateAsync(entity);
+            // Generate LeadNo from DocumentSequence
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
+            var typeId = await _documentSequenceLookup.GetTransactionTypeIdAsync(
+                MiscEnumEntity.TransactionTypeSalesLead,
+                MiscEnumEntity.ModuleSales,
+                unitId);
+
+            if (!typeId.HasValue)
+                throw new ExceptionRules("Transaction Type 'Sales Lead' not found. Please configure it in Transaction Type Master.");
+
+            var sequences = await _documentSequenceLookup.GenerateDocumentNumber(typeId.Value);
+            var leadNo = sequences.Count > 0 ? sequences[^1] : null;
+            entity.LeadNo = leadNo
+                ?? throw new ExceptionRules("No document sequence configured for Sales Lead.");
+
+            var newId = await _commandRepository.CreateAsync(entity, typeId.Value);
 
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Create",
                 actionCode: "SALES_LEAD_CREATE",
-                actionName: request.ContactName ?? request.MarketingOfficerId.ToString(),
-                details: $"Sales Lead created successfully with Id {newId}.",
+                actionName: leadNo,
+                details: $"Sales Lead '{leadNo}' created successfully with Id {newId}.",
                 module: "SalesLead"
             );
             await _mediator.Publish(auditEvent, cancellationToken);
