@@ -11,11 +11,24 @@ namespace SalesManagement.Application.DispatchAdvice.Dto
         public string? SalesOrderNo { get; set; }
         public int PartyId { get; set; }
         public string? PartyName { get; set; }
+
+        // Party shipping address (cross-module via IPartyLookup; AddressType = 'Shipping')
+        public int? PartyCityId { get; set; }
+        public int? PartyStateId { get; set; }
+        public int? PartyCountryId { get; set; }
+        public string? PartyPostalCode { get; set; }
         public decimal TotOrderQty { get; set; }
         public decimal TotDispatchedQty { get; set; }
         public decimal TotPendingQty { get; set; }
         public int? DispatchAddressId { get; set; }
         public string? DispatchAddressName { get; set; }
+        public int? CityId { get; set; }
+        public string? CityName { get; set; }
+        public int? StateId { get; set; }
+        public string? StateName { get; set; }
+        public int? CountryId { get; set; }
+        public string? CountryName { get; set; }
+        public string? PinCode { get; set; }
         public int DispatchTypeId { get; set; }
         public string? DispatchTypeName { get; set; }
         public int FreightId { get; set; }
