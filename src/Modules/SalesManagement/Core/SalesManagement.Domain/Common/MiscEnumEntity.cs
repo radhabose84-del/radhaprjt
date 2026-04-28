@@ -65,6 +65,7 @@ namespace SalesManagement.Domain.Common
         public const string TransactionTypeSalesOrderAmendment = "Sales Order Amendment";
 
         // Document Sequence - Transaction Types
+        public const string TransactionTypeSalesLead = "Sales Lead";
         public const string TransactionTypeSalesEnquiry = "Sales Enquiry";
         public const string TransactionTypeSalesQuotation = "Sales Quotation";
         public const string TransactionTypeDispatchAdvice = "Dispatch Advice";
