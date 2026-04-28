@@ -5,6 +5,7 @@ using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Production;
 using Contracts.Interfaces.Lookups.Warehouse;
+using Contracts.Interfaces.Lookups.Users;
 using Contracts.Interfaces;
 using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Application.Common.Interfaces.IDispatchAdvice;
@@ -25,6 +26,9 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
         private readonly IWarehouseLookup _warehouseLookup;
         private readonly IBinLookup _binLookup;
         private readonly IUOMLookup _uomLookup;
+        private readonly ICityLookup _cityLookup;
+        private readonly IStateLookup _stateLookup;
+        private readonly ICountryLookup _countryLookup;
 
         public DispatchAdviceQueryRepository(
             IDbConnection dbConnection,
@@ -37,7 +41,10 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
             IFreightMasterLookup freightMasterLookup,
             IWarehouseLookup warehouseLookup,
             IBinLookup binLookup,
-            IUOMLookup uomLookup)
+            IUOMLookup uomLookup,
+            ICityLookup cityLookup,
+            IStateLookup stateLookup,
+            ICountryLookup countryLookup)
         {
             _dbConnection = dbConnection;
             _partyLookup = partyLookup;
@@ -50,6 +57,9 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
             _warehouseLookup = warehouseLookup;
             _binLookup = binLookup;
             _uomLookup = uomLookup;
+            _cityLookup = cityLookup;
+            _stateLookup = stateLookup;
+            _countryLookup = countryLookup;
         }
 
         public async Task<(List<DispatchAdviceHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
@@ -76,6 +86,7 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
                     h.TotOrderQty, h.TotDispatchedQty, h.TotPendingQty,
                     h.DispatchAddressId,
                     da.DispatchAddressName,
+                    da.CityId, da.StateId, da.CountryId, da.PinCode,
                     h.DispatchTypeId,
                     dt.Description AS DispatchTypeName,
                     h.FreightId,
@@ -103,10 +114,14 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
 
             if (list.Count > 0)
             {
-                // Populate cross-module: PartyName
+                // Populate cross-module: PartyName + Shipping address
                 var partyIds = list.Select(x => x.PartyId).Distinct();
                 var parties = await _partyLookup.GetByIdsAsync(partyIds);
                 var partyDict = parties.ToDictionary(p => p.Id, p => p.PartyName);
+                var partyShippingDict = parties.ToDictionary(
+                    p => p.Id,
+                    p => p.Addresses?.FirstOrDefault(a =>
+                        string.Equals(a.AddressType, "Shipping", StringComparison.OrdinalIgnoreCase)));
 
                 // Populate cross-module: TransporterName (also from PartyLookup)
                 var transporterIds = list.Where(x => x.TransporterId.HasValue).Select(x => x.TransporterId!.Value).Distinct();
@@ -120,9 +135,25 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
                 var allFreights = await _freightMasterLookup.GetAllFreightMasterAsync();
                 var freightDict = allFreights.Where(f => freightIds.Contains(f.Id)).ToDictionary(f => f.Id);
 
+                // Populate cross-module: City/State/Country names (cached globally by AddLookupCaching)
+                var cities = await _cityLookup.GetAllCityAsync();
+                var states = await _stateLookup.GetAllStatesAsync();
+                var countries = await _countryLookup.GetAllCountriesAsync();
+                var cityDict = cities.ToDictionary(c => c.CityId, c => c.CityName);
+                var stateDict = states.ToDictionary(s => s.StateId, s => s.StateName);
+                var countryDict = countries.ToDictionary(c => c.CountryId, c => c.CountryName);
+
                 foreach (var item in list)
                 {
                     item.PartyName = partyDict.TryGetValue(item.PartyId, out var pName) ? pName : null;
+
+                    if (partyShippingDict.TryGetValue(item.PartyId, out var shipAddr) && shipAddr != null)
+                    {
+                        item.PartyCityId = shipAddr.CityId;
+                        item.PartyStateId = shipAddr.StateId;
+                        item.PartyCountryId = shipAddr.CountryId;
+                        item.PartyPostalCode = shipAddr.PostalCode;
+                    }
 
                     if (freightDict.TryGetValue(item.FreightId, out var freightDto))
                     {
@@ -133,6 +164,13 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
 
                     if (item.TransporterId.HasValue)
                         item.TransporterName = transporterDict.TryGetValue(item.TransporterId.Value, out var tName) ? tName : null;
+
+                    if (item.CityId.HasValue)
+                        item.CityName = cityDict.TryGetValue(item.CityId.Value, out var cn) ? cn : null;
+                    if (item.StateId.HasValue)
+                        item.StateName = stateDict.TryGetValue(item.StateId.Value, out var sn) ? sn : null;
+                    if (item.CountryId.HasValue)
+                        item.CountryName = countryDict.TryGetValue(item.CountryId.Value, out var ctn) ? ctn : null;
                 }
             }
 
@@ -151,6 +189,7 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
                     h.TotOrderQty, h.TotDispatchedQty, h.TotPendingQty,
                     h.DispatchAddressId,
                     da.DispatchAddressName,
+                    da.CityId, da.StateId, da.CountryId, da.PinCode,
                     h.DispatchTypeId,
                     dt.Description AS DispatchTypeName,
                     h.FreightId,
@@ -206,9 +245,19 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
 
             var details = (await _dbConnection.QueryAsync<DispatchAdviceDetailDto>(detailSql, new { HeaderId = id })).ToList();
 
-            // Populate cross-module: PartyName
+            // Populate cross-module: PartyName + Shipping address
             var party = await _partyLookup.GetByIdAsync(header.PartyId);
             header.PartyName = party?.PartyName;
+
+            var partyShippingAddress = party?.Addresses?.FirstOrDefault(a =>
+                string.Equals(a.AddressType, "Shipping", StringComparison.OrdinalIgnoreCase));
+            if (partyShippingAddress != null)
+            {
+                header.PartyCityId = partyShippingAddress.CityId;
+                header.PartyStateId = partyShippingAddress.StateId;
+                header.PartyCountryId = partyShippingAddress.CountryId;
+                header.PartyPostalCode = partyShippingAddress.PostalCode;
+            }
 
             // Populate cross-module: Freight details (FreightModeName, RateMethodName, Rate)
             var freight = await _freightMasterLookup.GetByIdAsync(header.FreightId);
@@ -221,6 +270,23 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
             {
                 var transporter = await _partyLookup.GetByIdAsync(header.TransporterId.Value);
                 header.TransporterName = transporter?.PartyName;
+            }
+
+            // Populate cross-module: City/State/Country names
+            if (header.CityId.HasValue)
+            {
+                var city = await _cityLookup.GetByIdAsync(header.CityId.Value);
+                header.CityName = city?.CityName;
+            }
+            if (header.StateId.HasValue)
+            {
+                var state = await _stateLookup.GetByIdAsync(header.StateId.Value);
+                header.StateName = state?.StateName;
+            }
+            if (header.CountryId.HasValue)
+            {
+                var country = await _countryLookup.GetByIdAsync(header.CountryId.Value);
+                header.CountryName = country?.CountryName;
             }
 
             // Populate cross-module detail lookups
