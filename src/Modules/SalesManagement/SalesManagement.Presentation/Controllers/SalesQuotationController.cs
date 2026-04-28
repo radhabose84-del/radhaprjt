@@ -7,6 +7,7 @@ using SalesManagement.Application.SalesQuotation.Commands.DeleteSalesQuotation;
 using SalesManagement.Application.SalesQuotation.Queries.GetAllSalesQuotation;
 using SalesManagement.Application.SalesQuotation.Queries.GetSalesQuotationById;
 using SalesManagement.Application.SalesQuotation.Queries.GetSalesQuotationAutoComplete;
+using SalesManagement.Application.SalesQuotation.Queries.GetSalesQuotationPending;
 
 namespace SalesManagement.Presentation.Controllers
 {
@@ -59,6 +60,29 @@ namespace SalesManagement.Presentation.Controllers
             {
                 StatusCode = StatusCodes.Status200OK,
                 data = result
+            });
+        }
+
+        [HttpGet("pending")]
+        public async Task<IActionResult> GetPendingSalesQuotationAsync(
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 15,
+            [FromQuery] string? searchTerm = null)
+        {
+            var (rows, total) = await Mediator.Send(new GetSalesQuotationPendingQuery
+            {
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                SearchTerm = searchTerm
+            });
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = rows,
+                TotalCount = total,
+                PageNumber = pageNumber,
+                PageSize = pageSize
             });
         }
 

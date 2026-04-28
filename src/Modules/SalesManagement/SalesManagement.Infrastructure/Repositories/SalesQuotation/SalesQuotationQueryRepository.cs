@@ -395,6 +395,69 @@ namespace SalesManagement.Infrastructure.Repositories.SalesQuotation
             return count > 0;
         }
 
+        public async Task<(List<GetSalesQuotationPendingDto>, int)> GetSalesQuotationPendingAsync(
+            int pageNumber, int pageSize, string? searchTerm)
+        {
+            var searchFilter = string.IsNullOrWhiteSpace(searchTerm)
+                ? ""
+                : "AND (h.QuotationNo LIKE @Search OR h.Remarks LIKE @Search)";
+
+            var query = $@"
+                DECLARE @PendingStatusId INT;
+                SELECT @PendingStatusId = mm.Id
+                FROM Sales.MiscMaster mm
+                INNER JOIN Sales.MiscTypeMaster mt ON mm.MiscTypeId = mt.Id AND mt.IsDeleted = 0
+                WHERE mt.Description = @MiscType
+                  AND mm.Code = @StatusCode
+                  AND mm.IsDeleted = 0;
+
+                DECLARE @TotalCount INT;
+                SELECT @TotalCount = COUNT(*)
+                FROM Sales.SalesQuotationHeader h
+                WHERE h.IsDeleted = 0 AND h.IsActive = 1
+                AND h.StatusId = @PendingStatusId
+                {searchFilter};
+
+                SELECT h.Id, h.QuotationNo, h.QuotationDate, h.ValidityDate,
+                    h.CustomerId, h.SalesEnquiryId,
+                    h.ContactPersonId,
+                    sc.ContactName AS ContactPersonName,
+                    h.PaymentTermId,
+                    h.DeliveryTermId,
+                    mmDel.Description AS DeliveryTermDescription,
+                    h.StatusId,
+                    mmStatus.Description AS StatusName,
+                    h.FreightCharges, h.OtherCharges,
+                    h.TotalBasicAmount, h.TotalDiscount,
+                    h.NetTaxableAmount, h.TotalTax, h.GrandTotal,
+                    h.Remarks,
+                    h.CreatedByName, h.CreatedDate
+                FROM Sales.SalesQuotationHeader h
+                LEFT JOIN Sales.SalesContact sc ON h.ContactPersonId = sc.Id AND sc.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster mmDel ON h.DeliveryTermId = mmDel.Id AND mmDel.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster mmStatus ON h.StatusId = mmStatus.Id AND mmStatus.IsDeleted = 0
+                WHERE h.IsDeleted = 0 AND h.IsActive = 1
+                AND h.StatusId = @PendingStatusId
+                {searchFilter}
+                ORDER BY h.Id DESC
+                OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
+
+                SELECT @TotalCount AS TotalCount;";
+
+            var result = await _dbConnection.QueryMultipleAsync(query, new
+            {
+                MiscType = MiscEnumEntity.InvoiceApprovalStatus,
+                StatusCode = MiscEnumEntity.InvoiceStatusPending,
+                Search = $"%{searchTerm}%",
+                Offset = (pageNumber - 1) * pageSize,
+                PageSize = pageSize
+            });
+            var list = (await result.ReadAsync<GetSalesQuotationPendingDto>()).ToList();
+            var totalCount = await result.ReadFirstAsync<int>();
+
+            return (list, totalCount);
+        }
+
         public async Task<bool> IsSalesQuotationPendingAsync(int id)
         {
             const string sql = @"

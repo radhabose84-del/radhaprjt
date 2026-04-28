@@ -68,6 +68,7 @@ namespace SalesManagement.Domain.Common
         public const string TransactionTypeSalesLead = "Sales Lead";
         public const string TransactionTypeSalesEnquiry = "Sales Enquiry";
         public const string TransactionTypeSalesQuotation = "Sales Quotation";
+        public const string TransactionTypeSalesQuotationAmendment = "Sales Quotation Amendment";
         public const string TransactionTypeDispatchAdvice = "Dispatch Advice";
         public const string TransactionTypeInvoice = "Invoice";
         public const string TransactionTypePriceMaster = "PriceMaster";
