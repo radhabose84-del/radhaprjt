@@ -56,6 +56,8 @@ using SalesManagement.Application.Common.Interfaces.ISalesOrder;
 using SalesManagement.Infrastructure.Repositories.SalesOrder;
 using SalesManagement.Application.Common.Interfaces.ISalesOrderAmendment;
 using SalesManagement.Infrastructure.Repositories.SalesOrderAmendment;
+using SalesManagement.Application.Common.Interfaces.ISalesQuotationAmendment;
+using SalesManagement.Infrastructure.Repositories.SalesQuotationAmendment;
 using SalesManagement.Application.Common.Interfaces.IMovementTypeConfig;
 using SalesManagement.Infrastructure.Repositories.MovementTypeConfig;
 using SalesManagement.Application.Common.Interfaces.IDispatchAdvice;
@@ -285,6 +287,10 @@ namespace SalesManagement.Infrastructure
             // ── Sales Order Amendment Repositories ────────────────────────
             services.AddScoped<ISalesOrderAmendmentCommandRepository, SalesOrderAmendmentCommandRepository>();
             services.AddScoped<ISalesOrderAmendmentQueryRepository, SalesOrderAmendmentQueryRepository>();
+
+            // ── Sales Quotation Amendment Repositories ──────────────────────
+            services.AddScoped<ISalesQuotationAmendmentCommandRepository, SalesQuotationAmendmentCommandRepository>();
+            services.AddScoped<ISalesQuotationAmendmentQueryRepository, SalesQuotationAmendmentQueryRepository>();
 
             // ── Movement Type Config Repositories ─────────────────────────────
             services.AddScoped<IMovementTypeConfigCommandRepository, MovementTypeConfigCommandRepository>();

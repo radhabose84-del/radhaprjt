@@ -69,8 +69,9 @@ namespace SalesManagement.Infrastructure.Repositories.SalesEnquiry
                     h.ExpectedDeliveryDate, h.PaymentTermId, h.SalesLeadId,
                     SL.ProspectCompanyName AS SalesLeadProspectName,
                     h.Remarks,
-                    CASE WHEN quot.Id IS NULL THEN CAST(1 AS BIT) ELSE CAST(0 AS BIT) END AS IsEditable,
+                    CASE WHEN quot.Id IS NULL AND so.Id IS NULL THEN CAST(1 AS BIT) ELSE CAST(0 AS BIT) END AS IsEditable,
                     quot.QuotationNo,
+                    so.SalesOrderNo,
                     h.IsActive, h.IsDeleted,
                     h.CreatedBy, h.CreatedDate, h.CreatedByName,
                     h.ModifiedBy, h.ModifiedDate, h.ModifiedByName
@@ -81,6 +82,11 @@ namespace SalesManagement.Infrastructure.Repositories.SalesEnquiry
                     FROM Sales.SalesQuotationHeader sqh
                     WHERE sqh.SalesEnquiryId = h.Id AND sqh.IsDeleted = 0
                 ) quot
+                OUTER APPLY (
+                    SELECT TOP 1 soh.Id, soh.SalesOrderNo
+                    FROM Sales.SalesOrderHeader soh
+                    WHERE soh.SalesQuotationHeaderId = quot.Id AND soh.IsDeleted = 0
+                ) so
                 WHERE h.IsDeleted = 0 {searchFilter} {moFilter}
                 ORDER BY h.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;

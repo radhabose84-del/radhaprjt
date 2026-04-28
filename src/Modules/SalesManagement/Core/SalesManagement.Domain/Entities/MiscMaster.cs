@@ -66,6 +66,9 @@ namespace SalesManagement.Domain.Entities
         // Reverse navigation (SalesOrderAmendment)
         public ICollection<SalesOrderAmendmentHeader>? SalesOrderAmendmentHeadersAsStatus { get; set; }
 
+        // Reverse navigation (SalesQuotationAmendment)
+        public ICollection<SalesQuotationAmendmentHeader>? SalesQuotationAmendmentHeadersAsStatus { get; set; }
+
         // Reverse navigation (DiscountMaster)
         public ICollection<DiscountMaster>? DiscountMastersAsTriggerEvent { get; set; }
         public ICollection<DiscountMaster>? DiscountMastersAsDiscountBasis { get; set; }

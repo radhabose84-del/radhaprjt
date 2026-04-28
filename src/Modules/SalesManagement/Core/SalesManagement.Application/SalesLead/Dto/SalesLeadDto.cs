@@ -3,6 +3,7 @@ namespace SalesManagement.Application.SalesLead.Dto
     public class SalesLeadDto
     {
         public int Id { get; set; }
+        public string? LeadNo { get; set; }
 
         // Party identification
         public int? PartyId { get; set; }

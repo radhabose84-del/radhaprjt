@@ -4211,6 +4211,9 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Property<int?>("ItemId")
                         .HasColumnType("int");
 
+                    b.Property<string>("LeadNo")
+                        .HasColumnType("varchar(50)");
+
                     b.Property<int?>("LeadSourceId")
                         .HasColumnType("int");
 
@@ -4256,6 +4259,10 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     b.HasIndex("InteractionDate")
                         .HasDatabaseName("IX_SalesLead_InteractionDate");
+
+                    b.HasIndex("LeadNo")
+                        .IsUnique()
+                        .HasFilter("[LeadNo] IS NOT NULL");
 
                     b.HasIndex("LeadSourceId");
 
@@ -5482,6 +5489,244 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.ToTable("SalesOrganisation", "Sales");
                 });
 
+            modelBuilder.Entity("SalesManagement.Domain.Entities.SalesQuotationAmendmentDetail", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ChangeType")
+                        .IsRequired()
+                        .HasColumnType("varchar(10)")
+                        .HasColumnName("ChangeType");
+
+                    b.Property<decimal>("NetRate")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,4)")
+                        .HasColumnName("NetRate");
+
+                    b.Property<decimal?>("NewDiscount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("NewDiscount");
+
+                    b.Property<decimal?>("NewExMillRate")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,4)")
+                        .HasColumnName("NewExMillRate");
+
+                    b.Property<int?>("NewHSNId")
+                        .HasColumnType("int")
+                        .HasColumnName("NewHSNId");
+
+                    b.Property<int?>("NewItemId")
+                        .HasColumnType("int")
+                        .HasColumnName("NewItemId");
+
+                    b.Property<decimal?>("NewQuantity")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("NewQuantity");
+
+                    b.Property<decimal?>("NewTaxPercentage")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("NewTaxPercentage");
+
+                    b.Property<decimal>("OldDiscount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("OldDiscount");
+
+                    b.Property<decimal>("OldExMillRate")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,4)")
+                        .HasColumnName("OldExMillRate");
+
+                    b.Property<int>("OldHSNId")
+                        .HasColumnType("int")
+                        .HasColumnName("OldHSNId");
+
+                    b.Property<int>("OldItemId")
+                        .HasColumnType("int")
+                        .HasColumnName("OldItemId");
+
+                    b.Property<decimal>("OldQuantity")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("OldQuantity");
+
+                    b.Property<decimal>("OldTaxPercentage")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("OldTaxPercentage");
+
+                    b.Property<int>("SalesQuotationAmendmentHeaderId")
+                        .HasColumnType("int")
+                        .HasColumnName("SalesQuotationAmendmentHeaderId");
+
+                    b.Property<int>("SalesQuotationDetailId")
+                        .HasColumnType("int")
+                        .HasColumnName("SalesQuotationDetailId");
+
+                    b.Property<decimal>("TaxAmount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("TaxAmount");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("TotalAmount");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SalesQuotationAmendmentHeaderId");
+
+                    b.HasIndex("SalesQuotationDetailId");
+
+                    b.ToTable("SalesQuotationAmendmentDetail", "Sales");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.SalesQuotationAmendmentHeader", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateOnly>("AmendmentDate")
+                        .HasColumnType("date")
+                        .HasColumnName("AmendmentDate");
+
+                    b.Property<string>("AmendmentNo")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("AmendmentNo");
+
+                    b.Property<int?>("ApprovedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ApprovedBy");
+
+                    b.Property<DateTimeOffset?>("ApprovedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ApprovedDate");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<decimal>("FreightCharges")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("FreightCharges");
+
+                    b.Property<decimal>("GrandTotal")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("GrandTotal");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<decimal>("NetTaxableAmount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("NetTaxableAmount");
+
+                    b.Property<decimal>("OtherCharges")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("OtherCharges");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("Reason");
+
+                    b.Property<int>("RevisionNumber")
+                        .HasColumnType("int")
+                        .HasColumnName("RevisionNumber");
+
+                    b.Property<int>("SalesQuotationHeaderId")
+                        .HasColumnType("int")
+                        .HasColumnName("SalesQuotationHeaderId");
+
+                    b.Property<int?>("StatusId")
+                        .HasColumnType("int")
+                        .HasColumnName("StatusId");
+
+                    b.Property<decimal>("TotalBasicAmount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("TotalBasicAmount");
+
+                    b.Property<decimal>("TotalDiscount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("TotalDiscount");
+
+                    b.Property<decimal>("TotalTax")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("TotalTax");
+
+                    b.Property<int>("UnitId")
+                        .HasColumnType("int")
+                        .HasColumnName("UnitId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AmendmentNo")
+                        .IsUnique();
+
+                    b.HasIndex("SalesQuotationHeaderId");
+
+                    b.HasIndex("StatusId");
+
+                    b.HasIndex("UnitId");
+
+                    b.ToTable("SalesQuotationAmendmentHeader", "Sales");
+                });
+
             modelBuilder.Entity("SalesManagement.Domain.Entities.SalesQuotationDetail", b =>
                 {
                     b.Property<int>("Id")
@@ -5645,6 +5890,12 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Property<string>("Remarks")
                         .HasColumnType("varchar(500)")
                         .HasColumnName("Remarks");
+
+                    b.Property<int>("RevisionNumber")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0)
+                        .HasColumnName("RevisionNumber");
 
                     b.Property<int?>("SalesEnquiryId")
                         .HasColumnType("int")
@@ -7622,6 +7873,35 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("SoType");
                 });
 
+            modelBuilder.Entity("SalesManagement.Domain.Entities.SalesQuotationAmendmentDetail", b =>
+                {
+                    b.HasOne("SalesManagement.Domain.Entities.SalesQuotationAmendmentHeader", "SalesQuotationAmendmentHeader")
+                        .WithMany("SalesQuotationAmendmentDetails")
+                        .HasForeignKey("SalesQuotationAmendmentHeaderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("SalesQuotationAmendmentHeader");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.SalesQuotationAmendmentHeader", b =>
+                {
+                    b.HasOne("SalesManagement.Domain.Entities.SalesQuotationHeader", "SalesQuotationHeader")
+                        .WithMany("SalesQuotationAmendmentHeaders")
+                        .HasForeignKey("SalesQuotationHeaderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "StatusMisc")
+                        .WithMany("SalesQuotationAmendmentHeadersAsStatus")
+                        .HasForeignKey("StatusId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("SalesQuotationHeader");
+
+                    b.Navigation("StatusMisc");
+                });
+
             modelBuilder.Entity("SalesManagement.Domain.Entities.SalesQuotationDetail", b =>
                 {
                     b.HasOne("SalesManagement.Domain.Entities.SalesQuotationHeader", "SalesQuotationHeader")
@@ -8049,6 +8329,8 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     b.Navigation("SalesOrderTypeMastersAsSoType");
 
+                    b.Navigation("SalesQuotationAmendmentHeadersAsStatus");
+
                     b.Navigation("SalesQuotationHeadersAsStatus");
 
                     b.Navigation("StoDetailsAsLineStatus");
@@ -8148,9 +8430,16 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("SalesSegments");
                 });
 
+            modelBuilder.Entity("SalesManagement.Domain.Entities.SalesQuotationAmendmentHeader", b =>
+                {
+                    b.Navigation("SalesQuotationAmendmentDetails");
+                });
+
             modelBuilder.Entity("SalesManagement.Domain.Entities.SalesQuotationHeader", b =>
                 {
                     b.Navigation("SalesOrderHeaders");
+
+                    b.Navigation("SalesQuotationAmendmentHeaders");
 
                     b.Navigation("SalesQuotationDetails");
                 });

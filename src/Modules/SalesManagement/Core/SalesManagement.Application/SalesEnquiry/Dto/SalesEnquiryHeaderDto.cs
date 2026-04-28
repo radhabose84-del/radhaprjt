@@ -14,8 +14,9 @@ namespace SalesManagement.Application.SalesEnquiry.Dto
         public int? SalesLeadId { get; set; }
         public string? SalesLeadProspectName { get; set; }
         public string? Remarks { get; set; }
-        public bool IsEditable { get; set; }           // false when quotation exists against this enquiry
+        public bool IsEditable { get; set; }           // false when quotation OR sales order exists against this enquiry
         public string? QuotationNo { get; set; }        // populated via OUTER APPLY → SalesQuotationHeader
+        public string? SalesOrderNo { get; set; }       // populated via OUTER APPLY → SalesOrderHeader (through quotation)
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }
         public int CreatedBy { get; set; }
