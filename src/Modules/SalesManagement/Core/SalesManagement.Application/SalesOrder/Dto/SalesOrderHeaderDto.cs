@@ -37,6 +37,17 @@ namespace SalesManagement.Application.SalesOrder.Dto
         public int? SalesOrderTypeId { get; set; }
         public string? SalesOrderTypeName { get; set; }
 
+        // Sales Order Type Master (same-module FK, nullable)
+        public int? SalesOrderTypeMasterId { get; set; }
+        public string? SalesOrderTypeMasterName { get; set; }
+
+        // Sales Enquiry Header (same-module FK, nullable)
+        public int? SalesEnquiryHeaderId { get; set; }
+
+        // Reference numbers
+        public string? CustomerPoRefno { get; set; }
+        public string? ComplaintRefno { get; set; }
+
         // Order Unit (captured from JWT at creation)
         public int? OrderUnitId { get; set; }
         public string? OrderUnitName { get; set; }

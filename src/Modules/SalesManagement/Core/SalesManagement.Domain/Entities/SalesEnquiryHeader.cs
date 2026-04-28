@@ -16,5 +16,8 @@ namespace SalesManagement.Domain.Entities
 
         public SalesLead? SalesLead { get; set; }
         public ICollection<SalesEnquiryDetail>? SalesEnquiryDetails { get; set; }
+
+        // Reverse navigation (SalesOrder)
+        public ICollection<SalesOrderHeader>? SalesOrderHeaders { get; set; }
     }
 }
