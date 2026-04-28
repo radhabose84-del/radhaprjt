@@ -415,6 +415,61 @@ namespace SalesManagement.Infrastructure.Repositories.AgentCustomerMapping
             return (list, totalCount);
         }
 
+        public async Task<List<AgentCustomerMappingDto>> GetByMarketingOfficerIdAsync(int marketingOfficerId, CancellationToken ct = default)
+        {
+            var dp = new DynamicParameters();
+            dp.Add("MarketingOfficerId", marketingOfficerId);
+
+            var sql = @"
+                SELECT
+                    acm.Id, acm.CustomerId, acm.AgentId, acm.SubAgentId,
+                    acm.SalesGroupId, sg.SalesGroupName,
+                    acm.EffectiveFrom, acm.EffectiveTo, acm.IsDefaultAgent, acm.Remarks,
+                    acm.IsActive, acm.IsDeleted,
+                    acm.CreatedBy, acm.CreatedDate, acm.CreatedByName, acm.CreatedIP,
+                    acm.ModifiedBy, acm.ModifiedDate, acm.ModifiedByName, acm.ModifiedIP
+                FROM Sales.AgentCustomerMapping acm
+                LEFT JOIN Sales.SalesGroup sg ON acm.SalesGroupId = sg.Id AND sg.IsDeleted = 0
+                WHERE acm.IsDeleted = 0
+                  AND acm.AgentId IN (
+                      SELECT oa.AgentId
+                      FROM Sales.OfficerAgent oa
+                      WHERE oa.MarketingOfficerId = @MarketingOfficerId
+                        AND oa.IsActive = 1
+                  )
+                ORDER BY acm.Id DESC";
+
+            var list = (await _dbConnection.QueryAsync<AgentCustomerMappingDto>(
+                new CommandDefinition(sql, dp, cancellationToken: ct)))
+                .ToList();
+
+            if (list.Any())
+            {
+                var allCustomers = await _customerLookup.GetAllCustomerAsync();
+                var customerDict = allCustomers.ToDictionary(x => x.Id, x => x.CustomerName);
+
+                var allAgents = await _agentLookup.GetAllAgentAsync();
+                var agentDict = allAgents.ToDictionary(x => x.Id, x => x.AgentName);
+
+                var allSubAgents = await _subAgentLookup.GetAllSubAgentAsync();
+                var subAgentDict = allSubAgents.ToDictionary(x => x.Id, x => x.SubAgentName);
+
+                foreach (var item in list)
+                {
+                    if (customerDict.TryGetValue(item.CustomerId, out var customerName))
+                        item.CustomerName = customerName;
+
+                    if (agentDict.TryGetValue(item.AgentId, out var agentName))
+                        item.AgentName = agentName;
+
+                    if (item.SubAgentId.HasValue && subAgentDict.TryGetValue(item.SubAgentId.Value, out var subAgentName))
+                        item.SubAgentName = subAgentName;
+                }
+            }
+
+            return list;
+        }
+
         public async Task<bool> SoftDeleteValidationAsync(int id, CancellationToken ct = default)
         {
             // Returns true if the mapping is referenced in active transactions (blocks delete)
