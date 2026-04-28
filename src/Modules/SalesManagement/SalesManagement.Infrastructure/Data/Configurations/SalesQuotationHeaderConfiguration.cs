@@ -113,6 +113,12 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("int")
                 .IsRequired(false);
 
+            builder.Property(t => t.RevisionNumber)
+                .HasColumnName("RevisionNumber")
+                .HasColumnType("int")
+                .HasDefaultValue(0)
+                .IsRequired();
+
             builder.Property(b => b.IsActive)
                 .HasColumnName("IsActive")
                 .HasColumnType("bit")
