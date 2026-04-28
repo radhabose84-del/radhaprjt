@@ -403,7 +403,6 @@ namespace SalesManagement.Infrastructure.Repositories.ComplaintResolution
                     cr.ResolutionSummary,
                     cr.ReturnQuantity,
                     cr.ReturnLocationId,
-                    rl.Description AS ReturnLocationName,
                     cr.ReturnStatusId,
                     rs.Description AS ReturnStatusName,
                     cr.CreditAmount,
@@ -423,7 +422,6 @@ namespace SalesManagement.Infrastructure.Repositories.ComplaintResolution
                 FROM Sales.ComplaintResolution cr
                 INNER JOIN Sales.ComplaintHeader ch ON cr.ComplaintHeaderId = ch.Id AND ch.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster rt ON cr.ResolutionTypeId = rt.Id AND rt.IsDeleted = 0
-                LEFT JOIN Sales.MiscMaster rl ON cr.ReturnLocationId = rl.Id AND rl.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster rs ON cr.ReturnStatusId = rs.Id AND rs.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster cs ON cr.ClosureStatusId = cs.Id AND cs.IsDeleted = 0
                 WHERE cr.IsDeleted = 0 AND {whereClause};";
@@ -444,7 +442,6 @@ namespace SalesManagement.Infrastructure.Repositories.ComplaintResolution
                 ResolutionSummary = (string?)row.ResolutionSummary,
                 ReturnQuantity = (decimal?)row.ReturnQuantity,
                 ReturnLocationId = (int?)row.ReturnLocationId,
-                ReturnLocationName = (string?)row.ReturnLocationName,
                 ReturnStatusId = (int?)row.ReturnStatusId,
                 ReturnStatusName = (string?)row.ReturnStatusName,
                 CreditAmount = (decimal?)row.CreditAmount,
@@ -487,6 +484,13 @@ namespace SalesManagement.Infrastructure.Repositories.ComplaintResolution
             {
                 var party = await _partyLookup.GetByIdAsync(customerId.Value);
                 resolution.CustomerName = party?.PartyName;
+            }
+
+            // Cross-module enrichment: ReturnLocationName from Warehouse master
+            if (resolution.ReturnLocationId.HasValue)
+            {
+                var warehouses = await _warehouseLookup.GetByIdsAsync([resolution.ReturnLocationId.Value]);
+                resolution.ReturnLocationName = warehouses.Count > 0 ? warehouses[0].WarehouseName : null;
             }
 
             // Populate item name and total complaint quantity from complaint details
@@ -540,6 +544,14 @@ namespace SalesManagement.Infrastructure.Repositories.ComplaintResolution
             const string sql = "SELECT COUNT(1) FROM Sales.MiscMaster WHERE Id = @Id AND IsActive = 1 AND IsDeleted = 0;";
             var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = id });
             return count > 0;
+        }
+
+        public async Task<bool> WarehouseExistsAsync(int warehouseId)
+        {
+            // Cross-module: validate against Warehouse master via lookup (no DB FK constraint).
+            // The lookup itself filters IsActive = 1 and IsDeleted = 0.
+            var rows = await _warehouseLookup.GetByIdsAsync([warehouseId]);
+            return rows.Count > 0 && rows[0].Id == warehouseId;
         }
 
         public async Task<bool> IsClosureStatusClosedAsync(int closureStatusId)

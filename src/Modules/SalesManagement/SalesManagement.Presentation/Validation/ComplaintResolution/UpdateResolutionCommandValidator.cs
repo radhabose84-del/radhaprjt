@@ -93,7 +93,7 @@ namespace SalesManagement.Presentation.Validation.ComplaintResolution
                             .When(x => x.ResolutionTypeId > 0);
 
                         RuleFor(x => x.ReturnLocationId)
-                            .MustAsync(async (id, ct) => await _queryRepository.MiscMasterExistsAsync(id!.Value))
+                            .MustAsync(async (id, ct) => await _queryRepository.WarehouseExistsAsync(id!.Value))
                             .WithMessage($"{nameof(UpdateResolutionCommand.ReturnLocationId)} {rule.Error}")
                             .When(x => x.ReturnLocationId.HasValue && x.ReturnLocationId.Value > 0);
 
