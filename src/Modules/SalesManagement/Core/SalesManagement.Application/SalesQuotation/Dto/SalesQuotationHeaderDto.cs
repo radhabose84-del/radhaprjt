@@ -25,6 +25,8 @@ namespace SalesManagement.Application.SalesQuotation.Dto
         public decimal GrandTotal { get; set; }
         public int? StatusId { get; set; }
         public string? StatusName { get; set; }
+        public bool IsEditable { get; set; }           // false when sales order exists against this quotation
+        public string? SalesOrderNo { get; set; }       // populated via OUTER APPLY → SalesOrderHeader
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }
         public int CreatedBy { get; set; }

@@ -83,6 +83,8 @@ namespace SalesManagement.Infrastructure.Repositories.SalesQuotation
                     h.FreightCharges, h.OtherCharges,
                     h.TotalBasicAmount, h.TotalDiscount,
                     h.NetTaxableAmount, h.TotalTax, h.GrandTotal,
+                    CASE WHEN so.Id IS NULL THEN CAST(1 AS BIT) ELSE CAST(0 AS BIT) END AS IsEditable,
+                    so.SalesOrderNo,
                     h.IsActive, h.IsDeleted,
                     h.CreatedBy, h.CreatedDate, h.CreatedByName,
                     h.ModifiedBy, h.ModifiedDate, h.ModifiedByName
@@ -90,6 +92,11 @@ namespace SalesManagement.Infrastructure.Repositories.SalesQuotation
                 LEFT JOIN Sales.SalesContact sc ON h.ContactPersonId = sc.Id AND sc.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster mm ON h.DeliveryTermId = mm.Id AND mm.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster sm ON h.StatusId = sm.Id AND sm.IsDeleted = 0
+                OUTER APPLY (
+                    SELECT TOP 1 soh.Id, soh.SalesOrderNo
+                    FROM Sales.SalesOrderHeader soh
+                    WHERE soh.SalesQuotationHeaderId = h.Id AND soh.IsDeleted = 0
+                ) so
                 WHERE h.IsDeleted = 0 {searchFilter} {moFilter}
                 ORDER BY h.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
