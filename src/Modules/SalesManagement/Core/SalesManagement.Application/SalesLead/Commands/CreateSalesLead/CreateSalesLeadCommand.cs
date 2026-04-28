@@ -13,6 +13,7 @@ namespace SalesManagement.Application.SalesLead.Commands.CreateSalesLead
         public string? EmailId { get; set; }
         public int? ContactId { get; set; }
         public int? ItemId { get; set; }
+        public int? VariantId { get; set; }
         public decimal? RequirementQty { get; set; }
         public DateOnly? ExpectedDate { get; set; }
         public string? Remarks { get; set; }

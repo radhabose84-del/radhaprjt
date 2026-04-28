@@ -1,4 +1,6 @@
+using Contracts.Interfaces.Lookups.Finance;
 using Microsoft.EntityFrameworkCore;
+using Moq;
 using SalesManagement.Infrastructure.Data;
 using SalesManagement.Infrastructure.Repositories.SalesEnquiry;
 using SalesManagement.IntegrationTests.Common;
@@ -10,9 +12,18 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesEnquiry
     public sealed class SalesEnquiryCommandRepositoryTests
     {
         private readonly DbFixture _fixture;
-        public SalesEnquiryCommandRepositoryTests(DbFixture fixture) => _fixture = fixture;
+        private readonly Mock<IDocumentSequenceLookup> _mockDocSeqLookup;
 
-        private SalesEnquiryCommandRepository CreateRepo(ApplicationDbContext ctx) => new(ctx);
+        public SalesEnquiryCommandRepositoryTests(DbFixture fixture)
+        {
+            _fixture = fixture;
+            _mockDocSeqLookup = new Mock<IDocumentSequenceLookup>(MockBehavior.Loose);
+            _mockDocSeqLookup
+                .Setup(d => d.IncrementDocNoAsync(It.IsAny<int>(), It.IsAny<System.Data.Common.DbConnection>(), It.IsAny<System.Data.Common.DbTransaction>()))
+                .Returns(Task.CompletedTask);
+        }
+
+        private SalesEnquiryCommandRepository CreateRepo(ApplicationDbContext ctx) => new(ctx, _mockDocSeqLookup.Object);
 
         private SalesManagement.Domain.Entities.SalesEnquiryHeader BuildEntity(
             int partyId = 100, string? contactPerson = "John", int detailCount = 2)
@@ -48,7 +59,7 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesEnquiry
             await using var ctx = _fixture.CreateFreshDbContext();
             await ClearAsync(ctx);
 
-            var id = await CreateRepo(ctx).CreateAsync(BuildEntity(partyId: 100));
+            var id = await CreateRepo(ctx).CreateAsync(BuildEntity(partyId: 100), 1);
 
             id.Should().BeGreaterThan(0);
         }
@@ -59,7 +70,7 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesEnquiry
             await using var ctx = _fixture.CreateFreshDbContext();
             await ClearAsync(ctx);
 
-            var id = await CreateRepo(ctx).CreateAsync(BuildEntity(partyId: 200, contactPerson: "Alice", detailCount: 3));
+            var id = await CreateRepo(ctx).CreateAsync(BuildEntity(partyId: 200, contactPerson: "Alice", detailCount: 3), 1);
             ctx.ChangeTracker.Clear();
 
             var saved = await ctx.SalesEnquiryHeader.FirstAsync(x => x.Id == id);
@@ -75,7 +86,7 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesEnquiry
         {
             await using var ctx = _fixture.CreateFreshDbContext();
             await ClearAsync(ctx);
-            var id = await CreateRepo(ctx).CreateAsync(BuildEntity(partyId: 300, contactPerson: "Bob"));
+            var id = await CreateRepo(ctx).CreateAsync(BuildEntity(partyId: 300, contactPerson: "Bob"), 1);
             ctx.ChangeTracker.Clear();
 
             var updated = BuildEntity(partyId: 999, contactPerson: "NewName");
@@ -99,7 +110,7 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesEnquiry
         {
             await using var ctx = _fixture.CreateFreshDbContext();
             await ClearAsync(ctx);
-            var id = await CreateRepo(ctx).CreateAsync(BuildEntity(detailCount: 2));
+            var id = await CreateRepo(ctx).CreateAsync(BuildEntity(detailCount: 2), 1);
             ctx.ChangeTracker.Clear();
 
             var updated = BuildEntity(detailCount: 4);
@@ -130,7 +141,7 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesEnquiry
         {
             await using var ctx = _fixture.CreateFreshDbContext();
             await ClearAsync(ctx);
-            var id = await CreateRepo(ctx).CreateAsync(BuildEntity());
+            var id = await CreateRepo(ctx).CreateAsync(BuildEntity(), 1);
             ctx.ChangeTracker.Clear();
 
             await CreateRepo(ctx).SoftDeleteAsync(id, CancellationToken.None);
@@ -145,7 +156,7 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesEnquiry
         {
             await using var ctx = _fixture.CreateFreshDbContext();
             await ClearAsync(ctx);
-            var id = await CreateRepo(ctx).CreateAsync(BuildEntity());
+            var id = await CreateRepo(ctx).CreateAsync(BuildEntity(), 1);
             ctx.ChangeTracker.Clear();
 
             var result = await CreateRepo(ctx).SoftDeleteAsync(id, CancellationToken.None);

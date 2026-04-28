@@ -4,6 +4,7 @@ namespace SalesManagement.Domain.Entities
 {
     public class SalesEnquiryHeader : BaseEntity
     {
+        public string? EnquiryNo { get; set; }
         public int PartyId { get; set; }
         public DateTimeOffset EnquiryDate { get; set; }
         public string? ContactPerson { get; set; }
