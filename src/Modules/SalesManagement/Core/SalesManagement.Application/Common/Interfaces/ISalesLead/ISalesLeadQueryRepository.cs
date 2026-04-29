@@ -14,6 +14,7 @@ namespace SalesManagement.Application.Common.Interfaces.ISalesLead
         Task<bool> PartyExistsAsync(int partyId);
         Task<bool> CityExistsAsync(int cityId);
         Task<bool> ItemExistsAsync(int itemId);
+        Task<bool> UomExistsAsync(int uomId);
         Task<bool> MarketingOfficerExistsAsync(int marketingOfficerId);
         Task<bool> MobileNumberExistsInSalesContactAsync(string mobileNumber);
         Task<int> GetPrimaryContactTypeIdAsync();

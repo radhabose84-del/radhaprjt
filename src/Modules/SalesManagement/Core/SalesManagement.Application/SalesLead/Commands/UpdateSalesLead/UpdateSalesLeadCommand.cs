@@ -15,6 +15,7 @@ namespace SalesManagement.Application.SalesLead.Commands.UpdateSalesLead
         public int? ContactId { get; set; }
         public int? ItemId { get; set; }
         public int? VariantId { get; set; }
+        public int? UomId { get; set; }
         public decimal? RequirementQty { get; set; }
         public DateOnly? ExpectedDate { get; set; }
         public string? Remarks { get; set; }

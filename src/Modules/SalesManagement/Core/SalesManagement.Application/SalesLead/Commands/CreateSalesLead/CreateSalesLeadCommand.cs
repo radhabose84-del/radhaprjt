@@ -3,7 +3,7 @@ using MediatR;
 
 namespace SalesManagement.Application.SalesLead.Commands.CreateSalesLead
 {
-    public class CreateSalesLeadCommand : IRequest<ApiResponseDTO<int>>
+    public class CreateSalesLeadCommand : IRequest<ApiResponseDTO<CreateSalesLeadResponseDto>>
     {
         public int? PartyId { get; set; }
         public string? ProspectCompanyName { get; set; }
@@ -14,6 +14,7 @@ namespace SalesManagement.Application.SalesLead.Commands.CreateSalesLead
         public int? ContactId { get; set; }
         public int? ItemId { get; set; }
         public int? VariantId { get; set; }
+        public int? UomId { get; set; }
         public decimal? RequirementQty { get; set; }
         public DateOnly? ExpectedDate { get; set; }
         public string? Remarks { get; set; }

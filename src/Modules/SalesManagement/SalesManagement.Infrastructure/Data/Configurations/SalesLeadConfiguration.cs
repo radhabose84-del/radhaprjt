@@ -70,6 +70,11 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("int")
                 .IsRequired(false);
 
+            builder.Property(t => t.UomId)
+                .HasColumnName("UomId")
+                .HasColumnType("int")
+                .IsRequired(false);
+
             builder.Property(t => t.RequirementQty)
                 .HasColumnType("decimal(18,2)")
                 .IsRequired(false);
@@ -129,6 +134,10 @@ namespace SalesManagement.Infrastructure.Data.Configurations
 
             builder.HasIndex(t => t.MobileNumber)
                 .HasDatabaseName("IX_SalesLead_MobileNumber");
+
+            builder.HasIndex(t => t.UomId)
+                .HasDatabaseName("IX_SalesLead_UomId")
+                .HasFilter("[UomId] IS NOT NULL");
 
             // Same-module FK: ContactId → Sales.SalesContact
             // No navigation collection on SalesContact — relationship is one-directional

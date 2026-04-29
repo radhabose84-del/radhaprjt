@@ -40,6 +40,8 @@ public class SalesLeadEntityTests
             EmailId = "jane@acme.com",
             ContactId = 3,
             ItemId = 7,
+            VariantId = 8,
+            UomId = 9,
             RequirementQty = 100.5m,
             ExpectedDate = new DateOnly(2026, 6, 15),
             Remarks = "Hot lead",
@@ -57,6 +59,8 @@ public class SalesLeadEntityTests
         entity.EmailId.Should().Be("jane@acme.com");
         entity.ContactId.Should().Be(3);
         entity.ItemId.Should().Be(7);
+        entity.VariantId.Should().Be(8);
+        entity.UomId.Should().Be(9);
         entity.RequirementQty.Should().Be(100.5m);
         entity.ExpectedDate.Should().Be(new DateOnly(2026, 6, 15));
         entity.Remarks.Should().Be("Hot lead");
@@ -77,6 +81,8 @@ public class SalesLeadEntityTests
             EmailId = null,
             ContactId = null,
             ItemId = null,
+            VariantId = null,
+            UomId = null,
             RequirementQty = null,
             ExpectedDate = null,
             Remarks = null,
@@ -87,6 +93,8 @@ public class SalesLeadEntityTests
         entity.CityId.Should().BeNull();
         entity.ContactId.Should().BeNull();
         entity.ItemId.Should().BeNull();
+        entity.VariantId.Should().BeNull();
+        entity.UomId.Should().BeNull();
         entity.RequirementQty.Should().BeNull();
         entity.ExpectedDate.Should().BeNull();
         entity.LeadSourceId.Should().BeNull();
