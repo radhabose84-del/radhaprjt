@@ -6,6 +6,7 @@ using BackgroundService.Application.Helpers;
 using BackgroundService.Application.Interfaces.Files;
 using BackgroundService.Application.Interfaces.IInbox;
 using Contracts.Interfaces.Lookups.Common;
+using Contracts.Interfaces.Lookups.Users;
 using BackgroundService.Application.Interfaces.Notification;
 using Contracts.Interfaces;
 using BackgroundService.Application.Notification.Common.Interfaces;
@@ -37,6 +38,8 @@ namespace BackgroundService.Application.Consumers
         private readonly IFileFetcher _fileFetcher;
         private readonly IInboxRepository _inbox;
         private readonly IAppDataMiscMasterLookup _appDataMiscLookup;
+        private readonly IUnitLookup _unitLookup;
+        private readonly ICompanyLookup _companyLookup;
 
         public SendEmailNotificationConsumer(
             INotificationResolverHandler resolverHandler,
@@ -49,7 +52,9 @@ namespace BackgroundService.Application.Consumers
             IHtmlTableRenderer htmlTableRenderer,
             IFileFetcher fileFetcher,
             IInboxRepository inbox,
-            IAppDataMiscMasterLookup appDataMiscLookup)
+            IAppDataMiscMasterLookup appDataMiscLookup,
+            IUnitLookup unitLookup,
+            ICompanyLookup companyLookup)
         {
             _resolverHandler = resolverHandler;
             _emailSender = emailSender;
@@ -62,6 +67,8 @@ namespace BackgroundService.Application.Consumers
             _fileFetcher = fileFetcher;
             _inbox = inbox;
             _appDataMiscLookup = appDataMiscLookup;
+            _unitLookup = unitLookup;
+            _companyLookup = companyLookup;
         }
 
         public async Task Consume(ConsumeContext<SendEmailNotificationInternalCommand> context)
@@ -179,7 +186,31 @@ namespace BackgroundService.Application.Consumers
                     }
                 }
 
-                // 2) Tokens AFTER we have param4Html
+                // 2) Resolve company details from UnitId → Unit → Company
+                var companyName = "";
+                var companyGstin = "";
+                var companyLegalName = "";
+                try
+                {
+                    var unit = await _unitLookup.GetByIdAsync(msg.UnitId, context.CancellationToken);
+                    if (unit != null)
+                    {
+                        var companies = await _companyLookup.GetAllCompanyAsync();
+                        var company = companies.FirstOrDefault(c => c.CompanyId == unit.CompanyId);
+                        if (company != null)
+                        {
+                            companyName = company.CompanyName ?? "";
+                            companyLegalName = company.LegalName ?? "";
+                            companyGstin = company.GstNumber ?? "";
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to resolve company details for UnitId={UnitId}", msg.UnitId);
+                }
+
+                // 3) Tokens AFTER we have param4Html and company details
                 var tokens = new Dictionary<string, string>
                 {
                     { "Module",  msg.ModuleName ?? "" },
@@ -192,7 +223,10 @@ namespace BackgroundService.Application.Consumers
                     { "param7",  msg.param7 ?? "" },
                     { "param8",  msg.param8 ?? "" },
                     { "param9",  msg.param9 ?? "" },
-                    { "param10", msg.param10 ?? "" }
+                    { "param10", msg.param10 ?? "" },
+                    { "companyName", companyName },
+                    { "companyLegalName", companyLegalName },
+                    { "companyGstin", companyGstin }
                 };
 
                 // 3) Replace tokens (gentle cleanup; do not strip valid table HTML)
@@ -218,7 +252,7 @@ namespace BackgroundService.Application.Consumers
                     {
                         await _loggerNotification.LogAsync(new NotificationEventLog
                         {
-                            NotificationLevelRuleId = eventRuleId,
+                            NotificationLevelRuleId = (eventRuleId.HasValue && eventRuleId.Value > 0) ? eventRuleId : null,
                             UnitId = msg.UnitId,
                             ChannelId = channelId ?? channelMisc?.Id ?? 0,
                             NotificationStatusId = successMisc?.Id ?? 0,
