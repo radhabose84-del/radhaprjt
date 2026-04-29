@@ -9,6 +9,7 @@ using SalesManagement.Application.AgentCustomerMapping.Queries.GetAgentCustomerM
 using SalesManagement.Application.AgentCustomerMapping.Queries.GetAgentCustomerMappingById;
 using SalesManagement.Application.AgentCustomerMapping.Queries.GetAgentCustomerMappingByFilter;
 using SalesManagement.Application.AgentCustomerMapping.Queries.GetAllAgentCustomerMapping;
+using SalesManagement.Application.AgentCustomerMapping.Queries.GetCustomersByMarketingOfficerId;
 
 namespace SalesManagement.Presentation.Controllers
 {
@@ -85,6 +86,18 @@ namespace SalesManagement.Presentation.Controllers
                 SalesGroupId = salesGroupId,
                 CustomerId = customerId
             });
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result.Data,
+                TotalCount = result.TotalCount
+            });
+        }
+
+        [HttpGet("by-marketing-officer/{marketingOfficerId}")]
+        public async Task<IActionResult> GetCustomersByMarketingOfficerIdAsync(int marketingOfficerId)
+        {
+            var result = await Mediator.Send(new GetCustomersByMarketingOfficerIdQuery { MarketingOfficerId = marketingOfficerId });
             return Ok(new
             {
                 StatusCode = StatusCodes.Status200OK,

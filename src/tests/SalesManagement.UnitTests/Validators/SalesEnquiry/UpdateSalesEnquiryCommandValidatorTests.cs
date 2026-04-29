@@ -26,15 +26,17 @@ namespace SalesManagement.UnitTests.Validators.SalesEnquiry
             Id = 1,
             PartyId = 1,
             EnquiryDate = DateTimeOffset.UtcNow,
+            EnquiryTypeId = 245,
             IsActive = 1,
             SalesEnquiryDetails = new List<UpdateSalesEnquiryDetailDto> { ValidDetail() }
         };
 
-        private void SetupAllAsyncMocks(int id = 1, int partyId = 1, int itemId = 1)
+        private void SetupAllAsyncMocks(int id = 1, int partyId = 1, int itemId = 1, int enquiryTypeId = 245)
         {
             _mockQueryRepo.Setup(r => r.NotFoundAsync(id)).ReturnsAsync(false);
             _mockQueryRepo.Setup(r => r.PartyExistsAsync(partyId)).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.ItemExistsAsync(itemId)).ReturnsAsync(true);
+            _mockQueryRepo.Setup(r => r.EnquiryTypeExistsAsync(enquiryTypeId)).ReturnsAsync(true);
             _mockAccessFilter.Setup(f => f.CanAccessCustomerAsync(partyId, It.IsAny<CancellationToken>())).ReturnsAsync(true);
         }
 
@@ -56,6 +58,7 @@ namespace SalesManagement.UnitTests.Validators.SalesEnquiry
             _mockQueryRepo.Setup(r => r.NotFoundAsync(id)).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.PartyExistsAsync(1)).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.ItemExistsAsync(1)).ReturnsAsync(true);
+            _mockQueryRepo.Setup(r => r.EnquiryTypeExistsAsync(245)).ReturnsAsync(true);
             var result = await CreateValidator().TestValidateAsync(cmd);
             result.ShouldHaveValidationErrorFor(x => x.Id);
         }
@@ -66,6 +69,7 @@ namespace SalesManagement.UnitTests.Validators.SalesEnquiry
             _mockQueryRepo.Setup(r => r.NotFoundAsync(1)).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.PartyExistsAsync(1)).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.ItemExistsAsync(1)).ReturnsAsync(true);
+            _mockQueryRepo.Setup(r => r.EnquiryTypeExistsAsync(245)).ReturnsAsync(true);
             var result = await CreateValidator().TestValidateAsync(ValidCommand());
             result.ShouldHaveValidationErrorFor(x => x.Id);
         }
@@ -77,6 +81,7 @@ namespace SalesManagement.UnitTests.Validators.SalesEnquiry
             cmd.PartyId = 0;
             _mockQueryRepo.Setup(r => r.NotFoundAsync(1)).ReturnsAsync(false);
             _mockQueryRepo.Setup(r => r.ItemExistsAsync(1)).ReturnsAsync(true);
+            _mockQueryRepo.Setup(r => r.EnquiryTypeExistsAsync(245)).ReturnsAsync(true);
             var result = await CreateValidator().TestValidateAsync(cmd);
             result.ShouldHaveAnyValidationError();
         }
@@ -88,6 +93,7 @@ namespace SalesManagement.UnitTests.Validators.SalesEnquiry
             cmd.SalesEnquiryDetails = new List<UpdateSalesEnquiryDetailDto>();
             _mockQueryRepo.Setup(r => r.NotFoundAsync(1)).ReturnsAsync(false);
             _mockQueryRepo.Setup(r => r.PartyExistsAsync(1)).ReturnsAsync(true);
+            _mockQueryRepo.Setup(r => r.EnquiryTypeExistsAsync(245)).ReturnsAsync(true);
             var result = await CreateValidator().TestValidateAsync(cmd);
             result.ShouldHaveAnyValidationError();
         }
@@ -102,6 +108,29 @@ namespace SalesManagement.UnitTests.Validators.SalesEnquiry
             SetupAllAsyncMocks();
             var result = await CreateValidator().TestValidateAsync(cmd);
             result.ShouldHaveAnyValidationError();
+        }
+
+        [Fact]
+        public async Task EnquiryTypeId_Zero_FailsValidation()
+        {
+            var cmd = ValidCommand();
+            cmd.EnquiryTypeId = 0;
+            _mockQueryRepo.Setup(r => r.NotFoundAsync(1)).ReturnsAsync(false);
+            _mockQueryRepo.Setup(r => r.PartyExistsAsync(1)).ReturnsAsync(true);
+            _mockQueryRepo.Setup(r => r.ItemExistsAsync(1)).ReturnsAsync(true);
+            var result = await CreateValidator().TestValidateAsync(cmd);
+            result.ShouldHaveValidationErrorFor(x => x.EnquiryTypeId);
+        }
+
+        [Fact]
+        public async Task EnquiryTypeId_NotFound_FailsValidation()
+        {
+            _mockQueryRepo.Setup(r => r.NotFoundAsync(1)).ReturnsAsync(false);
+            _mockQueryRepo.Setup(r => r.PartyExistsAsync(1)).ReturnsAsync(true);
+            _mockQueryRepo.Setup(r => r.ItemExistsAsync(1)).ReturnsAsync(true);
+            _mockQueryRepo.Setup(r => r.EnquiryTypeExistsAsync(245)).ReturnsAsync(false);
+            var result = await CreateValidator().TestValidateAsync(ValidCommand());
+            result.ShouldHaveValidationErrorFor(x => x.EnquiryTypeId);
         }
     }
 }

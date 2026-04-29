@@ -14,7 +14,10 @@ namespace SalesManagement.Domain.Entities
 
         public int? SalesLeadId { get; set; }
 
+        public int EnquiryTypeId { get; set; }
+
         public SalesLead? SalesLead { get; set; }
+        public MiscMaster? EnquiryTypeMisc { get; set; }
         public ICollection<SalesEnquiryDetail>? SalesEnquiryDetails { get; set; }
 
         // Reverse navigation (SalesOrder)

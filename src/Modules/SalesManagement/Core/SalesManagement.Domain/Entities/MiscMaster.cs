@@ -97,5 +97,8 @@ namespace SalesManagement.Domain.Entities
         // Reverse navigation (SalesOrderTypeMaster — SoType FK)
         public ICollection<SalesOrderTypeMaster>? SalesOrderTypeMastersAsSoType { get; set; }
 
+        // Reverse navigation (SalesEnquiryHeader — EnquiryTypeId FK)
+        public ICollection<SalesEnquiryHeader>? SalesEnquiryHeadersAsEnquiryType { get; set; }
+
     }
 }

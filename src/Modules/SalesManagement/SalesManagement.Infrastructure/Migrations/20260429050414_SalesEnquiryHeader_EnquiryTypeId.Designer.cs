@@ -3,17 +3,20 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SalesManagement.Infrastructure.Data;
 
 #nullable disable
 
-namespace SalesManagement.Infrastructure.Migrations
+namespace SalesManagement.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260429050414_SalesEnquiryHeader_EnquiryTypeId")]
+    partial class SalesEnquiryHeader_EnquiryTypeId
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -5745,10 +5748,6 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("decimal(18,2)")
                         .HasColumnName("Discount");
 
-                    b.Property<int?>("DiscountTypeId")
-                        .HasColumnType("int")
-                        .HasColumnName("DiscountTypeId");
-
                     b.Property<decimal>("ExMillRate")
                         .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,4)")
@@ -5791,27 +5790,13 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("decimal(18,2)")
                         .HasColumnName("TotalAmount");
 
-                    b.Property<int?>("UOMId")
-                        .HasColumnType("int")
-                        .HasColumnName("UOMId");
-
-                    b.Property<int?>("VariantId")
-                        .HasColumnType("int")
-                        .HasColumnName("VariantId");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("DiscountTypeId");
 
                     b.HasIndex("HSNId");
 
                     b.HasIndex("ItemId");
 
                     b.HasIndex("SalesQuotationHeaderId");
-
-                    b.HasIndex("UOMId");
-
-                    b.HasIndex("VariantId");
 
                     b.ToTable("SalesQuotationDetail", "Sales");
                 });

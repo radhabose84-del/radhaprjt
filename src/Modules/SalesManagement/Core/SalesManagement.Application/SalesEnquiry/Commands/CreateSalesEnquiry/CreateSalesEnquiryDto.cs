@@ -4,6 +4,7 @@ namespace SalesManagement.Application.SalesEnquiry.Commands.CreateSalesEnquiry
     {
         public int PartyId { get; set; }
         public DateTimeOffset EnquiryDate { get; set; }
+        public int EnquiryTypeId { get; set; }
         public string? ContactPerson { get; set; }
         public DateTimeOffset? ExpectedDeliveryDate { get; set; }
         public int? PaymentTermId { get; set; }

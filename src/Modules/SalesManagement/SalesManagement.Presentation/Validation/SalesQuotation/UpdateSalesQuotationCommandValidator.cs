@@ -131,6 +131,11 @@ namespace SalesManagement.Presentation.Validation.SalesQuotation
                                 detail.RuleFor(d => d.HSNId)
                                     .GreaterThan(0)
                                     .WithMessage($"HSNId {rule.Error}");
+
+                                detail.RuleFor(d => d.DiscountTypeId)
+                                    .NotNull()
+                                    .GreaterThan(0)
+                                    .WithMessage($"DiscountTypeId {rule.Error}");
                             })
                             .When(x => x.SalesQuotationDetails != null && x.SalesQuotationDetails.Any());
                         break;
@@ -181,6 +186,24 @@ namespace SalesManagement.Presentation.Validation.SalesQuotation
                                         await _queryRepository.HSNExistsAsync(hsnId))
                                     .WithMessage($"HSNId {rule.Error}")
                                     .When(d => d.HSNId > 0);
+
+                                detail.RuleFor(d => d.VariantId)
+                                    .MustAsync(async (variantId, ct) =>
+                                        await _queryRepository.VariantExistsAsync(variantId!.Value))
+                                    .WithMessage($"VariantId {rule.Error}")
+                                    .When(d => d.VariantId.HasValue && d.VariantId.Value > 0);
+
+                                detail.RuleFor(d => d.UOMId)
+                                    .MustAsync(async (uomId, ct) =>
+                                        await _queryRepository.UOMExistsAsync(uomId!.Value))
+                                    .WithMessage($"UOMId {rule.Error}")
+                                    .When(d => d.UOMId.HasValue && d.UOMId.Value > 0);
+
+                                detail.RuleFor(d => d.DiscountTypeId)
+                                    .MustAsync(async (discountTypeId, ct) =>
+                                        await _queryRepository.DiscountTypeExistsAsync(discountTypeId!.Value))
+                                    .WithMessage($"DiscountTypeId {rule.Error}")
+                                    .When(d => d.DiscountTypeId.HasValue && d.DiscountTypeId.Value > 0);
                             })
                             .When(x => x.SalesQuotationDetails != null && x.SalesQuotationDetails.Any());
                         break;

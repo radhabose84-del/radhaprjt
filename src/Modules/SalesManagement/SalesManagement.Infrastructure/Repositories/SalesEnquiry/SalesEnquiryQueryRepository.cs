@@ -4,6 +4,7 @@ using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Purchase;
 using Dapper;
+using SalesManagement.Application.Common.Constants;
 using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Application.Common.Interfaces.ISalesEnquiry;
 using SalesManagement.Application.SalesEnquiry.Dto;
@@ -67,6 +68,9 @@ namespace SalesManagement.Infrastructure.Repositories.SalesEnquiry
 
                 SELECT h.Id, h.EnquiryNo, h.PartyId, h.EnquiryDate, h.ContactPerson,
                     h.ExpectedDeliveryDate, h.PaymentTermId, h.SalesLeadId,
+                    h.EnquiryTypeId,
+                    et.Code        AS EnquiryTypeCode,
+                    et.Description AS EnquiryTypeDescription,
                     SL.ProspectCompanyName AS SalesLeadProspectName,
                     h.Remarks,
                     CASE WHEN quot.Id IS NULL AND so.Id IS NULL THEN CAST(1 AS BIT) ELSE CAST(0 AS BIT) END AS IsEditable,
@@ -77,6 +81,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesEnquiry
                     h.ModifiedBy, h.ModifiedDate, h.ModifiedByName
                 FROM Sales.SalesEnquiryHeader h
                 LEFT JOIN Sales.SalesLead SL ON SL.Id = h.SalesLeadId AND SL.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster et ON et.Id = h.EnquiryTypeId AND et.IsDeleted = 0
                 OUTER APPLY (
                     SELECT TOP 1 sqh.Id, sqh.QuotationNo
                     FROM Sales.SalesQuotationHeader sqh
@@ -139,12 +144,16 @@ namespace SalesManagement.Infrastructure.Repositories.SalesEnquiry
             var headerSql = $@"
                 SELECT h.Id, h.EnquiryNo, h.PartyId, h.EnquiryDate, h.ContactPerson,
                     h.ExpectedDeliveryDate, h.PaymentTermId, h.SalesLeadId,
+                    h.EnquiryTypeId,
+                    et.Code        AS EnquiryTypeCode,
+                    et.Description AS EnquiryTypeDescription,
                     SL.ProspectCompanyName AS SalesLeadProspectName,
                     h.Remarks, h.IsActive, h.IsDeleted,
                     h.CreatedBy, h.CreatedDate, h.CreatedByName,
                     h.ModifiedBy, h.ModifiedDate, h.ModifiedByName
                 FROM Sales.SalesEnquiryHeader h
                 LEFT JOIN Sales.SalesLead SL ON SL.Id = h.SalesLeadId AND SL.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster et ON et.Id = h.EnquiryTypeId AND et.IsDeleted = 0
                 WHERE h.Id = @Id AND h.IsDeleted = 0
                 {moFilter}";
 
@@ -280,6 +289,25 @@ namespace SalesManagement.Infrastructure.Repositories.SalesEnquiry
         {
             const string sql = "SELECT COUNT(1) FROM Sales.SalesLead WHERE Id = @Id AND IsDeleted = 0 AND IsActive = 1";
             var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = salesLeadId });
+            return count > 0;
+        }
+
+        public async Task<bool> EnquiryTypeExistsAsync(int enquiryTypeId)
+        {
+            const string sql = @"
+                SELECT COUNT(1)
+                FROM   Sales.MiscMaster      mm
+                INNER  JOIN Sales.MiscTypeMaster mt ON mt.Id = mm.MiscTypeId
+                WHERE  mm.Id           = @Id
+                  AND  mt.MiscTypeCode = @TypeCode
+                  AND  mm.IsDeleted    = 0
+                  AND  mm.IsActive     = 1
+                  AND  mt.IsDeleted    = 0
+                  AND  mt.IsActive     = 1";
+
+            var count = await _dbConnection.ExecuteScalarAsync<int>(
+                sql,
+                new { Id = enquiryTypeId, TypeCode = MiscMasterCodes.ENQ_TYPE_MISCTYPE });
             return count > 0;
         }
     }

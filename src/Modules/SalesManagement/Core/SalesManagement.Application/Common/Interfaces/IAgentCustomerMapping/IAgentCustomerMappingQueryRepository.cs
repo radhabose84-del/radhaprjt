@@ -16,5 +16,6 @@ namespace SalesManagement.Application.Common.Interfaces.IAgentCustomerMapping
         Task<List<AgentCustomerMappingDto>> GetByCustomerIdAsync(int customerId, CancellationToken ct = default);
         Task<bool> MappingAlreadyExistsAsync(int customerId, int agentId, CancellationToken ct = default);
         Task<(List<AgentCustomerMappingDto>, int)> GetByFilterAsync(int? salesGroupId, int? customerId, CancellationToken ct = default);
+        Task<List<AgentCustomerMappingDto>> GetByMarketingOfficerIdAsync(int marketingOfficerId, CancellationToken ct = default);
     }
 }

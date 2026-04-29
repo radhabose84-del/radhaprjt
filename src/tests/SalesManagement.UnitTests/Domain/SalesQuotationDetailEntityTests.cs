@@ -28,4 +28,29 @@ public class SalesQuotationDetailEntityTests
         entity.Quantity.Should().Be(100m);
         entity.TotalAmount.Should().Be(11550m);
     }
+
+    [Fact]
+    public void NullableProperties_ShouldDefaultToNull()
+    {
+        var entity = new SalesQuotationDetail();
+
+        entity.VariantId.Should().BeNull();
+        entity.UOMId.Should().BeNull();
+        entity.DiscountTypeId.Should().BeNull();
+    }
+
+    [Fact]
+    public void NullableProperties_ShouldBeAssignable()
+    {
+        var entity = new SalesQuotationDetail
+        {
+            VariantId = 42,
+            UOMId = 7,
+            DiscountTypeId = 250
+        };
+
+        entity.VariantId.Should().Be(42);
+        entity.UOMId.Should().Be(7);
+        entity.DiscountTypeId.Should().Be(250);
+    }
 }

@@ -34,6 +34,7 @@ public class SalesEnquiryHeaderEntityTests
             Id = 1,
             PartyId = 10,
             EnquiryDate = DateTimeOffset.UtcNow,
+            EnquiryTypeId = 245,
             ContactPerson = "John",
             Remarks = "Test remarks",
             PaymentTermId = 5,
@@ -42,6 +43,7 @@ public class SalesEnquiryHeaderEntityTests
 
         entity.Id.Should().Be(1);
         entity.PartyId.Should().Be(10);
+        entity.EnquiryTypeId.Should().Be(245);
         entity.ContactPerson.Should().Be("John");
         entity.Remarks.Should().Be("Test remarks");
         entity.PaymentTermId.Should().Be(5);
@@ -74,9 +76,12 @@ public class SalesEnquiryHeaderEntityTests
             SalesEnquiryDetails = new List<SalesEnquiryDetail>
             {
                 new() { ItemId = 1, Quantity = 10m }
-            }
+            },
+            EnquiryTypeMisc = new MiscMaster { Id = 245, Code = "ENQ_DOMESTIC" }
         };
 
         entity.SalesEnquiryDetails.Should().HaveCount(1);
+        entity.EnquiryTypeMisc.Should().NotBeNull();
+        entity.EnquiryTypeMisc!.Code.Should().Be("ENQ_DOMESTIC");
     }
 }

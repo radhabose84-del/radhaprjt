@@ -1,5 +1,6 @@
 #nullable enable
 using System.Reflection;
+using MediatR;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -35,13 +36,20 @@ public static class CachingServiceExtensions
             memoryCacheOptions.SizeLimit = options.SizeLimit;
         });
 
-        // 3️⃣ Auto-discover ALL I*Lookup interfaces from Contracts assembly
+        // 3️⃣ Register write-invalidate infrastructure:
+        //    - LookupCacheInvalidator: singleton owning one CTS per cached lookup interface
+        //    - CacheInvalidationBehavior: MediatR pipeline behavior that evicts after Create/Update/Delete commands
+        services.AddSingleton<LookupCacheInvalidator>();
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(CacheInvalidationBehavior<,>));
+
+        // 4️⃣ Auto-discover ALL I*Lookup interfaces from Contracts assembly
         var lookupInterfaces = DiscoverLookupInterfaces();
 
-        // 4️⃣ Decorate each lookup interface with caching proxy
+        // 5️⃣ Decorate each lookup interface with caching proxy and record its name
         foreach (var lookupInterface in lookupInterfaces)
         {
             DecorateLookup(services, lookupInterface);
+            RegisteredCachedLookupNames.Add(lookupInterface.Name);
         }
 
         Console.WriteLine($"✅ Lookup caching registered for {lookupInterfaces.Count} interfaces (Duration: {options.CacheDuration}, AbsoluteExp: {options.AbsoluteExpiration})");
@@ -57,7 +65,7 @@ public static class CachingServiceExtensions
     /// Lookup interfaces that must NOT be cached because they have write/mutation methods
     /// or return values that change frequently (e.g. document sequence counters).
     /// </summary>
-    private static readonly HashSet<string> ExcludedLookupInterfaces = new(StringComparer.Ordinal)
+    internal static readonly HashSet<string> ExcludedLookupInterfaces = new(StringComparer.Ordinal)
     {
         // IDocumentSequenceLookup has both write operations (IncrementDocNoAsync) and
         // frequently-changing reads (GenerateDocumentNumber changes after every doc created).
@@ -69,6 +77,11 @@ public static class CachingServiceExtensions
         // to show stale data — newly submitted items missing, already-approved items still appearing.
         "IWorkflowLookup",
     };
+
+    // Populated by AddLookupCaching during discovery so CacheInvalidationBehavior knows
+    // which interface names actually have a cache to evict (silent no-op for unknown names).
+    internal static readonly HashSet<string> RegisteredCachedLookupNames =
+        new(StringComparer.Ordinal);
 
     private static List<Type> DiscoverLookupInterfaces()
     {
@@ -131,11 +144,12 @@ public static class CachingServiceExtensions
             var options = provider.GetRequiredService<LookupCacheOptions>();
             var loggerType = typeof(ILogger<>).MakeGenericType(decoratorType);
             var logger = provider.GetRequiredService(loggerType);
+            var invalidator = provider.GetRequiredService<LookupCacheInvalidator>();
 
-            // Call CachedLookupDecorator<TLookup>.Create(inner, cache, options, logger)
+            // Call CachedLookupDecorator<TLookup>.Create(inner, cache, options, logger, invalidator)
             var createMethod = decoratorType.GetMethod("Create", BindingFlags.Public | BindingFlags.Static)!;
 
-            return createMethod.Invoke(null, new object[] { inner, cache, options, logger })!;
+            return createMethod.Invoke(null, new object[] { inner, cache, options, logger, invalidator })!;
         });
     }
 }
