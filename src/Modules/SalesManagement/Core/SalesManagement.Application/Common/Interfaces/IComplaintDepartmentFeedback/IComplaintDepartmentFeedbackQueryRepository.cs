@@ -8,6 +8,13 @@ namespace SalesManagement.Application.Common.Interfaces.IComplaintDepartmentFeed
         Task<ComplaintDepartmentFeedbackDto?> GetByIdAsync(int id);
         Task<ComplaintDepartmentFeedbackDto?> GetByAssignmentIdAsync(int assignmentId);
         Task<List<FeedbackListDto>> GetByComplaintIdAsync(int complaintHeaderId);
+
+        /// <summary>
+        /// Per-complaint detail view for QC: returns one row per assigned department with
+        /// full RCA content + attachments. FeedbackId is null when a dept hasn't submitted yet.
+        /// </summary>
+        Task<List<ComplaintFeedbackFullDto>> GetByComplaintIdWithContentAsync(int complaintHeaderId);
+
         Task<List<MyPendingFeedbackDto>> GetMyPendingAsync(int userId);
         Task<bool> NotFoundAsync(int id);
         Task<bool> AssignmentExistsAsync(int assignmentId);
