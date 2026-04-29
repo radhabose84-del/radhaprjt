@@ -12,5 +12,13 @@ namespace SalesManagement.Application.Common.Constants
         public const string SO_NORMAL   = "SO_NORMAL";
         public const string SO_RATE_AGR = "SO_RATE_AGR";
         public const string SO_SAMPLE   = "SO_SAMPLE";
+
+        // ── SalesEnquiryHeader.EnquiryTypeId ─────────────────────────────────
+        public const string ENQ_TYPE_MISCTYPE = "ENQ_TYPE";
+
+        public const string ENQ_DOMESTIC = "ENQ_DOMESTIC";
+        public const string ENQ_EXPORT   = "ENQ_EXPORT";
+        public const string ENQ_SAMPLE   = "ENQ_SAMPLE";
+        public const string ENQ_REPEAT   = "ENQ_REPEAT";
     }
 }

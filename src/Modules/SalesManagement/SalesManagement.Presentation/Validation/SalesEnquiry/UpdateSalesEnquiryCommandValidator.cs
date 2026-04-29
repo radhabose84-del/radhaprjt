@@ -47,6 +47,10 @@ namespace SalesManagement.Presentation.Validation.SalesEnquiry
                             .NotEmpty()
                             .WithMessage($"EnquiryDate {rule.Error}");
 
+                        RuleFor(x => x.EnquiryTypeId)
+                            .GreaterThan(0)
+                            .WithMessage($"EnquiryTypeId {rule.Error}");
+
                         RuleFor(x => x.SalesEnquiryDetails)
                             .NotNull()
                             .WithMessage("At least one product line item is required.")
@@ -91,6 +95,12 @@ namespace SalesManagement.Presentation.Validation.SalesEnquiry
                                 await _queryRepository.SalesLeadExistsAsync(salesLeadId!.Value))
                             .WithMessage($"SalesLeadId {rule.Error}")
                             .When(x => x.SalesLeadId.HasValue && x.SalesLeadId > 0);
+
+                        RuleFor(x => x.EnquiryTypeId)
+                            .MustAsync(async (enquiryTypeId, ct) =>
+                                await _queryRepository.EnquiryTypeExistsAsync(enquiryTypeId))
+                            .WithMessage($"EnquiryTypeId {rule.Error}")
+                            .When(x => x.EnquiryTypeId > 0);
                         break;
 
                     case "ByteValue":

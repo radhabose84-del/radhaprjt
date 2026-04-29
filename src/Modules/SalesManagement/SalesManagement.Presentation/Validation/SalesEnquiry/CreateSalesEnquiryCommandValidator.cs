@@ -48,6 +48,10 @@ namespace SalesManagement.Presentation.Validation.SalesEnquiry
                             .NotEmpty()
                             .WithMessage($"EnquiryDate {rule.Error}");
 
+                        RuleFor(x => x.SalesEnquiryDetails.EnquiryTypeId)
+                            .GreaterThan(0)
+                            .WithMessage($"EnquiryTypeId {rule.Error}");
+
                         RuleFor(x => x.SalesEnquiryDetails.SalesEnquiryDetails)
                             .NotNull()
                             .WithMessage("At least one product line item is required.")
@@ -85,6 +89,12 @@ namespace SalesManagement.Presentation.Validation.SalesEnquiry
                                 await _queryRepository.SalesLeadExistsAsync(salesLeadId!.Value))
                             .WithMessage($"SalesLeadId {rule.Error}")
                             .When(x => x.SalesEnquiryDetails?.SalesLeadId.HasValue == true && x.SalesEnquiryDetails.SalesLeadId > 0);
+
+                        RuleFor(x => x.SalesEnquiryDetails.EnquiryTypeId)
+                            .MustAsync(async (enquiryTypeId, ct) =>
+                                await _queryRepository.EnquiryTypeExistsAsync(enquiryTypeId))
+                            .WithMessage($"EnquiryTypeId {rule.Error}")
+                            .When(x => x.SalesEnquiryDetails?.EnquiryTypeId > 0);
                         break;
 
                     case "MarketingOfficerAccess":
