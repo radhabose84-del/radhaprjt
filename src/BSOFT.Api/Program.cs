@@ -67,14 +67,17 @@ builder.Services.AddFinanceManagementModule(builder.Configuration, builder.Envir
 builder.Services.AddProductionManagementModule(builder.Configuration, builder.Environment);
 builder.Services.AddLogisticsManagementModule(builder.Configuration, builder.Environment);
 
-// ✅ Global lookup caching (MUST be after module registrations)
+// ✅ Global lookup caching with write-invalidate (MUST be after module registrations)
+// Reads serve from IMemoryCache; CacheInvalidationBehavior auto-evicts after every successful
+// Create*/Update*/Delete*Command, so newly added master data is visible immediately.
+// TTL values act as a safety net for out-of-band changes (direct SQL updates, sync jobs).
+// IWorkflowLookup and IDocumentSequenceLookup are excluded — they always hit SQL.
 builder.Services.AddLookupCaching(options =>
 {
-    options.CacheDuration        = TimeSpan.FromMinutes(5);
-    //options.AbsoluteExpiration   = TimeSpan.FromHours(24);
-    options.AbsoluteExpiration   = TimeSpan.FromMinutes(30);
-    options.SizeLimit            = 2000;
-    options.EnableDetailedLogging = false;
+    options.CacheDuration         = TimeSpan.FromMinutes(30); // sliding — safety net for out-of-band changes
+    options.AbsoluteExpiration    = TimeSpan.FromHours(4);    // hard ceiling on staleness if eviction is missed
+    options.SizeLimit             = 5000;                     // headroom for ~50 lookup interfaces × ~50 method+arg combos
+    options.EnableDetailedLogging = false;                    // flip to true only when debugging cache behavior
 });
 
 // ✅ SignalR hub (clients connect here; BSOFT.Worker pushes via SignalR client)
