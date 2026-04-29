@@ -66,7 +66,7 @@ namespace BackgroundService.Infrastructure.Data.Workflow.Configurations
             builder.Property(t => t.TargetValueId)
             .HasColumnName("TargetValueId")
             .HasColumnType("int")
-            .IsRequired();
+            .IsRequired(false);
 
             builder.Property(t => t.IsEdit)
             .HasColumnName("IsEdit")
