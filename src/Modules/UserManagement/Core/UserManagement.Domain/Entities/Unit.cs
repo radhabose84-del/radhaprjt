@@ -27,6 +27,7 @@ public int? SpindlesCapacity { get; set; }
 public int UnitTypeId { get; set; }
 public MiscMaster? UnitType { get; set; }
 public string? UnitTypeName { get; set; }
+public int? PinCode { get; set; }
 
 }
 }

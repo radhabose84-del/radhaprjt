@@ -1,4 +1,6 @@
+using Contracts.Interfaces.Lookups.Finance;
 using Microsoft.EntityFrameworkCore;
+using Moq;
 using SalesManagement.Infrastructure.Data;
 using SalesManagement.Infrastructure.Repositories.SalesQuotation;
 using SalesManagement.IntegrationTests.Common;
@@ -10,9 +12,18 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesQuotation
     public sealed class SalesQuotationCommandRepositoryTests
     {
         private readonly DbFixture _fixture;
-        public SalesQuotationCommandRepositoryTests(DbFixture fixture) => _fixture = fixture;
+        private readonly Mock<IDocumentSequenceLookup> _mockDocSeqLookup;
 
-        private SalesQuotationCommandRepository CreateRepo(ApplicationDbContext ctx) => new(ctx);
+        public SalesQuotationCommandRepositoryTests(DbFixture fixture)
+        {
+            _fixture = fixture;
+            _mockDocSeqLookup = new Mock<IDocumentSequenceLookup>(MockBehavior.Loose);
+            _mockDocSeqLookup
+                .Setup(d => d.IncrementDocNoAsync(It.IsAny<int>(), It.IsAny<System.Data.Common.DbConnection>(), It.IsAny<System.Data.Common.DbTransaction>()))
+                .Returns(Task.CompletedTask);
+        }
+
+        private SalesQuotationCommandRepository CreateRepo(ApplicationDbContext ctx) => new(ctx, _mockDocSeqLookup.Object);
 
         private async Task<int> EnsureMiscAsync(ApplicationDbContext ctx, int miscTypeId, string code)
         {
@@ -83,7 +94,7 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesQuotation
             await using var ctx = _fixture.CreateFreshDbContext();
             await ClearAsync(ctx);
 
-            var id = await CreateRepo(ctx).CreateAsync(await BuildEntityAsync(customerId: 100));
+            var id = await CreateRepo(ctx).CreateAsync(await BuildEntityAsync(customerId: 100), 1);
 
             id.Should().BeGreaterThan(0);
         }
@@ -94,7 +105,7 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesQuotation
             await using var ctx = _fixture.CreateFreshDbContext();
             await ClearAsync(ctx);
 
-            var id = await CreateRepo(ctx).CreateAsync(await BuildEntityAsync(customerId: 200, detailCount: 3));
+            var id = await CreateRepo(ctx).CreateAsync(await BuildEntityAsync(customerId: 200, detailCount: 3), 1);
             ctx.ChangeTracker.Clear();
 
             var saved = await ctx.SalesQuotationHeader.FirstAsync(x => x.Id == id);
@@ -109,7 +120,7 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesQuotation
         {
             await using var ctx = _fixture.CreateFreshDbContext();
             await ClearAsync(ctx);
-            var id = await CreateRepo(ctx).CreateAsync(await BuildEntityAsync(customerId: 100));
+            var id = await CreateRepo(ctx).CreateAsync(await BuildEntityAsync(customerId: 100), 1);
             ctx.ChangeTracker.Clear();
 
             var updated = await BuildEntityAsync(customerId: 999);
@@ -132,7 +143,7 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesQuotation
         {
             await using var ctx = _fixture.CreateFreshDbContext();
             await ClearAsync(ctx);
-            var id = await CreateRepo(ctx).CreateAsync(await BuildEntityAsync(detailCount: 2));
+            var id = await CreateRepo(ctx).CreateAsync(await BuildEntityAsync(detailCount: 2), 1);
             ctx.ChangeTracker.Clear();
 
             var updated = await BuildEntityAsync(detailCount: 4);
@@ -163,7 +174,7 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesQuotation
         {
             await using var ctx = _fixture.CreateFreshDbContext();
             await ClearAsync(ctx);
-            var id = await CreateRepo(ctx).CreateAsync(await BuildEntityAsync());
+            var id = await CreateRepo(ctx).CreateAsync(await BuildEntityAsync(), 1);
             ctx.ChangeTracker.Clear();
 
             var result = await CreateRepo(ctx).SoftDeleteAsync(id, CancellationToken.None);

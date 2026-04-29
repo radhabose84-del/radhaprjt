@@ -51,6 +51,8 @@ namespace SalesManagement.Infrastructure.Data
         public DbSet<SalesEnquiryDetail> SalesEnquiryDetail { get; set; }
         public DbSet<SalesQuotationHeader> SalesQuotationHeader { get; set; }
         public DbSet<SalesQuotationDetail> SalesQuotationDetail { get; set; }
+        public DbSet<SalesQuotationAmendmentHeader> SalesQuotationAmendmentHeader { get; set; }
+        public DbSet<SalesQuotationAmendmentDetail> SalesQuotationAmendmentDetail { get; set; }
         public DbSet<CustomerVisit> CustomerVisit { get; set; }
         public DbSet<CustomerVisitProduct> CustomerVisitProduct { get; set; }
         public DbSet<SalesOrderHeader> SalesOrderHeader { get; set; }
@@ -92,6 +94,7 @@ namespace SalesManagement.Infrastructure.Data
         public DbSet<ProformaInvoice> ProformaInvoice { get; set; }
         public DbSet<TripSheetHeader> TripSheetHeader { get; set; }
         public DbSet<TripSheetDetail> TripSheetDetail { get; set; }
+        public DbSet<SalesOrderTypeMaster> SalesOrderTypeMaster { get; set; }
 
         // ── Outbox (SQL-based for workflow transaction atomicity) ─────────
         public DbSet<OutboxMessage> OutboxMessages { get; set; }
@@ -124,6 +127,8 @@ namespace SalesManagement.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new SalesEnquiryDetailConfiguration());
             modelBuilder.ApplyConfiguration(new SalesQuotationHeaderConfiguration());
             modelBuilder.ApplyConfiguration(new SalesQuotationDetailConfiguration());
+            modelBuilder.ApplyConfiguration(new SalesQuotationAmendmentHeaderConfiguration());
+            modelBuilder.ApplyConfiguration(new SalesQuotationAmendmentDetailConfiguration());
             modelBuilder.ApplyConfiguration(new CustomerVisitConfiguration());
             modelBuilder.ApplyConfiguration(new CustomerVisitProductConfiguration());
             modelBuilder.ApplyConfiguration(new SalesOrderHeaderConfiguration());
@@ -165,6 +170,7 @@ namespace SalesManagement.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new ProformaInvoiceConfiguration());
             modelBuilder.ApplyConfiguration(new TripSheetHeaderConfiguration());
             modelBuilder.ApplyConfiguration(new TripSheetDetailConfiguration());
+            modelBuilder.ApplyConfiguration(new SalesOrderTypeMasterConfiguration());
             // ── Outbox (SQL-based for workflow) ─────────────────────────────
             modelBuilder.ApplyConfiguration(new OutboxMessageConfiguration());
 

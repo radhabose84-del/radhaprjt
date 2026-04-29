@@ -137,7 +137,7 @@ namespace SalesManagement.Presentation.Validation.Invoice
                             })
                             .When(x => x.Details != null && x.Details.Any());
 
-                        // Invoice quantity cannot exceed dispatched quantity
+                      /*   // Invoice quantity cannot exceed dispatched quantity
                         RuleForEach(x => x.Details!)
                             .MustAsync(async (cmd, detail, ct) =>
                             {
@@ -147,7 +147,7 @@ namespace SalesManagement.Presentation.Validation.Invoice
                                 return detail.NoOfBags <= dispatchedBags && detail.BagWeight <= dispatchedQty;
                             })
                             .WithMessage("Invoice quantity cannot exceed dispatched quantity.")
-                            .When(x => x.DispatchAdviceId > 0 && x.Details != null && x.Details.Any());
+                            .When(x => x.DispatchAdviceId > 0 && x.Details != null && x.Details.Any()); */
                         break;
 
                     case "GreaterThanOrEqualToZero":

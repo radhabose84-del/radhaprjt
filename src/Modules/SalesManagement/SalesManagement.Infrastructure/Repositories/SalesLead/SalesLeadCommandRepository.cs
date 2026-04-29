@@ -1,4 +1,6 @@
+using Contracts.Interfaces.Lookups.Finance;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using SalesManagement.Application.Common.Interfaces.ISalesLead;
 using SalesManagement.Infrastructure.Data;
 using static SalesManagement.Domain.Common.BaseEntity;
@@ -8,17 +10,43 @@ namespace SalesManagement.Infrastructure.Repositories.SalesLead
     public class SalesLeadCommandRepository : ISalesLeadCommandRepository
     {
         private readonly ApplicationDbContext _applicationDbContext;
+        private readonly IDocumentSequenceLookup _documentSequenceLookup;
 
-        public SalesLeadCommandRepository(ApplicationDbContext applicationDbContext)
+        public SalesLeadCommandRepository(
+            ApplicationDbContext applicationDbContext,
+            IDocumentSequenceLookup documentSequenceLookup)
         {
             _applicationDbContext = applicationDbContext;
+            _documentSequenceLookup = documentSequenceLookup;
         }
 
-        public async Task<int> CreateAsync(Domain.Entities.SalesLead entity)
+        public async Task<int> CreateAsync(Domain.Entities.SalesLead entity, int transactionTypeId)
         {
-            await _applicationDbContext.SalesLead.AddAsync(entity);
-            await _applicationDbContext.SaveChangesAsync();
-            return entity.Id;
+            var strategy = _applicationDbContext.Database.CreateExecutionStrategy();
+
+            return await strategy.ExecuteAsync(async () =>
+            {
+                using var transaction = await _applicationDbContext.Database.BeginTransactionAsync();
+                try
+                {
+                    await _applicationDbContext.SalesLead.AddAsync(entity);
+                    await _applicationDbContext.SaveChangesAsync();
+
+                    // Increment DocNo via lookup — same connection + transaction
+                    var dbConnection = _applicationDbContext.Database.GetDbConnection();
+                    var dbTransaction = transaction.GetDbTransaction();
+                    await _documentSequenceLookup.IncrementDocNoAsync(transactionTypeId, dbConnection, dbTransaction);
+
+                    await _applicationDbContext.SaveChangesAsync();
+                    await transaction.CommitAsync();
+                    return entity.Id;
+                }
+                catch
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
+            });
         }
 
         public async Task<int> UpdateAsync(Domain.Entities.SalesLead entity)
@@ -37,6 +65,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesLead
             existingEntity.EmailId = entity.EmailId;
             existingEntity.ContactId = entity.ContactId;
             existingEntity.ItemId = entity.ItemId;
+            existingEntity.VariantId = entity.VariantId;
             existingEntity.RequirementQty = entity.RequirementQty;
             existingEntity.ExpectedDate = entity.ExpectedDate;
             existingEntity.Remarks = entity.Remarks;

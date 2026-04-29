@@ -44,7 +44,17 @@ namespace SalesManagement.UnitTests.Application.DeliveryChallan.Commands
             VehicleNumber = "TN01-AB-1234",
             TransportDistance = 150.5m,
             ConsignmentValue = 45000m,
-            DeliveryValue = 45000m
+            DeliveryValue = 45000m,
+            // Default to one valid line so happy-path tests pass the new master-data validation.
+            // Tests that need empty/invalid details overwrite this property.
+            DeliveryChallanDetails = new List<DeliveryChallanDetailDto>
+            {
+                new()
+                {
+                    Id = 10, ItemId = 2222, UOMId = 2,
+                    DispatchQuantity = 3m, LineMovementValue = 4500m, ItemName = "Yarn"
+                }
+            }
         };
 
         private void SetupLookups()
@@ -67,6 +77,22 @@ namespace SalesManagement.UnitTests.Application.DeliveryChallan.Commands
             _mockPartyLookup
                 .Setup(p => p.GetByIdAsync(99, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new PartyLookupDto { Id = 99, PartyName = "ABC Transports", GstNumber = "33AAAAA0000A1Z9" });
+
+            // Item + UOM lookups for the default line in BuildDc so master-data validation passes.
+            _mockItemLookup
+                .Setup(l => l.GetByIdsAsync(It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((IReadOnlyList<ItemLookupDto>)new List<ItemLookupDto>
+                {
+                    new() { Id = 2222, ItemName = "Yarn",   HSNCode = "5205" },
+                    new() { Id = 3333, ItemName = "Cotton", HSNCode = "5201" }
+                });
+            _mockUomLookup
+                .Setup(l => l.GetByIdsAsync(It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((IReadOnlyList<UOMLookupDto>)new List<UOMLookupDto>
+                {
+                    new() { Id = 2, Code = "KGS", UOMName = "Kilograms" },
+                    new() { Id = 5, Code = "NOS", UOMName = "Numbers"   }
+                });
         }
 
         [Fact]
@@ -287,30 +313,189 @@ namespace SalesManagement.UnitTests.Application.DeliveryChallan.Commands
             line2.Qty.Should().Be(12m);
         }
 
+        // ---------------------------------------------------------------------------
+        // Master-data validation (Option 1 — fail loud, no DB row written).
+        // ---------------------------------------------------------------------------
+
         [Fact]
-        public async Task Handle_DcWithNoDetails_MapsEmptyDetailsList()
+        public async Task Handle_DcWithNoDetails_FailsValidationWithLineItemsError()
         {
             var dc = BuildDc();
-            dc.DeliveryChallanDetails = null;  // simulates "DC loaded without details"
+            dc.DeliveryChallanDetails = null;
             _mockDcRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(dc);
             _mockEwbLookup
                 .Setup(l => l.GetByDCAsync("DC-2026-0001", 10, It.IsAny<CancellationToken>()))
                 .ReturnsAsync((EWaybillLookupDto?)null);
             SetupLookups();
 
-            CreateEWaybillHeaderCommand? captured = null;
-            _mockMediator
-                .Setup(m => m.Send(It.IsAny<CreateEWaybillHeaderCommand>(), It.IsAny<CancellationToken>()))
-                .Callback<IRequest<ApiResponseDTO<int>>, CancellationToken>(
-                    (cmd, _) => captured = (CreateEWaybillHeaderCommand)cmd)
-                .ReturnsAsync(new ApiResponseDTO<int> { IsSuccess = true, Data = 42 });
-            _mockMediator
-                .Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>()))
-                .Returns(Task.CompletedTask);
+            var result = await CreateSut().Handle(new GenerateEWaybillForDCCommand(1), CancellationToken.None);
 
-            await CreateSut().Handle(new GenerateEWaybillForDCCommand(1), CancellationToken.None);
+            result.IsSuccess.Should().BeFalse();
+            result.Data!.Errors.Should().ContainSingle(e => e.Contains("no line items"));
+            _mockMediator.Verify(
+                m => m.Send(It.IsAny<CreateEWaybillHeaderCommand>(), It.IsAny<CancellationToken>()),
+                Times.Never,
+                "Validation failure must NOT write a Finance.EWaybillHeader row.");
+        }
 
-            captured!.Details.Should().BeEmpty();
+        [Fact]
+        public async Task Handle_MissingConsignorGstin_FailsValidation()
+        {
+            var dc = BuildDc();
+            _mockDcRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(dc);
+            _mockEwbLookup
+                .Setup(l => l.GetByDCAsync("DC-2026-0001", 10, It.IsAny<CancellationToken>()))
+                .ReturnsAsync((EWaybillLookupDto?)null);
+            SetupLookups();
+
+            // Override consignor company to have no GSTIN
+            _mockCompanyLookup
+                .Setup(c => c.GetAllCompanyAsync())
+                .ReturnsAsync(new List<CompanyLookupDto>
+                {
+                    new() { CompanyId = 1, GstNumber = null, LegalName = "Consignor Ltd" },
+                    new() { CompanyId = 2, GstNumber = "29AACCA8432H1ZX", LegalName = "Consignee Ltd" }
+                });
+
+            var result = await CreateSut().Handle(new GenerateEWaybillForDCCommand(1), CancellationToken.None);
+
+            result.IsSuccess.Should().BeFalse();
+            result.Data!.Errors.Should().Contain(e => e.Contains("Consignor GSTIN missing"));
+        }
+
+        [Fact]
+        public async Task Handle_MissingConsigneeGstin_FailsValidation()
+        {
+            var dc = BuildDc();
+            _mockDcRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(dc);
+            _mockEwbLookup
+                .Setup(l => l.GetByDCAsync("DC-2026-0001", 10, It.IsAny<CancellationToken>()))
+                .ReturnsAsync((EWaybillLookupDto?)null);
+            SetupLookups();
+
+            _mockCompanyLookup
+                .Setup(c => c.GetAllCompanyAsync())
+                .ReturnsAsync(new List<CompanyLookupDto>
+                {
+                    new() { CompanyId = 1, GstNumber = "33AACCA8432H1ZX", LegalName = "Consignor Ltd" },
+                    new() { CompanyId = 2, GstNumber = "  ", LegalName = "Consignee Ltd" }
+                });
+
+            var result = await CreateSut().Handle(new GenerateEWaybillForDCCommand(1), CancellationToken.None);
+
+            result.IsSuccess.Should().BeFalse();
+            result.Data!.Errors.Should().Contain(e => e.Contains("Consignee GSTIN missing"));
+        }
+
+        [Fact]
+        public async Task Handle_MissingHsnOnLine_FailsValidation()
+        {
+            var dc = BuildDc();
+            _mockDcRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(dc);
+            _mockEwbLookup
+                .Setup(l => l.GetByDCAsync("DC-2026-0001", 10, It.IsAny<CancellationToken>()))
+                .ReturnsAsync((EWaybillLookupDto?)null);
+            SetupLookups();
+
+            // Override item lookup with no HSNCode for ItemId 2222
+            _mockItemLookup
+                .Setup(l => l.GetByIdsAsync(It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((IReadOnlyList<ItemLookupDto>)new List<ItemLookupDto>
+                {
+                    new() { Id = 2222, ItemName = "Yarn", HSNCode = null }
+                });
+
+            var result = await CreateSut().Handle(new GenerateEWaybillForDCCommand(1), CancellationToken.None);
+
+            result.IsSuccess.Should().BeFalse();
+            result.Data!.Errors.Should().Contain(e => e.Contains("HSN number missing for ItemId 2222"));
+        }
+
+        [Fact]
+        public async Task Handle_MissingItemName_FailsValidation()
+        {
+            var dc = BuildDc();
+            // Strip ItemName from the DC line and the item-master fallback so the line's name resolves to null
+            dc.DeliveryChallanDetails![0].ItemName = null;
+            _mockDcRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(dc);
+            _mockEwbLookup
+                .Setup(l => l.GetByDCAsync("DC-2026-0001", 10, It.IsAny<CancellationToken>()))
+                .ReturnsAsync((EWaybillLookupDto?)null);
+            SetupLookups();
+
+            _mockItemLookup
+                .Setup(l => l.GetByIdsAsync(It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((IReadOnlyList<ItemLookupDto>)new List<ItemLookupDto>
+                {
+                    new() { Id = 2222, ItemName = null!, HSNCode = "5205" }
+                });
+
+            var result = await CreateSut().Handle(new GenerateEWaybillForDCCommand(1), CancellationToken.None);
+
+            result.IsSuccess.Should().BeFalse();
+            result.Data!.Errors.Should().Contain(e => e.Contains("Item name missing for ItemId 2222"));
+        }
+
+        [Fact]
+        public async Task Handle_MissingVehicleNumber_FailsValidation()
+        {
+            var dc = BuildDc();
+            dc.VehicleNumber = null;
+            _mockDcRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(dc);
+            _mockEwbLookup
+                .Setup(l => l.GetByDCAsync("DC-2026-0001", 10, It.IsAny<CancellationToken>()))
+                .ReturnsAsync((EWaybillLookupDto?)null);
+            SetupLookups();
+
+            var result = await CreateSut().Handle(new GenerateEWaybillForDCCommand(1), CancellationToken.None);
+
+            result.IsSuccess.Should().BeFalse();
+            result.Data!.Errors.Should().Contain(e => e.Contains("Vehicle number missing"));
+        }
+
+        [Fact]
+        public async Task Handle_MissingDistance_FailsValidation()
+        {
+            var dc = BuildDc();
+            dc.TransportDistance = null;
+            _mockDcRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(dc);
+            _mockEwbLookup
+                .Setup(l => l.GetByDCAsync("DC-2026-0001", 10, It.IsAny<CancellationToken>()))
+                .ReturnsAsync((EWaybillLookupDto?)null);
+            SetupLookups();
+
+            var result = await CreateSut().Handle(new GenerateEWaybillForDCCommand(1), CancellationToken.None);
+
+            result.IsSuccess.Should().BeFalse();
+            result.Data!.Errors.Should().Contain(e => e.Contains("Transport distance missing"));
+        }
+
+        [Fact]
+        public async Task Handle_MultipleMissingFields_ReturnsAllErrors()
+        {
+            var dc = BuildDc();
+            dc.VehicleNumber = null;
+            dc.TransportDistance = null;
+            _mockDcRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(dc);
+            _mockEwbLookup
+                .Setup(l => l.GetByDCAsync("DC-2026-0001", 10, It.IsAny<CancellationToken>()))
+                .ReturnsAsync((EWaybillLookupDto?)null);
+            SetupLookups();
+
+            // No GSTINs at all
+            _mockCompanyLookup
+                .Setup(c => c.GetAllCompanyAsync())
+                .ReturnsAsync(new List<CompanyLookupDto>
+                {
+                    new() { CompanyId = 1, GstNumber = null, LegalName = "Consignor Ltd" },
+                    new() { CompanyId = 2, GstNumber = null, LegalName = "Consignee Ltd" }
+                });
+
+            var result = await CreateSut().Handle(new GenerateEWaybillForDCCommand(1), CancellationToken.None);
+
+            result.IsSuccess.Should().BeFalse();
+            result.Data!.Errors!.Count.Should().BeGreaterThan(2,
+                "Validation must surface ALL gaps in one response, not just the first.");
         }
     }
 }

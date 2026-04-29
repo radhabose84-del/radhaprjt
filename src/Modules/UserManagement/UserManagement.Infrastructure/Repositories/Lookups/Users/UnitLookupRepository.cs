@@ -37,9 +37,16 @@ namespace UserManagement.Infrastructure.Repositories.Lookups.Users
                     U.UnitTypeId,
                     MM.Description AS UnitTypeName,
                     U.DivisionId,
-                    U.CompanyId
+                    U.CompanyId,
+                    UA.PinCode
                 FROM [AppData].[Unit] U
                 LEFT JOIN [AppData].[MiscMaster] MM ON MM.Id = U.UnitTypeId AND MM.IsDeleted = 0
+                OUTER APPLY (
+                    SELECT TOP 1 PinCode
+                    FROM [AppData].[UnitAddress]
+                    WHERE UnitId = U.Id
+                    ORDER BY Id
+                ) UA
                 WHERE U.IsDeleted = 0
                   AND U.Id = @UnitId;
             ";
@@ -77,9 +84,16 @@ namespace UserManagement.Infrastructure.Repositories.Lookups.Users
                     U.UnitTypeId,
                     MM.Description AS UnitTypeName,
                     U.DivisionId,
-                    U.CompanyId
+                    U.CompanyId,
+                    UA.PinCode
                 FROM [AppData].[Unit] U
                 LEFT JOIN [AppData].[MiscMaster] MM ON MM.Id = U.UnitTypeId AND MM.IsDeleted = 0
+                OUTER APPLY (
+                    SELECT TOP 1 PinCode
+                    FROM [AppData].[UnitAddress]
+                    WHERE UnitId = U.Id
+                    ORDER BY Id
+                ) UA
                 WHERE U.IsDeleted = 0
                   AND U.Id IN @UnitIds;
             ";

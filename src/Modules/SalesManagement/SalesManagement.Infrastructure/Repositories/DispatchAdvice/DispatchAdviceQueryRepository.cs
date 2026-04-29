@@ -5,6 +5,7 @@ using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Production;
 using Contracts.Interfaces.Lookups.Warehouse;
+using Contracts.Interfaces.Lookups.Users;
 using Contracts.Interfaces;
 using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Application.Common.Interfaces.IDispatchAdvice;
@@ -25,6 +26,9 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
         private readonly IWarehouseLookup _warehouseLookup;
         private readonly IBinLookup _binLookup;
         private readonly IUOMLookup _uomLookup;
+        private readonly ICityLookup _cityLookup;
+        private readonly IStateLookup _stateLookup;
+        private readonly ICountryLookup _countryLookup;
 
         public DispatchAdviceQueryRepository(
             IDbConnection dbConnection,
@@ -37,7 +41,10 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
             IFreightMasterLookup freightMasterLookup,
             IWarehouseLookup warehouseLookup,
             IBinLookup binLookup,
-            IUOMLookup uomLookup)
+            IUOMLookup uomLookup,
+            ICityLookup cityLookup,
+            IStateLookup stateLookup,
+            ICountryLookup countryLookup)
         {
             _dbConnection = dbConnection;
             _partyLookup = partyLookup;
@@ -50,6 +57,9 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
             _warehouseLookup = warehouseLookup;
             _binLookup = binLookup;
             _uomLookup = uomLookup;
+            _cityLookup = cityLookup;
+            _stateLookup = stateLookup;
+            _countryLookup = countryLookup;
         }
 
         public async Task<(List<DispatchAdviceHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
@@ -74,14 +84,20 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
                     so.SalesOrderNo,
                     h.PartyId,
                     h.TotOrderQty, h.TotDispatchedQty, h.TotPendingQty,
-                    h.DispatchAddressId,
-                    da.DispatchAddressName,
+                    h.DispatchAddressId AS MasterDispatchAddressId,
+                    da.DispatchAddressName AS MasterDispatchAddressName,
+                    da.AddressLine1 AS MasterAddressLine1,
+                    da.AddressLine2 AS MasterAddressLine2,
+                    da.CityId AS MasterCityId,
+                    da.StateId AS MasterStateId,
+                    da.CountryId AS MasterCountryId,
+                    da.PinCode AS MasterPinCode,
                     h.DispatchTypeId,
                     dt.Description AS DispatchTypeName,
                     h.FreightId,
                     h.TransporterId,
                     h.VehicleNo, h.DriverName, h.LRNo,
-                    h.UnitId, h.InvFlg,
+                    h.UnitId, h.InvFlg, h.Distance,
                     h.IsActive, h.IsDeleted,
                     h.CreatedBy, h.CreatedDate, h.CreatedByName,
                     h.ModifiedBy, h.ModifiedDate, h.ModifiedByName
@@ -98,15 +114,22 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
 
             var parameters = new { Search = $"%{searchTerm}%", UnitId = unitId, Offset = (pageNumber - 1) * pageSize, PageSize = pageSize };
             var result = await _dbConnection.QueryMultipleAsync(query, parameters);
-            var list = (await result.ReadAsync<DispatchAdviceHeaderDto>()).ToList();
+            var rows = (await result.ReadAsync<DispatchAdviceHeaderRow>()).ToList();
             var totalCount = await result.ReadFirstAsync<int>();
+
+            var list = rows.Select(MapRowToDto).ToList();
 
             if (list.Count > 0)
             {
-                // Populate cross-module: PartyName
+                // Populate cross-module: PartyName + per-party Shipping addresses (all of them)
                 var partyIds = list.Select(x => x.PartyId).Distinct();
                 var parties = await _partyLookup.GetByIdsAsync(partyIds);
                 var partyDict = parties.ToDictionary(p => p.Id, p => p.PartyName);
+                var partyShippingDict = parties.ToDictionary(
+                    p => p.Id,
+                    p => (p.Addresses ?? Enumerable.Empty<Contracts.Dtos.Lookups.Party.PartyAddressLookupDto>())
+                        .Where(a => string.Equals(a.AddressType, "Shipping", StringComparison.OrdinalIgnoreCase))
+                        .ToList());
 
                 // Populate cross-module: TransporterName (also from PartyLookup)
                 var transporterIds = list.Where(x => x.TransporterId.HasValue).Select(x => x.TransporterId!.Value).Distinct();
@@ -120,8 +143,20 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
                 var allFreights = await _freightMasterLookup.GetAllFreightMasterAsync();
                 var freightDict = allFreights.Where(f => freightIds.Contains(f.Id)).ToDictionary(f => f.Id);
 
-                foreach (var item in list)
+                // Populate cross-module: City/State/Country names (cached globally by AddLookupCaching)
+                // — used for the "Others" branch where the master record stores raw FK ids only.
+                var cities = await _cityLookup.GetAllCityAsync();
+                var states = await _stateLookup.GetAllStatesAsync();
+                var countries = await _countryLookup.GetAllCountriesAsync();
+                var cityDict = cities.ToDictionary(c => c.CityId, c => c.CityName);
+                var stateDict = states.ToDictionary(s => s.StateId, s => s.StateName);
+                var countryDict = countries.ToDictionary(c => c.CountryId, c => c.CountryName);
+
+                for (int i = 0; i < list.Count; i++)
                 {
+                    var item = list[i];
+                    var row = rows[i];
+
                     item.PartyName = partyDict.TryGetValue(item.PartyId, out var pName) ? pName : null;
 
                     if (freightDict.TryGetValue(item.FreightId, out var freightDto))
@@ -133,6 +168,8 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
 
                     if (item.TransporterId.HasValue)
                         item.TransporterName = transporterDict.TryGetValue(item.TransporterId.Value, out var tName) ? tName : null;
+
+                    item.DispatchAddress = BuildDispatchAddress(item.DispatchTypeName, item.PartyId, row, partyShippingDict, cityDict, stateDict, countryDict);
                 }
             }
 
@@ -149,14 +186,20 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
                     so.SalesOrderNo,
                     h.PartyId,
                     h.TotOrderQty, h.TotDispatchedQty, h.TotPendingQty,
-                    h.DispatchAddressId,
-                    da.DispatchAddressName,
+                    h.DispatchAddressId AS MasterDispatchAddressId,
+                    da.DispatchAddressName AS MasterDispatchAddressName,
+                    da.AddressLine1 AS MasterAddressLine1,
+                    da.AddressLine2 AS MasterAddressLine2,
+                    da.CityId AS MasterCityId,
+                    da.StateId AS MasterStateId,
+                    da.CountryId AS MasterCountryId,
+                    da.PinCode AS MasterPinCode,
                     h.DispatchTypeId,
                     dt.Description AS DispatchTypeName,
                     h.FreightId,
                     h.TransporterId,
                     h.VehicleNo, h.DriverName, h.LRNo,
-                    h.UnitId, h.InvFlg,
+                    h.UnitId, h.InvFlg, h.Distance,
                     h.IsActive, h.IsDeleted,
                     h.CreatedBy, h.CreatedDate, h.CreatedByName,
                     h.ModifiedBy, h.ModifiedDate, h.ModifiedByName
@@ -167,10 +210,12 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
                 LEFT JOIN Sales.MiscMaster dt ON h.DispatchTypeId = dt.Id AND dt.IsDeleted = 0
                 WHERE h.Id = @Id AND h.IsDeleted = 0";
 
-            var header = await _dbConnection.QueryFirstOrDefaultAsync<DispatchAdviceHeaderDto>(headerSql, new { Id = id });
+            var row = await _dbConnection.QueryFirstOrDefaultAsync<DispatchAdviceHeaderRow>(headerSql, new { Id = id });
 
-            if (header == null)
+            if (row == null)
                 return null;
+
+            var header = MapRowToDto(row);
 
             // Fetch detail rows with all SalesOrderDetail columns
             const string detailSql = @"
@@ -221,6 +266,77 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
             {
                 var transporter = await _partyLookup.GetByIdAsync(header.TransporterId.Value);
                 header.TransporterName = transporter?.PartyName;
+            }
+
+            // Build the DispatchAddress array based on DispatchTypeName
+            // - "Direct-To-Party" → all of the party's Shipping addresses (from PartyLookup, names pre-resolved)
+            // - "Others"          → the JOINed DispatchAddressMaster row (resolve city/state/country names via lookups)
+            // - anything else / no match → empty array
+            if (string.Equals(row.DispatchTypeName, "Direct-To-Party", StringComparison.OrdinalIgnoreCase))
+            {
+                var shippingAddresses = (party?.Addresses ?? Enumerable.Empty<Contracts.Dtos.Lookups.Party.PartyAddressLookupDto>())
+                    .Where(a => string.Equals(a.AddressType, "Shipping", StringComparison.OrdinalIgnoreCase))
+                    .Select(a => new DispatchAdviceAddressDto
+                    {
+                        Id = a.Id,
+                        Source = "Party",
+                        DispatchAddressId = null,
+                        DispatchAddressName = null,
+                        AddressLine1 = a.AddressLine1,
+                        AddressLine2 = a.AddressLine2,
+                        CityId = a.CityId,
+                        CityName = a.City,
+                        StateId = a.StateId,
+                        StateName = a.State,
+                        CountryId = a.CountryId,
+                        CountryName = a.Country,
+                        PinCode = a.PostalCode
+                    })
+                    .ToList();
+                header.DispatchAddress = shippingAddresses;
+            }
+            else if (string.Equals(row.DispatchTypeName, "Others", StringComparison.OrdinalIgnoreCase)
+                     && row.MasterDispatchAddressId.HasValue)
+            {
+                string? cityName = null;
+                string? stateName = null;
+                string? countryName = null;
+
+                if (row.MasterCityId.HasValue)
+                {
+                    var city = await _cityLookup.GetByIdAsync(row.MasterCityId.Value);
+                    cityName = city?.CityName;
+                }
+                if (row.MasterStateId.HasValue)
+                {
+                    var state = await _stateLookup.GetByIdAsync(row.MasterStateId.Value);
+                    stateName = state?.StateName;
+                }
+                if (row.MasterCountryId.HasValue)
+                {
+                    var country = await _countryLookup.GetByIdAsync(row.MasterCountryId.Value);
+                    countryName = country?.CountryName;
+                }
+
+                header.DispatchAddress = new List<DispatchAdviceAddressDto>
+                {
+                    new DispatchAdviceAddressDto
+                    {
+                        Id = row.MasterDispatchAddressId,
+                        Source = "Master",
+                        DispatchAddressId = row.MasterDispatchAddressId,
+                        DispatchAddressName = row.MasterDispatchAddressName,
+                        AddressLine1 = row.MasterAddressLine1,
+                        AddressLine2 = row.MasterAddressLine2,
+                        CityId = row.MasterCityId,
+                        CityName = cityName,
+                        StateId = row.MasterStateId,
+                        StateName = stateName,
+                        CountryId = row.MasterCountryId,
+                        CountryName = countryName,
+                        PinCode = row.MasterPinCode
+                    }
+                };
             }
 
             // Populate cross-module detail lookups
@@ -661,6 +777,143 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
             }
 
             return result;
+        }
+
+        private static DispatchAdviceHeaderDto MapRowToDto(DispatchAdviceHeaderRow row) =>
+            new DispatchAdviceHeaderDto
+            {
+                Id = row.Id,
+                DispatchNo = row.DispatchNo,
+                DispatchDate = row.DispatchDate,
+                StatusId = row.StatusId,
+                StatusName = row.StatusName,
+                SalesOrderId = row.SalesOrderId,
+                SalesOrderNo = row.SalesOrderNo,
+                PartyId = row.PartyId,
+                TotOrderQty = row.TotOrderQty,
+                TotDispatchedQty = row.TotDispatchedQty,
+                TotPendingQty = row.TotPendingQty,
+                DispatchTypeId = row.DispatchTypeId,
+                DispatchTypeName = row.DispatchTypeName,
+                FreightId = row.FreightId,
+                TransporterId = row.TransporterId,
+                VehicleNo = row.VehicleNo,
+                DriverName = row.DriverName,
+                LRNo = row.LRNo,
+                UnitId = row.UnitId,
+                InvFlg = row.InvFlg,
+                Distance = row.Distance,
+                IsActive = row.IsActive,
+                IsDeleted = row.IsDeleted,
+                CreatedBy = row.CreatedBy,
+                CreatedDate = row.CreatedDate,
+                CreatedByName = row.CreatedByName,
+                ModifiedBy = row.ModifiedBy,
+                ModifiedDate = row.ModifiedDate,
+                ModifiedByName = row.ModifiedByName
+            };
+
+        private static List<DispatchAdviceAddressDto> BuildDispatchAddress(
+            string? dispatchTypeName,
+            int partyId,
+            DispatchAdviceHeaderRow row,
+            Dictionary<int, List<Contracts.Dtos.Lookups.Party.PartyAddressLookupDto>> partyShippingDict,
+            Dictionary<int, string> cityDict,
+            Dictionary<int, string> stateDict,
+            Dictionary<int, string> countryDict)
+        {
+            if (string.Equals(dispatchTypeName, "Direct-To-Party", StringComparison.OrdinalIgnoreCase))
+            {
+                if (!partyShippingDict.TryGetValue(partyId, out var shippingAddresses) || shippingAddresses.Count == 0)
+                    return new List<DispatchAdviceAddressDto>();
+
+                return shippingAddresses
+                    .Select(a => new DispatchAdviceAddressDto
+                    {
+                        Id = a.Id,
+                        Source = "Party",
+                        DispatchAddressId = null,
+                        DispatchAddressName = null,
+                        AddressLine1 = a.AddressLine1,
+                        AddressLine2 = a.AddressLine2,
+                        CityId = a.CityId,
+                        CityName = a.City,
+                        StateId = a.StateId,
+                        StateName = a.State,
+                        CountryId = a.CountryId,
+                        CountryName = a.Country,
+                        PinCode = a.PostalCode
+                    })
+                    .ToList();
+            }
+
+            if (string.Equals(dispatchTypeName, "Others", StringComparison.OrdinalIgnoreCase)
+                && row.MasterDispatchAddressId.HasValue)
+            {
+                return new List<DispatchAdviceAddressDto>
+                {
+                    new DispatchAdviceAddressDto
+                    {
+                        Id = row.MasterDispatchAddressId,
+                        Source = "Master",
+                        DispatchAddressId = row.MasterDispatchAddressId,
+                        DispatchAddressName = row.MasterDispatchAddressName,
+                        AddressLine1 = row.MasterAddressLine1,
+                        AddressLine2 = row.MasterAddressLine2,
+                        CityId = row.MasterCityId,
+                        CityName = row.MasterCityId.HasValue && cityDict.TryGetValue(row.MasterCityId.Value, out var cn) ? cn : null,
+                        StateId = row.MasterStateId,
+                        StateName = row.MasterStateId.HasValue && stateDict.TryGetValue(row.MasterStateId.Value, out var sn) ? sn : null,
+                        CountryId = row.MasterCountryId,
+                        CountryName = row.MasterCountryId.HasValue && countryDict.TryGetValue(row.MasterCountryId.Value, out var ctn) ? ctn : null,
+                        PinCode = row.MasterPinCode
+                    }
+                };
+            }
+
+            return new List<DispatchAdviceAddressDto>();
+        }
+
+        private sealed class DispatchAdviceHeaderRow
+        {
+            public int Id { get; set; }
+            public string? DispatchNo { get; set; }
+            public DateOnly DispatchDate { get; set; }
+            public int StatusId { get; set; }
+            public string? StatusName { get; set; }
+            public int SalesOrderId { get; set; }
+            public string? SalesOrderNo { get; set; }
+            public int PartyId { get; set; }
+            public decimal TotOrderQty { get; set; }
+            public decimal TotDispatchedQty { get; set; }
+            public decimal TotPendingQty { get; set; }
+            public int DispatchTypeId { get; set; }
+            public string? DispatchTypeName { get; set; }
+            public int FreightId { get; set; }
+            public int? TransporterId { get; set; }
+            public string? VehicleNo { get; set; }
+            public string? DriverName { get; set; }
+            public string? LRNo { get; set; }
+            public int UnitId { get; set; }
+            public bool InvFlg { get; set; }
+            public decimal Distance { get; set; }
+            public bool IsActive { get; set; }
+            public bool IsDeleted { get; set; }
+            public int CreatedBy { get; set; }
+            public DateTimeOffset? CreatedDate { get; set; }
+            public string? CreatedByName { get; set; }
+            public int? ModifiedBy { get; set; }
+            public DateTimeOffset? ModifiedDate { get; set; }
+            public string? ModifiedByName { get; set; }
+
+            public int? MasterDispatchAddressId { get; set; }
+            public string? MasterDispatchAddressName { get; set; }
+            public string? MasterAddressLine1 { get; set; }
+            public string? MasterAddressLine2 { get; set; }
+            public int? MasterCityId { get; set; }
+            public int? MasterStateId { get; set; }
+            public int? MasterCountryId { get; set; }
+            public string? MasterPinCode { get; set; }
         }
     }
 }

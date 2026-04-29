@@ -39,7 +39,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesEnquiry
         {
             var searchFilter = string.IsNullOrWhiteSpace(searchTerm)
                 ? ""
-                : "AND (h.ContactPerson LIKE @Search OR h.Remarks LIKE @Search)";
+                : "AND (h.EnquiryNo LIKE @Search OR h.ContactPerson LIKE @Search OR h.Remarks LIKE @Search)";
 
             // Marketing Officer access scoping
             var moFilter = "";
@@ -65,14 +65,28 @@ namespace SalesManagement.Infrastructure.Repositories.SalesEnquiry
                 FROM Sales.SalesEnquiryHeader h
                 WHERE h.IsDeleted = 0 {searchFilter} {moFilter};
 
-                SELECT h.Id, h.PartyId, h.EnquiryDate, h.ContactPerson,
+                SELECT h.Id, h.EnquiryNo, h.PartyId, h.EnquiryDate, h.ContactPerson,
                     h.ExpectedDeliveryDate, h.PaymentTermId, h.SalesLeadId,
                     SL.ProspectCompanyName AS SalesLeadProspectName,
-                    h.Remarks, h.IsActive, h.IsDeleted,
+                    h.Remarks,
+                    CASE WHEN quot.Id IS NULL AND so.Id IS NULL THEN CAST(1 AS BIT) ELSE CAST(0 AS BIT) END AS IsEditable,
+                    quot.QuotationNo,
+                    so.SalesOrderNo,
+                    h.IsActive, h.IsDeleted,
                     h.CreatedBy, h.CreatedDate, h.CreatedByName,
                     h.ModifiedBy, h.ModifiedDate, h.ModifiedByName
                 FROM Sales.SalesEnquiryHeader h
                 LEFT JOIN Sales.SalesLead SL ON SL.Id = h.SalesLeadId AND SL.IsDeleted = 0
+                OUTER APPLY (
+                    SELECT TOP 1 sqh.Id, sqh.QuotationNo
+                    FROM Sales.SalesQuotationHeader sqh
+                    WHERE sqh.SalesEnquiryId = h.Id AND sqh.IsDeleted = 0
+                ) quot
+                OUTER APPLY (
+                    SELECT TOP 1 soh.Id, soh.SalesOrderNo
+                    FROM Sales.SalesOrderHeader soh
+                    WHERE soh.SalesQuotationHeaderId = quot.Id AND soh.IsDeleted = 0
+                ) so
                 WHERE h.IsDeleted = 0 {searchFilter} {moFilter}
                 ORDER BY h.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
@@ -123,7 +137,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesEnquiry
             }
 
             var headerSql = $@"
-                SELECT h.Id, h.PartyId, h.EnquiryDate, h.ContactPerson,
+                SELECT h.Id, h.EnquiryNo, h.PartyId, h.EnquiryDate, h.ContactPerson,
                     h.ExpectedDeliveryDate, h.PaymentTermId, h.SalesLeadId,
                     SL.ProspectCompanyName AS SalesLeadProspectName,
                     h.Remarks, h.IsActive, h.IsDeleted,
@@ -191,7 +205,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesEnquiry
         {
             var searchFilter = string.IsNullOrWhiteSpace(term)
                 ? ""
-                : "AND (h.ContactPerson LIKE @Term OR h.Remarks LIKE @Term)";
+                : "AND (h.EnquiryNo LIKE @Term OR h.ContactPerson LIKE @Term OR h.Remarks LIKE @Term)";
 
             // Marketing Officer access scoping
             var moFilter = "";
@@ -210,14 +224,12 @@ namespace SalesManagement.Infrastructure.Repositories.SalesEnquiry
             }
 
             var sql = $@"
-                SELECT h.Id, h.PartyId, h.EnquiryDate,
-                    (SELECT COUNT(*) FROM Sales.SalesEnquiryDetail d
-                     WHERE d.SalesEnquiryHeaderId = h.Id) AS TotalItems
+                SELECT h.Id, h.EnquiryNo, h.PartyId
                 FROM Sales.SalesEnquiryHeader h
                 WHERE h.IsActive = 1 AND h.IsDeleted = 0
                 {searchFilter}
                 {moFilter}
-                ORDER BY h.EnquiryDate DESC";
+                ORDER BY h.Id DESC";
 
             var list = (await _dbConnection.QueryAsync<SalesEnquiryLookupDto>(
                 new CommandDefinition(sql, parameters, cancellationToken: ct))).ToList();

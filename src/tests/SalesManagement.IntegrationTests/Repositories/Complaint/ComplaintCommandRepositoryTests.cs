@@ -360,15 +360,21 @@ namespace SalesManagement.IntegrationTests.Repositories.Complaint
             await ctx.SaveChangesAsync();
 
             // Act
-            await CreateRepository(ctx).EnsureResolutionDraftIfQCAcceptedAsync(header.Id, CancellationToken.None);
+            await CreateRepository(ctx).EnsureResolutionDraftIfQCAcceptedAsync(header.Id, 7, "tester", "127.0.0.1", CancellationToken.None);
 
             // Assert
             ctx.ChangeTracker.Clear();
-            var resolutionCount = await ctx.ComplaintResolution
-                .CountAsync(cr => cr.ComplaintHeaderId == header.Id && cr.IsDeleted == IsDelete.NotDeleted);
+            var seeded = await ctx.ComplaintResolution
+                .Where(cr => cr.ComplaintHeaderId == header.Id && cr.IsDeleted == IsDelete.NotDeleted)
+                .ToListAsync();
 
-            resolutionCount.Should().Be(1,
+            seeded.Should().HaveCount(1,
                 "Option B: draft must be created on 'QC Accepted' even if mandatory feedback is still Pending");
+
+            // Audit override must persist — raw SQL bypasses ApplicationDbContext.UpdateIpFields()
+            seeded[0].CreatedBy.Should().Be(7);
+            seeded[0].CreatedByName.Should().Be("tester");
+            seeded[0].CreatedIP.Should().Be("127.0.0.1");
         }
 
         [Fact]
@@ -388,7 +394,7 @@ namespace SalesManagement.IntegrationTests.Repositories.Complaint
             await ctx.SaveChangesAsync();
 
             // Act
-            await CreateRepository(ctx).EnsureResolutionDraftIfQCAcceptedAsync(header.Id, CancellationToken.None);
+            await CreateRepository(ctx).EnsureResolutionDraftIfQCAcceptedAsync(header.Id, 7, "tester", "127.0.0.1", CancellationToken.None);
 
             // Assert
             ctx.ChangeTracker.Clear();
@@ -411,8 +417,8 @@ namespace SalesManagement.IntegrationTests.Repositories.Complaint
             await ctx.SaveChangesAsync();
 
             // Act — invoke twice
-            await CreateRepository(ctx).EnsureResolutionDraftIfQCAcceptedAsync(header.Id, CancellationToken.None);
-            await CreateRepository(ctx).EnsureResolutionDraftIfQCAcceptedAsync(header.Id, CancellationToken.None);
+            await CreateRepository(ctx).EnsureResolutionDraftIfQCAcceptedAsync(header.Id, 7, "tester", "127.0.0.1", CancellationToken.None);
+            await CreateRepository(ctx).EnsureResolutionDraftIfQCAcceptedAsync(header.Id, 7, "tester", "127.0.0.1", CancellationToken.None);
 
             // Assert — Gate 3 (no-duplicate) holds
             ctx.ChangeTracker.Clear();
@@ -420,6 +426,141 @@ namespace SalesManagement.IntegrationTests.Repositories.Complaint
                 .CountAsync(cr => cr.ComplaintHeaderId == header.Id && cr.IsDeleted == IsDelete.NotDeleted);
 
             resolutionCount.Should().Be(1, "Gate 3 must still prevent duplicate draft rows");
+        }
+
+        // ---------------------------------------------------------------------------
+        // Audit override on workflow-approval consumer paths.
+        // Raw SQL bypasses ApplicationDbContext.UpdateIpFields() so the approver's
+        // identity (passed via msg.ModifiedBy/Name/IP) sticks instead of being
+        // overwritten with consumer-context defaults (0/Anonymous).
+        // ---------------------------------------------------------------------------
+
+        [Fact]
+        public async Task UpdateApprovalStatusAsync_OverridesAuditFields()
+        {
+            await ClearAsync();
+            await using var ctx = _fixture.CreateFreshDbContext();
+
+            var mtId = await EnsureMiscTypeAsync(ctx, "ApprovalStatus");
+            var pendingId = await EnsureMiscAsync(ctx, mtId, "Pending");
+            var approvedId = await EnsureMiscAsync(ctx, mtId, "Approved");
+            var pvMtId = await EnsureMiscTypeAsync(ctx, "PhysicalVerification");
+            await EnsureMiscAsync(ctx, pvMtId, "Pending");
+
+            var header = BuildEntity(statusId: pendingId, complaintNumber: "CCR_AUD_1");
+            await ctx.ComplaintHeader.AddAsync(header);
+            await ctx.SaveChangesAsync();
+
+            await CreateRepository(ctx).UpdateApprovalStatusAsync(
+                header.Id, "Approved",
+                modifiedBy: 379, modifiedByName: "Praveen", modifiedIP: "192.168.1.45",
+                CancellationToken.None);
+
+            ctx.ChangeTracker.Clear();
+            var saved = await ctx.ComplaintHeader.FirstAsync(x => x.Id == header.Id);
+            saved.StatusId.Should().Be(approvedId);
+            saved.ModifiedBy.Should().Be(379);
+            saved.ModifiedByName.Should().Be("Praveen");
+            saved.ModifiedIP.Should().Be("192.168.1.45");
+        }
+
+        [Fact]
+        public async Task UpdateApprovalStatusAsync_AutoCreatesQCReviewWithAuditOverride()
+        {
+            await ClearAsync();
+            await using var ctx = _fixture.CreateFreshDbContext();
+
+            var mtId = await EnsureMiscTypeAsync(ctx, "ApprovalStatus");
+            var pendingId = await EnsureMiscAsync(ctx, mtId, "Pending");
+            await EnsureMiscAsync(ctx, mtId, "Approved");
+            var pvMtId = await EnsureMiscTypeAsync(ctx, "PhysicalVerification");
+            await EnsureMiscAsync(ctx, pvMtId, "Pending");
+
+            var header = BuildEntity(statusId: pendingId, complaintNumber: "CCR_AUD_2");
+            await ctx.ComplaintHeader.AddAsync(header);
+            await ctx.SaveChangesAsync();
+
+            await CreateRepository(ctx).UpdateApprovalStatusAsync(
+                header.Id, "Approved",
+                modifiedBy: 379, modifiedByName: "Praveen", modifiedIP: "192.168.1.45",
+                CancellationToken.None);
+
+            ctx.ChangeTracker.Clear();
+            var qcReview = await ctx.ComplaintQCReview.FirstAsync(x => x.ComplaintHeaderId == header.Id);
+            qcReview.CreatedBy.Should().Be(379);
+            qcReview.CreatedByName.Should().Be("Praveen");
+            qcReview.CreatedIP.Should().Be("192.168.1.45");
+        }
+
+        [Fact]
+        public async Task UpdateQCReviewApprovalStatusAsync_OverridesAuditFields()
+        {
+            await ClearAsync();
+            await using var ctx = _fixture.CreateFreshDbContext();
+
+            var apprMtId = await EnsureMiscTypeAsync(ctx, "ApprovalStatus");
+            var approvedId = await EnsureMiscAsync(ctx, apprMtId, "Approved");
+            var qcMtId = await EnsureMiscTypeAsync(ctx, "QCComplaintStatus");
+            var qcAcceptedId = await EnsureMiscAsync(ctx, qcMtId, "QC Accepted");
+            var pvMtId = await EnsureMiscTypeAsync(ctx, "PhysicalVerification");
+            var pvPendingId = await EnsureMiscAsync(ctx, pvMtId, "Pending");
+
+            var header = BuildEntity(statusId: approvedId, complaintNumber: "CCR_AUD_3");
+            await ctx.ComplaintHeader.AddAsync(header);
+            await ctx.SaveChangesAsync();
+
+            // Seed QC Review with the QC's recorded decision = QC Accepted
+            var review = new SalesManagement.Domain.Entities.ComplaintQCReview
+            {
+                ComplaintHeaderId = header.Id,
+                PhysicalVerificationId = pvPendingId,
+                ComplaintStatusId = qcAcceptedId,
+                LabVerificationRequired = false,
+                IsActive = Status.Active,
+                IsDeleted = IsDelete.NotDeleted
+            };
+            await ctx.ComplaintQCReview.AddAsync(review);
+            await ctx.SaveChangesAsync();
+
+            await CreateRepository(ctx).UpdateQCReviewApprovalStatusAsync(
+                header.Id, "Approved",
+                modifiedBy: 376, modifiedByName: "Vinoth", modifiedIP: "192.168.1.50",
+                CancellationToken.None);
+
+            ctx.ChangeTracker.Clear();
+            var saved = await ctx.ComplaintHeader.FirstAsync(x => x.Id == header.Id);
+            saved.StatusId.Should().Be(qcAcceptedId);
+            saved.ModifiedBy.Should().Be(376);
+            saved.ModifiedByName.Should().Be("Vinoth");
+            saved.ModifiedIP.Should().Be("192.168.1.50");
+        }
+
+        [Fact]
+        public async Task UpdateResolutionApprovalStatusAsync_OverridesAuditFields()
+        {
+            await ClearAsync();
+            await using var ctx = _fixture.CreateFreshDbContext();
+
+            var qcMtId = await EnsureMiscTypeAsync(ctx, "QCComplaintStatus");
+            var qcAcceptedId = await EnsureMiscAsync(ctx, qcMtId, "QC Accepted");
+            var csMtId = await EnsureMiscTypeAsync(ctx, "ClosureStatus");
+            var openId = await EnsureMiscAsync(ctx, csMtId, "Open");
+
+            var header = BuildEntity(statusId: qcAcceptedId, complaintNumber: "CCR_AUD_4");
+            await ctx.ComplaintHeader.AddAsync(header);
+            await ctx.SaveChangesAsync();
+
+            await CreateRepository(ctx).UpdateResolutionApprovalStatusAsync(
+                header.Id, "Approved",
+                modifiedBy: 379, modifiedByName: "Praveen", modifiedIP: "192.168.1.45",
+                CancellationToken.None);
+
+            ctx.ChangeTracker.Clear();
+            var saved = await ctx.ComplaintHeader.FirstAsync(x => x.Id == header.Id);
+            saved.StatusId.Should().Be(openId);
+            saved.ModifiedBy.Should().Be(379);
+            saved.ModifiedByName.Should().Be("Praveen");
+            saved.ModifiedIP.Should().Be("192.168.1.45");
         }
     }
 }

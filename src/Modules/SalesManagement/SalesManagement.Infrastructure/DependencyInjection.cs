@@ -27,6 +27,8 @@ using SalesManagement.Application.Common.Interfaces.IMiscTypeMaster;
 using SalesManagement.Infrastructure.Repositories.MiscTypeMaster;
 using SalesManagement.Application.Common.Interfaces.IMiscMaster;
 using SalesManagement.Infrastructure.Repositories.MiscMaster;
+using SalesManagement.Application.Common.Interfaces.ISalesOrderTypeMaster;
+using SalesManagement.Infrastructure.Repositories.SalesOrderTypeMaster;
 using SalesManagement.Application.Common.Interfaces.IAgentCommissionConfig;
 using SalesManagement.Infrastructure.Repositories.AgentCommissionConfig;
 using SalesManagement.Application.Common.Interfaces.IDispatchAddressMaster;
@@ -54,6 +56,8 @@ using SalesManagement.Application.Common.Interfaces.ISalesOrder;
 using SalesManagement.Infrastructure.Repositories.SalesOrder;
 using SalesManagement.Application.Common.Interfaces.ISalesOrderAmendment;
 using SalesManagement.Infrastructure.Repositories.SalesOrderAmendment;
+using SalesManagement.Application.Common.Interfaces.ISalesQuotationAmendment;
+using SalesManagement.Infrastructure.Repositories.SalesQuotationAmendment;
 using SalesManagement.Application.Common.Interfaces.IMovementTypeConfig;
 using SalesManagement.Infrastructure.Repositories.MovementTypeConfig;
 using SalesManagement.Application.Common.Interfaces.IDispatchAdvice;
@@ -227,6 +231,10 @@ namespace SalesManagement.Infrastructure
             services.AddScoped<IMiscMasterCommandRepository, MiscMasterCommandRepository>();
             services.AddScoped<IMiscMasterQueryRepository, MiscMasterQueryRepository>();
 
+            // ── Sales Order Type Master Repositories ──────────────────────
+            services.AddScoped<ISalesOrderTypeMasterCommandRepository, SalesOrderTypeMasterCommandRepository>();
+            services.AddScoped<ISalesOrderTypeMasterQueryRepository, SalesOrderTypeMasterQueryRepository>();
+
             // ── Agent Commission Configuration Repositories ─────────────
             services.AddScoped<IAgentCommissionConfigCommandRepository, AgentCommissionConfigCommandRepository>();
             services.AddScoped<IAgentCommissionConfigQueryRepository, AgentCommissionConfigQueryRepository>();
@@ -279,6 +287,10 @@ namespace SalesManagement.Infrastructure
             // ── Sales Order Amendment Repositories ────────────────────────
             services.AddScoped<ISalesOrderAmendmentCommandRepository, SalesOrderAmendmentCommandRepository>();
             services.AddScoped<ISalesOrderAmendmentQueryRepository, SalesOrderAmendmentQueryRepository>();
+
+            // ── Sales Quotation Amendment Repositories ──────────────────────
+            services.AddScoped<ISalesQuotationAmendmentCommandRepository, SalesQuotationAmendmentCommandRepository>();
+            services.AddScoped<ISalesQuotationAmendmentQueryRepository, SalesQuotationAmendmentQueryRepository>();
 
             // ── Movement Type Config Repositories ─────────────────────────────
             services.AddScoped<IMovementTypeConfigCommandRepository, MovementTypeConfigCommandRepository>();

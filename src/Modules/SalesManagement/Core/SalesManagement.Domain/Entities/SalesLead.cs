@@ -4,6 +4,8 @@ namespace SalesManagement.Domain.Entities
 {
     public class SalesLead : BaseEntity
     {
+        public string? LeadNo { get; set; }
+
         // Party identification
         public int? PartyId { get; set; }               // cross-module FK → PartyManagement (no DB constraint)
         public string? ProspectCompanyName { get; set; }
@@ -17,6 +19,7 @@ namespace SalesManagement.Domain.Entities
 
         // Requirement snapshot
         public int? ItemId { get; set; }                // cross-module FK → InventoryManagement (no DB constraint)
+        public int? VariantId { get; set; }              // cross-module FK → InventoryManagement (no DB constraint)
         public decimal? RequirementQty { get; set; }
         public DateOnly? ExpectedDate { get; set; }
         public string? Remarks { get; set; }

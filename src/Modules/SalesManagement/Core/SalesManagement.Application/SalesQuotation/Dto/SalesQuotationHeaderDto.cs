@@ -3,6 +3,7 @@ namespace SalesManagement.Application.SalesQuotation.Dto
     public class SalesQuotationHeaderDto
     {
         public int Id { get; set; }
+        public string? QuotationNo { get; set; }
         public int CustomerId { get; set; }
         public string? CustomerName { get; set; }
         public DateOnly QuotationDate { get; set; }
@@ -24,6 +25,8 @@ namespace SalesManagement.Application.SalesQuotation.Dto
         public decimal GrandTotal { get; set; }
         public int? StatusId { get; set; }
         public string? StatusName { get; set; }
+        public bool IsEditable { get; set; }           // false when sales order exists against this quotation
+        public string? SalesOrderNo { get; set; }       // populated via OUTER APPLY → SalesOrderHeader
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }
         public int CreatedBy { get; set; }

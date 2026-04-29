@@ -114,6 +114,12 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .IsRequired()
                 .HasDefaultValue(false);
 
+            builder.Property(t => t.Distance)
+                .HasColumnName("Distance")
+                .HasColumnType("decimal(18,2)")
+                .HasDefaultValue(0m)
+                .IsRequired();
+
             // Status & Audit
             builder.Property(b => b.IsActive)
                 .HasColumnName("IsActive")

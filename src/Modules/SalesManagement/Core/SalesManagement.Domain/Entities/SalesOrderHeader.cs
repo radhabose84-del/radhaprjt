@@ -20,6 +20,16 @@ namespace SalesManagement.Domain.Entities
         // Sales Order Type (cross-module FK → Finance.TransactionTypeMaster)
         public int? SalesOrderTypeId { get; set; }
 
+        // Same-module FK → Sales.SalesOrderTypeMaster (nullable)
+        public int? SalesOrderTypeMasterId { get; set; }
+
+        // Same-module FK → Sales.SalesEnquiryHeader (nullable)
+        public int? SalesEnquiryHeaderId { get; set; }
+
+        // Reference numbers (nullable free-text)
+        public string? CustomerPoRefno { get; set; }
+        public string? ComplaintRefno { get; set; }
+
         // Order Unit — captured from JWT at creation time (cross-module FK)
         public int? OrderUnitId { get; set; }
 
@@ -92,6 +102,8 @@ namespace SalesManagement.Domain.Entities
         public MiscMaster? StatusMisc { get; set; }
         public AgentCommissionConfig? AgentCommissionConfig { get; set; }
         public AgentCommissionSlab? AgentCommissionSlab { get; set; }
+        public SalesOrderTypeMaster? SalesOrderTypeMaster { get; set; }
+        public SalesEnquiryHeader? SalesEnquiryHeader { get; set; }
 
         // Child collection
         public ICollection<SalesOrderDetail>? SalesOrderDetails { get; set; }

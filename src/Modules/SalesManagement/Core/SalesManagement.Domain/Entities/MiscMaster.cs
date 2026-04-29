@@ -43,6 +43,7 @@ namespace SalesManagement.Domain.Entities
 
         // Reverse navigation (DeliveryChallanHeader)
         public ICollection<DeliveryChallanHeader>? DeliveryChallanHeadersAsStatus { get; set; }
+        public ICollection<DeliveryChallanHeader>? DeliveryChallanHeadersAsDcType { get; set; }
 
         // Reverse navigation (InvoiceHeader)
         public ICollection<InvoiceHeader>? InvoiceHeadersAsTransportMode { get; set; }
@@ -64,6 +65,9 @@ namespace SalesManagement.Domain.Entities
 
         // Reverse navigation (SalesOrderAmendment)
         public ICollection<SalesOrderAmendmentHeader>? SalesOrderAmendmentHeadersAsStatus { get; set; }
+
+        // Reverse navigation (SalesQuotationAmendment)
+        public ICollection<SalesQuotationAmendmentHeader>? SalesQuotationAmendmentHeadersAsStatus { get; set; }
 
         // Reverse navigation (DiscountMaster)
         public ICollection<DiscountMaster>? DiscountMastersAsTriggerEvent { get; set; }
@@ -89,6 +93,9 @@ namespace SalesManagement.Domain.Entities
 
         // Reverse navigation (ProformaInvoice)
         public ICollection<ProformaInvoice>? ProformaInvoicesAsStatus { get; set; }
+
+        // Reverse navigation (SalesOrderTypeMaster — SoType FK)
+        public ICollection<SalesOrderTypeMaster>? SalesOrderTypeMastersAsSoType { get; set; }
 
     }
 }

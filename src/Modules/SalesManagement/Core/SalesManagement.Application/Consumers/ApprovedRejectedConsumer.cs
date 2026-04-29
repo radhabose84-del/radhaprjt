@@ -92,30 +92,39 @@ namespace SalesManagement.Application.Consumers
 
                     case MiscEnumEntity.ComplaintModuleTypeName:
                         await _complaintCommandRepo.UpdateApprovalStatusAsync(
-                            msg.ModuleTransactionId, msg.Status, context.CancellationToken);
+                            msg.ModuleTransactionId, msg.Status,
+                            msg.ModifiedBy, msg.ModifiedByName, msg.ModifiedIP,
+                            context.CancellationToken);
                         _logger.LogInformation(
-                            "Complaint {Id} status updated to {Status}",
-                            msg.ModuleTransactionId, msg.Status);
+                            "Complaint {Id} status updated to {Status} by user {UserId}",
+                            msg.ModuleTransactionId, msg.Status, msg.ModifiedBy);
                         break;
 
                     case MiscEnumEntity.ComplaintQCReviewModuleTypeName:
                         await _complaintCommandRepo.UpdateQCReviewApprovalStatusAsync(
-                            msg.ModuleTransactionId, msg.Status, context.CancellationToken);
+                            msg.ModuleTransactionId, msg.Status,
+                            msg.ModifiedBy, msg.ModifiedByName, msg.ModifiedIP,
+                            context.CancellationToken);
                         _logger.LogInformation(
-                            "Complaint QC Review {Id} approval status updated to {Status}",
-                            msg.ModuleTransactionId, msg.Status);
+                            "Complaint QC Review {Id} approval status updated to {Status} by user {UserId}",
+                            msg.ModuleTransactionId, msg.Status, msg.ModifiedBy);
 
-                        // Auto-seed a draft ComplaintResolution row when QC lands on 'QC Accepted'
+                        // Auto-seed a draft ComplaintResolution row when QC lands on 'QC Accepted'.
+                        // Pass the approver as the creator so the audit trail shows the human user.
                         await _complaintCommandRepo.EnsureResolutionDraftIfQCAcceptedAsync(
-                            msg.ModuleTransactionId, context.CancellationToken);
+                            msg.ModuleTransactionId,
+                            msg.ModifiedBy, msg.ModifiedByName, msg.ModifiedIP,
+                            context.CancellationToken);
                         break;
 
                     case MiscEnumEntity.ComplaintResolutionModuleTypeName:
                         await _complaintCommandRepo.UpdateResolutionApprovalStatusAsync(
-                            msg.ModuleTransactionId, msg.Status, context.CancellationToken);
+                            msg.ModuleTransactionId, msg.Status,
+                            msg.ModifiedBy, msg.ModifiedByName, msg.ModifiedIP,
+                            context.CancellationToken);
                         _logger.LogInformation(
-                            "Complaint Resolution {Id} approval status updated to {Status}",
-                            msg.ModuleTransactionId, msg.Status);
+                            "Complaint Resolution {Id} approval status updated to {Status} by user {UserId}",
+                            msg.ModuleTransactionId, msg.Status, msg.ModifiedBy);
                         break;
 
                     default:

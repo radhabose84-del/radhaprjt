@@ -151,6 +151,17 @@ namespace SalesManagement.Application.SalesReturn.Commands.CreateSalesReturn
 
                 await _commandRepository.UpdateComplaintResolutionReturnStatusAsync(
                     request.ComplaintHeaderId, returnStatus.Id, totalReturned, closureStatusId, closedBy);
+
+                if (isFullyReturned && closureStatusId.HasValue)
+                {
+                    var autoCloseEvent = new AuditLogsDomainEvent(
+                        actionDetail: "AutoClose",
+                        actionCode: "COMPLAINT_RESOLUTION_AUTOCLOSE",
+                        actionName: request.ComplaintHeaderId.ToString(),
+                        details: $"Resolution auto-closed for ComplaintHeaderId {request.ComplaintHeaderId} after Sales Return '{returnNumber}' goods receipt.",
+                        module: "ComplaintResolution");
+                    await _mediator.Publish(autoCloseEvent, cancellationToken);
+                }
             }
 
             var auditEvent = new AuditLogsDomainEvent(

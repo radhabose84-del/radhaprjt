@@ -4,6 +4,7 @@ namespace SalesManagement.Domain.Entities
 {
     public class SalesQuotationHeader : BaseEntity
     {
+        public string? QuotationNo { get; set; }
         public int CustomerId { get; set; }
         public DateOnly QuotationDate { get; set; }
         public int? SalesEnquiryId { get; set; }
@@ -20,6 +21,7 @@ namespace SalesManagement.Domain.Entities
         public decimal TotalTax { get; set; }
         public decimal GrandTotal { get; set; }
         public int? StatusId { get; set; }                // FK → Sales.MiscMaster
+        public int RevisionNumber { get; set; }
 
         // Same-module navigation properties
         public MiscMaster? StatusMisc { get; set; }
@@ -32,5 +34,8 @@ namespace SalesManagement.Domain.Entities
 
         // Reverse navigation from SalesOrderHeader
         public ICollection<SalesOrderHeader>? SalesOrderHeaders { get; set; }
+
+        // Reverse navigation from SalesQuotationAmendmentHeader
+        public ICollection<SalesQuotationAmendmentHeader>? SalesQuotationAmendmentHeaders { get; set; }
     }
 }

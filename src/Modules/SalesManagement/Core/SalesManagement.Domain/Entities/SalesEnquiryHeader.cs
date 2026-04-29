@@ -4,6 +4,7 @@ namespace SalesManagement.Domain.Entities
 {
     public class SalesEnquiryHeader : BaseEntity
     {
+        public string? EnquiryNo { get; set; }
         public int PartyId { get; set; }
         public DateTimeOffset EnquiryDate { get; set; }
         public string? ContactPerson { get; set; }
@@ -15,5 +16,8 @@ namespace SalesManagement.Domain.Entities
 
         public SalesLead? SalesLead { get; set; }
         public ICollection<SalesEnquiryDetail>? SalesEnquiryDetails { get; set; }
+
+        // Reverse navigation (SalesOrder)
+        public ICollection<SalesOrderHeader>? SalesOrderHeaders { get; set; }
     }
 }

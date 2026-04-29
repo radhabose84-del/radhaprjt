@@ -72,5 +72,33 @@ namespace SalesManagement.UnitTests.Domain
             entity.StoHeader.Should().NotBeNull();
             entity.DeliveryChallanDetails.Should().NotBeNull();
         }
+
+        [Fact]
+        public void DeliveryChallanHeader_DcTypeIdAndMovementTypeId_ShouldBeAssignable()
+        {
+            var entity = new DeliveryChallanHeader
+            {
+                DcTypeId = 241,
+                MovementTypeId = 1
+            };
+
+            entity.DcTypeId.Should().Be(241);
+            entity.MovementTypeId.Should().Be(1);
+        }
+
+        [Fact]
+        public void DeliveryChallanHeader_DcTypeAndMovementTypeNavProps_ShouldBeAssignable()
+        {
+            var entity = new DeliveryChallanHeader
+            {
+                DcType = new MiscMaster { Id = 241, Code = "Non-Returnable" },
+                MovementType = new MovementTypeConfig { Id = 1, MovementCode = "OUT-001" }
+            };
+
+            entity.DcType.Should().NotBeNull();
+            entity.DcType!.Code.Should().Be("Non-Returnable");
+            entity.MovementType.Should().NotBeNull();
+            entity.MovementType!.MovementCode.Should().Be("OUT-001");
+        }
     }
 }

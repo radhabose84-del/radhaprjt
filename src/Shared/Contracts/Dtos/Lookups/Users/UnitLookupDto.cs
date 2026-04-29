@@ -14,6 +14,8 @@ namespace Contracts.Dtos.Lookups.Users
         // Plant/Unit → Company bridge — needed by cross-module callers that traverse
         // Unit → Company → GSTIN (e.g., e-waybill generation).
         public int CompanyId { get; set; }
+        // Sourced from AppData.UnitAddress (one address per unit). Nullable when no address row exists.
+        public string? PinCode { get; set; }
 
     }
 }

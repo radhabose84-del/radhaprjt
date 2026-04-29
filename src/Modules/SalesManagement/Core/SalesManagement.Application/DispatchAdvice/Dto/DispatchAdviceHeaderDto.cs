@@ -14,8 +14,6 @@ namespace SalesManagement.Application.DispatchAdvice.Dto
         public decimal TotOrderQty { get; set; }
         public decimal TotDispatchedQty { get; set; }
         public decimal TotPendingQty { get; set; }
-        public int? DispatchAddressId { get; set; }
-        public string? DispatchAddressName { get; set; }
         public int DispatchTypeId { get; set; }
         public string? DispatchTypeName { get; set; }
         public int FreightId { get; set; }
@@ -30,6 +28,7 @@ namespace SalesManagement.Application.DispatchAdvice.Dto
         public int UnitId { get; set; }
         public string? UnitName { get; set; }
         public bool InvFlg { get; set; }
+        public decimal Distance { get; set; }
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }
         public int CreatedBy { get; set; }
@@ -39,7 +38,8 @@ namespace SalesManagement.Application.DispatchAdvice.Dto
         public DateTimeOffset? ModifiedDate { get; set; }
         public string? ModifiedByName { get; set; }
 
-        // Nested details (for GetById)
+        public List<DispatchAdviceAddressDto> DispatchAddress { get; set; } = new();
+
         public List<DispatchAdviceDetailDto>? Details { get; set; }
     }
 }

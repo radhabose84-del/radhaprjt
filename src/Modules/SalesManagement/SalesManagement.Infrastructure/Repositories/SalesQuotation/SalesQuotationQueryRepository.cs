@@ -43,7 +43,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesQuotation
         {
             var searchFilter = string.IsNullOrWhiteSpace(searchTerm)
                 ? ""
-                : "AND (h.Remarks LIKE @Search OR sc.ContactName LIKE @Search OR mm.Description LIKE @Search)";
+                : "AND (h.QuotationNo LIKE @Search OR h.Remarks LIKE @Search OR sc.ContactName LIKE @Search OR mm.Description LIKE @Search)";
 
             // Marketing Officer access scoping
             var moFilter = "";
@@ -72,7 +72,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesQuotation
                 LEFT JOIN Sales.MiscMaster sm ON h.StatusId = sm.Id AND sm.IsDeleted = 0
                 WHERE h.IsDeleted = 0 {searchFilter} {moFilter};
 
-                SELECT h.Id, h.CustomerId, h.QuotationDate,
+                SELECT h.Id, h.QuotationNo, h.CustomerId, h.QuotationDate,
                     h.SalesEnquiryId, h.ContactPersonId,
                     sc.ContactName AS ContactPersonName,
                     h.ValidityDate, h.PaymentTermId, h.Remarks,
@@ -83,6 +83,8 @@ namespace SalesManagement.Infrastructure.Repositories.SalesQuotation
                     h.FreightCharges, h.OtherCharges,
                     h.TotalBasicAmount, h.TotalDiscount,
                     h.NetTaxableAmount, h.TotalTax, h.GrandTotal,
+                    CASE WHEN so.Id IS NULL THEN CAST(1 AS BIT) ELSE CAST(0 AS BIT) END AS IsEditable,
+                    so.SalesOrderNo,
                     h.IsActive, h.IsDeleted,
                     h.CreatedBy, h.CreatedDate, h.CreatedByName,
                     h.ModifiedBy, h.ModifiedDate, h.ModifiedByName
@@ -90,6 +92,11 @@ namespace SalesManagement.Infrastructure.Repositories.SalesQuotation
                 LEFT JOIN Sales.SalesContact sc ON h.ContactPersonId = sc.Id AND sc.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster mm ON h.DeliveryTermId = mm.Id AND mm.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster sm ON h.StatusId = sm.Id AND sm.IsDeleted = 0
+                OUTER APPLY (
+                    SELECT TOP 1 soh.Id, soh.SalesOrderNo
+                    FROM Sales.SalesOrderHeader soh
+                    WHERE soh.SalesQuotationHeaderId = h.Id AND soh.IsDeleted = 0
+                ) so
                 WHERE h.IsDeleted = 0 {searchFilter} {moFilter}
                 ORDER BY h.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
@@ -183,7 +190,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesQuotation
             }
 
             var headerSql = $@"
-                SELECT h.Id, h.CustomerId, h.QuotationDate,
+                SELECT h.Id, h.QuotationNo, h.CustomerId, h.QuotationDate,
                     h.SalesEnquiryId, h.ContactPersonId,
                     sc.ContactName AS ContactPersonName,
                     h.ValidityDate, h.PaymentTermId, h.Remarks,
@@ -279,11 +286,11 @@ namespace SalesManagement.Infrastructure.Repositories.SalesQuotation
             }
 
             var sql = $@"
-                SELECT h.Id, h.QuotationDate, h.GrandTotal,
+                SELECT h.Id, h.QuotationNo, h.QuotationDate, h.GrandTotal,
                     (SELECT COUNT(*) FROM Sales.SalesQuotationDetail d WHERE d.SalesQuotationHeaderId = h.Id) AS TotalItems
                 FROM Sales.SalesQuotationHeader h
                 WHERE h.IsActive = 1 AND h.IsDeleted = 0
-                AND (CAST(h.Id AS VARCHAR) LIKE @Term OR h.Remarks LIKE @Term)
+                AND (h.QuotationNo LIKE @Term OR CAST(h.Id AS VARCHAR) LIKE @Term OR h.Remarks LIKE @Term)
                 {moFilter}
                 ORDER BY h.Id DESC";
 
@@ -386,6 +393,69 @@ namespace SalesManagement.Infrastructure.Repositories.SalesQuotation
 
             var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = salesEnquiryId });
             return count > 0;
+        }
+
+        public async Task<(List<GetSalesQuotationPendingDto>, int)> GetSalesQuotationPendingAsync(
+            int pageNumber, int pageSize, string? searchTerm)
+        {
+            var searchFilter = string.IsNullOrWhiteSpace(searchTerm)
+                ? ""
+                : "AND (h.QuotationNo LIKE @Search OR h.Remarks LIKE @Search)";
+
+            var query = $@"
+                DECLARE @PendingStatusId INT;
+                SELECT @PendingStatusId = mm.Id
+                FROM Sales.MiscMaster mm
+                INNER JOIN Sales.MiscTypeMaster mt ON mm.MiscTypeId = mt.Id AND mt.IsDeleted = 0
+                WHERE mt.Description = @MiscType
+                  AND mm.Code = @StatusCode
+                  AND mm.IsDeleted = 0;
+
+                DECLARE @TotalCount INT;
+                SELECT @TotalCount = COUNT(*)
+                FROM Sales.SalesQuotationHeader h
+                WHERE h.IsDeleted = 0 AND h.IsActive = 1
+                AND h.StatusId = @PendingStatusId
+                {searchFilter};
+
+                SELECT h.Id, h.QuotationNo, h.QuotationDate, h.ValidityDate,
+                    h.CustomerId, h.SalesEnquiryId,
+                    h.ContactPersonId,
+                    sc.ContactName AS ContactPersonName,
+                    h.PaymentTermId,
+                    h.DeliveryTermId,
+                    mmDel.Description AS DeliveryTermDescription,
+                    h.StatusId,
+                    mmStatus.Description AS StatusName,
+                    h.FreightCharges, h.OtherCharges,
+                    h.TotalBasicAmount, h.TotalDiscount,
+                    h.NetTaxableAmount, h.TotalTax, h.GrandTotal,
+                    h.Remarks,
+                    h.CreatedByName, h.CreatedDate
+                FROM Sales.SalesQuotationHeader h
+                LEFT JOIN Sales.SalesContact sc ON h.ContactPersonId = sc.Id AND sc.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster mmDel ON h.DeliveryTermId = mmDel.Id AND mmDel.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster mmStatus ON h.StatusId = mmStatus.Id AND mmStatus.IsDeleted = 0
+                WHERE h.IsDeleted = 0 AND h.IsActive = 1
+                AND h.StatusId = @PendingStatusId
+                {searchFilter}
+                ORDER BY h.Id DESC
+                OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
+
+                SELECT @TotalCount AS TotalCount;";
+
+            var result = await _dbConnection.QueryMultipleAsync(query, new
+            {
+                MiscType = MiscEnumEntity.InvoiceApprovalStatus,
+                StatusCode = MiscEnumEntity.InvoiceStatusPending,
+                Search = $"%{searchTerm}%",
+                Offset = (pageNumber - 1) * pageSize,
+                PageSize = pageSize
+            });
+            var list = (await result.ReadAsync<GetSalesQuotationPendingDto>()).ToList();
+            var totalCount = await result.ReadFirstAsync<int>();
+
+            return (list, totalCount);
         }
 
         public async Task<bool> IsSalesQuotationPendingAsync(int id)

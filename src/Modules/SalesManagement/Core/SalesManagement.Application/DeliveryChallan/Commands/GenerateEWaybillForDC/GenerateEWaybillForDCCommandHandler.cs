@@ -106,6 +106,26 @@ namespace SalesManagement.Application.DeliveryChallan.Commands.GenerateEWaybillF
             // 5. Build detail rows from DC line items
             var details = await BuildEWaybillDetailsAsync(dc, cancellationToken);
 
+            // 5b. Validate master data BEFORE inserting. NIC rejects EWBs with missing
+            // GSTIN / HSN / vehicle / distance, so we surface these to the operator now
+            // rather than letting a Pending row accumulate stale bad data.
+            var validationErrors = CollectValidationErrors(dc, fromGstin, fromTradeName, toGstin, toTradeName,
+                                                           transporterGstin, details);
+            if (validationErrors.Count > 0)
+            {
+                return new ApiResponseDTO<GenerateEWaybillResponseDto>
+                {
+                    IsSuccess = false,
+                    Message = "E-waybill cannot be generated due to missing data.",
+                    Data = new GenerateEWaybillResponseDto
+                    {
+                        DeliveryNumber = dc.DeliveryNumber,
+                        AlreadyExisted = false,
+                        Errors = validationErrors
+                    }
+                };
+            }
+
             // 6. Build Finance create command
             var createCmd = new CreateEWaybillHeaderCommand
             {
@@ -163,6 +183,56 @@ namespace SalesManagement.Application.DeliveryChallan.Commands.GenerateEWaybillF
                     AlreadyExisted = false
                 }
             };
+        }
+
+        /// <summary>
+        /// Collects every blocking master-data gap that would cause NIC to reject the EWB.
+        /// Returns an empty list when the EWB is safe to insert.
+        /// </summary>
+        private static List<string> CollectValidationErrors(
+            DeliveryChallanHeaderDto dc,
+            string? fromGstin, string? fromTradeName,
+            string? toGstin, string? toTradeName,
+            string? transporterGstin,
+            List<CreateEWaybillDetailDto> details)
+        {
+            var errors = new List<string>();
+
+            if (string.IsNullOrWhiteSpace(fromGstin))
+                errors.Add($"Consignor GSTIN missing on Unit {dc.FromPlantId}. Update the Company linked to that Unit.");
+            if (string.IsNullOrWhiteSpace(fromTradeName))
+                errors.Add($"Consignor trade name missing on Unit {dc.FromPlantId}.");
+
+            if (string.IsNullOrWhiteSpace(toGstin))
+                errors.Add($"Consignee GSTIN missing on Unit {dc.ToPlantId}. Update the Company linked to that Unit.");
+            if (string.IsNullOrWhiteSpace(toTradeName))
+                errors.Add($"Consignee trade name missing on Unit {dc.ToPlantId}.");
+
+            if (dc.TransporterId > 0 && string.IsNullOrWhiteSpace(transporterGstin))
+                errors.Add($"Transporter GSTIN missing on Party {dc.TransporterId}.");
+
+            if (string.IsNullOrWhiteSpace(dc.VehicleNumber))
+                errors.Add("Vehicle number missing on Delivery Challan.");
+
+            if (!dc.TransportDistance.HasValue || dc.TransportDistance.Value <= 0)
+                errors.Add("Transport distance missing or zero on Delivery Challan.");
+
+            if (details.Count == 0)
+            {
+                errors.Add("Delivery Challan has no line items.");
+            }
+            else
+            {
+                foreach (var line in details)
+                {
+                    if (string.IsNullOrWhiteSpace(line.ItemName))
+                        errors.Add($"Item name missing for ItemId {line.ItemId} (line {line.ItemSno}).");
+                    if (string.IsNullOrWhiteSpace(line.HsnNo))
+                        errors.Add($"HSN number missing for ItemId {line.ItemId} (line {line.ItemSno}).");
+                }
+            }
+
+            return errors;
         }
 
         private async Task<(string? gstin, string? tradeName)> ResolvePlantGstinAsync(int plantId)
