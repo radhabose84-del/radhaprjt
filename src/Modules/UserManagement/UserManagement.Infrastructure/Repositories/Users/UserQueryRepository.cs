@@ -63,6 +63,7 @@ namespace UserManagement.Infrastructure.Repositories.Users
                                 ur.DepartmentId,                              
                                 ur.Mobile,
                                 ur.EmailId,
+                                ur.ReportToId,
                                 ur.IsFirstTimeUser,
                                 ur.IsDeleted,UG.Id AS UserGroupId
                                 ,ur.createdAt, 
@@ -129,6 +130,7 @@ namespace UserManagement.Infrastructure.Repositories.Users
                ur.EntityId,
                ur.DepartmentId,
                ur.EmpId,
+               ur.ReportToId,
                ura.UserRoleId,
                uc.CompanyId,
                uu.UnitId,

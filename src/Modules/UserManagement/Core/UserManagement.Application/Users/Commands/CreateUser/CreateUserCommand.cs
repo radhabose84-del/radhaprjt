@@ -16,6 +16,7 @@ namespace UserManagement.Application.Users.Commands.CreateUser
         public int  DepartmentId { get; set; }
         public int EntityId { get; set; }
         public int? EmpId { get; set; }
+        public int? ReportToId { get; set; }
         public List<UserDivisionDTO> userDivisions { get; set; } = new();
         public List<UserCompanyDTO> UserCompanies { get; set; } = new();
         public List<UserRoleAllocationDTO> userRoleAllocations { get; set; } = new();

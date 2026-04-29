@@ -17,6 +17,7 @@ namespace UserManagement.Application.Users.Queries.GetUsers
         public int UserType { get; set; }
         public string? Mobile { get; set; }
         public string? EmailId { get; set; }
+        public int? ReportToId { get; set; }
         public int CompanyId { get; set; }
         // public int? UnitId { get; set; }
         public int DivisionId { get; set; }
