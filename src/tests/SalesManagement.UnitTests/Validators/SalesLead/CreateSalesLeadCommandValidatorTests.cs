@@ -95,5 +95,26 @@ namespace SalesManagement.UnitTests.Validators.SalesLead
             var result = await CreateValidator().TestValidateAsync(ValidCommand());
             result.ShouldHaveValidationErrorFor(x => x.MarketingOfficerId);
         }
+
+        [Fact]
+        public async Task UomId_Null_PassesValidation()
+        {
+            var cmd = ValidCommand();
+            cmd.UomId = null;
+            SetupAllAsyncMocks();
+            var result = await CreateValidator().TestValidateAsync(cmd);
+            result.ShouldNotHaveValidationErrorFor(x => x.UomId);
+        }
+
+        [Fact]
+        public async Task UomId_NotFound_FailsValidation()
+        {
+            var cmd = ValidCommand();
+            cmd.UomId = 999;
+            SetupAllAsyncMocks();
+            _mockQueryRepo.Setup(r => r.UomExistsAsync(999)).ReturnsAsync(false);
+            var result = await CreateValidator().TestValidateAsync(cmd);
+            result.ShouldHaveValidationErrorFor(x => x.UomId);
+        }
     }
 }

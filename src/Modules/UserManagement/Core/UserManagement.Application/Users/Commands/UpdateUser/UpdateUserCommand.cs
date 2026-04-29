@@ -18,6 +18,7 @@ namespace UserManagement.Application.Users.Commands.UpdateUser
     public int DepartmentId { get; set; }
     public int EntityId { get; set; }
     public int? EmpId { get; set; }
+    public int? ReportToId { get; set; }
     public List<UserDivisionDTO>? userDivisions { get; set; }
     public List<UserCompanyDTO>? UserCompanies  { get; set; }
     public List<UserRoleAllocationDTO>? userRoleAllocations { get; set; }

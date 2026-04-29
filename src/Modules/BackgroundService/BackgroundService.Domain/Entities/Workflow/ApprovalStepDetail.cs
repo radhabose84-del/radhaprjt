@@ -15,7 +15,7 @@ namespace BackgroundService.Domain.Entities.Workflow
         public int ApprovalStepId { get; set; }
         public  int TargetTypeId { get; set; }
         public MiscMaster TargetType { get; set; }
-        public int TargetValueId { get; set; }
+        public int? TargetValueId { get; set; }
         public WorkflowType WorkflowType { get; set; }
         public MiscMaster ApprovalStep { get; set; }
         public byte IsEdit { get; set; }

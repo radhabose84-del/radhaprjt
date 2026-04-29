@@ -85,7 +85,11 @@ public sealed class SalesLeadControllerTests
     {
         _mockMediator
             .Setup(m => m.Send(It.IsAny<CreateSalesLeadCommand>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ApiResponseDTO<int> { IsSuccess = true, Data = 1 });
+            .ReturnsAsync(new ApiResponseDTO<CreateSalesLeadResponseDto>
+            {
+                IsSuccess = true,
+                Data = new CreateSalesLeadResponseDto { Id = 1, LeadNo = "LEAD/2025/0001" }
+            });
 
         var result = await CreateSut().CreateSalesLead(new CreateSalesLeadCommand());
 

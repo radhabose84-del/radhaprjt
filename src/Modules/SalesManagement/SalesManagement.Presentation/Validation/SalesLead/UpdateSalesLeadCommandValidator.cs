@@ -136,6 +136,12 @@ namespace SalesManagement.Presentation.Validation.SalesLead
                             .WithMessage($"{nameof(UpdateSalesLeadCommand.ItemId)} {rule.Error}")
                             .When(x => x.ItemId.HasValue && x.ItemId > 0);
 
+                        RuleFor(x => x.UomId)
+                            .MustAsync(async (id, ct) =>
+                                await _queryRepository.UomExistsAsync(id!.Value))
+                            .WithMessage($"{nameof(UpdateSalesLeadCommand.UomId)} {rule.Error}")
+                            .When(x => x.UomId.HasValue && x.UomId > 0);
+
                         RuleFor(x => x.MarketingOfficerId)
                             .MustAsync(async (id, ct) =>
                                 await _queryRepository.MarketingOfficerExistsAsync(id))
