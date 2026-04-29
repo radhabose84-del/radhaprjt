@@ -77,6 +77,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesEnquiry
 
             existingEntity.PartyId = entity.PartyId;
             existingEntity.EnquiryDate = entity.EnquiryDate;
+            existingEntity.EnquiryTypeId = entity.EnquiryTypeId;
             existingEntity.ContactPerson = entity.ContactPerson;
             existingEntity.ExpectedDeliveryDate = entity.ExpectedDeliveryDate;
             existingEntity.PaymentTermId = entity.PaymentTermId;

@@ -30,6 +30,7 @@ public sealed class CreateSalesEnquiryCommandHandlerTests
             {
                 PartyId = 1,
                 EnquiryDate = DateTimeOffset.UtcNow,
+                EnquiryTypeId = 245,
                 SalesEnquiryDetails = new List<CreateSalesEnquiryDto.CreateSalesEnquiryDetailDto>
                 {
                     new() { ItemId = 1, Quantity = 10m }

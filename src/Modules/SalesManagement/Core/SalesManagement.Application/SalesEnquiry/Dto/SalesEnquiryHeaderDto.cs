@@ -7,6 +7,9 @@ namespace SalesManagement.Application.SalesEnquiry.Dto
         public int PartyId { get; set; }
         public string? PartyName { get; set; }
         public DateTimeOffset EnquiryDate { get; set; }
+        public int EnquiryTypeId { get; set; }
+        public string? EnquiryTypeCode { get; set; }
+        public string? EnquiryTypeDescription { get; set; }
         public string? ContactPerson { get; set; }
         public DateTimeOffset? ExpectedDeliveryDate { get; set; }
         public int? PaymentTermId { get; set; }

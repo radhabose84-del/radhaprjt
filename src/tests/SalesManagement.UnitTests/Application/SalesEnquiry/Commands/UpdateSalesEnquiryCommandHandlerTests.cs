@@ -33,7 +33,7 @@ public sealed class UpdateSalesEnquiryCommandHandlerTests
     public async Task Handle_ValidCommand_ReturnsResult()
     {
         SetupHappyPath(1);
-        var command = new UpdateSalesEnquiryCommand { Id = 1, PartyId = 1, IsActive = 1 };
+        var command = new UpdateSalesEnquiryCommand { Id = 1, PartyId = 1, EnquiryTypeId = 245, IsActive = 1 };
         var result = await CreateSut().Handle(command, CancellationToken.None);
         result.Should().Be(1);
     }
@@ -42,7 +42,7 @@ public sealed class UpdateSalesEnquiryCommandHandlerTests
     public async Task Handle_ValidCommand_CallsUpdateOnce()
     {
         SetupHappyPath(1);
-        var command = new UpdateSalesEnquiryCommand { Id = 1, PartyId = 1, IsActive = 1 };
+        var command = new UpdateSalesEnquiryCommand { Id = 1, PartyId = 1, EnquiryTypeId = 245, IsActive = 1 };
         await CreateSut().Handle(command, CancellationToken.None);
 
         _mockCommandRepo.Verify(
@@ -54,7 +54,7 @@ public sealed class UpdateSalesEnquiryCommandHandlerTests
     public async Task Handle_ValidCommand_PublishesAuditEvent()
     {
         SetupHappyPath(1);
-        var command = new UpdateSalesEnquiryCommand { Id = 1, PartyId = 1, IsActive = 1 };
+        var command = new UpdateSalesEnquiryCommand { Id = 1, PartyId = 1, EnquiryTypeId = 245, IsActive = 1 };
         await CreateSut().Handle(command, CancellationToken.None);
 
         _mockMediator.Verify(
