@@ -4,6 +4,7 @@ namespace SalesManagement.Application.ComplaintDepartmentFeedback.Dto
     {
         public int? FeedbackId { get; set; }
         public int AssignmentId { get; set; }
+        public int ComplaintHeaderId { get; set; }
         public string? ComplaintNumber { get; set; }
         public DateOnly? ComplaintDate { get; set; }
         public int CustomerId { get; set; }

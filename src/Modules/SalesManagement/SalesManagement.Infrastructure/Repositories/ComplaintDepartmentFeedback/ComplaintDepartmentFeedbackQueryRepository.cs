@@ -70,6 +70,7 @@ namespace SalesManagement.Infrastructure.Repositories.ComplaintDepartmentFeedbac
                 SELECT
                     f.Id AS FeedbackId,
                     a.Id AS AssignmentId,
+                    ch.Id AS ComplaintHeaderId,
                     ch.ComplaintNumber,
                     ch.ComplaintDate,
                     ch.CustomerId,
@@ -287,6 +288,7 @@ namespace SalesManagement.Infrastructure.Repositories.ComplaintDepartmentFeedbac
                 SELECT
                     f.Id AS FeedbackId,
                     a.Id AS AssignmentId,
+                    ch.Id AS ComplaintHeaderId,
                     ch.ComplaintNumber,
                     ch.ComplaintDate,
                     ch.CustomerId,
@@ -421,6 +423,105 @@ namespace SalesManagement.Infrastructure.Repositories.ComplaintDepartmentFeedbac
                 SELECT FilePath FROM Sales.ComplaintFeedbackAttachment
                 WHERE Id = @Id AND IsDeleted = 0;";
             return await _dbConnection.ExecuteScalarAsync<string?>(sql, new { Id = id });
+        }
+
+        // -------------------------------------------------------------------------
+        // Per-complaint full-content view for QC.
+        // Returns one row per assigned department with feedback content + attachments.
+        // -------------------------------------------------------------------------
+
+        public async Task<List<ComplaintFeedbackFullDto>> GetByComplaintIdWithContentAsync(int complaintHeaderId)
+        {
+            // One row per assignment for the complaint, with full feedback content (or nulls
+            // when the assignment hasn't been submitted yet). Mirrors the JOIN pattern of
+            // GetByComplaintIdAsync, but returns the heavy DTO with RCA + Remarks + audit fields.
+            const string sql = @"
+                SELECT
+                    a.Id                            AS AssignmentId,
+                    a.RoleId                        AS RoleId,
+                    role.Description                AS RoleName,
+                    a.ResponsiblePersonId           AS ResponsiblePersonId,
+                    a.IsMandatory                   AS IsMandatory,
+                    asn.Description                 AS AssignmentStatusName,
+                    f.Id                            AS FeedbackId,
+                    CASE
+                        WHEN f.Id IS NULL THEN 'Pending'
+                        ELSE fs.Description
+                    END                             AS FeedbackStatusName,
+                    f.RootCauseText                 AS RootCauseText,
+                    f.RootCauseCategoryId           AS RootCauseCategoryId,
+                    rcc.Description                 AS RootCauseCategoryName,
+                    f.CorrectiveAction              AS CorrectiveAction,
+                    f.PreventiveAction              AS PreventiveAction,
+                    f.Remarks                       AS Remarks,
+                    f.SubmittedBy                   AS SubmittedBy,
+                    f.SubmittedDate                 AS SubmittedDate,
+                    ISNULL(f.ReworkCount, 0)        AS ReworkCount,
+                    f.ReworkReason                  AS ReworkReason
+                FROM Sales.ComplaintQCReviewAssignment a
+                INNER JOIN Sales.ComplaintQCReview r
+                    ON a.ComplaintQCReviewId = r.Id AND r.IsDeleted = 0
+                LEFT JOIN Sales.ComplaintDepartmentFeedback f
+                    ON f.AssignmentId = a.Id AND f.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster role ON a.RoleId = role.Id AND role.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster asn  ON a.AssignmentStatusId = asn.Id AND asn.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster fs   ON f.FeedbackStatusId = fs.Id AND fs.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster rcc  ON f.RootCauseCategoryId = rcc.Id AND rcc.IsDeleted = 0
+                WHERE a.IsDeleted = 0 AND r.ComplaintHeaderId = @ComplaintHeaderId
+                ORDER BY a.IsMandatory DESC, a.Id ASC;";
+
+            var rows = (await _dbConnection.QueryAsync<ComplaintFeedbackFullDto>(
+                sql, new { ComplaintHeaderId = complaintHeaderId })).ToList();
+
+            if (rows.Count == 0)
+                return rows;
+
+            // Cross-module name enrichment for ResponsiblePerson + SubmittedBy
+            var userIds = new List<int>();
+            userIds.AddRange(rows.Select(r => r.ResponsiblePersonId).Where(id => id > 0));
+            userIds.AddRange(rows.Where(r => r.SubmittedBy.HasValue).Select(r => r.SubmittedBy!.Value));
+            userIds = userIds.Distinct().ToList();
+
+            if (userIds.Count > 0)
+            {
+                var users = await _userLookup.GetByIdsAsync(userIds);
+                var userDict = users.ToDictionary(u => u.UserId, u => $"{u.FirstName} {u.LastName}".Trim());
+                foreach (var row in rows)
+                {
+                    if (userDict.TryGetValue(row.ResponsiblePersonId, out var rpName))
+                        row.ResponsiblePersonName = rpName;
+                    if (row.SubmittedBy.HasValue && userDict.TryGetValue(row.SubmittedBy.Value, out var sbName))
+                        row.SubmittedByName = sbName;
+                }
+            }
+
+            // Fetch attachments per submitted feedback in one batch
+            var feedbackIds = rows.Where(r => r.FeedbackId.HasValue)
+                                  .Select(r => r.FeedbackId!.Value)
+                                  .ToList();
+            if (feedbackIds.Count > 0)
+            {
+                const string attachmentSql = @"
+                    SELECT
+                        Id, FeedbackId,
+                        FileName, FilePath, FileType, FileSize
+                    FROM Sales.ComplaintFeedbackAttachment
+                    WHERE FeedbackId IN @Ids AND IsDeleted = 0
+                    ORDER BY Id ASC;";
+
+                var attachments = (await _dbConnection.QueryAsync<ComplaintFeedbackAttachmentDto>(
+                    attachmentSql, new { Ids = feedbackIds })).ToList();
+
+                var byFeedback = attachments.GroupBy(a => a.FeedbackId)
+                                            .ToDictionary(g => g.Key, g => g.ToList());
+                foreach (var row in rows)
+                {
+                    if (row.FeedbackId.HasValue && byFeedback.TryGetValue(row.FeedbackId.Value, out var list))
+                        row.Attachments = list;
+                }
+            }
+
+            return rows;
         }
 
         public async Task<bool> NotFoundAsync(int id)
