@@ -31,10 +31,20 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("int")
                 .IsRequired();
 
+            builder.Property(t => t.VariantId)
+                .HasColumnName("VariantId")
+                .HasColumnType("int")
+                .IsRequired(false);
+
             builder.Property(t => t.Quantity)
                 .HasColumnName("Quantity")
                 .HasColumnType("decimal(18,2)")
                 .IsRequired();
+
+            builder.Property(t => t.UOMId)
+                .HasColumnName("UOMId")
+                .HasColumnType("int")
+                .IsRequired(false);
 
             builder.Property(t => t.ExMillRate)
                 .HasColumnName("ExMillRate")
@@ -45,6 +55,11 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnName("Discount")
                 .HasColumnType("decimal(18,2)")
                 .IsRequired();
+
+            builder.Property(t => t.DiscountTypeId)
+                .HasColumnName("DiscountTypeId")
+                .HasColumnType("int")
+                .IsRequired(false);
 
             builder.Property(t => t.NetRate)
                 .HasColumnName("NetRate")
@@ -75,6 +90,9 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             builder.HasIndex(t => t.SalesQuotationHeaderId);
             builder.HasIndex(t => t.ItemId);
             builder.HasIndex(t => t.HSNId);
+            builder.HasIndex(t => t.VariantId);
+            builder.HasIndex(t => t.UOMId);
+            builder.HasIndex(t => t.DiscountTypeId);
         }
     }
 }

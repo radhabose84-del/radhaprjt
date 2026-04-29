@@ -522,5 +522,59 @@ namespace SalesManagement.IntegrationTests.Repositories.ComplaintDepartmentFeedb
             totalCount.Should().Be(1);
             data.Should().ContainSingle(d => d.AssignmentId == approvedAssignment);
         }
+
+        // ---------------------------------------------------------------------------
+        // Fix A — verify that the GetAllAsync SQL projection includes the
+        // ComplaintHeader.Id (so the frontend can chain /all-for-reviewer →
+        // /by-complaint-full/{complaintHeaderId} without an extra lookup).
+        // ---------------------------------------------------------------------------
+
+        [Fact]
+        public async Task GetAllAsync_Should_Project_ComplaintHeaderId_From_Joined_Header()
+        {
+            await ClearAsync();
+            var (_, assignmentId) = await SeedFullChainWithQcStatusAsync("QC Accepted", responsiblePersonId: 7);
+
+            // Find the expected ComplaintHeader.Id via the assignment chain
+            int expectedComplaintHeaderId;
+            await using (var verifyCtx = _fixture.CreateFreshDbContext())
+            {
+                expectedComplaintHeaderId = await verifyCtx.ComplaintQCReviewAssignment
+                    .Where(a => a.Id == assignmentId)
+                    .Join(verifyCtx.ComplaintQCReview, a => a.ComplaintQCReviewId, r => r.Id, (a, r) => r.ComplaintHeaderId)
+                    .FirstAsync();
+            }
+
+            var (data, _) = await CreateRepo().GetAllAsync(1, 10, null, null, responsiblePersonId: 7);
+
+            data.Should().ContainSingle(d => d.AssignmentId == assignmentId);
+            var row = data.Single(d => d.AssignmentId == assignmentId);
+            row.ComplaintHeaderId.Should().Be(expectedComplaintHeaderId,
+                "Fix A: GetAllAsync must project ch.Id AS ComplaintHeaderId so the frontend can drill in");
+            row.ComplaintHeaderId.Should().BeGreaterThan(0,
+                "the seeded ComplaintHeader has a real identity-generated id");
+        }
+
+        [Fact]
+        public async Task GetByComplaintIdAsync_Should_Project_ComplaintHeaderId_From_Joined_Header()
+        {
+            await ClearAsync();
+            var (_, assignmentId) = await SeedFullChainWithQcStatusAsync("QC Accepted", responsiblePersonId: 8);
+
+            int expectedComplaintHeaderId;
+            await using (var verifyCtx = _fixture.CreateFreshDbContext())
+            {
+                expectedComplaintHeaderId = await verifyCtx.ComplaintQCReviewAssignment
+                    .Where(a => a.Id == assignmentId)
+                    .Join(verifyCtx.ComplaintQCReview, a => a.ComplaintQCReviewId, r => r.Id, (a, r) => r.ComplaintHeaderId)
+                    .FirstAsync();
+            }
+
+            var data = await CreateRepo().GetByComplaintIdAsync(expectedComplaintHeaderId);
+
+            data.Should().NotBeEmpty();
+            data.Should().AllSatisfy(d => d.ComplaintHeaderId.Should().Be(expectedComplaintHeaderId,
+                "Fix A: GetByComplaintIdAsync must also surface ComplaintHeaderId on each row"));
+        }
     }
 }

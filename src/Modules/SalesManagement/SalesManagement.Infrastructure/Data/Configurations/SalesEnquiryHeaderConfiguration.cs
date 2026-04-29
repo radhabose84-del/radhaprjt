@@ -89,15 +89,26 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("int")
                 .IsRequired(false);
 
+            builder.Property(t => t.EnquiryTypeId)
+                .HasColumnName("EnquiryTypeId")
+                .HasColumnType("int")
+                .IsRequired();
+
             builder.HasOne(t => t.SalesLead)
                 .WithMany(sl => sl.SalesEnquiryHeaders)
                 .HasForeignKey(t => t.SalesLeadId)
                 .OnDelete(DeleteBehavior.Restrict)
                 .IsRequired(false);
 
+            builder.HasOne(t => t.EnquiryTypeMisc)
+                .WithMany(m => m.SalesEnquiryHeadersAsEnquiryType)
+                .HasForeignKey(t => t.EnquiryTypeId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             builder.HasIndex(t => t.EnquiryNo).IsUnique().HasFilter("[EnquiryNo] IS NOT NULL");
             builder.HasIndex(t => t.PartyId);
             builder.HasIndex(t => t.SalesLeadId);
+            builder.HasIndex(t => t.EnquiryTypeId);
         }
     }
 }

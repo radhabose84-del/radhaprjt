@@ -194,5 +194,41 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesQuotation
 
             result.Should().BeFalse();
         }
+
+        [Fact]
+        public async Task CreateAsync_Should_Persist_VariantId_UOMId_DiscountTypeId_When_Set()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            await ClearAsync(ctx);
+
+            var entity = await BuildEntityAsync(customerId: 100, detailCount: 1);
+            entity.SalesQuotationDetails.First().VariantId = 77;
+            entity.SalesQuotationDetails.First().UOMId = 88;
+            entity.SalesQuotationDetails.First().DiscountTypeId = 99;
+
+            var id = await CreateRepo(ctx).CreateAsync(entity, 1);
+            ctx.ChangeTracker.Clear();
+
+            var detail = await ctx.SalesQuotationDetail.FirstAsync(d => d.SalesQuotationHeaderId == id);
+            detail.VariantId.Should().Be(77);
+            detail.UOMId.Should().Be(88);
+            detail.DiscountTypeId.Should().Be(99);
+        }
+
+        [Fact]
+        public async Task CreateAsync_Should_Allow_Null_VariantId_UOMId_DiscountTypeId()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            await ClearAsync(ctx);
+
+            // BuildEntityAsync leaves these three fields unset → all default to null
+            var id = await CreateRepo(ctx).CreateAsync(await BuildEntityAsync(customerId: 100, detailCount: 1), 1);
+            ctx.ChangeTracker.Clear();
+
+            var detail = await ctx.SalesQuotationDetail.FirstAsync(d => d.SalesQuotationHeaderId == id);
+            detail.VariantId.Should().BeNull();
+            detail.UOMId.Should().BeNull();
+            detail.DiscountTypeId.Should().BeNull();
+        }
     }
 }
