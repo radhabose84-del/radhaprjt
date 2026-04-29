@@ -13,6 +13,7 @@ namespace UserManagement.Domain.Entities
     public string? LastName { get; set; }
     public string? UserName { get; set; }
     public int? EmpId { get; set; }
+    public int? ReportToId { get; set; }
     public FirstTimeUserStatus IsFirstTimeUser { get; set; }
     public string? PasswordHash { get; set; }
     public int? UserType { get; set; }

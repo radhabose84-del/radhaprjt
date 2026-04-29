@@ -65,6 +65,11 @@ namespace UserManagement.Infrastructure.Data.Configurations
                 .HasColumnType("int")
                 .IsRequired(false);
 
+            builder.Property(u => u.ReportToId)
+                .HasColumnName("ReportToId")
+                .HasColumnType("int")
+                .IsRequired(false);
+
             builder.Property(u => u.IsActive)
                 .HasColumnName("IsActive")
                 .HasColumnType("bit")
