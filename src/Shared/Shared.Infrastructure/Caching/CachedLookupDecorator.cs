@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Text.Json;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Primitives;
 
 namespace Shared.Infrastructure.Caching;
 
@@ -17,6 +18,7 @@ public class CachedLookupDecorator<TLookup> : DispatchProxy where TLookup : clas
     private IMemoryCache _cache = null!;
     private LookupCacheOptions _options = null!;
     private ILogger<CachedLookupDecorator<TLookup>> _logger = null!;
+    private LookupCacheInvalidator? _invalidator;
 
     /// <summary>
     /// Factory method to create a cached proxy for a lookup implementation.
@@ -26,7 +28,8 @@ public class CachedLookupDecorator<TLookup> : DispatchProxy where TLookup : clas
         TLookup inner,
         IMemoryCache cache,
         LookupCacheOptions options,
-        ILogger<CachedLookupDecorator<TLookup>> logger)
+        ILogger<CachedLookupDecorator<TLookup>> logger,
+        LookupCacheInvalidator? invalidator = null)
     {
         var proxy = Create<TLookup, CachedLookupDecorator<TLookup>>() as CachedLookupDecorator<TLookup>;
 
@@ -34,6 +37,7 @@ public class CachedLookupDecorator<TLookup> : DispatchProxy where TLookup : clas
         proxy._cache = cache;
         proxy._options = options;
         proxy._logger = logger;
+        proxy._invalidator = invalidator;
 
         return proxy as TLookup ?? throw new InvalidOperationException("Failed to create proxy");
     }
@@ -150,6 +154,15 @@ public class CachedLookupDecorator<TLookup> : DispatchProxy where TLookup : clas
             AbsoluteExpirationRelativeToNow = _options.AbsoluteExpiration,
             Size = 1 // For size-based eviction
         };
+
+        // Attach a CancellationChangeToken from the per-lookup CTS so that a single
+        // Evict call on LookupCacheInvalidator removes ALL entries for this lookup
+        // interface in O(1) — independent of how many cache keys exist.
+        if (_invalidator != null)
+        {
+            var token = _invalidator.GetEvictionToken(typeof(TLookup).Name);
+            cacheOptions.AddExpirationToken(new CancellationChangeToken(token));
+        }
 
         _cache.Set(cacheKey, result, cacheOptions);
 
