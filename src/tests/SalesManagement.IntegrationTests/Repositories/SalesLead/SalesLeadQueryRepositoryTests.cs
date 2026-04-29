@@ -24,6 +24,7 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesLead
             Mock<IPartyLookup>? party = null,
             Mock<ICityLookup>? city = null,
             Mock<IItemLookup>? item = null,
+            Mock<IUOMLookup>? uom = null,
             Mock<IMarketingOfficerAccessFilter>? accessFilter = null)
         {
             if (party == null)
@@ -46,6 +47,12 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesLead
                 item.Setup(i => i.GetByIdsAsync(It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))
                     .ReturnsAsync((IReadOnlyList<ItemLookupDto>)new List<ItemLookupDto>());
             }
+            if (uom == null)
+            {
+                uom = new Mock<IUOMLookup>(MockBehavior.Loose);
+                uom.Setup(u => u.GetByIdsAsync(It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync((IReadOnlyList<UOMLookupDto>)new List<UOMLookupDto>());
+            }
             if (accessFilter == null)
             {
                 accessFilter = new Mock<IMarketingOfficerAccessFilter>(MockBehavior.Loose);
@@ -54,7 +61,7 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesLead
 
             return new SalesLeadQueryRepository(
                 new SqlConnection(_fixture.ConnectionString),
-                party.Object, city.Object, item.Object, accessFilter.Object);
+                party.Object, city.Object, item.Object, uom.Object, accessFilter.Object);
         }
 
         private async Task<int> EnsureMarketingOfficerAsync()
@@ -259,6 +266,66 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesLead
         {
             var result = await CreateRepo().ItemExistsAsync(9999);
             result.Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task UomExistsAsync_Should_Return_True_When_Lookup_Returns_Match()
+        {
+            var uom = new Mock<IUOMLookup>(MockBehavior.Loose);
+            uom.Setup(u => u.GetByIdsAsync(It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((IReadOnlyList<UOMLookupDto>)new List<UOMLookupDto>
+                {
+                    new() { Id = 5, Code = "KGS", UOMName = "Kilograms" }
+                });
+
+            var result = await CreateRepo(uom: uom).UomExistsAsync(5);
+
+            result.Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task UomExistsAsync_Should_Return_False_When_Lookup_Empty()
+        {
+            var result = await CreateRepo().UomExistsAsync(9999);
+            result.Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task GetByIdAsync_Should_Populate_UomCode_And_UomName()
+        {
+            await ClearAsync();
+            var moId = await EnsureMarketingOfficerAsync();
+
+            int leadId;
+            await using (var ctx = _fixture.CreateFreshDbContext())
+            {
+                var l = new SalesManagement.Domain.Entities.SalesLead
+                {
+                    ProspectCompanyName = "SLQ_UOM",
+                    ContactName = "C", MobileNumber = "9888888888", EmailId = "e@y.com",
+                    UomId = 5,
+                    MarketingOfficerId = moId,
+                    InteractionDate = DateTimeOffset.UtcNow,
+                    IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted
+                };
+                await ctx.SalesLead.AddAsync(l);
+                await ctx.SaveChangesAsync();
+                leadId = l.Id;
+            }
+
+            var uom = new Mock<IUOMLookup>(MockBehavior.Loose);
+            uom.Setup(u => u.GetByIdsAsync(It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((IReadOnlyList<UOMLookupDto>)new List<UOMLookupDto>
+                {
+                    new() { Id = 5, Code = "KGS", UOMName = "Kilograms" }
+                });
+
+            var result = await CreateRepo(uom: uom).GetByIdAsync(leadId);
+
+            result.Should().NotBeNull();
+            result!.UomId.Should().Be(5);
+            result.UomCode.Should().Be("KGS");
+            result.UomName.Should().Be("Kilograms");
         }
     }
 }
