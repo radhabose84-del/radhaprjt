@@ -234,14 +234,14 @@ namespace UserManagement.Infrastructure.Repositories.Users
                  u.EntityId,u.UserGroupId,u.IsLocked FROM AppSecurity.Users u
                  INNER JOIN AppSecurity.UserUnit uu ON uu.UserId = u.UserId AND uu.IsActive = 1
                  INNER JOIN AppData.Department d ON d.Id = u.DepartmentId
-                 WHERE UserName = @Username AND IsDeleted = 0 AND uu.UnitId=@UnitId
+                 WHERE u.UserName = @Username AND u.IsDeleted = 0 AND uu.UnitId=@UnitId
                  """;
 
              var parameters = new DynamicParameters(new { Username = username,UnitId });
 
              if (id is not null)
              {
-                 query += " AND UserId != @Id";
+                 query += " AND u.UserId != @Id";
                  parameters.Add("Id", id);
              }
             

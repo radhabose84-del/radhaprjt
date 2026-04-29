@@ -512,7 +512,7 @@ UPDATE AppSecurity.Users SET UserGroupId = @gid WHERE UserName = 'smith';
             user!.UserName.Should().Be("smith");
         }
 
-        [Fact(Skip = "Repo SQL uses unqualified 'UserId' in optional-id branch; causes 'Ambiguous column name UserId'. Kept for future repo fix.")]
+        [Fact]
         public async Task GetByUsernameAsync_optional_id_excludes_record()
         {
             var seededUnitId = await SeedBasicUsersAsync();
