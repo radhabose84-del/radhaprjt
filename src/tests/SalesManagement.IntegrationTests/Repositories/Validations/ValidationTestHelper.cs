@@ -96,13 +96,13 @@ namespace SalesManagement.IntegrationTests.Repositories.Validations
                 {DisableFKs}
 
                 INSERT INTO Sales.DeliveryChallanHeader
-                    (DeliveryNumber, DeliveryDate, StoHeaderId,
+                    (DeliveryNumber, DeliveryDate, StoHeaderId, DcTypeId, MovementTypeId,
                      FromPlantId, FromStorageLocationId, ToPlantId, ToStorageLocationId,
                      TransporterId, VehicleNumber,
                      DeliveryValue, ConsignmentValue, StatusId,
                      IsActive, IsDeleted, CreatedBy)
                 VALUES
-                    (@UniqueNo, GETDATE(), 0,
+                    (@UniqueNo, GETDATE(), 0, 0, 0,
                      1, 1, 1, 1,
                      1, 'TEST-VH-01',
                      0, 0, 0,
