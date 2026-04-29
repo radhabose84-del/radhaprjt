@@ -281,7 +281,8 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     SalesOrderNo = x.SalesOrderNo,
                     StatusId = x.StatusId,
                     StatusName = x.StatusMisc != null ? x.StatusMisc.Description : null,
-                    UnitId = x.OrderUnitId
+                    UnitId = x.OrderUnitId,
+                    IsMdDiscountEnabled = x.IsMdDiscountEnabled
                 })
                 .FirstOrDefaultAsync();
 
