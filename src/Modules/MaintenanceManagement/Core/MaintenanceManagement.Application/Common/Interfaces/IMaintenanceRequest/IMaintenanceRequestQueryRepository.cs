@@ -28,5 +28,6 @@ namespace MaintenanceManagement.Application.Common.Interfaces.IMaintenanceReques
       Task<List<MaintenanceManagement.Domain.Entities.MiscMaster>> GetMaintenanceDispatchModeDescAsync();
       //Task<string> GetMachineNameAsync(int id);
       Task<(string MachineName, int DepartmentId, int Id)?> GetMachineInfoAsync(int id);
+      Task<bool> MachineExistsAsync(int id);
   }
 }

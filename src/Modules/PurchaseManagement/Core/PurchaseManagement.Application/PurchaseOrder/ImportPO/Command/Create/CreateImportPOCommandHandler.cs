@@ -138,12 +138,15 @@ public class CreateImportPOCommandHandler : IRequestHandler<CreateImportPOComman
             {
                 var budgetMonthDate = new DateOnly(entity.PODate.Year, entity.PODate.Month, 1);
 
+                // Negative delta consumes budget. The lookup SQL is
+                // `RemainingBalance = RemainingBalance + @DeltaAmount`, so a PO
+                // (which spends budget) must pass a negative delta.
                 var ok = await _budgetAllocationLookup.ApplyRemainingBalanceDeltaAsync(
                     entity.BudgetGroupId.Value,
                     budgetMonthDate,
                     entity.BudgetMonthId ?? 0,
                     entity.BudgetRequestById ?? 0,
-                    entity.PurchaseValue,
+                    -entity.PurchaseValue,
                     entity.ProjectId,
                     entity.WBSId,
                     entity.FinancialYearId,

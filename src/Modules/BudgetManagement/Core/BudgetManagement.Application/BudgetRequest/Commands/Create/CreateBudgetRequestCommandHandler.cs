@@ -97,6 +97,9 @@ public class CreateBudgetRequestCommandHandler
             requestDate: requestDate,
             ct: cancellationToken);
 
+        int createdId;
+        string createdCode;
+
         await _unitOfWork.BeginTransactionAsync(cancellationToken);
         try
         {
@@ -105,11 +108,11 @@ public class CreateBudgetRequestCommandHandler
             var reverseMap = _mapper.Map<CreateBudgetRequestReverseDto>(entity1);
             string serializedPayload = JsonSerializer.Serialize(reverseMap);
 
+            createdId = created.Id;
+            createdCode = created.RequestCode ?? string.Empty;
+
             if (created.Id > 0)
             {
-                if (!string.IsNullOrWhiteSpace(request.ImagePath))
-                    await TryMoveImageAsync(created.Id, request.ImagePath!, created.RequestCode ?? string.Empty, cancellationToken);
-
                 var correlationId = Guid.NewGuid();
                 var @event = new CreateApprovalRequestCommand
                 {
@@ -123,29 +126,40 @@ public class CreateBudgetRequestCommandHandler
             }
 
             await _unitOfWork.CommitAsync(cancellationToken);
-
-            try
-            {
-                await _mediator.Publish(new AuditLogsDomainEvent(
-                    actionDetail: "Create",
-                    actionCode: entity.RequestCode ?? entity.Id.ToString(),
-                    actionName: "Budget Request",
-                    details: $"Budget Request '{entity.RequestCode}' was created.",
-                    module: "BudgetRequest"
-                ), cancellationToken);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Audit log failed for BudgetRequest {Id} — non-critical", entity.Id);
-            }
-
-            return entity.Id;
         }
         catch
         {
             await _unitOfWork.RollbackAsync(cancellationToken);
             throw;
         }
+
+        // Post-commit: audit log is informational and writes to MongoDB.
+        // A failure here must not roll back the SQL write — keep it outside
+        // the UoW try/catch so an exception cannot reach RollbackAsync.
+        try
+        {
+            await _mediator.Publish(new AuditLogsDomainEvent(
+                actionDetail: "Create",
+                actionCode: entity.RequestCode ?? entity.Id.ToString(),
+                actionName: "Budget Request",
+                details: $"Budget Request '{entity.RequestCode}' was created.",
+                module: "BudgetRequest"
+            ), cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Audit log failed for BudgetRequest {Id} — non-critical", entity.Id);
+        }
+
+        // Post-commit: file system operations are non-transactional and must
+        // not roll back the SQL write if they fail. UpdateImageAsync inside
+        // TryMoveImageAsync runs as its own separate write.
+        if (createdId > 0 && !string.IsNullOrWhiteSpace(request.ImagePath))
+        {
+            await TryMoveImageAsync(createdId, request.ImagePath!, createdCode, cancellationToken);
+        }
+
+        return entity.Id;
     }
 
     private async Task TryMoveImageAsync(int requestId, string tempFileName, string baseCode, CancellationToken ct)
