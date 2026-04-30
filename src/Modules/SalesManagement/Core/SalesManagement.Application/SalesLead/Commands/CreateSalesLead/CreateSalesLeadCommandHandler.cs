@@ -11,7 +11,7 @@ using static SalesManagement.Domain.Common.BaseEntity;
 
 namespace SalesManagement.Application.SalesLead.Commands.CreateSalesLead
 {
-    public class CreateSalesLeadCommandHandler : IRequestHandler<CreateSalesLeadCommand, ApiResponseDTO<int>>
+    public class CreateSalesLeadCommandHandler : IRequestHandler<CreateSalesLeadCommand, ApiResponseDTO<CreateSalesLeadResponseDto>>
     {
         private readonly ISalesLeadCommandRepository _commandRepository;
         private readonly ISalesLeadQueryRepository _queryRepository;
@@ -39,7 +39,7 @@ namespace SalesManagement.Application.SalesLead.Commands.CreateSalesLead
             _ipAddressService = ipAddressService;
         }
 
-        public async Task<ApiResponseDTO<int>> Handle(CreateSalesLeadCommand request, CancellationToken cancellationToken)
+        public async Task<ApiResponseDTO<CreateSalesLeadResponseDto>> Handle(CreateSalesLeadCommand request, CancellationToken cancellationToken)
         {
             var entity = _mapper.Map<Domain.Entities.SalesLead>(request);
 
@@ -87,11 +87,15 @@ namespace SalesManagement.Application.SalesLead.Commands.CreateSalesLead
             );
             await _mediator.Publish(auditEvent, cancellationToken);
 
-            return new ApiResponseDTO<int>
+            return new ApiResponseDTO<CreateSalesLeadResponseDto>
             {
                 IsSuccess = true,
-                Message = "Sales Lead created successfully.",
-                Data = newId
+                Message = $"Sales Lead {leadNo} created successfully.",
+                Data = new CreateSalesLeadResponseDto
+                {
+                    Id = newId,
+                    LeadNo = leadNo
+                }
             };
         }
     }

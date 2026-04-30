@@ -188,5 +188,27 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesLead
 
             result.Should().BeFalse();
         }
+
+        [Fact]
+        public async Task UpdateAsync_Should_Persist_UomId_Change()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            await ClearAsync(ctx);
+
+            var initial = await BuildEntityAsync("SL_UOM");
+            initial.UomId = 5;
+            var id = await CreateRepo(ctx).CreateAsync(initial, 1);
+            ctx.ChangeTracker.Clear();
+
+            var updated = await BuildEntityAsync("SL_UOM");
+            updated.Id = id;
+            updated.UomId = 7;
+
+            await CreateRepo(ctx).UpdateAsync(updated);
+            ctx.ChangeTracker.Clear();
+
+            var reloaded = await ctx.SalesLead.FirstAsync(x => x.Id == id);
+            reloaded.UomId.Should().Be(7);
+        }
     }
 }

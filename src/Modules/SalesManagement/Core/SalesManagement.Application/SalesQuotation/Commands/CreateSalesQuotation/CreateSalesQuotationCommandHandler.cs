@@ -1,9 +1,19 @@
+using System.Globalization;
+using System.Text.Json;
 using AutoMapper;
+using Contracts.Commands.Workflow;
 using Contracts.Common;
+using Contracts.Events.Notifications;
 using Contracts.Interfaces;
+using Contracts.Interfaces.Lookups.Common;
 using Contracts.Interfaces.Lookups.Finance;
+using Contracts.Interfaces.Lookups.Inventory;
+using Contracts.Interfaces.Lookups.Party;
 using MediatR;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using SalesManagement.Application.Common.Interfaces.IMiscMaster;
+using SalesManagement.Application.Common.Interfaces.IOutbox;
 using SalesManagement.Application.Common.Interfaces.ISalesQuotation;
 using SalesManagement.Domain.Common;
 using SalesManagement.Domain.Entities;
@@ -16,10 +26,17 @@ namespace SalesManagement.Application.SalesQuotation.Commands.CreateSalesQuotati
         private readonly ISalesQuotationCommandRepository _commandRepository;
         private readonly ISalesQuotationQueryRepository _queryRepository;
         private readonly IMiscMasterQueryRepository _miscMasterQueryRepository;
+        private readonly IAppDataMiscMasterLookup _appDataMiscLookup;
         private readonly IMapper _mapper;
         private readonly IMediator _mediator;
         private readonly IDocumentSequenceLookup _documentSequenceLookup;
         private readonly IIPAddressService _ipAddressService;
+        private readonly IOutboxEventPublisher _outboxEventPublisher;
+        private readonly IPartyDetailLookup _partyDetailLookup;
+        private readonly IItemLookup _itemLookup;
+        private readonly IHSNLookup _hsnLookup;
+        private readonly ILogger<CreateSalesQuotationCommandHandler> _logger;
+        private readonly IConfiguration _configuration;
 
         public CreateSalesQuotationCommandHandler(
             ISalesQuotationCommandRepository commandRepository,
@@ -28,7 +45,14 @@ namespace SalesManagement.Application.SalesQuotation.Commands.CreateSalesQuotati
             IMapper mapper,
             IMediator mediator,
             IDocumentSequenceLookup documentSequenceLookup,
-            IIPAddressService ipAddressService)
+            IIPAddressService ipAddressService,
+            IOutboxEventPublisher outboxEventPublisher,
+            IPartyDetailLookup partyDetailLookup,
+            IItemLookup itemLookup,
+            IHSNLookup hsnLookup,
+            ILogger<CreateSalesQuotationCommandHandler> logger,
+            IAppDataMiscMasterLookup appDataMiscLookup,
+            IConfiguration configuration)
         {
             _commandRepository = commandRepository;
             _queryRepository = queryRepository;
@@ -37,7 +61,13 @@ namespace SalesManagement.Application.SalesQuotation.Commands.CreateSalesQuotati
             _mediator = mediator;
             _documentSequenceLookup = documentSequenceLookup;
             _ipAddressService = ipAddressService;
+            _outboxEventPublisher = outboxEventPublisher;
+            _partyDetailLookup = partyDetailLookup;
+            _itemLookup = itemLookup;
+            _hsnLookup = hsnLookup;
+            _logger = logger;_appDataMiscLookup = appDataMiscLookup;
         }
+
 
         public async Task<int> Handle(CreateSalesQuotationCommand request, CancellationToken cancellationToken)
         {
@@ -73,7 +103,157 @@ namespace SalesManagement.Application.SalesQuotation.Commands.CreateSalesQuotati
                 module: "SalesQuotation");
             await _mediator.Publish(auditEvent, cancellationToken);
 
-            return newId > 0 ? newId : throw new ExceptionRules("Sales Quotation Creation Failed.");
+            if (newId <= 0)
+                throw new ExceptionRules("Sales Quotation Creation Failed.");
+
+            // ------------------- Notification setup (shared by Email + InApp) -------------------
+            var customer = await _partyDetailLookup.GetByIdAsync(request.CustomerId, cancellationToken);
+            var notifEventMisc = await _appDataMiscLookup.GetMiscMasterByNameAsync(
+                NotificationEnum.NotificationEvent, NotificationEnum.Create);
+            var customerName = customer?.PartyName ?? "";
+
+            // ------------------- 1) Email notification to customer (item-wise quotation) -------------------
+            try
+            {
+                if (customer != null && !string.IsNullOrWhiteSpace(customer.EmailID))
+                {
+                    // Build item rows JSON — data only, no HTML (table rendering handled by Sp_RenderHtmlTableFromTemplate)
+                    var rowsJson = "";
+                    if (request.SalesQuotationDetails != null && request.SalesQuotationDetails.Count > 0)
+                    {
+                        var itemIds = request.SalesQuotationDetails.Select(d => d.ItemId).Distinct().ToList();
+                        var hsnIds = request.SalesQuotationDetails.Select(d => d.HSNId).Distinct().ToList();
+
+                        var itemList = await _itemLookup.GetByIdsAsync(itemIds, cancellationToken);
+                        var itemDict = itemList.ToDictionary(i => i.Id, i => (i.ItemCode, i.ItemName));
+
+                        var hsnList = await _hsnLookup.GetByIdsAsync(hsnIds, cancellationToken);
+                        var hsnDict = hsnList.ToDictionary(h => h.Id, h => h.HSNCode);
+
+                        var sno = 1;
+                        var rows = new List<Dictionary<string, object?>>();
+                        foreach (var detail in request.SalesQuotationDetails)
+                        {
+                            itemDict.TryGetValue(detail.ItemId, out var itemInfo);
+                            hsnDict.TryGetValue(detail.HSNId, out var hsnCode);
+
+                            var itemDesc = !string.IsNullOrWhiteSpace(itemInfo.ItemName)
+                                ? $"{itemInfo.ItemCode} – {itemInfo.ItemName}"
+                                : $"#{detail.ItemId}";
+
+                            rows.Add(new Dictionary<string, object?>
+                            {
+                                ["sNo"] = sno++,
+                                ["item"] = itemDesc,
+                                ["hsn"] = hsnCode ?? "",
+                                ["qty"] = detail.Quantity,
+                                ["rate"] = detail.ExMillRate,
+                                ["discount"] = detail.Discount,
+                                ["amount"] = detail.TotalAmount,
+                                ["gstPct"] = detail.TaxPercentage,
+                                ["gstAmt"] = detail.TaxAmount
+                            });
+                        }
+
+                        rowsJson = JsonSerializer.Serialize(rows,
+                            new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+                    }
+
+                    var quotationDateStr = request.QuotationDate.ToString("dd-MMM-yyyy", CultureInfo.InvariantCulture);
+                    var validityDateStr = request.ValidityDate.ToString("dd-MMM-yyyy", CultureInfo.InvariantCulture);
+
+                    var emailCorrelationId = Guid.NewGuid();
+                    var emailEvent = new NotificationCreatedEvent
+                    {
+                        CorrelationId = emailCorrelationId,
+                        CreatedByName = _ipAddressService.GetUserName() ?? string.Empty,
+                        UnitId = _ipAddressService.GetUnitId() ?? 0,
+                        ModuleName = "SalesQuotation",
+                        EventTypeId = notifEventMisc?.Id ?? 0,
+                        Email = customer.EmailID,
+                        ccMail = "",
+                        Mobile = customer.MobileNo ?? "",
+                        param1 = quotationNo ?? "",
+                        param2 = customerName,
+                        param3 = DateTimeOffset.UtcNow,
+                        param4 = "",                                                    // Empty — SQL renderer fills this from param10
+                        param5 = quotationDateStr,
+                        param6 = validityDateStr,
+                        param7 = entity.GrandTotal.ToString("N2"),
+                        param8 = entity.TotalTax.ToString("N2"),
+                        param9 = customer.GSTNumber ?? "",
+                        param10 = rowsJson                                              // Item rows JSON for table rendering
+                    };
+
+                    await _outboxEventPublisher.ScheduleAsync(emailEvent, emailCorrelationId, cancellationToken);
+                    _logger.LogInformation(
+                        "Email notification queued for customer '{CustomerName}' <{Email}>. Quotation {QuotationNo}, {ItemCount} items (CorrId: {Corr})",
+                        customerName, customer.EmailID, quotationNo,
+                        request.SalesQuotationDetails?.Count ?? 0, emailCorrelationId);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to publish email NotificationCreatedEvent for Sales Quotation {Id}", newId);
+            }
+
+            // ------------------- 2) InApp notification to role-based users (approval) -------------------
+            try
+            {
+                var inAppCorrelationId = Guid.NewGuid();
+                var inAppEvent = new NotificationCreatedEvent
+                {
+                    CorrelationId = inAppCorrelationId,
+                    CreatedByName = _ipAddressService.GetUserName() ?? string.Empty,
+                    UnitId = _ipAddressService.GetUnitId() ?? 0,
+                    ModuleName = "SalesQuotation",
+                    EventTypeId = notifEventMisc?.Id ?? 0,
+                    Email = "",                                                     // Empty → SP routes to InApp/role-based path (TemplateId=21)
+                    ccMail = "",
+                    Mobile = "",
+                    param1 = quotationNo ?? "",
+                    param2 = customerName,
+                    param3 = DateTimeOffset.UtcNow,
+                    param4 = "",
+                    param5 = "",
+                    param6 = "",
+                    param7 = "",
+                    param8 = "",
+                    param9 = "",
+                    param10 = ""                                                    // No item table needed for InApp
+                };
+
+                await _outboxEventPublisher.ScheduleAsync(inAppEvent, inAppCorrelationId, cancellationToken);
+                _logger.LogInformation(
+                    "InApp notification queued for role-based users. Quotation {QuotationNo} (CorrId: {Corr})",
+                    quotationNo, inAppCorrelationId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to publish InApp NotificationCreatedEvent for Sales Quotation {Id}", newId);
+            }
+
+            // ------------------- 3) Workflow approval request -------------------
+            var workFlowEntity = await _commandRepository.GetByIdSalesQuotationWorkFlowAsync(newId);
+            var reverseMap = new CreateSalesQuotationReverseDto
+            {
+                Header = workFlowEntity,
+                Lines = null
+            };
+            string serializedPayload = JsonSerializer.Serialize(reverseMap);
+
+            var correlationId = Guid.NewGuid();
+            var @event = new CreateApprovalRequestCommand
+            {
+                CorrelationId = correlationId,
+                ModuleTypeName = MiscEnumEntity.TransactionTypeSalesQuotation,
+                ModuleTransactionId = newId,
+                Payload = serializedPayload
+            };
+
+            await _outboxEventPublisher.ScheduleAsync(@event, correlationId, cancellationToken);
+
+            return newId;
         }
     }
 }

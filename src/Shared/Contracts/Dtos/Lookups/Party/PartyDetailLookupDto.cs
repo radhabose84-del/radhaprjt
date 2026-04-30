@@ -17,5 +17,6 @@ namespace Contracts.Dtos.Lookups.Party
         public string? PostalCode { get; set; }
         public string? MobileNo { get; set; }
         public string? Phone { get; set; }
+        public string? EmailID { get; set; }
     }
 }

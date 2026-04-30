@@ -2,6 +2,7 @@ using Contracts.Interfaces.Lookups.Finance;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using SalesManagement.Application.Common.Interfaces.ISalesQuotation;
+using SalesManagement.Application.SalesQuotation.Commands.CreateSalesQuotation;
 using SalesManagement.Domain.Entities;
 using SalesManagement.Infrastructure.Data;
 using static SalesManagement.Domain.Common.BaseEntity;
@@ -58,10 +59,10 @@ namespace SalesManagement.Infrastructure.Repositories.SalesQuotation
                     await transaction.CommitAsync();
                     return entity.Id;
                 }
-                catch
+                catch (Exception ex)
                 {
                     await transaction.RollbackAsync();
-                    throw;
+                    throw new Exception($"SalesQuotation creation failed: {ex.Message}", ex);
                 }
             });
         }
@@ -141,6 +142,35 @@ namespace SalesManagement.Infrastructure.Repositories.SalesQuotation
             _applicationDbContext.SalesQuotationHeader.Update(existing);
             await _applicationDbContext.SaveChangesAsync(ct);
             return true;
+        }
+
+        public async Task<SalesQuotationWorkFlowDto> GetByIdSalesQuotationWorkFlowAsync(int id)
+        {
+            var entity = await _applicationDbContext.SalesQuotationHeader
+                .Where(x => x.Id == id)
+                .Select(x => new SalesQuotationWorkFlowDto
+                {
+                    Id = x.Id,
+                    QuotationNo = x.QuotationNo,
+                    StatusId = x.StatusId,
+                    StatusName = x.StatusMisc != null ? x.StatusMisc.Description : null
+                })
+                .FirstOrDefaultAsync();
+
+            return entity!;
+        }
+
+        public async Task<SalesQuotationHeader?> GetByIdEntityAsync(int id)
+        {
+            return await _applicationDbContext.SalesQuotationHeader
+                .Include(h => h.SalesQuotationDetails)
+                .FirstOrDefaultAsync(h => h.Id == id && h.IsDeleted == IsDelete.NotDeleted);
+        }
+
+        public async Task FinalizeQuotationStatusAsync(SalesQuotationHeader entity)
+        {
+            _applicationDbContext.SalesQuotationHeader.Update(entity);
+            await _applicationDbContext.SaveChangesAsync();
         }
     }
 }

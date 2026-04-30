@@ -24,6 +24,9 @@ namespace SalesManagement.Application.SalesLead.Dto
         public string? ItemName { get; set; }           // populated via IItemLookup
         public int? VariantId { get; set; }
         public string? VariantName { get; set; }       // populated via IItemLookup
+        public int? UomId { get; set; }
+        public string? UomCode { get; set; }            // populated via IUOMLookup
+        public string? UomName { get; set; }            // populated via IUOMLookup
         public decimal? RequirementQty { get; set; }
         public DateOnly? ExpectedDate { get; set; }
         public string? Remarks { get; set; }
