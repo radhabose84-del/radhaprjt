@@ -779,6 +779,20 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
             return result;
         }
 
+        public async Task<List<DispatchAdvicePackingListDto>> GetPackingListByIdsAsync(List<int> dispatchAdviceIds, CancellationToken ct)
+        {
+            var result = new List<DispatchAdvicePackingListDto>();
+            foreach (var dispatchAdviceId in dispatchAdviceIds)
+            {
+                var packingList = await GetPackingListAsync(dispatchAdviceId, ct);
+                if (packingList != null)
+                {
+                    result.Add(packingList);
+                }
+            }
+            return result;
+        }
+
         private static DispatchAdviceHeaderDto MapRowToDto(DispatchAdviceHeaderRow row) =>
             new DispatchAdviceHeaderDto
             {

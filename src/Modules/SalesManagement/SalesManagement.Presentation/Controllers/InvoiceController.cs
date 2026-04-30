@@ -10,6 +10,7 @@ using SalesManagement.Application.Invoice.Queries.GetInvoiceById;
 using SalesManagement.Application.Invoice.Queries.GetInvoiceGatePassPending;
 using SalesManagement.Application.Invoice.Queries.GetInvoicePending;
 using SalesManagement.Application.Invoice.Queries.GetInvoicePrintDetails;
+using SalesManagement.Application.Invoice.Queries.GetInvoicePrintDetailsByIds;
 using SalesManagement.Application.Invoice.Queries.GetDispatchTrackingDetails;
 
 namespace SalesManagement.Presentation.Controllers
@@ -134,6 +135,21 @@ namespace SalesManagement.Presentation.Controllers
         public async Task<IActionResult> GetInvoicePrintDetailsAsync(int id)
         {
             var result = await Mediator.Send(new GetInvoicePrintDetailsQuery(id));
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result
+            });
+        }
+
+        [HttpPost("print/multiple")]
+        public async Task<IActionResult> GetInvoicePrintDetailsByIdsAsync([FromBody] List<int> invoiceIds)
+        {
+            var result = await Mediator.Send(new GetInvoicePrintDetailsByIdsQuery
+            {
+                InvoiceIds = invoiceIds
+            });
 
             return Ok(new
             {
