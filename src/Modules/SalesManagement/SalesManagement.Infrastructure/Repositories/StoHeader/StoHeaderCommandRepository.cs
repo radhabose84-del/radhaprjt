@@ -159,14 +159,8 @@ namespace SalesManagement.Infrastructure.Repositories.StoHeader
                 .FirstOrDefaultAsync();
         }
 
-        public async Task UpdateApprovalStatusAsync(int id, string status, CancellationToken ct)
+        public async Task UpdateApprovalStatusAsync(int id, string status, int modifiedBy, string? modifiedByName, string? modifiedIP, CancellationToken ct)
         {
-            var existing = await _dbContext.StoHeader
-                .FirstOrDefaultAsync(x => x.Id == id && x.IsDeleted == IsDelete.NotDeleted, ct);
-
-            if (existing == null)
-                return;
-
             // Resolve ApprovalStatus MiscMaster Id
             var statusId = await _dbContext.MiscMaster
                 .Where(m => m.IsDeleted == IsDelete.NotDeleted
@@ -178,12 +172,18 @@ namespace SalesManagement.Infrastructure.Repositories.StoHeader
                 .Select(m => (int?)m.Id)
                 .FirstOrDefaultAsync(ct);
 
-            if (statusId.HasValue)
-            {
-                existing.HeaderStatusId = statusId;
-                _dbContext.StoHeader.Update(existing);
-                await _dbContext.SaveChangesAsync(ct);
-            }
+            if (!statusId.HasValue) return;
+
+            // Raw SQL bypasses ApplicationDbContext.UpdateIpFields() which would otherwise
+            // overwrite ModifiedBy/Name/IP with consumer-context defaults (0/Anonymous).
+            await _dbContext.Database.ExecuteSqlInterpolatedAsync($@"
+                UPDATE Sales.StoHeader
+                SET HeaderStatusId = {statusId.Value},
+                    ModifiedBy     = {modifiedBy},
+                    ModifiedByName = {modifiedByName},
+                    ModifiedIP     = {modifiedIP},
+                    ModifiedDate   = SYSDATETIMEOFFSET()
+                WHERE Id = {id} AND IsDeleted = 0", ct);
         }
 
         public async Task<bool> SoftDeleteAsync(int id, CancellationToken ct)
