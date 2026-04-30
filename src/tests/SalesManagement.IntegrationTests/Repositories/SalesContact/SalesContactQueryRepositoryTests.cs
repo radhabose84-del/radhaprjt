@@ -30,7 +30,7 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesContact
             if (accessFilter == null)
             {
                 accessFilter = new Mock<IMarketingOfficerAccessFilter>(MockBehavior.Loose);
-                accessFilter.Setup(a => a.IsMarketingOfficer()).Returns(false);
+                accessFilter.Setup(a => a.ShouldApplyFilterAsync(It.IsAny<CancellationToken>())).ReturnsAsync(false);
             }
 
             return new SalesContactQueryRepository(
@@ -210,7 +210,7 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesContact
             await SeedAsync("SCQ_MO1", "1800000001", partyId: 5);
             await SeedAsync("SCQ_MO2", "1800000002", partyId: 99);
             var accessFilter = new Mock<IMarketingOfficerAccessFilter>(MockBehavior.Loose);
-            accessFilter.Setup(a => a.IsMarketingOfficer()).Returns(true);
+            accessFilter.Setup(a => a.ShouldApplyFilterAsync(It.IsAny<CancellationToken>())).ReturnsAsync(true);
             accessFilter.Setup(a => a.GetAccessibleCustomerIdsAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync((IReadOnlyList<int>)new List<int> { 5 });
 

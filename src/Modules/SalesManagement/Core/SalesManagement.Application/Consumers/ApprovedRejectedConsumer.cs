@@ -93,18 +93,22 @@ namespace SalesManagement.Application.Consumers
 
                     case MiscEnumEntity.StoModuleTypeName:
                         await _stoHeaderCommandRepo.UpdateApprovalStatusAsync(
-                            msg.ModuleTransactionId, msg.Status, context.CancellationToken);
+                            msg.ModuleTransactionId, msg.Status,
+                            msg.ModifiedBy, msg.ModifiedByName, msg.ModifiedIP,
+                            context.CancellationToken);
                         _logger.LogInformation(
-                            "STO {Id} status updated to {Status}",
-                            msg.ModuleTransactionId, msg.Status);
+                            "STO {Id} status updated to {Status} by user {UserId}",
+                            msg.ModuleTransactionId, msg.Status, msg.ModifiedBy);
                         break;
 
                     case MiscEnumEntity.DCModuleTypeName:
                         await _dcCommandRepo.UpdateApprovalStatusAsync(
-                            msg.ModuleTransactionId, msg.Status, context.CancellationToken);
+                            msg.ModuleTransactionId, msg.Status,
+                            msg.ModifiedBy, msg.ModifiedByName, msg.ModifiedIP,
+                            context.CancellationToken);
                         _logger.LogInformation(
-                            "DeliveryChallan {Id} status updated to {Status}",
-                            msg.ModuleTransactionId, msg.Status);
+                            "DeliveryChallan {Id} status updated to {Status} by user {UserId}",
+                            msg.ModuleTransactionId, msg.Status, msg.ModifiedBy);
                         break;
 
                     case MiscEnumEntity.ComplaintModuleTypeName:
@@ -269,7 +273,8 @@ namespace SalesManagement.Application.Consumers
         {
             // 1. Always update Invoice approval status
             await _invoiceCommandRepo.UpdateApprovalStatusAsync(
-                msg.ModuleTransactionId, msg.Status, ct);
+                msg.ModuleTransactionId, msg.Status,
+                msg.ModifiedBy, msg.ModifiedByName, msg.ModifiedIP, ct);
 
             // 2. Only proceed with EInvoice on Approval (not Rejection)
             if (msg.Status != MiscEnumEntity.InvoiceStatusApproved)
@@ -320,6 +325,7 @@ namespace SalesManagement.Application.Consumers
                 await _invoiceCommandRepo.UpdateApprovalStatusAsync(
                     msg.ModuleTransactionId,
                     MiscEnumEntity.InvoiceStatusPending,
+                    msg.ModifiedBy, msg.ModifiedByName, msg.ModifiedIP,
                     ct);
             }
         }
@@ -361,7 +367,8 @@ namespace SalesManagement.Application.Consumers
             // Update status
             order.StatusId = finalStatusId;
 
-            await _salesOrderCommandRepo.FinalizeOrderStatusAsync(order);
+            await _salesOrderCommandRepo.FinalizeOrderStatusAsync(
+                order, msg.ModifiedBy, msg.ModifiedByName, msg.ModifiedIP);
 
             _logger.LogInformation(
                 "SalesOrder Id={SalesOrderId} status updated to {Status} (StatusId={StatusId})",

@@ -25,5 +25,6 @@ namespace SalesManagement.Application.Common.Interfaces.IInvoice
         Task<InvoiceForEInvoiceDto?> GetInvoiceForEInvoiceAsync(int invoiceId);
         Task<DispatchTrackingDetailsDto?> GetDispatchTrackingDetailsAsync(int salesOrderId, CancellationToken ct);
         Task<List<InvoicePrintDto>> GetPrintDetailsByTripSheetAsync(int tripSheetHeaderId, CancellationToken ct);
+        Task<List<InvoicePrintDto>> GetPrintDetailsByIdsAsync(List<int> invoiceIds, CancellationToken ct);
     }
 }

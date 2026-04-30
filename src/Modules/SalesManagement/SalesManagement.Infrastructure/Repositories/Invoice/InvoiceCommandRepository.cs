@@ -202,13 +202,8 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
             });
         }
 
-        public async Task UpdateApprovalStatusAsync(int id, string status, CancellationToken ct)
+        public async Task UpdateApprovalStatusAsync(int id, string status, int modifiedBy, string? modifiedByName, string? modifiedIP, CancellationToken ct)
         {
-            var entity = await _dbContext.InvoiceHeader
-                .FirstOrDefaultAsync(x => x.Id == id && x.IsDeleted == IsDelete.NotDeleted, ct);
-
-            if (entity == null) return;
-
             // Resolve the MiscMaster Id scoped to ApprovalStatus type
             var statusMisc = await _dbContext.MiscMaster
                 .Include(m => m.MiscTypeMaster)
@@ -216,12 +211,18 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                     && m.MiscTypeMaster!.MiscTypeCode == "ApprovalStatus"
                     && m.IsDeleted == IsDelete.NotDeleted, ct);
 
-            if (statusMisc != null)
-            {
-                entity.StatusId = statusMisc.Id;
-                _dbContext.InvoiceHeader.Update(entity);
-                await _dbContext.SaveChangesAsync(ct);
-            }
+            if (statusMisc == null) return;
+
+            // Raw SQL bypasses ApplicationDbContext.UpdateIpFields() which would otherwise
+            // overwrite ModifiedBy/Name/IP with consumer-context defaults (0/Anonymous).
+            await _dbContext.Database.ExecuteSqlInterpolatedAsync($@"
+                UPDATE Sales.InvoiceHeader
+                SET StatusId       = {statusMisc.Id},
+                    ModifiedBy     = {modifiedBy},
+                    ModifiedByName = {modifiedByName},
+                    ModifiedIP     = {modifiedIP},
+                    ModifiedDate   = SYSDATETIMEOFFSET()
+                WHERE Id = {id} AND IsDeleted = 0", ct);
         }
 
         public async Task UpdateInvoiceStatusIdAsync(int id, int statusId, CancellationToken ct)

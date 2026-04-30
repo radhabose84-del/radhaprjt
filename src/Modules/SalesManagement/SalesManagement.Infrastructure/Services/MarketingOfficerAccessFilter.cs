@@ -10,26 +10,55 @@ namespace SalesManagement.Infrastructure.Services
     /// Reads <c>EmpId</c> from <see cref="IIPAddressService"/> and resolves the officer's
     /// accessible Agent and Customer IDs via <c>Sales.OfficerAgent</c> and <c>Sales.AgentCustomerMapping</c>.
     /// Caches results per request (Scoped lifetime) so repositories pay the lookup cost at most once per HTTP request.
+    /// Also consults <see cref="IDataAccessFilter"/> to respect <c>BypassDataAccess</c> role flag.
     /// </summary>
     public class MarketingOfficerAccessFilter : IMarketingOfficerAccessFilter
     {
         private readonly IDbConnection _dbConnection;
         private readonly IIPAddressService _ipAddressService;
+        private readonly IDataAccessFilter _dataAccessFilter;
 
         private IReadOnlyList<int>? _cachedAgentIds;
         private IReadOnlyList<int>? _cachedCustomerIds;
+        private bool? _cachedShouldApply;
 
         public MarketingOfficerAccessFilter(
             IDbConnection dbConnection,
-            IIPAddressService ipAddressService)
+            IIPAddressService ipAddressService,
+            IDataAccessFilter dataAccessFilter)
         {
             _dbConnection = dbConnection;
             _ipAddressService = ipAddressService;
+            _dataAccessFilter = dataAccessFilter;
         }
 
         public bool IsMarketingOfficer() => _ipAddressService.GetEmpId().HasValue;
 
         public int? GetCurrentMarketingOfficerId() => _ipAddressService.GetEmpId();
+
+        public async Task<bool> ShouldApplyFilterAsync(CancellationToken ct = default)
+        {
+            if (_cachedShouldApply.HasValue)
+                return _cachedShouldApply.Value;
+
+            // Not a marketing officer at all — no filter needed
+            if (!_ipAddressService.GetEmpId().HasValue)
+            {
+                _cachedShouldApply = false;
+                return false;
+            }
+
+            // Marketing officer but role has BypassDataAccess — skip filter
+            var context = await _dataAccessFilter.GetContextAsync(ct);
+            if (context.BypassDataAccess)
+            {
+                _cachedShouldApply = false;
+                return false;
+            }
+
+            _cachedShouldApply = true;
+            return true;
+        }
 
         public async Task<IReadOnlyList<int>> GetAccessibleAgentIdsAsync(CancellationToken ct = default)
         {
@@ -84,7 +113,7 @@ namespace SalesManagement.Infrastructure.Services
 
         public async Task<bool> CanAccessCustomerAsync(int customerId, CancellationToken ct = default)
         {
-            if (!IsMarketingOfficer())
+            if (!await ShouldApplyFilterAsync(ct))
                 return true;
 
             var customers = await GetAccessibleCustomerIdsAsync(ct);
@@ -93,7 +122,7 @@ namespace SalesManagement.Infrastructure.Services
 
         public async Task<bool> CanAccessAgentAsync(int agentId, CancellationToken ct = default)
         {
-            if (!IsMarketingOfficer())
+            if (!await ShouldApplyFilterAsync(ct))
                 return true;
 
             var agents = await GetAccessibleAgentIdsAsync(ct);

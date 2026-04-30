@@ -169,6 +169,7 @@ namespace UserManagement.Infrastructure.Repositories
                 existingUser.UserGroupId = user.UserGroupId;
                 existingUser.DepartmentId = user.DepartmentId;
                 existingUser.EmpId = user.EmpId;
+                existingUser.ReportToId = user.ReportToId;
 
                 var updatedCompanyIds = user.UserCompanies.Select(uc => uc.CompanyId).ToList();
                 foreach (var existingCompany in existingUser.UserCompanies)

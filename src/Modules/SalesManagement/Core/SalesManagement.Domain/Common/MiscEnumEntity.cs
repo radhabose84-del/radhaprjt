@@ -144,8 +144,9 @@ namespace SalesManagement.Domain.Common
 
         // Bag Status
         public const string BagStatus = "BagStatus";
-        public const string BagStatusDefect = "Defect";
-        public const string BagStatusDamaged = "Damaged";
+        public const string BagStatusDefect = "DEFECT";
+        public const string BagStatusDamaged = "DAMAGED";
+        public const string BagStatusYarnMismatch = "YARN MISMATCH";
 
         // Sales Return
         public const string TransactionTypeSalesReturn = "Sales Return";

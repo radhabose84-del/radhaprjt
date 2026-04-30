@@ -38,7 +38,7 @@ namespace SalesManagement.IntegrationTests.Repositories.Reports.LeadConversionFu
         private static Mock<IMarketingOfficerAccessFilter> BuildAdminAccessFilter()
         {
             var mock = new Mock<IMarketingOfficerAccessFilter>(MockBehavior.Loose);
-            mock.Setup(x => x.IsMarketingOfficer()).Returns(false);
+            mock.Setup(x => x.ShouldApplyFilterAsync(It.IsAny<CancellationToken>())).ReturnsAsync(false);
             mock.Setup(x => x.GetCurrentMarketingOfficerId()).Returns((int?)null);
             return mock;
         }
@@ -46,7 +46,7 @@ namespace SalesManagement.IntegrationTests.Repositories.Reports.LeadConversionFu
         private static Mock<IMarketingOfficerAccessFilter> BuildOfficerAccessFilter(int officerId)
         {
             var mock = new Mock<IMarketingOfficerAccessFilter>(MockBehavior.Loose);
-            mock.Setup(x => x.IsMarketingOfficer()).Returns(true);
+            mock.Setup(x => x.ShouldApplyFilterAsync(It.IsAny<CancellationToken>())).ReturnsAsync(true);
             mock.Setup(x => x.GetCurrentMarketingOfficerId()).Returns(officerId);
             return mock;
         }
