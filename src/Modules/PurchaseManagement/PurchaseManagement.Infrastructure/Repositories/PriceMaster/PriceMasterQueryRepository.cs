@@ -125,15 +125,8 @@ namespace PurchaseManagement.Infrastructure.Repositories.PriceMaster
             if (!expiredList)
             {
                 q = q.Where(h =>
-                    h.IsActive == BaseEntity.Status.Active &&                    
+                    h.IsActive == BaseEntity.Status.Active &&
                     (h.ValidTo == null || h.ValidTo >= today)
-                );
-            }
-            
-            if (expiredList)
-            {
-                q = q.Where(h =>                    
-                    h.ValidTo != null && h.ValidTo < today
                 );
             }
 
