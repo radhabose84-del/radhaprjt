@@ -130,6 +130,7 @@ namespace UserManagement.Infrastructure.Repositories.Users
                ur.EntityId,
                ur.DepartmentId,
                ur.EmpId,
+               ur.PartyId,
                ur.ReportToId,
                ura.UserRoleId,
                uc.CompanyId,

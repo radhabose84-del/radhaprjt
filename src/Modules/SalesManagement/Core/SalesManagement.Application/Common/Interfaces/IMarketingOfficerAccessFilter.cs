@@ -32,5 +32,18 @@ namespace SalesManagement.Application.Common.Interfaces
 
         /// <summary>True if admin OR <paramref name="agentId"/> is in the officer's accessible agent list.</summary>
         Task<bool> CanAccessAgentAsync(int agentId, CancellationToken ct = default);
+
+        /// <summary>
+        /// Returns true when marketing officer data filtering should be applied.
+        /// Returns false when:
+        /// <list type="bullet">
+        ///   <item>User has no <c>EmpId</c> (admin/superuser)</item>
+        ///   <item>User's role has <c>BypassDataAccess = true</c></item>
+        /// </list>
+        /// Use this instead of <see cref="IsMarketingOfficer()"/> when deciding whether to apply
+        /// data access restrictions. <see cref="IsMarketingOfficer()"/> only checks if <c>EmpId</c>
+        /// is present but does not consider role-level bypass.
+        /// </summary>
+        Task<bool> ShouldApplyFilterAsync(CancellationToken ct = default);
     }
 }

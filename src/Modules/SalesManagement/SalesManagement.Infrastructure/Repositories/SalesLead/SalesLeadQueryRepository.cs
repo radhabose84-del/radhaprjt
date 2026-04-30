@@ -46,7 +46,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesLead
             parameters.Add("Offset", (pageNumber - 1) * pageSize);
             parameters.Add("PageSize", pageSize);
 
-            if (_accessFilter.IsMarketingOfficer())
+            if (await _accessFilter.ShouldApplyFilterAsync())
             {
                 var empId = _accessFilter.GetCurrentMarketingOfficerId();
                 var customerIds = await _accessFilter.GetAccessibleCustomerIdsAsync();
@@ -176,7 +176,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesLead
             var parameters = new DynamicParameters();
             parameters.Add("Id", id);
 
-            if (_accessFilter.IsMarketingOfficer())
+            if (await _accessFilter.ShouldApplyFilterAsync())
             {
                 var customerIds = await _accessFilter.GetAccessibleCustomerIdsAsync();
                 var safeIds = customerIds.Count > 0 ? customerIds.ToArray() : new[] { -1 };
@@ -260,7 +260,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesLead
             var parameters = new DynamicParameters();
             parameters.Add("Term", $"%{term}%");
 
-            if (_accessFilter.IsMarketingOfficer())
+            if (await _accessFilter.ShouldApplyFilterAsync())
             {
                 var customerIds = await _accessFilter.GetAccessibleCustomerIdsAsync(ct);
                 var safeIds = customerIds.Count > 0 ? customerIds.ToArray() : new[] { -1 };
