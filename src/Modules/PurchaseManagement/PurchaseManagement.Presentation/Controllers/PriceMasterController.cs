@@ -58,7 +58,7 @@ namespace PurchaseManagement.Presentation.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 15, [FromQuery] string? searchTerm = null,[FromQuery] int? itemId = null,
             [FromQuery] decimal? qtyFrom = null,
-            [FromQuery] decimal? qtyTo   = null,[FromQuery] int? statusId   = null, [FromQuery] bool expiredList=true, CancellationToken ct = default)
+            [FromQuery] decimal? qtyTo   = null,[FromQuery] int? statusId   = null, [FromQuery] bool expiredList=false, CancellationToken ct = default)
         {
             var result = await _mediator.Send(new GetAllPriceMasterQuery
             {
