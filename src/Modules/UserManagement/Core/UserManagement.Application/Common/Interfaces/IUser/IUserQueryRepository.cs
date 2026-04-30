@@ -10,6 +10,7 @@ namespace UserManagement.Application.Common.Interfaces.IUser
         Task<List<string>> GetUserRolesAsync(int userId);
         Task<User?> GetByUsernameAsync(string? username, int? id = null);
         Task<bool> AlreadyExistsAsync(string username, int? id = null);
+        Task<bool> EmpIdAlreadyExistsAsync(int empId, int? id = null);
         Task<User?> GetByUserByUnit(int UserId, int UnitId);
         Task<(int UnitTypeId, string UnitTypeName)> GetUnitTypeByUnitIdAsync(int unitId);
         Task<bool> ValidateUsernameAsync(string? username, int? id = null);

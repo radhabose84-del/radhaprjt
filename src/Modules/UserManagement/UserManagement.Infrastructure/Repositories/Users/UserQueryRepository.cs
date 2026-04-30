@@ -311,6 +311,20 @@ namespace UserManagement.Infrastructure.Repositories.Users
                 var count = await _dbConnection.ExecuteScalarAsync<int>(query, parameters);
                 return count > 0;
           }
+
+          public async Task<bool> EmpIdAlreadyExistsAsync(int empId, int? id = null)
+          {
+              var query = "SELECT COUNT(1) FROM [AppSecurity].[Users] WHERE EmpId = @EmpId AND IsDeleted = 0";
+              var parameters = new DynamicParameters(new { EmpId = empId });
+
+              if (id is not null)
+              {
+                  query += " AND UserId != @Id";
+                  parameters.Add("Id", id);
+              }
+              var count = await _dbConnection.ExecuteScalarAsync<int>(query, parameters);
+              return count > 0;
+          }
           public async Task<User> GetByUserByUnit(int UserId,int UnitId)
           {
             const string query = @"
