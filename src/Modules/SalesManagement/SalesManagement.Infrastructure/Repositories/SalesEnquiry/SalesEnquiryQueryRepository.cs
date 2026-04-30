@@ -49,7 +49,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesEnquiry
             parameters.Add("Offset", (pageNumber - 1) * pageSize);
             parameters.Add("PageSize", pageSize);
 
-            if (_accessFilter.IsMarketingOfficer())
+            if (await _accessFilter.ShouldApplyFilterAsync())
             {
                 var userId = _ipAddressService.GetUserId();
                 var customerIds = await _accessFilter.GetAccessibleCustomerIdsAsync();
@@ -130,7 +130,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesEnquiry
             var parameters = new DynamicParameters();
             parameters.Add("Id", id);
 
-            if (_accessFilter.IsMarketingOfficer())
+            if (await _accessFilter.ShouldApplyFilterAsync())
             {
                 var userId = _ipAddressService.GetUserId();
                 var customerIds = await _accessFilter.GetAccessibleCustomerIdsAsync();
@@ -221,7 +221,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesEnquiry
             var parameters = new DynamicParameters();
             parameters.Add("Term", $"%{term}%");
 
-            if (_accessFilter.IsMarketingOfficer())
+            if (await _accessFilter.ShouldApplyFilterAsync())
             {
                 var userId = _ipAddressService.GetUserId();
                 var customerIds = await _accessFilter.GetAccessibleCustomerIdsAsync(ct);

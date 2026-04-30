@@ -235,6 +235,7 @@ namespace SalesManagement.Application.SalesQuotation.Commands.CreateSalesQuotati
 
             // ------------------- 3) Workflow approval request -------------------
             var workFlowEntity = await _commandRepository.GetByIdSalesQuotationWorkFlowAsync(newId);
+            workFlowEntity.UnitId = unitId;
             var reverseMap = new CreateSalesQuotationReverseDto
             {
                 Header = workFlowEntity,
