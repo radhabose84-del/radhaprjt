@@ -4,6 +4,6 @@ namespace SalesManagement.Application.Common.Interfaces.IDeliveryChallan
     {
         Task<int> CreateAsync(Domain.Entities.DeliveryChallanHeader entity, int packedStatusId, int reservedStatusId, int typeId);
         Task<bool> SoftDeleteAsync(int id, int reservedStatusId, int packedStatusId, CancellationToken ct);
-        Task UpdateApprovalStatusAsync(int id, string status, CancellationToken ct);
+        Task UpdateApprovalStatusAsync(int id, string status, int modifiedBy, string? modifiedByName, string? modifiedIP, CancellationToken ct);
     }
 }
