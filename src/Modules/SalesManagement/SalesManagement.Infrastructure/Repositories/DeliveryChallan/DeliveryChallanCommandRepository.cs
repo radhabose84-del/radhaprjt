@@ -142,14 +142,8 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
             return result;
         }
 
-        public async Task UpdateApprovalStatusAsync(int id, string status, CancellationToken ct)
+        public async Task UpdateApprovalStatusAsync(int id, string status, int modifiedBy, string? modifiedByName, string? modifiedIP, CancellationToken ct)
         {
-            var existing = await _dbContext.DeliveryChallanHeader
-                .FirstOrDefaultAsync(x => x.Id == id && x.IsDeleted == IsDelete.NotDeleted, ct);
-
-            if (existing == null)
-                return;
-
             var statusId = await _dbContext.MiscMaster
                 .Where(m => m.IsDeleted == IsDelete.NotDeleted
                     && m.IsActive == Status.Active
@@ -160,12 +154,18 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
                 .Select(m => (int?)m.Id)
                 .FirstOrDefaultAsync(ct);
 
-            if (statusId.HasValue)
-            {
-                existing.StatusId = statusId.Value;
-                _dbContext.DeliveryChallanHeader.Update(existing);
-                await _dbContext.SaveChangesAsync(ct);
-            }
+            if (!statusId.HasValue) return;
+
+            // Raw SQL bypasses ApplicationDbContext.UpdateIpFields() which would otherwise
+            // overwrite ModifiedBy/Name/IP with consumer-context defaults (0/Anonymous).
+            await _dbContext.Database.ExecuteSqlInterpolatedAsync($@"
+                UPDATE Sales.DeliveryChallanHeader
+                SET StatusId       = {statusId.Value},
+                    ModifiedBy     = {modifiedBy},
+                    ModifiedByName = {modifiedByName},
+                    ModifiedIP     = {modifiedIP},
+                    ModifiedDate   = SYSDATETIMEOFFSET()
+                WHERE Id = {id} AND IsDeleted = 0", ct);
         }
     }
 }

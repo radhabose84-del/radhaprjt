@@ -204,7 +204,7 @@ namespace SalesManagement.IntegrationTests.Repositories.DeliveryChallan
             var dcId = await SeedDeliveryChallanAsync(stoId, pendingId, dcTypeId, movementTypeId, "DCC_UAS1");
 
             await using var ctx = _fixture.CreateFreshDbContext();
-            await CreateRepo(ctx).UpdateApprovalStatusAsync(dcId, "Approved", CancellationToken.None);
+            await CreateRepo(ctx).UpdateApprovalStatusAsync(dcId, "Approved", 7, "tester", "127.0.0.1", CancellationToken.None);
             ctx.ChangeTracker.Clear();
 
             var saved = await ctx.DeliveryChallanHeader.FirstOrDefaultAsync(x => x.Id == dcId);
@@ -218,7 +218,7 @@ namespace SalesManagement.IntegrationTests.Repositories.DeliveryChallan
             await using var ctx = _fixture.CreateFreshDbContext();
 
             // Should not throw
-            await CreateRepo(ctx).UpdateApprovalStatusAsync(9999999, "Approved", CancellationToken.None);
+            await CreateRepo(ctx).UpdateApprovalStatusAsync(9999999, "Approved", 7, "tester", "127.0.0.1", CancellationToken.None);
         }
 
         // ── SoftDeleteAsync ───────────────────────────────────────────────
