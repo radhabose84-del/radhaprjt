@@ -294,18 +294,19 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 .FirstOrDefaultAsync(x => x.Id == id && x.IsDeleted == IsDelete.NotDeleted);
         }
 
-        public async Task<bool> FinalizeOrderStatusAsync(SalesOrderHeader entity)
+        public async Task<bool> FinalizeOrderStatusAsync(SalesOrderHeader entity, int modifiedBy, string? modifiedByName, string? modifiedIP)
         {
-            var existingOrder = await _applicationDbContext.SalesOrderHeader
-                .FirstOrDefaultAsync(x => x.Id == entity.Id);
-
-            if (existingOrder == null)
-                return false;
-
-            existingOrder.StatusId = entity.StatusId;
-            _applicationDbContext.SalesOrderHeader.Update(existingOrder);
-            await _applicationDbContext.SaveChangesAsync();
-            return true;
+            // Raw SQL bypasses ApplicationDbContext.UpdateIpFields() which would otherwise
+            // overwrite ModifiedBy/Name/IP with consumer-context defaults (0/Anonymous).
+            var rows = await _applicationDbContext.Database.ExecuteSqlInterpolatedAsync($@"
+                UPDATE Sales.SalesOrderHeader
+                SET StatusId       = {entity.StatusId},
+                    ModifiedBy     = {modifiedBy},
+                    ModifiedByName = {modifiedByName},
+                    ModifiedIP     = {modifiedIP},
+                    ModifiedDate   = SYSDATETIMEOFFSET()
+                WHERE Id = {entity.Id} AND IsDeleted = 0");
+            return rows > 0;
         }
     }
 }

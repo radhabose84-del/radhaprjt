@@ -204,7 +204,7 @@ namespace SalesManagement.IntegrationTests.Repositories.Invoice
             var invoiceId = await SeedInvoiceAsync(daId, statusId: pendingId, invoiceNo: "IVC_UAS1");
 
             await using var ctx = _fixture.CreateFreshDbContext();
-            await CreateRepo(ctx).UpdateApprovalStatusAsync(invoiceId, "Approved", CancellationToken.None);
+            await CreateRepo(ctx).UpdateApprovalStatusAsync(invoiceId, "Approved", 7, "tester", "127.0.0.1", CancellationToken.None);
             ctx.ChangeTracker.Clear();
 
             var saved = await ctx.InvoiceHeader.FirstOrDefaultAsync(x => x.Id == invoiceId);
@@ -219,7 +219,7 @@ namespace SalesManagement.IntegrationTests.Repositories.Invoice
             await using var ctx = _fixture.CreateFreshDbContext();
 
             // Should not throw
-            await CreateRepo(ctx).UpdateApprovalStatusAsync(9999999, "Approved", CancellationToken.None);
+            await CreateRepo(ctx).UpdateApprovalStatusAsync(9999999, "Approved", 7, "tester", "127.0.0.1", CancellationToken.None);
         }
 
         // ── UpdateInvoiceStatusIdAsync ────────────────────────────────────
