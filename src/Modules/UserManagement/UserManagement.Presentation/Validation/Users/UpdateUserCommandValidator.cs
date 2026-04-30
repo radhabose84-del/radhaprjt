@@ -86,11 +86,19 @@ namespace UserManagement.Presentation.Validation.Users
                     
                     case "AlreadyExists":
                            RuleFor(x =>  new { x.UserName, x.UserId })
-                           .MustAsync(async (user, cancellation) => 
-                        !await _userQueryRepository.AlreadyExistsAsync(user.UserName, user.UserId))             
+                           .MustAsync(async (user, cancellation) =>
+                        !await _userQueryRepository.AlreadyExistsAsync(user.UserName, user.UserId))
                            .WithName("User Name")
                             .WithMessage($"{rule.Error}");
-                            break;  
+
+                        // One UserId per EmpId — allow same-self update, block re-mapping to another User's EmpId
+                        RuleFor(x => new { x.EmpId, x.UserId })
+                        .MustAsync(async (pair, cancellation) =>
+                            !await _userQueryRepository.EmpIdAlreadyExistsAsync(pair.EmpId!.Value, pair.UserId))
+                        .WithName("EmpId")
+                        .WithMessage(x => $"A user is already mapped to EmpId '{x.EmpId}'. One Employee can have only one User account.")
+                        .When(x => x.EmpId.HasValue && x.EmpId.Value > 0);
+                            break;
                     case "NotFound":
                            RuleFor(x => x.UserId )
                            .MustAsync(async (UserId, cancellation) => 

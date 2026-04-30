@@ -149,6 +149,12 @@ namespace UserManagement.Presentation.Validation.Users
                         RuleFor(x => x.UserName)
                         .MustAsync(async (UserName, cancellation) => !await _userQueryRepository.AlreadyExistsAsync(UserName))
                         .WithMessage(x => $"A user with Username '{x.UserName}' {rule.Error} Please use a different username.");
+
+                        // One UserId per EmpId — block creating another User for an EmpId that already has one
+                        RuleFor(x => x.EmpId)
+                        .MustAsync(async (empId, cancellation) => !await _userQueryRepository.EmpIdAlreadyExistsAsync(empId.Value))
+                        .WithMessage(x => $"A user is already mapped to EmpId '{x.EmpId}'. One Employee can have only one User account.")
+                        .When(x => x.EmpId.HasValue && x.EmpId.Value > 0);
                         break;
                     case "PasswordMaxLength":
                         RuleFor(x => x.Password)
