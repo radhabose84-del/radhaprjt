@@ -26,10 +26,11 @@ namespace InventoryManagement.Domain.Entities.Item.ItemDetail
         public int? XPlantMaterialStatusId { get; set; }
         public MiscMaster MiscStatus { get; set; } = null!;
         //public int? DepartmentId { get; set; }
-        public bool IsStockItem { get; set; }        
+        public bool IsStockItem { get; set; }
         public bool MaintainStock { get; set; }
         public bool HasVariants { get; set; }
         public bool IsCapitalItem { get; set; }
+        public bool IsHazardous { get; set; }
         public int? ParentItemId { get; set; }
         public ItemMaster? ParentItem { get; set; }
         public ICollection<ItemMaster> ChildItems { get; set; } = new List<ItemMaster>();
