@@ -209,8 +209,8 @@ internal sealed class DataAccessFilterService : IDataAccessFilter
             FROM Sales.AgentCustomerMapping acm
             WHERE acm.AgentId = @PartyId
               AND acm.IsDeleted = 0 AND acm.IsActive = 1
-              AND acm.EffectiveFrom <= GETDATE()
-              AND (acm.EffectiveTo IS NULL OR acm.EffectiveTo >= GETDATE())";
+              AND acm.EffectiveFrom <= CAST(GETDATE() AS date)
+              AND (acm.EffectiveTo IS NULL OR acm.EffectiveTo >= CAST(GETDATE() AS date))";
 
         var ids = await _dbConnection.QueryAsync<int>(sql, new { PartyId = partyId });
         var result = new HashSet<int>(ids);
@@ -261,8 +261,8 @@ internal sealed class DataAccessFilterService : IDataAccessFilter
             FROM Sales.AgentCustomerMapping acm
             WHERE acm.AgentId IN @AgentIds
               AND acm.IsDeleted = 0 AND acm.IsActive = 1
-              AND acm.EffectiveFrom <= GETDATE()
-              AND (acm.EffectiveTo IS NULL OR acm.EffectiveTo >= GETDATE())";
+              AND acm.EffectiveFrom <= CAST(GETDATE() AS date)
+              AND (acm.EffectiveTo IS NULL OR acm.EffectiveTo >= CAST(GETDATE() AS date))";
 
         var ids = await _dbConnection.QueryAsync<int>(sql, new { AgentIds = agentIds });
         var result = new HashSet<int>(ids);

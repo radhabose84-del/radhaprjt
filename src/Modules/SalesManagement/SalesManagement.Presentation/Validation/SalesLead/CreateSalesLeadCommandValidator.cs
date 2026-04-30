@@ -148,7 +148,7 @@ namespace SalesManagement.Presentation.Validation.SalesLead
                             .When(x => x.PartyId.HasValue && x.PartyId.Value > 0);
 
                         RuleFor(x => x.MarketingOfficerId)
-                            .Must(id => !_accessFilter.IsMarketingOfficer()
+                            .MustAsync(async (id, ct) => !await _accessFilter.ShouldApplyFilterAsync(ct)
                                         || id == _accessFilter.GetCurrentMarketingOfficerId())
                             .WithMessage($"{nameof(CreateSalesLeadCommand.MarketingOfficerId)} {rule.Error}");
                         break;

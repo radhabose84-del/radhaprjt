@@ -32,7 +32,7 @@ namespace SalesManagement.Infrastructure.Repositories.Reports.LeadConversionFunn
             var moFilter = "";
             int? empId = null;
 
-            if (_accessFilter.IsMarketingOfficer())
+            if (await _accessFilter.ShouldApplyFilterAsync())
             {
                 empId = _accessFilter.GetCurrentMarketingOfficerId();
                 moFilter = "AND sl.MarketingOfficerId = @EmpId";

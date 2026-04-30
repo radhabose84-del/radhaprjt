@@ -100,7 +100,7 @@ namespace SalesManagement.Presentation.Validation.OfficerAgent
 
                     case "MarketingOfficerAccess":
                         RuleFor(x => x.MarketingOfficerId)
-                            .Must(id => !_accessFilter.IsMarketingOfficer()
+                            .MustAsync(async (id, ct) => !await _accessFilter.ShouldApplyFilterAsync(ct)
                                         || id == _accessFilter.GetCurrentMarketingOfficerId())
                             .WithMessage($"{nameof(UpdateOfficerAgentCommand.MarketingOfficerId)} {rule.Error}");
                         break;
