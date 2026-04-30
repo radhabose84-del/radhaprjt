@@ -195,6 +195,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                     IsStockItem = i.IsStockItem,
                     MaintainStock = i.MaintainStock,
                     HasVariants = i.HasVariants,
+                    IsHazardous = i.IsHazardous,
                     ParentItemId = i.ParentItemId,
                     ParentItemName = i.ParentItem != null ? i.ParentItem.ItemName : null,
                     ItemImage = i.ItemImage,
@@ -231,6 +232,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                     {
                         Id = i.Inventory.Id,
                         InventoryUOM = i.Inventory.WeightUOM != null ? i.Inventory.WeightUOM.UOMName : null,
+                        DimensionUOM = i.Inventory.DimensionUOM != null ? i.Inventory.DimensionUOM.UOMName : null,
                         DefaultMaterialRequestType = i.Inventory.MiscDefaultMaterialRequestType != null
                             ? i.Inventory.MiscDefaultMaterialRequestType.Code : null,
                         ValuationMethod = i.Inventory.MiscValuationMethod != null
@@ -240,6 +242,11 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
 
                         Weight = i.Inventory.Weight,
                         WeightUomId = i.Inventory.WeightUomId,
+                        Length = i.Inventory.Length,
+                        Breadth = i.Inventory.Breadth,
+                        Height = i.Inventory.Height,
+                        Volume = i.Inventory.Volume,
+                        DimensionUomId = i.Inventory.DimensionUomId,
                         DefaultMaterialRequestTypeId = i.Inventory.DefaultMaterialRequestTypeId,
                         ValuationMethodId = i.Inventory.ValuationMethodId,
                         ShelfLife = i.Inventory.ShelfLife,
