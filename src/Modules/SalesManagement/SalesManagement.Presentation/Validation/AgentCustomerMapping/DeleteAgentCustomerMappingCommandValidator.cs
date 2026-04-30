@@ -50,7 +50,7 @@ namespace SalesManagement.Presentation.Validation.AgentCustomerMapping
                         RuleFor(x => x.Id)
                             .MustAsync(async (id, ct) =>
                             {
-                                if (!_accessFilter.IsMarketingOfficer())
+                                if (!await _accessFilter.ShouldApplyFilterAsync(ct))
                                     return true;
                                 var record = await _queryRepository.GetByIdAsync(id);
                                 return record != null;

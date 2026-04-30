@@ -4022,6 +4022,10 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("varchar(50)")
                         .HasColumnName("EnquiryNo");
 
+                    b.Property<int>("EnquiryTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("EnquiryTypeId");
+
                     b.Property<DateTimeOffset?>("ExpectedDeliveryDate")
                         .HasColumnType("datetimeoffset")
                         .HasColumnName("ExpectedDeliveryDate");
@@ -4071,6 +4075,8 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.HasIndex("EnquiryNo")
                         .IsUnique()
                         .HasFilter("[EnquiryNo] IS NOT NULL");
+
+                    b.HasIndex("EnquiryTypeId");
 
                     b.HasIndex("PartyId");
 
@@ -4248,6 +4254,10 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<int?>("UomId")
+                        .HasColumnType("int")
+                        .HasColumnName("UomId");
+
                     b.Property<int?>("VariantId")
                         .HasColumnType("int");
 
@@ -4272,6 +4282,10 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     b.HasIndex("PartyId")
                         .HasDatabaseName("IX_SalesLead_PartyId");
+
+                    b.HasIndex("UomId")
+                        .HasDatabaseName("IX_SalesLead_UomId")
+                        .HasFilter("[UomId] IS NOT NULL");
 
                     b.ToTable("SalesLead", "Sales");
                 });
@@ -5739,6 +5753,10 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("decimal(18,2)")
                         .HasColumnName("Discount");
 
+                    b.Property<int?>("DiscountTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("DiscountTypeId");
+
                     b.Property<decimal>("ExMillRate")
                         .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,4)")
@@ -5781,13 +5799,27 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("decimal(18,2)")
                         .HasColumnName("TotalAmount");
 
+                    b.Property<int?>("UOMId")
+                        .HasColumnType("int")
+                        .HasColumnName("UOMId");
+
+                    b.Property<int?>("VariantId")
+                        .HasColumnType("int")
+                        .HasColumnName("VariantId");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("DiscountTypeId");
 
                     b.HasIndex("HSNId");
 
                     b.HasIndex("ItemId");
 
                     b.HasIndex("SalesQuotationHeaderId");
+
+                    b.HasIndex("UOMId");
+
+                    b.HasIndex("VariantId");
 
                     b.ToTable("SalesQuotationDetail", "Sales");
                 });
@@ -7608,10 +7640,18 @@ namespace SalesManagement.Infrastructure.Migrations
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.SalesEnquiryHeader", b =>
                 {
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "EnquiryTypeMisc")
+                        .WithMany("SalesEnquiryHeadersAsEnquiryType")
+                        .HasForeignKey("EnquiryTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("SalesManagement.Domain.Entities.SalesLead", "SalesLead")
                         .WithMany("SalesEnquiryHeaders")
                         .HasForeignKey("SalesLeadId")
                         .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("EnquiryTypeMisc");
 
                     b.Navigation("SalesLead");
                 });
@@ -8301,6 +8341,8 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("ProformaInvoicesAsStatus");
 
                     b.Navigation("SalesContacts");
+
+                    b.Navigation("SalesEnquiryHeadersAsEnquiryType");
 
                     b.Navigation("SalesOrderAmendmentHeadersAsStatus");
 

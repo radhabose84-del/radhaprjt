@@ -17,5 +17,8 @@ namespace SalesManagement.Application.Common.Interfaces.ISalesQuotation
         Task<bool> ContactPersonExistsAsync(int contactPersonId);
         Task<bool> SalesEnquiryExistsAsync(int salesEnquiryId);
         Task<bool> IsSalesQuotationPendingAsync(int id);
+        Task<bool> VariantExistsAsync(int variantId);
+        Task<bool> UOMExistsAsync(int uomId);
+        Task<bool> DiscountTypeExistsAsync(int discountTypeId);
     }
 }

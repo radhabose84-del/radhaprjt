@@ -61,6 +61,7 @@ namespace InventoryManagement.Application.Common.Mappings.Item.ItemDetail
                 .ForMember(d => d.ItemId, o => o.Ignore())
                 .ForMember(d => d.Item, o => o.Ignore())
                 .ForMember(d => d.WeightUOM, o => o.Ignore())
+                .ForMember(d => d.DimensionUOM, o => o.Ignore())
                 .ForMember(d => d.MiscDefaultMaterialRequestType, o => o.Ignore())
                 .ForMember(d => d.MiscValuationMethod, o => o.Ignore())
                 .ForMember(d => d.MiscRequestType, o => o.Ignore());

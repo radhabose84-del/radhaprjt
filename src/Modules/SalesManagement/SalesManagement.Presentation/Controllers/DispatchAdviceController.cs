@@ -9,6 +9,7 @@ using SalesManagement.Application.DispatchAdvice.Queries.GetDispatchAdvicePackNo
 using SalesManagement.Application.DispatchAdvice.Queries.GetDispatchAdviceAutoComplete;
 using SalesManagement.Application.DispatchAdvice.Queries.GetDispatchAdvicePackRange;
 using SalesManagement.Application.DispatchAdvice.Queries.GetDispatchAdvicePackingList;
+using SalesManagement.Application.DispatchAdvice.Queries.GetDispatchAdvicePackingListByIds;
 using SalesManagement.Application.DispatchAdvice.Commands.DeleteDispatchAdvice;
 
 namespace SalesManagement.Presentation.Controllers
@@ -153,6 +154,21 @@ namespace SalesManagement.Presentation.Controllers
             var result = await Mediator.Send(new GetDispatchAdvicePackingListQuery
             {
                 DispatchAdviceId = dispatchAdviceId
+            });
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result
+            });
+        }
+
+        [HttpPost("packing-list/multiple")]
+        public async Task<IActionResult> GetDispatchAdvicePackingListByIdsAsync([FromBody] List<int> dispatchAdviceIds)
+        {
+            var result = await Mediator.Send(new GetDispatchAdvicePackingListByIdsQuery
+            {
+                DispatchAdviceIds = dispatchAdviceIds
             });
 
             return Ok(new

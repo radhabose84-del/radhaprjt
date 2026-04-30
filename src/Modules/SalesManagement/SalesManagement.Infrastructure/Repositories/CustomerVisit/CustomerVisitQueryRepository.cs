@@ -39,7 +39,7 @@ namespace SalesManagement.Infrastructure.Repositories.CustomerVisit
             parameters.Add("Offset", offset);
             parameters.Add("PageSize", pageSize);
 
-            if (_accessFilter.IsMarketingOfficer())
+            if (await _accessFilter.ShouldApplyFilterAsync())
             {
                 var empId = _accessFilter.GetCurrentMarketingOfficerId();
                 var customerIds = await _accessFilter.GetAccessibleCustomerIdsAsync();
@@ -119,7 +119,7 @@ namespace SalesManagement.Infrastructure.Repositories.CustomerVisit
             var parameters = new DynamicParameters();
             parameters.Add("Id", id);
 
-            if (_accessFilter.IsMarketingOfficer())
+            if (await _accessFilter.ShouldApplyFilterAsync())
             {
                 var empId = _accessFilter.GetCurrentMarketingOfficerId();
                 var customerIds = await _accessFilter.GetAccessibleCustomerIdsAsync();
@@ -198,7 +198,7 @@ namespace SalesManagement.Infrastructure.Repositories.CustomerVisit
             var parameters = new DynamicParameters();
             parameters.Add("Term", term);
 
-            if (_accessFilter.IsMarketingOfficer())
+            if (await _accessFilter.ShouldApplyFilterAsync())
             {
                 var empId = _accessFilter.GetCurrentMarketingOfficerId();
                 var customerIds = await _accessFilter.GetAccessibleCustomerIdsAsync(ct);

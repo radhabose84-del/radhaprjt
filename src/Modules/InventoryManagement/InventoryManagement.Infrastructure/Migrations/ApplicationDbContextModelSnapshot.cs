@@ -555,13 +555,32 @@ namespace InventoryManagement.Infrastructure.Migrations
                         .HasColumnType("varchar(100)")
                         .HasColumnName("BatchNumberSeries");
 
+                    b.Property<decimal?>("Breadth")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,4)")
+                        .HasColumnName("Breadth");
+
                     b.Property<int?>("DefaultMaterialRequestTypeId")
                         .HasColumnType("int")
                         .HasColumnName("DefaultMaterialRequestTypeId");
 
+                    b.Property<int?>("DimensionUomId")
+                        .HasColumnType("int")
+                        .HasColumnName("DimensionUomId");
+
+                    b.Property<decimal?>("Height")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,4)")
+                        .HasColumnName("Height");
+
                     b.Property<int>("ItemId")
                         .HasColumnType("int")
                         .HasColumnName("ItemId");
+
+                    b.Property<decimal?>("Length")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,4)")
+                        .HasColumnName("Length");
 
                     b.Property<decimal?>("LowerTolerance")
                         .HasPrecision(18, 6)
@@ -601,6 +620,11 @@ namespace InventoryManagement.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("ValuationMethodId");
 
+                    b.Property<decimal?>("Volume")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,4)")
+                        .HasColumnName("Volume");
+
                     b.Property<decimal?>("Weight")
                         .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,4)")
@@ -613,6 +637,8 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("DefaultMaterialRequestTypeId");
+
+                    b.HasIndex("DimensionUomId");
 
                     b.HasIndex("ItemId")
                         .IsUnique();
@@ -775,6 +801,12 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit")
                         .HasColumnName("IsDeleted");
+
+                    b.Property<bool>("IsHazardous")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false)
+                        .HasColumnName("IsHazardous");
 
                     b.Property<bool>("IsOnSpot")
                         .HasColumnType("bit");
@@ -2596,6 +2628,11 @@ namespace InventoryManagement.Infrastructure.Migrations
                         .HasForeignKey("DefaultMaterialRequestTypeId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("InventoryManagement.Domain.Entities.UOM", "DimensionUOM")
+                        .WithMany("InventoryDimensionUOM")
+                        .HasForeignKey("DimensionUomId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("InventoryManagement.Domain.Entities.Item.ItemDetail.ItemMaster", "Item")
                         .WithOne("Inventory")
                         .HasForeignKey("InventoryManagement.Domain.Entities.Item.ItemDetail.ItemInventory", "ItemId")
@@ -2616,6 +2653,8 @@ namespace InventoryManagement.Infrastructure.Migrations
                         .WithMany("InventoryUOM")
                         .HasForeignKey("WeightUomId")
                         .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("DimensionUOM");
 
                     b.Navigation("Item");
 
@@ -3212,6 +3251,8 @@ namespace InventoryManagement.Infrastructure.Migrations
             modelBuilder.Entity("InventoryManagement.Domain.Entities.UOM", b =>
                 {
                     b.Navigation("FromUOMConversions");
+
+                    b.Navigation("InventoryDimensionUOM");
 
                     b.Navigation("InventoryUOM");
 

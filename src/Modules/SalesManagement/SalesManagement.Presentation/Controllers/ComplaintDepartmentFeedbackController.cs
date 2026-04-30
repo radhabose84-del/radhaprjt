@@ -7,9 +7,11 @@ using SalesManagement.Application.ComplaintDepartmentFeedback.Commands.SubmitFee
 using SalesManagement.Application.ComplaintDepartmentFeedback.Commands.UpdateFeedback;
 using SalesManagement.Application.ComplaintDepartmentFeedback.Commands.UploadAttachment;
 using SalesManagement.Application.ComplaintDepartmentFeedback.Queries.GetAllFeedback;
+using SalesManagement.Application.ComplaintDepartmentFeedback.Queries.GetAllFeedbacksForReviewer;
 using SalesManagement.Application.ComplaintDepartmentFeedback.Queries.GetFeedbackByAssignment;
 using SalesManagement.Application.ComplaintDepartmentFeedback.Queries.GetFeedbackById;
 using SalesManagement.Application.ComplaintDepartmentFeedback.Queries.GetFeedbacksByComplaint;
+using SalesManagement.Application.ComplaintDepartmentFeedback.Queries.GetFeedbacksWithContentByComplaint;
 using SalesManagement.Application.ComplaintDepartmentFeedback.Queries.GetMyPendingFeedbacks;
 
 namespace SalesManagement.Presentation.Controllers
@@ -82,6 +84,46 @@ namespace SalesManagement.Presentation.Controllers
             {
                 ComplaintHeaderId = complaintHeaderId
             });
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result.Data,
+                TotalCount = result.TotalCount
+            });
+        }
+
+        // Reviewer / supervisor list: paginated feedbacks across ALL responsible persons
+        // (not scoped to the logged-in user, unlike GET /). Same DTO + same search/status
+        // filters. Authorization is handled outside this controller.
+        [HttpGet("all-for-reviewer")]
+        public async Task<IActionResult> GetAllForReviewerAsync(
+            [FromQuery] int PageNumber,
+            [FromQuery] int PageSize,
+            [FromQuery] string? SearchTerm = null,
+            [FromQuery] string? StatusFilter = null)
+        {
+            var result = await Mediator.Send(new GetAllFeedbacksForReviewerQuery
+            {
+                PageNumber = PageNumber,
+                PageSize = PageSize,
+                SearchTerm = SearchTerm,
+                StatusFilter = StatusFilter
+            });
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result.Data,
+                TotalCount = result.TotalCount,
+                PageNumber = result.PageNumber,
+                PageSize = result.PageSize
+            });
+        }
+
+        // QC drill-in: full RCA content + attachments per assigned department for one complaint.
+        [HttpGet("by-complaint-full/{complaintHeaderId}")]
+        public async Task<IActionResult> GetByComplaintIdWithContentAsync(int complaintHeaderId)
+        {
+            var result = await Mediator.Send(new GetFeedbacksWithContentByComplaintQuery(complaintHeaderId));
             return Ok(new
             {
                 StatusCode = StatusCodes.Status200OK,

@@ -87,7 +87,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             if (orderDateTo.HasValue) param.Add("@OrderDateTo", orderDateTo.Value);
             if (!string.IsNullOrWhiteSpace(statusName)) param.Add("@StatusName", $"%{statusName}%");
 
-            if (_accessFilter.IsMarketingOfficer())
+            if (await _accessFilter.ShouldApplyFilterAsync())
             {
                 var agentIds = await _accessFilter.GetAccessibleAgentIdsAsync();
                 var safeAgentIds = agentIds.Count > 0 ? agentIds.ToArray() : new[] { -1 };
@@ -281,7 +281,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             var headerParams = new DynamicParameters();
             headerParams.Add("Id", id);
 
-            if (_accessFilter.IsMarketingOfficer())
+            if (await _accessFilter.ShouldApplyFilterAsync())
             {
                 var agentIds = await _accessFilter.GetAccessibleAgentIdsAsync();
                 var safeAgentIds = agentIds.Count > 0 ? agentIds.ToArray() : new[] { -1 };
@@ -549,7 +549,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             parameters.Add("@ApprovalStatus", MiscEnumEntity.SalesOrderApprovalStatus);
             parameters.Add("@ApprovedStatus", MiscEnumEntity.SalesOrderStatusApproved);
 
-            if (_accessFilter.IsMarketingOfficer())
+            if (await _accessFilter.ShouldApplyFilterAsync(ct))
             {
                 var agentIds = await _accessFilter.GetAccessibleAgentIdsAsync(ct);
                 var safeAgentIds = agentIds.Count > 0 ? agentIds.ToArray() : new[] { -1 };

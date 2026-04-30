@@ -18,6 +18,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesQuotation
         private readonly IPaymentTermLookup _paymentTermLookup;
         private readonly IItemLookup _itemLookup;
         private readonly IHSNLookup _hsnLookup;
+        private readonly IUOMLookup _uomLookup;
         private readonly IMarketingOfficerAccessFilter _accessFilter;
         private readonly IIPAddressService _ipAddressService;
 
@@ -27,6 +28,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesQuotation
             IPaymentTermLookup paymentTermLookup,
             IItemLookup itemLookup,
             IHSNLookup hsnLookup,
+            IUOMLookup uomLookup,
             IMarketingOfficerAccessFilter accessFilter,
             IIPAddressService ipAddressService)
         {
@@ -35,6 +37,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesQuotation
             _paymentTermLookup = paymentTermLookup;
             _itemLookup = itemLookup;
             _hsnLookup = hsnLookup;
+            _uomLookup = uomLookup;
             _accessFilter = accessFilter;
             _ipAddressService = ipAddressService;
         }
@@ -52,7 +55,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesQuotation
             parameters.Add("Offset", (pageNumber - 1) * pageSize);
             parameters.Add("PageSize", pageSize);
 
-            if (_accessFilter.IsMarketingOfficer())
+            if (await _accessFilter.ShouldApplyFilterAsync())
             {
                 var userId = _ipAddressService.GetUserId();
                 var customerIds = await _accessFilter.GetAccessibleCustomerIdsAsync();
@@ -112,11 +115,15 @@ namespace SalesManagement.Infrastructure.Repositories.SalesQuotation
                 // Fetch details for the paginated headers from SalesQuotationDetail table
                 var headerIds = list.Select(x => x.Id).ToArray();
                 const string detailSql = @"
-                    SELECT d.Id, d.SalesQuotationHeaderId, d.ItemId,
-                        d.Quantity, d.ExMillRate, d.Discount,
+                    SELECT d.Id, d.SalesQuotationHeaderId, d.ItemId, d.VariantId,
+                        d.Quantity, d.UOMId, d.ExMillRate,
+                        d.Discount, d.DiscountTypeId,
+                        dtm.Code        AS DiscountTypeCode,
+                        dtm.Description AS DiscountTypeDescription,
                         d.NetRate, d.TotalAmount,
                         d.HSNId, d.TaxPercentage, d.TaxAmount
                     FROM Sales.SalesQuotationDetail d
+                    LEFT JOIN Sales.MiscMaster dtm ON d.DiscountTypeId = dtm.Id AND dtm.IsDeleted = 0
                     WHERE d.SalesQuotationHeaderId IN @HeaderIds";
 
                 var allDetails = (await _dbConnection.QueryAsync<SalesQuotationDetailDto>(detailSql, new { HeaderIds = headerIds })).ToList();
@@ -132,7 +139,9 @@ namespace SalesManagement.Infrastructure.Repositories.SalesQuotation
                 // Populate item and HSN names on details
                 if (allDetails.Count > 0)
                 {
-                    var itemIds = allDetails.Select(d => d.ItemId).Distinct();
+                    // Item ids include both line ItemIds and any non-null VariantIds (variants live in the Item table)
+                    var variantIds = allDetails.Where(d => d.VariantId.HasValue).Select(d => d.VariantId!.Value);
+                    var itemIds = allDetails.Select(d => d.ItemId).Concat(variantIds).Distinct();
                     var items = await _itemLookup.GetByIdsAsync(itemIds);
                     var itemDict = items.ToDictionary(i => i.Id, i => (i.ItemCode, i.ItemName));
 
@@ -140,12 +149,31 @@ namespace SalesManagement.Infrastructure.Repositories.SalesQuotation
                     var hsnList = await _hsnLookup.GetByIdsAsync(hsnIds);
                     var hsnDict = hsnList.ToDictionary(h => h.Id, h => (h.HSNCode, h.Description));
 
+                    var uomIds = allDetails.Where(d => d.UOMId.HasValue).Select(d => d.UOMId!.Value).Distinct();
+                    var uomDict = new Dictionary<int, (string Code, string UOMName)>();
+                    if (uomIds.Any())
+                    {
+                        var uoms = await _uomLookup.GetByIdsAsync(uomIds);
+                        uomDict = uoms.ToDictionary(u => u.Id, u => (u.Code, u.UOMName));
+                    }
+
                     foreach (var detail in allDetails)
                     {
                         if (itemDict.TryGetValue(detail.ItemId, out var itemInfo))
                         {
                             detail.ItemCode = itemInfo.ItemCode;
                             detail.ItemName = itemInfo.ItemName;
+                        }
+
+                        if (detail.VariantId.HasValue && itemDict.TryGetValue(detail.VariantId.Value, out var variantInfo))
+                        {
+                            detail.VariantName = variantInfo.ItemName;
+                        }
+
+                        if (detail.UOMId.HasValue && uomDict.TryGetValue(detail.UOMId.Value, out var uomInfo))
+                        {
+                            detail.UOMCode = uomInfo.Code;
+                            detail.UOMName = uomInfo.UOMName;
                         }
 
                         if (hsnDict.TryGetValue(detail.HSNId, out var hsnInfo))
@@ -178,7 +206,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesQuotation
             var parameters = new DynamicParameters();
             parameters.Add("Id", id);
 
-            if (_accessFilter.IsMarketingOfficer())
+            if (await _accessFilter.ShouldApplyFilterAsync())
             {
                 var userId = _ipAddressService.GetUserId();
                 var customerIds = await _accessFilter.GetAccessibleCustomerIdsAsync();
@@ -217,11 +245,15 @@ namespace SalesManagement.Infrastructure.Repositories.SalesQuotation
                 return null;
 
             const string detailSql = @"
-                SELECT d.Id, d.SalesQuotationHeaderId, d.ItemId,
-                    d.Quantity, d.ExMillRate, d.Discount,
+                SELECT d.Id, d.SalesQuotationHeaderId, d.ItemId, d.VariantId,
+                    d.Quantity, d.UOMId, d.ExMillRate,
+                    d.Discount, d.DiscountTypeId,
+                    dtm.Code        AS DiscountTypeCode,
+                    dtm.Description AS DiscountTypeDescription,
                     d.NetRate, d.TotalAmount,
                     d.HSNId, d.TaxPercentage, d.TaxAmount
                 FROM Sales.SalesQuotationDetail d
+                LEFT JOIN Sales.MiscMaster dtm ON d.DiscountTypeId = dtm.Id AND dtm.IsDeleted = 0
                 WHERE d.SalesQuotationHeaderId = @HeaderId";
 
             var details = (await _dbConnection.QueryAsync<SalesQuotationDetailDto>(detailSql, new { HeaderId = id })).ToList();
@@ -239,7 +271,9 @@ namespace SalesManagement.Infrastructure.Repositories.SalesQuotation
             // Populate item and HSN names on details
             if (details.Count > 0)
             {
-                var itemIds = details.Select(d => d.ItemId).Distinct();
+                // Item ids include both line ItemIds and any non-null VariantIds (variants live in the Item table)
+                var variantIds = details.Where(d => d.VariantId.HasValue).Select(d => d.VariantId!.Value);
+                var itemIds = details.Select(d => d.ItemId).Concat(variantIds).Distinct();
                 var items = await _itemLookup.GetByIdsAsync(itemIds);
                 var itemDict = items.ToDictionary(i => i.Id, i => (i.ItemCode, i.ItemName));
 
@@ -247,12 +281,31 @@ namespace SalesManagement.Infrastructure.Repositories.SalesQuotation
                 var hsnList = await _hsnLookup.GetByIdsAsync(hsnIds);
                 var hsnDict = hsnList.ToDictionary(h => h.Id, h => (h.HSNCode, h.Description));
 
+                var uomIds = details.Where(d => d.UOMId.HasValue).Select(d => d.UOMId!.Value).Distinct();
+                var uomDict = new Dictionary<int, (string Code, string UOMName)>();
+                if (uomIds.Any())
+                {
+                    var uoms = await _uomLookup.GetByIdsAsync(uomIds);
+                    uomDict = uoms.ToDictionary(u => u.Id, u => (u.Code, u.UOMName));
+                }
+
                 foreach (var detail in details)
                 {
                     if (itemDict.TryGetValue(detail.ItemId, out var itemInfo))
                     {
                         detail.ItemCode = itemInfo.ItemCode;
                         detail.ItemName = itemInfo.ItemName;
+                    }
+
+                    if (detail.VariantId.HasValue && itemDict.TryGetValue(detail.VariantId.Value, out var variantInfo))
+                    {
+                        detail.VariantName = variantInfo.ItemName;
+                    }
+
+                    if (detail.UOMId.HasValue && uomDict.TryGetValue(detail.UOMId.Value, out var uomInfo))
+                    {
+                        detail.UOMCode = uomInfo.Code;
+                        detail.UOMName = uomInfo.UOMName;
                     }
 
                     if (hsnDict.TryGetValue(detail.HSNId, out var hsnInfo))
@@ -274,7 +327,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesQuotation
             var parameters = new DynamicParameters();
             parameters.Add("Term", $"%{term}%");
 
-            if (_accessFilter.IsMarketingOfficer())
+            if (await _accessFilter.ShouldApplyFilterAsync())
             {
                 var userId = _ipAddressService.GetUserId();
                 var customerIds = await _accessFilter.GetAccessibleCustomerIdsAsync(ct);
@@ -392,6 +445,33 @@ namespace SalesManagement.Infrastructure.Repositories.SalesQuotation
                 WHERE Id = @Id AND IsDeleted = 0";
 
             var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = salesEnquiryId });
+            return count > 0;
+        }
+
+        public async Task<bool> VariantExistsAsync(int variantId)
+        {
+            var items = await _itemLookup.GetByIdsAsync(new[] { variantId });
+            return items.Any();
+        }
+
+        public async Task<bool> UOMExistsAsync(int uomId)
+        {
+            var uoms = await _uomLookup.GetByIdsAsync(new[] { uomId });
+            return uoms.Any();
+        }
+
+        public async Task<bool> DiscountTypeExistsAsync(int discountTypeId)
+        {
+            const string sql = @"
+                SELECT COUNT(1)
+                FROM Sales.MiscMaster mm
+                INNER JOIN Sales.MiscTypeMaster mt ON mm.MiscTypeId = mt.Id AND mt.IsDeleted = 0
+                WHERE mm.Id = @Id
+                  AND mm.IsActive = 1
+                  AND mm.IsDeleted = 0
+                  AND mt.MiscTypeCode = 'QUOT_DISC_TYPE'";
+
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = discountTypeId });
             return count > 0;
         }
 

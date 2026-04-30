@@ -555,7 +555,7 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesOrder
                 StatusId = _openStatusId
             };
 
-            var result = await CreateRepo(ctx).FinalizeOrderStatusAsync(forStatus);
+            var result = await CreateRepo(ctx).FinalizeOrderStatusAsync(forStatus, 7, "tester", "127.0.0.1");
             ctx.ChangeTracker.Clear();
 
             result.Should().BeTrue();
@@ -569,7 +569,7 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesOrder
             await using var ctx = _fixture.CreateFreshDbContext();
 
             var ghost = new SalesManagement.Domain.Entities.SalesOrderHeader { Id = 9999999, StatusId = 1 };
-            var result = await CreateRepo(ctx).FinalizeOrderStatusAsync(ghost);
+            var result = await CreateRepo(ctx).FinalizeOrderStatusAsync(ghost, 7, "tester", "127.0.0.1");
 
             result.Should().BeFalse();
         }

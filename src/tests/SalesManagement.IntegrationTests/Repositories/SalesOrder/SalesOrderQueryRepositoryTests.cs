@@ -89,7 +89,7 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesOrder
                 .ReturnsAsync((IReadOnlyList<TransactionTypeLookupDto>)new List<TransactionTypeLookupDto>());
 
             var accessFilter = new Mock<IMarketingOfficerAccessFilter>(MockBehavior.Loose);
-            accessFilter.Setup(a => a.IsMarketingOfficer()).Returns(false);
+            accessFilter.Setup(a => a.ShouldApplyFilterAsync(It.IsAny<CancellationToken>())).ReturnsAsync(false);
 
             var division = new Mock<IDivisionLookup>(MockBehavior.Loose);
 

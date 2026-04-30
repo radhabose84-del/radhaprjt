@@ -57,7 +57,7 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesEnquiry
             if (accessFilter == null)
             {
                 accessFilter = new Mock<IMarketingOfficerAccessFilter>(MockBehavior.Loose);
-                accessFilter.Setup(a => a.IsMarketingOfficer()).Returns(false);
+                accessFilter.Setup(a => a.ShouldApplyFilterAsync(It.IsAny<CancellationToken>())).ReturnsAsync(false);
             }
             if (ip == null)
             {
@@ -70,15 +70,49 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesEnquiry
                 party.Object, paymentTerm.Object, item.Object, accessFilter.Object, ip.Object);
         }
 
+        // Idempotently seeds Sales.MiscTypeMaster (ENQ_TYPE) + Sales.MiscMaster (ENQ_DOMESTIC).
+        // Returns the MiscMaster.Id for use in EnquiryTypeId.
+        private static async Task<int> EnsureEnqDomesticAsync(ApplicationDbContext ctx)
+        {
+            var miscType = await ctx.MiscTypeMaster
+                .FirstOrDefaultAsync(t => t.MiscTypeCode == "ENQ_TYPE" && t.IsDeleted == IsDelete.NotDeleted);
+            if (miscType == null)
+            {
+                miscType = new SalesManagement.Domain.Entities.MiscTypeMaster
+                {
+                    MiscTypeCode = "ENQ_TYPE", Description = "Enquiry Type",
+                    IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted
+                };
+                await ctx.MiscTypeMaster.AddAsync(miscType);
+                await ctx.SaveChangesAsync();
+            }
+
+            var misc = await ctx.MiscMaster
+                .FirstOrDefaultAsync(m => m.MiscTypeId == miscType.Id && m.Code == "ENQ_DOMESTIC" && m.IsDeleted == IsDelete.NotDeleted);
+            if (misc == null)
+            {
+                misc = new SalesManagement.Domain.Entities.MiscMaster
+                {
+                    MiscTypeId = miscType.Id, Code = "ENQ_DOMESTIC", Description = "Domestic", SortOrder = 1,
+                    IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted
+                };
+                await ctx.MiscMaster.AddAsync(misc);
+                await ctx.SaveChangesAsync();
+            }
+            return misc.Id;
+        }
+
         private async Task<int> SeedAsync(int partyId = 100, string contactPerson = "John",
             int detailCount = 2, IsDelete deleted = IsDelete.NotDeleted, Status active = Status.Active,
-            string? remarks = "test")
+            string? remarks = "test", int? enquiryTypeId = null)
         {
             await using var ctx = _fixture.CreateFreshDbContext();
+            var enqId = enquiryTypeId ?? await EnsureEnqDomesticAsync(ctx);
             var h = new SalesManagement.Domain.Entities.SalesEnquiryHeader
             {
                 PartyId = partyId,
                 EnquiryDate = DateTimeOffset.UtcNow,
+                EnquiryTypeId = enqId,
                 ContactPerson = contactPerson,
                 Remarks = remarks,
                 IsActive = active, IsDeleted = deleted,
@@ -256,6 +290,87 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesEnquiry
         {
             var result = await CreateRepo().ItemExistsAsync(10);
             result.Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task GetByIdAsync_Should_Populate_EnquiryTypeCode_And_Description()
+        {
+            await ClearAsync();
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var enqId = await EnsureEnqDomesticAsync(ctx);
+            var id = await SeedAsync(enquiryTypeId: enqId);
+
+            var result = await CreateRepo().GetByIdAsync(id);
+
+            result.Should().NotBeNull();
+            result!.EnquiryTypeId.Should().Be(enqId);
+            result.EnquiryTypeCode.Should().Be("ENQ_DOMESTIC");
+            result.EnquiryTypeDescription.Should().Be("Domestic");
+        }
+
+        [Fact]
+        public async Task GetAllAsync_Should_Populate_EnquiryTypeCode_And_Description()
+        {
+            await ClearAsync();
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var enqId = await EnsureEnqDomesticAsync(ctx);
+            await SeedAsync(enquiryTypeId: enqId);
+
+            var (rows, _) = await CreateRepo().GetAllAsync(1, 10, null);
+
+            rows.Should().HaveCount(1);
+            rows[0].EnquiryTypeCode.Should().Be("ENQ_DOMESTIC");
+            rows[0].EnquiryTypeDescription.Should().Be("Domestic");
+        }
+
+        [Fact]
+        public async Task EnquiryTypeExistsAsync_Should_Return_True_For_Active_EnqType_Row()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var enqId = await EnsureEnqDomesticAsync(ctx);
+
+            var result = await CreateRepo().EnquiryTypeExistsAsync(enqId);
+
+            result.Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task EnquiryTypeExistsAsync_Should_Return_False_For_Unknown_Id()
+        {
+            var result = await CreateRepo().EnquiryTypeExistsAsync(999999);
+            result.Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task EnquiryTypeExistsAsync_Should_Return_False_For_MiscMaster_With_Different_Type()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+
+            // Seed a MiscMaster row under a DIFFERENT MiscType (not ENQ_TYPE)
+            var otherType = await ctx.MiscTypeMaster
+                .FirstOrDefaultAsync(t => t.MiscTypeCode == "TEST_OTHER_TYPE" && t.IsDeleted == IsDelete.NotDeleted);
+            if (otherType == null)
+            {
+                otherType = new SalesManagement.Domain.Entities.MiscTypeMaster
+                {
+                    MiscTypeCode = "TEST_OTHER_TYPE", Description = "Other",
+                    IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted
+                };
+                await ctx.MiscTypeMaster.AddAsync(otherType);
+                await ctx.SaveChangesAsync();
+            }
+
+            var otherMisc = new SalesManagement.Domain.Entities.MiscMaster
+            {
+                MiscTypeId = otherType.Id, Code = "OTHER_CODE", Description = "Other", SortOrder = 1,
+                IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted
+            };
+            await ctx.MiscMaster.AddAsync(otherMisc);
+            await ctx.SaveChangesAsync();
+
+            var result = await CreateRepo().EnquiryTypeExistsAsync(otherMisc.Id);
+
+            result.Should().BeFalse();
         }
     }
 }

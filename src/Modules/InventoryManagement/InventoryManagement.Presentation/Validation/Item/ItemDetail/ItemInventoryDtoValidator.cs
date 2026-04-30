@@ -11,6 +11,11 @@ namespace InventoryManagement.Presentation.Validation.Item.ItemDetail
         {
             RuleFor(x => x.Weight).GreaterThanOrEqualTo(0).When(x => x.Weight.HasValue);
             RuleFor(x => x.WeightUomId).GreaterThan(0).When(x => x.WeightUomId.HasValue);
+            RuleFor(x => x.Length).GreaterThanOrEqualTo(0).When(x => x.Length.HasValue);
+            RuleFor(x => x.Breadth).GreaterThanOrEqualTo(0).When(x => x.Breadth.HasValue);
+            RuleFor(x => x.Height).GreaterThanOrEqualTo(0).When(x => x.Height.HasValue);
+            RuleFor(x => x.Volume).GreaterThanOrEqualTo(0).When(x => x.Volume.HasValue);
+            RuleFor(x => x.DimensionUomId).GreaterThan(0).When(x => x.DimensionUomId.HasValue);
             RuleFor(x => x.DefaultMaterialRequestTypeId).GreaterThan(0).When(x => x.DefaultMaterialRequestTypeId.HasValue);
             RuleFor(x => x.ValuationMethodId).GreaterThan(0).When(x => x.ValuationMethodId.HasValue);
 

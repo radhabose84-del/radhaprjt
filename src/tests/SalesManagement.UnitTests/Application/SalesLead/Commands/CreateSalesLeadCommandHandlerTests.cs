@@ -88,7 +88,21 @@ public class CreateSalesLeadCommandHandlerTests
 
         var result = await CreateSut().Handle(command, CancellationToken.None);
 
-        result.Data.Should().Be(42);
+        result.Data.Should().NotBeNull();
+        result.Data!.Id.Should().Be(42);
+    }
+
+    [Fact]
+    public async Task Handle_ValidCommand_ReturnsLeadNoInResponse()
+    {
+        var command = ValidCommand();
+        SetupMapper(command);
+        SetupHappyPath(1);
+
+        var result = await CreateSut().Handle(command, CancellationToken.None);
+
+        result.Data.Should().NotBeNull();
+        result.Data!.LeadNo.Should().Be("SL-0001");
     }
 
     [Fact]

@@ -128,6 +128,12 @@ namespace SalesManagement.Presentation.Validation.SalesLead
                             .WithMessage($"{nameof(CreateSalesLeadCommand.ItemId)} {rule.Error}")
                             .When(x => x.ItemId.HasValue && x.ItemId > 0);
 
+                        RuleFor(x => x.UomId)
+                            .MustAsync(async (id, ct) =>
+                                await _queryRepository.UomExistsAsync(id!.Value))
+                            .WithMessage($"{nameof(CreateSalesLeadCommand.UomId)} {rule.Error}")
+                            .When(x => x.UomId.HasValue && x.UomId > 0);
+
                         RuleFor(x => x.MarketingOfficerId)
                             .MustAsync(async (id, ct) =>
                                 await _queryRepository.MarketingOfficerExistsAsync(id))
@@ -142,7 +148,7 @@ namespace SalesManagement.Presentation.Validation.SalesLead
                             .When(x => x.PartyId.HasValue && x.PartyId.Value > 0);
 
                         RuleFor(x => x.MarketingOfficerId)
-                            .Must(id => !_accessFilter.IsMarketingOfficer()
+                            .MustAsync(async (id, ct) => !await _accessFilter.ShouldApplyFilterAsync(ct)
                                         || id == _accessFilter.GetCurrentMarketingOfficerId())
                             .WithMessage($"{nameof(CreateSalesLeadCommand.MarketingOfficerId)} {rule.Error}");
                         break;

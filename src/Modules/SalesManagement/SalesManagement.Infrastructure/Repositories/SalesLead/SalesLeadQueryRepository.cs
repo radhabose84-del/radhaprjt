@@ -15,6 +15,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesLead
         private readonly IPartyLookup _partyLookup;
         private readonly ICityLookup _cityLookup;
         private readonly IItemLookup _itemLookup;
+        private readonly IUOMLookup _uomLookup;
         private readonly IMarketingOfficerAccessFilter _accessFilter;
 
         public SalesLeadQueryRepository(
@@ -22,12 +23,14 @@ namespace SalesManagement.Infrastructure.Repositories.SalesLead
             IPartyLookup partyLookup,
             ICityLookup cityLookup,
             IItemLookup itemLookup,
+            IUOMLookup uomLookup,
             IMarketingOfficerAccessFilter accessFilter)
         {
             _dbConnection = dbConnection;
             _partyLookup = partyLookup;
             _cityLookup = cityLookup;
             _itemLookup = itemLookup;
+            _uomLookup = uomLookup;
             _accessFilter = accessFilter;
         }
 
@@ -43,7 +46,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesLead
             parameters.Add("Offset", (pageNumber - 1) * pageSize);
             parameters.Add("PageSize", pageSize);
 
-            if (_accessFilter.IsMarketingOfficer())
+            if (await _accessFilter.ShouldApplyFilterAsync())
             {
                 var empId = _accessFilter.GetCurrentMarketingOfficerId();
                 var customerIds = await _accessFilter.GetAccessibleCustomerIdsAsync();
@@ -63,7 +66,8 @@ namespace SalesManagement.Infrastructure.Repositories.SalesLead
                 SELECT sl.Id, sl.LeadNo, sl.PartyId, sl.ProspectCompanyName, sl.CityId,
                     sl.ContactName, sl.MobileNumber, sl.EmailId, sl.ContactId,
                     sc.ContactName AS ExistingContactName,
-                    sl.ItemId, sl.VariantId, sl.RequirementQty, sl.ExpectedDate, sl.Remarks,
+                    sl.ItemId, sl.VariantId, sl.UomId,
+                    sl.RequirementQty, sl.ExpectedDate, sl.Remarks,
                     sl.LeadSourceId, mm.Description AS LeadSourceName,
                     sl.MarketingOfficerId,
                     mo.EmployeeName AS MarketingOfficerName,
@@ -140,6 +144,25 @@ namespace SalesManagement.Infrastructure.Repositories.SalesLead
                         item.VariantName = itemDict.TryGetValue(item.VariantId!.Value, out var vName) ? vName : null;
                 }
 
+                // Cross-module: UOM names
+                var uomIds = list
+                    .Where(x => x.UomId.HasValue)
+                    .Select(x => x.UomId!.Value)
+                    .Distinct();
+                if (uomIds.Any())
+                {
+                    var uoms = await _uomLookup.GetByIdsAsync(uomIds);
+                    var uomDict = uoms.ToDictionary(u => u.Id, u => (u.Code, u.UOMName));
+                    foreach (var item in list.Where(x => x.UomId.HasValue))
+                    {
+                        if (uomDict.TryGetValue(item.UomId!.Value, out var uom))
+                        {
+                            item.UomCode = uom.Code;
+                            item.UomName = uom.UOMName;
+                        }
+                    }
+                }
+
                 // MarketingOfficerName is populated via SQL JOIN — no cross-module lookup needed
             }
 
@@ -153,7 +176,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesLead
             var parameters = new DynamicParameters();
             parameters.Add("Id", id);
 
-            if (_accessFilter.IsMarketingOfficer())
+            if (await _accessFilter.ShouldApplyFilterAsync())
             {
                 var customerIds = await _accessFilter.GetAccessibleCustomerIdsAsync();
                 var safeIds = customerIds.Count > 0 ? customerIds.ToArray() : new[] { -1 };
@@ -166,7 +189,8 @@ namespace SalesManagement.Infrastructure.Repositories.SalesLead
                 SELECT sl.Id, sl.LeadNo, sl.PartyId, sl.ProspectCompanyName, sl.CityId,
                     sl.ContactName, sl.MobileNumber, sl.EmailId, sl.ContactId,
                     sc.ContactName AS ExistingContactName,
-                    sl.ItemId, sl.VariantId, sl.RequirementQty, sl.ExpectedDate, sl.Remarks,
+                    sl.ItemId, sl.VariantId, sl.UomId,
+                    sl.RequirementQty, sl.ExpectedDate, sl.Remarks,
                     sl.LeadSourceId, mm.Description AS LeadSourceName,
                     sl.MarketingOfficerId,
                     mo.EmployeeName AS MarketingOfficerName,
@@ -211,6 +235,18 @@ namespace SalesManagement.Infrastructure.Repositories.SalesLead
                         dto.VariantName = itemDict.TryGetValue(dto.VariantId.Value, out var vName) ? vName : null;
                 }
 
+                // Cross-module: UOM
+                if (dto.UomId.HasValue)
+                {
+                    var uoms = await _uomLookup.GetByIdsAsync(new[] { dto.UomId.Value });
+                    var uom = uoms.FirstOrDefault();
+                    if (uom != null)
+                    {
+                        dto.UomCode = uom.Code;
+                        dto.UomName = uom.UOMName;
+                    }
+                }
+
                 // MarketingOfficerName is populated via SQL JOIN — no cross-module lookup needed
             }
 
@@ -224,7 +260,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesLead
             var parameters = new DynamicParameters();
             parameters.Add("Term", $"%{term}%");
 
-            if (_accessFilter.IsMarketingOfficer())
+            if (await _accessFilter.ShouldApplyFilterAsync())
             {
                 var customerIds = await _accessFilter.GetAccessibleCustomerIdsAsync(ct);
                 var safeIds = customerIds.Count > 0 ? customerIds.ToArray() : new[] { -1 };
@@ -313,6 +349,12 @@ namespace SalesManagement.Infrastructure.Repositories.SalesLead
         {
             var items = await _itemLookup.GetByIdsAsync(new[] { itemId });
             return items.Any();
+        }
+
+        public async Task<bool> UomExistsAsync(int uomId)
+        {
+            var uoms = await _uomLookup.GetByIdsAsync(new[] { uomId });
+            return uoms.Any();
         }
 
         public async Task<bool> MarketingOfficerExistsAsync(int marketingOfficerId)

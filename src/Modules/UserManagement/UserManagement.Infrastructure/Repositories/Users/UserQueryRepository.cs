@@ -63,6 +63,7 @@ namespace UserManagement.Infrastructure.Repositories.Users
                                 ur.DepartmentId,                              
                                 ur.Mobile,
                                 ur.EmailId,
+                                ur.ReportToId,
                                 ur.IsFirstTimeUser,
                                 ur.IsDeleted,UG.Id AS UserGroupId
                                 ,ur.createdAt, 
@@ -129,6 +130,8 @@ namespace UserManagement.Infrastructure.Repositories.Users
                ur.EntityId,
                ur.DepartmentId,
                ur.EmpId,
+               ur.PartyId,
+               ur.ReportToId,
                ura.UserRoleId,
                uc.CompanyId,
                uu.UnitId,
@@ -142,7 +145,6 @@ namespace UserManagement.Infrastructure.Repositories.Users
         LEFT JOIN AppSecurity.UserDivision ud ON ud.UserId = ur.UserId AND ud.IsActive = 1
         LEFT JOIN AppSecurity.UserGroup UG ON UG.Id = ur.UserGroupId AND UG.IsActive = 1
         LEFT JOIN AppSecurity.UserDepartment udd ON udd.UserId = ur.UserId AND udd.IsActive = 1
-
         WHERE ur.IsDeleted = 0 AND ur.UserId = @UserId";
 
     var userDictionary = new Dictionary<int, User>();
@@ -308,6 +310,20 @@ namespace UserManagement.Infrastructure.Repositories.Users
              }
                 var count = await _dbConnection.ExecuteScalarAsync<int>(query, parameters);
                 return count > 0;
+          }
+
+          public async Task<bool> EmpIdAlreadyExistsAsync(int empId, int? id = null)
+          {
+              var query = "SELECT COUNT(1) FROM [AppSecurity].[Users] WHERE EmpId = @EmpId AND IsDeleted = 0";
+              var parameters = new DynamicParameters(new { EmpId = empId });
+
+              if (id is not null)
+              {
+                  query += " AND UserId != @Id";
+                  parameters.Add("Id", id);
+              }
+              var count = await _dbConnection.ExecuteScalarAsync<int>(query, parameters);
+              return count > 0;
           }
           public async Task<User> GetByUserByUnit(int UserId,int UnitId)
           {

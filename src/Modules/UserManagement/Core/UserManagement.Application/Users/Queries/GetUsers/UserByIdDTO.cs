@@ -21,6 +21,7 @@ namespace UserManagement.Application.Users.Queries.GetUsers
         public string? EntityName { get; set; }
         public int? EmpId { get; set; }
         public string? EmpName { get; set; }
+        public int? ReportToId { get; set; }
         public List<UserDivisionDTO>? userDivisions { get; set; }
         public FirstTimeUserStatus IsFirstTimeUser { get; set; }
         public IsDelete IsDeleted { get; set; }

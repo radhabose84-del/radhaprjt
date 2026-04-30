@@ -25,13 +25,46 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesEnquiry
 
         private SalesEnquiryCommandRepository CreateRepo(ApplicationDbContext ctx) => new(ctx, _mockDocSeqLookup.Object);
 
+        // Idempotently seeds Sales.MiscTypeMaster (ENQ_TYPE) + Sales.MiscMaster (ENQ_DOMESTIC).
+        // Returns the MiscMaster.Id for use in EnquiryTypeId.
+        private static async Task<int> EnsureEnqDomesticAsync(ApplicationDbContext ctx)
+        {
+            var miscType = await ctx.MiscTypeMaster
+                .FirstOrDefaultAsync(t => t.MiscTypeCode == "ENQ_TYPE" && t.IsDeleted == IsDelete.NotDeleted);
+            if (miscType == null)
+            {
+                miscType = new SalesManagement.Domain.Entities.MiscTypeMaster
+                {
+                    MiscTypeCode = "ENQ_TYPE", Description = "Enquiry Type",
+                    IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted
+                };
+                await ctx.MiscTypeMaster.AddAsync(miscType);
+                await ctx.SaveChangesAsync();
+            }
+
+            var misc = await ctx.MiscMaster
+                .FirstOrDefaultAsync(m => m.MiscTypeId == miscType.Id && m.Code == "ENQ_DOMESTIC" && m.IsDeleted == IsDelete.NotDeleted);
+            if (misc == null)
+            {
+                misc = new SalesManagement.Domain.Entities.MiscMaster
+                {
+                    MiscTypeId = miscType.Id, Code = "ENQ_DOMESTIC", Description = "Domestic", SortOrder = 1,
+                    IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted
+                };
+                await ctx.MiscMaster.AddAsync(misc);
+                await ctx.SaveChangesAsync();
+            }
+            return misc.Id;
+        }
+
         private SalesManagement.Domain.Entities.SalesEnquiryHeader BuildEntity(
-            int partyId = 100, string? contactPerson = "John", int detailCount = 2)
+            int partyId = 100, string? contactPerson = "John", int detailCount = 2, int enquiryTypeId = 1)
         {
             var entity = new SalesManagement.Domain.Entities.SalesEnquiryHeader
             {
                 PartyId = partyId,
                 EnquiryDate = DateTimeOffset.UtcNow,
+                EnquiryTypeId = enquiryTypeId,
                 ContactPerson = contactPerson,
                 ExpectedDeliveryDate = DateTimeOffset.UtcNow.AddDays(14),
                 PaymentTermId = null,
@@ -58,8 +91,9 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesEnquiry
         {
             await using var ctx = _fixture.CreateFreshDbContext();
             await ClearAsync(ctx);
+            var enqId = await EnsureEnqDomesticAsync(ctx);
 
-            var id = await CreateRepo(ctx).CreateAsync(BuildEntity(partyId: 100), 1);
+            var id = await CreateRepo(ctx).CreateAsync(BuildEntity(partyId: 100, enquiryTypeId: enqId), 1);
 
             id.Should().BeGreaterThan(0);
         }
@@ -69,13 +103,15 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesEnquiry
         {
             await using var ctx = _fixture.CreateFreshDbContext();
             await ClearAsync(ctx);
+            var enqId = await EnsureEnqDomesticAsync(ctx);
 
-            var id = await CreateRepo(ctx).CreateAsync(BuildEntity(partyId: 200, contactPerson: "Alice", detailCount: 3), 1);
+            var id = await CreateRepo(ctx).CreateAsync(BuildEntity(partyId: 200, contactPerson: "Alice", detailCount: 3, enquiryTypeId: enqId), 1);
             ctx.ChangeTracker.Clear();
 
             var saved = await ctx.SalesEnquiryHeader.FirstAsync(x => x.Id == id);
             saved.PartyId.Should().Be(200);
             saved.ContactPerson.Should().Be("Alice");
+            saved.EnquiryTypeId.Should().Be(enqId);
 
             var details = await ctx.SalesEnquiryDetail.Where(d => d.SalesEnquiryHeaderId == id).ToListAsync();
             details.Should().HaveCount(3);
@@ -86,10 +122,11 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesEnquiry
         {
             await using var ctx = _fixture.CreateFreshDbContext();
             await ClearAsync(ctx);
-            var id = await CreateRepo(ctx).CreateAsync(BuildEntity(partyId: 300, contactPerson: "Bob"), 1);
+            var enqId = await EnsureEnqDomesticAsync(ctx);
+            var id = await CreateRepo(ctx).CreateAsync(BuildEntity(partyId: 300, contactPerson: "Bob", enquiryTypeId: enqId), 1);
             ctx.ChangeTracker.Clear();
 
-            var updated = BuildEntity(partyId: 999, contactPerson: "NewName");
+            var updated = BuildEntity(partyId: 999, contactPerson: "NewName", enquiryTypeId: enqId);
             updated.Id = id;
             updated.Remarks = "updated";
             updated.IsActive = Status.Inactive;
@@ -106,14 +143,45 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesEnquiry
         }
 
         [Fact]
+        public async Task UpdateAsync_Should_Persist_EnquiryTypeId_Change()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            await ClearAsync(ctx);
+            var enqDomesticId = await EnsureEnqDomesticAsync(ctx);
+
+            // Seed second MiscMaster row (ENQ_EXPORT) under the same parent type
+            var miscType = await ctx.MiscTypeMaster.FirstAsync(t => t.MiscTypeCode == "ENQ_TYPE");
+            var enqExport = new SalesManagement.Domain.Entities.MiscMaster
+            {
+                MiscTypeId = miscType.Id, Code = "ENQ_EXPORT", Description = "Export", SortOrder = 2,
+                IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted
+            };
+            await ctx.MiscMaster.AddAsync(enqExport);
+            await ctx.SaveChangesAsync();
+            ctx.ChangeTracker.Clear();
+
+            var id = await CreateRepo(ctx).CreateAsync(BuildEntity(enquiryTypeId: enqDomesticId), 1);
+            ctx.ChangeTracker.Clear();
+
+            var updated = BuildEntity(enquiryTypeId: enqExport.Id);
+            updated.Id = id;
+            await CreateRepo(ctx).UpdateAsync(updated);
+            ctx.ChangeTracker.Clear();
+
+            var reloaded = await ctx.SalesEnquiryHeader.FirstAsync(x => x.Id == id);
+            reloaded.EnquiryTypeId.Should().Be(enqExport.Id);
+        }
+
+        [Fact]
         public async Task UpdateAsync_Should_Replace_Details()
         {
             await using var ctx = _fixture.CreateFreshDbContext();
             await ClearAsync(ctx);
-            var id = await CreateRepo(ctx).CreateAsync(BuildEntity(detailCount: 2), 1);
+            var enqId = await EnsureEnqDomesticAsync(ctx);
+            var id = await CreateRepo(ctx).CreateAsync(BuildEntity(detailCount: 2, enquiryTypeId: enqId), 1);
             ctx.ChangeTracker.Clear();
 
-            var updated = BuildEntity(detailCount: 4);
+            var updated = BuildEntity(detailCount: 4, enquiryTypeId: enqId);
             updated.Id = id;
 
             await CreateRepo(ctx).UpdateAsync(updated);
@@ -127,8 +195,10 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesEnquiry
         public async Task UpdateAsync_Should_Return_Zero_When_NotFound()
         {
             await using var ctx = _fixture.CreateFreshDbContext();
+            await ClearAsync(ctx);
+            var enqId = await EnsureEnqDomesticAsync(ctx);
 
-            var ghost = BuildEntity();
+            var ghost = BuildEntity(enquiryTypeId: enqId);
             ghost.Id = 9999999;
 
             var result = await CreateRepo(ctx).UpdateAsync(ghost);
@@ -141,7 +211,8 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesEnquiry
         {
             await using var ctx = _fixture.CreateFreshDbContext();
             await ClearAsync(ctx);
-            var id = await CreateRepo(ctx).CreateAsync(BuildEntity(), 1);
+            var enqId = await EnsureEnqDomesticAsync(ctx);
+            var id = await CreateRepo(ctx).CreateAsync(BuildEntity(enquiryTypeId: enqId), 1);
             ctx.ChangeTracker.Clear();
 
             await CreateRepo(ctx).SoftDeleteAsync(id, CancellationToken.None);
@@ -156,7 +227,8 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesEnquiry
         {
             await using var ctx = _fixture.CreateFreshDbContext();
             await ClearAsync(ctx);
-            var id = await CreateRepo(ctx).CreateAsync(BuildEntity(), 1);
+            var enqId = await EnsureEnqDomesticAsync(ctx);
+            var id = await CreateRepo(ctx).CreateAsync(BuildEntity(enquiryTypeId: enqId), 1);
             ctx.ChangeTracker.Clear();
 
             var result = await CreateRepo(ctx).SoftDeleteAsync(id, CancellationToken.None);

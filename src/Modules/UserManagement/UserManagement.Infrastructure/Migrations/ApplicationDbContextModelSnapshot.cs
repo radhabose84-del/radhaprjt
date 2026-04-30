@@ -2155,6 +2155,10 @@ namespace UserManagement.Infrastructure.Migrations
                         .HasColumnType("varchar(255)")
                         .HasColumnName("PasswordHash");
 
+                    b.Property<int?>("ReportToId")
+                        .HasColumnType("int")
+                        .HasColumnName("ReportToId");
+
                     b.Property<int?>("UserGroupId")
                         .HasColumnType("int")
                         .HasColumnName("UserGroupId");

@@ -10,6 +10,8 @@ using SalesManagement.Application.Common.Interfaces.IInvoice;
 using SalesManagement.Application.Common.Interfaces.IMiscMaster;
 using SalesManagement.Application.Common.Interfaces.ISalesOrder;
 using SalesManagement.Application.Common.Interfaces.ISalesOrderAmendment;
+using SalesManagement.Application.Common.Interfaces.ISalesQuotation;
+using SalesManagement.Application.Common.Interfaces.ISalesQuotationAmendment;
 using SalesManagement.Application.Common.Interfaces.IComplaint;
 using SalesManagement.Application.Common.Interfaces.IStoHeader;
 using SalesManagement.Domain.Common;
@@ -21,6 +23,8 @@ namespace SalesManagement.Application.Consumers
         private readonly IInvoiceCommandRepository _invoiceCommandRepo;
         private readonly ISalesOrderCommandRepository _salesOrderCommandRepo;
         private readonly ISalesOrderAmendmentCommandRepository _amendmentCommandRepo;
+        private readonly ISalesQuotationCommandRepository _sqCommandRepo;
+        private readonly ISalesQuotationAmendmentCommandRepository _sqAmendmentCommandRepo;
         private readonly IMiscMasterQueryRepository _miscMasterQueryRepository;
         private readonly IStoHeaderCommandRepository _stoHeaderCommandRepo;
         private readonly IDeliveryChallanCommandRepository _dcCommandRepo;
@@ -32,6 +36,8 @@ namespace SalesManagement.Application.Consumers
             IInvoiceCommandRepository invoiceCommandRepo,
             ISalesOrderCommandRepository salesOrderCommandRepo,
             ISalesOrderAmendmentCommandRepository amendmentCommandRepo,
+            ISalesQuotationCommandRepository sqCommandRepo,
+            ISalesQuotationAmendmentCommandRepository sqAmendmentCommandRepo,
             IMiscMasterQueryRepository miscMasterQueryRepository,
             IStoHeaderCommandRepository stoHeaderCommandRepo,
             IDeliveryChallanCommandRepository dcCommandRepo,
@@ -42,6 +48,8 @@ namespace SalesManagement.Application.Consumers
             _invoiceCommandRepo = invoiceCommandRepo;
             _salesOrderCommandRepo = salesOrderCommandRepo;
             _amendmentCommandRepo = amendmentCommandRepo;
+            _sqCommandRepo = sqCommandRepo;
+            _sqAmendmentCommandRepo = sqAmendmentCommandRepo;
             _miscMasterQueryRepository = miscMasterQueryRepository;
             _stoHeaderCommandRepo = stoHeaderCommandRepo;
             _dcCommandRepo = dcCommandRepo;
@@ -74,20 +82,33 @@ namespace SalesManagement.Application.Consumers
                     case MiscEnumEntity.TransactionTypeSalesOrderAmendment:
                         await HandleSalesOrderAmendmentApprovalAsync(msg, context.CancellationToken);
                         break;
+
+                    case MiscEnumEntity.TransactionTypeSalesQuotation:
+                        await HandleSalesQuotationApprovalAsync(msg, context.CancellationToken);
+                        break;
+
+                    case MiscEnumEntity.TransactionTypeSalesQuotationAmendment:
+                        await HandleSalesQuotationAmendmentApprovalAsync(msg, context.CancellationToken);
+                        break;
+
                     case MiscEnumEntity.StoModuleTypeName:
                         await _stoHeaderCommandRepo.UpdateApprovalStatusAsync(
-                            msg.ModuleTransactionId, msg.Status, context.CancellationToken);
+                            msg.ModuleTransactionId, msg.Status,
+                            msg.ModifiedBy, msg.ModifiedByName, msg.ModifiedIP,
+                            context.CancellationToken);
                         _logger.LogInformation(
-                            "STO {Id} status updated to {Status}",
-                            msg.ModuleTransactionId, msg.Status);
+                            "STO {Id} status updated to {Status} by user {UserId}",
+                            msg.ModuleTransactionId, msg.Status, msg.ModifiedBy);
                         break;
 
                     case MiscEnumEntity.DCModuleTypeName:
                         await _dcCommandRepo.UpdateApprovalStatusAsync(
-                            msg.ModuleTransactionId, msg.Status, context.CancellationToken);
+                            msg.ModuleTransactionId, msg.Status,
+                            msg.ModifiedBy, msg.ModifiedByName, msg.ModifiedIP,
+                            context.CancellationToken);
                         _logger.LogInformation(
-                            "DeliveryChallan {Id} status updated to {Status}",
-                            msg.ModuleTransactionId, msg.Status);
+                            "DeliveryChallan {Id} status updated to {Status} by user {UserId}",
+                            msg.ModuleTransactionId, msg.Status, msg.ModifiedBy);
                         break;
 
                     case MiscEnumEntity.ComplaintModuleTypeName:
@@ -177,6 +198,74 @@ namespace SalesManagement.Application.Consumers
                 msg.ModuleTransactionId, status);
         }
 
+        private async Task HandleSalesQuotationAmendmentApprovalAsync(
+            UpdateApprovedRejectedSalesCommand msg, CancellationToken ct)
+        {
+            _logger.LogInformation(
+                "SalesQuotationAmendment Approval: Id={Id}, Status={Status}",
+                msg.ModuleTransactionId, msg.Status);
+
+            var status = msg.Status;
+            if (status != MiscEnumEntity.SalesOrderStatusApproved &&
+                status != MiscEnumEntity.SalesOrderStatusRejected)
+                return;
+
+            var result = await _sqAmendmentCommandRepo.ApplyAmendmentAsync(
+                msg.ModuleTransactionId, status,
+                msg.ModifiedBy, msg.ModifiedByName, msg.ModifiedIP, ct);
+
+            if (!result)
+            {
+                _logger.LogWarning(
+                    "SalesQuotationAmendment not found or already processed: Id={Id}",
+                    msg.ModuleTransactionId);
+                return;
+            }
+
+            _logger.LogInformation(
+                "SalesQuotationAmendment Id={Id} status updated to {Status}",
+                msg.ModuleTransactionId, status);
+        }
+
+        private async Task HandleSalesQuotationApprovalAsync(
+            UpdateApprovedRejectedSalesCommand msg, CancellationToken ct)
+        {
+            _logger.LogInformation(
+                "SalesQuotation Approval: Id={Id}, Status={Status}",
+                msg.ModuleTransactionId, msg.Status);
+
+            var status = msg.Status;
+            var quotationId = msg.ModuleTransactionId;
+
+            if (status != MiscEnumEntity.SalesOrderStatusApproved &&
+                status != MiscEnumEntity.SalesOrderStatusRejected)
+                return;
+
+            // Resolve Approved and Rejected MiscMaster Ids
+            var statusApproved = await _miscMasterQueryRepository.GetMiscMasterByName(
+                MiscEnumEntity.SalesOrderApprovalStatus, MiscEnumEntity.SalesOrderStatusApproved);
+            var statusRejected = await _miscMasterQueryRepository.GetMiscMasterByName(
+                MiscEnumEntity.SalesOrderApprovalStatus, MiscEnumEntity.SalesOrderStatusRejected);
+
+            var finalStatusId = status == MiscEnumEntity.SalesOrderStatusApproved
+                ? statusApproved?.Id ?? 0
+                : statusRejected?.Id ?? 0;
+
+            var quotation = await _sqCommandRepo.GetByIdEntityAsync(quotationId);
+            if (quotation == null)
+            {
+                _logger.LogWarning("Sales Quotation not found for Id={QuotationId}", quotationId);
+                return;
+            }
+
+            quotation.StatusId = finalStatusId;
+            await _sqCommandRepo.FinalizeQuotationStatusAsync(quotation);
+
+            _logger.LogInformation(
+                "SalesQuotation Id={QuotationId} status updated to {Status} (StatusId={StatusId})",
+                quotationId, status, finalStatusId);
+        }
+
         private async Task HandleInvoiceApprovalAsync(
             UpdateApprovedRejectedSalesCommand msg,
             List<JsonElement> dynamicFields,
@@ -184,7 +273,8 @@ namespace SalesManagement.Application.Consumers
         {
             // 1. Always update Invoice approval status
             await _invoiceCommandRepo.UpdateApprovalStatusAsync(
-                msg.ModuleTransactionId, msg.Status, ct);
+                msg.ModuleTransactionId, msg.Status,
+                msg.ModifiedBy, msg.ModifiedByName, msg.ModifiedIP, ct);
 
             // 2. Only proceed with EInvoice on Approval (not Rejection)
             if (msg.Status != MiscEnumEntity.InvoiceStatusApproved)
@@ -235,6 +325,7 @@ namespace SalesManagement.Application.Consumers
                 await _invoiceCommandRepo.UpdateApprovalStatusAsync(
                     msg.ModuleTransactionId,
                     MiscEnumEntity.InvoiceStatusPending,
+                    msg.ModifiedBy, msg.ModifiedByName, msg.ModifiedIP,
                     ct);
             }
         }
@@ -276,7 +367,8 @@ namespace SalesManagement.Application.Consumers
             // Update status
             order.StatusId = finalStatusId;
 
-            await _salesOrderCommandRepo.FinalizeOrderStatusAsync(order);
+            await _salesOrderCommandRepo.FinalizeOrderStatusAsync(
+                order, msg.ModifiedBy, msg.ModifiedByName, msg.ModifiedIP);
 
             _logger.LogInformation(
                 "SalesOrder Id={SalesOrderId} status updated to {Status} (StatusId={StatusId})",

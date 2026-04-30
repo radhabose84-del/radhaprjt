@@ -277,7 +277,7 @@ namespace SalesManagement.IntegrationTests.Repositories.StoHeader
             var id = await CreateRepo(ctx).CreateAsync(await BuildEntityAsync("STO_AP1"), 99);
             ctx.ChangeTracker.Clear();
 
-            await CreateRepo(ctx).UpdateApprovalStatusAsync(id, "Approved", CancellationToken.None);
+            await CreateRepo(ctx).UpdateApprovalStatusAsync(id, "Approved", 7, "tester", "127.0.0.1", CancellationToken.None);
             ctx.ChangeTracker.Clear();
 
             var reloaded = await ctx.StoHeader.FirstAsync(x => x.Id == id);
@@ -292,7 +292,7 @@ namespace SalesManagement.IntegrationTests.Repositories.StoHeader
             await EnsurePrerequisitesAsync();
 
             // Should not throw
-            await CreateRepo(ctx).UpdateApprovalStatusAsync(9999999, "Approved", CancellationToken.None);
+            await CreateRepo(ctx).UpdateApprovalStatusAsync(9999999, "Approved", 7, "tester", "127.0.0.1", CancellationToken.None);
         }
 
         [Fact]

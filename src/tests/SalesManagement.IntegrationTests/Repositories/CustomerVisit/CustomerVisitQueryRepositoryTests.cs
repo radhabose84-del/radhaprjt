@@ -47,7 +47,7 @@ namespace SalesManagement.IntegrationTests.Repositories.CustomerVisit
             if (accessFilter == null)
             {
                 accessFilter = new Mock<IMarketingOfficerAccessFilter>(MockBehavior.Loose);
-                accessFilter.Setup(a => a.IsMarketingOfficer()).Returns(false);
+                accessFilter.Setup(a => a.ShouldApplyFilterAsync(It.IsAny<CancellationToken>())).ReturnsAsync(false);
             }
 
             return new CustomerVisitQueryRepository(

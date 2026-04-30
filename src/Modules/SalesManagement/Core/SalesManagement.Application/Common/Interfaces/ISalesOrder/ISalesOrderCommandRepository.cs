@@ -14,6 +14,6 @@ namespace SalesManagement.Application.Common.Interfaces.ISalesOrder
         Task<bool> UpdateMdApprovalDocumentAsync(int id, string fileName, CancellationToken ct);
         Task<SalesOrderWorkFlowDto> GetByIdSalesOrderWorkFlowAsync(int id);
         Task<SalesOrderHeader?> GetByIdEntityAsync(int id);
-        Task<bool> FinalizeOrderStatusAsync(SalesOrderHeader entity);
+        Task<bool> FinalizeOrderStatusAsync(SalesOrderHeader entity, int modifiedBy, string? modifiedByName, string? modifiedIP);
     }
 }

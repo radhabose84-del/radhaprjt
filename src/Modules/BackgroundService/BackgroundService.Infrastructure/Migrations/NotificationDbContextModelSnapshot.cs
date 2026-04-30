@@ -1271,7 +1271,7 @@ namespace BackgroundService.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("TargetTypeId");
 
-                    b.Property<int>("TargetValueId")
+                    b.Property<int?>("TargetValueId")
                         .HasColumnType("int")
                         .HasColumnName("TargetValueId");
 

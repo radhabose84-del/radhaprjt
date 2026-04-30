@@ -724,6 +724,7 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
             return headers;
         }
 
+
         public async Task<InvoicePrintDto?> GetPrintDetailsAsync(int id, bool skipUnitFilter = false)
         {
             var unitId = skipUnitFilter ? null : _ipAddressService.GetUnitId();
@@ -1466,6 +1467,20 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                 }
             }
 
+            return result;
+        }
+
+        public async Task<List<InvoicePrintDto>> GetPrintDetailsByIdsAsync(List<int> invoiceIds, CancellationToken ct)
+        {
+            var result = new List<InvoicePrintDto>();
+            foreach (var invoiceId in invoiceIds)
+            {
+                var printDetail = await GetPrintDetailsAsync(invoiceId);
+                if (printDetail != null)
+                {
+                    result.Add(printDetail);
+                }
+            }
             return result;
         }
 

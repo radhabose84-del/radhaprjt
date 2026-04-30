@@ -26,6 +26,7 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesQuotation
             Mock<IPaymentTermLookup>? paymentTermLookup = null,
             Mock<IItemLookup>? itemLookup = null,
             Mock<IHSNLookup>? hsnLookup = null,
+            Mock<IUOMLookup>? uomLookup = null,
             Mock<IMarketingOfficerAccessFilter>? accessFilter = null,
             Mock<IIPAddressService>? ip = null)
         {
@@ -64,10 +65,18 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesQuotation
                 hsnLookup.Setup(h => h.GetAllAsync(It.IsAny<CancellationToken>()))
                     .ReturnsAsync(new List<HSNLookupDto> { new() { Id = 1, HSNCode = "HSN1" } });
             }
+            if (uomLookup == null)
+            {
+                uomLookup = new Mock<IUOMLookup>(MockBehavior.Loose);
+                uomLookup.Setup(u => u.GetByIdsAsync(It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync((IEnumerable<int> ids, CancellationToken _) =>
+                        (IReadOnlyList<UOMLookupDto>)ids.Select(id =>
+                            new UOMLookupDto { Id = id, Code = "U" + id, UOMName = "UOM " + id }).ToList());
+            }
             if (accessFilter == null)
             {
                 accessFilter = new Mock<IMarketingOfficerAccessFilter>(MockBehavior.Loose);
-                accessFilter.Setup(a => a.IsMarketingOfficer()).Returns(false);
+                accessFilter.Setup(a => a.ShouldApplyFilterAsync(It.IsAny<CancellationToken>())).ReturnsAsync(false);
             }
             if (ip == null)
             {
@@ -78,7 +87,7 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesQuotation
             return new SalesQuotationQueryRepository(
                 new SqlConnection(_fixture.ConnectionString),
                 partyLookup.Object, paymentTermLookup.Object, itemLookup.Object,
-                hsnLookup.Object, accessFilter.Object, ip.Object);
+                hsnLookup.Object, uomLookup.Object, accessFilter.Object, ip.Object);
         }
 
         private async Task<int> EnsureMiscAsync(ApplicationDbContext ctx, int miscTypeId, string code)
@@ -325,6 +334,91 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesQuotation
             var result = await CreateRepo().IsSalesQuotationPendingAsync(id);
 
             result.Should().BeTrue();
+        }
+
+        // ----- Variant / UOM / DiscountType validation methods -----
+
+        [Fact]
+        public async Task VariantExistsAsync_Should_Return_True_When_Lookup_Returns_Match()
+        {
+            var result = await CreateRepo().VariantExistsAsync(42);
+            result.Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task VariantExistsAsync_Should_Return_False_When_Lookup_Empty()
+        {
+            var emptyItemLookup = new Mock<IItemLookup>(MockBehavior.Loose);
+            emptyItemLookup.Setup(i => i.GetByIdsAsync(It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((IReadOnlyList<ItemLookupDto>)new List<ItemLookupDto>());
+
+            var result = await CreateRepo(itemLookup: emptyItemLookup).VariantExistsAsync(9999);
+
+            result.Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task UOMExistsAsync_Should_Return_True_When_Lookup_Returns_Match()
+        {
+            var result = await CreateRepo().UOMExistsAsync(7);
+            result.Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task UOMExistsAsync_Should_Return_False_When_Lookup_Empty()
+        {
+            var emptyUomLookup = new Mock<IUOMLookup>(MockBehavior.Loose);
+            emptyUomLookup.Setup(u => u.GetByIdsAsync(It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((IReadOnlyList<UOMLookupDto>)new List<UOMLookupDto>());
+
+            var result = await CreateRepo(uomLookup: emptyUomLookup).UOMExistsAsync(9999);
+
+            result.Should().BeFalse();
+        }
+
+        private async Task<int> EnsureQuotDiscTypeAsync(string miscCode = "BY_PERCENTAGE")
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var mt = await ctx.MiscTypeMaster.FirstOrDefaultAsync(x => x.MiscTypeCode == "QUOT_DISC_TYPE");
+            if (mt == null)
+            {
+                mt = new SalesManagement.Domain.Entities.MiscTypeMaster
+                {
+                    MiscTypeCode = "QUOT_DISC_TYPE", Description = "Quotation Discount Type",
+                    IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted
+                };
+                await ctx.MiscTypeMaster.AddAsync(mt);
+                await ctx.SaveChangesAsync();
+            }
+            return await EnsureMiscAsync(ctx, mt.Id, miscCode);
+        }
+
+        [Fact]
+        public async Task DiscountTypeExistsAsync_Should_Return_True_For_QuotDiscType_Row()
+        {
+            var dtId = await EnsureQuotDiscTypeAsync("BY_PERCENTAGE");
+
+            var result = await CreateRepo().DiscountTypeExistsAsync(dtId);
+
+            result.Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task DiscountTypeExistsAsync_Should_Return_False_For_OtherMiscType_Row()
+        {
+            // dtId belongs to MiscType "SQQ_MT", not QUOT_DISC_TYPE — must be rejected by the filter
+            var (dtId, _) = await EnsureMiscChainAsync();
+
+            var result = await CreateRepo().DiscountTypeExistsAsync(dtId);
+
+            result.Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task DiscountTypeExistsAsync_Should_Return_False_For_Missing()
+        {
+            var result = await CreateRepo().DiscountTypeExistsAsync(9999999);
+            result.Should().BeFalse();
         }
     }
 }
