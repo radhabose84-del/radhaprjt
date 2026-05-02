@@ -18,6 +18,7 @@
             public bool IsCapitalItem { get; set; }
             public bool MaintainStock { get; set; }
             public bool HasVariants { get; set; }
+            public bool IsHazardous { get; set; }
             public int? ParentItemId { get; set; }
             public string? ItemImage { get; set; }
             public int IsActive { get; set; }
@@ -70,6 +71,12 @@
             public int Id { get; set; }
             public decimal? Weight { get; set; }
             public int? WeightUomId { get; set; }
+            public decimal? Length { get; set; }
+            public decimal? Breadth { get; set; }
+            public decimal? Height { get; set; }
+            public decimal? Volume { get; set; }
+            public int? DimensionUomId { get; set; }
+            public string? DimensionUOM { get; set; }
             public int? DefaultMaterialRequestTypeId { get; set; }
             public int? ValuationMethodId { get; set; }
             public int? ShelfLife { get; set; }

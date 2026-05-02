@@ -65,7 +65,7 @@ public class ApprovalResultDispatcherConsumer : IConsumer<ApprovedRejectedEvent>
         "Complaints",
         "QC Review",
         "Resolution",
-        "Sales Order Amendment"
+        "Sales Order Amendment","Sales Quotation","Sales Quotation Amendment"
     };
 
     private readonly IInboxRepository _inbox;

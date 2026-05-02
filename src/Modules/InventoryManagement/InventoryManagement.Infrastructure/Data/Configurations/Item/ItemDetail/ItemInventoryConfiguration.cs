@@ -34,9 +34,38 @@ namespace InventoryManagement.Infrastructure.Data.Configurations.Item.ItemDetail
              .HasColumnName("WeightUomId")
              .HasColumnType("int")
              .IsRequired(false);
-            b.HasOne(x => x.WeightUOM)             
-             .WithMany(g => g.InventoryUOM) 
+            b.HasOne(x => x.WeightUOM)
+             .WithMany(g => g.InventoryUOM)
              .HasForeignKey(x => x.WeightUomId)
+             .OnDelete(DeleteBehavior.Restrict);
+
+            b.Property(x => x.Length)
+             .HasColumnName("Length")
+             .HasColumnType("decimal(18,4)")
+             .IsRequired(false);
+
+            b.Property(x => x.Breadth)
+             .HasColumnName("Breadth")
+             .HasColumnType("decimal(18,4)")
+             .IsRequired(false);
+
+            b.Property(x => x.Height)
+             .HasColumnName("Height")
+             .HasColumnType("decimal(18,4)")
+             .IsRequired(false);
+
+            b.Property(x => x.Volume)
+             .HasColumnName("Volume")
+             .HasColumnType("decimal(18,4)")
+             .IsRequired(false);
+
+            b.Property(x => x.DimensionUomId)
+             .HasColumnName("DimensionUomId")
+             .HasColumnType("int")
+             .IsRequired(false);
+            b.HasOne(x => x.DimensionUOM)
+             .WithMany(g => g.InventoryDimensionUOM)
+             .HasForeignKey(x => x.DimensionUomId)
              .OnDelete(DeleteBehavior.Restrict);
 
             b.Property(x => x.DefaultMaterialRequestTypeId)

@@ -19,6 +19,7 @@ namespace InventoryManagement.Domain.Entities
         public ICollection<ItemUOM>? ItemUOM { get; set; }
         public ICollection<ItemPurchase>? PurchaseUOM { get; set; }
         public ICollection<ItemInventory>? InventoryUOM { get; set; }
+        public ICollection<ItemInventory>? InventoryDimensionUOM { get; set; }
         public ICollection<ItemSale>? SalesUOM { get; set; }
 
     }

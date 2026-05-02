@@ -41,7 +41,8 @@ namespace InventoryManagement.UnitTests.Domain
                 IsStockItem = true,
                 MaintainStock = true,
                 HasVariants = false,
-                IsCapitalItem = false
+                IsCapitalItem = false,
+                IsHazardous = true
             };
 
             entity.Id.Should().Be(1);
@@ -55,6 +56,14 @@ namespace InventoryManagement.UnitTests.Domain
             entity.MaintainStock.Should().BeTrue();
             entity.HasVariants.Should().BeFalse();
             entity.IsCapitalItem.Should().BeFalse();
+            entity.IsHazardous.Should().BeTrue();
+        }
+
+        [Fact]
+        public void ItemMaster_DefaultIsHazardous_ShouldBeFalse()
+        {
+            var entity = new ItemMaster();
+            entity.IsHazardous.Should().BeFalse();
         }
 
         [Fact]

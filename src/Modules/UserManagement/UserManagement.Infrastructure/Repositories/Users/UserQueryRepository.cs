@@ -145,7 +145,6 @@ namespace UserManagement.Infrastructure.Repositories.Users
         LEFT JOIN AppSecurity.UserDivision ud ON ud.UserId = ur.UserId AND ud.IsActive = 1
         LEFT JOIN AppSecurity.UserGroup UG ON UG.Id = ur.UserGroupId AND UG.IsActive = 1
         LEFT JOIN AppSecurity.UserDepartment udd ON udd.UserId = ur.UserId AND udd.IsActive = 1
-
         WHERE ur.IsDeleted = 0 AND ur.UserId = @UserId";
 
     var userDictionary = new Dictionary<int, User>();

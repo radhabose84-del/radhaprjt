@@ -60,6 +60,34 @@ namespace InventoryManagement.IntegrationTests.Repositories.Item
             saved.ItemName.Should().Be("Item2");
         }
 
+        [Fact]
+        public async Task CreateAsync_Should_Default_IsHazardous_To_False()
+        {
+            await ClearAsync();
+            await using var ctx = _fixture.CreateFreshDbContext();
+
+            var id = await CreateRepo(ctx).CreateAsync(BuildEntity("HAZ1", "NotHazardous"));
+            ctx.ChangeTracker.Clear();
+            var saved = await ctx.ItemMaster.FirstAsync(x => x.Id == id);
+
+            saved.IsHazardous.Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task CreateAsync_Should_Persist_IsHazardous_True()
+        {
+            await ClearAsync();
+            await using var ctx = _fixture.CreateFreshDbContext();
+
+            var entity = BuildEntity("HAZ2", "HazardousItem");
+            entity.IsHazardous = true;
+            var id = await CreateRepo(ctx).CreateAsync(entity);
+            ctx.ChangeTracker.Clear();
+            var saved = await ctx.ItemMaster.FirstAsync(x => x.Id == id);
+
+            saved.IsHazardous.Should().BeTrue();
+        }
+
         // --- GetTrackingAsync ---
 
         [Fact]

@@ -124,5 +124,50 @@ namespace InventoryManagement.IntegrationTests.Repositories.Item
             reloaded.ReorderLevel.Should().Be(100);
             reloaded.ReorderQty.Should().Be(200);
         }
+
+        [Fact]
+        public async Task CreateAsync_Should_Persist_DimensionFields()
+        {
+            await ClearAsync();
+            var itemId = await SeedItemAsync("DIM1");
+            await using var ctx = _fixture.CreateFreshDbContext();
+
+            await CreateRepo(ctx).CreateAsync(new ItemInventory
+            {
+                ItemId = itemId,
+                Length = 100m,
+                Breadth = 50m,
+                Height = 25m,
+                Volume = 125000m
+            });
+            await ctx.SaveChangesAsync();
+
+            var saved = await ctx.ItemInventory.AsNoTracking().FirstAsync(x => x.ItemId == itemId);
+            saved.Length.Should().Be(100m);
+            saved.Breadth.Should().Be(50m);
+            saved.Height.Should().Be(25m);
+            saved.Volume.Should().Be(125000m);
+        }
+
+        [Fact]
+        public async Task CreateAsync_Should_Leave_DimensionFields_Null_When_Not_Set()
+        {
+            await ClearAsync();
+            var itemId = await SeedItemAsync("DIM2");
+            await using var ctx = _fixture.CreateFreshDbContext();
+
+            await CreateRepo(ctx).CreateAsync(new ItemInventory
+            {
+                ItemId = itemId, Weight = 1m
+            });
+            await ctx.SaveChangesAsync();
+
+            var saved = await ctx.ItemInventory.AsNoTracking().FirstAsync(x => x.ItemId == itemId);
+            saved.Length.Should().BeNull();
+            saved.Breadth.Should().BeNull();
+            saved.Height.Should().BeNull();
+            saved.Volume.Should().BeNull();
+            saved.DimensionUomId.Should().BeNull();
+        }
     }
 }
