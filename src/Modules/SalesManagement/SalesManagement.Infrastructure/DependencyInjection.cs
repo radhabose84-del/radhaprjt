@@ -79,6 +79,8 @@ using SalesManagement.Application.Common.Interfaces.IStockLedger;
 using SalesManagement.Infrastructure.Repositories.Reports.StockLedger;
 using SalesManagement.Application.Common.Interfaces.ILeadConversionFunnel;
 using SalesManagement.Infrastructure.Repositories.Reports.LeadConversionFunnel;
+using SalesManagement.Application.Common.Interfaces.ISalesProjection;
+using SalesManagement.Infrastructure.Repositories.Reports.SalesProjection;
 using SalesManagement.Application.Common.Interfaces.IAgentCustomerMapping;
 using SalesManagement.Infrastructure.Repositories.AgentCustomerMapping;
 using SalesManagement.Application.Common.Interfaces.IOutbox;
@@ -364,6 +366,9 @@ namespace SalesManagement.Infrastructure
 
             // ── Lead Conversion Funnel Report Repository ─────────────────────────
             services.AddScoped<ILeadConversionFunnelRepository, LeadConversionFunnelRepository>();
+
+            // ── Sales Projection Report Repository ─────────────────────────────────
+            services.AddScoped<ISalesProjectionRepository, SalesProjectionRepository>();
 
             // ── Sales Stock Ledger Service (cross-module, non-cached — transactional table) ──
             services.AddScoped<ISalesStockLedgerService, SalesStockLedgerLookupRepository>();

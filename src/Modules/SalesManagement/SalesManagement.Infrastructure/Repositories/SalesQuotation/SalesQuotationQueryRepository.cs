@@ -83,6 +83,9 @@ namespace SalesManagement.Infrastructure.Repositories.SalesQuotation
                     mm.Description AS DeliveryTermDescription,
                     h.StatusId,
                     sm.Description AS StatusName,
+                    h.RevisionNumber,
+                    amend.StatusId AS AmendmentStatusId,
+                    ams.Description AS AmendmentStatusName,
                     h.FreightCharges, h.OtherCharges,
                     h.TotalBasicAmount, h.TotalDiscount,
                     h.NetTaxableAmount, h.TotalTax, h.GrandTotal,
@@ -100,6 +103,13 @@ namespace SalesManagement.Infrastructure.Repositories.SalesQuotation
                     FROM Sales.SalesOrderHeader soh
                     WHERE soh.SalesQuotationHeaderId = h.Id AND soh.IsDeleted = 0
                 ) so
+                OUTER APPLY (
+                    SELECT TOP 1 a.StatusId
+                    FROM Sales.SalesQuotationAmendmentHeader a
+                    WHERE a.SalesQuotationHeaderId = h.Id AND a.IsDeleted = 0
+                    ORDER BY a.RevisionNumber DESC
+                ) amend
+                LEFT JOIN Sales.MiscMaster ams ON amend.StatusId = ams.Id AND ams.IsDeleted = 0
                 WHERE h.IsDeleted = 0 {searchFilter} {moFilter}
                 ORDER BY h.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
