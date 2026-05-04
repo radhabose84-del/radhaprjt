@@ -36,7 +36,7 @@ public class GetRfqByIdQueryHandler : IRequestHandler<GetRfqByIdQuery, RfqDto>
 
     public async Task<RfqDto> Handle(GetRfqByIdQuery request, CancellationToken ct)
     {
-        var agg = await _repo.GetAggregateAsync(request.Id, ct)
+        var agg = await _repo.GetAggregateAsync(request.Id, ct, request.ExcludeQuotation)
                   ?? throw new ExceptionRules("RFQ not found.");
 
         var result = _mapper.Map<RfqDto>(agg);
