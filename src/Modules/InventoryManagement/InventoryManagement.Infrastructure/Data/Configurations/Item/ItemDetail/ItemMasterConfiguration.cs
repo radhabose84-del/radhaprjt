@@ -73,6 +73,7 @@
                 b.Property(x => x.MaintainStock).HasColumnName("MaintainStock").HasColumnType("bit");
                 b.Property(x => x.HasVariants).HasColumnName("HasVariants").HasColumnType("bit");
                 b.Property(x => x.IsCapitalItem).HasColumnName("IsCapitalItem").HasColumnType("bit");
+                b.Property(x => x.IsHazardous).HasColumnName("IsHazardous").HasColumnType("bit").HasDefaultValue(false).IsRequired();
 
                 // Parent template self-reference: block delete if children exist
                 b.Property(x => x.ParentItemId).HasColumnName("ParentItemId").HasColumnType("int").IsRequired(false);

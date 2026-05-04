@@ -26,7 +26,12 @@ namespace InventoryManagement.UnitTests.Domain
                 SafetyStock = 20,
                 AllowNegativeStock = false,
                 BatchManagement = true,
-                ApplyBatchNumber = true
+                ApplyBatchNumber = true,
+                Length = 10.5m,
+                Breadth = 5.25m,
+                Height = 2.0m,
+                Volume = 110.25m,
+                DimensionUomId = 7
             };
 
             entity.Id.Should().Be(1);
@@ -40,6 +45,23 @@ namespace InventoryManagement.UnitTests.Domain
             entity.AllowNegativeStock.Should().BeFalse();
             entity.BatchManagement.Should().BeTrue();
             entity.ApplyBatchNumber.Should().BeTrue();
+            entity.Length.Should().Be(10.5m);
+            entity.Breadth.Should().Be(5.25m);
+            entity.Height.Should().Be(2.0m);
+            entity.Volume.Should().Be(110.25m);
+            entity.DimensionUomId.Should().Be(7);
+        }
+
+        [Fact]
+        public void ItemInventory_DimensionFields_ShouldDefaultToNull()
+        {
+            var entity = new ItemInventory();
+            entity.Length.Should().BeNull();
+            entity.Breadth.Should().BeNull();
+            entity.Height.Should().BeNull();
+            entity.Volume.Should().BeNull();
+            entity.DimensionUomId.Should().BeNull();
+            entity.DimensionUOM.Should().BeNull();
         }
 
         [Fact]
@@ -59,7 +81,12 @@ namespace InventoryManagement.UnitTests.Domain
                 ReorderLevel = null,
                 ReorderQty = null,
                 RequestTypeId = null,
-                SafetyStock = null
+                SafetyStock = null,
+                Length = null,
+                Breadth = null,
+                Height = null,
+                Volume = null,
+                DimensionUomId = null
             };
 
             entity.Weight.Should().BeNull();
@@ -67,6 +94,11 @@ namespace InventoryManagement.UnitTests.Domain
             entity.ShelfLife.Should().BeNull();
             entity.BatchNumberSeries.Should().BeNull();
             entity.ReorderLevel.Should().BeNull();
+            entity.Length.Should().BeNull();
+            entity.Breadth.Should().BeNull();
+            entity.Height.Should().BeNull();
+            entity.Volume.Should().BeNull();
+            entity.DimensionUomId.Should().BeNull();
         }
 
         [Fact]

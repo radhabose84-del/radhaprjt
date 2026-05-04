@@ -7,7 +7,13 @@ namespace InventoryManagement.Domain.Entities.Item.ItemDetail
         public ItemMaster Item { get; set; } = null!; 
         public decimal? Weight { get; set; }
         public int? WeightUomId { get; set; }
-        public UOM? WeightUOM { get; set; } 
+        public UOM? WeightUOM { get; set; }
+        public decimal? Length { get; set; }
+        public decimal? Breadth { get; set; }
+        public decimal? Height { get; set; }
+        public decimal? Volume { get; set; }
+        public int? DimensionUomId { get; set; }
+        public UOM? DimensionUOM { get; set; }
         public int? DefaultMaterialRequestTypeId { get; set; }
         public MiscMaster? MiscDefaultMaterialRequestType { get; set; } 
         public int? ValuationMethodId { get; set; }
