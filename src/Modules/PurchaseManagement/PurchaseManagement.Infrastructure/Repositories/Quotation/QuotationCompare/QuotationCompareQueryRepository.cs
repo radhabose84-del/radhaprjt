@@ -187,9 +187,11 @@ namespace PurchaseManagement.Infrastructure.Repositories.Quotation.QuotationComp
                     JOIN Purchase.MiscTypeMaster              AS MTy ON MTy.MiscTypeCode = 'ApprovalStatus'
                     JOIN Purchase.MiscMaster                  AS MSt ON MSt.MiscTypeId   = MTy.Id
                     WHERE RM.UnitId = @UnitId
+                    AND QCH.StatusId = MSt.Id
                     AND MSt.Code  = 'Pending'
                     AND QH.IsDeleted = 0
                     AND QH.IsActive  = 1
+                    AND RM.IsDeleted = 0
                 ),
                 filtered AS (
                     SELECT * FROM base
