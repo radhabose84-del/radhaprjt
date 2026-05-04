@@ -20,7 +20,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesLead
             _documentSequenceLookup = documentSequenceLookup;
         }
 
-        public async Task<int> CreateAsync(Domain.Entities.SalesLead entity, int transactionTypeId)
+        public async Task<int> CreateAsync(Domain.Entities.SalesLead entity, int transactionTypeId, Domain.Entities.SalesContact? newContact = null)
         {
             var strategy = _applicationDbContext.Database.CreateExecutionStrategy();
 
@@ -29,6 +29,14 @@ namespace SalesManagement.Infrastructure.Repositories.SalesLead
                 using var transaction = await _applicationDbContext.Database.BeginTransactionAsync();
                 try
                 {
+                    // Create contact inside the same transaction so it rolls back if lead creation fails
+                    if (newContact != null)
+                    {
+                        await _applicationDbContext.SalesContact.AddAsync(newContact);
+                        await _applicationDbContext.SaveChangesAsync();
+                        entity.ContactId = newContact.Id;
+                    }
+
                     await _applicationDbContext.SalesLead.AddAsync(entity);
                     await _applicationDbContext.SaveChangesAsync();
 
