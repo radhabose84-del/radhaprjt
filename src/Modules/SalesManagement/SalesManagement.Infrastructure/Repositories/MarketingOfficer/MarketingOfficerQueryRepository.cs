@@ -1,5 +1,6 @@
 using System.Data;
 using Dapper;
+using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Application.Common.Interfaces.IMarketingOfficer;
 using SalesManagement.Application.MarketingOfficer.Dto;
 
@@ -8,10 +9,14 @@ namespace SalesManagement.Infrastructure.Repositories.MarketingOfficer
     public class MarketingOfficerQueryRepository : IMarketingOfficerQueryRepository
     {
         private readonly IDbConnection _dbConnection;
+        private readonly IMarketingOfficerAccessFilter _accessFilter;
 
-        public MarketingOfficerQueryRepository(IDbConnection dbConnection)
+        public MarketingOfficerQueryRepository(
+            IDbConnection dbConnection,
+            IMarketingOfficerAccessFilter accessFilter)
         {
             _dbConnection = dbConnection;
+            _accessFilter = accessFilter;
         }
 
         public async Task<(List<MarketingOfficerDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
@@ -79,6 +84,25 @@ namespace SalesManagement.Infrastructure.Repositories.MarketingOfficer
 
         public async Task<IReadOnlyList<MarketingOfficerLookupDto>> AutocompleteAsync(string term, CancellationToken ct)
         {
+            // If marketing officer is logged in (EmpId in token), show only themselves
+            if (await _accessFilter.ShouldApplyFilterAsync(ct))
+            {
+                var officerId = _accessFilter.GetCurrentMarketingOfficerId();
+                if (officerId.HasValue)
+                {
+                    const string selfSql = """
+                        SELECT TOP 1 Id, EmployeeNo, EmployeeName
+                        FROM Sales.MarketingOfficer
+                        WHERE Id = @OfficerId AND IsDeleted = 0 AND IsActive = 1
+                    """;
+
+                    var self = await _dbConnection.QueryAsync<MarketingOfficerLookupDto>(
+                        new CommandDefinition(selfSql, new { OfficerId = officerId.Value }, cancellationToken: ct));
+                    return self.ToList();
+                }
+            }
+
+            // Admin/superuser (no EmpId or BypassDataAccess) — show all
             const string sql = """
                 SELECT TOP 20 Id, EmployeeNo, EmployeeName
                 FROM Sales.MarketingOfficer
