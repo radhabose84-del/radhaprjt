@@ -80,5 +80,50 @@ namespace MaintenanceManagement.UnitTests.Validators.MaintenanceRequest
             result.ShouldNotHaveValidationErrorFor(x => x.MachineId);
             result.ShouldNotHaveValidationErrorFor(x => x.RequestTypeId);
         }
+
+        // SCRUM-1475: duplicate-machine guard
+
+        [Fact]
+        public async Task Validate_MachineHasActiveRequest_FailsValidation()
+        {
+            _mockQueryRepo
+                .Setup(r => r.HasActiveRequestForMachineAsync(5, null))
+                .ReturnsAsync(true);
+
+            var command = new CreateMaintenanceRequestCommand
+            {
+                RequestTypeId = 1,
+                MaintenanceTypeId = 1,
+                MachineId = 5
+            };
+
+            var result = await CreateValidator().TestValidateAsync(command);
+
+            result.ShouldHaveValidationErrorFor(x => x.MachineId)
+                  .WithErrorMessage("A request for this machine is already Open / In Progress. " +
+                                    "Please resolve the existing request before creating a new one.");
+        }
+
+        [Fact]
+        public async Task Validate_MachineHasNoActiveRequest_PassesDuplicateCheck()
+        {
+            _mockQueryRepo
+                .Setup(r => r.HasActiveRequestForMachineAsync(5, null))
+                .ReturnsAsync(false);
+
+            var command = new CreateMaintenanceRequestCommand
+            {
+                RequestTypeId = 1,
+                MaintenanceTypeId = 1,
+                MachineId = 5
+            };
+
+            var result = await CreateValidator().TestValidateAsync(command);
+
+            // No error specifically for the duplicate-machine rule
+            result.Errors.Should().NotContain(e =>
+                e.PropertyName == nameof(CreateMaintenanceRequestCommand.MachineId) &&
+                e.ErrorMessage.StartsWith("A request for this machine is already"));
+        }
     }
 }

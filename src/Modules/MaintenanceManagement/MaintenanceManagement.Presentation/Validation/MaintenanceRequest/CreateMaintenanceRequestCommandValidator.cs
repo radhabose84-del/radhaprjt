@@ -47,7 +47,15 @@ namespace MaintenanceManagement.Presentation.Validation.MaintenanceRequest
                         RuleFor(x => x.RequestTypeId)
                             .GreaterThan(0)
                              .WithMessage($"{nameof(CreateMaintenanceRequestCommand.RequestTypeId)} {rule.Error}");
-                       
+
+                        // SCRUM-1475: block creating a request when the machine already has an Open / InProgress one
+                        RuleFor(x => x.MachineId)
+                            .MustAsync(async (machineId, ct) =>
+                                !await _maintenanceRequestQueryRepository.HasActiveRequestForMachineAsync(machineId))
+                            .WithMessage("A request for this machine is already Open / In Progress. " +
+                                         "Please resolve the existing request before creating a new one.")
+                            .When(x => x.MachineId > 0);
+
                         break;
 
                     default:
