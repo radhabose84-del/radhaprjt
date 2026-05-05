@@ -59,13 +59,31 @@ namespace BackgroundService.Application.Consumers
 
             try
             {
+                // The first override user id (if set) is passed to the SP as @UserId so the SP can
+                // resolve AGENT_MO_USER / AGENT_MO_REPORTS_TO target types via the Users table.
+                var userIdParam = msg.OverrideTargetUserIds is { Count: > 0 }
+                    ? msg.OverrideTargetUserIds[0].ToString()
+                    : string.Empty;
+
                 var (_, _, _, _, userIds, subject, header, body, footer, lang,
                      eventTypeId, eventRuleId, channelId, _templateId, _isTable,apiToken)
                     = await _resolverHandler.ResolveNotificationTemplatesAsync(
                         msg.UnitId, msg.ModuleName, msg.EventTypeId,
                         msg.Email ?? "", msg.ccMail ?? "", msg.Mobile ?? "",
+                        userIdParam,
                         msg.param1, msg.param2, msg.param3,
                         msg.param4, msg.param5, msg.param6, msg.param7, msg.param8, msg.param9, msg.param10);
+
+                // Caller-supplied recipient override — used by handlers that resolve a specific user
+                // in code (e.g., Sales Order → Agent's Marketing Officer). Templates still come from
+                // the SP above; only the recipient list is replaced.
+                if (msg.OverrideTargetUserIds is { Count: > 0 })
+                {
+                    _logger.LogInformation(
+                        "InApp recipient override applied. CorrId={CorrelationId}, OverrideUsers={OverrideCount}, SpResolvedUsers={SpCount}",
+                        msg.CorrelationId, msg.OverrideTargetUserIds.Count, userIds?.Count ?? 0);
+                    userIds = msg.OverrideTargetUserIds;
+                }
 
                 if (userIds == null || userIds.Count == 0)
                 {
