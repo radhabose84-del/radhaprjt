@@ -38,9 +38,9 @@ namespace PurchaseManagement.Presentation.Controllers
 
         // GET RFQ BY ID
         [HttpGet("{id:int}")]
-        public async Task<IActionResult> GetById(int id, CancellationToken ct)
+        public async Task<IActionResult> GetById(int id, [FromQuery] bool excludeQuotation = false, CancellationToken ct = default)
         {
-            var dto = await _mediator.Send(new GetRfqByIdQuery(id), ct);
+            var dto = await _mediator.Send(new GetRfqByIdQuery(id, excludeQuotation), ct);
             return Ok(new ApiResponse<RfqDto>(StatusCodes.Status200OK, "OK", dto));
         }
 

@@ -3,7 +3,7 @@ using Contracts.Common;
 using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Finance;
 using MediatR;
-using SalesManagement.Application.Common.Interfaces.ISalesContact;
+using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Application.Common.Interfaces.ISalesLead;
 using SalesManagement.Domain.Common;
 using SalesManagement.Domain.Events;
@@ -15,39 +15,40 @@ namespace SalesManagement.Application.SalesLead.Commands.CreateSalesLead
     {
         private readonly ISalesLeadCommandRepository _commandRepository;
         private readonly ISalesLeadQueryRepository _queryRepository;
-        private readonly ISalesContactCommandRepository _salesContactCommandRepository;
         private readonly IMediator _mediator;
         private readonly IMapper _mapper;
         private readonly IDocumentSequenceLookup _documentSequenceLookup;
         private readonly IIPAddressService _ipAddressService;
+        private readonly IMarketingOfficerAccessFilter _accessFilter;
 
         public CreateSalesLeadCommandHandler(
             ISalesLeadCommandRepository commandRepository,
             ISalesLeadQueryRepository queryRepository,
-            ISalesContactCommandRepository salesContactCommandRepository,
             IMediator mediator,
             IMapper mapper,
             IDocumentSequenceLookup documentSequenceLookup,
-            IIPAddressService ipAddressService)
+            IIPAddressService ipAddressService,
+            IMarketingOfficerAccessFilter accessFilter)
         {
             _commandRepository = commandRepository;
             _queryRepository = queryRepository;
-            _salesContactCommandRepository = salesContactCommandRepository;
             _mediator = mediator;
             _mapper = mapper;
             _documentSequenceLookup = documentSequenceLookup;
             _ipAddressService = ipAddressService;
+            _accessFilter = accessFilter;
         }
 
         public async Task<ApiResponseDTO<CreateSalesLeadResponseDto>> Handle(CreateSalesLeadCommand request, CancellationToken cancellationToken)
         {
             var entity = _mapper.Map<Domain.Entities.SalesLead>(request);
 
-            // Auto-create SalesContact when ContactId is null and ContactName is provided
+            // Build contact entity (if needed) — NOT persisted yet; passed to repository for transactional creation
+            Domain.Entities.SalesContact? newContact = null;
             if (!request.ContactId.HasValue && !string.IsNullOrWhiteSpace(request.ContactName))
             {
                 var primaryContactTypeId = await _queryRepository.GetPrimaryContactTypeIdAsync();
-                var newContact = new Domain.Entities.SalesContact
+                newContact = new Domain.Entities.SalesContact
                 {
                     ContactName = request.ContactName,
                     MobileNumber = request.MobileNumber,
@@ -57,8 +58,6 @@ namespace SalesManagement.Application.SalesLead.Commands.CreateSalesLead
                     IsActive = Status.Active,
                     IsDeleted = IsDelete.NotDeleted
                 };
-                var contactId = await _salesContactCommandRepository.CreateAsync(newContact);
-                entity.ContactId = contactId;
             }
 
             // Generate LeadNo from DocumentSequence
@@ -76,7 +75,8 @@ namespace SalesManagement.Application.SalesLead.Commands.CreateSalesLead
             entity.LeadNo = leadNo
                 ?? throw new ExceptionRules("No document sequence configured for Sales Lead.");
 
-            var newId = await _commandRepository.CreateAsync(entity, typeId.Value);
+            // Contact + Lead + DocNo increment all happen inside a single transaction
+            var newId = await _commandRepository.CreateAsync(entity, typeId.Value, newContact);
 
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Create",

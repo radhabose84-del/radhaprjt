@@ -7,7 +7,7 @@ namespace PurchaseManagement.Application.Common.Interfaces.IQuotation.IRfqEntry
 {
     public interface IRfqQueryRepository
     {
-        Task<RfqMaster?> GetAggregateAsync(int id, CancellationToken ct = default);
+        Task<RfqMaster?> GetAggregateAsync(int id, CancellationToken ct = default, bool excludeQuotation = false);
 
 
         Task<(IReadOnlyList<RfqListItemDto> Items, int Total)>  GetAllAsync(int page, int pageSize, int? statusId, string? searchTerm, CancellationToken ct);

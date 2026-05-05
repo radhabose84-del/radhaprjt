@@ -1,6 +1,7 @@
 using AutoMapper;
 using Contracts.Common;
 using MediatR;
+using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Application.Common.Interfaces.ISalesContact;
 using SalesManagement.Application.Common.Interfaces.ISalesLead;
 using SalesManagement.Domain.Events;
@@ -15,24 +16,35 @@ namespace SalesManagement.Application.SalesLead.Commands.UpdateSalesLead
         private readonly ISalesContactCommandRepository _salesContactCommandRepository;
         private readonly IMediator _mediator;
         private readonly IMapper _mapper;
+        private readonly IMarketingOfficerAccessFilter _accessFilter;
 
         public UpdateSalesLeadCommandHandler(
             ISalesLeadCommandRepository commandRepository,
             ISalesLeadQueryRepository queryRepository,
             ISalesContactCommandRepository salesContactCommandRepository,
             IMediator mediator,
-            IMapper mapper)
+            IMapper mapper,
+            IMarketingOfficerAccessFilter accessFilter)
         {
             _commandRepository = commandRepository;
             _queryRepository = queryRepository;
             _salesContactCommandRepository = salesContactCommandRepository;
             _mediator = mediator;
             _mapper = mapper;
+            _accessFilter = accessFilter;
         }
 
         public async Task<ApiResponseDTO<int>> Handle(UpdateSalesLeadCommand request, CancellationToken cancellationToken)
         {
             var entity = _mapper.Map<Domain.Entities.SalesLead>(request);
+
+            // Auto-set MarketingOfficerId from token when user is a marketing officer
+            if (await _accessFilter.ShouldApplyFilterAsync(cancellationToken))
+            {
+                var officerId = _accessFilter.GetCurrentMarketingOfficerId();
+                if (officerId.HasValue)
+                    entity.MarketingOfficerId = officerId.Value;
+            }
 
             // Auto-create SalesContact when ContactId is null and ContactName is provided
             if (!request.ContactId.HasValue && !string.IsNullOrWhiteSpace(request.ContactName))
