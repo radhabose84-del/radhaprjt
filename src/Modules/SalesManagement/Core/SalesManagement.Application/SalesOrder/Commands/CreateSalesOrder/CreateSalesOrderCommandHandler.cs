@@ -2,7 +2,11 @@ using System.Text.Json;
 using AutoMapper;
 using Contracts.Common;
 using Contracts.Commands.Workflow;
+using Contracts.Events.Notifications;
+using Contracts.Interfaces.Lookups.Common;
 using Contracts.Interfaces.Lookups.Finance;
+using Contracts.Interfaces.Lookups.Party;
+using Contracts.Interfaces.Lookups.Sales;
 using Contracts.Interfaces.Lookups.Users;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -27,6 +31,9 @@ namespace SalesManagement.Application.SalesOrder.Commands.CreateSalesOrder
         private readonly IDocumentSequenceLookup _documentSequenceLookup;
         private readonly ILogger<CreateSalesOrderCommandHandler> _logger;
         private readonly IOutboxEventPublisher _outboxEventPublisher;
+        private readonly IAppDataMiscMasterLookup _appDataMiscLookup;
+        private readonly IPartyDetailLookup _partyDetailLookup;
+        private readonly IOfficerAgentUserLookup _officerAgentUserLookup;
 
         public CreateSalesOrderCommandHandler(
             ISalesOrderCommandRepository commandRepository,
@@ -37,7 +44,10 @@ namespace SalesManagement.Application.SalesOrder.Commands.CreateSalesOrder
             IUnitLookup unitLookup,
             IDocumentSequenceLookup documentSequenceLookup,
             ILogger<CreateSalesOrderCommandHandler> logger,
-            IOutboxEventPublisher outboxEventPublisher)
+            IOutboxEventPublisher outboxEventPublisher,
+            IAppDataMiscMasterLookup appDataMiscLookup,
+            IPartyDetailLookup partyDetailLookup,
+            IOfficerAgentUserLookup officerAgentUserLookup)
         {
             _commandRepository = commandRepository;
             _mapper = mapper;
@@ -48,6 +58,9 @@ namespace SalesManagement.Application.SalesOrder.Commands.CreateSalesOrder
             _documentSequenceLookup = documentSequenceLookup;
             _logger = logger;
             _outboxEventPublisher = outboxEventPublisher;
+            _appDataMiscLookup = appDataMiscLookup;
+            _partyDetailLookup = partyDetailLookup;
+            _officerAgentUserLookup = officerAgentUserLookup;
         }
 
         public async Task<ApiResponseDTO<int>> Handle(CreateSalesOrderCommand request, CancellationToken cancellationToken)
@@ -184,6 +197,82 @@ namespace SalesManagement.Application.SalesOrder.Commands.CreateSalesOrder
                 details: $"Sales Order '{salesOrderNo}' created successfully with Id {newId}.",
                 module: "SalesOrder");
             await _mediator.Publish(auditEvent, cancellationToken);
+
+            // ------------------- InApp notification: Sales Order created → Agent's Marketing Officer -------------------
+            // Templates (subject/body) come from NotificationConfig (ModuleName='New Sales Order',
+            // EventTypeId=Create). The recipient is resolved here in code — the agent's MO UserId
+            // (Sales.OfficerAgent → AppSecurity.Users) — and passed via OverrideTargetUserIds so the
+            // InApp consumer ignores the SP's broader role-based user list.
+            try
+            {
+                var notifEventMisc = await _appDataMiscLookup.GetMiscMasterByNameAsync(
+                    NotificationEnum.NotificationEvent, NotificationEnum.Create);
+
+                var customer = details.PartyId > 0
+                    ? await _partyDetailLookup.GetByIdAsync(details.PartyId, cancellationToken)
+                    : null;
+                var customerName = customer?.PartyName ?? "";
+
+                List<int>? overrideUserIds = null;
+                if (details.AgentId.HasValue && details.AgentId.Value > 0)
+                {
+                    var moUserId = await _officerAgentUserLookup.GetMarketingOfficerUserIdByAgentIdAsync(
+                        details.AgentId.Value, cancellationToken);
+
+                    if (moUserId.HasValue && moUserId.Value > 0)
+                    {
+                        overrideUserIds = new List<int> { moUserId.Value };
+                    }
+                    else
+                    {
+                        _logger.LogWarning(
+                            "No Marketing Officer UserId resolved for AgentId {AgentId} on Sales Order {SalesOrderNo} (Id={Id}). InApp will be skipped.",
+                            details.AgentId.Value, salesOrderNo, newId);
+                    }
+                }
+                else
+                {
+                    _logger.LogWarning(
+                        "AgentId is null on Sales Order {SalesOrderNo} (Id={Id}). InApp recipient cannot be resolved; skipping notification.",
+                        salesOrderNo, newId);
+                }
+
+                if (overrideUserIds is { Count: > 0 })
+                {
+                    var inAppCorrelationId = Guid.NewGuid();
+                    var inAppEvent = new NotificationCreatedEvent
+                    {
+                        CorrelationId         = inAppCorrelationId,
+                        CreatedByName         = _ipAddressService.GetUserName() ?? string.Empty,
+                        UnitId                = _ipAddressService.GetUnitId() ?? 0,
+                        ModuleName            = "New Sales Order",
+                        EventTypeId           = notifEventMisc?.Id ?? 0,
+                        Email                 = "",
+                        ccMail                = "",
+                        Mobile                = "",
+                        param1                = salesOrderNo ?? "",
+                        param2                = customerName,
+                        param3                = DateTimeOffset.UtcNow,
+                        param4                = "",
+                        param5                = "",
+                        param6                = "",
+                        param7                = "",
+                        param8                = "",
+                        param9                = "",
+                        param10               = "",
+                        OverrideTargetUserIds = overrideUserIds
+                    };
+
+                    await _outboxEventPublisher.ScheduleAsync(inAppEvent, inAppCorrelationId, cancellationToken);
+                    _logger.LogInformation(
+                        "InApp notification queued for Sales Order {SalesOrderNo}. Recipient UserId={MoUserId} (CorrId: {Corr})",
+                        salesOrderNo, overrideUserIds[0], inAppCorrelationId);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to publish InApp NotificationCreatedEvent for Sales Order {Id}", newId);
+            }
 
             // ------------------- Fetch entity for workflow payload -------------------
             var workFlowEntity = await _commandRepository.GetByIdSalesOrderWorkFlowAsync(newId);

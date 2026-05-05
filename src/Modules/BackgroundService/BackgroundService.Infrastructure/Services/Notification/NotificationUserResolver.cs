@@ -16,18 +16,19 @@ namespace BackgroundService.Infrastructure.Services.Notification
             _dbConnection = dbConnection;
         }
 
-        public async Task<List<NotificationTargetDto>> GetNotificationTargetsAsync(int unitId, string moduleName, int eventTypeId,string email,string ccMail,string mobile)
+        public async Task<List<NotificationTargetDto>> GetNotificationTargetsAsync(int unitId, string moduleName, int eventTypeId, string email, string ccMail, string mobile, string userId)
         {
-             var parameters = new DynamicParameters();
-                parameters.Add("@UnitId", unitId);
-                parameters.Add("@ModuleName", moduleName);
-                parameters.Add("@EventType", eventTypeId);
-                parameters.Add("@Email",   email  ?? string.Empty);
-                parameters.Add("@CCEmail", ccMail ?? string.Empty);   
-                parameters.Add("@Mobile",  mobile ?? string.Empty);                
+            var parameters = new DynamicParameters();
+            parameters.Add("@UnitId", unitId);
+            parameters.Add("@ModuleName", moduleName);
+            parameters.Add("@EventType", eventTypeId);
+            parameters.Add("@Email",   email  ?? string.Empty);
+            parameters.Add("@CCEmail", ccMail ?? string.Empty);
+            parameters.Add("@Mobile",  mobile ?? string.Empty);
+            parameters.Add("@UserId",  userId ?? string.Empty);
 
             var result = (await _dbConnection.QueryAsync<NotificationTargetDto>(
-                "WorkFlow_GetUserId", 
+                "WorkFlow_GetUserId",
                 parameters,
                 commandType: CommandType.StoredProcedure
             )).ToList();
