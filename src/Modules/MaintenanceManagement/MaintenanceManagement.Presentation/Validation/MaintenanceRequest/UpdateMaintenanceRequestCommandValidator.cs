@@ -53,6 +53,17 @@ namespace MaintenanceManagement.Presentation.Validation.MaintenanceRequest
                         RuleFor(x => x.MaintenanceTypeId)
                             .GreaterThan(0)
                             .WithMessage("MaintenanceTypeId is required.");
+
+                        // SCRUM-1475: block re-routing an Update to a machine that already has a different
+                        // Open / InProgress request. excludeRequestId = x.Id so the request's own row doesn't
+                        // count against itself when nothing meaningful has changed.
+                        RuleFor(x => x.MachineId)
+                            .MustAsync(async (cmd, machineId, ct) =>
+                                !await _maintenanceRequestQueryRepository
+                                    .HasActiveRequestForMachineAsync(machineId, cmd.Id))
+                            .WithMessage("A request for this machine is already Open / In Progress. " +
+                                         "Please resolve the existing request before reassigning to it.")
+                            .When(x => x.MachineId > 0);
                         break;
 
                         case "WOclosedStatusCheck":

@@ -20,6 +20,11 @@ namespace MaintenanceManagement.Application.Common.Interfaces.IMaintenanceReques
       Task<bool> GetWOclosedAsync(int id);
       Task<bool> GetWOclosedOrInProgressAsync(int id);
 
+      // Returns true if the given machine already has a MaintenanceRequest whose
+      // RequestStatus is Open or InProgress (used to block duplicate request creation
+      // for the same machine — SCRUM-1475).
+      Task<bool> HasActiveRequestForMachineAsync(int machineId, int? excludeRequestId = null);
+
       Task<List<MaintenanceManagement.Domain.Entities.MiscMaster>> GetMaintenanceStatusDescAsync();
 
       Task<List<MaintenanceManagement.Domain.Entities.MiscMaster>> GetMaintenanceServiceDescAsync();
