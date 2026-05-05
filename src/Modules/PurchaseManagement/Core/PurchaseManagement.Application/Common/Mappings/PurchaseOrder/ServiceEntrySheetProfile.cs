@@ -60,12 +60,25 @@ namespace PurchaseManagement.Application.Common.Mappings.PurchaseOrder
 
             CreateMap<ServiceEntrySheet, PoServiceHeaderByIdDto>(); 
 
+            // Schedule rows store naive datetime2 (no offset). SES stores datetimeoffset.
+            // Wrap with IST (+05:30) so downstream timestamps stay consistent with the rest
+            // of the system (PODate / ValidityFrom are also IST in this codebase).
+            var istOffset = TimeSpan.FromHours(5.5);
+
             CreateMap<SesFromScheduleRawDto, CreateServiceSheetDto>()
                 .ForMember(d => d.Id, o => o.Ignore())
                 .ForMember(d => d.SESDate, o => o.MapFrom(_ => DateTimeOffset.Now))
                 .ForMember(d => d.SESStatusId, o => o.MapFrom(_ => 1103)) // Draft
                 .ForMember(d => d.ScheduleID, o => o.MapFrom(s => s.ScheduleId))
                 .ForMember(d => d.TaxPercentage, o => o.MapFrom(s => s.GstPercent)) // if GST drives tax
+                .ForMember(d => d.ScheduleStartDate, o => o.MapFrom(s =>
+                    s.ScheduleStartDate.HasValue
+                        ? new DateTimeOffset(DateTime.SpecifyKind(s.ScheduleStartDate.Value, DateTimeKind.Unspecified), istOffset)
+                        : default(DateTimeOffset)))
+                .ForMember(d => d.ScheduleEndDate, o => o.MapFrom(s =>
+                    s.ScheduleEndDate.HasValue
+                        ? new DateTimeOffset(DateTime.SpecifyKind(s.ScheduleEndDate.Value, DateTimeKind.Unspecified), istOffset)
+                        : default(DateTimeOffset)))
                 .ForMember(d => d.ActualValue, o => o.Ignore())
                 .ForMember(d => d.TaxValue, o => o.Ignore())
                 .ForMember(d => d.TotalValue, o => o.Ignore())
