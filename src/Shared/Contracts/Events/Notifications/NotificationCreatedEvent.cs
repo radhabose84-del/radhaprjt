@@ -26,6 +26,15 @@ namespace Contracts.Events.Notifications
         public string param10 { get; set; } = default!;
         public string? TablePresetKey { get; set; }
         public string? TableRowsJson { get; set; }
+
+        /// <summary>
+        /// When set (and non-empty), the InApp consumer ignores the SP-resolved user list
+        /// and sends only to these specific user ids. Other channels (Email/SMS/WhatsApp)
+        /// are unaffected. Used by handlers that resolve recipients in code (e.g.,
+        /// Sales Order → specific Marketing Officer for the order's agent).
+        /// </summary>
+        public List<int>? OverrideTargetUserIds { get; set; }
+
         public List<NotificationAttachment> Attachments { get; set; } = new();
                 
         public sealed class NotificationAttachment
