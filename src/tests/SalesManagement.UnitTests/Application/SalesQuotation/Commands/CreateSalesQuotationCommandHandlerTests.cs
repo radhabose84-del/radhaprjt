@@ -1,9 +1,15 @@
 using AutoMapper;
 using Contracts.Common;
 using Contracts.Interfaces;
+using Contracts.Interfaces.Lookups.Common;
 using Contracts.Interfaces.Lookups.Finance;
+using Contracts.Interfaces.Lookups.Inventory;
+using Contracts.Interfaces.Lookups.Party;
 using MediatR;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using SalesManagement.Application.Common.Interfaces.IMiscMaster;
+using SalesManagement.Application.Common.Interfaces.IOutbox;
 using SalesManagement.Application.Common.Interfaces.ISalesQuotation;
 using SalesManagement.Application.SalesQuotation.Commands.CreateSalesQuotation;
 using SalesManagement.Domain.Entities;
@@ -20,10 +26,19 @@ public sealed class CreateSalesQuotationCommandHandlerTests
     private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Loose);
     private readonly Mock<IDocumentSequenceLookup> _mockDocSeqLookup = new(MockBehavior.Loose);
     private readonly Mock<IIPAddressService> _mockIpService = new(MockBehavior.Loose);
+    private readonly Mock<IOutboxEventPublisher> _mockOutboxPublisher = new(MockBehavior.Loose);
+    private readonly Mock<IPartyDetailLookup> _mockPartyDetailLookup = new(MockBehavior.Loose);
+    private readonly Mock<IItemLookup> _mockItemLookup = new(MockBehavior.Loose);
+    private readonly Mock<IHSNLookup> _mockHsnLookup = new(MockBehavior.Loose);
+    private readonly Mock<ILogger<CreateSalesQuotationCommandHandler>> _mockLogger = new(MockBehavior.Loose);
+    private readonly Mock<IAppDataMiscMasterLookup> _mockAppDataMiscLookup = new(MockBehavior.Loose);
+    private readonly Mock<IConfiguration> _mockConfiguration = new(MockBehavior.Loose);
 
     private CreateSalesQuotationCommandHandler CreateSut() =>
         new(_mockCommandRepo.Object, _mockQueryRepo.Object, _mockMiscRepo.Object,
-            _mockMapper.Object, _mockMediator.Object, _mockDocSeqLookup.Object, _mockIpService.Object);
+            _mockMapper.Object, _mockMediator.Object, _mockDocSeqLookup.Object, _mockIpService.Object,
+            _mockOutboxPublisher.Object, _mockPartyDetailLookup.Object, _mockItemLookup.Object,
+            _mockHsnLookup.Object, _mockLogger.Object, _mockAppDataMiscLookup.Object, _mockConfiguration.Object);
 
     private void SetupHappyPath(int newId = 1)
     {
@@ -48,6 +63,10 @@ public sealed class CreateSalesQuotationCommandHandlerTests
         _mockCommandRepo
             .Setup(r => r.CreateAsync(It.IsAny<SalesQuotationHeader>(), It.IsAny<int>()))
             .ReturnsAsync(newId);
+
+        _mockCommandRepo
+            .Setup(r => r.GetByIdSalesQuotationWorkFlowAsync(It.IsAny<int>()))
+            .ReturnsAsync(new SalesQuotationWorkFlowDto { Id = newId, QuotationNo = "SQ-0001" });
     }
 
     [Fact]
