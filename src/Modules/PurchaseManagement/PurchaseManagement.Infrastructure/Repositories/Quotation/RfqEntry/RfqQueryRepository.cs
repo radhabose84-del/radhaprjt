@@ -26,14 +26,40 @@ namespace PurchaseManagement.Infrastructure.Repositories.Quotation.RfqEntry
             _miscMasterQueryRepository = miscMasterQueryRepository;
         }
 
-        public Task<RfqMaster> GetAggregateAsync(int id, CancellationToken ct = default) =>
-              _db.Rfqs
-              .AsNoTracking()
-              .Include(r => r.Items)
-              .Include(r => r.Suppliers)
-              .Include(r => r.RfqStatus)
-              .Include(r => r.InitiationType)
-              .FirstOrDefaultAsync(r => r.Id == id, ct);
+        public async Task<RfqMaster> GetAggregateAsync(int id, CancellationToken ct = default, bool excludeQuotation = false)
+        {
+            var rfq = await _db.Rfqs
+                .AsNoTracking()
+                .Include(r => r.Items)
+                .Include(r => r.Suppliers)
+                .Include(r => r.RfqStatus)
+                .Include(r => r.InitiationType)
+                .FirstOrDefaultAsync(r => r.Id == id, ct);
+
+            if (rfq != null && excludeQuotation)
+            {
+                // Find supplier IDs that already have an active quotation for this RFQ
+                var quotedSupplierIds = await _db.Set<QuotationHeader>()
+                    .AsNoTracking()
+                    .Where(qh => qh.RfqId == id &&
+                                 qh.IsDeleted == BaseEntity.IsDelete.NotDeleted &&
+                                 qh.IsActive == BaseEntity.Status.Active)
+                    .Select(qh => qh.SupplierId)
+                    .Distinct()
+                    .ToListAsync(ct);
+
+                // Remove suppliers who already have a quotation
+                var filtered = rfq.Suppliers
+                    .Where(s => !s.SupplierId.HasValue || !quotedSupplierIds.Contains(s.SupplierId.Value))
+                    .ToList();
+
+                rfq.Suppliers.Clear();
+                foreach (var s in filtered)
+                    rfq.Suppliers.Add(s);
+            }
+
+            return rfq;
+        }
       
         public async Task<(IReadOnlyList<RfqListItemDto> Items, int Total)> GetAllAsync(int page, int pageSize, int? statusId, string searchTerm, CancellationToken ct)
         {
@@ -161,10 +187,14 @@ namespace PurchaseManagement.Infrastructure.Repositories.Quotation.RfqEntry
                     r.RfqStatus.Code == MiscEnumEntity.Submit.ToString() &&
                     r.LastSubmitDate.HasValue &&
                     r.LastSubmitDate.Value >= date &&                    
-                    !_db.Set<QuotationHeader>().Any(qh =>
-                        qh.RfqId == r.Id &&
-                        qh.IsDeleted == BaseEntity.IsDelete.NotDeleted &&
-                        qh.IsActive  == BaseEntity.Status.Active)
+                    // Show RFQ if at least one supplier still has no quotation
+                    r.Suppliers.Any(rs =>
+                        rs.SupplierId.HasValue &&
+                        !_db.Set<QuotationHeader>().Any(qh =>
+                            qh.RfqId     == r.Id &&
+                            qh.SupplierId == rs.SupplierId.Value &&
+                            qh.IsDeleted == BaseEntity.IsDelete.NotDeleted &&
+                            qh.IsActive  == BaseEntity.Status.Active))
                     && !_db.Set<QuotationComparisonHeader>().Any(qch =>
                         qch.RfqId == r.Id &&                
                         qch.StatusId== pending.Id));
