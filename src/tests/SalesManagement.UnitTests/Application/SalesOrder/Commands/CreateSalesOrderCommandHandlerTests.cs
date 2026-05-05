@@ -1,7 +1,10 @@
 using AutoMapper;
 using Contracts.Common;
 using Contracts.Interfaces;
+using Contracts.Interfaces.Lookups.Common;
 using Contracts.Interfaces.Lookups.Finance;
+using Contracts.Interfaces.Lookups.Party;
+using Contracts.Interfaces.Lookups.Sales;
 using Contracts.Interfaces.Lookups.Users;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -25,11 +28,15 @@ public sealed class CreateSalesOrderCommandHandlerTests
     private readonly Mock<IDocumentSequenceLookup> _mockDocSeqLookup = new(MockBehavior.Loose);
     private readonly Mock<ILogger<CreateSalesOrderCommandHandler>> _mockLogger = new(MockBehavior.Loose);
     private readonly Mock<IOutboxEventPublisher> _mockOutbox = new(MockBehavior.Loose);
+    private readonly Mock<IAppDataMiscMasterLookup> _mockAppDataMiscLookup = new(MockBehavior.Loose);
+    private readonly Mock<IPartyDetailLookup> _mockPartyDetailLookup = new(MockBehavior.Loose);
+    private readonly Mock<IOfficerAgentUserLookup> _mockOfficerAgentUserLookup = new(MockBehavior.Loose);
 
     private CreateSalesOrderCommandHandler CreateSut() =>
         new(_mockCommandRepo.Object, _mockMapper.Object, _mockMediator.Object,
             _mockIpService.Object, _mockCompanyLookup.Object, _mockUnitLookup.Object,
-            _mockDocSeqLookup.Object, _mockLogger.Object, _mockOutbox.Object);
+            _mockDocSeqLookup.Object, _mockLogger.Object, _mockOutbox.Object,
+            _mockAppDataMiscLookup.Object, _mockPartyDetailLookup.Object, _mockOfficerAgentUserLookup.Object);
 
     private void SetupHappyPath(int newId = 1)
     {

@@ -121,6 +121,7 @@ namespace BackgroundService.Application.Consumers
                 var r = await _resolverHandler.ResolveNotificationTemplatesAsync(
                     msg.UnitId, msg.ModuleName, msg.EventTypeId,
                     msg.Email ?? "", msg.ccMail ?? "", msg.Mobile ?? "",
+                    string.Empty,
                     msg.param1, msg.param2, msg.param3,
                     msg.param4, msg.param5, msg.param6, msg.param7, msg.param8, msg.param9, msg.param10, emailAttachments);
 

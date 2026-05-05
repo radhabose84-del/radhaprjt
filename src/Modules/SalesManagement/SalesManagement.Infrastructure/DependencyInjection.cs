@@ -385,6 +385,9 @@ namespace SalesManagement.Infrastructure
             // ── Agent Customer Mapping Lookup (cross-module, Party → Sales.AgentCustomerMapping) ──
             services.AddScoped<IAgentCustomerMappingLookup, AgentCustomerMappingLookupRepository>();
 
+            // ── Officer Agent User Lookup (Sales → resolves Agent's Marketing Officer UserId for InApp routing) ──
+            services.AddScoped<IOfficerAgentUserLookup, OfficerAgentUserLookupRepository>();
+
             // ═══════════════════════════════════════════════════════════════
             // OUTBOX PATTERN SERVICES (SQL-based for transaction atomicity)
             // ═══════════════════════════════════════════════════════════════
