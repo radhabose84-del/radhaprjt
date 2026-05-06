@@ -16,7 +16,11 @@ namespace FAM.Application.Common.Interfaces.IAssetMaster.IAssetTransferIssue
     Task<List<GetCategoryByDeptIdDto>> GetCategoriesByDepartmentAsync(int departmentId);
     Task<List<GetAssetMasterDto>> GetAssetsByCategoryAsync(int assetCategoryId, int assetDepartmentId);
     Task<GetAssetDetailsToTransferHdrDto?> GetAssetDetailsToTransferByIdAsync(int assetId);
-    Task<bool> IsAssetPendingOrApprovedAsync(int assetId);
+    // Returns true if the given asset has any AssetTransferIssueHdr in 'Pending' status,
+    // or 'Approved' status that has not yet been acknowledged (AckStatus <> 1).
+    // Used to block duplicate Asset Transfer creation/update for the same asset (SCRUM-1463).
+    // Pass excludeTransferId during Update so the request's own row doesn't trip the guard against itself.
+    Task<bool> IsAssetPendingOrApprovedAsync(int assetId, int? excludeTransferId = null);
 
     // Task<List<GetTransferTypeDto>> GetTransferTypeAsync() ;
 

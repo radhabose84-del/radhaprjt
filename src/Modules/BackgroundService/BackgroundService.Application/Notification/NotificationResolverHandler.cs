@@ -22,13 +22,15 @@ namespace BackgroundService.Application.Notification
 
         public async Task<List<string>> ResolveNotificationChannelsAsync(
             int unitId, string module, int eventTypeId,
-            string email, string ccMail, string mobile)
+            string email, string ccMail, string mobile,
+            string userId)
         {
             var targets = await _resolver.GetNotificationTargetsAsync(
                 unitId, module, eventTypeId,
                 email ?? string.Empty,
                 ccMail ?? string.Empty,
-                mobile ?? string.Empty);
+                mobile ?? string.Empty,
+                userId ?? string.Empty);
 
             if (targets == null || targets.Count == 0)
             {
@@ -93,6 +95,7 @@ namespace BackgroundService.Application.Notification
             ResolveNotificationTemplatesAsync(
                 int unitId, string module, int eventTypeId,
                 string email, string ccMail, string mobile,
+                string userId,
                 string p1, string p2, DateTimeOffset p3,
                 string? p4, string? p5, string? p6, string? p7, string? p8, string? p9, string? p10,
                 IReadOnlyCollection<(string FileName, string ContentType, byte[] Data)>? attachments = null)
@@ -101,7 +104,8 @@ namespace BackgroundService.Application.Notification
                 unitId, module, eventTypeId,
                 email ?? string.Empty,
                 ccMail ?? string.Empty,
-                mobile ?? string.Empty);
+                mobile ?? string.Empty,
+                userId ?? string.Empty);
 
             // ✅ SAFETY: if SP returns nothing, avoid null refs and return empty defaults
             if (targets == null || targets.Count == 0)

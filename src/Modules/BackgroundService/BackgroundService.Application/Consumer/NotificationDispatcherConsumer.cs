@@ -54,6 +54,12 @@ namespace BackgroundService.Application.Consumers
 
             try
             {
+                // First override user id (if any) is forwarded to SP as @UserId — drives
+                // per-user routing for AGENT_MO_USER / AGENT_MO_REPORTS_TO target types.
+                var userIdParam = msg.OverrideTargetUserIds is { Count: > 0 }
+                    ? msg.OverrideTargetUserIds[0].ToString()
+                    : string.Empty;
+
                 // Step 1: Resolve which channels are active for this notification
                 var channels = await _resolverHandler.ResolveNotificationChannelsAsync(
                     msg.UnitId,
@@ -61,7 +67,8 @@ namespace BackgroundService.Application.Consumers
                     msg.EventTypeId,
                     msg.Email ?? string.Empty,
                     msg.ccMail ?? string.Empty,
-                    msg.Mobile ?? string.Empty);
+                    msg.Mobile ?? string.Empty,
+                    userIdParam);
 
                 if (channels == null || channels.Count == 0)
                 {
@@ -257,7 +264,8 @@ namespace BackgroundService.Application.Consumers
                 param8 = msg.param8,
                 param9 = msg.param9,
                 param10 = msg.param10,
-                RetryCount = 0
+                RetryCount = 0,
+                OverrideTargetUserIds = msg.OverrideTargetUserIds
             };
 
             await _publishEndpoint.Publish(inAppCommand, cancellationToken);

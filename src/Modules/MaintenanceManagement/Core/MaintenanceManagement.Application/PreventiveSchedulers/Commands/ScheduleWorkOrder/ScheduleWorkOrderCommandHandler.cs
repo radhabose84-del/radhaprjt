@@ -42,8 +42,28 @@ namespace MaintenanceManagement.Application.PreventiveSchedulers.Commands.Schedu
            // var scheduledetail;
            
                  var scheduledetail = await _preventiveSchedulerQuery.GetWorkOrderScheduleDetailById(request.PreventiveScheduleId);
-            
-            
+
+            // Idempotency guard — prevent duplicate WOs when this handler is invoked
+            // multiple times for the same schedule detail (concurrent Hangfire workers,
+            // manual HangfireSchedule API alongside the auto path, Hangfire retries, etc.)
+            var alreadyExists = await _preventiveSchedulerQuery
+                .ExistWorkOrderBySchedulerDetailId(request.PreventiveScheduleId);
+            if (alreadyExists)
+            {
+                await _preventiveScheduleLogService.CaptureLogs(
+                    scheduledetail.Id,
+                    request.PreventiveScheduleId,
+                    "Skipped duplicate WO creation - already exists",
+                    JsonConvert.SerializeObject(request));
+
+                return new ApiResponseDTO<bool>
+                {
+                    IsSuccess = true,
+                    Message = "Work Order already exists for this schedule detail. Duplicate creation skipped.",
+                    Data = true
+                };
+            }
+
         await _preventiveScheduleLogService.CaptureLogs(scheduledetail.Id,request.PreventiveScheduleId,"Hangfire tigger Schedule Work Order",JsonConvert.SerializeObject(request));
         
              await AuditLogPublisher.PublishAuditLogAsync(

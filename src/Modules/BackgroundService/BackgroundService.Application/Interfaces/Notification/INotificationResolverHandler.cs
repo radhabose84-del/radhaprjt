@@ -7,7 +7,8 @@ namespace BackgroundService.Application.Interfaces.Notification
     {
         Task<List<string>> ResolveNotificationChannelsAsync(
             int unitId, string module, int eventTypeId,
-            string email, string ccMail, string mobile);
+            string email, string ccMail, string mobile,
+            string userId);
 
         Task<(List<string> To, List<string> Cc, List<string> Bcc,
            List<string> Sms, List<int> InApp,
@@ -18,6 +19,7 @@ namespace BackgroundService.Application.Interfaces.Notification
         ResolveNotificationTemplatesAsync(
             int unitId, string module, int eventTypeId,
             string email, string ccMail, string mobile,
+            string userId,
             string p1, string p2, DateTimeOffset p3,
             string? p4, string? p5, string? p6, string? p7, string? p8, string? p9, string? p10,
             IReadOnlyCollection<(string FileName, string ContentType, byte[] Data)>? attachments = null);

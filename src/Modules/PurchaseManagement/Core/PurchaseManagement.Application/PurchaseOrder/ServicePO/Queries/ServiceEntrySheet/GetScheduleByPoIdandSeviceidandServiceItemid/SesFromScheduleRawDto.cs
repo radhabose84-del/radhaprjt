@@ -33,8 +33,8 @@ namespace PurchaseManagement.Application.PurchaseOrder.ServicePO.Queries.Service
         public int ScheduleId { get; set; }           // d.Id AS ScheduleId
         public int OccurrenceNo { get; set; }         // d.ScheduleNo AS OccurrenceNo
         public string? OccurrencePeriod { get; set; }
-        public DateTimeOffset? ScheduleStartDate { get; set; } // d.ServiceStartDate AS ScheduleStartDate
-        public DateTimeOffset? ScheduleEndDate { get; set; }   // d.ServiceEndDate AS ScheduleEndDate
+        public DateTime? ScheduleStartDate { get; set; }       // d.ServiceStartDate (datetime2)
+        public DateTime? ScheduleEndDate { get; set; }         // d.ServiceEndDate (datetime2)
         public bool AutoGenerateSES { get; set; }
         public string? LineRemarks { get; set; } 
         public int StatusId { get; set; }

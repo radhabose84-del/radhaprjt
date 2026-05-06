@@ -19,11 +19,11 @@ namespace BackgroundService.UnitTests.Application.Notification
         public async Task ResolveNotificationChannels_EmptyTargets_ReturnsEmptyList()
         {
             _mockResolver
-                .Setup(r => r.GetNotificationTargetsAsync(1, "M", 2, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .Setup(r => r.GetNotificationTargetsAsync(1, "M", 2, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(new List<NotificationTargetDto>());
 
             var result = await CreateSut().ResolveNotificationChannelsAsync(
-                1, "M", 2, "a@b.com", "", "");
+                1, "M", 2, "a@b.com", "", "", "");
 
             result.Should().BeEmpty();
         }
@@ -32,7 +32,7 @@ namespace BackgroundService.UnitTests.Application.Notification
         public async Task ResolveNotificationChannels_NormalizesChannels()
         {
             _mockResolver
-                .Setup(r => r.GetNotificationTargetsAsync(1, "M", 2, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .Setup(r => r.GetNotificationTargetsAsync(1, "M", 2, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(new List<NotificationTargetDto>
                 {
                     new() { ChannelName = "Email" },
@@ -42,7 +42,7 @@ namespace BackgroundService.UnitTests.Application.Notification
                 });
 
             var result = await CreateSut().ResolveNotificationChannelsAsync(
-                1, "M", 2, "", "", "");
+                1, "M", 2, "", "", "", "");
 
             result.Should().Contain(new[] { "Email", "SMS", "InApp", "WhatsApp" });
         }
@@ -51,7 +51,7 @@ namespace BackgroundService.UnitTests.Application.Notification
         public async Task ResolveNotificationChannels_Deduplicates_CaseInsensitive()
         {
             _mockResolver
-                .Setup(r => r.GetNotificationTargetsAsync(1, "M", 2, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .Setup(r => r.GetNotificationTargetsAsync(1, "M", 2, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(new List<NotificationTargetDto>
                 {
                     new() { ChannelName = "email" },
@@ -60,7 +60,7 @@ namespace BackgroundService.UnitTests.Application.Notification
                 });
 
             var result = await CreateSut().ResolveNotificationChannelsAsync(
-                1, "M", 2, "", "", "");
+                1, "M", 2, "", "", "", "");
 
             result.Should().ContainSingle().Which.Should().Be("Email");
         }
@@ -71,11 +71,11 @@ namespace BackgroundService.UnitTests.Application.Notification
         public async Task ResolveNotificationTemplates_EmptyTargets_ReturnsDefaults()
         {
             _mockResolver
-                .Setup(r => r.GetNotificationTargetsAsync(1, "M", 2, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .Setup(r => r.GetNotificationTargetsAsync(1, "M", 2, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(new List<NotificationTargetDto>());
 
             var result = await CreateSut().ResolveNotificationTemplatesAsync(
-                1, "M", 2, "", "", "", "p1", "p2", DateTimeOffset.UtcNow,
+                1, "M", 2, "", "", "", "", "p1", "p2", DateTimeOffset.UtcNow,
                 null, null, null, null, null, null, null);
 
             result.To.Should().BeEmpty();
@@ -92,7 +92,7 @@ namespace BackgroundService.UnitTests.Application.Notification
         public async Task ResolveNotificationTemplates_Splits_EmailTargetIds()
         {
             _mockResolver
-                .Setup(r => r.GetNotificationTargetsAsync(1, "M", 2, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .Setup(r => r.GetNotificationTargetsAsync(1, "M", 2, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(new List<NotificationTargetDto>
                 {
                     new()
@@ -111,7 +111,7 @@ namespace BackgroundService.UnitTests.Application.Notification
                 });
 
             var result = await CreateSut().ResolveNotificationTemplatesAsync(
-                1, "M", 2, "", "", "", "p1", "p2", DateTimeOffset.UtcNow,
+                1, "M", 2, "", "", "", "", "p1", "p2", DateTimeOffset.UtcNow,
                 null, null, null, null, null, null, null);
 
             result.To.Should().Contain(new[] { "a@x.com", "b@x.com" });
@@ -127,7 +127,7 @@ namespace BackgroundService.UnitTests.Application.Notification
         public async Task ResolveNotificationTemplates_SmsFallback_WhenNoExplicitSmsChannel()
         {
             _mockResolver
-                .Setup(r => r.GetNotificationTargetsAsync(1, "M", 2, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .Setup(r => r.GetNotificationTargetsAsync(1, "M", 2, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(new List<NotificationTargetDto>
                 {
                     new()
@@ -139,7 +139,7 @@ namespace BackgroundService.UnitTests.Application.Notification
                 });
 
             var result = await CreateSut().ResolveNotificationTemplatesAsync(
-                1, "M", 2, "", "", "", "p1", "p2", DateTimeOffset.UtcNow,
+                1, "M", 2, "", "", "", "", "p1", "p2", DateTimeOffset.UtcNow,
                 null, null, null, null, null, null, null);
 
             result.Sms.Should().ContainSingle("9999999999");
@@ -149,7 +149,7 @@ namespace BackgroundService.UnitTests.Application.Notification
         public async Task ResolveNotificationTemplates_ParsesInApp_UserIds()
         {
             _mockResolver
-                .Setup(r => r.GetNotificationTargetsAsync(1, "M", 2, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .Setup(r => r.GetNotificationTargetsAsync(1, "M", 2, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(new List<NotificationTargetDto>
                 {
                     new()
@@ -160,7 +160,7 @@ namespace BackgroundService.UnitTests.Application.Notification
                 });
 
             var result = await CreateSut().ResolveNotificationTemplatesAsync(
-                1, "M", 2, "", "", "", "p1", "p2", DateTimeOffset.UtcNow,
+                1, "M", 2, "", "", "", "", "p1", "p2", DateTimeOffset.UtcNow,
                 null, null, null, null, null, null, null);
 
             result.InApp.Should().BeEquivalentTo(new[] { 10, 20, 30 });
@@ -170,7 +170,7 @@ namespace BackgroundService.UnitTests.Application.Notification
         public async Task ResolveNotificationTemplates_ApiToken_Preference_WhatsApp_Wins()
         {
             _mockResolver
-                .Setup(r => r.GetNotificationTargetsAsync(1, "M", 2, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .Setup(r => r.GetNotificationTargetsAsync(1, "M", 2, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(new List<NotificationTargetDto>
                 {
                     new() { ChannelName = "Email", ApiToken = "email-token" },
@@ -179,7 +179,7 @@ namespace BackgroundService.UnitTests.Application.Notification
                 });
 
             var result = await CreateSut().ResolveNotificationTemplatesAsync(
-                1, "M", 2, "", "", "", "p1", "p2", DateTimeOffset.UtcNow,
+                1, "M", 2, "", "", "", "", "p1", "p2", DateTimeOffset.UtcNow,
                 null, null, null, null, null, null, null);
 
             result.ApiToken.Should().Be("wa-token");

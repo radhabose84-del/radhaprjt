@@ -26,7 +26,14 @@ namespace Contracts.Events.Notifications.InApp
         public string param7 { get; set; } = string.Empty;
         public string param8 { get; set; } = string.Empty;
         public string param9 { get; set; } = string.Empty;
-        public string param10 { get; set; } = string.Empty;  
-        public int RetryCount { get; set; } = 0; 
+        public string param10 { get; set; } = string.Empty;
+        public int RetryCount { get; set; } = 0;
+
+        /// <summary>
+        /// When set (non-empty), the consumer uses these user ids instead of the
+        /// SP-resolved <see cref="UserIds"/>. Carried through from
+        /// <c>NotificationCreatedEvent.OverrideTargetUserIds</c>.
+        /// </summary>
+        public List<int>? OverrideTargetUserIds { get; set; }
     }
 }
