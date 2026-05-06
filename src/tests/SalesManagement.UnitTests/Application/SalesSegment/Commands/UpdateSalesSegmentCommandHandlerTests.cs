@@ -1,4 +1,5 @@
 using AutoMapper;
+using Contracts.Common;
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.ISalesSegment;
 using SalesManagement.Application.SalesSegment.Commands.UpdateSalesSegment;
@@ -110,6 +111,54 @@ namespace SalesManagement.UnitTests.Application.SalesSegment.Commands
                         e.ActionName == "1"),
                     It.IsAny<CancellationToken>()),
                 Times.Once);
+        }
+
+        // ── Inactivate guard (CLAUDE.md Rule 25) ────────────────────────────
+
+        [Fact]
+        public async Task Handle_InactivateRequest_WhenLinked_ThrowsExceptionRules()
+        {
+            var command = SalesSegmentBuilders.ValidUpdateCommand(id: 1, isActive: 0);
+            _mockQueryRepo
+                .Setup(r => r.IsSalesSegmentLinkedAsync(1))
+                .ReturnsAsync(true);
+
+            Func<Task> act = () => CreateSut().Handle(command, CancellationToken.None);
+
+            await act.Should().ThrowAsync<ExceptionRules>()
+                .WithMessage("*linked with other records*");
+        }
+
+        [Fact]
+        public async Task Handle_InactivateRequest_WhenLinked_DoesNotCallUpdate()
+        {
+            var command = SalesSegmentBuilders.ValidUpdateCommand(id: 1, isActive: 0);
+            _mockQueryRepo
+                .Setup(r => r.IsSalesSegmentLinkedAsync(1))
+                .ReturnsAsync(true);
+
+            try { await CreateSut().Handle(command, CancellationToken.None); }
+            catch (ExceptionRules) { /* expected */ }
+
+            _mockCommandRepo.Verify(
+                r => r.UpdateAsync(It.IsAny<SalesManagement.Domain.Entities.SalesSegment>()),
+                Times.Never);
+        }
+
+        [Fact]
+        public async Task Handle_InactivateRequest_WhenNotLinked_Succeeds()
+        {
+            var command = SalesSegmentBuilders.ValidUpdateCommand(id: 1, isActive: 0);
+            _mockQueryRepo
+                .Setup(r => r.IsSalesSegmentLinkedAsync(1))
+                .ReturnsAsync(false);
+            SetupMapper();
+            SetupUpdateAsync(1);
+            SetupPublishAudit();
+
+            var result = await CreateSut().Handle(command, CancellationToken.None);
+
+            result.IsSuccess.Should().BeTrue();
         }
     }
 }

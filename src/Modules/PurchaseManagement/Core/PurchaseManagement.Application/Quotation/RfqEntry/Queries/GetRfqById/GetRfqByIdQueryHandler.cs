@@ -105,8 +105,8 @@ public class GetRfqByIdQueryHandler : IRequestHandler<GetRfqByIdQuery, RfqDto>
             else if (gst <= 0 && grpcItem is not null)
                 gst = grpcItem.GSTPercentage;
 
-            // ItemCategoryId comes from RFQ payload/domain item.
-            int itemCategoryId = i.ItemCategoryId;
+            // ItemCategoryId is derived from ItemMaster via the item lookup (RFQ table doesn't store it).
+            int itemCategoryId = grpcItem?.ItemCategoryId ?? 0;
 
             return new RfqItemDto(
                 i.ItemId,
