@@ -16,25 +16,31 @@ namespace BackgroundService.Presentation.Controllers.Notification
             _mediator = mediator;
         }
        [HttpGet("detail/{userId}")]
-        public async Task<IActionResult> GetNotificationDetailByIdAsync(string userId)
+        public async Task<IActionResult> GetNotificationDetailByIdAsync(
+            string userId,
+            [FromQuery] int PageNumber = 1,
+            [FromQuery] int PageSize = 10,
+            [FromQuery] DateTimeOffset? FromDate = null,
+            [FromQuery] DateTimeOffset? ToDate = null,
+            [FromQuery] string? ReadStatus = null)
         {
-            var data = await Mediator.Send(new GetNotificationDetailByUserId { UserId = userId });
-
-            if (data.Count == 0)
+            var result = await Mediator.Send(new GetNotificationDetailByUserId
             {
-                return Ok(new
-                {
-                    statusCode = StatusCodes.Status200OK,
-                    message = $"No notification records found for UserId {userId}.",
-                    data = Array.Empty<GetNotificationDetailDto>()
-                });
-            }
+                UserId = userId,
+                PageNumber = PageNumber,
+                PageSize = PageSize,
+                FromDate = FromDate,
+                ToDate = ToDate,
+                ReadStatus = ReadStatus
+            });
 
             return Ok(new
             {
-                statusCode = StatusCodes.Status200OK,
-                message = $"Fetched {data.Count} notifications for UserId {userId}.",
-                data
+                StatusCode = StatusCodes.Status200OK,
+                data = result.Data,
+                TotalCount = result.TotalCount,
+                PageNumber = result.PageNumber,
+                PageSize = result.PageSize
             });
         }
         [HttpPut]
