@@ -59,9 +59,17 @@ namespace BackgroundService.Infrastructure.Repositories.Notification.Notificatio
                 return -1;
             }
 
-            // Resolve MiscMaster ID dynamically
+            // Resolve MiscMaster ID dynamically. ReadStatusId is a FK to AppData.MiscMaster —
+            // a missing 'Read' entry under 'NotificationReadStatus' indicates a configuration
+            // problem, not something to silently fall back from (Id = 0 would violate the FK).
             var readMisc = await _appDataMiscLookup.GetMiscMasterByNameAsync(NotificationEnum.NotificationReadStatus, NotificationEnum.Read);
-            existingNotificationDetail.ReadStatusId = readMisc?.Id ?? 0;
+            if (readMisc is null)
+            {
+                throw new InvalidOperationException(
+                    $"MiscMaster entry not found for type '{NotificationEnum.NotificationReadStatus}', " +
+                    $"code '{NotificationEnum.Read}'. Cannot mark notification as read.");
+            }
+            existingNotificationDetail.ReadStatusId = readMisc.Id;
 
             _applicationDbContext.NotificationEventLog.Update(existingNotificationDetail);
             await _applicationDbContext.SaveChangesAsync();

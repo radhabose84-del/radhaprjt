@@ -24,7 +24,7 @@ namespace SalesManagement.IntegrationTests.Repositories.GatePass
             var id = await conn.ExecuteScalarAsync<int>(@"
                 ALTER TABLE Sales.DeliveryChallanHeader NOCHECK CONSTRAINT ALL;
                 INSERT INTO Sales.DeliveryChallanHeader
-                    (DeliveryNumber, DeliveryDate, StoHeaderId,
+                    (DeliveryNumber, DeliveryDate, StoHeaderId, DcTypeId, MovementTypeId,
                      FromPlantId, FromStorageLocationId, ToPlantId, ToStorageLocationId,
                      TransporterId, VehicleNumber,
                      DeliveryValue, ConsignmentValue, StatusId,
@@ -32,7 +32,7 @@ namespace SalesManagement.IntegrationTests.Repositories.GatePass
                      CreatedBy, CreatedDate, CreatedByName, CreatedIP)
                 OUTPUT INSERTED.Id
                 VALUES
-                    ('DC-001', SYSDATETIME(), 1,
+                    ('DC-001', SYSDATETIME(), 1, 0, 0,
                      @FromPlantId, 1, 2, 1,
                      1, 'TN-01-AB-1234',
                      0, 0, 1,

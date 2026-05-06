@@ -128,9 +128,15 @@ public class UpdateImportPOCommandHandler : IRequestHandler<UpdateImportPOComman
         var oldValue       = existing.PurchaseValue;
         var newValue       = incoming.PurchaseValue;
 
+        // Sign convention: lookup SQL is `RemainingBalance += @DeltaAmount`.
+        // Consuming budget (a PO commitment) is a negative delta; refunding
+        // budget (reverting an earlier consumption) is a positive delta.
+
         if (oldBudgetGroupId == newBudgetGroupId && oldBudgetGroupId > 0)
         {
-            var delta = newValue - oldValue;
+            // Same group: net change in commitment is (newValue - oldValue).
+            // If newValue > oldValue, more budget is consumed → negative delta.
+            var delta = oldValue - newValue;
             if (delta != 0)
             {
                 var applied = await _budgetAllocationLookup.ApplyRemainingBalanceDeltaAsync(
@@ -149,28 +155,32 @@ public class UpdateImportPOCommandHandler : IRequestHandler<UpdateImportPOComman
 
         if (oldBudgetGroupId > 0 && oldValue != 0)
         {
+            // Refund the old group: reverse the original consumption.
+            var refundDelta = oldValue;
             var reverted = await _budgetAllocationLookup.ApplyRemainingBalanceDeltaAsync(
                 oldBudgetGroupId, oldMonth, oldRequestById, oldMonthId,
-                -oldValue, oldProjectId, oldWbsId, oldFinancialYearId,
+                refundDelta, oldProjectId, oldWbsId, oldFinancialYearId,
                 dbConn, dbTx, ct);
 
             if (!reverted)
                 _logger.LogWarning(
                     "Import PO: Budget refund failed (old BG). PO {PoId}, BG {BgId}, Delta {Delta}",
-                    poId, oldBudgetGroupId, -oldValue);
+                    poId, oldBudgetGroupId, refundDelta);
         }
 
         if (newBudgetGroupId > 0 && newValue != 0)
         {
+            // Consume the new group with the new value.
+            var consumeDelta = -newValue;
             var applied = await _budgetAllocationLookup.ApplyRemainingBalanceDeltaAsync(
                 newBudgetGroupId, newMonth, newRequestById, newMonthId,
-                newValue, newProjectId, newWbsId, oldFinancialYearId,
+                consumeDelta, newProjectId, newWbsId, oldFinancialYearId,
                 dbConn, dbTx, ct);
 
             if (!applied)
                 _logger.LogWarning(
                     "Import PO: Budget consume failed (new BG). PO {PoId}, BG {BgId}, Delta {Delta}",
-                    poId, newBudgetGroupId, newValue);
+                    poId, newBudgetGroupId, consumeDelta);
         }
     }
 }

@@ -389,29 +389,28 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetTransferIssue
             }
             return assetDetails;
         }
-        public async Task<bool> IsAssetPendingOrApprovedAsync(int assetId)
+        public async Task<bool> IsAssetPendingOrApprovedAsync(int assetId, int? excludeTransferId = null)
         {
-            var UnitId = _iPAddressService.GetUnitId() ?? 0;
+            // SCRUM-1463 fix:
+            // The previous version INNER JOIN'd AssetTransferReceiptDtl, which silently dropped
+            // any pending transfer that didn't yet have a receipt row — so brand-new pending
+            // transfers slipped through the guard and duplicates were allowed.
+            // Correct logic: a transfer blocks if its Hdr is Pending, OR Approved-but-not-acknowledged.
+            // No receipt-side join is needed — AckStatus lives on the Hdr.
             const string query = @"
-              SELECT 1 FROM FixedAsset.AssetTransferIssueHdr A
-                        INNER JOIN FixedAsset.AssetTransferIssueDtl B ON A.Id = B.AssetTransferId
-						inner join FixedAsset.AssetTransferReceiptDtl C ON    B.AssetId=C.AssetId
-                        WHERE B.AssetId = @assetId  
-                        AND (A.Status = 'Pending' OR (A.Status = 'Approved') AND C.AckStatus <> 1) ";
-            // const string query = @"
-            //             SELECT 1 FROM FixedAsset.AssetTransferIssueHdr A
-            //             INNER JOIN FixedAsset.AssetTransferIssueDtl B ON A.Id = B.AssetTransferId
-            //             WHERE B.AssetId = @assetId  
-            //             AND (A.Status = 'Pending' OR (A.Status = 'Approved' AND A.AckStatus <> 1))";
+                SELECT 1
+                FROM FixedAsset.AssetTransferIssueHdr A
+                INNER JOIN FixedAsset.AssetTransferIssueDtl B ON A.Id = B.AssetTransferId
+                WHERE B.AssetId = @assetId
+                  AND (A.Status = 'Pending'
+                       OR (A.Status = 'Approved' AND A.AckStatus <> 1))
+                  AND (@ExcludeId IS NULL OR A.Id <> @ExcludeId);";
 
-            //   SELECT 1 FROM FixedAsset.AssetTransferIssueHdr A
-            // INNER JOIN FixedAsset.AssetTransferIssueDtl B ON A.Id = B.AssetTransferId
-            // inner join FixedAsset.AssetTransferReceiptDtl C ON    B.AssetId=C.AssetId
-            // WHERE B.AssetId = 1674  
-            // AND (A.Status = 'Pending' OR (A.Status = 'Approved') AND C.AckStatus <> 1)
+            var result = await _dbConnection.QueryFirstOrDefaultAsync<int?>(
+                query,
+                new { assetId, ExcludeId = excludeTransferId });
 
-            var result = await _dbConnection.QueryFirstOrDefaultAsync<int?>(query, new { assetId });
-            return result.HasValue; // If record exists, return true (restricted)
+            return result.HasValue; // If a blocking row exists, restrict the user
         }
 
         public async Task<List<GetAllTransferDtlDto>> GetAssetTransferByIDAsync(int assetTransferId)

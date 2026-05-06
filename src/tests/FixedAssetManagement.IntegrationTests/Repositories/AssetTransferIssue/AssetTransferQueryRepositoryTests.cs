@@ -57,9 +57,10 @@ namespace FixedAssetManagement.IntegrationTests.Repositories.AssetTransferIssue
         private async Task ClearTablesAsync() =>
             await _fixture.ClearAllTablesAsync();
 
-        private async Task<int> SeedHdrAsync(string status = "Pending")
+        private async Task<int> SeedHdrAsync(string status = "Pending", byte ackStatus = 0)
         {
-            var ttId = await SeedMiscMasterAsync("ATQ_TT_" + status.Substring(0, 3));
+            // Unique short MiscType code so concurrent / repeated seeds within a test don't collide
+            var ttId = await SeedMiscMasterAsync($"ATQ_{Guid.NewGuid().ToString("N").Substring(0, 8)}");
             await using var ctx = _fixture.CreateFreshDbContext();
             return await new AssetTransferCommandRepository(ctx).CreateAssetTransferAsync(new AssetTransferIssueHdr
             {
@@ -74,7 +75,7 @@ namespace FixedAssetManagement.IntegrationTests.Repositories.AssetTransferIssue
                 FromCustodianName = "From",
                 ToCustodianName = "To",
                 Status = status,
-                AckStatus = 0,
+                AckStatus = ackStatus,
                 CreatedBy = 1,
                 CreatedDate = DateTimeOffset.UtcNow,
                 CreatedByName = "test-user",
@@ -98,6 +99,107 @@ namespace FixedAssetManagement.IntegrationTests.Repositories.AssetTransferIssue
             await ClearTablesAsync();
 
             (await CreateQueryRepo().IsAssetPendingOrApprovedAsync(9999)).Should().BeFalse();
+        }
+
+        // SCRUM-1463 — duplicate-asset guard SQL behaviour
+
+        [Fact]
+        public async Task IsAssetPendingOrApprovedAsync_Should_Return_True_When_Pending_Transfer_Exists()
+        {
+            await ClearTablesAsync();
+            var hdrId = await SeedHdrAsync(status: "Pending");
+            await SeedTransferDtlRawAsync(hdrId: hdrId, assetId: 7777);
+
+            var result = await CreateQueryRepo().IsAssetPendingOrApprovedAsync(7777);
+
+            result.Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task IsAssetPendingOrApprovedAsync_Should_Return_True_When_Approved_But_Not_Acknowledged()
+        {
+            await ClearTablesAsync();
+            var hdrId = await SeedHdrAsync(status: "Approved", ackStatus: 0);
+            await SeedTransferDtlRawAsync(hdrId: hdrId, assetId: 7778);
+
+            var result = await CreateQueryRepo().IsAssetPendingOrApprovedAsync(7778);
+
+            result.Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task IsAssetPendingOrApprovedAsync_Should_Return_False_When_Approved_And_Acknowledged()
+        {
+            await ClearTablesAsync();
+            var hdrId = await SeedHdrAsync(status: "Approved", ackStatus: 1);
+            await SeedTransferDtlRawAsync(hdrId: hdrId, assetId: 7779);
+
+            var result = await CreateQueryRepo().IsAssetPendingOrApprovedAsync(7779);
+
+            result.Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task IsAssetPendingOrApprovedAsync_Should_Return_False_When_Rejected()
+        {
+            await ClearTablesAsync();
+            var hdrId = await SeedHdrAsync(status: "Rejected");
+            await SeedTransferDtlRawAsync(hdrId: hdrId, assetId: 7780);
+
+            var result = await CreateQueryRepo().IsAssetPendingOrApprovedAsync(7780);
+
+            result.Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task IsAssetPendingOrApprovedAsync_Should_Honour_ExcludeTransferId()
+        {
+            await ClearTablesAsync();
+            var hdrId = await SeedHdrAsync(status: "Pending");
+            await SeedTransferDtlRawAsync(hdrId: hdrId, assetId: 7781);
+
+            // Excluding the only blocking row → no other active rows for this asset
+            var result = await CreateQueryRepo().IsAssetPendingOrApprovedAsync(7781, excludeTransferId: hdrId);
+
+            result.Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task IsAssetPendingOrApprovedAsync_Should_Return_False_For_Different_Asset()
+        {
+            await ClearTablesAsync();
+            var hdrId = await SeedHdrAsync(status: "Pending");
+            await SeedTransferDtlRawAsync(hdrId: hdrId, assetId: 7782);
+
+            var result = await CreateQueryRepo().IsAssetPendingOrApprovedAsync(9999);
+
+            result.Should().BeFalse();
+        }
+
+        // Inserts an AssetTransferIssueDtl row directly via raw SQL with FK constraints disabled,
+        // since the AssetMaster → AssetCategory → … chain isn't relevant to the IsAssetPendingOrApprovedAsync
+        // query (it joins only Hdr ↔ Dtl by AssetTransferId / AssetId).
+        private async Task SeedTransferDtlRawAsync(int hdrId, int assetId, decimal assetValue = 1000m)
+        {
+            await using var conn = new SqlConnection(_fixture.ConnectionString);
+            await conn.OpenAsync();
+
+            await conn.ExecuteAsync(
+                "ALTER TABLE FixedAsset.AssetTransferIssueDtl NOCHECK CONSTRAINT ALL;");
+
+            const string sql = @"
+                INSERT INTO FixedAsset.AssetTransferIssueDtl (AssetTransferId, AssetId, AssetValue)
+                VALUES (@AssetTransferId, @AssetId, @AssetValue);";
+
+            await conn.ExecuteAsync(sql, new { AssetTransferId = hdrId, AssetId = assetId, AssetValue = assetValue });
+
+            // Re-enable constraints WITHOUT revalidating existing rows. Using `WITH CHECK`
+            // forces SQL Server to validate every row against every FK, which fails because
+            // the seed row uses a fake AssetId that has no AssetMaster parent (by design —
+            // the query under test never joins to AssetMaster). The constraint becomes
+            // "not trusted" but is still enforced for future inserts/updates.
+            await conn.ExecuteAsync(
+                "ALTER TABLE FixedAsset.AssetTransferIssueDtl CHECK CONSTRAINT ALL;");
         }
 
         [Fact]
