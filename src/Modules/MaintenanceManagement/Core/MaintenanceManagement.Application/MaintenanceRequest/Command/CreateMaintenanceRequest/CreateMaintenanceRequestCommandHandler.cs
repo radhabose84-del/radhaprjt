@@ -131,9 +131,23 @@ namespace MaintenanceManagement.Application.MaintenanceRequest.Command.CreateMai
                 };
             }
 
-            // Get request type info
+            // Get request type info. The first row defines the "Internal" type — when no rows
+            // exist at all, the system can't classify the request and the WorkOrder + notification
+            // path is skipped entirely. That is a misconfiguration (the MaintenanceRequestType
+            // MiscMaster table needs at least one row), so log it loudly. The legitimate case
+            // where internalTypeId is set but doesn't match the request (External request) is
+            // by design and intentionally left silent.
             var requestTypes = await _maintenanceRequestQueryRepository.GetMaintenanceRequestTypeAsync();
             var internalTypeId = requestTypes.FirstOrDefault()?.Id;
+
+            if (!internalTypeId.HasValue)
+            {
+                _logger.LogError(
+                    "Misconfiguration: GetMaintenanceRequestTypeAsync returned no rows. " +
+                    "WorkOrder + notification skipped. " +
+                    "MaintenanceRequestId={Id}, CorrelationId={CorrelationId}",
+                    maintenanceRequest.Id, correlationId);
+            }
 
             // Get machine info
             var machineInfo = await _maintenanceRequestQueryRepository
@@ -172,36 +186,50 @@ namespace MaintenanceManagement.Application.MaintenanceRequest.Command.CreateMai
                 var breakDownCode = await _miscMasterQueryRepository.GetByMiscMasterCodeAsync(
                     MiscEnumEntity.BreakDown);
 
-                // Resolve department names
-                var departments = await _departmentLookup.GetAllDepartmentAsync();
-                var departmentDict = departments.ToDictionary(d => d.DepartmentId, d => d.DepartmentName);
+                // Notification requires both MiscMaster rows. Missing config is an ops/data issue,
+                // not a user error — request + WorkOrder are already persisted, so skip the
+                // notification path and surface the misconfiguration via logs.
+                if (wfCreate == null || breakDownCode == null)
+                {
+                    _logger.LogError(
+                        "Missing MiscMaster config — notification skipped. " +
+                        "WorkFlowCreate={WfCreate}, BreakDown={BreakDown}, " +
+                        "MaintenanceRequestId={Id}, CorrelationId={CorrelationId}",
+                        wfCreate?.Id, breakDownCode?.Id, maintenanceRequest.Id, correlationId);
+                }
+                else
+                {
+                    // Resolve department names
+                    var departments = await _departmentLookup.GetAllDepartmentAsync();
+                    var departmentDict = departments.ToDictionary(d => d.DepartmentId, d => d.DepartmentName);
 
-                string productionDeptName = departmentDict.TryGetValue(request.ProductionDepartmentId, out var prodName)
-                    ? prodName ?? string.Empty
-                    : string.Empty;
+                    string productionDeptName = departmentDict.TryGetValue(request.ProductionDepartmentId, out var prodName)
+                        ? prodName ?? string.Empty
+                        : string.Empty;
 
-                string maintenanceDeptName = departmentDict.TryGetValue(request.MaintenanceDepartmentId, out var maintName)
-                    ? maintName ?? string.Empty
-                    : string.Empty;
+                    string maintenanceDeptName = departmentDict.TryGetValue(request.MaintenanceDepartmentId, out var maintName)
+                        ? maintName ?? string.Empty
+                        : string.Empty;
 
-                var createdDate = workOrder.CreatedDate ?? DateTimeOffset.UtcNow;
-                var createdBy = workOrder.CreatedByName ?? string.Empty;
+                    var createdDate = workOrder.CreatedDate ?? DateTimeOffset.UtcNow;
+                    var createdBy = workOrder.CreatedByName ?? string.Empty;
 
-                // Step 3: Track OutboxMessage (no save yet — participates in same transaction)
-                notificationEvent = CreateNotificationEvent(
-                    correlationId: correlationId,
-                    workOrder: workOrder,
-                    isBreakdown: request.MaintenanceTypeId == breakDownCode.Id,
-                    eventTypeId: wfCreate.Id,
-                    departmentId: departmentId,
-                    productionDeptName: productionDeptName,
-                    maintenanceDeptName: maintenanceDeptName,
-                    machineName: machineName,
-                    remarks: request.Remarks ?? string.Empty,
-                    createdDate: createdDate,
-                    createdBy: createdBy);
+                    // Step 3: Track OutboxMessage (no save yet — participates in same transaction)
+                    notificationEvent = CreateNotificationEvent(
+                        correlationId: correlationId,
+                        workOrder: workOrder,
+                        isBreakdown: request.MaintenanceTypeId == breakDownCode.Id,
+                        eventTypeId: wfCreate.Id,
+                        departmentId: departmentId,
+                        productionDeptName: productionDeptName,
+                        maintenanceDeptName: maintenanceDeptName,
+                        machineName: machineName,
+                        remarks: request.Remarks ?? string.Empty,
+                        createdDate: createdDate,
+                        createdBy: createdBy);
 
-                await _outboxEventPublisher.ScheduleWithoutSaveAsync(notificationEvent, correlationId, cancellationToken: cancellationToken);
+                    await _outboxEventPublisher.ScheduleWithoutSaveAsync(notificationEvent, correlationId, cancellationToken: cancellationToken);
+                }
             }
 
             // ═══════════════════════════════════════════════════════════════════

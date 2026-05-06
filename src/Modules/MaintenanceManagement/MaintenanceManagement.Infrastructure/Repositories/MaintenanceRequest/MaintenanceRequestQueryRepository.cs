@@ -664,7 +664,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.MaintenanceRequest
         public async Task<(string MachineName, int DepartmentId, int Id)?> GetMachineInfoAsync(int id)
             {
                 const string query = @"
-                    SELECT 
+                    SELECT
                         M.MachineName,
                         MG.DepartmentId,
                         M.Id
@@ -677,5 +677,19 @@ namespace MaintenanceManagement.Infrastructure.Repositories.MaintenanceRequest
                 var result = await _dbConnection.QueryFirstOrDefaultAsync<(string MachineName, int DepartmentId, int Id)>(query, new { id });
                 return result; // null if not found
             }
+
+        public async Task<bool> MachineExistsAsync(int id)
+        {
+            const string sql = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1
+                    FROM Maintenance.MachineMaster
+                    WHERE Id = @id
+                      AND IsDeleted = 0
+                      AND IsActive  = 1
+                ) THEN 1 ELSE 0 END;";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { id });
+        }
     }
 }

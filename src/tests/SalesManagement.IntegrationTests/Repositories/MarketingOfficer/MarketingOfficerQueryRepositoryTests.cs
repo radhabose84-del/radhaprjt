@@ -1,6 +1,8 @@
 using Dapper;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Moq;
+using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Infrastructure.Data;
 using SalesManagement.Infrastructure.Repositories.MarketingOfficer;
 using SalesManagement.IntegrationTests.Common;
@@ -28,7 +30,12 @@ namespace SalesManagement.IntegrationTests.Repositories.MarketingOfficer
         private MarketingOfficerQueryRepository CreateQueryRepo()
         {
             var conn = new SqlConnection(_fixture.ConnectionString);
-            return new MarketingOfficerQueryRepository(conn);
+            // Admin/superuser path: ShouldApplyFilterAsync returns false → no scoping applied
+            var accessFilter = new Mock<IMarketingOfficerAccessFilter>(MockBehavior.Loose);
+            accessFilter.Setup(f => f.ShouldApplyFilterAsync(It.IsAny<CancellationToken>())).ReturnsAsync(false);
+            accessFilter.Setup(f => f.IsMarketingOfficer()).Returns(false);
+            accessFilter.Setup(f => f.GetCurrentMarketingOfficerId()).Returns((int?)null);
+            return new MarketingOfficerQueryRepository(conn, accessFilter.Object);
         }
 
         private MarketingOfficerCommandRepository CreateCommandRepo(ApplicationDbContext ctx) => new(ctx);

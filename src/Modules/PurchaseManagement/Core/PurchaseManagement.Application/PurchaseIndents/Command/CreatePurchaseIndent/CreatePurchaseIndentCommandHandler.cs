@@ -64,6 +64,8 @@ namespace PurchaseManagement.Application.PurchaseIndents.Command.CreatePurchaseI
                 item.StatusId = request.IsDraft == 1 ? StatusMisc.Id : StatusPending.Id;
             }
 
+            int createdId;
+
             await _unitOfWork.BeginTransactionAsync(cancellationToken);
             try
             {
@@ -89,6 +91,19 @@ namespace PurchaseManagement.Application.PurchaseIndents.Command.CreatePurchaseI
 
                 await _unitOfWork.CommitAsync(cancellationToken);
 
+                createdId = result.Id;
+            }
+            catch
+            {
+                await _unitOfWork.RollbackAsync(cancellationToken);
+                throw;
+            }
+
+            // Post-commit: audit log writes to MongoDB. A failure here must not
+            // roll back the SQL commit — keep it outside the UoW try/catch so
+            // an exception cannot reach RollbackAsync.
+            try
+            {
                 var evt = new AuditLogsDomainEvent(
                     actionDetail: "Create",
                     actionCode: "Create",
@@ -97,14 +112,13 @@ namespace PurchaseManagement.Application.PurchaseIndents.Command.CreatePurchaseI
                     module: "PurchaseIndent"
                 );
                 await _mediator.Publish(evt, cancellationToken);
-
-                return result.Id > 0 ? result.Id : throw new ExceptionRules("Indent Creation Failed.");
             }
-            catch
+            catch (Exception ex)
             {
-                await _unitOfWork.RollbackAsync(cancellationToken);
-                throw;
+                _logger.LogWarning(ex, "Audit log failed for PurchaseIndent {Id} — non-critical", createdId);
             }
+
+            return createdId > 0 ? createdId : throw new ExceptionRules("Indent Creation Failed.");
         }
     }
 }

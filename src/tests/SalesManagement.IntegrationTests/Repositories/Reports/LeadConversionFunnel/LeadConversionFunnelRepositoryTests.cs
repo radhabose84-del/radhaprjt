@@ -138,12 +138,12 @@ namespace SalesManagement.IntegrationTests.Repositories.Reports.LeadConversionFu
             return await conn.ExecuteScalarAsync<int>(@"
                 ALTER TABLE Sales.SalesEnquiryHeader NOCHECK CONSTRAINT ALL;
                 INSERT INTO Sales.SalesEnquiryHeader
-                    (PartyId, EnquiryDate, ContactPerson, SalesLeadId,
+                    (PartyId, EnquiryDate, EnquiryTypeId, ContactPerson, SalesLeadId,
                      IsActive, IsDeleted,
                      CreatedBy, CreatedDate, CreatedByName, CreatedIP)
                 OUTPUT INSERTED.Id
                 VALUES
-                    (@PartyId, SYSDATETIMEOFFSET(), 'Jane Smith', @LeadId,
+                    (@PartyId, SYSDATETIMEOFFSET(), 1, 'Jane Smith', @LeadId,
                      1, @IsDeleted,
                      1, SYSDATETIMEOFFSET(), 'test', '127.0.0.1');
                 ALTER TABLE Sales.SalesEnquiryHeader CHECK CONSTRAINT ALL;",

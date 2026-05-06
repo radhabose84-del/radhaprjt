@@ -28,9 +28,11 @@ namespace PurchaseManagement.IntegrationTests.Repositories.Validations
     public sealed class PurchaseCurrencyValidationRepositoryTests
     {
         private const string BlockedReason =
-            "BLOCKED - Production SQL in PurchaseCurrencyValidationRepository references " +
-            "Purchase.ImportPOHeader but the ImportPOHeader entity is mapped to table " +
-            "Purchase.PurchaseOrderImportHeader. See class XML doc for details.";
+            "BLOCKED - Production SQL references Purchase.ImportPOHeader (entity maps to " +
+            "Purchase.PurchaseOrderImportHeader) AND queries CurrencyId on PurchaseOrderHeader " +
+            "and PurchaseOrderImportHeader, but neither entity defines a CurrencyId column in EF. " +
+            "Fix needs entity updates + migration to add CurrencyId, OR redesign the validation to " +
+            "derive currency from joined PriceMaster/Quotation rows. Out of scope for SQL-only fix.";
 
         private readonly DbFixture _fixture;
 

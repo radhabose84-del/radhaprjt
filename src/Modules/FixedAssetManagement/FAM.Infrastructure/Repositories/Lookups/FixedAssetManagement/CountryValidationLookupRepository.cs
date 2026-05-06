@@ -20,7 +20,7 @@ namespace FAM.Infrastructure.Repositories.Lookups.FixedAssetManagement
                     WHEN EXISTS (
                         SELECT 1 FROM FixedAsset.Manufacture WHERE CountryId = @CountryId AND IsDeleted = 0
                     ) OR EXISTS (
-                        SELECT 1 FROM FixedAsset.AssetWarranty WHERE CountryId = @CountryId AND IsDeleted = 0
+                        SELECT 1 FROM FixedAsset.AssetWarranty WHERE ServiceCountryId = @CountryId AND IsDeleted = 0
                     )
                     THEN 1
                     ELSE 0

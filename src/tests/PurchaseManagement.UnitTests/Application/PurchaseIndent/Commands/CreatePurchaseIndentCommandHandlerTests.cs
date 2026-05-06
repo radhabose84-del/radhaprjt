@@ -126,6 +126,62 @@ namespace PurchaseManagement.UnitTests.Application.PurchaseIndent.Commands
         }
 
         [Fact]
+        public async Task Handle_AuditPublish_RunsAfterCommit()
+        {
+            // Audit log must run AFTER CommitAsync (post-commit, outside the UoW try/catch).
+            SetupHappyPath();
+
+            int order = 0;
+            int commitOrder = 0;
+            int auditOrder = 0;
+
+            _mockUnitOfWork.Setup(u => u.CommitAsync(It.IsAny<CancellationToken>()))
+                .Callback(() => commitOrder = ++order)
+                .Returns(Task.CompletedTask);
+
+            _mockMediator.Setup(m => m.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()))
+                .Callback(() => auditOrder = ++order)
+                .Returns(Task.CompletedTask);
+
+            var command = new CreatePurchaseIndentCommand
+            {
+                IndentDate = DateOnly.FromDateTime(DateTime.Today),
+                IndentTypeId = 1, UnitId = 1, DepartmentId = 1, IsDraft = 1,
+                IndentDetails = new List<IndentDetailDto>()
+            };
+
+            await CreateSut().Handle(command, CancellationToken.None);
+
+            commitOrder.Should().BeGreaterThan(0);
+            auditOrder.Should().BeGreaterThan(commitOrder,
+                "audit log must publish AFTER CommitAsync");
+        }
+
+        [Fact]
+        public async Task Handle_AuditPublishThrows_DoesNotRollbackOrThrow()
+        {
+            // Audit failure (e.g., MongoDB unreachable) must NOT roll back the SQL
+            // commit and must NOT bubble out as a 500 to the user.
+            SetupHappyPath(newId: 7);
+
+            _mockMediator.Setup(m => m.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new InvalidOperationException("Mongo down"));
+
+            var command = new CreatePurchaseIndentCommand
+            {
+                IndentDate = DateOnly.FromDateTime(DateTime.Today),
+                IndentTypeId = 1, UnitId = 1, DepartmentId = 1, IsDraft = 1,
+                IndentDetails = new List<IndentDetailDto>()
+            };
+
+            var result = await CreateSut().Handle(command, CancellationToken.None);
+
+            result.Should().Be(7, "the SQL commit should still be reflected in the response");
+            _mockUnitOfWork.Verify(u => u.RollbackAsync(It.IsAny<CancellationToken>()), Times.Never,
+                "an audit failure must not trigger rollback");
+        }
+
+        [Fact]
         public async Task Handle_ValidCommand_GeneratesIndentNumber()
         {
             SetupHappyPath();
