@@ -144,5 +144,32 @@ namespace BackgroundService.Infrastructure.Repositories.Lookups.Workflow
                 sql, new { MenuName = menuName, UnitId = unitId });
             return result == 1;
         }
+
+        public async Task<int?> GetApproverUserIdByRuleAsync(
+            string workflowType,
+            int moduleTransactionId,
+            int unitId,
+            int approvalRuleId,
+            CancellationToken cancellationToken = default)
+        {
+            const string sql = @"
+                SELECT TRY_CONVERT(int, ApproverValue)
+                FROM AppData.ApprovalRequest
+                WHERE WorkflowType        = @WorkflowType
+                  AND ModuleTransactionId = @ModuleTransactionId
+                  AND UnitId              = @UnitId
+                  AND ApprovalRuleId      = @ApprovalRuleId;
+            ";
+
+            return await _dbConnection.QueryFirstOrDefaultAsync<int?>(
+                sql,
+                new
+                {
+                    WorkflowType        = workflowType,
+                    ModuleTransactionId = moduleTransactionId,
+                    UnitId              = unitId,
+                    ApprovalRuleId      = approvalRuleId
+                });
+        }
     }
 }
