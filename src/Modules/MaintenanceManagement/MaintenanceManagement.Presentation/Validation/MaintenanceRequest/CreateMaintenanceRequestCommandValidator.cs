@@ -51,6 +51,16 @@ namespace MaintenanceManagement.Presentation.Validation.MaintenanceRequest
                             .GreaterThan(0)
                             .WithMessage($"{nameof(CreateMaintenanceRequestCommand.RequestTypeId)} {rule.Error}");
 
+                        // SCRUM-1475: block creating a new request for a machine that already has an
+                        // Open / InProgress request. excludeRequestId is null on Create (no own row yet).
+                        RuleFor(x => x.MachineId)
+                            .MustAsync(async (machineId, ct) =>
+                                !await _maintenanceRequestQueryRepository
+                                    .HasActiveRequestForMachineAsync(machineId, null))
+                            .WithMessage("A request for this machine is already Open / In Progress. " +
+                                         "Please resolve the existing request before creating a new one.")
+                            .When(x => x.MachineId > 0);
+
                         break;
 
                     case "FKColumnDelete":

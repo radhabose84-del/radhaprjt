@@ -193,8 +193,13 @@ namespace FixedAssetManagement.IntegrationTests.Repositories.AssetTransferIssue
 
             await conn.ExecuteAsync(sql, new { AssetTransferId = hdrId, AssetId = assetId, AssetValue = assetValue });
 
+            // Re-enable constraints WITHOUT revalidating existing rows. Using `WITH CHECK`
+            // forces SQL Server to validate every row against every FK, which fails because
+            // the seed row uses a fake AssetId that has no AssetMaster parent (by design —
+            // the query under test never joins to AssetMaster). The constraint becomes
+            // "not trusted" but is still enforced for future inserts/updates.
             await conn.ExecuteAsync(
-                "ALTER TABLE FixedAsset.AssetTransferIssueDtl WITH CHECK CHECK CONSTRAINT ALL;");
+                "ALTER TABLE FixedAsset.AssetTransferIssueDtl CHECK CONSTRAINT ALL;");
         }
 
         [Fact]
