@@ -5,7 +5,9 @@ namespace BackgroundService.Application.Notification.Common.Interfaces.INotifica
 {
     public interface INotificationDetailRepository
     {     
-        Task<List<GetNotificationDetailDto>> GetAllByUserIdAsync(string userId);
+        Task<(List<GetNotificationDetailDto> Data, int TotalCount)> GetAllByUserIdAsync(
+            string userId, int pageNumber, int pageSize,
+            DateTimeOffset? fromDate, DateTimeOffset? toDate, string? readStatus);
         Task<int> UpdateAsync(int id, Domain.Entities.Notification.NotificationEventLog NotificationLog);
     }
 }
