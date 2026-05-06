@@ -31,12 +31,25 @@ internal sealed class OfficerAgentUserLookupRepository : IOfficerAgentUserLookup
     public async Task<int?> GetMarketingOfficerReportToUserIdAsync(int userId, CancellationToken cancellationToken = default)
     {
         const string sql = @"
-            SELECT TRY_CONVERT(int, u.ReportToId)
+            SELECT TRY_CONVERT(int, u.ReportToId) AS ReportToId,
+                   u.EmpId                        AS EmpId
             FROM AppSecurity.Users u
             WHERE u.UserId = @UserId
               AND u.IsActive = 1;
         ";
 
-        return await _dbConnection.QueryFirstOrDefaultAsync<int?>(sql, new { UserId = userId });
+        var row = await _dbConnection.QueryFirstOrDefaultAsync<UserReportRow>(sql, new { UserId = userId });
+
+        // EmpId null/0 → approver is NOT a Marketing Officer → no escalation notification
+        if (row is null || row.EmpId is null or 0)
+            return null;
+
+        return row.ReportToId;
+    }
+
+    private sealed class UserReportRow
+    {
+        public int? ReportToId { get; set; }
+        public int? EmpId { get; set; }
     }
 }
