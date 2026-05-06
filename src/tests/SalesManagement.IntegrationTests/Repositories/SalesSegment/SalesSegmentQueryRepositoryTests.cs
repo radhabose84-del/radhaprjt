@@ -588,5 +588,36 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesSegment
 
             result.Should().BeFalse();
         }
+
+        // ── SoftDeleteValidationAsync / IsSalesSegmentLinkedAsync ─────────────
+        // Both queries scan dependent tables (ItemPriceMaster, SalesOrderHeader).
+        // The SQL must parse against the real schema — these tests would have caught
+        // the original "Invalid column name 'SalesSegmentId'" bug on AgentCustomerMapping.
+
+        [Fact]
+        public async Task SoftDeleteValidationAsync_Should_Return_False_When_No_Refs()
+        {
+            var (orgId, channelId, buIds) = await EnsurePrerequisitesAsync();
+            await ClearSalesSegmentAsync();
+            var id = await SeedEntityAsync(orgId, channelId, buIds[0], "SDV Segment");
+
+            var repo = CreateQueryRepo();
+            var result = await repo.SoftDeleteValidationAsync(id);
+
+            result.Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task IsSalesSegmentLinkedAsync_Should_Return_False_When_No_Refs()
+        {
+            var (orgId, channelId, buIds) = await EnsurePrerequisitesAsync();
+            await ClearSalesSegmentAsync();
+            var id = await SeedEntityAsync(orgId, channelId, buIds[0], "Linked Check Segment");
+
+            var repo = CreateQueryRepo();
+            var result = await repo.IsSalesSegmentLinkedAsync(id);
+
+            result.Should().BeFalse();
+        }
     }
 }

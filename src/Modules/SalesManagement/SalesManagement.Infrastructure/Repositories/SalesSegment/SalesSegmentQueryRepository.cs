@@ -200,8 +200,6 @@ namespace SalesManagement.Infrastructure.Repositories.SalesSegment
         {
             const string sql = @"
                 SELECT CASE WHEN EXISTS (
-                    SELECT 1 FROM [Sales].[AgentCustomerMapping] WHERE SalesSegmentId = @id AND IsDeleted = 0
-                    UNION ALL
                     SELECT 1 FROM [Sales].[ItemPriceMaster] WHERE SalesSegmentId = @id AND IsDeleted = 0
                     UNION ALL
                     SELECT 1 FROM [Sales].[SalesOrderHeader] WHERE SalesSegmentId = @id AND IsDeleted = 0
@@ -214,8 +212,6 @@ namespace SalesManagement.Infrastructure.Repositories.SalesSegment
         {
             const string sql = @"
                 SELECT CASE WHEN EXISTS (
-                    SELECT 1 FROM [Sales].[AgentCustomerMapping] WHERE SalesSegmentId = @id AND IsDeleted = 0 AND IsActive = 1
-                    UNION ALL
                     SELECT 1 FROM [Sales].[ItemPriceMaster] WHERE SalesSegmentId = @id AND IsDeleted = 0 AND IsActive = 1
                     UNION ALL
                     SELECT 1 FROM [Sales].[SalesOrderHeader] WHERE SalesSegmentId = @id AND IsDeleted = 0 AND IsActive = 1
