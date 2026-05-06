@@ -20,5 +20,6 @@ namespace ProductionManagement.Application.Common.Interfaces.IProductionPack
         Task<bool> PackOverlapExistsAsync(int lotId, int startPackNo, int endPackNo, int? excludeDetailId = null);
         Task<ProductionStockClosingDto?> GetPreviousDateClosingAsync(int itemId, int lotId, DateOnly docDate);
         Task<List<ProductionStockRegisterDto>> GetProductionStockRegisterAsync(DateOnly fromDate, DateOnly toDate, int? lotId, int? itemId);
+        Task<DateOnly?> GetLastStockLedgerDateAsync();
     }
 }
