@@ -14,9 +14,19 @@ public class UpdateSalesLeadCommandHandlerTests
     private readonly Mock<ISalesContactCommandRepository> _mockContactCommandRepo = new(MockBehavior.Strict);
     private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Strict);
     private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Strict);
+    private readonly Mock<IMarketingOfficerAccessFilter> _mockAccessFilter = new(MockBehavior.Loose);
+
+    public UpdateSalesLeadCommandHandlerTests()
+    {
+        // Admin path: no marketing-officer scoping applied
+        _mockAccessFilter
+            .Setup(f => f.ShouldApplyFilterAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+    }
 
     private UpdateSalesLeadCommandHandler CreateSut() =>
-        new(_mockCommandRepo.Object, _mockQueryRepo.Object, _mockContactCommandRepo.Object, _mockMediator.Object, _mockMapper.Object);
+        new(_mockCommandRepo.Object, _mockQueryRepo.Object, _mockContactCommandRepo.Object,
+            _mockMediator.Object, _mockMapper.Object, _mockAccessFilter.Object);
 
     private void SetupMapper()
     {

@@ -33,7 +33,7 @@ namespace PurchaseManagement.UnitTests.Application.Rfqs.Queries
             };
 
             _mockRepo
-                .Setup(r => r.GetAggregateAsync(1, It.IsAny<CancellationToken>()))
+                .Setup(r => r.GetAggregateAsync(1, It.IsAny<CancellationToken>(), It.IsAny<bool>()))
                 .ReturnsAsync(aggregate);
 
             _mockMapper
@@ -52,7 +52,7 @@ namespace PurchaseManagement.UnitTests.Application.Rfqs.Queries
         public async Task Handle_NotFound_ThrowsExceptionRules()
         {
             _mockRepo
-                .Setup(r => r.GetAggregateAsync(99, It.IsAny<CancellationToken>()))
+                .Setup(r => r.GetAggregateAsync(99, It.IsAny<CancellationToken>(), It.IsAny<bool>()))
                 .ReturnsAsync((RfqMaster?)null);
 
             Func<Task> act = async () =>

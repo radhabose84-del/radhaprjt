@@ -538,16 +538,16 @@ namespace MaintenanceManagement.Infrastructure.Repositories.MaintenanceRequest
 
 
                  public async Task<bool> GetWOclosedOrInProgressAsync(int id)
-                {                      
+                {
                                 var query = @"
                     SELECT COUNT(1)
-                    FROM   Maintenance.MaintenanceRequest R  
-                    left JOIN Maintenance.WorkOrder WO  ON R.Id=WO.RequestId   
+                    FROM   Maintenance.MaintenanceRequest R
+                    left JOIN Maintenance.WorkOrder WO  ON R.Id=WO.RequestId
 					left JOIN Maintenance.MiscMaster M ON M.Id = WO.StatusId
                     left JOIN Maintenance.MiscTypeMaster T ON T.Id = M.MiscTypeId
                     INNER JOIN Maintenance.MiscMaster MN ON MN.Id = R.RequestTypeId
 					 INNER JOIN Maintenance.MiscMaster MJ ON MJ.Id = R.MaintenanceTypeId
-                    WHERE R.Id = @RequestId AND M.Code = @MiscCode AND MJ.Code  = @Maintenancetype   AND MN.Code = @MiscCodeexternal                  
+                    WHERE R.Id = @RequestId AND M.Code = @MiscCode AND MJ.Code  = @Maintenancetype   AND MN.Code = @MiscCodeexternal
                     AND T.MiscTypeCode = @MiscTypeCode ";
                    var parameters = new
                     {
@@ -557,10 +557,36 @@ namespace MaintenanceManagement.Infrastructure.Repositories.MaintenanceRequest
                        MiscCodeexternal = MiscEnumEntity.MaintenanceRequestTypeInternal.Code,
                        Maintenancetype =MiscEnumEntity.MaintenanceType.Code
                     };
-                    
+
                      var count = await _dbConnection.ExecuteScalarAsync<int>(query, parameters);
                         return count > 0;
-                } 
+                }
+
+                public async Task<bool> HasActiveRequestForMachineAsync(int machineId, int? excludeRequestId = null)
+                {
+                    const string query = @"
+                        SELECT COUNT(1)
+                        FROM Maintenance.MaintenanceRequest R
+                        INNER JOIN Maintenance.MiscMaster M ON M.Id = R.RequestStatusId
+                        INNER JOIN Maintenance.MiscTypeMaster T ON T.Id = M.MiscTypeId
+                        WHERE R.MachineId = @MachineId
+                          AND R.IsDeleted = 0
+                          AND T.MiscTypeCode = @StatusTypeCode
+                          AND M.Code IN (@OpenCode, @InProgressCode)
+                          AND (@ExcludeId IS NULL OR R.Id <> @ExcludeId);";
+
+                    var parameters = new
+                    {
+                        MachineId      = machineId,
+                        StatusTypeCode = MiscEnumEntity.WOStatus.MiscCode,
+                        OpenCode       = MiscEnumEntity.StatusOpen.Code,
+                        InProgressCode = MiscEnumEntity.GetStatusId.Status,
+                        ExcludeId      = excludeRequestId
+                    };
+
+                    var count = await _dbConnection.ExecuteScalarAsync<int>(query, parameters);
+                    return count > 0;
+                }
                 
                 
 
@@ -638,7 +664,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.MaintenanceRequest
         public async Task<(string MachineName, int DepartmentId, int Id)?> GetMachineInfoAsync(int id)
             {
                 const string query = @"
-                    SELECT 
+                    SELECT
                         M.MachineName,
                         MG.DepartmentId,
                         M.Id
@@ -651,5 +677,19 @@ namespace MaintenanceManagement.Infrastructure.Repositories.MaintenanceRequest
                 var result = await _dbConnection.QueryFirstOrDefaultAsync<(string MachineName, int DepartmentId, int Id)>(query, new { id });
                 return result; // null if not found
             }
+
+        public async Task<bool> MachineExistsAsync(int id)
+        {
+            const string sql = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1
+                    FROM Maintenance.MachineMaster
+                    WHERE Id = @id
+                      AND IsDeleted = 0
+                      AND IsActive  = 1
+                ) THEN 1 ELSE 0 END;";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { id });
+        }
     }
 }

@@ -39,14 +39,20 @@ namespace SalesManagement.IntegrationTests.Repositories.DispatchAddressMapping
             var cityMock = new Mock<ICityLookup>(MockBehavior.Loose);
             cityMock.Setup(c => c.GetByIdsAsync(It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync((IReadOnlyList<CityLookupDto>)new List<CityLookupDto>());
+            cityMock.Setup(c => c.GetAllCityAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new List<CityLookupDto>());
 
             var stateMock = new Mock<IStateLookup>(MockBehavior.Loose);
             stateMock.Setup(s => s.GetByIdsAsync(It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync((IReadOnlyList<StateLookupDto>)new List<StateLookupDto>());
+            stateMock.Setup(s => s.GetAllStatesAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new List<StateLookupDto>());
 
             var countryMock = new Mock<ICountryLookup>(MockBehavior.Loose);
             countryMock.Setup(c => c.GetByIdsAsync(It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync((IReadOnlyList<CountryLookupDto>)new List<CountryLookupDto>());
+            countryMock.Setup(c => c.GetAllCountriesAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new List<CountryLookupDto>());
 
             return new DispatchAddressMappingQueryRepository(
                 new SqlConnection(_fixture.ConnectionString), party.Object, freight.Object,

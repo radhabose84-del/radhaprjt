@@ -119,6 +119,84 @@ namespace BudgetManagement.UnitTests.Application.BudgetRequest.Commands
         }
 
         [Fact]
+        public async Task Handle_FileOperations_RunAfterCommit()
+        {
+            // Asserts that file system operations (TryMoveImageAsync) happen
+            // post-commit. The first DB call inside TryMoveImageAsync is
+            // _budgetQueryRepo.GetBaseDirectoryAsync — if it runs before
+            // CommitAsync then file ops are inside the UoW try block (the bug).
+            SetupHappyPath();
+
+            int order = 0;
+            int commitOrder = 0;
+            int baseDirOrder = 0;
+
+            _mockUow.Setup(u => u.CommitAsync(It.IsAny<CancellationToken>()))
+                .Callback(() => commitOrder = ++order)
+                .Returns(Task.CompletedTask);
+
+            _mockBudgetQueryRepo.Setup(r => r.GetBaseDirectoryAsync(It.IsAny<CancellationToken>()))
+                .Callback(() => baseDirOrder = ++order)
+                .ReturnsAsync("BudgetRequest");
+
+            _mockCompanyLookup.Setup(c => c.GetAllCompanyAsync())
+                .ReturnsAsync(new List<CompanyLookupDto>());
+            _mockUnitLookup.Setup(u => u.GetAllUnitAsync())
+                .ReturnsAsync(new List<UnitLookupDto>());
+
+            var command = BudgetRequestBuilders.ValidCreateCommand();
+            command.ImagePath = "any-temp-filename.jpg";
+
+            await CreateSut().Handle(command, CancellationToken.None);
+
+            commitOrder.Should().BeGreaterThan(0, "CommitAsync should have been called");
+            baseDirOrder.Should().BeGreaterThan(commitOrder,
+                "file system operations must run AFTER CommitAsync, not inside the transaction");
+        }
+
+        [Fact]
+        public async Task Handle_AuditPublish_RunsAfterCommit()
+        {
+            // Audit log must run AFTER CommitAsync — capture call order to prove it.
+            SetupHappyPath();
+
+            int order = 0;
+            int commitOrder = 0;
+            int auditOrder = 0;
+
+            _mockUow.Setup(u => u.CommitAsync(It.IsAny<CancellationToken>()))
+                .Callback(() => commitOrder = ++order)
+                .Returns(Task.CompletedTask);
+
+            _mockMediator.Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>()))
+                .Callback(() => auditOrder = ++order)
+                .Returns(Task.CompletedTask);
+
+            await CreateSut().Handle(BudgetRequestBuilders.ValidCreateCommand(), CancellationToken.None);
+
+            commitOrder.Should().BeGreaterThan(0);
+            auditOrder.Should().BeGreaterThan(commitOrder,
+                "audit log must publish AFTER CommitAsync");
+        }
+
+        [Fact]
+        public async Task Handle_AuditPublishThrows_DoesNotRollbackOrThrow()
+        {
+            // Audit failure (e.g., MongoDB unreachable) must NOT roll back the SQL
+            // commit and must NOT bubble out as a 500 to the user.
+            SetupHappyPath();
+
+            _mockMediator.Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new InvalidOperationException("Mongo down"));
+
+            var result = await CreateSut().Handle(BudgetRequestBuilders.ValidCreateCommand(), CancellationToken.None);
+
+            result.Should().BeGreaterThan(0, "the SQL commit should still be reflected in the response");
+            _mockUow.Verify(u => u.RollbackAsync(It.IsAny<CancellationToken>()), Times.Never,
+                "an audit failure must not trigger rollback");
+        }
+
+        [Fact]
         public async Task Handle_NoMatchingFinancialYear_ThrowsApplicationException()
         {
             var entity = BudgetRequestBuilders.ValidEntity();
