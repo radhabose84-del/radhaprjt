@@ -127,10 +127,10 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
                         });
                     }
 
-                    // Mark previous date entries as stock-closed
+                    // Mark previous date entries as stock-closed (date-level, not item/lot specific)
                     var prevEntries = await _applicationDbContext.ProductionStockLedger
-                        .Where(l => l.UnitId == entity.UnitId && l.ItemId == ledgerItemId
-                            && l.LotId == entity.LotId && l.DocDate < entity.PackDate && !l.StockClosing)
+                        .Where(l => l.UnitId == entity.UnitId
+                            && l.DocDate < entity.PackDate && !l.StockClosing)
                         .ToListAsync();
                     foreach (var prev in prevEntries)
                         prev.StockClosing = true;
@@ -314,10 +314,10 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
                         });
                     }
 
-                    // Mark previous date entries as stock-closed
+                    // Mark previous date entries as stock-closed (date-level, not item/lot specific)
                     var prevEntries = await _applicationDbContext.ProductionStockLedger
-                        .Where(l => l.UnitId == existingEntity.UnitId && l.ItemId == updLedgerItemId
-                            && l.LotId == existingEntity.LotId && l.DocDate < existingEntity.PackDate && !l.StockClosing)
+                        .Where(l => l.UnitId == existingEntity.UnitId
+                            && l.DocDate < existingEntity.PackDate && !l.StockClosing)
                         .ToListAsync();
                     foreach (var prev in prevEntries)
                         prev.StockClosing = true;

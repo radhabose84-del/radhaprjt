@@ -904,7 +904,7 @@ namespace FinanceManagement.Infrastructure.Services
                        FORMAT(h.InvoiceDate, 'dd/MM/yyyy') AS InvoiceDateFormatted,
                        h.DocType, h.SupplyType, h.PlaceOfSupply, h.GstNo,
                        h.ReverseCharge, h.CGST, h.SGST, h.IGST, h.Cess,
-                       h.StateCess, h.Discount, h.OtherCharges, h.RoundOff,
+                       h.StateCess, 0 AS Discount, h.OtherCharges, h.RoundOff,
                        h.InvoiceAmount
                 FROM Finance.EInvoiceHeader h
                 WHERE h.Id = @id AND h.IsDeleted = 0";
@@ -920,7 +920,7 @@ namespace FinanceManagement.Infrastructure.Services
             const string detailSql = @"
                 SELECT d.ItemSno, d.ItemName, d.HsnNo, d.IsService,
                        d.Qty, d.UOM, d.UnitPrice, d.GrossAmount,
-                       d.Discount, d.TaxableAmount, d.GstPercentage,
+                       0 AS Discount, d.TaxableAmount, d.GstPercentage,
                        d.CGST, d.SGST, d.IGST,
                        d.CessRate, d.CessAmount, d.TotalAmount
                 FROM Finance.EInvoiceDetail d

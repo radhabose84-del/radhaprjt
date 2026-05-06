@@ -9,6 +9,7 @@ using ProductionManagement.Application.ProductionPack.Queries.GetLastEndPackNo;
 using ProductionManagement.Application.ProductionPack.Queries.GetProductionById;
 using ProductionManagement.Application.ProductionPack.Queries.GetPreviousDateClosing;
 using ProductionManagement.Application.ProductionPack.Queries.GetProductionStockRegister;
+using ProductionManagement.Application.ProductionPack.Queries.GetLastStockLedgerDate;
 
 namespace ProductionManagement.Presentation.Controllers
 {
@@ -116,6 +117,18 @@ namespace ProductionManagement.Presentation.Controllers
                 LotId = lotId,
                 DocDate = docDate
             });
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result
+            });
+        }
+
+        [HttpGet("last-stock-ledger-date")]
+        public async Task<IActionResult> GetLastStockLedgerDateAsync()
+        {
+            var result = await Mediator.Send(new GetLastStockLedgerDateQuery());
 
             return Ok(new
             {
