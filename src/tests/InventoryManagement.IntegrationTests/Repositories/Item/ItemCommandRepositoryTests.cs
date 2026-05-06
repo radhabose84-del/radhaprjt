@@ -88,6 +88,34 @@ namespace InventoryManagement.IntegrationTests.Repositories.Item
             saved.IsHazardous.Should().BeTrue();
         }
 
+        [Fact]
+        public async Task CreateAsync_Should_Default_OldItemId_To_Null()
+        {
+            await ClearAsync();
+            await using var ctx = _fixture.CreateFreshDbContext();
+
+            var id = await CreateRepo(ctx).CreateAsync(BuildEntity("OID1", "NoLegacyId"));
+            ctx.ChangeTracker.Clear();
+            var saved = await ctx.ItemMaster.FirstAsync(x => x.Id == id);
+
+            saved.OldItemId.Should().BeNull();
+        }
+
+        [Fact]
+        public async Task CreateAsync_Should_Persist_OldItemId_When_Set()
+        {
+            await ClearAsync();
+            await using var ctx = _fixture.CreateFreshDbContext();
+
+            var entity = BuildEntity("OID2", "WithLegacyId");
+            entity.OldItemId = 9876;
+            var id = await CreateRepo(ctx).CreateAsync(entity);
+            ctx.ChangeTracker.Clear();
+            var saved = await ctx.ItemMaster.FirstAsync(x => x.Id == id);
+
+            saved.OldItemId.Should().Be(9876);
+        }
+
         // --- GetTrackingAsync ---
 
         [Fact]
