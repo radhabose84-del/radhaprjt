@@ -217,6 +217,7 @@ namespace SalesManagement.Application.SalesOrder.Commands.CreateSalesOrder
                 if (details.AgentId.HasValue && details.AgentId.Value > 0)
                 {
                     var moUserId = await _officerAgentUserLookup.GetMarketingOfficerUserIdByAgentIdAsync(
+                     
                         details.AgentId.Value, cancellationToken);
 
                     if (moUserId.HasValue && moUserId.Value > 0)

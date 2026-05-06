@@ -212,6 +212,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                     IsActive = (i.IsActive == BaseEntity.Status.Active ? 1 : 0),
                     PriceGroupId = i.PriceGroupId,
                     PriceGroupName = i.PriceGroup != null ? i.PriceGroup.PriceGroupName : null,
+                    OldItemId = i.OldItemId,
 
                     // ---------- tabs (1-1) ----------
                     // ItemMaster-level fields (moved from Purchase)
