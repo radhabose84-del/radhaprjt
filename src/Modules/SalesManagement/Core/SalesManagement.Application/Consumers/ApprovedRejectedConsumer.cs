@@ -1,7 +1,13 @@
 using System.Text.Json;
 using Contracts.Commands.Finance;
 using Contracts.Commands.Sales;
+using Contracts.Events.Notifications;
 using Contracts.Events.Sales;
+using Contracts.Interfaces;
+using Contracts.Interfaces.Lookups.Common;
+using Contracts.Interfaces.Lookups.Party;
+using Contracts.Interfaces.Lookups.Sales;
+using Contracts.Interfaces.Lookups.Workflow;
 using MassTransit;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -31,6 +37,10 @@ namespace SalesManagement.Application.Consumers
         private readonly IComplaintCommandRepository _complaintCommandRepo;
         private readonly IMediator _mediator;
         private readonly ILogger<ApprovedRejectedConsumer> _logger;
+        private readonly IOfficerAgentUserLookup _officerAgentUserLookup;
+        private readonly IAppDataMiscMasterLookup _appDataMiscLookup;
+        private readonly IPartyDetailLookup _partyDetailLookup;
+        private readonly IWorkflowLookup _workflowLookup;
 
         public ApprovedRejectedConsumer(
             IInvoiceCommandRepository invoiceCommandRepo,
@@ -43,7 +53,11 @@ namespace SalesManagement.Application.Consumers
             IDeliveryChallanCommandRepository dcCommandRepo,
             IComplaintCommandRepository complaintCommandRepo,
             IMediator mediator,
-            ILogger<ApprovedRejectedConsumer> logger)
+            ILogger<ApprovedRejectedConsumer> logger,
+            IOfficerAgentUserLookup officerAgentUserLookup,
+            IAppDataMiscMasterLookup appDataMiscLookup,
+            IPartyDetailLookup partyDetailLookup,
+            IWorkflowLookup workflowLookup)
         {
             _invoiceCommandRepo = invoiceCommandRepo;
             _salesOrderCommandRepo = salesOrderCommandRepo;
@@ -56,6 +70,10 @@ namespace SalesManagement.Application.Consumers
             _complaintCommandRepo = complaintCommandRepo;
             _mediator = mediator;
             _logger = logger;
+            _officerAgentUserLookup = officerAgentUserLookup;
+            _appDataMiscLookup = appDataMiscLookup;
+            _partyDetailLookup = partyDetailLookup;
+            _workflowLookup = workflowLookup;
         }
 
         public async Task Consume(ConsumeContext<UpdateApprovedRejectedSalesCommand> context)
@@ -76,7 +94,7 @@ namespace SalesManagement.Application.Consumers
                         break;
 
                     case MiscEnumEntity.TransactionTypeSalesOrder:
-                        await HandleSalesOrderApprovalAsync(msg, context.CancellationToken);
+                        await HandleSalesOrderApprovalAsync(context);
                         break;
 
                     case MiscEnumEntity.TransactionTypeSalesOrderAmendment:
@@ -331,8 +349,11 @@ namespace SalesManagement.Application.Consumers
         }
 
         private async Task HandleSalesOrderApprovalAsync(
-            UpdateApprovedRejectedSalesCommand msg, CancellationToken ct)
+            ConsumeContext<UpdateApprovedRejectedSalesCommand> context)
         {
+            var msg = context.Message;
+            var ct = context.CancellationToken;
+
             _logger.LogInformation(
                 "SalesOrder Consumer Approval Status Update: ModuleTransactionId={Id}, Status={Status}",
                 msg.ModuleTransactionId, msg.Status);
@@ -343,19 +364,13 @@ namespace SalesManagement.Application.Consumers
             if (msg.ModuleTypeName != MiscEnumEntity.TransactionTypeSalesOrder)
                 return;
 
-            // Resolve Approved and Rejected MiscMaster Ids
-            var statusApproved = await _miscMasterQueryRepository.GetMiscMasterByName(
-                MiscEnumEntity.SalesOrderApprovalStatus, MiscEnumEntity.SalesOrderStatusApproved);
-
-            var statusRejected = await _miscMasterQueryRepository.GetMiscMasterByName(
-                MiscEnumEntity.SalesOrderApprovalStatus, MiscEnumEntity.SalesOrderStatusRejected);
-
-            if (status != MiscEnumEntity.SalesOrderStatusApproved && status != MiscEnumEntity.SalesOrderStatusRejected)
+            // Allow Approved, Rejected AND Pending. "Pending" = an intermediate approval was
+            // taken (e.g., MO approved) but the workflow still has more approvers to go.
+            // Step-2 escalation needs this branch to fire on intermediate approvals.
+            if (status != MiscEnumEntity.SalesOrderStatusApproved &&
+                status != MiscEnumEntity.SalesOrderStatusRejected &&
+                status != MiscEnumEntity.SalesOrderStatusPending)
                 return;
-
-            var finalStatusId = status == MiscEnumEntity.SalesOrderStatusApproved
-                ? statusApproved?.Id ?? 0
-                : statusRejected?.Id ?? 0;
 
             var order = await _salesOrderCommandRepo.GetByIdEntityAsync(salesOrderId);
             if (order == null)
@@ -364,15 +379,157 @@ namespace SalesManagement.Application.Consumers
                 return;
             }
 
-            // Update status
-            order.StatusId = finalStatusId;
+            // Persist status change ONLY for terminal states (Approved / Rejected). For Pending
+            // the SO is already Pending — no DB write needed; we just continue to Step-2 below.
+            if (status == MiscEnumEntity.SalesOrderStatusApproved ||
+                status == MiscEnumEntity.SalesOrderStatusRejected)
+            {
+                var statusApproved = await _miscMasterQueryRepository.GetMiscMasterByName(
+                    MiscEnumEntity.SalesOrderApprovalStatus, MiscEnumEntity.SalesOrderStatusApproved);
 
-            await _salesOrderCommandRepo.FinalizeOrderStatusAsync(
-                order, msg.ModifiedBy, msg.ModifiedByName, msg.ModifiedIP);
+                var statusRejected = await _miscMasterQueryRepository.GetMiscMasterByName(
+                    MiscEnumEntity.SalesOrderApprovalStatus, MiscEnumEntity.SalesOrderStatusRejected);
 
-            _logger.LogInformation(
-                "SalesOrder Id={SalesOrderId} status updated to {Status} (StatusId={StatusId})",
-                salesOrderId, status, finalStatusId);
+                var finalStatusId = status == MiscEnumEntity.SalesOrderStatusApproved
+                    ? statusApproved?.Id ?? 0
+                    : statusRejected?.Id ?? 0;
+
+                order.StatusId = finalStatusId;
+
+                await _salesOrderCommandRepo.FinalizeOrderStatusAsync(
+                    order, msg.ModifiedBy, msg.ModifiedByName, msg.ModifiedIP);
+
+                _logger.LogInformation(
+                    "SalesOrder Id={SalesOrderId} status updated to {Status} (StatusId={StatusId})",
+                    salesOrderId, status, finalStatusId);
+            }
+
+            // ── Steps 2 & 3: Workflow escalation on Pending ──
+            // Determine which step the approver is at, by comparing msg.ModifiedBy against the
+            // agent's MO and the MO's ReportTo (HOD).
+            //
+            //   Step 2: MO approved   → notify HOD ............ ModuleName="Sales Order MO Approval"
+            //   Step 3: HOD approved  → notify MD (HOD's ReportTo)
+            //                          BUT only when order.IsMdDiscountEnabled = true
+            //                          ModuleName="Sales Order MD Approval"
+            //
+            // Skipped silently in all other cases (rejected, approved-final, approver isn't
+            // MO/HOD, MdDiscount disabled at Step 3).
+            if (status == MiscEnumEntity.SalesOrderStatusPending && msg.ModifiedBy > 0 && order.AgentId > 0)
+            {
+                try
+                {
+                    var moUserId = await _officerAgentUserLookup
+                        .GetMarketingOfficerUserIdByAgentIdAsync(order.AgentId.Value, ct);
+
+                    var hodUserId = (moUserId.HasValue && moUserId.Value > 0)
+                        ? await _officerAgentUserLookup.GetMarketingOfficerReportToUserIdAsync(moUserId.Value, ct)
+                        : null;
+
+                    string?  moduleName        = null;
+                    int?     nextRecipientId   = null;
+                    string   stepLabel         = "";
+
+                    if (moUserId.HasValue && msg.ModifiedBy == moUserId.Value)
+                    {
+                        // Step 2: MO just approved → recipient is HOD
+                        nextRecipientId = hodUserId;
+                        moduleName      = "Sales Order MO Approval";
+                        stepLabel       = "Step-2";
+                    }
+                    else if (hodUserId.HasValue && msg.ModifiedBy == hodUserId.Value)
+                    {
+                        // Step 3: HOD just approved → only escalate to MD if MdDiscount is enabled.
+                        // The MD's UserId comes from AppData.ApprovalRequest (workflow's authoritative
+                        // source — keyed by ApprovalRuleId = 1), not from Users.ReportToId.
+                        if (!order.IsMdDiscountEnabled)
+                        {
+                            _logger.LogInformation(
+                                "Step-3 InApp skipped. SalesOrder {SalesOrderNo} (Id={Id}) HOD approval but " +
+                                "IsMdDiscountEnabled=false — workflow ends here, no MD escalation.",
+                                order.SalesOrderNo, salesOrderId);
+                            return;
+                        }
+
+                        // MD-level approver is registered by the workflow engine in
+                        // AppData.ApprovalRequest with ApprovalRuleId = 1 (the rule-conditional
+                        // step that activates when MdDiscount is enabled).
+                        nextRecipientId = await _workflowLookup.GetApproverUserIdByRuleAsync(
+                            workflowType:        MiscEnumEntity.TransactionTypeSalesOrder,
+                            moduleTransactionId: salesOrderId,
+                            unitId:              order.OrderUnitId ?? 0,
+                            approvalRuleId:      1,
+                            cancellationToken:   ct);
+                        moduleName      = "Sales Order MD Approval";
+                        stepLabel       = "Step-3";
+                    }
+                    else
+                    {
+                        _logger.LogInformation(
+                            "Pending escalation skipped. Approver UserId={ApproverId} is neither the agent's MO " +
+                            "(UserId={MoId}) nor the HOD (UserId={HodId}). SalesOrder Id={Id}",
+                            msg.ModifiedBy, moUserId, hodUserId, salesOrderId);
+                        return;
+                    }
+
+                    if (!nextRecipientId.HasValue || nextRecipientId.Value <= 0)
+                    {
+                        _logger.LogInformation(
+                            "{Step} InApp skipped. Could not resolve next-level recipient for ApproverId={ApproverId} " +
+                            "on SalesOrder Id={Id}.",
+                            stepLabel, msg.ModifiedBy, salesOrderId);
+                        return;
+                    }
+
+                    var notifEventMisc = await _appDataMiscLookup.GetMiscMasterByNameAsync(
+                        NotificationEnum.NotificationEvent, NotificationEnum.Create);
+
+                    var customer = order.PartyId > 0
+                        ? await _partyDetailLookup.GetByIdAsync(order.PartyId, ct)
+                        : null;
+                    var customerName = customer?.PartyName ?? "";
+
+                    var inAppCorrelationId = Guid.NewGuid();
+                    var inAppEvent = new NotificationCreatedEvent
+                    {
+                        CorrelationId         = inAppCorrelationId,
+                        CreatedByName         = msg.ModifiedByName ?? string.Empty,
+                        UnitId                = order.OrderUnitId ?? 0,
+                        ModuleName            = moduleName,
+                        EventTypeId           = notifEventMisc?.Id ?? 0,
+                        Email                 = "",
+                        ccMail                = "",
+                        Mobile                = "",
+                        param1                = order.SalesOrderNo ?? "",
+                        param2                = customerName,
+                        param3                = DateTimeOffset.UtcNow,
+                        param4                = "",
+                        param5                = "",
+                        param6                = "",
+                        param7                = "",
+                        param8                = "",
+                        param9                = "",
+                        param10               = "",
+                        OverrideTargetUserIds = new List<int> { nextRecipientId.Value }
+                    };
+
+                    // Direct publish via consumer's bus context — same pattern as the completion event.
+                    await context.Publish(inAppEvent, ct);
+
+                    _logger.LogInformation(
+                        "{Step} InApp published. SalesOrder {SalesOrderNo} (Id={Id}) approved by UserId={ApproverId}; " +
+                        "ModuleName={ModuleName}, escalation recipient UserId={RecipientId} (CorrId: {Corr})",
+                        stepLabel, order.SalesOrderNo, salesOrderId, msg.ModifiedBy,
+                        moduleName, nextRecipientId.Value, inAppCorrelationId);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex,
+                        "Failed to publish escalation InApp for SalesOrder Id={Id} approved by UserId={ApproverId}",
+                        salesOrderId, msg.ModifiedBy);
+                    // Do NOT rethrow — the SO approval itself succeeded; notification is best-effort.
+                }
+            }
         }
 
         /// <summary>
