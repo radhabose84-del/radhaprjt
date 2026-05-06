@@ -393,7 +393,7 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
             var sql = $@"
                 SELECT TOP 1 DocDate
                 FROM Production.ProductionStockLedger
-                WHERE  stockClosing = 1 {unitFilter}
+                WHERE 1 = 1 {unitFilter}
                 ORDER BY DocDate DESC";
 
             var result = await _dbConnection.QueryFirstOrDefaultAsync<DateTime?>(
