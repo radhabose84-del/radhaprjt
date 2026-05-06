@@ -321,7 +321,7 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
                     ClosingBags
                 FROM Production.ProductionStockLedger
                 WHERE UnitId = @UnitId AND ItemId = @ItemId AND LotId = @LotId
-                    AND DocDate < @DocDate
+                    AND DocDate <= @DocDate
                 ORDER BY DocDate DESC, Id DESC";
 
             return await _dbConnection.QueryFirstOrDefaultAsync<ProductionStockClosingDto>(

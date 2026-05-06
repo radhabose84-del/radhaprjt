@@ -58,6 +58,12 @@ namespace SalesManagement.Infrastructure.Services.Outbox
                 typeof(TEvent).Name, correlationId);
         }
 
+        public async Task SavePendingAsync(CancellationToken cancellationToken = default)
+        {
+            await _outboxRepository.SavePendingAsync(cancellationToken);
+            _logger.LogDebug("All pending outbox events committed atomically.");
+        }
+
         public async Task ScheduleBatchAsync<TEvent>(
             IEnumerable<TEvent> events,
             Guid correlationId,
