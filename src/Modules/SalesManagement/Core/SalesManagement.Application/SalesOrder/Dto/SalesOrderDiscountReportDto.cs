@@ -62,5 +62,25 @@ namespace SalesManagement.Application.SalesOrder.Dto
         public string? SlabTypeName { get; set; }
         public decimal? DiscountRate { get; set; }
         public decimal? TotalDiscountValue { get; set; }
+
+        /// <summary>
+        /// Item lines on the underlying Sales Order. Populated even when the order has multiple
+        /// lines — every line appears here so the report shows full per-line breakdown without
+        /// inflating the discount totals.
+        /// </summary>
+        public List<SalesOrderDiscountRowLineDto> Details { get; set; } = new();
+    }
+
+    public class SalesOrderDiscountRowLineDto
+    {
+        public int? VariantId { get; set; }
+        public string? ItemName { get; set; }
+        public int? QtyInBags { get; set; }
+        public decimal? BagWeight { get; set; }
+        public int? SaleUOMId { get; set; }
+        public string? UomName { get; set; }
+        public decimal? TotalWeight { get; set; }
+        public int? PackTypeId { get; set; }
+        public string? PackTypeName { get; set; }
     }
 }
