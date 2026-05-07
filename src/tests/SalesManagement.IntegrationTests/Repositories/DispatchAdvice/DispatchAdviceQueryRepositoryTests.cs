@@ -492,9 +492,9 @@ namespace SalesManagement.IntegrationTests.Repositories.DispatchAdvice
             var (rows, _) = await CreateRepo(partyLookup).GetAllAsync(1, 10, null);
 
             rows.Should().HaveCount(1);
-            rows[0].DispatchAddress.Should().HaveCount(1);
-            var addr = rows[0].DispatchAddress[0];
-            addr.Source.Should().Be("Party");
+            var addr = rows[0].DispatchAddress;
+            addr.Should().NotBeNull();
+            addr!.Source.Should().Be("Party");
             addr.Id.Should().Be(901);
             addr.DispatchAddressId.Should().BeNull();
             addr.DispatchAddressName.Should().BeNull();
@@ -510,18 +510,12 @@ namespace SalesManagement.IntegrationTests.Repositories.DispatchAdvice
         }
 
         [Fact]
-        public async Task GetAllAsync_DirectToParty_MultipleShippingRows_ReturnsAllAsArray()
+        public async Task GetAllAsync_DirectToParty_MultipleShippingRows_ReturnsFirstByLowestId()
         {
             await ClearAsync();
             var (_, partyId) = await SeedAdviceWithDispatchTypeAsync("DA_D2P_2", "DAQ_D2P", "Direct-To-Party");
 
             var partyLookup = BuildPartyLookupWithAddresses(partyId,
-                new PartyAddressLookupDto
-                {
-                    Id = 1, PartyId = partyId, AddressType = "Shipping",
-                    AddressLine1 = "Addr 1", CityId = 1, City = "C1",
-                    StateId = 1, State = "S1", CountryId = 1, Country = "Co1", PostalCode = "100001"
-                },
                 new PartyAddressLookupDto
                 {
                     Id = 2, PartyId = partyId, AddressType = "Shipping",
@@ -530,15 +524,23 @@ namespace SalesManagement.IntegrationTests.Repositories.DispatchAdvice
                 },
                 new PartyAddressLookupDto
                 {
-                    Id = 3, PartyId = partyId, AddressType = "Billing",  // ← excluded
+                    Id = 1, PartyId = partyId, AddressType = "Shipping",
+                    AddressLine1 = "Addr 1", CityId = 1, City = "C1",
+                    StateId = 1, State = "S1", CountryId = 1, Country = "Co1", PostalCode = "100001"
+                },
+                new PartyAddressLookupDto
+                {
+                    Id = 3, PartyId = partyId, AddressType = "Billing",  // ← excluded (wrong type)
                     AddressLine1 = "Bill", CityId = 9, City = "B", PostalCode = "999999"
                 });
 
             var (rows, _) = await CreateRepo(partyLookup).GetAllAsync(1, 10, null);
 
-            rows[0].DispatchAddress.Should().HaveCount(2);
-            rows[0].DispatchAddress.Select(a => a.Id).Should().BeEquivalentTo(new int?[] { 1, 2 });
-            rows[0].DispatchAddress.Should().AllSatisfy(a => a.Source.Should().Be("Party"));
+            var addr = rows[0].DispatchAddress;
+            addr.Should().NotBeNull();
+            addr!.Id.Should().Be(1);                  // lowest-Id Shipping wins
+            addr.AddressLine1.Should().Be("Addr 1");
+            addr.Source.Should().Be("Party");
         }
 
         [Fact]
@@ -552,9 +554,9 @@ namespace SalesManagement.IntegrationTests.Repositories.DispatchAdvice
             var (rows, _) = await CreateRepo().GetAllAsync(1, 10, null);
 
             rows.Should().HaveCount(1);
-            rows[0].DispatchAddress.Should().HaveCount(1);
-            var addr = rows[0].DispatchAddress[0];
-            addr.Source.Should().Be("Master");
+            var addr = rows[0].DispatchAddress;
+            addr.Should().NotBeNull();
+            addr!.Source.Should().Be("Master");
             addr.Id.Should().Be(masterId);
             addr.DispatchAddressId.Should().Be(masterId);
             addr.DispatchAddressName.Should().Be("MAINPLANT");
@@ -568,7 +570,7 @@ namespace SalesManagement.IntegrationTests.Repositories.DispatchAdvice
         }
 
         [Fact]
-        public async Task GetAllAsync_UnknownDispatchType_ReturnsEmptyArray()
+        public async Task GetAllAsync_UnknownDispatchType_ReturnsNull()
         {
             await ClearAsync();
             await SeedAdviceWithDispatchTypeAsync("DA_UNK_1", "DAQ_UNK", "SomeRandomType");
@@ -576,8 +578,7 @@ namespace SalesManagement.IntegrationTests.Repositories.DispatchAdvice
             var (rows, _) = await CreateRepo().GetAllAsync(1, 10, null);
 
             rows.Should().HaveCount(1);
-            rows[0].DispatchAddress.Should().NotBeNull();
-            rows[0].DispatchAddress.Should().BeEmpty();
+            rows[0].DispatchAddress.Should().BeNull();
         }
 
         [Fact]
@@ -597,10 +598,10 @@ namespace SalesManagement.IntegrationTests.Repositories.DispatchAdvice
             var result = await CreateRepo(partyLookup).GetByIdAsync(id);
 
             result.Should().NotBeNull();
-            result!.DispatchAddress.Should().HaveCount(1);
-            result.DispatchAddress[0].Source.Should().Be("Party");
-            result.DispatchAddress[0].Id.Should().Be(555);
-            result.DispatchAddress[0].PinCode.Should().Be("123456");
+            result!.DispatchAddress.Should().NotBeNull();
+            result.DispatchAddress!.Source.Should().Be("Party");
+            result.DispatchAddress.Id.Should().Be(555);
+            result.DispatchAddress.PinCode.Should().Be("123456");
         }
 
         [Fact]
@@ -614,9 +615,9 @@ namespace SalesManagement.IntegrationTests.Repositories.DispatchAdvice
             var result = await CreateRepo().GetByIdAsync(id);
 
             result.Should().NotBeNull();
-            result!.DispatchAddress.Should().HaveCount(1);
-            var addr = result.DispatchAddress[0];
-            addr.Source.Should().Be("Master");
+            var addr = result!.DispatchAddress;
+            addr.Should().NotBeNull();
+            addr!.Source.Should().Be("Master");
             addr.DispatchAddressId.Should().Be(masterId);
             addr.DispatchAddressName.Should().Be("WHSE");
             addr.AddressLine1.Should().Be("AddrA");
@@ -625,7 +626,7 @@ namespace SalesManagement.IntegrationTests.Repositories.DispatchAdvice
         }
 
         [Fact]
-        public async Task GetByIdAsync_UnknownDispatchType_ReturnsEmptyArray()
+        public async Task GetByIdAsync_UnknownDispatchType_ReturnsNull()
         {
             await ClearAsync();
             var (id, _) = await SeedAdviceWithDispatchTypeAsync("DA_UNK_2", "DAQ_UNK", "SomeRandomType");
@@ -633,8 +634,7 @@ namespace SalesManagement.IntegrationTests.Repositories.DispatchAdvice
             var result = await CreateRepo().GetByIdAsync(id);
 
             result.Should().NotBeNull();
-            result!.DispatchAddress.Should().NotBeNull();
-            result.DispatchAddress.Should().BeEmpty();
+            result!.DispatchAddress.Should().BeNull();
         }
     }
 }

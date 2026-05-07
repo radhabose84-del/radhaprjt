@@ -97,6 +97,26 @@ namespace SalesManagement.Presentation.Validation.OfficerAgent
                             .WithMessage($"{nameof(CreateOfficerAgentCommand.MarketingOfficerId)} {rule.Error}");
                         break;
 
+                    case "AlreadyExists":
+                        // In-request duplicate — same AgentId listed twice in the same payload
+                        RuleFor(x => x.Agents)
+                            .Must(agents => agents.Select(a => a.AgentId).Distinct().Count() == agents.Count)
+                            .WithMessage("Agent appears more than once in this request.")
+                            .When(x => x.Agents != null
+                                    && x.Agents.Count > 0
+                                    && x.Agents.All(a => a.AgentId > 0));
+
+                        // Cross-request duplicate — active assignment already exists in DB.
+                        // Per-element guard: only run when both ids are valid (other rules cover the rest).
+                        RuleForEach(x => x.Agents)
+                            .MustAsync(async (cmd, agent, ct) =>
+                                cmd.MarketingOfficerId <= 0
+                                    || agent.AgentId <= 0
+                                    || !await _queryRepository.AlreadyAssignedAsync(cmd.MarketingOfficerId, agent.AgentId))
+                            .WithMessage("This agent is already assigned to this Marketing Officer.")
+                            .When(x => x.Agents != null && x.Agents.Count > 0);
+                        break;
+
                     default:
                         break;
                 }

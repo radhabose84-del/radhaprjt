@@ -18,6 +18,8 @@ namespace SalesManagement.UnitTests.Validators.OfficerAgent
         {
             _mockQueryRepo.Setup(r => r.MarketingOfficerExistsAsync(marketingOfficerId)).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.AgentExistsAsync(agentId, It.IsAny<CancellationToken>())).ReturnsAsync(true);
+            _mockQueryRepo.Setup(r => r.AlreadyAssignedAsync(
+                It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int?>())).ReturnsAsync(false);
         }
 
         private static CreateOfficerAgentCommand ValidCommand() => new()
@@ -67,6 +69,8 @@ namespace SalesManagement.UnitTests.Validators.OfficerAgent
             var cmd = ValidCommand();
             _mockQueryRepo.Setup(r => r.MarketingOfficerExistsAsync(1)).ReturnsAsync(false);
             _mockQueryRepo.Setup(r => r.AgentExistsAsync(2, It.IsAny<CancellationToken>())).ReturnsAsync(true);
+            _mockQueryRepo.Setup(r => r.AlreadyAssignedAsync(
+                It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int?>())).ReturnsAsync(false);
 
             var result = await CreateValidator().TestValidateAsync(cmd);
 
@@ -139,6 +143,41 @@ namespace SalesManagement.UnitTests.Validators.OfficerAgent
             var result = await CreateValidator().TestValidateAsync(cmd);
 
             result.ShouldHaveAnyValidationError();
+        }
+
+        // ── Duplicate Rules (SCRUM-1561) ──────────────────────────────────────
+
+        [Fact]
+        public async Task SameAgentListedTwice_InOnePayload_FailsValidation()
+        {
+            var cmd = ValidCommand();
+            cmd.Agents.Add(new OfficerAgentBatchItem
+            {
+                AgentId = 2, // duplicate of the first item
+                ValidityFrom = DateOnly.FromDateTime(DateTime.Today),
+                ValidityTo = DateOnly.FromDateTime(DateTime.Today.AddMonths(3)),
+                IsActive = 1
+            });
+            SetupAllAsyncMocks();
+
+            var result = await CreateValidator().TestValidateAsync(cmd);
+
+            result.ShouldHaveValidationErrorFor(x => x.Agents)
+                  .WithErrorMessage("Agent appears more than once in this request.");
+        }
+
+        [Fact]
+        public async Task AgentAlreadyActivelyAssigned_FailsValidation()
+        {
+            var cmd = ValidCommand();
+            _mockQueryRepo.Setup(r => r.MarketingOfficerExistsAsync(1)).ReturnsAsync(true);
+            _mockQueryRepo.Setup(r => r.AgentExistsAsync(2, It.IsAny<CancellationToken>())).ReturnsAsync(true);
+            _mockQueryRepo.Setup(r => r.AlreadyAssignedAsync(1, 2, It.IsAny<int?>())).ReturnsAsync(true);
+
+            var result = await CreateValidator().TestValidateAsync(cmd);
+
+            result.ShouldHaveValidationErrorFor("Agents[0]")
+                  .WithErrorMessage("This agent is already assigned to this Marketing Officer.");
         }
     }
 }
