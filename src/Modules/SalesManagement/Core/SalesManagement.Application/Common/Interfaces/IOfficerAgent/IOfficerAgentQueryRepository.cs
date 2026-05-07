@@ -11,5 +11,7 @@ namespace SalesManagement.Application.Common.Interfaces.IOfficerAgent
         Task<bool> AgentExistsAsync(int agentId, CancellationToken ct = default);
         Task<bool> MarketingOfficerExistsAsync(int officerId);
         Task<bool> IsExpiredAsync(int id);
+        Task<bool> AlreadyAssignedAsync(int marketingOfficerId, int agentId, int? excludeAssignmentId = null);
+        Task<bool> IsExpiredAndModifiedAsync(int id, int agentId, DateOnly validityFrom, DateOnly validityTo, int isActive);
     }
 }

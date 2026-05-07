@@ -14,6 +14,7 @@ namespace Contracts.Dtos.Lookups.Sales
         public decimal Insurance { get; set; }
         public decimal HandlingCharge { get; set; }
         public decimal OtherCharges { get; set; }
+        public decimal TotalCharity { get; set; }
         public decimal CGST { get; set; }
         public decimal SGST { get; set; }
         public decimal IGST { get; set; }
@@ -62,5 +63,7 @@ namespace Contracts.Dtos.Lookups.Sales
         public int? PackTypeId { get; set; }
         public int? UOMId { get; set; }
         public string? UOMName { get; set; }
+        /// <summary>NIC UQC code (e.g., "KGS", "NOS", "PCS") — from Inventory.UOM.Code</summary>
+        public string? UOMCode { get; set; }
     }
 }

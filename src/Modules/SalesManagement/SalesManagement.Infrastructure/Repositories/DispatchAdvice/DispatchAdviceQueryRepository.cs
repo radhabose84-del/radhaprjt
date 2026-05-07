@@ -273,32 +273,36 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
                 header.TransporterName = transporter?.PartyName;
             }
 
-            // Build the DispatchAddress array based on DispatchTypeName
-            // - "Direct-To-Party" → all of the party's Shipping addresses (from PartyLookup, names pre-resolved)
+            // Build the DispatchAddress object based on DispatchTypeName
+            // - "Direct-To-Party" → first Shipping address from PartyLookup (multiple → lowest PartyAddress.Id wins)
             // - "Others"          → the JOINed DispatchAddressMaster row (resolve city/state/country names via lookups)
-            // - anything else / no match → empty array
+            // - anything else / no match → null
             if (string.Equals(row.DispatchTypeName, "Direct-To-Party", StringComparison.OrdinalIgnoreCase))
             {
-                var shippingAddresses = (party?.Addresses ?? Enumerable.Empty<Contracts.Dtos.Lookups.Party.PartyAddressLookupDto>())
+                var firstShipping = (party?.Addresses ?? Enumerable.Empty<Contracts.Dtos.Lookups.Party.PartyAddressLookupDto>())
                     .Where(a => string.Equals(a.AddressType, "Shipping", StringComparison.OrdinalIgnoreCase))
-                    .Select(a => new DispatchAdviceAddressDto
+                    .OrderBy(a => a.Id)
+                    .FirstOrDefault();
+
+                if (firstShipping != null)
+                {
+                    header.DispatchAddress = new DispatchAdviceAddressDto
                     {
-                        Id = a.Id,
+                        Id = firstShipping.Id,
                         Source = "Party",
                         DispatchAddressId = null,
                         DispatchAddressName = null,
-                        AddressLine1 = a.AddressLine1,
-                        AddressLine2 = a.AddressLine2,
-                        CityId = a.CityId,
-                        CityName = a.City,
-                        StateId = a.StateId,
-                        StateName = a.State,
-                        CountryId = a.CountryId,
-                        CountryName = a.Country,
-                        PinCode = a.PostalCode
-                    })
-                    .ToList();
-                header.DispatchAddress = shippingAddresses;
+                        AddressLine1 = firstShipping.AddressLine1,
+                        AddressLine2 = firstShipping.AddressLine2,
+                        CityId = firstShipping.CityId,
+                        CityName = firstShipping.City,
+                        StateId = firstShipping.StateId,
+                        StateName = firstShipping.State,
+                        CountryId = firstShipping.CountryId,
+                        CountryName = firstShipping.Country,
+                        PinCode = firstShipping.PostalCode
+                    };
+                }
             }
             else if (string.Equals(row.DispatchTypeName, "Others", StringComparison.OrdinalIgnoreCase)
                      && row.MasterDispatchAddressId.HasValue)
@@ -323,24 +327,21 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
                     countryName = country?.CountryName;
                 }
 
-                header.DispatchAddress = new List<DispatchAdviceAddressDto>
+                header.DispatchAddress = new DispatchAdviceAddressDto
                 {
-                    new DispatchAdviceAddressDto
-                    {
-                        Id = row.MasterDispatchAddressId,
-                        Source = "Master",
-                        DispatchAddressId = row.MasterDispatchAddressId,
-                        DispatchAddressName = row.MasterDispatchAddressName,
-                        AddressLine1 = row.MasterAddressLine1,
-                        AddressLine2 = row.MasterAddressLine2,
-                        CityId = row.MasterCityId,
-                        CityName = cityName,
-                        StateId = row.MasterStateId,
-                        StateName = stateName,
-                        CountryId = row.MasterCountryId,
-                        CountryName = countryName,
-                        PinCode = row.MasterPinCode
-                    }
+                    Id = row.MasterDispatchAddressId,
+                    Source = "Master",
+                    DispatchAddressId = row.MasterDispatchAddressId,
+                    DispatchAddressName = row.MasterDispatchAddressName,
+                    AddressLine1 = row.MasterAddressLine1,
+                    AddressLine2 = row.MasterAddressLine2,
+                    CityId = row.MasterCityId,
+                    CityName = cityName,
+                    StateId = row.MasterStateId,
+                    StateName = stateName,
+                    CountryId = row.MasterCountryId,
+                    CountryName = countryName,
+                    PinCode = row.MasterPinCode
                 };
             }
 
@@ -839,7 +840,7 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
                 ModifiedByName = row.ModifiedByName
             };
 
-        private static List<DispatchAdviceAddressDto> BuildDispatchAddress(
+        private static DispatchAdviceAddressDto? BuildDispatchAddress(
             string? dispatchTypeName,
             int partyId,
             DispatchAdviceHeaderRow row,
@@ -851,53 +852,50 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
             if (string.Equals(dispatchTypeName, "Direct-To-Party", StringComparison.OrdinalIgnoreCase))
             {
                 if (!partyShippingDict.TryGetValue(partyId, out var shippingAddresses) || shippingAddresses.Count == 0)
-                    return new List<DispatchAdviceAddressDto>();
+                    return null;
 
-                return shippingAddresses
-                    .Select(a => new DispatchAdviceAddressDto
-                    {
-                        Id = a.Id,
-                        Source = "Party",
-                        DispatchAddressId = null,
-                        DispatchAddressName = null,
-                        AddressLine1 = a.AddressLine1,
-                        AddressLine2 = a.AddressLine2,
-                        CityId = a.CityId,
-                        CityName = a.City,
-                        StateId = a.StateId,
-                        StateName = a.State,
-                        CountryId = a.CountryId,
-                        CountryName = a.Country,
-                        PinCode = a.PostalCode
-                    })
-                    .ToList();
+                // Multiple shipping rows possible — take the first (lowest PartyAddress.Id, typically the primary)
+                var a = shippingAddresses.OrderBy(x => x.Id).First();
+                return new DispatchAdviceAddressDto
+                {
+                    Id = a.Id,
+                    Source = "Party",
+                    DispatchAddressId = null,
+                    DispatchAddressName = null,
+                    AddressLine1 = a.AddressLine1,
+                    AddressLine2 = a.AddressLine2,
+                    CityId = a.CityId,
+                    CityName = a.City,
+                    StateId = a.StateId,
+                    StateName = a.State,
+                    CountryId = a.CountryId,
+                    CountryName = a.Country,
+                    PinCode = a.PostalCode
+                };
             }
 
             if (string.Equals(dispatchTypeName, "Others", StringComparison.OrdinalIgnoreCase)
                 && row.MasterDispatchAddressId.HasValue)
             {
-                return new List<DispatchAdviceAddressDto>
+                return new DispatchAdviceAddressDto
                 {
-                    new DispatchAdviceAddressDto
-                    {
-                        Id = row.MasterDispatchAddressId,
-                        Source = "Master",
-                        DispatchAddressId = row.MasterDispatchAddressId,
-                        DispatchAddressName = row.MasterDispatchAddressName,
-                        AddressLine1 = row.MasterAddressLine1,
-                        AddressLine2 = row.MasterAddressLine2,
-                        CityId = row.MasterCityId,
-                        CityName = row.MasterCityId.HasValue && cityDict.TryGetValue(row.MasterCityId.Value, out var cn) ? cn : null,
-                        StateId = row.MasterStateId,
-                        StateName = row.MasterStateId.HasValue && stateDict.TryGetValue(row.MasterStateId.Value, out var sn) ? sn : null,
-                        CountryId = row.MasterCountryId,
-                        CountryName = row.MasterCountryId.HasValue && countryDict.TryGetValue(row.MasterCountryId.Value, out var ctn) ? ctn : null,
-                        PinCode = row.MasterPinCode
-                    }
+                    Id = row.MasterDispatchAddressId,
+                    Source = "Master",
+                    DispatchAddressId = row.MasterDispatchAddressId,
+                    DispatchAddressName = row.MasterDispatchAddressName,
+                    AddressLine1 = row.MasterAddressLine1,
+                    AddressLine2 = row.MasterAddressLine2,
+                    CityId = row.MasterCityId,
+                    CityName = row.MasterCityId.HasValue && cityDict.TryGetValue(row.MasterCityId.Value, out var cn) ? cn : null,
+                    StateId = row.MasterStateId,
+                    StateName = row.MasterStateId.HasValue && stateDict.TryGetValue(row.MasterStateId.Value, out var sn) ? sn : null,
+                    CountryId = row.MasterCountryId,
+                    CountryName = row.MasterCountryId.HasValue && countryDict.TryGetValue(row.MasterCountryId.Value, out var ctn) ? ctn : null,
+                    PinCode = row.MasterPinCode
                 };
             }
 
-            return new List<DispatchAdviceAddressDto>();
+            return null;
         }
 
         private sealed class DispatchAdviceHeaderRow
