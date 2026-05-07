@@ -295,6 +295,48 @@ namespace SalesManagement.Infrastructure.Repositories.OfficerAgent
             return count > 0;
         }
 
+        public async Task<bool> AlreadyAssignedAsync(int marketingOfficerId, int agentId, int? excludeAssignmentId = null)
+        {
+            const string sql = @"
+                SELECT COUNT(1) FROM Sales.OfficerAgent
+                WHERE MarketingOfficerId = @OfficerId
+                  AND AgentId = @AgentId
+                  AND IsActive = 1
+                  AND (@ExcludeId IS NULL OR Id <> @ExcludeId)";
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new
+            {
+                OfficerId = marketingOfficerId,
+                AgentId = agentId,
+                ExcludeId = excludeAssignmentId
+            });
+            return count > 0;
+        }
+
+        public async Task<bool> IsExpiredAndModifiedAsync(int id, int agentId, DateOnly validityFrom, DateOnly validityTo, int isActive)
+        {
+            // True only when the row exists AND is expired AND at least one editable field differs from incoming.
+            // Unchanged rows (round-trip pass-through from frontend) return false even if expired.
+            const string sql = @"
+                SELECT COUNT(1) FROM Sales.OfficerAgent
+                WHERE Id = @Id
+                  AND ValidityTo < CAST(GETDATE() AS DATE)
+                  AND (
+                       AgentId       <> @AgentId
+                    OR ValidityFrom  <> @ValidityFrom
+                    OR ValidityTo    <> @ValidityTo
+                    OR IsActive      <> @IsActive
+                  )";
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new
+            {
+                Id = id,
+                AgentId = agentId,
+                ValidityFrom = validityFrom,
+                ValidityTo = validityTo,
+                IsActive = isActive == 1
+            });
+            return count > 0;
+        }
+
         // Private helper — holds MarketingOfficerId for grouping
         private sealed class AssignmentRow : OfficerAgentItemDto
         {

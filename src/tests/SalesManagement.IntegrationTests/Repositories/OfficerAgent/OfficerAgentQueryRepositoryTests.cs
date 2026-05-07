@@ -288,5 +288,157 @@ namespace SalesManagement.IntegrationTests.Repositories.OfficerAgent
 
             result.Should().BeFalse();
         }
+
+        // ── AlreadyAssignedAsync (SCRUM-1561) ─────────────────────────────────
+
+        [Fact]
+        public async Task AlreadyAssignedAsync_Should_Return_True_When_Active_Row_Exists()
+        {
+            await ClearAsync();
+            var moId = await EnsureMarketingOfficerAsync();
+            await SeedAssignmentAsync(moId, 111, isActive: true);
+
+            var result = await CreateRepo().AlreadyAssignedAsync(moId, 111);
+
+            result.Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task AlreadyAssignedAsync_Should_Return_False_When_Only_Inactive_Rows_Exist()
+        {
+            await ClearAsync();
+            var moId = await EnsureMarketingOfficerAsync();
+            await SeedAssignmentAsync(moId, 111, isActive: false);
+
+            var result = await CreateRepo().AlreadyAssignedAsync(moId, 111);
+
+            result.Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task AlreadyAssignedAsync_Should_Return_False_When_No_Row_Exists()
+        {
+            await ClearAsync();
+            var moId = await EnsureMarketingOfficerAsync();
+
+            var result = await CreateRepo().AlreadyAssignedAsync(moId, 999);
+
+            result.Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task AlreadyAssignedAsync_Should_Return_False_When_Match_Is_The_Excluded_Row()
+        {
+            await ClearAsync();
+            var moId = await EnsureMarketingOfficerAsync();
+            var id = await SeedAssignmentAsync(moId, 111, isActive: true);
+
+            // Editing this row's date range should not flag itself as duplicate
+            var result = await CreateRepo().AlreadyAssignedAsync(moId, 111, excludeAssignmentId: id);
+
+            result.Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task AlreadyAssignedAsync_Should_Return_True_When_Other_Active_Row_Exists_Even_With_Exclude()
+        {
+            await ClearAsync();
+            var moId = await EnsureMarketingOfficerAsync();
+            var idA = await SeedAssignmentAsync(moId, 111, isActive: true);
+            var idB = await SeedAssignmentAsync(moId, 111, isActive: true); // a duplicate that pre-exists in QA-like data
+
+            // Excluding row A still finds row B as an active duplicate
+            var result = await CreateRepo().AlreadyAssignedAsync(moId, 111, excludeAssignmentId: idA);
+
+            result.Should().BeTrue();
+            idB.Should().NotBe(idA); // sanity
+        }
+
+        // ── IsExpiredAndModifiedAsync (SCRUM-1559) ────────────────────────────
+
+        private async Task<(int id, DateOnly from, DateOnly to)> SeedExpiredAssignmentAsync(
+            int officerId, int agentId, bool isActive = true)
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var from = DateOnly.FromDateTime(DateTime.UtcNow.Date.AddDays(-30));
+            var to = DateOnly.FromDateTime(DateTime.UtcNow.Date.AddDays(-1)); // expired yesterday
+            var e = new SalesManagement.Domain.Entities.OfficerAgent
+            {
+                AgentId = agentId,
+                MarketingOfficerId = officerId,
+                ValidityFrom = from,
+                ValidityTo = to,
+                IsActive = isActive
+            };
+            await ctx.OfficerAgent.AddAsync(e);
+            await ctx.SaveChangesAsync();
+            return (e.Id, from, to);
+        }
+
+        [Fact]
+        public async Task IsExpiredAndModifiedAsync_Should_Return_False_When_Row_NotExpired()
+        {
+            await ClearAsync();
+            var moId = await EnsureMarketingOfficerAsync();
+            var id = await SeedAssignmentAsync(moId, 111, isActive: true); // future ValidityTo
+
+            // Even with completely different fields, not-expired row never trips the check
+            var result = await CreateRepo().IsExpiredAndModifiedAsync(
+                id, 999, DateOnly.FromDateTime(DateTime.UtcNow.Date),
+                DateOnly.FromDateTime(DateTime.UtcNow.Date.AddYears(5)), 0);
+
+            result.Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task IsExpiredAndModifiedAsync_Should_Return_False_When_Expired_But_Fields_Match()
+        {
+            await ClearAsync();
+            var moId = await EnsureMarketingOfficerAsync();
+            var (id, from, to) = await SeedExpiredAssignmentAsync(moId, 111, isActive: true);
+
+            // Round-trip: caller sends back exactly what's in DB → no modification → pass
+            var result = await CreateRepo().IsExpiredAndModifiedAsync(id, 111, from, to, 1);
+
+            result.Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task IsExpiredAndModifiedAsync_Should_Return_True_When_Expired_And_ValidityTo_Changed()
+        {
+            await ClearAsync();
+            var moId = await EnsureMarketingOfficerAsync();
+            var (id, from, _) = await SeedExpiredAssignmentAsync(moId, 111, isActive: true);
+
+            var newTo = DateOnly.FromDateTime(DateTime.UtcNow.Date.AddYears(1)); // try to extend
+            var result = await CreateRepo().IsExpiredAndModifiedAsync(id, 111, from, newTo, 1);
+
+            result.Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task IsExpiredAndModifiedAsync_Should_Return_True_When_Expired_And_IsActive_Changed()
+        {
+            await ClearAsync();
+            var moId = await EnsureMarketingOfficerAsync();
+            var (id, from, to) = await SeedExpiredAssignmentAsync(moId, 111, isActive: true);
+
+            // User toggles IsActive on an expired row
+            var result = await CreateRepo().IsExpiredAndModifiedAsync(id, 111, from, to, 0);
+
+            result.Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task IsExpiredAndModifiedAsync_Should_Return_True_When_Expired_And_AgentId_Changed()
+        {
+            await ClearAsync();
+            var moId = await EnsureMarketingOfficerAsync();
+            var (id, from, to) = await SeedExpiredAssignmentAsync(moId, 111, isActive: true);
+
+            var result = await CreateRepo().IsExpiredAndModifiedAsync(id, 222, from, to, 1);
+
+            result.Should().BeTrue();
+        }
     }
 }
