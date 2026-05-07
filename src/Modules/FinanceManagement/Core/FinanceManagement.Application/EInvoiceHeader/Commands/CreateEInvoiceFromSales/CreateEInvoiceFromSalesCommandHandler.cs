@@ -108,7 +108,7 @@ namespace FinanceManagement.Application.EInvoiceHeader.Commands.CreateEInvoiceFr
                         TransMode = invoiceData.TransportModeCode,
                         VehicleNo = invoiceData.VehicleNo,
                         VehicleType = "R",
-                        Distance = 1
+                        Distance = 0
                     };
 
                     var ewbRetryResult = await _mediator.Send(ewbRetryCommand, cancellationToken);
@@ -237,7 +237,7 @@ namespace FinanceManagement.Application.EInvoiceHeader.Commands.CreateEInvoiceFr
                     TransMode = invoiceData.TransportModeCode,
                     VehicleNo = invoiceData.VehicleNo,
                     VehicleType = "R",
-                    Distance = 1
+                    Distance = 0
                 };
 
                 var ewbResult = await _mediator.Send(ewbCommand, cancellationToken);
@@ -304,7 +304,9 @@ namespace FinanceManagement.Application.EInvoiceHeader.Commands.CreateEInvoiceFr
                 IGST = invoice.IGST,
                 TCS = invoice.TCS,
                 Discount = invoice.TotalDiscount,
-                OtherCharges = invoice.OtherCharges,
+                // NIC OthChrg must include ALL header-level charges that are not part of line-item TotItemVal
+                OtherCharges = invoice.OtherCharges + invoice.HandlingCharge + invoice.Insurance
+                               + invoice.TotalFreight + invoice.TotalCharity,
                 RoundOff = invoice.RoundOff,
                 InvoiceAmount = invoice.InvoiceAmount,
                 Remarks = invoice.Remarks,
@@ -332,7 +334,7 @@ namespace FinanceManagement.Application.EInvoiceHeader.Commands.CreateEInvoiceFr
                         IGST = d.IGST,
                         TotalAmount = d.TotalAmount,
                         PackTypeId = d.PackTypeId,
-                        UOM = d.UOMName
+                        UOM = d.UOMCode ?? d.UOMName
                     };
                 }).ToList()
             };
