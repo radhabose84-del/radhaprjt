@@ -1403,6 +1403,73 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 }
             }
 
+            // 7. Populate per-row Details — Sales Order line items.
+            //    One extra round-trip: fetch all SalesOrderDetail lines for the unique orders on
+            //    this page, then attach to each discount row by SalesOrderId. Lines repeat across
+            //    SLAB/MD discounts of the same order — that's expected (the discount rows differ;
+            //    the underlying line items are the same per order).
+            var orderIdsInPage = rows.Select(r => r.SalesOrderId).Distinct().ToList();
+            if (orderIdsInPage.Count > 0)
+            {
+                // Sales.SalesOrderDetail has no IsDeleted column — no soft-delete filter needed.
+                const string detailSql = @"
+                    SELECT  SalesOrderHeaderId,
+                            VariantId,
+                            QtyInBags,
+                            BagWeight,
+                            SaleUOMId,
+                            TotalWeight,
+                            PackTypeId
+                    FROM    Sales.SalesOrderDetail
+                    WHERE   SalesOrderHeaderId IN @OrderIds
+                    ORDER BY Id;
+                ";
+
+                var detailRows = (await _dbConnection.QueryAsync<SalesOrderDetailLineRow>(
+                    new CommandDefinition(detailSql, new { OrderIds = orderIdsInPage }, cancellationToken: cancellationToken)))
+                    .ToList();
+
+                // Cross-module name lookups (Item, UOM) and same-module (PackType) — single batch each
+                var variantIds = detailRows.Where(d => d.VariantId.HasValue).Select(d => d.VariantId!.Value).Distinct().ToList();
+                var uomIds     = detailRows.Where(d => d.SaleUOMId.HasValue).Select(d => d.SaleUOMId!.Value).Distinct().ToList();
+                var packIds    = detailRows.Where(d => d.PackTypeId.HasValue).Select(d => d.PackTypeId!.Value).Distinct().ToList();
+
+                var itemDict = variantIds.Count > 0
+                    ? (await _itemLookup.GetByIdsAsync(variantIds)).ToDictionary(i => i.Id, i => i.ItemName)
+                    : new Dictionary<int, string>();
+
+                var uomDict = uomIds.Count > 0
+                    ? (await _uomLookup.GetByIdsAsync(uomIds)).ToDictionary(u => u.Id, u => u.UOMName)
+                    : new Dictionary<int, string>();
+
+                var packTypeDict = packIds.Count > 0
+                    ? (await _packTypeLookup.GetByIdsAsync(packIds)).ToDictionary(p => p.Id, p => p.PackTypeName)
+                    : new Dictionary<int, string>();
+
+                var detailsByOrder = detailRows
+                    .GroupBy(d => d.SalesOrderHeaderId)
+                    .ToDictionary(
+                        g => g.Key,
+                        g => g.Select(d => new SalesOrderDiscountRowLineDto
+                        {
+                            VariantId    = d.VariantId,
+                            ItemName     = d.VariantId.HasValue && itemDict.TryGetValue(d.VariantId.Value, out var inm) ? inm : null,
+                            QtyInBags    = d.QtyInBags,
+                            BagWeight    = d.BagWeight,
+                            SaleUOMId    = d.SaleUOMId,
+                            UomName      = d.SaleUOMId.HasValue && uomDict.TryGetValue(d.SaleUOMId.Value, out var unm) ? unm : null,
+                            TotalWeight  = d.TotalWeight,
+                            PackTypeId   = d.PackTypeId,
+                            PackTypeName = d.PackTypeId.HasValue && packTypeDict.TryGetValue(d.PackTypeId.Value, out var pnm) ? pnm : null
+                        }).ToList());
+
+                foreach (var r in rows)
+                {
+                    if (detailsByOrder.TryGetValue(r.SalesOrderId, out var lines))
+                        r.Details = lines;
+                }
+            }
+
             var report = new SalesOrderDiscountReportDto
             {
                 ByAgent    = byAgent,
@@ -1411,6 +1478,19 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             };
 
             return (report, totalCount);
+        }
+
+        // Internal row shape used when fetching SalesOrderDetail lines for the discount report.
+        // Carries the FK so we can group the result by SalesOrderHeaderId in C#.
+        private sealed class SalesOrderDetailLineRow
+        {
+            public int SalesOrderHeaderId { get; set; }
+            public int? VariantId { get; set; }
+            public int? QtyInBags { get; set; }
+            public decimal? BagWeight { get; set; }
+            public int? SaleUOMId { get; set; }
+            public decimal? TotalWeight { get; set; }
+            public int? PackTypeId { get; set; }
         }
     }
 }
