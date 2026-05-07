@@ -40,8 +40,8 @@ public sealed class CreateSalesQuotationCommandHandlerTests
         new(_mockCommandRepo.Object, _mockQueryRepo.Object, _mockMiscRepo.Object,
             _mockMapper.Object, _mockMediator.Object, _mockDocSeqLookup.Object, _mockIpService.Object,
             _mockOutboxPublisher.Object, _mockPartyDetailLookup.Object, _mockItemLookup.Object,
-            _mockHsnLookup.Object, _mockLogger.Object, _mockAppDataMiscLookup.Object, _mockConfiguration.Object,
-            _mockOfficerAgentUserLookup.Object);
+            _mockHsnLookup.Object, _mockLogger.Object, _mockAppDataMiscLookup.Object,
+            _mockConfiguration.Object, _mockOfficerAgentUserLookup.Object);
 
     private void SetupHappyPath(int newId = 1)
     {

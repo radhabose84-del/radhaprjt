@@ -1,15 +1,19 @@
 using SalesManagement.Domain.Entities;
 using AutoMapper;
 using Contracts.Common;
+using Contracts.Dtos.Lookups.Inventory;
+using Contracts.Events.Notifications;
 using Contracts.Interfaces;
+using Contracts.Interfaces.Lookups.Common;
 using MediatR;
+using Microsoft.Extensions.Logging;
 using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Application.Common.Interfaces.IComplaintQCReview;
 using SalesManagement.Application.Common.Interfaces.IMiscMaster;
 using SalesManagement.Application.Common.Interfaces.IOutbox;
 using SalesManagement.Application.ComplaintQCReview.Commands.SubmitQCReview;
 using SalesManagement.Application.ComplaintQCReview.Dto;
-
+using SalesManagement.Domain.Common;
 using SalesManagement.Domain.Events;
 
 namespace SalesManagement.UnitTests.Application.ComplaintQCReview.Commands;
@@ -24,11 +28,14 @@ public sealed class SubmitQCReviewCommandHandlerTests
     private readonly Mock<IOutboxEventPublisher> _mockOutbox = new(MockBehavior.Loose);
     private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Loose);
     private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Loose);
+    private readonly Mock<ILogger<SubmitQCReviewCommandHandler>> _mockLogger = new(MockBehavior.Loose);
+    private readonly Mock<IAppDataMiscMasterLookup> _mockAppDataMiscLookup = new(MockBehavior.Loose);
 
     private SubmitQCReviewCommandHandler CreateSut() =>
         new(_mockCommandRepo.Object, _mockQueryRepo.Object, _mockMiscRepo.Object,
             _mockIpService.Object, _mockTzService.Object, _mockOutbox.Object,
-            _mockMediator.Object, _mockMapper.Object);
+            _mockMediator.Object, _mockMapper.Object, _mockLogger.Object,
+            _mockAppDataMiscLookup.Object);
 
     private void SetupHappyPath(int newId = 1)
     {
@@ -53,6 +60,12 @@ public sealed class SubmitQCReviewCommandHandlerTests
         _mockOutbox
             .Setup(o => o.ScheduleAsync(It.IsAny<object>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
+
+        // EventType MiscMaster lookup — returns a stub MiscMasterLookupDto with a fake Id
+        _mockAppDataMiscLookup
+            .Setup(l => l.GetMiscMasterByNameAsync(
+                MiscEnumEntity.NotifEventTypeMiscType, MiscEnumEntity.NotifEventTypeCreate))
+            .ReturnsAsync(new MiscMasterLookupDto { Id = 1046, Code = "Create" });
     }
 
     [Fact]
@@ -129,5 +142,62 @@ public sealed class SubmitQCReviewCommandHandlerTests
                     e.ActionCode == "COMPLAINT_QC_REVIEW_SUBMIT"),
                 It.IsAny<CancellationToken>()),
             Times.Once);
+    }
+
+    // ============================================================
+    // Event 3 — InApp notification publish tests (Phase 1)
+    // ============================================================
+
+    [Fact]
+    public async Task Handle_ValidCommand_PublishesQcReviewSubmittedInAppEvent()
+    {
+        SetupHappyPath();
+        var command = new SubmitQCReviewCommand
+        {
+            ComplaintHeaderId = 1,
+            PhysicalVerificationId = 5,
+            Comments = "Review",
+            ExpectedResolutionDate = new DateOnly(2026, 3, 1)
+        };
+
+        await CreateSut().Handle(command, CancellationToken.None);
+
+        // EventTypeId comes from the mocked IAppDataMiscMasterLookup stub (Id=1046).
+        _mockOutbox.Verify(
+            o => o.ScheduleAsync(
+                It.Is<NotificationCreatedEvent>(e =>
+                    e.ModuleName == MiscEnumEntity.NotifModuleQcReviewSubmitted &&
+                    e.EventTypeId == 1046),
+                It.IsAny<Guid>(),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_NotificationPublishFails_DoesNotBreakSubmission()
+    {
+        SetupHappyPath();
+
+        var callCount = 0;
+        _mockOutbox
+            .Setup(o => o.ScheduleAsync(It.IsAny<object>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .Returns<object, Guid, CancellationToken>((_, _, _) =>
+            {
+                callCount++;
+                if (callCount == 1) throw new InvalidOperationException("Outbox down");
+                return Task.CompletedTask;
+            });
+
+        var command = new SubmitQCReviewCommand
+        {
+            ComplaintHeaderId = 1,
+            PhysicalVerificationId = 5,
+            Comments = "Review",
+            ExpectedResolutionDate = new DateOnly(2026, 3, 1)
+        };
+
+        var result = await CreateSut().Handle(command, CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue();
     }
 }

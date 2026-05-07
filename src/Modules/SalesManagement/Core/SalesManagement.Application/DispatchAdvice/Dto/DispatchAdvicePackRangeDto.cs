@@ -12,5 +12,7 @@ namespace SalesManagement.Application.DispatchAdvice.Dto
         public int FromPackNo { get; set; }
         public int ToPackNo { get; set; }
         public int TotalPacks { get; set; }
+        public int StatusId { get; set; }
+        public string? StatusName { get; set; }
     }
 }

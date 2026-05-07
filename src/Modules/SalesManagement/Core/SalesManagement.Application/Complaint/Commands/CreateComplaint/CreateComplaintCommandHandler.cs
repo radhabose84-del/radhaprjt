@@ -1,9 +1,12 @@
 using AutoMapper;
 using Contracts.Commands.Workflow;
 using Contracts.Common;
+using Contracts.Events.Notifications;
 using Contracts.Interfaces;
+using Contracts.Interfaces.Lookups.Common;
 using Contracts.Interfaces.Lookups.Finance;
 using MediatR;
+using Microsoft.Extensions.Logging;
 using SalesManagement.Application.Common.Interfaces.IComplaint;
 using SalesManagement.Application.Common.Interfaces.IMiscMaster;
 using SalesManagement.Application.Common.Interfaces.IOutbox;
@@ -24,6 +27,8 @@ namespace SalesManagement.Application.Complaint.Commands.CreateComplaint
         private readonly IOutboxEventPublisher _outboxEventPublisher;
         private readonly IMediator _mediator;
         private readonly IMapper _mapper;
+        private readonly ILogger<CreateComplaintCommandHandler> _logger;
+        private readonly IAppDataMiscMasterLookup _appDataMiscLookup;
 
         public CreateComplaintCommandHandler(
             IComplaintCommandRepository commandRepository,
@@ -32,7 +37,9 @@ namespace SalesManagement.Application.Complaint.Commands.CreateComplaint
             IIPAddressService ipAddressService,
             IOutboxEventPublisher outboxEventPublisher,
             IMediator mediator,
-            IMapper mapper)
+            IMapper mapper,
+            ILogger<CreateComplaintCommandHandler> logger,
+            IAppDataMiscMasterLookup appDataMiscLookup)
         {
             _commandRepository = commandRepository;
             _miscMasterQueryRepository = miscMasterQueryRepository;
@@ -41,6 +48,8 @@ namespace SalesManagement.Application.Complaint.Commands.CreateComplaint
             _outboxEventPublisher = outboxEventPublisher;
             _mediator = mediator;
             _mapper = mapper;
+            _logger = logger;
+            _appDataMiscLookup = appDataMiscLookup;
         }
 
         public async Task<ApiResponseDTO<int>> Handle(CreateComplaintCommand request, CancellationToken cancellationToken)
@@ -89,6 +98,55 @@ namespace SalesManagement.Application.Complaint.Commands.CreateComplaint
                 ?? throw new ExceptionRules("No document sequence configured for Complaint.");
 
             var newId = await _commandRepository.CreateAsync(entity, typeId.Value);
+
+            // ------------------- Event 1 — InApp notification: Complaint raised → Agent's MO -------------------
+            // ModuleName='New Complaint' matches NotificationConfig 31. EventTypeId resolved at runtime
+            // (Ids vary across environments). Dispatcher resolves recipient via TargetTypeId 2081
+            // (COMPLAINT_AGENT_MO_USER) — chains ComplaintHeader → ComplaintDetail →
+            // InvoiceHeader.AgentId → OfficerAgent → User.
+            try
+            {
+                var createEventType = await _appDataMiscLookup.GetMiscMasterByNameAsync(
+                    MiscEnumEntity.NotifEventTypeMiscType, MiscEnumEntity.NotifEventTypeCreate);
+
+                if (createEventType == null)
+                {
+                    _logger.LogWarning(
+                        "MiscMaster EventType='{Code}' not found — skipping 'New Complaint' InApp for Complaint {Id}",
+                        MiscEnumEntity.NotifEventTypeCreate, newId);
+                }
+                else
+                {
+                    var inAppCorrelationId = Guid.NewGuid();
+                    var inAppEvent = new NotificationCreatedEvent
+                    {
+                        CorrelationId = inAppCorrelationId,
+                        CreatedByName = _ipAddressService.GetUserName() ?? string.Empty,
+                        UnitId        = unitId ?? 0,
+                        ModuleName    = MiscEnumEntity.NotifModuleNewComplaint,
+                        EventTypeId   = createEventType.Id,
+                        Email         = string.Empty,
+                        ccMail        = string.Empty,
+                        Mobile        = string.Empty,
+                        param1        = complaintNumber,
+                        param2        = string.Empty,
+                        param3        = DateTimeOffset.UtcNow,
+                        param4        = string.Empty,
+                        param5        = _ipAddressService.GetUserName() ?? string.Empty,
+                        param6        = string.Empty,
+                        param7        = string.Empty,
+                        param8        = string.Empty,
+                        param9        = string.Empty,
+                        param10       = string.Empty
+                        // OverrideTargetUserIds NOT set — dispatcher resolves via SP/TargetType
+                    };
+                    await _outboxEventPublisher.ScheduleAsync(inAppEvent, inAppCorrelationId, cancellationToken);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to publish 'New Complaint' InApp notification for Complaint {Id}", newId);
+            }
 
             // Publish workflow approval request via Outbox
             var correlationId = Guid.NewGuid();
