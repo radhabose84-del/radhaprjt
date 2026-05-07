@@ -97,6 +97,7 @@
                 b.Property(x => x.OriginCountryId).HasColumnName("OriginCountryId").HasColumnType("int").IsRequired(false);
                 b.Property(x => x.TariffNumber).HasColumnName("TariffNumber").HasColumnType("varchar(50)").IsRequired(false);
                 b.Property(x => x.ItemImage).HasColumnName("ItemImage").HasColumnType("nvarchar(255)").IsRequired(false);
+                b.Property(x => x.OldItemId).HasColumnName("OldItemId").HasColumnType("int").IsRequired(false);
 
                 // --- BaseEntity columns (unchanged) ---
                 b.Property(x => x.IsActive).HasColumnName("IsActive").HasColumnType("bit").HasConversion(statusConverter).IsRequired();

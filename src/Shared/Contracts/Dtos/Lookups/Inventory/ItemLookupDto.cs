@@ -14,6 +14,7 @@ namespace Contracts.Dtos.Lookups.Inventory
         public decimal GSTPercentage { get; set; }
         public bool IsOnSpot { get; set; }
         public int SourceOfItem { get; set; }
+        public int ItemCategoryId { get; set; }
         public List<ItemVendorDto>? Vendors { get; set; }
     }
 }

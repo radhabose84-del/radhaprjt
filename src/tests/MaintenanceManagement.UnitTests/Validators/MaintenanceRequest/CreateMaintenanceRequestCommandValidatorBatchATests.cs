@@ -1,3 +1,4 @@
+using Contracts.Interfaces.Lookups.Users;
 using FluentValidation.TestHelper;
 using MaintenanceManagement.Application.Common.Interfaces.IMaintenanceRequest;
 using MaintenanceManagement.Application.MaintenanceRequest.Command.CreateMaintenanceRequest;
@@ -8,9 +9,10 @@ namespace MaintenanceManagement.UnitTests.Validators.MaintenanceRequest
     public sealed class CreateMaintenanceRequestCommandValidatorBatchATests
     {
         private readonly Mock<IMaintenanceRequestQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
+        private readonly Mock<IDepartmentLookup> _mockDeptLookup = new(MockBehavior.Loose);
 
         private CreateMaintenanceRequestCommandValidator CreateValidator() =>
-            new(_mockQueryRepo.Object);
+            new(_mockQueryRepo.Object, _mockDeptLookup.Object);
 
         [Fact]
         public void Constructor_WithValidRepo_DoesNotThrow()
@@ -67,6 +69,10 @@ namespace MaintenanceManagement.UnitTests.Validators.MaintenanceRequest
         [Fact]
         public async Task Validate_AllValid_PassesBasicChecks()
         {
+            // FK existence rule needs a positive mock; otherwise loose mock returns default(false)
+            // and the MachineId rule legitimately fails.
+            _mockQueryRepo.Setup(r => r.MachineExistsAsync(It.IsAny<int>())).ReturnsAsync(true);
+
             var command = new CreateMaintenanceRequestCommand
             {
                 RequestTypeId = 1,

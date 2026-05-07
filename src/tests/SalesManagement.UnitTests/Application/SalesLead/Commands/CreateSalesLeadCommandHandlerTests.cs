@@ -2,7 +2,6 @@ using AutoMapper;
 using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Finance;
 using MediatR;
-using SalesManagement.Application.Common.Interfaces.ISalesContact;
 using SalesManagement.Application.Common.Interfaces.ISalesLead;
 using SalesManagement.Application.SalesLead.Commands.CreateSalesLead;
 using SalesManagement.Domain.Events;
@@ -13,15 +12,16 @@ public class CreateSalesLeadCommandHandlerTests
 {
     private readonly Mock<ISalesLeadCommandRepository> _mockCommandRepo = new(MockBehavior.Strict);
     private readonly Mock<ISalesLeadQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
-    private readonly Mock<ISalesContactCommandRepository> _mockContactCommandRepo = new(MockBehavior.Strict);
     private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Strict);
     private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Strict);
     private readonly Mock<IDocumentSequenceLookup> _mockDocSeqLookup = new(MockBehavior.Loose);
     private readonly Mock<IIPAddressService> _mockIpService = new(MockBehavior.Loose);
+    private readonly Mock<IMarketingOfficerAccessFilter> _mockAccessFilter = new(MockBehavior.Loose);
 
     private CreateSalesLeadCommandHandler CreateSut() =>
-        new(_mockCommandRepo.Object, _mockQueryRepo.Object, _mockContactCommandRepo.Object,
-            _mockMediator.Object, _mockMapper.Object, _mockDocSeqLookup.Object, _mockIpService.Object);
+        new(_mockCommandRepo.Object, _mockQueryRepo.Object,
+            _mockMediator.Object, _mockMapper.Object, _mockDocSeqLookup.Object,
+            _mockIpService.Object, _mockAccessFilter.Object);
 
     private CreateSalesLeadCommand ValidCommand() => new()
     {
@@ -58,7 +58,10 @@ public class CreateSalesLeadCommandHandlerTests
             .ReturnsAsync(new List<string> { "SL-0001" });
 
         _mockCommandRepo
-            .Setup(r => r.CreateAsync(It.IsAny<SalesManagement.Domain.Entities.SalesLead>(), It.IsAny<int>()))
+            .Setup(r => r.CreateAsync(
+                It.IsAny<SalesManagement.Domain.Entities.SalesLead>(),
+                It.IsAny<int>(),
+                It.IsAny<SalesManagement.Domain.Entities.SalesContact?>()))
             .ReturnsAsync(returnId);
 
         _mockMediator
@@ -115,7 +118,10 @@ public class CreateSalesLeadCommandHandlerTests
         await CreateSut().Handle(command, CancellationToken.None);
 
         _mockCommandRepo.Verify(
-            r => r.CreateAsync(It.IsAny<SalesManagement.Domain.Entities.SalesLead>(), It.IsAny<int>()),
+            r => r.CreateAsync(
+                It.IsAny<SalesManagement.Domain.Entities.SalesLead>(),
+                It.IsAny<int>(),
+                It.IsAny<SalesManagement.Domain.Entities.SalesContact?>()),
             Times.Once);
     }
 
@@ -136,7 +142,7 @@ public class CreateSalesLeadCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_NoContactId_WithContactName_AutoCreatesSalesContact()
+    public async Task Handle_NoContactId_WithContactName_PassesNewContactToRepository()
     {
         var command = new CreateSalesLeadCommand
         {
@@ -160,16 +166,17 @@ public class CreateSalesLeadCommandHandlerTests
             .Setup(r => r.GetPrimaryContactTypeIdAsync())
             .ReturnsAsync(1);
 
-        _mockContactCommandRepo
-            .Setup(r => r.CreateAsync(It.IsAny<SalesManagement.Domain.Entities.SalesContact>()))
-            .ReturnsAsync(99);
-
         SetupHappyPath(1);
 
         await CreateSut().Handle(command, CancellationToken.None);
 
-        _mockContactCommandRepo.Verify(
-            r => r.CreateAsync(It.IsAny<SalesManagement.Domain.Entities.SalesContact>()),
+        // Auto-create flow: handler builds a SalesContact and hands it to the repository
+        // (not persisted via a separate ISalesContactCommandRepository call).
+        _mockCommandRepo.Verify(
+            r => r.CreateAsync(
+                It.IsAny<SalesManagement.Domain.Entities.SalesLead>(),
+                It.IsAny<int>(),
+                It.Is<SalesManagement.Domain.Entities.SalesContact?>(c => c != null && c.ContactName == "New Contact")),
             Times.Once);
     }
 }

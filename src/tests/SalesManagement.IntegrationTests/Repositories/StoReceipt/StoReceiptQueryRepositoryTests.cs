@@ -216,6 +216,20 @@ namespace SalesManagement.IntegrationTests.Repositories.StoReceipt
             }
             var stoDetailId = sto.StoDetails!.First().Id;
 
+            // DcTypeId is a NOT-NULL FK → Sales.MiscMaster — seed a 'DcType' / 'Standard' row.
+            var dcTypeMiscType = await ctx.MiscTypeMaster.FirstOrDefaultAsync(x => x.MiscTypeCode == "DcType");
+            if (dcTypeMiscType == null)
+            {
+                dcTypeMiscType = new SalesManagement.Domain.Entities.MiscTypeMaster
+                {
+                    MiscTypeCode = "DcType", Description = "Delivery Challan Type",
+                    IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted
+                };
+                await ctx.MiscTypeMaster.AddAsync(dcTypeMiscType);
+                await ctx.SaveChangesAsync();
+            }
+            var dcTypeId = await EnsureMiscAsync(ctx, dcTypeMiscType.Id, "Standard");
+
             var dc = await ctx.DeliveryChallanHeader.Include(h => h.DeliveryChallanDetails).FirstOrDefaultAsync(x => x.DeliveryNumber == dcNumber);
             if (dc == null)
             {
@@ -224,6 +238,8 @@ namespace SalesManagement.IntegrationTests.Repositories.StoReceipt
                     DeliveryNumber = dcNumber,
                     DeliveryDate = DateOnly.FromDateTime(DateTime.UtcNow.Date),
                     StoHeaderId = sto.Id,
+                    DcTypeId = dcTypeId,
+                    MovementTypeId = movementId,
                     FromPlantId = 1, FromStorageLocationId = 1,
                     ToPlantId = 1, ToStorageLocationId = 1,
                     TransporterId = 1,

@@ -12,6 +12,12 @@ namespace SalesManagement.Application.Common.Interfaces.IOutbox
             Guid correlationId,
             CancellationToken cancellationToken = default) where TEvent : class;
 
+        /// <summary>
+        /// Commits all pending outbox messages added via <see cref="ScheduleWithoutSaveAsync{TEvent}"/>
+        /// in a single atomic database operation.
+        /// </summary>
+        Task SavePendingAsync(CancellationToken cancellationToken = default);
+
         Task ScheduleBatchAsync<TEvent>(
             IEnumerable<TEvent> events,
             Guid correlationId,

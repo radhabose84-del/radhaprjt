@@ -212,6 +212,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                     IsActive = (i.IsActive == BaseEntity.Status.Active ? 1 : 0),
                     PriceGroupId = i.PriceGroupId,
                     PriceGroupName = i.PriceGroup != null ? i.PriceGroup.PriceGroupName : null,
+                    OldItemId = i.OldItemId,
 
                     // ---------- tabs (1-1) ----------
                     // ItemMaster-level fields (moved from Purchase)
@@ -681,12 +682,17 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                        IM.HSNId, HM.HSNCode, HM.GSTPercentage,
                        IM.ItemCategoryId, IM.ItemGroupId,
                        IM.TariffNumber, P.PurchaseUomId, IM.StockUomId,
-                       U.Code AS PurchaseUom, U1.Code AS StockUom, IM.IsOnSpot
+                       U.Code AS PurchaseUom, U1.Code AS StockUom, IM.IsOnSpot,
+                       ISale.MinQuantity,
+                       ISale.UomId AS SaleUomId,
+                       USale.Code  AS SaleUom
                 FROM Inventory.ItemMaster IM
                 INNER JOIN Inventory.HSNMaster HM ON IM.HSNId = HM.Id
                 LEFT JOIN Inventory.ItemPurchase P ON P.ItemId = IM.Id
                 LEFT JOIN Inventory.UOM U ON U.Id = P.PurchaseUomId
                 LEFT JOIN Inventory.UOM U1 ON U1.Id = IM.StockUomId
+                LEFT JOIN Inventory.ItemSale ISale ON ISale.ItemId = IM.Id
+                LEFT JOIN Inventory.UOM USale ON USale.Id = ISale.UomId
                 WHERE IM.IsDeleted = 0 AND IM.IsActive = 1";
 
             const string variantFilter = @"

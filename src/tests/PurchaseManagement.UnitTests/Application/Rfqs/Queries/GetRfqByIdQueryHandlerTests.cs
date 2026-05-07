@@ -1,5 +1,6 @@
 using AutoMapper;
 using Contracts.Common;
+using Contracts.Dtos.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Inventory;
 using MediatR;
 using PurchaseManagement.Application.Common.Interfaces.IQuotation.IRfqEntry;
@@ -33,7 +34,7 @@ namespace PurchaseManagement.UnitTests.Application.Rfqs.Queries
             };
 
             _mockRepo
-                .Setup(r => r.GetAggregateAsync(1, It.IsAny<CancellationToken>()))
+                .Setup(r => r.GetAggregateAsync(1, It.IsAny<CancellationToken>(), It.IsAny<bool>()))
                 .ReturnsAsync(aggregate);
 
             _mockMapper
@@ -52,13 +53,64 @@ namespace PurchaseManagement.UnitTests.Application.Rfqs.Queries
         public async Task Handle_NotFound_ThrowsExceptionRules()
         {
             _mockRepo
-                .Setup(r => r.GetAggregateAsync(99, It.IsAny<CancellationToken>()))
+                .Setup(r => r.GetAggregateAsync(99, It.IsAny<CancellationToken>(), It.IsAny<bool>()))
                 .ReturnsAsync((RfqMaster?)null);
 
             Func<Task> act = async () =>
                 await CreateSut().Handle(new GetRfqByIdQuery(99), CancellationToken.None);
 
             await act.Should().ThrowAsync<ExceptionRules>();
+        }
+
+        [Fact]
+        public async Task Handle_WithItems_PopulatesItemCategoryIdFromItemLookup()
+        {
+            const int rfqId = 1245;
+            const int itemId = 2267;
+            const int expectedCategoryId = 1110;
+
+            var aggregate = new RfqMaster
+            {
+                Id = rfqId,
+                Items = new List<RfqItem>
+                {
+                    new() { Id = 2450, RfqId = rfqId, ItemId = itemId, Quantity = 1m, UomId = 11, HsnId = 34 }
+                },
+                Suppliers = new List<RfqSupplier>()
+            };
+
+            _mockRepo
+                .Setup(r => r.GetAggregateAsync(rfqId, It.IsAny<CancellationToken>(), It.IsAny<bool>()))
+                .ReturnsAsync(aggregate);
+
+            // Mapper produces a DTO with a single item; ItemCategoryId starts at 0 (handler must overwrite it).
+            _mockMapper
+                .Setup(m => m.Map<RfqDto>(It.IsAny<object>()))
+                .Returns(new RfqDto(
+                    rfqId, null, "RFQ-Knit-50", 17, "Submitted", 20, "FromItemMaster", null,
+                    DateOnly.FromDateTime(DateTime.Today),
+                    new[] { new RfqItemDto(itemId, 1m, 11, string.Empty, string.Empty, 0m, 34, 0) },
+                    Array.Empty<RfqSupplierDto>()));
+
+            _mockItemLookup
+                .Setup(l => l.GetByIdsAsync(It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new List<ItemLookupDto>
+                {
+                    new() { Id = itemId, ItemCode = "ITM2267", ItemName = "Cb/yarn", ItemCategoryId = expectedCategoryId, GSTPercentage = 5m }
+                });
+
+            _mockUomLookup
+                .Setup(l => l.GetByIdsAsync(It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new List<UOMLookupDto>());
+
+            _mockHsnLookup
+                .Setup(l => l.GetByIdsAsync(It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new List<HSNLookupDto>());
+
+            var result = await CreateSut().Handle(new GetRfqByIdQuery(rfqId), CancellationToken.None);
+
+            result.Items.Should().HaveCount(1);
+            result.Items[0].ItemCategoryId.Should().Be(expectedCategoryId);
         }
     }
 }

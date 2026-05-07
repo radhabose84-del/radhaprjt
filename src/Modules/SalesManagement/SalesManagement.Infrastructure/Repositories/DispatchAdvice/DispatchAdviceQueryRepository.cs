@@ -246,7 +246,12 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
                     sod.AgentCommissionPercentage
                 FROM Sales.DispatchAdviceDetail d
                 LEFT JOIN Sales.SalesOrderDetail sod ON d.SalesOrderDetailId = sod.Id
-                LEFT join Sales.ItemPriceMaster PM on (PM.ItemId=sod.ItemId or  sod.ItemId=sod.VariantId)
+                OUTER APPLY (
+                    SELECT TOP 1 ipm.HandlingCharges, ipm.CharityValue
+                    FROM Sales.ItemPriceMaster ipm
+                    WHERE ipm.ItemId = sod.ItemId OR ipm.ItemId = sod.VariantId
+                    ORDER BY ipm.Id DESC
+                ) PM
                 WHERE d.DispatchAdviceHeaderId = @HeaderId";
 
             var details = (await _dbConnection.QueryAsync<DispatchAdviceDetailDto>(detailSql, new { HeaderId = id })).ToList();

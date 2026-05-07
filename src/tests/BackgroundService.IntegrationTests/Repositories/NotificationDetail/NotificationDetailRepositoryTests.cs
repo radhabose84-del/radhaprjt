@@ -131,13 +131,20 @@ namespace BackgroundService.IntegrationTests.Repositories.NotificationDetail
             result.Should().Be(-1);
         }
 
-        // Note: UpdateAsync_Should_Set_ReadStatusId_Zero_When_MiscLookup_Returns_Null is omitted — the
-        // repository sets ReadStatusId to 0 as a fallback, which violates
-        // FK_NotificationEventLog_MiscMaster_ReadStatusId. That behaviour is a latent source defect and
-        // cannot be verified against the real schema without seeding a sentinel Id=0 row (not supported
-        // by the identity column on MiscMaster).
-        [Fact(Skip = "Source sets ReadStatusId=0 on null lookup, which violates the FK. Tracked as a source-code issue.")]
-        public Task UpdateAsync_Should_Set_ReadStatusId_Zero_When_MiscLookup_Returns_Null_Placeholder() =>
-            Task.CompletedTask;
+        [Fact]
+        public async Task UpdateAsync_Should_Throw_When_MiscLookup_Returns_Null()
+        {
+            // The repository requires the 'Read' MiscMaster entry to exist (FK to AppData.MiscMaster).
+            // When the lookup returns null, the repo throws InvalidOperationException rather than
+            // silently inserting an invalid FK value (Id = 0).
+            await ClearAsync();
+            var logId = await SeedEventLogAsync();
+
+            Func<Task> act = async () => await CreateRepo(readStatusMiscId: null)
+                .UpdateAsync(logId, new NotificationEventLog());
+
+            await act.Should().ThrowAsync<InvalidOperationException>()
+                .WithMessage("*MiscMaster entry not found*");
+        }
     }
 }

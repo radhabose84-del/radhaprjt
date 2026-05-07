@@ -57,6 +57,12 @@ namespace FixedAssetManagement.IntegrationTests.Repositories.Lookups
                 CountryId = 1,
                 StateId = 1,
                 CityId = cityId,
+                AddressLine1 = "Test Address Line 1",
+                AddressLine2 = "Test Address Line 2",
+                PinCode = "600001",
+                PersonName = "Test Person",
+                PhoneNumber = "9999999999",
+                Email = "test@example.com",
                 IsActive = BaseEntity.Status.Active,
                 IsDeleted = deleted
             };
@@ -65,7 +71,7 @@ namespace FixedAssetManagement.IntegrationTests.Repositories.Lookups
             return entity.Id;
         }
 
-        [Fact(Skip = BlockedReason)]
+        [Fact]
         public async Task IsCityUsedAsync_Should_Return_True_When_Referenced_By_Manufacture()
         {
             await _fixture.ClearAllTablesAsync();
@@ -76,7 +82,7 @@ namespace FixedAssetManagement.IntegrationTests.Repositories.Lookups
             result.Should().BeTrue();
         }
 
-        [Fact(Skip = BlockedReason)]
+        [Fact]
         public async Task IsCityUsedAsync_Should_Return_False_When_Not_Referenced()
         {
             await _fixture.ClearAllTablesAsync();
@@ -86,7 +92,7 @@ namespace FixedAssetManagement.IntegrationTests.Repositories.Lookups
             result.Should().BeFalse();
         }
 
-        [Fact(Skip = BlockedReason)]
+        [Fact]
         public async Task IsCityUsedAsync_Should_Exclude_SoftDeleted_Manufacture()
         {
             await _fixture.ClearAllTablesAsync();

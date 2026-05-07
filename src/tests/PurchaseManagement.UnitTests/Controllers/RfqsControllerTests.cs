@@ -46,7 +46,7 @@ namespace PurchaseManagement.UnitTests.Controllers
                 .Setup(m => m.Send(It.IsAny<GetRfqByIdQuery>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult(new RfqDto(1, null, "RFQ001", 1, "Approved", 1, "Manual", null, DateOnly.FromDateTime(DateTime.Today), Array.Empty<RfqItemDto>(), Array.Empty<RfqSupplierDto>())));
 
-            var result = await CreateSut().GetById(1, CancellationToken.None);
+            var result = await CreateSut().GetById(1, false, CancellationToken.None);
 
             result.Should().BeOfType<OkObjectResult>();
         }
