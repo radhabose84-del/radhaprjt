@@ -16,13 +16,16 @@ namespace SalesManagement.Domain.Common
         public const string QualityStatus = "QualityStatus";
         public const string Packed = "Packed";
 
-        // Dispatch Advice Status
+        // Stock Status (used by Dispatch Advice + Sales Return; consolidated 2026-05-07 — formerly BagStatus)
         public const string StockStatus = "StockStatus";
         public const string Reserved = "Reserved";
         public const string Invoiced = "Invoiced";
         public const string Dispatched = "Dispatched";
         public const string Damaged = "Damaged";
         public const string Pending = "Pending";
+        public const string StockStatusDefect = "DEFECT";
+        public const string StockStatusDamaged = "DAMAGED";
+        public const string StockStatusYarnMismatch = "YARN MISMATCH";
 
         // Invoice Approval Status
         public const string InvoiceApprovalStatus = "ApprovalStatus";
@@ -82,10 +85,26 @@ namespace SalesManagement.Domain.Common
         // Complaint Workflow
         public const string ComplaintApprovalStatus = "ApprovalStatus";
         public const string ComplaintApprovalPending = "Pending";
+        public const string ComplaintApprovalApproved = "Approved";
+        public const string ComplaintApprovalRejected = "Rejected";
         public const string ComplaintModuleTypeName = "Complaints";
         public const string ComplaintQCReviewModuleTypeName = "QC Review";
         public const string ComplaintResolutionModuleTypeName = "Resolution";
         public const string TransactionTypeComplaint = "Complaint";
+
+        // Complaint Notifications (NotificationConfig.ModuleName values; configs Ids 31-36)
+        public const string NotifModuleNewComplaint        = "New Complaint";
+        public const string NotifModuleComplaintMoApproval = "Complaint MO Approval";
+        public const string NotifModuleQcReviewSubmitted   = "QC Review Submitted";
+        public const string NotifModuleQcReviewApproved    = "QC Review Approved";
+        public const string NotifModuleFeedbackRequested   = "Feedback Requested";
+        public const string NotifModuleResolutionSubmitted = "Resolution Submitted";
+
+        // Notification EventType lookup keys (resolved at runtime via IAppDataMiscMasterLookup
+        // → AppData.MiscMaster). Codes are stable across environments; Ids are auto-generated and
+        // must NEVER be hardcoded.
+        public const string NotifEventTypeMiscType = "EventType";
+        public const string NotifEventTypeCreate   = "Create";
 
         // QC Review
         public const string PhysicalVerificationStatus = "PhysicalVerification";
@@ -141,12 +160,6 @@ namespace SalesManagement.Domain.Common
         public const string ReturnStatusReceived = "Received";
         public const string ReturnStatusPartiallyReturned = "PartiallyReturned";
         public const string ReturnStatusFullyReturned = "FullyReturned";
-
-        // Bag Status
-        public const string BagStatus = "BagStatus";
-        public const string BagStatusDefect = "DEFECT";
-        public const string BagStatusDamaged = "DAMAGED";
-        public const string BagStatusYarnMismatch = "YARN MISMATCH";
 
         // Sales Return
         public const string TransactionTypeSalesReturn = "Sales Return";
