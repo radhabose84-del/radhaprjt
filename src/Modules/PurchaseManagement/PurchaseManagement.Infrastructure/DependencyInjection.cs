@@ -22,6 +22,7 @@ using PurchaseManagement.Infrastructure.Repositories.PurchaseIndents;
 using PurchaseManagement.Infrastructure.Repositories.PartyMaster;
 using PurchaseManagement.Infrastructure.Services;
 using Serilog;
+using Shared.Infrastructure.Resilience;
 using Contracts.Interfaces.Lookups.Workflow;
 using PurchaseManagement.Application.Common.Interfaces.IPaymentTermMaster;
 using PurchaseManagement.Infrastructure.Repositories.PaymentTermMaster;
@@ -264,8 +265,10 @@ namespace PurchaseManagement.Infrastructure
                     }
 
                     return h;
-                });
-            services.AddHttpClient<IFrankfurterClient, FrankfurterClient>();
+                })
+                .AddBsoftHttpResilience(ResilienceProfileNames.Standard);
+            services.AddHttpClient<IFrankfurterClient, FrankfurterClient>()
+                .AddBsoftHttpResilience(ResilienceProfileNames.FastFail);
             services.AddScoped<IExchangeRateCommandRepository, ExchangeRateCommandRepository>();
             services.AddScoped<IExchangeRateQueryRepository, ExchangeRateQueryRepository>();
 

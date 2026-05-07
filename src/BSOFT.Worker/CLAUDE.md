@@ -368,16 +368,9 @@ Required because `BackgroundService.Application` calls `AddSignalR()` and uses `
 
 ## HttpClient Configuration
 
-Two named HttpClients for calling BSOFT.Api endpoints (registered in `AddInfrastructureServices()`):
+`BackgroundService.Infrastructure` registers no named HttpClients — cross-module communication uses in-process MediatR or RabbitMQ events instead. Module-specific outbound HttpClients (e.g. `IFileFetcher` typed client, `NicEInvoice`, `IGSTAuthService`, `ISsrsClient`, `IFrankfurterClient`) are registered in their own module's `Infrastructure/DependencyInjection.cs` and wrapped with `AddBsoftHttpResilience` (Polly v8 — see `Shared.Infrastructure/Resilience/`).
 
-| Client Name | Config Key | Used By |
-|---|---|---|
-| `UserManagementClient` | `HttpClientSettings:UserManagementService` | User lookup, token verification |
-| `MaintenanceClient` | `HttpClientSettings:MaintenanceManagementService` | Maintenance data queries |
-
-Both clients have:
-- Circuit breaker: 3 failures → 30s open
-- Retry: 3 attempts with exponential backoff (2s, 4s, 8s)
+> **History:** `UserManagementClient` and `MaintenanceClient` were both removed during the modular-monolith consolidation. `UserUnlockService` now dispatches `UnlockUserCommand` via in-process MediatR; `MaintenanceClient` had no consumers and was dead code from the pre-monolith era.
 
 ---
 
