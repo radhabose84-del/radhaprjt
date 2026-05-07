@@ -509,7 +509,7 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
             return result.ToList();
         }
 
-        public async Task<List<DispatchAdvicePackRangeDto>> GetPackRangeAsync(int itemId, int lotId, int packTypeId, int statusId, int range, string? orderType, int? sourceUnitId)
+        public async Task<List<DispatchAdvicePackRangeDto>> GetPackRangeAsync(int itemId, int lotId, int packTypeId, IList<int> statusIds, int range, string? orderType, int? sourceUnitId)
         {
             // UnitId is ALWAYS from IP/Address service (token) — filter on S.UnitId
             // SourceUnitId is user-selectable: null → S.SourceUnitId IS NULL ; value → S.SourceUnitId = @SourceUnitId
@@ -522,16 +522,18 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
             var isLifo = string.Equals(orderType, "LIFO", StringComparison.OrdinalIgnoreCase);
             var direction = isLifo ? "DESC" : "ASC";
 
+            // SELECT now includes S.StatusId so we can group by (StatusId, PackNo) — a range
+            // never mixes Packed + a defect type.
             var sql = $@"
-                SELECT S.PackNo, S.ItemId, S.LotId, S.PackTypeId
+                SELECT S.PackNo, S.ItemId, S.LotId, S.PackTypeId, S.StatusId
                 FROM Sales.StockLedger S
                 WHERE S.UnitId = @UnitId AND {sourceUnitFilter}
-                    AND S.ItemId = @ItemId AND S.StatusId = @StatusId
+                    AND S.ItemId = @ItemId AND S.StatusId IN @StatusIds
                     AND S.LotId = @LotId AND S.PackTypeId = @PackTypeId
                 ORDER BY S.DocDate, S.PackNo {direction}";
 
             var rows = (await _dbConnection.QueryAsync<dynamic>(sql,
-                new { UnitId = unitId, SourceUnitId = sourceUnitId, ItemId = itemId, StatusId = statusId, LotId = lotId, PackTypeId = packTypeId })).ToList();
+                new { UnitId = unitId, SourceUnitId = sourceUnitId, ItemId = itemId, StatusIds = statusIds, LotId = lotId, PackTypeId = packTypeId })).ToList();
 
             // Resolve LotName and PackTypeName via lookups
             var lotLookupList = await _lotMasterLookup.GetByIdsAsync(new[] { lotId });
@@ -548,23 +550,26 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
             string? packTypeName = packTypeLookupList.FirstOrDefault()?.PackTypeName;
 
             // Preserve SQL order — FIFO ascends, LIFO descends
-            var packNos = rows.Select(r => (int)r.PackNo).ToList();
+            var packs = rows.Select(r => new { PackNo = (int)r.PackNo, StatusId = (int)r.StatusId }).ToList();
 
-            // Step 1: Group consecutive PackNos (break on gaps).
-            // Step direction matches the sort order: +1 for FIFO, -1 for LIFO.
+            // Step 1: Group consecutive packs by (matching StatusId AND consecutive PackNo).
+            // Break on either a status change OR a PackNo gap. Step direction matches the sort
+            // order: +1 for FIFO, -1 for LIFO.
             var step = isLifo ? -1 : 1;
-            var consecutiveGroups = new List<List<int>>();
-            var currentGroup = new List<int> { packNos[0] };
-            for (int i = 1; i < packNos.Count; i++)
+            var consecutiveGroups = new List<List<(int PackNo, int StatusId)>>();
+            var currentGroup = new List<(int PackNo, int StatusId)> { (packs[0].PackNo, packs[0].StatusId) };
+            for (int i = 1; i < packs.Count; i++)
             {
-                if (packNos[i] == packNos[i - 1] + step)
+                bool sameStatus = packs[i].StatusId == packs[i - 1].StatusId;
+                bool nextInSequence = packs[i].PackNo == packs[i - 1].PackNo + step;
+                if (sameStatus && nextInSequence)
                 {
-                    currentGroup.Add(packNos[i]);
+                    currentGroup.Add((packs[i].PackNo, packs[i].StatusId));
                 }
                 else
                 {
                     consecutiveGroups.Add(currentGroup);
-                    currentGroup = new List<int> { packNos[i] };
+                    currentGroup = new List<(int PackNo, int StatusId)> { (packs[i].PackNo, packs[i].StatusId) };
                 }
             }
             consecutiveGroups.Add(currentGroup);
@@ -586,9 +591,11 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
                         LotName = lotName,
                         PackTypeId = packTypeId,
                         PackTypeName = packTypeName,
-                        FromPackNo = chunk.First(),
-                        ToPackNo = chunk.Last(),
-                        TotalPacks = chunk.Count
+                        FromPackNo = chunk.First().PackNo,
+                        ToPackNo = chunk.Last().PackNo,
+                        TotalPacks = chunk.Count,
+                        StatusId = chunk[0].StatusId
+                        // StatusName is populated by the handler from a MiscMaster lookup
                     });
                 }
             }

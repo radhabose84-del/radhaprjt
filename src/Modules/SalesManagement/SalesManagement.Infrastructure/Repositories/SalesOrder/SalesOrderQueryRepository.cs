@@ -1171,5 +1171,246 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
 
             return list;
         }
+
+        // ─── Discount report (slab + MD discounts, paged rows + global summaries) ───
+        public async Task<(SalesOrderDiscountReportDto Report, int TotalCount)> GetDiscountReportAsync(
+            DateOnly? fromDate,
+            DateOnly? toDate,
+            string statusName,
+            int? orderUnitId,
+            int? partyId,
+            int? agentId,
+            int? salesGroupId,
+            string? discountSource,
+            int pageNumber,
+            int pageSize,
+            CancellationToken cancellationToken = default)
+        {
+            // Common filter:
+            //   - Status (joined to Sales.MiscMaster) — default "Approved"
+            //   - Optional date range on header.OrderDate
+            //   - Optional OrderUnitId
+            //   - h.IsDeleted = 0
+            //
+            // The "discount source" UNION combines:
+            //   - SLAB rows from Sales.SalesOrderDiscount
+            //   - MD rows from header (when IsMdDiscountEnabled = 1 and MdDiscountValue > 0)
+            const string discountUnionCte = @"
+                ;WITH FilteredOrders AS (
+                    SELECT h.Id, h.SalesOrderNo, h.OrderDate, h.PartyId, h.AgentId,
+                           h.SalesGroupId, sg.SalesGroupName,
+                           h.IsMdDiscountEnabled, h.MdDiscountRate, h.MdDiscountValue
+                    FROM   Sales.SalesOrderHeader  h
+                    INNER JOIN Sales.MiscMaster     sm  ON sm.Id  = h.StatusId  AND sm.IsDeleted = 0
+                    INNER JOIN Sales.MiscTypeMaster mtm ON mtm.Id = sm.MiscTypeId
+                                                       AND mtm.MiscTypeCode = 'ApprovalStatus'
+                    LEFT  JOIN Sales.SalesGroup     sg  ON sg.Id  = h.SalesGroupId AND sg.IsDeleted = 0
+                    WHERE  h.IsDeleted    = 0
+                      AND  sm.Code        = @StatusName
+                      AND  (@FromDate     IS NULL OR h.OrderDate    >= @FromDate)
+                      AND  (@ToDate       IS NULL OR h.OrderDate    <= @ToDate)
+                      AND  (@OrderUnitId  IS NULL OR h.OrderUnitId   = @OrderUnitId)
+                      AND  (@PartyId      IS NULL OR h.PartyId       = @PartyId)
+                      AND  (@AgentId      IS NULL OR h.AgentId       = @AgentId)
+                      AND  (@SalesGroupId IS NULL OR h.SalesGroupId  = @SalesGroupId)
+                ),
+                AllDiscountRows AS (
+                    -- Slab discounts (Sales.SalesOrderDiscount has no IsDeleted column)
+                    SELECT  o.Id              AS SalesOrderId,
+                            o.SalesOrderNo,
+                            o.OrderDate,
+                            o.PartyId,
+                            o.AgentId,
+                            o.SalesGroupId,
+                            o.SalesGroupName,
+                            CAST('SLAB'      AS varchar(8))   AS DiscountSource,
+                            sod.DiscountMasterId,
+                            dm.DiscountCode,
+                            dm.DiscountName,
+                            slab_mm.Description               AS SlabTypeName,
+                            sod.PaymentTermId,
+                            sod.DiscountRate,
+                            sod.TotalDiscountValue
+                    FROM    FilteredOrders o
+                    INNER JOIN Sales.SalesOrderDiscount sod ON sod.SalesOrderHeaderId = o.Id
+                    LEFT JOIN  Sales.DiscountMaster   dm     ON dm.Id  = sod.DiscountMasterId AND dm.IsDeleted = 0
+                    LEFT JOIN  Sales.MiscMaster       slab_mm ON slab_mm.Id = sod.SlabTypeId   AND slab_mm.IsDeleted = 0
+
+                    UNION ALL
+
+                    -- Header-level MD discount (only when enabled and a value exists)
+                    SELECT  o.Id              AS SalesOrderId,
+                            o.SalesOrderNo,
+                            o.OrderDate,
+                            o.PartyId,
+                            o.AgentId,
+                            o.SalesGroupId,
+                            o.SalesGroupName,
+                            CAST('MD'        AS varchar(8))   AS DiscountSource,
+                            CAST(NULL        AS int)          AS DiscountMasterId,
+                            CAST(NULL        AS nvarchar(50)) AS DiscountCode,
+                            CAST('MD Discount' AS nvarchar(100)) AS DiscountName,
+                            CAST(NULL        AS nvarchar(100)) AS SlabTypeName,
+                            CAST(NULL        AS int)          AS PaymentTermId,
+                            o.MdDiscountRate                  AS DiscountRate,
+                            o.MdDiscountValue                 AS TotalDiscountValue
+                    FROM    FilteredOrders o
+                    WHERE   o.IsMdDiscountEnabled = 1
+                      AND   ISNULL(o.MdDiscountValue, 0) > 0
+                )
+            ";
+
+            // Common parameter object for every CTE-using query below
+            var commonParams = new
+            {
+                StatusName     = statusName,
+                FromDate       = fromDate,
+                ToDate         = toDate,
+                OrderUnitId    = orderUnitId,
+                PartyId        = partyId,
+                AgentId        = agentId,
+                SalesGroupId   = salesGroupId,
+                DiscountSource = string.IsNullOrWhiteSpace(discountSource) ? null : discountSource
+            };
+
+            // 1. Total row count (over the union, with optional source filter)
+            var totalCount = await _dbConnection.ExecuteScalarAsync<int>(
+                new CommandDefinition(
+                    discountUnionCte + @"
+                    SELECT COUNT(*)
+                    FROM   AllDiscountRows
+                    WHERE  (@DiscountSource IS NULL OR DiscountSource = @DiscountSource);",
+                    commonParams,
+                    cancellationToken: cancellationToken));
+
+            // 2. Paged rows
+            var pagedSql = discountUnionCte + @"
+                SELECT  SalesOrderId, SalesOrderNo, OrderDate, PartyId, AgentId,
+                        DiscountSource, DiscountMasterId, DiscountCode, DiscountName,
+                        SlabTypeName, DiscountRate, TotalDiscountValue
+                FROM    AllDiscountRows
+                WHERE   (@DiscountSource IS NULL OR DiscountSource = @DiscountSource)
+                ORDER BY OrderDate DESC, SalesOrderId DESC, DiscountSource
+                OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
+            ";
+
+            var pagedParams = new
+            {
+                commonParams.StatusName,
+                commonParams.FromDate,
+                commonParams.ToDate,
+                commonParams.OrderUnitId,
+                commonParams.PartyId,
+                commonParams.AgentId,
+                commonParams.SalesGroupId,
+                commonParams.DiscountSource,
+                Offset   = (pageNumber - 1) * pageSize,
+                PageSize = pageSize
+            };
+
+            var rows = (await _dbConnection.QueryAsync<SalesOrderDiscountRowDto>(
+                new CommandDefinition(pagedSql, pagedParams, cancellationToken: cancellationToken)))
+                .ToList();
+
+            // 3. byAgent summary — grouped by (AgentId, SalesGroupId, PaymentTermId); slab/MD totals split
+            var byAgentSql = discountUnionCte + @"
+                SELECT  AgentId,
+                        SalesGroupId,
+                        MAX(SalesGroupName) AS SalesGroupName,
+                        PaymentTermId,
+                        COUNT(DISTINCT SalesOrderId) AS OrdersCount,
+                        SUM(CASE WHEN DiscountSource = 'SLAB' THEN ISNULL(TotalDiscountValue, 0) ELSE 0 END) AS SlabDiscountValue,
+                        SUM(CASE WHEN DiscountSource = 'MD'   THEN ISNULL(TotalDiscountValue, 0) ELSE 0 END) AS MdDiscountValue
+                FROM    AllDiscountRows
+                WHERE   (@DiscountSource IS NULL OR DiscountSource = @DiscountSource)
+                GROUP BY AgentId, SalesGroupId, PaymentTermId
+                ORDER BY (SUM(CASE WHEN DiscountSource = 'SLAB' THEN ISNULL(TotalDiscountValue, 0) ELSE 0 END)
+                        + SUM(CASE WHEN DiscountSource = 'MD'   THEN ISNULL(TotalDiscountValue, 0) ELSE 0 END)) DESC;
+            ";
+
+            var byAgent = (await _dbConnection.QueryAsync<SalesOrderDiscountAgentSummaryDto>(
+                new CommandDefinition(byAgentSql, commonParams, cancellationToken: cancellationToken)))
+                .ToList();
+
+            // 4. byCustomer summary — grouped by (PartyId, SalesGroupId, PaymentTermId); slab/MD totals split
+            var byCustomerSql = discountUnionCte + @"
+                SELECT  PartyId,
+                        SalesGroupId,
+                        MAX(SalesGroupName) AS SalesGroupName,
+                        PaymentTermId,
+                        COUNT(DISTINCT SalesOrderId) AS OrdersCount,
+                        SUM(CASE WHEN DiscountSource = 'SLAB' THEN ISNULL(TotalDiscountValue, 0) ELSE 0 END) AS SlabDiscountValue,
+                        SUM(CASE WHEN DiscountSource = 'MD'   THEN ISNULL(TotalDiscountValue, 0) ELSE 0 END) AS MdDiscountValue
+                FROM    AllDiscountRows
+                WHERE   (@DiscountSource IS NULL OR DiscountSource = @DiscountSource)
+                GROUP BY PartyId, SalesGroupId, PaymentTermId
+                ORDER BY (SUM(CASE WHEN DiscountSource = 'SLAB' THEN ISNULL(TotalDiscountValue, 0) ELSE 0 END)
+                        + SUM(CASE WHEN DiscountSource = 'MD'   THEN ISNULL(TotalDiscountValue, 0) ELSE 0 END)) DESC;
+            ";
+
+            var byCustomer = (await _dbConnection.QueryAsync<SalesOrderDiscountCustomerSummaryDto>(
+                new CommandDefinition(byCustomerSql, commonParams, cancellationToken: cancellationToken)))
+                .ToList();
+
+            // 5. Cross-module: populate PartyName + AgentName via party lookup (single batch)
+            var allPartyIds = rows.Select(r => r.PartyId)
+                .Concat(byCustomer.Select(c => c.PartyId))
+                .Concat(rows.Where(r => r.AgentId.HasValue).Select(r => r.AgentId!.Value))
+                .Concat(byAgent.Where(a => a.AgentId.HasValue).Select(a => a.AgentId!.Value))
+                .Distinct()
+                .ToList();
+
+            if (allPartyIds.Count > 0)
+            {
+                var parties = await _partyLookup.GetByIdsAsync(allPartyIds, cancellationToken);
+                var nameDict = parties.ToDictionary(p => p.Id, p => p.PartyName);
+
+                foreach (var r in rows)
+                {
+                    r.PartyName = nameDict.TryGetValue(r.PartyId, out var pn) ? pn : null;
+                    if (r.AgentId.HasValue && nameDict.TryGetValue(r.AgentId.Value, out var an))
+                        r.AgentName = an;
+                }
+                foreach (var a in byAgent)
+                {
+                    if (a.AgentId.HasValue && nameDict.TryGetValue(a.AgentId.Value, out var an))
+                        a.AgentName = an;
+                }
+                foreach (var c in byCustomer)
+                {
+                    if (nameDict.TryGetValue(c.PartyId, out var pn))
+                        c.PartyName = pn;
+                }
+            }
+
+            // 6. Cross-module: populate PaymentTermName on the per-(group, payment term) summary rows
+            var hasPaymentTerms = byAgent.Any(a => a.PaymentTermId.HasValue)
+                                || byCustomer.Any(c => c.PaymentTermId.HasValue);
+            if (hasPaymentTerms)
+            {
+                var allPaymentTerms = await _paymentTermLookup.GetAllPaymentTermAsync();
+                var ptDict = allPaymentTerms.ToDictionary(p => p.Id, p => p.Description);
+
+                foreach (var a in byAgent)
+                {
+                    if (a.PaymentTermId.HasValue && ptDict.TryGetValue(a.PaymentTermId.Value, out var name))
+                        a.PaymentTermName = name;
+                }
+                foreach (var c in byCustomer)
+                {
+                    if (c.PaymentTermId.HasValue && ptDict.TryGetValue(c.PaymentTermId.Value, out var name))
+                        c.PaymentTermName = name;
+                }
+            }
+
+            var report = new SalesOrderDiscountReportDto
+            {
+                ByAgent    = byAgent,
+                ByCustomer = byCustomer,
+                Rows       = rows
+            };
+
+            return (report, totalCount);
+        }
     }
 }

@@ -13,6 +13,7 @@ using SalesManagement.Application.SalesOrder.Commands.UploadSalesOrderImage;
 using SalesManagement.Application.SalesOrder.Commands.DeleteSalesOrderImage;
 using SalesManagement.Application.SalesOrder.Queries.GetAllSalesOrder;
 using SalesManagement.Application.SalesOrder.Queries.GetAgentCommissions;
+using SalesManagement.Application.SalesOrder.Queries.GetDiscountReport;
 using SalesManagement.Application.SalesOrder.Queries.GetDiscountsBySalesGroup;
 using SalesManagement.Application.SalesOrder.Queries.GetSalesOrderAutoComplete;
 using SalesManagement.Application.SalesOrder.Queries.GetSalesOrderById;
@@ -103,6 +104,43 @@ namespace SalesManagement.Presentation.Controllers
             {
                 StatusCode = StatusCodes.Status200OK,
                 data = result
+            });
+        }
+
+        [HttpGet("discount-report")]
+        public async Task<IActionResult> GetDiscountReportAsync(
+            [FromQuery] DateOnly? fromDate,
+            [FromQuery] DateOnly? toDate,
+            [FromQuery] string? statusName,
+            [FromQuery] int? partyId,
+            [FromQuery] int? agentId,
+            [FromQuery] int? salesGroupId,
+            [FromQuery] string? discountSource,
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize   = 50)
+        {
+            var result = await Mediator.Send(new GetDiscountReportQuery
+            {
+                FromDate       = fromDate,
+                ToDate         = toDate,
+                StatusName     = statusName,
+                PartyId        = partyId,
+                AgentId        = agentId,
+                SalesGroupId   = salesGroupId,
+                DiscountSource = discountSource,
+                PageNumber     = pageNumber,
+                PageSize       = pageSize
+            });
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                isSuccess  = result.IsSuccess,
+                message    = result.Message,
+                data       = result.Data,
+                TotalCount = result.TotalCount,
+                PageNumber = result.PageNumber,
+                PageSize   = result.PageSize
             });
         }
 
