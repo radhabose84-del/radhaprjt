@@ -37,9 +37,10 @@ namespace FinanceManagement.Presentation.Validation.EInvoiceHeader
                         break;
 
                     case "GreaterThan":
+                        // Distance = 0 is valid — NIC auto-calculates from pincodes
                         RuleFor(x => x.Distance)
-                            .GreaterThan(0)
-                            .WithMessage($"{nameof(GenerateEwbCommand.Distance)} {rule.Error}");
+                            .GreaterThanOrEqualTo(0)
+                            .WithMessage($"{nameof(GenerateEwbCommand.Distance)} must be zero or positive.");
                         break;
 
                     default:
