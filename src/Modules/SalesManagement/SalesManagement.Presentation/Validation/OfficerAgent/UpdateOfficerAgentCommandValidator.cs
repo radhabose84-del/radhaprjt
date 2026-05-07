@@ -66,12 +66,17 @@ namespace SalesManagement.Presentation.Validation.OfficerAgent
                                 .MustAsync(async (id, ct) => !await _queryRepository.NotFoundAsync(id))
                                 .WithMessage($"OfficerAgent {rule.Error}")
                                 .When(a => a.Id > 0);
-
-                            agent.RuleFor(a => a.Id)
-                                .MustAsync(async (id, ct) => !await _queryRepository.IsExpiredAsync(id))
-                                .WithMessage("Expired assignments cannot be edited.")
-                                .When(a => a.Id > 0);
                         });
+
+                        // SCRUM-1559: only block expired rows when the user is actually changing them.
+                        // A round-tripped, untouched expired row must pass so unrelated saves aren't blocked.
+                        RuleForEach(x => x.Agents)
+                            .MustAsync(async (item, ct) =>
+                                item.Id <= 0
+                                    || !await _queryRepository.IsExpiredAndModifiedAsync(
+                                        item.Id, item.AgentId, item.ValidityFrom, item.ValidityTo, item.IsActive))
+                            .WithMessage("Expired assignments cannot be edited.")
+                            .When(x => x.Agents != null && x.Agents.Count > 0);
                         break;
 
                     case "FKColumnDelete":
@@ -103,6 +108,28 @@ namespace SalesManagement.Presentation.Validation.OfficerAgent
                             .MustAsync(async (id, ct) => !await _accessFilter.ShouldApplyFilterAsync(ct)
                                         || id == _accessFilter.GetCurrentMarketingOfficerId())
                             .WithMessage($"{nameof(UpdateOfficerAgentCommand.MarketingOfficerId)} {rule.Error}");
+                        break;
+
+                    case "AlreadyExists":
+                        // In-request duplicate — same AgentId listed twice in the same payload
+                        RuleFor(x => x.Agents)
+                            .Must(agents => agents.Select(a => a.AgentId).Distinct().Count() == agents.Count)
+                            .WithMessage("Agent appears more than once in this request.")
+                            .When(x => x.Agents != null
+                                    && x.Agents.Count > 0
+                                    && x.Agents.All(a => a.AgentId > 0));
+
+                        // Cross-request duplicate — active assignment exists in DB,
+                        // excluding the row being edited (matched by Id).
+                        // Per-element guard: only run when both ids are valid.
+                        RuleForEach(x => x.Agents)
+                            .MustAsync(async (cmd, agent, ct) =>
+                                cmd.MarketingOfficerId <= 0
+                                    || agent.AgentId <= 0
+                                    || !await _queryRepository.AlreadyAssignedAsync(
+                                        cmd.MarketingOfficerId, agent.AgentId, agent.Id))
+                            .WithMessage("This agent is already assigned to this Marketing Officer.")
+                            .When(x => x.Agents != null && x.Agents.Count > 0);
                         break;
 
                     default:

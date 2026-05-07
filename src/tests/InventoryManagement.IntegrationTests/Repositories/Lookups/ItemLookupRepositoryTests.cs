@@ -88,6 +88,21 @@ namespace InventoryManagement.IntegrationTests.Repositories.Lookups
             result[0].Id.Should().Be(id1);
         }
 
+        [Fact]
+        public async Task GetByIdsAsync_Should_Project_ItemCategoryId_With_Null_Coalesced_To_Zero()
+        {
+            // Items with NULL ItemCategoryId must surface as 0 via the ISNULL projection,
+            // so the RFQ update screen reliably gets an int (not nulls) for category lookups.
+            await ClearAsync();
+            var id1 = await SeedItemAsync("CAT1", "No Category 1");
+            var id2 = await SeedItemAsync("CAT2", "No Category 2");
+
+            var result = await CreateRepo().GetByIdsAsync(new[] { id1, id2 });
+
+            result.Should().HaveCount(2);
+            result.Should().OnlyContain(r => r.ItemCategoryId == 0);
+        }
+
         // --- GetVariantsByParentIdAsync ---
 
         [Fact]

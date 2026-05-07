@@ -44,6 +44,147 @@ namespace FinanceManagement.Infrastructure.Services
             WriteIndented = false
         };
 
+        // ── NIC-valid Unit Quantity Codes (UQC) ─────────────────────────────
+        // Reference: NIC e-Invoice API v1.04 — UQC Master
+        private static readonly HashSet<string> _validUqcCodes = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "BAG", "BAL", "BDL", "BKL", "BOU", "BOX", "BTL", "BUN", "CAN",
+            "CBM", "CCM", "CMS", "CTN", "DOZ", "DRM", "GGK", "GMS", "GRS",
+            "GYD", "KGS", "KLR", "KME", "LTR", "MLS", "MLT", "MTR", "MTS",
+            "NOS", "OTH", "PAC", "PCS", "PRS", "QTL", "ROL", "SET", "SQF",
+            "SQM", "SQY", "TBS", "TGM", "THD", "TON", "TUB", "UGS", "UNT",
+            "YDS"
+        };
+
+        // ── Common UOM name/code → NIC UQC mapping ─────────────────────────
+        // Maps DB values (Inventory.UOM.Code or UOMName) that don't match NIC
+        // codes directly to their correct NIC UQC equivalent.
+        private static readonly Dictionary<string, string> _uqcMapping =
+            new(StringComparer.OrdinalIgnoreCase)
+        {
+            // Weight (OrdinalIgnoreCase — one entry per unique key)
+            { "Kg", "KGS" }, { "Kgs", "KGS" },
+            { "Kilogram", "KGS" }, { "Kilograms", "KGS" },
+            { "Gm", "GMS" }, { "Gram", "GMS" }, { "Grams", "GMS" },
+            { "Quintal", "QTL" }, { "Quintals", "QTL" },
+            { "Ton", "TON" }, { "Tonne", "TON" }, { "Tonnes", "TON" },
+            { "MT", "MTS" }, { "MetricTon", "MTS" }, { "MetricTonne", "MTS" },
+
+            // Count
+            { "No", "NOS" }, { "Nos", "NOS" }, { "Number", "NOS" }, { "Numbers", "NOS" },
+            { "Pc", "PCS" }, { "Pcs", "PCS" }, { "Piece", "PCS" }, { "Pieces", "PCS" },
+            { "Pair", "PRS" }, { "Pairs", "PRS" },
+            { "Sets", "SET" },
+            { "Dozen", "DOZ" }, { "Dzn", "DOZ" },
+            { "Units", "UNT" },
+            { "Each", "NOS" },
+
+            // Volume
+            { "Ltr", "LTR" }, { "Litre", "LTR" }, { "Liter", "LTR" }, { "Litres", "LTR" },
+            { "Ml", "MLS" }, { "Millilitre", "MLS" },
+
+            // Length
+            { "Mtr", "MTR" }, { "Meter", "MTR" }, { "Metre", "MTR" }, { "Meters", "MTR" },
+            { "Cm", "CMS" }, { "Centimeter", "CMS" },
+            { "Yard", "YDS" }, { "Yards", "YDS" },
+
+            // Area
+            { "SqMtr", "SQM" }, { "SqM", "SQM" }, { "SquareMeter", "SQM" },
+            { "SqFt", "SQF" }, { "SquareFeet", "SQF" }, { "SquareFoot", "SQF" },
+
+            // Packaging
+            { "Bags", "BAG" },
+            { "Boxes", "BOX" },
+            { "Bale", "BAL" }, { "Bales", "BAL" },
+            { "Bundle", "BDL" }, { "Bundles", "BDL" },
+            { "Bottle", "BTL" }, { "Bottles", "BTL" },
+            { "Pack", "PAC" }, { "Packs", "PAC" }, { "Packet", "PAC" },
+            { "Rolls", "ROL" },
+            { "Drums", "DRM" },
+            { "Cartons", "CTN" },
+            { "Cans", "CAN" },
+            { "Tubes", "TUB" },
+
+            // Others
+            { "Gross", "GRS" },
+            { "Buckle", "BKL" },
+            { "Other", "OTH" }, { "Others", "OTH" },
+        };
+
+        // ── NIC-notified GST rates ──────────────────────────────────────────
+        private static readonly decimal[] _notifiedGstRates =
+            { 0m, 0.1m, 0.25m, 1m, 1.5m, 3m, 5m, 7.5m, 12m, 18m, 28m };
+
+        /// <summary>
+        /// Resolves a UOM value from the database to a valid NIC UQC code.
+        /// Returns the NIC code if already valid, maps common names/abbreviations,
+        /// or falls back to "OTH" if no match is found.
+        /// </summary>
+        private static string ResolveUqcCode(string? uom)
+        {
+            if (string.IsNullOrWhiteSpace(uom))
+                return "OTH";
+
+            var trimmed = uom.Trim();
+
+            // Already a valid NIC UQC code
+            if (_validUqcCodes.Contains(trimmed))
+                return trimmed.ToUpperInvariant();
+
+            // Try mapping common names/abbreviations
+            if (_uqcMapping.TryGetValue(trimmed, out var mapped))
+                return mapped;
+
+            // Fallback
+            return "OTH";
+        }
+
+        /// <summary>
+        /// Returns true if the value matches a NIC-notified GST rate (within 0.01 tolerance).
+        /// </summary>
+        private static bool IsNotifiedRate(decimal rate)
+        {
+            var rounded = Math.Round(rate, 2);
+            foreach (var r in _notifiedGstRates)
+            {
+                if (Math.Abs(rounded - r) <= 0.01m)
+                    return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Snaps a GST percentage to the nearest NIC-notified rate.
+        /// If the stored GstPercentage is not a notified rate, computes the effective rate
+        /// from the actual CGST+SGST+IGST amounts relative to TaxableAmount.
+        /// </summary>
+        private static decimal ResolveGstRate(decimal gstPercentage, decimal taxableAmount,
+            decimal cgst, decimal sgst, decimal igst)
+        {
+            // 1. Try the stored percentage first
+            var rounded = Math.Round(gstPercentage, 2);
+            foreach (var rate in _notifiedGstRates)
+            {
+                if (Math.Abs(rounded - rate) <= 0.01m)
+                    return rate;
+            }
+
+            // 2. Stored percentage is not a notified rate — compute from actual tax amounts
+            if (taxableAmount > 0)
+            {
+                var totalTax = cgst + sgst + igst;
+                var effectiveRate = Math.Round(totalTax / taxableAmount * 100m, 2);
+                foreach (var rate in _notifiedGstRates)
+                {
+                    if (Math.Abs(effectiveRate - rate) <= 0.05m)
+                        return rate;
+                }
+            }
+
+            // 3. Neither matched — return stored value rounded (pre-flight validation will warn)
+            return rounded;
+        }
+
         public NicEInvoiceService(
             IHttpClientFactory httpClientFactory,
             IDbConnection dbConnection,
@@ -776,6 +917,25 @@ namespace FinanceManagement.Infrastructure.Services
                                $"does not match AssAmt({detail.TaxableAmount}) + Tax({detail.IGST + detail.CGST + detail.SGST}) + Cess({detail.CessAmount}) = {expectedItemVal}.");
             }
 
+            // ── NIC Error 2240: GST rate must be a notified rate ──────────────
+            // First tries stored GstPercentage; if not notified, computes from tax amounts.
+            // Only flags error when NEITHER approach yields a valid rate.
+            foreach (var detail in data.Details)
+            {
+                var resolved = ResolveGstRate(detail.GstPercentage, detail.TaxableAmount,
+                    detail.CGST, detail.SGST, detail.IGST);
+                if (!IsNotifiedRate(resolved))
+                {
+                    var effectiveInfo = detail.TaxableAmount > 0
+                        ? $" Computed rate from tax amounts: {Math.Round((detail.CGST + detail.SGST + detail.IGST) / detail.TaxableAmount * 100m, 2)}%."
+                        : string.Empty;
+                    errors.Add($"Item '{detail.ItemName}' (Line {detail.ItemSno}): GST rate {detail.GstPercentage}% " +
+                               $"is not a NIC-notified rate.{effectiveInfo} " +
+                               $"Valid rates: 0, 0.1, 0.25, 1, 1.5, 3, 5, 7.5, 12, 18, 28. " +
+                               $"Please correct the GST percentage in the Sales Invoice.");
+                }
+            }
+
             return errors;
         }
 
@@ -904,7 +1064,7 @@ namespace FinanceManagement.Infrastructure.Services
                        FORMAT(h.InvoiceDate, 'dd/MM/yyyy') AS InvoiceDateFormatted,
                        h.DocType, h.SupplyType, h.PlaceOfSupply, h.GstNo,
                        h.ReverseCharge, h.CGST, h.SGST, h.IGST, h.Cess,
-                       h.StateCess, h.Discount, h.OtherCharges, h.RoundOff,
+                       h.StateCess, 0 AS Discount, h.OtherCharges, h.RoundOff,
                        h.InvoiceAmount
                 FROM Finance.EInvoiceHeader h
                 WHERE h.Id = @id AND h.IsDeleted = 0";
@@ -1063,13 +1223,14 @@ namespace FinanceManagement.Infrastructure.Services
                 HsnCd = item.HsnNo,
                 Qty = R3(item.Qty),
                 FreeQty = 0m,
-                Unit = item.UOM,
+                Unit = ResolveUqcCode(item.UOM),
                 UnitPrice = R3(item.UnitPrice),
                 TotAmt = R2(item.GrossAmount),
                 Discount = R2(item.Discount),
                 PreTaxVal = 0m,
                 AssAmt = R2(item.TaxableAmount),
-                GstRt = R3(item.GstPercentage),
+                GstRt = ResolveGstRate(item.GstPercentage, item.TaxableAmount,
+                    item.CGST, item.SGST, item.IGST),
                 IgstAmt = R2(item.IGST),
                 CgstAmt = R2(item.CGST),
                 SgstAmt = R2(item.SGST),

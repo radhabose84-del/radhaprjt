@@ -9,6 +9,7 @@ using Contracts.Interfaces.Lookups.Common;
 using Contracts.Interfaces.Lookups.Finance;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Party;
+using Contracts.Interfaces.Lookups.Sales;
 using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -37,6 +38,7 @@ namespace SalesManagement.Application.SalesQuotation.Commands.CreateSalesQuotati
         private readonly IHSNLookup _hsnLookup;
         private readonly ILogger<CreateSalesQuotationCommandHandler> _logger;
         private readonly IConfiguration _configuration;
+        private readonly IOfficerAgentUserLookup _officerAgentUserLookup;
 
         public CreateSalesQuotationCommandHandler(
             ISalesQuotationCommandRepository commandRepository,
@@ -52,7 +54,7 @@ namespace SalesManagement.Application.SalesQuotation.Commands.CreateSalesQuotati
             IHSNLookup hsnLookup,
             ILogger<CreateSalesQuotationCommandHandler> logger,
             IAppDataMiscMasterLookup appDataMiscLookup,
-            IConfiguration configuration)
+            IConfiguration configuration, IOfficerAgentUserLookup officerAgentUserLookup)
         {
             _commandRepository = commandRepository;
             _queryRepository = queryRepository;
@@ -65,7 +67,7 @@ namespace SalesManagement.Application.SalesQuotation.Commands.CreateSalesQuotati
             _partyDetailLookup = partyDetailLookup;
             _itemLookup = itemLookup;
             _hsnLookup = hsnLookup;
-            _logger = logger;_appDataMiscLookup = appDataMiscLookup;
+            _logger = logger; _appDataMiscLookup = appDataMiscLookup; _officerAgentUserLookup = officerAgentUserLookup;
         }
 
 
@@ -105,6 +107,27 @@ namespace SalesManagement.Application.SalesQuotation.Commands.CreateSalesQuotati
 
             if (newId <= 0)
                 throw new ExceptionRules("Sales Quotation Creation Failed.");
+          
+            // ------------------- 3) Workflow approval request -------------------
+            var workFlowEntity = await _commandRepository.GetByIdSalesQuotationWorkFlowAsync(newId);
+            workFlowEntity.UnitId = unitId;
+            var reverseMap = new CreateSalesQuotationReverseDto
+            {
+                Header = workFlowEntity,
+                Lines = null
+            };
+            string serializedPayload = JsonSerializer.Serialize(reverseMap);
+
+            var correlationId = Guid.NewGuid();
+            var @event = new CreateApprovalRequestCommand
+            {
+                CorrelationId = correlationId,
+                ModuleTypeName = MiscEnumEntity.TransactionTypeSalesQuotation,
+                ModuleTransactionId = newId,
+                Payload = serializedPayload
+            };
+
+            await _outboxEventPublisher.ScheduleWithoutSaveAsync(@event, correlationId, cancellationToken);
 
             // ------------------- Notification setup (shared by Email + InApp) -------------------
             var customer = await _partyDetailLookup.GetByIdAsync(request.CustomerId, cancellationToken);
@@ -176,16 +199,16 @@ namespace SalesManagement.Application.SalesQuotation.Commands.CreateSalesQuotati
                         param1 = quotationNo ?? "",
                         param2 = customerName,
                         param3 = DateTimeOffset.UtcNow,
-                        param4 = "",                                                    // Empty — SQL renderer fills this from param10
+                        param4 = "",
                         param5 = quotationDateStr,
                         param6 = validityDateStr,
                         param7 = entity.GrandTotal.ToString("N2"),
                         param8 = entity.TotalTax.ToString("N2"),
                         param9 = customer.GSTNumber ?? "",
-                        param10 = rowsJson                                              // Item rows JSON for table rendering
+                        param10 = rowsJson
                     };
 
-                    await _outboxEventPublisher.ScheduleAsync(emailEvent, emailCorrelationId, cancellationToken);
+                    await _outboxEventPublisher.ScheduleWithoutSaveAsync(emailEvent, emailCorrelationId, cancellationToken);
                     _logger.LogInformation(
                         "Email notification queued for customer '{CustomerName}' <{Email}>. Quotation {QuotationNo}, {ItemCount} items (CorrId: {Corr})",
                         customerName, customer.EmailID, quotationNo,
@@ -200,59 +223,59 @@ namespace SalesManagement.Application.SalesQuotation.Commands.CreateSalesQuotati
             // ------------------- 2) InApp notification to role-based users (approval) -------------------
             try
             {
-                var inAppCorrelationId = Guid.NewGuid();
-                var inAppEvent = new NotificationCreatedEvent
-                {
-                    CorrelationId = inAppCorrelationId,
-                    CreatedByName = _ipAddressService.GetUserName() ?? string.Empty,
-                    UnitId = _ipAddressService.GetUnitId() ?? 0,
-                    ModuleName = "SalesQuotation",
-                    EventTypeId = notifEventMisc?.Id ?? 0,
-                    Email = "",                                                     // Empty → SP routes to InApp/role-based path (TemplateId=21)
-                    ccMail = "",
-                    Mobile = "",
-                    param1 = quotationNo ?? "",
-                    param2 = customerName,
-                    param3 = DateTimeOffset.UtcNow,
-                    param4 = "",
-                    param5 = "",
-                    param6 = "",
-                    param7 = "",
-                    param8 = "",
-                    param9 = "",
-                    param10 = ""                                                    // No item table needed for InApp
-                };
+                List<int>? overrideUserIds = null;
+                var moUserId = await _officerAgentUserLookup.GetMarketingOfficerReportToUserIdAsync(_ipAddressService.GetUserId(), cancellationToken);
 
-                await _outboxEventPublisher.ScheduleAsync(inAppEvent, inAppCorrelationId, cancellationToken);
-                _logger.LogInformation(
-                    "InApp notification queued for role-based users. Quotation {QuotationNo} (CorrId: {Corr})",
-                    quotationNo, inAppCorrelationId);
+                if (moUserId.HasValue && moUserId.Value > 0)
+                {
+                    overrideUserIds = new List<int> { moUserId.Value };
+                }
+                else
+                {
+                    _logger.LogWarning(
+                        "No ReportTo UserId resolved for current user on Sales Quotation {QuotationNo} (Id={Id}). Skipping InApp notification.",
+                        quotationNo, newId);
+                }
+
+                if (overrideUserIds != null)
+                {
+                    var inAppCorrelationId = Guid.NewGuid();
+                    var inAppEvent = new NotificationCreatedEvent
+                    {
+                        CorrelationId = inAppCorrelationId,
+                        CreatedByName = _ipAddressService.GetUserName() ?? string.Empty,
+                        UnitId = _ipAddressService.GetUnitId() ?? 0,
+                        ModuleName = "SalesQuotation",
+                        EventTypeId = notifEventMisc?.Id ?? 0,
+                        Email = "",
+                        ccMail = "",
+                        Mobile = "",
+                        param1 = quotationNo ?? "",
+                        param2 = customerName,
+                        param3 = DateTimeOffset.UtcNow,
+                        param4 = "",
+                        param5 = "",
+                        param6 = "",
+                        param7 = "",
+                        param8 = "",
+                        param9 = "",
+                        param10 = "",
+                        OverrideTargetUserIds = overrideUserIds
+                    };
+
+                    await _outboxEventPublisher.ScheduleWithoutSaveAsync(inAppEvent, inAppCorrelationId, cancellationToken);
+                    _logger.LogInformation(
+                        "InApp notification queued for role-based users. Quotation {QuotationNo} (CorrId: {Corr})",
+                        quotationNo, inAppCorrelationId);
+                }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to publish InApp NotificationCreatedEvent for Sales Quotation {Id}", newId);
             }
 
-            // ------------------- 3) Workflow approval request -------------------
-            var workFlowEntity = await _commandRepository.GetByIdSalesQuotationWorkFlowAsync(newId);
-            workFlowEntity.UnitId = unitId;
-            var reverseMap = new CreateSalesQuotationReverseDto
-            {
-                Header = workFlowEntity,
-                Lines = null
-            };
-            string serializedPayload = JsonSerializer.Serialize(reverseMap);
-
-            var correlationId = Guid.NewGuid();
-            var @event = new CreateApprovalRequestCommand
-            {
-                CorrelationId = correlationId,
-                ModuleTypeName = MiscEnumEntity.TransactionTypeSalesQuotation,
-                ModuleTransactionId = newId,
-                Payload = serializedPayload
-            };
-
-            await _outboxEventPublisher.ScheduleAsync(@event, correlationId, cancellationToken);
+            // ------------------- Atomic commit: all outbox events saved together -------------------
+            await _outboxEventPublisher.SavePendingAsync(cancellationToken);
 
             return newId;
         }

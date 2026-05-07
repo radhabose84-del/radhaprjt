@@ -31,6 +31,11 @@ namespace SalesManagement.Infrastructure.Repositories.Outbox
             // Do NOT save — caller is responsible for transaction management
         }
 
+        public async Task SavePendingAsync(CancellationToken cancellationToken = default)
+        {
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+
         public async Task<IReadOnlyList<OutboxMessage>> GetPendingMessagesAsync(
             int batchSize = 100,
             CancellationToken cancellationToken = default)

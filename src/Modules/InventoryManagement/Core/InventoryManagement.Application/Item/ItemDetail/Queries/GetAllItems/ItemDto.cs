@@ -27,6 +27,7 @@
             public string? TariffNumber { get; set; }
             public bool IsOnSpot { get; set; } = false;
             public int? PriceGroupId { get; set; }
+            public int? OldItemId { get; set; }
             // Tabs
             public ItemPurchaseDto? Purchase { get; set; }
             public ItemInventoryDto? Inventory { get; set; }

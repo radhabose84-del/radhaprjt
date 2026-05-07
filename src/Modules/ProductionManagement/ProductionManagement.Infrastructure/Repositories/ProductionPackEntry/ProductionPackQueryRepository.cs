@@ -315,14 +315,14 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
             var unitId = _ipAddressService.GetUnitId() ?? 0;
 
             const string sql = @"
-                SELECT TOP 1
-                    ClosingLooseKgs,
-                    ClosingPackKgs,
-                    ClosingBags
-                FROM Production.ProductionStockLedger
-                WHERE UnitId = @UnitId AND ItemId = @ItemId AND LotId = @LotId
-                    AND DocDate < @DocDate
-                ORDER BY DocDate DESC, Id DESC";
+                    SELECT TOP 1
+                        ClosingLooseKgs,
+                        ClosingPackKgs,
+                        ClosingBags
+                    FROM Production.ProductionStockLedger
+                    WHERE UnitId = @UnitId AND ItemId = @ItemId AND LotId = @LotId
+                        AND DocDate <= @DocDate
+                    ORDER BY DocDate DESC, Id DESC";
 
             return await _dbConnection.QueryFirstOrDefaultAsync<ProductionStockClosingDto>(
                 sql, new { UnitId = unitId, ItemId = itemId, LotId = lotId, DocDate = docDate.ToDateTime(TimeOnly.MinValue) });
@@ -383,6 +383,23 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
             }
 
             return list;
+        }
+
+        public async Task<DateOnly?> GetLastStockLedgerDateAsync()
+        {
+            var unitId = _ipAddressService.GetUnitId();
+            var unitFilter = unitId.HasValue ? "AND UnitId = @UnitId" : "";
+
+            var sql = $@"
+                SELECT TOP 1 DocDate
+                FROM Production.ProductionStockLedger
+                WHERE StockClosing=1 and {unitFilter}
+                ORDER BY DocDate DESC";
+
+            var result = await _dbConnection.QueryFirstOrDefaultAsync<DateTime?>(
+                sql, new { UnitId = unitId });
+
+            return result.HasValue ? DateOnly.FromDateTime(result.Value) : null;
         }
 
     }

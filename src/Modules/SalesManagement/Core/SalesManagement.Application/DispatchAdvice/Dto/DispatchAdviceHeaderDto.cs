@@ -38,7 +38,7 @@ namespace SalesManagement.Application.DispatchAdvice.Dto
         public DateTimeOffset? ModifiedDate { get; set; }
         public string? ModifiedByName { get; set; }
 
-        public List<DispatchAdviceAddressDto> DispatchAddress { get; set; } = new();
+        public DispatchAdviceAddressDto? DispatchAddress { get; set; }
 
         public List<DispatchAdviceDetailDto>? Details { get; set; }
     }

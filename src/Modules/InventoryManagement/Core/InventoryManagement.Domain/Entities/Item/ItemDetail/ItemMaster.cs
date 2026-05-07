@@ -9,6 +9,7 @@ namespace InventoryManagement.Domain.Entities.Item.ItemDetail
     {
         public int? PriceGroupId { get; set; }
         public PriceGroupMaster? PriceGroup { get; set; }
+        public int? OldItemId { get; set; }
         public string ItemCode { get; set; } = null!;
         public string ItemName { get; set; } = null!;
         public int? HSNId { get; set; }

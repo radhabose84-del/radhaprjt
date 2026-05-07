@@ -31,6 +31,9 @@ namespace InventoryManagement.Application.Item.ItemDetail.Queries.GetItemAutoCom
         public string? StockUom { get; set; }
         public bool IsOnSpot { get; set; }
         public int SourceOfItem { get; set; }
+        public decimal? MinQuantity { get; set; }
+        public int? SaleUomId { get; set; }
+        public string? SaleUom { get; set; }
  		public List<ItemVendorDto>? Vendors { get; set; }
 		public decimal? CurrentStockQty { get; set; }
     }
