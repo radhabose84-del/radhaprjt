@@ -31,7 +31,7 @@ internal sealed class SalesInvoiceLookupRepository : ISalesInvoiceLookup
         const string sql = @"
             SELECT h.Id, h.InvoiceNo, h.InvoiceDate, h.UnitId, h.PartyId,
                 h.TaxableValue, h.TotalDiscount, h.TotalFreight, h.Insurance,
-                h.HandlingCharge, h.OtherCharges,
+                h.HandlingCharge, h.OtherCharges, h.TotalCharity,
                 h.CGST, h.SGST, h.IGST, h.TCS, h.RoundOff,
                 h.InvoiceAmount, h.Remarks,
                 da.TransporterId,
@@ -63,7 +63,7 @@ internal sealed class SalesInvoiceLookupRepository : ISalesInvoiceLookup
         const string sql = @"
             SELECT h.Id, h.InvoiceNo, h.InvoiceDate, h.UnitId, h.PartyId,
                 h.TaxableValue, h.TotalDiscount, h.TotalFreight, h.Insurance,
-                h.HandlingCharge, h.OtherCharges,
+                h.HandlingCharge, h.OtherCharges, h.TotalCharity,
                 h.CGST, h.SGST, h.IGST, h.TCS, h.RoundOff,
                 h.InvoiceAmount, h.Remarks,
                 da.TransporterId,
@@ -132,12 +132,14 @@ internal sealed class SalesInvoiceLookupRepository : ISalesInvoiceLookup
 
             var uomIds = details.Where(d => d.UOMId.HasValue).Select(d => d.UOMId!.Value).Distinct();
             var uoms = await _uomLookup.GetByIdsAsync(uomIds);
-            var uomDict = uoms.ToDictionary(u => u.Id, u => u.UOMName);
+            var uomNameDict = uoms.ToDictionary(u => u.Id, u => u.UOMName);
+            var uomCodeDict = uoms.ToDictionary(u => u.Id, u => u.Code);
 
             foreach (var detail in details)
             {
                 detail.ItemName = itemDict.TryGetValue(detail.ItemId, out var iName) ? iName : null;
-                detail.UOMName = detail.UOMId.HasValue && uomDict.TryGetValue(detail.UOMId.Value, out var uName) ? uName : null;
+                detail.UOMName = detail.UOMId.HasValue && uomNameDict.TryGetValue(detail.UOMId.Value, out var uName) ? uName : null;
+                detail.UOMCode = detail.UOMId.HasValue && uomCodeDict.TryGetValue(detail.UOMId.Value, out var uCode) ? uCode : null;
             }
         }
 
