@@ -16,13 +16,16 @@ namespace SalesManagement.Domain.Common
         public const string QualityStatus = "QualityStatus";
         public const string Packed = "Packed";
 
-        // Dispatch Advice Status
+        // Stock Status (used by Dispatch Advice + Sales Return; consolidated 2026-05-07 — formerly BagStatus)
         public const string StockStatus = "StockStatus";
         public const string Reserved = "Reserved";
         public const string Invoiced = "Invoiced";
         public const string Dispatched = "Dispatched";
         public const string Damaged = "Damaged";
         public const string Pending = "Pending";
+        public const string StockStatusDefect = "DEFECT";
+        public const string StockStatusDamaged = "DAMAGED";
+        public const string StockStatusYarnMismatch = "YARN MISMATCH";
 
         // Invoice Approval Status
         public const string InvoiceApprovalStatus = "ApprovalStatus";
@@ -157,12 +160,6 @@ namespace SalesManagement.Domain.Common
         public const string ReturnStatusReceived = "Received";
         public const string ReturnStatusPartiallyReturned = "PartiallyReturned";
         public const string ReturnStatusFullyReturned = "FullyReturned";
-
-        // Bag Status
-        public const string BagStatus = "BagStatus";
-        public const string BagStatusDefect = "DEFECT";
-        public const string BagStatusDamaged = "DAMAGED";
-        public const string BagStatusYarnMismatch = "YARN MISMATCH";
 
         // Sales Return
         public const string TransactionTypeSalesReturn = "Sales Return";

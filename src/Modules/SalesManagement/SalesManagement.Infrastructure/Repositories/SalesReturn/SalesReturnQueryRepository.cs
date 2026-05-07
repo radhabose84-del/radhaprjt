@@ -288,7 +288,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesReturn
                 SELECT mm.Id, mm.Code, mm.Description
                 FROM Sales.MiscMaster mm
                 INNER JOIN Sales.MiscTypeMaster mt ON mm.MiscTypeId = mt.Id
-                WHERE mt.miscTypecode = 'BagStatus' AND mm.IsActive = 1 AND mm.IsDeleted = 0
+                WHERE mt.miscTypecode = 'StockStatus' AND mm.IsActive = 1 AND mm.IsDeleted = 0
                 ORDER BY mm.Description;";
             header.BagStatuses = [.. await _dbConnection.QueryAsync<BagStatusLookupDto>(bagStatusSql)];
 
