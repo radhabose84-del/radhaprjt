@@ -82,10 +82,26 @@ namespace SalesManagement.Domain.Common
         // Complaint Workflow
         public const string ComplaintApprovalStatus = "ApprovalStatus";
         public const string ComplaintApprovalPending = "Pending";
+        public const string ComplaintApprovalApproved = "Approved";
+        public const string ComplaintApprovalRejected = "Rejected";
         public const string ComplaintModuleTypeName = "Complaints";
         public const string ComplaintQCReviewModuleTypeName = "QC Review";
         public const string ComplaintResolutionModuleTypeName = "Resolution";
         public const string TransactionTypeComplaint = "Complaint";
+
+        // Complaint Notifications (NotificationConfig.ModuleName values; configs Ids 31-36)
+        public const string NotifModuleNewComplaint        = "New Complaint";
+        public const string NotifModuleComplaintMoApproval = "Complaint MO Approval";
+        public const string NotifModuleQcReviewSubmitted   = "QC Review Submitted";
+        public const string NotifModuleQcReviewApproved    = "QC Review Approved";
+        public const string NotifModuleFeedbackRequested   = "Feedback Requested";
+        public const string NotifModuleResolutionSubmitted = "Resolution Submitted";
+
+        // Notification EventType lookup keys (resolved at runtime via IAppDataMiscMasterLookup
+        // → AppData.MiscMaster). Codes are stable across environments; Ids are auto-generated and
+        // must NEVER be hardcoded.
+        public const string NotifEventTypeMiscType = "EventType";
+        public const string NotifEventTypeCreate   = "Create";
 
         // QC Review
         public const string PhysicalVerificationStatus = "PhysicalVerification";

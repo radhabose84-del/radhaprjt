@@ -137,6 +137,61 @@ namespace SalesManagement.Application.Consumers
                         _logger.LogInformation(
                             "Complaint {Id} status updated to {Status} by user {UserId}",
                             msg.ModuleTransactionId, msg.Status, msg.ModifiedBy);
+
+                        // ------------------- Event 2 — InApp notification: MO approved → QC team -------------------
+                        // Fire only on Approved. Rejection notification is Phase 2.
+                        // EventTypeId resolved at runtime via _appDataMiscLookup (Ids vary per env).
+                        // Recipient resolved by dispatcher via TargetTypeId 2083 (COMPLAINT_QC_REVIEWER_USER).
+                        if (msg.Status == MiscEnumEntity.ComplaintApprovalApproved)
+                        {
+                            try
+                            {
+                                var createEventType = await _appDataMiscLookup.GetMiscMasterByNameAsync(
+                                    MiscEnumEntity.NotifEventTypeMiscType, MiscEnumEntity.NotifEventTypeCreate);
+
+                                if (createEventType == null)
+                                {
+                                    _logger.LogWarning(
+                                        "MiscMaster EventType='{Code}' not found — skipping 'Complaint MO Approval' InApp for ComplaintId {Id}",
+                                        MiscEnumEntity.NotifEventTypeCreate, msg.ModuleTransactionId);
+                                }
+                                else
+                                {
+                                    var inAppCorrelationId = Guid.NewGuid();
+                                    await context.Publish(new NotificationCreatedEvent
+                                    {
+                                        CorrelationId = inAppCorrelationId,
+                                        CreatedByName = msg.ModifiedByName ?? string.Empty,
+                                        UnitId        = 37,                                 // Phase 1 hardcode; extend message format in 1.5
+                                        ModuleName    = MiscEnumEntity.NotifModuleComplaintMoApproval,
+                                        EventTypeId   = createEventType.Id,
+                                        Email         = string.Empty,
+                                        ccMail        = string.Empty,
+                                        Mobile        = string.Empty,
+                                        param1        = msg.ModuleTransactionId.ToString(),
+                                        param2        = string.Empty,
+                                        param3        = DateTimeOffset.UtcNow,
+                                        param4        = string.Empty,
+                                        param5        = msg.ModifiedByName ?? string.Empty,
+                                        param6        = string.Empty,
+                                        param7        = string.Empty,
+                                        param8        = string.Empty,
+                                        param9        = string.Empty,
+                                        param10       = string.Empty
+                                    }, context.CancellationToken);
+
+                                    _logger.LogInformation(
+                                        "Published 'Complaint MO Approval' InApp for ComplaintId {Id}",
+                                        msg.ModuleTransactionId);
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogError(ex,
+                                    "Failed to publish 'Complaint MO Approval' InApp for ComplaintId {Id}",
+                                    msg.ModuleTransactionId);
+                            }
+                        }
                         break;
 
                     case MiscEnumEntity.ComplaintQCReviewModuleTypeName:
