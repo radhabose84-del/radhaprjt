@@ -11,6 +11,7 @@ using SalesManagement.Application.DeliveryChallan.Queries.GetDeliveryChallanForR
 using SalesManagement.Application.DeliveryChallan.Queries.GetPendingDeliveryChallan;
 using SalesManagement.Application.DeliveryChallan.Queries.GetPendingDeliveryChallanById;
 using SalesManagement.Application.DeliveryChallan.Queries.GetDCGatePassPending;
+using SalesManagement.Application.DeliveryChallan.Queries.GetDeliveryChallanPrintDetails;
 using SalesManagement.Application.DeliveryChallan.Queries.GetStoOpenQty;
 
 namespace SalesManagement.Presentation.Controllers
@@ -70,6 +71,18 @@ namespace SalesManagement.Presentation.Controllers
         public async Task<IActionResult> GetPendingDeliveryChallanByIdAsync(int id)
         {
             var result = await Mediator.Send(new GetPendingDeliveryChallanByIdQuery { Id = id });
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result
+            });
+        }
+
+        [HttpGet("{id}/print")]
+        public async Task<IActionResult> GetDeliveryChallanPrintDetailsAsync(int id)
+        {
+            var result = await Mediator.Send(new GetDeliveryChallanPrintDetailsQuery(id));
 
             return Ok(new
             {

@@ -67,6 +67,10 @@ namespace SalesManagement.Application.SalesOrder.Dto
         public decimal TotalTCS { get; set; }
         public decimal FinalAmount { get; set; }
 
+        // Split Order tracking
+        public int? SalesOrderSplitId { get; set; }
+        public bool SplitFlag { get; set; }
+
         // Line Items
         public List<CreateSalesOrderDetailDto>? SalesOrderDetails { get; set; }
 

@@ -306,6 +306,18 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasDefaultValue(0)
                 .IsRequired();
 
+            // Split Order tracking
+            builder.Property(t => t.SalesOrderSplitId)
+                .HasColumnName("SalesOrderSplitId")
+                .HasColumnType("int")
+                .IsRequired(false);
+
+            builder.Property(t => t.SplitFlag)
+                .HasColumnName("SplitFlag")
+                .HasColumnType("bit")
+                .HasDefaultValue(false)
+                .IsRequired();
+
             // Cancelled fields
             builder.Property(t => t.CancelledDate)
                 .HasColumnName("CancelledDate")

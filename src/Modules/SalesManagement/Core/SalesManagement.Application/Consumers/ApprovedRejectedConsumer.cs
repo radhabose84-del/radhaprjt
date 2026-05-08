@@ -7,6 +7,7 @@ using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Common;
 using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Sales;
+using Contracts.Interfaces.Lookups.Users;
 using Contracts.Interfaces.Lookups.Workflow;
 using MassTransit;
 using MediatR;
@@ -35,12 +36,14 @@ namespace SalesManagement.Application.Consumers
         private readonly IStoHeaderCommandRepository _stoHeaderCommandRepo;
         private readonly IDeliveryChallanCommandRepository _dcCommandRepo;
         private readonly IComplaintCommandRepository _complaintCommandRepo;
+        private readonly IComplaintQueryRepository _complaintQueryRepo;
         private readonly IMediator _mediator;
         private readonly ILogger<ApprovedRejectedConsumer> _logger;
         private readonly IOfficerAgentUserLookup _officerAgentUserLookup;
         private readonly IAppDataMiscMasterLookup _appDataMiscLookup;
         private readonly IPartyDetailLookup _partyDetailLookup;
         private readonly IWorkflowLookup _workflowLookup;
+        private readonly IUnitLookup _unitLookup;
 
         public ApprovedRejectedConsumer(
             IInvoiceCommandRepository invoiceCommandRepo,
@@ -52,12 +55,14 @@ namespace SalesManagement.Application.Consumers
             IStoHeaderCommandRepository stoHeaderCommandRepo,
             IDeliveryChallanCommandRepository dcCommandRepo,
             IComplaintCommandRepository complaintCommandRepo,
+            IComplaintQueryRepository complaintQueryRepo,
             IMediator mediator,
             ILogger<ApprovedRejectedConsumer> logger,
             IOfficerAgentUserLookup officerAgentUserLookup,
             IAppDataMiscMasterLookup appDataMiscLookup,
             IPartyDetailLookup partyDetailLookup,
-            IWorkflowLookup workflowLookup)
+            IWorkflowLookup workflowLookup,
+            IUnitLookup unitLookup)
         {
             _invoiceCommandRepo = invoiceCommandRepo;
             _salesOrderCommandRepo = salesOrderCommandRepo;
@@ -68,12 +73,14 @@ namespace SalesManagement.Application.Consumers
             _stoHeaderCommandRepo = stoHeaderCommandRepo;
             _dcCommandRepo = dcCommandRepo;
             _complaintCommandRepo = complaintCommandRepo;
+            _complaintQueryRepo = complaintQueryRepo;
             _mediator = mediator;
             _logger = logger;
             _officerAgentUserLookup = officerAgentUserLookup;
             _appDataMiscLookup = appDataMiscLookup;
             _partyDetailLookup = partyDetailLookup;
             _workflowLookup = workflowLookup;
+            _unitLookup = unitLookup;
         }
 
         public async Task Consume(ConsumeContext<UpdateApprovedRejectedSalesCommand> context)
@@ -157,12 +164,15 @@ namespace SalesManagement.Application.Consumers
                                 }
                                 else
                                 {
+                                    var complaintUnitId = await ResolveComplaintCreatorUnitIdAsync(
+                                        msg.ModuleTransactionId, context.CancellationToken);
+
                                     var inAppCorrelationId = Guid.NewGuid();
                                     await context.Publish(new NotificationCreatedEvent
                                     {
                                         CorrelationId = inAppCorrelationId,
                                         CreatedByName = msg.ModifiedByName ?? string.Empty,
-                                        UnitId        = 37,                                 // Phase 1 hardcode; extend message format in 1.5
+                                        UnitId        = complaintUnitId,
                                         ModuleName    = MiscEnumEntity.NotifModuleComplaintMoApproval,
                                         EventTypeId   = createEventType.Id,
                                         Email         = string.Empty,
@@ -585,6 +595,34 @@ namespace SalesManagement.Application.Consumers
                     // Do NOT rethrow — the SO approval itself succeeded; notification is best-effort.
                 }
             }
+        }
+
+        // Resolves the unit of the complaint's creator so the InApp notification routes to the
+        // correct unit's QC team. Falls back to 0 (with a warning) when the complaint can't be
+        // found or the creator has no unit assignment — the dispatcher will then drop the message
+        // rather than route it to an arbitrary unit.
+        private async Task<int> ResolveComplaintCreatorUnitIdAsync(int complaintId, CancellationToken ct)
+        {
+            var complaint = await _complaintQueryRepo.GetByIdAsync(complaintId);
+            if (complaint == null)
+            {
+                _logger.LogWarning(
+                    "Cannot resolve UnitId for ComplaintId {Id} — complaint not found",
+                    complaintId);
+                return 0;
+            }
+
+            var units = await _unitLookup.GetUserUnitAsync(complaint.CreatedBy);
+            var unitId = units.FirstOrDefault()?.UnitId ?? 0;
+
+            if (unitId == 0)
+            {
+                _logger.LogWarning(
+                    "Cannot resolve UnitId for ComplaintId {Id} — creator UserId={CreatedBy} has no unit assignment",
+                    complaintId, complaint.CreatedBy);
+            }
+
+            return unitId;
         }
 
         /// <summary>

@@ -156,6 +156,14 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                         SELECT 1 FROM Sales.ProformaInvoice pi
                         WHERE pi.SalesOrderId = h.Id AND pi.IsDeleted = 0
                     ) THEN 'Y' ELSE 'N' END AS PIFlag,
+                    CASE
+                        WHEN LOWER(st.Code) = LOWER('Approved')
+                         AND h.OrderDate >= DATEFROMPARTS(YEAR(DATEADD(MONTH, -1, GETDATE())), MONTH(DATEADD(MONTH, -1, GETDATE())), 1)
+                         AND h.OrderDate <= EOMONTH(DATEADD(MONTH, -1, GETDATE()))
+                         AND ISNULL(pending.TotalPendingQty, 0) > 0
+                        THEN 'Y'
+                        ELSE 'N'
+                    END AS SplitOrderFlag,
                     ISNULL(pending.TotalPendingQty, 0) AS TotalPendingQty,
                     amd_latest.StatusId AS AmendmentStatusId,
                     amd_mm.Description AS AmendmentStatusName
@@ -378,7 +386,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     d.ExpectedDeliveryDate, d.AgentCommissionPercentage,
                     d.DispatchedQty,
                     ISNULL(da.ReservedQty, 0) AS ReservedQty,
-                    (d.QtyInBags - d.DispatchedQty) AS PendingQty,
+                    (d.QtyInBags - ISNULL(da.ReservedQty, 0)) AS PendingQty,
                     d.LineItemStatusId,
                     mm.Description AS LineItemStatusName
                 FROM Sales.SalesOrderDetail d
