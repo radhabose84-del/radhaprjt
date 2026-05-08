@@ -816,6 +816,268 @@ namespace FinanceManagement.Infrastructure.Services
         }
 
         // ─────────────────────────────────────────────────────────────────────
+        //  Standalone e-Waybill (no IRN — used by DC, Bill of Supply, etc.)
+        //  POSTs to /ewaybillapi/v1.03/ewayapi with action=GENEWAYBILL.
+        //  Mirrors CancelEwbAsync's auth/encrypt/decrypt pattern.
+        // ─────────────────────────────────────────────────────────────────────
+        public async Task<NicEwbResultDto> GenerateStandaloneEwbAsync(
+            StandaloneEwbPayloadDto payload,
+            CancellationToken ct = default)
+        {
+            try
+            {
+                // 1a. Enrich address fields from UnitId hints if caller didn't fill them.
+                //     Keeps DC/BoS handlers free of cross-schema data access.
+                await EnrichStandalonePayloadAddressesAsync(payload, ct);
+
+                // 1b. Derive State codes from GSTIN's first 2 chars when caller left them 0.
+                if (payload.FromStateCode == 0 && payload.FromGstin?.Length >= 2
+                    && int.TryParse(payload.FromGstin[..2], out var fromState))
+                {
+                    payload.FromStateCode = fromState;
+                    if (payload.ActFromStateCode == 0) payload.ActFromStateCode = fromState;
+                }
+                if (payload.ToStateCode == 0 && payload.ToGstin?.Length >= 2
+                    && int.TryParse(payload.ToGstin[..2], out var toState))
+                {
+                    payload.ToStateCode = toState;
+                    if (payload.ActToStateCode == 0) payload.ActToStateCode = toState;
+                }
+
+                // 1c. Pre-flight validation
+                var preflightErrors = ValidateStandalonePayload(payload);
+                if (preflightErrors.Count > 0)
+                    return new NicEwbResultDto
+                    {
+                        IsSuccess = false,
+                        ErrorCode = "VALIDATION_ERROR",
+                        ErrorMessage = string.Join(" | ", preflightErrors)
+                    };
+
+                // 2. Authenticate with NIC
+                var (authToken, sek) = await GetAuthTokenAsync(ct);
+                var cfg = GetConfig();
+                var client = _httpClientFactory.CreateClient("NicEInvoice");
+
+                // 3. Serialize + AES-encrypt payload
+                var jsonString = JsonSerializer.Serialize(payload, _jsonOptions);
+                var encryptedPayload = AesEncryptEcb(jsonString, sek);
+
+                // 4. Build request — EWB API expects { action, data }
+                var ewbBaseUrl = _configuration.GetSection("NicEInvoice")["EwbBaseUrl"]
+                    ?? "https://einv-apisandbox.nic.in";
+                var generatePath = ewbBaseUrl +
+                    (_configuration.GetSection("NicEInvoice")["GenerateEwbPath"]
+                        ?? "/ewaybillapi/v1.03/ewayapi");
+
+                var body = JsonSerializer.Serialize(
+                    new { action = "GENEWAYBILL", Data = encryptedPayload }, _jsonOptions);
+
+                using var req = new HttpRequestMessage(HttpMethod.Post, generatePath)
+                {
+                    Content = new StringContent(body, Encoding.UTF8, "application/json")
+                };
+                req.Headers.Add("client-id", cfg.ClientId);
+                req.Headers.Add("client-secret", cfg.ClientSecret);
+                req.Headers.Add("user_name", cfg.UserName);
+                req.Headers.Add("authtoken", authToken);
+                req.Headers.Add("gstin", cfg.GstinForAuth);
+
+                // 5. Send + parse response
+                using var resp = await client.SendAsync(req, ct);
+                var responseBody = await resp.Content.ReadAsStringAsync(ct);
+
+                if (string.IsNullOrWhiteSpace(responseBody))
+                    return new NicEwbResultDto
+                    {
+                        IsSuccess = false,
+                        ErrorCode = "NIC_ERROR",
+                        ErrorMessage = $"NIC returned empty response (HTTP {(int)resp.StatusCode}). URL: {generatePath}"
+                    };
+
+                using var doc = JsonDocument.Parse(responseBody);
+                var root = doc.RootElement;
+
+                var statusOk = false;
+                if (root.TryGetProperty("Status", out var sp) || root.TryGetProperty("status", out sp))
+                {
+                    var sv = sp.ValueKind == JsonValueKind.Number ? sp.GetInt32()
+                        : int.TryParse(sp.GetString(), out var v) ? v : 0;
+                    statusOk = sv == 1;
+                }
+
+                if (!statusOk)
+                {
+                    // EWB API returns error as Base64-encoded JSON in "error"
+                    var message = responseBody;
+                    if (root.TryGetProperty("error", out var errProp) && errProp.ValueKind == JsonValueKind.String)
+                    {
+                        try
+                        {
+                            message = Encoding.UTF8.GetString(Convert.FromBase64String(errProp.GetString()!));
+                        }
+                        catch { message = errProp.GetString(); }
+                    }
+                    else if (root.TryGetProperty("ErrorDetails", out var ed))
+                        message = ed.GetRawText();
+                    else if (root.TryGetProperty("errorDetails", out ed))
+                        message = ed.GetRawText();
+
+                    if (message?.Length > 500) message = message[..500];
+
+                    return new NicEwbResultDto
+                    {
+                        IsSuccess = false,
+                        ErrorCode = "NIC_ERROR",
+                        ErrorMessage = message
+                    };
+                }
+
+                // 6. Decrypt response data — EWB API uses "data" (lowercase)
+                var encResult = root.TryGetProperty("data", out var rdp) ? rdp.GetString()
+                    : root.TryGetProperty("Data", out rdp) ? rdp.GetString() : null;
+
+                if (string.IsNullOrEmpty(encResult))
+                    return new NicEwbResultDto
+                    {
+                        IsSuccess = false,
+                        ErrorCode = "NIC_ERROR",
+                        ErrorMessage = "NIC success response had no data field."
+                    };
+
+                var decResult = Encoding.UTF8.GetString(AesDecryptEcb(encResult, sek));
+                using var resultDoc = JsonDocument.Parse(decResult);
+                var resultRoot = resultDoc.RootElement;
+
+                long? ewbNo = null;
+                string? ewbDate = null;
+                string? ewbValidTill = null;
+
+                if (resultRoot.TryGetProperty("ewayBillNo", out var en) || resultRoot.TryGetProperty("EwayBillNo", out en))
+                    ewbNo = en.ValueKind == JsonValueKind.Number ? en.GetInt64()
+                        : long.TryParse(en.GetString(), out var v) ? v : null;
+
+                if (resultRoot.TryGetProperty("ewayBillDate", out var ed2) || resultRoot.TryGetProperty("EwayBillDate", out ed2))
+                    ewbDate = ed2.GetString();
+
+                if (resultRoot.TryGetProperty("validUpto", out var vu) || resultRoot.TryGetProperty("ValidUpto", out vu))
+                    ewbValidTill = vu.GetString();
+
+                return new NicEwbResultDto
+                {
+                    IsSuccess = true,
+                    EwbNo = ewbNo,
+                    EwbDate = ewbDate,
+                    EwbValidTill = ewbValidTill
+                };
+            }
+            catch (Exception ex)
+            {
+                var source = ex.StackTrace?.Split('\n').FirstOrDefault()?.Trim() ?? "unknown";
+                return new NicEwbResultDto
+                {
+                    IsSuccess = false,
+                    ErrorCode = "SERVICE_ERROR",
+                    ErrorMessage = $"{ex.Message} | Source: {source}"
+                };
+            }
+        }
+
+        // Loads UnitAddress + City for FromUnitId / ToUnitId and fills any
+        // address fields the caller left blank. Same SQL pattern used by
+        // LoadNicDataAsync for IRN-based EInvoices.
+        private async Task EnrichStandalonePayloadAddressesAsync(
+            StandaloneEwbPayloadDto p, CancellationToken ct)
+        {
+            const string addrSql = @"
+                SELECT TOP 1 AddressLine1, AddressLine2, CityId, PinCode
+                FROM AppData.UnitAddress
+                WHERE UnitId = @unitId
+                ORDER BY Id";
+
+            if (p.FromUnitId is int fromUnit && fromUnit > 0
+                && (string.IsNullOrWhiteSpace(p.FromAddr1) || p.FromPincode == 0 || string.IsNullOrWhiteSpace(p.FromPlace)))
+            {
+                var row = await _dbConnection.QueryFirstOrDefaultAsync<UnitAddressLite>(
+                    addrSql, new { unitId = fromUnit });
+                if (row != null)
+                {
+                    if (string.IsNullOrWhiteSpace(p.FromAddr1)) p.FromAddr1 = row.AddressLine1;
+                    if (string.IsNullOrWhiteSpace(p.FromAddr2)) p.FromAddr2 = row.AddressLine2;
+                    if (p.FromPincode == 0) p.FromPincode = row.PinCode;
+                    if (string.IsNullOrWhiteSpace(p.FromPlace) && row.CityId > 0)
+                    {
+                        var city = await _cityLookup.GetByIdAsync(row.CityId);
+                        if (!string.IsNullOrWhiteSpace(city?.CityName)) p.FromPlace = city!.CityName!;
+                    }
+                }
+            }
+
+            if (p.ToUnitId is int toUnit && toUnit > 0
+                && (string.IsNullOrWhiteSpace(p.ToAddr1) || p.ToPincode == 0 || string.IsNullOrWhiteSpace(p.ToPlace)))
+            {
+                var row = await _dbConnection.QueryFirstOrDefaultAsync<UnitAddressLite>(
+                    addrSql, new { unitId = toUnit });
+                if (row != null)
+                {
+                    if (string.IsNullOrWhiteSpace(p.ToAddr1)) p.ToAddr1 = row.AddressLine1;
+                    if (string.IsNullOrWhiteSpace(p.ToAddr2)) p.ToAddr2 = row.AddressLine2;
+                    if (p.ToPincode == 0) p.ToPincode = row.PinCode;
+                    if (string.IsNullOrWhiteSpace(p.ToPlace) && row.CityId > 0)
+                    {
+                        var city = await _cityLookup.GetByIdAsync(row.CityId);
+                        if (!string.IsNullOrWhiteSpace(city?.CityName)) p.ToPlace = city!.CityName!;
+                    }
+                }
+            }
+        }
+
+        private sealed class UnitAddressLite
+        {
+            public string? AddressLine1 { get; set; }
+            public string? AddressLine2 { get; set; }
+            public int CityId { get; set; }
+            public int PinCode { get; set; }
+        }
+
+        // Local pre-flight checks for the standalone EWB payload — same spirit as
+        // CollectValidationErrors() in the DC handler but kept here so the service
+        // is also defensible when called from other modules later.
+        private static List<string> ValidateStandalonePayload(StandaloneEwbPayloadDto p)
+        {
+            var errors = new List<string>();
+
+            if (string.IsNullOrWhiteSpace(p.DocNo))         errors.Add("DocNo is required.");
+            if (string.IsNullOrWhiteSpace(p.DocDate))       errors.Add("DocDate is required (dd/MM/yyyy).");
+            if (string.IsNullOrWhiteSpace(p.FromGstin))     errors.Add("FromGstin is required.");
+            if (string.IsNullOrWhiteSpace(p.FromTrdName))   errors.Add("FromTrdName is required.");
+            if (string.IsNullOrWhiteSpace(p.ToGstin))       errors.Add("ToGstin is required.");
+            if (string.IsNullOrWhiteSpace(p.ToTrdName))     errors.Add("ToTrdName is required.");
+            if (p.FromPincode <= 0)                         errors.Add("FromPincode is required.");
+            if (p.ToPincode <= 0)                           errors.Add("ToPincode is required.");
+            if (p.FromStateCode <= 0)                       errors.Add("FromStateCode is required.");
+            if (p.ToStateCode <= 0)                         errors.Add("ToStateCode is required.");
+            if (p.TransDistance <= 0 || p.TransDistance > 4000)
+                errors.Add("TransDistance must be between 1 and 4000 km.");
+            if (p.ItemList == null || p.ItemList.Count == 0)
+                errors.Add("ItemList must contain at least one item.");
+            else
+            {
+                foreach (var item in p.ItemList)
+                {
+                    if (string.IsNullOrWhiteSpace(item.ProductName))
+                        errors.Add($"ProductName missing on item {item.ItemNo}.");
+                    if (item.HsnCode <= 0)
+                        errors.Add($"HsnCode missing on item {item.ItemNo}.");
+                    if (item.Quantity <= 0)
+                        errors.Add($"Quantity must be > 0 on item {item.ItemNo}.");
+                }
+            }
+
+            return errors;
+        }
+
+        // ─────────────────────────────────────────────────────────────────────
         //  Pre-flight NIC validations (based on actual NIC error codes)
         // ─────────────────────────────────────────────────────────────────────
 

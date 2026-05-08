@@ -1,9 +1,12 @@
+using System.Globalization;
 using Contracts.Common;
 using Contracts.Interfaces.Lookups.Finance;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Users;
+using FinanceManagement.Application.EInvoiceHeader.Dto;
 using FinanceManagement.Application.EWaybillHeader.Commands.CreateEWaybillHeader;
+using FinanceManagement.Application.EWaybillHeader.Commands.GenerateStandaloneEwb;
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.IDeliveryChallan;
 using SalesManagement.Application.DeliveryChallan.Dto;
@@ -161,27 +164,129 @@ namespace SalesManagement.Application.DeliveryChallan.Commands.GenerateEWaybillF
             if (!createResult.IsSuccess)
                 throw new ExceptionRules($"Failed to create e-waybill for DC {dc.DeliveryNumber}: {createResult.Message}");
 
-            // 6. Audit
+            var ewbHeaderId = createResult.Data;
+
+            // 7. Call NIC standalone EWB API. The orchestrator command updates the row
+            //    with the EWB number on success, or with error details on failure.
+            var standalonePayload = BuildStandaloneEwbPayload(
+                dc, fromGstin!, fromTradeName!, toGstin!, toTradeName!, transporterGstin, transporterName, details);
+
+            var nicResult = await _mediator.Send(
+                new GenerateStandaloneEwbCommand
+                {
+                    EWaybillHeaderId = ewbHeaderId,
+                    Payload          = standalonePayload
+                }, cancellationToken);
+
+            // 8. Audit
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Generate",
                 actionCode: "DELIVERYCHALLAN_GENERATE_EWAYBILL",
                 actionName: dc.DeliveryNumber,
-                details: $"E-waybill header {createResult.Data} generated for Delivery Challan {dc.DeliveryNumber} (Id {dc.Id}).",
+                details: $"E-waybill header {ewbHeaderId} for DC {dc.DeliveryNumber} — NIC result: {(nicResult.IsSuccess ? "Generated" : "Failed")}.",
                 module: "DeliveryChallan");
             await _mediator.Publish(auditEvent, cancellationToken);
 
+            // 9. Build response — surface NIC outcome to the UI
+            if (nicResult.IsSuccess && nicResult.Data?.EwbNo is long ewbNo)
+            {
+                return new ApiResponseDTO<GenerateEWaybillResponseDto>
+                {
+                    IsSuccess = true,
+                    Message   = $"E-waybill {ewbNo} generated for DC {dc.DeliveryNumber}.",
+                    Data = new GenerateEWaybillResponseDto
+                    {
+                        EWaybillHeaderId = ewbHeaderId,
+                        DeliveryNumber   = dc.DeliveryNumber,
+                        EwbStatus        = "Generated",
+                        EwbNumber        = ewbNo.ToString(CultureInfo.InvariantCulture),
+                        AlreadyExisted   = false
+                    }
+                };
+            }
+
+            // NIC rejected — header row stays Pending with ErrorCode/ErrorMessage stamped.
+            // Operator fixes the data and retries; idempotency picks up the same row.
             return new ApiResponseDTO<GenerateEWaybillResponseDto>
             {
-                IsSuccess = true,
-                Message = $"E-waybill generated for DC {dc.DeliveryNumber}.",
+                IsSuccess = false,
+                Message   = nicResult.Data?.ErrorMessage ?? "NIC e-Waybill generation failed.",
                 Data = new GenerateEWaybillResponseDto
                 {
-                    EWaybillHeaderId = createResult.Data,
-                    DeliveryNumber = dc.DeliveryNumber,
-                    EwbStatus = EwbStatusPending,
-                    EwbNumber = null,
-                    AlreadyExisted = false
+                    EWaybillHeaderId = ewbHeaderId,
+                    DeliveryNumber   = dc.DeliveryNumber,
+                    EwbStatus        = EwbStatusPending,
+                    EwbNumber        = null,
+                    AlreadyExisted   = false,
+                    Errors = new List<string> { nicResult.Data?.ErrorMessage ?? "Unknown NIC error." }
                 }
+            };
+        }
+
+        // Maps DC + already-resolved GSTINs/items into the NIC standalone EWB payload.
+        // FromUnitId / ToUnitId hint the service to enrich addresses from AppData.UnitAddress
+        // so the DC handler doesn't need cross-schema SQL access.
+        private static StandaloneEwbPayloadDto BuildStandaloneEwbPayload(
+            DeliveryChallanHeaderDto dc,
+            string fromGstin, string fromTradeName,
+            string toGstin, string toTradeName,
+            string? transporterGstin, string? transporterName,
+            List<CreateEWaybillDetailDto> details)
+        {
+            var items = details.Select(d => new StandaloneEwbItemDto
+            {
+                ItemNo        = d.ItemSno,
+                ProductName   = d.ItemName ?? string.Empty,
+                ProductDesc   = d.ItemName,
+                HsnCode       = int.TryParse(d.HsnNo, out var hsn) ? hsn : 0,
+                Quantity      = d.Qty,
+                QtyUnit       = string.IsNullOrWhiteSpace(d.UOM) ? "NOS" : d.UOM!,
+                CgstRate      = 0,
+                SgstRate      = 0,
+                IgstRate      = 0,
+                CessRate      = 0,
+                CessNonAdvol  = 0,
+                TaxableAmount = d.TaxableValue
+            }).ToList();
+
+            return new StandaloneEwbPayloadDto
+            {
+                SupplyType      = "O",                 // Outward
+                SubSupplyType   = "5",                 // For Own Use (matches DC for inter-plant transfer)
+                DocType         = "CHL",               // Delivery Challan
+                DocNo           = dc.DeliveryNumber!,
+                // NIC mandates dd/MM/yyyy with literal slashes — InvariantCulture avoids
+                // locale-driven separator substitution (e.g., en-IN renders as dd-MM-yyyy).
+                DocDate         = dc.DeliveryDate.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture),
+                TransactionType = 1,                   // Regular
+
+                FromGstin   = fromGstin,
+                FromTrdName = fromTradeName,
+                FromUnitId  = dc.FromPlantId,          // Service will enrich addr/place/pincode
+
+                ToGstin   = toGstin,
+                ToTrdName = toTradeName,
+                ToUnitId  = dc.ToPlantId,
+
+                TotalValue        = dc.ConsignmentValue,
+                TotInvValue       = dc.ConsignmentValue,
+                CgstValue         = 0,
+                SgstValue         = 0,
+                IgstValue         = 0,
+                CessValue         = 0,
+                CessNonAdvolValue = 0,
+                OtherValue        = 0,
+
+                TransMode        = "1",                // Road
+                TransDistance    = dc.TransportDistance.HasValue
+                    ? (int)Math.Round(dc.TransportDistance.Value, MidpointRounding.AwayFromZero)
+                    : 0,
+                TransporterName  = transporterName,
+                TransporterId    = transporterGstin,
+                VehicleNo        = dc.VehicleNumber,
+                VehicleType      = "R",                // Regular
+
+                ItemList = items
             };
         }
 

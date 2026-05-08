@@ -7,7 +7,9 @@ using Contracts.Interfaces.Lookups.Finance;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Users;
+using FinanceManagement.Application.EInvoiceHeader.Dto;
 using FinanceManagement.Application.EWaybillHeader.Commands.CreateEWaybillHeader;
+using FinanceManagement.Application.EWaybillHeader.Commands.GenerateStandaloneEwb;
 using MediatR;
 using SalesManagement.Application.Common.Interfaces.IDeliveryChallan;
 using SalesManagement.Application.DeliveryChallan.Commands.GenerateEWaybillForDC;
@@ -95,6 +97,33 @@ namespace SalesManagement.UnitTests.Application.DeliveryChallan.Commands
                 });
         }
 
+        // Helper — happy path mediator setup. Mocks BOTH the create + the new
+        // standalone-EWB orchestrator command so MockBehavior.Strict doesn't fail.
+        private void SetupSuccessfulMediator(int newEwbId = 42, long ewbNumber = 1234567890L)
+        {
+            _mockMediator
+                .Setup(m => m.Send(It.IsAny<CreateEWaybillHeaderCommand>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ApiResponseDTO<int> { IsSuccess = true, Data = newEwbId });
+
+            _mockMediator
+                .Setup(m => m.Send(It.IsAny<GenerateStandaloneEwbCommand>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ApiResponseDTO<NicEwbResultDto>
+                {
+                    IsSuccess = true,
+                    Data = new NicEwbResultDto
+                    {
+                        IsSuccess    = true,
+                        EwbNo        = ewbNumber,
+                        EwbDate      = "08/05/2026 12:00:00 PM",
+                        EwbValidTill = "09/05/2026 12:00:00 PM"
+                    }
+                });
+
+            _mockMediator
+                .Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
+        }
+
         [Fact]
         public async Task Handle_DCNotFound_ThrowsExceptionRules()
         {
@@ -124,7 +153,7 @@ namespace SalesManagement.UnitTests.Application.DeliveryChallan.Commands
         }
 
         [Fact]
-        public async Task Handle_ValidDC_CreatesEWaybillAndReturnsId()
+        public async Task Handle_ValidDC_NicSuccess_ReturnsGeneratedStatusAndEwbNumber()
         {
             var dc = BuildDc();
             _mockDcRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(dc);
@@ -132,19 +161,15 @@ namespace SalesManagement.UnitTests.Application.DeliveryChallan.Commands
                 .Setup(l => l.GetByDCAsync("DC-2026-0001", 10, It.IsAny<CancellationToken>()))
                 .ReturnsAsync((EWaybillLookupDto?)null);
             SetupLookups();
-            _mockMediator
-                .Setup(m => m.Send(It.IsAny<CreateEWaybillHeaderCommand>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new ApiResponseDTO<int> { IsSuccess = true, Data = 42 });
-            _mockMediator
-                .Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>()))
-                .Returns(Task.CompletedTask);
+            SetupSuccessfulMediator(newEwbId: 42, ewbNumber: 511009072762L);
 
             var result = await CreateSut().Handle(new GenerateEWaybillForDCCommand(1), CancellationToken.None);
 
             result.IsSuccess.Should().BeTrue();
             result.Data!.AlreadyExisted.Should().BeFalse();
             result.Data.EWaybillHeaderId.Should().Be(42);
-            result.Data.EwbStatus.Should().Be("Pending");
+            result.Data.EwbStatus.Should().Be("Generated");
+            result.Data.EwbNumber.Should().Be("511009072762");
             result.Data.DeliveryNumber.Should().Be("DC-2026-0001");
         }
 
@@ -163,6 +188,13 @@ namespace SalesManagement.UnitTests.Application.DeliveryChallan.Commands
                 .Setup(m => m.Send(It.IsAny<CreateEWaybillHeaderCommand>(), It.IsAny<CancellationToken>()))
                 .Callback<IRequest<ApiResponseDTO<int>>, CancellationToken>((cmd, _) => captured = (CreateEWaybillHeaderCommand)cmd)
                 .ReturnsAsync(new ApiResponseDTO<int> { IsSuccess = true, Data = 42 });
+            _mockMediator
+                .Setup(m => m.Send(It.IsAny<GenerateStandaloneEwbCommand>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ApiResponseDTO<NicEwbResultDto>
+                {
+                    IsSuccess = true,
+                    Data = new NicEwbResultDto { IsSuccess = true, EwbNo = 999L }
+                });
             _mockMediator
                 .Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);
@@ -202,12 +234,7 @@ namespace SalesManagement.UnitTests.Application.DeliveryChallan.Commands
                 .Setup(l => l.GetByDCAsync("DC-2026-0001", 10, It.IsAny<CancellationToken>()))
                 .ReturnsAsync((EWaybillLookupDto?)null);
             SetupLookups();
-            _mockMediator
-                .Setup(m => m.Send(It.IsAny<CreateEWaybillHeaderCommand>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new ApiResponseDTO<int> { IsSuccess = true, Data = 42 });
-            _mockMediator
-                .Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>()))
-                .Returns(Task.CompletedTask);
+            SetupSuccessfulMediator();
 
             await CreateSut().Handle(new GenerateEWaybillForDCCommand(1), CancellationToken.None);
 
@@ -282,6 +309,13 @@ namespace SalesManagement.UnitTests.Application.DeliveryChallan.Commands
                 .Callback<IRequest<ApiResponseDTO<int>>, CancellationToken>(
                     (cmd, _) => captured = (CreateEWaybillHeaderCommand)cmd)
                 .ReturnsAsync(new ApiResponseDTO<int> { IsSuccess = true, Data = 99 });
+            _mockMediator
+                .Setup(m => m.Send(It.IsAny<GenerateStandaloneEwbCommand>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ApiResponseDTO<NicEwbResultDto>
+                {
+                    IsSuccess = true,
+                    Data = new NicEwbResultDto { IsSuccess = true, EwbNo = 555L }
+                });
             _mockMediator
                 .Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);
@@ -496,6 +530,123 @@ namespace SalesManagement.UnitTests.Application.DeliveryChallan.Commands
             result.IsSuccess.Should().BeFalse();
             result.Data!.Errors!.Count.Should().BeGreaterThan(2,
                 "Validation must surface ALL gaps in one response, not just the first.");
+        }
+
+        // ---------------------------------------------------------------------------
+        // NIC orchestrator interaction — covers the new GenerateStandaloneEwbCommand call
+        // ---------------------------------------------------------------------------
+
+        [Fact]
+        public async Task Handle_NicFailure_ReturnsPendingStatusWithErrorSurfaced()
+        {
+            var dc = BuildDc();
+            _mockDcRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(dc);
+            _mockEwbLookup
+                .Setup(l => l.GetByDCAsync("DC-2026-0001", 10, It.IsAny<CancellationToken>()))
+                .ReturnsAsync((EWaybillLookupDto?)null);
+            SetupLookups();
+
+            // Create succeeds, NIC fails — header row should remain Pending and the error
+            // message should reach the operator instead of being silently swallowed.
+            _mockMediator
+                .Setup(m => m.Send(It.IsAny<CreateEWaybillHeaderCommand>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ApiResponseDTO<int> { IsSuccess = true, Data = 88 });
+            _mockMediator
+                .Setup(m => m.Send(It.IsAny<GenerateStandaloneEwbCommand>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ApiResponseDTO<NicEwbResultDto>
+                {
+                    IsSuccess = false,
+                    Message   = "Invalid Vehicle Number Format",
+                    Data = new NicEwbResultDto
+                    {
+                        IsSuccess    = false,
+                        ErrorCode    = "NIC_ERROR",
+                        ErrorMessage = "Invalid Vehicle Number Format"
+                    }
+                });
+            _mockMediator
+                .Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
+
+            var result = await CreateSut().Handle(new GenerateEWaybillForDCCommand(1), CancellationToken.None);
+
+            result.IsSuccess.Should().BeFalse();
+            result.Data!.EWaybillHeaderId.Should().Be(88, "header row was inserted, only NIC call failed");
+            result.Data.EwbStatus.Should().Be("Pending", "operator can fix data and retry");
+            result.Data.EwbNumber.Should().BeNull();
+            result.Data.Errors.Should().Contain(e => e.Contains("Invalid Vehicle Number Format"));
+        }
+
+        [Fact]
+        public async Task Handle_ValidDC_SendsStandaloneEwbCommandWithCorrectPayload()
+        {
+            var dc = BuildDc();
+            _mockDcRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(dc);
+            _mockEwbLookup
+                .Setup(l => l.GetByDCAsync("DC-2026-0001", 10, It.IsAny<CancellationToken>()))
+                .ReturnsAsync((EWaybillLookupDto?)null);
+            SetupLookups();
+
+            GenerateStandaloneEwbCommand? captured = null;
+            _mockMediator
+                .Setup(m => m.Send(It.IsAny<CreateEWaybillHeaderCommand>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ApiResponseDTO<int> { IsSuccess = true, Data = 42 });
+            _mockMediator
+                .Setup(m => m.Send(It.IsAny<GenerateStandaloneEwbCommand>(), It.IsAny<CancellationToken>()))
+                .Callback<IRequest<ApiResponseDTO<NicEwbResultDto>>, CancellationToken>(
+                    (cmd, _) => captured = (GenerateStandaloneEwbCommand)cmd)
+                .ReturnsAsync(new ApiResponseDTO<NicEwbResultDto>
+                {
+                    IsSuccess = true,
+                    Data = new NicEwbResultDto { IsSuccess = true, EwbNo = 999L }
+                });
+            _mockMediator
+                .Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
+
+            await CreateSut().Handle(new GenerateEWaybillForDCCommand(1), CancellationToken.None);
+
+            captured.Should().NotBeNull();
+            captured!.EWaybillHeaderId.Should().Be(42);
+            var p = captured.Payload;
+            p.DocNo.Should().Be("DC-2026-0001");
+            p.DocDate.Should().Be("24/04/2026");
+            p.DocType.Should().Be("CHL");
+            p.SubSupplyType.Should().Be("5");          // For Own Use
+            p.SupplyType.Should().Be("O");             // Outward
+            p.FromGstin.Should().Be("33AACCA8432H1ZX");
+            p.ToGstin.Should().Be("29AACCA8432H1ZX");
+            p.FromUnitId.Should().Be(10, "service uses this hint to enrich addresses");
+            p.ToUnitId.Should().Be(20);
+            p.TransDistance.Should().Be(151);          // 150.5 rounded
+            p.VehicleNo.Should().Be("TN01-AB-1234");
+            p.TransporterId.Should().Be("33AAAAA0000A1Z9");
+            p.ItemList.Should().HaveCount(1);
+            p.ItemList[0].HsnCode.Should().Be(5205);
+            p.ItemList[0].QtyUnit.Should().Be("KGS");
+            p.ItemList[0].TaxableAmount.Should().Be(4500m);
+        }
+
+        [Fact]
+        public async Task Handle_NicSuccess_PublishesAuditEventReflectingGeneratedOutcome()
+        {
+            var dc = BuildDc();
+            _mockDcRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(dc);
+            _mockEwbLookup
+                .Setup(l => l.GetByDCAsync("DC-2026-0001", 10, It.IsAny<CancellationToken>()))
+                .ReturnsAsync((EWaybillLookupDto?)null);
+            SetupLookups();
+            SetupSuccessfulMediator();
+
+            await CreateSut().Handle(new GenerateEWaybillForDCCommand(1), CancellationToken.None);
+
+            _mockMediator.Verify(
+                m => m.Publish(
+                    It.Is<AuditLogsDomainEvent>(e =>
+                        e.ActionCode == "DELIVERYCHALLAN_GENERATE_EWAYBILL"
+                        && e.Details!.Contains("Generated")),
+                    It.IsAny<CancellationToken>()),
+                Times.Once);
         }
     }
 }
