@@ -14,6 +14,7 @@ using SalesManagement.Application.Common.Interfaces.IDeliveryChallan;
 using SalesManagement.Application.DeliveryChallan.Dto;
 using SalesManagement.Application.DeliveryChallan.Queries.GetDCGatePassPending;
 using SalesManagement.Domain.Common;
+using Contracts.Dtos.Lookups.Party;
 
 namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
 {
@@ -29,6 +30,11 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
         private readonly IUserLookup _userLookup;
         private readonly IEWaybillLookup _eWaybillLookup;
         private readonly IIPAddressService _ipAddressService;
+        private readonly ICompanyDetailLookup _companyDetailLookup;
+        private readonly IUnitDetailLookup _unitDetailLookup;
+        private readonly IPartyDetailLookup _partyDetailLookup;
+        private readonly IStateLookup _stateLookup;
+        private readonly ICityLookup _cityLookup;
 
         public DeliveryChallanQueryRepository(
             IDbConnection dbConnection,
@@ -40,7 +46,12 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
             IUOMLookup uomLookup,
             IUserLookup userLookup,
             IEWaybillLookup eWaybillLookup,
-            IIPAddressService ipAddressService)
+            IIPAddressService ipAddressService,
+            ICompanyDetailLookup companyDetailLookup,
+            IUnitDetailLookup unitDetailLookup,
+            IPartyDetailLookup partyDetailLookup,
+            IStateLookup stateLookup,
+            ICityLookup cityLookup)
         {
             _dbConnection = dbConnection;
             _unitLookup = unitLookup;
@@ -52,6 +63,11 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
             _userLookup = userLookup;
             _eWaybillLookup = eWaybillLookup;
             _ipAddressService = ipAddressService;
+            _companyDetailLookup = companyDetailLookup;
+            _unitDetailLookup = unitDetailLookup;
+            _partyDetailLookup = partyDetailLookup;
+            _stateLookup = stateLookup;
+            _cityLookup = cityLookup;
         }
 
         public async Task<(List<DeliveryChallanHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
@@ -855,6 +871,339 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
             }
 
             return headers;
+        }
+
+        public async Task<DeliveryChallanPrintDto?> GetPrintDetailsAsync(int id)
+        {
+            // 1. Fetch DC header with same-module JOINs
+            const string headerSql = @"
+                SELECT
+                    h.Id,
+                    h.DeliveryNumber,
+                    h.DeliveryDate,
+                    h.StoHeaderId,
+                    sh.StoNumber,
+                    h.FromPlantId,
+                    h.FromStorageLocationId,
+                    h.ToPlantId,
+                    h.ToStorageLocationId,
+                    h.TransporterId,
+                    h.VehicleNumber,
+                    h.TransportDistance,
+                    h.DeliveryValue,
+                    h.ConsignmentValue,
+                    ms.Description AS StatusName,
+                    dt.Description AS DcTypeName,
+                    mt.MovementCode,
+                    mt.MovementDescription,
+                    h.Remarks,
+                    h.CreatedDate
+                FROM Sales.DeliveryChallanHeader h
+                LEFT JOIN Sales.StoHeader sh ON h.StoHeaderId = sh.Id AND sh.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster ms ON h.StatusId = ms.Id AND ms.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster dt ON h.DcTypeId = dt.Id AND dt.IsDeleted = 0
+                LEFT JOIN Sales.MovementTypeConfig mt ON h.MovementTypeId = mt.Id AND mt.IsDeleted = 0
+                WHERE h.Id = @Id AND h.IsDeleted = 0";
+
+            var header = await _dbConnection.QueryFirstOrDefaultAsync<DCPrintHeaderRawDto>(headerSql, new { Id = id });
+            if (header == null)
+                return null;
+
+            // 2. Fetch DC line items
+            const string detailSql = @"
+                SELECT
+                    d.Id,
+                    d.ItemId,
+                    d.LotId,
+                    d.StartPackNo,
+                    d.EndPackNo,
+                    d.DispatchQuantity,
+                    d.UOMId,
+                    d.BagCount,
+                    d.BaleCount,
+                    d.NetWeight,
+                    d.GrossWeight,
+                    d.ExMillRate,
+                    d.LineMovementValue
+                FROM Sales.DeliveryChallanDetail d
+                WHERE d.DeliveryChallanHeaderId = @HeaderId
+                ORDER BY d.Id";
+
+            var details = (await _dbConnection.QueryAsync<DCPrintDetailRawDto>(detailSql, new { HeaderId = id })).ToList();
+
+            // 3. Cross-module lookups — company and plants
+            var company = await _companyDetailLookup.GetByUnitIdAsync(header.FromPlantId);
+            var fromUnit = await _unitDetailLookup.GetByIdAsync(header.FromPlantId);
+            var toUnit = await _unitDetailLookup.GetByIdAsync(header.ToPlantId);
+
+            // 4. Transporter details via party detail lookup
+            Contracts.Dtos.Lookups.Party.PartyDetailLookupDto? transporter = null;
+            if (header.TransporterId > 0)
+                transporter = await _partyDetailLookup.GetByIdAsync(header.TransporterId);
+
+            // 5. E-Waybill via lookup
+            var eway = !string.IsNullOrWhiteSpace(header.DeliveryNumber)
+                ? await _eWaybillLookup.GetByDCAsync(header.DeliveryNumber, header.FromPlantId)
+                : null;
+
+            // 6. Collect all city/state IDs for batch resolution
+            var stateIds = new HashSet<int>();
+            var cityIds = new HashSet<int>();
+
+            if (company != null) { if (company.StateId > 0) stateIds.Add(company.StateId); if (company.CityId > 0) cityIds.Add(company.CityId); }
+            if (fromUnit != null) { if (fromUnit.StateId > 0) stateIds.Add(fromUnit.StateId); if (fromUnit.CityId > 0) cityIds.Add(fromUnit.CityId); }
+            if (toUnit != null) { if (toUnit.StateId > 0) stateIds.Add(toUnit.StateId); if (toUnit.CityId > 0) cityIds.Add(toUnit.CityId); }
+
+            var states = await _stateLookup.GetByIdsAsync(stateIds);
+            var stateDict = states.ToDictionary(s => s.StateId, s => s.StateName);
+
+            var cities = await _cityLookup.GetByIdsAsync(cityIds);
+            var cityDict = cities.ToDictionary(c => c.CityId, c => c.CityName);
+
+            // 7. Item, Lot, UOM lookups for line items
+            var itemIds = details.Select(d => d.ItemId).Distinct();
+            var items = await _itemLookup.GetByIdsAsync(itemIds);
+            var itemDict = items.ToDictionary(i => i.Id, i => (i.ItemCode, i.ItemName));
+
+            var lotIds = details.Where(d => d.LotId > 0).Select(d => d.LotId).Distinct();
+            var lots = await _lotLookup.GetByIdsAsync(lotIds);
+            var lotDict = lots.ToDictionary(l => l.Id, l => l.LotCode);
+
+            var uomIds = details.Select(d => d.UOMId).Distinct();
+            var uoms = await _uomLookup.GetByIdsAsync(uomIds);
+            var uomDict = uoms.ToDictionary(u => u.Id, u => u.UOMName);
+
+            // --- Assemble DTO ---
+
+            // Company section (sending unit's company)
+            var companyAddrParts = new List<string>();
+            if (!string.IsNullOrWhiteSpace(company?.AddressLine1)) companyAddrParts.Add(company.AddressLine1);
+            if (!string.IsNullOrWhiteSpace(company?.AddressLine2)) companyAddrParts.Add(company.AddressLine2);
+
+            var companyCity = company?.CityId > 0 && cityDict.TryGetValue(company.CityId, out var cc) ? cc : null;
+            var companyState = company?.StateId > 0 && stateDict.TryGetValue(company.StateId, out var cs) ? cs : null;
+
+            var companyDto = new DCPrintCompanyDto
+            {
+                Name = company != null
+                    ? $"{company.LegalName ?? company.CompanyName} {fromUnit?.UnitName}".Trim()
+                    : fromUnit?.UnitName,
+                Address = string.Join(", ", companyAddrParts),
+                City = companyCity != null
+                    ? $"{companyCity}{(!string.IsNullOrWhiteSpace(company?.PinCode) ? " - " + company.PinCode : "")}"
+                    : null,
+                State = companyState,
+                Gstin = company?.GstNumber,
+                Pan = company?.PanNumber,
+                Email = company?.Email,
+                Web = company?.Website,
+                Phone = company?.Phone
+            };
+
+            // Registered office (company HQ)
+            var regAddrParts = new List<string>();
+            if (!string.IsNullOrWhiteSpace(company?.AddressLine1)) regAddrParts.Add(company.AddressLine1);
+            if (!string.IsNullOrWhiteSpace(company?.AddressLine2)) regAddrParts.Add(company.AddressLine2);
+
+            DCPrintRegisteredOfficeDto? registeredOffice = company != null
+                ? new DCPrintRegisteredOfficeDto
+                {
+                    Name = company.LegalName ?? company.CompanyName,
+                    Address = string.Join(", ", regAddrParts),
+                    City = companyCity != null
+                        ? $"{companyCity}{(companyState != null ? " " + companyState : "")}{(!string.IsNullOrWhiteSpace(company.PinCode) ? " - " + company.PinCode : "")}"
+                        : null,
+                    Phone = company.Phone
+                }
+                : null;
+
+            // DC header section
+            var headerDto = new DCPrintHeaderDto
+            {
+                DeliveryNumber = header.DeliveryNumber,
+                DeliveryDate = header.DeliveryDate.ToString("dd/MM/yyyy"),
+                StoNumber = header.StoNumber,
+                DcType = header.DcTypeName,
+                MovementCode = header.MovementCode,
+                MovementDescription = header.MovementDescription,
+                Status = header.StatusName,
+                DateTimeOfSupply = header.CreatedDate?.ToString("dd/MM/yyyy hh:mm tt")
+            };
+
+            // E-Waybill section
+            DCPrintEWaybillDto? ewaybillDto = eway != null
+                ? new DCPrintEWaybillDto
+                {
+                    EWBNumber = eway.EWBNumber,
+                    EwbStatus = eway.EwbStatus,
+                    GeneratedDate = eway.GeneratedDate?.ToString("dd/MM/yyyy HH:mm")
+                }
+                : null;
+
+            // From plant
+            var fromAddrParts = new List<string>();
+            if (!string.IsNullOrWhiteSpace(fromUnit?.AddressLine1)) fromAddrParts.Add(fromUnit.AddressLine1);
+            if (!string.IsNullOrWhiteSpace(fromUnit?.AddressLine2)) fromAddrParts.Add(fromUnit.AddressLine2);
+
+            var fromCity = fromUnit?.CityId > 0 && cityDict.TryGetValue(fromUnit.CityId, out var fc) ? fc : null;
+            var fromState = fromUnit?.StateId > 0 && stateDict.TryGetValue(fromUnit.StateId, out var fs) ? fs : null;
+
+            var fromDto = new DCPrintPlantDto
+            {
+                UnitName = fromUnit?.UnitName,
+                Address = string.Join(", ", fromAddrParts),
+                City = fromCity != null
+                    ? $"{fromCity}{(fromUnit?.PinCode > 0 ? " - " + fromUnit.PinCode : "")}"
+                    : null,
+                State = fromState,
+                Phone = fromUnit?.Phone
+            };
+
+            // To plant
+            var toAddrParts = new List<string>();
+            if (!string.IsNullOrWhiteSpace(toUnit?.AddressLine1)) toAddrParts.Add(toUnit.AddressLine1);
+            if (!string.IsNullOrWhiteSpace(toUnit?.AddressLine2)) toAddrParts.Add(toUnit.AddressLine2);
+
+            var toCity = toUnit?.CityId > 0 && cityDict.TryGetValue(toUnit.CityId, out var tc) ? tc : null;
+            var toState = toUnit?.StateId > 0 && stateDict.TryGetValue(toUnit.StateId, out var ts) ? ts : null;
+
+            var toDto = new DCPrintPlantDto
+            {
+                UnitName = toUnit?.UnitName,
+                Address = string.Join(", ", toAddrParts),
+                City = toCity != null
+                    ? $"{toCity}{(toUnit?.PinCode > 0 ? " - " + toUnit.PinCode : "")}"
+                    : null,
+                State = toState,
+                Phone = toUnit?.Phone
+            };
+
+            // Transport
+            var transportDto = new DCPrintTransportDto
+            {
+                TransporterName = transporter?.PartyName,
+                TransporterCode = transporter?.PartyCode,
+                TransporterGstin = transporter?.GSTNumber,
+                VehicleNo = header.VehicleNumber,
+                TransportDistance = header.TransportDistance
+            };
+
+            // Line items
+            var printItems = details.Select((d, index) =>
+            {
+                var itemInfo = itemDict.TryGetValue(d.ItemId, out var ii) ? ii : default;
+                var lotNo = d.LotId > 0 && lotDict.TryGetValue(d.LotId, out var lc) ? lc : null;
+                var uomName = uomDict.TryGetValue(d.UOMId, out var un) ? un : null;
+                var packSNo = d.StartPackNo == d.EndPackNo
+                    ? d.StartPackNo.ToString()
+                    : $"{d.StartPackNo}-{d.EndPackNo}";
+
+                return new DCPrintItemDto
+                {
+                    SNo = index + 1,
+                    ItemCode = itemInfo.ItemCode,
+                    ItemName = itemInfo.ItemName,
+                    LotNo = lotNo,
+                    PackSerialNo = packSNo,
+                    BagCount = d.BagCount,
+                    BaleCount = d.BaleCount,
+                    DispatchQuantity = d.DispatchQuantity,
+                    UOMName = uomName,
+                    NetWeight = d.NetWeight,
+                    GrossWeight = d.GrossWeight,
+                    ExMillRate = d.ExMillRate,
+                    LineMovementValue = d.LineMovementValue
+                };
+            }).ToList();
+
+            // Totals
+            var totalsDto = new DCPrintTotalsDto
+            {
+                TotalBags = details.Sum(d => d.BagCount ?? 0),
+                TotalBales = details.Sum(d => d.BaleCount ?? 0),
+                TotalQuantity = details.Sum(d => d.DispatchQuantity),
+                TotalNetWeight = details.Sum(d => d.NetWeight),
+                TotalGrossWeight = details.Sum(d => d.GrossWeight ?? 0),
+                DeliveryValue = header.DeliveryValue,
+                ConsignmentValue = header.ConsignmentValue,
+                DeliveryValueWords = ConvertAmountToWords(header.DeliveryValue),
+                Remarks = header.Remarks
+            };
+
+            return new DeliveryChallanPrintDto
+            {
+                Company = companyDto,
+                RegisteredOffice = registeredOffice,
+                Header = headerDto,
+                EWaybill = ewaybillDto,
+                From = fromDto,
+                To = toDto,
+                Transport = transportDto,
+                Items = printItems,
+                Totals = totalsDto
+            };
+        }
+
+        private static string ConvertAmountToWords(decimal amount)
+        {
+            var wholeAmount = (long)Math.Floor(Math.Abs(amount));
+            if (wholeAmount == 0)
+                return "Rs. Zero only";
+
+            var result = ConvertNumberToWords(wholeAmount);
+            return $"Rs. {result} only";
+        }
+
+        private static string ConvertNumberToWords(long number)
+        {
+            if (number == 0) return "zero";
+
+            var parts = new List<string>();
+
+            if (number >= 10000000)
+            {
+                parts.Add(ConvertNumberToWords(number / 10000000) + " crore");
+                number %= 10000000;
+            }
+            if (number >= 100000)
+            {
+                parts.Add(ConvertNumberToWords(number / 100000) + " lakh");
+                number %= 100000;
+            }
+            if (number >= 1000)
+            {
+                parts.Add(ConvertNumberToWords(number / 1000) + " thousand");
+                number %= 1000;
+            }
+            if (number >= 100)
+            {
+                parts.Add(ConvertNumberToWords(number / 100) + " hundred");
+                number %= 100;
+            }
+            if (number > 0)
+            {
+                if (parts.Count > 0) parts.Add("and");
+
+                string[] ones = { "", "one", "two", "three", "four", "five", "six", "seven",
+                    "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen",
+                    "fifteen", "sixteen", "seventeen", "eighteen", "nineteen" };
+                string[] tens = { "", "", "twenty", "thirty", "forty", "fifty",
+                    "sixty", "seventy", "eighty", "ninety" };
+
+                if (number < 20)
+                {
+                    parts.Add(ones[number]);
+                }
+                else
+                {
+                    var tenPart = tens[number / 10];
+                    var onePart = ones[number % 10];
+                    parts.Add(string.IsNullOrEmpty(onePart) ? tenPart : $"{tenPart}-{onePart}");
+                }
+            }
+
+            var text = string.Join(" ", parts);
+            return char.ToUpper(text[0]) + text[1..];
         }
     }
 }
