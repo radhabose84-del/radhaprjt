@@ -69,11 +69,15 @@ namespace SalesManagement.Infrastructure.Repositories.Reports.StockLedger
             if (dateFrom.HasValue)    where.Append(" AND sl.DocDate >= @DateFrom");
             if (dateTo.HasValue)      where.Append(" AND sl.DocDate <= @DateTo");
 
+            // Stock Ledger report hides Invoiced + Dispatched rows and shows Reserved as Intransit.
+            const string hideStatuses = " AND (mm.Description IS NULL OR mm.Description NOT IN ('Invoiced', 'Dispatched'))";
+
             var sql = $@"
                 DECLARE @TotalCount INT;
                 SELECT @TotalCount = COUNT(*)
                 FROM Sales.StockLedger sl
-                WHERE {where};
+                LEFT JOIN Sales.MiscMaster mm ON sl.StatusId = mm.Id AND mm.IsDeleted = 0
+                WHERE {where}{hideStatuses};
 
                 SELECT
                     sl.Id, sl.UnitId, sl.SourceUnitId, sl.DocType, sl.DocNo, sl.DetailDocNo, sl.DocDate,
@@ -82,13 +86,13 @@ namespace SalesManagement.Infrastructure.Repositories.Reports.StockLedger
                     sl.WarehouseId, sl.BinId,
                     sl.TotalQty, sl.TotalValue,
                     sl.StatusId,
-                    mm.Description AS StatusName
+                    CASE WHEN mm.Description = 'Reserved' THEN 'Intransit' ELSE mm.Description END AS StatusName
                 FROM Sales.StockLedger sl
                 LEFT JOIN Sales.MiscMaster mm ON sl.StatusId     = mm.Id  AND mm.IsDeleted  = 0
                 LEFT JOIN Sales.MiscTypeMaster mtm ON mm.MiscTypeId = mtm.Id
                                                    AND mtm.MiscTypeCode = 'StockStatus'
                                                    AND mtm.IsDeleted = 0
-                WHERE {where}
+                WHERE {where}{hideStatuses}
                 ORDER BY sl.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
 
