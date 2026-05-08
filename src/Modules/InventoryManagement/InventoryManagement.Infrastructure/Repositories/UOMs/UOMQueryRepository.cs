@@ -99,14 +99,22 @@ namespace InventoryManagement.Infrastructure.Repositories.UOMs
 
             return await _dbConnection.QueryFirstOrDefaultAsync<UOM>(query, parameters);
         }
-        public async Task<List<UOM>> GetUOM(string searchPattern = null)
+        public async Task<List<UOM>> GetUOM(string searchPattern = null, string uomTypeCode = null)
         {
             const string query = @"
-                SELECT Id, UOMName 
-                FROM Inventory.UOM 
-                WHERE IsDeleted = 0 AND UOMName LIKE @SearchPattern";
+                SELECT um.Id, um.UOMName
+                FROM Inventory.UOM um
+                INNER JOIN Inventory.MiscMaster mm ON um.UOMTypeId = mm.Id
+                WHERE um.IsDeleted = 0
+                  AND mm.IsDeleted = 0
+                  AND um.UOMName LIKE @SearchPattern
+                  AND (@UOMTypeCode IS NULL OR mm.Code = @UOMTypeCode)";
 
-            var uoms = await _dbConnection.QueryAsync<UOM>(query, new { SearchPattern = $"%{searchPattern}%" });
+            var uoms = await _dbConnection.QueryAsync<UOM>(query, new
+            {
+                SearchPattern = $"%{searchPattern}%",
+                UOMTypeCode = string.IsNullOrWhiteSpace(uomTypeCode) ? null : uomTypeCode
+            });
             return uoms.ToList();
         }
 

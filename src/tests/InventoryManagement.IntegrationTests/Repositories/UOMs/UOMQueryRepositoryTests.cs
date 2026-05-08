@@ -308,5 +308,100 @@ namespace InventoryManagement.IntegrationTests.Repositories.UOMsTests
             result.Should().ContainSingle();
             result[0].UOMName.Should().Be("Pickled");
         }
+
+        // --- GetUOM with uomTypeCode filter (only UOMs under the given misc category) ---
+
+        private async Task<int> EnsureMiscByCodeAsync(string code)
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var type = await ctx.MiscTypeMaster.FirstOrDefaultAsync(t => t.MiscTypeCode == "UOM_Q_T");
+            if (type == null)
+            {
+                type = new InventoryManagement.Domain.Entities.MiscTypeMaster
+                {
+                    MiscTypeCode = "UOM_Q_T", Description = "UOM Q Type",
+                    IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted
+                };
+                await ctx.MiscTypeMaster.AddAsync(type);
+                await ctx.SaveChangesAsync();
+            }
+            var misc = await ctx.MiscMaster.FirstOrDefaultAsync(m => m.Code == code);
+            if (misc == null)
+            {
+                misc = new InventoryManagement.Domain.Entities.MiscMaster
+                {
+                    MiscTypeId = type.Id, Code = code, Description = code,
+                    SortOrder = 1, IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted
+                };
+                await ctx.MiscMaster.AddAsync(misc);
+                await ctx.SaveChangesAsync();
+            }
+            return misc.Id;
+        }
+
+        private async Task<int> SeedUomUnderMiscAsync(string code, string name, int miscId)
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var maxOrder = await ctx.UOMs.AnyAsync() ? await ctx.UOMs.MaxAsync(u => u.SortOrder) : 0;
+            var u = new UOM
+            {
+                Code = code,
+                UOMName = name,
+                UOMTypeId = miscId,
+                SortOrder = maxOrder + 1,
+                IsActive = Status.Active,
+                IsDeleted = IsDelete.NotDeleted
+            };
+            await ctx.UOMs.AddAsync(u);
+            await ctx.SaveChangesAsync();
+            return u.Id;
+        }
+
+        [Fact]
+        public async Task GetUOM_With_UOMTypeCode_Should_Return_Only_Matching_Category()
+        {
+            await ClearAsync();
+            var volumeId = await EnsureMiscByCodeAsync("VolUnits");
+            var weightId = await EnsureMiscByCodeAsync("WgtUnits");
+
+            await SeedUomUnderMiscAsync("VL_LTR", "Litres", volumeId);
+            await SeedUomUnderMiscAsync("VL_ML", "Millilitre", volumeId);
+            await SeedUomUnderMiscAsync("WT_KG", "Kilogram", weightId);
+
+            var result = await CreateRepo().GetUOM(string.Empty, "VolUnits");
+
+            result.Should().HaveCount(2);
+            result.Should().OnlyContain(u => u.UOMName == "Litres" || u.UOMName == "Millilitre");
+        }
+
+        [Fact]
+        public async Task GetUOM_Without_UOMTypeCode_Should_Return_All_Categories()
+        {
+            await ClearAsync();
+            var volumeId = await EnsureMiscByCodeAsync("VolUnits");
+            var weightId = await EnsureMiscByCodeAsync("WgtUnits");
+
+            await SeedUomUnderMiscAsync("VL_LTR2", "Litres2", volumeId);
+            await SeedUomUnderMiscAsync("WT_KG2", "Kilogram2", weightId);
+
+            var result = await CreateRepo().GetUOM(string.Empty);
+
+            result.Should().HaveCount(2);
+        }
+
+        [Fact]
+        public async Task GetUOM_With_UOMTypeCode_Should_Combine_With_Search_Pattern()
+        {
+            await ClearAsync();
+            var volumeId = await EnsureMiscByCodeAsync("VolUnits");
+
+            await SeedUomUnderMiscAsync("VL_LTR3", "Litres3", volumeId);
+            await SeedUomUnderMiscAsync("VL_ML3", "Millilitre3", volumeId);
+
+            var result = await CreateRepo().GetUOM("Litre", "VolUnits");
+
+            result.Should().ContainSingle();
+            result[0].UOMName.Should().Be("Litres3");
+        }
     }
 }

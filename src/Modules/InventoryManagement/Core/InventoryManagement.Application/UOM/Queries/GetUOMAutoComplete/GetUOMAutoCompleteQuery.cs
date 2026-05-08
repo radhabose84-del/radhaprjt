@@ -7,6 +7,7 @@ namespace InventoryManagement.Application.UOM.Queries.GetUOMAutoComplete
     public class GetUOMAutoCompleteQuery   : IRequest<ApiResponseDTO<List<UOMAutoCompleteDto>>>
     {
         public string? SearchPattern { get; set; }
-        
+        public string? UOMTypeCode { get; set; }
+
     }
 }
