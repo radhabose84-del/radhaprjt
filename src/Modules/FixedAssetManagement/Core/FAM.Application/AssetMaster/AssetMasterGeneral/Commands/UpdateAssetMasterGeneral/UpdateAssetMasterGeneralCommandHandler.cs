@@ -32,15 +32,7 @@ namespace FAM.Application.AssetMaster.AssetMasterGeneral.Commands.UpdateAssetMas
 
         public async Task<bool> Handle(UpdateAssetMasterGeneralCommand request, CancellationToken cancellationToken)
         {
-            // Inactivate guard — MUST run BEFORE persisting the update
-            if (request.AssetMaster!.IsActive == 0)
-            {
-                var linked = await _assetMasterGeneralQueryRepository.IsAssetMasterLinkedAsync(request.AssetMaster.Id);
-                if (linked)
-                    throw new ValidationException("This master is linked with other records. You cannot inactivate this record.");
-            }
-
-            var assetMaster = await _assetMasterGeneralQueryRepository.GetByIdAsync(request.AssetMaster.Id);
+            var assetMaster = await _assetMasterGeneralQueryRepository.GetByIdAsync(request.AssetMaster!.Id);
             if (assetMaster is null)
             throw new ValidationException("Invalid AssetId. The specified AssetName does not exist or is inactive.");
           

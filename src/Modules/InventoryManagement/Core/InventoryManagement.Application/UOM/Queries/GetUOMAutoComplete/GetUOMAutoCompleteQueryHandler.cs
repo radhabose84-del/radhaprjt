@@ -21,7 +21,7 @@ namespace InventoryManagement.Application.UOM.Queries.GetUOMAutoComplete
         }
         public async Task<ApiResponseDTO<List<UOMAutoCompleteDto>>> Handle(GetUOMAutoCompleteQuery request, CancellationToken cancellationToken)
         {
-            var result = await _uomQueryRepository.GetUOM(request.SearchPattern);
+            var result = await _uomQueryRepository.GetUOM(request.SearchPattern, request.UOMTypeCode);
             if (result is null || result.Count is 0)
             {
                 return new ApiResponseDTO<List<UOMAutoCompleteDto>>

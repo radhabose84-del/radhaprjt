@@ -302,6 +302,44 @@ namespace SalesManagement.IntegrationTests.Repositories.StockLedger
             page2.Should().HaveCount(2);
         }
 
+        [Fact]
+        public async Task GetReportAsync_Should_Exclude_Invoiced_And_Dispatched_Rows()
+        {
+            await _fixture.ClearTablesAsync("Sales.StockLedger");
+            var mtId = await EnsureMiscTypeAsync();
+            var packedId     = await EnsureMiscAsync(mtId, "Packed");
+            var invoicedId   = await EnsureMiscAsync(mtId, "Invoiced");
+            var dispatchedId = await EnsureMiscAsync(mtId, "Dispatched");
+
+            await SeedStockLedgerRowAsync(packedId,     itemId: 100, packNo: 1);
+            await SeedStockLedgerRowAsync(invoicedId,   itemId: 100, packNo: 2);
+            await SeedStockLedgerRowAsync(dispatchedId, itemId: 100, packNo: 3);
+
+            var (data, total) = await CreateRepo().GetReportAsync(
+                1, 10, null, null, null, null, null, null, null, null, DateTime.UtcNow.Year);
+
+            total.Should().Be(1);
+            data.Should().HaveCount(1);
+            data.Select(r => r.StatusName).Should().NotContain(new[] { "Invoiced", "Dispatched" });
+        }
+
+        [Fact]
+        public async Task GetReportAsync_Should_Show_Reserved_As_Intransit()
+        {
+            await _fixture.ClearTablesAsync("Sales.StockLedger");
+            var mtId = await EnsureMiscTypeAsync();
+            var reservedId = await EnsureMiscAsync(mtId, "Reserved");
+
+            await SeedStockLedgerRowAsync(reservedId, itemId: 100, packNo: 1);
+
+            var (data, _) = await CreateRepo().GetReportAsync(
+                1, 10, null, null, null, null, null, null, null, null, DateTime.UtcNow.Year);
+
+            data.Should().HaveCount(1);
+            data[0].StatusId.Should().Be(reservedId);
+            data[0].StatusName.Should().Be("Intransit");
+        }
+
         // ---------------------------------------------------------------------------
         // GetByPackRangeAsync
         // ---------------------------------------------------------------------------

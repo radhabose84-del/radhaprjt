@@ -173,9 +173,9 @@ namespace InventoryManagement.Presentation.Controllers
         }
 
         [HttpGet("by-name")]
-        public async Task<IActionResult> GetUOM([FromQuery] string name)
+        public async Task<IActionResult> GetUOM([FromQuery] string name, [FromQuery] string uomTypeCode = null)
         {
-            var result = await Mediator.Send(new GetUOMAutoCompleteQuery { SearchPattern = name });
+            var result = await Mediator.Send(new GetUOMAutoCompleteQuery { SearchPattern = name, UOMTypeCode = uomTypeCode });
             if (!result.IsSuccess)
             {
                 return NotFound(new
