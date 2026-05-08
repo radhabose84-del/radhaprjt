@@ -31,5 +31,26 @@ namespace SalesManagement.Application.Common.Interfaces.ISalesOrder
         Task<bool> HasDispatchAdviceAsync(int salesOrderHeaderId);
         Task<bool> DiscountMasterExistsAsync(int discountMasterId);
         Task<List<SalesOrderInvoiceDto>> GetSalesOrderInvoicesAsync(int salesOrderId);
+
+        /// <summary>
+        /// Approved-orders discount report. Returns:
+        ///  - <c>ByAgent</c>: per-agent aggregates (orders count, total discount, avg rate)
+        ///  - <c>ByCustomer</c>: per-customer aggregates
+        ///  - <c>Rows</c>: paged flat list combining slab discounts (Sales.SalesOrderDiscount)
+        ///    AND header-level MD discounts (when IsMdDiscountEnabled = 1)
+        /// Aggregates are computed across the full filtered dataset (not just the current page).
+        /// </summary>
+        Task<(SalesOrderDiscountReportDto Report, int TotalCount)> GetDiscountReportAsync(
+            DateOnly? fromDate,
+            DateOnly? toDate,
+            string statusName,
+            int? orderUnitId,
+            int? partyId,
+            int? agentId,
+            int? salesGroupId,
+            string? discountSource,
+            int pageNumber,
+            int pageSize,
+            CancellationToken cancellationToken = default);
     }
 }

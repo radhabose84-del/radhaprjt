@@ -31,7 +31,7 @@ namespace SalesManagement.Domain.Entities
         // Cross-module FK → ProductionManagement
         public int? PackTypeId { get; set; }
 
-        // Same-module FK → Sales.MiscMaster (BagStatus: Defect/Damaged)
+        // Same-module FK → Sales.MiscMaster (StockStatus: Defect/Damaged/Yarn Mismatch)
         public int BagStatusId { get; set; }
         public MiscMaster? BagStatus { get; set; }
     }
