@@ -81,6 +81,10 @@ namespace SalesManagement.Domain.Entities
         // Revision tracking (incremented on each approved amendment)
         public int RevisionNumber { get; set; }  // Default 0 (original)
 
+        // Split Order tracking
+        public int? SalesOrderSplitId { get; set; }
+        public bool SplitFlag { get; set; }
+
         // Cancelled fields
         public DateTimeOffset? CancelledDate { get; set; }
         public string? CancelledByName { get; set; }
