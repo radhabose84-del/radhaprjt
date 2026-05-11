@@ -140,6 +140,9 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     h.StatusId,
                     st.Description AS StatusName,
                     h.RevisionNumber,
+                    h.SalesOrderSplitId,
+                    h.SplitFlag,
+                    parent.SalesOrderNo AS SplitSalesOrderNo,
                     h.CancelledDate, h.CancelledByName, h.CancelledIP,
                     h.ForeClosedDate, h.ForeClosedByName, h.ForeClosedIP,
                     h.IsActive, h.IsDeleted,
@@ -176,6 +179,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 LEFT JOIN Sales.MiscMaster ft ON h.FreightTypeId = ft.Id AND ft.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster cl ON h.CountListId = cl.Id AND cl.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster st ON h.StatusId = st.Id AND st.IsDeleted = 0
+                LEFT JOIN Sales.SalesOrderHeader parent ON h.SalesOrderSplitId = parent.Id AND parent.IsDeleted = 0
                 LEFT JOIN (
                     SELECT d.SalesOrderHeaderId,
                            SUM(d.QtyInBags) - ISNULL((
@@ -336,6 +340,9 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     h.StatusId,
                     st.Description AS StatusName,
                     h.RevisionNumber,
+                    h.SalesOrderSplitId,
+                    h.SplitFlag,
+                    parent.SalesOrderNo AS SplitSalesOrderNo,
                     h.CancelledDate, h.CancelledByName, h.CancelledIP,
                     h.ForeClosedDate, h.ForeClosedByName, h.ForeClosedIP,
                     h.IsActive, h.IsDeleted,
@@ -351,6 +358,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 LEFT JOIN Sales.MiscMaster ft ON h.FreightTypeId = ft.Id AND ft.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster cl ON h.CountListId = cl.Id AND cl.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster st ON h.StatusId = st.Id AND st.IsDeleted = 0
+                LEFT JOIN Sales.SalesOrderHeader parent ON h.SalesOrderSplitId = parent.Id AND parent.IsDeleted = 0
                 LEFT JOIN (
                     SELECT ah.SalesOrderHeaderId, ah.StatusId
                     FROM Sales.SalesOrderAmendmentHeader ah
