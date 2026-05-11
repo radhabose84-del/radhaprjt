@@ -125,7 +125,9 @@ namespace BackgroundService.Application.Consumers
                     CreatedById = int.TryParse(_ipAddressService.GetCurrentUserId(), out var uid) ? uid : 0,
                     CreatedByName = _ipAddressService.GetUserName(),
                     CreatedIp = _ipAddressService.GetSystemIPAddress(),
-                    UnitId = msg.UnitId
+                    UnitId = msg.UnitId,
+                    ModuleTransactionId = msg.ModuleTransactionId,
+                    ModuleTypeName = msg.ModuleTypeName
                 };
 
                 var sent = await _notifier.SendInAppNotificationAsync(userIds, resolvedBody, resolvedTitle, msg.param1, contextData);

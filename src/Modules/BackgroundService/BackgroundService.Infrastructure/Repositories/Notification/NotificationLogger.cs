@@ -21,10 +21,10 @@ namespace BackgroundService.Infrastructure.Repositories.Notification
             const string sql = @"
             INSERT INTO AppNotification.NotificationEventLog
             (NotificationLevelRuleId, UnitId, ChannelId, NotificationStatusId, MessageText, ActionStatus, ReadStatusId, Timestamp, SendTo,
-            IsActive, IsDeleted, CreatedBy, CreatedDate, CreatedByName, CreatedIP,value)
+            IsActive, IsDeleted, CreatedBy, CreatedDate, CreatedByName, CreatedIP, Value, ModuleTransactionId, ModuleTypeName)
             OUTPUT INSERTED.Id
             VALUES (@NotificationLevelRuleId, @UnitId, @ChannelId, @NotificationStatusId, @MessageText, @ActionStatus, @ReadStatusId, @Timestamp, @SendTo,
-                    1, 0, @CreatedBy, SYSDATETIMEOFFSET(), @CreatedByName, @CreatedIP,@Value);";
+                    1, 0, @CreatedBy, SYSDATETIMEOFFSET(), @CreatedByName, @CreatedIP, @Value, @ModuleTransactionId, @ModuleTypeName);";
 
                 var id = await _dbConnection.ExecuteScalarAsync<int>(sql, new
                 {
@@ -40,7 +40,9 @@ namespace BackgroundService.Infrastructure.Repositories.Notification
                     log.CreatedBy,
                     log.CreatedByName,
                     log.CreatedIP,
-                    log.Value
+                    log.Value,
+                    log.ModuleTransactionId,
+                    log.ModuleTypeName
                 });
                 return id;
         }   

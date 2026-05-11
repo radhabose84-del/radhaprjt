@@ -35,5 +35,7 @@ namespace Contracts.Events.Notifications.InApp
         /// <c>NotificationCreatedEvent.OverrideTargetUserIds</c>.
         /// </summary>
         public List<int>? OverrideTargetUserIds { get; set; }
+        public int ModuleTransactionId { get; set; }
+        public string? ModuleTypeName { get; set; }
     }
 }

@@ -133,7 +133,9 @@ namespace SalesManagement.Application.ComplaintQCReview.Commands.SubmitQCReview
                         param7        = string.Empty,
                         param8        = string.Empty,
                         param9        = string.Empty,
-                        param10       = string.Empty
+                        param10       = string.Empty,
+                        ModuleTransactionId = newId,
+                        ModuleTypeName = MiscEnumEntity.ComplaintQCReviewModuleTypeName
                     };
                     await _outboxEventPublisher.ScheduleAsync(inAppEvent, inAppCorrelationId, cancellationToken);
                 }

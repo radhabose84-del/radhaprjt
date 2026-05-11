@@ -14,6 +14,8 @@ namespace BackgroundService.Domain.Entities.Notification
         public DateTimeOffset Timestamp { get; set; }
         public string? SendTo { get; set; }
         public string? Value { get; set; }
+        public int ModuleTransactionId { get; set; }
+        public string? ModuleTypeName { get; set; }
         public NotificationEventRule? NotificationEventRules { get; set; }
         public MiscMaster? Channel { get; set; }
         public MiscMaster? NotificationStatus { get; set; }
