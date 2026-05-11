@@ -232,7 +232,7 @@ namespace PurchaseManagement.Application.Quotation.RfqEntry.Commands.Create
                         param8 = "",
                         param9 = "",
                         param10 = rowsJson,
-                        ModuleTransactionId = id,
+                        ModuleTransactionId = 0,
                         ModuleTypeName = "RFQ"
                     };
 

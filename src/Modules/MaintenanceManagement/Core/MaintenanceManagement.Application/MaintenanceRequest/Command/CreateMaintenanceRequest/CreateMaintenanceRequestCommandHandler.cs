@@ -314,7 +314,7 @@ namespace MaintenanceManagement.Application.MaintenanceRequest.Command.CreateMai
                 param8 = string.Empty,
                 param9 = string.Empty,
                 param10 = string.Empty,
-                ModuleTransactionId = workOrder.Id,
+                ModuleTransactionId = 0,
                 ModuleTypeName = isBreakdown ? "WorkOrder-BreakDown" : "WorkOrder"
             };
         }
