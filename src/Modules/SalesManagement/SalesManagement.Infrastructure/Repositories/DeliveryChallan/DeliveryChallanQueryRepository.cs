@@ -1205,5 +1205,153 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
             var text = string.Join(" ", parts);
             return char.ToUpper(text[0]) + text[1..];
         }
+
+        // Build a print-ready EWB document view by joining DC + EWB header + EWB lines +
+        // unit/company/address master data. Single round-trip via QueryMultiple to keep
+        // page load fast for the UI's "Print EWB" button.
+        public async Task<StandaloneEwbDocumentDto?> GetStandaloneEwbDocumentAsync(int dcId, CancellationToken ct)
+        {
+            const string sql = @"
+                -- 1) Header — joins DC + latest non-deleted EWB + From-plant + To-plant + companies
+                SELECT TOP 1
+                    -- Document classification
+                    dc.DeliveryNumber                                         AS DocumentNumber,
+                    dc.DeliveryDate                                           AS DocumentDate,
+                    eh.SupplyType                                             AS SupplyType,
+                    eh.SubSupplyType                                          AS SubSupplyType,
+                    eh.TransactionType                                        AS TransactionType,
+                    eh.DocumentType                                           AS DocumentType,
+
+                    -- EWB
+                    eh.EWBNumber                                              AS EwbNumber,
+                    eh.GeneratedDate                                          AS EwbGeneratedDate,
+                    eh.ValidUpto                                              AS EwbValidUpto,
+                    eh.EwbStatus                                              AS EwbStatus,
+
+                    -- Company (from FROM plant's company); CIN not stored, kept null
+                    fromCo.LegalName                                          AS CompanyName,
+                    fromCo.GstNumber                                          AS CompanyGstNumber,
+                    fromCo.PanNumber                                          AS CompanyPAN,
+                    CAST(NULL AS varchar)                                     AS CompanyCIN,
+                    fromCoContact.Email                                       AS CompanyEmail,
+                    fromCo.Website                                            AS CompanyWebsite,
+                    COALESCE(fromCoContact.Phone, fromCoAddr.Phone)           AS CompanyPhone,
+                    -- Build the registered-office address by concatenating CompanyAddress fields
+                    NULLIF(LTRIM(RTRIM(CONCAT_WS(', ',
+                        fromCoAddr.AddressLine1,
+                        fromCoAddr.AddressLine2,
+                        fromCoCity.CityName,
+                        fromCoState.StateName,
+                        CAST(NULLIF(fromCoAddr.PinCode, 0) AS varchar(10))
+                    ))), '')                                                  AS RegisteredOfficeAddress,
+
+                    -- Consignor (From plant)
+                    fromU.UnitName                                            AS ConsignorName,
+                    eh.FromGSTIN                                              AS ConsignorGstin,
+                    fromAddr.AddressLine1                                     AS ConsignorAddressLine1,
+                    fromAddr.AddressLine2                                     AS ConsignorAddressLine2,
+                    fromCity.CityName                                         AS ConsignorCity,
+                    fromState.StateName                                       AS ConsignorState,
+                    TRY_CAST(LEFT(eh.FromGSTIN, 2) AS INT)                    AS ConsignorStateCode,
+                    fromAddr.PinCode                                          AS ConsignorPincode,
+                    fromAddr.ContactNumber                                    AS ConsignorPhone,
+
+                    -- Consignee (To plant)
+                    toU.UnitName                                              AS ConsigneeName,
+                    eh.ToGSTIN                                                AS ConsigneeGstin,
+                    toAddr.AddressLine1                                       AS ConsigneeAddressLine1,
+                    toAddr.AddressLine2                                       AS ConsigneeAddressLine2,
+                    toCity.CityName                                           AS ConsigneeCity,
+                    toState.StateName                                         AS ConsigneeState,
+                    TRY_CAST(LEFT(eh.ToGSTIN, 2) AS INT)                      AS ConsigneeStateCode,
+                    toAddr.PinCode                                            AS ConsigneePincode,
+                    toAddr.ContactNumber                                      AS ConsigneePhone,
+
+                    -- Transporter
+                    eh.TransporterName                                        AS TransporterName,
+                    eh.TransporterGSTIN                                       AS TransporterGstin,
+                    eh.VehicleNo                                              AS VehicleNumber,
+                    eh.VehicleType                                            AS VehicleType,
+                    eh.TransportMode                                          AS TransportMode,
+                    eh.Distance                                               AS TransportDistance,
+                    eh.TransDocNo                                             AS TransDocNo,
+                    eh.TransDocDate                                           AS TransDocDate,
+
+                    -- Totals
+                    eh.TotalValue                                             AS TotalTaxableValue,
+                    eh.CGST                                                   AS CGST,
+                    eh.SGST                                                   AS SGST,
+                    eh.IGST                                                   AS IGST,
+                    eh.Cess                                                   AS Cess,
+                    eh.InvoiceValue                                           AS InvoiceTotal,
+
+                    -- Audit
+                    dc.CreatedByName                                          AS CreatedByName,
+                    dc.CreatedDate                                            AS CreatedDate
+                FROM   Sales.DeliveryChallanHeader dc
+                LEFT   JOIN Finance.EWaybillHeader eh
+                       ON eh.InvoiceNo = dc.DeliveryNumber AND eh.UnitId = dc.FromPlantId AND eh.IsDeleted = 0
+                LEFT   JOIN AppData.Unit            fromU         ON fromU.Id        = dc.FromPlantId
+                LEFT   JOIN AppData.Company         fromCo        ON fromCo.Id       = fromU.CompanyId
+                LEFT   JOIN AppData.UnitAddress     fromAddr      ON fromAddr.UnitId = fromU.Id
+                LEFT   JOIN AppData.City            fromCity      ON fromCity.Id     = fromAddr.CityId
+                LEFT   JOIN AppData.[State]         fromState     ON fromState.Id    = fromCity.StateId
+                LEFT   JOIN AppData.CompanyAddress  fromCoAddr    ON fromCoAddr.CompanyId = fromCo.Id
+                LEFT   JOIN AppData.City            fromCoCity    ON fromCoCity.Id   = fromCoAddr.CityId
+                LEFT   JOIN AppData.[State]         fromCoState   ON fromCoState.Id  = fromCoAddr.StateId
+                LEFT   JOIN AppData.CompanyContact  fromCoContact ON fromCoContact.CompanyId = fromCo.Id
+                LEFT   JOIN AppData.Unit          toU       ON toU.Id        = dc.ToPlantId
+                LEFT   JOIN AppData.UnitAddress   toAddr    ON toAddr.UnitId = toU.Id
+                LEFT   JOIN AppData.City          toCity    ON toCity.Id     = toAddr.CityId
+                LEFT   JOIN AppData.[State]       toState   ON toState.Id    = toCity.StateId
+                WHERE  dc.Id = @DcId AND dc.IsDeleted = 0
+                ORDER BY eh.Id DESC;
+
+                -- 2) Lines — joins EWB Detail + DC Detail (for lot + pack range)
+                SELECT  ed.ItemSno          AS Sno,
+                        ed.ItemName,
+                        ed.HsnNo            AS HsnCode,
+                        lm.LotCode          AS LotNumber,
+                        dcd.BagCount        AS BagCount,
+                        CONCAT(dcd.StartPackNo, '-', dcd.EndPackNo) AS PackRange,
+                        ed.Qty              AS Quantity,
+                        ed.UOM              AS Uom,
+                        dcd.ExMillRate      AS Rate,
+                        dcd.NetWeight       AS NetWeight,
+                        dcd.GrossWeight     AS GrossWeight,
+                        ed.TaxableValue     AS TaxableValue,
+                        ed.CGST             AS CgstAmount,
+                        ed.SGST             AS SgstAmount,
+                        ed.IGST             AS IgstAmount
+                FROM    Finance.EWaybillHeader eh
+                INNER   JOIN Finance.EWaybillDetail ed ON ed.EWaybillHeaderId = eh.Id AND ed.IsDeleted = 0
+                INNER   JOIN Sales.DeliveryChallanHeader dc
+                        ON dc.DeliveryNumber = eh.InvoiceNo AND dc.FromPlantId = eh.UnitId AND dc.IsDeleted = 0
+                LEFT    JOIN Sales.DeliveryChallanDetail dcd
+                        ON dcd.DeliveryChallanHeaderId = dc.Id
+                        AND dcd.ItemId = ed.ItemId
+                LEFT    JOIN Production.LotMaster lm ON lm.Id = dcd.LotId AND lm.IsDeleted = 0
+                WHERE   dc.Id = @DcId AND eh.IsDeleted = 0
+                  AND   eh.Id = (SELECT TOP 1 Id FROM Finance.EWaybillHeader
+                                 WHERE InvoiceNo = dc.DeliveryNumber
+                                   AND UnitId = dc.FromPlantId
+                                   AND IsDeleted = 0
+                                 ORDER BY Id DESC)
+                ORDER BY ed.ItemSno;
+            ";
+
+            using var multi = await _dbConnection.QueryMultipleAsync(
+                new CommandDefinition(sql, new { DcId = dcId }, cancellationToken: ct));
+
+            var header = await multi.ReadFirstOrDefaultAsync<StandaloneEwbDocumentDto>();
+            if (header == null) return null;
+
+            var lines = (await multi.ReadAsync<StandaloneEwbDocumentItemDto>()).ToList();
+            header.Items = lines;
+            header.TotalQuantity = lines.Sum(l => l.Quantity);
+            header.InvoiceTotalInWords = ConvertAmountToWords(header.InvoiceTotal) + " only";
+
+            return header;
+        }
     }
 }
