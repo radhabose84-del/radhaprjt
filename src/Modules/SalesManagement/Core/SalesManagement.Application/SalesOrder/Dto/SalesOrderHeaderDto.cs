@@ -121,6 +121,11 @@ namespace SalesManagement.Application.SalesOrder.Dto
         // Revision tracking
         public int RevisionNumber { get; set; }
 
+        // Split Order tracking
+        public int? SalesOrderSplitId { get; set; }
+        public bool SplitFlag { get; set; }
+        public string? SplitSalesOrderNo { get; set; }
+
         // Cancelled fields
         public DateTimeOffset? CancelledDate { get; set; }
         public string? CancelledByName { get; set; }
