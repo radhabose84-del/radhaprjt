@@ -55,8 +55,15 @@ namespace FinanceManagement.Application.EWaybillHeader.Commands.GenerateStandalo
                 };
             }
 
+            // Truncate to fit Finance.EWaybillHeader column constraints
+            // (ErrorCode varchar(20), ErrorMessage varchar(500)). Any service-side
+            // diagnostic prefixes can otherwise overshoot; truncating here means
+            // the row update can never fail on column-length, regardless of caller.
+            var safeErrorCode    = Truncate(nicResult.ErrorCode,    20);
+            var safeErrorMessage = Truncate(nicResult.ErrorMessage, 500);
+
             await _commandRepo.UpdateAfterNicFailureAsync(
-                request.EWaybillHeaderId, nicResult.ErrorCode, nicResult.ErrorMessage, cancellationToken);
+                request.EWaybillHeaderId, safeErrorCode, safeErrorMessage, cancellationToken);
 
             return new ApiResponseDTO<NicEwbResultDto>
             {
@@ -65,6 +72,9 @@ namespace FinanceManagement.Application.EWaybillHeader.Commands.GenerateStandalo
                 Data = nicResult
             };
         }
+
+        private static string? Truncate(string? value, int maxLength) =>
+            string.IsNullOrEmpty(value) || value.Length <= maxLength ? value : value[..maxLength];
 
         // NIC returns dates as "dd/MM/yyyy hh:mm:ss tt" (or sometimes ISO).
         // Parse defensively — return null on any format mismatch rather than throwing,
