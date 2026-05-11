@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using SalesManagement.Application.DeliveryChallan.Commands.CreateDeliveryChallan;
 using SalesManagement.Application.DeliveryChallan.Commands.DeleteDeliveryChallan;
 using SalesManagement.Application.DeliveryChallan.Commands.GenerateEWaybillForDC;
+using SalesManagement.Application.DeliveryChallan.Queries.GetStandaloneEwbDocument;
 using SalesManagement.Application.DeliveryChallan.Queries.GetAllDeliveryChallan;
 using SalesManagement.Application.DeliveryChallan.Queries.GetDeliveryChallanById;
 using SalesManagement.Application.DeliveryChallan.Queries.GetDeliveryChallanAutoComplete;
@@ -193,6 +194,24 @@ namespace SalesManagement.Presentation.Controllers
         public async Task<IActionResult> GenerateEWaybillAsync(int id)
         {
             var result = await Mediator.Send(new GenerateEWaybillForDCCommand(id));
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                isSuccess = result.IsSuccess,
+                message = result.Message,
+                data = result.Data
+            });
+        }
+
+        /// <summary>
+        /// Returns the print-ready EWB document view (consignor/consignee/items/totals/transporter)
+        /// for the latest standalone e-Waybill linked to this DC. Used to render the "Print EWB" page.
+        /// </summary>
+        [HttpGet("{id}/ewaybill-document")]
+        public async Task<IActionResult> GetEwbDocumentAsync(int id)
+        {
+            var result = await Mediator.Send(new GetStandaloneEwbDocumentQuery(id));
 
             return Ok(new
             {
