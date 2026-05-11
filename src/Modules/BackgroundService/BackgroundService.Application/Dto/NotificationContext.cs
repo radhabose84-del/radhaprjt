@@ -8,6 +8,8 @@ namespace BackgroundService.Application.DTO
         public string CreatedByName { get; set; } = string.Empty;
         public int CreatedById { get; set; }
         public string CreatedIp { get; set; } = string.Empty;
-        public int? UnitId { get; set; } 
+        public int? UnitId { get; set; }
+        public int ModuleTransactionId { get; set; }
+        public string? ModuleTypeName { get; set; }
     }
 }

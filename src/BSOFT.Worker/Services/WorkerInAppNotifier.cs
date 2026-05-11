@@ -41,7 +41,7 @@ internal sealed class WorkerInAppNotifier : IInAppNotifier
         List<int> userIds,
         string message,
         string title,
-        string value,
+        string  value,
         NotificationContext context)
     {
         if (userIds is null || userIds.Count == 0)
@@ -83,7 +83,9 @@ internal sealed class WorkerInAppNotifier : IInAppNotifier
                     CreatedByName = context.CreatedByName,
                     CreatedIP = context.CreatedIp,
                     UnitId = context.UnitId ?? 0,
-                    Value = value
+                    Value = value,
+                    ModuleTransactionId = context.ModuleTransactionId,
+                    ModuleTypeName = context.ModuleTypeName
                 };
 
                 savedLogId = await _notificationLogger.LogAsync(log);

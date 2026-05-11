@@ -205,7 +205,9 @@ namespace SalesManagement.Application.SalesQuotation.Commands.CreateSalesQuotati
                         param7 = entity.GrandTotal.ToString("N2"),
                         param8 = entity.TotalTax.ToString("N2"),
                         param9 = customer.GSTNumber ?? "",
-                        param10 = rowsJson
+                        param10 = rowsJson,
+                        ModuleTransactionId = newId,
+                        ModuleTypeName = MiscEnumEntity.TransactionTypeSalesQuotation
                     };
 
                     await _outboxEventPublisher.ScheduleWithoutSaveAsync(emailEvent, emailCorrelationId, cancellationToken);
@@ -260,7 +262,9 @@ namespace SalesManagement.Application.SalesQuotation.Commands.CreateSalesQuotati
                         param8 = "",
                         param9 = "",
                         param10 = "",
-                        OverrideTargetUserIds = overrideUserIds
+                        OverrideTargetUserIds = overrideUserIds,
+                        ModuleTransactionId = newId,
+                        ModuleTypeName = MiscEnumEntity.TransactionTypeSalesQuotation
                     };
 
                     await _outboxEventPublisher.ScheduleWithoutSaveAsync(inAppEvent, inAppCorrelationId, cancellationToken);

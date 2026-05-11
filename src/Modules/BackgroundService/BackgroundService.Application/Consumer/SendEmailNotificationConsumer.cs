@@ -267,7 +267,9 @@ namespace BackgroundService.Application.Consumers
                             CreatedIP = _ipAddressService.GetSystemIPAddress(),
                             IsActive = BackgroundService.Domain.Common.BaseEntity.Status.Active,
                             IsDeleted = BackgroundService.Domain.Common.BaseEntity.IsDelete.NotDeleted,
-                            Value= msg.param1
+                            Value= msg.param1,
+                            ModuleTransactionId = msg.ModuleTransactionId,
+                            ModuleTypeName = msg.ModuleTypeName
                         });
                     }
                     catch (Exception logEx)
@@ -304,7 +306,9 @@ namespace BackgroundService.Application.Consumers
                         CreatedByName = _ipAddressService.GetUserName(),
                         CreatedIP = _ipAddressService.GetSystemIPAddress(),
                         IsActive = Domain.Common.BaseEntity.Status.Active,
-                        IsDeleted = Domain.Common.BaseEntity.IsDelete.NotDeleted
+                        IsDeleted = Domain.Common.BaseEntity.IsDelete.NotDeleted,
+                        ModuleTransactionId = msg.ModuleTransactionId,
+                        ModuleTypeName = msg.ModuleTypeName
                     });
                 }
                 catch (Exception logEx)

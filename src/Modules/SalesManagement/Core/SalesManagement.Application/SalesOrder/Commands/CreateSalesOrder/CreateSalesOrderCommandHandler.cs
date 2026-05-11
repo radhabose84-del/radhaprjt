@@ -261,7 +261,9 @@ namespace SalesManagement.Application.SalesOrder.Commands.CreateSalesOrder
                         param8                = "",
                         param9                = "",
                         param10               = "",
-                        OverrideTargetUserIds = overrideUserIds
+                        OverrideTargetUserIds = overrideUserIds,
+                        ModuleTransactionId   = newId,
+                        ModuleTypeName        = MiscEnumEntity.TransactionTypeSalesOrder
                     };
 
                     await _outboxEventPublisher.ScheduleAsync(inAppEvent, inAppCorrelationId, cancellationToken);

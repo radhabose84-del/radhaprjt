@@ -50,6 +50,15 @@ namespace BackgroundService.Infrastructure.Data.Notification.Configurations
 
               builder.Property(t => t.Timestamp).HasColumnType("datetimeoffset").IsRequired();
 
+              builder.Property(t => t.ModuleTransactionId)
+                     .HasColumnType("int")
+                     .IsRequired()
+                     .HasDefaultValue(0);
+
+              builder.Property(t => t.ModuleTypeName)
+                     .HasColumnType("varchar(100)")
+                     .IsRequired(false);
+
               // base fields left as you had (IsActive/IsDeleted/Created*)
        }
 }

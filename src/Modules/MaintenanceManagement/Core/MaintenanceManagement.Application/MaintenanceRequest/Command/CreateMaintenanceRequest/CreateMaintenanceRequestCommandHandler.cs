@@ -313,7 +313,9 @@ namespace MaintenanceManagement.Application.MaintenanceRequest.Command.CreateMai
                 // Additional parameters available for templates
                 param8 = string.Empty,
                 param9 = string.Empty,
-                param10 = string.Empty
+                param10 = string.Empty,
+                ModuleTransactionId = workOrder.Id,
+                ModuleTypeName = isBreakdown ? "WorkOrder-BreakDown" : "WorkOrder"
             };
         }
     }

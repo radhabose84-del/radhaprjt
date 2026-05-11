@@ -187,7 +187,9 @@ namespace SalesManagement.Application.Consumers
                                         param7        = string.Empty,
                                         param8        = string.Empty,
                                         param9        = string.Empty,
-                                        param10       = string.Empty
+                                        param10       = string.Empty,
+                                        ModuleTransactionId = msg.ModuleTransactionId,
+                                        ModuleTypeName = MiscEnumEntity.ComplaintModuleTypeName
                                     }, context.CancellationToken);
 
                                     _logger.LogInformation(
@@ -575,7 +577,9 @@ namespace SalesManagement.Application.Consumers
                         param8                = "",
                         param9                = "",
                         param10               = "",
-                        OverrideTargetUserIds = new List<int> { nextRecipientId.Value }
+                        OverrideTargetUserIds = new List<int> { nextRecipientId.Value },
+                        ModuleTransactionId   = salesOrderId,
+                        ModuleTypeName        = MiscEnumEntity.TransactionTypeSalesOrder
                     };
 
                     // Direct publish via consumer's bus context — same pattern as the completion event.

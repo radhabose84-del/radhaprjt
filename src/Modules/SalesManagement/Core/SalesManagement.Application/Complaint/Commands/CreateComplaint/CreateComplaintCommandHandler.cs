@@ -137,8 +137,10 @@ namespace SalesManagement.Application.Complaint.Commands.CreateComplaint
                         param7        = string.Empty,
                         param8        = string.Empty,
                         param9        = string.Empty,
-                        param10       = string.Empty
+                        param10       = string.Empty,
                         // OverrideTargetUserIds NOT set — dispatcher resolves via SP/TargetType
+                        ModuleTransactionId = newId,
+                        ModuleTypeName = MiscEnumEntity.ComplaintModuleTypeName
                     };
                     await _outboxEventPublisher.ScheduleAsync(inAppEvent, inAppCorrelationId, cancellationToken);
                 }

@@ -42,7 +42,9 @@ namespace BackgroundService.UnitTests.Domain
                 ReadStatusId = 1,
                 Timestamp = timestamp,
                 SendTo = "user@test.com",
-                Value = "some-value"
+                Value = "some-value",
+                ModuleTransactionId = 42,
+                ModuleTypeName = "Sales Quotation"
             };
 
             entity.Id.Should().Be(1);
@@ -56,6 +58,8 @@ namespace BackgroundService.UnitTests.Domain
             entity.Timestamp.Should().Be(timestamp);
             entity.SendTo.Should().Be("user@test.com");
             entity.Value.Should().Be("some-value");
+            entity.ModuleTransactionId.Should().Be(42);
+            entity.ModuleTypeName.Should().Be("Sales Quotation");
         }
 
         [Fact]
@@ -71,7 +75,8 @@ namespace BackgroundService.UnitTests.Domain
                 NotificationEventRules = null,
                 Channel = null,
                 NotificationStatus = null,
-                ReadStatus = null
+                ReadStatus = null,
+                ModuleTypeName = null
             };
 
             entity.NotificationLevelRuleId.Should().BeNull();
@@ -83,6 +88,21 @@ namespace BackgroundService.UnitTests.Domain
             entity.Channel.Should().BeNull();
             entity.NotificationStatus.Should().BeNull();
             entity.ReadStatus.Should().BeNull();
+            entity.ModuleTypeName.Should().BeNull();
+        }
+
+        [Fact]
+        public void NotificationEventLog_ModuleTransactionId_DefaultShouldBeZero()
+        {
+            var entity = new NotificationEventLog();
+            entity.ModuleTransactionId.Should().Be(0);
+        }
+
+        [Fact]
+        public void NotificationEventLog_ModuleTypeName_DefaultShouldBeNull()
+        {
+            var entity = new NotificationEventLog();
+            entity.ModuleTypeName.Should().BeNull();
         }
     }
 }
