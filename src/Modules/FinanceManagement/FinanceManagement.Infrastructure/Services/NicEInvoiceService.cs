@@ -864,10 +864,14 @@ namespace FinanceManagement.Infrastructure.Services
                 var encryptedPayload = AesEncryptEcb(jsonString, sek);
 
                 // 4. Build request — EWB API expects { action, data }
+                // NOTE: standalone EWB uses a DIFFERENT path than the IRN-based EWB.
+                // IRN-based:  /eiewb/v1.03/ewaybill        (config key: GenerateEwbPath, used by GenerateEwbAsync)
+                // Standalone: /ewaybillapi/v1.03/ewayapi   (config key: GenerateStandaloneEwbPath — this method)
+                // Reusing GenerateEwbPath here would break IRN flows or get a 404 for standalone.
                 var ewbBaseUrl = _configuration.GetSection("NicEInvoice")["EwbBaseUrl"]
                     ?? "https://einv-apisandbox.nic.in";
                 var generatePath = ewbBaseUrl +
-                    (_configuration.GetSection("NicEInvoice")["GenerateEwbPath"]
+                    (_configuration.GetSection("NicEInvoice")["GenerateStandaloneEwbPath"]
                         ?? "/ewaybillapi/v1.03/ewayapi");
 
                 var body = JsonSerializer.Serialize(
@@ -894,6 +898,23 @@ namespace FinanceManagement.Infrastructure.Services
                         ErrorCode = "NIC_ERROR",
                         ErrorMessage = $"NIC returned empty response (HTTP {(int)resp.StatusCode}). URL: {generatePath}"
                     };
+
+                // Defensive: NIC sometimes returns an HTML error page (404/500/auth gate).
+                // Detect non-JSON bodies BEFORE JsonDocument.Parse throws a confusing exception
+                // and surface enough context (status + URL + body preview) for the operator to debug.
+                var trimmed = responseBody.TrimStart();
+                if (trimmed.Length == 0 || (trimmed[0] != '{' && trimmed[0] != '['))
+                {
+                    // Cap preview tightly so the assembled message fits within
+                    // EWaybillHeader.ErrorMessage's varchar(500) column.
+                    var preview = responseBody.Length > 200 ? responseBody[..200] : responseBody;
+                    return new NicEwbResultDto
+                    {
+                        IsSuccess = false,
+                        ErrorCode = "NIC_NON_JSON",          // <= 20 chars (varchar(20) column)
+                        ErrorMessage = $"NIC non-JSON (HTTP {(int)resp.StatusCode}). URL: {generatePath}. Body: {preview}"
+                    };
+                }
 
                 using var doc = JsonDocument.Parse(responseBody);
                 var root = doc.RootElement;
