@@ -75,11 +75,20 @@ namespace SalesManagement.IntegrationTests.Repositories.DeliveryChallan
             ip.Setup(x => x.GetUserId()).Returns(1);
             ip.Setup(x => x.GetUnitId()).Returns(1);
 
+            // Newer lookups added to the repo constructor — Loose mocks return empty/defaults
+            var companyDetail = new Mock<Contracts.Interfaces.Lookups.Users.ICompanyDetailLookup>(MockBehavior.Loose);
+            var unitDetail    = new Mock<Contracts.Interfaces.Lookups.Users.IUnitDetailLookup>(MockBehavior.Loose);
+            var partyDetail   = new Mock<Contracts.Interfaces.Lookups.Party.IPartyDetailLookup>(MockBehavior.Loose);
+            var state         = new Mock<Contracts.Interfaces.Lookups.Users.IStateLookup>(MockBehavior.Loose);
+            var city          = new Mock<Contracts.Interfaces.Lookups.Users.ICityLookup>(MockBehavior.Loose);
+
             return new DeliveryChallanQueryRepository(
                 new SqlConnection(_fixture.ConnectionString),
                 unit.Object, warehouse.Object, party.Object,
                 item.Object, lot.Object, uom.Object, user.Object,
-                eWaybill.Object, ip.Object);
+                eWaybill.Object, ip.Object,
+                companyDetail.Object, unitDetail.Object, partyDetail.Object,
+                state.Object, city.Object);
         }
 
         // ----- Seeding helpers -----

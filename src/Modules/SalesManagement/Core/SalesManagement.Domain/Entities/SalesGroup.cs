@@ -18,5 +18,6 @@ namespace SalesManagement.Domain.Entities
         public ICollection<SalesOrderHeader>? SalesOrderHeaders { get; set; }
         public ICollection<DiscountSalesGroup>? DiscountSalesGroups { get; set; }
         public ICollection<AgentCommissionSalesGroup>? AgentCommissionSalesGroups { get; set; }
+        public ICollection<SalesAgreementHeader>? SalesAgreementHeaders { get; set; }
     }
 }

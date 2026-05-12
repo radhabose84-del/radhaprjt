@@ -429,7 +429,7 @@ namespace SalesManagement.IntegrationTests.Repositories.Complaint
         /// (DispatchAdviceHeader, SalesOrderHeader, etc.).
         /// </summary>
         private async Task<(int invoiceHeaderId, int invoiceDetailId)> SeedInvoiceWithBagWeightAsync(
-            int partyId, decimal bagWeight, decimal netWeight)
+            int partyId, decimal bagWeight, decimal netWeight, int unitId = 1)
         {
             await using var conn = new SqlConnection(_fixture.ConnectionString);
             await conn.OpenAsync();
@@ -447,14 +447,14 @@ namespace SalesManagement.IntegrationTests.Repositories.Complaint
                      RoundOff, InvoiceAmountBeforeTCS, InvoiceAmount,
                      IsActive, IsDeleted, CreatedBy)
                 VALUES
-                    (@InvoiceNo, GETDATE(), 0, @PartyId, 1, 1,
+                    (@InvoiceNo, GETDATE(), 0, @PartyId, @UnitId, 1,
                      0, 0, 0, 0, 0, 0,
                      0, 0, 0, 0,
                      0, 0, 0, 0, 0, 0,
                      0, 0, 0,
                      1, 0, 1);
                 SELECT CAST(SCOPE_IDENTITY() AS INT);",
-                new { InvoiceNo = invoiceNo, PartyId = partyId });
+                new { InvoiceNo = invoiceNo, PartyId = partyId, UnitId = unitId });
 
             var invoiceDetailId = await conn.ExecuteScalarAsync<int>($@"
                 INSERT INTO Sales.InvoiceDetail
@@ -579,6 +579,223 @@ namespace SalesManagement.IntegrationTests.Repositories.Complaint
                 "GetInvoiceLineDetailsAsync projects id.NetWeight AS Quantity");
             lines[0].Quantity.Should().NotBe(bagWeightColumn,
                 "Quantity output must NOT come from id.BagWeight in this query");
+        }
+
+        // ---------------------------------------------------------------------------
+        // IsComplaintFinalizedAsync — used by UpdateComplaintCommandValidator to
+        // block edits on QC Accepted / Closed complaints. SQL uses
+        // UPPER(LTRIM(RTRIM(Description))) IN ('QC ACCEPTED', 'CLOSED').
+        // ---------------------------------------------------------------------------
+
+        /// <summary>
+        /// Seeds a complaint whose StatusId points to a MiscMaster row with the supplied
+        /// Description (e.g., "QC Accepted", "Closed", "Pending"). Returns the new complaint Id.
+        /// </summary>
+        private async Task<int> SeedComplaintWithStatusDescriptionAsync(string description, string complaintNumber)
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var mtId = await EnsureMiscTypeAsync(ctx);
+
+            // Insert a MiscMaster row with the specific Description we want to match
+            var misc = new SalesManagement.Domain.Entities.MiscMaster
+            {
+                MiscTypeId  = mtId,
+                Code        = "FINALIZE_" + Guid.NewGuid().ToString("N").Substring(0, 8),
+                Description = description,
+                IsActive    = Status.Active,
+                IsDeleted   = IsDelete.NotDeleted
+            };
+            await ctx.MiscMaster.AddAsync(misc);
+            await ctx.SaveChangesAsync();
+
+            var complaint = new SalesManagement.Domain.Entities.ComplaintHeader
+            {
+                ComplaintNumber = complaintNumber,
+                ComplaintDate   = DateOnly.FromDateTime(DateTime.UtcNow.Date),
+                CustomerId      = 100,
+                StatusId        = misc.Id,
+                IsActive        = Status.Active,
+                IsDeleted       = IsDelete.NotDeleted
+            };
+            await ctx.ComplaintHeader.AddAsync(complaint);
+            await ctx.SaveChangesAsync();
+            return complaint.Id;
+        }
+
+        [Fact]
+        public async Task IsComplaintFinalizedAsync_QCAcceptedStatus_ReturnsTrue()
+        {
+            await ClearAsync();
+            var id = await SeedComplaintWithStatusDescriptionAsync("QC Accepted", "CQQ_FIN_QC");
+
+            var result = await CreateRepo().IsComplaintFinalizedAsync(id);
+
+            result.Should().BeTrue("complaint with status 'QC Accepted' must be flagged as finalized");
+        }
+
+        [Fact]
+        public async Task IsComplaintFinalizedAsync_ClosedStatus_ReturnsTrue()
+        {
+            await ClearAsync();
+            var id = await SeedComplaintWithStatusDescriptionAsync("Closed", "CQQ_FIN_CL");
+
+            var result = await CreateRepo().IsComplaintFinalizedAsync(id);
+
+            result.Should().BeTrue("complaint with status 'Closed' must be flagged as finalized");
+        }
+
+        [Fact]
+        public async Task IsComplaintFinalizedAsync_CaseInsensitive_Description_ReturnsTrue()
+        {
+            await ClearAsync();
+            // SQL upper-cases before comparison — lowercase Description should still match
+            var id = await SeedComplaintWithStatusDescriptionAsync("qc accepted", "CQQ_FIN_LC");
+
+            var result = await CreateRepo().IsComplaintFinalizedAsync(id);
+
+            result.Should().BeTrue("the comparison is UPPER-cased, so case differences must not break the rule");
+        }
+
+        [Fact]
+        public async Task IsComplaintFinalizedAsync_WhitespaceAroundDescription_ReturnsTrue()
+        {
+            await ClearAsync();
+            // SQL trims leading/trailing whitespace before comparison
+            var id = await SeedComplaintWithStatusDescriptionAsync("  Closed  ", "CQQ_FIN_TRIM");
+
+            var result = await CreateRepo().IsComplaintFinalizedAsync(id);
+
+            result.Should().BeTrue("the comparison trims whitespace, so padded values must still match");
+        }
+
+        [Fact]
+        public async Task IsComplaintFinalizedAsync_OpenStatus_ReturnsFalse()
+        {
+            await ClearAsync();
+            var id = await SeedComplaintWithStatusDescriptionAsync("Pending", "CQQ_OPEN");
+
+            var result = await CreateRepo().IsComplaintFinalizedAsync(id);
+
+            result.Should().BeFalse("complaint with status 'Pending' is mutable — edits must NOT be blocked");
+        }
+
+        [Fact]
+        public async Task IsComplaintFinalizedAsync_SoftDeletedComplaint_ReturnsFalse()
+        {
+            await ClearAsync();
+            // Seed a complaint then soft-delete it; the rule must only fire on live rows
+            var id = await SeedComplaintWithStatusDescriptionAsync("QC Accepted", "CQQ_DEL_FIN");
+
+            await using (var ctx = _fixture.CreateFreshDbContext())
+            {
+                var ch = await ctx.ComplaintHeader.FirstAsync(c => c.Id == id);
+                ch.IsDeleted = IsDelete.Deleted;
+                await ctx.SaveChangesAsync();
+            }
+
+            var result = await CreateRepo().IsComplaintFinalizedAsync(id);
+
+            result.Should().BeFalse("soft-deleted complaint should be unreachable; rule must not match it");
+        }
+
+        [Fact]
+        public async Task IsComplaintFinalizedAsync_NonExistentId_ReturnsFalse()
+        {
+            await ClearAsync();
+
+            var result = await CreateRepo().IsComplaintFinalizedAsync(int.MaxValue);
+
+            result.Should().BeFalse("an Id that doesn't exist cannot be finalized");
+        }
+
+        // ---------------------------------------------------------------------------
+        // Pull-from-Invoice unit scoping — invoices raised for the same customer
+        // across multiple units must only surface for the user's current unit.
+        // Regression guard for the cross-unit invoice listing bug.
+        // ---------------------------------------------------------------------------
+
+        private static Mock<IIPAddressService> BuildIpServiceWithUnit(int unitId)
+        {
+            var mock = new Mock<IIPAddressService>(MockBehavior.Loose);
+            mock.Setup(x => x.GetUserId()).Returns(1);
+            mock.Setup(x => x.GetUserName()).Returns("test-user");
+            mock.Setup(x => x.GetCompanyId()).Returns(1);
+            mock.Setup(x => x.GetUnitId()).Returns(unitId);
+            mock.Setup(x => x.GetGroupCode()).Returns("SUPER_ADMIN");
+            return mock;
+        }
+
+        [Fact]
+        public async Task SearchInvoicesAsync_Should_Scope_By_Current_UnitId()
+        {
+            const int partyId = 77771;
+            const int currentUnit = 1;
+            const int otherUnit = 99;
+
+            await ClearInvoiceTablesAsync();
+            await SeedInvoiceWithBagWeightAsync(partyId, bagWeight: 1m, netWeight: 1m, unitId: currentUnit);
+            await SeedInvoiceWithBagWeightAsync(partyId, bagWeight: 2m, netWeight: 2m, unitId: otherUnit);
+
+            var (rows, total) = await CreateRepo(
+                    uomLookup: BuildEmptyUomLookup(),
+                    ipService: BuildIpServiceWithUnit(currentUnit))
+                .SearchInvoicesAsync(partyId, searchTerm: null, lastOneYear: false, pageNumber: 1, pageSize: 10);
+
+            total.Should().Be(1, "only the current unit's invoice should be returned");
+            rows.Should().HaveCount(1);
+            rows[0].UnitId.Should().Be(currentUnit);
+        }
+
+        [Fact]
+        public async Task SearchInvoicesAsync_Should_Return_Empty_When_No_Invoice_Matches_Current_Unit()
+        {
+            const int partyId = 77772;
+
+            await ClearInvoiceTablesAsync();
+            await SeedInvoiceWithBagWeightAsync(partyId, bagWeight: 1m, netWeight: 1m, unitId: 50);
+
+            var (rows, total) = await CreateRepo(
+                    uomLookup: BuildEmptyUomLookup(),
+                    ipService: BuildIpServiceWithUnit(1))
+                .SearchInvoicesAsync(partyId, searchTerm: null, lastOneYear: false, pageNumber: 1, pageSize: 10);
+
+            total.Should().Be(0);
+            rows.Should().BeEmpty();
+        }
+
+        [Fact]
+        public async Task GetCustomerInvoicesAsync_Should_Scope_By_Current_UnitId()
+        {
+            const int customerId = 77773;
+            const int currentUnit = 1;
+            const int otherUnit = 99;
+
+            await ClearInvoiceTablesAsync();
+            await SeedInvoiceWithBagWeightAsync(customerId, bagWeight: 1m, netWeight: 1m, unitId: currentUnit);
+            await SeedInvoiceWithBagWeightAsync(customerId, bagWeight: 2m, netWeight: 2m, unitId: otherUnit);
+
+            var rows = await CreateRepo(
+                    uomLookup: BuildEmptyUomLookup(),
+                    ipService: BuildIpServiceWithUnit(currentUnit))
+                .GetCustomerInvoicesAsync(customerId);
+
+            rows.Should().HaveCount(1, "only the current unit's invoice should be returned");
+        }
+
+        [Fact]
+        public async Task GetCustomerInvoicesAsync_Should_Return_Empty_When_No_Invoice_Matches_Current_Unit()
+        {
+            const int customerId = 77774;
+
+            await ClearInvoiceTablesAsync();
+            await SeedInvoiceWithBagWeightAsync(customerId, bagWeight: 1m, netWeight: 1m, unitId: 50);
+
+            var rows = await CreateRepo(
+                    uomLookup: BuildEmptyUomLookup(),
+                    ipService: BuildIpServiceWithUnit(1))
+                .GetCustomerInvoicesAsync(customerId);
+
+            rows.Should().BeEmpty();
         }
     }
 }

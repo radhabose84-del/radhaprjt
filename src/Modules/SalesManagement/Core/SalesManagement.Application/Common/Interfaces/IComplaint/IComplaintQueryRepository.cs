@@ -20,5 +20,9 @@ namespace SalesManagement.Application.Common.Interfaces.IComplaint
         Task<(List<PendingResolutionListDto>, int)> GetPendingResolutionAsync(int pageNumber, int pageSize, string? searchTerm);
         Task<bool> IsReadyForResolutionAsync(int complaintHeaderId);
 
+        // Returns true if the complaint's current status is terminal/finalized
+        // (QC Accepted or Closed). Used by UpdateComplaintCommandValidator to
+        // block edits on records that should no longer be mutable.
+        Task<bool> IsComplaintFinalizedAsync(int id);
     }
 }

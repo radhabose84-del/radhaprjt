@@ -95,6 +95,8 @@ namespace SalesManagement.Infrastructure.Data
         public DbSet<TripSheetHeader> TripSheetHeader { get; set; }
         public DbSet<TripSheetDetail> TripSheetDetail { get; set; }
         public DbSet<SalesOrderTypeMaster> SalesOrderTypeMaster { get; set; }
+        public DbSet<SalesAgreementHeader> SalesAgreementHeader { get; set; }
+        public DbSet<SalesAgreementDetail> SalesAgreementDetail { get; set; }
 
         // ── Outbox (SQL-based for workflow transaction atomicity) ─────────
         public DbSet<OutboxMessage> OutboxMessages { get; set; }
@@ -171,6 +173,8 @@ namespace SalesManagement.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new TripSheetHeaderConfiguration());
             modelBuilder.ApplyConfiguration(new TripSheetDetailConfiguration());
             modelBuilder.ApplyConfiguration(new SalesOrderTypeMasterConfiguration());
+            modelBuilder.ApplyConfiguration(new SalesAgreementHeaderConfiguration());
+            modelBuilder.ApplyConfiguration(new SalesAgreementDetailConfiguration());
             // ── Outbox (SQL-based for workflow) ─────────────────────────────
             modelBuilder.ApplyConfiguration(new OutboxMessageConfiguration());
 

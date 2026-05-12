@@ -5,6 +5,7 @@ using Contracts.Events.Maintenance.PreventiveScheduler;
 using Contracts.Events.Maintenance.PreventiveScheduler.PreventiveSchedulerUpdate;
 using Dapper;
 using Hangfire;
+using Hangfire.States;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -42,6 +43,7 @@ public class MaintenanceOutboxProcessorJob
 
     [Queue("maintenance-jobs")]
     [DisableConcurrentExecution(10 * 60)]
+    [AutomaticRetry(Attempts = 3, OnAttemptsExceeded = AttemptsExceededAction.Fail)]
     public async Task ProcessAsync(CancellationToken cancellationToken)
     {
         var connectionString = (_configuration.GetConnectionString("DefaultConnection") ?? string.Empty)

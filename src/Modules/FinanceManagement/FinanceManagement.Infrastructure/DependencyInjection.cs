@@ -23,6 +23,7 @@ using FinanceManagement.Infrastructure.Repositories.TransactionTypeMaster;
 using FinanceManagement.Infrastructure.Services;
 using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Users;
+using Shared.Infrastructure.Resilience;
 using Serilog;
 
 namespace FinanceManagement.Infrastructure
@@ -126,7 +127,8 @@ namespace FinanceManagement.Infrastructure
                 {
                     ServerCertificateCustomValidationCallback =
                         HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-                });
+                })
+                .AddBsoftHttpResilience(ResilienceProfileNames.Critical);
 
             services.AddScoped<INicEInvoiceService, NicEInvoiceService>();
 

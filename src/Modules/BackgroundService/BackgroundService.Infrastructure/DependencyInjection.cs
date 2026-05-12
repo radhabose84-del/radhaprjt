@@ -7,7 +7,7 @@ using BackgroundService.Application.Interfaces;
 using Hangfire;
 using Hangfire.SqlServer;
 using BackgroundService.Infrastructure.Jobs;
-using Polly;
+using Shared.Infrastructure.Resilience;
 using System.Data;
 using BackgroundService.Infrastructure.Repositories.HangFire;
 using BackgroundService.Application.Common.Notification.Interfaces;
@@ -368,40 +368,12 @@ namespace BackgroundService.Infrastructure
             configuration.GetSection("WhatsAppSettings").Bind(whatsAppSettings);
             services.AddSingleton(whatsAppSettings);
 
-            services.AddHttpClient("UserManagementClient", client =>
-           {
-               //client.BaseAddress = new Uri("http://localhost:5174"); 
-
-               client.BaseAddress = new Uri(configuration["HttpClientSettings:UserManagementService"]);          
-           })
-
-              .AddTransientHttpErrorPolicy(policyBuilder =>
-               policyBuilder.CircuitBreakerAsync(
-                   handledEventsAllowedBeforeBreaking: 3,
-                   durationOfBreak: TimeSpan.FromSeconds(30)))
-           .AddTransientHttpErrorPolicy(policyBuilder =>
-               policyBuilder.WaitAndRetryAsync(3, retryAttempt =>
-                   TimeSpan.FromSeconds(Math.Pow(2, retryAttempt))));
-
-            services.AddHttpClient("MaintenanceClient", client =>
-           {
-               //client.BaseAddress = new Uri("http://localhost:5174"); 
-               client.BaseAddress = new Uri(configuration["HttpClientSettings:MaintenanceManagementService"]);
-
-           })
-
-              .AddTransientHttpErrorPolicy(policyBuilder =>
-               policyBuilder.CircuitBreakerAsync(
-                   handledEventsAllowedBeforeBreaking: 3,
-                   durationOfBreak: TimeSpan.FromSeconds(30)))
-           .AddTransientHttpErrorPolicy(policyBuilder =>
-               policyBuilder.WaitAndRetryAsync(3, retryAttempt =>
-                   TimeSpan.FromSeconds(Math.Pow(2, retryAttempt))));
-
-
             services.AddAutoMapper(typeof(NotificationHierarchyAndEventRuleProfile));
 
-            services.AddHttpClient();
+            services.AddHttpClient("SmsClient")
+                .AddBsoftHttpResilience(ResilienceProfileNames.Standard);
+            services.AddHttpClient("WhatsAppClient")
+                .AddBsoftHttpResilience(ResilienceProfileNames.Standard);
             services.AddScoped<IEmailService, RealEmailService>();
             services.AddScoped<ISmsService, RealSmsService>();
             services.AddScoped<IUserUnlockService, UserUnlockService>();
@@ -453,7 +425,8 @@ namespace BackgroundService.Infrastructure
             services.AddScoped<INotificationTablePresetRepository, NotificationTablePresetRepository>();
             services.AddScoped<IHtmlTableRenderer, SqlHtmlTableRenderer>();          
             
-            services.AddHttpClient<IFileFetcher, HttpFileFetcher>();              
+            services.AddHttpClient<IFileFetcher, HttpFileFetcher>()
+                .AddBsoftHttpResilience(ResilienceProfileNames.Standard);
 
             services.AddScoped<IMongoCollection<OutboxMessage>>(sp =>
             {   

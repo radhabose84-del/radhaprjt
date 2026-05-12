@@ -7,6 +7,7 @@ using BSOFT.Worker.Services;
 using Hangfire;
 using Serilog;
 using Shared.Infrastructure;
+using Shared.Infrastructure.Resilience;
 using PurchaseManagement.Infrastructure;
 using BudgetManagement.Infrastructure;
 using InventoryManagement.Infrastructure;
@@ -54,6 +55,7 @@ builder.Services.AddWindowsService(options =>
 builder.Services.AddHttpContextAccessor();   // required by IPAddressService
 builder.Services.AddMemoryCache();
 builder.Services.AddSharedInfrastructureServices();  // registers IIPAddressService
+builder.Services.AddBsoftResilience(builder.Configuration);  // Polly v8 resilience pipelines
 
 // ── Application layer: MediatR + AutoMapper + SignalR server (for IHubContext<>) ──
 builder.Services.AddApplicationServices();

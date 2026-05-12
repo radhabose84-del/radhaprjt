@@ -1,6 +1,8 @@
 using System.Data;
 using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Party;
+using Contracts.Interfaces.Lookups.Sales;
+using Contracts.Interfaces.Lookups.Users;
 using Dapper;
 using SalesManagement.Application.AgentCustomerMapping.Dto;
 using SalesManagement.Application.Common.Interfaces.IAgentCustomerMapping;
@@ -13,6 +15,8 @@ namespace SalesManagement.Infrastructure.Repositories.AgentCustomerMapping
         private readonly ICustomerLookup _customerLookup;
         private readonly IAgentLookup _agentLookup;
         private readonly ISubAgentLookup _subAgentLookup;
+        private readonly IUserLookup _userLookup;
+        private readonly IOfficerAgentUserLookup _officerAgentUserLookup;
         private readonly IDataAccessFilter _dataAccessFilter;
 
         public AgentCustomerMappingQueryRepository(
@@ -20,12 +24,16 @@ namespace SalesManagement.Infrastructure.Repositories.AgentCustomerMapping
             ICustomerLookup customerLookup,
             IAgentLookup agentLookup,
             ISubAgentLookup subAgentLookup,
+            IUserLookup userLookup,
+            IOfficerAgentUserLookup officerAgentUserLookup,
             IDataAccessFilter dataAccessFilter)
         {
             _dbConnection = dbConnection;
             _customerLookup = customerLookup;
             _agentLookup = agentLookup;
             _subAgentLookup = subAgentLookup;
+            _userLookup = userLookup;
+            _officerAgentUserLookup = officerAgentUserLookup;
             _dataAccessFilter = dataAccessFilter;
         }
 
@@ -399,6 +407,31 @@ namespace SalesManagement.Infrastructure.Repositories.AgentCustomerMapping
                 var allSubAgents = await _subAgentLookup.GetAllSubAgentAsync();
                 var subAgentDict = allSubAgents.ToDictionary(x => x.Id, x => x.SubAgentName);
 
+                // Resolve Marketing Officer chain per Agent via lookup (cross-module access to
+                // AppSecurity.Users is encapsulated in IOfficerAgentUserLookup — no inline cross-module SQL here).
+                var agentIds = list.Select(x => x.AgentId).Distinct().ToArray();
+                var moRows = await _officerAgentUserLookup
+                    .GetMarketingOfficerChainByAgentIdsAsync(agentIds, ct);
+
+                var userIds = moRows
+                    .SelectMany(r => new[] { r.MoUserId, r.ReportToId })
+                    .Where(id => id.HasValue && id.Value > 0)
+                    .Select(id => id!.Value)
+                    .Distinct()
+                    .ToList();
+
+                var userDict = new Dictionary<int, string?>();
+                if (userIds.Count > 0)
+                {
+                    var users = await _userLookup.GetByIdsAsync(userIds, ct);
+                    userDict = users.ToDictionary(u => u.UserId, u => u.UserName);
+                }
+
+                // First row wins per AgentId (an agent may have multiple OfficerAgent rows historically)
+                var moByAgent = moRows
+                    .GroupBy(r => r.AgentId)
+                    .ToDictionary(g => g.Key, g => g.First());
+
                 foreach (var item in list)
                 {
                     if (customerDict.TryGetValue(item.CustomerId, out var customerName))
@@ -409,6 +442,15 @@ namespace SalesManagement.Infrastructure.Repositories.AgentCustomerMapping
 
                     if (item.SubAgentId.HasValue && subAgentDict.TryGetValue(item.SubAgentId.Value, out var subAgentName))
                         item.SubAgentName = subAgentName;
+
+                    if (moByAgent.TryGetValue(item.AgentId, out var moRow))
+                    {
+                        if (moRow.MoUserId.HasValue && userDict.TryGetValue(moRow.MoUserId.Value, out var moName))
+                            item.MarketingOfficerUserName = moName;
+
+                        if (moRow.ReportToId.HasValue && userDict.TryGetValue(moRow.ReportToId.Value, out var reportToName))
+                            item.ReportToUserName = reportToName;
+                    }
                 }
             }
 

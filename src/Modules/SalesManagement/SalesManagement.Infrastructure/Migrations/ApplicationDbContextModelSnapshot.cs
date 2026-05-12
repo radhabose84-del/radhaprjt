@@ -3790,6 +3790,157 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.ToTable("ProformaInvoice", "Sales");
                 });
 
+            modelBuilder.Entity("SalesManagement.Domain.Entities.SalesAgreementDetail", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("AgreedRate")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,4)")
+                        .HasColumnName("AgreedRate");
+
+                    b.Property<int>("ItemId")
+                        .HasColumnType("int")
+                        .HasColumnName("ItemId");
+
+                    b.Property<decimal>("ReleasedQty")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,3)")
+                        .HasDefaultValue(0m)
+                        .HasColumnName("ReleasedQty");
+
+                    b.Property<int>("SalesAgreementHeaderId")
+                        .HasColumnType("int")
+                        .HasColumnName("SalesAgreementHeaderId");
+
+                    b.Property<decimal>("TotalQty")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,3)")
+                        .HasColumnName("TotalQty");
+
+                    b.Property<int?>("VariantId")
+                        .HasColumnType("int")
+                        .HasColumnName("VariantId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ItemId");
+
+                    b.HasIndex("SalesAgreementHeaderId");
+
+                    b.HasIndex("VariantId");
+
+                    b.HasIndex("SalesAgreementHeaderId", "ItemId", "VariantId")
+                        .IsUnique()
+                        .HasFilter("[VariantId] IS NOT NULL");
+
+                    b.ToTable("SalesAgreementDetail", "Sales");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.SalesAgreementHeader", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AgreementNo")
+                        .HasColumnType("varchar(30)")
+                        .HasColumnName("AgreementNo");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<int>("CustomerId")
+                        .HasColumnType("int")
+                        .HasColumnName("CustomerId");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<int>("PaymentTermsId")
+                        .HasColumnType("int")
+                        .HasColumnName("PaymentTermsId");
+
+                    b.Property<string>("Remarks")
+                        .HasColumnType("varchar(500)")
+                        .HasColumnName("Remarks");
+
+                    b.Property<int>("SalesGroupId")
+                        .HasColumnType("int")
+                        .HasColumnName("SalesGroupId");
+
+                    b.Property<int>("StatusId")
+                        .HasColumnType("int")
+                        .HasColumnName("StatusId");
+
+                    b.Property<DateOnly>("ValidFrom")
+                        .HasColumnType("date")
+                        .HasColumnName("ValidFrom");
+
+                    b.Property<DateOnly>("ValidTo")
+                        .HasColumnType("date")
+                        .HasColumnName("ValidTo");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AgreementNo")
+                        .IsUnique()
+                        .HasFilter("[AgreementNo] IS NOT NULL");
+
+                    b.HasIndex("CustomerId");
+
+                    b.HasIndex("SalesGroupId");
+
+                    b.HasIndex("StatusId");
+
+                    b.HasIndex("ValidFrom", "ValidTo");
+
+                    b.ToTable("SalesAgreementHeader", "Sales");
+                });
+
             modelBuilder.Entity("SalesManagement.Domain.Entities.SalesChannel", b =>
                 {
                     b.Property<int>("Id")
@@ -7626,6 +7777,36 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("StatusMisc");
                 });
 
+            modelBuilder.Entity("SalesManagement.Domain.Entities.SalesAgreementDetail", b =>
+                {
+                    b.HasOne("SalesManagement.Domain.Entities.SalesAgreementHeader", "SalesAgreementHeader")
+                        .WithMany("SalesAgreementDetails")
+                        .HasForeignKey("SalesAgreementHeaderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("SalesAgreementHeader");
+                });
+
+            modelBuilder.Entity("SalesManagement.Domain.Entities.SalesAgreementHeader", b =>
+                {
+                    b.HasOne("SalesManagement.Domain.Entities.SalesGroup", "SalesGroup")
+                        .WithMany("SalesAgreementHeaders")
+                        .HasForeignKey("SalesGroupId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "StatusMisc")
+                        .WithMany("SalesAgreementHeadersAsStatus")
+                        .HasForeignKey("StatusId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("SalesGroup");
+
+                    b.Navigation("StatusMisc");
+                });
+
             modelBuilder.Entity("SalesManagement.Domain.Entities.SalesContact", b =>
                 {
                     b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "ContactType")
@@ -8350,6 +8531,8 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     b.Navigation("ProformaInvoicesAsStatus");
 
+                    b.Navigation("SalesAgreementHeadersAsStatus");
+
                     b.Navigation("SalesContacts");
 
                     b.Navigation("SalesEnquiryHeadersAsEnquiryType");
@@ -8401,6 +8584,11 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("StoTypeMastersAsPgi");
                 });
 
+            modelBuilder.Entity("SalesManagement.Domain.Entities.SalesAgreementHeader", b =>
+                {
+                    b.Navigation("SalesAgreementDetails");
+                });
+
             modelBuilder.Entity("SalesManagement.Domain.Entities.SalesChannel", b =>
                 {
                     b.Navigation("SalesSegments");
@@ -8420,6 +8608,8 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("DiscountSalesGroups");
 
                     b.Navigation("OfficerSalesGroups");
+
+                    b.Navigation("SalesAgreementHeaders");
 
                     b.Navigation("SalesOrderHeaders");
                 });

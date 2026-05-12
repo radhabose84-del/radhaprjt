@@ -1,6 +1,7 @@
 using Dapper;
 using Hangfire;
 using Microsoft.Data.SqlClient;
+using Shared.Infrastructure.Resilience;
 
 namespace BSOFT.Worker.Configurations;
 
@@ -16,22 +17,42 @@ public static class HangfireJobsSetup
     {
         using var scope = host.Services.CreateScope();
         var jobManager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
+        var resilience = scope.ServiceProvider.GetRequiredService<IResiliencePipelineProvider>();
+        var loggerFactory = scope.ServiceProvider.GetRequiredService<ILoggerFactory>();
+        var logger = loggerFactory.CreateLogger("HangfireJobsSetup");
 
-        // Remove the old Hangfire recurring outbox job — replaced by
-        // OutboxPollingHostedService (PeriodicTimer @ 15 s) for sub-minute polling.
-        // Hangfire recurring jobs only support minute-level cron (5 fields).
-        jobManager.RemoveIfExists("sql-outbox-processor");
+        try
+        {
+            // Hangfire SQL access via Polly Standard pipeline (3 retries, exponential backoff).
+            // After the retry budget is exhausted, log and continue — cleanup is idempotent
+            // and will be reattempted on next Worker restart, so a missed run does no harm.
+            // Prevents SCM error 1053 when SQL is briefly unreachable at startup.
+            resilience.ExecuteSqlAsync(ResilienceProfileNames.Standard, ct =>
+            {
+                // Remove the old Hangfire recurring outbox job — replaced by
+                // OutboxPollingHostedService (PeriodicTimer @ 15 s) for sub-minute polling.
+                // Hangfire recurring jobs only support minute-level cron (5 fields).
+                jobManager.RemoveIfExists("sql-outbox-processor");
 
-        // NOTE: Do NOT remove "maintenance-outbox-processor" here — it is owned by BSOFT.Api
-        // and runs on the "maintenance-jobs" queue for scheduling events
-        // (MachineWiseScheduleCreationEvent, HeaderUpdateEvent, NextSchedulerCreatedEvent).
+                // NOTE: Do NOT remove "maintenance-outbox-processor" here — it is owned by BSOFT.Api
+                // and runs on the "maintenance-jobs" queue for scheduling events
+                // (MachineWiseScheduleCreationEvent, HeaderUpdateEvent, NextSchedulerCreatedEvent).
+                return Task.CompletedTask;
+            }).AsTask().GetAwaiter().GetResult();
 
-        // Cleanup zombie INotificationHandler Hangfire jobs — these are from an old code version
-        // that scheduled notifications via Hangfire. Now notifications use MassTransit/RabbitMQ.
-        // The INotificationHandler<T> interface has NO implementations, so these jobs fail forever
-        // and Hangfire keeps retrying them with a 4-minute backoff delay.
-        var config = scope.ServiceProvider.GetRequiredService<IConfiguration>();
-        CleanupZombieNotificationJobs(config, scope.ServiceProvider.GetRequiredService<ILoggerFactory>());
+            // Cleanup zombie INotificationHandler Hangfire jobs — these are from an old code version
+            // that scheduled notifications via Hangfire. Now notifications use MassTransit/RabbitMQ.
+            // The INotificationHandler<T> interface has NO implementations, so these jobs fail forever
+            // and Hangfire keeps retrying them with a 4-minute backoff delay.
+            var config = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+            CleanupZombieNotificationJobs(config, loggerFactory);
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex,
+                "HangfireJobsSetup: Recurring-job registration failed after retry budget. " +
+                "Worker will continue; will retry on next restart.");
+        }
 
         return host;
     }
@@ -42,7 +63,7 @@ public static class HangfireJobsSetup
 
         try
         {
-            // CRITICAL: Hangfire jobs live in the Hangfire DB, NOT DefaultConnection (BannariERP).
+            // CRITICAL: Hangfire jobs live in the Hangfire DB, NOT DefaultConnection (DB).
             var connectionString = (config.GetConnectionString("HangfireConnection") ?? string.Empty)
                 .Replace("{SERVER}", Environment.GetEnvironmentVariable("DATABASE_SERVER") ?? "")
                 .Replace("{USER_ID}", Environment.GetEnvironmentVariable("DATABASE_USERID") ?? "")

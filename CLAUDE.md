@@ -2443,6 +2443,198 @@ mockCompanyLookup.Setup(c => c.GetAllCompanyAsync())
 
 ---
 
+## 🛡️ Polly v8 Resilience — New Module Checklist
+
+> **Foundation is already wired.** `AddBsoftResilience(configuration)` is called once in `BSOFT.Api/Program.cs` and `BSOFT.Worker/Program.cs`. Every new module gets the three built-in profiles (Standard / Critical / FastFail) automatically — no `Program.cs` changes needed.
+
+### Step 1 — Decide which resilience scenarios apply
+
+Run through this checklist for every new module:
+
+| Scenario | Applies? | Action Required |
+|---|---|---|
+| Module registers an `AddHttpClient<T, TImpl>()` | YES if external/internal HTTP | Add `.AddBsoftHttpResilience(profileName)` |
+| Module has a Hangfire background job class | YES | Add `[AutomaticRetry(Attempts = 3, OnAttemptsExceeded = AttemptsExceededAction.Fail)]` |
+| Module has a Dapper SQL write that must be retried | OPTIONAL — high-value writes only | Wrap with `_resilience.ExecuteSqlAsync(profileName, ...)` |
+| Module writes to MongoDB (e.g. audit log) | OPTIONAL — fire-and-forget writes are low risk | Wrap with `_resilience.ExecuteMongoTaskAsync(profileName, ...)` |
+| MediatR command/query handler | ❌ NEVER | Do NOT add Polly here — risk of duplicate inserts |
+| EF Core `SaveChangesAsync` | ❌ NOT needed | `EnableRetryOnFailure(5)` already configured on DbContext |
+
+---
+
+### Step 2 — HTTP Client resilience
+
+**Every `AddHttpClient` registration MUST chain `.AddBsoftHttpResilience`.**
+
+```csharp
+// {Module}.Infrastructure/DependencyInjection.cs
+using Shared.Infrastructure.Resilience;
+
+// Typed client (preferred)
+services.AddHttpClient<IMyExternalService, MyExternalService>()
+    .AddBsoftHttpResilience(ResilienceProfileNames.Standard);
+
+// Named client
+services.AddHttpClient("MyClient")
+    .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { ... })
+    .AddBsoftHttpResilience(ResilienceProfileNames.Critical);
+```
+
+**Profile selection guide:**
+
+| Profile | When to Use | Retry | Timeout | Circuit Breaker |
+|---|---|---|---|---|
+| `Standard` | Internal services, reporting, file fetch, SMS/WhatsApp APIs | 3 retries | 30 s | 50% failure ratio |
+| `Critical` | GST/e-invoice APIs, auth services, business-critical external APIs | 5 retries | 60 s | 40% failure ratio |
+| `FastFail` | SignalR push, UI-facing background calls, where latency > correctness | 1 retry | 5 s | 70% failure ratio |
+
+> ❌ **NEVER call `.AddPollyHandler(...)` (old v7 API)** — the project uses Polly v8 via `Microsoft.Extensions.Http.Resilience`. Only use `.AddBsoftHttpResilience(profileName)`.
+
+> ❌ **NEVER call `services.AddHttpClient()` (bare, unnamed, no resilience)** and then use `CreateClient()` inside a service — always register a named or typed client with `.AddBsoftHttpResilience`.
+
+---
+
+### Step 3 — Hangfire job resilience
+
+Every class decorated with `[Queue(...)]` that performs network or DB I/O MUST also carry `[AutomaticRetry]`:
+
+```csharp
+[Queue("my-module-queue")]
+[AutomaticRetry(Attempts = 3, OnAttemptsExceeded = AttemptsExceededAction.Fail)]
+public class MyModuleJob
+{
+    public async Task ProcessAsync(CancellationToken cancellationToken)
+    {
+        // ...
+    }
+}
+```
+
+> ⚠️ Hangfire's default `[AutomaticRetry(10)]` is too aggressive for minute-recurring jobs — always reduce to `Attempts = 3`. A recurring job that fires every minute picks up missed work on the next run automatically.
+
+---
+
+### Step 4 — Dapper SQL resilience (opt-in, high-value writes only)
+
+Use `ExecuteSqlAsync` for Dapper writes that are **not idempotent by default** and must succeed (e.g. marking outbox messages as published, updating job status). Do NOT use it for every query — it is opt-in for high-value operations.
+
+```csharp
+// Inject IResiliencePipelineProvider
+private readonly IResiliencePipelineProvider _resilience;
+
+// Wrap a Dapper write
+await _resilience.ExecuteSqlAsync(ResilienceProfileNames.Standard,
+    ct => _dbConnection.ExecuteAsync(sql, new { Id = id, Now = DateTimeOffset.UtcNow }));
+
+// Wrap a Dapper read that returns a value
+var result = await _resilience.ExecuteSqlAsync<MyDto>(ResilienceProfileNames.Standard,
+    ct => _dbConnection.QueryFirstOrDefaultAsync<MyDto>(sql, new { Id = id }));
+```
+
+---
+
+### Step 5 — MongoDB resilience (opt-in, for critical writes)
+
+Audit log writes are fire-and-forget and do not need wrapping. Wrap MongoDB writes only when the operation is **business-critical** (e.g. storing an outbox message that must be reliably persisted):
+
+```csharp
+// ValueTask-returning operation
+await _resilience.ExecuteMongoAsync(ResilienceProfileNames.Standard, async ct =>
+{
+    await _mongoCollection.InsertOneAsync(document, null, ct);
+});
+
+// Task-returning operation
+await _resilience.ExecuteMongoTaskAsync(ResilienceProfileNames.Standard, async ct =>
+{
+    await _mongoCollection.ReplaceOneAsync(filter, document, options, ct);
+});
+```
+
+---
+
+### Step 6 — DI registration (IResiliencePipelineProvider)
+
+`IResiliencePipelineProvider` is registered as a **singleton** by `AddBsoftResilience` — inject it directly into any service or repository that needs SQL or Mongo resilience:
+
+```csharp
+// In {Module}.Infrastructure/{EntityName}CommandRepository.cs
+private readonly IResiliencePipelineProvider _resilience;
+
+public MyCommandRepository(IDbConnection dbConnection, IResiliencePipelineProvider resilience)
+{
+    _dbConnection = dbConnection;
+    _resilience = resilience;
+}
+```
+
+> No additional DI registration needed — `IResiliencePipelineProvider` is already registered globally.
+
+---
+
+### Step 7 — NuGet packages (no new packages needed)
+
+The resilience infrastructure lives in `Shared.Infrastructure`. A new module's Infrastructure project only needs a project reference to `Shared.Infrastructure` (which it already has). No new NuGet packages are required in the new module.
+
+```xml
+<!-- Already present in every {Module}.Infrastructure.csproj -->
+<ProjectReference Include="..\..\..\Shared\Shared.Infrastructure\Shared.Infrastructure.csproj" />
+```
+
+---
+
+### Step 8 — Unit tests for resilience
+
+Every new module test project MUST cover:
+
+| What | Test File | What to Assert |
+|---|---|---|
+| HTTP client has resilience | `Application/{EntityName}/Commands/Create{EntityName}CommandHandlerTests.cs` | No change — handler doesn't know about Polly |
+| Hangfire job retries | `Application/Jobs/{JobName}Tests.cs` | `[AutomaticRetry]` attribute present via reflection |
+| SQL resilience (if used) | `Repositories/{EntityName}CommandRepositoryTests.cs` | Mock `IResiliencePipelineProvider` with `MockBehavior.Loose` |
+
+**Mock pattern for `IResiliencePipelineProvider` in unit tests:**
+
+```csharp
+// MockBehavior.Loose — resilience is infrastructure, not business logic under test
+private readonly Mock<IResiliencePipelineProvider> _mockResilience = new(MockBehavior.Loose);
+
+// For ExecuteSqlAsync — make it pass-through so the inner delegate actually runs
+_mockResilience
+    .Setup(r => r.ExecuteSqlAsync(It.IsAny<string>(), It.IsAny<Func<CancellationToken, Task>>()))
+    .Returns<string, Func<CancellationToken, Task>>(
+        (_, fn) => fn(CancellationToken.None));
+```
+
+> ❌ **NEVER use `MockBehavior.Strict` for `IResiliencePipelineProvider`** — it is an infrastructure concern, not business logic. Strict mocking forces every test to set up Polly calls even when the test is about handler logic.
+
+---
+
+### Quick-reference summary for new modules
+
+```
+New module has AddHttpClient?
+  YES → chain .AddBsoftHttpResilience(profileName)  [MANDATORY]
+  NO  → nothing to do
+
+New module has Hangfire job?
+  YES → add [AutomaticRetry(Attempts = 3, OnAttemptsExceeded = Fail)]  [MANDATORY]
+  NO  → nothing to do
+
+New module has high-value Dapper writes (outbox, status update)?
+  YES → inject IResiliencePipelineProvider, wrap with ExecuteSqlAsync  [RECOMMENDED]
+  NO  → nothing to do
+
+New module writes to MongoDB critically?
+  YES → wrap with ExecuteMongoTaskAsync  [RECOMMENDED]
+  NO  → nothing to do (fire-and-forget audit logs are fine unwrapped)
+
+MediatR handler?
+  → NO Polly, ever. Handlers are idempotency-free — Polly here causes duplicate writes.
+```
+
+---
+
 ## ⚠️ CRITICAL Rules
 
 ### 1. **NEVER Physical Delete**
@@ -3838,6 +4030,53 @@ operations publish `AuditLogsDomainEvent` to MongoDB.
 
 ---
 
+### 27. **Polly v8 Resilience — Mandatory for Every New Module**
+
+> 📄 Full checklist: [🛡️ Polly v8 Resilience — New Module Checklist](#️-polly-v8-resilience--new-module-checklist) (earlier in this file)
+
+**Short rules (memorise these):**
+
+> ❌ **NEVER add `.AddPollyHandler(...)` (Polly v7 API)**
+> ✅ **ALWAYS use `.AddBsoftHttpResilience(profileName)` (Polly v8 wrapper)**
+
+> ❌ **NEVER call `services.AddHttpClient()` bare without chaining `.AddBsoftHttpResilience`**
+> ✅ Every typed or named `AddHttpClient` registration MUST chain `.AddBsoftHttpResilience`
+
+> ❌ **NEVER add Polly inside a MediatR command/query handler**
+> ✅ Handlers are idempotency-free — retry at handler level risks duplicate inserts
+
+> ❌ **NEVER add Polly around EF Core `SaveChangesAsync`**
+> ✅ `EnableRetryOnFailure(5)` is already configured on every `ApplicationDbContext`
+
+**Mandatory for every new module:**
+
+| Action | Mandatory / Optional | One-liner |
+|---|---|---|
+| HTTP client registered | **MANDATORY** | `.AddBsoftHttpResilience(ResilienceProfileNames.Standard)` |
+| Hangfire job class | **MANDATORY** | `[AutomaticRetry(Attempts = 3, OnAttemptsExceeded = AttemptsExceededAction.Fail)]` |
+| High-value Dapper write | RECOMMENDED | `_resilience.ExecuteSqlAsync(ResilienceProfileNames.Standard, ct => ...)` |
+| Critical MongoDB write | RECOMMENDED | `_resilience.ExecuteMongoTaskAsync(ResilienceProfileNames.Standard, ct => ...)` |
+| Audit log MongoDB write | SKIP | Fire-and-forget — low risk, no wrap needed |
+
+**Profile quick-pick:**
+
+| Profile | Use When |
+|---|---|
+| `ResilienceProfileNames.Standard` | Internal services, SMS, WhatsApp, file fetch, reporting (default choice) |
+| `ResilienceProfileNames.Critical` | GST/e-invoice, auth tokens, payment gateways — correctness over speed |
+| `ResilienceProfileNames.FastFail` | SignalR push, UI polling — latency over correctness |
+
+**No new NuGet packages, no new DI registrations, no `Program.cs` changes** — the foundation is global. A new module only needs:
+```csharp
+// {Module}.Infrastructure/DependencyInjection.cs
+using Shared.Infrastructure.Resilience;  // ← add this using
+
+services.AddHttpClient<IMyService, MyService>()
+    .AddBsoftHttpResilience(ResilienceProfileNames.Standard);  // ← chain this
+```
+
+---
+
 ## 🎓 Learning Path
 
 1. **Study Reference:** Read `SalesOrganisation` implementation thoroughly
@@ -3864,8 +4103,8 @@ operations publish `AuditLogsDomainEvent` to MongoDB.
 
 ---
 
-**Version:** 1.3
-**Last Updated:** 2026-02-25
+**Version:** 1.4
+**Last Updated:** 2026-05-08
 **Maintainer:** Development Team
-**AI Assistant:** Claude Opus 4.6
+**AI Assistant:** Claude Sonnet 4.6
 

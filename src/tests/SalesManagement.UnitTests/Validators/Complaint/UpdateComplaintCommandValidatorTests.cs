@@ -17,6 +17,7 @@ public sealed class UpdateComplaintCommandValidatorTests
     private void SetupAllAsyncMocks(int id = 1, int customerId = 1)
     {
         _mockQueryRepo.Setup(r => r.NotFoundAsync(id)).ReturnsAsync(false);
+        _mockQueryRepo.Setup(r => r.IsComplaintFinalizedAsync(id)).ReturnsAsync(false);
         _mockQueryRepo.Setup(r => r.CustomerExistsAsync(customerId)).ReturnsAsync(true);
         _mockQueryRepo
             .Setup(r => r.InvoiceBelongsToCustomerAsync(It.IsAny<int>(), customerId))
@@ -55,6 +56,9 @@ public sealed class UpdateComplaintCommandValidatorTests
     public async Task Validate_NotFoundId_FailsValidation()
     {
         _mockQueryRepo.Setup(r => r.NotFoundAsync(99)).ReturnsAsync(true);
+        // NotFound short-circuits via .When() guards in chained rules, but the validator
+        // may still probe IsComplaintFinalizedAsync — stub with safe default to avoid Strict mock failures.
+        _mockQueryRepo.Setup(r => r.IsComplaintFinalizedAsync(99)).ReturnsAsync(false);
         _mockQueryRepo.Setup(r => r.CustomerExistsAsync(1)).ReturnsAsync(true);
         _mockQueryRepo
             .Setup(r => r.InvoiceBelongsToCustomerAsync(It.IsAny<int>(), 1))
@@ -109,5 +113,59 @@ public sealed class UpdateComplaintCommandValidatorTests
 
         var result = await CreateValidator().TestValidateAsync(command);
         result.ShouldHaveValidationErrorFor(x => x.IsActive);
+    }
+
+    [Fact]
+    public async Task Validate_FinalizedComplaint_FailsWithCannotEditError()
+    {
+        // Complaint exists, but its status is QC Accepted / Closed → must reject
+        _mockQueryRepo.Setup(r => r.NotFoundAsync(1)).ReturnsAsync(false);
+        _mockQueryRepo.Setup(r => r.IsComplaintFinalizedAsync(1)).ReturnsAsync(true);
+        _mockQueryRepo.Setup(r => r.CustomerExistsAsync(1)).ReturnsAsync(true);
+        _mockQueryRepo.Setup(r => r.InvoiceBelongsToCustomerAsync(It.IsAny<int>(), 1)).ReturnsAsync(true);
+
+        var command = new UpdateComplaintCommand
+        {
+            Id = 1,
+            CustomerId = 1,
+            IsActive = 1,
+            Details = new List<CreateComplaintDetailDto>
+            {
+                new()
+                {
+                    InvoiceHeaderId = 1, ItemId = 1, NumberOfPacks = 10, NetWeight = 100m,
+                    NatureOfComplaintIds = new List<int> { 1 }
+                }
+            }
+        };
+
+        var result = await CreateValidator().TestValidateAsync(command);
+        result.ShouldHaveValidationErrorFor(x => x.Id)
+              .WithErrorMessage("This complaint is finalized (QC Accepted / Closed) and cannot be edited.");
+    }
+
+    [Fact]
+    public async Task Validate_NonFinalizedComplaint_PassesFinalizedGuard()
+    {
+        // Standard happy-path: complaint is in a mutable state, finalized check returns false
+        SetupAllAsyncMocks();
+        var command = new UpdateComplaintCommand
+        {
+            Id = 1,
+            CustomerId = 1,
+            IsActive = 1,
+            Details = new List<CreateComplaintDetailDto>
+            {
+                new()
+                {
+                    InvoiceHeaderId = 1, ItemId = 1, NumberOfPacks = 10, NetWeight = 100m,
+                    NatureOfComplaintIds = new List<int> { 1 }
+                }
+            }
+        };
+
+        var result = await CreateValidator().TestValidateAsync(command);
+        // No "cannot be edited" error on Id when complaint is not finalized
+        result.ShouldNotHaveValidationErrorFor(x => x.Id);
     }
 }
