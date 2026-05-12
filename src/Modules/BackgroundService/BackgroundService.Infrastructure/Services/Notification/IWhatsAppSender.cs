@@ -20,7 +20,7 @@ namespace BackgroundService.Infrastructure.Services.Notification
             ILogger<WhatsAppSender> logger)
         {
             _settings = settings;
-            _httpClient = httpClientFactory.CreateClient();
+            _httpClient = httpClientFactory.CreateClient("WhatsAppClient");
             _logger = logger;
         }
 

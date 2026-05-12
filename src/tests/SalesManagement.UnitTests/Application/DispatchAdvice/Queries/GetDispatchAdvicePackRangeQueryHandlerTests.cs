@@ -95,14 +95,14 @@ namespace SalesManagement.UnitTests.Application.DispatchAdvice.Queries
         {
             _mockMiscRepo.Setup(r => r.GetMiscMasterByName(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync((SalesManagement.Domain.Entities.MiscMaster?)null);
-            _mockQueryRepo.Setup(r => r.GetPackRangeAsync(1, 1, 1, It.IsAny<IList<int>>(), 10, It.IsAny<string?>(), It.IsAny<int?>()))
+            _mockQueryRepo.Setup(r => r.GetPackRangeAsync(1, 1, 1, It.Is<IList<int>>(ids => ids.Contains(0)), 10, It.IsAny<string?>(), It.IsAny<int?>()))
                 .ReturnsAsync(new List<DispatchAdvicePackRangeDto>());
 
             await CreateSut().Handle(
                 new GetDispatchAdvicePackRangeQuery { ItemId = 1, LotId = 1, PackTypeId = 1, Range = 10 },
                 CancellationToken.None);
 
-            _mockQueryRepo.Verify(r => r.GetPackRangeAsync(1, 1, 1, It.IsAny<IList<int>>(), 10, It.IsAny<string?>(), It.IsAny<int?>()), Times.Once);
+            _mockQueryRepo.Verify(r => r.GetPackRangeAsync(1, 1, 1, It.Is<IList<int>>(ids => ids.Contains(0)), 10, It.IsAny<string?>(), It.IsAny<int?>()), Times.Once);
         }
 
         [Fact]

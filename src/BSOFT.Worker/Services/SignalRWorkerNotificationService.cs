@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.SignalR.Client;
+using Polly;
+using Shared.Infrastructure.Resilience;
 
 namespace BSOFT.Worker.Services;
 
@@ -7,13 +9,16 @@ public sealed class SignalRWorkerNotificationService : IWorkerNotificationServic
     private readonly ILogger<SignalRWorkerNotificationService> _logger;
     private readonly HubConnection _connection;
     private readonly SemaphoreSlim _connectionLock = new(1, 1);
+    private readonly ResiliencePipeline _sendPipeline;
     private bool _disposed;
 
     public SignalRWorkerNotificationService(
         IConfiguration configuration,
-        ILogger<SignalRWorkerNotificationService> logger)
+        ILogger<SignalRWorkerNotificationService> logger,
+        IResiliencePipelineProvider resilience)
     {
         _logger = logger;
+        _sendPipeline = resilience.GetSignalRPipeline(ResilienceProfileNames.FastFail);
 
         var hubUrl = configuration["SignalR:HubUrl"] ?? "http://localhost:5050/notificationHub";
 
@@ -53,10 +58,14 @@ public sealed class SignalRWorkerNotificationService : IWorkerNotificationServic
 
     public async Task SendAsync(string method, object payload)
     {
-        // FIX #1: No try/catch — let exception propagate to WorkerInAppNotifier
-        // so it knows this user's push failed and can continue with next user
-        await EnsureConnectedAsync();
-        await _connection.InvokeAsync("BroadcastFromWorker", method, payload);
+        // No try/catch — let exception propagate to WorkerInAppNotifier
+        // so it knows this user's push failed and can continue with next user.
+        // Resilience pipeline retries transient send failures (FastFail profile).
+        await _sendPipeline.ExecuteAsync(async ct =>
+        {
+            await EnsureConnectedAsync();
+            await _connection.InvokeAsync("BroadcastFromWorker", method, payload, ct);
+        });
     }
 
     private async Task EnsureConnectedAsync()

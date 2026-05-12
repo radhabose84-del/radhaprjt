@@ -25,6 +25,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Core\FinanceManagement.Application\FinanceManagement.Application.csproj" />
+    <ProjectReference Include="..\..\..\Shared\Shared.Infrastructure\Shared.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>

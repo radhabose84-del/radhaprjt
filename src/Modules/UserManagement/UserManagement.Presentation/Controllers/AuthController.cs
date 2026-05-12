@@ -181,7 +181,6 @@ namespace UserManagement.Presentation.Controllers
             });
         }
          [HttpPost("unlock")]
-        [AllowAnonymous]
         public async Task<IActionResult> UnlockUser([FromBody] UnlockUserCommand command)
         {
             var UserSession = await _mediator.Send(command);          
