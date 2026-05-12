@@ -61,7 +61,8 @@ namespace BackgroundService.Infrastructure.Repositories.Notification.Notificatio
             var dataSql = $@"
                     SELECT L.Id, NC.ModuleName, MM.Code AS EventType, MM1.Code AS TargetType, MM2.Code AS ChannelName,
                     ActionStatus, MM4.Code AS ReadStatus, MM4.Id AS ReadStatusId, MessageText, Timestamp,
-                    L.CreatedBy, L.CreatedDate, L.CreatedByName, L.CreatedIP, SendTo, L.Value
+                    L.CreatedBy, L.CreatedDate, L.CreatedByName, L.CreatedIP, SendTo, L.Value,
+                    L.ModuleTransactionId, L.ModuleTypeName
                     FROM AppNotification.NotificationEventLog L
                     INNER JOIN AppNotification.NotificationEventRule NR ON NR.Id = L.NotificationLevelRuleId
                     INNER JOIN AppNotification.NotificationLevelHierarchy NH ON NR.NotificationLevelHierarchyId = NH.Id
