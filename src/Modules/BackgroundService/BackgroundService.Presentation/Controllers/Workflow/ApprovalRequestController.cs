@@ -7,6 +7,7 @@ using Contracts.Common;
 using BackgroundService.Application.Workflow.ApprovalRequests.Commands.ApproveApprovalRequest;
 using BackgroundService.Application.Workflow.ApprovalRequests.Commands.ApproveDocumentUpload;
 using BackgroundService.Application.Workflow.ApprovalRequests.Queries.ApprovalDocumentDownload;
+using BackgroundService.Application.Workflow.ApprovalRequests.Queries.GetApprovalRequestDetail;
 using BackgroundService.Application.Workflow.ApprovalRequests.Queries.GetApprovedHistory;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -103,8 +104,30 @@ namespace BackgroundService.Presentation.Controllers.Workflow
 
             var result = await _mediator.Send(query);
 
-            return Ok(new  
-            
+            return Ok(new
+
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result
+            });
+        }
+
+        [HttpGet("detail")]
+        public async Task<IActionResult> GetApprovalRequestDetailAsync(
+            [FromQuery] int moduleTransactionId,
+            [FromQuery] string workflowType,
+            [FromQuery] bool pending = true)
+        {
+            var query = new GetApprovalRequestDetailQuery
+            {
+                ModuleTransactionId = moduleTransactionId,
+                WorkflowType = workflowType,
+                Pending = pending
+            };
+
+            var result = await _mediator.Send(query);
+
+            return Ok(new
             {
                 StatusCode = StatusCodes.Status200OK,
                 data = result

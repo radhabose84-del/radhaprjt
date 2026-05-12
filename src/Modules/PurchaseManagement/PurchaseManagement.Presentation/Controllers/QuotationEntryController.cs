@@ -1,4 +1,5 @@
 using Contracts.Dtos.Common;
+using PurchaseManagement.Application.ActivityLog.Queries.GetQuotationChangeLogs;
 using PurchaseManagement.Application.Item.ItemDetail.Commands.UploadItemImage;
 using PurchaseManagement.Application.Quotation.QuotationEntry.Commands.DeleteImage;
 using PurchaseManagement.Application.Quotations.QuotationEntry.Commands.Create;
@@ -128,6 +129,28 @@ namespace PurchaseManagement.Presentation.Controllers
 
 
 
+
+        [HttpGet("change-logs/{id:int}")]
+        public async Task<IActionResult> GetChangeLogs(
+            int id,
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 50,
+            CancellationToken ct = default)
+        {
+            var (items, total) = await _mediator.Send(
+                new GetQuotationChangeLogsQuery(id, pageNumber, pageSize), ct);
+
+            return Ok(new ApiResponse<object>(
+                StatusCodes.Status200OK,
+                "OK",
+                new
+                {
+                    Items = items,
+                    Total = total,
+                    PageNumber = pageNumber,
+                    PageSize = pageSize
+                }));
+        }
 
         [HttpPost("upload-logo")]
         public async Task<IActionResult> UploadLogo([FromForm] UploadFileCommand command, CancellationToken ct)

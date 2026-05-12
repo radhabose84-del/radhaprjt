@@ -126,7 +126,6 @@ public sealed class ActivityLogSaveChangesInterceptor : SaveChangesInterceptor
                     if (IgnoredProps.Contains(propName)) continue;
                     if (p.Metadata.IsShadowProperty()) continue;
                     if (p.Metadata.IsConcurrencyToken) continue;
-                    if (IsForeignKey(entry, p)) continue;
 
                     var oldStr = ToValueString(p.OriginalValue);
                     var newStr = ToValueString(p.CurrentValue);
