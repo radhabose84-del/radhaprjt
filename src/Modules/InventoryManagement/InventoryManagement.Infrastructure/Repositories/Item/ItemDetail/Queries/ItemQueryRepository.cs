@@ -193,6 +193,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                     XPlantMaterialStatusId = i.XPlantMaterialStatusId,
                     XPlantMaterialStatus = i.MiscStatus != null ? i.MiscStatus.Code : null,
                     IsStockItem = i.IsStockItem,
+                    IsCapitalItem = i.IsCapitalItem,
                     MaintainStock = i.MaintainStock,
                     HasVariants = i.HasVariants,
                     IsHazardous = i.IsHazardous,

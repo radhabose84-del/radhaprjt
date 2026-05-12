@@ -50,6 +50,7 @@ namespace InventoryManagement.Presentation.Controllers.Item
 
             return Ok(new ApiResponseDTO<List<ItemListDto>>
             {
+                IsSuccess = true,
                 StatusCode = StatusCodes.Status200OK,
                 Data = items,
                 TotalCount = total,
@@ -72,6 +73,7 @@ namespace InventoryManagement.Presentation.Controllers.Item
 
             return Ok(new ApiResponseDTO<ItemDetailsDto>
             {
+                IsSuccess = true,
                 StatusCode = StatusCodes.Status200OK,
                 Data = dto
             });
@@ -100,6 +102,7 @@ namespace InventoryManagement.Presentation.Controllers.Item
             return CreatedAtAction(nameof(GetById), new { id },
                 new ApiResponseDTO<int>
                 {
+                    IsSuccess = true,
                     StatusCode = StatusCodes.Status201Created,
                     Message = "Item created successfully.",
                     Data = id
@@ -114,6 +117,7 @@ namespace InventoryManagement.Presentation.Controllers.Item
 
             return Ok(new ApiResponseDTO<int>
             {
+                IsSuccess = true,
                 StatusCode = StatusCodes.Status200OK,
                 Message = "Item updated successfully.",
                 Data = item.Id
@@ -135,6 +139,7 @@ namespace InventoryManagement.Presentation.Controllers.Item
 
             return Ok(new ApiResponseDTO<ImageDto>
             {
+                IsSuccess = true,
                 StatusCode = StatusCodes.Status200OK,
                 Message = "Logo uploaded successfully.",
                 Data = dto
@@ -148,6 +153,7 @@ namespace InventoryManagement.Presentation.Controllers.Item
             var result = await _mediator.Send(command, ct);
             return Ok(new ApiResponseDTO<bool>
             {
+                IsSuccess = true,
                 StatusCode = StatusCodes.Status200OK,
                 Message = "Logo deleted successfully.",
                 Data = result
@@ -179,6 +185,7 @@ namespace InventoryManagement.Presentation.Controllers.Item
 
             return Ok(new ApiResponseDTO<List<GetItemAutoCompleteDto>>
             {
+                IsSuccess = true,
                 StatusCode = StatusCodes.Status200OK,
                 Data = items
             });
@@ -203,6 +210,7 @@ namespace InventoryManagement.Presentation.Controllers.Item
 
             return Ok(new ApiResponseDTO<List<GetItemAutoCompleteDto>>
             {
+                IsSuccess = true,
                 StatusCode = StatusCodes.Status200OK,
                 Data = items
             });
@@ -215,6 +223,7 @@ namespace InventoryManagement.Presentation.Controllers.Item
             var ids = await _mediator.Send(command, ct);
             return Ok(new ApiResponseDTO<List<int>>
             {
+                IsSuccess = true,
                 StatusCode = StatusCodes.Status200OK,
                 Message = $"Created {ids.Count} variant(s).",
                 Data = ids
@@ -228,6 +237,7 @@ namespace InventoryManagement.Presentation.Controllers.Item
             var id = await _mediator.Send(command, ct);
             return CreatedAtAction(nameof(GetById), new { id }, new ApiResponseDTO<int>
             {
+                IsSuccess = true,
                 StatusCode = StatusCodes.Status201Created,
                 Message = "Template created successfully.",
                 Data = id
@@ -248,6 +258,7 @@ namespace InventoryManagement.Presentation.Controllers.Item
 
             return Ok(new ApiResponseDTO<ItemLogDto>
             {
+                IsSuccess = true,
                 StatusCode = StatusCodes.Status200OK,
                 Data = log
             });
@@ -280,6 +291,7 @@ namespace InventoryManagement.Presentation.Controllers.Item
 
             return Ok(new ApiResponseDTO<List<ItemLogDto>>
             {
+                IsSuccess = true,
                 StatusCode = StatusCodes.Status200OK,
                 Data = items,
                 TotalCount = total
@@ -305,6 +317,7 @@ namespace InventoryManagement.Presentation.Controllers.Item
 
             return Ok(new ApiResponseDTO<List<ItemLogDto>>
             {
+                IsSuccess = true,
                 StatusCode = StatusCodes.Status200OK,
                 Data = items,
                 TotalCount = total
@@ -320,6 +333,7 @@ namespace InventoryManagement.Presentation.Controllers.Item
             if (ids == null || ids.Count == 0)
                 return Ok(new ApiResponseDTO<List<GetItemAutoCompleteDto>>
                 {
+                    IsSuccess = true,
                     StatusCode = StatusCodes.Status200OK,
                     Data = new List<GetItemAutoCompleteDto>()
                 });
@@ -328,6 +342,7 @@ namespace InventoryManagement.Presentation.Controllers.Item
 
             return Ok(new ApiResponseDTO<List<GetItemAutoCompleteDto>>
             {
+                IsSuccess = true,
                 StatusCode = StatusCodes.Status200OK,
                 Data = result
             });

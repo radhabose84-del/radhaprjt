@@ -44,5 +44,35 @@ namespace InventoryManagement.UnitTests.Application.Item.Queries
 
             _mockRepo.Verify(r => r.GetByIdAsync(5, It.IsAny<CancellationToken>()), Times.Once);
         }
+
+        // Regression for Bug #1 — IsCapitalItem was being dropped by the GetByIdAsync
+        // LINQ projection in ItemQueryRepository. This handler test asserts the handler
+        // returns whatever the repo returns; the integration test covers the projection
+        // itself end-to-end.
+        [Fact]
+        public async Task Handle_WhenRepoReturnsIsCapitalItemTrue_HandlerPropagatesIt()
+        {
+            var dto = new ItemDetailsDto { Id = 7, IsCapitalItem = true };
+            _mockRepo.Setup(r => r.GetByIdAsync(7, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(dto);
+
+            var result = await CreateSut().Handle(new GetItemByIdQuery { Id = 7 }, CancellationToken.None);
+
+            result.Should().NotBeNull();
+            result!.IsCapitalItem.Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task Handle_WhenRepoReturnsIsCapitalItemFalse_HandlerPropagatesIt()
+        {
+            var dto = new ItemDetailsDto { Id = 8, IsCapitalItem = false };
+            _mockRepo.Setup(r => r.GetByIdAsync(8, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(dto);
+
+            var result = await CreateSut().Handle(new GetItemByIdQuery { Id = 8 }, CancellationToken.None);
+
+            result.Should().NotBeNull();
+            result!.IsCapitalItem.Should().BeFalse();
+        }
     }
 }
