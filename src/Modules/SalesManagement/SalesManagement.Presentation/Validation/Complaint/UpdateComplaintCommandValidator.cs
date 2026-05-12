@@ -52,7 +52,12 @@ namespace SalesManagement.Presentation.Validation.Complaint
                         RuleFor(x => x.Id)
                             .GreaterThan(0).WithMessage("Valid Id is required.")
                             .MustAsync(async (id, ct) => !await _queryRepository.NotFoundAsync(id))
-                            .WithMessage($"Complaint {rule.Error}");
+                            .WithMessage($"Complaint {rule.Error}")
+                            // Block edits on terminal-state complaints (QC Accepted / Closed).
+                            // Chained after NotFound so we don't probe finalized-state on a missing row.
+                            .MustAsync(async (id, ct) => !await _queryRepository.IsComplaintFinalizedAsync(id))
+                            .WithMessage("This complaint is finalized (QC Accepted / Closed) and cannot be edited.")
+                            .When(x => x.Id > 0);
                         break;
 
                     case "FKColumnDelete":

@@ -893,5 +893,24 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
 
             return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { Id = complaintHeaderId });
         }
+
+        public async Task<bool> IsComplaintFinalizedAsync(int id)
+        {
+            // True when the complaint's current StatusName is "QC Accepted" or "Closed"
+            // (matched case-insensitively, trimmed) — these are the terminal states from
+            // QC and Resolution workflows respectively. Used by UpdateComplaintCommandValidator.
+            const string sql = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1
+                    FROM   Sales.ComplaintHeader ch
+                    INNER  JOIN Sales.MiscMaster mm ON mm.Id = ch.StatusId
+                    WHERE  ch.Id = @Id
+                      AND  ch.IsDeleted = 0
+                      AND  mm.IsDeleted = 0
+                      AND  UPPER(LTRIM(RTRIM(mm.Description))) IN ('QC ACCEPTED', 'CLOSED')
+                ) THEN 1 ELSE 0 END;";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { Id = id });
+        }
     }
 }
