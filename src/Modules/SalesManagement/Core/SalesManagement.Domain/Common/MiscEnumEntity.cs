@@ -207,6 +207,11 @@ namespace SalesManagement.Domain.Common
         public const string PaymentTypeMiscType = "PaymentType";
         public const string PaymentTypeAdvance = "Advance";
 
+        // Sales Agreement
+        public const string TransactionTypeSalesAgreement = "Sales Agreement";
+        public const string SalesAgreementApprovalStatus = "ApprovalStatus";
+        public const string SalesAgreementStatusPending = "Pending";
+
     }
 }
     
