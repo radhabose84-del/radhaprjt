@@ -429,7 +429,7 @@ namespace SalesManagement.IntegrationTests.Repositories.Complaint
         /// (DispatchAdviceHeader, SalesOrderHeader, etc.).
         /// </summary>
         private async Task<(int invoiceHeaderId, int invoiceDetailId)> SeedInvoiceWithBagWeightAsync(
-            int partyId, decimal bagWeight, decimal netWeight)
+            int partyId, decimal bagWeight, decimal netWeight, int unitId = 1)
         {
             await using var conn = new SqlConnection(_fixture.ConnectionString);
             await conn.OpenAsync();
@@ -447,14 +447,14 @@ namespace SalesManagement.IntegrationTests.Repositories.Complaint
                      RoundOff, InvoiceAmountBeforeTCS, InvoiceAmount,
                      IsActive, IsDeleted, CreatedBy)
                 VALUES
-                    (@InvoiceNo, GETDATE(), 0, @PartyId, 1, 1,
+                    (@InvoiceNo, GETDATE(), 0, @PartyId, @UnitId, 1,
                      0, 0, 0, 0, 0, 0,
                      0, 0, 0, 0,
                      0, 0, 0, 0, 0, 0,
                      0, 0, 0,
                      1, 0, 1);
                 SELECT CAST(SCOPE_IDENTITY() AS INT);",
-                new { InvoiceNo = invoiceNo, PartyId = partyId });
+                new { InvoiceNo = invoiceNo, PartyId = partyId, UnitId = unitId });
 
             var invoiceDetailId = await conn.ExecuteScalarAsync<int>($@"
                 INSERT INTO Sales.InvoiceDetail
@@ -706,6 +706,96 @@ namespace SalesManagement.IntegrationTests.Repositories.Complaint
             var result = await CreateRepo().IsComplaintFinalizedAsync(int.MaxValue);
 
             result.Should().BeFalse("an Id that doesn't exist cannot be finalized");
+        }
+
+        // ---------------------------------------------------------------------------
+        // Pull-from-Invoice unit scoping — invoices raised for the same customer
+        // across multiple units must only surface for the user's current unit.
+        // Regression guard for the cross-unit invoice listing bug.
+        // ---------------------------------------------------------------------------
+
+        private static Mock<IIPAddressService> BuildIpServiceWithUnit(int unitId)
+        {
+            var mock = new Mock<IIPAddressService>(MockBehavior.Loose);
+            mock.Setup(x => x.GetUserId()).Returns(1);
+            mock.Setup(x => x.GetUserName()).Returns("test-user");
+            mock.Setup(x => x.GetCompanyId()).Returns(1);
+            mock.Setup(x => x.GetUnitId()).Returns(unitId);
+            mock.Setup(x => x.GetGroupCode()).Returns("SUPER_ADMIN");
+            return mock;
+        }
+
+        [Fact]
+        public async Task SearchInvoicesAsync_Should_Scope_By_Current_UnitId()
+        {
+            const int partyId = 77771;
+            const int currentUnit = 1;
+            const int otherUnit = 99;
+
+            await ClearInvoiceTablesAsync();
+            await SeedInvoiceWithBagWeightAsync(partyId, bagWeight: 1m, netWeight: 1m, unitId: currentUnit);
+            await SeedInvoiceWithBagWeightAsync(partyId, bagWeight: 2m, netWeight: 2m, unitId: otherUnit);
+
+            var (rows, total) = await CreateRepo(
+                    uomLookup: BuildEmptyUomLookup(),
+                    ipService: BuildIpServiceWithUnit(currentUnit))
+                .SearchInvoicesAsync(partyId, searchTerm: null, lastOneYear: false, pageNumber: 1, pageSize: 10);
+
+            total.Should().Be(1, "only the current unit's invoice should be returned");
+            rows.Should().HaveCount(1);
+            rows[0].UnitId.Should().Be(currentUnit);
+        }
+
+        [Fact]
+        public async Task SearchInvoicesAsync_Should_Return_Empty_When_No_Invoice_Matches_Current_Unit()
+        {
+            const int partyId = 77772;
+
+            await ClearInvoiceTablesAsync();
+            await SeedInvoiceWithBagWeightAsync(partyId, bagWeight: 1m, netWeight: 1m, unitId: 50);
+
+            var (rows, total) = await CreateRepo(
+                    uomLookup: BuildEmptyUomLookup(),
+                    ipService: BuildIpServiceWithUnit(1))
+                .SearchInvoicesAsync(partyId, searchTerm: null, lastOneYear: false, pageNumber: 1, pageSize: 10);
+
+            total.Should().Be(0);
+            rows.Should().BeEmpty();
+        }
+
+        [Fact]
+        public async Task GetCustomerInvoicesAsync_Should_Scope_By_Current_UnitId()
+        {
+            const int customerId = 77773;
+            const int currentUnit = 1;
+            const int otherUnit = 99;
+
+            await ClearInvoiceTablesAsync();
+            await SeedInvoiceWithBagWeightAsync(customerId, bagWeight: 1m, netWeight: 1m, unitId: currentUnit);
+            await SeedInvoiceWithBagWeightAsync(customerId, bagWeight: 2m, netWeight: 2m, unitId: otherUnit);
+
+            var rows = await CreateRepo(
+                    uomLookup: BuildEmptyUomLookup(),
+                    ipService: BuildIpServiceWithUnit(currentUnit))
+                .GetCustomerInvoicesAsync(customerId);
+
+            rows.Should().HaveCount(1, "only the current unit's invoice should be returned");
+        }
+
+        [Fact]
+        public async Task GetCustomerInvoicesAsync_Should_Return_Empty_When_No_Invoice_Matches_Current_Unit()
+        {
+            const int customerId = 77774;
+
+            await ClearInvoiceTablesAsync();
+            await SeedInvoiceWithBagWeightAsync(customerId, bagWeight: 1m, netWeight: 1m, unitId: 50);
+
+            var rows = await CreateRepo(
+                    uomLookup: BuildEmptyUomLookup(),
+                    ipService: BuildIpServiceWithUnit(1))
+                .GetCustomerInvoicesAsync(customerId);
+
+            rows.Should().BeEmpty();
         }
     }
 }

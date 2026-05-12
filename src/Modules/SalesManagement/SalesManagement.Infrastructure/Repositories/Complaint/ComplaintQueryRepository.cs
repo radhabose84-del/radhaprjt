@@ -499,6 +499,10 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
 
         public async Task<List<CustomerInvoiceDto>> GetCustomerInvoicesAsync(int customerId)
         {
+            // Scope invoices to the current user's unit — prevents cross-unit data leakage
+            // when the same customer has invoices raised from multiple units.
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
+
             const string sql = @"
                 SELECT
                     ih.Id,
@@ -511,10 +515,10 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                 LEFT JOIN Sales.DispatchAdviceHeader da ON ih.DispatchAdviceId = da.Id AND da.IsDeleted = 0
                 LEFT JOIN Sales.SalesOrderHeader so ON da.SalesOrderId = so.Id AND so.IsDeleted = 0
                 LEFT JOIN Finance.TransactionTypeMaster tt ON so.SalesOrderTypeId = tt.Id AND tt.IsDeleted = 0
-                WHERE ih.PartyId = @CustomerId AND ih.IsDeleted = 0
+                WHERE ih.PartyId = @CustomerId AND ih.UnitId = @UnitId AND ih.IsDeleted = 0
                 ORDER BY ih.InvoiceDate DESC;";
 
-            var result = await _dbConnection.QueryAsync<CustomerInvoiceDto>(sql, new { CustomerId = customerId });
+            var result = await _dbConnection.QueryAsync<CustomerInvoiceDto>(sql, new { CustomerId = customerId, UnitId = unitId });
             return result.ToList();
         }
 
@@ -568,6 +572,10 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
 
         public async Task<(List<InvoiceSearchDto>, int)> SearchInvoicesAsync(int partyId, string? searchTerm, bool lastOneYear, int pageNumber, int pageSize)
         {
+            // Scope invoices to the current user's unit — without this, customers with invoices
+            // across multiple units leak rows from other units into the Pull-from-Invoice list.
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
+
             var dateFilter = lastOneYear
                 ? " AND ih.InvoiceDate >= DATEADD(YEAR, -1, GETDATE())"
                 : string.Empty;
@@ -585,7 +593,7 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                 LEFT JOIN Sales.DispatchAdviceHeader da ON ih.DispatchAdviceId = da.Id AND da.IsDeleted = 0
                 LEFT JOIN Sales.SalesOrderHeader so ON da.SalesOrderId = so.Id AND so.IsDeleted = 0
                 LEFT JOIN Finance.TransactionTypeMaster tt ON so.SalesOrderTypeId = tt.Id AND tt.IsDeleted = 0
-                WHERE ih.PartyId = @PartyId {dateFilter} {searchFilter};";
+                WHERE ih.PartyId = @PartyId AND ih.UnitId = @UnitId {dateFilter} {searchFilter};";
 
             var dataSql = $@"
                 SELECT
@@ -609,13 +617,14 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
                 LEFT JOIN Sales.DispatchAdviceHeader da ON ih.DispatchAdviceId = da.Id AND da.IsDeleted = 0
                 LEFT JOIN Sales.SalesOrderHeader so ON da.SalesOrderId = so.Id AND so.IsDeleted = 0
                 LEFT JOIN Finance.TransactionTypeMaster tt ON so.SalesOrderTypeId = tt.Id AND tt.IsDeleted = 0
-                WHERE ih.PartyId = @PartyId {dateFilter} {searchFilter}
+                WHERE ih.PartyId = @PartyId AND ih.UnitId = @UnitId {dateFilter} {searchFilter}
                 ORDER BY ih.InvoiceDate DESC, ih.Id, id.ItemSno
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;";
 
             var parameters = new
             {
                 PartyId = partyId,
+                UnitId = unitId,
                 SearchTerm = $"%{searchTerm}%",
                 Offset = (pageNumber - 1) * pageSize,
                 PageSize = pageSize
