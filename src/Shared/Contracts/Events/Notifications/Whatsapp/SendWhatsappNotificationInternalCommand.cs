@@ -26,6 +26,8 @@ namespace Contracts.Events.Notifications.Whatsapp
         public string param8 { get; set; } = string.Empty;
         public string param9 { get; set; } = string.Empty;
         public string param10 { get; set; } = string.Empty;  
-        public int RetryCount { get; set; } = 0; 
+        public int RetryCount { get; set; } = 0;
+        public int ModuleTransactionId { get; set; }
+        public string? ModuleTypeName { get; set; }
     }
 }

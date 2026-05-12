@@ -172,7 +172,9 @@ namespace SalesManagement.Application.SalesQuotation.Commands.CreateSalesQuotati
                         param8 = "",
                         param9 = "",
                         param10 = "",
-                        OverrideTargetUserIds = overrideUserIds
+                        OverrideTargetUserIds = overrideUserIds,
+                        ModuleTransactionId = newId,
+                        ModuleTypeName = MiscEnumEntity.TransactionTypeSalesQuotationAmendment
                     };
 
                     await _outboxEventPublisher.ScheduleWithoutSaveAsync(inAppEvent, inAppCorrelationId, cancellationToken);

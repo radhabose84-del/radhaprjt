@@ -74,6 +74,8 @@ public sealed class QueuePoPdfEmailHandler(
                 param3 = DateTimeOffset.UtcNow,
                 param4 = "",
                 param10 = cmd.RowsJson,
+                ModuleTransactionId = 0,
+                ModuleTypeName = "Purchase Order",
                 Attachments =
                 {
                     new NotificationCreatedEvent.NotificationAttachment

@@ -290,7 +290,9 @@ namespace PurchaseManagement.Application.PurchaseOrder.Local.Commands.Create
                         param2 = entity.CreatedByName,
                         param3 = entity.PODate,
                         param4 = entity.PurchaseValue.ToString(),
-                        param5 = dto.VendorName
+                        param5 = dto.VendorName,
+                        ModuleTransactionId = result,
+                        ModuleTypeName = MiscEnumEntity.POLocal
                     };
 
                     await _outboxEventPublisher.ScheduleWithoutSaveAsync(workflowCommand, correlationId, ct);
