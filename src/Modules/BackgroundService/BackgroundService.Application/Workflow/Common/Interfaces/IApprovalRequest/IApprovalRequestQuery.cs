@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using BackgroundService.Application.Workflow.ApprovalRequests.Commands.ApproveApprovalRequest;
 using BackgroundService.Application.Workflow.ApprovalRequests.Queries.GetApprovalRequestById;
+using BackgroundService.Application.Workflow.ApprovalRequests.Queries.GetApprovalRequestDetail;
 using BackgroundService.Domain.Entities.Workflow;
 
 namespace BackgroundService.Application.Workflow.Common.Interfaces.IApprovalRequest
@@ -20,13 +21,12 @@ namespace BackgroundService.Application.Workflow.Common.Interfaces.IApprovalRequ
 
         // Task<List<ApprovalRequestWithLinesDto>> GetByModuleAsync(int moduleTransactionId, int workflowTypeId); 
 
-          Task<List<ApprovalRequestWithLinesDto>> GetByModuleAsync(int moduleTransactionId, int workflowTypeId); 
-      
+          Task<List<ApprovalRequestWithLinesDto>> GetByModuleAsync(int moduleTransactionId, int workflowTypeId);
 
-        
-
-
-      
-        
+        Task<List<ApprovalRequestDetailDto>> GetApprovalRequestDetailAsync(
+            int moduleTransactionId,
+            string workflowType,
+            bool pending,
+            int userId);
     }
 }

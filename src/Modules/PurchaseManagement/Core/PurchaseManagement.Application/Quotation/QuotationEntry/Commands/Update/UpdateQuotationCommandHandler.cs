@@ -74,31 +74,47 @@ namespace PurchaseManagement.Application.Quotations.QuotationEntry.Commands.Upda
             header.IsActive        = status;
             header.ModifiedDate    = DateTimeOffset.UtcNow;
 
-            // 4) Replace lines
-            header.Lines.Clear();
+            // 4) Update existing lines in-place (no delete, no insert)
+            //    Match by Id first; if Id is 0 (UI didn't send it), fall back to ItemId
+            var existingById = header.Lines
+                .Where(l => l.IsDeleted == BaseEntity.IsDelete.NotDeleted)
+                .ToDictionary(l => l.Id);
+
+            var existingByItemId = header.Lines
+                .Where(l => l.IsDeleted == BaseEntity.IsDelete.NotDeleted)
+                .ToDictionary(l => l.ItemId);
 
             foreach (var l in request.Lines)
             {
-                header.Lines.Add(new QuotationDetail
-                {
-                    ItemId         = l.ItemId,
-                    HsnId          = l.HsnId,
-                    UomId          = l.UomId,
-                    CurrencyId     = l.CurrencyId,
-                    Quantity       = l.Quantity,
-                    Rate           = l.Rate,
-                    DiscountTypeId = l.DiscountTypeId,
-                    Discount       = l.Discount,
-                    PandFCharge    = l.PandFCharge,
-                    GstPercent     = l.GstPercent,
-                    Warranty       = l.Warranty,
-                    ValidityDays   = l.ValidityDays,
-                    DeliveryDays   = l.DeliveryDays,
-                    LineSubtotal   = l.LineSubtotal,
-                    GstAmount      = l.GstAmount,
-                    Total          = l.Total,
-                    IsActive       = status
-                });
+                QuotationDetail? line = null;
+
+                if (l.Id > 0)
+                    existingById.TryGetValue(l.Id, out line);
+
+                if (line is null && l.ItemId > 0)
+                    existingByItemId.TryGetValue(l.ItemId, out line);
+
+                if (line is null)
+                    continue;
+
+                // Update in-place — EF marks as Modified → interceptor logs each changed property
+                line.ItemId         = l.ItemId;
+                line.HsnId          = l.HsnId;
+                line.UomId          = l.UomId;
+                line.CurrencyId     = l.CurrencyId;
+                line.Quantity       = l.Quantity;
+                line.Rate           = l.Rate;
+                line.DiscountTypeId = l.DiscountTypeId;
+                line.Discount       = l.Discount;
+                line.PandFCharge    = l.PandFCharge;
+                line.GstPercent     = l.GstPercent;
+                line.Warranty       = l.Warranty;
+                line.ValidityDays   = l.ValidityDays;
+                line.DeliveryDays   = l.DeliveryDays;
+                line.LineSubtotal   = l.LineSubtotal;
+                line.GstAmount      = l.GstAmount;
+                line.Total          = l.Total;
+                line.IsActive       = status;
             }
 
             // 5) Save changes

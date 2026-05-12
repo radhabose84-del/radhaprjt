@@ -211,10 +211,11 @@ public class QuotationQueryRepository(
                             ? (uom.UOMName ?? string.Empty)
                             : string.Empty;           
             return new GetQuotationDetailDto(
+                Id: l.Id,
                 ItemId: l.ItemId,
                 ItemCode: im?.ItemCode ?? string.Empty,
                 ItemName: im?.ItemName ?? string.Empty,
-                HsnId: l.HsnId,                
+                HsnId: l.HsnId,
                 UomId: l.UomId,
                 CurrencyId: l.CurrencyId,
                 CurrencyName: cm?.Code ?? string.Empty,
